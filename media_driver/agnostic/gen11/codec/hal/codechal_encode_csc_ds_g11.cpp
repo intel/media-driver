@@ -471,7 +471,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
     if (m_surfaceParamsCsc.presMBVProcStatsBuffer)
     {
         MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-        surfaceParams.dwSize = m_hwInterface->m_avcMbStatBufferSize;
+        surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(m_hwInterface->m_avcMbStatBufferSize);
         surfaceParams.bIsWritable = true;
         surfaceParams.presBuffer = m_surfaceParamsCsc.presMBVProcStatsBuffer;
         surfaceParams.dwCacheabilityControl = m_hwInterface->ComposeSurfaceCacheabilityControl(
@@ -512,7 +512,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         if (hevcExtParams->presHistoryBuffer)
         {
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-            surfaceParams.dwSize = hevcExtParams->dwSizeHistoryBuffer;
+            surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(hevcExtParams->dwSizeHistoryBuffer);
             surfaceParams.dwOffset = hevcExtParams->dwOffsetHistoryBuffer;
             surfaceParams.bIsWritable = true;
             surfaceParams.presBuffer = hevcExtParams->presHistoryBuffer;
@@ -531,7 +531,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         if (hevcExtParams->presHistorySumBuffer)
         {
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-            surfaceParams.dwSize = hevcExtParams->dwSizeHistorySumBuffer;
+            surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(hevcExtParams->dwSizeHistorySumBuffer);
             surfaceParams.dwOffset = hevcExtParams->dwOffsetHistorySumBuffer;
             surfaceParams.bIsWritable = true;
             surfaceParams.presBuffer = hevcExtParams->presHistorySumBuffer;
@@ -550,7 +550,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         if (hevcExtParams->presMultiThreadTaskBuffer)
         {
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-            surfaceParams.dwSize = hevcExtParams->dwSizeMultiThreadTaskBuffer;
+            surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(hevcExtParams->dwSizeMultiThreadTaskBuffer);
             surfaceParams.dwOffset = hevcExtParams->dwOffsetMultiThreadTaskBuffer;
             surfaceParams.bIsWritable = true;
             surfaceParams.presBuffer = hevcExtParams->presMultiThreadTaskBuffer;
