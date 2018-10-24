@@ -1248,27 +1248,32 @@ MOS_STATUS CodechalDecodeScalability_ChkGpuCtxReCreation(
 
     if (changed)
     {
-        // Temp code here. will remove it after gpu context refactor is done
-        if (pScalabilityState->VideoContextForSP == MOS_GPU_CONTEXT_INVALID_HANDLE ||
-            pScalabilityState->VideoContextForMP == MOS_GPU_CONTEXT_INVALID_HANDLE)
-        {
-            auto contextToCreate = (NewLRCACount == 2) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO : MOS_GPU_CONTEXT_VIDEO;
-            
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
-                pOsInterface,
-                contextToCreate,
-                MOS_GPU_NODE_VIDEO,
-                CurgpuCtxCreatOpts));
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnRegisterBBCompleteNotifyEvent(
-                pOsInterface,
-                contextToCreate));
+         auto contextToCreate = MOS_GPU_CONTEXT_VIDEO;
 
-            pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
-            pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO;
-        }
+         switch (NewLRCACount)
+         {
+         case 2:
+             contextToCreate = pScalabilityState->VideoContextForMP;
+             break;
+         case 3:
+             contextToCreate = pScalabilityState->VideoContextFor3P;
+             break;
+         default:
+             contextToCreate = pScalabilityState->VideoContextForSP;
+             break;
+         }
+
+         CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
+             pOsInterface,
+             contextToCreate,
+             MOS_GPU_NODE_VIDEO,
+             CurgpuCtxCreatOpts));
+         CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnRegisterBBCompleteNotifyEvent(
+             pOsInterface,
+             contextToCreate));
 
         // Switch across single pipe/ scalable mode gpu contexts
-        MOS_GPU_CONTEXT GpuContext = (pScalabilityState->ucScalablePipeNum == 1) ? pScalabilityState->VideoContextForSP : pScalabilityState->VideoContextForMP;
+        MOS_GPU_CONTEXT GpuContext = contextToCreate;
         CODECHAL_DECODE_VERBOSEMESSAGE("Change Decode GPU Ctxt to %d.", GpuContext);
         CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnSetGpuContext(pOsInterface, GpuContext));
         // Reset allocation list and house keeping
@@ -1878,8 +1883,9 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
         return eStatus;
     }
 
-    pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO;
+    pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+    pScalabilityState->VideoContextFor3P = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
 
     pScalabilityState->numDelay = 15;
 

@@ -99,6 +99,7 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
     MOS_GPU_CONTEXT                 VideoContext;
     MOS_GPU_CONTEXT                 VideoContextForSP;
     MOS_GPU_CONTEXT                 VideoContextForMP;
+    MOS_GPU_CONTEXT                 VideoContextFor3P;
     uint32_t                        HcpDecPhase;
     bool                            bScalableDecodeMode;
 
