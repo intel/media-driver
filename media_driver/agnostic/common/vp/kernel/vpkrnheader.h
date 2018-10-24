@@ -848,32 +848,33 @@
 #define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5_Rot_90 814
 #define IDR_VP_avs_scale_16aligned 815
 #define IDR_VP_camera_pipe_CalcParams 816
-#define IDR_VP_return 817
-#define IDR_VP_zzz_preproduction 818
-#define IDR_VP_zzz_preproduction_ALLPL2Copy_Gen 819
-#define IDR_VP_zzz_preproduction_HDR_mandatory_Gen 820
-#define IDR_VP_zzz_preproduction_HDR_per_frame_stat_Gen 821
-#define IDR_VP_zzz_preproduction_gcBltPS_32_To_128_Mirror_Gen 822
-#define IDR_VP_zzz_preproduction_gcBltPS_64_To_128_Mirror_Gen 823
-#define IDR_VP_zzz_preproduction_gcBltPS_Gen 824
-#define IDR_VP_zzz_preproduction_gcClearNoReplicatePS_Gen 825
-#define IDR_VP_zzz_preproduction_gcClearReplicatePS_Gen 826
-#define IDR_VP_zzz_preproduction_gcColorFillNoReplicatePS_Gen 827
-#define IDR_VP_zzz_preproduction_gcColorFillReplicatePS_Gen 828
-#define IDR_VP_zzz_preproduction_gcFastClearReplicatePS_Gen 829
-#define IDR_VP_zzz_production 830
-#define IDR_VP_zzz_production_ALLPL2Copy_Gen 831
-#define IDR_VP_zzz_production_HDR_mandatory_Gen 832
-#define IDR_VP_zzz_production_HDR_per_frame_stat_Gen 833
-#define IDR_VP_zzz_production_gcBltPS_32_To_128_Mirror_Gen 834
-#define IDR_VP_zzz_production_gcBltPS_64_To_128_Mirror_Gen 835
-#define IDR_VP_zzz_production_gcBltPS_Gen 836
-#define IDR_VP_zzz_production_gcClearNoReplicatePS_Gen 837
-#define IDR_VP_zzz_production_gcClearReplicatePS_Gen 838
-#define IDR_VP_zzz_production_gcColorFillNoReplicatePS_Gen 839
-#define IDR_VP_zzz_production_gcColorFillReplicatePS_Gen 840
-#define IDR_VP_zzz_production_gcFastClearReplicatePS_Gen 841
-#define IDR_VP_TOTAL_NUM_KERNELS 842
+#define IDR_VP_fast_avs_1_to_n 817
+#define IDR_VP_return 818
+#define IDR_VP_zzz_preproduction 819
+#define IDR_VP_zzz_preproduction_ALLPL2Copy_Gen 820
+#define IDR_VP_zzz_preproduction_HDR_mandatory_Gen 821
+#define IDR_VP_zzz_preproduction_HDR_per_frame_stat_Gen 822
+#define IDR_VP_zzz_preproduction_gcBltPS_32_To_128_Mirror_Gen 823
+#define IDR_VP_zzz_preproduction_gcBltPS_64_To_128_Mirror_Gen 824
+#define IDR_VP_zzz_preproduction_gcBltPS_Gen 825
+#define IDR_VP_zzz_preproduction_gcClearNoReplicatePS_Gen 826
+#define IDR_VP_zzz_preproduction_gcClearReplicatePS_Gen 827
+#define IDR_VP_zzz_preproduction_gcColorFillNoReplicatePS_Gen 828
+#define IDR_VP_zzz_preproduction_gcColorFillReplicatePS_Gen 829
+#define IDR_VP_zzz_preproduction_gcFastClearReplicatePS_Gen 830
+#define IDR_VP_zzz_production 831
+#define IDR_VP_zzz_production_ALLPL2Copy_Gen 832
+#define IDR_VP_zzz_production_HDR_mandatory_Gen 833
+#define IDR_VP_zzz_production_HDR_per_frame_stat_Gen 834
+#define IDR_VP_zzz_production_gcBltPS_32_To_128_Mirror_Gen 835
+#define IDR_VP_zzz_production_gcBltPS_64_To_128_Mirror_Gen 836
+#define IDR_VP_zzz_production_gcBltPS_Gen 837
+#define IDR_VP_zzz_production_gcClearNoReplicatePS_Gen 838
+#define IDR_VP_zzz_production_gcClearReplicatePS_Gen 839
+#define IDR_VP_zzz_production_gcColorFillNoReplicatePS_Gen 840
+#define IDR_VP_zzz_production_gcColorFillReplicatePS_Gen 841
+#define IDR_VP_zzz_production_gcFastClearReplicatePS_Gen 842
+#define IDR_VP_TOTAL_NUM_KERNELS 843
 
 #if _DEBUG
 #define IDR_VP_KERNEL_NAMES   \
@@ -1694,6 +1695,7 @@
     _T("YUY2_444Scale16_Chromasiting_Buf_5_Rot_90"),\
     _T("avs_scale_16aligned"),\
     _T("camera_pipe_CalcParams"),\
+    _T("fast_avs_1_to_n"),\
     _T("return"),\
     _T("zzz_preproduction"),\
     _T("zzz_preproduction_ALLPL2Copy_Gen"),\
@@ -2564,6 +2566,7 @@
     _T("839"),\
     _T("840"),\
     _T("841"),\
+    _T("842"),\
     _T("")
 #endif // _DEBUG
 
