@@ -3994,7 +3994,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_encBCombinedBuffer1[m_currRecycledBufIdx].sResource,
-        m_encBCombinedBuffer1[m_currRecycledBufIdx].dwSize,
+        MOS_BYTES_TO_DWORDS(m_encBCombinedBuffer1[m_currRecycledBufIdx].dwSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED1_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4228,7 +4228,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_resMbCodeSurface,
-        m_mvOffset,
+        MOS_BYTES_TO_DWORDS(m_mvOffset),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_PAK_OBJECT_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI],
@@ -4245,7 +4245,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_resMbCodeSurface,
-        m_mbCodeSize - m_mvOffset,
+        MOS_BYTES_TO_DWORDS(m_mbCodeSize - m_mvOffset),
         m_mvOffset,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ENC_CU_PACKET_FOR_PAK_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI],
@@ -4327,7 +4327,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_encConstantTableForB.sResource,
-        m_encConstantTableForB.dwSize,
+        MOS_BYTES_TO_DWORDS(m_encConstantTableForB.dwSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ENC_CONSTANT_TABLE_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI],
@@ -4373,7 +4373,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
             &surfaceCodecParams,
             m_trackedBuf->GetMvTemporalBuffer(mbCodeIdxForTempMVP),
-            m_sizeOfMvTemporalBuffer,
+            MOS_BYTES_TO_DWORDS(m_sizeOfMvTemporalBuffer),
             0,
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ENC_MV_TEMPORAL_BUFFER_ENCODE].Value,
             bindingTable->dwBindingTableEntries[startBTI++],
@@ -4415,7 +4415,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_brcInputForEncKernelBuffer->sResource,
-        HEVC_FRAMEBRC_BUF_CONST_SIZE,
+        MOS_BYTES_TO_DWORDS(HEVC_FRAMEBRC_BUF_CONST_SIZE),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_COMBINED_ENC_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4549,7 +4549,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
             &surfaceCodecParams,
             &m_debugSurface[i].sResource,
-            m_debugSurface[i].dwSize,
+            MOS_BYTES_TO_DWORDS(m_debugSurface[i].dwSize),
             0,
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_DEBUG_ENCODE].Value,
             bindingTable->dwBindingTableEntries[startBTI],
@@ -4584,7 +4584,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcInitResetSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_brcBuffers.resBrcHistoryBuffer,
-        m_brcHistoryBufferSize,
+        MOS_BYTES_TO_DWORDS(m_brcHistoryBufferSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_HISTORY_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4679,7 +4679,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_brcBuffers.resBrcHistoryBuffer,
-        m_brcHistoryBufferSize,
+        MOS_BYTES_TO_DWORDS(m_brcHistoryBufferSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_HISTORY_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4694,7 +4694,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_brcBuffers.resBrcPakStatisticBuffer[m_brcBuffers.uiCurrBrcPakStasIdxForRead],
-        m_hevcBrcPakStatisticsSize,
+        MOS_BYTES_TO_DWORDS(m_hevcBrcPakStatisticsSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_PAK_STATS_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4709,7 +4709,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         brcHcpStateReadBuffer,
-        m_brcBuffers.dwBrcHcpPicStateSize,
+        MOS_BYTES_TO_DWORDS(m_brcBuffers.dwBrcHcpPicStateSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_PIC_STATE_READ_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4724,7 +4724,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_brcBuffers.resBrcImageStatesWriteBuffer[m_currRecycledBufIdx],
-        m_brcBuffers.dwBrcHcpPicStateSize,
+        MOS_BYTES_TO_DWORDS(m_brcBuffers.dwBrcHcpPicStateSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_PIC_STATE_WRITE_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4739,7 +4739,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_brcInputForEncKernelBuffer->sResource,
-        HEVC_FRAMEBRC_BUF_CONST_SIZE,
+        MOS_BYTES_TO_DWORDS(HEVC_FRAMEBRC_BUF_CONST_SIZE),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_COMBINED_ENC_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4782,7 +4782,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_resMbStatsBuffer,
-        m_hwInterface->m_avcMbStatBufferSize,
+        MOS_BYTES_TO_DWORDS(m_hwInterface->m_avcMbStatBufferSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_MB_STATS_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4797,7 +4797,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_mvAndDistortionSumSurface.sResource,
-        m_mvAndDistortionSumSurface.dwSize,
+        MOS_BYTES_TO_DWORDS(m_mvAndDistortionSumSurface.dwSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DISTORTION_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
@@ -4886,7 +4886,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcLcuUpdateSurfaces(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
             &surfaceCodecParams,
             &m_brcBuffers.resBrcHistoryBuffer,
-            m_brcHistoryBufferSize,
+            MOS_BYTES_TO_DWORDS(m_brcHistoryBufferSize),
             0,
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_HISTORY_ENCODE].Value,
             bindingTable->dwBindingTableEntries[startBTI++],
@@ -4915,7 +4915,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcLcuUpdateSurfaces(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
             &surfaceCodecParams,
             &m_resMbStatsBuffer,
-            m_hwInterface->m_avcMbStatBufferSize,
+            MOS_BYTES_TO_DWORDS(m_hwInterface->m_avcMbStatBufferSize),
             0,
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_MB_STATS_ENCODE].Value,
             bindingTable->dwBindingTableEntries[startBTI++],
