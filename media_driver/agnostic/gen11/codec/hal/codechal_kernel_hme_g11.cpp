@@ -602,7 +602,7 @@ MOS_STATUS CodechalKernelHmeG11::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNE
             kernelState));
 
         MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-        surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(m_surfaceParam.vdencStreamInSurfaceSize);
+        surfaceParams.dwSize = m_surfaceParam.vdencStreamInSurfaceSize;
         surfaceParams.bIs2DSurface = false;
         surfaceParams.presBuffer = m_surfaceParam.meVdencStreamInBuffer;
         surfaceParams.dwBindingTableOffset = BindingTableOffset::meVdencStreamInInputBuffer;
