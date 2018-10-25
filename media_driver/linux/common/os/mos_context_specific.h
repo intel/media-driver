@@ -176,6 +176,7 @@ public:
     AuxTableMgr* GetAuxTableMgr() { return m_auxTableMgr; }
 
     bool UseSwSwizzling() { return m_useSwSwizzling; }
+    bool GetTileYFlag() { return m_tileYFlag; }
 
 #ifndef ANDROID
 
@@ -298,6 +299,11 @@ private:
     //! \brief  tiling/untiling with CPU
     //!
     bool                m_useSwSwizzling = false;
+
+    //!
+    //! \brief Sku tile Y flag
+    //!
+    bool                m_tileYFlag = true;
 
     //!
     //! \brief  flag to mark the existance of the second VDBox
