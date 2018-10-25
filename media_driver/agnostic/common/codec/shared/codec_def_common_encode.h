@@ -52,14 +52,21 @@
 
 #define CODEC_MAX_PIC_WIDTH            1920
 #define CODEC_MAX_PIC_HEIGHT           1920                // Tablet usage in portrait mode, image resolution = 1200x1920, so change MAX_HEIGHT to 1920
+
+#define CODEC_2K_MAX_PIC_WIDTH         2048
+#define CODEC_2K_MAX_PIC_HEIGHT        2048
+
 #define CODEC_4K_MAX_PIC_WIDTH         4096
 #define CODEC_4K_MAX_PIC_HEIGHT        4096
 
-#define CODEC_8K_MAX_PIC_WIDTH    8192
-#define CODEC_8K_MAX_PIC_HEIGHT   8192
+#define CODEC_8K_MAX_PIC_WIDTH         8192
+#define CODEC_8K_MAX_PIC_HEIGHT        8192
 
 #define CODEC_16K_MAX_PIC_WIDTH        16384
 #define CODEC_16K_MAX_PIC_HEIGHT       16384
+
+#define DEFAULT_CODEC_MAX_PIC_WIDTH    4096
+#define DEFAULT_CODEC_MAX_PIC_HEIGHT   4096
 
 #define CODECHAL_MAD_BUFFER_SIZE                4 // buffer size is 4 bytes
 

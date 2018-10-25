@@ -884,27 +884,67 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = CODEC_MAX_PIC_WIDTH;
-    if(profile == VAProfileJPEGBaseline)
+
+    if (IsMpeg2Profile(profile))
     {
-        attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
+        attrib.value = CODEC_2K_MAX_PIC_WIDTH;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile)|| IsVp9Profile(profile))
+    else if (IsAvcProfile(profile) || IsVc1Profile(profile))
     {
-        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
+    else if (IsHevcProfile(profile) || IsVp9Profile(profile))
+    {
+        if (IsVp9Profile(profile) && (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding) == 0))
+        {
+            attrib.value = CODEC_4K_MAX_PIC_WIDTH;
+        }
+        else
+        {
+            attrib.value = CODEC_8K_MAX_PIC_WIDTH;
+        }
+    }
+    else if (IsJpegProfile(profile))
+    {
+        attrib.value = CODEC_16K_MAX_PIC_WIDTH;
+    }
+    else
+    {
+        attrib.value = DEFAULT_CODEC_MAX_PIC_WIDTH;
+    }
+
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = CODEC_MAX_PIC_HEIGHT;
-    if(profile == VAProfileJPEGBaseline)
+
+    if (IsMpeg2Profile(profile))
     {
-        attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_2K_MAX_PIC_HEIGHT;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile) || IsVp9Profile(profile))
+    else if (IsAvcProfile(profile) || IsVc1Profile(profile))
     {
-        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
+    else if (IsHevcProfile(profile) || IsVp9Profile(profile))
+    {
+        if (IsVp9Profile(profile) && (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding) == 0))
+        {
+            attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
+        }
+        else
+        {
+            attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
+        }
+    }
+    else if (IsJpegProfile(profile))
+    {
+        attrib.value = CODEC_16K_MAX_PIC_HEIGHT;
+    }
+    else
+    {
+        attrib.value = DEFAULT_CODEC_MAX_PIC_HEIGHT;
+    }
+
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncryption;
