@@ -1409,6 +1409,7 @@ VAStatus DdiMedia__Initialize (
         &mediaCtx->SkuTable, &mediaCtx->WaTable);
 
     mediaCtx->m_useSwSwizzling = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrSimulationMode);
+    mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     if (mediaCtx->modularizedGpuCtxEnabled)
