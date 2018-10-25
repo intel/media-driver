@@ -360,7 +360,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SendHwSliceEncodeCommand(
+    virtual MOS_STATUS SendHwSliceEncodeCommand(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE     params);
 
