@@ -203,32 +203,6 @@ int mos_bo_set_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
 int mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
                 uint32_t * swizzle_mode);
 
-#ifdef ANDROID
-int mos_bo_set_userdata(struct mos_linux_bo *bo, uint32_t userdata);
-int mos_bo_get_userdata(struct mos_linux_bo *bo, uint32_t *userdata);
-int mos_bo_set_datatype(struct mos_linux_bo *bo, uint32_t userdata);
-int mos_bo_get_datatype(struct mos_linux_bo *bo, uint32_t *userdata);
-
-int mos_bo_create_userdata_blk(struct mos_linux_bo *bo,
-                     uint16_t      flags,
-                     uint32_t      bytes,
-                     const void   *data,
-                     uint32_t     *avail_bytes);
-int mos_bo_set_userdata_blk(struct mos_linux_bo *bo,
-                  uint32_t      offset,
-                  uint32_t      bytes,
-                  const void   *data,
-                  uint32_t     *avail_bytes);
-int mos_bo_get_userdata_blk(struct mos_linux_bo *bo,
-                  uint32_t      offset,
-                  uint32_t      bytes,
-                  void         *data,
-                  uint32_t     *avail_bytes);
-int mos_bo_fallocate(struct mos_linux_bo *bo,
-               uint32_t mode,
-               uint64_t offset,
-               uint64_t bytes);
-#endif
 int mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name);
 #ifdef ANDROID
 int mos_bo_prime(struct mos_linux_bo *bo, uint32_t * name);
