@@ -148,8 +148,6 @@ VAStatus MediaLibvaCaps::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
 {
     uint32_t maxNum = GetImageFormatsMaxNum();
 
-    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-
     for (int32_t idx = 0; idx < maxNum; idx++)
     {
         if (m_supportedImageformats[idx].fourcc == vaImgFmt->fourcc)
@@ -233,7 +231,7 @@ VAStatus MediaLibvaCaps::GetProfileEntrypointFromConfigId(
     DDI_CHK_NULL(profileTableIdx, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     CodecType codecType;
 
-    int32_t configOffset = 0;
+    int32_t configOffset;
     if((configId < (DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE + m_decConfigs.size())) )
     {
         configOffset = configId - DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE;
@@ -336,7 +334,6 @@ VAStatus MediaLibvaCaps::CreateAttributeList(AttribMap **attributeList)
 
 int32_t MediaLibvaCaps::GetAttributeIndex(std::vector<VAConfigAttrib> *attribList, VAConfigAttribType type)
 {
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     uint32_t attribSize = attribList->size();
     for (uint32_t i = 0; i < attribSize; i++)
     {
@@ -962,7 +959,7 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _AVC_DECODE_SUPPORTED
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrAVCVLDLongDecoding)
             || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrAVCVLDShortDecoding))
     {
@@ -1015,7 +1012,7 @@ VAStatus MediaLibvaCaps::LoadAvcEncProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAVC))
     {
         status = CreateEncAttributes(VAProfileH264Main, VAEntrypointEncSlice, &attributeList);
@@ -1056,7 +1053,7 @@ VAStatus MediaLibvaCaps::LoadAvcEncLpProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAVCVdenc))
     {
         status = CreateEncAttributes(VAProfileH264Main, VAEntrypointEncSliceLP, &attributeList);
@@ -1094,7 +1091,7 @@ VAStatus MediaLibvaCaps::LoadMpeg2DecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _MPEG2_DECODE_SUPPORTED
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrMPEG2VLDDecoding))
     {
         status = CreateDecAttributes(VAProfileMPEG2Simple, VAEntrypointVLD, &attributeList);
@@ -1119,7 +1116,7 @@ VAStatus MediaLibvaCaps::LoadMpeg2EncProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _MPEG2_ENCODE_VME_SUPPORTED
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeMPEG2))
     {
         status = CreateEncAttributes(VAProfileMPEG2Simple, VAEntrypointEncSlice, &attributeList);
@@ -1146,7 +1143,7 @@ VAStatus MediaLibvaCaps::LoadJpegDecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _JPEG_DECODE_SUPPORTED
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelJPEGDecoding))
     {
         status = CreateDecAttributes(VAProfileJPEGBaseline, VAEntrypointVLD, &attributeList);
@@ -1166,7 +1163,7 @@ VAStatus MediaLibvaCaps::LoadJpegEncProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _JPEG_ENCODE_SUPPORTED
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeJPEG))
     {
         status = CreateEncAttributes(VAProfileJPEGBaseline, VAEntrypointEncPicture, &attributeList);
@@ -1185,7 +1182,7 @@ VAStatus MediaLibvaCaps::LoadVc1DecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _VC1_DECODE_SUPPORTED
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVC1VLDDecoding))
     {
         status = CreateDecAttributes(VAProfileVC1Main, VAEntrypointVLD, &attributeList);
@@ -1603,7 +1600,7 @@ VAStatus MediaLibvaCaps::LoadNoneProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-    AttribMap *attributeList = nullptr;
+    AttribMap *attributeList;
 
     status = CreateDecAttributes(VAProfileNone, VAEntrypointVideoProc, &attributeList);
     DDI_CHK_RET(status, "Failed to initialize Caps!");
@@ -1656,10 +1653,6 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-
     VAConfigAttrib decAttributes[3];
 
     decAttributes[0].type = VAConfigAttribDecSliceMode;
@@ -1714,9 +1707,6 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-
     uint32_t rcMode = VA_RC_CQP;
     if((entrypoint == VAEntrypointStats) || (entrypoint == VAEntrypointEncPicture))
     {
@@ -1798,8 +1788,7 @@ VAStatus MediaLibvaCaps::CheckDecodeResolution(
         uint32_t height)
 {
 
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
+    uint32_t maxWidth, maxHeight;
     switch (codecMode)
     {
         case CODECHAL_DECODE_MODE_MPEG2VLD:
@@ -1824,7 +1813,7 @@ VAStatus MediaLibvaCaps::CheckDecodeResolution(
             break;
     }
 
-    uint32_t alignedHeight = 0;
+    uint32_t alignedHeight;
     if (profile == VAProfileVC1Advanced)
     {
         alignedHeight = MOS_ALIGN_CEIL(height,32);
@@ -1849,6 +1838,7 @@ VAStatus MediaLibvaCaps::CheckEncodeResolution(
         uint32_t width,
         uint32_t height)
 {
+    uint32_t maxWidth, maxHeight;
     switch (profile)
     {
         case VAProfileJPEGBaseline:
@@ -2084,10 +2074,6 @@ VAStatus MediaLibvaCaps::GetDecConfigAttr(
 {
     DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(sliceMode, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(encryptType, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(processMode, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-
     int32_t profileTableIdx = -1;
     int32_t configOffset = configId - DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE;
     VAStatus status = GetProfileEntrypointFromConfigId(configId, profile, entrypoint, &profileTableIdx);

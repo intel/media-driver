@@ -29,8 +29,8 @@
 
 static void* DdiMedia_GetVaContextFromHeap(PDDI_MEDIA_HEAP  mediaHeap, uint32_t index, PMEDIA_MUTEX_T mutex)
 {
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT  vaCtxHeapElmt = nullptr;
-    void                              *context = nullptr;
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT  vaCtxHeapElmt;
+    void                              *context;
 
     DdiMediaUtil_LockMutex(mutex);
     if(nullptr == mediaHeap || index >= mediaHeap->uiAllocatedHeapElements)
@@ -48,9 +48,7 @@ static void* DdiMedia_GetVaContextFromHeap(PDDI_MEDIA_HEAP  mediaHeap, uint32_t 
 
 void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RESOURCE  *mosResource)
 {
-    DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface",);
-    DDI_CHK_NULL(mosResource, "nullptr mosResource",);
-    DDI_ASSERT(mosResource->bo);
+    DDI_ASSERT(mediaSurface->bo);
 
     switch (mediaSurface->format)
     {
@@ -170,8 +168,6 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
 
 void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOURCE *mosResource)
 {
-    DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer",);
-    DDI_CHK_NULL(mosResource, "nullptr mosResource",);
     DDI_ASSERT(mediaBuffer->bo);
 
     switch (mediaBuffer->format)
@@ -229,11 +225,8 @@ void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOUR
 
 void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID, uint32_t *ctxType)
 {
-    PDDI_MEDIA_CONTEXT       mediaCtx = nullptr;
-    uint32_t                 index = 0;
-
-    DDI_CHK_NULL(ctx, "nullptr ctx", nullptr);
-    DDI_CHK_NULL(ctxType, "nullptr ctxType", nullptr);
+    PDDI_MEDIA_CONTEXT       mediaCtx;
+    uint32_t                 index;
 
     mediaCtx  = DdiMedia_GetMediaContext(ctx);
     index    = vaCtxID & DDI_MEDIA_MASK_VACONTEXTID;
@@ -283,11 +276,9 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 
 DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID)
 {
-    uint32_t                         i = 0;
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = nullptr;
-    PDDI_MEDIA_SURFACE               surface = nullptr;
-
-    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", nullptr);
+    uint32_t                         i;
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement;
+    PDDI_MEDIA_SURFACE               surface;
 
     i                = (uint32_t)surfaceID;
     DDI_CHK_LESS(i, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "invalid surface id", nullptr);
@@ -302,8 +293,6 @@ DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaC
 
 VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface)
 {
-    DDI_CHK_NULL(surface, "nullptr surface", VA_INVALID_SURFACE);
-
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
     for(uint32_t i = 0; i < surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements; i ++)
     {
@@ -318,8 +307,6 @@ VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface)
 
 PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat)
 {
-    DDI_CHK_NULL(surface, "nullptr surface", nullptr);
-
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
     PDDI_MEDIA_CONTEXT mediaCtx = surface->pMediaCtx;
 
@@ -334,7 +321,6 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     {
         return nullptr;
     }
-
     MOS_SecureMemcpy(dstSurface,sizeof(DDI_MEDIA_SURFACE),surface,sizeof(DDI_MEDIA_SURFACE));
     DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
     dstSurface->format = expectedFormat;
@@ -374,9 +360,9 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
 
 DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
 {
-    uint32_t                       i = 0;
-    PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufHeapElement = nullptr;
-    PDDI_MEDIA_BUFFER              buf = nullptr;
+    uint32_t                       i;
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufHeapElement;
+    PDDI_MEDIA_BUFFER              buf;
 
     i                = (uint32_t)bufferID;
     DDI_CHK_LESS(i, mediaCtx->pBufferHeap->uiAllocatedHeapElements, "invalid buffer id", nullptr);
