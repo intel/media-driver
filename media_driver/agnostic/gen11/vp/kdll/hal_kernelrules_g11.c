@@ -921,6 +921,55 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
 
     // Sample progressive scaling
     // Sample 0.34x RGB -> Src0
+    // Rotate 90 degrees
+    { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer0                , Kdll_None },
+    { RID_IsSrc0Format     , Format_RGB                         , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_AYUV                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_400P                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_NV12                        , Kdll_None },
+    { RID_IsSrc0Sampling   , Sample_Scaling_034x                , Kdll_None },
+    { RID_IsSrc0Rotation   , VPHAL_ROTATION_90                  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_0_Rot_90 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_1_Rot_90 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_2_Rot_90 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_3_Rot_90 , Kdll_None },
+    { RID_SetParserState   , Parser_SampleLayer0Done            , Kdll_None },
+
+    // Rotate 180 degrees
+    { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer0                , Kdll_None },
+    { RID_IsSrc0Format     , Format_RGB                         , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_AYUV                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_400P                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_NV12                        , Kdll_None },
+    { RID_IsSrc0Sampling   , Sample_Scaling_034x                , Kdll_None },
+    { RID_IsSrc0Rotation   , VPHAL_ROTATION_180                 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_0_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_1_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_2_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_3_Rot_180, Kdll_None },
+    { RID_SetParserState   , Parser_SampleLayer0Done            , Kdll_None },
+
+    // Rotate 270 degrees
+    { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer0                , Kdll_None },
+    { RID_IsSrc0Format     , Format_RGB                         , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_AYUV                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_400P                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_NV12                        , Kdll_None },
+    { RID_IsSrc0Sampling   , Sample_Scaling_034x                , Kdll_None },
+    { RID_IsSrc0Rotation   , VPHAL_ROTATION_270                 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_0_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_1_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_2_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_3_Rot_270, Kdll_None },
+    { RID_SetParserState   , Parser_SampleLayer0Done            , Kdll_None },
+
+    // No Rotation
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                , Kdll_None },
     { RID_IsSrc0Format     , Format_RGB                         , Kdll_Or   },
