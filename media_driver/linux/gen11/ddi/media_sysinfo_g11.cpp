@@ -61,6 +61,8 @@ static bool InitIclShadowSku(struct GfxDeviceInfo *devInfo,
     skuTable->FtrDisplayYTiling = 1;
     skuTable->FtrEDram = devInfo->hasERAM;
 
+    skuTable->FtrTileY = 1;
+
     return true;
 }
 
