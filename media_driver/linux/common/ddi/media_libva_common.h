@@ -279,10 +279,10 @@ typedef struct _DDI_MEDIA_SURFACE
 typedef struct _DDI_MEDIA_BUFFER
 {
     uint32_t               iSize;
-    int32_t                iWidth;
-    int32_t                iHeight;
-    int32_t                iPitch;
-    uint32_t               iNumElements;
+    uint32_t               uiWidth;
+    uint32_t               uiHeight;
+    uint32_t               uiPitch;
+    uint32_t               uiNumElements;
     uint32_t               uiOffset;
     // vaBuffer type
     uint32_t               uiType;

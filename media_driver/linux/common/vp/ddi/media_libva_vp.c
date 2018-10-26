@@ -981,7 +981,7 @@ DdiVp_SetProcPipelineParams(
               && pVpHalSrcSurf->SurfType != SURF_IN_PRIMARY))
         {
             // Pass the filter type
-            vaStatus = DdiVp_UpdateFilterParamBuffer(pVpCtx, uSurfIndex, filter_param->type, pData, pFilterBuf->iNumElements, &vpStateFlags);
+            vaStatus = DdiVp_UpdateFilterParamBuffer(pVpCtx, uSurfIndex, filter_param->type, pData, pFilterBuf->uiNumElements, &vpStateFlags);
             DDI_CHK_RET(vaStatus, "Failed to update parameter buffer!");
         }
     }
@@ -2301,13 +2301,13 @@ VAStatus DdiVp_CreateBuffer(
     // allocate new buf and init
     pBuf               = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     DDI_CHK_NULL(pBuf, "Null pBuf.", VA_STATUS_ERROR_ALLOCATION_FAILED);
-    pBuf->pMediaCtx    = pMediaCtx;
-    pBuf->iSize        = uiSize * uiNumElements;
-    pBuf->iNumElements = uiNumElements;
-    pBuf->uiType       = vaBufType;
-    pBuf->format       = Media_Format_Buffer;
-    pBuf->uiOffset     = 0;
-    pBuf->pData        = (uint8_t*)MOS_AllocAndZeroMemory(uiSize * uiNumElements);
+    pBuf->pMediaCtx     = pMediaCtx;
+    pBuf->iSize         = uiSize * uiNumElements;
+    pBuf->uiNumElements = uiNumElements;
+    pBuf->uiType        = vaBufType;
+    pBuf->format        = Media_Format_Buffer;
+    pBuf->uiOffset      = 0;
+    pBuf->pData         = (uint8_t*)MOS_AllocAndZeroMemory(uiSize * uiNumElements);
     if (nullptr == pBuf->pData)
     {
         MOS_FreeMemAndSetNull(pBuf);

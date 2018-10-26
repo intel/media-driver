@@ -657,16 +657,16 @@ VAStatus DdiDecodeHEVCG11::AllocSliceControlBuffer(
 
     if(m_ddiDecodeCtx->bShortFormatInUse)
     {
-        if(availSize < buf->iNumElements)
+        if(availSize < buf->uiNumElements)
         {
-            newSize   = sizeof(VASliceParameterBufferBase) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+            newSize   = sizeof(VASliceParameterBufferBase) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
             bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC = (VASliceParameterBufferBase *)realloc(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC, newSize);
             if(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC == nullptr)
             {
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
-            MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferBase) * (buf->iNumElements - availSize));
-            m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+            MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferBase) * (buf->uiNumElements - availSize));
+            m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
         }
         buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC;
         buf->uiOffset   = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferBase);
@@ -675,39 +675,39 @@ VAStatus DdiDecodeHEVCG11::AllocSliceControlBuffer(
     {
         if(!IsRextProfile())
         {
-            if(availSize < buf->iNumElements)
+            if(availSize < buf->uiNumElements)
             {
-                newSize   = sizeof(VASliceParameterBufferHEVC) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+                newSize   = sizeof(VASliceParameterBufferHEVC) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
                 bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC = (VASliceParameterBufferHEVC *)realloc(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC, newSize);
                 if(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC == nullptr)
                 {
                     return VA_STATUS_ERROR_ALLOCATION_FAILED;
                 }
-                MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferHEVC) * (buf->iNumElements - availSize));
-                m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+                MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferHEVC) * (buf->uiNumElements - availSize));
+                m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
             }
             buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC;
             buf->uiOffset   = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferHEVC);
         }
         else
         {
-            if(availSize < buf->iNumElements)
+            if(availSize < buf->uiNumElements)
             {
-                newSize   = sizeof(VASliceParameterBufferHEVCExtension) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+                newSize   = sizeof(VASliceParameterBufferHEVCExtension) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
                 bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext= (VASliceParameterBufferHEVCExtension*)realloc(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext, newSize);
                 if(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext== nullptr)
                 {
                     return VA_STATUS_ERROR_ALLOCATION_FAILED;
                 }
-                MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext+ m_sliceCtrlBufNum, sizeof(VASliceParameterBufferHEVCExtension) * (buf->iNumElements - availSize));
-                m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+                MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext+ m_sliceCtrlBufNum, sizeof(VASliceParameterBufferHEVCExtension) * (buf->uiNumElements - availSize));
+                m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
             }
             buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext;
             buf->uiOffset   = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferHEVCExtension);
         }
     }
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }

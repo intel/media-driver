@@ -708,13 +708,13 @@ VAStatus DdiMediaDecode::CreateBuffer(
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    buf->iSize        = size * numElements;
-    buf->iNumElements = numElements;
-    buf->uiType       = type;
-    buf->format       = Media_Format_Buffer;
-    buf->uiOffset     = 0;
-    buf->bCFlushReq   = false;
-    buf->pMediaCtx    = m_ddiDecodeCtx->pMediaCtx;
+    buf->iSize         = size * numElements;
+    buf->uiNumElements = numElements;
+    buf->uiType        = type;
+    buf->format        = Media_Format_Buffer;
+    buf->uiOffset      = 0;
+    buf->bCFlushReq    = false;
+    buf->pMediaCtx     = m_ddiDecodeCtx->pMediaCtx;
 
     switch ((int32_t)type)
     {

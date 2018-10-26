@@ -546,7 +546,7 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP) = 0;
+    virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) = 0;
 
     //!
     //! \brief    Return the maxinum number of supported image formats 
