@@ -3830,139 +3830,6 @@ mos_gem_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
     return 0;
 }
 
-#ifdef ANDROID
-static int
-mos_gem_bo_set_userdata(struct mos_linux_bo *bo, uint32_t userdata)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
-     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    struct drm_i915_gem_access_userdata access_userdata;
-    int ret;
-
-    access_userdata.handle = bo_gem->gem_handle;
-    access_userdata.userdata = userdata;
-    access_userdata.write = 1;
-
-    ret = ioctl(bufmgr_gem->fd,
-            DRM_IOCTL_I915_GEM_ACCESS_USERDATA,
-            &access_userdata);
-    if (ret == -1)
-        return -errno;
-
-    return 0;
-}
-
-static int
-mos_gem_bo_get_userdata(struct mos_linux_bo *bo, uint32_t *userdata)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
-     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    struct drm_i915_gem_access_userdata access_userdata;
-    int ret;
-
-    access_userdata.handle = bo_gem->gem_handle;
-    access_userdata.userdata = 0;
-    access_userdata.write = 0;
-
-    ret = ioctl(bufmgr_gem->fd,
-            DRM_IOCTL_I915_GEM_ACCESS_USERDATA,
-            &access_userdata);
-    if (ret == -1)
-        return -errno;
-
-    *userdata = access_userdata.userdata;
-
-    return 0;
-}
-
-static int mos_gem_bo_create_userdata_blk(struct mos_linux_bo *bo,
-                        uint16_t      flags,
-                        uint32_t      bytes,
-                        const void   *data,
-                        uint32_t     *avail_bytes)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
-    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    struct drm_i915_gem_userdata_blk userdata;
-    int ret;
-
-    userdata.op       = I915_USERDATA_CREATE_OP;
-    userdata.flags    = flags;
-    userdata.handle   = bo_gem->gem_handle;
-    userdata.offset   = 0; /* Must be 0 */
-    userdata.bytes    = bytes;
-    userdata.data_ptr = (__u64)(uintptr_t)data;
-
-    ret = i915ExtIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_EXT_USERDATA,
-               &userdata);
-
-    *avail_bytes = userdata.bytes;
-    if (ret == -1)
-        return -errno;
-
-    return 0;
-}
-
-static int mos_gem_bo_set_userdata_blk(struct mos_linux_bo *bo,
-                         uint32_t      offset,
-                         uint32_t      bytes,
-                         const void   *data,
-                         uint32_t     *avail_bytes)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
-    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    struct drm_i915_gem_userdata_blk userdata;
-    int ret;
-
-    userdata.op       = I915_USERDATA_SET_OP;
-    userdata.flags    = 0;
-    userdata.handle   = bo_gem->gem_handle;
-    userdata.offset   = offset;
-    userdata.bytes    = bytes;
-    userdata.data_ptr = (__u64)(uintptr_t)data;
-
-    ret = i915ExtIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_EXT_USERDATA,
-               &userdata);
-
-    *avail_bytes = userdata.bytes;
-    if (ret == -1)
-        return -errno;
-
-    return 0;
-}
-
-static int mos_gem_bo_get_userdata_blk(struct mos_linux_bo *bo,
-                         uint32_t      offset,
-                         uint32_t      bytes,
-                         void         *data,
-                         uint32_t     *avail_bytes)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
-    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    struct drm_i915_gem_userdata_blk userdata;
-    int ret;
-
-    userdata.op       = I915_USERDATA_GET_OP;
-    userdata.flags    = 0;
-    userdata.handle   = bo_gem->gem_handle;
-    userdata.offset   = offset;
-    userdata.bytes    = bytes;
-    userdata.data_ptr = (__u64)(uintptr_t)data;
-
-    ret = i915ExtIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_EXT_USERDATA,
-               &userdata);
-
-    *avail_bytes = userdata.bytes;
-    if (ret == -1)
-        return -errno;
-
-    return 0;
-}
-#endif
-
 static int
 mos_gem_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset)
 {
@@ -3973,33 +3840,6 @@ mos_gem_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset)
     bo->offset = offset;
     return 0;
 }
-
-#ifdef ANDROID
-static int mos_gem_bo_fallocate(struct mos_linux_bo *bo,
-                      uint32_t mode,
-                      uint64_t offset,
-                      uint64_t bytes)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
-    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    struct drm_i915_gem_fallocate bo_falloc;
-    int ret;
-
-    bo_falloc.handle = bo_gem->gem_handle;
-    bo_falloc.mode = mode;
-    bo_falloc.start = offset;
-    bo_falloc.length = bytes;
-
-    ret = i915ExtIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_FALLOCATE,
-               &bo_falloc);
-
-    if (ret)
-        return -errno;
-
-    return 0;
-}
-#endif
 
 struct mos_linux_bo *
 mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
@@ -4942,30 +4782,6 @@ mos_bufmgr_gem_unref(struct mos_bufmgr *bufmgr)
     }
 }
 
-#ifdef ANDROID
-/**
- * Call an extended ioctl
- */
-int
-i915ExtIoctl(int fd, unsigned long request, void *arg)
-{
-    struct i915_ext_ioctl_data ext_ioctl = {
-        .sub_cmd  = (__u32)request,
-        .table    = 0,
-        .pad1     = 0,
-        .pad2     = 0,
-
-        /*
-         * Pointer is converted to a 64-bit integer to guarantee
-         * compatibility with kernel
-         */
-        .args_ptr = (__u64)(uintptr_t)arg
-    };
-
-    return drmIoctl(fd, DRM_IOCTL_I915_EXT_IOCTL, &ext_ioctl);
-}
-#endif
-
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.
@@ -5103,18 +4919,6 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     bufmgr_gem->bufmgr.bo_get_tiling = mos_gem_bo_get_tiling;
     bufmgr_gem->bufmgr.bo_set_tiling = mos_gem_bo_set_tiling;
 
-#ifdef ANDROID
-    bufmgr_gem->bufmgr.bo_get_userdata = mos_gem_bo_get_userdata;
-    bufmgr_gem->bufmgr.bo_set_userdata = mos_gem_bo_set_userdata;
-
-    bufmgr_gem->bufmgr.bo_create_userdata_blk =
-        mos_gem_bo_create_userdata_blk;
-    bufmgr_gem->bufmgr.bo_set_userdata_blk =
-        mos_gem_bo_set_userdata_blk;
-    bufmgr_gem->bufmgr.bo_get_userdata_blk =
-        mos_gem_bo_get_userdata_blk;
-    bufmgr_gem->bufmgr.bo_fallocate = mos_gem_bo_fallocate;
-#endif
     bufmgr_gem->bufmgr.bo_flink = mos_gem_bo_flink;
 #ifdef ANDROID
     bufmgr_gem->bufmgr.bo_prime = mos_gem_bo_prime;
