@@ -245,6 +245,8 @@ static bool InitLCIAShadowSku(struct GfxDeviceInfo *devInfo,
     skuTable->FtrEDram = 0;
     skuTable->FtrLCIA  = 1;
 
+    skuTable->FtrTileY = 1;
+
     return true;
 }
 
