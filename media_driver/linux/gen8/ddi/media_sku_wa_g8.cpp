@@ -102,6 +102,7 @@ static bool InitBdwMediaSku(struct GfxDeviceInfo *devInfo,
     }
 
     MEDIA_WR_SKU(skuTable, FtrSliceShutdownOverride, 1);
+    MEDIA_WR_SKU(skuTable, FtrTileY, 1);
 
     return true;
 }
