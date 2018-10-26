@@ -4711,6 +4711,7 @@ int mos_get_slice_mask(uint32_t slice_count)
     return bitmask;
 }
 
+#if defined(MEDIA_EXT)
 int
 mos_get_context_param_sseu(struct mos_linux_context *ctx,
                 struct drm_i915_gem_context_param_sseu *sseu)
@@ -4758,6 +4759,7 @@ mos_set_context_param_sseu(struct mos_linux_context *ctx,
 
     return ret;
 }
+#endif
 
 int
 mos_get_context_param(struct mos_linux_context *ctx,

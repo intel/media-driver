@@ -45,6 +45,22 @@ typedef struct drm_i915_ring_load_query
     drm_i915_ring_load_info *load_info;
 } drm_i915_ring_load_query;
 
+/** SSEU programming */
+#define I915_CONTEXT_PARAM_SSEU     0x6
+
+struct drm_i915_gem_context_param_sseu {
+     __u64 flags;
+     union {
+        struct {
+             __u8 slice_mask;
+             __u8 subslice_mask;
+             __u8 min_eu_per_subslice;
+             __u8 max_eu_per_subslice;
+        } packed;
+        __u64 value;
+    };
+};
+
 #endif
 
 #endif /* _I915_DRM_EXT_H_ */

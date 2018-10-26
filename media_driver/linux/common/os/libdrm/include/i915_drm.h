@@ -1339,21 +1339,7 @@ struct drm_i915_gem_context_param {
 #define I915_CONTEXT_PARAM_BAN_PERIOD    0x1
 #define I915_CONTEXT_PARAM_NO_ZEROMAP    0x2
 #define I915_CONTEXT_PARAM_GTT_SIZE    0x3
-#define I915_CONTEXT_PARAM_SSEU     0x6
     __u64 value;
-};
-
-struct drm_i915_gem_context_param_sseu {
-     __u64 flags;
-     union {
-        struct {
-             __u8 slice_mask;
-             __u8 subslice_mask;
-             __u8 min_eu_per_subslice;
-             __u8 max_eu_per_subslice;
-        } packed;
-        __u64 value;
-    };
 };
 
 #endif /* _I915_DRM_H_ */
