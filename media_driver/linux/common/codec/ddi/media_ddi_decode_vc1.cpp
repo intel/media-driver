@@ -584,21 +584,21 @@ VAStatus DdiDecodeVC1::AllocSliceControlBuffer(
 
     bufMgr     = &(m_ddiDecodeCtx->BufMgr);
     availSize  = m_sliceCtrlBufNum - bufMgr->dwNumSliceControl;
-    if(availSize < buf->iNumElements)
+    if(availSize < buf->uiNumElements)
     {
-        newSize   = sizeof(VASliceParameterBufferVC1) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+        newSize   = sizeof(VASliceParameterBufferVC1) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
         bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1 = (VASliceParameterBufferVC1 *)realloc(bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1, newSize);
         if(bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1 == nullptr)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferVC1) * (buf->iNumElements - availSize));
-        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferVC1) * (buf->uiNumElements - availSize));
+        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
     }
     buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1;
     buf->uiOffset   = sizeof(VASliceParameterBufferVC1) * bufMgr->dwNumSliceControl;
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }
@@ -757,14 +757,14 @@ VAStatus DdiDecodeVC1::RenderPicture(
         }
         case VASliceParameterBufferType:
         {
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
 
             VASliceParameterBufferVC1 *slcInfo =
                 (VASliceParameterBufferVC1 *)data;
-            uint32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
             DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfo, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;

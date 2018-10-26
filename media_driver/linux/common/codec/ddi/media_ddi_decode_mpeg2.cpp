@@ -373,14 +373,14 @@ VAStatus DdiDecodeMPEG2::RenderPicture(
         }
         case VASliceParameterBufferType:
         {
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
 
             VASliceParameterBufferMPEG2 *slcInfoMpeg2 =
                 (VASliceParameterBufferMPEG2 *)data;
-            uint32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
             DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoMpeg2, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
@@ -473,21 +473,21 @@ VAStatus DdiDecodeMPEG2::AllocSliceControlBuffer(
 
     bufMgr     = &(m_ddiDecodeCtx->BufMgr);
     availSize  = m_sliceCtrlBufNum - bufMgr->dwNumSliceControl;
-    if(availSize < buf->iNumElements)
+    if(availSize < buf->uiNumElements)
     {
-        newSize   = sizeof(VASliceParameterBufferMPEG2) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+        newSize   = sizeof(VASliceParameterBufferMPEG2) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
         bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 = (VASliceParameterBufferMPEG2 *)realloc(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2, newSize);
         if(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 == nullptr)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferMPEG2) * (buf->iNumElements - availSize));
-        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferMPEG2) * (buf->uiNumElements - availSize));
+        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
     }
     buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2;
     buf->uiOffset   = sizeof(VASliceParameterBufferMPEG2) * bufMgr->dwNumSliceControl;
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }

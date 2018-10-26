@@ -326,11 +326,11 @@ VAStatus DdiDecodeVP8::RenderPicture(
                 DDI_NORMALMESSAGE("SliceParamBufferVP8 is already rendered\n");
                 break;
             }
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
-            uint32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
 
             VASliceParameterBufferVP8 *slcInfoVP8 = (VASliceParameterBufferVP8 *)data;
             for(uint32_t j = 0; j < numSlices; j++)
@@ -530,7 +530,7 @@ VAStatus DdiDecodeVP8::AllocSliceControlBuffer(
     buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_VP8.pVASliceParaBufVP8;
     buf->uiOffset   = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferVP8);
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }

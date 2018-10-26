@@ -3667,7 +3667,7 @@ MOS_STATUS HalCm_SetupBufferSurfaceState(
         else
         {
             btIndex = globalSurface + surfBTIInfo.reservedSurfaceStart; //CM_BINDING_START_INDEX_OF_GLOBAL_SURFACE(state);
-            if ((int32_t)btIndex >=  (surfBTIInfo.reservedSurfaceStart + CM_MAX_GLOBAL_SURFACE_NUMBER) ) {
+            if ( btIndex >=  (surfBTIInfo.reservedSurfaceStart + CM_MAX_GLOBAL_SURFACE_NUMBER) ) {
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 CM_ASSERTMESSAGE("Exceeded Max Global Surfaces '%d'", btIndex);
                 goto finish;
@@ -3767,7 +3767,7 @@ MOS_STATUS HalCm_SetupBufferSurfaceState(
             else
             {
                 btIndex = globalSurface + surfBTIInfo.reservedSurfaceStart;
-                if ( ( int32_t )btIndex >= (surfBTIInfo.reservedSurfaceStart + CM_MAX_GLOBAL_SURFACE_NUMBER ) )
+                if ( btIndex >= (surfBTIInfo.reservedSurfaceStart + CM_MAX_GLOBAL_SURFACE_NUMBER ) )
                 {
                     eStatus = MOS_STATUS_INVALID_PARAMETER;
                     CM_ASSERTMESSAGE( "Exceeded Max Global Surfaces '%d'", btIndex );

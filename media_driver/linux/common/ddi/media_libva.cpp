@@ -2543,10 +2543,10 @@ static VAStatus DdiMedia_BufferSetNumElements (
     }
 
     if(buf->uiType == VASliceParameterBufferType &&
-       buf->iNumElements < num_elements)
+       buf->uiNumElements < num_elements)
     {
         MOS_FreeMemory(buf->pData);
-        buf->iSize = buf->iSize / buf->iNumElements;
+        buf->iSize = buf->iSize / buf->uiNumElements;
         buf->pData = (uint8_t*)MOS_AllocAndZeroMemory(buf->iSize * num_elements);
         buf->iSize = buf->iSize * num_elements;
     }
@@ -3952,7 +3952,7 @@ VAStatus DdiMedia_CreateImage(
         MOS_FreeMemory(vaimg);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    buf->iNumElements      = 1;
+    buf->uiNumElements     = 1;
     buf->iSize             = vaimg->data_size;
     buf->uiType            = VAImageBufferType;
     buf->format            = Media_Format_CPU;//DdiCodec_OsFormatToMediaFormat(vaimg->format.fourcc); //Media_Format_Buffer;
@@ -4217,16 +4217,16 @@ VAStatus DdiMedia_DeriveImage (
         MOS_FreeMemory(buf);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    buf->iNumElements = 1;
-    buf->iSize        = vaimg->data_size;
-    buf->uiType       = VABufferTypeMax;
-    buf->format       = mediaSurface->format;
-    buf->uiOffset     = 0;
+    buf->uiNumElements = 1;
+    buf->iSize         = vaimg->data_size;
+    buf->uiType        = VABufferTypeMax;
+    buf->format        = mediaSurface->format;
+    buf->uiOffset      = 0;
 
-    buf->bo           = mediaSurface->bo;
-    buf->format       = mediaSurface->format;
-    buf->TileType     = mediaSurface->TileType;
-    buf->pSurface     = mediaSurface;
+    buf->bo            = mediaSurface->bo;
+    buf->format        = mediaSurface->format;
+    buf->TileType      = mediaSurface->TileType;
+    buf->pSurface      = mediaSurface;
     mos_bo_reference(mediaSurface->bo);
 
     DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
@@ -5035,8 +5035,8 @@ VAStatus DdiMedia_BufferInfo (
     }
 
     *type         = (VABufferType)buf->uiType;
-    *size         = buf->iSize / buf->iNumElements;
-    *num_elements = buf->iNumElements;
+    *size         = buf->iSize / buf->uiNumElements;
+    *num_elements = buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }
@@ -5508,7 +5508,7 @@ VAStatus DdiMedia_AcquireBufferHandle(
 
     buf_info->type = buf->uiType;
     buf_info->handle = buf->handle;
-    buf_info->mem_size = buf->iNumElements * buf->iSize;
+    buf_info->mem_size = buf->uiNumElements * buf->iSize;
 
     DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
     return VA_STATUS_SUCCESS;

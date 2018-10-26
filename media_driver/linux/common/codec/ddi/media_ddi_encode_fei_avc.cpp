@@ -466,7 +466,7 @@ VAStatus DdiEncodeAvcFei::RenderPicture(
             break;
 
         case VAEncSliceParameterBufferType:
-            numSlices = buf->iNumElements;
+            numSlices = buf->uiNumElements;
             DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
             break;
 

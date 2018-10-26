@@ -186,9 +186,9 @@ void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOUR
             break;
         case Media_Format_2DBuffer:
             mosResource->Format  = Format_Buffer_2D;
-            mosResource->iWidth    = mediaBuffer->iWidth;
-            mosResource->iHeight   = mediaBuffer->iHeight;
-            mosResource->iPitch    = mediaBuffer->iPitch;
+            mosResource->iWidth    = mediaBuffer->uiWidth;
+            mosResource->iHeight   = mediaBuffer->uiHeight;
+            mosResource->iPitch    = mediaBuffer->uiPitch;
             break;
         case Media_Format_CPU:
             return;

@@ -264,7 +264,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
                 DDI_NORMALMESSAGE("SliceParamBufferVP9 is already rendered\n");
                 break;
             }
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
@@ -419,7 +419,7 @@ VAStatus DdiDecodeVP9::AllocSliceControlBuffer(
     buf->pData    = (uint8_t*)bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9;
     buf->uiOffset = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferVP9);
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }
