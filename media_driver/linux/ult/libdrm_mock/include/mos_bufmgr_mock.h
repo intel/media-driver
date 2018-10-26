@@ -48,10 +48,6 @@ typedef struct mos_linux_bo MOS_LINUX_BO;
 typedef struct mos_linux_context MOS_LINUX_CONTEXT;
 typedef struct mos_bufmgr MOS_BUFMGR;
 
-#ifdef ANDROID
-typedef struct drm_i915_cmd_descriptor cmd_descriptor;
-#endif
-
 struct mos_linux_bo {
     /**
      * Size in bytes of the buffer object.
@@ -119,19 +115,9 @@ struct mos_aub_annotation {
 };
 
 #define BO_ALLOC_FOR_RENDER (1<<0)
-#ifdef ANDROID
-#define BO_ALLOC_STOLEN        (1<<1)
-#define BO_ALLOC_POPULATE   (1<<2)
-#define BO_ALLOC_FLUSH        (1<<3)
-#endif
 
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
                  unsigned long size, unsigned int alignment);
-#ifdef ANDROID
-struct mos_linux_bo *mos_bo_alloc2(struct mos_bufmgr *bufmgr, const char *name,
-                  unsigned long size, unsigned int alignment,
-                  unsigned long flags);
-#endif
 struct mos_linux_bo *mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned long size,
@@ -162,14 +148,6 @@ void mos_bufmgr_set_debug(struct mos_bufmgr *bufmgr, int enable_debug);
 void mos_bufmgr_destroy(struct mos_bufmgr *bufmgr);
 int mos_bo_exec(struct mos_linux_bo *bo, int used,
               struct drm_clip_rect *cliprects, int num_cliprects, int DR4);
-#ifdef ANDROID
-int mos_bo_fence_exec(struct mos_linux_bo *bo, int used,
-              struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-            int fence_in,  int *fence_out);
-int mos_bo_mrb_fence_exec(struct mos_linux_bo *bo, int used,
-            struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-            unsigned int flags, int fence_in, int *fence_out);
-#endif
 int mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
             struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
             unsigned int flags);
@@ -193,36 +171,7 @@ int mos_bo_set_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
 int mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
                 uint32_t * swizzle_mode);
 
-#ifdef ANDROID
-int mos_bo_set_userdata(struct mos_linux_bo *bo, uint32_t userdata);
-int mos_bo_get_userdata(struct mos_linux_bo *bo, uint32_t *userdata);
-int mos_bo_set_datatype(struct mos_linux_bo *bo, uint32_t userdata);
-int mos_bo_get_datatype(struct mos_linux_bo *bo, uint32_t *userdata);
-
-int mos_bo_create_userdata_blk(struct mos_linux_bo *bo,
-                     uint16_t      flags,
-                     uint32_t      bytes,
-                     const void   *data,
-                     uint32_t     *avail_bytes);
-int mos_bo_set_userdata_blk(struct mos_linux_bo *bo,
-                  uint32_t      offset,
-                  uint32_t      bytes,
-                  const void   *data,
-                  uint32_t     *avail_bytes);
-int mos_bo_get_userdata_blk(struct mos_linux_bo *bo,
-                  uint32_t      offset,
-                  uint32_t      bytes,
-                  void         *data,
-                  uint32_t     *avail_bytes);
-int mos_bo_fallocate(struct mos_linux_bo *bo,
-               uint32_t mode,
-               uint64_t offset,
-               uint64_t bytes);
-#endif
 int mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name);
-#ifdef ANDROID
-int mos_bo_prime(struct mos_linux_bo *bo, uint32_t * name);
-#endif
 int mos_bo_busy(struct mos_linux_bo *bo);
 int mos_bo_madvise(struct mos_linux_bo *bo, int madv);
 int mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable);
@@ -237,11 +186,6 @@ int mos_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size);
 
 /* drm_intel_bufmgr_gem.c */
 struct mos_bufmgr *mos_bufmgr_gem_init(int fd, int batch_size);
-#ifdef ANDROID
-struct mos_linux_bo *mos_bo_gem_create_from_prime_fd(struct mos_bufmgr *bufmgr,
-                                   const char *name,
-                                   unsigned int prime_fd);
-#endif
 struct mos_linux_bo *mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned int handle);
@@ -284,18 +228,6 @@ int
 mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                                struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
                                unsigned int flags);
-#ifdef ANDROID
-int mos_gem_bo_tag_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-                        struct drm_clip_rect *cliprects, int num_cliprects,
-                        int DR4, unsigned int flags, unsigned int tag);
-int mos_gem_bo_tag_fence_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-                        struct drm_clip_rect *cliprects, int num_cliprects,
-                        int DR4, unsigned int flags, int fence_in,
-                        int *fence_out, unsigned int tag);
-int mos_gem_bo_context_fence_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
-                        int used, unsigned int flags,
-                        int fence_in, int *fence_out);
-#endif
 int mos_bo_gem_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
 struct mos_linux_bo *mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr,
                         int prime_fd, int size);
@@ -372,7 +304,6 @@ extern "C" {
 drm_export int mos_gem_bo_map_wc(struct mos_linux_bo *bo);
 drm_export void mos_gem_bo_clear_relocs(struct mos_linux_bo *bo, int start);
 drm_export int mos_gem_bo_wait(struct mos_linux_bo *bo, int64_t timeout_ns);
-#ifndef ANDROID
 drm_export struct mos_linux_bo *
 mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
                 const char *name,
@@ -388,7 +319,6 @@ drm_export int do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_cont
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
      unsigned int flags);
 
-#endif
 drm_export void mos_gem_bo_free(struct mos_linux_bo *bo);
 drm_export void mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time);
 drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable);
@@ -398,21 +328,6 @@ drm_export int mos_gem_bo_subdata(struct mos_linux_bo *bo, unsigned long offset,
              unsigned long size, const void *data);
 #if defined(__cplusplus)
 }
-#endif
-
-#ifdef ANDROID
-int mos_cmd_parser_append(int fd,
-                uint32_t ring,
-                uint32_t cmd_count,
-                cmd_descriptor *cmds,
-                uint32_t *regs,
-                uint32_t reg_count);
-
-/*
- * Interface to extended ioctl's
- * This should be used instead of calling the ioctl directly
- */
-int i915ExtIoctl(int fd, unsigned long request, void *arg);
 #endif
 
 #endif /* INTEL_BUFMGR_H */

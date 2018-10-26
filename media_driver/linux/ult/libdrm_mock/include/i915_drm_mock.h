@@ -153,43 +153,6 @@ typedef struct _drm_i915_sarea {
 
 } drm_i915_sarea_t;
 
-#ifdef ANDROID
-#define EXEC_OBJECT_PAD_TO_SIZE (1<<4)
-struct i915_ext_ioctl_data
-{
-        __u32 sub_cmd;  /* Extended ioctl to call */
-        __u8  table;    /* Reserved, must be zero */
-        __u8  pad1;     /* Alignment pad */
-        __u16 pad2;     /* Alignment pad */
-
-        /*
-     * Kernel-space pointer could be 32-bits or 64-bits
-     * so use u64 to guarantee compatibility with 64-bit kernels
-     * This obviates the need to provide both a compat_ioctl and standard
-     * ioctl for this interface
-     */
-        __u64 args_ptr;
-};
-
-/*
- *  * Add command checks or whitelisted registers to the command parser. Root-only.
- *   */
-struct drm_i915_cmd_parser_append {
-        /* The ring who's structures are to be updated; use I915_EXEC_* bits */
-        __u32 ring;
-
-        /* Array of drm_i915_cmd_descriptor structs and count of structs */
-        __u32 cmd_count;
-        __u64 cmds;
-
-        /* Array of register offsets and count of registers */
-        __u64 regs;
-        __u32 reg_count;
-
-        __u32 pad;
-};
-#endif
-
 /* due to userspace building against these headers we need some compat here */
 #define planeA_x pipeA_x
 #define planeA_y pipeA_y
@@ -267,13 +230,6 @@ struct drm_i915_cmd_parser_append {
 #define DRM_I915_GEM_USERPTR        0x33
 #define DRM_I915_GEM_CONTEXT_GETPARAM    0x34
 #define DRM_I915_GEM_CONTEXT_SETPARAM    0x35
-#define DRM_I915_PERFMON        0x3e
-
-#ifdef ANDROID
-#define DRM_I915_GEM_ACCESS_USERDATA    0x3c
-#define DRM_I915_CMD_PARSER_APPEND      0x3f
-#define DRM_I915_EXT_IOCTL              0x5F
-#endif
 
 #define DRM_IOCTL_I915_INIT        DRM_IOW( DRM_COMMAND_BASE + DRM_I915_INIT, drm_i915_init_t)
 #define DRM_IOCTL_I915_FLUSH        DRM_IO ( DRM_COMMAND_BASE + DRM_I915_FLUSH)
@@ -328,30 +284,6 @@ struct drm_i915_cmd_parser_append {
 #define DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_GETPARAM, struct drm_i915_gem_context_param)
 #define DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_SETPARAM, struct drm_i915_gem_context_param)
 
-#ifdef ANDROID
-#define DRM_IOCTL_I915_GEM_ACCESS_USERDATA      \
-                DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_ACCESS_USERDATA, \
-                        struct drm_i915_gem_access_userdata)
-
-#define DRM_I915_EXT_USERDATA           0x0
-#define DRM_I915_GEM_FALLOCATE          0x1
-#define DRM_I915_GEM_GET_APERTURE2      0x2
-#define DRM_I915_EXT_LSPCON_AUX         0x3
-#define DRM_I915_EXT_DC_DISABLE         0x4
-#define DRM_I915_EXT_PERF_OPEN          0x5
-#define DRM_IOCTL_I915_EXT_USERDATA \
-                        DRM_IOWR(DRM_I915_EXT_USERDATA, struct drm_i915_gem_userdata_blk)
-#define DRM_IOCTL_I915_CMD_PARSER_APPEND        \
-                DRM_IOW (DRM_COMMAND_BASE + DRM_I915_CMD_PARSER_APPEND, \
-                struct drm_i915_cmd_parser_append)
-#define DRM_IOCTL_I915_EXT_IOCTL        \
-                DRM_IOW(DRM_COMMAND_BASE + DRM_I915_EXT_IOCTL, \
-                struct i915_ext_ioctl_data)
-#define DRM_IOCTL_I915_GEM_FALLOCATE \
-                DRM_IOW(DRM_I915_GEM_FALLOCATE, struct drm_i915_gem_fallocate)
-#define DRM_IOCTL_I915_EXT_LSPCON_AUX_CTRL \
-        DRM_IOWR(DRM_I915_EXT_LSPCON_AUX, struct drm_i915_lspcon_aux_ctrl)
-#endif
 /* Allow drivers to submit batchbuffers directly to hardware, relying
  * on the security mechanisms provided by hardware.
  */
@@ -525,69 +457,7 @@ struct drm_i915_gem_create {
      */
     __u32 handle;
     __u32 pad;
-#ifdef ANDROID
-    __u32 flags;
-#define I915_CREATE_PLACEMENT_NORMAL    0 /* standard swappable bo  */
-#define I915_CREATE_PLACEMENT_STOLEN    1 /* Cannot use CPU mmaps */
-#define I915_CREATE_PLACEMENT_MASK      0xff
-#define I915_CREATE_POPULATE            (1<<8) /* Pre-populate object pages */
-#define I915_CREATE_FLUSH               (1<<9) /* Clflush prepopulated pages */
-#define __I915_CREATE_UNKNOWN_FLAGS     -(I915_CREATE_FLUSH << 1)
-#endif
 };
-
-#ifdef ANDROID
-struct drm_i915_gem_fallocate {
-        /**
- *          * Start position of the range
- *                   *
- *                            * This should be page-aligned.
- *                                     */
-        __u64 start;
-        /**
- *          * Length of the range
- *                   *
- *                            * This should be page-aligned.
- *                                     */
-        __u64 length;
-        /**
- *          * Mode applied to the range
- *                   */
-        __u32 mode;
-#define I915_GEM_FALLOC_UNCOMMIT    0
-#define I915_GEM_FALLOC_COMMIT      1
-        /**
- *          * handle for the object being manipulated
- *                   */
-        __u32 handle;
-};
-
-#define I915_LSPCON_MODE_AUX    0
-#define I915_LSPCON_MODE_IOA    1
-#define I915_LSPCON_OP_READ     0
-#define I915_LSPCON_OP_WRITE    1
-
-struct drm_i915_lspcon_aux_ctrl {
-        /* Read / write mode */
-        __u32 mode;
-
-        /* read/write */
-        __u32 operation;
-
-        /* Size of data */
-        __u32 size;
-
-        /* LSPCon HW address to read/write from */
-        __u32 address;
-
-        /*
- *          * User-space address where to read write
- *                   * data from.
- *                            */
-        __u64 data_ptr;
-};
-
-#endif
 
 struct drm_i915_gem_pread {
     /** Handle for the object being read. */
@@ -828,16 +698,15 @@ struct drm_i915_gem_exec_object2 {
 #define EXEC_OBJECT_WRITE    (1<<2)
 #define EXEC_OBJECT_SUPPORTS_48B_ADDRESS (1<<3)
 #define EXEC_OBJECT_PINNED    (1<<4)
+#if defined(ANDROID)
+#define EXEC_OBJECT_PAD_TO_SIZE (1<<4)
+#endif
 #define __EXEC_OBJECT_UNKNOWN_FLAGS -(EXEC_OBJECT_PINNED<<1)
     __u64 flags;
-#ifdef ANDROID
-        union {
-                __u64 rsvd1;
-                __u64 pad_to_size;
-        };
-#else
-    __u64 rsvd1;
-#endif
+    union {
+        __u64 rsvd1;
+        __u64 pad_to_size;
+    };
     __u64 rsvd2;
 };
 
@@ -917,9 +786,6 @@ struct drm_i915_gem_execbuffer2 {
 /** Tell the kernel that the batchbuffer is processed by
  *  the resource streamer.
  */
-#ifdef ANDROID
-#define I915_EXEC_REQUEST_FENCE                (1<<25)
-#endif
 
 #define I915_EXEC_RESOURCE_STREAMER     (1<<15)
 
@@ -931,15 +797,6 @@ struct drm_i915_gem_execbuffer2 {
 #define i915_execbuffer2_get_context_id(eb2) \
     ((eb2).rsvd1 & I915_EXEC_CONTEXT_ID_MASK)
 
-#ifdef ANDROID
-#define i915_execbuffer2_set_tag(eb2, tag) \
-        ((eb2).rsvd1 |= (__u64)tag << 32)
-struct drm_i915_gem_syncpt_driver_data {
-        __u32 value;
-        __u32 cycle;
-        __u64 flags;
-};
-#endif
 
 struct drm_i915_gem_pin {
     /** Handle of the buffer to be pinned. */
@@ -1116,54 +973,6 @@ struct drm_i915_gem_madvise {
     /** Whether the backing store still exists. */
     __u32 retained;
 };
-
-#ifdef ANDROID
-struct drm_i915_gem_access_userdata {
-        /** Handle of the buffer whose userdata will be accessed */
-        __u32 handle;
-
-        /**
-     * Userdata:  This quantity is user defined
-     */
-        __u32 userdata;
-
-        /**
-     * Write: 0=read userdata, 1=write userdata
-    */
-        __u32 write;
-};
-#define I915_USERDATA_CREATE_OP 0
-#define I915_USERDATA_SET_OP    1
-#define I915_USERDATA_GET_OP    2
-
-#define I915_USERDATA_READONLY 1 /* Data cannot be set after create */
-
-struct drm_i915_gem_userdata_blk {
-        /* One of the USERDATA OP defines above */
-        __u16 op;
-
-        /* Flags controlling how the data can be used */
-        __u16 flags;
-
-        /* Handle of the buffer whose userdata will be accessed */
-        __u32 handle;
-
-        /* Byte offset into data block */
-        __u32 offset;
-
-        /* Number of bytes to allocate or move */
-        /* On return, the number of bytes previously allocated */
-        __u32 bytes;
-
-        /*
-     * Kernel-space pointer could be 32-bits or 64-bits
-      * so use u64 to guarantee compatibility with 64-bit kernels
-      * This obviates the need to provide both a compat_ioctl and standard
-      * ioctl for this interface
-     */
-        __u64 data_ptr;
-};
-#endif
 
 /* flags */
 #define I915_OVERLAY_TYPE_MASK         0xff
