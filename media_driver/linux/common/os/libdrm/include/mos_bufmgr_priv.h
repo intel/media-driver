@@ -175,7 +175,6 @@ struct mos_bufmgr {
      */
     void (*bo_use_48b_address_range) (struct mos_linux_bo *bo, uint32_t enable);
 
-#ifdef ANDROID
     /**
      * Sets buffer total padded size when buffer is used by the GPU.
      *
@@ -192,7 +191,6 @@ struct mos_bufmgr {
      * \param pad_to_size Total size in bytes of object plus padding
      */
     int (*bo_pad_to_size) (struct mos_linux_bo *bo, uint64_t pad_to_size);
-#endif
 
     /**
      * Add relocation entry in reloc_buf, which will be updated with the
