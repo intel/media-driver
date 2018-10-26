@@ -267,7 +267,6 @@ struct drm_i915_cmd_parser_append {
 #define DRM_I915_GEM_USERPTR        0x33
 #define DRM_I915_GEM_CONTEXT_GETPARAM    0x34
 #define DRM_I915_GEM_CONTEXT_SETPARAM    0x35
-#define DRM_I915_PERFMON        0x3e
 
 #ifdef ANDROID
 #define DRM_I915_GEM_ACCESS_USERDATA    0x3c
