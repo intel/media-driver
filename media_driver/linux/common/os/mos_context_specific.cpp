@@ -333,6 +333,7 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
     m_sseuShmId = MOS_LINUX_IPC_INVALID_ID;
     m_sseuShm   = MOS_LINUX_SHM_INVALID;
 
+#if defined(MEDIA_EXT)
     // Read dynamic slice shutdown user feature key
     MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -371,6 +372,7 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
         *((uint32_t*)m_sseuShm+1) = m_gtSystemInfo.SliceCount;
     }
     UnLockSemaphore(m_sseuSemId);
+#endif
 
 finish:
     return eStatus;
@@ -411,6 +413,7 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         return ;
     }
 
+#if defined(MEDIA_EXT)
     if (!m_sliceCountSetSupported)
     {
         // m_sliceCountSetSupported == false, SSEU is unsupport in KMD
@@ -495,6 +498,7 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
     *pSliceCount = sliceCount;
 
     return ;
+#endif
 }
 
 #endif //#ifndef ANDROID
