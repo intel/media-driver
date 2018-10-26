@@ -269,9 +269,7 @@ struct drm_i915_cmd_parser_append {
 #define DRM_I915_GEM_CONTEXT_SETPARAM    0x35
 #define DRM_I915_PERFMON        0x3e
 
-#ifndef ANDROID
-#define DRM_I915_LOAD_BALANCING_HINT    0x3f
-#else
+#ifdef ANDROID
 #define DRM_I915_GEM_ACCESS_USERDATA    0x3c
 #define DRM_I915_CMD_PARSER_APPEND      0x3f
 #define DRM_I915_EXT_IOCTL              0x5F
@@ -330,9 +328,7 @@ struct drm_i915_cmd_parser_append {
 #define DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_GETPARAM, struct drm_i915_gem_context_param)
 #define DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_SETPARAM, struct drm_i915_gem_context_param)
 
-#ifndef ANDROID
-#define DRM_IOCTL_I915_LOAD_BALANCING_HINT        DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_LOAD_BALANCING_HINT, struct drm_i915_ring_load_query)
-#else
+#ifdef ANDROID
 #define DRM_IOCTL_I915_GEM_ACCESS_USERDATA      \
                 DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_ACCESS_USERDATA, \
                         struct drm_i915_gem_access_userdata)
@@ -1343,33 +1339,7 @@ struct drm_i915_gem_context_param {
 #define I915_CONTEXT_PARAM_BAN_PERIOD    0x1
 #define I915_CONTEXT_PARAM_NO_ZEROMAP    0x2
 #define I915_CONTEXT_PARAM_GTT_SIZE    0x3
-#define I915_CONTEXT_PARAM_SSEU     0x7
     __u64 value;
 };
-
-union drm_i915_gem_context_param_sseu {
-    struct {
-        __u8 slice_mask;
-        __u8 subslice_mask;
-        __u8 min_eu_per_subslice;
-        __u8 max_eu_per_subslice;
-    } packed;
-    __u64 value;
-};
-
-typedef struct drm_i915_ring_load_info
-{
-    /** ID of ring & load counter*/
-    int ring_id;
-    int load_cnt;
-} drm_i915_ring_load_info;
-
-typedef struct drm_i915_ring_load_query
-{
-    /** Number of rings, load counters of which we want to query & ptr to array
-      * of load info structures */
-    int query_size;
-    drm_i915_ring_load_info *load_info;
-} drm_i915_ring_load_query;
 
 #endif /* _I915_DRM_H_ */
