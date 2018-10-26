@@ -41,9 +41,6 @@
 #include "mos_bufmgr_mock.h"
 #include "mos_bufmgr_priv_mock.h"
 #include "xf86drm_mock.h"
-#ifdef ANDROID
-#include <unistd.h>
-#endif
 
 /** @file mos_bufmgr_api_mock.c
  *
@@ -56,15 +53,6 @@ mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
 {
     return bufmgr->bo_alloc(bufmgr, name, size, alignment);
 }
-
-#ifdef ANDROID
-struct mos_linux_bo *
-mos_bo_alloc2(struct mos_bufmgr *bufmgr, const char *name,
-           unsigned long size, unsigned int alignment, unsigned long flags)
-{
-    return bufmgr->bo_alloc2(bufmgr, name, size, alignment, flags);
-}
-#endif
 
 struct mos_linux_bo *
 mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr, const char *name,
@@ -169,26 +157,8 @@ int
 mos_bo_exec(struct mos_linux_bo *bo, int used,
           drm_clip_rect_t * cliprects, int num_cliprects, int DR4)
 {
-#ifdef ANDROID
-    return bo->bufmgr->bo_exec(bo, used, cliprects, num_cliprects, DR4, -1, nullptr);
-#else
     return bo->bufmgr->bo_exec(bo, used, cliprects, num_cliprects, DR4);
-#endif
 }
-
-#ifdef ANDROID
-int
-mos_bo_fence_exec(struct mos_linux_bo *bo, int used,
-          drm_clip_rect_t * cliprects, int num_cliprects, int DR4,
-            int fence_in, int* fence_out)
-{
-    if (fence_out)
-        *fence_out = -1;
-
-    return bo->bufmgr->bo_exec(bo, used, cliprects, num_cliprects, DR4,
-                fence_in, fence_out);
-}
-#endif
 
 int
 mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
@@ -196,57 +166,19 @@ mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
         unsigned int rings)
 {
     if (bo->bufmgr->bo_mrb_exec)
-#ifdef ANDROID
-        return bo->bufmgr->bo_mrb_exec(bo, used,
-                    cliprects, num_cliprects, DR4,
-                    rings, -1, nullptr);
-#else
         return bo->bufmgr->bo_mrb_exec(bo, used,
                     cliprects, num_cliprects, DR4,
                     rings);
-#endif
 
     switch (rings) {
     case I915_EXEC_DEFAULT:
     case I915_EXEC_RENDER:
-#ifdef ANDROID
-        return bo->bufmgr->bo_exec(bo, used,
-                       cliprects, num_cliprects, DR4,
-                        -1, nullptr);
-#else
         return bo->bufmgr->bo_exec(bo, used,
                        cliprects, num_cliprects, DR4);
-#endif
     default:
         return -ENODEV;
     }
 }
-
-#ifdef ANDROID
-int
-mos_bo_mrb_fence_exec(struct mos_linux_bo *bo, int used,
-        drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-        unsigned int rings, int fence_in, int* fence_out)
-{
-    if (fence_out)
-        *fence_out = -1;
-
-    if (bo->bufmgr->bo_mrb_exec)
-        return bo->bufmgr->bo_mrb_exec(bo, used,
-                    cliprects, num_cliprects, DR4,
-                    rings, fence_in, fence_out);
-
-    switch (rings) {
-    case I915_EXEC_DEFAULT:
-    case I915_EXEC_RENDER:
-        return bo->bufmgr->bo_exec(bo, used,
-                       cliprects, num_cliprects, DR4,
-                        fence_in, fence_out);
-    default:
-        return -ENODEV;
-    }
-}
-#endif
 
 void
 mos_bufmgr_set_debug(struct mos_bufmgr *bufmgr, int enable_debug)
@@ -269,17 +201,6 @@ mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name)
     return -ENODEV;
 }
 
-#ifdef ANDROID
-int mos_bo_prime(struct mos_linux_bo *bo, uint32_t * name)
-{
-    if (bo->bufmgr->bo_prime)
-        return bo->bufmgr->bo_prime(bo, name);
-
-    return -ENODEV;
-}
-#endif
-
-#ifndef ANDROID
 int
 mos_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
                        struct mos_linux_bo *target_bo, uint32_t target_offset,
@@ -291,7 +212,6 @@ mos_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
                                         read_domains, write_domain,
                                         presumed_offset);
 }
-#endif
 
 int
 mos_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
@@ -354,95 +274,6 @@ mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
     *swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
     return 0;
 }
-
-#ifdef ANDROID
-int mos_bo_set_userdata(struct mos_linux_bo *bo, uint32_t userdata)
-{
-    if (bo->bufmgr->bo_set_userdata)
-        return bo->bufmgr->bo_set_userdata(bo, userdata);
-
-    return 0;
-}
-
-int mos_bo_get_userdata(struct mos_linux_bo *bo, uint32_t *userdata)
-{
-    if (bo->bufmgr->bo_get_userdata)
-        return bo->bufmgr->bo_get_userdata(bo, userdata);
-
-    *userdata = 0;
-    return 0;
-}
-
-int mos_bo_set_datatype(struct mos_linux_bo *bo, uint32_t userdata)
-{
-    if (bo->bufmgr->bo_set_userdata)
-        return bo->bufmgr->bo_set_userdata(bo, userdata);
-
-    return 0;
-}
-
-int mos_bo_get_datatype(struct mos_linux_bo *bo, uint32_t *userdata)
-{
-    if (bo->bufmgr->bo_get_userdata)
-        return bo->bufmgr->bo_get_userdata(bo, userdata);
-
-    *userdata = 0;
-    return 0;
-}
-
-int mos_bo_create_userdata_blk(struct mos_linux_bo *bo,
-                     uint16_t      flags,
-                     uint32_t      bytes,
-                     const void   *data,
-                     uint32_t     *avail_bytes)
-{
-    if (bo->bufmgr->bo_create_userdata_blk)
-        return bo->bufmgr->bo_create_userdata_blk(bo, flags,
-                              bytes, data,
-                              avail_bytes);
-
-    return -ENODEV;
-}
-
-int mos_bo_set_userdata_blk(struct mos_linux_bo *bo,
-                  uint32_t      offset,
-                  uint32_t      bytes,
-                  const void   *data,
-                  uint32_t     *avail_bytes)
-{
-    if (bo->bufmgr->bo_set_userdata_blk)
-        return bo->bufmgr->bo_set_userdata_blk(bo, offset,
-                               bytes, data,
-                               avail_bytes);
-
-    return -ENODEV;
-}
-
-int mos_bo_get_userdata_blk(struct mos_linux_bo *bo,
-                  uint32_t      offset,
-                  uint32_t      bytes,
-                  void         *data,
-                  uint32_t     *avail_bytes)
-{
-    if (bo->bufmgr->bo_get_userdata_blk)
-        return bo->bufmgr->bo_get_userdata_blk(bo, offset,
-                               bytes, data,
-                               avail_bytes);
-
-    return -ENODEV;
-}
-
-int mos_bo_fallocate(struct mos_linux_bo *bo,
-               uint32_t mode,
-               uint64_t offset,
-               uint64_t bytes)
-{
-    if (bo->bufmgr->bo_fallocate)
-        return bo->bufmgr->bo_fallocate(bo, mode, offset, bytes);
-
-    return -ENODEV;
-}
-#endif
 
 int
 mos_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset)
@@ -564,26 +395,3 @@ mos_get_aperture_sizes(int fd, size_t *mappable, size_t *total)
     *total = aperture.aper_size;
     return 0;
 }
-
-#ifdef ANDROID
-int mos_cmd_parser_append(int fd,
-                uint32_t ring,
-                uint32_t cmd_count,
-                cmd_descriptor *cmds,
-                uint32_t *regs,
-                uint32_t reg_count)
-{
-    int ret;
-    struct drm_i915_cmd_parser_append append;
-
-    append.ring = ring;
-    append.cmd_count = cmd_count;
-    append.cmds = (uintptr_t)cmds;
-    append.regs = (uintptr_t)regs;
-    append.reg_count = reg_count;
-
-    ret = drmIoctl(fd, DRM_IOCTL_I915_CMD_PARSER_APPEND, &append);
-
-    return ret;
-}
-#endif
