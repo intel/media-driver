@@ -166,6 +166,15 @@ typedef enum
 } MOS_SCALABILITY_SUBCOMP_ID;
 
 //!
+//! \brief Define MMC Sub-Component IDs
+//!
+typedef enum
+{
+    MOS_MMC_SUBCOMP_SELF   = 0,
+    MOS_MMC_SUBCOMP_COUNT
+} MOS_MMC_SUBCOMP_ID;
+
+//!
 //! \brief MOS debug params structure, includes debug level and asserts enabled.
 //!
 typedef struct _MOS_DEBUG_PARAMS
