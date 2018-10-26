@@ -221,6 +221,19 @@
 //!
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG        "SCALABILITY Sub Components Tags"
 
+//!
+//! \brief User feature keys for component MMC:
+//!
+#define __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG              "MMC Message Tags"
+#define __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC         "MMC Tags By Sub Component"
+//!
+//! \brief 63____________________________________________________________________________3__________0
+//!         |                                                                            |   Self   |
+//!         |                    Reserved (can create MMC subcomponents)                 |Asrt|level|
+//!         |____________________________________________________________________________|__________|
+//!
+#define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG        "MMC Sub Components Tags"
+
 #endif // MOS_MESSAGES_ENABLED
 
 //User feature key for MDF
