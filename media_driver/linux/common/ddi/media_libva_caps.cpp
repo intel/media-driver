@@ -1656,9 +1656,12 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (numAttribs)
+    {
+        DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    }
 
     VAConfigAttrib decAttributes[3];
 
@@ -1714,8 +1717,12 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (numAttribs)
+    {
+        DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    }
 
     uint32_t rcMode = VA_RC_CQP;
     if((entrypoint == VAEntrypointStats) || (entrypoint == VAEntrypointEncPicture))
