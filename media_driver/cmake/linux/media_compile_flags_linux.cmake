@@ -215,3 +215,7 @@ if (DEFINED MEDIA_VERSION)
 elseif (DEFINED ENV{MEDIA_VERSION})
     add_definitions(-DUFO_VERSION="$ENV{MEDIA_VERSION}")
 endif()
+
+if (MEDIA_EXT)
+    add_definitions(-DMEDIA_EXT)
+endif()

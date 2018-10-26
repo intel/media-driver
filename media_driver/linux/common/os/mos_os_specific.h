@@ -37,6 +37,9 @@
 #endif
 
 #include "i915_drm.h"
+#if defined(MEDIA_EXT)
+#include "i915_drm_ext.h"
+#endif
 #include "mos_bufmgr.h"
 #include "xf86drm.h"
 

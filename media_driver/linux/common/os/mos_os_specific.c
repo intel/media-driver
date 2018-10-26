@@ -5806,7 +5806,7 @@ MOS_VDBOX_NODE_IND Mos_Specific_GetVdboxNodeId(
         return idx;
     }
 
-#ifndef ANDROID
+#if defined(MEDIA_EXT) && !defined(ANDROID)
     if (pOsInterface->pOsContext->bPerCmdBufferBalancing)
     {
         int32_t ret;
@@ -6348,6 +6348,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     Mos_Solo_Initialize(pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
 
+#if defined(MEDIA_EXT)
     // read the "Disable VDBox load balancing" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -6355,6 +6356,7 @@ MOS_STATUS Mos_Specific_InitInterface(
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_BALANCING_ID,
         &UserFeatureData);
     pOsInterface->bEnableVdboxBalancing = (bool)UserFeatureData.u32Data;
+#endif
 
     // read the "Disable KMD Watchdog" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
