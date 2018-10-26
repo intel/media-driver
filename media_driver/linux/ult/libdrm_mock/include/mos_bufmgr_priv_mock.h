@@ -50,16 +50,6 @@ struct mos_bufmgr {
     struct mos_linux_bo *(*bo_alloc) (struct mos_bufmgr *bufmgr, const char *name,
                    unsigned long size, unsigned int alignment);
 
-#ifdef ANDROID
-    /**
-     * Allocate a buffer object, hinting where the object is supposed to be
-     * placed (like backed by stolen memory area or by shmem) or it should
-     * be pre-populated or not, by using flags parameter.
-     */
-    struct mos_linux_bo *(*bo_alloc2) (struct mos_bufmgr *bufmgr, const char *name,
-                   unsigned long size, unsigned int alignment,
-                   unsigned long flags);
-#endif
     /**
      * Allocate a buffer object, hinting that it will be used as a
      * render target.
@@ -175,7 +165,7 @@ struct mos_bufmgr {
      */
     void (*bo_use_48b_address_range) (struct mos_linux_bo *bo, uint32_t enable);
 
-#ifdef ANDROID
+#if defined(ANDROID)
     /**
      * Sets buffer total padded size when buffer is used by the GPU.
      *
@@ -228,28 +218,15 @@ struct mos_bufmgr {
                    uint32_t write_domain);
 
     /** Executes the command buffer pointed to by bo. */
-#ifdef ANDROID
-    int (*bo_exec) (struct mos_linux_bo *bo, int used,
-            drm_clip_rect_t *cliprects, int num_cliprects,
-            int DR4, int fence_in, int *fence_out);
-#else
     int (*bo_exec) (struct mos_linux_bo *bo, int used,
             drm_clip_rect_t *cliprects, int num_cliprects,
             int DR4);
-#endif
     /** Executes the command buffer pointed to by bo on the selected
      * ring buffer
      */
-#ifdef ANDROID
-    int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
-                drm_clip_rect_t *cliprects, int num_cliprects,
-                int DR4, unsigned flags,
-                int fence_in, int *fence_out);
-#else
     int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
                 drm_clip_rect_t *cliprects, int num_cliprects,
                 int DR4, unsigned flags);
-#endif
 
     /**
      * Pin a buffer to the aperture and fix the offset until unpinned
@@ -300,15 +277,6 @@ struct mos_bufmgr {
      */
     int (*bo_flink) (struct mos_linux_bo *bo, uint32_t * name);
 
-#ifdef ANDROID
-    /**
-     * Create a dma-buf prime fd for a buffer which can be used by other apps
-     *
-     * \param buf Buffer to create a prime fd for
-     * \param prime_fd Returned prime fd
-     */
-    int (*bo_prime) (struct mos_linux_bo *bo, uint32_t * prime_fd);
-#endif
     /**
      * Returns 1 if mapping the buffer for write could cause the process
      * to block, due to the object being active in the GPU.
@@ -362,86 +330,6 @@ struct mos_bufmgr {
 
     /** Returns true if target_bo is in the relocation tree rooted at bo. */
     int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
-
-#ifdef ANDROID
-    /**
-     * Sets an object's userdata
-     *
-     * \param bo Buffer whose userdata will be set
-     * \param userdata Value of new userdata
-     */
-    int (*bo_set_userdata) (struct mos_linux_bo *bo, uint32_t userdata);
-
-    /**
-     * Gets an object's current userdata.
-     *
-     * \param bo Buffer from which userdata will be retrieved
-     * \param userdata Pointer to uint32_t receiving userdata
-     */
-    int (*bo_get_userdata) (struct mos_linux_bo *bo, uint32_t *userdata);
-
-    /**
-     * Creates an object's userdata.
-     *
-     * \param bo Buffer to which userdata will be attached
-     * \param flags Controls how the data may be used
-     * \param bytes Number of bytes to allocate & set
-     * \param data Pointer to data to be attached (or nullptr)
-     * \param avail_bytes On return, set to the number of bytes
-     *       of userdata already allocated for the object.
-     *       useful when return code is -EXIST
-     */
-    int (*bo_create_userdata_blk) (struct mos_linux_bo *bo,
-                       uint16_t      flags,
-                       uint32_t         bytes,
-                       const void   *data,
-                       uint32_t     *avail_bytes);
-
-    /**
-     * Change an object's userdata.
-     *
-     * \param bo Buffer whose userdata will be set
-     * \param offset Offset to first byte to set
-     * \param bytes Number of bytes to set
-     * \param data Pointer to data to be set (must not be nullptr)
-     * \param avail_bytes On return, set to the number of bytes
-     *        of userdata actually allocated to the object
-     */
-    int (*bo_set_userdata_blk)    (struct mos_linux_bo *bo,
-                       uint32_t         offset,
-                       uint32_t         bytes,
-                       const void   *data,
-                       uint32_t     *avail_bytes);
-    /**
-     * Retrieves an object's userdata.
-     *
-     * \param bo Buffer from which userdata will be retrieved
-     * \param offset Offset to first byte to retrieve
-     * \param bytes Number of bytes to retrieve
-     * \param data Pointer to buffer to return data in (must not be nullptr)
-     * \param avail_bytes On return, set to the number of bytes
-     *        of userdata actually allocated to the object
-     */
-    int (*bo_get_userdata_blk)    (struct mos_linux_bo *bo,
-                       uint32_t         offset,
-                       uint32_t         bytes,
-                       void         *data,
-                       uint32_t     *avail_bytes);
-    /**
-     * Releases/creates an object's backing store
-     *
-     * \param bo Buffer whose backing pages are manipulated
-     * \param mode   supports two modes
-     *               uncommit - releases the backing pages of obj
-     *               commit - creates new backing pages and updates obj
-     * \param offset  Starting position of the range (should be page-aligned)
-     * \param bytes   Length of the range (should be page-aligned)
-     */
-    int (*bo_fallocate)    (struct mos_linux_bo *bo,
-                uint32_t mode,
-                uint64_t offset,
-                uint64_t bytes);
-#endif
 
     /**< Enables verbose debugging printouts */
     int debug;
