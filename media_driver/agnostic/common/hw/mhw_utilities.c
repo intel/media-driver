@@ -361,25 +361,23 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
 
-    if ( pOsInterface->Component == COMPONENT_CM )
+    if ( pOsInterface->Component != COMPONENT_CM )
     {
-        pOsInterface->bMediaReset = false;
-    }
-
-    if (    GpuContext == MOS_GPU_CONTEXT_RENDER        ||
-            GpuContext == MOS_GPU_CONTEXT_RENDER2       ||
-            GpuContext == MOS_GPU_CONTEXT_RENDER3       ||
-            GpuContext == MOS_GPU_CONTEXT_RENDER4       ||
-            GpuContext == MOS_GPU_CONTEXT_VIDEO         ||
-            GpuContext == MOS_GPU_CONTEXT_VIDEO2        ||
-            GpuContext == MOS_GPU_CONTEXT_VIDEO3        ||
-            GpuContext == MOS_GPU_CONTEXT_VIDEO4        ||
-            GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO  ||
-            GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO2 ||
-            GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO3 ||
-            GpuContext == MOS_GPU_CONTEXT_VEBOX)
-    {
-        MHW_CHK_STATUS(pMiInterface->AddWatchdogTimerStartCmd(pCmdBuffer));
+        if (    GpuContext == MOS_GPU_CONTEXT_RENDER        ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER2       ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER3       ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER4       ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO         ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO2        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO3        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO4        ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO  ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO2 ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO3 ||
+                GpuContext == MOS_GPU_CONTEXT_VEBOX)
+        {
+            MHW_CHK_STATUS(pMiInterface->AddWatchdogTimerStartCmd(pCmdBuffer));
+        }
     }
 
     bRcsEngineUsed = MOS_RCS_ENGINE_USED(GpuContext);
