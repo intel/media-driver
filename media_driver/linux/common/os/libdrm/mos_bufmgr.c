@@ -307,13 +307,13 @@ struct mos_bo_gem {
 
     mos_aub_annotation *aub_annotations;
     unsigned aub_annotation_count;
+#endif
 
     /**
      * Size to pad the object to.
      *
      */
     uint64_t pad_to_size;
-#endif
 };
 
 static unsigned int
@@ -535,10 +535,8 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
 
     if (need_fence)
         flags |= EXEC_OBJECT_NEEDS_FENCE;
-#ifdef ANDROID
     if (bo_gem->pad_to_size)
         flags |= EXEC_OBJECT_PAD_TO_SIZE;
-#endif
     if (bo_gem->use_48b_address_range)
         flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
     if (bo_gem->is_softpin)
@@ -588,9 +586,7 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
     bufmgr_gem->exec_bos[index] = bo;
     bufmgr_gem->exec2_objects[index].flags = flags;
     bufmgr_gem->exec2_objects[index].rsvd1 = 0;
-#ifdef ANDROID
     bufmgr_gem->exec2_objects[index].pad_to_size = bo_gem->pad_to_size;
-#endif
     bufmgr_gem->exec2_objects[index].rsvd2 = 0;
     bufmgr_gem->exec_count++;
 }
@@ -1723,9 +1719,7 @@ mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time)
 
     MOS_DBG("bo_unreference final: %d (%s)\n",
         bo_gem->gem_handle, bo_gem->name);
-#ifdef ANDROID
     bo_gem->pad_to_size = 0;
-#endif
 
     /* release memory associated with this object */
     if (bo_gem->reloc_target_info) {
@@ -2696,7 +2690,6 @@ mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *targ
     return 0;
 }
 
-#ifdef ANDROID
 static int
 mos_gem_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size)
 {
@@ -2708,7 +2701,6 @@ mos_gem_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size)
     bo_gem->pad_to_size = pad_to_size;
     return 0;
 }
-#endif
 
 static int
 mos_gem_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
@@ -4906,9 +4898,7 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     bufmgr_gem->bufmgr.bo_subdata = mos_gem_bo_subdata;
     bufmgr_gem->bufmgr.bo_get_subdata = mos_gem_bo_get_subdata;
     bufmgr_gem->bufmgr.bo_wait_rendering = mos_gem_bo_wait_rendering;
-#ifdef ANDROID
     bufmgr_gem->bufmgr.bo_pad_to_size = mos_gem_bo_pad_to_size;
-#endif
     bufmgr_gem->bufmgr.bo_emit_reloc = mos_gem_bo_emit_reloc;
 #ifndef ANDROID
     bufmgr_gem->bufmgr.bo_emit_reloc2 = mos_gem_bo_emit_reloc2;
