@@ -412,13 +412,13 @@ VAStatus DdiDecodeAVC::RenderPicture(
         case VASliceParameterBufferType:
         {
             VASliceParameterBufferH264 *slcInfoH264;
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
 
             slcInfoH264        = (VASliceParameterBufferH264 *)data;
-            uint32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
             DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoH264, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
@@ -522,38 +522,38 @@ VAStatus DdiDecodeAVC::AllocSliceControlBuffer(
 
     if(m_ddiDecodeCtx->bShortFormatInUse)
     {
-        if(availSize < buf->iNumElements)
+        if(availSize < buf->uiNumElements)
                 {
-            newSize   = sizeof(VASliceParameterBufferBase) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+            newSize   = sizeof(VASliceParameterBufferBase) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
             bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base = (VASliceParameterBufferBase *)realloc(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base, newSize);
             if(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base == nullptr)
             {
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
-            MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferBase) * (buf->iNumElements - availSize));
-            m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+            MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferBase) * (buf->uiNumElements - availSize));
+            m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
         }
         buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base;
         buf->uiOffset   = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferBase);
     }
     else
     {
-        if(availSize < buf->iNumElements)
+        if(availSize < buf->uiNumElements)
         {
-            newSize   = sizeof(VASliceParameterBufferH264) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+            newSize   = sizeof(VASliceParameterBufferH264) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
             bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264 = (VASliceParameterBufferH264 *)realloc(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264, newSize);
             if(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264 == nullptr)
             {
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
-            MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferH264) * (buf->iNumElements - availSize));
-            m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+            MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferH264) * (buf->uiNumElements - availSize));
+            m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
          }
          buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264;
          buf->uiOffset   = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferH264);
       }
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }

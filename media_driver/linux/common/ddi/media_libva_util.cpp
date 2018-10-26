@@ -702,8 +702,8 @@ finish:
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
 VAStatus DdiMediaUtil_Allocate2DBuffer(
-    int32_t                     height,
-    int32_t                     width,
+    uint32_t                    height,
+    uint32_t                    width,
     PDDI_MEDIA_BUFFER           mediaBuffer,
     MOS_BUFMGR                 *bufmgr)
 {
@@ -753,9 +753,9 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     if (bo)
     {
         mediaBuffer->format     = Media_Format_2DBuffer;
-        mediaBuffer->iWidth     = width;
-        mediaBuffer->iHeight    = gmmHeight;
-        mediaBuffer->iPitch     = gmmPitch;
+        mediaBuffer->uiWidth    = width;
+        mediaBuffer->uiHeight   = gmmHeight;
+        mediaBuffer->uiPitch    = gmmPitch;
         mediaBuffer->iSize      = gmmSize;
         mediaBuffer->iRefCount  = 0;
         mediaBuffer->bo         = bo;
@@ -810,8 +810,8 @@ VAStatus DdiMediaUtil_CreateBuffer(DDI_MEDIA_BUFFER *buffer, MOS_BUFMGR *bufmgr)
     {
         if (Media_Format_2DBuffer == buffer->format)
         {
-            hr = DdiMediaUtil_Allocate2DBuffer(buffer->iHeight,
-                                  buffer->iWidth,
+            hr = DdiMediaUtil_Allocate2DBuffer(buffer->uiHeight,
+                                  buffer->uiWidth,
                                   buffer,
                                   bufmgr);
          }

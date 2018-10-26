@@ -191,7 +191,7 @@ protected:
     //! \return VAStatus
     //!     if call succeeds
     //!
-    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP);
+    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
 
     //! \brief    Query the suppported image formats
     //!

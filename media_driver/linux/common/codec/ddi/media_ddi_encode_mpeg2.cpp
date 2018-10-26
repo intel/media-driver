@@ -190,7 +190,7 @@ VAStatus DdiEncodeMpeg2::RenderPicture(
 
         case VAEncSliceParameterBufferType:
             {
-                uint32_t numSlices = buf->iNumElements;
+                uint32_t numSlices = buf->uiNumElements;
                 DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
             }
             break;
