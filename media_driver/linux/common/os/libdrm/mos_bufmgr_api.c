@@ -407,13 +407,11 @@ mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable)
     return -ENODEV;
 }
 
-#ifdef ANDROID
 int
 mos_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size)
 {
        return bo->bufmgr->bo_pad_to_size(bo, pad_to_size);
 }
-#endif
 
 int
 mos_bo_references(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)

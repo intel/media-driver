@@ -698,16 +698,44 @@ struct drm_i915_gem_exec_object2 {
 #define EXEC_OBJECT_WRITE    (1<<2)
 #define EXEC_OBJECT_SUPPORTS_48B_ADDRESS (1<<3)
 #define EXEC_OBJECT_PINNED    (1<<4)
-#if defined(ANDROID)
-#define EXEC_OBJECT_PAD_TO_SIZE (1<<4)
-#endif
-#define __EXEC_OBJECT_UNKNOWN_FLAGS -(EXEC_OBJECT_PINNED<<1)
-    __u64 flags;
-    union {
-        __u64 rsvd1;
-        __u64 pad_to_size;
-    };
-    __u64 rsvd2;
+#define EXEC_OBJECT_PAD_TO_SIZE    (1<<5)
+/* The kernel implicitly tracks GPU activity on all GEM objects, and
+ * synchronises operations with outstanding rendering. This includes
+ * rendering on other devices if exported via dma-buf. However, sometimes
+ * this tracking is too coarse and the user knows better. For example,
+ * if the object is split into non-overlapping ranges shared between different
+ * clients or engines (i.e. suballocating objects), the implicit tracking
+ * by kernel assumes that each operation affects the whole object rather
+ * than an individual range, causing needless synchronisation between clients.
+ * The kernel will also forgo any CPU cache flushes prior to rendering from
+ * the object as the client is expected to be also handling such domain
+ * tracking.
+ *
+ * The kernel maintains the implicit tracking in order to manage resources
+ * used by the GPU - this flag only disables the synchronisation prior to
+ * rendering with this object in this execbuf.
+ *
+ * Opting out of implicit synhronisation requires the user to do its own
+ * explicit tracking to avoid rendering corruption. See, for example,
+ * I915_PARAM_HAS_EXEC_FENCE to order execbufs and execute them asynchronously.
+ */
+#define EXEC_OBJECT_ASYNC   (1<<6)
+/* Request that the contents of this execobject be copied into the error
+ * state upon a GPU hang involving this batch for post-mortem debugging.
+ * These buffers are recorded in no particular order as "user" in
+ * /sys/class/drm/cardN/error. Query I915_PARAM_HAS_EXEC_CAPTURE to see
+ * if the kernel supports this flag.
+ */
+#define EXEC_OBJECT_CAPTURE   (1<<7)
+/* All remaining bits are MBZ and RESERVED FOR FUTURE USE */
+#define __EXEC_OBJECT_UNKNOWN_FLAGS -(EXEC_OBJECT_CAPTURE<<1)
+  __u64 flags;
+
+  union {
+    __u64 rsvd1;
+    __u64 pad_to_size;
+  };
+  __u64 rsvd2;
 };
 
 struct drm_i915_gem_execbuffer2 {
