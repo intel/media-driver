@@ -149,10 +149,30 @@ GpuContext *GpuContextMgr::CreateGpuContext(
 
     MOS_LockMutex(m_gpuContextArrayMutex);
 
-    // m_gpuContextArray always increases, directly use size before push back as search index.
-    GPU_CONTEXT_HANDLE gpuContextHandle = m_gpuContextArray.size();
+    // Directly replace nullptr with new created context in m_gpuContextArray.
+    GPU_CONTEXT_HANDLE  gpuContextHandle = 0;
+    GpuContext         *curGpuContext = nullptr;
+    int                 index = 0;
+    for (auto& curGpuContext : m_gpuContextArray)
+    {
+        if(curGpuContext == nullptr)
+        {
+            break;
+        }
+        index++;
+    }
+
+    gpuContextHandle = m_gpuContextArray.size() ? index : 0;
     gpuContext->SetGpuContextHandle(gpuContextHandle);
-    m_gpuContextArray.push_back(gpuContext);
+
+    if(gpuContextHandle == m_gpuContextArray.size())
+    {
+        m_gpuContextArray.push_back(gpuContext);
+    }
+    else
+    {
+        m_gpuContextArray[gpuContextHandle] = gpuContext;
+    }
     m_gpuContextCount++;
 
     MOS_UnlockMutex(m_gpuContextArrayMutex);
