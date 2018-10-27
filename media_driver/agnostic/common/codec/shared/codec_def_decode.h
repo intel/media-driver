@@ -155,6 +155,8 @@ struct CodechalDecodeParams
     PMOS_RESOURCE           m_presSetMarker = nullptr;
     //! \brief [SetMarker] Number Timestamp for SetMarker
     uint32_t                setMarkerNumTs = 0;
+    //! \brief [CENC Decode] Indicates if it's a full frame
+    bool                    m_bFullFrameData = false;
 };
 
 
