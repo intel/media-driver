@@ -80,8 +80,10 @@ MOS_STATUS CodecHalEncodeSinglePipeVE_InitInterface(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(pOsInterface, &VEInitParams));
     pVEState->pVEInterface = pVEInterface = pOsInterface->pVEInterf;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, false, &pVEState->pHintParms));
-
+    if(pVEInterface->pfnVEGetHintParams)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, false, &pVEState->pHintParms));
+    }
     return eStatus;
 }
 
