@@ -721,34 +721,37 @@ MOS_STATUS XRenderHal_Interface_g11::IsOvrdNeeded(
     pAttriVe    = (PMOS_CMD_BUF_ATTRI_VE)(pCmdBuffer->Attributes.pAttriVe);
     pGenericPrologParamsG11 = dynamic_cast<PRENDERHAL_GENERIC_PROLOG_PARAMS_G11>(pGenericPrologParams);
 
-    if (pGenericPrologParamsG11)
+    if (pAttriVe)
     {
-        // Split Frame
-        if (pGenericPrologParamsG11->VEngineHintParams.BatchBufferCount == 2 && pOsInterface->VEEnable)
+        if (pGenericPrologParamsG11)
         {
-            pAttriVe->bUseVirtualEngineHint = true;
-            pAttriVe->VEngineHintParams = pGenericPrologParamsG11->VEngineHintParams;
+            // Split Frame
+            if (pGenericPrologParamsG11->VEngineHintParams.BatchBufferCount == 2 && pOsInterface->VEEnable)
+            {
+                pAttriVe->bUseVirtualEngineHint = true;
+                pAttriVe->VEngineHintParams = pGenericPrologParamsG11->VEngineHintParams;
+            }
         }
-    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    if (pOsInterface->bEnableDbgOvrdInVE)
-    {
-        if (pOsInterface->bVeboxScalabilityMode)
+        if (pOsInterface->bEnableDbgOvrdInVE)
         {
-            pAttriVe->VEngineHintParams.DebugOverride     = true;
-            pAttriVe->VEngineHintParams.BatchBufferCount  = 2;
-            pAttriVe->VEngineHintParams.EngineInstance[0] = 0;
-            pAttriVe->VEngineHintParams.EngineInstance[1] = 1;
+            if (pOsInterface->bVeboxScalabilityMode)
+            {
+                pAttriVe->VEngineHintParams.DebugOverride     = true;
+                pAttriVe->VEngineHintParams.BatchBufferCount  = 2;
+                pAttriVe->VEngineHintParams.EngineInstance[0] = 0;
+                pAttriVe->VEngineHintParams.EngineInstance[1] = 1;
+            }
+            else if (pOsInterface->eForceVebox)
+            {
+                pAttriVe->VEngineHintParams.DebugOverride     = true;
+                pAttriVe->VEngineHintParams.BatchBufferCount  = 1;
+                pAttriVe->VEngineHintParams.EngineInstance[0] = pOsInterface->eForceVebox - 1;
+            }
         }
-        else if (pOsInterface->eForceVebox)
-        {
-            pAttriVe->VEngineHintParams.DebugOverride     = true;
-            pAttriVe->VEngineHintParams.BatchBufferCount  = 1;
-            pAttriVe->VEngineHintParams.EngineInstance[0] = pOsInterface->eForceVebox - 1;
-        }
-    }
 #endif
+    }
 
 finish:
     return eStatus;
