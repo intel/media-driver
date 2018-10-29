@@ -87,19 +87,24 @@ static __inline MOS_STATUS CodecHalEncodeSinglePipeVE_PopulateHintParams(
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
     PMOS_CMD_BUF_ATTRI_VE         pAttriVe;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pVEState);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pVEState->pHintParms);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pPrimCmdBuf);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pPrimCmdBuf->Attributes.pAttriVe);
 
-    pAttriVe = (PMOS_CMD_BUF_ATTRI_VE)(pPrimCmdBuf->Attributes.pAttriVe);
-
-    if (bUseVirtualEngineHint)
+    if (pPrimCmdBuf->Attributes.pAttriVe)
     {
-        pAttriVe->VEngineHintParams = *(pVEState->pHintParms);
-    }
 
-    pAttriVe->bUseVirtualEngineHint = bUseVirtualEngineHint;
+        pAttriVe = (PMOS_CMD_BUF_ATTRI_VE)(pPrimCmdBuf->Attributes.pAttriVe);
+
+        if (bUseVirtualEngineHint)
+        {
+            CODECHAL_ENCODE_CHK_NULL_RETURN(pVEState);
+            if(pVEState->pHintParms)
+            {
+                pAttriVe->VEngineHintParams = *(pVEState->pHintParms);
+            }
+        }
+
+        pAttriVe->bUseVirtualEngineHint = bUseVirtualEngineHint;
+    }
 
     return eStatus;
 }
