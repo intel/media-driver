@@ -375,17 +375,6 @@ protected:
         void                    *ptr,
         _CODECHAL_STANDARD_INFO *standardInfo);
 
-    //!
-    //! \brief    Get dummy reference from DPB
-    //! \details  Get dummy reference from DPB for error concealment
-    //!
-    //! \param    [in] decodeCtx
-    //!           DDI_DECODE_CONTEXT * type
-    //!
-    //! \return   void
-    void GetDummyReferenceFromDPB(
-        DDI_DECODE_CONTEXT      *decodeCtx);
-
     //! \brief  the type of decode base class
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure
     uint32_t                    m_groupIndex;           //!<global Group
