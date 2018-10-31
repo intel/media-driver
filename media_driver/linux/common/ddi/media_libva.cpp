@@ -1367,7 +1367,10 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
 
 #ifndef ANDROID
-    output_dri_init(ctx);
+    if (!output_dri_init(ctx))
+    {
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
 #endif
 
     GMM_STATUS gmmStatus = OpenGmm(&mediaCtx->GmmFuncs);
