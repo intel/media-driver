@@ -369,7 +369,6 @@ typedef struct _MHW_VDBOX_AVC_SLICE_STATE
     bool                                    bVdencInUse;
     bool                                    bVdencNoTailInsertion;
     bool                                    oneOnOneMapping = false;
-    bool                                    bFullFrameData;
 } MHW_VDBOX_AVC_SLICE_STATE, *PMHW_VDBOX_AVC_SLICE_STATE;
 
 typedef struct _MHW_VDBOX_AVC_DPB_PARAMS
