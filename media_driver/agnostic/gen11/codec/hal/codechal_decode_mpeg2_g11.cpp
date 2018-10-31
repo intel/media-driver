@@ -172,6 +172,17 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
         }
     }
 
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
+    {
+        if (m_presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_presReferences[i] = &m_dummyReference.OsResource;
+        }
+    }
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
         pipeBufAddrParams.presReferences,
         sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_NON_AVC,

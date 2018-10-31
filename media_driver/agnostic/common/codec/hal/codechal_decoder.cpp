@@ -249,6 +249,8 @@ CodechalDecode::CodechalDecode (
 
     m_mode              = standardInfo->Mode;
     m_isHybridDecoder   = standardInfo->bIsHybridCodec ? true : false;
+
+    MOS_ZeroMemory(&m_dummyReference, sizeof(MOS_SURFACE));
 }
 
 MOS_STATUS CodechalDecode::SetGpuCtxCreatOption(
@@ -614,6 +616,53 @@ void CodechalDecode::DeallocateRefSurfaces()
     }
 }
 
+MOS_STATUS CodechalDecode::SetDummyReference()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    if (MEDIA_IS_WA(m_waTable, WaDummyReference))
+    {
+        // If can't find valid dummy reference, create one or use current decode output surface
+        if (Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            // If MMC enabled
+            if (m_mmc != nullptr && m_mmc->IsMmcEnabled() && 
+                !m_mmc->IsMmcExtensionEnabled() && 
+                m_decodeParams.m_destSurface->bIsCompressed)
+            {
+                if (m_mode == CODECHAL_DECODE_MODE_HEVCVLD)
+                {
+                    eStatus = AllocateSurface(
+                        &m_dummyReference,
+                        m_decodeParams.m_destSurface->dwWidth,
+                        m_decodeParams.m_destSurface->dwHeight,
+                        "dummy reference resource",
+                        m_decodeParams.m_destSurface->Format,
+                        m_decodeParams.m_destSurface->bIsCompressed);
+
+                    if (eStatus != MOS_STATUS_SUCCESS)
+                    {
+                        CODECHAL_DECODE_ASSERTMESSAGE("Failed to create dummy reference!");
+                        return eStatus;
+                    }
+                    else
+                    {
+                        m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_ALLOCATED;
+                        CODECHAL_DECODE_VERBOSEMESSAGE("Dummy reference is created!");
+                    }
+                }
+            }
+            else    // Use decode output surface as dummy reference
+            {
+                m_dummyReference.OsResource = m_decodeParams.m_destSurface->OsResource;
+                m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_DEST_SURFACE;
+            }
+        }
+    }
+
+    return eStatus;
+}
+
 CodechalDecode::~CodechalDecode()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
@@ -687,6 +736,12 @@ CodechalDecode::~CodechalDecode()
     {
         MediaPerfProfiler::Destroy(m_perfProfiler, (void*)this, m_osInterface);
         m_perfProfiler = nullptr;
+    }
+
+    if (m_dummyReferenceStatus == CODECHAL_DUMMY_REFERENCE_ALLOCATED &&
+        !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &m_dummyReference.OsResource);
     }
 }
 
@@ -1040,6 +1095,8 @@ MOS_STATUS CodechalDecode::Execute(void *params)
         "Decoding initialization failed.");
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SetDummyReference());
 
     if ((!m_incompletePicture) && (!m_isHybridDecoder))
     {
