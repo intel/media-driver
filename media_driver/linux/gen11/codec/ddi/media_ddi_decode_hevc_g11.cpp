@@ -118,20 +118,20 @@ VAStatus DdiDecodeHEVCG11::ParseSliceParams(
             codecSlcParams->luma_log2_weight_denom         = slc->luma_log2_weight_denom;
             codecSlcParams->delta_chroma_log2_weight_denom = slc->delta_chroma_log2_weight_denom;
 
-            memcpy_s(codecSlcParams->delta_luma_weight_l0,
+            MOS_SecureMemcpy(codecSlcParams->delta_luma_weight_l0,
                 15,
                 slc->delta_luma_weight_l0,
                 15);
-            memcpy_s(codecSlcParams->delta_luma_weight_l1,
+            MOS_SecureMemcpy(codecSlcParams->delta_luma_weight_l1,
                 15,
                 slc->delta_luma_weight_l1,
                 15);
 
-            memcpy_s(codecSlcParams->delta_chroma_weight_l0,
+            MOS_SecureMemcpy(codecSlcParams->delta_chroma_weight_l0,
                 15 * 2,
                 slc->delta_chroma_weight_l0,
                 15 * 2);
-            memcpy_s(codecSlcParams->delta_chroma_weight_l1,
+            MOS_SecureMemcpy(codecSlcParams->delta_chroma_weight_l1,
                 15 * 2,
                 slc->delta_chroma_weight_l1,
                 15 * 2);
@@ -139,19 +139,19 @@ VAStatus DdiDecodeHEVCG11::ParseSliceParams(
 
             if(!isHevcRext)
             {
-                memcpy_s(codecSlcParams->luma_offset_l0,
+                MOS_SecureMemcpy(codecSlcParams->luma_offset_l0,
                     15,
                     slc->luma_offset_l0,
                     15);
-                memcpy_s(codecSlcParams->luma_offset_l1,
+                MOS_SecureMemcpy(codecSlcParams->luma_offset_l1,
                     15,
                     slc->luma_offset_l1,
                     15);
-                memcpy_s(codecSlcParams->ChromaOffsetL0,
+                MOS_SecureMemcpy(codecSlcParams->ChromaOffsetL0,
                     15 * 2,
                     slc->ChromaOffsetL0,
                     15 * 2);
-                memcpy_s(codecSlcParams->ChromaOffsetL1,
+                MOS_SecureMemcpy(codecSlcParams->ChromaOffsetL1,
                     15 * 2,
                     slc->ChromaOffsetL1,
                     15 * 2);
@@ -160,19 +160,19 @@ VAStatus DdiDecodeHEVCG11::ParseSliceParams(
             }
             else
             {
-                memcpy_s(codecSclParamsRext->luma_offset_l0,
+                MOS_SecureMemcpy(codecSclParamsRext->luma_offset_l0,
                     15 * sizeof(int16_t),
                     slcRext->luma_offset_l0,
                     15 * sizeof(int16_t));
-                memcpy_s(codecSclParamsRext->luma_offset_l1,
+                MOS_SecureMemcpy(codecSclParamsRext->luma_offset_l1,
                     15 * sizeof(int16_t),
                     slcRext->luma_offset_l1,
                     15 * sizeof(int16_t));
-                memcpy_s(codecSclParamsRext->ChromaOffsetL0,
+                MOS_SecureMemcpy(codecSclParamsRext->ChromaOffsetL0,
                     15 * 2 * sizeof(int16_t),
                     slcRext->ChromaOffsetL0,
                     15 * 2 * sizeof(int16_t));
-                memcpy_s(codecSclParamsRext->ChromaOffsetL1,
+                MOS_SecureMemcpy(codecSclParamsRext->ChromaOffsetL1,
                     15 * 2 * sizeof(int16_t),
                     slcRext->ChromaOffsetL1,
                     15 * 2 * sizeof(int16_t));
