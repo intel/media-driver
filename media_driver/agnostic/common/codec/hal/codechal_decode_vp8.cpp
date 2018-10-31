@@ -1282,6 +1282,17 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i <= CodechalDecodeAlternateRef; i++)
+    {
+        if (pipeBufAddrParams.presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            pipeBufAddrParams.presReferences[i] = &m_dummyReference.OsResource;
+        }
+    }
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
