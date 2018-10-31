@@ -138,19 +138,19 @@ VAStatus DdiDecodeMPEG2::ParseIQMatrix(
     iqMatrix->m_loadChromaIntraQuantiserMatrix    = matrix->load_chroma_intra_quantiser_matrix;
     iqMatrix->m_loadChromaNonIntraQuantiserMatrix = matrix->load_chroma_non_intra_quantiser_matrix;
 
-    memcpy_s(iqMatrix->m_intraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_intraQuantiserMatrix,
         64,
         matrix->intra_quantiser_matrix,
         64);
-    memcpy_s(iqMatrix->m_nonIntraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_nonIntraQuantiserMatrix,
         64,
         matrix->non_intra_quantiser_matrix,
         64);
-    memcpy_s(iqMatrix->m_chromaIntraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_chromaIntraQuantiserMatrix,
         64,
         matrix->chroma_intra_quantiser_matrix,
         64);
-    memcpy_s(iqMatrix->m_chromaNonIntraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_chromaNonIntraQuantiserMatrix,
         64,
         matrix->chroma_non_intra_quantiser_matrix,
         64);

@@ -99,35 +99,35 @@ VAStatus DdiDecodeHEVC::ParseSliceParams(
             codecSlcParams->luma_log2_weight_denom         = slc->luma_log2_weight_denom;
             codecSlcParams->delta_chroma_log2_weight_denom = slc->delta_chroma_log2_weight_denom;
 
-            memcpy_s(codecSlcParams->luma_offset_l0,
+            MOS_SecureMemcpy(codecSlcParams->luma_offset_l0,
                     15,
                     slc->luma_offset_l0,
                     15);
-            memcpy_s(codecSlcParams->luma_offset_l1,
+            MOS_SecureMemcpy(codecSlcParams->luma_offset_l1,
                     15,
                     slc->luma_offset_l1,
                     15);
-            memcpy_s(codecSlcParams->delta_luma_weight_l0,
+            MOS_SecureMemcpy(codecSlcParams->delta_luma_weight_l0,
                     15,
                     slc->delta_luma_weight_l0,
                     15);
-            memcpy_s(codecSlcParams->delta_luma_weight_l1,
+            MOS_SecureMemcpy(codecSlcParams->delta_luma_weight_l1,
                     15,
                     slc->delta_luma_weight_l1,
                     15);
-            memcpy_s(codecSlcParams->ChromaOffsetL0,
+            MOS_SecureMemcpy(codecSlcParams->ChromaOffsetL0,
                     15*2,
                     slc->ChromaOffsetL0,
                     15 * 2);
-            memcpy_s(codecSlcParams->ChromaOffsetL1,
+            MOS_SecureMemcpy(codecSlcParams->ChromaOffsetL1,
                     15*2,
                     slc->ChromaOffsetL1,
                     15 * 2);
-            memcpy_s(codecSlcParams->delta_chroma_weight_l0,
+            MOS_SecureMemcpy(codecSlcParams->delta_chroma_weight_l0,
                     15*2,
                     slc->delta_chroma_weight_l0,
                     15 * 2);
-            memcpy_s(codecSlcParams->delta_chroma_weight_l1,
+            MOS_SecureMemcpy(codecSlcParams->delta_chroma_weight_l1,
                     15*2,
                     slc->delta_chroma_weight_l1,
                     15 * 2);
@@ -329,27 +329,27 @@ VAStatus DdiDecodeHEVC::ParseIQMatrix(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    memcpy_s((void *)iqMatrix->ucScalingLists0,
+    MOS_SecureMemcpy((void *)iqMatrix->ucScalingLists0,
         6 * 16 * sizeof(uint8_t),
         (void *)matrix->ScalingList4x4,
         6 * 16 * sizeof(uint8_t));
-    memcpy_s((void *)iqMatrix->ucScalingLists1,
+    MOS_SecureMemcpy((void *)iqMatrix->ucScalingLists1,
         6 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList8x8,
         6 * 64 * sizeof(uint8_t));
-    memcpy_s((void *)iqMatrix->ucScalingLists2,
+    MOS_SecureMemcpy((void *)iqMatrix->ucScalingLists2,
         6 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList16x16,
         6 * 64 * sizeof(uint8_t));
-    memcpy_s((void *)iqMatrix->ucScalingLists3,
+    MOS_SecureMemcpy((void *)iqMatrix->ucScalingLists3,
         2 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList32x32,
         2 * 64 * sizeof(uint8_t));
-    memcpy_s((void *)iqMatrix->ucScalingListDCCoefSizeID2,
+    MOS_SecureMemcpy((void *)iqMatrix->ucScalingListDCCoefSizeID2,
         6 * sizeof(uint8_t),
         (void *)matrix->ScalingListDC16x16,
         6 * sizeof(uint8_t));
-    memcpy_s((void *)iqMatrix->ucScalingListDCCoefSizeID3,
+    MOS_SecureMemcpy((void *)iqMatrix->ucScalingListDCCoefSizeID3,
         2 * sizeof(uint8_t),
         (void *)matrix->ScalingListDC32x32,
         2 * sizeof(uint8_t));
