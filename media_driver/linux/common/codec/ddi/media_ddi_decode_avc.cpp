@@ -323,7 +323,7 @@ VAStatus DdiDecodeAVC::ParseIQMatrix(
     int32_t i;
     for (i = 0; i < 6; i++)
     {
-        memcpy_s(avcIqMatrix->ScalingList4x4[i],
+        MOS_SecureMemcpy(avcIqMatrix->ScalingList4x4[i],
             16,
             matrix->ScalingList4x4[i],
             16);
@@ -331,7 +331,7 @@ VAStatus DdiDecodeAVC::ParseIQMatrix(
     // 8x8 block
     for (i = 0; i < 2; i++)
     {
-        memcpy_s(avcIqMatrix->ScalingList8x8[i],
+        MOS_SecureMemcpy(avcIqMatrix->ScalingList8x8[i],
             64,
             matrix->ScalingList8x8[i],
             64);

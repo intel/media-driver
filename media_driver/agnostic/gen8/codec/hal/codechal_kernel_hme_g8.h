@@ -37,7 +37,7 @@ public:
     public:
         Curbe()
         {
-            memcpy_s(&m_data, sizeof(m_data), &m_initCurbe, sizeof(m_initCurbe));
+            MOS_SecureMemcpy(&m_data, sizeof(m_data), &m_initCurbe, sizeof(m_initCurbe));
         }
 
         struct CurbeData
