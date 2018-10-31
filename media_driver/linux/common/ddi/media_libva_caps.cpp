@@ -1772,6 +1772,23 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
     }
     m_mediaCtx->FeiFunction = 0;
 
+    bool rc_mb_flag = false;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        switch(m_profileEntryTbl[profileTableIdx].m_profile)
+        {
+            case VAProfileHEVCMain:
+            case VAProfileHEVCMain10:
+            case VAProfileHEVCMain444:
+            case VAProfileHEVCMain444_10:
+                rc_mb_flag = true;
+                break;
+            default:
+                rc_mb_flag = false;
+                break;
+        }
+    }
+
     int32_t j;
     for (j = 0; j < numAttribs; j++)
     {
@@ -1781,7 +1798,11 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
             //if it happend, just set it to default RC mode
             if(attribList[j].value != VA_RC_MB)
             {
-                rcMode = attribList[j].value;
+                if ((attribList[j].value == VA_RC_CBR ||
+                    attribList[j].value == VA_RC_VBR) && rc_mb_flag)
+                    rcMode = attribList[j].value | VA_RC_MB;
+                else
+                    rcMode = attribList[j].value;
             }
         }
         if(VAConfigAttribFEIFunctionType == attribList[j].type)
