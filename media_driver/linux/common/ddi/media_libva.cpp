@@ -48,7 +48,7 @@
 #include "mos_os.h"
 
 #include "hwinfo_linux.h"
-#include "codechal_memdecomp.h"
+#include "mediamemdecomp.h"
 #include "mos_solo_generic.h"
 #include "media_libva_caps.h"
 #include "media_interfaces_mmd.h"
@@ -872,8 +872,8 @@ static void DdiMedia_FreeContextHeapElements(VADriverContextP    ctx)
     // Free media memory decompression data structure
     if (mediaCtx->pMediaMemDecompState)
     {
-        MediaMemDecompState *mediaMemCompState =
-            static_cast<MediaMemDecompState*>(mediaCtx->pMediaMemDecompState);
+        MediaMemDecompBaseState *mediaMemCompState =
+            static_cast<MediaMemDecompBaseState*>(mediaCtx->pMediaMemDecompState);
         MOS_Delete(mediaMemCompState);
         mediaCtx->pMediaMemDecompState = nullptr;
     }
@@ -1007,12 +1007,12 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
     DDI_ASSERT(mosCtx->ppMediaMemDecompState);
     DDI_ASSERT(osResource);
 
-    MediaMemDecompState *mediaMemDecompState = static_cast<MediaMemDecompState*>(*mosCtx->ppMediaMemDecompState);
+    MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
     if (!mediaMemDecompState)
     {
         mediaMemDecompState =
-            static_cast<MediaMemDecompState*>(MmdDevice::CreateFactory(mosCtx));
+            static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
     }
 
     if (mediaMemDecompState)
@@ -1042,14 +1042,58 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     DDI_ASSERT(mediaSurface);
     DDI_ASSERT(mediaSurface->pGmmResourceInfo);
-    if (mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
+    GMM_RESOURCE_FLAG GmmFlags;
+
+    MOS_ZeroMemory(&GmmFlags, sizeof(GmmFlags));
+    GmmFlags = mediaSurface->pGmmResourceInfo->GetResFlags();
+
+    if (((GmmFlags.Gpu.MMC                                                        ||
+          GmmFlags.Gpu.CCS)                                                       &&
+          GmmFlags.Gpu.UnifiedAuxSurface)                                         ||
+          mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
     {
 #ifdef _MMC_SUPPORTED
         MOS_CONTEXT  mosCtx;
         MOS_RESOURCE surface;
+        DdiCpInterface *pCpDdiInterface;
+        
+        MOS_ZeroMemory(&mosCtx, sizeof(mosCtx));
+        MOS_ZeroMemory(&surface, sizeof(surface));
+
+        DDI_CHK_NULL(mediaCtx, "Null mediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+        mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
+        mosCtx.m_gpuContextMgr = mediaCtx->m_gpuContextMgr;
+        mosCtx.m_cmdBufMgr     = mediaCtx->m_cmdBufMgr;
+        mosCtx.fd              = mediaCtx->fd;
+        mosCtx.iDeviceId       = mediaCtx->iDeviceId;
+        mosCtx.SkuTable        = mediaCtx->SkuTable;
+        mosCtx.WaTable         = mediaCtx->WaTable;
+        mosCtx.gtSystemInfo    = *mediaCtx->pGtSystemInfo;
+        mosCtx.platform        = mediaCtx->platform;
+
+        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+        mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+
+        pCpDdiInterface = Create_DdiCpInterface(mosCtx);
+
+        if (nullptr == pCpDdiInterface)
+        {
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
         DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
+
+        if (pCpDdiInterface)
+        {
+            Delete_DdiCpInterface(pCpDdiInterface);
+            pCpDdiInterface = NULL;
+        }
 #else
         vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
 #endif
@@ -5102,6 +5146,12 @@ VAStatus DdiMedia_LockSurface (
     DDI_CHK_LESS((uint32_t)surface, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surface", VA_STATUS_ERROR_INVALID_SURFACE);
 
     DDI_MEDIA_SURFACE *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
+    
+#ifdef _MMC_SUPPORTED
+    // Decompress surface is needed
+    DdiMedia_MediaMemoryDecompress(mediaCtx, mediaSurface);
+#endif
+
     if (nullptr == mediaSurface)
     {
         // Surface is absent.
