@@ -1232,7 +1232,7 @@ struct CM_CONDITIONAL_END_PARAM {
 //**********************************************************************
 // Constants
 //**********************************************************************
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0x0, 0x0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0x0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
 
 //**********************************************************************
 // Classes forward declarations
