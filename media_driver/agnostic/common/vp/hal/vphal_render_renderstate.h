@@ -335,7 +335,7 @@ protected:
     VphalFeatureReport          *m_reporting;
 
     // Status Buffer, Video Pre-Processing Only
-    STATUS_TABLE_UPDATE_PARAMS  m_StatusTableUpdateParams;
+    STATUS_TABLE_UPDATE_PARAMS  m_StatusTableUpdateParams = { 0 };
 
 };
 
