@@ -40,9 +40,13 @@ if("${os_name}" STREQUAL "clear-linux-os")
     set(CMAKE_INSTALL_SYSCONFDIR "usr/share/defaults/etc")
 endif()
 
+option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
+
 include(GNUInstallDirs)
 
-add_subdirectory(cmrtlib)
+if (BUILD_CMRTLIB)
+    add_subdirectory(cmrtlib)
+endif()
 
 add_subdirectory(media_driver)
 
@@ -52,7 +56,9 @@ endif()
 message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
 
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION ${LIBVA_DRIVERS_PATH} COMPONENT media)
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/cmrtlib/linux/igfxcmrt64.so DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT media)
+if (BUILD_CMRTLIB)
+    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/cmrtlib/linux/igfxcmrt64.so DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT media)
+endif()
 
 option (INSTALL_DRIVER_SYSCONF "Install driver system configuration file" ON)
 if (INSTALL_DRIVER_SYSCONF)
