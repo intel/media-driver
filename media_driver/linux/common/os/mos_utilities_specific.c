@@ -2646,6 +2646,7 @@ PMOS_MUTEX MOS_CreateMutex()
     {
         if (pthread_mutex_init(pMutex, nullptr))
         {
+            MOS_FreeMemory(pMutex);
             pMutex = nullptr;
         }
     }
