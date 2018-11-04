@@ -105,6 +105,7 @@ enum DdiSurfaceFormat
 #define MOS_LOCKFLAG_WRITEONLY                    OSKM_LOCKFLAG_WRITEONLY
 #define MOS_LOCKFLAG_READONLY                     OSKM_LOCKFLAG_READONLY
 #define MOS_LOCKFLAG_NOOVERWRITE                  OSKM_LOCKFLAG_NOOVERWRITE
+#define MOS_LOCKFLAG_NO_SWIZZLE                   OSKM_LOCKFLAG_NO_SWIZZLE
 
 #define MOS_DIR_SEPERATOR                         '/'
 
@@ -119,6 +120,7 @@ enum DdiSurfaceFormat
 #define OSKM_LOCKFLAG_WRITEONLY                   0x00000001
 #define OSKM_LOCKFLAG_READONLY                    0x00000002
 #define OSKM_LOCKFLAG_NOOVERWRITE                 0x00000004
+#define OSKM_LOCKFLAG_NO_SWIZZLE                  0x00000008
 
 // should be defined in libdrm, this is a temporary solution to pass QuickBuild
 #define I915_EXEC_VEBOX                  (4<<0)
