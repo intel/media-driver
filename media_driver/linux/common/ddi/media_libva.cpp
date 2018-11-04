@@ -4380,6 +4380,41 @@ VAStatus DdiMedia_SetImagePalette(
     return VA_STATUS_ERROR_UNIMPLEMENTED;
 }
 
+VAStatus SwizzleSurface(PDDI_MEDIA_CONTEXT mediaCtx, PGMM_RESOURCE_INFO pGmmResInfo, void *pLockedAddr, uint32_t TileType, uint8_t* pResourceBase, bool bUpload)
+{
+    uint32_t            uiSize, uiPitch;
+    GMM_RES_COPY_BLT    gmmResCopyBlt;
+    uint32_t               uiPicHeight;
+    uint32_t               ulSwizzledSize;
+    VAStatus            vaStatus = VA_STATUS_SUCCESS;
+
+    DDI_CHK_NULL(pGmmResInfo, "pGmmResInfo is NULL", VA_STATUS_ERROR_OPERATION_FAILED);
+    DDI_CHK_NULL(pLockedAddr, "pLockedAddr is NULL", VA_STATUS_ERROR_OPERATION_FAILED);
+    DDI_CHK_NULL(pResourceBase, "pResourceBase is NULL", VA_STATUS_ERROR_ALLOCATION_FAILED);
+
+    memset(&gmmResCopyBlt, 0x0, sizeof(GMM_RES_COPY_BLT));
+    uiPicHeight = pGmmResInfo->GetBaseHeight();
+    uiSize = pGmmResInfo->GetSizeSurface();
+    uiPitch = pGmmResInfo->GetRenderPitch();
+    gmmResCopyBlt.Gpu.pData = pLockedAddr;
+    gmmResCopyBlt.Sys.pData = pResourceBase;
+    gmmResCopyBlt.Sys.RowPitch = uiPitch;
+    gmmResCopyBlt.Sys.BufferSize = uiSize;
+    gmmResCopyBlt.Sys.SlicePitch = uiSize;
+    gmmResCopyBlt.Blt.Slices = 1;
+    gmmResCopyBlt.Blt.Upload = bUpload;
+
+    if(mediaCtx->pGmmClientContext->IsPlanar(pGmmResInfo->GetResourceFormat()) == true)
+    {
+        gmmResCopyBlt.Blt.Width = pGmmResInfo->GetBaseWidth();
+        gmmResCopyBlt.Blt.Height = uiSize/uiPitch;
+    }
+
+    pGmmResInfo->CpuBlt(&gmmResCopyBlt);
+
+    return vaStatus;
+}
+
 //!
 //! \brief  Retrive surface data into a VAImage
 //! \details    Image must be in a format supported by the implementation
@@ -4477,7 +4512,7 @@ VAStatus DdiMedia_GetImage(
     DDI_CHK_NULL(mediaSurface->bo, "nullptr mediaSurface->bo.",  VA_STATUS_ERROR_INVALID_PARAMETER);
 
     //Lock Surface
-    void *surfData = DdiMediaUtil_LockSurface(mediaSurface, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
+    void *surfData = DdiMediaUtil_LockSurface(mediaSurface, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_NO_SWIZZLE));
     if (surfData == nullptr)
     {
         DDI_ASSERTMESSAGE("nullptr surfData.");
@@ -4501,8 +4536,16 @@ VAStatus DdiMedia_GetImage(
     }
 
     //Copy data from surface to image
-    MOS_STATUS eStatus = MOS_SecureMemcpy(imageData, vaimg->data_size, surfData, vaimg->data_size);
-    if (eStatus != MOS_STATUS_SUCCESS)
+    if(mediaSurface->TileType == I915_TILING_NONE)
+    {
+        vaStatus = MOS_SecureMemcpy(imageData, vaimg->data_size, surfData, vaimg->data_size);
+    }
+    else
+    {
+        //Mos_SwizzleData((uint8_t*)surfData, (uint8_t *)imageData, (MOS_TILE_TYPE)mediaSurface->TileType, MOS_TILE_LINEAR, vaimg->data_size / mediaSurface->iPitch, mediaSurface->iPitch, mediaSurface->uiMapFlag);
+        vaStatus = SwizzleSurface(mediaSurface->pMediaCtx,mediaSurface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)mediaSurface->TileType, (uint8_t *)imageData, false);
+    }
+    if (vaStatus != MOS_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("DDI:Failed to copy surface to image buffer data!");
         DdiMediaUtil_UnlockSurface(mediaSurface);

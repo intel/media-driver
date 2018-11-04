@@ -879,12 +879,17 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
             {
                 mos_gem_bo_map_gtt(surface->bo);
             }
+            else if (flag & MOS_LOCKFLAG_NO_SWIZZLE)
+            {
+                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_READONLY);
+            }
             else
             {
                 mos_gem_bo_map_unsynchronized(surface->bo);     // only call mmap_gtt ioctl
                 mos_gem_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
             }
         }
+        surface->uiMapFlag = flag;
         surface->pData   = surface->pSystemShadow ? surface->pSystemShadow : (uint8_t*) surface->bo->virt;
         surface->data_size = surface->bo->size;
         surface->bMapped = true;
@@ -942,6 +947,10 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
                 MOS_FreeMemory(surface->pSystemShadow);
                 surface->pSystemShadow = nullptr;
 
+                mos_bo_unmap(surface->bo);
+            }
+            else if(surface->uiMapFlag & MOS_LOCKFLAG_NO_SWIZZLE)
+            {
                 mos_bo_unmap(surface->bo);
             }
             else
