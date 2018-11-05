@@ -949,6 +949,7 @@ public:
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
+    VPHAL_SURFACE                    Vebox3DLookUpTables = {};
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
 

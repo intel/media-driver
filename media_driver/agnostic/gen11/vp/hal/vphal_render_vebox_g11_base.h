@@ -459,8 +459,6 @@ protected:
         PVPHAL_SURFACE              pRenderTarget);
 
 protected:
-    // Vebox 3DLut to Process HDR Tone Mapping
-    VPHAL_SURFACE               Vebox3DLookUpTables             = {};
     VPHAL_SURFACE               Vebox3DLutOutputSurface         = {};
     Hdr3DLutGenerator           *m_hdr3DLutGenerator            = nullptr;    
 };
