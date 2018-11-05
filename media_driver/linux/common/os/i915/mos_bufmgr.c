@@ -284,6 +284,11 @@ struct mos_bo_gem {
      */
     bool is_softpin;
 
+    /*
+    * Whether to remove the dependency of this bo in exebuf.
+    */
+    bool exec_async;
+
     /**
      * Size in bytes of this buffer and its relocation descendents.
      *
@@ -539,6 +544,8 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
         flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
     if (bo_gem->is_softpin)
         flags |= EXEC_OBJECT_PINNED;
+    if (bo_gem->exec_async)
+        flags |= EXEC_OBJECT_ASYNC;
 
     if (bo_gem->validate_index != -1) {
         bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= flags;
@@ -1043,6 +1050,7 @@ retry:
     bo_gem->use_48b_address_range = false;
     bo_gem->aub_annotations = nullptr;
     bo_gem->aub_annotation_count = 0;
+    bo_gem->exec_async = false;
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem);
 
@@ -2547,6 +2555,13 @@ mos_gem_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable)
 {
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     bo_gem->use_48b_address_range = enable;
+}
+
+static void
+mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo)
+{
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
+    bo_gem->exec_async = true;
 }
 
 static int
@@ -4447,6 +4462,8 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     if (ret == 0 && *gp.value == 3)
         bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
+
+    bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
 
     /* Let's go with one relocation per every 2 dwords (but round down a bit
      * since a power of two will mean an extra page allocation for the reloc

@@ -339,6 +339,8 @@ struct mos_bufmgr {
     /** Returns true if target_bo is in the relocation tree rooted at bo. */
     int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
 
+    void (*set_exec_object_async) (struct mos_linux_bo *bo);
+
     /**< Enables verbose debugging printouts */
     int debug;
 };
