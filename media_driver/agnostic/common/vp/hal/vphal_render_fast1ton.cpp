@@ -1167,7 +1167,8 @@ bool VpHal_RndrIsFast1toNSupport(
         ret = false;
         goto finish;
     }
-    if ((pSrcSurface->Format != Format_NV12) || (pRenderParams->uDstCount > MAX_1TON_SUPPORT))
+    if ((pSrcSurface->Format != Format_NV12) || (pRenderParams->uDstCount > MAX_1TON_SUPPORT)
+            || (pRenderParams->uDstCount < 2))
     {
         ret = false;
         goto finish;
