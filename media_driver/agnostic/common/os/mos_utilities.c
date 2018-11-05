@@ -3211,7 +3211,7 @@ void  *MOS_AlignedAllocMemory(
 
     if(ptr != nullptr)
     {
-        MosMemAllocCounter++;
+        MOS_AtomicIncrement(&MosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
@@ -3242,8 +3242,7 @@ void MOS_AlignedFreeMemory(void  *ptr)
 
     if(ptr != nullptr)
     {
-        MosMemAllocCounter--;
-
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         _aligned_free(ptr);
@@ -3278,7 +3277,7 @@ void  *MOS_AllocMemory(size_t size)
 
     if(ptr != nullptr)
     {
-        MosMemAllocCounter++;
+        MOS_AtomicIncrement(&MosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
@@ -3316,7 +3315,7 @@ void  *MOS_AllocAndZeroMemory(size_t size)
     {
         MOS_ZeroMemory(ptr, size);
 
-        MosMemAllocCounter++;
+        MOS_AtomicIncrement(&MosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
@@ -3357,13 +3356,13 @@ void *MOS_ReallocMemory(
     {
         if (oldPtr != nullptr)
         {
-            MosMemAllocCounter--;
+            MOS_AtomicDecrement(&MosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(oldPtr, functionName, filename, line);
         }
 
         if (newPtr != nullptr)
         {
-            MosMemAllocCounter++;
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(newPtr, newSize, functionName, filename, line);
         }
     }
@@ -3392,8 +3391,7 @@ void MOS_FreeMemory(void  *ptr)
 {
     if(ptr != nullptr)
     {
-        MosMemAllocCounter--;
-
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         free(ptr);

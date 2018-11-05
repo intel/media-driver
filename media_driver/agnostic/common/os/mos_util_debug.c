@@ -30,8 +30,6 @@
 #if MOS_MESSAGES_ENABLED
 #include "mos_utilities.h"
 
-extern int32_t MosMemAllocCounter; //!< Counter to check system memory leaks
-extern int32_t MosMemAllocCounterGfx; //!< Counter to check graphics memory leaks
 extern int32_t MosMemAllocCounterNoUserFeature;
 extern int32_t MosMemAllocCounterNoUserFeatureGfx;
 extern uint8_t MosUltFlag;
