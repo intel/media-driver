@@ -127,13 +127,11 @@ int32_t CmTaskRT::Initialize( )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Add Kernel to task
+//| Purpose:    Common implementation of Add Kernel to task
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
+int32_t CmTaskRT::AddKernelInternal( CmKernel *kernel, const CM_EXECUTION_CONFIG *config)
 {
-    INSERT_API_CALL_LOG();
-
     // already reached max kernel count
     if(m_maxKernelCount <= m_kernelCount)
     {
@@ -150,12 +148,42 @@ CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
     m_kernelArray[m_kernelCount] = kernelRT;
     kernelRT->SetIndexInTask(m_kernelCount);
 
+    if(config)
+    {
+        m_kernelExecuteConfig[m_kernelCount] = *config;
+    }
+    else
+    {
+        MOS_ZeroMemory(&m_kernelExecuteConfig[m_kernelCount], sizeof(CM_EXECUTION_CONFIG));
+    }
+
     m_kernelCount++;
 
 #if USE_EXTENSION_CODE
     AddKernelForGTPin(kernel);
 #endif
     return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Add Kernel to task
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
+{
+    INSERT_API_CALL_LOG();
+    return AddKernelInternal(kernel, nullptr);
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Add Kernel to task with execution configure
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmTaskRT::AddKernelWithConfig( CmKernel *kernel,
+    const CM_EXECUTION_CONFIG *config )
+{
+    INSERT_API_CALL_LOG();
+    return AddKernelInternal(kernel, config);
 }
 
 //*-----------------------------------------------------------------------------
