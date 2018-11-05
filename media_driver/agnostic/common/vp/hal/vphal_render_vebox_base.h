@@ -749,6 +749,11 @@ public:
     // Scaling ratio is needed to determine if SFC or VEBOX is used
     float                               fScaleX;                                //!< X Scaling ratio
     float                               fScaleY;                                //!< Y Scaling ratio
+    
+    bool                                bHdr3DLut             = false;          //!< Enable 3DLut to process HDR
+    uint32_t                            uiMaxDisplayLum       = 4000;           //!< Maximum Display Luminance
+    uint32_t                            uiMaxContentLevelLum  = 1000;           //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE                      hdrMode               = VPHAL_HDR_MODE_NONE;
 
 protected:
     // Vebox State Parameters
@@ -855,6 +860,7 @@ public:
             VPHAL_SURFACE           *FFDISurfaces[VPHAL_MAX_NUM_FFDI_SURFACES];  //!< FFDI output surface structure
         };
     };
+    VPHAL_SURFACE                   VeboxRGBHistogram = {};            //!< VEBOX RGB Histogram surface for Vebox Gen9+
     VPHAL_SURFACE                   VeboxStatisticsSurface;                     //!< Statistics Surface for VEBOX
     RENDERHAL_SURFACE               RenderHalVeboxStatisticsSurface;            //!< Statistics Surface for VEBOX for MHW
 #if VEBOX_AUTO_DENOISE_SUPPORTED

@@ -1150,9 +1150,6 @@ MOS_STATUS VphalRenderer::Render(
 
         VPHAL_RENDER_CHK_STATUS(RenderPass(&RenderParams));
     }
-
-    FreeIntermediateSurfaces();
-
 finish:
     uiFrameCounter++;
     return eStatus;
@@ -1166,6 +1163,16 @@ finish:
 //!
 MOS_STATUS VphalRenderer::FreeIntermediateSurfaces()
 {
+    // Free IntermediateSurface
+    if (m_pOsInterface)
+    {
+        m_pOsInterface->pfnFreeResource(m_pOsInterface, &IntermediateSurface.OsResource);
+    }
+
+    MOS_SafeFreeMemory(IntermediateSurface.pBlendingParams);
+    MOS_SafeFreeMemory(IntermediateSurface.pIEFParams);
+    MOS_SafeFreeMemory(IntermediateSurface.pHDRParams);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1331,6 +1338,8 @@ VphalRenderer::~VphalRenderer()
     userFeatureWriteData.ValueID        = __VPHAL_VEBOX_FEATURE_INUSE_ID;
     MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 #endif
+
+    FreeIntermediateSurfaces();
 
     MOS_Delete(m_reporting);
 

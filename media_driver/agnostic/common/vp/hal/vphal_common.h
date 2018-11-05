@@ -35,6 +35,7 @@
 #endif  // EMUL || VPHAL_LIB
 
 #include "mos_os.h"
+#include "vphal_common_hdr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -401,6 +402,21 @@ typedef enum _VPHAL_CSPACE
     CSpace_Count                    //!< Keep this at the end
 } VPHAL_CSPACE;
 C_ASSERT(CSpace_Count == 15);       //!< When adding, update assert & vphal_solo_scenario.cpp
+
+//!
+//! Structure VPHAL_GAMMA_TYPE
+//! \brief GAMMA Function type
+//!
+typedef enum _VPHAL_GAMMA_TYPE
+{
+    VPHAL_GAMMA_NONE = 0,
+    VPHAL_GAMMA_TRADITIONAL_GAMMA,
+    VPHAL_GAMMA_SMPTE_ST2084,
+    VPHAL_GAMMA_BT1886,
+    VPHAL_GAMMA_SRGB,
+    VPHAL_GAMMA_Count
+} VPHAL_GAMMA_TYPE;
+C_ASSERT(VPHAL_GAMMA_Count == 5);       //!< When adding, update assert
 
 //!
 //! \def IS_COLOR_SPACE_BT2020_YUV(_a)
@@ -954,6 +970,12 @@ struct VPHAL_SURFACE
 
     bool                        bUseSampleUnorm;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
     bool                        bUseSamplerLumakey; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
+
+    //------------------------------------------
+    // HDR related parameters, provided by DDI
+    //------------------------------------------
+    PVPHAL_HDR_PARAMS           pHDRParams = nullptr;
+    VPHAL_GAMMA_TYPE            GammaType;          //!<Gamma Type
 };
 
 //!
