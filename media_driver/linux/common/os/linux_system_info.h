@@ -65,6 +65,7 @@ struct LinuxCodecInfo
     uint32_t hevc10Decoding : 1;
     uint32_t vp9b10Decoding : 1;
     uint32_t hevc10Encoding : 1;
+    uint32_t hevc12Encoding : 1;
     uint32_t vp8Encoding   : 1;
     uint32_t hevcVdenc     : 1;
     uint32_t vp9Vdenc      : 1;
