@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ public:
     //!           class C with key.
     //!
     template <class C>
-    static bool RegisterHal(KeyType key)
+    static bool RegisterHal(KeyType key, bool forceReplace = false)
     {
         Creators &creators = GetCreators();
         Iterator creator = creators.find(key);
@@ -69,6 +69,13 @@ public:
         }
         else
         {
+            if (forceReplace)
+            {
+                creators.erase(creator);
+                std::pair<Iterator, bool> result =
+                    GetCreators().insert(std::make_pair(key, Create<C>));
+                return result.second;
+            }
             return true;
         }
     }
