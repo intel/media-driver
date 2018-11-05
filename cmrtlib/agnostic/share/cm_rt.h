@@ -1162,16 +1162,15 @@ struct _CM_TASK_CONFIG {
     uint32_t reserved2;
 };
 
-typedef enum _CM_KERNEL_EXEC_MODE{
-    CM_KERNEL_EXECUTION_CONCURRENT,  /*Kernel can occupy part of DSS  and concurrently execute together with other workloads */
-    CM_KERNEL_EXECUTION_MONOPOLIZED, /*Kernel need occupy all DSS for execution */
+typedef enum _CM_KERNEL_EXEC_MODE {
+    CM_KERNEL_EXECUTION_MODE_MONOPOLIZED =  0, // Kernel can occupy all DSS for execution */
+    CM_KERNEL_EXECUTION_MODE_CONCURRENT,       // Kernel can occupy part of DSS  and concurrently execute together with other workloads.
 } CM_KERNEL_EXEC_MODE;
 
-typedef struct _CM_EXECUTION_CONFIG
-{
-    CM_KERNEL_EXEC_MODE kernelExecutionMode;  //0-Monopolized mode, 1-Concurrent mode. Default mode is Monopolized.
-    int                 concurrentPolicy;     //Reserve for future extension
-} CM_EXECUTION_CONFIG;
+struct CM_EXECUTION_CONFIG {
+    CM_KERNEL_EXEC_MODE kernelExecutionMode = CM_KERNEL_EXECUTION_MODE_MONOPOLIZED;
+    int                 concurrentPolicy    = 0; // Reserve for future extension.
+};
 
 #define CM_TASK_CONFIG _CM_TASK_CONFIG
 

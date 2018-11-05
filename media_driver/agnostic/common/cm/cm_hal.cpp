@@ -1524,9 +1524,14 @@ MOS_STATUS HalCm_ParseGroupTask(
     taskParam->numKernels = execGroupParam->numKernels;
     taskParam->syncBitmap = execGroupParam->syncBitmap;
     taskParam->conditionalEndBitmap = execGroupParam->conditionalEndBitmap;
-    MOS_SecureMemcpy(taskParam->conditionalEndInfo, sizeof(taskParam->conditionalEndInfo), execGroupParam->conditionalEndInfo, sizeof(execGroupParam->conditionalEndInfo));
+    MOS_SecureMemcpy(taskParam->conditionalEndInfo, sizeof(taskParam->conditionalEndInfo),
+                     execGroupParam->conditionalEndInfo, sizeof(execGroupParam->conditionalEndInfo));
 
     taskParam->taskConfig = execGroupParam->taskConfig;
+
+    MOS_SecureMemcpy(taskParam->krnExecCfg, sizeof(taskParam->krnExecCfg),
+                     execGroupParam->krnExecCfg, sizeof(execGroupParam->krnExecCfg));
+
     for (uint32_t krn = 0; krn < execGroupParam->numKernels; krn ++)
     {
         kernelParam = execGroupParam->kernels[krn];
