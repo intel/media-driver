@@ -155,6 +155,10 @@ public:
         return m_initialized;
     }
 
+    //! \brief   Indicate whether new gpu context is inserted into the first slot w/ null ctx handle 
+    //!          or always at the end of the gpucontext array
+    bool m_noCycledGpuCxtMgmt = false;
+
 protected:
     //! \brief    Gt system info 
     //! \detail   reserve to reuse gpu context
