@@ -74,9 +74,9 @@ GpuContextMgr::~GpuContextMgr()
     }
 }
 
-GpuContextMgr* GpuContextMgr::GetObject(
+GpuContextMgr *GpuContextMgr::GetObject(
     GT_SYSTEM_INFO *gtSystemInfo,
-    OsContext      *osContext)
+    OsContext *     osContext)
 {
     MOS_OS_FUNCTION_ENTER;
     if (gtSystemInfo == nullptr || osContext == nullptr)
@@ -84,7 +84,7 @@ GpuContextMgr* GpuContextMgr::GetObject(
         MOS_OS_ASSERTMESSAGE("Invalid input parameters!");
         return nullptr;
     }
-    return MOS_New(GpuContextMgr,gtSystemInfo, osContext);
+    return MOS_New(GpuContextMgr, gtSystemInfo, osContext);
 }
 
 void GpuContextMgr::CleanUp()
@@ -94,11 +94,11 @@ void GpuContextMgr::CleanUp()
     if (m_initialized)
     {
         DestroyAllGpuContexts();
-    
+
         MOS_LockMutex(m_gpuContextArrayMutex);
         m_gpuContextArray.clear();
         MOS_UnlockMutex(m_gpuContextArrayMutex);
-    
+
         m_initialized = false;
     }
 
@@ -123,7 +123,7 @@ GpuContext *GpuContextMgr::SelectContextToReuse()
 
 GpuContext *GpuContextMgr::CreateGpuContext(
     const MOS_GPU_NODE gpuNode,
-    CmdBufMgr         *cmdBufMgr,
+    CmdBufMgr *        cmdBufMgr,
     MOS_GPU_CONTEXT    mosGpuCtx)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -149,23 +149,31 @@ GpuContext *GpuContextMgr::CreateGpuContext(
 
     MOS_LockMutex(m_gpuContextArrayMutex);
 
-    // Directly replace nullptr with new created context in m_gpuContextArray.
-    GPU_CONTEXT_HANDLE  gpuContextHandle = 0;
-    GpuContext         *curGpuContext = nullptr;
-    int                 index = 0;
-    for (auto& curGpuContext : m_gpuContextArray)
-    {
-        if(curGpuContext == nullptr)
-        {
-            break;
-        }
-        index++;
-    }
+    GPU_CONTEXT_HANDLE gpuContextHandle = 0;
 
-    gpuContextHandle = m_gpuContextArray.size() ? index : 0;
+    if (m_noCycledGpuCxtMgmt)
+    {
+        // new created context at the end of m_gpuContextArray.
+        gpuContextHandle = m_gpuContextArray.size() ? m_gpuContextArray.size() : 0;
+    }
+    else
+    {
+        // Directly replace nullptr with new created context in m_gpuContextArray.
+        GpuContext *curGpuContext = nullptr;
+        int         index         = 0;
+        for (auto &curGpuContext : m_gpuContextArray)
+        {
+            if (curGpuContext == nullptr)
+            {
+                break;
+            }
+            index++;
+        }
+        gpuContextHandle = m_gpuContextArray.size() ? index : 0;
+    }
     gpuContext->SetGpuContextHandle(gpuContextHandle);
 
-    if(gpuContextHandle == m_gpuContextArray.size())
+    if (gpuContextHandle == m_gpuContextArray.size())
     {
         m_gpuContextArray.push_back(gpuContext);
     }
@@ -206,25 +214,25 @@ void GpuContextMgr::DestroyGpuContext(GpuContext *gpuContext)
     MOS_OS_FUNCTION_ENTER;
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(gpuContext);
 
-    GpuContext*       curGpuContext = nullptr;
-    bool              found         = false;
+    GpuContext *curGpuContext = nullptr;
+    bool        found         = false;
 
     MOS_LockMutex(m_gpuContextArrayMutex);
-    for (auto& curGpuContext : m_gpuContextArray)
+    for (auto &curGpuContext : m_gpuContextArray)
     {
         if (curGpuContext == gpuContext)
         {
             found = true;
             // to keep original order, here should not erase gpucontext, replace with nullptr in array.
-            MOS_Delete(curGpuContext); // delete gpu context.
+            MOS_Delete(curGpuContext);  // delete gpu context.
             m_gpuContextCount--;
             break;
         }
     }
-    
-    if(m_gpuContextCount == 0)
+
+    if (m_gpuContextCount == 0 && !m_noCycledGpuCxtMgmt)
     {
-       m_gpuContextArray.clear(); // clear whole array     
+        m_gpuContextArray.clear();  // clear whole array
     }
 
     MOS_UnlockMutex(m_gpuContextArrayMutex);
@@ -244,12 +252,12 @@ void GpuContextMgr::DestroyAllGpuContexts()
     MOS_LockMutex(m_gpuContextArrayMutex);
 
     // delete each instance in m_gpuContextArray
-    for (auto& curGpuContext : m_gpuContextArray)
+    for (auto &curGpuContext : m_gpuContextArray)
     {
         MOS_Delete(curGpuContext);
     }
 
-    m_gpuContextArray.clear(); // clear whole array
+    m_gpuContextArray.clear();  // clear whole array
 
     MOS_UnlockMutex(m_gpuContextArrayMutex);
 }
