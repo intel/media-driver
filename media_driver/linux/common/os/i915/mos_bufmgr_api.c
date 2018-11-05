@@ -57,6 +57,12 @@ mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
     return bufmgr->bo_alloc(bufmgr, name, size, alignment);
 }
 
+void
+mos_bo_set_exec_object_async(struct mos_linux_bo *bo)
+{
+    bo->bufmgr->set_exec_object_async(bo);
+}
+
 #ifdef ANDROID
 struct mos_linux_bo *
 mos_bo_alloc2(struct mos_bufmgr *bufmgr, const char *name,
