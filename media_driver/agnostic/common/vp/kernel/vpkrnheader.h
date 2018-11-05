@@ -876,7 +876,7 @@
 #define IDR_VP_zzz_production_gcFastClearReplicatePS_Gen 842
 #define IDR_VP_TOTAL_NUM_KERNELS 843
 
-#if _DEBUG
+#if _DEBUG || _RELEASE_INTERNAL
 #define IDR_VP_KERNEL_NAMES   \
     _T("3DLUT"),\
     _T("AlphaSrcBlendG"),\
