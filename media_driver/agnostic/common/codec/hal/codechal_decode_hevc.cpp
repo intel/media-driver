@@ -1681,6 +1681,38 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         CODECHAL_DECODE_ASSERT(k <= 8);
         CODECHAL_DECODE_ASSERT(m <= 8);
 
+        // Return error if reference surface's pitch * height is less than dest surface.
+        MOS_SURFACE destSurfaceDetails;
+        MOS_SURFACE refSurfaceDetails;
+
+        MOS_ZeroMemory(&destSurfaceDetails, sizeof(destSurfaceDetails));
+        destSurfaceDetails.Format = Format_Invalid;
+        MOS_ZeroMemory(&refSurfaceDetails, sizeof(refSurfaceDetails));
+        refSurfaceDetails.Format = Format_Invalid;
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+            m_osInterface,
+            &destSurface->OsResource,
+            &destSurfaceDetails));
+
+        for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+        {
+            if (m_picMhwParams.PipeBufAddrParams->presReferences[i] != nullptr)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+                    m_osInterface,
+                    m_picMhwParams.PipeBufAddrParams->presReferences[i],
+                    &refSurfaceDetails));
+
+                if ((refSurfaceDetails.dwPitch * refSurfaceDetails.dwHeight) <
+                    (destSurfaceDetails.dwPitch * destSurfaceDetails.dwHeight))
+                {
+                    CODECHAL_DECODE_ASSERTMESSAGE("Reference surface's pitch * height is less than Dest surface.");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+        }
+
         if (firstValidFrame == nullptr)
         {
             firstValidFrame = &destSurface->OsResource;
