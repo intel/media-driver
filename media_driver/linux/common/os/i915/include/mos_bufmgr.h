@@ -194,6 +194,7 @@ int mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name);
 int mos_bo_busy(struct mos_linux_bo *bo);
 int mos_bo_madvise(struct mos_linux_bo *bo, int madv);
 int mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable);
+void mos_bo_set_exec_object_async(struct mos_linux_bo *bo);
 int mos_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset);
 
 int mos_bo_disable_reuse(struct mos_linux_bo *bo);
