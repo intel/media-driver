@@ -400,6 +400,7 @@ struct CM_HAL_EXEC_TASK_GROUP_PARAM
     uint32_t *kernelCurbeOffset;   // [in]  Array of Kernel Curbe Offset
     bool kernelDebugEnabled;         // [in] kernel debug is enabled
     CM_TASK_CONFIG taskConfig;       // [in] task Config
+    CM_EXECUTION_CONFIG krnExecCfg[CM_MAX_KERNELS_PER_TASK]; // [in] kernel execution config in a task. replace numOfWalkers in CM_TASK_CONFIG.
     void *userDefinedMediaState;     // [in] pointer to a user defined media state heap block
     CM_QUEUE_CREATE_OPTION queueOption;  // [in] multiple contexts queue option
     uint64_t conditionalEndBitmap;       // [in] bit map for conditional end b/w kernels
@@ -530,6 +531,8 @@ struct CM_HAL_TASK_PARAM
     conditionalBBEndParams[CM_MAX_CONDITIONAL_END_CMDS];
 
     CM_TASK_CONFIG taskConfig;       // [in] task Config
+    CM_EXECUTION_CONFIG krnExecCfg[CM_MAX_KERNELS_PER_TASK]; // [in] kernel execution config in a task. replace numOfWalkers in CM_TASK_CONFIG.
+
     void *userDefinedMediaState;  // [in] pointer to a user defined media state heap block
 
     // [in] each kernel's sampler heap offset from the DSH sampler heap base

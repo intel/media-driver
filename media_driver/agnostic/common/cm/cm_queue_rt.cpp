@@ -555,7 +555,8 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
                         PCM_POWER_OPTION powerOption,
                         uint64_t    conditionalEndBitmap,
                         CM_HAL_CONDITIONAL_BB_END_INFO* conditionalEndInfo,
-                        PCM_TASK_CONFIG  taskConfig)
+                        PCM_TASK_CONFIG  taskConfig,
+                        const CM_EXECUTION_CONFIG* krnExecCfg)
 {
     if(kernelArray == nullptr)
     {
@@ -572,7 +573,9 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     CLock Locker(m_criticalSectionTaskInternal);
 
     CmTaskInternal* task = nullptr;
-    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, threadGroupSpace, m_device, syncBitmap, task, conditionalEndBitmap, conditionalEndInfo);
+    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray,
+                                            threadGroupSpace, m_device, syncBitmap, task,
+                                            conditionalEndBitmap, conditionalEndInfo, krnExecCfg);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Create CmTaskInternal failure.");
@@ -797,7 +800,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
                          threadGroupSpace, taskRT->GetSyncBitmap(),
                          taskRT->GetPowerOption(),
                          taskRT->GetConditionalEndBitmap(), taskRT->GetConditionalEndInfo(),
-                         taskRT->GetTaskConfig());
+                         taskRT->GetTaskConfig(), taskRT->GetKernelExecuteConfig());
 
     if (eventRT)
     {
@@ -2714,13 +2717,16 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
 
     if (task->IsThreadGroupSpaceCreated())//thread group size
     {
-        task->GetThreadGroupSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight, param.threadSpaceDepth, param.groupSpaceWidth, param.groupSpaceHeight, param.groupSpaceDepth);
+        task->GetThreadGroupSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight,
+                                      param.threadSpaceDepth, param.groupSpaceWidth,
+                                      param.groupSpaceHeight, param.groupSpaceDepth);
     }
 
     param.syncBitmap = task->GetSyncBitmap();
     param.conditionalEndBitmap = task->GetConditionalEndBitmap();
     param.userDefinedMediaState = task->GetMediaStatePtr();
     CmSafeMemCopy(param.conditionalEndInfo, task->GetConditionalEndInfo(), sizeof(param.conditionalEndInfo));
+    CmSafeMemCopy(param.krnExecCfg, task->GetKernelExecuteConfig(), sizeof(param.krnExecCfg));
 
     // Call HAL layer to execute pfnExecuteGroupTask
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
