@@ -2801,6 +2801,18 @@ uint32_t MOS_WaitForMultipleObjects(
     return 0;
 }
 
+int32_t MOS_AtomicIncrement(
+    int32_t *pValue)
+{
+    return __sync_fetch_and_add(pValue, 1);
+}
+
+int32_t MOS_AtomicDecrement(
+    int32_t *pValue)
+{
+    return __sync_fetch_and_sub(pValue, 1);
+}
+
 VAStatus MOS_StatusToOsResult(
     MOS_STATUS               eStatus)
 {
