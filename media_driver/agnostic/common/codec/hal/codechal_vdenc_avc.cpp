@@ -5160,6 +5160,7 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
     MOS_STATUS eStatus = CodechalEncodeAvcBase::SetMfxPipeBufAddrStateParams(genericParam, param);
 
     param.ps4xDsSurface                         = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
+    param.ps8xDsSurface                         = m_trackedBuf->Get8xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     param.presVdencIntraRowStoreScratchBuffer   = &m_vdencIntraRowStoreScratchBuffer;
     param.presVdencStreamOutBuffer              = &m_vdencStatsBuffer;
     param.presStreamOutBuffer                   = &m_pakStatsBuffer;
