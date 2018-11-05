@@ -859,7 +859,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     int currPass = GetCurrentPass();
     if (IsFirstPass())
     {
-        for (auto i = 0; i < 2; i++)
+        for (auto i = 0; i < 3; i++)
         {
             dmem = (HucProbDmem *)m_osInterface->pfnLockResource(
                 m_osInterface, &m_resHucProbDmemBuffer[i], &lockFlagsWriteOnly);
@@ -883,11 +883,11 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     else
     {
         dmem = (HucProbDmem *)m_osInterface->pfnLockResource(
-            m_osInterface, &m_resHucProbDmemBuffer[currPass != 0], &lockFlagsWriteOnly);
+            m_osInterface, &m_resHucProbDmemBuffer[currPass], &lockFlagsWriteOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
     }
-
-    dmem->HuCPassNum  = m_superFrameHucPass ? CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS : (currPass != 0);
+    // for BRC cases, HuC needs to be called on Pass 1 
+    dmem->HuCPassNum = m_superFrameHucPass ? CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS : ((m_vdencBrcEnabled && currPass == 1) ? 0 : (currPass != 0));
     dmem->FrameWidth  = m_oriFrameWidth;
     dmem->FrameHeight = m_oriFrameHeight;
 
@@ -958,7 +958,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     dmem->SLBBSize = m_hucSlbbSize;
     dmem->IVFHeaderSize = (m_frameNum == 0) ? 44 : 12;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[currPass != 0]));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[currPass]));
 
     return eStatus;
 }
@@ -1059,10 +1059,10 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCVp9Prob());
-
+    int currPass = GetCurrentPass();
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[m_currPass != 0];
+    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[m_currPass];
     dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucProbDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
@@ -1188,9 +1188,9 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resHucProbDmemBuffer[m_currPass != 0],
+                &m_resHucProbDmemBuffer[m_currPass],
                 sizeof(HucProbDmem),
-                m_currPass,
+                currPass,
                 CodechalHucRegionDumpType::hucRegionDumpDefault));
 
             for (auto i = 0; i < 16; i++) {
@@ -6290,7 +6290,7 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
         // HUC Prob DMEM buffer
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(MOS_MAX(sizeof(HucProbDmem), sizeof(HucProbDmem)), CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "HucProbDmemBuffer";
-        for (auto i = 0; i < 2; i++)
+        for (auto i = 0; i < 3; i++)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
                 m_osInterface,
@@ -6756,7 +6756,7 @@ void CodechalVdencVp9State::FreeResources()
         m_osInterface,
         &m_resCuStatsStrmOutBuffer);
 
-    for (auto i = 0; i < 2; i++)
+    for (auto i = 0; i < 3; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -7037,7 +7037,8 @@ MOS_STATUS CodechalVdencVp9State::ReadHcpStatus(
     // it is needed for correct pipeline synchronization and dmem initialization
     copyMemMemParams.presSrc = &encodeStatusBuf->resStatusBuffer;
     copyMemMemParams.dwSrcOffset = baseOffset + encodeStatusBuf->dwBSByteCountOffset;
-    copyMemMemParams.presDst     = &m_resHucProbDmemBuffer[1];
+    // For BRC cases, do not overwrite the HPU probability in huc Dmen buffer in the last pass
+    copyMemMemParams.presDst = &m_resHucProbDmemBuffer[m_vdencBrcEnabled ? 2 : 1];
     copyMemMemParams.dwDstOffset = CODECHAL_OFFSETOF(HucProbDmem, FrameSize);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(
@@ -7099,7 +7100,7 @@ CodechalVdencVp9State::CodechalVdencVp9State(
 
     MOS_ZeroMemory(&m_prevFrameInfo, sizeof(m_prevFrameInfo));
 
-    for (auto i = 0; i < 2; i++)
+    for (auto i = 0; i < 3; i++)
     {
         MOS_ZeroMemory(&m_resHucProbDmemBuffer[i], sizeof(m_resHucProbDmemBuffer[i]));
     }
