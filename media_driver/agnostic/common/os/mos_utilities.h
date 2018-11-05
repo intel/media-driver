@@ -764,6 +764,10 @@ typedef struct
 } MOS_USER_FEATURE_NOTIFY_DATA_COMMON, *PMOS_USER_FEATURE_NOTIFY_DATA_COMMON;
 
 #ifdef __cplusplus
+
+extern "C" int32_t MOS_AtomicIncrement(int32_t *pValue);   // forward declaration
+extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaration
+
 //template<class _Ty, class... _Types> inline
 //std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
 //{
@@ -790,7 +794,7 @@ _Ty* MOS_NewUtil(_Types&&... _Args)
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
-            MosMemAllocCounter++;
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
         }
         else
@@ -813,7 +817,7 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
         if (ptr != nullptr)
         {
-            MosMemAllocCounter++;
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
         }
         return ptr;
@@ -841,7 +845,7 @@ void MOS_DeleteUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
         delete(ptr);
         ptr = nullptr;
@@ -862,8 +866,7 @@ void MOS_DeleteArrayUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
-
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         delete[](ptr);
@@ -2398,6 +2401,26 @@ uint32_t MOS_WaitForMultipleObjects(
     void                        **ppObjects,
     uint32_t                    bWaitAll,
     uint32_t                    uiMilliseconds);
+
+//!
+//! \brief    Increments (increases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be incremented.
+//! \return   int32_t
+//!           The function returns the resulting incremented value.
+//!
+int32_t MOS_AtomicIncrement(
+    int32_t *pValue);
+
+//!
+//! \brief    Decrements (decreases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be decremented.
+//! \return   int32_t
+//!           The function returns the resulting decremented value.
+//!
+int32_t MOS_AtomicDecrement(
+    int32_t *pValue);
 
 //!
 //! \brief      Convert MOS_STATUS to OS dependent RESULT/Status
