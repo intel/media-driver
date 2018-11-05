@@ -155,7 +155,10 @@ public:
     // max src rectangle
     RECT                        maxSrcRect;
 
-    VPHAL_SURFACE               IntermediateSurface;                            //!< intermediate surface, only for viedo surveillance usage, when applying AVS for multiple surfaces.
+    // Intermediate surface, currently two usages:
+    // 1) It is for viedo surveillance usage, when applying AVS for multiple surfaces;
+    // 2) It could be VEBOX output or input for HDR processing;
+    VPHAL_SURFACE               IntermediateSurface = {};
 
 protected:
     // Renderer private data
