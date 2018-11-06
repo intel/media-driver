@@ -3385,9 +3385,11 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 // On G8, NV12 format needs the width and Height to be a multiple
                 // of 4 for both 3D sampler and 8x8 sampler; G75 needs the width
                 // of NV12 input surface to be a multiple of 4 for 3D sampler;
-                // G9+ does not has such restriction; to simplify the implementation,
-                // we enable 2 plane NV12 for all of the platform when the width
-                // or Height is not a multiple of 4
+                // On G9+, width need to be a multiple of 2, while height still need
+                // be a multiple of 4; since G9 already post PV, just keep the old logic
+                // to enable 2 plane NV12 when the width or Height is not a multiple of 4.
+                // For G10+, enable 2 plane NV12 when width is not multiple of 2 or height
+                // is not multiple of 4.
                 if ( pRenderHalSurface->SurfType == RENDERHAL_SURF_OUT_RENDERTARGET   ||
                      (pParams->bWidthInDword_Y && pParams->bWidthInDword_UV)          ||
                      pParams->b2PlaneNV12NeededByKernel                               ||
@@ -6063,14 +6065,22 @@ bool RenderHal_Is2PlaneNV12Needed(
             break;
     }
 
-     if (!GFX_IS_GEN_10_OR_LATER(pRenderHal->Platform))
-     {
-         return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
-     }
-     else
-     {
-         return (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
-     }
+    // On G8, NV12 format needs the width and Height to be a multiple
+    // of 4 for both 3D sampler and 8x8 sampler; G75 needs the width
+    // of NV12 input surface to be a multiple of 4 for 3D sampler.
+    // On G9+, width need to be a multiple of 2, while height still need
+    // be a multiple of 4. Since G9 already post PV, just keep the old logic
+    // to enable 2 plane NV12 when the width or Height is not a multiple of 4.
+    // For G10+, enable 2 plane NV12 when width is not multiple of 2 or height
+    // is not multiple of 4.
+    if (!GFX_IS_GEN_10_OR_LATER(pRenderHal->Platform))
+    {
+        return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
+    }
+    else
+    {
+        return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+    }
 }
 
 //!
