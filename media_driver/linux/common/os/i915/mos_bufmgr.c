@@ -2624,7 +2624,7 @@ mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
 drm_export int
 do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags
+     unsigned int flags, int *fence
      )
 {
 
@@ -2680,12 +2680,20 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     else
         i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
     execbuf.rsvd2 = 0;
+    if(flags & I915_EXEC_FENCE_SUBMIT)
+    {
+        execbuf.rsvd2 = *fence;
+    }
+    if(flags & I915_EXEC_FENCE_OUT)
+    {
+        execbuf.rsvd2 = -1;
+    }
 
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
     ret = drmIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_EXECBUFFER2,
+               DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
                &execbuf);
     if (ret != 0) {
         ret = -errno;
@@ -2703,6 +2711,11 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     if (ctx != nullptr)
     {
         mos_update_buffer_offsets2(bufmgr_gem, ctx, bo);
+    }
+
+    if(flags & I915_EXEC_FENCE_OUT)
+    {
+        *fence = execbuf.rsvd2 >> 32;
     }
 
 skip_execution:
@@ -2730,7 +2743,7 @@ mos_gem_bo_exec2(struct mos_linux_bo *bo, int used,
                int DR4)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            I915_EXEC_RENDER);
+            I915_EXEC_RENDER, nullptr);
 }
 
 static int
@@ -2739,23 +2752,23 @@ mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
             unsigned int flags)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            flags);
+            flags, nullptr);
 }
 
 int
 mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
                   int used, unsigned int flags)
 {
-    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags);
+    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags, nullptr);
 }
 
 int
 mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                            drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-                           unsigned int flags)
+                           unsigned int flags, int *fence)
 {
     return do_exec2(bo, used, ctx, cliprects, num_cliprects, DR4,
-                        flags);
+                        flags, fence);
 }
 
 static int
@@ -4159,6 +4172,73 @@ int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
 fini:
     if (set_engines)
         free(set_engines);
+    if (balancer)
+        free(balancer);
+    return ret;
+}
+
+int mos_set_context_param_bond(struct mos_linux_context *ctx,
+                        struct i915_engine_class_instance master_ci,
+                        struct i915_engine_class_instance *bond_ci,
+                        unsigned int bond_count)
+{
+    int ret;
+    uint32_t size;
+    struct i915_context_engines_load_balance* balancer = nullptr;
+    struct i915_context_engines_bond *bond = nullptr;
+    struct i915_context_param_engines* set_engines = nullptr;
+
+    assert(bond_ci);
+
+    /* I915_DEFINE_CONTEXT_ENGINES_LOAD_BALANCE */
+    size = sizeof(struct i915_context_engines_load_balance) + bond_count * sizeof(bond_ci);
+    balancer = (struct i915_context_engines_load_balance*)malloc(size);
+    if (NULL == balancer)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    memset(balancer, 0, size);
+    balancer->base.name = I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE;
+    balancer->num_siblings = bond_count;
+    memcpy(balancer->engines, bond_ci, bond_count * sizeof(*bond_ci));
+
+    /* I915_DEFINE_CONTEXT_ENGINES_BOND */
+    size = sizeof(struct i915_context_engines_bond) + bond_count * sizeof(*bond_ci);
+    bond = (struct i915_context_engines_bond*)malloc(size);
+    if (NULL == bond)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    memset(bond, 0, size);
+    bond->base.name = I915_CONTEXT_ENGINES_EXT_BOND;
+    bond->master = master_ci;
+    bond->num_bonds = bond_count;
+    memcpy(bond->engines, bond_ci, bond_count * sizeof(*bond_ci));
+
+    /* I915_DEFINE_CONTEXT_PARAM_ENGINES */
+    size = sizeof(uint64_t) + sizeof(struct i915_engine_class_instance);
+    set_engines = (struct i915_context_param_engines*) malloc(size);
+    if (NULL == set_engines)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    set_engines->extensions = (uintptr_t)(balancer);
+    balancer->base.next_extension = (uintptr_t)(bond);
+    set_engines->engines[0].engine_class = I915_ENGINE_CLASS_INVALID;
+    set_engines->engines[0].engine_instance = I915_ENGINE_CLASS_INVALID_NONE;
+
+    ret = mos_set_context_param(ctx,
+                          size,
+                          I915_CONTEXT_PARAM_ENGINES,
+                          (uintptr_t)set_engines);
+fini:
+    if (set_engines)
+        free(set_engines);
+    if (bond)
+        free(bond);
     if (balancer)
         free(balancer);
     return ret;
