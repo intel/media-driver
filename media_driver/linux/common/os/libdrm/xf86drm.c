@@ -65,7 +65,7 @@
 #include "xf86drm.h"
 //#include "xf86drmCSC.h"
 #include "libdrm_macros.h"
-#include "i915_drm.h"
+#include "i915_header.h"
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 #define DRM_MAJOR 145
