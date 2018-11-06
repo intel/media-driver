@@ -61,6 +61,7 @@ struct CM_SET_CAPS
     };
 };
 
+extern uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE pOsInterface);
 namespace CMRT_UMD
 {
 CSync CmDeviceRT::m_globalCriticalSectionSurf2DUserDataLock = CSync();
@@ -3473,8 +3474,9 @@ int32_t CmDeviceRT::SetSurfaceArraySizeForAlias()
 std::string CmDeviceRT::Log()
 {
     std::ostringstream  oss;
-
-    uint32_t nSize = sizeof(int);
+    PCM_HAL_STATE       cmHalState;
+    uint64_t            timeStampBase = 0;
+    uint32_t            nSize = sizeof(int);
 
     GetCaps( CAP_GPU_CURRENT_FREQUENCY, nSize, &m_nGPUFreqOriginal );
     GetCaps( CAP_MIN_FREQUENCY, nSize, &m_nGPUFreqMin );
@@ -3483,8 +3485,11 @@ std::string CmDeviceRT::Log()
     int gtInfo;
     GetCaps( CAP_GT_PLATFORM,   nSize, &gtInfo        );
 
-    oss << "Device Creation "<<std::endl;
+    cmHalState  = ((PCM_CONTEXT_DATA)GetAccelData())->cmHalState; 
+    CM_CHK_NULL_RETURN(cmHalState,"cmHalState is null pointer");
+    timeStampBase = HalCm_ConvertTicksToNanoSeconds(cmHalState,1);
 
+    oss << "Device Creation "<<std::endl;
     // Hw Information
     oss << "Platform :" << m_platform << std::endl;
     oss << "GT Info :"<< gtInfo << std::endl;
@@ -3499,6 +3504,7 @@ std::string CmDeviceRT::Log()
     oss << "Max Buffer Table Size " << m_halMaxValues.maxBufferTableSize << std::endl;
     oss << "Max Threads per Task  " << m_halMaxValues.maxUserThreadsPerTask << std::endl;
     oss << "Max Threads Per Task no Thread Arg " << m_halMaxValues.maxUserThreadsPerTaskNoThreadArg << std::endl;
+    oss << "MDF timestamp base " << timeStampBase << "ns" << std::endl;
 
     return oss.str();
 }
