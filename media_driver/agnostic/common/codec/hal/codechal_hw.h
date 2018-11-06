@@ -1423,6 +1423,16 @@ public:
         uint32_t tag,
         PMOS_COMMAND_BUFFER cmdBuffer);
 
+    //!
+    //! \brief    Check if simulation/emulation is active
+    //! \return   bool
+    //!           True if simulation/emulation is active, else false.
+    //!
+    bool IsSimActive()
+    {
+        return m_osInterface ? m_osInterface->bSimIsActive : false;
+    }
+
     //! \brief    default disable vdbox balancing by UMD
     bool bEnableVdboxBalancingbyUMD = false;
     
