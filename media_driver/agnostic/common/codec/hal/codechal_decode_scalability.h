@@ -862,4 +862,17 @@ MOS_STATUS CodechalDecodeScalability_ChkGpuCtxReCreation(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalabilityState,
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED          CurgpuCtxCreatOpts);
 
+//!
+//! \brief    Convert Decode Phase to Batch Buffer Submission Type
+//! \param    [in]  scalabilityState
+//!                Scalability decode state
+//! \param    [in] pCmdBuffer
+//!                Pointer to command buffer
+//! \return   void
+//!           void
+//!
+void CodecHalDecodeScalability_DecPhaseToSubmissionType(
+    PCODECHAL_DECODE_SCALABILITY_STATE pScalabilityState,
+    PMOS_COMMAND_BUFFER pCmdBuffer);
+
 #endif //__CODECHAL_DECODER_SCALABILITY_H__

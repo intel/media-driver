@@ -114,7 +114,6 @@ static bool InitIcllpMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM
 
     sysInfo->L3CacheSizeInKb = devInfo->L3CacheSizeInKb;
     sysInfo->L3BankCount     = devInfo->L3BankCount;
-    /* default two VDBox are enabled */
     sysInfo->VDBoxInfo.Instances.Bits.VDBox0Enabled = 1;
     sysInfo->VDBoxInfo.Instances.Bits.VDBox1Enabled = 0;
     sysInfo->VEBoxInfo.Instances.Bits.VEBox0Enabled = 1;
@@ -123,7 +122,7 @@ static bool InitIcllpMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM
     sysInfo->MaxSubSlicesSupported = sysInfo->SubSliceCount;
 
     sysInfo->VEBoxInfo.NumberOfVEBoxEnabled = 1;
-    sysInfo->VDBoxInfo.NumberOfVDBoxEnabled = 1;
+    sysInfo->VDBoxInfo.NumberOfVDBoxEnabled = 0;//Query the VDBox number from KMD
 
     sysInfo->ThreadCount = sysInfo->EUCount * GEN11_THREADS_PER_EU;
 
