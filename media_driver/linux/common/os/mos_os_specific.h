@@ -36,7 +36,7 @@
 #include <utils/Log.h>
 #endif
 
-#include "i915_drm.h"
+#include "i915_header.h"
 #if defined(MEDIA_EXT)
 #include "i915_drm_ext.h"
 #endif
