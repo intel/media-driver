@@ -69,7 +69,7 @@
 #endif
 #include "string.h"
 
-#include "i915_drm.h"
+#include "i915_header.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
@@ -997,7 +997,7 @@ retry:
     pthread_mutex_unlock(&bufmgr_gem->lock);
 
     if (!alloc_from_cache) {
-        struct drm_i915_gem_create create;
+        struct drm_i915_gem_create_android create;
 
         bo_gem = (struct mos_bo_gem *)calloc(1, sizeof(*bo_gem));
         if (!bo_gem)

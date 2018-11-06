@@ -26,6 +26,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/drm_mode.h
     ${CMAKE_CURRENT_LIST_DIR}/drm_sarea.h
     ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
+    ${CMAKE_CURRENT_LIST_DIR}/i915_header.h
     ${CMAKE_CURRENT_LIST_DIR}/intel_aub.h
     ${CMAKE_CURRENT_LIST_DIR}/intel_chipset.h
     ${CMAKE_CURRENT_LIST_DIR}/libdrm_lists.h

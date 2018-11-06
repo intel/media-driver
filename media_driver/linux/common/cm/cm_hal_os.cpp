@@ -26,7 +26,7 @@
 #include "mos_os.h"
 #include "cm_hal.h"
 #include "cm_def_os.h"
-#include "i915_drm.h"
+#include "i915_header.h"
 #include "cm_execution_adv.h"
 
 #define Y_TILE_WIDTH  128
