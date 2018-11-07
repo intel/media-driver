@@ -916,17 +916,6 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
     if (flags & BO_ALLOC_FOR_RENDER)
         for_render = true;
 
-    if (flags & BO_ALLOC_STOLEN) {
-        /* No BO caching implemented for stolen backed objects, which
-         * is fine as comparatively it takes much less time to allocate
-         * backing pages from Stolen memory.
-         */
-        bucket = nullptr;
-    } else {
-        /* Round the allocated size up to a power of two number of pages. */
-        bucket = mos_gem_bo_bucket_for_size(bufmgr_gem, size);
-    }
-
     bucket = mos_gem_bo_bucket_for_size(bufmgr_gem, size);
 
     pthread_mutex_lock(&bufmgr_gem->lock);
@@ -990,13 +979,6 @@ retry:
         }
     }
 
-    /* If an object is being picked up from BO cache and User has aksed for
-     * a clean object, then move it to GTT domain so that it is flushed out
-     * from the CPU cache.
-     */
-    if (alloc_from_cache && (flags & BO_ALLOC_FLUSH))
-        mos_gem_bo_start_gtt_access(&bo_gem->bo, 0);
-
     pthread_mutex_unlock(&bufmgr_gem->lock);
 
     if (!alloc_from_cache) {
@@ -1011,25 +993,11 @@ retry:
         memclear(create);
         create.size = size;
 
-        if (flags & BO_ALLOC_STOLEN)
-            create.flags |= I915_CREATE_PLACEMENT_STOLEN;
-
-        if (flags & BO_ALLOC_POPULATE)
-            create.flags |= I915_CREATE_POPULATE;
-
-        if (flags & BO_ALLOC_FLUSH)
-            create.flags |= I915_CREATE_FLUSH;
-
         ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_CREATE,
                    &create);
 
         if (ret != 0) {
-            if (flags & BO_ALLOC_STOLEN) {
-                free(bo_gem);
-                return nullptr;
-            }
-
             /* If allocation failed, clear the cache and retry.
              * Kernel has probably reclaimed any cached BOs already,
              * but may as well retry after emptying the buckets.
@@ -1038,12 +1006,6 @@ retry:
 
             memclear(create);
             create.size = size;
-
-            if (flags & BO_ALLOC_POPULATE)
-                create.flags |= I915_CREATE_POPULATE;
-
-            if (flags & BO_ALLOC_FLUSH)
-                create.flags |= I915_CREATE_FLUSH;
 
             ret = drmIoctl(bufmgr_gem->fd,
                        DRM_IOCTL_I915_GEM_CREATE,
@@ -1082,11 +1044,7 @@ retry:
     bo_gem->reloc_tree_fences = 0;
     bo_gem->used_as_reloc_target = false;
     bo_gem->has_error = false;
-    /* No BO caching for stolen backed objects */
-    if (flags & BO_ALLOC_STOLEN)
-        bo_gem->reusable = false;
-    else
-        bo_gem->reusable = true;
+    bo_gem->reusable = true;
     bo_gem->use_48b_address_range = false;
     bo_gem->aub_annotations = nullptr;
     bo_gem->aub_annotation_count = 0;
