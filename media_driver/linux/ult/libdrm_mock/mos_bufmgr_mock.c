@@ -38,8 +38,8 @@
 #include "config.h"
 #endif
 
-#include "xf86drm_mock.h"
-#include "xf86atomic_mock.h"
+#include "xf86drm.h"
+#include "xf86atomic.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,14 +56,14 @@
 #ifndef ETIME
 #define ETIME ETIMEDOUT
 #endif
-#include "libdrm_macros_mock.h"
-#include "libdrm_lists_mock.h"
-#include "mos_bufmgr_mock.h"
-#include "mos_bufmgr_priv_mock.h"
-#include "intel_chipset_mock.h"
+#include "libdrm_macros.h"
+#include "libdrm_lists.h"
+#include "mos_bufmgr.h"
+#include "mos_bufmgr_priv.h"
+#include "intel_chipset.h"
 #include "string.h"
 
-#include "i915_drm_mock.h"
+#include "i915_header.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
