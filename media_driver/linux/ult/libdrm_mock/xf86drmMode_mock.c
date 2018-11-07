@@ -41,9 +41,9 @@
 #include "config.h"
 #endif
 
-#include "xf86drmMode_mock.h"
-#include "xf86drm_mock.h"
-#include "drm_mock.h"
+#include "xf86drmMode.h"
+#include "xf86drm.h"
+#include "drm.h"
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
