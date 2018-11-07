@@ -72,8 +72,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include "xf86drm_mock.h"
-#include "xf86drmHash_mock.h"
+#include "xf86drm.h"
+#include "xf86drmHash.h"
 
 #define HASH_MAGIC 0xdeadbeef
 

@@ -63,10 +63,10 @@
 #define MAP_FAILED ((void *)-1)
 #endif
 
-#include "xf86drm_mock.h"
+#include "xf86drm.h"
 //#include "xf86drmCSC.h"
-#include "libdrm_macros_mock.h"
-#include "i915_drm_mock.h"
+#include "libdrm_macros.h"
+#include "i915_header.h"
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 #define DRM_MAJOR 145
