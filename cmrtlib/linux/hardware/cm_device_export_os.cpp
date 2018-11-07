@@ -52,11 +52,11 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 
     if ( vaDisplay == nullptr)
     {
-        result = CmDevice_RT::Create(p, CM_DEVICE_CREATE_OPTION_DEFAULT);
+        result = CmDevice_RT::Create(p, CM_DEVICE_CONFIG_FAST_PATH_ENABLE);
     }
     else
     {
-        result = CmDevice_RT::Create(vaDisplay, p, CM_DEVICE_CREATE_OPTION_DEFAULT);
+        result = CmDevice_RT::Create(vaDisplay, p, CM_DEVICE_CONFIG_FAST_PATH_ENABLE);
     }
 
     device = static_cast< CmDevice* >(p);
