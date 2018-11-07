@@ -226,28 +226,15 @@ struct mos_bufmgr {
                    uint32_t write_domain);
 
     /** Executes the command buffer pointed to by bo. */
-#ifdef ANDROID
-    int (*bo_exec) (struct mos_linux_bo *bo, int used,
-            drm_clip_rect_t *cliprects, int num_cliprects,
-            int DR4, int fence_in, int *fence_out);
-#else
     int (*bo_exec) (struct mos_linux_bo *bo, int used,
             drm_clip_rect_t *cliprects, int num_cliprects,
             int DR4);
-#endif
     /** Executes the command buffer pointed to by bo on the selected
      * ring buffer
      */
-#ifdef ANDROID
-    int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
-                drm_clip_rect_t *cliprects, int num_cliprects,
-                int DR4, unsigned flags,
-                int fence_in, int *fence_out);
-#else
     int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
                 drm_clip_rect_t *cliprects, int num_cliprects,
                 int DR4, unsigned flags);
-#endif
 
     /**
      * Pin a buffer to the aperture and fix the offset until unpinned
