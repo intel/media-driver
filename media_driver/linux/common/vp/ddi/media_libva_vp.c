@@ -424,9 +424,12 @@ DdiVp_DestroyRenderParams(PDDI_VP_CONTEXT pVpCtx)
         if (nullptr != pVpCtx->pVpHalRenderParams)
         {
             MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pSplitScreenDemoModeParams);
-            MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pColorFillParams);
             MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pCompAlpha);
             MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams);
+            if (nullptr != pVpCtx->pVpHalRenderParams->pColorFillParams)
+            {
+                MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pColorFillParams);
+            }
         }
     }
 
@@ -1007,10 +1010,18 @@ DdiVp_SetProcPipelineParams(
     // extended gamut? RGB can't have extended gamut flag
     pVpHalSrcSurf->ExtendedGamut = false;
 
-    // set background colorfill option
-    pVpHalRenderParams->pColorFillParams->Color     = pPipelineParam->output_background_color;
-    pVpHalRenderParams->pColorFillParams->bYCbCr    = false;
-    pVpHalRenderParams->pColorFillParams->CSpace    = CSpace_sRGB;
+    // Background Colorfill
+    // According to libva  definition, if alpha in output background color is zero, then colorfill is not needed
+    if ((pPipelineParam->output_background_color >> 24) != 0)
+    {
+        // set background colorfill option
+        pVpHalRenderParams->pColorFillParams->Color     = pPipelineParam->output_background_color;
+        pVpHalRenderParams->pColorFillParams->bYCbCr    = false;
+        pVpHalRenderParams->pColorFillParams->CSpace    = CSpace_sRGB;
+    }else
+    {
+        MOS_FreeMemAndSetNull(pVpHalRenderParams->pColorFillParams);
+    }
 
     // Set Demo Mode option
     if (pVpHalRenderParams->bDisableDemoMode == false)
@@ -1414,8 +1425,8 @@ FINISH:
         {
             MOS_FreeMemory(pVpHalRenderParams->pTarget[uSurfIndex]);
         }
-        MOS_FreeMemory(pVpHalRenderParams->pColorFillParams);
 
+        MOS_FreeMemory(pVpHalRenderParams->pColorFillParams);
         MOS_FreeMemory(pVpHalRenderParams);
     }
 
