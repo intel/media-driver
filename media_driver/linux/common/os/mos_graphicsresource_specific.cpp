@@ -266,56 +266,25 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     char bufName[m_maxBufNameLength];
     MOS_SecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str());
 
-#if defined(I915_PARAM_CREATE_VERSION)
-    drm_i915_getparam_t gp;
-    int32_t gpvalue = 0;
-    int32_t ret = 0;
-    gpvalue = 0;
-    ret = -1;
-    memset( &gp, 0, sizeof(gp) );
-    gp.value = &gpvalue;
-    gp.param = I915_PARAM_CREATE_VERSION;
-
-    ret = drmIoctl(pOsContextSpecific->m_fd, DRM_IOCTL_I915_GETPARAM, &gp);
-
-    if ((0 == ret) && ( tileFormatLinux != I915_TILING_NONE))
+    if (nullptr != params.m_pSystemMemory)
     {
-        boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1,
-                 &tileFormatLinux, &linuxPitch, BO_ALLOC_STOLEN);
-        if (nullptr == boPtr)
-        {
-            boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
-        }
-        else
-        {
-            MOS_OS_VERBOSEMESSAGE("Stolen memory is created sucessfully on Mos");
-        }
-        bufPitch = (uint32_t)linuxPitch;
+        boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
+                                      bufName,
+                                      params.m_pSystemMemory,
+                                      tileFormatLinux,
+                                      bufPitch,
+                                      bufSize,
+                                      0);
+    }
+    // Only Linear and Y TILE supported
+    else if (tileFormatLinux == I915_TILING_NONE)
+    {
+        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096);
     }
     else
-#endif
     {
-        if (nullptr != params.m_pSystemMemory)
-        {
-            boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
-                                         bufName,
-                                         params.m_pSystemMemory,
-                                         tileFormatLinux,
-                                         bufPitch,
-                                         bufSize,
-                                         0);
-        }
-        // Only Linear and Y TILE supported
-        else if (tileFormatLinux == I915_TILING_NONE)
-        {
-            boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096);
-        }
-        else
-        {
-            boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
-            bufPitch = (uint32_t)linuxPitch;
-        }
-
+        boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
+        bufPitch = (uint32_t)linuxPitch;
     }
 
     m_mapped = false;
