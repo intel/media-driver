@@ -155,7 +155,8 @@ public:
     CM_HAL_GENERIC(PCM_HAL_STATE cmState):
         m_cmState(cmState),
         m_requestShutdownSubslicesForVmeUsage(false),
-        m_overridePowerOptionPerGpuContext(false) {};
+        m_overridePowerOptionPerGpuContext(false),
+        m_redirectRcsToCcs(false) {};
 
     virtual ~CM_HAL_GENERIC(){};
 
@@ -266,7 +267,7 @@ public:
 #endif
 
     //!
-    //! \brief    Submit a commmand to get the time stamp base 
+    //! \brief    Submit a commmand to get the time stamp base
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -590,11 +591,12 @@ public:
     //! \brief    Check if the platform has media mode or not
     //! \details  Check if the platform has media mode or not
     //! \return   bool
-    //!           true: the platform has media mode; false the platform 
+    //!           true: the platform has media mode; false the platform
     //!           does not have media mode.
     //!
     virtual bool CheckMediaModeAvailability() { return true; }
 
+    //!
     //! \brief    enable or disable the power option per GPU context
     //! \param    [in]  enabled
     //!           true: enable per GPU context; false: disable per Batch command
@@ -612,6 +614,24 @@ public:
         return m_overridePowerOptionPerGpuContext;
     }
 
+    //!
+    //! \brief    enable or disable redirect of RCS to CCS
+    //! \param    [in] enabled
+    //!           true: enable redirect of RCS to CCS; false: disable redirect of RCS to CCS
+    virtual void SetRedirectRcsToCcs(bool enabled)
+    {
+        m_redirectRcsToCcs = enabled;
+    }
+
+    //!
+    //! \brief    return whether need redirect RCS to CCS
+    //! \return   bool
+    //!           true: redirect is need; false: don't need redirect
+    virtual bool IsRedirectRcsToCcs()
+    {
+        return m_redirectRcsToCcs;
+    }
+
 protected:
     uint32_t m_platformID;
     uint32_t m_genGT;
@@ -619,6 +639,7 @@ protected:
     std::vector<uint32_t> m_cisaGenIDs;
     bool m_requestShutdownSubslicesForVmeUsage;
     bool m_overridePowerOptionPerGpuContext;
+    bool m_redirectRcsToCcs;
 };
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_

@@ -1764,6 +1764,20 @@ CmDeviceRT::CreateQueueEx(CmQueue* & queue,
 {
     INSERT_API_CALL_LOG();
 
+    // Redirect RCS to CCS for some gen platforms. If test application already
+    // passed proper queue type, we can remove this w/a.
+    if (queueCreateOption.QueueType == CM_QUEUE_TYPE_RENDER)
+    {
+        PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
+        CM_CHK_NULL_RETURN_CMERROR(cmData);
+        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->cmHalInterface);
+        if (cmData->cmHalState->cmHalInterface->IsRedirectRcsToCcs())
+        {
+            queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
+        }
+    }
+
     m_criticalSectionQueue.Acquire();
     CmQueueRT *queueRT = nullptr;
     int32_t result = CmQueueRT::Create(this, queueRT, queueCreateOption);
