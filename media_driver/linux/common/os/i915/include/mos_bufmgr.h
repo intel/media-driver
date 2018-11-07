@@ -129,11 +129,6 @@ struct mos_aub_annotation {
 };
 
 #define BO_ALLOC_FOR_RENDER (1<<0)
-#ifdef ANDROID
-#define BO_ALLOC_STOLEN        (1<<1)
-#define BO_ALLOC_POPULATE   (1<<2)
-#define BO_ALLOC_FLUSH        (1<<3)
-#endif
 
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
                  unsigned long size, unsigned int alignment);

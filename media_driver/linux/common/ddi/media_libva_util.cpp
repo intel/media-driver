@@ -530,40 +530,15 @@ VAStatus DdiMediaUtil_AllocateSurface(
     if (!DdiMediaUtil_IsExternalSurface(mediaSurface))
     {
         unsigned long  ulPitch = 0;
-#if defined(I915_PARAM_CREATE_VERSION)
-        int32_t value = 0;
-        int32_t ret = -1;
-        drm_i915_getparam_t gp;
-        memset( &gp, 0, sizeof(gp) );
-        gp.value = &value;
-        gp.param = I915_PARAM_CREATE_VERSION;
-        ret = drmIoctl(mediaDrvCtx->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-        if ((0 == ret) && (tileformat != I915_TILING_NONE))
+        if ( tileformat == I915_TILING_NONE )
         {
-            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, BO_ALLOC_STOLEN);
-            if (nullptr == bo)
-            {
-                bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
-            }
-            else
-            {
-                DDI_VERBOSEMESSAGE("Stolen memory is created sucessfully on AllocateSurface");
-            }
-            pitch = ulPitch;
+            bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096);
+            pitch = gmmPitch;
         }
         else
-#endif
         {
-            if ( tileformat == I915_TILING_NONE )
-            {
-                bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096);
-                pitch = gmmPitch;
-            }
-            else
-            {
-                bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
-                pitch = ulPitch;
-            }
+            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
+            pitch = ulPitch;
         }
     }
     else if(mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)

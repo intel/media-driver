@@ -2071,44 +2071,15 @@ MOS_STATUS Mos_Specific_AllocateResource(
     iSize       = GFX_ULONG_CAST(pGmmResourceInfo->GetSizeSurface());
     iHeight     = pGmmResourceInfo->GetBaseHeight();
 
-#if defined(I915_PARAM_CREATE_VERSION)
-    drm_i915_getparam_t gp;
-    int32_t gpvalue;
-    int32_t ret;
-    gpvalue = 0;
-    ret = -1;
-    memset( &gp, 0, sizeof(gp) );
-    gp.value = &gpvalue;
-    gp.param = I915_PARAM_CREATE_VERSION;
-    ret = drmIoctl(pOsInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp );
-
-    if ((0 == ret) && ( tileformat_linux != I915_TILING_NONE))
+    // Only Linear and Y TILE supported
+    if( tileformat_linux == I915_TILING_NONE )
     {
-        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1,
-                 &tileformat_linux, &ulPitch, BO_ALLOC_STOLEN);
-        if (nullptr == bo)
-        {
-            bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0);
-        }
-        else
-        {
-            MOS_OS_VERBOSEMESSAGE("Stolen memory is created sucessfully on Mos");
-        }
+        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096);
+    }
+    else
+    {
+        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0);
         iPitch = (int32_t)ulPitch;
-    } else
-#endif
-    {
-        // Only Linear and Y TILE supported
-        if( tileformat_linux == I915_TILING_NONE )
-        {
-            bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096);
-        }
-        else
-        {
-            bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0);
-            iPitch = (int32_t)ulPitch;
-        }
-
     }
 
     pOsResource->bMapped = false;
