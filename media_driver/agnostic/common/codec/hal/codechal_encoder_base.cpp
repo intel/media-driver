@@ -2515,7 +2515,11 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     stateBaseAddrParams.dwDynamicStateSize = params->pKernelState->m_dshRegion.GetHeapSize();
     stateBaseAddrParams.presInstructionBuffer = ish;
     stateBaseAddrParams.dwInstructionBufferSize = params->pKernelState->m_ishRegion.GetHeapSize();
-    stateBaseAddrParams.mocs4InstructionCache = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
+
+    if (m_standard == CODECHAL_HEVC)
+    {
+        stateBaseAddrParams.mocs4InstructionCache = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddStateBaseAddrCmd(cmdBuffer, &stateBaseAddrParams));
 
