@@ -78,12 +78,6 @@ struct drm_i915_gem_create_android {
     __u32 handle;
     __u32 pad;
     __u32 flags;
-#define I915_CREATE_PLACEMENT_NORMAL    0 /* standard swappable bo  */
-#define I915_CREATE_PLACEMENT_STOLEN    1 /* Cannot use CPU mmaps */
-#define I915_CREATE_PLACEMENT_MASK      0xff
-#define I915_CREATE_POPULATE            (1<<8) /* Pre-populate object pages */
-#define I915_CREATE_FLUSH               (1<<9) /* Clflush prepopulated pages */
-#define __I915_CREATE_UNKNOWN_FLAGS     -(I915_CREATE_FLUSH << 1)
 };
 
 #define I915_EXEC_REQUEST_FENCE                (1<<25)
