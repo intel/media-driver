@@ -213,16 +213,6 @@ mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name)
     return -ENODEV;
 }
 
-#ifdef ANDROID
-int mos_bo_prime(struct mos_linux_bo *bo, uint32_t * name)
-{
-    if (bo->bufmgr->bo_prime)
-        return bo->bufmgr->bo_prime(bo, name);
-
-    return -ENODEV;
-}
-#endif
-
 #ifndef ANDROID
 int
 mos_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
