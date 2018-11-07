@@ -83,9 +83,7 @@
 #endif
 
 #define memclear(s) memset(&s, 0, sizeof(s))
-#ifdef ANDROID
-#define WANT_USERLAND_FENCES           1
-#endif
+
 #define MOS_DBG(...) do {                    \
     if (bufmgr_gem->bufmgr.debug)            \
         fprintf(stderr, __VA_ARGS__);        \
@@ -3191,16 +3189,9 @@ aub_exec(struct mos_linux_bo *bo, int ring_flag, int used)
 }
 #endif
 
-#ifdef ANDROID
-static int
-mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
-              drm_clip_rect_t * cliprects, int num_cliprects, int DR4,
-            int fence_in, int *fence_out)
-#else
 drm_export int
 mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
               drm_clip_rect_t * cliprects, int num_cliprects, int DR4)
-#endif
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
 #ifdef ANDROID
@@ -3273,77 +3264,14 @@ mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
     return ret;
 }
 
-#ifdef ANDROID
-static int
-do_fence_wait(int fd, uint64_t flags)
-{
-    /* Temporary solution waits in userland */
-    int rc = -ENOENT;
-    struct sync_fence_info_data *info;
-    unsigned int same_ring = 0;
-    struct sync_pt_info *pt_info = nullptr;
-    struct drm_i915_gem_syncpt_driver_data *data;
-    static const char driver_name[] = "i915_syn";
-    static const uint64_t *driver_name_check = (uint64_t *)driver_name;
-    uint64_t *driver_name_pt;
-
-    if (fd < 0)
-        return rc;
-
-    /* Optimisation: Avoiding waiting on fences on same ring. */
-    flags &= I915_EXEC_RING_MASK;
-    info = sync_fence_info(fd);
-    if (info) {
-        same_ring = 1;
-        while ((pt_info = sync_pt_info(info, pt_info))) {
-            data = (struct drm_i915_gem_syncpt_driver_data *)
-                    &pt_info->driver_data;
-            driver_name_pt = (uint64_t *)&pt_info->driver_name[0];
-            if (*driver_name_pt != *driver_name_check
-                 || flags != (data->flags & I915_EXEC_RING_MASK)) {
-                same_ring = 0;
-                break;
-            }
-        }
-        sync_fence_info_free(info);
-    }
-
-    /* KMD doesn't currently support this so
-     * wait on the fence here instead. This
-     * is a blocking wait so it is not friendly
-     * to the caller...
-     */
-    if (same_ring) {
-        rc = 0;
-    } else {
-        sync_wait(fd, -1);
-
-        info = sync_fence_info(fd);
-        if (!info) {
-            /* EIO if an arbitrary choice for the error code.
-             * The called function either fails due to ENOMEM
-             * or error return from an ioctl.
-             */
-            rc = -EIO;
-        } else {
-            if (info->status != 1) {
-                rc = -ETIMEDOUT;
-            } else
-                rc = 0;
-
-            sync_fence_info_free(info);
-        }
-    }
-
-    return rc;
-}
-#endif
-
-#ifndef ANDROID
 drm_export int
 do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags)
+     unsigned int flags
+#ifdef ANDROID
+     , unsigned int tag
+#endif
+     )
 {
 
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bo->bufmgr;
@@ -3351,8 +3279,10 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     int ret = 0;
     int i;
 
+#ifndef ANDROID
     if (to_bo_gem(bo)->has_error)
         return -ENOMEM;
+#endif
 
     switch (flags & 0x7) {
     default:
@@ -3399,6 +3329,11 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
         i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
     execbuf.rsvd2 = 0;
 
+#ifdef ANDROID
+    i915_execbuffer2_set_tag(execbuf, tag);
+    aub_exec(bo, flags, used);
+#endif
+
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
@@ -3428,7 +3363,12 @@ skip_execution:
         mos_gem_dump_validation_list(bufmgr_gem);
 
     for (i = 0; i < bufmgr_gem->exec_count; i++) {
+#ifndef ANDROID
         struct mos_bo_gem *bo_gem = to_bo_gem(bufmgr_gem->exec_bos[i]);
+#else
+        struct mos_linux_bo *bo = bufmgr_gem->exec_bos[i];
+        struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
+#endif
 
         bo_gem->idle = false;
 
@@ -3459,162 +3399,13 @@ mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
             flags);
 }
-#else
-static int
-do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-     drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags, int fence_in, int *fence_out, unsigned int tag)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bo->bufmgr;
-    struct drm_i915_gem_execbuffer2 execbuf;
-    int ret = 0;
-    int i;
-
-    switch (flags & 0x7) {
-    default:
-        return -EINVAL;
-    case I915_EXEC_BLT:
-        if (!bufmgr_gem->has_blt)
-            return -EINVAL;
-        break;
-    case I915_EXEC_BSD:
-        if (!bufmgr_gem->has_bsd)
-            return -EINVAL;
-        break;
-    case I915_EXEC_VEBOX:
-        if (!bufmgr_gem->has_vebox)
-            return -EINVAL;
-        break;
-    case I915_EXEC_RENDER:
-    case I915_EXEC_DEFAULT:
-        break;
-    }
-
-#if WANT_USERLAND_FENCES
-    if (fence_in >= 0) {
-        /* Temporary measure: KMD cannot support fence_in so block on
-        * it here instead */
-        do_fence_wait(fence_in, flags);
-    }
-#endif
-
-    pthread_mutex_lock(&bufmgr_gem->lock);
-    /* Update indices and set up the validate list. */
-    mos_gem_bo_process_reloc2(bo);
-
-    /* Add the batch buffer to the validation list.  There are no relocations
-     * pointing to it.
-     */
-    mos_add_validate_buffer2(bo, 0);
-
-    memclear(execbuf);
-    execbuf.buffers_ptr = (uintptr_t)bufmgr_gem->exec2_objects;
-    execbuf.buffer_count = bufmgr_gem->exec_count;
-    execbuf.batch_start_offset = 0;
-    execbuf.batch_len = used;
-    execbuf.cliprects_ptr = (uintptr_t)cliprects;
-    execbuf.num_cliprects = num_cliprects;
-    execbuf.DR1 = 0;
-    execbuf.DR4 = DR4;
-    execbuf.flags = flags;
-
-    if (fence_in >= 0) {
-#if WANT_USERLAND_FENCES
-        execbuf.rsvd2 = 0;
-#else
-        execbuf.flags |= I915_EXEC_WAIT_FENCE;
-        execbuf.rsvd2 = fence_in;
-#endif
-    } else
-        execbuf.rsvd2 = 0;
-
-    if (fence_out != nullptr) {
-        execbuf.flags |= I915_EXEC_REQUEST_FENCE;
-    }
-
-    if (ctx == nullptr)
-        i915_execbuffer2_set_context_id(execbuf, 0);
-    else
-        i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
-
-    i915_execbuffer2_set_tag(execbuf, tag);
-
-    aub_exec(bo, flags, used);
-
-    if (bufmgr_gem->no_exec)
-        goto skip_execution;
-
-    ret = drmIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_EXECBUFFER2,
-               &execbuf);
-    if (ret != 0) {
-        ret = -errno;
-        if (ret == -ENOSPC) {
-            MOS_DBG("Execbuffer fails to pin. "
-                "Estimate: %u. Actual: %u. Available: %u\n",
-                mos_gem_estimate_batch_space(bufmgr_gem->exec_bos,
-                                   bufmgr_gem->exec_count),
-                mos_gem_compute_batch_space(bufmgr_gem->exec_bos,
-                                  bufmgr_gem->exec_count),
-                (unsigned int) bufmgr_gem->gtt_size);
-        }
-    }
-
-    if (fence_in >= 0) {
-        /* Ownership is transferred so close it */
-        close(fence_in);
-    }
-
-    if (fence_out != nullptr)
-        *fence_out = (int)execbuf.rsvd2;
-
-    mos_update_buffer_offsets2(bufmgr_gem, ctx, bo);
-
-skip_execution:
-    if (bufmgr_gem->bufmgr.debug)
-        mos_gem_dump_validation_list(bufmgr_gem);
-
-    for (i = 0; i < bufmgr_gem->exec_count; i++) {
-        struct mos_linux_bo *bo = bufmgr_gem->exec_bos[i];
-        struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
-
-        bo_gem->idle = false;
-
-        /* Disconnect the buffer from the validate list */
-        bo_gem->validate_index = -1;
-        bufmgr_gem->exec_bos[i] = nullptr;
-    }
-    bufmgr_gem->exec_count = 0;
-    pthread_mutex_unlock(&bufmgr_gem->lock);
-
-    return ret;
-}
-
-static int
-mos_gem_bo_exec2(struct mos_linux_bo *bo, int used,
-               drm_clip_rect_t *cliprects, int num_cliprects,
-               int DR4, int fence_in, int *fence_out)
-{
-    return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            I915_EXEC_RENDER, fence_in, fence_out, 0);
-}
-
-static int
-mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
-            drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-            unsigned int flags, int fence_in, int *fence_out)
-{
-    return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            flags, fence_in, fence_out, 0);
-}
-#endif
 
 int
 mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
                   int used, unsigned int flags)
 {
 #ifdef ANDROID
-    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags, -1, nullptr, 0);
+    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags, 0);
 #else
     return do_exec2(bo, used, ctx, nullptr, 0, 0, flags);
 #endif
@@ -3627,28 +3418,7 @@ mos_gem_bo_tag_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context 
             int DR4, unsigned int flags, unsigned int tag)
 {
     return do_exec2(bo, used, ctx, cliprects, num_cliprects, DR4,
-            flags, -1, nullptr, tag);
-}
-
-int
-mos_gem_bo_tag_fence_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-            struct drm_clip_rect *cliprects, int num_cliprects,
-            int DR4, unsigned int flags, int fence_in,
-            int *fence_out, unsigned int tag)
-{
-    return do_exec2(bo, used, ctx, cliprects, num_cliprects, DR4,
-            flags, fence_in, fence_out, tag);
-}
-
-int
-mos_gem_bo_context_fence_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
-            int used, unsigned int flags,
-            int fence_in, int *fence_out)
-{
-    if (fence_out)
-        *fence_out = -1;
-
-    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags, fence_in, fence_out, 0);
+            flags, tag);
 }
 #else
 int
