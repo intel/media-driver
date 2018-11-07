@@ -21,7 +21,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(libdrm_mock)
 
-include_directories(./include ../inc)
+include_directories(../../common/os/libdrm/include ../inc)
 aux_source_directory(. SOURCES)
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE "CXX")
 add_library(drm_mock SHARED ${SOURCES})

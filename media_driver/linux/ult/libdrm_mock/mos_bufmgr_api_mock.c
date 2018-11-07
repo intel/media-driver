@@ -34,13 +34,13 @@
 #include <stdint.h>
 #include <assert.h>
 #include <errno.h>
-#include "drm_mock.h"
-#include "i915_drm_mock.h"
+#include "drm.h"
+#include "i915_header.h"
 #include <pciaccess.h>
-#include "libdrm_macros_mock.h"
-#include "mos_bufmgr_mock.h"
-#include "mos_bufmgr_priv_mock.h"
-#include "xf86drm_mock.h"
+#include "libdrm_macros.h"
+#include "mos_bufmgr.h"
+#include "mos_bufmgr_priv.h"
+#include "xf86drm.h"
 
 /** @file mos_bufmgr_api_mock.c
  *
