@@ -285,15 +285,6 @@ struct mos_bufmgr {
      */
     int (*bo_flink) (struct mos_linux_bo *bo, uint32_t * name);
 
-#ifdef ANDROID
-    /**
-     * Create a dma-buf prime fd for a buffer which can be used by other apps
-     *
-     * \param buf Buffer to create a prime fd for
-     * \param prime_fd Returned prime fd
-     */
-    int (*bo_prime) (struct mos_linux_bo *bo, uint32_t * prime_fd);
-#endif
     /**
      * Returns 1 if mapping the buffer for write could cause the process
      * to block, due to the object being active in the GPU.
