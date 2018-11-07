@@ -167,14 +167,6 @@ void mos_bufmgr_set_debug(struct mos_bufmgr *bufmgr, int enable_debug);
 void mos_bufmgr_destroy(struct mos_bufmgr *bufmgr);
 int mos_bo_exec(struct mos_linux_bo *bo, int used,
               struct drm_clip_rect *cliprects, int num_cliprects, int DR4);
-#ifdef ANDROID
-int mos_bo_fence_exec(struct mos_linux_bo *bo, int used,
-              struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-            int fence_in,  int *fence_out);
-int mos_bo_mrb_fence_exec(struct mos_linux_bo *bo, int used,
-            struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-            unsigned int flags, int fence_in, int *fence_out);
-#endif
 int mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
             struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
             unsigned int flags);
@@ -266,13 +258,6 @@ mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_con
 int mos_gem_bo_tag_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                         struct drm_clip_rect *cliprects, int num_cliprects,
                         int DR4, unsigned int flags, unsigned int tag);
-int mos_gem_bo_tag_fence_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-                        struct drm_clip_rect *cliprects, int num_cliprects,
-                        int DR4, unsigned int flags, int fence_in,
-                        int *fence_out, unsigned int tag);
-int mos_gem_bo_context_fence_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
-                        int used, unsigned int flags,
-                        int fence_in, int *fence_out);
 #endif
 int mos_bo_gem_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
 struct mos_linux_bo *mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr,
