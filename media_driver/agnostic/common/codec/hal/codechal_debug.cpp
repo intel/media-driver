@@ -583,6 +583,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case  Format_P208: //422 8bit
         break;
     case Format_422V:
+    case Format_IMC3:
         height = height / 2;
         break;
     default:
@@ -593,13 +594,15 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
 uint8_t *vPlaneData = surfBaseAddr;
 #ifdef LINUX
     data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
-    if (surface->Format == Format_422V)
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
     {
         vPlaneData = surfBaseAddr + surface->VPlaneOffset.iSurfaceOffset;
     }
 #else
     data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
-    if (surface->Format == Format_422V)
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
     {
         vPlaneData = surfBaseAddr + surface->VPlaneOffset.iLockSurfaceOffset;
     }
@@ -614,7 +617,8 @@ uint8_t *vPlaneData = surfBaseAddr;
     }
 
     // write v planar data to file
-    if (surface->Format == Format_422V)
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
     {
         for (uint32_t h = 0; h < height; h++)
         {
