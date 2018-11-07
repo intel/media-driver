@@ -7954,9 +7954,10 @@ MOS_STATUS HalCm_Allocate(
     {
         CM_ASSERTMESSAGE("Could not allocate enough memory for state->advExecutor\n");
         eStatus = MOS_STATUS_NO_SPACE;
+        goto finish;
     }
     state->advExecutor->Initialize(state);
-    
+
     eStatus = MOS_STATUS_SUCCESS;
 
 finish:
