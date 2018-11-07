@@ -1316,65 +1316,6 @@ check_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
                       tiling_mode, stride, size, flags);
 }
 
-#ifdef ANDROID
-/**
- * Returns a drm_intel_bo wrapping the given buffer prime fd name
- *
- * This can be used when one application needs to pass a buffer
- * object to another thru dma-buf sharing.
- */
-struct mos_linux_bo *
-mos_bo_gem_create_from_prime_fd(struct mos_bufmgr *bufmgr,
-                                   const char *name,
-                                   unsigned int prime_fd)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
-    struct mos_bo_gem *bo_gem;
-    int ret;
-    struct drm_prime_handle prime;
-    struct drm_i915_gem_get_tiling get_tiling;
-    bo_gem = (struct mos_bo_gem *)calloc(1, sizeof(*bo_gem));
-    if (!bo_gem)
-        return nullptr;
-    memclear(prime);
-    prime.fd = prime_fd;
-    ret = ioctl(bufmgr_gem->fd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime);
-    if (ret || !prime.handle){
-        MOS_DBG("Couldn't reference %s handle 0x%08x: %s\n",
-            name, prime_fd, strerror(errno));
-            free(bo_gem);
-            return nullptr;
-    }
-    bo_gem->bo.offset = 0;
-#ifdef __cplusplus
-    bo_gem->bo.virt = nullptr;
-#else
-    bo_gem->bo.virtual = nullptr;
-#endif
-    bo_gem->bo.bufmgr = bufmgr;
-    bo_gem->name = name;
-    atomic_set(&bo_gem->refcount, 1);
-    bo_gem->validate_index = -1;
-    bo_gem->gem_handle = prime.handle;
-    bo_gem->bo.handle = prime.handle;
-    bo_gem->global_name = prime_fd;
-    bo_gem->reusable = false;
-    memclear(get_tiling);
-    get_tiling.handle = bo_gem->gem_handle;
-    ret = drmIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_GET_TILING,
-               &get_tiling);
-    if (ret != 0) {
-        mos_gem_bo_unreference(&bo_gem->bo);
-        return nullptr;
-    }
-    bo_gem->tiling_mode = get_tiling.tiling_mode;
-    bo_gem->swizzle_mode = get_tiling.swizzle_mode;
-    MOS_DBG("bo_create_from_handle: %d (%s)\n", prime_fd, bo_gem->name);
-    return &bo_gem->bo;
-}
-#endif
-
 /**
  * Returns a drm_intel_bo wrapping the given buffer object handle.
  *
@@ -3707,32 +3648,6 @@ mos_gem_bo_flink(struct mos_linux_bo *bo, uint32_t * name)
     return 0;
 }
 
-#ifdef ANDROID
-static int
-mos_gem_bo_prime(struct mos_linux_bo *bo, uint32_t * prime_fd)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
-    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    int ret;
-
-    if (!bo_gem->global_name) {
-        struct drm_prime_handle prime;
-        memclear(prime);
-        prime.handle = bo_gem->gem_handle;
-
-        ret = ioctl(bufmgr_gem->fd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime);
-        if (ret != 0)
-            return -errno;
-        bo_gem->global_name = prime.fd;
-        bo_gem->reusable = false;
-
-    }
-
-    *prime_fd = bo_gem->global_name;
-    return 0;
-}
-#endif
-
 /**
  * Enables unlimited caching of buffer objects for reuse.
  *
@@ -4641,9 +4556,6 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     bufmgr_gem->bufmgr.bo_set_tiling = mos_gem_bo_set_tiling;
 
     bufmgr_gem->bufmgr.bo_flink = mos_gem_bo_flink;
-#ifdef ANDROID
-    bufmgr_gem->bufmgr.bo_prime = mos_gem_bo_prime;
-#endif
     /* Use the new one if available */
     if (exec2) {
         bufmgr_gem->bufmgr.bo_exec = mos_gem_bo_exec2;

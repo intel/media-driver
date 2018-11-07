@@ -191,9 +191,6 @@ int mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
                 uint32_t * swizzle_mode);
 
 int mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name);
-#ifdef ANDROID
-int mos_bo_prime(struct mos_linux_bo *bo, uint32_t * name);
-#endif
 int mos_bo_busy(struct mos_linux_bo *bo);
 int mos_bo_madvise(struct mos_linux_bo *bo, int madv);
 int mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable);
@@ -206,11 +203,6 @@ int mos_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size);
 
 /* drm_intel_bufmgr_gem.c */
 struct mos_bufmgr *mos_bufmgr_gem_init(int fd, int batch_size);
-#ifdef ANDROID
-struct mos_linux_bo *mos_bo_gem_create_from_prime_fd(struct mos_bufmgr *bufmgr,
-                                   const char *name,
-                                   unsigned int prime_fd);
-#endif
 struct mos_linux_bo *mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned int handle);
