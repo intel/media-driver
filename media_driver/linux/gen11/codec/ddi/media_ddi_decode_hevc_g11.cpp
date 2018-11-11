@@ -734,7 +734,9 @@ VAStatus DdiDecodeHEVCG11::CodecHalInit(
     m_codechalSettings->intelEntrypointInUse = false;
 
     m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
-    if (m_ddiDecodeAttr->profile == VAProfileHEVCMain10)
+    if (m_ddiDecodeAttr->profile == VAProfileHEVCMain10 ||
+        m_ddiDecodeAttr->profile == VAProfileHEVCMain422_10 ||
+        m_ddiDecodeAttr->profile == VAProfileHEVCMain444_10)
     {
         m_codechalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
     }
