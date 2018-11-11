@@ -209,7 +209,7 @@ protected:
     void SetOutputSurfaceLayout(
         CodecDecodeJpegImageLayout *outputSurfLayout);
 
-private:
+protected:
     //!
     //! \brief  Indicates whether or not the SFC is inuse
     //!         JPEG may not use SFC even when FtrSFCPipe == True, but it can't be known when creating device.
