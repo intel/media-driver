@@ -170,27 +170,6 @@ bool DdiCpInterface::IsHdcp2Enabled()
     return false;
 }
 
-void DdiCpInterface::ResetCpContext()
-{
-    DdiStubMessage();
-}
-
-VAStatus DdiCpInterface::RenderPictureForVp(
-    VADriverContextP      vaDrvCtx,
-    VAContextID           vpCtxID,
-    DDI_MEDIA_BUFFER      *buf,
-    void                  *data)
-{
-    DdiStubMessage();
-    return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
-}
-
-bool DdiCpInterface::CheckSupportedBufferForVp(VABufferType type)
-{
-    DdiStubMessage();
-    return false;
-}
-
 VAStatus DdiCpInterface::CreateCencDecode(
     CodechalDebugInterface      *debugInterface,
     PMOS_CONTEXT                osContext,

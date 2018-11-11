@@ -2414,13 +2414,9 @@ VAStatus DdiVp_CreateBuffer(
 
     PDDI_VP_CONTEXT  pVpCtx = (PDDI_VP_CONTEXT)pCtx;
 
-    DDI_CHK_NULL(pVpCtx->pCpDdiInterface, "Null pVpCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
-
     // only for VAProcFilterParameterBufferType and VAProcPipelineParameterBufferType
     if (vaBufType != VAProcFilterParameterBufferType
-        && vaBufType != VAProcPipelineParameterBufferType
-        && (pVpCtx->pCpDdiInterface->CheckSupportedBufferForVp(vaBufType) != true)
-        )
+        && vaBufType != VAProcPipelineParameterBufferType)
     {
         VP_DDI_ASSERTMESSAGE("Unsupported Va Buffer Type.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -2818,9 +2814,6 @@ VAStatus DdiVp_BeginPicture(
     pVpHalTgtSurf->rcDst.bottom  = pMediaTgtSurf->iRealHeight;
     pVpHalTgtSurf->ExtendedGamut = false;
 
-    DDI_CHK_NULL(pVpCtx->pCpDdiInterface, "Null pVpCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    pVpCtx->pCpDdiInterface->ResetCpContext();
-
     // Set os resource for VPHal render
     vaStatus = VpSetOsResource(pVpCtx, pMediaTgtSurf, pVpHalRenderParams->uDstCount);
     DDI_CHK_RET(vaStatus, "Call VpSetOsResource failed");
@@ -2921,9 +2914,6 @@ VAStatus DdiVp_BeginPictureInt(
     pVpHalTgtSurf->rcDst.right   = pMediaTgtSurf->iWidth;
     pVpHalTgtSurf->rcDst.bottom  = pMediaTgtSurf->iRealHeight;
     pVpHalTgtSurf->ExtendedGamut = false;
-
-    DDI_CHK_NULL(pVpCtx->pCpDdiInterface, "Null pVpCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    pVpCtx->pCpDdiInterface->ResetCpContext();
 
     // Set os resource for VPHal render
     vaStatus = VpSetOsResource(pVpCtx, pMediaTgtSurf, pVpHalRenderParams->uDstCount);
@@ -3064,16 +3054,16 @@ VAStatus DdiVp_RenderPicture (
             case VAProcFilterParameterBufferType:
                 // User is not supposed to pass this buffer type:Refer va_vpp.h
                 VP_DDI_ASSERTMESSAGE("Invalid buffer type.");
-                return VA_STATUS_ERROR_INVALID_BUFFER;
+                vaStatus = VA_STATUS_ERROR_INVALID_BUFFER;
+                break;
 
             default:
-                vaStatus = pVpCtx->pCpDdiInterface->RenderPictureForVp(pVaDrvCtx, vpCtxID, pBuf, pData);
                 DDI_CHK_RET(vaStatus,"Unsupported buffer type!");
                 break;
         }
         DdiMedia_UnmapBuffer(pVaDrvCtx, buffers[i]);
     }
-    return VA_STATUS_SUCCESS;
+    return vaStatus;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
