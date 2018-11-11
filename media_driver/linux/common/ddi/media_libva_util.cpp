@@ -45,6 +45,9 @@
 #include "media_libva_encoder.h"
 #include "media_libva_caps.h"
 
+// default protected surface tag
+#define PROTECTED_SURFACE_TAG   0x3000f
+
 #ifdef DEBUG
 static int32_t         frameCountFps   = -1;
 static struct timeval  tv1;
@@ -303,6 +306,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t tileformat   = I915_TILING_NONE;
     VAStatus hRes         = VA_STATUS_SUCCESS;
     int32_t alignedHeight = height;
+    uint32_t tag          = 0;
 
     switch (format)
     {
@@ -375,6 +379,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     if( DdiMediaUtil_IsExternalSurface(mediaSurface) )
     {
+        if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
+        {
+            tag = PROTECTED_SURFACE_TAG;
+        }
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
          if( (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
              || (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
@@ -466,6 +474,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     gmmParams.Type                  = RESOURCE_2D;
     //gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
     gmmParams.Format                = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
+    gmmParams.CpTag                 = tag;
 
     DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID,
                          "Unsupported format",

@@ -2151,6 +2151,7 @@ DdiMedia_CreateSurfaces2(
                      // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
                      if( (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )
                          || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+                         || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
                          )
                       {
                           memTypeFlag       = externalBufDesc->flags;
