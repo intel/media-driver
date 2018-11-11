@@ -6079,7 +6079,15 @@ bool RenderHal_Is2PlaneNV12Needed(
     }
     else
     {
-        return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+        // For AVS sampler, no limitation for 4 alignment.
+        if (RENDERHAL_SCALING_AVS == pRenderHalSurface->ScalingMode)
+        {
+            return (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+        }
+        else
+        {
+            return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+        }
     }
 }
 
