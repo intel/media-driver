@@ -425,11 +425,11 @@ DdiVp_DestroyRenderParams(PDDI_VP_CONTEXT pVpCtx)
         {
             MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pSplitScreenDemoModeParams);
             MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pCompAlpha);
-            MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams);
             if (nullptr != pVpCtx->pVpHalRenderParams->pColorFillParams)
             {
                 MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pColorFillParams);
             }
+            MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams);
         }
     }
 
