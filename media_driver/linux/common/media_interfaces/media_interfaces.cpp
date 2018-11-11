@@ -142,34 +142,6 @@ VphalState* VphalDevice::CreateFactory(
     vphalState = vphalDevice->m_vphalState;
     MOS_Delete(vphalDevice);
 
-    if (MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrVERing) ||
-        MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrSFCPipe))
-    {
-        MhwInterfaces *mhwInterfaces = nullptr;
-        MhwInterfaces::CreateParams params;
-        MOS_ZeroMemory(&params, sizeof(params));
-        params.Flags.m_sfc   = MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrSFCPipe);
-        params.Flags.m_vebox = MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrVERing);
-
-        mhwInterfaces = MhwInterfaces::CreateFactory(params, osInterface);
-        if (mhwInterfaces)
-        {
-            vphalState->SetMhwVeboxInterface(mhwInterfaces->m_veboxInterface);
-            vphalState->SetMhwSfcInterface(mhwInterfaces->m_sfcInterface);
-
-            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
-            MOS_Delete(mhwInterfaces->m_miInterface);
-            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
-            mhwInterfaces->m_cpInterface = nullptr;
-            MOS_Delete(mhwInterfaces);
-        }
-        else
-        {
-            VPHAL_DEBUG_ASSERTMESSAGE("Allocate MhwInterfaces failed");
-            *eStatus = MOS_STATUS_NO_SPACE;
-        }
-    }
-
     return vphalState;
 }
 
