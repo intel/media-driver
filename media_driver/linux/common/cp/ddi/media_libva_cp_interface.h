@@ -171,36 +171,6 @@ public:
     //! \return
     virtual void SetInputResourceEncryption(PMOS_INTERFACE osInterface, PMOS_RESOURCE resource);
 
-    //! \brief    reset cp context for vp
-    //! \detail   reset cp context for ench flame.
-    //! \param    none
-    //! \return   none
-    virtual void ResetCpContext();
-
-    //! \brief    render picture process
-    //! \param    [in] vaDrvCtx
-    //!           
-    //! \param    [in] contextId
-    //!           input va context id to get decode ctx
-    //! \param    [in] buf
-    //!           input media buffer
-    //! \param    [in] data
-    //!           input data contain parameters
-    //! \return   VA_STATUS
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
-    virtual VAStatus RenderPictureForVp(
-        VADriverContextP      vaDrvCtx,
-        VAContextID           vpCtxID,
-        DDI_MEDIA_BUFFER      *buf,
-        void                  *data);
-
-    //! \brief    check input buffer type is supported or not for codec
-    //! \param    [in] type
-    //!           buffer typer
-    //! \return   bool
-    //!           return true if supported, otherwise false
-    virtual bool CheckSupportedBufferForVp(VABufferType type);
-
     virtual VAStatus CreateCencDecode(
         CodechalDebugInterface      *debugInterface,
         PMOS_CONTEXT                osContext,

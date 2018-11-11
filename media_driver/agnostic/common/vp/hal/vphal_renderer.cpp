@@ -285,20 +285,22 @@ MOS_STATUS VphalRenderer::PrepareSources(
     uint32_t        uiLeftCount;
     uint32_t        uiRightCount;
     uint32_t        uiSources;
+    uint32_t        uiTargets;
     uint32_t        uiIndex;
-    PMOS_RESOURCE   ppOsResource[VPHAL_MAX_SOURCES] = { nullptr };
-
+    PMOS_RESOURCE   ppSource[VPHAL_MAX_SOURCES] = { nullptr };
+    PMOS_RESOURCE   ppTarget[VPHAL_MAX_TARGETS] = { nullptr };
     eStatus         = MOS_STATUS_SUCCESS;
     uiLeftCount     = 0;
     uiRightCount    = 0;
     uiIndex         = 0;
     uiSources       = 0;
+    uiTargets       = 0;
 
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
 
     for (uiSources=0, uiIndex=0;
-         (uiSources < pRenderParams->uSrcCount) && (uiIndex < VPHAL_MAX_SOURCES);
-         uiIndex++)
+        (uiIndex < pRenderParams->uSrcCount) && (uiIndex < VPHAL_MAX_SOURCES);
+        uiIndex++)
     {
         pcSrc = pRenderParams->pSrc[uiIndex];
 
@@ -307,11 +309,25 @@ MOS_STATUS VphalRenderer::PrepareSources(
             continue;
         }
 
-        ppOsResource[uiSources] = &pcSrc->OsResource;
+        ppSource[uiSources] = &pcSrc->OsResource;
 
         pSrcLeft[uiLeftCount++] = pcSrc;
 
         uiSources++;
+    }
+
+    //gather render target list
+    for (uiTargets = 0, uiIndex = 0;
+        (uiIndex < pRenderParams->uDstCount) && (uiIndex < VPHAL_MAX_TARGETS);
+        uiIndex++)
+    {
+        pcSrc = pRenderParams->pTarget[uiIndex];
+
+        if (pcSrc)
+        {
+            ppTarget[uiTargets] = &pcSrc->OsResource;
+            uiTargets++;
+        }
     }
 
     VPHAL_RENDER_ASSERT(uiRightCount == 0);
@@ -321,6 +337,13 @@ MOS_STATUS VphalRenderer::PrepareSources(
 
 finish:
     VPHAL_RENDER_ASSERT(eStatus == MOS_STATUS_SUCCESS);
+
+    if ((nullptr != m_pOsInterface) && (nullptr != m_pOsInterface->osCpInterface))
+    {
+        eStatus = m_pOsInterface->osCpInterface->PrepareResources(
+                    (void **)ppSource, uiSources,
+                    (void **)ppTarget, uiTargets);
+    }
     return eStatus;
 }
 
