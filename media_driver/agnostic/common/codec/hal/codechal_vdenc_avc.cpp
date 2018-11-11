@@ -3612,6 +3612,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     surfaceParams.dwActualHeight = surfaceParams.psSurface->dwHeight;
     surfaceParams.dwActualWidth = surfaceParams.psSurface->dwWidth;
     surfaceParams.bDisplayFormatSwizzle = m_avcPicParam->bDisplayFormatSwizzle;
+    surfaceParams.bColorSpaceSelection = (m_avcSeqParam->InputColorSpace == ECOLORSPACE_P709) ? 1 : 0;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
     pipeBufAddrParams.pRawSurfParam = &surfaceParams;
