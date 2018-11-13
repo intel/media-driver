@@ -543,6 +543,8 @@ struct CM_HAL_TASK_PARAM
 
     // [in] each kernel's indirect sampler heap offset from the DSH sampler heap base
     unsigned int samplerIndirectOffsetsByKernel[CM_MAX_KERNELS_PER_TASK];
+
+    CM_QUEUE_CREATE_OPTION queueOption;         // [in] multiple contexts queue option
 };
 typedef CM_HAL_TASK_PARAM *PCM_HAL_TASK_PARAM;
 
