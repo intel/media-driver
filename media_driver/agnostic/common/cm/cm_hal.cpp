@@ -1499,6 +1499,8 @@ MOS_STATUS HalCm_ParseTask(
         }
     }
 
+    taskParam->queueOption = execParam->queueOption;
+
 finish:
     return eStatus;
 }
@@ -1575,6 +1577,8 @@ MOS_STATUS HalCm_ParseGroupTask(
 
     //Make sure surfacePerBT do not exceed CM_MAX_STATIC_SURFACE_STATES_PER_BT
     taskParam->surfacePerBT = MOS_MIN(CM_MAX_STATIC_SURFACE_STATES_PER_BT, taskParam->surfacePerBT);
+
+    taskParam->queueOption = execGroupParam->queueOption;
 
     return eStatus;
 }
@@ -1684,6 +1688,8 @@ MOS_STATUS HalCm_ParseHintsTask(
             }
         }
     }
+
+    taskParam->queueOption = execHintsParam->queueOption;
 
 finish:
     return eStatus;
