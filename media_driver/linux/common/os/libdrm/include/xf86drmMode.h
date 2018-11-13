@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-#include <drm.h>
+#include <drm_header.h>
 
 /*
  * This is the interface for modesetting for drm.

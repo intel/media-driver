@@ -35,8 +35,10 @@
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
-
-#include "i915_header.h"
+#ifndef __user
+#define __user
+#endif
+#include "i915_drm.h"
 #if defined(MEDIA_EXT)
 #include "i915_drm_ext.h"
 #endif

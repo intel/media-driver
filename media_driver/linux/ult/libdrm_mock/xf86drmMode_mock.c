@@ -43,7 +43,7 @@
 
 #include "xf86drmMode.h"
 #include "xf86drm.h"
-#include "drm.h"
+#include "drm_header.h"
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>

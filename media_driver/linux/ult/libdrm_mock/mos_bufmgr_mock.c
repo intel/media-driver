@@ -63,7 +63,7 @@
 #include "intel_chipset.h"
 #include "string.h"
 
-#include "i915_header.h"
+#include "i915_drm.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>

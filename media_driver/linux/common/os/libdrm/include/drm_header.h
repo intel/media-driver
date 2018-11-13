@@ -20,13 +20,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     i915_header.h
-//! \brief    wrapper for i915_drm.h.
+//! \file     drm_header.h
+//! \brief    wrapper for drm.h.
 //!
-#ifndef _I915_HEADER_H_
-#define _I915_HEADER_H_
+#ifndef _DRM_HEADER_H_
+#define _DRM_HEADER_H_
 #ifndef __user
 #define __user
 #endif
-#include "i915_drm.h"
-#endif// _I915_HEADER_H_
+#include "drm.h"
+#endif// _DRM_HEADER_H_

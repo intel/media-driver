@@ -37,7 +37,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <stdint.h>
-#include "drm.h"
+#include "drm_header.h"
 #include "libdrm_macros.h"
 #if defined(__cplusplus)
 extern "C" {
