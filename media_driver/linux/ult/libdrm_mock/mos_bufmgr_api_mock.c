@@ -34,8 +34,8 @@
 #include <stdint.h>
 #include <assert.h>
 #include <errno.h>
-#include "drm.h"
-#include "i915_header.h"
+#include "drm_header.h"
+#include "i915_drm.h"
 #include <pciaccess.h>
 #include "libdrm_macros.h"
 #include "mos_bufmgr.h"

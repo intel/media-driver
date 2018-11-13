@@ -412,14 +412,6 @@ typedef struct drm_i915_irq_wait {
 	int irq_seq;
 } drm_i915_irq_wait_t;
 
-/*
- * Different modes of per-process Graphics Translation Table,
- * see I915_PARAM_HAS_ALIASING_PPGTT
- */
-#define I915_GEM_PPGTT_NONE	0
-#define I915_GEM_PPGTT_ALIASING	1
-#define I915_GEM_PPGTT_FULL	2
-
 /* Ioctl to query kernel params:
  */
 #define I915_PARAM_IRQ_ACTIVE            1
@@ -1539,13 +1531,6 @@ enum drm_i915_perf_property_id {
 	 *   80ns * 2^(period_exponent + 1)
 	 */
 	DRM_I915_PERF_PROP_OA_EXPONENT,
-
-	/**
-	 * Specify a global OA buffer size to be allocated in bytes. The size
-	 * specified must be supported by HW (currently supported sizes are
-	 * powers of 2 ranging from 128Kb to 16Mb).
-	 */
-	DRM_I915_PERF_PROP_OA_BUFFER_SIZE,
 
 	DRM_I915_PERF_PROP_MAX /* non-ABI */
 };

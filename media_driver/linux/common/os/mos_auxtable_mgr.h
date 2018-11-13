@@ -28,8 +28,8 @@
 #define MOS_AUXTABLE_MGR_H
 
 #include "xf86drm.h"
-#include "drm.h"
-#include "i915_header.h"
+#include "drm_header.h"
+#include "i915_drm.h"
 #include "mos_bufmgr.h"
 #include "mos_os.h"
 
