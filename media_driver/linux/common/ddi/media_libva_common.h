@@ -31,8 +31,8 @@
 #include <pthread.h>
 
 #include "xf86drm.h"
-#include "drm.h"
-#include "i915_header.h"
+#include "drm_header.h"
+#include "i915_drm.h"
 #include "mos_bufmgr.h"
 #include "mos_context.h"
 #include "mos_gpucontextmgr.h"
