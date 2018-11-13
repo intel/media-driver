@@ -886,8 +886,26 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
             m_osInterface, &m_resHucProbDmemBuffer[currPass], &lockFlagsWriteOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
     }
-    // for BRC cases, HuC needs to be called on Pass 1 
-    dmem->HuCPassNum = m_superFrameHucPass ? CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS : ((m_vdencBrcEnabled && currPass == 1) ? 0 : (currPass != 0));
+
+    // for BRC cases, HuC needs to be called on Pass 1
+    if (m_superFrameHucPass)
+    {
+        dmem->HuCPassNum = CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS;
+    }
+    else 
+    {
+        if (m_dysBrc)
+        {
+            //For BRC+Dynamic Scaling, we need to run as HUC pass 1 in the last pass since the curr_pass was changed to 0.
+            dmem->HuCPassNum = currPass != 0;
+        }
+        else
+        {
+            //For Non-dynamic scaling BRC cases, HuC needs to run as HuC pass one only in last pass.
+            dmem->HuCPassNum = ((m_vdencBrcEnabled && currPass == 1) ? 0 : (currPass != 0));
+        }
+    }
+
     dmem->FrameWidth  = m_oriFrameWidth;
     dmem->FrameHeight = m_oriFrameHeight;
 
