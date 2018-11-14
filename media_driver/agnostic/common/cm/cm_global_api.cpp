@@ -155,9 +155,9 @@ CM_RT_API const char* GetCmErrorString(int errCode)
     };
 
     const char *errorString = "Internal Error";
-    if (errCode > CM_INTERNAL_ERROR_CODE_OFFSET && errCode >= CM_INVALID_CAP_NAME && errCode <= CM_SUCCESS)
+    if ((errCode >= CM_INVALID_CAP_NAME) && (errCode <= CM_SUCCESS))
     {
-        errorString = errorStrings[-errCode];
+        errorString = errorStrings[MOS_ABS(errCode)];
     }
 
     return errorString;

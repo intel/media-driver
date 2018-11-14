@@ -181,6 +181,7 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     m_isThreadCoordinatesExisted(false),
     m_threadSpaceWidth(0),
     m_threadSpaceHeight(0),
+    m_threadSpaceDepth(0),
     m_threadCoordinates(nullptr),
     m_dependencyPattern(CM_NONE_DEPENDENCY),
     m_walkingPattern(CM_WALK_DEFAULT),
@@ -191,6 +192,7 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     m_isThreadGroupSpaceCreated(false),
     m_groupSpaceWidth(0),
     m_groupSpaceHeight(0),
+    m_groupSpaceDepth(0),
     m_slmSize(0),
     m_spillMemUsed(0),
     m_colorCountMinusOne( 0 ),
@@ -234,6 +236,11 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     {
         CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
     }
+
+    CmSafeMemSet(&m_veboxParam, 0, sizeof(m_veboxParam));
+    CmSafeMemSet(&m_veboxState, 0, sizeof(m_veboxState));
+    CmSafeMemSet(&m_veboxSurfaceData, 0, sizeof(m_veboxSurfaceData));
+    CmSafeMemSet(&m_powerOption, 0, sizeof(m_powerOption));
 
     if (krnExecCfg != nullptr)
     {
@@ -323,7 +330,6 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* threadSpace, bool isWi
     CM_HAL_MAX_VALUES* halMaxValues = nullptr;
     CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
     m_cmDevice->GetHalMaxValues( halMaxValues, halMaxValuesEx );
-    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_cmDevice->GetAccelData())->cmHalState;
 
     if (m_cmDevice->IsPrintEnable())
     {
@@ -674,10 +680,10 @@ int32_t CmTaskInternal::Initialize(CmVeboxRT* vebox)
     for (int i = 0; i < VEBOX_SURFACE_NUMBER; i++)
     {
         CmSurface2DRT* surf = nullptr;
-        uint32_t surfaceHandle = 0;
         vebox->GetSurface(i, surf);
         if (surf)
         {
+            uint32_t surfaceHandle = 0;
             SurfaceIndex* surfIndex = nullptr;
             surf->GetIndex(surfIndex);
             surf->GetHandle(surfaceHandle);
@@ -1710,11 +1716,10 @@ const char *gDependencyPatternString[] =
 //Only for debugging
 int32_t CmTaskInternal::DisplayThreadSpaceData(uint32_t width, uint32_t height)
 {
-    uint32_t i;
     if (m_threadCoordinates != nullptr)
     {
         CM_NORMALMESSAGE("Score board[Kernel x: (x1, y1), (x2, y2)...]:");
-        for (i = 0; i < m_kernelCount; i ++)
+        for (uint32_t i = 0; i < m_kernelCount; i ++)
         {
             CmKernelRT *kernelRT = nullptr;
             GetKernel(i, kernelRT);

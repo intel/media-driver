@@ -2374,7 +2374,6 @@ CmDeviceRT::CreateSampler8x8SurfaceEx(CmSurface2D* surface2d,
                                       CM_FLAG* flag)
 {
     INSERT_API_CALL_LOG();
-    CM_ROTATION rotationFlag = CM_ROTATION_IDENTITY;
 
     CmSurface2DRT* currentRT = static_cast<CmSurface2DRT *>(surface2d);
     if (!currentRT)  {
@@ -3005,7 +3004,7 @@ int32_t CmDeviceRT::SetCaps(CM_DEVICE_CAP_NAME capName,
                 return CM_INVALID_HARDWARE_THREAD_NUMBER;
             }
 
-            if( *(uint32_t *)capValue <= 0 )
+            if( *(int32_t *)capValue <= 0 )
             {
                 CM_ASSERTMESSAGE("Error: Failed to set caps with CAP_HW_THREAD_COUNT.");
                 return CM_INVALID_HARDWARE_THREAD_NUMBER;

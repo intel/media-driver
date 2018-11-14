@@ -856,9 +856,9 @@ uint32_t CmProgramRT::ReleaseKernelInfo(uint32_t index)
             {
                 if(m_isJitterEnabled)
                 {
-                    if(kernelInfo && kernelInfo->jitBinaryCode)
+                    if(kernelInfo->jitBinaryCode)
                         m_fFreeBlock(kernelInfo->jitBinaryCode);
-                    if(kernelInfo && kernelInfo->jitInfo)
+                    if(kernelInfo->jitInfo)
                     {
                         if (kernelInfo->jitInfo->freeGRFInfo)
                         {

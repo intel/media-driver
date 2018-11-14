@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_event_rt.cpp 
-//! \brief     Contains OS-agnostic CmEventRT member functions. 
+//! \file      cm_event_rt.cpp
+//! \brief     Contains OS-agnostic CmEventRT member functions.
 //!
 
 #include "cm_event_rt.h"
@@ -110,6 +110,8 @@ CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int
     m_kernelNames          = nullptr ;
     m_threadSpace          = nullptr ;
     m_kernelCount          = 0 ;
+
+    MOS_ZeroMemory(&m_surEntryInfoArrays, sizeof(m_surEntryInfoArrays));
 }
 
 //*-----------------------------------------------------------------------------
@@ -180,7 +182,6 @@ CmEventRT::~CmEventRT( void )
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::Initialize(void)
 {
-    CmSafeMemSet(&m_surEntryInfoArrays, 0, sizeof(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS));
     if( m_taskDriverId == -1 )
         // -1 is an invalid task id in driver, i.e. the task has NOT been passed down to driver yet
         // event is created at the enqueue time, so initial value is CM_STATUS_QUEUED
@@ -258,7 +259,7 @@ int32_t CmEventRT::GetQueue(CmQueueRT *& queue)
 //*-----------------------------------------------------------------------------
 //! Query the execution time of a task( one kernel or multiples kernels running concurrently )
 //! in the unit of nanoseconds.
-//! The execution time is from the time when the task starts to execution in GPU to the time 
+//! The execution time is from the time when the task starts to execution in GPU to the time
 //! when the task finished execution
 //! This is a non-blocking call.
 //! INPUT:
