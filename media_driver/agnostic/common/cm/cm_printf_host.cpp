@@ -813,11 +813,11 @@ void PFParser::DumpMemory(unsigned char * memory)
 
     if(!mNumMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_MATRIX )
     {
-        CM_PRINTF(mStreamOut,"\n Thread id %d, Matrix , Width %d, Height %d \n", threadid, header->width, header->height);
+        CM_PRINTF(mStreamOut,"\n Thread id %d, Matrix , Width %ud, Height %ud \n", threadid, header->width, header->height);
     }
     else if(!mNumMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_VECTOR)
     {
-        CM_PRINTF(mStreamOut, " \n Thread id %d, Vector , Width %d\n", threadid, header->width);
+        CM_PRINTF(mStreamOut, " \n Thread id %d, Vector , Width %ud\n", threadid, header->width);
     }
     else if(!mNumMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_FORMAT)
     {
@@ -890,8 +890,6 @@ void PFParser::DumpMemory(unsigned char * memory)
 
 void DumpAllThreadOutput(FILE *streamout, unsigned char * dumpMem, size_t buffersize)
 {
-
-    unsigned int offsetFromHeader =   0;
     unsigned int off                =   PRINT_BUFFER_HEADER_SIZE;
     PFParser     pState(streamout);
 
@@ -903,7 +901,7 @@ void DumpAllThreadOutput(FILE *streamout, unsigned char * dumpMem, size_t buffer
         if(off >= (*(unsigned int *)dumpMem))
             break;
 
-        offsetFromHeader = CalcSizeFromHeader(dumpMem + off);
+        unsigned int offsetFromHeader = CalcSizeFromHeader(dumpMem + off);
         if( (off + offsetFromHeader) >= buffersize )
             break;
 

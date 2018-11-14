@@ -2062,13 +2062,12 @@ int32_t CmThreadSpaceRT::SetDependencyArgToKernel(CmKernelRT *pKernel) const
 int32_t CmThreadSpaceRT::InitSwScoreBoard()
 {
     int SB_BufLen = m_height * m_width;
-    int x = 0, y = 0;
     int bufIdx = 0;
     int temp_x = 0, temp_y = 0;
     for (int i = 0; i < SB_BufLen; i++)
     {
-        x = i % m_width;
-        y = i / m_width;
+        int x = i % m_width;
+        int y = i / m_width;
         uint32_t entry_value = 0;   //only support for 8 dependencies, but in uint32_t type
         for (uint32_t j = 0; j < m_dependency.count; j++)
         {
@@ -2131,7 +2130,7 @@ int32_t CmThreadSpaceRT::InitSwScoreBoard()
                     if (temp_y == m_26ZIBlockHeight - 1)
                         entry_value &= 0x7E;
                 }
-                else if ((temp_x % 2) == 0) {
+                else{ // ((temp_x % 2) == 0)
                     if (temp_y == 0)
                         entry_value &= 0x3A;
                     else

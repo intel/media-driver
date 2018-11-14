@@ -1516,7 +1516,6 @@ MOS_STATUS HalCm_ParseGroupTask(
     PCM_HAL_TASK_PARAM      taskParam      = state->taskParam;
     MOS_STATUS              eStatus        = MOS_STATUS_SUCCESS;
     PCM_HAL_KERNEL_PARAM    kernelParam    = nullptr;
-    uint32_t                uSurfaceNumber;
     uint32_t                uSurfaceIndex;
 
     taskParam->surfEntryInfoArrays  = execGroupParam->surEntryInfoArrays;  //GT-PIN
@@ -1538,7 +1537,7 @@ MOS_STATUS HalCm_ParseGroupTask(
     {
         kernelParam = execGroupParam->kernels[krn];
         PCM_INDIRECT_SURFACE_INFO       indirectSurfaceInfo = kernelParam->indirectDataParam.surfaceInfo;
-        uSurfaceNumber = 0;
+        uint32_t uSurfaceNumber = 0;
         if (kernelParam->indirectDataParam.surfaceCount)
         {
             uSurfaceIndex = 0;
@@ -2338,7 +2337,6 @@ int32_t CmDeleteOldestKernel(PCM_HAL_STATE state, MHW_KERNEL_PARAM *mhwKernelPar
     if (searchIndex < 0)
     {
         CM_ASSERTMESSAGE("Failed to delete any slot from GSH. It is impossible.");
-        kernelAllocationID = RENDERHAL_KERNEL_LOAD_FAIL;
         return CM_FAILURE;
     }
 
@@ -2354,7 +2352,6 @@ int32_t CmDeleteOldestKernel(PCM_HAL_STATE state, MHW_KERNEL_PARAM *mhwKernelPar
     if (HalCm_UnloadKernel(state, kernelAllocation) != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Failed to load kernel - no space available in GSH.");
-        kernelAllocationID = RENDERHAL_KERNEL_LOAD_FAIL;
         return CM_FAILURE;
     }
 
@@ -3261,7 +3258,7 @@ MOS_STATUS HalCm_DSH_GetDynamicStateConfiguration(
                 // 3D sampler needs indirect sampler heap, so calculates the required size
                 // and offset for indirect sampler heap.
                 unsigned int max3DCount = 0;
-                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                 {
                     if (iter->elementType == samplerParam.elementType)
                     {
@@ -3394,7 +3391,7 @@ MOS_STATUS HalCm_SetupSamplerState(
     if (state->useNewSamplerHeap == true)
     {
         std::list<SamplerParam>::iterator iter;
-        for (iter = kernelParam->samplerHeap->begin(); iter != kernelParam->samplerHeap->end(); iter++)
+        for (iter = kernelParam->samplerHeap->begin(); iter != kernelParam->samplerHeap->end(); ++iter)
         {
             if ((iter->samplerTableIndex == index)&&(iter->regularBti == true))
             {
@@ -3569,7 +3566,7 @@ MOS_STATUS HalCm_SetupSamplerStateWithBTIndex(
     if (state->useNewSamplerHeap == true)
     {
         std::list<SamplerParam>::iterator iter;
-        for (iter = kernelParam->samplerHeap->begin(); iter != kernelParam->samplerHeap->end(); iter++)
+        for (iter = kernelParam->samplerHeap->begin(); iter != kernelParam->samplerHeap->end(); ++iter)
         {
             if ((iter->samplerTableIndex == index) && (iter->bti == samplerIndex) && (iter->userDefinedBti == true))
             {
@@ -6833,8 +6830,6 @@ uint32_t HalCm_ThreadsNumberPerGroup_MW(PCM_HAL_WALKER_PARAMS walkerParams)
 {
     int localInnerCount = 0, localMidCount = 0, localOuterCount = 0, globalInnerCount = 0, globalOuterCount = 0;
     int localInnerCountMax = 0, localMidCountMax = 0, localOuterCountMax = 0, globalInnerCountMax = 0;
-    int globalInnerX = 0, globalInnerY = 0;
-    int globalInnerXCopy = 0, globalInnerYCopy = 0;
     int midX = 0, midY = 0, midStep = 0;
     int outerX = 0, outerY = 0;
     int localInnerX = 0, localInnerY = 0;
@@ -6872,8 +6867,8 @@ uint32_t HalCm_ThreadsNumberPerGroup_MW(PCM_HAL_WALKER_PARAMS walkerParams)
         (globalOuterY + localblockresY > 0) &&
         (globalOuterCount <= globalLoopExecCount))
     {
-        globalInnerX = globalOuterX;
-        globalInnerY = globalOuterY;
+        int globalInnerX = globalOuterX;
+        int globalInnerY = globalOuterY;
 
         if (globalInnerCountMax < globalInnerCount)
         {
@@ -6887,8 +6882,8 @@ uint32_t HalCm_ThreadsNumberPerGroup_MW(PCM_HAL_WALKER_PARAMS walkerParams)
             (globalInnerX + localblockresX > 0) &&
             (globalInnerY + localblockresY > 0))
         {
-            globalInnerXCopy = globalInnerX;
-            globalInnerYCopy = globalInnerY;
+            int globalInnerXCopy = globalInnerX;
+            int globalInnerYCopy = globalInnerY;
             if (globalInnerX < 0)
                 globalInnerXCopy = 0;
             if (globalInnerY < 0)
@@ -7386,15 +7381,32 @@ MOS_STATUS HalCm_AcquireSamplerStatistics(PCM_HAL_STATE state)
     }
 
     int tempbase=0;
-    state->samplerStatistics.samplerIndexBase[MHW_Sampler2Elements] = (state->samplerStatistics.samplerCount[MHW_Sampler2Elements]) ? 0 : -1;
-    tempbase = state->samplerStatistics.samplerIndexBase[MHW_Sampler2Elements];
-    state->samplerStatistics.samplerIndexBase[MHW_Sampler4Elements] = ((state->samplerStatistics.samplerCount[MHW_Sampler4Elements]) ? ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler2Elements], 2, 4)) : tempbase);
-    tempbase = state->samplerStatistics.samplerIndexBase[MHW_Sampler4Elements];
-    state->samplerStatistics.samplerIndexBase[MHW_Sampler8Elements] = ((state->samplerStatistics.samplerCount[MHW_Sampler8Elements]) ? ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler4Elements], 4, 8)) : tempbase);
-    tempbase = state->samplerStatistics.samplerIndexBase[MHW_Sampler8Elements];
-    state->samplerStatistics.samplerIndexBase[MHW_Sampler64Elements] = ((state->samplerStatistics.samplerCount[MHW_Sampler64Elements]) ? ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler8Elements], 8, 64)) : tempbase);
-    tempbase = state->samplerStatistics.samplerIndexBase[MHW_Sampler64Elements];
-    state->samplerStatistics.samplerIndexBase[MHW_Sampler128Elements] = ((state->samplerStatistics.samplerCount[MHW_Sampler128Elements]) ? ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler64Elements], 64, 128)) : tempbase);
+    state->samplerStatistics.samplerIndexBase[MHW_Sampler2Elements]
+        = (state->samplerStatistics.samplerCount[MHW_Sampler2Elements]) ? 0 : -1;
+    tempbase
+        = state->samplerStatistics.samplerIndexBase[MHW_Sampler2Elements];
+    state->samplerStatistics.samplerIndexBase[MHW_Sampler4Elements]
+        = (state->samplerStatistics.samplerCount[MHW_Sampler4Elements]) ?
+        ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler2Elements], 2, 4))
+        : tempbase;
+    tempbase
+        = state->samplerStatistics.samplerIndexBase[MHW_Sampler4Elements];
+    state->samplerStatistics.samplerIndexBase[MHW_Sampler8Elements]
+        = (state->samplerStatistics.samplerCount[MHW_Sampler8Elements]) ?
+        ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler4Elements], 4, 8))
+        : tempbase;
+    tempbase
+        = state->samplerStatistics.samplerIndexBase[MHW_Sampler8Elements];
+    state->samplerStatistics.samplerIndexBase[MHW_Sampler64Elements]
+        = (state->samplerStatistics.samplerCount[MHW_Sampler64Elements]) ?
+        ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler8Elements], 8, 64))
+        : tempbase;
+    tempbase
+        = state->samplerStatistics.samplerIndexBase[MHW_Sampler64Elements];
+    state->samplerStatistics.samplerIndexBase[MHW_Sampler128Elements]
+        = (state->samplerStatistics.samplerCount[MHW_Sampler128Elements]) ?
+        ((tempbase == -1) ? 0 : INDEX_ALIGN(state->samplerStatistics.samplerCount[MHW_Sampler64Elements], 64, 128))
+        : tempbase;
 
     /* There are Sampler BTI, next step needs to consider it during calculate the base */
     for (int k = MHW_Sampler2Elements; k < MHW_Sampler128Elements; k++) {
@@ -9630,11 +9642,7 @@ MOS_STATUS HalCm_UpdateBuffer(
     PCM_HAL_BUFFER_ENTRY    entry = nullptr;
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     uint32_t                i = param->handle;
-    uint32_t                size;
-    const char              *fmt;
     PMOS_RESOURCE           osResource;
-
-    size  = param->size;
 
     //-----------------------------------------------
     CM_ASSERT(param->size > 0);
@@ -10978,7 +10986,7 @@ uint32_t HalCm_GetFreeBindingIndex(
     while (btIndex < 256 && unAllocated > 0)
     {
         uint32_t arrayIndex = btIndex >> 5;
-        uint32_t bitMask = 1 << (btIndex % 32);
+        uint32_t bitMask = (uint32_t)0x1 << (btIndex % 32);
         if (indexParam->btArray[arrayIndex] & bitMask)
         {
             // oops, occupied

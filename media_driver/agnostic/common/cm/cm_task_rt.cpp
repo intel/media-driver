@@ -391,7 +391,6 @@ int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* index,
     CmSurface*        surface = nullptr;
     CmSurfaceManager* surfaceMgr = nullptr;
     uint32_t          surfIndex = 0;
-    uint32_t          handle = 0;
 
     m_device->GetSurfaceManager(surfaceMgr);
     if (!surfaceMgr)
@@ -411,6 +410,7 @@ int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* index,
 
     if (surface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT)
     {
+        uint32_t handle = 0;
         CmBuffer_RT* surf1D = static_cast<CmBuffer_RT*> (surface);
 
         surf1D->GetHandle(handle);

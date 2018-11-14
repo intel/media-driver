@@ -56,9 +56,7 @@ CmLogger::CmLogger()
 
     //Get Log File name
     std::ostringstream OutPutFile;
-    std::string        DriverLogFilePath;
     char               fileNamePrefix[MAX_PATH];
-    size_t             maxFileSize;
 
     SYSTEMTIME systime;
     GetLocalTime(&systime);
@@ -67,10 +65,10 @@ CmLogger::CmLogger()
                << "_" << systime.wDay << "_" << systime.wHour
                << "_" << systime.wMinute << "_" << systime.wSecond << ".log";
     m_logFile = OutPutFile.str();
-    GetLogFileLocation(OutPutFile.str().c_str(), fileNamePrefix);  
+    GetLogFileLocation(OutPutFile.str().c_str(), fileNamePrefix);
 
     // Open file
-    m_streamOut.open(fileNamePrefix, std::ios::app);     
+    m_streamOut.open(fileNamePrefix, std::ios::app);
     if (!m_streamOut)
     {
         CM_ASSERTMESSAGE("Open file failed!");
@@ -197,8 +195,9 @@ void CmLogger::Unlock()
     globalCmLogLock.Release();
 }
 
-CmLogTimer::CmLogTimer(std::string str) : m_string(str),
-                                          m_timer(str)
+CmLogTimer::CmLogTimer(const std::string str) :
+    m_string(str),
+    m_timer(str)
 {
 }
 

@@ -424,14 +424,12 @@ bool CmBuffer_RT::IsCompareMaskEnabled()
 int32_t CmBuffer_RT::CreateBufferAlias(SurfaceIndex* & aliasIndex)
 {
     uint32_t surfArraySize = 0;
-    uint32_t newIndex = 0;
-    uint32_t origIndex = 0;
 
     if( m_numAliases < CM_HAL_MAX_NUM_BUFFER_ALIASES )
     {
-        origIndex = m_index->get_data();
+        uint32_t origIndex = m_index->get_data();
         m_surfaceMgr->GetSurfaceArraySize(surfArraySize);
-        newIndex = origIndex + ( (m_numAliases + 1) * surfArraySize);
+        uint32_t newIndex = origIndex + ( (m_numAliases + 1) * surfArraySize);
         m_aliasIndexes[m_numAliases] = MOS_New(SurfaceIndex, newIndex);
         if( m_aliasIndexes[m_numAliases] )
         {
@@ -483,7 +481,6 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t t
     static uint32_t bufferDumpNumber = 0;
     char               fileNamePrefix[MAX_PATH];
     std::ofstream      outputFileStream;
-    std::string        logFile;
 
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber

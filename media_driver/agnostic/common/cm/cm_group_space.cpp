@@ -117,8 +117,10 @@ CmThreadGroupSpace::CmThreadGroupSpace(CmDeviceRT* device,
     m_device(device),
     m_threadSpaceWidth(threadSpaceWidth),
     m_threadSpaceHeight(threadSpaceHeight),
+    m_threadSpaceDepth(0),
     m_groupSpaceWidth(groupSpaceWidth),
     m_groupSpaceHeight(groupSpaceHeight),
+    m_groupSpaceDepth(0),
     m_indexInThreadGroupSpaceArray(index)
 {
 }

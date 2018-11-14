@@ -984,7 +984,7 @@ CM_RT_API int32_t CmSurface2DRT::GetSurfaceDesc(uint32_t &width, uint32_t &heigh
     // Get size per pixel
     ret = m_surfaceMgr->GetPixelBytesAndHeight(width,  height,  format,  sizeperpixel, updatedHeight);
 
-    return CM_SUCCESS;
+    return ret;
 }
 
 CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int initValue, CmEvent* event)
@@ -1100,14 +1100,12 @@ int32_t CmSurface2DRT::Create2DAlias(SurfaceIndex* & aliasIndex)
     INSERT_API_CALL_LOG();
 
     uint32_t surfArraySize = 0;
-    uint32_t newIndex = 0;
-    uint32_t origIndex = 0;
 
     if( m_numAliases < CM_HAL_MAX_NUM_2D_ALIASES )
     {
-        origIndex = m_index->get_data();
+        uint32_t origIndex = m_index->get_data();
         m_surfaceMgr->GetSurfaceArraySize(surfArraySize);
-        newIndex = origIndex + ( (m_numAliases + 1) * surfArraySize);
+        uint32_t newIndex = origIndex + ( (m_numAliases + 1) * surfArraySize);
         m_aliasIndexes[m_numAliases] = MOS_New(SurfaceIndex, newIndex);
         if( m_aliasIndexes[m_numAliases] )
         {
