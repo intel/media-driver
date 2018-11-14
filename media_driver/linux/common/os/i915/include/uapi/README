@@ -1,0 +1,16 @@
+This directory contains a copy of the installed kernel headers
+required by the iHD driver to communicate with the kernel.
+Whenever driver needs new definitions for new kernel
+APIs, these files should be updated.
+
+These files in master should only be updated once the changes have landed
+in the drm-next repo, https://anongit.freedesktop.org/git/drm/drm.git.
+
+The last update was done at the following kernel commit :
+
+commit 9235dd441af43599b9cdcce599a3da4083fcad3c
+Merge: d7563c5 36b486b
+Author: Dave Airlie <airlied@redhat.com>
+Date:   Mon Nov 19 11:07:52 2018 +1000
+
+    Merge branch 'drm-next-4.21' of git://people.freedesktop.org/~agd5f/linux into drm-next
