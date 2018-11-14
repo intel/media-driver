@@ -109,7 +109,7 @@ void MhwCmdReader::SetFilePath(string path)
 
 void MhwCmdReader::PrepareCmdData()
 {
-    ifstream fs(m_path);
+    ifstream fs(m_path, ios::binary);
 
     if (!fs)
     {
