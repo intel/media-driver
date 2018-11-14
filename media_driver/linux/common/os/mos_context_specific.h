@@ -358,11 +358,6 @@ private:
     bool                m_hybridDecoderRunningFlag = false;
 
     //!
-    //! \brief  Handle to CP context
-    //!
-    PMOS_CP_CONTEXT     m_cpContext = nullptr;
-
-    //!
     //! \brief  the function ptr for memory decompression function
     //!
     void (* m_memoryDecompress)(
