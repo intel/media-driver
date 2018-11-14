@@ -529,7 +529,6 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_fd            = pOsDriverContext->fd;
         MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
         mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
-        m_cpContext = pOsDriverContext->pCpContext;
         m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
         m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
     

@@ -472,7 +472,7 @@ struct _MOS_OS_CONTEXT
     uint32_t            uIndirectStateSize;
 
     MOS_OS_GPU_CONTEXT  OsGpuContext[MOS_GPU_CONTEXT_MAX];
-    PMOS_CP_CONTEXT     pCpContext;
+
     // Buffer rendering
     LARGE_INTEGER       Frequency;                //!< Frequency
     LARGE_INTEGER       LastCB;                   //!< End time for last CB
