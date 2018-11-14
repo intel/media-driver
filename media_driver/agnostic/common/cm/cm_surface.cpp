@@ -55,7 +55,7 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_surfaceMgr( surfMgr ),
     m_isCmCreated (isCmCreated)
 {
-
+    MOS_ZeroMemory(&m_memObjCtrl, sizeof(m_memObjCtrl));
 }
 
 //*-----------------------------------------------------------------------------

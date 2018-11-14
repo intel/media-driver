@@ -127,13 +127,11 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
 //*-----------------------------------------------------------------------------
 CmQueueRT::~CmQueueRT()
 {
-    uint32_t eventReleaseTimes = 0;
-
     uint32_t eventArrayUsedSize = m_eventArray.GetMaxSize();
     for( uint32_t i = 0; i < eventArrayUsedSize; i ++ )
     {
         CmEventRT* event = (CmEventRT*)m_eventArray.GetElement( i );
-        eventReleaseTimes = 0;
+        uint32_t eventReleaseTimes = 0;
         while( event )
         {   // destroy the event no matter if it is released by user
             if(eventReleaseTimes > 2)
@@ -1133,14 +1131,8 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
     // CPU copy unaligned data
     if( direction == CM_FASTCOPY_GPU2CPU)
     {
-        uint32_t beginLineCopySize   = 0;
         uint32_t readOffset = 0;
         uint32_t copyLines = 0;
-        size_t beginLineWriteOffset = 0;
-        uint32_t mod = 0;
-        uint32_t alignedWrites = 0;
-        uint32_t endLineWriteOffset = 0;
-        uint32_t endLineCopySize = 0;
         unsigned char* startBuffer = (unsigned char*)linearAddressAligned;
 
         copyLines = (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016) ? heightStrideInRows + MOS_MIN(heightStrideInRows, height) * 1 / 2 : heightStrideInRows;
@@ -1148,9 +1140,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         for(uint32_t i = 0; i < copyLines; ++i)
         {
             //copy begining of line
-            beginLineWriteOffset = strideInBytes * i + dstAddShiftOffset;
-            mod = ((uintptr_t)startBuffer + beginLineWriteOffset) < BLOCK_WIDTH ? ((uintptr_t)startBuffer + beginLineWriteOffset) : ((uintptr_t)startBuffer + beginLineWriteOffset) & (BLOCK_WIDTH - 1);
-            beginLineCopySize = (mod == 0) ? 0:(BLOCK_WIDTH - mod);
+            size_t beginLineWriteOffset = strideInBytes * i + dstAddShiftOffset;
+            uint32_t mod = ((uintptr_t)startBuffer + beginLineWriteOffset) < BLOCK_WIDTH ? ((uintptr_t)startBuffer + beginLineWriteOffset) : ((uintptr_t)startBuffer + beginLineWriteOffset) & (BLOCK_WIDTH - 1);
+            uint32_t beginLineCopySize = (mod == 0) ? 0:(BLOCK_WIDTH - mod);
             //fix copy size for cases where the surface width is small
             if((beginLineCopySize > widthByte) || ( beginLineCopySize == 0 && widthByte < BLOCK_WIDTH ) )
             {
@@ -1162,9 +1154,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             }
 
             //copy end of line
-            alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
-            endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
-            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
+            uint32_t alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
+            uint32_t endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
+            uint32_t endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
             if(endLineCopySize > 0 && endLineWriteOffset > beginLineWriteOffset)
             {
                 CmSafeMemCopy((void *)((unsigned char *)startBuffer + endLineWriteOffset), (void *)(hybridCopyAuxSysMem + readOffset + BLOCK_WIDTH), endLineCopySize);
@@ -1469,10 +1461,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
         }
         CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, internalEvent, threadSpace ));
 
-        if( gpuCopyKernelParam )
-        {
-            GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-        }
+        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
         //update for next slice
         linearAddress += sliceCopyBufferUPSize - addedShiftLeftOffset;
@@ -1739,10 +1728,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
     }
     CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(gpuCopyTask, internalEvent, threadSpace));
 
-    if (gpuCopyKernelParam)
-    {
-        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-    }
+    GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (internalEvent))
     {
@@ -2109,10 +2095,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(surfaceOutput));   // ref_cnf to guarantee task finish before BufferUP being really destroy.
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(surfaceInput));
 
-    if( gpuCopyKernelParam )
-    {
-        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-    }
+    GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
 finish:
     if(hr != CM_SUCCESS)

@@ -2200,7 +2200,6 @@ CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * value
         CM_ASSERTMESSAGE("Error: StaticBuffer doesn't allow alias index.");
         return CM_INVALID_ARG_INDEX;
     }
-    uint32_t handle = 0; // for 1D surf
 
     CmSurface* surface  = nullptr;
     m_surfaceMgr->GetSurface( surfIndexData, surface );
@@ -2213,7 +2212,8 @@ CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * value
     CmBuffer_RT* surf1D = nullptr;
     if ( surface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT )
     {
-        CM_SURFACE_MEM_OBJ_CTRL memCtl;
+        uint32_t handle = 0; // for 1D surf
+
         surf1D = static_cast< CmBuffer_RT* >( surface );
         surf1D->GetHandle( handle );
 
@@ -2935,8 +2935,6 @@ finish:
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &argSize, uint32_t & argCountPlus)
 {
-    unsigned int extraArgs = 0;
-
     argCountPlus = m_argCount;
     argSize      = 0;
 
@@ -2961,6 +2959,8 @@ int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &argSize, uint32_t & argCo
 
         if(m_perThreadArgExists || m_perKernelArgExists)
         {
+            unsigned int extraArgs = 0;
+            
             for( uint32_t j = 0; j < m_argCount; j ++ )
             {
                 //Sanity checking for every argument setting
@@ -5989,7 +5989,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
                 state->cmHalInterface->GetSamplerParamInfoForSamplerType(&state->samplerTable[sampler.samplerTableIndex], sampler);
 
                 // Guarantees each user-defined BTI has a spacing between each other user-defined BTIs larger than the stepping
-                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                 {
                     if (iter->elementType == sampler.elementType)
                     {
@@ -6003,7 +6003,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
                 }
 
                 // Inserts by the order
-                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                 {
                     if (iter->elementType > sampler.elementType)
                     {
@@ -6051,7 +6051,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
 
                     // if the sampler is already in the heap, skip
                     bool isDuplicate = false;
-                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                     {
                         if (iter->samplerTableIndex == sampler.samplerTableIndex)
                         {
@@ -6067,7 +6067,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
 
                     // insert the new sampler to the heap
                     heapOffset = 0;
-                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                     {
                         if (iter->elementType == sampler.elementType)
                         {
