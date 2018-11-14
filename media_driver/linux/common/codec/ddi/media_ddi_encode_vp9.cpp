@@ -76,6 +76,9 @@ DdiEncodeVp9::~DdiEncodeVp9()
 
     MOS_FreeMemory(m_segParams);
     m_segParams = nullptr;
+
+    MOS_FreeMemory(m_codedBufStatus);
+    m_codedBufStatus = nullptr;
 }
 
 VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
@@ -235,11 +238,14 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.ppNALUnitParams = m_encodeCtx->ppNALUnitParams;
     encodeParams.pSegmentParams  = m_segParams;
 
-    if (savedFrameRate == 0)
+    for (uint32_t i = 0; i < (seqParams->NumTemporalLayersMinus1+1); i++)
     {
-        /* use the default framerate if FrameRate is not passed */
-        seqParams->FrameRate[0].uiNumerator   = 30;
-        seqParams->FrameRate[0].uiDenominator = 1;
+        if (savedFrameRate[i] == 0)
+        {
+            /* use the default framerate if FrameRate is not passed */
+            seqParams->FrameRate[i].uiNumerator   = 30;
+            seqParams->FrameRate[i].uiDenominator = 1;
+        }
     }
 
     if (!headerInsertFlag)
@@ -352,6 +358,10 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
     // Allocate segment params
     m_segParams = (CODEC_VP9_ENCODE_SEGMENT_PARAMS *)MOS_AllocAndZeroMemory(sizeof(CODEC_VP9_ENCODE_SEGMENT_PARAMS) * 8);
     DDI_CHK_NULL(m_segParams, "nullptr m_segParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+
+    // Allocate coded buffer status
+    m_codedBufStatus = (VACodedBufferVP9Status *)MOS_AllocAndZeroMemory(DDI_ENCODE_MAX_STATUS_REPORT_BUFFER * sizeof(VACodedBufferVP9Status));
+    DDI_CHK_NULL(m_codedBufStatus, "nullptr m_codedBufStatus.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     /* RT is used as the default target usage */
     vp9TargetUsage = TARGETUSAGE_RT_SPEED;
@@ -794,22 +804,25 @@ VAStatus DdiEncodeVp9::ParseMiscParamFR(void *data)
     CODEC_VP9_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
 
     /* This is the optional */
-    if ((vaFrameRate == nullptr) || (seqParams == nullptr))
+    if ((vaFrameRate == nullptr) || (seqParams == nullptr) ||
+        (vaFrameRate->framerate_flags.bits.temporal_id > seqParams->NumTemporalLayersMinus1))
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    if (vaFrameRate->framerate != savedFrameRate)
+    uint32_t temporalId = vaFrameRate->framerate_flags.bits.temporal_id;
+
+    if (vaFrameRate->framerate != savedFrameRate[temporalId])
     {
-          savedFrameRate = vaFrameRate->framerate;
-          seqParams->SeqFlags.fields.bResetBRC = 0x1;
+          savedFrameRate[temporalId] = vaFrameRate->framerate;
+          seqParams->SeqFlags.fields.bResetBRC |= 0x1;
 
           uint32_t frameRate = vaFrameRate->framerate;
-          seqParams->FrameRate[0].uiNumerator   = frameRate & (0xFFFF);
-          seqParams->FrameRate[0].uiDenominator = (frameRate >> 16) & (0xFFFF);
-          if (seqParams->FrameRate[0].uiDenominator == 0)
+          seqParams->FrameRate[temporalId].uiNumerator   = frameRate & (0xFFFF);
+          seqParams->FrameRate[temporalId].uiDenominator = (frameRate >> 16) & (0xFFFF);
+          if (seqParams->FrameRate[temporalId].uiDenominator == 0)
           {
-              seqParams->FrameRate[0].uiDenominator = 1;
+              seqParams->FrameRate[temporalId].uiDenominator = 1;
           }
     }
 
@@ -819,42 +832,43 @@ VAStatus DdiEncodeVp9::ParseMiscParamFR(void *data)
 // Parse rate control related information from app
 VAStatus DdiEncodeVp9::ParseMiscParamRC(void *data)
 {
-    DDI_CHK_NULL(data, "nullptr ptr", VA_STATUS_ERROR_INVALID_PARAMETER);
-
     CODEC_VP9_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
-
     DDI_CHK_NULL(seqParams, "nullptr vp9SeqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAEncMiscParameterRateControl *vaEncMiscParamRC = (VAEncMiscParameterRateControl *)data;
+    DDI_CHK_NULL(data, "nullptr ptr", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    uint32_t temporalId = vaEncMiscParamRC->rc_flags.bits.temporal_id;
+    DDI_CHK_LESS(temporalId, (seqParams->NumTemporalLayersMinus1+1),
+        "invalid temporal id", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     seqParams->MaxBitRate                = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
     seqParams->SeqFlags.fields.bResetBRC = vaEncMiscParamRC->rc_flags.bits.reset;  // adding reset here. will apply both CBR and VBR
 
     if (VA_RC_CBR == m_encodeCtx->uiRCMethod)
     {
-        seqParams->TargetBitRate[0]  = seqParams->MaxBitRate;
-        seqParams->MinBitRate        = seqParams->MaxBitRate;
-        seqParams->RateControlMethod = RATECONTROL_CBR;
-        if (savedTargetBit != seqParams->MaxBitRate)
+        seqParams->TargetBitRate[temporalId] = seqParams->MaxBitRate;
+        seqParams->MinBitRate                = seqParams->MaxBitRate;
+        seqParams->RateControlMethod         = RATECONTROL_CBR;
+        if (savedTargetBit[temporalId] != seqParams->MaxBitRate)
         {
-            savedTargetBit = seqParams->MaxBitRate;
-            seqParams->SeqFlags.fields.bResetBRC = 0x1;
+            savedTargetBit[temporalId] = seqParams->MaxBitRate;
+            seqParams->SeqFlags.fields.bResetBRC |= 0x1;
         }
     }
     else if (VA_RC_VBR == m_encodeCtx->uiRCMethod)
     {
-        seqParams->TargetBitRate[0]  = seqParams->MaxBitRate * vaEncMiscParamRC->target_percentage / 100;  // VBR target bits
-        seqParams->MinBitRate        = seqParams->MaxBitRate * abs((int32_t)(2 * vaEncMiscParamRC->target_percentage) - 100) / 100;
-        seqParams->MinBitRate        = MOS_MIN(seqParams->TargetBitRate[0], seqParams->MinBitRate);
+        seqParams->TargetBitRate[temporalId] = seqParams->MaxBitRate * vaEncMiscParamRC->target_percentage / 100;  // VBR target bits
+        seqParams->MinBitRate = seqParams->MaxBitRate * abs((int32_t)(2 * vaEncMiscParamRC->target_percentage) - 100) / 100;
+        seqParams->MinBitRate = MOS_MIN(seqParams->TargetBitRate[temporalId], seqParams->MinBitRate);
         seqParams->RateControlMethod = RATECONTROL_VBR;
 
-        if ((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate[0]) ||
-            (m_encodeCtx->uiMaxBitRate != seqParams->MaxBitRate))
+        if ((savedTargetBit[temporalId] != seqParams->TargetBitRate[temporalId]) ||
+            (savedMaxBitRate[temporalId] != seqParams->MaxBitRate))
         {
-            savedTargetBit                       = seqParams->TargetBitRate[0];
-            seqParams->SeqFlags.fields.bResetBRC = 0x1;
-            m_encodeCtx->uiTargetBitRate         = seqParams->TargetBitRate[0];
-            m_encodeCtx->uiMaxBitRate            = seqParams->MaxBitRate;
+            savedTargetBit[temporalId]           = seqParams->TargetBitRate[temporalId];
+            seqParams->SeqFlags.fields.bResetBRC |= 0x1;
+            savedMaxBitRate[temporalId]          = seqParams->MaxBitRate;
         }
     }
 
@@ -911,10 +925,23 @@ VAStatus DdiEncodeVp9::ParseMiscParamQualityLevel(void *data)
 
 VAStatus DdiEncodeVp9::ParseMiscParameterTemporalLayerParams(void *data)
 {
-    DDI_UNUSED(m_encodeCtx);
-    DDI_UNUSED(data);
+    DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    /* Ignore it */
+    CODEC_VP9_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+
+    VAEncMiscParameterTemporalLayerStructure *vaEncTempLayerStruct = (VAEncMiscParameterTemporalLayerStructure *)data;
+    DDI_CHK_LESS(vaEncTempLayerStruct->number_of_layers, (CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS+1),
+        "invalid number of temporal layers", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (vaEncTempLayerStruct->number_of_layers > 0)
+    {
+        seqParams->NumTemporalLayersMinus1 = vaEncTempLayerStruct->number_of_layers - 1;
+    }
+    else
+    {
+        seqParams->NumTemporalLayersMinus1 = 0;
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -975,6 +1002,29 @@ VAStatus DdiEncodeVp9::ParseMiscParams(void *ptr)
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     }
+
+    return vaStatus;
+}
+
+VAStatus DdiEncodeVp9::ReportExtraStatus(
+    EncodeStatusReport   *encodeStatusReport,
+    VACodedBufferSegment *codedBufferSegment)
+{
+    DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(encodeStatusReport, "nullptr encodeStatusReport", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(codedBufferSegment, "nullptr codedBufferSegment", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+
+    // The coded buffer status are one-to-one correspondence with report buffers, even though the index is updated.
+    VACodedBufferVP9Status *codedBufStatus = &(m_codedBufStatus[m_encodeCtx->statusReportBuf.ulUpdatePosition]);
+    codedBufStatus->loop_filter_level = encodeStatusReport->loopFilterLevel;
+    codedBufStatus->long_term_indication = encodeStatusReport->LongTermIndication;
+    codedBufStatus->next_frame_width = encodeStatusReport->NextFrameWidthMinus1 + 1;
+    codedBufStatus->next_frame_height = encodeStatusReport->NextFrameHeightMinus1 + 1;
+
+    codedBufferSegment->next = codedBufStatus;
 
     return vaStatus;
 }

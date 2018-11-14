@@ -191,6 +191,21 @@ protected:
     VAStatus ParseSegMapParams(
         DDI_MEDIA_BUFFER *buf);
 
+    //!
+    //! \brief    Report extra encode status for completed coded buffer.
+    //!
+    //! \param    [in] encodeStatusReport
+    //!           Pointer to encode status reported by Codechal
+    //! \param    [out] codedBufferSegment
+    //!           Pointer to coded buffer segment
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus ReportExtraStatus(
+        EncodeStatusReport   *encodeStatusReport,
+        VACodedBufferSegment *codedBufferSegment) override;
+
 private:
     //!
     //! \brief    Setup Codec Picture for Vp9
@@ -289,10 +304,13 @@ private:
 
     CODEC_VP9_ENCODE_SEGMENT_PARAMS *m_segParams = nullptr; //!< Segment parameters.
 
-private:
-    uint32_t savedTargetBit = 0;
+    VACodedBufferVP9Status *m_codedBufStatus = nullptr; //!< .Coded buffer status
 
-    uint32_t savedFrameRate = 0;
+private:
+    uint32_t savedTargetBit[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
+    uint32_t savedMaxBitRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
+
+    uint32_t savedFrameRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
 
     uint32_t savedGopSize = 0;
 

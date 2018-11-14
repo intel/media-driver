@@ -476,6 +476,24 @@ protected:
         int32_t                        *index);
 
     //!
+    //! \brief    Report extra encode status for completed coded buffer.
+    //!
+    //! \param    [in] encodeStatusReport
+    //!           Pointer to encode status reported by Codechal
+    //! \param    [out] codedBufferSegment
+    //!           Pointer to coded buffer segment
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual VAStatus ReportExtraStatus(
+        EncodeStatusReport   *encodeStatusReport,
+        VACodedBufferSegment *codedBufferSegment)
+    {
+        return VA_STATUS_SUCCESS;
+    }
+
+    //!
     //! \brief    Clean Up Buffer and Return
     //!
     //! \param    [in] buf
