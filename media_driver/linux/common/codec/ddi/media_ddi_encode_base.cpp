@@ -222,6 +222,14 @@ VAStatus DdiEncodeBase::StatusReport(
                 m_encodeCtx->statusReportBuf.ulUpdatePosition = (m_encodeCtx->statusReportBuf.ulUpdatePosition + 1) % DDI_ENCODE_MAX_STATUS_REPORT_BUFFER;
                 break;
             }
+
+            // Report extra status for completed coded buffer
+            eStatus = ReportExtraStatus(encodeStatusReport, m_encodeCtx->BufMgr.pCodedBufferSegment);
+            if (VA_STATUS_SUCCESS != eStatus)
+            {
+                break;
+            }
+
             //Add encoded frame information into status buffer queue.
             continue;
         }

@@ -656,10 +656,10 @@ MOS_STATUS CodechalVdencVp9State::CalculateTemporalRatios(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if (numberOfLayers > CODECHAL_ENCODE_VP9_VDENC_MAX_NUM_TEMPORAL_LAYERS)
+    if (numberOfLayers > CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("VP9 VDEnc supports only %d temporal layers (%d provided)",
-            CODECHAL_ENCODE_VP9_VDENC_MAX_NUM_TEMPORAL_LAYERS, numberOfLayers);
+            CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS, numberOfLayers);
         return MOS_STATUS_INVALID_PARAMETER;
     }
 

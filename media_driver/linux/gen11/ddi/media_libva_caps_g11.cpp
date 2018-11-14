@@ -40,12 +40,17 @@ const VAImageFormat MediaLibvaCapsG11::m_G11ImageFormats[] =
      {VA_FOURCC_Y416, VA_LSB_FIRST, 64, 0,0,0,0,0}
 };
 
+const VAConfigAttribValEncRateControlExt MediaLibvaCapsG11::m_encVp9RateControlExt =
+{
+    {CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS - 1, 1, 0}
+};
+
 VAStatus MediaLibvaCapsG11::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
 {
     DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     MediaLibvaCaps::QueryImageFormats(formatList, numFormats);
-    
+
     int32_t num = *numFormats;
     uint32_t numG11ImageFormats = GetNumG11ImageFormats();
 
@@ -422,6 +427,7 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
         (*attributeList)[VAConfigAttribMaxPictureWidth] = m_maxVp9EncWidth;
         (*attributeList)[VAConfigAttribMaxPictureHeight] = m_maxVp9EncHeight;
         (*attributeList)[VAConfigAttribEncTileSupport] = 1;
+        (*attributeList)[VAConfigAttribEncRateControlExt] = m_encVp9RateControlExt.value;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
