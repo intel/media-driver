@@ -56,7 +56,6 @@
 #define CODECHAL_ENCODE_VP9_PIC_STATE_BUFFER_SIZE_PER_PASS      192 // 42 DWORDs for Pic State one uint32_t for BB End + 5 uint32_tS reserved to make it aligned for kernel read
 #define CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH                 256
 #define CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_HEIGHT                128
-#define CODECHAL_ENCODE_VP9_VDENC_MAX_NUM_TEMPORAL_LAYERS       8
 #define CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS                 2
 #define CODECHAL_ENCODE_VP9_REF_SEGMENT_DISABLED                0xFF
 #define CODECHAL_ENCODE_VP9_BRC_MAX_NUM_OF_PASSES               4
