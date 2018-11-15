@@ -260,7 +260,14 @@ int32_t CmQueueRT::Initialize()
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE, MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
+                                                MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
+
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface,
+                                                          MOS_GPU_CONTEXT_CM_COMPUTE));
+
             m_queueOption.GPUContext = MOS_GPU_CONTEXT_CM_COMPUTE;
         }
         else
