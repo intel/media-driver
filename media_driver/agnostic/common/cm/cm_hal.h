@@ -1856,6 +1856,9 @@ typedef struct _CM_HAL_STATE
     bool                        dumpCommandBuffer;                            //flag to enable command buffer dump
     bool                        dumpCurbeData;                                //flag to enable curbe data dump
     bool                        dumpSurfaceContent;                           //flag to enable surface content dump
+    bool                        dumpSurfaceState;                             //flag to enable surface state dump
+    bool                        enableCMDDumpTimeStamp;                        //flag to enable command buffer dump time stamp
+    bool                        enableSurfaceStateDumpTimeStamp;                        //flag to enable surface state dump time stamp
     int32_t(*pfnInitDumpCommandBuffer)
         (
         PCM_HAL_STATE            state);
@@ -1865,6 +1868,16 @@ typedef struct _CM_HAL_STATE
         PMOS_COMMAND_BUFFER      cmdBuffer,
         int                      offsetSurfaceState,
         size_t                   sizeOfSurfaceState);
+
+    int32_t(*pfnInitDumpSurfaceState)
+        (
+        PCM_HAL_STATE            state);
+    int32_t(*pfnDumpSurfaceState)
+        (
+        PCM_HAL_STATE            state,
+        int                      offsetSurfaceState,
+        size_t                   sizeOfSurfaceState);
+
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     MOS_STATUS(*pfnDSHUnregisterKernel)
