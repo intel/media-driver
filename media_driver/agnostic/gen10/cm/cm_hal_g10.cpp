@@ -511,6 +511,16 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     }
 #endif
 
+#if MDF_SURFACE_STATE_DUMP
+    if (state->dumpSurfaceState)
+    {
+        state->pfnDumpSurfaceState(
+            state, 
+            offsetof(PACKET_SURFACE_STATE, cmdSurfaceState), 
+            mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD::byteSize);
+    }
+#endif
+
     CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGlobalTime(&state->taskTimeStamp->submitTimeInCpu[taskId]));
     CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGpuTime(state, &state->taskTimeStamp->submitTimeInGpu[taskId]));
 

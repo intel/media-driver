@@ -45,6 +45,7 @@
 #define MDF_COMMAND_BUFFER_DUMP         1 //avaliable in Debug/Release-internal
 #define MDF_CURBE_DATA_DUMP             1
 #define MDF_SURFACE_CONTENT_DUMP        1
+#define MDF_SURFACE_STATE_DUMP          1
 #endif
 
 //===============<Definitions>==================================================
