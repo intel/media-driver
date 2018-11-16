@@ -245,7 +245,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
         {
             m_currRefList->b16xScalingUsed = true;
             m_lastTaskInPhase = params->bLastTaskInPhase16xDS;
-            m_curbeParams.downscaleStage = dsStage4x;
+            m_curbeParams.downscaleStage = dsStage16x;
             inputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output4xDsSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output2xDsSurface = nullptr;
