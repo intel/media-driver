@@ -178,6 +178,9 @@ static void SwizzleData(
 #define IS_TILED_TO_LINEAR(_a, _b)  (IS_TILED(_a) && !IS_TILED(_b))
 #define IS_LINEAR_TO_TILED(_a, _b)  (!IS_TILED(_a) && IS_TILED(_b))
 
+    DDI_CHK_NULL(src, "nullptr", );
+    DDI_CHK_NULL(dst, "nullptr", );
+
     int32_t y,linearOffset,tileOffset;
     // Translate from one format to another
     for (y = 0, linearOffset = 0, tileOffset = 0; y < height; y++)
@@ -295,7 +298,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t                    pitch = 0;
     MOS_LINUX_BO               *bo = nullptr;
     GMM_RESCREATE_PARAMS        gmmParams;
-    GMM_RESOURCE_INFO          *gmmResourceInfo;
+    GMM_RESOURCE_INFO          *gmmResourceInfo = nullptr;
     bool                        grallocAllocation;
 
     DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
@@ -1236,7 +1239,9 @@ void DdiMediaUtil_PostSemaphore(PMEDIA_SEM_T  sem)
 // heap related
 PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap)
 {
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  mediaSurfaceHeapElmt;
+    DDI_CHK_NULL(surfaceHeap, "nullptr surfaceHeap", nullptr);
+
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  mediaSurfaceHeapElmt = nullptr;
 
     if (nullptr == surfaceHeap->pFirstFreeHeapElement)
     {
@@ -1268,8 +1273,12 @@ PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MED
 
 void DdiMediaUtil_ReleasePMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap, uint32_t vaSurfaceID)
 {
+    DDI_CHK_NULL(surfaceHeap, "nullptr surfaceHeap", );
+
     DDI_CHK_LESS(vaSurfaceID, surfaceHeap->uiAllocatedHeapElements, "invalid surface id", );
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapBase                   = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surfaceHeap->pHeapBase;
+    DDI_CHK_NULL(mediaSurfaceHeapBase, "nullptr mediaSurfaceHeapBase", );
+
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt                   = &mediaSurfaceHeapBase[vaSurfaceID];
     DDI_CHK_NULL(mediaSurfaceHeapElmt->pSurface, "surface is already released", );
     void *firstFree                         = surfaceHeap->pFirstFreeHeapElement;
@@ -1281,7 +1290,9 @@ void DdiMediaUtil_ReleasePMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap, uint
 
 PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap)
 {
-    PDDI_MEDIA_BUFFER_HEAP_ELEMENT  mediaBufferHeapElmt;
+    DDI_CHK_NULL(bufferHeap, "nullptr bufferHeap", nullptr);
+
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT  mediaBufferHeapElmt = nullptr;
     if (nullptr == bufferHeap->pFirstFreeHeapElement)
     {
         void *newHeapBase = MOS_ReallocMemory(bufferHeap->pHeapBase, (bufferHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT));
@@ -1310,6 +1321,8 @@ PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA
 
 void DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap, uint32_t vaBufferID)
 {
+    DDI_CHK_NULL(bufferHeap, "nullptr bufferHeap", );
+
     DDI_CHK_LESS(vaBufferID, bufferHeap->uiAllocatedHeapElements, "invalid buffer id", );
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapBase                    = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pHeapBase;
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt                    = &mediaBufferHeapBase[vaBufferID];
@@ -1322,7 +1335,9 @@ void DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap, uint32
 
 PDDI_MEDIA_IMAGE_HEAP_ELEMENT DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap)
 {
-    PDDI_MEDIA_IMAGE_HEAP_ELEMENT   vaimageHeapElmt;
+    PDDI_MEDIA_IMAGE_HEAP_ELEMENT   vaimageHeapElmt = nullptr;
+
+    DDI_CHK_NULL(imageHeap, "nullptr imageHeap", nullptr);
 
     if (nullptr == imageHeap->pFirstFreeHeapElement)
     {
@@ -1354,9 +1369,11 @@ PDDI_MEDIA_IMAGE_HEAP_ELEMENT DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP
 
 void DdiMediaUtil_ReleasePVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap, uint32_t vaImageID)
 {
-    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    vaImageHeapBase;
-    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    vaImageHeapElmt;
-    void                            *firstFree;
+    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    vaImageHeapBase = nullptr;
+    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    vaImageHeapElmt = nullptr;
+    void                            *firstFree      = nullptr;
+
+    DDI_CHK_NULL(imageHeap, "nullptr imageHeap", );
 
     DDI_CHK_LESS(vaImageID, imageHeap->uiAllocatedHeapElements, "invalid image id", );
     vaImageHeapBase                    = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)imageHeap->pHeapBase;
@@ -1370,7 +1387,9 @@ void DdiMediaUtil_ReleasePVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap, uint32_t va
 
 PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT DdiMediaUtil_AllocPVAContextFromHeap(PDDI_MEDIA_HEAP vaContextHeap)
 {
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT   vacontextHeapElmt;
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT   vacontextHeapElmt = nullptr;
+    DDI_CHK_NULL(vaContextHeap, "nullptr vaContextHeap", nullptr);
+
     if (nullptr == vaContextHeap->pFirstFreeHeapElement)
     {
         void *newHeapBase = MOS_ReallocMemory(vaContextHeap->pHeapBase, (vaContextHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT));
@@ -1401,6 +1420,7 @@ PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT DdiMediaUtil_AllocPVAContextFromHeap(PDDI_MEDI
 
 void DdiMediaUtil_ReleasePVAContextFromHeap(PDDI_MEDIA_HEAP vaContextHeap, uint32_t vaContextID)
 {
+    DDI_CHK_NULL(vaContextHeap, "nullptr vaContextHeap", );
     DDI_CHK_LESS(vaContextID, vaContextHeap->uiAllocatedHeapElements, "invalid context id", );
     PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapBase = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)vaContextHeap->pHeapBase;
     PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapElmt = &vaContextHeapBase[vaContextID];
