@@ -128,6 +128,9 @@ typedef struct {
     uint32_t                    ProductFamily;
     uint16_t                    RevId;
 
+    // Flag to indicate if create dummy HCP_REF_IDX_STATE or not
+    uint32_t                    DummyRefIdxState;
+
     // Picture level DMEM data
     HUC_HEVC_S2L_PIC_BSS        PictureBss;
 

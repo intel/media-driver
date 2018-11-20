@@ -209,6 +209,9 @@ static bool InitIclMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaSFC270DegreeRotation, 0);
 
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
+
+    MEDIA_WR_WA(waTable, WaDummyReference, 1);
+
     return true;
 }
 
