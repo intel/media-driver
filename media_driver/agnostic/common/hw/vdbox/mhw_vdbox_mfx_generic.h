@@ -396,49 +396,52 @@ protected:
 
         typename TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD cmd;
 
-        CODEC_REF_LIST** avcRefList = (CODEC_REF_LIST**)params->avcRefList;
-        AvcRefListWrite *cmdAvcRefListWrite = (AvcRefListWrite *)&(cmd.ReferenceListEntry);
-
-        cmd.DW1.RefpiclistSelect = params->uiList;
-
-        uint8_t picIDOneOnOneMapping = 0;
-        for (uint32_t i = 0; i < params->uiNumRefForList; i++)
+        if (params->uiNumRefForList != 0)
         {
-            uint8_t idx = params->RefPicList[params->uiList][i].FrameIdx;
+            CODEC_REF_LIST** avcRefList = (CODEC_REF_LIST**)params->avcRefList;
+            AvcRefListWrite *cmdAvcRefListWrite = (AvcRefListWrite *)&(cmd.ReferenceListEntry);
 
-            if (!params->bIntelEntrypointInUse)
+            cmd.DW1.RefpiclistSelect = params->uiList;
+
+            uint8_t picIDOneOnOneMapping = 0;
+            for (uint32_t i = 0; i < params->uiNumRefForList; i++)
             {
-                if (idx >= CODEC_MAX_NUM_REF_FRAME)
+                uint8_t idx = params->RefPicList[params->uiList][i].FrameIdx;
+
+                if (!params->bIntelEntrypointInUse)
                 {
-                    MHW_ASSERT(false); // Idx must be within 0 to 15
-                    idx = 0;
+                    if (idx >= CODEC_MAX_NUM_REF_FRAME)
+                    {
+                        MHW_ASSERT(false); // Idx must be within 0 to 15
+                        idx = 0;
+                    }
+
+                    idx = params->pAvcPicIdx[idx].ucPicIdx;
                 }
 
-                idx = params->pAvcPicIdx[idx].ucPicIdx;
+                uint8_t picID = params->bPicIdRemappingInUse ?
+                    params->RefPicList[params->uiList][i].FrameIdx : avcRefList[idx]->ucFrameId;
+
+                // When one on one ref idx mapping is enabled, program picID count from 0, 2 ...
+                if (params->oneOnOneMapping)
+                {
+                    picID = picIDOneOnOneMapping;
+                    picIDOneOnOneMapping += 2;
+                }
+                cmdAvcRefListWrite->UC[i].frameStoreID = picID;
+                cmdAvcRefListWrite->UC[i].bottomField =
+                    CodecHal_PictureIsBottomField(params->RefPicList[params->uiList][i]);
+                cmdAvcRefListWrite->UC[i].fieldPicFlag =
+                    CodecHal_PictureIsField(params->RefPicList[params->uiList][i]);
+                cmdAvcRefListWrite->UC[i].longTermFlag =
+                    CodecHal_PictureIsLongTermRef(avcRefList[idx]->RefPic);
+                cmdAvcRefListWrite->UC[i].nonExisting = 0;
             }
 
-            uint8_t picID = params->bPicIdRemappingInUse ?
-                params->RefPicList[params->uiList][i].FrameIdx : avcRefList[idx]->ucFrameId;
-
-            // When one on one ref idx mapping is enabled, program picID count from 0, 2 ...
-            if (params->oneOnOneMapping)
+            for (auto i = params->uiNumRefForList; i < 32; i++)
             {
-                picID = picIDOneOnOneMapping;
-                picIDOneOnOneMapping += 2;
+                cmdAvcRefListWrite->UC[i].value = 0x80;
             }
-            cmdAvcRefListWrite->UC[i].frameStoreID = picID;
-            cmdAvcRefListWrite->UC[i].bottomField =
-                CodecHal_PictureIsBottomField(params->RefPicList[params->uiList][i]);
-            cmdAvcRefListWrite->UC[i].fieldPicFlag =
-                CodecHal_PictureIsField(params->RefPicList[params->uiList][i]);
-            cmdAvcRefListWrite->UC[i].longTermFlag =
-                CodecHal_PictureIsLongTermRef(avcRefList[idx]->RefPic);
-            cmdAvcRefListWrite->UC[i].nonExisting = 0;
-        }
-
-        for (auto i = params->uiNumRefForList; i < 32; i++)
-        {
-            cmdAvcRefListWrite->UC[i].value = 0x80;
         }
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));

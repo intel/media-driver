@@ -827,6 +827,8 @@ MOS_STATUS CodechalDecodeHevc::SetHucDmemParams(
     CODECHAL_DECODE_CHK_NULL_RETURN(hucHevcS2LBss);
     hucHevcS2LBss->ProductFamily = m_huCProductFamily;
     hucHevcS2LBss->RevId = m_hwInterface->GetPlatform().usRevId;
+    hucHevcS2LBss->DummyRefIdxState = 
+        MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LPictureBss(&hucHevcS2LBss->PictureBss));
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LSliceBss(&hucHevcS2LBss->SliceBss[0]));
@@ -1742,6 +1744,17 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         }
     }
 
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+    {
+        if (m_picMhwParams.PipeBufAddrParams->presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
+        }
+    }
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(m_picMhwParams.PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
@@ -2049,6 +2062,15 @@ MOS_STATUS CodechalDecodeHevc::SendSliceLongFormat(
                 nullptr,
                 &refIdxParams));
         }
+    }
+    else if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive)
+    {
+        MHW_VDBOX_HEVC_REF_IDX_PARAMS refIdxParams;
+        MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_HEVC_REF_IDX_PARAMS));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpRefIdxStateCmd(
+            cmdBuffer,
+            nullptr,
+            &refIdxParams));
     }
 
     if ((m_hevcPicParams->weighted_pred_flag &&
