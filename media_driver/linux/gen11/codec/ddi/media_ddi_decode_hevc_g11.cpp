@@ -426,33 +426,71 @@ MOS_FORMAT DdiDecodeHEVCG11::GetFormat()
         // target surface with the P010.
         Format = Format_P010;
     }
-     else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain12)
+    else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain12)
     {
         Format = Format_P016;
     }
     else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain422_10)
     {
+        //8bit
         Format = Format_YUY2;
+        if (picParams->chroma_format_idc == 1)
+        {
+            Format = Format_NV12;
+        }
+        //10bit
         if(picParams->bit_depth_luma_minus8 || picParams->bit_depth_chroma_minus8)
         {
             Format = Format_Y210;
+            if (picParams->chroma_format_idc == 1)
+            {
+                Format = Format_P010;
+            }
         }
     }
     else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain422_12)
     {
         Format = Format_Y216;
+        if (picParams->chroma_format_idc == 1)
+        {
+            Format = Format_P016;
+        }
     }
     else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain444)
     {
         Format = Format_AYUV;
+        if (picParams->chroma_format_idc == 1)
+        {
+            Format = Format_NV12;
+        }
+        else if (picParams->chroma_format_idc == 2)
+        {
+            Format = Format_YUY2;
+        }
     }
     else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain444_10)
     {
         Format = Format_Y410;
+        if (picParams->chroma_format_idc == 1)
+        {
+            Format = Format_P010;
+        }
+        else if (picParams->chroma_format_idc == 2)
+        {
+            Format = Format_Y210;
+        }
     }
     else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain444_12)
     {
         Format = Format_Y416;
+        if (picParams->chroma_format_idc == 1)
+        {
+            Format = Format_P016;
+        }
+        else if (picParams->chroma_format_idc == 2)
+        {
+            Format = Format_Y216;
+        }
     }
     return Format;
 
