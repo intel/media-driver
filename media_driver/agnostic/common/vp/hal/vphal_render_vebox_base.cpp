@@ -2172,9 +2172,8 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
 
     pRenderData->bProgressive   = (pSrc->SampleType == SAMPLE_PROGRESSIVE);
 
-    pRenderData->bDenoise       = (pSrc->pDenoiseParams                         &&
-                                  (pSrc->pDenoiseParams->bEnableLuma            ||
-                                   pSrc->pDenoiseParams->bEnableHVSDenoise)     &&
+    pRenderData->bDenoise       = (pSrc->pDenoiseParams                 &&
+                                   pSrc->pDenoiseParams->bEnableLuma    &&
                                    pVeboxState->IsDnFormatSupported(pSrc));
 
     pRenderData->bChromaDenoise = (pSrc->pDenoiseParams                 &&
@@ -4114,8 +4113,6 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     bDisableTemporalDenoiseFilterUserKey = false;   //!< Backup temporal denoise filter disable flag - read from User feature keys
 
     RenderGpuContext = pOsInterface ? (pOsInterface->CurrentGpuContextOrdinal) : MOS_GPU_CONTEXT_RENDER;
-
-    m_hvsDenoiser = nullptr;
 }
 
 VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()
@@ -4169,88 +4166,6 @@ VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()
         MOS_Delete(m_sfcPipeState);
         m_sfcPipeState = nullptr;
     }
-
-    MOS_Delete(m_hvsDenoiser);
-}
-
-MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(
-    PVPHAL_SURFACE pSrcSurface)
-{
-    MOS_STATUS eStatus                                    = MOS_STATUS_UNKNOWN;
-    PRENDERHAL_INTERFACE pRenderHal                       = nullptr;
-    PVPHAL_VEBOX_STATE pVeboxState                        = this;
-    PVPHAL_VEBOX_RENDER_DATA pRenderData                  = nullptr;
-
-    pRenderHal   = pVeboxState->m_pRenderHal;
-    pRenderData  = GetLastExecRenderData();
-
-    VPHAL_RENDER_CHK_NULL_RETURN(pSrcSurface);
-    VPHAL_RENDER_CHK_NULL_RETURN(pSrcSurface->pDenoiseParams);
-    VPHAL_RENDER_CHK_NULL_RETURN(pRenderHal);
-    VPHAL_RENDER_CHK_NULL_RETURN(pRenderData);
-
-    if (nullptr == m_hvsDenoiser)
-    {
-        m_hvsDenoiser = MOS_New(VphalHVSDenoiser, pRenderHal);
-        if (m_hvsDenoiser)
-        {
-            m_hvsDenoiser->InitKernelParams(m_hvsKernelBinary, m_hvsKernelBinarySize);
-        }
-        else
-        {
-            VPHAL_RENDER_ASSERTMESSAGE("New VphalHVSDenoiser Failed!");
-            eStatus = MOS_STATUS_NULL_POINTER;
-            return eStatus;
-        }
-    }
-
-    if (m_hvsDenoiser)
-    {
-        m_hvsDenoiser->Render(pSrcSurface);
-        uint32_t *pHVSDenoiseParam = (uint32_t *)m_hvsDenoiser->GetDenoiseParams();
-        if (pHVSDenoiseParam)
-        {
-            // Media kernel computed the HVS Denoise Parameters according to the specific mapping function.
-            // Programming these Parameters to VEBOX for processing.
-            VPHAL_RENDER_NORMALMESSAGE("Set HVS Denoised Parameters to VEBOX DNDI params");
-            // DW0
-            pRenderData->VeboxDNDIParams.dwDenoiseMPThreshold       = (pHVSDenoiseParam[0] & 0x0000001f);
-            pRenderData->VeboxDNDIParams.dwDenoiseHistoryDelta      = (pHVSDenoiseParam[0] & 0x00000f00) >> 8;
-            pRenderData->VeboxDNDIParams.dwDenoiseMaximumHistory    = (pHVSDenoiseParam[0] & 0x000ff000) >> 12;
-            pRenderData->VeboxDNDIParams.dwDenoiseSTADThreshold     = (pHVSDenoiseParam[0] & 0xfff00000) >> 20;
-            // DW1
-            pRenderData->VeboxDNDIParams.dwLTDThreshold             = (pHVSDenoiseParam[1] & 0x000003ff);
-            pRenderData->VeboxDNDIParams.dwTDThreshold              = (pHVSDenoiseParam[1] & 0x000ffc00) >> 10;
-            pRenderData->VeboxDNDIParams.dwDenoiseASDThreshold      = (pHVSDenoiseParam[1] & 0xfff00000) >> 20;
-            // DW2
-            pRenderData->VeboxDNDIParams.dwDenoiseSCMThreshold      = (pHVSDenoiseParam[2] & 0x0fff0000) >> 16;
-            // DW4
-            pRenderData->VeboxDNDIParams.dwChromaLTDThreshold       = (pHVSDenoiseParam[4] & 0x0000003f);
-            pRenderData->VeboxDNDIParams.dwChromaTDThreshold        = (pHVSDenoiseParam[4] & 0x00000fc0) >> 6;
-            pRenderData->VeboxDNDIParams.dwChromaSTADThreshold      = (pHVSDenoiseParam[4] & 0x00ff0000) >> 16;
-            // DW5
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[0]        = (pHVSDenoiseParam[5] & 0x0000001f);
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[1]        = (pHVSDenoiseParam[5] & 0x000003e0) >> 5;
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[2]        = (pHVSDenoiseParam[5] & 0x00007c00) >> 10;
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[3]        = (pHVSDenoiseParam[5] & 0x000f8000) >> 15;
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[4]        = (pHVSDenoiseParam[5] & 0x01f00000) >> 20;
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[5]        = (pHVSDenoiseParam[5] & 0x3e000000) >> 25;
-            // DW7
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[5]     = (pHVSDenoiseParam[7] & 0x1fff0000) >> 16;
-            // DW8
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[4]     = (pHVSDenoiseParam[8] & 0x1fff0000) >> 16;
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[3]     = (pHVSDenoiseParam[8] & 0x00001fff);
-            // DW9
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[2]     = (pHVSDenoiseParam[9] & 0x1fff0000) >> 16;
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[1]     = (pHVSDenoiseParam[9] & 0x00001fff);
-            // DW10
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[0]     = (pHVSDenoiseParam[10] & 0x1fff0000) >> 16;
-
-            eStatus = MOS_STATUS_SUCCESS;
-        }
-    }
-
-    return eStatus;
 }
 
 VPHAL_VEBOX_RENDER_DATA::~VPHAL_VEBOX_RENDER_DATA()
