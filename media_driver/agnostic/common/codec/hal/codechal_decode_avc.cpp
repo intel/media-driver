@@ -132,6 +132,12 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
                 }
             }
         }
+        else if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive)
+        {
+            MHW_VDBOX_AVC_REF_IDX_PARAMS refIdxParams;
+            MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_AVC_REF_IDX_PARAMS));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBuffer, nullptr, &refIdxParams));
+        }
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcSlice(cmdBuffer, nullptr, avcSliceState));
     }
@@ -1269,7 +1275,16 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
      MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
-    PMOS_RESOURCE firstValidFrame = &(m_destSurface.OsResource);
+    PMOS_RESOURCE firstValidFrame = nullptr;
+
+    if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+    {
+        firstValidFrame = &m_dummyReference.OsResource;
+    }
+    else
+    {
+        firstValidFrame = &m_destSurface.OsResource;
+    }
 
     CODECHAL_DECODE_CHK_NULL_RETURN(picMhwParams);
 
