@@ -38,6 +38,8 @@
 
 #include <linux/fb.h>
 
+#include "media_libva.h"
+
 #include "media_libva_util.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
@@ -1181,7 +1183,7 @@ VAStatus DdiMedia__Initialize (
     struct drm_state *pDRMState = (struct drm_state *)ctx->drm_state;
     DDI_CHK_NULL(pDRMState,    "nullptr pDRMState", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if(!CPLibUtils::LoadCPLib())
+    if(CPLibUtils::LoadCPLib(ctx))
     {
         DDI_NORMALMESSAGE("CPLIB is not loaded.");
     }
@@ -1674,9 +1676,9 @@ static VAStatus DdiMedia_Terminate (
     MOS_FreeMemory(mediaCtx);
 
     ctx->pDriverData = nullptr;
-    MOS_utilities_close();
+    CPLibUtils::UnloadCPLib(ctx);
 
-    CPLibUtils::UnloadCPLib();
+    MOS_utilities_close();
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
@@ -3546,15 +3548,6 @@ static VAStatus DdiMedia_QuerySurfaceStatus (
     DDI_MEDIA_SURFACE *surface   = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, render_target);
     DDI_CHK_NULL(surface,    "nullptr surface",    VA_STATUS_ERROR_INVALID_SURFACE);
 
-    if (surface->pDecCtx)
-    {
-        auto decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
-        DDI_CHK_NULL(decCtx, "nullptr decCtx", VA_STATUS_ERROR_INVALID_SURFACE);
-        DDI_CHK_NULL(decCtx->pCpDdiInterface, "nullptr pCpDdiInterface", VA_STATUS_ERROR_INVALID_SURFACE);
-
-        DDI_CHK_RET(decCtx->pCpDdiInterface->QueryCencStatus(ctx, status), "Fail to query CENC status!");
-    }
-
     if (surface->pCurrentFrameSemaphore)
     {
         if(DdiMediaUtil_TryWaitSemaphore(surface->pCurrentFrameSemaphore) == 0)
@@ -3669,6 +3662,18 @@ VAStatus DdiMedia_QuerySurfaceError(
     DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
     return VA_STATUS_SUCCESS;
 }
+
+//!
+//! \brief  End picture process for cenc query
+//! 
+//! \param  [in] ctx
+//!         Pointer to VA driver context 
+//! \param  [in] context
+//!         VA context ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 
 /*
  * Query surface attributes for the supplied config
@@ -5988,6 +5993,7 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     ctx->max_subpic_formats                  = DDI_CODEC_GEN_MAX_SUBPIC_FORMATS;
     ctx->max_display_attributes              = DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES ;
     ctx->str_vendor                          = DDI_CODEC_GEN_STR_VENDOR;
+    ctx->vtable_tpi                          = nullptr;
 
     pVTable->vaTerminate                     = DdiMedia_Terminate;
     pVTable->vaQueryConfigEntrypoints        = DdiMedia_QueryConfigEntrypoints;

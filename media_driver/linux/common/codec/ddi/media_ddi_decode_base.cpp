@@ -647,15 +647,6 @@ VAStatus DdiMediaDecode::EndPicture(
     DDI_FUNCTION_ENTER();
     DDI_CHK_RET(InitDecodeParams(ctx,context),"InitDecodeParams failed!");
 
-    uint32_t ctxType;
-    DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
-
-    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
-    {
-        DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
-        return VA_STATUS_SUCCESS;
-    }
-
     DDI_CHK_RET(SetDecodeParams(), "SetDecodeParams failed!");
     DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), m_withDpb), "ClearRefList failed!");
     if (m_ddiDecodeCtx->pCodecHal == nullptr)

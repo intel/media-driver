@@ -75,9 +75,9 @@ public:
     //! \return   VAStatus
     //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
     virtual VAStatus QueryCencStatus(
-        VADriverContextP    ctx,
-        VASurfaceStatus     *status);
-
+        uint16_t            mode,
+        uint32_t            infoSize,
+        void                *info);
     //! \brief    render picture process 
     //! \param    [in] vaDrvCtx
     //!           
