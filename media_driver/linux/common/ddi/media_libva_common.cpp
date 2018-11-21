@@ -398,3 +398,18 @@ bool DdiMedia_DestroyBufFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID 
     return true;
 }
 
+void* DdiMedia_GetContextFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
+{
+    uint32_t                       i;
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufHeapElement;
+    void *                         ctx;
+
+    i                = (uint32_t)bufferID;
+    DDI_CHK_LESS(i, mediaCtx->pBufferHeap->uiAllocatedHeapElements, "invalid buffer id", nullptr);
+    DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
+    bufHeapElement  = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)mediaCtx->pBufferHeap->pHeapBase;
+    ctx            = bufHeapElement->pCtx; 
+    DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+
+    return ctx;
+}

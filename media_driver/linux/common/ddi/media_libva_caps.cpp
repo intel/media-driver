@@ -42,9 +42,10 @@ typedef MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT> CapsFactory;
 
 #include "set"
 
-#ifndef VA_CENC_TYPE_NONE
-#define VA_CENC_TYPE_NONE                     0x00000000
+#ifndef VA_ENCRYPTION_TYPE_NONE
+#define VA_ENCRYPTION_TYPE_NONE 0x00000000
 #endif
+
 
 const uint32_t MediaLibvaCaps::m_decSliceMode[2] =
 {
@@ -998,7 +999,7 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
             {
                 for (int32_t k = 0; k < 2; k++)
                 {
-                    AddDecConfig(m_decSliceMode[j], VA_CENC_TYPE_NONE, m_decProcessMode[k]);
+                    AddDecConfig(m_decSliceMode[j], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                     if (m_isEntryptSupported)
                     {
                         uint32_t encrytTypes[3];
@@ -1121,7 +1122,7 @@ VAStatus MediaLibvaCaps::LoadMpeg2DecProfileEntrypoints()
         for (int32_t i = 0; i < 2; i++)
         {
             uint32_t configStartIdx = m_decConfigs.size();
-            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
             AddProfileEntry(profile[i], VAEntrypointVLD, attributeList, configStartIdx, 1);
         }
     }
@@ -1169,7 +1170,7 @@ VAStatus MediaLibvaCaps::LoadJpegDecProfileEntrypoints()
         DDI_CHK_RET(status, "Failed to initialize Caps!");
 
         uint32_t configStartIdx = m_decConfigs.size();
-        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
         AddProfileEntry(VAProfileJPEGBaseline, VAEntrypointVLD, attributeList, configStartIdx, 1);
     }
 #endif
@@ -1211,7 +1212,7 @@ VAStatus MediaLibvaCaps::LoadVc1DecProfileEntrypoints()
         for (int32_t i = 0; i < 3; i++)
         {
             uint32_t configStartIdx = m_decConfigs.size();
-            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
             AddProfileEntry(profile[i], VAEntrypointVLD, attributeList, configStartIdx, 1);
         }
     }
@@ -1232,7 +1233,7 @@ VAStatus MediaLibvaCaps::LoadVp8DecProfileEntrypoints()
         DDI_CHK_RET(status, "Failed to initialize Caps!");
 
         uint32_t configStartIdx = m_decConfigs.size();
-        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
         AddProfileEntry(VAProfileVP8Version0_3, VAEntrypointVLD, attributeList, configStartIdx, 1);
     }
 #endif
@@ -1286,7 +1287,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
         {
             for (int32_t k = 0; k < 2; k++)
             {
-                AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, m_decProcessMode[k]);
+                AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                 if (m_isEntryptSupported)
                 {
                     uint32_t encrytTypes[3];
@@ -1321,7 +1322,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
             {
                 for (int32_t k = 0; k < 2; k++)
                 {
-                    AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, m_decProcessMode[k]);
+                    AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                     if (m_isEntryptSupported)
                     {
 
@@ -1355,7 +1356,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
             {   
                 for (int32_t k = 0; k < 2; k++)
                 {
-                    AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, m_decProcessMode[k]); 
+                    AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]); 
                     if (m_isEntryptSupported)
                     {
                         uint32_t encrytTypes[3];
@@ -1389,7 +1390,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
             {
                 for (int32_t k = 0; k < 2; k++)
                 {
-                    AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, m_decProcessMode[k]); 
+                    AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]); 
                     if (m_isEntryptSupported)
                     {
                         uint32_t encrytTypes[3];
@@ -1484,7 +1485,7 @@ VAStatus MediaLibvaCaps::LoadDecProfileEntrypoints(VAProfile profile)
     {
         for (int32_t k = 0; k < 2; k++)
         {
-            AddDecConfig(m_decSliceMode[j], VA_CENC_TYPE_NONE, m_decProcessMode[k]); 
+            AddDecConfig(m_decSliceMode[j], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]); 
             if (m_isEntryptSupported)
             {
                 uint32_t encrytTypes[3];
@@ -1684,7 +1685,7 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
     decAttributes[0].type = VAConfigAttribDecSliceMode;
     decAttributes[0].value = VA_DEC_SLICE_MODE_NORMAL;
     decAttributes[1].type = VAConfigAttribEncryption;
-    decAttributes[1].value = VA_CENC_TYPE_NONE;
+    decAttributes[1].value = VA_ENCRYPTION_TYPE_NONE;
     decAttributes[2].type = VAConfigAttribDecProcessing;
     decAttributes[2].value = VA_DEC_PROCESSING_NONE;
 

@@ -40,6 +40,8 @@ MOS_NORMALMESSAGE(MOS_COMPONENT_CPLIB, MOS_CP_SUBCOMP_CPLIB, _message, ##__VA_AR
 #define CPLIB_ASSERTMESSAGE(_message, ...)                                    \
 MOS_ASSERTMESSAGE(MOS_COMPONENT_CPLIB, MOS_CP_SUBCOMP_CPLIB, _message, ##__VA_ARGS__)
 
+typedef struct VADriverContext* VADriverContextP;
+
 class CPLibUtils
 {
 public:
@@ -51,17 +53,12 @@ public:
     //!
     //! \brief    Try load CPLIB
     //!
-    static bool LoadCPLib();
+    static bool LoadCPLib(VADriverContextP ctx);
 
     //!
     //! \brief    Unload CPLIB if it is loaded
     //!
-    static void UnloadCPLib();
-
-    //!
-    //! \brief   Check if CPLIB loaded 
-    //!
-    static bool IsCPLibLoaded();
+    static void UnloadCPLib(VADriverContextP ctx);
 
     //!
     //! \brief    Invoke CPLIB function
@@ -91,7 +88,8 @@ public:
 
     static const char* CPLIB_PATH;
     static const char* FUNC_GET_CPLIB_MAJOR_VERSION;
-    static const char* FUNC_INIT_CPLIB_SYMBOLS;
+    static const char* FUNC_INIT_CPLIB;
+    static const char* FUNC_RELEASE_CPLIB;
     static const char* FUNC_CREATE_DDICP;
     static const char* FUNC_DELETE_DDICP;
     static const char* FUNC_CREATE_MHWCP;
