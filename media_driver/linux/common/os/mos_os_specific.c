@@ -2026,7 +2026,6 @@ MOS_STATUS Mos_Specific_AllocateResource(
     switch(tileformat)
     {
         case MOS_TILE_Y:
-            GmmParams.Flags.Info.TiledY    = true;
             GmmParams.Flags.Gpu.MMC        = pParams->bIsCompressed;
             tileformat_linux               = I915_TILING_Y;
             break;
@@ -2054,9 +2053,12 @@ MOS_STATUS Mos_Specific_AllocateResource(
             tileformat_linux               = I915_TILING_Y;
             break;
         case GMM_NOT_TILED:
-        default:
             tileformat = MOS_TILE_LINEAR;
             tileformat_linux               = I915_TILING_NONE;
+            break;
+        default:
+            tileformat = MOS_TILE_Y;
+            tileformat_linux               = I915_TILING_Y;
             break;
     }
 
@@ -2200,30 +2202,32 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     // check resource's tile type
-    if( GmmFlags.Info.TiledY )
+    switch (pGmmResourceInfo->GetTileType())
     {
-        if( GmmFlags.Info.TiledYf )
-        {
-            pResDetails->TileType = MOS_TILE_YF;
-        }
-        else if( GmmFlags.Info.TiledYs )
-        {
-            pResDetails->TileType = MOS_TILE_YS;
-        }
-        else
-        {
-            pResDetails->TileType = MOS_TILE_Y;
-        }
+    case GMM_TILED_Y:
+          if (GmmFlags.Info.TiledYf)
+          {
+              pResDetails->TileType = MOS_TILE_YF;
+          }
+          else if (GmmFlags.Info.TiledYs)
+          {
+              pResDetails->TileType = MOS_TILE_YS;
+          }
+          else
+          {
+              pResDetails->TileType = MOS_TILE_Y;
+          }
+          break;
+    case GMM_TILED_X:
+          pResDetails->TileType = MOS_TILE_X;
+          break;
+    case GMM_NOT_TILED:
+          pResDetails->TileType = MOS_TILE_LINEAR;
+          break;
+    default:
+          pResDetails->TileType = MOS_TILE_Y;
+          break;
     }
-    else if( GmmFlags.Info.TiledX )
-    {
-        pResDetails->TileType = MOS_TILE_X;
-    }
-    else
-    {
-        pResDetails->TileType = MOS_TILE_LINEAR;
-    }
-
     pResDetails->Format   = pOsResource->Format;
 
     // Get planes
