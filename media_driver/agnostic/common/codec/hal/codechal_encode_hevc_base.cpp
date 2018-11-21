@@ -1180,9 +1180,42 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
     m_b16XMeEnabled = m_16xMeSupported && m_pictureCodingType != I_TYPE;
     m_b32XMeEnabled = m_32xMeSupported && m_pictureCodingType != I_TYPE;
 
-    // the following computation is directly copied from the BRC prototype
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CalcLCUMaxCodingSize());
+
+    // Screen content flag will come in with PPS on Linux/Android, but in SPS on other platforms,
+    // we will use screen content flag in PPS for kernel programming, and update
+    // the PPS screen content flag based on the SPS screen content flag if enabled.
+    m_hevcPicParams->bScreenContent |= m_hevcSeqParams->bScreenContent;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncodeHevcBase::CalcLCUMaxCodingSize()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
     uint16_t log2_max_coding_block_size = m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3;
-    uint16_t rawCTUBits = (1 << (2 * log2_max_coding_block_size + 3)) + (1 << (2 * log2_max_coding_block_size + 2));
+    uint32_t rawCTUBits = (1 << (2 * log2_max_coding_block_size));
+
+    switch (m_hevcSeqParams->chroma_format_idc)
+    {
+        // 420
+    case 1:
+        rawCTUBits = rawCTUBits * 3 / 2;
+        break;
+        // 422
+    case 2:
+        rawCTUBits = rawCTUBits * 2;
+        break;
+        // 444
+    case 3:
+        rawCTUBits = rawCTUBits * 3;
+        break;
+    default:
+        break;
+    };
+
+    rawCTUBits = rawCTUBits * (m_hevcSeqParams->bit_depth_luma_minus8 + 8);
     rawCTUBits = (5 * rawCTUBits / 3);
 
     if (m_hevcPicParams->LcuMaxBitsizeAllowed == 0 || m_hevcPicParams->LcuMaxBitsizeAllowed > rawCTUBits)
@@ -1190,12 +1223,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
         m_hevcPicParams->LcuMaxBitsizeAllowed = rawCTUBits;
     }
 
-    // Screen content flag will come in with PPS on Android, but in SPS on Android,
-    // we will use screen content flag in PPS for kernel programming, and update
-    // the PPS screen content flag based on the SPS screen content flag if enabled.
-    m_hevcPicParams->bScreenContent |= m_hevcSeqParams->bScreenContent;
-
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
