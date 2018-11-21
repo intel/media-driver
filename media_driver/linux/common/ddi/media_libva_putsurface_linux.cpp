@@ -461,7 +461,6 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
         {
         case I915_TILING_Y:
            tileType = MOS_TILE_Y;
-           gmmParams.Flags.Info.TiledY    = true;
            break;
         case I915_TILING_X:
            tileType = MOS_TILE_X;

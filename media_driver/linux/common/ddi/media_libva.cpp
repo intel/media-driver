@@ -3862,7 +3862,6 @@ VAStatus DdiMedia_CreateImage(
             break;
         case VA_FOURCC_YUY2:
             gmmParams.Format = GMM_FORMAT_YUY2;
-            gmmParams.Flags.Info.TiledY = true;
 #if UFO_GRALLOC_NEW_FORMAT
             //Planar type surface align 64 to improve performance.
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
@@ -3873,7 +3872,6 @@ VAStatus DdiMedia_CreateImage(
             break;
         case VA_FOURCC_NV12:
             gmmParams.Format = GMM_FORMAT_NV12_TYPE;
-            gmmParams.Flags.Info.TiledY = true;
 #if UFO_GRALLOC_NEW_FORMAT
             //Planar type surface align 64 to improve performance.
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
@@ -3884,7 +3882,6 @@ VAStatus DdiMedia_CreateImage(
             break;
         case VA_FOURCC_P010:
             gmmParams.Format = GMM_FORMAT_P010_TYPE;
-            gmmParams.Flags.Info.TiledY = true;
 #if UFO_GRALLOC_NEW_FORMAT
             //Planar type surface align 64 to improve performance.
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
@@ -3895,17 +3892,14 @@ VAStatus DdiMedia_CreateImage(
             break;
         case VA_FOURCC_444P:
             gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
-            gmmParams.Flags.Info.TiledY = true;
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
         case VA_FOURCC_422H:
             gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
-            gmmParams.Flags.Info.TiledY = true;
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
         case VA_FOURCC_422V:
             gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
-            gmmParams.Flags.Info.TiledY = true;
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
 

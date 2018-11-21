@@ -181,7 +181,6 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     switch (tileformat)
     {
         case MOS_TILE_Y:
-            gmmParams.Flags.Info.TiledY   = true;
             gmmParams.Flags.Gpu.MMC       = params.m_isCompressed;
             tileFormatLinux               = I915_TILING_Y;
             if (params.m_isCompressed && pOsContextSpecific->GetAuxTableMgr())
@@ -244,9 +243,12 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
             tileFormatLinux = I915_TILING_Y;
             break;
         case GMM_NOT_TILED:
-        default:
             tileformat      = MOS_TILE_LINEAR;
             tileFormatLinux = I915_TILING_NONE;
+            break;
+        default:
+            tileformat      = MOS_TILE_Y;
+            tileFormatLinux = I915_TILING_Y;
             break;
     }
 
