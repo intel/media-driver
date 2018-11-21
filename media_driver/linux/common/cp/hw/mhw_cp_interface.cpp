@@ -108,6 +108,17 @@ MOS_STATUS MhwCpInterface::AddCheckForEarlyExit(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MhwCpInterface::AddConditionalBatchBufferEndForEarlyExit(
+    PMOS_INTERFACE      osInterface,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_UNUSED(osInterface);
+    MOS_UNUSED(cmdBuffer);
+
+    MhwStubMessage();
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS UpdateStatusReportNum(
     uint32_t            cencBufIndex,
     uint32_t            statusReportNum,

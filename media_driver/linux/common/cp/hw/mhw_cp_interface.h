@@ -126,6 +126,20 @@ public:
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief       Add check to exit if expected secure mode is not active
+    /// \details     Add check to exit if expected secure mode is not active
+    ///
+    /// \param       osInterface    [in] pointer to OS interface
+    /// \param       cmdBuffer      [in] the command buffer to add the cmd
+    ///
+    /// \return      If success, return MOS_STATUS_SUCCESS
+    ///              If fail, return other MOS errors
+    ///////////////////////////////////////////////////////////////////////////
+    virtual MOS_STATUS AddConditionalBatchBufferEndForEarlyExit(
+        PMOS_INTERFACE      osInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
     virtual MOS_STATUS UpdateStatusReportNum(
         uint32_t            cencBufIndex,
         uint32_t            statusReportNum,
