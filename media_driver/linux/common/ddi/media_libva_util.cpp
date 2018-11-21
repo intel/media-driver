@@ -485,7 +485,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
     switch (tileformat)
     {
         case I915_TILING_Y:
-            gmmParams.Flags.Info.TiledY    = true;
             // Disable MMC for application required surfaces, because some cases' output streams have corruption.
             gmmParams.Flags.Gpu.MMC    = false;
             if ( mediaDrvCtx->m_auxTableMgr )
