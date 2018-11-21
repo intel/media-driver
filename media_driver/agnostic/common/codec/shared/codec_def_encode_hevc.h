@@ -616,7 +616,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *
     *    If the value is set 0, no bit size limit is checked.
     */
-    uint16_t                LcuMaxBitsizeAllowed;
+    uint32_t                LcuMaxBitsizeAllowed;
     /*! \brief Indicates the column or row location in block unit which is dictated by IntraRefreshBlockUnitSize from encoding capability.
     *
     *    Ignored if bEnableRollingIntraRefresh is 0.

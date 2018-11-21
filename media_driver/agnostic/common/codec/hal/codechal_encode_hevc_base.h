@@ -1958,6 +1958,15 @@ public:
     virtual MOS_STATUS SetPictureStructs();
 
     //!
+    //! \brief    Calculate maximum bitsize allowed for LCU
+    //! \details  Calculate LCU max coding size according to log2_max_coding_block_size_minus3
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CalcLCUMaxCodingSize();
+
+    //!
     //! \brief    Setup/configure encoder based on slice parameter set
     //! \details  It is invoked for every picture and and it would set up and configure the
     //            encoder state that used for current picture and slices
