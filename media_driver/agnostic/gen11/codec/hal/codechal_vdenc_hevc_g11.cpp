@@ -4900,6 +4900,28 @@ MOS_STATUS CodechalVdencHevcStateG11::SetTileData(
     }
 
     uint32_t    numSliceInTile     = 0;
+    uint64_t    activeBitstreamSize = (uint64_t)m_encodeParams.dwBitstreamSize;
+    // There would be padding at the end of last tile in CBR, reserve dedicated part in the BS buf
+    if (m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR)
+    {
+        // Assume max padding num < target frame size derived from target bit rate and frame rate
+        uint32_t actualFrameRate = m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator;
+        uint64_t reservedPart    = (uint64_t)m_hevcSeqParams->TargetBitRate / 8 / (uint64_t)actualFrameRate * 1024;
+
+        if (reservedPart > activeBitstreamSize)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Frame size cal from target Bit rate is larger than BS buf! Issues in CBR paras!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        // Capping the reserved part to 1/10 of bs buf size
+        if (reservedPart > activeBitstreamSize / 10)
+        {
+            reservedPart = activeBitstreamSize / 10;
+        }
+
+        activeBitstreamSize -= reservedPart;
+    }
 
     for (uint32_t numLcusInTiles = 0, i = 0; i < numTileRows; i++)
     {
@@ -4963,7 +4985,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetTileData(
             sseRowstoreOffset += ((m_hevcPicParams->tile_column_width[j] + 3) * m_sizeOfSseSrcPixelRowStoreBufferPerLcu) / CODECHAL_CACHELINE_SIZE;
             saoRowstoreOffset += (MOS_ALIGN_CEIL(m_hevcPicParams->tile_column_width[j], 4) * CODECHAL_HEVC_SAO_STRMOUT_SIZE_PERLCU) / CODECHAL_CACHELINE_SIZE;
 
-            uint64_t totalSizeTemp = (uint64_t)m_encodeParams.dwBitstreamSize * (uint64_t)numLcuInTile;
+            uint64_t totalSizeTemp = (uint64_t)activeBitstreamSize * (uint64_t)numLcuInTile;
             uint32_t bitStreamSizePerTile = (uint32_t)(totalSizeTemp / (uint64_t)numLcuInPic) + ((totalSizeTemp % (uint64_t)numLcuInPic) ? 1 : 0);
             bitstreamByteOffset += MOS_ALIGN_CEIL(bitStreamSizePerTile, CODECHAL_CACHELINE_SIZE) / CODECHAL_CACHELINE_SIZE;
 
