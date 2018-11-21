@@ -24,12 +24,14 @@
 //! \brief    Implement of CPLibUtils to interact with CPLib
 //!
 #include "cplib_utils.h"
+#include "mos_utilities.h"
 
 std::unordered_map<const char*, void*> CPLibUtils::m_symbols;
 
 void *      CPLibUtils::m_phandle                    = nullptr;
 const char *CPLibUtils::CPLIB_PATH                   = "cplib.so";
-const char *CPLibUtils::FUNC_INIT_CPLIB_SYMBOLS      = "Init_CPLib_Symbols";
+const char *CPLibUtils::FUNC_INIT_CPLIB              = "Init_CPLib";
+const char *CPLibUtils::FUNC_RELEASE_CPLIB           = "Release_CPLib";
 const char *CPLibUtils::FUNC_GET_CPLIB_MAJOR_VERSION = "Get_CPLib_Major_Version";
 const char *CPLibUtils::FUNC_CREATE_DDICP            = "Create_DdiCp";
 const char *CPLibUtils::FUNC_DELETE_DDICP            = "Delete_DdiCp";
@@ -42,7 +44,7 @@ const char *CPLibUtils::FUNC_DELETE_MEDIALIBVACAPSCP = "Delete_MediaLibvaCapsCp"
 const char *CPLibUtils::FUNC_CREATE_SECUREDECODE     = "Create_SecureDecode";
 const char *CPLibUtils::FUNC_DELETE_SECUREDECODE     = "Delete_SecureDecode";
 
-bool CPLibUtils::LoadCPLib()
+bool CPLibUtils::LoadCPLib(VADriverContextP ctx)
 {
     m_phandle = dlopen(CPLIB_PATH, RTLD_NOW | RTLD_LOCAL);
 
@@ -56,7 +58,8 @@ bool CPLibUtils::LoadCPLib()
         m_symbols.clear();
 
         m_symbols[FUNC_GET_CPLIB_MAJOR_VERSION] = dlsym(m_phandle, FUNC_GET_CPLIB_MAJOR_VERSION);
-        m_symbols[FUNC_INIT_CPLIB_SYMBOLS]      = dlsym(m_phandle, FUNC_INIT_CPLIB_SYMBOLS);
+        m_symbols[FUNC_INIT_CPLIB]              = dlsym(m_phandle, FUNC_INIT_CPLIB);
+        m_symbols[FUNC_RELEASE_CPLIB]           = dlsym(m_phandle, FUNC_RELEASE_CPLIB);
         m_symbols[FUNC_CREATE_DDICP]            = dlsym(m_phandle, FUNC_CREATE_DDICP);
         m_symbols[FUNC_DELETE_DDICP]            = dlsym(m_phandle, FUNC_DELETE_DDICP);
         m_symbols[FUNC_CREATE_MHWCP]            = dlsym(m_phandle, FUNC_CREATE_MHWCP);
@@ -74,7 +77,7 @@ bool CPLibUtils::LoadCPLib()
             if(nullptr == item.second)
             {
                 CPLIB_NORMALMESSAGE("Symbol: %s not found in CPLIB", item.first);
-                UnloadCPLib();
+                UnloadCPLib(ctx);
                 return false;
             }
         }
@@ -85,19 +88,26 @@ bool CPLibUtils::LoadCPLib()
         if(REQUIRED_CPLIB_MAJOR_VERSION != func()) 
         {
             CPLIB_NORMALMESSAGE("The CPLIB version does not meet the require");
-            UnloadCPLib();
+            UnloadCPLib(ctx);
             return false;
         }
     }
 
-    using FuncType = void (*)();
-    reinterpret_cast<FuncType>(m_symbols[FUNC_INIT_CPLIB_SYMBOLS])();
+    using FuncType   = bool (*)(VADriverContextP ctx);
+    bool initialized = false;
+    InvokeCpFunc<FuncType>(initialized, FUNC_INIT_CPLIB, ctx);
+    if (!initialized)
+    {
+        CPLIB_NORMALMESSAGE("Failed to initialized CPLIB");
+        UnloadCPLib(ctx);
+        return false;
+    }
 
     CPLIB_NORMALMESSAGE("CPLIB Loaded Successfully");
     return true;
 }
 
-void CPLibUtils::UnloadCPLib()
+void CPLibUtils::UnloadCPLib(VADriverContextP ctx)
 {
     if(nullptr != m_phandle)
     {
@@ -105,9 +115,9 @@ void CPLibUtils::UnloadCPLib()
         if(0 != dlclose(m_phandle)) // dlclose will return 0 if execution sucecceed
             CPLIB_ASSERTMESSAGE("Failed to close CPLIB %s", dlerror());
     }
-}
 
-bool CPLibUtils::IsCPLibLoaded()
-{
-    return nullptr != m_phandle;
+    using FuncType = void (*)(VADriverContextP ctx);
+    InvokeCpFunc<FuncType>(FUNC_RELEASE_CPLIB, ctx);
+
+
 }

@@ -228,6 +228,15 @@ typedef union _DDI_MEDIA_SURFACE_STATUS_REPORT
         uint32_t                   crcValue;  // indicate the CRC value of the decoded data
     } decode;
     //!
+    //! \struct _DDI_MEDIA_SURFACE_CENC_STATUS
+    //! \brief  Ddi media surface cenc status
+    //! 
+    struct _DDI_MEDIA_SURFACE_CENC_STATUS
+    {
+        uint32_t                   status;    // indicate latest cenc status for current surface, refer to CODECHAL_STATUS in CodechalDecodeStatusReport.
+        uint32_t                   reserved;  // reserved
+    } cenc;
+    //!
     //! \struct _DDI_MEDIA_SURFACE_VPP_STATUS
     //! \brief  Ddi media surface vpp status
     //!
@@ -546,6 +555,19 @@ VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface);
 //!     Pointer to ddi media buffer
 //!
 DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
+
+//!
+//! \brief  Get context from VA buffer ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] bufferID
+//!     VA buffer ID
+//!
+//! \return void*
+//!     Pointer to context
+//!
+void* DdiMedia_GetContextFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
 
 //!
 //! \brief  Destroy buffer from VA buffer ID

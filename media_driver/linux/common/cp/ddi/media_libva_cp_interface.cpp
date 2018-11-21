@@ -87,8 +87,10 @@ VAStatus DdiCpInterface::EndPictureCenc(
 }
 
 VAStatus DdiCpInterface::QueryCencStatus(
-    VADriverContextP    ctx,
-    VASurfaceStatus     *status)
+    uint16_t            mode,
+    uint32_t            infoSize,
+    void                *info)
+
 {
     DdiStubMessage();
     return VA_STATUS_SUCCESS;
