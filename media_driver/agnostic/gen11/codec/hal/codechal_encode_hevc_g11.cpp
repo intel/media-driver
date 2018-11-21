@@ -2861,7 +2861,7 @@ MOS_STATUS CodechalEncHevcStateG11::HucPakIntegrate(
 
     // DMEM set
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
-    if (m_brcEnabled)
+    if (m_brcEnabled && m_hevcSeqParams->RateControlMethod != RATECONTROL_ICQ)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCPakIntegrate(&dmemParams));
     }
@@ -2872,7 +2872,7 @@ MOS_STATUS CodechalEncHevcStateG11::HucPakIntegrate(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucDmemStateCmd(cmdBuffer, &dmemParams));
 
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams;
-    if (m_brcEnabled)
+    if (m_brcEnabled && m_hevcSeqParams->RateControlMethod != RATECONTROL_ICQ)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRegionsHuCPakIntegrate(&virtualAddrParams));
     }
@@ -6692,7 +6692,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetDmemHuCPakIntegrateCqp(
     lockFlagsWriteOnly.WriteOnly = true;
 
     int32_t currentPass = GetCurrentPass();
-    if (currentPass != 0 || !m_cqpEnabled)
+    if (currentPass != 0 || (!m_cqpEnabled && m_hevcSeqParams->RateControlMethod != RATECONTROL_ICQ))
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         return eStatus;
@@ -6836,7 +6836,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetRegionsHuCPakIntegrateCqp(
 
     int32_t currentPass = GetCurrentPass();
     if (currentPass < 0 || 
-        (currentPass >= CODECHAL_HEVC_MAX_NUM_BRC_PASSES  && m_brcEnabled) || 
+        (m_hevcSeqParams->RateControlMethod != RATECONTROL_ICQ && m_brcEnabled) || 
         (currentPass != 0 && m_cqpEnabled))
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
