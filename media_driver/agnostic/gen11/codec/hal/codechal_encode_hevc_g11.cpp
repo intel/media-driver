@@ -662,6 +662,7 @@ MOS_STATUS CodechalEncHevcStateG11::AllocateEncResources()
 
     // Surfaces used by I & B Kernels
     uint32_t   width = 0, height = 0;
+    uint32_t   size = 0;
 
     // Intermediate CU Record surface
     if (Mos_ResourceIsNull(&m_intermediateCuRecordSurfaceLcu32.OsResource))
@@ -691,19 +692,20 @@ MOS_STATUS CodechalEncHevcStateG11::AllocateEncResources()
     }
 
     // LCU Level Input Data
-    if (Mos_ResourceIsNull(&m_lcuLevelInputDataSurface.OsResource))
+    for(uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_lcuLevelInputDataSurface); i++)
     {
-        width  = 16 * ((m_widthAlignedMaxLcu >> 6) << 1);
-        height = ((m_heightAlignedMaxLcu >> 6) << 1);
+        if (Mos_ResourceIsNull(&m_lcuLevelInputDataSurface[i].OsResource))
+        {
+            width  = 16 * ((m_widthAlignedMaxLcu >> 6) << 1);
+            height = ((m_heightAlignedMaxLcu >> 6) << 1);
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
-            &m_lcuLevelInputDataSurface,
-            width,
-            height,
-            "Lcu Level Data Input surface"));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
+                &m_lcuLevelInputDataSurface[i],
+                width,
+                height,
+                "Lcu Level Data Input surface"));
+        }
     }
-
-      uint32_t size = 0;
 
     m_brcInputForEncKernelBuffer = nullptr;
 
@@ -847,9 +849,12 @@ MOS_STATUS CodechalEncHevcStateG11::FreeEncResources()
         &m_scratchSurface.OsResource);
 
     // Release LCU Level Input Data
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &m_lcuLevelInputDataSurface.OsResource);
+    for(uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_lcuLevelInputDataSurface); i++)
+    {
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_lcuLevelInputDataSurface[i].OsResource);
+    }
 
     // Release Current Picture Y with Reconstructed boundary pixels surface
     m_osInterface->pfnFreeResource(
@@ -4310,7 +4315,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     startBTI = MBENC_B_FRAME_LCU_LEVEL_DATA_INPUT;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams2D(
         &surfaceCodecParams,
-        &m_lcuLevelInputDataSurface,
+        &m_lcuLevelInputDataSurface[m_currRecycledBufIdx],
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_LCU_LEVEL_DATA_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI],
         m_verticalLineStride,
@@ -5334,7 +5339,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
         &idParams));
 
     // Generate Lcu Level Data
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(GenerateLcuLevelData(m_lcuLevelInputDataSurface));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GenerateLcuLevelData(m_lcuLevelInputDataSurface[m_currRecycledBufIdx]));
 
     // Generate Concurrent Thread Group Data
     if(m_swScoreboardState->GetDependencyPattern() == dependencyWavefront26Degree ||
@@ -5396,7 +5401,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
         if (m_pictureCodingType == I_TYPE)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
-                &m_lcuLevelInputDataSurface,
+                &m_lcuLevelInputDataSurface[m_currRecycledBufIdx],
                 CodechalDbgAttr::attrOutput,
                 "HEVC_I_MBENC_LcuLevelData_In",
                 CODECHAL_MEDIA_STATE_HEVC_I_MBENC));
@@ -5404,7 +5409,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
         else
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
-                &m_lcuLevelInputDataSurface,
+                &m_lcuLevelInputDataSurface[m_currRecycledBufIdx],
                 CodechalDbgAttr::attrOutput,
                 "HEVC_B_MBENC_LcuLevelData_In",
                 CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
@@ -6156,7 +6161,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeKernelFunctions()
 
     m_swScoreboardState->SetCurSwScoreboardSurfaceIndex(m_currRecycledBufIdx);
 
-    swScoreboardKernelParames.lcuInfoSurface = &m_lcuLevelInputDataSurface;
+    swScoreboardKernelParames.lcuInfoSurface = &m_lcuLevelInputDataSurface[m_currRecycledBufIdx];
 
     if(m_useSwInitScoreboard)
     {
