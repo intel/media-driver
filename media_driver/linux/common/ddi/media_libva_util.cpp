@@ -504,6 +504,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     }
 
     gmmParams.Flags.Gpu.Video = true;
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrLocalMemory);
 
     mediaSurface->pGmmResourceInfo = gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
@@ -661,6 +662,8 @@ VAStatus DdiMediaUtil_AllocateBuffer(
     gmmParams.Format                = GMM_FORMAT_GENERIC_8BIT;
     gmmParams.Flags.Gpu.Video       = true;
     gmmParams.Flags.Info.Linear     = true;
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx, "MediaCtx is null", VA_STATUS_ERROR_INVALID_BUFFER);
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&mediaBuffer->pMediaCtx->SkuTable, FtrLocalMemory);
 
     mediaBuffer->pGmmResourceInfo = mediaBuffer->pMediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
@@ -716,6 +719,8 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
 
     gmmParams.Flags.Info.Linear = true;
     gmmParams.Flags.Gpu.Video   = true;
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx, "MediaCtx is null", VA_STATUS_ERROR_INVALID_BUFFER);
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&mediaBuffer->pMediaCtx->SkuTable, FtrLocalMemory);
     GMM_RESOURCE_INFO          *gmmResourceInfo;
     mediaBuffer->pGmmResourceInfo = gmmResourceInfo = mediaBuffer->pMediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
