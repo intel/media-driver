@@ -45,10 +45,16 @@ namespace CMRT_UMD
 //| Purpose:    Create Task internal
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadSpaceRT* threadSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo)
+int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], const CmThreadSpaceRT* threadSpace,
+                               CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task,
+                               const uint64_t conditionalEndBitmap,
+                               PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo)
 {
     int32_t result = CM_SUCCESS;
-    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device, syncBitmap, conditionalEndBitmap, conditionalEndInfo);
+    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device,
+                                             syncBitmap, conditionalEndBitmap, conditionalEndInfo,
+                                             nullptr);
     if( task )
     {
         result = task->Initialize(threadSpace, false);
@@ -69,10 +75,17 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
 //| Purpose:    Create Task internal with Thread Group Space
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo)
+int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace,
+                               CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task,
+                               const uint64_t conditionalEndBitmap,
+                               PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo,
+                               const CM_EXECUTION_CONFIG* krnExecCfg)
 {
     int32_t result = CM_SUCCESS;
-    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device, syncBitmap, conditionalEndBitmap, conditionalEndInfo);
+    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device,
+                                             syncBitmap, conditionalEndBitmap, conditionalEndInfo,
+                                             krnExecCfg);
 
     if( task )
     {
@@ -93,7 +106,8 @@ int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t total
 int32_t CmTaskInternal::Create( CmDeviceRT* device, CmVeboxRT* vebox, CmTaskInternal*& task )
 {
     int32_t result = CM_SUCCESS;
-    task = new (std::nothrow) CmTaskInternal(0, 0, nullptr, device, CM_NO_KERNEL_SYNC, CM_NO_CONDITIONAL_END, nullptr);
+    task = new (std::nothrow) CmTaskInternal(0, 0, nullptr, device, CM_NO_KERNEL_SYNC,
+                                             CM_NO_CONDITIONAL_END, nullptr, nullptr);
     if( task )
     {
         result = task->Initialize(vebox);
@@ -114,10 +128,14 @@ int32_t CmTaskInternal::Create( CmDeviceRT* device, CmVeboxRT* vebox, CmTaskInte
 //| Purpose:    Create Task internal with hints
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], CmTaskInternal*& task,  uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints, CmDeviceRT* device)
+int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], CmTaskInternal*& task,
+                               uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints,
+                               CmDeviceRT* device)
 {
     int32_t result = CM_SUCCESS;
-    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device, CM_NO_KERNEL_SYNC, CM_NO_CONDITIONAL_END, nullptr);
+    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device,
+                                             CM_NO_KERNEL_SYNC, CM_NO_CONDITIONAL_END, nullptr, nullptr);
     if ( task )
     {
         result = task->Initialize(hints, numGeneratedTasks, isLastTask);
@@ -149,7 +167,11 @@ int32_t CmTaskInternal::Destroy( CmTaskInternal* &task )
 //| Purpose:    Constructor of  CmTaskInternal
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
-CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], CmDeviceRT* device, const uint64_t syncBitmap, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo) :
+CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], CmDeviceRT* device,
+                               const uint64_t syncBitmap, const uint64_t conditionalEndBitmap,
+                               PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo,
+                               const CM_EXECUTION_CONFIG* krnExecCfg) :
     m_kernels( kernelCount ),
     m_kernelData( kernelCount ),
     m_kernelCount( kernelCount ),
@@ -159,6 +181,7 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     m_isThreadCoordinatesExisted(false),
     m_threadSpaceWidth(0),
     m_threadSpaceHeight(0),
+    m_threadSpaceDepth(0),
     m_threadCoordinates(nullptr),
     m_dependencyPattern(CM_NONE_DEPENDENCY),
     m_walkingPattern(CM_WALK_DEFAULT),
@@ -169,6 +192,7 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     m_isThreadGroupSpaceCreated(false),
     m_groupSpaceWidth(0),
     m_groupSpaceHeight(0),
+    m_groupSpaceDepth(0),
     m_slmSize(0),
     m_spillMemUsed(0),
     m_colorCountMinusOne( 0 ),
@@ -211,6 +235,16 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     else
     {
         CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
+    }
+
+    CmSafeMemSet(&m_veboxParam, 0, sizeof(m_veboxParam));
+    CmSafeMemSet(&m_veboxState, 0, sizeof(m_veboxState));
+    CmSafeMemSet(&m_veboxSurfaceData, 0, sizeof(m_veboxSurfaceData));
+    CmSafeMemSet(&m_powerOption, 0, sizeof(m_powerOption));
+
+    if (krnExecCfg != nullptr)
+    {
+        CmSafeMemCopy(&m_krnExecCfg, krnExecCfg, sizeof(m_krnExecCfg));
     }
 }
 
@@ -296,7 +330,6 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* threadSpace, bool isWi
     CM_HAL_MAX_VALUES* halMaxValues = nullptr;
     CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
     m_cmDevice->GetHalMaxValues( halMaxValues, halMaxValuesEx );
-    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_cmDevice->GetAccelData())->cmHalState;
 
     if (m_cmDevice->IsPrintEnable())
     {
@@ -539,7 +572,8 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* threadGroupSpace)
         kernel->GetSizeInPayload(kernelPayloadSize);
 
         PCM_HAL_KERNEL_PARAM  halKernelParam = kernelData->GetHalCmKernelData();
-        if (halKernelParam->crossThreadConstDataLen + halKernelParam->curbeSizePerThread + kernelPayloadSize > halMaxValues->maxArgByteSizePerKernel)
+        if (halKernelParam->crossThreadConstDataLen + halKernelParam->curbeSizePerThread + kernelPayloadSize
+            > halMaxValues->maxArgByteSizePerKernel)
         {   //Failed, exceed the maximum of inline data
             CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
             return CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE;
@@ -597,7 +631,9 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* threadGroupSpace)
 
     if (threadGroupSpace)
     {
-        threadGroupSpace->GetThreadGroupSpaceSize(m_threadSpaceWidth, m_threadSpaceHeight, m_threadSpaceDepth,  m_groupSpaceWidth, m_groupSpaceHeight, m_groupSpaceDepth);
+        threadGroupSpace->GetThreadGroupSpaceSize(m_threadSpaceWidth, m_threadSpaceHeight,
+                                                  m_threadSpaceDepth, m_groupSpaceWidth,
+                                                  m_groupSpaceHeight, m_groupSpaceDepth);
         m_isThreadGroupSpaceCreated = true;
     }
 
@@ -644,10 +680,10 @@ int32_t CmTaskInternal::Initialize(CmVeboxRT* vebox)
     for (int i = 0; i < VEBOX_SURFACE_NUMBER; i++)
     {
         CmSurface2DRT* surf = nullptr;
-        uint32_t surfaceHandle = 0;
         vebox->GetSurface(i, surf);
         if (surf)
         {
+            uint32_t surfaceHandle = 0;
             SurfaceIndex* surfIndex = nullptr;
             surf->GetIndex(surfIndex);
             surf->GetHandle(surfaceHandle);
@@ -984,7 +1020,9 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *perTask
 
         if (perTaskThreadGroupSpace)
         {  // Per Thread Group Space
-            perTaskThreadGroupSpace->GetThreadGroupSpaceSize(threadSpaceWidth, threadSpaceHeight, threadSpaceDepth, threadGroupSpaceWidth, threadGroupSpaceHeight, threadGroupSpaceDepth);
+            perTaskThreadGroupSpace->GetThreadGroupSpaceSize(threadSpaceWidth, threadSpaceHeight,
+                                                             threadSpaceDepth, threadGroupSpaceWidth,
+                                                             threadGroupSpaceHeight, threadGroupSpaceDepth);
             m_taskProfilingInfo.localWorkWidth[i] = threadSpaceWidth;
             m_taskProfilingInfo.localWorkHeight[i] = threadSpaceHeight;
             m_taskProfilingInfo.globalWorkWidth[i] = threadSpaceWidth*threadGroupSpaceWidth;
@@ -994,7 +1032,9 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *perTask
         else if (perKernelGroupSpace)
         {
             //Fill each threads group space's info
-            perKernelGroupSpace->GetThreadGroupSpaceSize(threadSpaceWidth, threadSpaceHeight, threadSpaceDepth, threadGroupSpaceWidth, threadGroupSpaceHeight, threadGroupSpaceDepth);
+            perKernelGroupSpace->GetThreadGroupSpaceSize(threadSpaceWidth, threadSpaceHeight,
+                                                         threadSpaceDepth, threadGroupSpaceWidth,
+                                                         threadGroupSpaceHeight, threadGroupSpaceDepth);
             m_taskProfilingInfo.localWorkWidth[i] = threadSpaceWidth;
             m_taskProfilingInfo.localWorkHeight[i] = threadSpaceHeight;
             m_taskProfilingInfo.globalWorkWidth[i] = threadSpaceWidth*threadGroupSpaceWidth;
@@ -1154,15 +1194,24 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* threadSpace
                 }
                 uint32_t kIndex = kernelInThreadSpace->GetIndexInTask();
 
-                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].x = threadSpaceUnit[boardOrder[tIndex]].scoreboardCoordinates.x;
-                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].y = threadSpaceUnit[boardOrder[tIndex]].scoreboardCoordinates.y;
-                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].mask = threadSpaceUnit[boardOrder[tIndex]].dependencyMask;
-                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].resetMask = threadSpaceUnit[boardOrder[tIndex]].reset;
-                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].color = threadSpaceUnit[boardOrder[tIndex]].scoreboardColor;
-                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].sliceSelect = threadSpaceUnit[boardOrder[tIndex]].sliceDestinationSelect;
-                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].subSliceSelect = threadSpaceUnit[boardOrder[tIndex]].subSliceDestinationSelect;
-                m_dependencyMasks[kIndex][kernelCoordinateIndex[kIndex]].mask = threadSpaceUnit[boardOrder[tIndex]].dependencyMask;
-                m_dependencyMasks[kIndex][kernelCoordinateIndex[kIndex]].resetMask = threadSpaceUnit[boardOrder[tIndex]].reset;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].x
+                  = threadSpaceUnit[boardOrder[tIndex]].scoreboardCoordinates.x;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].y
+                  = threadSpaceUnit[boardOrder[tIndex]].scoreboardCoordinates.y;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].mask
+                  = threadSpaceUnit[boardOrder[tIndex]].dependencyMask;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].resetMask
+                  = threadSpaceUnit[boardOrder[tIndex]].reset;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].color
+                  = threadSpaceUnit[boardOrder[tIndex]].scoreboardColor;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].sliceSelect
+                  = threadSpaceUnit[boardOrder[tIndex]].sliceDestinationSelect;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].subSliceSelect
+                  = threadSpaceUnit[boardOrder[tIndex]].subSliceDestinationSelect;
+                m_dependencyMasks[kIndex][kernelCoordinateIndex[kIndex]].mask
+                  = threadSpaceUnit[boardOrder[tIndex]].dependencyMask;
+                m_dependencyMasks[kIndex][kernelCoordinateIndex[kIndex]].resetMask
+                  = threadSpaceUnit[boardOrder[tIndex]].reset;
                 kernelCoordinateIndex[kIndex] ++;
             }
 
@@ -1391,7 +1440,9 @@ bool CmTaskInternal::IsThreadCoordinatesExisted(void)
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
 
-int32_t CmTaskInternal::GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint32_t& threadSpaceHeight, uint32_t& threadSpaceDepth, uint32_t& groupSpaceWidth, uint32_t& groupSpaceHeight, uint32_t& groupSpaceDepth)
+int32_t CmTaskInternal::GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint32_t& threadSpaceHeight,
+                                                uint32_t& threadSpaceDepth, uint32_t& groupSpaceWidth,
+                                                uint32_t& groupSpaceHeight, uint32_t& groupSpaceDepth)
 {
     threadSpaceWidth = m_threadSpaceWidth;
     threadSpaceHeight = m_threadSpaceHeight;
@@ -1471,8 +1522,9 @@ int32_t CmTaskInternal::AllocateKernelSurfInfo()
 {
     //Allocate Surf info array
     m_kernelSurfInfo.kernelNum = m_kernelCount;
-    m_kernelSurfInfo.surfEntryInfosArray = (CM_HAL_SURFACE_ENTRY_INFO_ARRAY*)MOS_AllocAndZeroMemory(m_kernelCount *
-                                sizeof(CM_HAL_SURFACE_ENTRY_INFO_ARRAY));
+    m_kernelSurfInfo.surfEntryInfosArray
+      = (CM_HAL_SURFACE_ENTRY_INFO_ARRAY*)MOS_AllocAndZeroMemory(m_kernelCount *
+                                                                 sizeof(CM_HAL_SURFACE_ENTRY_INFO_ARRAY));
     if(m_kernelSurfInfo.surfEntryInfosArray == nullptr)
     {
 
@@ -1664,11 +1716,10 @@ const char *gDependencyPatternString[] =
 //Only for debugging
 int32_t CmTaskInternal::DisplayThreadSpaceData(uint32_t width, uint32_t height)
 {
-    uint32_t i;
     if (m_threadCoordinates != nullptr)
     {
         CM_NORMALMESSAGE("Score board[Kernel x: (x1, y1), (x2, y2)...]:");
-        for (i = 0; i < m_kernelCount; i ++)
+        for (uint32_t i = 0; i < m_kernelCount; i ++)
         {
             CmKernelRT *kernelRT = nullptr;
             GetKernel(i, kernelRT);

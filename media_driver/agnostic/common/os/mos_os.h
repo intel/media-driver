@@ -1178,5 +1178,10 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
     bool           isDecode,
     bool           veDefaultEnable);
 
+struct ContextRequirement
+{
+    bool IsEnc = false;
+    bool IsPak = false;
+};
 
 #endif  // __MOS_OS_H__

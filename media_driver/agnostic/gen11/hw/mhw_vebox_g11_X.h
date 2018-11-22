@@ -179,6 +179,12 @@ public:
         MOS_GPU_CONTEXT VeboxGpuContext,
         MOS_GPU_NODE    VeboxGpuNode);
 
+    virtual MOS_STATUS AdjustBoundary(
+        PMHW_VEBOX_SURFACE_PARAMS pSurfaceParam,
+        uint32_t                  *pdwSurfaceWidth,
+        uint32_t                  *pdwSurfaceHeight,
+        bool                      bDIEnable);
+
 private:
     uint32_t m_BT2020InvPixelValue[256];
     uint32_t m_BT2020FwdPixelValue[256];
@@ -244,12 +250,6 @@ private:
     //!
     void IecpStateInitialization(
         mhw_vebox_g11_X::VEBOX_IECP_STATE_CMD    *pVeboxIecpState);
-
-    MOS_STATUS AdjustBoundary(
-        PMHW_VEBOX_SURFACE_PARAMS pSurfaceParam,
-        uint32_t                  *pdwSurfaceWidth,
-        uint32_t                  *pdwSurfaceHeight,
-        bool                      bDIEnable);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS ValidateVeboxScalabilityConfig();

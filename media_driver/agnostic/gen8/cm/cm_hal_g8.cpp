@@ -474,6 +474,15 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     }
 #endif
 
+
+#if MDF_SURFACE_STATE_DUMP
+    if (state->dumpSurfaceState)
+    {
+        state->pfnDumpSurfaceState(state, 0, mhw_state_heap_g8_X::RENDER_SURFACE_STATE_CMD::byteSize);
+       
+    }
+#endif
+
     CM_CHK_MOSSTATUS_GOTOFINISH( state->pfnGetGpuTime( state, &state->taskTimeStamp->submitTimeInGpu[ taskId ] ) );
     CM_CHK_MOSSTATUS_GOTOFINISH( state->pfnGetGlobalTime( &state->taskTimeStamp->submitTimeInCpu[ taskId ] ) );
 

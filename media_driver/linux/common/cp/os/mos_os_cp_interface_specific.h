@@ -32,8 +32,6 @@
 #include "mos_util_debug.h"
 #include "cplib.h"
 
-typedef struct _CpContext *PMOS_CP_CONTEXT;
-
 class MosCpInterface
 {
 public:

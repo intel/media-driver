@@ -285,20 +285,22 @@ MOS_STATUS VphalRenderer::PrepareSources(
     uint32_t        uiLeftCount;
     uint32_t        uiRightCount;
     uint32_t        uiSources;
+    uint32_t        uiTargets;
     uint32_t        uiIndex;
-    PMOS_RESOURCE   ppOsResource[VPHAL_MAX_SOURCES] = { nullptr };
-
+    PMOS_RESOURCE   ppSource[VPHAL_MAX_SOURCES] = { nullptr };
+    PMOS_RESOURCE   ppTarget[VPHAL_MAX_TARGETS] = { nullptr };
     eStatus         = MOS_STATUS_SUCCESS;
     uiLeftCount     = 0;
     uiRightCount    = 0;
     uiIndex         = 0;
     uiSources       = 0;
+    uiTargets       = 0;
 
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
 
     for (uiSources=0, uiIndex=0;
-         (uiSources < pRenderParams->uSrcCount) && (uiIndex < VPHAL_MAX_SOURCES);
-         uiIndex++)
+        (uiIndex < pRenderParams->uSrcCount) && (uiIndex < VPHAL_MAX_SOURCES);
+        uiIndex++)
     {
         pcSrc = pRenderParams->pSrc[uiIndex];
 
@@ -307,11 +309,25 @@ MOS_STATUS VphalRenderer::PrepareSources(
             continue;
         }
 
-        ppOsResource[uiSources] = &pcSrc->OsResource;
+        ppSource[uiSources] = &pcSrc->OsResource;
 
         pSrcLeft[uiLeftCount++] = pcSrc;
 
         uiSources++;
+    }
+
+    //gather render target list
+    for (uiTargets = 0, uiIndex = 0;
+        (uiIndex < pRenderParams->uDstCount) && (uiIndex < VPHAL_MAX_TARGETS);
+        uiIndex++)
+    {
+        pcSrc = pRenderParams->pTarget[uiIndex];
+
+        if (pcSrc)
+        {
+            ppTarget[uiTargets] = &pcSrc->OsResource;
+            uiTargets++;
+        }
     }
 
     VPHAL_RENDER_ASSERT(uiRightCount == 0);
@@ -321,6 +337,13 @@ MOS_STATUS VphalRenderer::PrepareSources(
 
 finish:
     VPHAL_RENDER_ASSERT(eStatus == MOS_STATUS_SUCCESS);
+
+    if ((nullptr != m_pOsInterface) && (nullptr != m_pOsInterface->osCpInterface))
+    {
+        eStatus = m_pOsInterface->osCpInterface->PrepareResources(
+                    (void **)ppSource, uiSources,
+                    (void **)ppTarget, uiTargets);
+    }
     return eStatus;
 }
 
@@ -699,6 +722,7 @@ MOS_STATUS VphalRenderer::RenderPass(
             // new 1toN path for multi ouput with scaling only case.
             VPHAL_RENDER_NORMALMESSAGE("Enter fast 1to N render.");
             VPHAL_RENDER_CHK_STATUS(RenderFast1toNComposite(pRenderParams, &RenderPassData));
+            UpdateReport(pRenderParams, &RenderPassData);
         }
         else
         {
@@ -739,17 +763,16 @@ MOS_STATUS VphalRenderer::RenderPass(
                     RenderPassData.bCompNeeded = true;
                     VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
                 }
-                
+
                 if (RenderPassData.bCompNeeded)
                 {
                     VPHAL_RENDER_CHK_STATUS(RenderComposite(&TPRenderParams, &RenderPassData));
                 }
-                
+
                 // Report Render modes
                 UpdateReport(pRenderParams, &RenderPassData);
             }
         }
-
     }
 
     //------------------------------------------
@@ -849,7 +872,16 @@ MOS_STATUS VphalRenderer::RenderFast1toNComposite(
 {
     MOS_STATUS              eStatus;
     eStatus             = MOS_STATUS_SUCCESS;
-    eStatus = Fast1toNState.pfnRender(&Fast1toNState, pRenderParams);
+    if (pRenderPassData->pSrcSurface->SurfType == SURF_IN_PRIMARY)
+    {
+        VpHal_SaveRestorePrimaryFwdRefs(
+            this,
+            pRenderPassData->pPrimarySurface,
+            true /*save*/);
+        pRenderParams->pSrc[pRenderPassData->uiSrcIndex] = pRenderPassData->pSrcSurface;
+        eStatus = Fast1toNState.pfnRender(&Fast1toNState, pRenderParams);
+    }
+
     return eStatus;
 }
 
@@ -967,6 +999,9 @@ bool VphalRenderer::IsFormatSupported(
             switch (pcRenderParams->pTarget[0]->Format)
             {
             case Format_P010:
+                bFormatSupported = MEDIA_IS_SKU(m_pSkuTable, FtrVpP010Output) ? true : false;
+                break;
+            case Format_P016:
                 bFormatSupported = MEDIA_IS_SKU(m_pSkuTable, FtrVpP010Output) ? true : false;
                 break;
             case Format_Y210:
@@ -1138,9 +1173,6 @@ MOS_STATUS VphalRenderer::Render(
 
         VPHAL_RENDER_CHK_STATUS(RenderPass(&RenderParams));
     }
-
-    FreeIntermediateSurfaces();
-
 finish:
     uiFrameCounter++;
     return eStatus;
@@ -1154,6 +1186,16 @@ finish:
 //!
 MOS_STATUS VphalRenderer::FreeIntermediateSurfaces()
 {
+    // Free IntermediateSurface
+    if (m_pOsInterface)
+    {
+        m_pOsInterface->pfnFreeResource(m_pOsInterface, &IntermediateSurface.OsResource);
+    }
+
+    MOS_SafeFreeMemory(IntermediateSurface.pBlendingParams);
+    MOS_SafeFreeMemory(IntermediateSurface.pIEFParams);
+    MOS_SafeFreeMemory(IntermediateSurface.pHDRParams);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1319,6 +1361,8 @@ VphalRenderer::~VphalRenderer()
     userFeatureWriteData.ValueID        = __VPHAL_VEBOX_FEATURE_INUSE_ID;
     MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 #endif
+
+    FreeIntermediateSurfaces();
 
     MOS_Delete(m_reporting);
 

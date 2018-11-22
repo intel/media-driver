@@ -105,6 +105,7 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
         case Format_Y210        : return GMM_FORMAT_Y210_TYPE;
         case Format_Y410        : return GMM_FORMAT_Y410_TYPE;
+        case Format_R10G10B10A2 : return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
 }
@@ -500,10 +501,11 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                         }
                         if (m_systemShadow)
                         {
+                            int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
                             MOS_OS_CHECK_CONDITION((m_tileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
                             MOS_OS_CHECK_CONDITION((boPtr->size <= 0 || m_pitch <= 0), "Invalid BO size or pitch", nullptr);
                             Mos_SwizzleData((uint8_t*)boPtr->virt, m_systemShadow, 
-                                    MOS_TILE_Y, MOS_TILE_LINEAR, boPtr->size / m_pitch, m_pitch);
+                                    MOS_TILE_Y, MOS_TILE_LINEAR, boPtr->size / m_pitch, m_pitch, flags);
                         }
                     }
                     else
@@ -577,8 +579,9 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
 #else
                if (m_systemShadow)
                {
+                   int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
                    Mos_SwizzleData(m_systemShadow, (uint8_t*)boPtr->virt, 
-                           MOS_TILE_LINEAR, MOS_TILE_Y, boPtr->size / m_pitch, m_pitch);
+                           MOS_TILE_LINEAR, MOS_TILE_Y, boPtr->size / m_pitch, m_pitch, flags);
                    MOS_FreeMemory(m_systemShadow);
                    m_systemShadow = nullptr;
                }

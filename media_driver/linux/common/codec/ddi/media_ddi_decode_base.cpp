@@ -54,7 +54,7 @@ VAStatus DdiMediaDecode::BasicInit(
         sizeof(DDI_DECODE_CONFIG_ATTR));
     if (m_ddiDecodeAttr && ddiConfAttr)
     {
-        memcpy_s(m_ddiDecodeAttr, sizeof(DDI_DECODE_CONFIG_ATTR), ddiConfAttr, sizeof(DDI_DECODE_CONFIG_ATTR));
+        MOS_SecureMemcpy(m_ddiDecodeAttr, sizeof(DDI_DECODE_CONFIG_ATTR), ddiConfAttr, sizeof(DDI_DECODE_CONFIG_ATTR));
     }
 
     m_ddiDecodeCtx = (DDI_DECODE_CONTEXT *)MOS_AllocAndZeroMemory(
@@ -272,7 +272,7 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         {
             if (bufMgr->pSliceData[slcInd].pSliceBuf)
             {
-                memcpy_s(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
+                MOS_SecureMemcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
                     bufMgr->pSliceData[slcInd].uiLength,
                     bufMgr->pSliceData[slcInd].pSliceBuf,
                     bufMgr->pSliceData[slcInd].uiLength);
@@ -283,7 +283,7 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         }
         else
         {
-            memcpy_s(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
+            MOS_SecureMemcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
                 bufMgr->pSliceData[slcInd].uiLength,
                 bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] + bufMgr->pSliceData[slcInd].uiOffset,
                 bufMgr->pSliceData[slcInd].uiLength);
@@ -708,13 +708,13 @@ VAStatus DdiMediaDecode::CreateBuffer(
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    buf->iSize        = size * numElements;
-    buf->iNumElements = numElements;
-    buf->uiType       = type;
-    buf->format       = Media_Format_Buffer;
-    buf->uiOffset     = 0;
-    buf->bCFlushReq   = false;
-    buf->pMediaCtx    = m_ddiDecodeCtx->pMediaCtx;
+    buf->iSize         = size * numElements;
+    buf->uiNumElements = numElements;
+    buf->uiType        = type;
+    buf->format        = Media_Format_Buffer;
+    buf->uiOffset      = 0;
+    buf->bCFlushReq    = false;
+    buf->pMediaCtx     = m_ddiDecodeCtx->pMediaCtx;
 
     switch ((int32_t)type)
     {

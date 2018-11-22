@@ -183,6 +183,8 @@ static bool InitIclMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrContextBasedScheduling, 0);
 
+    MEDIA_WR_SKU(skuTable, FtrTileY, 1);
+
     return true;
 }
 

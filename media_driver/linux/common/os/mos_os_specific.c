@@ -1251,7 +1251,6 @@ MOS_STATUS Linux_InitContext(
     pContext->fd              = pOsDriverContext->fd;
     pContext->pPerfData       = pOsDriverContext->pPerfData;
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
-    pContext->pCpContext = pOsDriverContext->pCpContext;
 
     // DDI layer can pass over the DeviceID.
     iDeviceId = pOsDriverContext->iDeviceId;
@@ -1283,6 +1282,7 @@ MOS_STATUS Linux_InitContext(
 
     pContext->bUse64BitRelocs = true;
     pContext->bUseSwSwizzling = MEDIA_IS_SKU(&pContext->SkuTable, FtrSimulationMode);
+    pContext->bTileYFlag      = MEDIA_IS_SKU(&pContext->SkuTable, FtrTileY);
 
 #ifndef ANDROID
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
@@ -2570,10 +2570,11 @@ void  *Mos_Specific_LockResource(
                         }
                         if (pOsResource->pSystemShadow)
                         {
+                            int32_t flags = pContext->bTileYFlag ? 0 : 1;
                             MOS_OS_CHECK_CONDITION((pOsResource->TileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
                             MOS_OS_CHECK_CONDITION((bo->size <= 0 || pOsResource->iPitch <= 0), "Invalid BO size or pitch", nullptr);
                             Mos_SwizzleData((uint8_t*)bo->virt, pOsResource->pSystemShadow, 
-                                    MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / pOsResource->iPitch, pOsResource->iPitch);
+                                    MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / pOsResource->iPitch, pOsResource->iPitch, flags);
                         }
                     }
                     else
@@ -2689,8 +2690,9 @@ MOS_STATUS Mos_Specific_UnlockResource(
 #else
                if (pOsResource->pSystemShadow)
                {
+                   int32_t flags = pContext->bTileYFlag ? 0 : 1;
                    Mos_SwizzleData(pOsResource->pSystemShadow, (uint8_t*)pOsResource->bo->virt, 
-                           MOS_TILE_LINEAR, MOS_TILE_Y, pOsResource->bo->size / pOsResource->iPitch, pOsResource->iPitch);
+                           MOS_TILE_LINEAR, MOS_TILE_Y, pOsResource->bo->size / pOsResource->iPitch, pOsResource->iPitch, flags);
                    MOS_FreeMemory(pOsResource->pSystemShadow);
                    pOsResource->pSystemShadow = nullptr;
                }
@@ -5803,7 +5805,7 @@ MOS_VDBOX_NODE_IND Mos_Specific_GetVdboxNodeId(
         return idx;
     }
 
-#ifndef ANDROID
+#if defined(MEDIA_EXT) && !defined(ANDROID)
     if (pOsInterface->pOsContext->bPerCmdBufferBalancing)
     {
         int32_t ret;
@@ -6345,6 +6347,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     Mos_Solo_Initialize(pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
 
+#if defined(MEDIA_EXT)
     // read the "Disable VDBox load balancing" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -6352,6 +6355,7 @@ MOS_STATUS Mos_Specific_InitInterface(
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_BALANCING_ID,
         &UserFeatureData);
     pOsInterface->bEnableVdboxBalancing = (bool)UserFeatureData.u32Data;
+#endif
 
     // read the "Disable KMD Watchdog" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));

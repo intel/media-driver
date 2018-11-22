@@ -48,7 +48,7 @@
 #include "mos_os.h"
 
 #include "hwinfo_linux.h"
-#include "codechal_memdecomp.h"
+#include "mediamemdecomp.h"
 #include "mos_solo_generic.h"
 #include "media_libva_caps.h"
 #include "media_interfaces_mmd.h"
@@ -872,8 +872,8 @@ static void DdiMedia_FreeContextHeapElements(VADriverContextP    ctx)
     // Free media memory decompression data structure
     if (mediaCtx->pMediaMemDecompState)
     {
-        MediaMemDecompState *mediaMemCompState =
-            static_cast<MediaMemDecompState*>(mediaCtx->pMediaMemDecompState);
+        MediaMemDecompBaseState *mediaMemCompState =
+            static_cast<MediaMemDecompBaseState*>(mediaCtx->pMediaMemDecompState);
         MOS_Delete(mediaMemCompState);
         mediaCtx->pMediaMemDecompState = nullptr;
     }
@@ -1012,15 +1012,15 @@ bool DdiMedia_DestroyImageFromVAImageID (PDDI_MEDIA_CONTEXT mediaCtx, VAImageID 
 void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE osResource)
 {
     DDI_CHK_NULL(mosCtx, "nullptr mosCtx",);
-    DDI_ASSERT(mosCtx->ppMediaMemDecompState);
     DDI_CHK_NULL(osResource, "nullptr osResource",);
+    DDI_ASSERT(osResource);
 
-    MediaMemDecompState *mediaMemDecompState = static_cast<MediaMemDecompState*>(*mosCtx->ppMediaMemDecompState);
+    MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
     if (!mediaMemDecompState)
     {
         mediaMemDecompState =
-            static_cast<MediaMemDecompState*>(MmdDevice::CreateFactory(mosCtx));
+            static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
     }
 
     if (mediaMemDecompState)
@@ -1047,19 +1047,62 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
 //!
 VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_SURFACE *mediaSurface)
 {
-    VAStatus vaStatus = VA_STATUS_SUCCESS;
     DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(mediaSurface->pGmmResourceInfo, "nullptr mediaSurface->pGmmResourceInfo", VA_STATUS_ERROR_INVALID_PARAMETER);
-    if (mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
+
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    GMM_RESOURCE_FLAG GmmFlags;
+
+    MOS_ZeroMemory(&GmmFlags, sizeof(GmmFlags));
+    GmmFlags = mediaSurface->pGmmResourceInfo->GetResFlags();
+
+    if (((GmmFlags.Gpu.MMC                                                        ||
+          GmmFlags.Gpu.CCS)                                                       &&
+          GmmFlags.Gpu.UnifiedAuxSurface)                                         ||
+          mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
     {
 #ifdef _MMC_SUPPORTED
         MOS_CONTEXT  mosCtx;
         MOS_RESOURCE surface;
+        DdiCpInterface *pCpDdiInterface;
+        
+        MOS_ZeroMemory(&mosCtx, sizeof(mosCtx));
+        MOS_ZeroMemory(&surface, sizeof(surface));
 
-        DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+        DDI_CHK_NULL(mediaCtx, "Null mediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+        mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
+        mosCtx.m_gpuContextMgr = mediaCtx->m_gpuContextMgr;
+        mosCtx.m_cmdBufMgr     = mediaCtx->m_cmdBufMgr;
+        mosCtx.fd              = mediaCtx->fd;
+        mosCtx.iDeviceId       = mediaCtx->iDeviceId;
+        mosCtx.SkuTable        = mediaCtx->SkuTable;
+        mosCtx.WaTable         = mediaCtx->WaTable;
+        mosCtx.gtSystemInfo    = *mediaCtx->pGtSystemInfo;
+        mosCtx.platform        = mediaCtx->platform;
+
+        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+        mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+
+        pCpDdiInterface = Create_DdiCpInterface(mosCtx);
+
+        if (nullptr == pCpDdiInterface)
+        {
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
         DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
+
+        if (pCpDdiInterface)
+        {
+            Delete_DdiCpInterface(pCpDdiInterface);
+            pCpDdiInterface = NULL;
+        }
 #else
         vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
 #endif
@@ -1409,6 +1452,7 @@ VAStatus DdiMedia__Initialize (
         &mediaCtx->SkuTable, &mediaCtx->WaTable);
 
     mediaCtx->m_useSwSwizzling = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrSimulationMode);
+    mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     if (mediaCtx->modularizedGpuCtxEnabled)
@@ -2120,6 +2164,7 @@ DdiMedia_CreateSurfaces2(
                      // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
                      if( (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )
                          || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+                         || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
                          )
                       {
                           memTypeFlag       = externalBufDesc->flags;
@@ -2557,10 +2602,10 @@ static VAStatus DdiMedia_BufferSetNumElements (
     }
 
     if(buf->uiType == VASliceParameterBufferType &&
-       buf->iNumElements < num_elements)
+       buf->uiNumElements < num_elements)
     {
         MOS_FreeMemory(buf->pData);
-        buf->iSize = buf->iSize / buf->iNumElements;
+        buf->iSize = buf->iSize / buf->uiNumElements;
         buf->pData = (uint8_t*)MOS_AllocAndZeroMemory(buf->iSize * num_elements);
         buf->iSize = buf->iSize * num_elements;
     }
@@ -3967,7 +4012,7 @@ VAStatus DdiMedia_CreateImage(
         MOS_FreeMemory(vaimg);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    buf->iNumElements      = 1;
+    buf->uiNumElements     = 1;
     buf->iSize             = vaimg->data_size;
     buf->uiType            = VAImageBufferType;
     buf->format            = Media_Format_CPU;//DdiCodec_OsFormatToMediaFormat(vaimg->format.fourcc); //Media_Format_Buffer;
@@ -4232,16 +4277,16 @@ VAStatus DdiMedia_DeriveImage (
         MOS_FreeMemory(buf);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    buf->iNumElements = 1;
-    buf->iSize        = vaimg->data_size;
-    buf->uiType       = VABufferTypeMax;
-    buf->format       = mediaSurface->format;
-    buf->uiOffset     = 0;
+    buf->uiNumElements = 1;
+    buf->iSize         = vaimg->data_size;
+    buf->uiType        = VABufferTypeMax;
+    buf->format        = mediaSurface->format;
+    buf->uiOffset      = 0;
 
-    buf->bo           = mediaSurface->bo;
-    buf->format       = mediaSurface->format;
-    buf->TileType     = mediaSurface->TileType;
-    buf->pSurface     = mediaSurface;
+    buf->bo            = mediaSurface->bo;
+    buf->format        = mediaSurface->format;
+    buf->TileType      = mediaSurface->TileType;
+    buf->pSurface      = mediaSurface;
     mos_bo_reference(mediaSurface->bo);
 
     DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
@@ -5050,8 +5095,8 @@ VAStatus DdiMedia_BufferInfo (
     }
 
     *type         = (VABufferType)buf->uiType;
-    *size         = buf->iSize / buf->iNumElements;
-    *num_elements = buf->iNumElements;
+    *size         = buf->iSize / buf->uiNumElements;
+    *num_elements = buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }
@@ -5117,6 +5162,12 @@ VAStatus DdiMedia_LockSurface (
     DDI_CHK_LESS((uint32_t)surface, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surface", VA_STATUS_ERROR_INVALID_SURFACE);
 
     DDI_MEDIA_SURFACE *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
+    
+#ifdef _MMC_SUPPORTED
+    // Decompress surface is needed
+    DdiMedia_MediaMemoryDecompress(mediaCtx, mediaSurface);
+#endif
+
     if (nullptr == mediaSurface)
     {
         // Surface is absent.
@@ -5523,7 +5574,7 @@ VAStatus DdiMedia_AcquireBufferHandle(
 
     buf_info->type = buf->uiType;
     buf_info->handle = buf->handle;
-    buf_info->mem_size = buf->iNumElements * buf->iSize;
+    buf_info->mem_size = buf->uiNumElements * buf->iSize;
 
     DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
     return VA_STATUS_SUCCESS;

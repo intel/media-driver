@@ -608,7 +608,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    int32_t maxROIsupported = 0;
+    uint32_t maxROIsupported = 0;
     bool isROIValueInDeltaQP = false;
     m_encodeCtx->pMediaCtx->m_caps->QueryAVCROIMaxNum(m_encodeCtx->uiRCMethod, m_encodeCtx->bVdencActive, &maxROIsupported, &isROIValueInDeltaQP);
     if (maxROIsupported == 0)
@@ -877,7 +877,7 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         case VAEncSliceParameterBufferType:
-            numSlices = buf->iNumElements;
+            numSlices = buf->uiNumElements;
             DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
             break;
 

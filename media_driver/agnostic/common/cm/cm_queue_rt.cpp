@@ -127,13 +127,11 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
 //*-----------------------------------------------------------------------------
 CmQueueRT::~CmQueueRT()
 {
-    uint32_t eventReleaseTimes = 0;
-
     uint32_t eventArrayUsedSize = m_eventArray.GetMaxSize();
     for( uint32_t i = 0; i < eventArrayUsedSize; i ++ )
     {
         CmEventRT* event = (CmEventRT*)m_eventArray.GetElement( i );
-        eventReleaseTimes = 0;
+        uint32_t eventReleaseTimes = 0;
         while( event )
         {   // destroy the event no matter if it is released by user
             if(eventReleaseTimes > 2)
@@ -262,7 +260,14 @@ int32_t CmQueueRT::Initialize()
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE, MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
+                                                MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
+
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface,
+                                                          MOS_GPU_CONTEXT_CM_COMPUTE));
+
             m_queueOption.GPUContext = MOS_GPU_CONTEXT_CM_COMPUTE;
         }
         else
@@ -555,7 +560,8 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
                         PCM_POWER_OPTION powerOption,
                         uint64_t    conditionalEndBitmap,
                         CM_HAL_CONDITIONAL_BB_END_INFO* conditionalEndInfo,
-                        PCM_TASK_CONFIG  taskConfig)
+                        PCM_TASK_CONFIG  taskConfig,
+                        const CM_EXECUTION_CONFIG* krnExecCfg)
 {
     if(kernelArray == nullptr)
     {
@@ -572,7 +578,9 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     CLock Locker(m_criticalSectionTaskInternal);
 
     CmTaskInternal* task = nullptr;
-    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, threadGroupSpace, m_device, syncBitmap, task, conditionalEndBitmap, conditionalEndInfo);
+    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray,
+                                            threadGroupSpace, m_device, syncBitmap, task,
+                                            conditionalEndBitmap, conditionalEndInfo, krnExecCfg);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Create CmTaskInternal failure.");
@@ -797,7 +805,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
                          threadGroupSpace, taskRT->GetSyncBitmap(),
                          taskRT->GetPowerOption(),
                          taskRT->GetConditionalEndBitmap(), taskRT->GetConditionalEndInfo(),
-                         taskRT->GetTaskConfig());
+                         taskRT->GetTaskConfig(), taskRT->GetKernelExecuteConfig());
 
     if (eventRT)
     {
@@ -1130,14 +1138,8 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
     // CPU copy unaligned data
     if( direction == CM_FASTCOPY_GPU2CPU)
     {
-        uint32_t beginLineCopySize   = 0;
         uint32_t readOffset = 0;
         uint32_t copyLines = 0;
-        size_t beginLineWriteOffset = 0;
-        uint32_t mod = 0;
-        uint32_t alignedWrites = 0;
-        uint32_t endLineWriteOffset = 0;
-        uint32_t endLineCopySize = 0;
         unsigned char* startBuffer = (unsigned char*)linearAddressAligned;
 
         copyLines = (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016) ? heightStrideInRows + MOS_MIN(heightStrideInRows, height) * 1 / 2 : heightStrideInRows;
@@ -1145,9 +1147,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         for(uint32_t i = 0; i < copyLines; ++i)
         {
             //copy begining of line
-            beginLineWriteOffset = strideInBytes * i + dstAddShiftOffset;
-            mod = ((uintptr_t)startBuffer + beginLineWriteOffset) < BLOCK_WIDTH ? ((uintptr_t)startBuffer + beginLineWriteOffset) : ((uintptr_t)startBuffer + beginLineWriteOffset) & (BLOCK_WIDTH - 1);
-            beginLineCopySize = (mod == 0) ? 0:(BLOCK_WIDTH - mod);
+            size_t beginLineWriteOffset = strideInBytes * i + dstAddShiftOffset;
+            uint32_t mod = ((uintptr_t)startBuffer + beginLineWriteOffset) < BLOCK_WIDTH ? ((uintptr_t)startBuffer + beginLineWriteOffset) : ((uintptr_t)startBuffer + beginLineWriteOffset) & (BLOCK_WIDTH - 1);
+            uint32_t beginLineCopySize = (mod == 0) ? 0:(BLOCK_WIDTH - mod);
             //fix copy size for cases where the surface width is small
             if((beginLineCopySize > widthByte) || ( beginLineCopySize == 0 && widthByte < BLOCK_WIDTH ) )
             {
@@ -1159,9 +1161,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             }
 
             //copy end of line
-            alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
-            endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
-            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
+            uint32_t alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
+            uint32_t endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
+            uint32_t endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
             if(endLineCopySize > 0 && endLineWriteOffset > beginLineWriteOffset)
             {
                 CmSafeMemCopy((void *)((unsigned char *)startBuffer + endLineWriteOffset), (void *)(hybridCopyAuxSysMem + readOffset + BLOCK_WIDTH), endLineCopySize);
@@ -1466,10 +1468,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
         }
         CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, internalEvent, threadSpace ));
 
-        if( gpuCopyKernelParam )
-        {
-            GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-        }
+        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
         //update for next slice
         linearAddress += sliceCopyBufferUPSize - addedShiftLeftOffset;
@@ -1736,10 +1735,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
     }
     CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(gpuCopyTask, internalEvent, threadSpace));
 
-    if (gpuCopyKernelParam)
-    {
-        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-    }
+    GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (internalEvent))
     {
@@ -2106,10 +2102,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(surfaceOutput));   // ref_cnf to guarantee task finish before BufferUP being really destroy.
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(surfaceInput));
 
-    if( gpuCopyKernelParam )
-    {
-        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-    }
+    GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
 finish:
     if(hr != CM_SUCCESS)
@@ -2714,13 +2707,16 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
 
     if (task->IsThreadGroupSpaceCreated())//thread group size
     {
-        task->GetThreadGroupSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight, param.threadSpaceDepth, param.groupSpaceWidth, param.groupSpaceHeight, param.groupSpaceDepth);
+        task->GetThreadGroupSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight,
+                                      param.threadSpaceDepth, param.groupSpaceWidth,
+                                      param.groupSpaceHeight, param.groupSpaceDepth);
     }
 
     param.syncBitmap = task->GetSyncBitmap();
     param.conditionalEndBitmap = task->GetConditionalEndBitmap();
     param.userDefinedMediaState = task->GetMediaStatePtr();
     CmSafeMemCopy(param.conditionalEndInfo, task->GetConditionalEndInfo(), sizeof(param.conditionalEndInfo));
+    CmSafeMemCopy(param.krnExecCfg, task->GetKernelExecuteConfig(), sizeof(param.krnExecCfg));
 
     // Call HAL layer to execute pfnExecuteGroupTask
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();

@@ -86,7 +86,7 @@ VAStatus DdiDecodeVP8::ParseSliceParams(
     //used bits and remaining bits, if used bits == 8, uiFirstMbByteOffset should add 1, so use 8 to do the ceil operator
     picParams->uiFirstMbByteOffset = slcParam->slice_data_offset + ((slcParam->macroblock_offset + 8) >> 3);
 
-    memcpy_s(picParams->uiPartitionSize, sizeof(picParams->uiPartitionSize), slcParam->partition_size, sizeof(picParams->uiPartitionSize));
+    MOS_SecureMemcpy(picParams->uiPartitionSize, sizeof(picParams->uiPartitionSize), slcParam->partition_size, sizeof(picParams->uiPartitionSize));
     //partition 0 size in command buffer includes the one byte in bool decoder if remaining bits of bool decoder is zero.
     picParams->uiPartitionSize[0] -= (slcParam->macroblock_offset & 0x7) ? 0 : 1;
 
@@ -222,14 +222,14 @@ VAStatus DdiDecodeVP8::ParsePicParams(
     codecPicParams->ucUvModeProbs[2]            = picParam->uv_mode_probs[2];
     if (codecPicParams->ucMvUpdateProb[0] && picParam->mv_probs[0])
     {
-        memcpy_s(codecPicParams->ucMvUpdateProb[0],
+        MOS_SecureMemcpy(codecPicParams->ucMvUpdateProb[0],
             sizeof(codecPicParams->ucMvUpdateProb[0]),
             picParam->mv_probs[0],
             sizeof(codecPicParams->ucMvUpdateProb[0]));
     }
     if (codecPicParams->ucMvUpdateProb[1] && picParam->mv_probs[1])
     {
-        memcpy_s(codecPicParams->ucMvUpdateProb[1],
+        MOS_SecureMemcpy(codecPicParams->ucMvUpdateProb[1],
             sizeof(codecPicParams->ucMvUpdateProb[1]),
             picParam->mv_probs[1],
             sizeof(codecPicParams->ucMvUpdateProb[1]));
@@ -326,11 +326,11 @@ VAStatus DdiDecodeVP8::RenderPicture(
                 DDI_NORMALMESSAGE("SliceParamBufferVP8 is already rendered\n");
                 break;
             }
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
-            uint32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
 
             VASliceParameterBufferVP8 *slcInfoVP8 = (VASliceParameterBufferVP8 *)data;
             for(uint32_t j = 0; j < numSlices; j++)
@@ -530,7 +530,7 @@ VAStatus DdiDecodeVP8::AllocSliceControlBuffer(
     buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_VP8.pVASliceParaBufVP8;
     buf->uiOffset   = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferVP8);
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }

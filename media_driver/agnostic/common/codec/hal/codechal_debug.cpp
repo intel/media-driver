@@ -582,15 +582,31 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case  Format_Y210: //422 10bit
     case  Format_P208: //422 8bit
         break;
+    case Format_422V:
+    case Format_IMC3:
+        height = height / 2;
+        break;
     default:
         height = 0;
         break;
     }
 
+uint8_t *vPlaneData = surfBaseAddr;
 #ifdef LINUX
     data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
+    {
+        vPlaneData = surfBaseAddr + surface->VPlaneOffset.iSurfaceOffset;
+    }
 #else
     data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
+    {
+        vPlaneData = surfBaseAddr + surface->VPlaneOffset.iLockSurfaceOffset;
+    }
+
 #endif
 
     // write chroma data to file
@@ -598,6 +614,17 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     {
         ofs.write((char*)data, width);
         data += pitch;
+    }
+
+    // write v planar data to file
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
+    {
+        for (uint32_t h = 0; h < height; h++)
+        {
+            ofs.write((char *)vPlaneData, width);
+            vPlaneData += pitch;
+        }
     }
 
     ofs.close();

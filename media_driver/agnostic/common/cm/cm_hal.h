@@ -400,6 +400,7 @@ struct CM_HAL_EXEC_TASK_GROUP_PARAM
     uint32_t *kernelCurbeOffset;   // [in]  Array of Kernel Curbe Offset
     bool kernelDebugEnabled;         // [in] kernel debug is enabled
     CM_TASK_CONFIG taskConfig;       // [in] task Config
+    CM_EXECUTION_CONFIG krnExecCfg[CM_MAX_KERNELS_PER_TASK]; // [in] kernel execution config in a task. replace numOfWalkers in CM_TASK_CONFIG.
     void *userDefinedMediaState;     // [in] pointer to a user defined media state heap block
     CM_QUEUE_CREATE_OPTION queueOption;  // [in] multiple contexts queue option
     uint64_t conditionalEndBitmap;       // [in] bit map for conditional end b/w kernels
@@ -530,6 +531,8 @@ struct CM_HAL_TASK_PARAM
     conditionalBBEndParams[CM_MAX_CONDITIONAL_END_CMDS];
 
     CM_TASK_CONFIG taskConfig;       // [in] task Config
+    CM_EXECUTION_CONFIG krnExecCfg[CM_MAX_KERNELS_PER_TASK]; // [in] kernel execution config in a task. replace numOfWalkers in CM_TASK_CONFIG.
+
     void *userDefinedMediaState;  // [in] pointer to a user defined media state heap block
 
     // [in] each kernel's sampler heap offset from the DSH sampler heap base
@@ -540,6 +543,8 @@ struct CM_HAL_TASK_PARAM
 
     // [in] each kernel's indirect sampler heap offset from the DSH sampler heap base
     unsigned int samplerIndirectOffsetsByKernel[CM_MAX_KERNELS_PER_TASK];
+
+    CM_QUEUE_CREATE_OPTION queueOption;         // [in] multiple contexts queue option
 };
 typedef CM_HAL_TASK_PARAM *PCM_HAL_TASK_PARAM;
 
@@ -1851,6 +1856,9 @@ typedef struct _CM_HAL_STATE
     bool                        dumpCommandBuffer;                            //flag to enable command buffer dump
     bool                        dumpCurbeData;                                //flag to enable curbe data dump
     bool                        dumpSurfaceContent;                           //flag to enable surface content dump
+    bool                        dumpSurfaceState;                             //flag to enable surface state dump
+    bool                        enableCMDDumpTimeStamp;                        //flag to enable command buffer dump time stamp
+    bool                        enableSurfaceStateDumpTimeStamp;                        //flag to enable surface state dump time stamp
     int32_t(*pfnInitDumpCommandBuffer)
         (
         PCM_HAL_STATE            state);
@@ -1860,6 +1868,16 @@ typedef struct _CM_HAL_STATE
         PMOS_COMMAND_BUFFER      cmdBuffer,
         int                      offsetSurfaceState,
         size_t                   sizeOfSurfaceState);
+
+    int32_t(*pfnInitDumpSurfaceState)
+        (
+        PCM_HAL_STATE            state);
+    int32_t(*pfnDumpSurfaceState)
+        (
+        PCM_HAL_STATE            state,
+        int                      offsetSurfaceState,
+        size_t                   sizeOfSurfaceState);
+
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     MOS_STATUS(*pfnDSHUnregisterKernel)

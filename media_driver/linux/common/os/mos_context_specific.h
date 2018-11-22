@@ -176,6 +176,7 @@ public:
     AuxTableMgr* GetAuxTableMgr() { return m_auxTableMgr; }
 
     bool UseSwSwizzling() { return m_useSwSwizzling; }
+    bool GetTileYFlag() { return m_tileYFlag; }
 
 #ifndef ANDROID
 
@@ -300,6 +301,11 @@ private:
     bool                m_useSwSwizzling = false;
 
     //!
+    //! \brief Sku tile Y flag
+    //!
+    bool                m_tileYFlag = true;
+
+    //!
     //! \brief  flag to mark the existance of the second VDBox
     //!
     bool                m_kmdHasVCS2 = false;
@@ -350,11 +356,6 @@ private:
     //! \brief  Flag to indicate if hybrid decoder is running
     //!
     bool                m_hybridDecoderRunningFlag = false;
-
-    //!
-    //! \brief  Handle to CP context
-    //!
-    PMOS_CP_CONTEXT     m_cpContext = nullptr;
 
     //!
     //! \brief  the function ptr for memory decompression function

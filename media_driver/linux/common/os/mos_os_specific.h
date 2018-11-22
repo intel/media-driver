@@ -35,8 +35,13 @@
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
-
+#ifndef __user
+#define __user
+#endif
 #include "i915_drm.h"
+#if defined(MEDIA_EXT)
+#include "i915_drm_ext.h"
+#endif
 #include "mos_bufmgr.h"
 #include "xf86drm.h"
 
@@ -49,7 +54,7 @@ class AuxTableMgr;
 
 ////////////////////////////////////////////////////////////////////
 
-#define HINSTANCE void*
+typedef void* HINSTANCE;
 
 #define MAKEFOURCC(ch0, ch1, ch2, ch3)  \
     ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) |  \
@@ -169,7 +174,7 @@ typedef enum _MOS_MEDIA_OPERATION
 typedef enum _MOS_GPU_NODE
 {
     MOS_GPU_NODE_3D      = I915_EXEC_RENDER,
-    MOS_GPU_NODE_COMPUTE = I915_EXEC_RENDER, //To change to compute CS later when linux define the name
+    MOS_GPU_NODE_COMPUTE = (6<<0), //To change to compute CS later when linux define the name
     MOS_GPU_NODE_VE      = I915_EXEC_VEBOX,
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,
@@ -469,7 +474,7 @@ struct _MOS_OS_CONTEXT
     uint32_t            uIndirectStateSize;
 
     MOS_OS_GPU_CONTEXT  OsGpuContext[MOS_GPU_CONTEXT_MAX];
-    PMOS_CP_CONTEXT     pCpContext;
+
     // Buffer rendering
     LARGE_INTEGER       Frequency;                //!< Frequency
     LARGE_INTEGER       LastCB;                   //!< End time for last CB
@@ -501,6 +506,7 @@ struct _MOS_OS_CONTEXT
 
     int32_t             bUse64BitRelocs;
     bool                bUseSwSwizzling;
+    bool                bTileYFlag;
 
     void                **ppMediaMemDecompState; //!<Media memory decompression data structure
 

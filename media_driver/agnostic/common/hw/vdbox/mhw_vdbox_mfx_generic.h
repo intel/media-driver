@@ -764,6 +764,7 @@ protected:
         cmd.DW9.Roundintra = avcSliceState->dwRoundingIntraValue;
         cmd.DW9.Roundintraenable = 1;
 
+        OVERRIDE_CMD_DATA("MFX_AVC_SLICE_STATE", TMfxCmds::MFX_AVC_SLICE_STATE_CMD::dwSize, (uint32_t *)(&cmd));
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;

@@ -30,8 +30,6 @@
 #if MOS_MESSAGES_ENABLED
 #include "mos_utilities.h"
 
-extern int32_t MosMemAllocCounter; //!< Counter to check system memory leaks
-extern int32_t MosMemAllocCounterGfx; //!< Counter to check graphics memory leaks
 extern int32_t MosMemAllocCounterNoUserFeature;
 extern int32_t MosMemAllocCounterNoUserFeatureGfx;
 extern uint8_t MosUltFlag;
@@ -121,6 +119,12 @@ MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
     __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
     __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID
     }
 };
 

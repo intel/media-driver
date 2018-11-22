@@ -193,12 +193,6 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerRegisterOffset(
 {
     MHW_FUNCTION_ENTER;
 
-    if (m_osInterface->bMediaReset == false ||
-        m_osInterface->umdMediaResetEnable == false)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
     switch (gpuContext)
     {
         // RCS

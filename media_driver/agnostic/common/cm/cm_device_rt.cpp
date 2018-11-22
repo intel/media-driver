@@ -61,6 +61,7 @@ struct CM_SET_CAPS
     };
 };
 
+extern uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE pOsInterface);
 namespace CMRT_UMD
 {
 CSync CmDeviceRT::m_globalCriticalSectionSurf2DUserDataLock = CSync();
@@ -1763,6 +1764,20 @@ CmDeviceRT::CreateQueueEx(CmQueue* & queue,
 {
     INSERT_API_CALL_LOG();
 
+    // Redirect RCS to CCS for some gen platforms. If test application already
+    // passed proper queue type, we can remove this w/a.
+    if (queueCreateOption.QueueType == CM_QUEUE_TYPE_RENDER)
+    {
+        PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
+        CM_CHK_NULL_RETURN_CMERROR(cmData);
+        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->cmHalInterface);
+        if (cmData->cmHalState->cmHalInterface->IsRedirectRcsToCcs())
+        {
+            queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
+        }
+    }
+
     m_criticalSectionQueue.Acquire();
     CmQueueRT *queueRT = nullptr;
     int32_t result = CmQueueRT::Create(this, queueRT, queueCreateOption);
@@ -2359,7 +2374,6 @@ CmDeviceRT::CreateSampler8x8SurfaceEx(CmSurface2D* surface2d,
                                       CM_FLAG* flag)
 {
     INSERT_API_CALL_LOG();
-    CM_ROTATION rotationFlag = CM_ROTATION_IDENTITY;
 
     CmSurface2DRT* currentRT = static_cast<CmSurface2DRT *>(surface2d);
     if (!currentRT)  {
@@ -2990,7 +3004,7 @@ int32_t CmDeviceRT::SetCaps(CM_DEVICE_CAP_NAME capName,
                 return CM_INVALID_HARDWARE_THREAD_NUMBER;
             }
 
-            if( *(uint32_t *)capValue <= 0 )
+            if( *(int32_t *)capValue <= 0 )
             {
                 CM_ASSERTMESSAGE("Error: Failed to set caps with CAP_HW_THREAD_COUNT.");
                 return CM_INVALID_HARDWARE_THREAD_NUMBER;
@@ -3473,8 +3487,9 @@ int32_t CmDeviceRT::SetSurfaceArraySizeForAlias()
 std::string CmDeviceRT::Log()
 {
     std::ostringstream  oss;
-
-    uint32_t nSize = sizeof(int);
+    PCM_HAL_STATE       cmHalState;
+    uint64_t            timeStampBase = 0;
+    uint32_t            nSize = sizeof(int);
 
     GetCaps( CAP_GPU_CURRENT_FREQUENCY, nSize, &m_nGPUFreqOriginal );
     GetCaps( CAP_MIN_FREQUENCY, nSize, &m_nGPUFreqMin );
@@ -3483,8 +3498,11 @@ std::string CmDeviceRT::Log()
     int gtInfo;
     GetCaps( CAP_GT_PLATFORM,   nSize, &gtInfo        );
 
-    oss << "Device Creation "<<std::endl;
+    cmHalState  = ((PCM_CONTEXT_DATA)GetAccelData())->cmHalState; 
+    CM_CHK_NULL_RETURN(cmHalState,"cmHalState is null pointer");
+    timeStampBase = HalCm_ConvertTicksToNanoSeconds(cmHalState,1);
 
+    oss << "Device Creation "<<std::endl;
     // Hw Information
     oss << "Platform :" << m_platform << std::endl;
     oss << "GT Info :"<< gtInfo << std::endl;
@@ -3499,6 +3517,7 @@ std::string CmDeviceRT::Log()
     oss << "Max Buffer Table Size " << m_halMaxValues.maxBufferTableSize << std::endl;
     oss << "Max Threads per Task  " << m_halMaxValues.maxUserThreadsPerTask << std::endl;
     oss << "Max Threads Per Task no Thread Arg " << m_halMaxValues.maxUserThreadsPerTaskNoThreadArg << std::endl;
+    oss << "MDF timestamp base " << timeStampBase << "ns" << std::endl;
 
     return oss.str();
 }

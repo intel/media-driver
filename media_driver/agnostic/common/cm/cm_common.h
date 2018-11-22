@@ -45,6 +45,7 @@
 #define MDF_COMMAND_BUFFER_DUMP         1 //avaliable in Debug/Release-internal
 #define MDF_CURBE_DATA_DUMP             1
 #define MDF_SURFACE_CONTENT_DUMP        1
+#define MDF_SURFACE_STATE_DUMP          1
 #endif
 
 //===============<Definitions>==================================================
@@ -522,6 +523,18 @@ typedef struct _CM_TASK_CONFIG
     uint32_t reserved1;
     uint32_t reserved2;              //reserve 2 uint32_t fields for future extention
 }CM_TASK_CONFIG, *PCM_TASK_CONFIG;
+
+typedef enum _CM_KERNEL_EXEC_MODE
+{
+    CM_KERNEL_EXECUTION_MODE_MONOPOLIZED =  0, // Kernel need occupy all DSS for execution.
+    CM_KERNEL_EXECUTION_MODE_CONCURRENT,       // Kernel can occupy part of DSS and concurrently execute together with other workloads.
+} CM_KERNEL_EXEC_MODE;
+
+struct CM_EXECUTION_CONFIG
+{
+    CM_KERNEL_EXEC_MODE kernelExecutionMode = CM_KERNEL_EXECUTION_MODE_MONOPOLIZED;
+    int                 concurrentPolicy    = 0; //Reserve for future extension.
+};
 
 struct L3ConfigRegisterValues
 {

@@ -383,7 +383,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_FAKE_HEADER_SIZE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
-
+    __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION_ID,
@@ -422,6 +422,9 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
     __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID,
+    __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID,
 #endif // MOS_MESSAGES_ENABLED
     __MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVCDATROWSTORECACHE_DISABLE_ID,
@@ -437,6 +440,9 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MDF_UMD_ULT_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE_ID,
     __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
     __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,
@@ -463,6 +469,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_BYPASS_COMPOSITION_ID,
     __VPHAL_VEBOX_DISABLE_SFC_ID,
     __VPHAL_ENABLE_MMC_ID,
+    __VPHAL_ENABLE_MMC_IN_USE_ID,
     __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS_ID,
     __VPHAL_VEBOX_DISABLE_TEMPORAL_DENOISE_FILTER_ID,
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -513,6 +520,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_SEMA_RESET_DELAY_ID,
     __MEDIA_USER_FEATURE_VALUE_SET_CMD_DEFAULT_PARS_FROM_FILES_ID,
     __MEDIA_USER_FEATURE_VALUE_CMD_PARS_FILES_DIRECORY_ID,
+    __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 
@@ -759,6 +767,10 @@ typedef struct
 } MOS_USER_FEATURE_NOTIFY_DATA_COMMON, *PMOS_USER_FEATURE_NOTIFY_DATA_COMMON;
 
 #ifdef __cplusplus
+
+extern "C" int32_t MOS_AtomicIncrement(int32_t *pValue);   // forward declaration
+extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaration
+
 //template<class _Ty, class... _Types> inline
 //std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
 //{
@@ -785,7 +797,7 @@ _Ty* MOS_NewUtil(_Types&&... _Args)
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
-            MosMemAllocCounter++;
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
         }
         else
@@ -808,7 +820,7 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
         if (ptr != nullptr)
         {
-            MosMemAllocCounter++;
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
         }
         return ptr;
@@ -836,7 +848,7 @@ void MOS_DeleteUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
         delete(ptr);
         ptr = nullptr;
@@ -857,8 +869,7 @@ void MOS_DeleteArrayUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
-
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         delete[](ptr);
@@ -2395,6 +2406,26 @@ uint32_t MOS_WaitForMultipleObjects(
     uint32_t                    uiMilliseconds);
 
 //!
+//! \brief    Increments (increases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be incremented.
+//! \return   int32_t
+//!           The function returns the resulting incremented value.
+//!
+int32_t MOS_AtomicIncrement(
+    int32_t *pValue);
+
+//!
+//! \brief    Decrements (decreases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be decremented.
+//! \return   int32_t
+//!           The function returns the resulting decremented value.
+//!
+int32_t MOS_AtomicDecrement(
+    int32_t *pValue);
+
+//!
 //! \brief      Convert MOS_STATUS to OS dependent RESULT/Status
 //! \param      [in] eStatus
 //!             MOS_STATUS that will be converted
@@ -2486,6 +2517,34 @@ MOS_STATUS MOS_GetLocalTime(
     struct tm* tm);
 
 //!
+//! \brief    Swizzles the given linear offset via the specified tiling params.
+//! \details  Swizzles the given linear offset via the specified tiling parameters. 
+//!           Used to provide linear access to raw, tiled data.
+//! \param    [in] OffsetX
+//!           Horizontal byte offset from left edge of tiled surface.
+//! \param    [in] OffsetY
+//!           Vertical offset from top of tiled surface.
+//! \param    [in] Pitch
+//!           Row-to-row byte stride.
+//! \param    [in] TileFormat
+//!           Either 'x' or 'y'--for X-Major or Y-Major tiling, respectively.
+//! \param    [in] CsxSwizzle
+//!           (Boolean) Additionally perform Channel Select XOR swizzling.
+//! \param    [in] flags
+//!           More flags to indicate different tileY.
+//! \return   int32_t
+//!           Return SwizzleOffset
+//!    
+int32_t __Mos_SwizzleOffset(
+    int32_t         OffsetX,
+    int32_t         OffsetY,
+    int32_t         Pitch,
+    MOS_TILE_TYPE   TileFormat,
+    int32_t         CsxSwizzle,
+    int32_t         flags);
+#define Mos_SwizzleOffset __Mos_SwizzleOffset
+
+//!
 //! \brief    Wrapper function for SwizzleOffset
 //! \details  Wrapper function for SwizzleOffset in Mos 
 //! \param    [in] pSrc
@@ -2500,6 +2559,8 @@ MOS_STATUS MOS_GetLocalTime(
 //!           Height
 //! \param    [in] iPitch
 //!           Pitch
+//! \param    [in] extended flags
+//!           Pitch
 //! \return   void
 //!
 void Mos_SwizzleData(
@@ -2508,7 +2569,8 @@ void Mos_SwizzleData(
     MOS_TILE_TYPE   SrcTiling,
     MOS_TILE_TYPE   DstTiling,
     int32_t         iHeight,
-    int32_t         iPitch);
+    int32_t         iPitch,
+    int32_t         extFlags);
 
 //!
 //! \brief    MOS trace event initialize

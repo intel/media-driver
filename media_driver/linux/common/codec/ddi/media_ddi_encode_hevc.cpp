@@ -132,6 +132,21 @@ VAStatus DdiEncodeHevc::ContextInitialize(
         codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV422;
         codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_12_BITS;
     }
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444)
+    {
+        codecHalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
+        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_10)
+    {
+        codecHalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
+        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_12)
+    {
+        codecHalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
+        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_12_BITS;
+    }
 
     VAStatus eStatus = VA_STATUS_SUCCESS;
 
@@ -229,7 +244,7 @@ VAStatus DdiEncodeHevc::RenderPicture(VADriverContextP ctx, VAContextID context,
 
         case VAEncSliceParameterBufferType:
         {
-            uint32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
             DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
             break;
         }
