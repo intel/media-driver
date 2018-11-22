@@ -3178,14 +3178,7 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
 
     else if (m_frameWidth < 512 || m_frameHeight < 512)
     {
-        m_16xMeSupported = true;
         m_32xMeSupported = false;
-    }
-
-    else
-    {
-        m_16xMeSupported = true;
-        m_32xMeSupported = true;
     }
 
     char    stringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
