@@ -1141,7 +1141,7 @@ public:
     static const double m_modeBitsScale[46][3];                 //!< Mode bits LUT based on [mode][SliceType]
 
     MOS_SURFACE             m_currPicWithReconBoundaryPix;      //!< Current Picture with Reconstructed boundary pixels
-    MOS_SURFACE             m_lcuLevelInputDataSurface;         //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
+    MOS_SURFACE             m_lcuLevelInputDataSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]; //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
     MOS_SURFACE             m_intermediateCuRecordSurfaceLcu32; //!< Intermediate CU Record surface for I and B kernel
     MOS_SURFACE             m_scratchSurface;                   //!< Scratch surface for I-kernel
     CODECHAL_ENCODE_BUFFER  m_debugSurface[4];                  //!< Debug surface used in MBENC kernels
