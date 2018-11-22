@@ -372,6 +372,14 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
             m_streamOutEnabled = (userFeatureData.u32Data) ? true : false;
 
         }
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_FE_BE_TIMING,
+            &userFeatureData);
+        m_perfFEBETimingEnabled = userFeatureData.bData;
+
 #endif // _DEBUG || _RELEASE_INTERNAL
     }
 
@@ -1245,6 +1253,8 @@ MOS_STATUS CodechalDecode::StartStatusReport(
         cmdBuffer,
         &params));
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, cmdBuffer));
+
     return eStatus;
 }
 
@@ -1626,8 +1636,6 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
         cmdBuffer,
         &genericPrologParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, cmdBuffer));
-    
     // Send predication command
     if (m_decodeParams.m_predicationEnabled)
     {

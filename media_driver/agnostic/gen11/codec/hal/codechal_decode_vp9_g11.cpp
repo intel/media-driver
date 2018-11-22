@@ -296,6 +296,8 @@ MOS_STATUS CodechalDecodeVp9G11::EndStatusReport(
     CodechalDecodeStatus *decodeStatus = &m_decodeStatusBuf.m_decodeStatus[m_decodeStatusBuf.m_currIndex];
     MOS_ZeroMemory(decodeStatus, sizeof(CodechalDecodeStatus));
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, cmdBuffer));
+
     if (!m_osInterface->bEnableKmdMediaFrameTracking && m_osInterface->bInlineCodecStatusUpdate)
     {
         MHW_MI_FLUSH_DW_PARAMS flushDwParams;
@@ -563,6 +565,10 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_FEBESync(
             m_scalabilityState,
             cmdBufferInUse));
+        if (m_perfFEBETimingEnabled && CodecHalDecodeScalabilityIsLastCompletePhase(m_scalabilityState))
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+        }
     }
 
     if (CodecHalDecodeScalabilityIsBEPhase(m_scalabilityState))
@@ -685,6 +691,10 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
         if (m_statusQueryReportingEnabled)
         {
             EndStatusReportForFE(cmdBufferInUse);
+            if (m_perfFEBETimingEnabled)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+            }
         }
     }
 
