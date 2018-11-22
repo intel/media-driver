@@ -1691,13 +1691,6 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
                 &dataParams));
         }
 
-        if (pOsInterface->osCpInterface &&
-            pOsInterface->osCpInterface->IsHMEnabled() &&
-            pScalabilityState->pHwInterface->GetCpInterface())
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetCpInterface()->AddConditionalBatchBufferEndForEarlyExit(pOsInterface, pCmdBufferInUse));
-        }
-
         //reset HW semaphore
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->SendMiAtomicDwordCmd(&pScalabilityState->resSemaMemBEs, 1, MHW_MI_ATOMIC_DEC, pCmdBufferInUse));
 
@@ -1708,6 +1701,13 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
             0,
             true,
             pCmdBufferInUse));
+
+        if (pOsInterface->osCpInterface &&
+            pOsInterface->osCpInterface->IsHMEnabled() &&
+            pScalabilityState->pHwInterface->GetCpInterface())
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetCpInterface()->AddConditionalBatchBufferEndForEarlyExit(pOsInterface, pCmdBufferInUse));
+        }
     }
 
     return eStatus;
