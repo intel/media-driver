@@ -984,6 +984,9 @@ protected:
 
     //! \brief Flag to indicate if we support eStatus query reporting on current platform
     bool                        m_statusQueryReportingEnabled = false;
+    //! \brief Flag to indicate if UMD Perf Profiler FE BE timing measurement is enabled
+    bool                        m_perfFEBETimingEnabled = false;
+
     //! \brief Stores all the status_query related data
     CodechalDecodeStatusBuffer  m_decodeStatusBuf;
     //! \brief The feedback number reported by app in picparams call
