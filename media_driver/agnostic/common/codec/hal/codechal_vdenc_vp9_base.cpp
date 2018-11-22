@@ -4130,11 +4130,12 @@ MOS_STATUS CodechalVdencVp9State::Resize4x8xforDS(uint8_t bufIdx)
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     
     // calculate the expected 4x dimensions
-    uint32_t downscaledSurfaceWidth4x = m_downscaledWidthInMb4x * CODECHAL_MACROBLOCK_WIDTH;
+    uint32_t downscaledSurfaceWidth4x  = m_downscaledWidthInMb4x * CODECHAL_MACROBLOCK_WIDTH;
     uint32_t downscaledSurfaceHeight4x = ((m_downscaledHeightInMb4x + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
+    downscaledSurfaceHeight4x          = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
 
     // calculate the expected 8x dimensions
-    uint32_t downscaledSurfaceWidth8x = downscaledSurfaceWidth4x >> 1;
+    uint32_t downscaledSurfaceWidth8x  = downscaledSurfaceWidth4x >> 1;
     uint32_t downscaledSurfaceHeight8x = downscaledSurfaceHeight4x >> 1;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf);
@@ -4163,26 +4164,8 @@ MOS_STATUS CodechalVdencVp9State::Resize4x8xforDS(uint8_t bufIdx)
         CODECHAL_ENCODE_CHK_NULL_RETURN(
             m_trackedBuf8xDsReconSurface = (MOS_SURFACE*)m_allocator->AllocateResource(
                 m_standard, new8xWidth, new8xHeight, ds8xRecon, "ds8xRecon", bufIdx, false, Format_NV12, MOS_TILE_Y));
-        
-        // Initialize the surface to zero
-        uint32_t size = new8xWidth * new8xHeight;
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-        lockFlagsWriteOnly.WriteOnly = 1;
 
-        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &(m_trackedBuf8xDsReconSurface->OsResource),
-            &lockFlagsWriteOnly);
-
-        if (data == nullptr)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock 8x Ds Recon Surface.");
-            return MOS_STATUS_UNKNOWN;
-        }
-
-        MOS_ZeroMemory(data, size);
-        m_osInterface->pfnUnlockResource(m_osInterface, &(m_trackedBuf8xDsReconSurface->OsResource));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBuf8xDsReconSurface));
     }
 
     if (m_trackedBuf4xDsReconSurface->dwWidth < downscaledSurfaceWidth4x || m_trackedBuf4xDsReconSurface->dwHeight < downscaledSurfaceHeight4x) {
@@ -4202,26 +4185,7 @@ MOS_STATUS CodechalVdencVp9State::Resize4x8xforDS(uint8_t bufIdx)
             m_trackedBuf4xDsReconSurface = (MOS_SURFACE*)m_allocator->AllocateResource(
                 m_standard, new4xWidth, new4xHeight, ds4xRecon, "ds4xRecon", bufIdx, false, Format_NV12, MOS_TILE_Y));
 
-        // Initialize the surface to zero
-        uint32_t size = new4xWidth * new4xHeight;
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-        lockFlagsWriteOnly.WriteOnly = 1;
-
-        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &(m_trackedBuf4xDsReconSurface->OsResource),
-            &lockFlagsWriteOnly);
-
-        if (data == nullptr)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock 4x Ds Recon Surface.");
-            return MOS_STATUS_UNKNOWN;
-        }
-
-        MOS_ZeroMemory(data, size);
-        m_osInterface->pfnUnlockResource(m_osInterface, &(m_trackedBuf4xDsReconSurface->OsResource));
-
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBuf4xDsReconSurface));
     }
     return eStatus;
 }

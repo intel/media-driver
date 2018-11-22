@@ -71,8 +71,12 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateForCurrFrame()
     if (m_encoder->m_vdencEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateDsReconSurfacesVdenc());
+        //re-allocate VDEnc downscaled recon surface in case there is resolution change
+        if (CODECHAL_VP9 == m_standard)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(ResizeDsReconSurfacesVdenc());
+        }
     }
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -652,6 +656,60 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurface2xDS()
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeTrackedBuffer::ResizeDsReconSurfacesVdenc()
+{
+    MOS_STATUS estatus = MOS_STATUS_SUCCESS;
+
+    //Get 4x buffer
+    m_trackedBufCurr4xDsRecon = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, m_trackedBufCurrIdx);
+
+    if (m_trackedBufCurr4xDsRecon == nullptr)  {
+        //SURFACE IS NOT ALLOCATED
+        return estatus;
+    }
+
+    //Get 8x buffer
+    m_trackedBufCurr8xDsRecon = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds8xRecon, m_trackedBufCurrIdx);
+
+    if (m_trackedBufCurr8xDsRecon == nullptr) {
+        //SURFACE IS NOT ALLOCATED
+        return estatus;
+    }
+    uint32_t allocated4xWidth = m_trackedBufCurr4xDsRecon->dwWidth;
+    uint32_t allocated4xHeight = m_trackedBufCurr4xDsRecon->dwHeight;
+
+    uint32_t allocated8xWidth = m_trackedBufCurr8xDsRecon->dwWidth;
+    uint32_t allocated8xHeight = m_trackedBufCurr8xDsRecon->dwHeight;
+
+    uint32_t requiredDownscaledSurfaceWidth4x = m_encoder->m_downscaledWidthInMb4x * CODECHAL_MACROBLOCK_WIDTH;
+    // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
+    // Width will be allocated tile Y aligned, so also tile align height.
+    uint32_t requiredDownscaledSurfaceHeight4x = ((m_encoder->m_downscaledHeightInMb4x + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
+    requiredDownscaledSurfaceHeight4x = MOS_ALIGN_CEIL(requiredDownscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
+
+    uint32_t requiredDownscaledSurfaceWidth8x = requiredDownscaledSurfaceWidth4x >> 1;
+    uint32_t requiredDownscaledSurfaceHeight8x = requiredDownscaledSurfaceHeight4x >> 1;
+
+    if (requiredDownscaledSurfaceHeight4x != allocated4xHeight || requiredDownscaledSurfaceWidth4x != allocated4xWidth)
+    {
+        //re-allocate 4xDsRecon based on current resolution
+        m_allocator->ReleaseResource(m_standard, ds4xRecon, m_trackedBufCurrIdx);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurr4xDsRecon = (MOS_SURFACE*)m_allocator->AllocateResource(
+            m_standard, requiredDownscaledSurfaceWidth4x, requiredDownscaledSurfaceHeight4x, ds4xRecon, "ds4xRecon", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurr4xDsRecon));
+    }
+
+    if (requiredDownscaledSurfaceHeight8x != allocated8xHeight || requiredDownscaledSurfaceWidth8x != allocated8xWidth)
+    {
+        //re-allocate 8xDsRecon based on current resolution
+        m_allocator->ReleaseResource(m_standard, ds8xRecon, m_trackedBufCurrIdx);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurr8xDsRecon = (MOS_SURFACE*)m_allocator->AllocateResource(
+            m_standard, requiredDownscaledSurfaceWidth8x, requiredDownscaledSurfaceHeight8x, ds8xRecon, "ds8xRecon", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurr8xDsRecon));
+    }
+    return estatus;
 }
 
 MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
