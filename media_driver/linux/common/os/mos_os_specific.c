@@ -2037,6 +2037,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
             GmmParams.Flags.Info.Linear    = true;
             tileformat_linux               = I915_TILING_NONE;
     }
+    GmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrLocalMemory);
 
     pOsResource->pGmmResInfo = pGmmResourceInfo = pOsInterface->pOsContext->pGmmClientContext->CreateResInfoObject(&GmmParams);
 

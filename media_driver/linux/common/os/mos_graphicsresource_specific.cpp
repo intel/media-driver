@@ -223,6 +223,10 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         pOsContextSpecific->GetGmmClientContext()
                 ->DestroyResInfoObject(tmpGmmResInfoPtr);
     }
+    else
+    {
+        gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrLocalMemory);
+    }
 
     GMM_RESOURCE_INFO*  gmmResourceInfoPtr = pOsContextSpecific->GetGmmClientContext()->CreateResInfoObject(&gmmParams);
 

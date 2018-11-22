@@ -484,6 +484,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
         tileType = MOS_TILE_LINEAR;
         gmmParams.Flags.Info.Linear    = true;
     }
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrLocalMemory);
 
     target.Format                = Format_A8R8G8B8;
     target.SurfType              = SURF_OUT_RENDERTARGET;
