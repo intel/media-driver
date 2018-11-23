@@ -70,6 +70,9 @@
 #include "string.h"
 
 #include "i915_drm.h"
+#ifdef ANDROID
+#include "i915_drm_ext.h"
+#endif
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
