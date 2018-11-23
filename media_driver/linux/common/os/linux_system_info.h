@@ -26,7 +26,9 @@
 #include <stdbool.h>
 #include "linux_shadow_skuwa.h"
 
-#ifdef _FULL_OPEN_SOURCE
+#ifndef ENABLE_KERNELS
+#define SET_STATUS_BY_FULL_OPEN_SOURCE(sts_not_full_open_source, sts_if_full_open_source)   0
+#elif defined(_FULL_OPEN_SOURCE)
 #define SET_STATUS_BY_FULL_OPEN_SOURCE(sts_not_full_open_source, sts_if_full_open_source)   (sts_if_full_open_source)
 #else
 #define SET_STATUS_BY_FULL_OPEN_SOURCE(sts_not_full_open_source, sts_if_full_open_source)   (sts_not_full_open_source)
