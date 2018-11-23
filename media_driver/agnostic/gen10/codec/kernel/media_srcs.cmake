@@ -18,13 +18,16 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.c
-)
 
-set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.h
-)
+if(ENABLE_KERNELS)
+    set(TMP_SOURCES_
+        ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.c
+    )
+
+    set(TMP_HEADERS_
+        ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.h
+    )
+endif()
 
 set(SOURCES_
     ${SOURCES_}

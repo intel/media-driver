@@ -34,3 +34,27 @@ script:
       intelmediadriver/media-driver-docker
       cmake  --build . -- -j 8
   - ccache -s
+  - ccache -z
+  - sudo rm -rf ${TRAVIS_BUILD_DIR}/../build && mkdir ${TRAVIS_BUILD_DIR}/../build
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}/../:/opt/src
+      -w /opt/src/build
+      -e CCACHE_DIR=/opt/ccache
+      intelmediadriver/media-driver-docker
+      cmake
+      -DMEDIA_VERSION="0.1.0"
+      -DENABLE_KERNELS=OFF
+      -DBUILD_TYPE=Release
+      ../media-driver
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}/..:/opt/src
+      -w /opt/src/build
+      -e CCACHE_DIR=/opt/ccache
+      intelmediadriver/media-driver-docker
+      cmake  --build . -- -j 8
+  - ccache -s
+  - ccache -z

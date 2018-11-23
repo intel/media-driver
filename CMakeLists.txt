@@ -40,6 +40,7 @@ if("${os_name}" STREQUAL "clear-linux-os")
     set(CMAKE_INSTALL_SYSCONFDIR "usr/share/defaults/etc")
 endif()
 
+option (ENABLE_KERNELS "Build driver with shaders (kernels) support" ON)
 option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 include(GNUInstallDirs)

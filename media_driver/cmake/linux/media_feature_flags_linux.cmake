@@ -162,4 +162,8 @@ if(${Full_Open_Source_Support} STREQUAL "yes")
     add_definitions(-D_FULL_OPEN_SOURCE)
 endif()
 
+if(ENABLE_KERNELS)
+    add_definitions(-DENABLE_KERNELS)
+endif()
+
 include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)

@@ -18,16 +18,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9.c
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g9.c
-)
+if(ENABLE_KERNELS)
+    set(TMP_SOURCES_
+        ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9.c
+        ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g9.c
+    )
 
-
-set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9.h
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g9.h
-)
+    set(TMP_HEADERS_
+        ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9.h
+        ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g9.h
+    )
+endif()
 
 set(SOURCES_
     ${SOURCES_}
