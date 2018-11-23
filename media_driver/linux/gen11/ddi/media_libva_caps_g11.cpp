@@ -1084,6 +1084,34 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
     return status;
 }
 
+VAStatus MediaLibvaCapsG11::CreateDecAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList)
+{
+    VAStatus status = MediaLibvaCaps::CreateDecAttributes(profile, entrypoint, attributeList);
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    auto attribList = *attributeList;
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAConfigAttrib attrib;
+    attrib.type = VAConfigAttribRTFormat;
+    if(profile == VAProfileHEVCMain444)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+    else if(profile == VAProfileHEVCMain444_10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        attrib.value |= VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV444_10;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+
+    return status;
+}
+
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool iclRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::

@@ -162,6 +162,11 @@ protected:
             uint32_t width,
             uint32_t height);
 
+    virtual VAStatus CreateDecAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList);
+
     //!
     //! \brief    Initialize HEVC low-power encode profiles, entrypoints and attributes
     //!
