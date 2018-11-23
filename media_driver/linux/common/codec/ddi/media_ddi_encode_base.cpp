@@ -726,6 +726,10 @@ uint8_t DdiEncodeBase::VARC2HalRC(uint32_t vaRC)
     {
         return (uint8_t)RATECONTROL_QVBR;
     }
+    else if (VA_RC_AVBR == vaRC)
+    {
+        return (uint8_t)RATECONTROL_AVBR;
+    }
     else  // VA_RC_CBR or VA_RC_CBR|VA_RC_MB
     {
         return (uint8_t)RATECONTROL_CBR;
