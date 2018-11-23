@@ -653,7 +653,7 @@ MHW_KERNEL_STATE *CodechalKernelHmeG11::GetActiveKernelState()
         kernelIndex  = KernelIndex::hmeB;
         operation    = ENC_ME;
         kernelOffset = 1;
-        if (m_noMEKernelForPFrame)
+        if (m_noMEKernelForPFrame || m_surfaceParam.refL1List->PicFlags == PICTURE_INVALID)
         {
             kernelOffset = 0; 
             kernelIndex = KernelIndex::hmeP;
