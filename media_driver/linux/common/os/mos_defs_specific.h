@@ -81,7 +81,8 @@ typedef struct _TP_CALLBACK_INSTANCE TP_CALLBACK_INSTANCE, *PTP_CALLBACK_INSTANC
 /* compile-time ASSERT */
 
 #ifndef C_ASSERT
-    #define __UNIQUENAME( a1, a2 )  __CONCAT( a1, a2 )
+    #define __CONCATING( a1, a2 )   a1 ## a2
+    #define __UNIQUENAME( a1, a2 )  __CONCATING( a1, a2 )
     #define UNIQUENAME( __text )    __UNIQUENAME( __text, __COUNTER__ )
     #define C_ASSERT(e) typedef char UNIQUENAME(STATIC_ASSERT_)[(e)?1:-1]
 #endif
