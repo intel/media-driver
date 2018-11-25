@@ -829,18 +829,3 @@ static bool cflDevice3ea7 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool cflDevice3ea8 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3ea8, &cflGt3eInfo);
 
-static bool cflDevice3ea1 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3ea1, &cflGt1Info);
-
-static bool cflDevice3ea4 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3ea4, &cflGt1Info);
-
-static bool cflDevice3ea0 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3ea0, &cflGt2Info);
-
-static bool cflDevice3ea3 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3ea3, &cflGt2Info);
-
-static bool cflDevice3ea2 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3ea2, &cflGt3eInfo);
-
