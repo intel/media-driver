@@ -80,6 +80,28 @@ elseif ("${BUILD_TYPE}" STREQUAL "debug")
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+#clear all default-cmake settings
+SET (CMAKE_SHARED_LINKER_FLAGS_RELEASEINTERNAL "") 
+SET (CMAKE_SHARED_LINKER_FLAGS_RELEASE "") 
+SET (CMAKE_SHARED_LINKER_FLAGS_DEBUG "") 
+SET (CMAKE_SHARED_LINKER_FLAGS "") 
+
+SET (CMAKE_EXE_LINKER_FLAGS "")
+SET (CMAKE_EXE_LINKER_FLAGS_DEBUG "")
+SET (CMAKE_EXE_LINKER_FLAGS_RELEASEINTERNAL "")
+SET (CMAKE_EXE_LINKER_FLAGS_RELEASE "")
+
+SET (CMAKE_STATIC_LINKER_FLAGS "")
+SET (CMAKE_LOCAL_LINKER_FLAGS "")
+
+SET (CMAKE_CXX_STANDARD_LIBRARIES "")
+SET (CMAKE_C_STANDARD_LIBRARIES "")
+
+SET (CMAKE_CXX_FLAGS_RELEASEINTERNAL "")
+SET (CMAKE_CXX_FLAGS_DEBUG  "")
+SET (CMAKE_CXX_FLAGS_RELEASE "")
+
+
 # the media_defs.cmake will define path varible to media_driver and subfolder, so for media_defs.cmake itself,
 # only can refer it through below path
 include(${BS_DIR_MEDIA}/media_driver/cmake/media_defs.cmake)
