@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_mem.h
-//! \brief     Contains CM memory function definitions
+//! \file      cm_mem.h 
+//! \brief     Contains CM memory function definitions 
 //!
 #pragma once
 
@@ -638,7 +638,7 @@ inline void CmFastMemCopy( void* dst, const   void* src, const size_t bytes )
     // Get the number of DQWORDs to be copied
     const size_t doubleQuadWords = count / sizeof(DQWORD);
 
-    if( doubleQuadWords && count >= sizeof(PREFETCH))
+    if( doubleQuadWords )
     {
         FastMemCopy_SSE2( cacheDst, cacheSrc, doubleQuadWords );
 
@@ -693,7 +693,7 @@ inline void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes )
     // Get the number of DQWORDs to be copied
     const size_t doubleQuadWords = count / sizeof(DQWORD);
 
-    if( doubleQuadWords && count >= sizeof(PREFETCH))
+    if( doubleQuadWords )
     {
       // Determine if the source and destination addresses are
       // 128-bit aligned
