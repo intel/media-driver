@@ -277,28 +277,6 @@ static bool DdiMedia_ReleaseBsBuffer(
     return true;
 }
 
-VAStatus DdiMedia_CreateRenderTarget_Internal(
-    PDDI_MEDIA_CONTEXT            mediaDrvCtx,
-    DDI_MEDIA_SURFACE             *pSurface,
-    DDI_MEDIA_FORMAT              mediaFormat,
-    uint32_t                      width,
-    uint32_t                      height,
-    DDI_MEDIA_SURFACE_DESCRIPTOR *surfDesc,
-    uint32_t                      surfaceUsageHint
-)
-{
-    DDI_CHK_NULL(pSurface, "null pSurface", VA_STATUS_ERROR_INVALID_SURFACE);
-    pSurface->pMediaCtx       = mediaDrvCtx;
-    pSurface->iWidth          = width;
-    pSurface->iHeight         = height;
-    pSurface->pSurfDesc       = surfDesc;
-    pSurface->format          = mediaFormat;
-    pSurface->uiLockedBufID   = VA_INVALID_ID;
-    pSurface->uiLockedImageID = VA_INVALID_ID;
-    pSurface->surfaceUsageHint= surfaceUsageHint;
-
-    return DdiMediaUtil_CreateSurface(pSurface, mediaDrvCtx);
-}
 static uint32_t DdiMedia_CreateRenderTarget(
     PDDI_MEDIA_CONTEXT            mediaDrvCtx,
     DDI_MEDIA_FORMAT              mediaFormat,
@@ -325,7 +303,16 @@ static uint32_t DdiMedia_CreateRenderTarget(
         return VA_INVALID_ID;
     }
 
-    if(DdiMedia_CreateRenderTarget_Internal(mediaDrvCtx, surfaceElement->pSurface, mediaFormat, width, height, surfDesc, surfaceUsageHint)!= VA_STATUS_SUCCESS)
+    surfaceElement->pSurface->pMediaCtx       = mediaDrvCtx;
+    surfaceElement->pSurface->iWidth          = width;
+    surfaceElement->pSurface->iHeight         = height;
+    surfaceElement->pSurface->pSurfDesc       = surfDesc;
+    surfaceElement->pSurface->format          = mediaFormat;
+    surfaceElement->pSurface->uiLockedBufID   = VA_INVALID_ID;
+    surfaceElement->pSurface->uiLockedImageID = VA_INVALID_ID;
+    surfaceElement->pSurface->surfaceUsageHint= surfaceUsageHint;
+
+    if(DdiMediaUtil_CreateSurface(surfaceElement->pSurface, mediaDrvCtx)!= VA_STATUS_SUCCESS)
     {
         MOS_FreeMemory(surfaceElement->pSurface);
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaDrvCtx->pSurfaceHeap, surfaceElement->uiVaSurfaceID);
@@ -2812,7 +2799,7 @@ VAStatus DdiMedia_MapBufferInternal (
             }
             break;
 
-        case VAImageBufferType:
+        case VABufferTypeMax:
             if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
             {
                 DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
@@ -2847,6 +2834,7 @@ VAStatus DdiMedia_MapBufferInternal (
             }
             break;
 
+        case VAImageBufferType:
         default:
             *pbuf = (void *)(buf->pData + buf->uiOffset);
             break;
@@ -2946,7 +2934,7 @@ VAStatus DdiMedia_UnmapBuffer (
             }
             break;
 
-        case VAImageBufferType:
+        case VABufferTypeMax:
             if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
             {
                 DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
@@ -2962,6 +2950,7 @@ VAStatus DdiMedia_UnmapBuffer (
             }
             break;
 
+        case VAImageBufferType:
          default:
             break;
     }
@@ -3035,6 +3024,9 @@ VAStatus DdiMedia_DestroyBuffer (
             break;
         case VAPictureParameterBufferType:
             break;
+        case VAImageBufferType:
+            MOS_FreeMemory(buf->pData);
+            break;
         case VAProcPipelineParameterBufferType:
         case VAProcFilterParameterBufferType:
             MOS_FreeMemory(buf->pData);
@@ -3049,7 +3041,7 @@ VAStatus DdiMedia_DestroyBuffer (
         case VAEncPackedHeaderParameterBufferType:
             MOS_FreeMemory(buf->pData);
             break;
-        case VAImageBufferType:
+        case VABufferTypeMax:
             DdiMediaUtil_UnRefBufObjInMediaBuffer(buf);
             break;
         case VAEncMacroblockMapBufferType:
@@ -3765,31 +3757,112 @@ VAStatus DdiMedia_CreateImage(
     PDDI_MEDIA_CONTEXT mediaCtx        = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,   "nullptr mediaCtx.",   VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(mediaCtx->pGmmClientContext, "nullptr mediaCtx->pGmmClientContext.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    
-    DDI_MEDIA_FORMAT media_format = DdiMedia_OsFormatToMediaFormat(format->fourcc, 0);
 
-    //1. create a surfaces and retrieve the surface pointer
-    DDI_MEDIA_SURFACE * mediaSurface  = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
-    DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface", VA_STATUS_ERROR_ALLOCATION_FAILED);
-    VAStatus vaStatus =  DdiMedia_CreateRenderTarget_Internal(mediaCtx, mediaSurface, media_format, width, height, nullptr, 0x80000000);
-    if(vaStatus != VA_STATUS_SUCCESS)
+    VAImage *vaimg           = (VAImage*)MOS_AllocAndZeroMemory(sizeof(VAImage));
+    DDI_CHK_NULL(vaimg,  "Insufficient to allocate an VAImage.",  VA_STATUS_ERROR_ALLOCATION_FAILED);
+    
+    GMM_RESCREATE_PARAMS        gmmParams;
+    GMM_RESOURCE_INFO          *gmmResourceInfo;
+    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+
+    gmmParams.BaseWidth             = width;
+    gmmParams.BaseHeight            = height;
+    gmmParams.ArraySize             = 1;
+    gmmParams.Type                  = RESOURCE_2D;
+    gmmParams.Flags.Gpu.Video       = true;
+
+    switch(format->fourcc)
     {
-        DDI_ASSERTMESSAGE("cant create render target");
-        MOS_FreeMemory(mediaSurface);
-        return vaStatus;
+        case VA_FOURCC_RGBA:
+            gmmParams.Format = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_BGRA:
+            gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_RGBX:
+            gmmParams.Format = GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_BGRX:
+            gmmParams.Format = GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_I420:
+            gmmParams.Format = GMM_FORMAT_I420_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_YV12:
+            gmmParams.Format = GMM_FORMAT_YV12_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_NV21:
+            gmmParams.Format = GMM_FORMAT_NV21_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_YUY2:
+            gmmParams.Format = GMM_FORMAT_YUY2;
+            gmmParams.Flags.Info.TiledY = true;
+#if UFO_GRALLOC_NEW_FORMAT
+            //Planar type surface align 64 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
+#else
+            //Planar type surface align 32 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+#endif
+            break;
+        case VA_FOURCC_NV12:
+            gmmParams.Format = GMM_FORMAT_NV12_TYPE;
+            gmmParams.Flags.Info.TiledY = true;
+#if UFO_GRALLOC_NEW_FORMAT
+            //Planar type surface align 64 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
+#else
+            //Planar type surface align 32 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+#endif
+            break;
+        case VA_FOURCC_P010:
+            gmmParams.Format = GMM_FORMAT_P010_TYPE;
+            gmmParams.Flags.Info.TiledY = true;
+#if UFO_GRALLOC_NEW_FORMAT
+            //Planar type surface align 64 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
+#else
+            //Planar type surface align 32 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+#endif
+            break;
+        case VA_FOURCC_444P:
+            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
+            gmmParams.Flags.Info.TiledY = true;
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+            break;
+        case VA_FOURCC_422H:
+            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
+            gmmParams.Flags.Info.TiledY = true;
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+            break;
+        case VA_FOURCC_422V:
+            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
+            gmmParams.Flags.Info.TiledY = true;
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+            break;
+
+        default:
+            MOS_FreeMemory(vaimg);
+            return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
 
-    //2. allocate image fill the information
-    VAImage *vaimg           = (VAImage*)MOS_AllocAndZeroMemory(sizeof(VAImage));
-    if(vaimg == nullptr)
+    gmmResourceInfo = mediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
+    if(nullptr == gmmResourceInfo)
     {
-        DDI_ASSERTMESSAGE("cant allocate image");
-        mos_bo_unreference(mediaSurface->bo);
-        MOS_FreeMemory(mediaSurface);
+        DDI_ASSERTMESSAGE("Gmm Create Resource Failed.");
+        MOS_FreeMemory(vaimg);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    GMM_RESOURCE_INFO   *gmmResourceInfo = mediaSurface->pGmmResourceInfo;
     uint32_t    gmmPitch;
     uint32_t    gmmSize;
     uint32_t    gmmHeight;
@@ -3853,6 +3926,7 @@ VAStatus DdiMedia_CreateImage(
             vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight;
             break;
         case VA_FOURCC_422H:
+        case VA_FOURCC_422V:
             vaimg->format.bits_per_pixel = 16;
             vaimg->num_planes = 3;
             vaimg->pitches[0] = gmmPitch;
@@ -3860,87 +3934,67 @@ VAStatus DdiMedia_CreateImage(
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
             break;
-        case VA_FOURCC_422V:
-            vaimg->format.bits_per_pixel = 16;
-            vaimg->num_planes = 3;
-            vaimg->pitches[0] = vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
-			break;
     }
 
-    //3. allocate a buf, and set the surface bo into buffer bo, refer the bo
+    mediaCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
+
     DDI_MEDIA_BUFFER *buf  = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     if (nullptr == buf)
     {
-        DDI_ASSERTMESSAGE("cant allocate buf");
         MOS_FreeMemory(vaimg);
-        mos_bo_unreference(mediaSurface->bo);
-        MOS_FreeMemory(mediaSurface);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    buf->pGmmResourceInfo  = mediaSurface->pGmmResourceInfo;
     buf->iNumElements      = 1;
-    buf->iWidth            = width;
-    buf->iHeight           = mediaSurface->iRealHeight;
     buf->iSize             = vaimg->data_size;
     buf->uiType            = VAImageBufferType;
-    buf->format            = media_format;
-    buf->bo                = mediaSurface->bo;
-    buf->name              = mediaSurface->name;
-    buf->TileType          = mediaSurface->TileType;
+    buf->format            = Media_Format_CPU;//DdiCodec_OsFormatToMediaFormat(vaimg->format.fourcc); //Media_Format_Buffer;
     buf->uiOffset          = 0;
     buf->pMediaCtx         = mediaCtx;
-    buf->uiLockedBufID     = VA_INVALID_ID;
-    buf->uiLockedImageID   = VA_INVALID_ID;
-    buf->iRefCount         = 0;
-    mos_bo_reference(mediaSurface->bo);
 
-    //4. insert the buffer to bufferheap
+    //Put Image in untiled buffer for better CPU access?
+    VAStatus status= DdiMediaUtil_CreateBuffer(buf,  mediaCtx->pDrmBufMgr);
+    if((status != VA_STATUS_SUCCESS))
+    {
+        MOS_FreeMemory(vaimg);
+        MOS_FreeMemory(buf);
+        return status;
+    }
+    buf->TileType     = I915_TILING_NONE;
+
     DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufferHeapElement  = DdiMediaUtil_AllocPMediaBufferFromHeap(mediaCtx->pBufferHeap);
 
     if (nullptr == bufferHeapElement)
     {
-        DDI_ASSERTMESSAGE("cant allocate buffer from buffer heap");
         DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+        MOS_FreeMemory(vaimg);
         DdiMediaUtil_FreeBuffer(buf);
         MOS_FreeMemory(buf);
-        MOS_FreeMemory(vaimg);
-        mos_bo_unreference(mediaSurface->bo);
-        MOS_FreeMemory(mediaSurface);
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
 
     bufferHeapElement->pBuffer   = buf;
     bufferHeapElement->pCtx      = nullptr;
     bufferHeapElement->uiCtxType = DDI_MEDIA_CONTEXT_TYPE_MEDIA;
+
     vaimg->buf                   = bufferHeapElement->uiVaBufferID;
     mediaCtx->uiNumBufs++;
     DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
 
-    //5. insert the image to image heap
     DdiMediaUtil_LockMutex(&mediaCtx->ImageMutex);
     PDDI_MEDIA_IMAGE_HEAP_ELEMENT imageHeapElement = DdiMediaUtil_AllocPVAImageFromHeap(mediaCtx->pImageHeap);
     if (nullptr == imageHeapElement)
     {
         DdiMediaUtil_UnLockMutex(&mediaCtx->ImageMutex);
-        DdiMediaUtil_FreeBuffer(buf);
-        MOS_FreeMemory(buf);
         MOS_FreeMemory(vaimg);
-        mos_bo_unreference(mediaSurface->bo);
-        MOS_FreeMemory(mediaSurface);
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
     imageHeapElement->pImage     = vaimg;
     mediaCtx->uiNumImages++;
     vaimg->image_id              = imageHeapElement->uiVaImageID;
     DdiMediaUtil_UnLockMutex(&mediaCtx->ImageMutex);
-    *image = *vaimg;
 
-    //6. destroy the surface and only keep the bo.
-    mos_bo_unreference(mediaSurface->bo);
-    MOS_FreeMemory(mediaSurface);
+   *image = *vaimg;
     return VA_STATUS_SUCCESS;
 }
 
@@ -4157,7 +4211,7 @@ VAStatus DdiMedia_DeriveImage (
     }
     buf->iNumElements = 1;
     buf->iSize        = vaimg->data_size;
-    buf->uiType       = VAImageBufferType;
+    buf->uiType       = VABufferTypeMax;
     buf->format       = mediaSurface->format;
     buf->uiOffset     = 0;
 
@@ -4309,71 +4363,101 @@ VAStatus DdiMedia_GetImage(
 
     VAStatus        vaStatus = VA_STATUS_SUCCESS;
     VASurfaceID     target_surface = VA_INVALID_SURFACE;
+    VASurfaceID     output_surface = surface;
 
     //VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    VAContextID context = VA_INVALID_ID;
-
-    if (mediaCtx->pVpCtxHeap->pHeapBase != nullptr)
+    if (inputSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+        width != vaimg->width || height != vaimg->height)
     {
-        //Get VP Context from heap.
-        context = (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP);
+        VAContextID context = VA_INVALID_ID;
+        
+        if (mediaCtx->pVpCtxHeap->pHeapBase != nullptr)
+        {
+            //Get VP Context from heap.
+            context = (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP);
+        }else
+        {
+            //Create VP Context.
+            vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
+            DDI_CHK_RET(vaStatus, "Create VP Context failed");
+        }
+
+        //Create target surface for VP pipeline.
+        vaStatus = DdiMedia_CreateSurfaces2(ctx, vaimg->format.fourcc, vaimg->width, vaimg->height, &target_surface, 1, NULL, 0);
+        DDI_CHK_RET(vaStatus, "Create temp surface failed.");
+
+        //Execute VP pipeline.
+        vaStatus = DdiVp_VideoProcessPipeline(ctx, context, surface, x, y, width, height, target_surface);
+        if (vaStatus != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("VP Pipeline failed.");
+            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+            return vaStatus;
+        }
+
+        output_surface = target_surface;
     }
-    else
+
+    //Get Media Surface from output surface ID
+    DDI_MEDIA_SURFACE *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, output_surface);
+    DDI_CHK_NULL(mediaSurface,     "nullptr mediaSurface.",      VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mediaSurface->bo, "nullptr mediaSurface->bo.",  VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    //Lock Surface
+    void *surfData = DdiMediaUtil_LockSurface(mediaSurface, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
+    if (surfData == nullptr)
     {
-        //Create VP Context.
-        vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
-        DDI_CHK_RET(vaStatus, "Create VP Context failed");
-    }
-
-    DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
-
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = DdiMediaUtil_AllocPMediaSurfaceFromHeap(mediaCtx->pSurfaceHeap);
-    if (nullptr == surfaceElement)
-    {
-        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-
-    DDI_MEDIA_SURFACE * pTargetSurface = surfaceElement->pSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
-    if (nullptr == surfaceElement->pSurface)
-    {
-        DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaCtx->pSurfaceHeap, surfaceElement->uiVaSurfaceID);
-        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-
-    surfaceElement->pSurface->pMediaCtx       = mediaCtx;
-    surfaceElement->pSurface->iWidth          = vaimg->width;
-    surfaceElement->pSurface->pSurfDesc       = nullptr;
-    surfaceElement->pSurface->uiLockedBufID   = VA_INVALID_ID;
-    surfaceElement->pSurface->uiLockedImageID = VA_INVALID_ID;
-    surfaceElement->pSurface->pGmmResourceInfo = buf->pGmmResourceInfo; 
-    surfaceElement->pSurface->format           = buf->format; 
-    surfaceElement->pSurface->iHeight          = buf->iHeight;
-    surfaceElement->pSurface->iPitch           = buf->iPitch;
-    surfaceElement->pSurface->iRealHeight      = buf->iHeight;
-    surfaceElement->pSurface->iRefCount        = buf->iRefCount;
-    surfaceElement->pSurface->bo               = buf->bo;
-    surfaceElement->pSurface->TileType         = buf->TileType;
-    mediaCtx->uiNumSurfaces++;
-    target_surface = surfaceElement->uiVaSurfaceID;
-    DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-
-    mos_bo_reference(pTargetSurface->bo);
-    //Execute VP pipeline.
-    vaStatus = DdiVp_VideoProcessPipeline(ctx, context, surface, x, y, width, height, target_surface);
-    if (vaStatus != VA_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("VP Pipeline failed.");
-        DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+        DDI_ASSERTMESSAGE("nullptr surfData.");
+        if(target_surface != VA_INVALID_SURFACE)
+        {
+            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+        }
         return vaStatus;
     }
-    mos_bo_unreference(pTargetSurface->bo);
-    DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
-    MOS_FreeMemory(pTargetSurface);
-    DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaCtx->pSurfaceHeap, (uint32_t)target_surface);
-    mediaCtx->uiNumSurfaces--;
-    DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+
+    void *imageData = nullptr;
+    vaStatus = DdiMedia_MapBuffer(ctx, vaimg->buf, &imageData);
+    if (vaStatus != VA_STATUS_SUCCESS)
+    {
+        DdiMediaUtil_UnlockSurface(mediaSurface);
+        if(target_surface != VA_INVALID_SURFACE)
+        {
+            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+        }
+        return vaStatus;
+    }
+
+    //Copy data from surface to image
+    MOS_STATUS eStatus = MOS_SecureMemcpy(imageData, vaimg->data_size, surfData, vaimg->data_size);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        DDI_ASSERTMESSAGE("DDI:Failed to copy surface to image buffer data!");
+        DdiMediaUtil_UnlockSurface(mediaSurface);
+        if(target_surface != VA_INVALID_SURFACE)
+        {
+            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+        }
+        return vaStatus;
+    }
+
+    vaStatus = DdiMedia_UnmapBuffer(ctx, vaimg->buf);
+    if (vaStatus != VA_STATUS_SUCCESS)
+    {
+        DdiMediaUtil_UnlockSurface(mediaSurface);
+        if(target_surface != VA_INVALID_SURFACE)
+        {
+            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+        }
+        return vaStatus;
+    }
+
+    DdiMediaUtil_UnlockSurface(mediaSurface);
+
+    //Destroy temp surface if created
+    if(target_surface != VA_INVALID_SURFACE)
+    {
+        DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+    }
 
     return VA_STATUS_SUCCESS;
 }
