@@ -233,9 +233,8 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
             MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
             m_cmdBufPool.push_back(cmdBuf);
         }
-        else
+        else if (m_cmdBufPool.size() == MAX_CMD_BUF_NUM)
         {
-            MOS_OS_ASSERT(m_cmdBufPool.size() == MAX_CMD_BUF_NUM);
             auto cmdBufOld = m_cmdBufPool[m_nextFetchIndex];
             auto cmdBufSpecificOld = static_cast<CommandBufferSpecific *>(cmdBufOld);
             cmdBufSpecificOld->waitReady();
