@@ -76,14 +76,6 @@ export LIBVA_DRIVERS_PATH=<path-contains-iHD_drv_video.so>
 export LIBVA_DRIVER_NAME=iHD
 ```
 
-## Docker Image
-
-To simplify media stack installation you can use docker images. They are located in [hub.docker/intelmediadriver](https://hub.docker.com/r/intelmediadriver/media-driver/tags/). Latest image is based on Ubuntu 18.04 and downloaded by below command.
-```
-$ docker pull intelmediadriver/media-driver
-```
-
-
 ## Supported Platforms
 
 BDW (Broadwell)
@@ -102,16 +94,16 @@ ICL (Ice Lake)
 
 ## Supported Codecs
 
-| CODEC      | BDW  | SKL  | BXT/APL |   KBL   |   CFL   | CNL  |   ICL*  |
+| CODEC      | BDW  | SKL  | BXT/APL |   KBL   |   CFL   | CNL  |   ICL   |
 |------------|------|------|---------|---------|---------|------|---------|
-| AVC        | D/E1 | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1 | D/E1/E2 |
+| H.264      | D/E1 | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1 | D/E1/E2 |
 | MPEG-2     | D/E1 | D/E1 | D       | D/E1    | D/E1    | D/E1 | D/E1    |
 | VC-1       | D    | D    | D       | D       | D       | D    | D       |
 | JPEG       | D    | D/E2 | D/E2    | D/E2    | D/E2    | D/E2 | D/E2    |
 | VP8        | D    | D    | D       | D       | D       | D/E1 | D/E1    |
-| HEVC 8bit  |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 | D/E1/E2 |
+| HEVC       |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 | D/E1/E2 |
 | HEVC 10bit |      |      | D       | D       | D       | D/E1 | D/E1/E2 |
-| VP9 8bit   |      |      | D       | D       | D       | D    | D/E2    |
+| VP9        |      |      | D       | D       | D       | D    | D/E2    |
 | VP9 10bit  |      |      |         | D       | D       | D    | D/E2    |
 
 D  - decoding
@@ -120,93 +112,7 @@ E1 - VME based encoding
 
 E2 - Low power encoding
 
-\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/tree/intel-media-18.3#known-issues-and-limitations).
-
-
-## Supported Decoding Features
-
-Supported decoding output format and max resolution: 
-
-(2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384)
-
-| Codec      | Type     | BDW  | SKL  | BXT/APL | KBL  | CFL  | CNL  | ICL            |
-|------------|----------|------|------|---------|------|------|------|----------------|
-| AVC        |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| MPEG-2     |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 2k   | 2k   |  2k     | 2k   | 2k   | 2k   | 2k             |
-| VC-1       |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| JPEG*      |Max Res.  | 16k  | 16k  |  16k    | 16k  | 16k  | 16k  | 16k            |
-| VP8        |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| HEVC 8bit  |Output    |      | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12/YUY2/AYUV |
-|            |Max Res.  |      | 8k   |  8k     | 8k   | 8k   | 8k   | 8k             |
-| HEVC 10bit |Output    |      |      |  P010   | P010 | P010 | P010 | P010/Y210/Y410 |
-|            |Max Res.  |      |      |  8k     | 8k   | 8k   | 8k   | 8k             |
-| VP9  8bit  |Output    |      |      |  NV12   | NV12 | NV12 | NV12 | NV12/AYUV      |
-|            |Max Res.  |      |      |  4k     | 8k   | 8k   | 8k   | 8k             |
-| VP9  10bit |Output    |      |      |         | P010 | P010 | P010 | P010/Y410      |
-|            |Max Res.  |      |      |         | 8k   | 8k   | 8k   | 8k             |
-
-\* JPEG output format: NV12/411P/422H/422V/444P/BGRP/RGBP/YUY2/ARGB
-
-
-## Supported Encoding Features
-
-### Low Power Encoding:
-
-Supported input format and max resoultuion: 
-
-(4k=4096x4096, 16k=16384x16384)
-
-| Codec      | Type       | BDW  | SKL  | BXT/APL | KBL  | CFL  | CNL  | ICL***         |
-|------------|------------|------|------|---------|------|------|------|----------------|
-| AVC        |Input       |      |      |  NV12   | More*| More*|      | More*          |
-|            |Max Res.    |      |      |  4k     | 4k   | 4k   |      | 4k             |
-| JPEG       |Input/Output|      |Note**| Note**  |Note**|Note**|Note**| Note**         |
-|            |Max Res.    |      | 16k  |  16k    | 16k  | 16k  | 16k  | 16k            |
-| HEVC 8bit  |Input       |      |      |         |      |      |      | NV12/AYUV      |
-|            |Max Res.    |      |      |         |      |      |      | 8K             |
-| HEVC 10bit |Input       |      |      |         |      |      |      | P010/Y410      |
-|            |Max Res.    |      |      |         |      |      |      | 8k             |
-| VP9  8bit  |Input       |      |      |         |      |      |      | NV12/AYUV      |
-|            |Max Res.    |      |      |         |      |      |      | 8k             |
-| VP9  10bit |Input       |      |      |         |      |      |      | P010/Y410      |
-|            |Max Res.    |      |      |         |      |      |      | 8k             |
-
-\* KBL/CFL/ICL AVC encoding supported input formats: NV12/YUY2/YUYV/YVYU/UYVY/AYUV/ARGB
-
-\** JPEG encoding supports input format NV12/YUY2/UYVY/AYUV/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24. 
-
-\*** ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/tree/intel-media-18.3#known-issues-and-limitations).
-
-
-### VME Based Encoding:
-
-Supported input format and max resolution: 
-
-(2k=2048x2048, 4k=4096x4096, 8k=8192x8192)
-
-| Codec      | Type       | BDW  | SKL  | BXT/APL | KBL  | CFL  | CNL  | ICL*           |
-|------------|------------|------|------|---------|------|------|------|----------------|
-| AVC        |Input       | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.    | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| MPEG2      |Input       | NV12 | NV12 |         | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.    | 2k   | 2k   |         | 2k   | 2k   | 2k   | 2k             |
-| VP8        |Input       |      |      |         |      |      | NV12 | NV12           |
-|            |Max Res.    |      |      |         |      |      | 4k   | 4k             |
-| HEVC 8bit  |Input       |      | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12/AYUV      |
-|            |Max Res.    |      | 8k   |  8k     | 8k   | 8k   | 8k   | 8k             |
-| HEVC 10bit |Input       |      |      |         |      |      | NV12 | P010/Y410      |
-|            |Max Res.    |      |      |         |      |      | 8k   | 8k             |
-
-\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/tree/intel-media-18.3#known-issues-and-limitations).
-
-
 ## Supported Video Processing
-
-### Supported Feature List
 
 | Video Processing                             | BDW | SKL | BXT/APL | KBL | CFL | CNL | ICL |
 |----------------------------------------------|-----|-----|---------|-----|-----|-----|-----|
@@ -225,18 +131,6 @@ Supported input format and max resolution:
 | Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
 | Chroma Siting                                |  N  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
 
-### CSC/Scaling Format List
-
-|    Platform       | Format | NV12 | YV12 | I420 | P010 | YUY2 | UYVY | Y210 | AYUV | Y410 |
-|-------------------|--------|------|------|------|------|------|------|------|------|------|
-|      BDW          | Input  |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|                   | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|SKL/BXT/APL/KBL/CFL| Input  |  Y   |  Y   |  Y   |  Y   |  Y   |      |      |      |      |
-|                   | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|      ICL          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
-|                   | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |
-
-
 ## Known Issues and Limitations
 
 1. Intel(R) Media Driver for VAAPI is recommended to be built against gcc compiler v6.1
@@ -248,15 +142,12 @@ YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.0
 WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75f6827](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
 3. HuC firmware is needed for AVC low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
-   * APL/KBL: starting from kernel 4.11
+   * APL, KBL: starting from kernel 4.11
    * CFL: starting from kernel 4.15
 
-4. ICL: preliminary support and may not be fully functional. It requires Linux kernel 4.17+ loaded with i915.alpha_support=1 parameter to be tried.
+4. Restriction in implementation of vaGetImage: Source format (surface) should be same with destination format (image).
 
-5. ICL encoding has two known issues:
-   * Low power encoding: known [issue#328](https://github.com/intel/media-driver/issues/328) needs kernel patch which is under review.
-   * VME based encoding: known [issue#267](https://github.com/intel/media-driver/issues/267), which requires media driver patch [PR#271](https://github.com/intel/media-driver/pull/271) and kernel driver patch [Per context dynamic (sub)slice power-gating](https://patchwork.freedesktop.org/series/48194/).
-
+5. ICL encoding and decoding require special kernel mode driver ([issue#267](https://github.com/intel/media-driver/issues/267)/[PR#271](https://github.com/intel/media-driver/pull/271)), please refer to i915 kernel mode driver documentation for supporting status.
 
 ##### (*) Other names and brands may be claimed as property of others.
 
