@@ -771,14 +771,10 @@ finish:
 //!
 void VPHAL_VEBOX_STATE_G11_BASE::FreeResources()
 {
-    PVPHAL_VEBOX_STATE_G11_BASE   pVeboxState = this;
-    int32_t i;
-    PMOS_INTERFACE       pOsInterface = pVeboxState->m_pOsInterface;
-
-    if ((nullptr == pVeboxState) || (nullptr == pOsInterface))
-    {
-        return;
-    }
+    int32_t i = 0;
+    PVPHAL_VEBOX_STATE_G11_BASE   pVeboxState     = this;
+    PMOS_INTERFACE                pOsInterface    = pVeboxState->m_pOsInterface;
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pOsInterface);    
 
     // Free FFDI surfaces
     for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
@@ -845,6 +841,9 @@ void VPHAL_VEBOX_STATE_G11_BASE::FreeResources()
         &pVeboxState->Vebox3DLookUpTables.OsResource);
 
     MOS_Delete(m_hdr3DLutGenerator);
+
+finish:
+    return;
 }
 
 //!
