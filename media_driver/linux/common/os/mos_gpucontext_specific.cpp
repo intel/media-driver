@@ -532,10 +532,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 
     MOS_GPU_NODE gpuNode  = OSKMGetGpuNode(m_gpuContext);
     uint32_t     execFlag = gpuNode;
-    uint32_t     addCb2   = 0xffffffff;
     MOS_STATUS   eStatus  = MOS_STATUS_SUCCESS;
     int32_t      ret      = 0;
-    PLATFORM     platform;
 
     // Command buffer object DRM pointer
     m_cmdBufFlushed = true;
@@ -660,19 +658,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     int32_t          num_cliprects = 0;
     int32_t          DR4           = osContext->uEnablePerfTag ? perfData : 0;
 
-    if (gpuNode == I915_EXEC_RENDER)
-    {
-        if (true == osInterface->osCpInterface->IsHMEnabled())
-        {
-            osInterface->pfnGetPlatform(osInterface,&platform);
-            if (platform.eProductFamily < IGFX_BROXTON)
-            {
-                cliprects     = (drm_clip_rect *)(&addCb2);
-                num_cliprects = sizeof(addCb2);
-            }
-        }
-    }
-    else
+    //Since CB2 command is not supported, remove it and set cliprects to nullprt as default.
+    if (gpuNode != I915_EXEC_RENDER)
     {
         if (osContext->bKMDHasVCS2)
         {

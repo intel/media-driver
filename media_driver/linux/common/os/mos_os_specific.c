@@ -3497,8 +3497,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                dwBatchBufferEndCmd;
     uint32_t                            cpCmdProps;
-    uint32_t                            dwAddCb2;
-    PLATFORM                            platform;
     int32_t                             PerfData;
     uint32_t                            ExecFlag;
     drm_clip_rect_t                     *cliprects;
@@ -3509,7 +3507,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
     boOffset = 0;
 #endif
-    dwAddCb2 = 0xffffffff;
     eStatus  = MOS_STATUS_SUCCESS;
     ret      = 0;
 
@@ -3530,8 +3527,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
     pPatchList = pOsGpuContext->pPatchLocationList;
     MOS_OS_CHK_NULL(pPatchList);
-
-    pOsInterface->pfnGetPlatform(pOsInterface,&platform);
 
     // Allocate command buffer from video memory
     CmdBufferSize = (pCmdBuffer->pCmdPtr - pCmdBuffer->pCmdBase)*4;// pCmdBuffer->OsResource.iPitch;        // ??? Not 100% sure about this ...
@@ -3656,15 +3651,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     num_cliprects = 0;
     DR4 = pOsContext->uEnablePerfTag ? PerfData : 0;
 
-    if (GpuNode == I915_EXEC_RENDER)
-    {
-         if (true == pOsInterface->osCpInterface->IsHMEnabled())
-         {
-              cliprects = (drm_clip_rect*)(&dwAddCb2);
-              num_cliprects = sizeof(dwAddCb2);
-         }
-    }
-    else
+    //Since CB2 command is not supported, remove it and set cliprects to nullprt as default.
+    if (GpuNode != I915_EXEC_RENDER)
     {
         if (pOsContext->bKMDHasVCS2)
         {
