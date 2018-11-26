@@ -2535,12 +2535,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdVp8BsdObjectCmd(
 
     MHW_MI_CHK_STATUS(MhwVdboxMfxInterfaceGeneric::AddMfdVp8BsdObjectCmd(cmdBuffer, params));
 
-    cmd.DW3.IndirectPartition0DataLength += 1;
-    if (cmd.DW3.IndirectPartition0DataLength == 0)
-    {
-        cmd.DW3.IndirectPartition0DataLength -= 1;
-    }
-
     return eStatus;
 }
 
