@@ -210,6 +210,7 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     uint32_t        numberOfDwords = 0;
     uint32_t        sizeToAllocate = 0;
     char            fileName[MOS_MAX_HLT_FILENAME_LEN];
+    uint32_t        offset = 0;
 
     PMOS_INTERFACE osInterface = state->osInterface;
     PRENDERHAL_STATE_HEAP stateHeap   = state->renderHal->pStateHeap;
@@ -223,8 +224,10 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
                           __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER, 
                           HALCM_COMMAND_BUFFER_OUTPUT_DIR,
                           HALCM_COMMAND_BUFFER_OUTPUT_FILE);
-       
-    numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t);
+    
+    //get the command buffer header size
+    offset = GetCommandBufferHeaderDWords();
+    numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t) - offset;
     sizeToAllocate = numberOfDwords * (SIZE_OF_DWORD_PLUS_ONE)+2 +   //length of command buffer line
         stateHeap->iCurrentSurfaceState *
         (SIZE_OF_DWORD_PLUS_ONE * 
@@ -234,10 +237,11 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     if (!outputBuffer) {
         MOS_OS_NORMALMESSAGE("Failed to allocate memory for command buffer dump");
         return MOS_STATUS_NO_SPACE;
-    }
+    }    
+
     // write command buffer dwords.
     bytesWritten += HalCm_CopyHexDwordLine(outputBuffer, sizeToAllocate - bytesWritten,
-                                          (uint32_t *)cmdBuffer->pCmdBase, numberOfDwords);
+                                          (uint32_t *)cmdBuffer->pCmdBase + offset, numberOfDwords);
     MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
     commandBufferNumber++;
 
