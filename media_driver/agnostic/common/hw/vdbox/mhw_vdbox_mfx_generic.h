@@ -2833,61 +2833,61 @@ protected:
         cmd.DW1.Partition0CpbacEntropyCount = vp8PicParams->ucP0EntropyCount;
         cmd.DW2.Partition0CpbacEntropyValue = vp8PicParams->ucP0EntropyValue;
 
-        cmd.DW3.IndirectPartition0DataLength = vp8PicParams->uiPartitionSize[0];
+        cmd.DW3.IndirectPartition0DataLength = vp8PicParams->uiPartitionSize[0] + 1;
         cmd.DW4.IndirectPartition0DataStartOffset = vp8PicParams->uiFirstMbByteOffset;
 
-        cmd.DW5.IndirectPartition1DataLength = vp8PicParams->uiPartitionSize[1];
+        cmd.DW5.IndirectPartition1DataLength = vp8PicParams->uiPartitionSize[1] + 1;
         cmd.DW6.IndirectPartition1DataStartOffset = cmd.DW4.IndirectPartition0DataStartOffset +
-            cmd.DW3.IndirectPartition0DataLength +
+            vp8PicParams->uiPartitionSize[0] +
             (numPartitions - 1) * 3;      // Account for P Sizes: 3 bytes per partition
                                             // excluding partition 0 and last partition.
 
         int32_t i = 2;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW7.IndirectPartition2DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW7.IndirectPartition2DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW8.IndirectPartition2DataStartOffset = cmd.DW6.IndirectPartition1DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 3;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW9.IndirectPartition3DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW9.IndirectPartition3DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW10.IndirectPartition3DataStartOffset = cmd.DW8.IndirectPartition2DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 4;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW11.IndirectPartition4DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW11.IndirectPartition4DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW12.IndirectPartition4DataStartOffset = cmd.DW10.IndirectPartition3DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 5;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW13.IndirectPartition5DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW13.IndirectPartition5DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW14.IndirectPartition5DataStartOffset = cmd.DW12.IndirectPartition4DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 6;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW15.IndirectPartition6DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW15.IndirectPartition6DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW16.IndirectPartition6DataStartOffset = cmd.DW14.IndirectPartition5DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 7;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW17.IndirectPartition7DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW17.IndirectPartition7DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW18.IndirectPartition7DataStartOffset = cmd.DW16.IndirectPartition6DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 8;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW19.IndirectPartition8DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW19.IndirectPartition8DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW20.IndirectPartition8DataStartOffset = cmd.DW18.IndirectPartition7DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
