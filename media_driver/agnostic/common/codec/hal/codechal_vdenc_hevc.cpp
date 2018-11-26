@@ -656,9 +656,9 @@ MOS_STATUS CodechalVdencHevcState::SetupROIStreamIn(PMOS_RESOURCE streamIn)
 
         //Check if the region is with in the borders
         uint16_t top    = (uint16_t)CodecHal_Clip3(0, (streamInHeight - 1), m_hevcPicParams->ROI[i].Top);
-        uint16_t bottom = (uint16_t)CodecHal_Clip3(0, (streamInHeight - 1), m_hevcPicParams->ROI[i].Bottom) + 1;
+        uint16_t bottom = (uint16_t)CodecHal_Clip3(0, (streamInHeight - 1), m_hevcPicParams->ROI[i].Bottom);
         uint16_t left   = (uint16_t)CodecHal_Clip3(0, (streamInWidth - 1), m_hevcPicParams->ROI[i].Left);
-        uint16_t right  = (uint16_t)CodecHal_Clip3(0, (streamInWidth - 1), m_hevcPicParams->ROI[i].Right) + 1;
+        uint16_t right  = (uint16_t)CodecHal_Clip3(0, (streamInWidth - 1), m_hevcPicParams->ROI[i].Right);
 
         //Check if all the sides of ROI regions are aligned to 64CU
         if ((top % 2 == 1) || (bottom % 2 == 1) || (left % 2 == 1) || (right % 2 == 1))
