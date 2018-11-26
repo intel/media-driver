@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_g9.cpp 
-//! \brief     Common HAL CM Gen9 functions 
+//! \file      cm_hal_g9.cpp
+//! \brief     Common HAL CM Gen9 functions
 //!
 
 #include "cm_hal_g9.h"
@@ -632,8 +632,8 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
 
     // Send Pipeline Select command
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddPipelineSelectCmd(&mosCmdBuffer, enableGpGpu));
-    
-    // issue a PIPE_CONTROL to flush all caches and the stall the CS before 
+
+    // issue a PIPE_CONTROL to flush all caches and the stall the CS before
     // issuing a PIPE_CONTROL to write the timestamp
     pipeCtlParams = g_cRenderHal_InitPipeControlParams;
     pipeCtlParams.presDest = &state->renderTimeStampResource.osResource;
@@ -738,7 +738,6 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     bool                         sipEnable = renderHal->bSIPKernel? true: false;
     bool                         csrEnable = renderHal->bCSRKernel? true: false;
     PCM_HAL_BB_ARGS              bbCmArgs;
-    uint32_t                     i;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
     MOS_RESOURCE                 osResource;
     uint32_t                     tag;
@@ -749,7 +748,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #endif
 #endif
 
-    MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));  
+    MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
@@ -805,7 +804,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
-    
+
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
     {
@@ -848,7 +847,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         // Same reg offset and value for gpgpu pipe and media pipe
         if ( enableGpGpu )
         {
-            if (MEDIA_IS_SKU(state->skuTable, FtrGpGpuMidThreadLevelPreempt)) 
+            if (MEDIA_IS_SKU(state->skuTable, FtrGpGpuMidThreadLevelPreempt))
             {
                 if (csrEnable)
                     loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
@@ -1087,7 +1086,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     if (state->svmBufferUsed)
     {
         // Find the SVM slot, patch it into this dummy pipe_control
-        for (i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++)
+        for (uint32_t i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++)
         {
             //Only register SVM resource here
             if (state->bufferTable[i].address)
@@ -1161,7 +1160,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     {
         state->pfnDumpSurfaceState(
             state,
-            offsetof(PACKET_SURFACE_STATE, cmdSurfaceState), 
+            offsetof(PACKET_SURFACE_STATE, cmdSurfaceState),
             mhw_state_heap_g9_X::RENDER_SURFACE_STATE_CMD::byteSize);
 
     }
@@ -1172,7 +1171,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     // Submit command buffer
 #if (_RELEASE_INTERNAL || _DEBUG)
-#if defined (CM_DIRECT_GUC_SUPPORT)    
+#if defined (CM_DIRECT_GUC_SUPPORT)
     CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnSubmitWorkQueue(osInterface, MOS_GPU_NODE_3D, batchbufferaddress));
 #endif
 #endif

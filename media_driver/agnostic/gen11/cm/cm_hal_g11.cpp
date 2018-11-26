@@ -389,7 +389,6 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     int32_t                      tmp;
     bool                         sipEnable = renderHal->bSIPKernel?true: false;
     bool                         csrEnable = renderHal->bCSRKernel?true: false;
-    uint32_t                     i;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
     MOS_RESOURCE                 osResource;
     uint32_t                     tag;
@@ -766,7 +765,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     if (state->svmBufferUsed)
     {
         // Find the SVM slot, patch it into this dummy pipe_control
-        for ( i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++ )
+        for (uint32_t i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++ )
         {
             //Only register SVM resource here
             if ( state->bufferTable[ i ].address )
