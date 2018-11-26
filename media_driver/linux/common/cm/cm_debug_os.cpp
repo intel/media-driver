@@ -71,3 +71,7 @@ int32_t RecordInterfaceDescriptorDataDumpCounter(int32_t count, uint32_t ValueID
     IDDCounter = count;
     return 0;
 }
+uint32_t GetCommandBufferHeaderDWords()
+{
+    return 0;
+}
