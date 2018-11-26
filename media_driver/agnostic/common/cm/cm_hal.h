@@ -1857,8 +1857,11 @@ typedef struct _CM_HAL_STATE
     bool                        dumpCurbeData;                                //flag to enable curbe data dump
     bool                        dumpSurfaceContent;                           //flag to enable surface content dump
     bool                        dumpSurfaceState;                             //flag to enable surface state dump
-    bool                        enableCMDDumpTimeStamp;                        //flag to enable command buffer dump time stamp
-    bool                        enableSurfaceStateDumpTimeStamp;                        //flag to enable surface state dump time stamp
+    bool                        enableCMDDumpTimeStamp;                       //flag to enable command buffer dump time stamp
+    bool                        enableSurfaceStateDumpTimeStamp;              //flag to enable surface state dump time stamp
+    bool                        dumpIDData;                                   //flag to enable surface state dump time stamp
+    bool                        enableIDDumpTimeStamp;                        //flag to enable surface state dump time stamp
+
     int32_t(*pfnInitDumpCommandBuffer)
         (
         PCM_HAL_STATE            state);
