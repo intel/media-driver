@@ -103,11 +103,17 @@ extern int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state);
 
 #if MDF_SURFACE_CONTENT_DUMP
 extern int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state);
+
 #endif
 
 #if MDF_SURFACE_STATE_DUMP
 extern int32_t HalCm_InitDumpSurfaceState(PCM_HAL_STATE state);
 extern int32_t HalCm_DumpSurfaceState(PCM_HAL_STATE state, int offsetSurfaceState, size_t sizeOfSurfaceState);
+#endif
+
+#if MDF_INTERFACE_DESCRIPTOR_DATA_DUMP
+extern int32_t HalCm_InitDumpInterfaceDescriporData(PCM_HAL_STATE state);
+extern int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state);
 #endif
 
 extern uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE pOsInterface);
@@ -7789,6 +7795,14 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
     {
         HalCm_DumpCurbeData(state);
     }
+
+#endif
+
+#if MDF_INTERFACE_DESCRIPTOR_DATA_DUMP
+    if (state->dumpIDData)
+    {
+        HalCm_DumpInterfaceDescriptorData(state);
+    }   
 #endif
 
 finish:
@@ -10540,6 +10554,10 @@ MOS_STATUS HalCm_Create(
     HalCm_InitDumpSurfaceState(state);
     state->pfnInitDumpSurfaceState = HalCm_InitDumpSurfaceState;
     state->pfnDumpSurfaceState = HalCm_DumpSurfaceState;
+#endif
+
+#if MDF_INTERFACE_DESCRIPTOR_DATA_DUMP
+  HalCm_InitDumpInterfaceDescriporData(state);
 #endif
 
     state->cmHalInterface = CMHalDevice::CreateFactory(state);
