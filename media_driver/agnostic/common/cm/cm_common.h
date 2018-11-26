@@ -46,6 +46,7 @@
 #define MDF_CURBE_DATA_DUMP             1
 #define MDF_SURFACE_CONTENT_DUMP        1
 #define MDF_SURFACE_STATE_DUMP          1
+#define MDF_INTERFACE_DESCRIPTOR_DATA_DUMP  1
 #endif
 
 //===============<Definitions>==================================================
