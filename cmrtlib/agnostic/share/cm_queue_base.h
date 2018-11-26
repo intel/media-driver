@@ -52,7 +52,7 @@ struct CM_QUEUE_CREATE_OPTION
 {
     CM_QUEUE_TYPE QueueType : 3;
     bool RunAloneMode       : 1;
-    unsigned int Reserved0  : 3;
+    unsigned int IsMultipleContextCase  : 3;  // for sim mode
     bool UserGPUContext     : 1;
     unsigned int GPUContext : 8; // user provided GPU CONTEXT in enum MOS_GPU_CONTEXT, this will override CM_QUEUE_TYPE if set
     CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
