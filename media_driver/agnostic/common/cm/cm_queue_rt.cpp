@@ -964,7 +964,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToCPU( CmSurface2D* surface, unsigned
     return EnqueueCopyInternal(surfaceRT, sysMem, 0, 0, CM_FASTCOPY_GPU2CPU, CM_FASTCOPY_OPTION_NONBLOCKING, event);
 }
 
-int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigned char* sysMem, const uint32_t widthStride, const uint32_t heightStride, CM_GPUCOPY_DIRECTION direction, CmEvent* &event )
+int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigned char* sysMem, const uint32_t widthStride, const uint32_t heightStride, CM_GPUCOPY_DIRECTION direction)
 {
     int32_t         hr                          = CM_SUCCESS;
     uint32_t        bufferupSize               = 0;
@@ -991,10 +991,11 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
     SurfaceIndex           *bufferIndexCM             = nullptr;
     SurfaceIndex           *hybridCopyAuxIndexCM      = nullptr;
     SurfaceIndex           *surf2DIndexCM             = nullptr;
-    CmThreadSpace          *threadSpace                        = nullptr;
+    CmThreadSpace          *threadSpace               = nullptr;
     CmQueue                *cmQueue                   = nullptr;
     CmTask                 *gpuCopyTask               = nullptr;
     CmProgram              *gpuCopyProgram            = nullptr;
+    CmEvent                *event                     = nullptr;
     CM_STATUS              status;
     CM_SURFACE_FORMAT      format;
 
@@ -1157,6 +1158,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         }
     }
 
+    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->DestroyEvent(event));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyTask(gpuCopyTask));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyThreadSpace(threadSpace));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(bufferUP));
@@ -1181,8 +1183,9 @@ finish:
             hr = CM_GPUCOPY_OUT_OF_RESOURCE;
         }
 
+        if(event)                          cmQueue->DestroyEvent(event);
         if(kernel)                         m_device->DestroyKernel(kernel);
-        if(threadSpace)                             m_device->DestroyThreadSpace(threadSpace);
+        if(threadSpace)                    m_device->DestroyThreadSpace(threadSpace);
         if(gpuCopyTask)                    m_device->DestroyTask(gpuCopyTask);
         if(bufferUP)                       m_device->DestroyBufferUP(bufferUP);
         if(hybridCopyAuxBufferUP)          m_device->DestroyBufferUP(hybridCopyAuxBufferUP);
