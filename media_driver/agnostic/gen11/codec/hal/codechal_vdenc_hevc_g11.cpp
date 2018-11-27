@@ -355,7 +355,7 @@ MOS_STATUS CodechalVdencHevcStateG11::DecideEncodingPipeNumber()
     // Only support 1 colomn or 1 row when only have 1 VDBOX
     if (m_numVdbox <= 1 && numTileRows > 1 && numTileColumns > 1)
     {
-        return MOS_STATUS_INVALID_PARAMETER;
+        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
     if (numTileColumns > m_numPipe)
