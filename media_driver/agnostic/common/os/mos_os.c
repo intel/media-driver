@@ -698,7 +698,9 @@ MOS_STATUS Mos_InitInterface(
     MOS_COMPONENT  component)
 {
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
+#if !EMUL
     MOS_OS_CHK_NULL_RETURN(pOsDriverContext);
+#endif
     MOS_STATUS                  eStatus = MOS_STATUS_UNKNOWN;
     PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface = nullptr;
     MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
