@@ -4656,13 +4656,24 @@ int32_t CmKernelRT::UpdateKernelData(
                     else
                     {
                         CM_ASSERT(halKernelParam->argParams[argIndex].firstValue != nullptr);
-                        CmFastMemCopy(halKernelParam->argParams[argIndex].firstValue,
-                            m_args[orgArgIndex].value, sizeof(uint32_t));
-
-                        halKernelParam->argParams[argIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
-                        halKernelParam->argParams[argIndex].isNull = m_args[orgArgIndex].isNull;
+                        halKernelParam->argParams[argIndex].kind
+                                = (CM_HAL_KERNEL_ARG_KIND)
+                                m_args[orgArgIndex].unitKind;
+                        halKernelParam->argParams[argIndex].isNull
+                                = m_args[orgArgIndex].isNull;
+                        if (halKernelParam->argParams[argIndex].isNull)
+                        {
+                            *(halKernelParam->argParams[argIndex].firstValue)
+                                    = 0;
+                        }
+                        else
+                        {
+                            CmSafeMemCopy(
+                                halKernelParam->argParams[argIndex].firstValue,
+                                m_args[orgArgIndex].value, sizeof(uint32_t));
+                        }
                     }
-                 }
+                }
             }
             else if (CHECK_SURFACE_TYPE(m_args[orgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
             {
