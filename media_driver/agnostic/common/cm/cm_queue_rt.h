@@ -222,8 +222,7 @@ public:
                                          unsigned char *sysMem,
                                          const uint32_t widthStride,
                                          const uint32_t heightStride,
-                                         CM_GPUCOPY_DIRECTION direction,
-                                         CmEvent *&event);
+                                         CM_GPUCOPY_DIRECTION direction);
 
     int32_t FlushTaskWithoutSync(bool flushBlocked = false);
 
