@@ -3449,7 +3449,7 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & cmHalCreateParam,
     // [10] request slice shutdown
     cmHalCreateParam.requestSliceShutdown = (option & CM_DEVICE_CONFIG_SLICESHUTDOWN_ENABLE ) ? true:false;
 
-    // [12] request custom gpu context
+    // [12] request custom gpu context. This flag is deprecated since GPU context is decoupled with cmhal for supporting multiple context.
     cmHalCreateParam.requestCustomGpuContext = (option & CM_DEVICE_CONFIG_GPUCONTEXT_ENABLE) ? true:false;
 
     // [20:13] calculate size in GSH reserved for kernel binary

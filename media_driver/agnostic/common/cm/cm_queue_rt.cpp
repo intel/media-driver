@@ -165,7 +165,10 @@ CmQueueRT::~CmQueueRT()
 //*-----------------------------------------------------------------------------
 int32_t CmQueueRT::Initialize()
 {
+    CM_CHK_NULL_RETURN_CMERROR(m_device);
+    CM_CHK_NULL_RETURN_CMERROR(m_device->GetAccelData());
     PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+
     CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
     CM_RETURN_CODE hr = CM_SUCCESS;
     m_device->GetHalMaxValues(m_halMaxValues, halMaxValuesEx);
@@ -173,6 +176,14 @@ int32_t CmQueueRT::Initialize()
     // Creates or gets GPU Context for the test
     if (m_queueOption.UserGPUContext == true)
     {
+        // Check if user provided a valid GPU context in queue create option
+        if (m_queueOption.GPUContext == 0)
+        {
+            // Returns failure
+            CM_ASSERTMESSAGE("Error: The user passed in an GPU context which is not valid");
+            return CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX;
+        }
+
         // Checks if it is the user-provided GPU context. If it is valid, we will create the queue with the existing Context
         if (cmHalState->osInterface->pfnIsGpuContextValid(cmHalState->osInterface, (MOS_GPU_CONTEXT)m_queueOption.GPUContext) != MOS_STATUS_SUCCESS)
         {
@@ -180,6 +191,8 @@ int32_t CmQueueRT::Initialize()
             CM_ASSERTMESSAGE("Error: The user passed in an GPU context which is not valid");
             return CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX;
         }
+
+        // Need reset m_queueOption.QueueType according to user provided GPU Context?
     }
     else
     {
@@ -192,24 +205,6 @@ int32_t CmQueueRT::Initialize()
             // command buffer number
             ctxCreateOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(cmHalState->osInterface, cmHalState->cmDeviceParam.maxTasks);
 
-            MOS_GPU_CONTEXT tmpGpuCtx = (m_queueOption.GPUContext == 0) ? cmHalState->gpuContext : (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
-
-            // check if context handle was specified by user.
-            if (m_queueOption.GPUContext != 0)
-            {
-                tmpGpuCtx = (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
-            }
-            else
-            {
-                tmpGpuCtx = cmHalState->gpuContext;
-            }
-
-            // sanity check of context handle for CM
-            if (tmpGpuCtx != MOS_GPU_CONTEXT_RENDER3 && tmpGpuCtx != MOS_GPU_CONTEXT_RENDER4)
-            {
-                return CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX;
-            }
-            
             // SSEU overriding
             if (cmHalState->cmHalInterface->IsOverridePowerOptionPerGpuContext())
             {
@@ -230,7 +225,7 @@ int32_t CmQueueRT::Initialize()
                     nullptr,
                     __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
                     &UserFeatureData);
-               
+
                 // +---------------+----------------+----------------+----------------+
                 // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
                 // +-------------24+--------------16+---------------8+---------------0+
@@ -243,39 +238,29 @@ int32_t CmQueueRT::Initialize()
                 }
 #endif
             }
-
-            // Create Render GPU Context
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D, &ctxCreateOption));
-
-            // Set current GPU context
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface, tmpGpuCtx));
-                    
-#if (_RELEASE_INTERNAL || _DEBUG)
-#if defined(CM_DIRECT_GUC_SUPPORT)
-            //init GuC
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->osInterface->pfnInitGuC(cmHalState->osInterface, MOS_GPU_NODE_3D));
-#endif
-#endif
-            m_queueOption.GPUContext = tmpGpuCtx;
         }
-        else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
-        {
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
-                cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
-                                                MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
 
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
-                cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface,
-                                                          MOS_GPU_CONTEXT_CM_COMPUTE));
+        MOS_GPU_CONTEXT gpuContext;
+        MOS_GPU_NODE    gpuNode;
 
-            m_queueOption.GPUContext = MOS_GPU_CONTEXT_CM_COMPUTE;
-        }
-        else
-        {
-            // Returns failure
-            CM_ASSERTMESSAGE("Error: The QueueType is not supported by MDF.");
-            return CM_NOT_IMPLEMENTED;
-        }
+        // Queury proper MOS GPU context ordinal and node for current cm queue.
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+            HalCm_SelectGpuContextAndNode(cmHalState, m_queueOption, gpuContext, gpuNode));
+
+        // Sanity check of the GPU context from above query.
+        CM_CHK_COND_RETURN((HalCm_IsValidGpuContext(gpuContext) == false),
+            CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX, "Invalid Mos GPU context %d. for CM", gpuContext);
+
+        // Create a real GPU Context
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+            cmHalState->pfnCreateGPUContext(cmHalState, gpuContext, gpuNode, &ctxCreateOption));
+
+        // Set current GPU context
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+            cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface, gpuContext));
+
+        // Save the GPU context ordinal in cm queue instance.
+        m_queueOption.GPUContext = gpuContext;
     }
 
 finish:
@@ -348,15 +333,15 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
     int32_t result;
     const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
     PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
-    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false) 
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        if (threadSpaceRTConst != nullptr) 
+        if (threadSpaceRTConst != nullptr)
         {
             result = EnqueueWithGroup(kernelArray, event, threadSpaceRTConst->GetThreadGroupSpace());
         }
         else
         {
-            // If there isn't any shared thread space or associated thread space, 
+            // If there isn't any shared thread space or associated thread space,
             // create a temporary (maxThreadCount x 1) thread group space whose
             // size equal to the max thread count of kernel who doesn't have a
             // thread space associated.
@@ -1388,10 +1373,12 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             return CM_GPUCOPY_INVALID_SIZE;
         }
 
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
+
         kernel = nullptr;
         CM_CHK_CMSTATUS_GOTOFINISH( m_device->CreateBufferUP(  sliceCopyBufferUPSize, ( void * )linearAddressAligned, cmbufferUP ));
         CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUP);
-        
+
         //Configure memory object control for BufferUP to solve the cache-line issue.
         if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
         {
@@ -1430,7 +1417,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
 
         if(direction == CM_FASTCOPY_GPU2CPU)
         {
-            surface->SetReadSyncFlag(true); // GPU -> CPU, set surf2d as read sync flag
+            surface->SetReadSyncFlag(true, cmQueue); // GPU -> CPU, set surf2d as read sync flag
         }
 
         widthDword = (uint32_t)ceil((double)widthByte / 4);
@@ -1455,7 +1442,6 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 7, sizeof( uint32_t ), &startY ));
         }
 
-        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
         CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
         CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
         if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
@@ -1646,12 +1632,14 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
         return CM_GPUCOPY_INVALID_SIZE;
     }
 
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue(cmQueue));
+
     kernel = nullptr;
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(bufferUPYSize, (void *)linearAddressAlignedY, cmbufferUPY));
     CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPY);
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(bufferUPUVSize, (void *)linearAddressAlignedUV, cmbufferUPUV));
     CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPUV);
-    
+
     //Configure memory object control for the two BufferUP to solve the same cache-line coherency issue.
     if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
     {
@@ -1719,10 +1707,9 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
         CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(8, sizeof(uint32_t), &widthDword));
         CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(9, sizeof(uint32_t), &heightInRow));
 
-        surface->SetReadSyncFlag(true); // GPU -> CPU, set surf2d as read sync flag
+        surface->SetReadSyncFlag(true, cmQueue); // GPU -> CPU, set surf2d as read sync flag
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue(cmQueue));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
     CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel(kernel));
     if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
@@ -3520,7 +3507,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
 CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
 {
     CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
-    
+
     if (state == nullptr || state->advExecutor == nullptr)
     {
         return CM_NULL_POINTER;
@@ -3530,5 +3517,4 @@ CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
         return state->advExecutor->DestoryEvent(this, event);
     }
 }
-
 }
