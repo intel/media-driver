@@ -140,18 +140,6 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
 
     widthInBytes = m_width * sizePerPixel;
 
-    if( event )
-    {
-        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
-        if (eventRT)
-        {
-            FlushDeviceQueue(eventRT);
-        }
-        else
-        {
-            event->WaitForTaskFinished();
-        }
-    }
     WaitForReferenceFree();   // wait all owner task finished
 
     if (forceCPUCopy)
@@ -163,30 +151,13 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
         if(IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyCPUToGPUFullStride(this, sysMem, horizontalStride, verticalStride, 0, event));
-            if(event)
-            {
-                CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                while(status != CM_STATUS_FINISHED)
-                {
-                    if (status == CM_STATUS_RESET)
-                    {
-                        hr = CM_TASK_MEDIA_RESET;
-                        goto finish;
-                    }
-                    CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                }
-            }
-            else
-            {
-                CM_ASSERTMESSAGE("Error: Hybrid memory copy from system memory to Surface 2D failure.")
-                return CM_FAILURE;
-            }
+            CmEvent *tempEvent = CM_NO_EVENT;
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyCPUToGPUFullStride(this, sysMem, horizontalStride, verticalStride, CM_FASTCOPY_OPTION_BLOCKING, tempEvent));
         }
         else if (IsUnalignedGPUCopy(widthInBytes, m_height))
         {
             cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_CPU2GPU, event));
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_CPU2GPU));
         }
         else
         {
@@ -336,19 +307,6 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* sysMem
 
     widthInBytes = m_width * sizePerPixel;
 
-    if( event )
-    {
-        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
-        if (eventRT)
-        {
-            FlushDeviceQueue(eventRT);
-        }
-        else
-        {
-            event->WaitForTaskFinished();
-        }
-    }
-
     WaitForReferenceFree();   // wait all owner task finished
 
     if (forceCPUCopy)
@@ -360,30 +318,13 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* sysMem
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
         if(IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyGPUToCPUFullStride(this, sysMem, horizontalStride, verticalStride, 0, event));
-            if(event)
-            {
-                CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                while(status != CM_STATUS_FINISHED)
-                {
-                    if (status == CM_STATUS_RESET)
-                    {
-                        hr = CM_TASK_MEDIA_RESET;
-                        goto finish;
-                    }
-                    CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                }
-            }
-            else
-            {
-                CM_ASSERTMESSAGE("Error: Hybrid memory copy from surface 2D to system memory failure.")
-                return CM_FAILURE;
-            }
+            CmEvent *tempEvent = CM_NO_EVENT;
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyGPUToCPUFullStride(this, sysMem, horizontalStride, verticalStride, CM_FASTCOPY_OPTION_BLOCKING, tempEvent));
         }
         else if (IsUnalignedGPUCopy(widthInBytes, m_height))
         {
             cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_GPU2CPU, event));
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_GPU2CPU));
         }
         else
         {
