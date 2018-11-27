@@ -38,7 +38,6 @@ const char *g_platformName[] = {
     "SKL",
     "BXT",
     "BDW",
-    "CNL",
 };
 
 DriverDllLoader::DriverDllLoader()
@@ -61,9 +60,6 @@ DriverDllLoader::DriverDllLoader()
 #endif
 #ifdef IGFX_GEN8_BDW_SUPPORTED
         igfxBROADWELL,
-#endif
-#ifdef IGFX_GEN10_CNL_SUPPORTED
-        igfxCANNONLAKE,
 #endif
     };
 
