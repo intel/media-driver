@@ -147,15 +147,12 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, &osResource, tag);
     stateHeap->pCurMediaState->dwSyncTag = tag;
 
-    // Initialize command buffer and insert prolog
-    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
-
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
     {
         CM_CHK_MOSSTATUS_GOTOFINISH(state->perfProfiler->AddPerfCollectStartCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
     }
-    
+
     //Send the First PipeControl Command to indicate the beginning of execution
     pipeCtrlParams = g_cRenderHal_InitPipeControlParams;
     pipeCtrlParams.presDest          = &state->renderTimeStampResource.osResource;
@@ -163,6 +160,9 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     pipeCtrlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtrlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtrlParams));
+
+    // Initialize command buffer and insert prolog
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
     // update tracker tag used with CM tracker resource
     renderHal->pfnIncTrackerId(state->renderHal);
@@ -427,21 +427,6 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
         }
     }
 
-    // issue a PIPE_CONTROL to write timestamp
-    syncOffset += sizeof(uint64_t);
-    pipeCtrlParams = g_cRenderHal_InitPipeControlParams;
-    pipeCtrlParams.presDest          = &state->renderTimeStampResource.osResource;
-    pipeCtrlParams.dwResourceOffset  = syncOffset;
-    pipeCtrlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-    pipeCtrlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
-    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtrlParams));
-
-    // Record registers by unified media profiler in the end
-    if (state->perfProfiler != nullptr)
-    {
-        CM_CHK_MOSSTATUS_GOTOFINISH(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
-    }
-
     if ( slmUsed & state->pfnIsWASLMinL3Cache())
     {
         //Disable SLM in L3 when command submitted
@@ -460,6 +445,21 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     // Update tracker resource
     CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
 
+    // issue a PIPE_CONTROL to write timestamp
+    syncOffset += sizeof(uint64_t);
+    pipeCtrlParams = g_cRenderHal_InitPipeControlParams;
+    pipeCtrlParams.presDest          = &state->renderTimeStampResource.osResource;
+    pipeCtrlParams.dwResourceOffset  = syncOffset;
+    pipeCtrlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+    pipeCtrlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtrlParams));
+
+    // Record registers by unified media profiler in the end
+    if (state->perfProfiler != nullptr)
+    {
+        CM_CHK_MOSSTATUS_GOTOFINISH(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+    }
+    
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
 
