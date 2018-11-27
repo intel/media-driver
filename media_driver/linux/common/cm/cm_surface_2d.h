@@ -27,6 +27,7 @@
 #define MEDIADRIVER_LINUX_COMMON_CM_CMSURFACE2D_H_
 
 #include "cm_def.h"
+#include "cm_queue.h"
 
 namespace CMRT_UMD
 {
@@ -306,12 +307,12 @@ public:
 public:
     //!
     //! \brief Sets the surface's read sync flag for synchronization between engines.
-    //! \details If the surface is shared between render engine and another engine, 
+    //! \details If the surface is shared between render engine and another engine,
     //!          the read sync flag is to tell whether the next engine should wait till
     //!          the kernel execution ends in render engine. If the read sync flag is set,
-    //!          then it means the render engine only read this surface and the next engine 
+    //!          then it means the render engine only read this surface and the next engine
     //!          can also access it simultaneously. If the read sync flag
-    //!          is not set (or set to false), then the next engine should assume the 
+    //!          is not set (or set to false), then the next engine should assume the
     //!          render engine is writing to this surface and wait till the kernel execution
     //!          ends.
     //! \param [in] readSync
@@ -319,11 +320,11 @@ public:
     //! \retval CM_INVALID_ARG_VALUE if any parameter is invalid.
     //! \retval CM_SUCCESS if successful.
     //!
-    CMRT_UMD_API virtual int32_t SetReadSyncFlag(bool readSync) = 0;
+    CMRT_UMD_API virtual int32_t SetReadSyncFlag(bool readSync, CmQueue *pCmQueue) = 0;
 
     //!
     //! \brief Set the UMD Resource and MOS Resource in the CmSurface2D
-    //! \details A callback function which allows CM callers to change the UMD Resource and 
+    //! \details A callback function which allows CM callers to change the UMD Resource and
     //!          MOS Resource embedded in the CmSurface2D.
     //! \param [in] umdResource
     //!        the UMD Resource set to the CmSurface2D
