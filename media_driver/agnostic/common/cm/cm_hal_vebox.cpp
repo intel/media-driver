@@ -282,7 +282,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     osInterface->pfnSyncGpuContext(
         osInterface,
-        state->gpuContext,
+        state->osInterface->CurrentGpuContextOrdinal,
         MOS_GPU_CONTEXT_VEBOX);
 
     osInterface->pfnResetPerfBufferID(osInterface);
