@@ -134,9 +134,6 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, &osResource, tag);
     stateHeap->pCurMediaState->dwSyncTag = tag;
 
-    // Initialize command buffer and insert prolog
-    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
-
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
     {
@@ -150,6 +147,9 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     pipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+
+    // Initialize command buffer and insert prolog
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
     // update tracker tag used with CM tracker resource
     renderHal->pfnIncTrackerId(state->renderHal);
@@ -462,6 +462,12 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
         }
     }
 
+    // Send Sync Tag
+    CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+
+    // Update tracker resource
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
+
     // issue a PIPE_CONTROL to write timestamp
     syncOffset += sizeof(uint64_t);
     pipeCtlParams = g_cRenderHal_InitPipeControlParams;
@@ -476,12 +482,6 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     {
         CM_CHK_MOSSTATUS_GOTOFINISH(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
     }
-
-    // Send Sync Tag
-    CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
-
-    // Update tracker resource
-    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
 
     // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
     MHW_PIPE_CONTROL_PARAMS pipeControlParams;
