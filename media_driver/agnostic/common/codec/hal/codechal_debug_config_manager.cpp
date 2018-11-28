@@ -452,7 +452,7 @@ std::string CodechalDebugConfigMgr::GetMediaStateStr(CODECHAL_MEDIA_STATE_TYPE m
         return it->second;
     }
 
-    return nullptr;
+    return "";
 }
 
 bool CodechalDebugConfigMgr::AttrIsEnabled(std::string attrName)
