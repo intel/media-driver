@@ -369,7 +369,8 @@ MOS_STATUS CodechalDecodeAvc::SetAndAllocateDmvBufferIndex(
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
             &avcDmvBuffers[index],
             avcDmvBufferSize,
-            "MvBuffer"),
+            "MvBuffer",
+            true),
             "Failed to allocate MV Buffer.");
     }
 
@@ -917,7 +918,8 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesVariableSizes()
             CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
                                                           &m_resAvcDmvBuffers[ctr],
                                                           m_avcDmvBufferSize,
-                                                          "MvBuffer"),
+                                                          "MvBuffer",
+                                                          true),
                 "Failed to allocate Linux WA AVC BSD MV Buffer.");
         }
     }

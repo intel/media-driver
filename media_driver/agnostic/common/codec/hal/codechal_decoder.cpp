@@ -78,7 +78,8 @@ MOS_STATUS CodechalDecode::AllocateBuffer(
     uint32_t        size,
     const char      *name,
     bool            initialize,
-    uint8_t         value)
+    uint8_t         value,
+    bool            bPersistent)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -89,11 +90,12 @@ MOS_STATUS CodechalDecode::AllocateBuffer(
 
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParams.Type        = MOS_GFXRES_BUFFER;
-    allocParams.TileType    = MOS_TILE_LINEAR;
-    allocParams.Format      = Format_Buffer;
-    allocParams.dwBytes     = size;
-    allocParams.pBufName    = name;
+    allocParams.Type            = MOS_GFXRES_BUFFER;
+    allocParams.TileType        = MOS_TILE_LINEAR;
+    allocParams.Format          = Format_Buffer;
+    allocParams.dwBytes         = size;
+    allocParams.pBufName        = name;
+    allocParams.bIsPersistent   = bPersistent;
 
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
         m_osInterface,
