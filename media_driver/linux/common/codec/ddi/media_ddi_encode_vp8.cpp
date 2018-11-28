@@ -687,13 +687,20 @@ void DdiEncodeVp8::ParseMiscParamVBV(void *data)
 void DdiEncodeVp8::ParseMiscParamFR(void *data)
 {
     VAEncMiscParameterFrameRate *vaFrameRate = (VAEncMiscParameterFrameRate *)data;
-
     CODEC_VP8_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP8_ENCODE_SEQUENCE_PARAMS)m_encodeCtx->pSeqParams;
-    uint32_t                          tmpId     = 0;
+
+    uint32_t numerator = (vaFrameRate->framerate & 0xffff) * 100;
+    auto denominator = (vaFrameRate->framerate >> 16)&0xfff;
+    if(denominator == 0)
+    {
+        denominator = 1;
+    }
+
+    uint32_t tmpId = 0;
 #ifdef ANDROID
     tmpId = vaFrameRate->framerate_flags.bits.temporal_id;
 #endif
-    seqParams->FramesPer100Sec[tmpId] = vaFrameRate->framerate;
+    seqParams->FramesPer100Sec[tmpId] = numerator/denominator;
 }
 
 void DdiEncodeVp8::ParseMiscParamRC(void *data)
