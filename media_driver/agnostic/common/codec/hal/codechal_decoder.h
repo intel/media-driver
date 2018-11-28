@@ -379,7 +379,8 @@ public:
         uint32_t size,
         const char* name,
         bool initialize = false,
-        uint8_t value = 0);
+        uint8_t value = 0,
+        bool bPersistent = false);
 
     //!
     //! \brief    Help function to allocate a NV12 TILE_Y surface
