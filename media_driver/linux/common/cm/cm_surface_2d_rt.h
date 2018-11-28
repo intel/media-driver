@@ -144,7 +144,7 @@ public:
     bool IsUnalignedGPUCopy(uint32_t widthInBytes,
                             uint32_t height);
 
-    CMRT_UMD_API int32_t SetReadSyncFlag(bool readSync, CmQueue *pCmQueue);
+    CMRT_UMD_API int32_t SetReadSyncFlag(bool readSync);
 
     CMRT_UMD_API int32_t
     NotifyUmdResourceChanged(UMD_RESOURCE umdResource,

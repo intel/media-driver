@@ -2985,9 +2985,10 @@ finish:
 bool isRenderTarget(PCM_HAL_STATE state, uint32_t index)
 {
     bool readSync = false;
-
-    readSync = state->umdSurf2DTable[index].readSyncs[state->osInterface->CurrentGpuContextOrdinal];
-
+    if ( ( state->gpuContext == MOS_GPU_CONTEXT_RENDER3 ) || ( state->gpuContext == MOS_GPU_CONTEXT_RENDER4 ) )
+    {
+        readSync = state->umdSurf2DTable[index].readSyncs[state->gpuContext - MOS_GPU_CONTEXT_RENDER3];
+    }
     if (readSync)
         return false;
     else
@@ -9242,8 +9243,7 @@ finish:
 MOS_STATUS HalCm_SetSurfaceReadFlag(
     PCM_HAL_STATE           state,                                             // [in]  Pointer to CM State
     uint32_t                handle,                                           // [in]  index of surface 2d
-    bool                    readSync,
-    MOS_GPU_CONTEXT         gpuContext)
+    bool                    readSync)
 {
     MOS_STATUS                 eStatus  = MOS_STATUS_SUCCESS;
     PCM_HAL_SURFACE2D_ENTRY    entry;
@@ -9251,9 +9251,10 @@ MOS_STATUS HalCm_SetSurfaceReadFlag(
     // Get the Buffer Entry
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurface2DEntry(state, handle, &entry));
 
-    if (HalCm_IsValidGpuContext(gpuContext))
+    // Two slots, RENDER3 and RENDER4
+    if ( ( state->gpuContext == MOS_GPU_CONTEXT_RENDER3 ) || ( state->gpuContext == MOS_GPU_CONTEXT_RENDER4 ) )
     {
-        entry->readSyncs[gpuContext] = readSync;
+        entry->readSyncs[state->gpuContext - MOS_GPU_CONTEXT_RENDER3] = readSync;
         state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
     }
     else
@@ -10274,17 +10275,6 @@ MOS_STATUS HalCm_CreateGPUContext(
         state->osInterface,
         gpuContext));
 
-#if (_RELEASE_INTERNAL || _DEBUG)
-#if defined(CM_DIRECT_GUC_SUPPORT)
-    if (gpuNode == MOS_GPU_NODE_3D)
-    {
-        //init GuC
-        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
-            state->osInterface->pfnInitGuC(state->osInterface, MOS_GPU_NODE_3D));
-    }
-#endif
-#endif
-
 finish:
     return eStatus;
 }
@@ -10334,9 +10324,12 @@ MOS_STATUS HalCm_Create(
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
     state->waTable  = state->osInterface->pfnGetWaTable (state->osInterface);
 
+    //GPU context
+    state->gpuContext =   param->requestCustomGpuContext? MOS_GPU_CONTEXT_RENDER4 : MOS_GPU_CONTEXT_RENDER3;
+
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
-
+        
         // Create VEBOX Context
         createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
         CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_CreateGPUContext(
@@ -10578,8 +10571,6 @@ MOS_STATUS HalCm_Create(
     {
         state->refactor = false;
     }
-
-    state->requestCustomGpuContext = param->requestCustomGpuContext;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
@@ -11674,7 +11665,7 @@ MOS_STATUS HalCm_SyncOnResource(
         osInterface->pfnSyncOnOverlayResource(
             osInterface,
             &(surface->OsResource),
-            state->osInterface->CurrentGpuContextOrdinal);
+            state->gpuContext);
     }
 
     return eStatus;
@@ -11859,71 +11850,5 @@ uint64_t HalCm_ConvertTicksToNanoSeconds(
         return state->cmHalInterface->ConverTicksToNanoSecondsDefault(ticks);
     }
     return (ticks * 1000000000) / (state->tsFrequency);
-}
-
-//!
-//! \brief    Check GPU context
-//! \details  Check if the GPU context is valid for CM layer
-//! \param    MOS_GPU_CONTEXT gpuContext
-//!           [in] GPU Context ordinal
-//! \return   true/false
-//!
-bool HalCm_IsValidGpuContext(
-    MOS_GPU_CONTEXT             gpuContext)
-{
-    if( gpuContext == MOS_GPU_CONTEXT_RENDER3
-     || gpuContext == MOS_GPU_CONTEXT_RENDER4
-     || gpuContext == MOS_GPU_CONTEXT_CM_COMPUTE )
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-//!
-//! \brief    Select GPU context and GPU node
-//! \details  Select proper GPU context and GPU node when create a CmQueue
-//! \param    PCM_HAL_STATE state
-//!           [in] Pointer to CM_HAL_STATE Structure
-//! \param    CM_QUEUE_CREATE_OPTION queueOption
-//!           [in] Pointer to CM_QUEUE_CREATE_OPTION Structure
-//! \param    MOS_GPU_CONTEXT gpuContext
-//!           [out] Reference to GPU context
-//! \param    MOS_GPU_NODE gpuNode
-//!           [out] Reference to GPU node
-//! \return   MOS_STATUS_SUCCESS
-//!
-MOS_STATUS HalCm_SelectGpuContextAndNode(
-    PCM_HAL_STATE               state,
-    CM_QUEUE_CREATE_OPTION      queueOption,
-    MOS_GPU_CONTEXT            &gpuContext,
-    MOS_GPU_NODE               &gpuNode)
-{
-    if (queueOption.QueueType == CM_QUEUE_TYPE_RENDER)
-    {
-        gpuNode = MOS_GPU_NODE_3D;
-        gpuContext = (MOS_GPU_CONTEXT)queueOption.GPUContext;
-        if (queueOption.GPUContext == 0)
-        {
-            // if CM_DEVICE_CONFIG_GPUCONTEXT_ENABLE is set in CmDevice create option.
-            gpuContext = (state->requestCustomGpuContext)? MOS_GPU_CONTEXT_RENDER4: MOS_GPU_CONTEXT_RENDER3;
-        }
-    }
-    else if (queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
-    {
-        gpuNode = MOS_GPU_NODE_COMPUTE;
-        gpuContext = MOS_GPU_CONTEXT_CM_COMPUTE;
-    }
-    else
-    {
-        // Returns failure
-        CM_ASSERTMESSAGE("Error: The QueueType is not supported by MDF.");
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-
-    return MOS_STATUS_SUCCESS;
 }
 

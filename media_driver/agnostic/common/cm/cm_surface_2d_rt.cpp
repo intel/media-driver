@@ -1111,7 +1111,7 @@ finish:
     return hr;
 }
 
-CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool readSync, CmQueue *cmQueue)
+CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool readSync)
 {
     int32_t hr = CM_SUCCESS;
 
@@ -1122,11 +1122,7 @@ CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool readSync, CmQueue *cmQu
     CM_CHK_NULL_RETURN_CMERROR(cmData);
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
-    CmQueueRT *cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
-    CM_CHK_NULL_RETURN_CMERROR(cmQueueRT);
-
-    hr = cmData->cmHalState->pfnSetSurfaceReadFlag(cmData->cmHalState, m_handle, readSync,
-                                                   (MOS_GPU_CONTEXT)cmQueueRT->GetQueueOption().GPUContext);
+    hr = cmData->cmHalState->pfnSetSurfaceReadFlag(cmData->cmHalState, m_handle, readSync);
 
     if( FAILED(hr) )
     {
