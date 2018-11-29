@@ -1692,7 +1692,7 @@ int32_t CmTaskInternal::SetPowerOption( PCM_POWER_OPTION powerOption )
         CM_ASSERTMESSAGE("Error: Pointer to power option is null.");
         return CM_NULL_POINTER;
     }
-    CmFastMemCopy( &m_powerOption, powerOption, sizeof( m_powerOption ) );
+    CmSafeMemCopy( &m_powerOption, powerOption, sizeof( m_powerOption ) );
     return CM_SUCCESS;
 }
 
@@ -1939,7 +1939,7 @@ int32_t CmTaskInternal::SetProperty(CM_TASK_CONFIG * taskConfig)
         CM_ASSERTMESSAGE("Error: Pointer to task config is null.");
         return CM_NULL_POINTER;
     }
-    CmFastMemCopy(&m_taskConfig, taskConfig, sizeof(m_taskConfig));
+    CmSafeMemCopy(&m_taskConfig, taskConfig, sizeof(m_taskConfig));
     return CM_SUCCESS;
 }
 

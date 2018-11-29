@@ -652,7 +652,7 @@ CM_RT_API  int32_t CmEventRT::GetSurfaceDetails(uint32_t kernIndex, uint32_t sur
         return CM_INVALID_ARG_VALUE;
     }
 
-    CmFastMemCopy(&outDetails,tempSurfInfo,sizeof(CM_SURFACE_DETAILS));
+    CmSafeMemCopy(&outDetails,tempSurfInfo,sizeof(CM_SURFACE_DETAILS));
     return CM_SUCCESS;
 }
 
@@ -691,7 +691,7 @@ int32_t CmEventRT::SetSurfaceDetails(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surfaceInf
         else
         {
             m_surEntryInfoArrays.surfEntryInfosArray[i].surfEntryInfos=temp;
-            CmFastMemCopy(m_surEntryInfoArrays.surfEntryInfosArray[i].surfEntryInfos,
+            CmSafeMemCopy(m_surEntryInfoArrays.surfEntryInfosArray[i].surfEntryInfos,
                                          surfaceInfo.surfEntryInfosArray[i].surfEntryInfos,
                                          surfEntryNum*sizeof(CM_SURFACE_DETAILS));
          }
@@ -710,7 +710,7 @@ int32_t CmEventRT::SetSurfaceDetails(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surfaceInf
             else
             {
                 m_surEntryInfoArrays.surfEntryInfosArray[i].globalSurfInfos=temp;
-                CmFastMemCopy(m_surEntryInfoArrays.surfEntryInfosArray[i].globalSurfInfos,
+                CmSafeMemCopy(m_surEntryInfoArrays.surfEntryInfosArray[i].globalSurfInfos,
                                              surfaceInfo.surfEntryInfosArray[i].globalSurfInfos,
                                              globalSurfNum*sizeof(CM_SURFACE_DETAILS));
              }

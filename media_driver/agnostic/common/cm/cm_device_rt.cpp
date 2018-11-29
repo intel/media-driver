@@ -2566,7 +2566,7 @@ int32_t CmDeviceRT::RegisterSampler8x8State(
         case CM_SAMPLER8X8_CONV:
             dst = (void *)&(param.sampler8x8State.convolveState);
             src = (void *)sampler8x8State.conv;
-            CmFastMemCopy( dst, src, sizeof( CM_CONVOLVE_STATE_MSG));
+            CmSafeMemCopy( dst, src, sizeof( CM_CONVOLVE_STATE_MSG));
             break;
 
         case CM_SAMPLER8X8_MISC:
