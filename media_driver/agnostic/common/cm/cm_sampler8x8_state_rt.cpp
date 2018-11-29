@@ -93,13 +93,13 @@ CmSampler8x8State_RT::CmSampler8x8State_RT( const CM_SAMPLER_8X8_DESCR& sampleSt
 
     if(sampleState.stateType == CM_SAMPLER8X8_AVS)
     {
-        CmFastMemCopy( &this->m_avsState,  sampleState.avs, sizeof(CM_AVS_STATE_MSG) );
+        CmSafeMemCopy( &this->m_avsState,  sampleState.avs, sizeof(CM_AVS_STATE_MSG) );
     } else if(sampleState.stateType == CM_SAMPLER8X8_CONV)
     {
-        CmFastMemCopy( &this->m_convolveState,  sampleState.conv, sizeof(CM_CONVOLVE_STATE_MSG) );
+        CmSafeMemCopy( &this->m_convolveState,  sampleState.conv, sizeof(CM_CONVOLVE_STATE_MSG) );
     } else if(sampleState.stateType == CM_SAMPLER8X8_MISC)
     {
-        CmFastMemCopy( &this->m_miscState,  sampleState.misc, sizeof(CM_MISC_STATE_MSG) );
+        CmSafeMemCopy( &this->m_miscState,  sampleState.misc, sizeof(CM_MISC_STATE_MSG) );
     }  else {
         CM_ASSERTMESSAGE("Error: Invalid sampler8x8 state type.")
     }
