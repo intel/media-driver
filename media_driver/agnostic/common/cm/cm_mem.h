@@ -638,7 +638,7 @@ inline void CmFastMemCopy( void* dst, const   void* src, const size_t bytes )
     // Get the number of DQWORDs to be copied
     const size_t doubleQuadWords = count / sizeof(DQWORD);
 
-    if( doubleQuadWords && count >= sizeof(PREFETCH))
+    if( count >= CM_CPU_FASTCOPY_THRESHOLD && doubleQuadWords )
     {
         FastMemCopy_SSE2( cacheDst, cacheSrc, doubleQuadWords );
 
@@ -675,7 +675,7 @@ inline void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes )
 
   size_t count = bytes;
 
-  if( count >= sizeof(DQWORD) )
+  if( count >= CM_CPU_FASTCOPY_THRESHOLD )
   {
     const size_t doubleQuadwordAlignBytes =
       GetAlignmentOffset( cacheDst, sizeof(DQWORD) );

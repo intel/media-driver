@@ -61,6 +61,8 @@ typedef uintptr_t           UINT_PTR;
     #define throw(...)
 #endif
 
+#define CM_CPU_FASTCOPY_THRESHOLD 1024
+
 /*****************************************************************************\
 Inline Function:
     Prefetch
@@ -155,7 +157,7 @@ inline void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes,
 
         size_t count = bytes;
 
-        if( count >= sizeof(DHWORD) )
+        if( count >= CM_CPU_FASTCOPY_THRESHOLD )
         {
             //Streaming Load must be 16-byte aligned but should
             //be 64-byte aligned for optimal performance

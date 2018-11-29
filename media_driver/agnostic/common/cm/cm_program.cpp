@@ -225,7 +225,7 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
                 return CM_OUT_OF_HOST_MEMORY;
 
             }
-            CmFastMemCopy( m_options, options, length);
+            CmSafeMemCopy( m_options, options, length);
             m_options[ length ] = '\0';
 
             if(strstr(options, "nojitter"))
@@ -416,12 +416,12 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
         {
             kernel = header->getKernelInfo()[i];
             nameLen = kernel->getNameLen();
-            CmFastMemCopy(kernInfo->kernelName, kernel->getName(), nameLen);
+            CmSafeMemCopy(kernInfo->kernelName, kernel->getName(), nameLen);
         }
         else
         {
             READ_FIELD_FROM_BUF(nameLen, uint8_t);
-            CmFastMemCopy(kernInfo->kernelName, buf + bytePos, nameLen);
+            CmSafeMemCopy(kernInfo->kernelName, buf + bytePos, nameLen);
             // move bytePos to the right index
             bytePos += nameLen;
         }
