@@ -1156,7 +1156,8 @@ struct CM_FLAG {
 };
 
 struct _CM_TASK_CONFIG {
-    uint32_t turboBoostFlag;        //CM_TURBO_BOOST_DISABLE----disabled, CM_TURBO_BOOST_ENABLE--------enabled.
+    bool     turboBoostFlag     : 1;
+    uint32_t reserved_bits      :31;
     uint32_t reserved0;
     uint32_t reserved1;
     uint32_t reserved2;
