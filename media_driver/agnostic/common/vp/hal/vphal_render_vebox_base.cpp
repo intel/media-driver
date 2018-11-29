@@ -2169,8 +2169,9 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
 
     pRenderData->bProgressive   = (pSrc->SampleType == SAMPLE_PROGRESSIVE);
 
-    pRenderData->bDenoise       = (pSrc->pDenoiseParams                 &&
-                                   pSrc->pDenoiseParams->bEnableLuma    &&
+    pRenderData->bDenoise       = (pSrc->pDenoiseParams                         &&
+                                  (pSrc->pDenoiseParams->bEnableLuma            ||
+                                   pSrc->pDenoiseParams->bEnableHVSDenoise)     &&
                                    pVeboxState->IsDnFormatSupported(pSrc));
 
     pRenderData->bChromaDenoise = (pSrc->pDenoiseParams                 &&
@@ -4110,6 +4111,8 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     bDisableTemporalDenoiseFilterUserKey = false;   //!< Backup temporal denoise filter disable flag - read from User feature keys
 
     RenderGpuContext = pOsInterface ? (pOsInterface->CurrentGpuContextOrdinal) : MOS_GPU_CONTEXT_RENDER;
+
+    m_hvsDenoiser = nullptr;
 }
 
 VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()
@@ -4163,6 +4166,111 @@ VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()
         MOS_Delete(m_sfcPipeState);
         m_sfcPipeState = nullptr;
     }
+
+    MOS_Delete(m_hvsDenoiser);
+}
+
+MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(
+    PVPHAL_SURFACE pSrcSurface)
+{
+    MOS_STATUS eStatus                                    = MOS_STATUS_UNKNOWN;
+    PRENDERHAL_INTERFACE pRenderHal                       = nullptr;
+    PVPHAL_VEBOX_STATE pVeboxState                        = this;
+    PVPHAL_VEBOX_RENDER_DATA pRenderData                  = nullptr;
+
+    pRenderHal   = pVeboxState->m_pRenderHal;
+    pRenderData  = GetLastExecRenderData();
+
+    VPHAL_RENDER_CHK_NULL_RETURN(pSrcSurface);
+    VPHAL_RENDER_CHK_NULL_RETURN(pSrcSurface->pDenoiseParams);
+    VPHAL_RENDER_CHK_NULL_RETURN(pRenderHal);
+    VPHAL_RENDER_CHK_NULL_RETURN(pRenderData);
+
+    if (nullptr == m_hvsDenoiser)
+    {
+        m_hvsDenoiser = MOS_New(VphalHVSDenoiser, pRenderHal);
+        if (m_hvsDenoiser)
+        {
+            m_hvsDenoiser->InitKernelParams(m_hvsKernelBinary, m_hvsKernelBinarySize);
+        }
+        else
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("New VphalHVSDenoiser Failed!");
+            eStatus = MOS_STATUS_NULL_POINTER;
+            return eStatus;
+        }
+    }
+
+    if (m_hvsDenoiser)
+    {
+        m_hvsDenoiser->Render(pSrcSurface);
+        uint32_t *pHVSDenoiseParam = (uint32_t *)m_hvsDenoiser->GetDenoiseParams();
+        if (pHVSDenoiseParam)
+        {
+            // Media kernel computed the HVS Denoise Parameters according to the specific mapping function.
+            // Programming these Parameters to VEBOX for processing.
+            VPHAL_RENDER_NORMALMESSAGE("Set HVS Denoised Parameters to VEBOX DNDI params");
+            // DW0
+            pRenderData->VeboxDNDIParams.dwDenoiseMPThreshold       = (pHVSDenoiseParam[0] & 0x0000001f);
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwDenoiseMPThreshold %d", pRenderData->VeboxDNDIParams.dwDenoiseMPThreshold);
+            pRenderData->VeboxDNDIParams.dwDenoiseHistoryDelta      = (pHVSDenoiseParam[0] & 0x00000f00) >> 8;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwDenoiseHistoryDelta %d", pRenderData->VeboxDNDIParams.dwDenoiseHistoryDelta);
+            pRenderData->VeboxDNDIParams.dwDenoiseMaximumHistory    = (pHVSDenoiseParam[0] & 0x000ff000) >> 12;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwDenoiseMaximumHistory %d", pRenderData->VeboxDNDIParams.dwDenoiseMaximumHistory);
+            pRenderData->VeboxDNDIParams.dwDenoiseSTADThreshold     = (pHVSDenoiseParam[0] & 0xfff00000) >> 20;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwDenoiseSTADThreshold %d", pRenderData->VeboxDNDIParams.dwDenoiseSTADThreshold);
+            // DW1
+            pRenderData->VeboxDNDIParams.dwLTDThreshold             = (pHVSDenoiseParam[1] & 0x000003ff);
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwLTDThreshold %d", pRenderData->VeboxDNDIParams.dwLTDThreshold);
+            pRenderData->VeboxDNDIParams.dwTDThreshold              = (pHVSDenoiseParam[1] & 0x000ffc00) >> 10;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwTDThreshold %d", pRenderData->VeboxDNDIParams.dwTDThreshold);
+            pRenderData->VeboxDNDIParams.dwDenoiseASDThreshold      = (pHVSDenoiseParam[1] & 0xfff00000) >> 20;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwDenoiseASDThreshold %d", pRenderData->VeboxDNDIParams.dwDenoiseASDThreshold);
+            // DW2
+            pRenderData->VeboxDNDIParams.dwDenoiseSCMThreshold      = (pHVSDenoiseParam[2] & 0x0fff0000) >> 16;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwDenoiseSCMThreshold %d", pRenderData->VeboxDNDIParams.dwDenoiseSCMThreshold);
+            // DW4
+            pRenderData->VeboxDNDIParams.dwChromaLTDThreshold       = (pHVSDenoiseParam[4] & 0x0000003f);
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwChromaLTDThreshold %d", pRenderData->VeboxDNDIParams.dwChromaLTDThreshold);
+            pRenderData->VeboxDNDIParams.dwChromaTDThreshold        = (pHVSDenoiseParam[4] & 0x00000fc0) >> 6;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwChromaTDThreshold %d", pRenderData->VeboxDNDIParams.dwChromaTDThreshold);
+            pRenderData->VeboxDNDIParams.dwChromaSTADThreshold      = (pHVSDenoiseParam[4] & 0x00ff0000) >> 16;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwChromaSTADThreshold %d", pRenderData->VeboxDNDIParams.dwChromaSTADThreshold);
+            // DW5
+            pRenderData->VeboxDNDIParams.dwPixRangeWeight[0]        = (pHVSDenoiseParam[5] & 0x0000001f);
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeWeight[0] %d", pRenderData->VeboxDNDIParams.dwPixRangeWeight[0]);
+            pRenderData->VeboxDNDIParams.dwPixRangeWeight[1]        = (pHVSDenoiseParam[5] & 0x000003e0) >> 5;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeWeight[1] %d", pRenderData->VeboxDNDIParams.dwPixRangeWeight[1]);
+            pRenderData->VeboxDNDIParams.dwPixRangeWeight[2]        = (pHVSDenoiseParam[5] & 0x00007c00) >> 10;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeWeight[2] %d", pRenderData->VeboxDNDIParams.dwPixRangeWeight[2]);
+            pRenderData->VeboxDNDIParams.dwPixRangeWeight[3]        = (pHVSDenoiseParam[5] & 0x000f8000) >> 15;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeWeight[3] %d", pRenderData->VeboxDNDIParams.dwPixRangeWeight[3]);
+            pRenderData->VeboxDNDIParams.dwPixRangeWeight[4]        = (pHVSDenoiseParam[5] & 0x01f00000) >> 20;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeWeight[4] %d", pRenderData->VeboxDNDIParams.dwPixRangeWeight[4]);
+            pRenderData->VeboxDNDIParams.dwPixRangeWeight[5]        = (pHVSDenoiseParam[5] & 0x3e000000) >> 25;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeWeight[5] %d", pRenderData->VeboxDNDIParams.dwPixRangeWeight[5]);
+            // DW7
+            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[5]     = (pHVSDenoiseParam[7] & 0x1fff0000) >> 16;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeThreshold[5] %d", pRenderData->VeboxDNDIParams.dwPixRangeThreshold[5]);
+            // DW8
+            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[4]     = (pHVSDenoiseParam[8] & 0x1fff0000) >> 16;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeThreshold[4] %d", pRenderData->VeboxDNDIParams.dwPixRangeThreshold[4]);
+            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[3]     = (pHVSDenoiseParam[8] & 0x00001fff);
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeThreshold[3] %d", pRenderData->VeboxDNDIParams.dwPixRangeThreshold[3]);
+            // DW9
+            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[2]     = (pHVSDenoiseParam[9] & 0x1fff0000) >> 16;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeThreshold[2] %d", pRenderData->VeboxDNDIParams.dwPixRangeThreshold[2]);
+            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[1]     = (pHVSDenoiseParam[9] & 0x00001fff);
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeThreshold[1] %d", pRenderData->VeboxDNDIParams.dwPixRangeThreshold[1]);
+            // DW10
+            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[0]     = (pHVSDenoiseParam[10] & 0x1fff0000) >> 16;
+            VPHAL_RENDER_NORMALMESSAGE("HVS: pRenderData->VeboxDNDIParams.dwPixRangeThreshold[0] %d", pRenderData->VeboxDNDIParams.dwPixRangeThreshold[0]);
+
+            eStatus = MOS_STATUS_SUCCESS;
+        }
+    }
+
+    return eStatus;
 }
 
 VPHAL_VEBOX_RENDER_DATA::~VPHAL_VEBOX_RENDER_DATA()
