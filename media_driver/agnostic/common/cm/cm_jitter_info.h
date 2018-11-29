@@ -30,6 +30,12 @@ typedef struct _CM_PROFILE_INFO {
     int value;
 } CM_PROFILE_INFO;
 
+typedef struct _CM_BB_INFO {
+    int id;
+    unsigned staticCycle;
+    unsigned sendStallCycle;
+} CM_BB_INFO;
+
 typedef struct _CM_JIT_INFO {
     // Common part
     bool isSpill;
@@ -53,9 +59,8 @@ typedef struct _CM_JIT_INFO {
     // whether kernel uses a barrier
     bool usesBarrier;
 
-    // (very) rough estimate of single thread execution/stall cycles
-    unsigned staticCycle;
-    unsigned sendStallCycle;
+    unsigned bbNum;
+    CM_BB_INFO *bbInfo;
 
     // number of spill/fill, weighted by loop
     unsigned int numGRFSpillFill;
