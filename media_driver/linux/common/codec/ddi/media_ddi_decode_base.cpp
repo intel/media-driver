@@ -689,21 +689,27 @@ VAStatus DdiMediaDecode::EndPicture(
                 MOS_ZeroMemory(dummyReference, sizeof(MOS_SURFACE));
                 decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_INVALID);
 
-                GetDummyReferenceFromDPB(m_ddiDecodeCtx);
+                // Considering potential risk, disable the dummy reference from DPB path temporarily
+                //GetDummyReferenceFromDPB(m_ddiDecodeCtx);
 
-                if (!Mos_ResourceIsNull(&dummyReference->OsResource))
-                {
-                    decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
-                }
+                //if (!Mos_ResourceIsNull(&dummyReference->OsResource))
+                //{
+                //    decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
+                //}
             }
         }
         else
         {
-            GetDummyReferenceFromDPB(m_ddiDecodeCtx);
-            if (!Mos_ResourceIsNull(&dummyReference->OsResource))
-            {
-                decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
-            }
+            // Init dummy reference
+            MOS_ZeroMemory(dummyReference, sizeof(MOS_SURFACE));
+            decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_INVALID);
+                
+            // Considering potential risk, disable the dummy reference from DPB path temporarily
+            //GetDummyReferenceFromDPB(m_ddiDecodeCtx);
+            //if (!Mos_ResourceIsNull(&dummyReference->OsResource))
+            //{
+            //    decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
+            //}
         }
     }
 
