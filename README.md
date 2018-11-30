@@ -252,4 +252,3 @@ WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75
 
 
 ##### (*) Other names and brands may be claimed as property of others.
-
