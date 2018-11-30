@@ -2645,9 +2645,21 @@ void MOS_GfxInfoClose();
 //!           Feature ID, an unique identifier for each component.
 //! \param    [in] ErrorCode
 //!           Error code that will be recorded.
+//! \param    [in] num_of_triples
+//!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+//! \param    [in] ...
+//!           Triples (name, type, value), for example
+//!             int8_t i = 3;
+//!             "Name1", GFXINFO_PTYPE_UINT8, &i
+//!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
 //! \return   void
 //!
-void MOS_GfxInfo_RTErr(uint8_t ver, uint16_t compId, uint16_t FtrId, uint32_t ErrorCode);
+void MOS_GfxInfo_RTErr(uint8_t ver,
+    uint16_t    compId,
+    uint16_t    FtrId,
+    uint32_t    ErrorCode,
+    uint8_t     num_of_triples,
+    ...);
 
 //!
 //! \brief    MOS_GfxInfo
