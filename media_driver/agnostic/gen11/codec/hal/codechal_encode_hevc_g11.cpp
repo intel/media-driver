@@ -3482,6 +3482,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
         curbe.Degree45              = 1;
         curbe.Break12Dependency     = 1;
         curbe.DisableTemporal16and8 = 0;
+        break;
     default:
         curbe.Degree45              = 1;
         curbe.Break12Dependency     = 1;
