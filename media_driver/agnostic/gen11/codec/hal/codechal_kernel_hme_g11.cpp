@@ -154,7 +154,7 @@ MOS_STATUS CodechalKernelHmeG11::SetCurbe(MHW_KERNEL_STATE *kernelState)
 
     if (m_4xMeInUse && m_curbeParam.brcEnable) // HME kernel generates Sum MV and Distortion for Hevc dual pipe
     {
-        curbe.m_data.DW5.SumMVThreshold = 16; // As per kernel requirement, used only when BRC is on/LTR is on
+        curbe.m_data.DW5.SumMVThreshold = m_curbeParam.sumMVThreshold; // As per kernel requirement, used only when BRC is on/LTR is on
         curbe.m_data.DW6.BRCEnable      = m_curbeParam.brcEnable;
     }
 
