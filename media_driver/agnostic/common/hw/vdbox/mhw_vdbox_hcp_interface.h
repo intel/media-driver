@@ -57,6 +57,7 @@ struct MHW_VDBOX_HEVC_PIC_STATE
     uint16_t                                wRDOQIntraTUThreshold = 0;
     uint32_t                                brcNumPakPasses = 0;
     bool                                    rhodomainRCEnable = false;
+    bool                                    bTransformSkipEnable = false;
 
     //FEI multiple passes PAK ---max frame size
     uint8_t                                 currPass = 0;
@@ -127,6 +128,7 @@ typedef struct _MHW_VDBOX_HEVC_WEIGHTOFFSET_PARAMS
 
 typedef struct _MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS
 {
+    bool     Transformskip_enabled;
     uint16_t Transformskip_lambda;
     uint8_t  Transformskip_Numzerocoeffs_Factor0;
     uint8_t  Transformskip_Numnonzerocoeffs_Factor0;
@@ -179,6 +181,9 @@ struct MHW_VDBOX_HEVC_SLICE_STATE
 
     //Pak related params
     MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS EncodeHevcTransformSkipParams = {};
+    bool                                    DeblockingFilterDisable = false;
+    char                                    TcOffsetDiv2 = 0;
+    char                                    BetaOffsetDiv2 = 0;
 
     uint8_t                                 RoundingIntra = 0;
     uint8_t                                 RoundingInter = 0;
