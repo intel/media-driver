@@ -2985,10 +2985,9 @@ finish:
 bool isRenderTarget(PCM_HAL_STATE state, uint32_t index)
 {
     bool readSync = false;
-    if ( ( state->gpuContext == MOS_GPU_CONTEXT_RENDER3 ) || ( state->gpuContext == MOS_GPU_CONTEXT_RENDER4 ) )
-    {
-        readSync = state->umdSurf2DTable[index].readSyncs[state->gpuContext - MOS_GPU_CONTEXT_RENDER3];
-    }
+
+    readSync = state->umdSurf2DTable[index].readSyncs[state->osInterface->CurrentGpuContextOrdinal];
+
     if (readSync)
         return false;
     else
@@ -9243,7 +9242,8 @@ finish:
 MOS_STATUS HalCm_SetSurfaceReadFlag(
     PCM_HAL_STATE           state,                                             // [in]  Pointer to CM State
     uint32_t                handle,                                           // [in]  index of surface 2d
-    bool                    readSync)
+    bool                    readSync,
+    MOS_GPU_CONTEXT         gpuContext)
 {
     MOS_STATUS                 eStatus  = MOS_STATUS_SUCCESS;
     PCM_HAL_SURFACE2D_ENTRY    entry;
@@ -9251,10 +9251,9 @@ MOS_STATUS HalCm_SetSurfaceReadFlag(
     // Get the Buffer Entry
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurface2DEntry(state, handle, &entry));
 
-    // Two slots, RENDER3 and RENDER4
-    if ( ( state->gpuContext == MOS_GPU_CONTEXT_RENDER3 ) || ( state->gpuContext == MOS_GPU_CONTEXT_RENDER4 ) )
+    if (HalCm_IsValidGpuContext(gpuContext))
     {
-        entry->readSyncs[state->gpuContext - MOS_GPU_CONTEXT_RENDER3] = readSync;
+        entry->readSyncs[gpuContext] = readSync;
         state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
     }
     else
@@ -10324,12 +10323,9 @@ MOS_STATUS HalCm_Create(
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
     state->waTable  = state->osInterface->pfnGetWaTable (state->osInterface);
 
-    //GPU context
-    state->gpuContext =   param->requestCustomGpuContext? MOS_GPU_CONTEXT_RENDER4 : MOS_GPU_CONTEXT_RENDER3;
-
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
-        
+
         // Create VEBOX Context
         createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
         CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_CreateGPUContext(
@@ -10571,6 +10567,8 @@ MOS_STATUS HalCm_Create(
     {
         state->refactor = false;
     }
+
+    state->requestCustomGpuContext = param->requestCustomGpuContext;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
@@ -11665,7 +11663,7 @@ MOS_STATUS HalCm_SyncOnResource(
         osInterface->pfnSyncOnOverlayResource(
             osInterface,
             &(surface->OsResource),
-            state->gpuContext);
+            state->osInterface->CurrentGpuContextOrdinal);
     }
 
     return eStatus;
@@ -11850,5 +11848,29 @@ uint64_t HalCm_ConvertTicksToNanoSeconds(
         return state->cmHalInterface->ConverTicksToNanoSecondsDefault(ticks);
     }
     return (ticks * 1000000000) / (state->tsFrequency);
+}
+
+//!
+//! \brief    Check GPU context
+//! \details  Check if the GPU context is valid for CM layer
+//! \param    MOS_GPU_CONTEXT gpuContext
+//!           [in] GPU Context ordinal
+//! \return   true/false
+//!
+bool HalCm_IsValidGpuContext(
+    MOS_GPU_CONTEXT             gpuContext)
+{
+    if( gpuContext == MOS_GPU_CONTEXT_RENDER3
+     || gpuContext == MOS_GPU_CONTEXT_RENDER4
+     || gpuContext == MOS_GPU_CONTEXT_CM_COMPUTE
+     || gpuContext == MOS_GPU_CONTEXT_VEBOX)
+    {
+        return true;
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Invalid GPU context for CM.");
+        return false;
+    }
 }
 
