@@ -2951,7 +2951,12 @@ void MOS_GfxInfo(uint8_t ver, uint16_t compId, uint16_t tmtryID, char const* xml
     // not implemented
 }
 
-void MOS_GfxInfo_RTErr(uint8_t ver, uint16_t compId, uint16_t FtrId, uint32_t ErrorCode)
+void MOS_GfxInfo_RTErr(uint8_t ver,
+    uint16_t    compId,
+    uint16_t    FtrId,
+    uint32_t    ErrorCode,
+    uint8_t     num_of_triples,
+    ...)
 {
     // not implemented
 }
