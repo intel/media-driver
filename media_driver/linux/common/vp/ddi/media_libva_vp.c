@@ -97,7 +97,7 @@ VAStatus     DdiVp_BeginPictureInt(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT p
 #if (VA_MAJOR_VERSION < 1)
 VAStatus     DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, uint32_t flag);
 #else
-VAStatus     DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, uint8_t color_range);
+VAStatus     DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, VAProcColorProperties colorProperties);
 #endif
 
 
@@ -643,40 +643,15 @@ VpUpdateProcChromaSittingState(PVPHAL_SURFACE pVpHalSurf, uint8_t chromasiting_s
 //! \purpose Set the appropriate HDR params according to colour standard, HDR metadata.
 //! \params
 //! [in]  pVpHalSurf : VPHAL Surface
-//! [in]  colorStandard : Color Standard
-//! [in]  colorProperties : Color Properties
 //! [in]  pHdrMetadata: HDR metadata
 //! [out] None
 //! \returns VA_STATUS_SUCCESS if call succeeds
 /////////////////////////////////////////////////////////////////////////////////////////////
 VAStatus VpUpdateProcHdrState(
     const PVPHAL_SURFACE               pVpHalSurf,
-    const VAProcColorStandardType      colorStandard,
-    const VAProcColorProperties        colorProperties,
     const VAHdrMetaData*               pHdrMetadata)
 {
     DDI_CHK_NULL(pVpHalSurf, "Null pVpHalSurf.", VA_STATUS_ERROR_INVALID_BUFFER);
-
-    pVpHalSurf->GammaType = VPHAL_GAMMA_TRADITIONAL_GAMMA;
-    if (colorStandard == VAProcColorStandardExplicit)
-    {
-        VP_DDI_NORMALMESSAGE("colorStandard VAProcColorStandardExplicit.");
-        if ((colorProperties.colour_primaries == COLOUR_PRIMARY_BT2020) &&
-            (pVpHalSurf->Format == Format_R10G10B10A2 || pVpHalSurf->Format == Format_B10G10R10A2))
-        {
-            pVpHalSurf->ColorSpace = CSpace_BT2020_RGB;
-        }
-        // SMPTE ST 2084 for 10, 12, 14 and 16-bit systems.
-        if (colorProperties.transfer_characteristics == TRANSFER_CHARACTERISTICS_ST2084)
-        {
-            pVpHalSurf->GammaType = VPHAL_GAMMA_SMPTE_ST2084;
-        }
-        else
-        {
-            pVpHalSurf->GammaType = VPHAL_GAMMA_TRADITIONAL_GAMMA;
-        }
-        VP_DDI_NORMALMESSAGE("colour_primaries %d transfer_characteristics %d.", colorProperties.colour_primaries, colorProperties.transfer_characteristics);
-    }
 
     if (pVpHalSurf->pHDRParams == nullptr)
     {
@@ -695,16 +670,19 @@ VAStatus VpUpdateProcHdrState(
             {
                 pVpHalSurf->pHDRParams->white_point_x = pHDR10MetaData->white_point_x;
                 pVpHalSurf->pHDRParams->white_point_y = pHDR10MetaData->white_point_y;
+                VP_DDI_NORMALMESSAGE("pHDR10MetaData white_point_x %d, white_point_y %d.", pHDR10MetaData->white_point_x, pHDR10MetaData->white_point_y);
 
                 pVpHalSurf->pHDRParams->max_display_mastering_luminance = pHDR10MetaData->max_display_mastering_luminance;
                 pVpHalSurf->pHDRParams->min_display_mastering_luminance = pHDR10MetaData->min_display_mastering_luminance;
+                VP_DDI_NORMALMESSAGE("pHDR10MetaData max_display_mastering_luminance %d, min_display_mastering_luminance %d.", pHDR10MetaData->max_display_mastering_luminance, pHDR10MetaData->min_display_mastering_luminance);
 
-                pVpHalSurf->pHDRParams->MaxCLL = pHDR10MetaData->max_content_light_level;
+                pVpHalSurf->pHDRParams->MaxCLL  = pHDR10MetaData->max_content_light_level;
                 pVpHalSurf->pHDRParams->MaxFALL = pHDR10MetaData->max_pic_average_light_level;
+                VP_DDI_NORMALMESSAGE("pHDR10MetaData MaxCLL %d, MaxFALL %d.", pHDR10MetaData->max_content_light_level, pHDR10MetaData->max_pic_average_light_level);
 
                 pVpHalSurf->pHDRParams->bAutoMode = false;
 
-                pVpHalSurf->pHDRParams->MaxCLL = (pVpHalSurf->pHDRParams->MaxCLL == 0) ? HDR_DEFAULT_MAXCLL : pVpHalSurf->pHDRParams->MaxCLL;
+                pVpHalSurf->pHDRParams->MaxCLL  = (pVpHalSurf->pHDRParams->MaxCLL == 0) ? HDR_DEFAULT_MAXCLL : pVpHalSurf->pHDRParams->MaxCLL;
                 pVpHalSurf->pHDRParams->MaxFALL = (pVpHalSurf->pHDRParams->MaxFALL == 0) ? HDR_DEFAULT_MAXFALL : pVpHalSurf->pHDRParams->MaxFALL;
 
                 MOS_SecureMemcpy(pVpHalSurf->pHDRParams->display_primaries_x, 3 * sizeof(uint16_t), pHDR10MetaData->display_primaries_x, 3 * sizeof(uint16_t));
@@ -998,7 +976,7 @@ DdiVp_SetProcPipelineParams(
 #if (VA_MAJOR_VERSION < 1)
     vaStatus = DdiVp_GetColorSpace(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_surface_flag);
 #else
-    vaStatus = DdiVp_GetColorSpace(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties.color_range);
+    vaStatus = DdiVp_GetColorSpace(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties);
 #endif
     DDI_CHK_RET(vaStatus, "Unsupport Color space!");
 
@@ -1507,6 +1485,71 @@ DdiVp_InitVpHal(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+////! \purpose Set Color Standard Explictly.
+////! \params
+////! [in]  pVpHalSurf : src/target surface
+////! [in]  colorStandard : VA color standard VAProcColorStandardType
+////! [in]  colorProperties : input/output surface color properties
+////! [out] None
+////! \returns appropriate VA_STATUS_SUCCESS if call succeeds
+///////////////////////////////////////////////////////////////////////////////////////////////
+VAStatus VpSetColorStandardExplictly(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, VAProcColorProperties colorProperties)
+{
+    DDI_CHK_NULL(pVpHalSurf, "Null pVpHalSurf.", VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_CONDITION((colorStandard != VAProcColorStandardExplicit), "Not Explict color standard, Exit!", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (IS_RGB_FORMAT(pVpHalSurf->Format))
+    {
+        switch(colorProperties.colour_primaries)
+        {
+        case COLOUR_PRIMARY_BT2020:
+            pVpHalSurf->ColorSpace = (colorProperties.color_range & VA_SOURCE_RANGE_REDUCED) ? CSpace_BT2020_stRGB : CSpace_BT2020_RGB;
+            break;
+        case COLOUR_PRIMARY_BT709:
+        case COLOUR_PRIMARY_BT601:
+            pVpHalSurf->ColorSpace = (colorProperties.color_range & VA_SOURCE_RANGE_REDUCED) ? CSpace_stRGB: CSpace_sRGB;
+            break;
+        default:
+            pVpHalSurf->ColorSpace = CSpace_sRGB;
+            VP_DDI_ASSERTMESSAGE("unknown Color Standard for RGB format.");
+            break;
+        }
+    }
+
+    if (IS_YUV_FORMAT(pVpHalSurf->Format))
+    {
+        switch(colorProperties.colour_primaries)
+        {
+        case COLOUR_PRIMARY_BT2020:
+            pVpHalSurf->ColorSpace = (colorProperties.color_range & VA_SOURCE_RANGE_FULL) ? CSpace_BT2020_FullRange : CSpace_BT2020;
+            break;
+        case COLOUR_PRIMARY_BT709:
+            pVpHalSurf->ColorSpace = (colorProperties.color_range & VA_SOURCE_RANGE_FULL) ? CSpace_BT709_FullRange : CSpace_BT709;
+            break;
+        case COLOUR_PRIMARY_BT601:
+            pVpHalSurf->ColorSpace = (colorProperties.color_range & VA_SOURCE_RANGE_FULL) ? CSpace_BT601_FullRange : CSpace_BT601;
+            break;
+        default:
+            pVpHalSurf->ColorSpace = CSpace_BT601;
+            VP_DDI_ASSERTMESSAGE("unknown Color Standard for YUV format.");
+            break;
+        }
+    }
+
+    switch(colorProperties.transfer_characteristics)
+    {
+    case TRANSFER_CHARACTERISTICS_ST2084:
+        pVpHalSurf->GammaType = VPHAL_GAMMA_SMPTE_ST2084;
+        break;
+    default:
+        pVpHalSurf->GammaType = VPHAL_GAMMA_TRADITIONAL_GAMMA;
+        break;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 ////! \purpose Convert VAProcColorStandardType to VPHAL_CSPACE
 ////! \params
 ////! [in]  pVpHalSurf : src/target surface
@@ -1518,9 +1561,11 @@ DdiVp_InitVpHal(
 #if (VA_MAJOR_VERSION < 1)
 VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, uint32_t flag)
 #else
-VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, uint8_t color_range)
+VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, VAProcColorProperties colorProperties)
 #endif
 {
+    uint8_t color_range = colorProperties.color_range;
+
     pVpHalSurf->ColorSpace = CSpace_None;
 
     VP_DDI_FUNCTION_ENTER;
@@ -1532,6 +1577,9 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
         {
             case VAProcColorStandardSTRGB:
                 pVpHalSurf->ColorSpace = CSpace_stRGB;
+                break;
+            case VAProcColorStandardExplicit:
+                VpSetColorStandardExplictly(pVpHalSurf, colorStandard, colorProperties);
                 break;
             case VAProcColorStandardSRGB:
             default:
@@ -1604,6 +1652,10 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
                 case VAProcColorStandardXVYCC601:
                 case VAProcColorStandardXVYCC709:
                     pVpHalSurf->ColorSpace == CSpace_None;
+                    break;
+                case VAProcColorStandardExplicit:
+                    VpSetColorStandardExplictly(pVpHalSurf, colorStandard, colorProperties);
+                    break;
                 default:
                     pVpHalSurf->ColorSpace == CSpace_BT601;
                     break;
@@ -1693,7 +1745,7 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
 #if (VA_MAJOR_VERSION < 1)
     vaStatus = DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_surface_flag);
 #else
-    vaStatus = DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_color_properties.color_range);
+    vaStatus = DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_color_properties);
 #endif
 
     // extended gamut?
