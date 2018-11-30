@@ -393,6 +393,8 @@ public:
 
     CmNotifierGroup* GetNotifiers() {return m_notifierGroup;}
 
+    CM_HAL_CREATE_PARAM &GetCmHalCreateOption() {return m_cmHalCreateOption;}
+
 protected:
     int32_t Initialize(MOS_CONTEXT *mosContext);
 

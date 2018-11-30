@@ -20,17 +20,17 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_vebox.cpp 
-//! \brief     HAL CM Vebox functions 
+//! \file      cm_hal_vebox.cpp
+//! \brief     HAL CM Vebox functions
 //!
 
 #include "cm_hal.h"
 #include "cm_hal_vebox.h"
 
 //!
-//! \brief      build up vebox command sequence 
-//! \details     based on passed vebox param to build command sequence and 
-//!             put it into command buffer 
+//! \brief      build up vebox command sequence
+//! \details     based on passed vebox param to build command sequence and
+//!             put it into command buffer
 //! \param       [in] state --- CM_HAL_STATE
 //! \param       [in] veboxTaskParam -- vebox setup params
 //!
@@ -282,7 +282,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     osInterface->pfnSyncGpuContext(
         osInterface,
-        state->gpuContext,
+        (MOS_GPU_CONTEXT)veboxTaskParam->queueOption.GPUContext,
         MOS_GPU_CONTEXT_VEBOX);
 
     osInterface->pfnResetPerfBufferID(osInterface);
