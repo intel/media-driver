@@ -1730,6 +1730,7 @@ void CodechalEncodeHevcBase::CalcTransformSkipParameters(
         return;
     }
 
+    params.Transformskip_enabled = true;
     int sliceQP = CalSliceQp();
 
     int qpIdx = 0;
@@ -2350,6 +2351,7 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
     picStateParams.bRDOQIntraTUDisable   = m_hevcRdoqEnabled && (1 != m_hevcSeqParams->TargetUsage);
     picStateParams.wRDOQIntraTUThreshold = (uint16_t)m_rdoqIntraTuThreshold;
+    picStateParams.bTransformSkipEnable  = m_hevcPicParams->transform_skip_enabled_flag;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_rdoqIntraTuOverride)
@@ -2483,6 +2485,10 @@ void CodechalEncodeHevcBase::SetHcpSliceStateParams(
     sliceStateParams.bInsertBeforeSliceHeaders = (currSlcIdx == 0);
     sliceStateParams.bSaoLumaFlag              = (m_hevcSeqParams->SAO_enabled_flag) ? m_hevcSliceParams[currSlcIdx].slice_sao_luma_flag : 0;
     sliceStateParams.bSaoChromaFlag            = (m_hevcSeqParams->SAO_enabled_flag) ? m_hevcSliceParams[currSlcIdx].slice_sao_chroma_flag : 0;
+    sliceStateParams.DeblockingFilterDisable   = m_hevcSliceParams[currSlcIdx].slice_deblocking_filter_disable_flag;
+    sliceStateParams.TcOffsetDiv2              = m_hevcSliceParams[currSlcIdx].tc_offset_div2;
+    sliceStateParams.BetaOffsetDiv2            = m_hevcSliceParams[currSlcIdx].beta_offset_div2;
+
 
     if (m_useBatchBufferForPakSlices)
     {
