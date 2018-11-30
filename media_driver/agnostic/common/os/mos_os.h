@@ -336,9 +336,12 @@ struct _MOS_GPUCTX_CREATOPTIONS
         uint32_t SSEUValue;
     };
 
-    _MOS_GPUCTX_CREATOPTIONS() : 
-        CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
-        SSEUValue(0) {}
+    bool  runAloneMode;
+
+    _MOS_GPUCTX_CREATOPTIONS()
+            : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
+              SSEUValue(0),
+              runAloneMode(false) {}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };

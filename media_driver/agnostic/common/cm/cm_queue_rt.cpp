@@ -240,6 +240,8 @@ int32_t CmQueueRT::Initialize()
 #endif
             }
 
+            ctxCreateOption.runAloneMode = m_queueOption.RunAloneMode;
+
             // Create Render GPU Context
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D, &ctxCreateOption));
 
@@ -256,6 +258,7 @@ int32_t CmQueueRT::Initialize()
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
+            ctxCreateOption.runAloneMode = m_queueOption.RunAloneMode;
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
                 cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
                                                 MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
