@@ -677,7 +677,7 @@ typedef enum _CM_FRAME_TYPE
 
 //L3 Configurations
 typedef struct _L3_CONFIG {
-    uint32_t    slm;            //shared local memory
+    uint32_t    slm;            //sharedlocalmemory
     uint32_t    urb;            //unified return buffer
     uint32_t    rest;           //rest
     uint32_t    datacluster;    //data cluster

@@ -1454,7 +1454,7 @@ int32_t CmTaskInternal::GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get the size of shared local memory
+//| Purpose:    Get the size of sharedlocalmemory
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetSLMSize(uint32_t& slmSize)

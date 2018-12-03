@@ -5226,7 +5226,7 @@ bool CmKernelRT::IsThreadArgExisted()
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get the size of Shared Local Memory
+//| Purpose:    Get the size of SharedLocalMemory
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelRT::GetSLMSize()
