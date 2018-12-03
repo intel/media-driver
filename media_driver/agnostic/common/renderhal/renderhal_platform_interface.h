@@ -375,6 +375,20 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     };
+
+    //! \brief    Send To 3DState Binding Table Pool Alloc
+    //! \details  Send To 3DState Binding Table Pool Alloc
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SendTo3DStateBindingTablePoolAlloc(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__
