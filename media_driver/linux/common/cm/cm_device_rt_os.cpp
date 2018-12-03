@@ -85,20 +85,20 @@ int32_t CmDeviceRT::CreateAuxDevice(MOS_CONTEXT *mosContext)  //VADriverContextP
 
     m_mosContext = mosContext;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(HalCm_Create(mosContext, &m_cmHalCreateOption, &cmHalState ));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(HalCm_Create(mosContext, &m_cmHalCreateOption, &cmHalState ));
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
 
     // allocate cmContext
     cmContext = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
-    CMCHK_NULL(cmContext);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmContext);
     cmContext->mosCtx     = *mosContext; // mos context
     cmContext->cmHalState = cmHalState;
 
     m_accelData =  (void *)cmContext;
 
-    CMCHK_HR_MESSAGE(GetMaxValueFromCaps(m_halMaxValues, m_halMaxValuesEx), "Failed to get Max values.");
-    CMCHK_HR_MESSAGE(GetGenPlatform(m_platform), "Failed to get GPU type.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetMaxValueFromCaps(m_halMaxValues, m_halMaxValuesEx), "Failed to get Max values.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetGenPlatform(m_platform), "Failed to get GPU type.");
 
     //  Get version from Driver
     m_ddiVersion = CM_VERSION;
@@ -179,6 +179,25 @@ int32_t CmDeviceRT::GetJITCompileFnt(pJITCompile &jitCompile)
     return CM_SUCCESS;
 }
 
+int32_t CmDeviceRT::GetJITCompileFntV2(pJITCompile_v2 &jitCompile_v2)
+{
+    if (m_fJITCompile_v2)
+    {
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    else
+    {
+        int ret = LoadJITDll();
+        if (ret != CM_SUCCESS)
+        {
+            return ret;
+        }
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    return CM_SUCCESS;
+}
+
+
 //*----------------------------------------------------------------------------
 //| Purpose:    Get JIT Free Block function from igfxcmjit64/32.dll
 //| Returns:    Result of the operation.
@@ -254,14 +273,15 @@ int32_t CmDeviceRT::LoadJITDll()
             CM_ASSERTMESSAGE("Error: Failed to load either IGC or JIT library.");
             return result;
         }
-        if (nullptr == m_fJITCompile || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
         {
             m_fJITCompile = (pJITCompile)MOS_GetProcAddress(m_hJITDll, JITCOMPILE_FUNCTION_STR);
+            m_fJITCompile_v2 = (pJITCompile_v2)MOS_GetProcAddress(m_hJITDll, JITCOMPILEV2_FUNCTION_STR);
             m_fFreeBlock = (pFreeBlock)MOS_GetProcAddress(m_hJITDll, FREEBLOCK_FUNCTION_STR);
             m_fJITVersion = (pJITVersion)MOS_GetProcAddress(m_hJITDll, JITVERSION_FUNCTION_STR);
         }
 
-        if ((NULL==m_fJITCompile) || (NULL==m_fFreeBlock) || (NULL==m_fJITVersion))
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || (nullptr == m_fFreeBlock) || (nullptr == m_fJITVersion))
         {
             result = CM_JITDLL_LOAD_FAILURE;
             CM_ASSERTMESSAGE("Error: Failed to get JIT functions.");
@@ -283,10 +303,10 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS queryCaps)
     CM_RETURN_CODE          hr = CM_SUCCESS;
 
     cmData = (PCM_CONTEXT_DATA)GetAccelData();
-    CMCHK_NULL(cmData);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmData);
 
     cmHalState = cmData->cmHalState;
-    CMCHK_NULL(cmHalState);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmHalState);
 
     switch(queryCaps->type)
     {
@@ -311,7 +331,7 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS queryCaps)
             break;
 
         case CM_QUERY_GPU_FREQ:
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnGetGPUCurrentFrequency(cmHalState, &queryCaps->gpuCurrentFreq));
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetGPUCurrentFrequency(cmHalState, &queryCaps->gpuCurrentFreq));
             break;
 
         default:
@@ -352,7 +372,10 @@ CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS queryCaps)
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
-            CM_SURFACE_FORMAT_P208
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
         CmSafeMemCopy( queryCaps->surface2DFormats, formats, CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL  * sizeof( GMM_RESOURCE_FORMAT ) );
     }
@@ -390,13 +413,19 @@ int32_t CmDeviceRT::QuerySurface2DFormats(void *capValue,
             CM_SURFACE_FORMAT_UYVY,
             CM_SURFACE_FORMAT_IMC3,
             CM_SURFACE_FORMAT_411P,
+            CM_SURFACE_FORMAT_411R,
             CM_SURFACE_FORMAT_422H,
             CM_SURFACE_FORMAT_422V,
             CM_SURFACE_FORMAT_444P,
+            CM_SURFACE_FORMAT_RGBP,
+            CM_SURFACE_FORMAT_BGRP,
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
-            CM_SURFACE_FORMAT_P208
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
         CmSafeMemCopy( capValue, formats, capValueSize );
         return CM_SUCCESS;

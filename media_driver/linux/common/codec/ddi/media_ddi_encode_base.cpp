@@ -222,6 +222,14 @@ VAStatus DdiEncodeBase::StatusReport(
                 m_encodeCtx->statusReportBuf.ulUpdatePosition = (m_encodeCtx->statusReportBuf.ulUpdatePosition + 1) % DDI_ENCODE_MAX_STATUS_REPORT_BUFFER;
                 break;
             }
+
+            // Report extra status for completed coded buffer
+            eStatus = ReportExtraStatus(encodeStatusReport, m_encodeCtx->BufMgr.pCodedBufferSegment);
+            if (VA_STATUS_SUCCESS != eStatus)
+            {
+                break;
+            }
+
             //Add encoded frame information into status buffer queue.
             continue;
         }
@@ -714,6 +722,10 @@ uint8_t DdiEncodeBase::VARC2HalRC(uint32_t vaRC)
     {
         return (uint8_t)RATECONTROL_VCM;
     }
+    else if (VA_RC_QVBR == vaRC)
+    {
+        return (uint8_t)RATECONTROL_QVBR;
+    }
     else  // VA_RC_CBR or VA_RC_CBR|VA_RC_MB
     {
         return (uint8_t)RATECONTROL_CBR;
@@ -885,10 +897,10 @@ VAStatus DdiEncodeBase::CreateBuffer(
 
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
 
-    buf->pMediaCtx    = mediaCtx;
-    buf->iNumElements = elementsNum;
-    buf->uiType       = type;
-    buf->uiOffset     = 0;
+    buf->pMediaCtx     = mediaCtx;
+    buf->uiNumElements = elementsNum;
+    buf->uiType        = type;
+    buf->uiOffset      = 0;
 
     uint32_t bufSize = 0;
     uint32_t expectedSize = 0xffffffff;
@@ -910,19 +922,19 @@ VAStatus DdiEncodeBase::CreateBuffer(
     }
     case VAEncMacroblockMapBufferType:
     {
-        buf->iWidth = MOS_ALIGN_CEIL(size, 64);
-        if (size != buf->iWidth)
+        buf->uiWidth = MOS_ALIGN_CEIL(size, 64);
+        if (size != buf->uiWidth)
         {
             va = VA_STATUS_ERROR_INVALID_PARAMETER;
             CleanUpBufferandReturn(buf);
             return va;
         }
-        bufSize           = size * elementsNum;
-        buf->iHeight      = elementsNum;
-        buf->iPitch       = buf->iWidth;
-        buf->iSize        = bufSize;
-        buf->format       = Media_Format_2DBuffer;
-        buf->iNumElements = 1;
+        bufSize            = size * elementsNum;
+        buf->uiHeight      = elementsNum;
+        buf->uiPitch       = buf->uiWidth;
+        buf->iSize         = bufSize;
+        buf->format        = Media_Format_2DBuffer;
+        buf->uiNumElements = 1;
 
         va = DdiMediaUtil_CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
@@ -934,10 +946,10 @@ VAStatus DdiEncodeBase::CreateBuffer(
     }
     case VAEncMacroblockDisableSkipMapBufferType:
     {
-        buf->iHeight = m_encodeCtx->wPicHeightInMB;
-        buf->iWidth  = m_encodeCtx->wPicWidthInMB;
-        buf->iSize   = m_encodeCtx->wPicHeightInMB * m_encodeCtx->wPicWidthInMB;
-        buf->format  = Media_Format_2DBuffer;
+        buf->uiHeight = m_encodeCtx->wPicHeightInMB;
+        buf->uiWidth  = m_encodeCtx->wPicWidthInMB;
+        buf->iSize    = m_encodeCtx->wPicHeightInMB * m_encodeCtx->wPicWidthInMB;
+        buf->format   = Media_Format_2DBuffer;
 
         va = DdiMediaUtil_CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
@@ -1091,19 +1103,19 @@ VAStatus DdiEncodeBase::CreateBuffer(
             (((CODECHAL_FUNCTION_FEI_ENC_PAK == m_encodeCtx->codecFunction) || (CODECHAL_FUNCTION_FEI_ENC == m_encodeCtx->codecFunction)) &&
               (m_encodeCtx->wModeType == CODECHAL_ENCODE_MODE_HEVC)))
         {
-            buf->iWidth = MOS_ALIGN_CEIL(size, 64);
-            if (size != buf->iWidth)
+            buf->uiWidth = MOS_ALIGN_CEIL(size, 64);
+            if (size != buf->uiWidth)
             {
                 va = VA_STATUS_ERROR_INVALID_PARAMETER;
                 CleanUpBufferandReturn(buf);
                 return va;
             }
-            bufSize             = size * elementsNum;
-            buf->iHeight      = elementsNum;
-            buf->iPitch       = buf->iWidth;
-            buf->iSize        = bufSize;
-            buf->format       = Media_Format_2DBuffer;
-            buf->iNumElements = 1;
+            bufSize            = size * elementsNum;
+            buf->uiHeight      = elementsNum;
+            buf->uiPitch       = buf->uiWidth;
+            buf->iSize         = bufSize;
+            buf->format        = Media_Format_2DBuffer;
+            buf->uiNumElements = 1;
         }
         else
         {

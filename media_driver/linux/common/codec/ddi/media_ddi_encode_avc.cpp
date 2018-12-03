@@ -265,6 +265,12 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
         seqParams->MinBitRate    = (uint32_t)((uint64_t)seqParams->TargetBitRate * (2 * encMiscParamRC->target_percentage - 100) / 100);
         seqParams->TargetBitRate = (uint32_t)((uint64_t)seqParams->TargetBitRate * encMiscParamRC->target_percentage / 100);
         vuiParam->cbr_flag       = 0x0;
+
+        if (VA_RC_QVBR == m_encodeCtx->uiRCMethod)
+        {
+            seqParams->ICQQualityFactor = encMiscParamRC->quality_factor;
+        }
+
         if ((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate) ||
             (m_encodeCtx->uiMaxBitRate != seqParams->MaxBitRate))
         {
@@ -602,7 +608,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    int32_t maxROIsupported = 0;
+    uint32_t maxROIsupported = 0;
     bool isROIValueInDeltaQP = false;
     m_encodeCtx->pMediaCtx->m_caps->QueryAVCROIMaxNum(m_encodeCtx->uiRCMethod, m_encodeCtx->bVdencActive, &maxROIsupported, &isROIValueInDeltaQP);
     if (maxROIsupported == 0)
@@ -739,8 +745,8 @@ VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
         codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
     }
 
-    codecHalSettings->width  = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->height = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->width  = m_encodeCtx->dworiFrameWidth;
+    codecHalSettings->height = m_encodeCtx->dworiFrameHeight;
     codecHalSettings->mode     = m_encodeCtx->wModeType;
     codecHalSettings->standard = CODECHAL_AVC;
 
@@ -871,7 +877,7 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         case VAEncSliceParameterBufferType:
-            numSlices = buf->iNumElements;
+            numSlices = buf->uiNumElements;
             DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
             break;
 

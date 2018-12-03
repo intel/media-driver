@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@ bool CodechalDecodeMpeg2::DetectSliceError(
     bool                        result         = false;
     CODECHAL_VLD_SLICE_RECORD   currSliceRecord = m_vldSliceRecord[slcNum];
 
-    if (currSliceRecord.dwLength == 0 || currSliceRecord.dwLength > (1 << (sizeof(uint32_t) * 8 - 1)))
+    if (currSliceRecord.dwLength == 0 || currSliceRecord.dwLength > (uint32_t)(1 << (sizeof(uint32_t) * 8 - 1)))
     {
         result = true;
     }
@@ -739,7 +739,6 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode                  = m_mode;
     pipeModeSelectParams.bStreamOutEnabled     = m_streamOutEnabled;
     pipeModeSelectParams.bPostDeblockOutEnable = m_deblockingEnabled;
@@ -751,7 +750,6 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
     surfaceParams.psSurface                 = &m_destSurface;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode                      = m_mode;
     if (m_deblockingEnabled)
     {
@@ -794,6 +792,17 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
         {
             m_presReferences[CodechalDecodeFwdRefBottom] =
                 &m_destSurface.OsResource;
+        }
+    }
+
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
+    {
+        if (m_presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_presReferences[i] = &m_dummyReference.OsResource;
         }
     }
 

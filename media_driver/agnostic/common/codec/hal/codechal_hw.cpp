@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -440,7 +440,6 @@ MOS_STATUS CodechalHwInterface::GetStreamoutCommandSize(
     CODECHAL_HW_FUNCTION_ENTER;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS));
 
     stateCmdSizeParams.bShortFormat = false;
     stateCmdSizeParams.bHucDummyStream = MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable);
@@ -784,7 +783,6 @@ MOS_STATUS CodechalHwInterface::AddHucDummyStreamOut(
     CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
     // pipe mode select
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.dwMediaSoftResetCounterValue = 2400;
 
     // pass bit-stream buffer by Ind Obj Addr command. Set size to 1 for dummy stream
@@ -853,7 +851,6 @@ MOS_STATUS CodechalHwInterface::PerformHucStreamOut(
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = hucStreamOutParams->mode;
     pipeModeSelectParams.dwMediaSoftResetCounterValue = 2400;
     pipeModeSelectParams.bStreamObjectUsed = true;
@@ -1323,4 +1320,392 @@ MOS_STATUS CodechalHwInterface::SendMiStoreDataImm(
         &storeDataParams));
 
     return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::ReadMfcStatus(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const EncodeStatusReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    MmioRegistersMfx* mmioRegisters = SelectVdboxAndGetMmioRegister(vdboxIndex, cmdBuffer);
+
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.resBitstreamByteCountPerFrame;
+    miStoreRegMemParams.dwOffset        = params.bitstreamByteCountPerFrameOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.resBitstreamSyntaxElementOnlyBitCount;
+    miStoreRegMemParams.dwOffset        = params.bitstreamSyntaxElementOnlyBitCountOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.resQpStatusCount;
+    miStoreRegMemParams.dwOffset        = params.qpStatusCountOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcQPStatusCountOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    if (mmioRegisters->mfcAvcNumSlicesRegOffset > 0)
+    {
+        //read MFC_AVC_NUM_SLICES register to status report
+        miStoreRegMemParams.presStoreBuffer = params.resNumSlices;
+        miStoreRegMemParams.dwOffset        = params.numSlicesOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->mfcAvcNumSlicesRegOffset;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+    }
+
+    if (params.vdencBrcEnabled)
+    {
+        // Store PAK FrameSize MMIO to DMEM for HuC next BRC pass of current frame and first pass of next frame.
+        for (int i = 0; i < 2; i++)
+        {
+            if (params.resVdencBrcUpdateDmemBufferPtr[i])
+            {
+                miStoreRegMemParams.presStoreBuffer = params.resVdencBrcUpdateDmemBufferPtr[i];
+                miStoreRegMemParams.dwOffset        = 5 * sizeof(uint32_t);
+                miStoreRegMemParams.dwRegister      = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
+                CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+                if (params.vdencBrcNumOfSliceOffset)
+                {
+                    miStoreRegMemParams.presStoreBuffer = params.resVdencBrcUpdateDmemBufferPtr[i];
+                    miStoreRegMemParams.dwOffset        = params.vdencBrcNumOfSliceOffset;
+                    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcAvcNumSlicesRegOffset;
+                    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+                }
+            }
+        }
+    }
+
+    CODECHAL_HW_CHK_STATUS_RETURN(ReadImageStatus(vdboxIndex, params, cmdBuffer));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::ReadImageStatus(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const EncodeStatusReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    MmioRegistersMfx* mmioRegisters = SelectVdboxAndGetMmioRegister(vdboxIndex, cmdBuffer);
+
+    MOS_RESOURCE *osResource;
+    uint32_t     offset;
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.resImageStatusMask;
+    miStoreRegMemParams.dwOffset        = params.imageStatusMaskOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcImageStatusMaskRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.resImageStatusCtrl;
+    miStoreRegMemParams.dwOffset        = params.imageStatusCtrlOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcImageStatusCtrlRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    // VDEnc dynamic slice overflow semaphore, DW0 is SW programmed mask(MFX_IMAGE_MASK does not support), DW1 is MFX_IMAGE_STATUS_CONTROL
+    if (params.vdencBrcEnabled)
+    {
+        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+
+        // Added for VDEnc slice overflow bit in MFC_IMAGE_STATUS_CONTROL
+        // The bit is connected on the non-AVC encoder side of MMIO register.
+        // Need a dummy MFX_PIPE_MODE_SELECT to decoder and read this register.
+        if (params.waReadVDEncOverflowStatus)
+        {
+            MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
+            pipeModeSelectParams.Mode               = CODECHAL_DECODE_MODE_AVCVLD;
+            m_mfxInterface->SetDecodeInUse(true);
+            CODECHAL_HW_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
+        }
+
+        // Store MFC_IMAGE_STATUS_CONTROL MMIO to DMEM for HuC next BRC pass of current frame and first pass of next frame.
+        for (int i = 0; i < 2; i++)
+        {
+            if (params.resVdencBrcUpdateDmemBufferPtr[i])
+            {
+                miStoreRegMemParams.presStoreBuffer    = params.resVdencBrcUpdateDmemBufferPtr[i];
+                miStoreRegMemParams.dwOffset           = 7 * sizeof(uint32_t); // offset of SliceSizeViolation in HUC_BRC_UPDATE_DMEM
+                miStoreRegMemParams.dwRegister         = mmioRegisters->mfcImageStatusCtrlRegOffset;
+                CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+            }
+        }
+
+        // Restore MFX_PIPE_MODE_SELECT to encode mode
+        if (params.waReadVDEncOverflowStatus)
+        {
+            MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
+            pipeModeSelectParams.Mode               = params.mode;
+            pipeModeSelectParams.bVdencEnabled      = true;
+            m_mfxInterface->SetDecodeInUse(false);
+            CODECHAL_HW_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
+        }
+    }
+
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::ReadBrcPakStatistics(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const BrcPakStatsReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+    CODECHAL_HW_CHK_NULL_RETURN(params.presBrcPakStatisticBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    MmioRegistersMfx* mmioRegisters = SelectVdboxAndGetMmioRegister(vdboxIndex, cmdBuffer);
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.presBrcPakStatisticBuffer;
+    miStoreRegMemParams.dwOffset        = 0;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.presBrcPakStatisticBuffer;
+    miStoreRegMemParams.dwOffset        = sizeof(uint32_t);
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcBitstreamBytecountSliceRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    storeDataParams.pOsResource         = params.presBrcPakStatisticBuffer;
+    storeDataParams.dwResourceOffset    = sizeof(uint32_t) * 2;
+    storeDataParams.dwValue             = params.ucPass + 1;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.pOsResource         = params.presStatusBuffer;
+    storeDataParams.dwResourceOffset    = params.dwStatusBufNumPassesOffset;
+    storeDataParams.dwValue             = params.ucPass + 1;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    miStoreRegMemParams.presStoreBuffer = params.presBrcPakStatisticBuffer;
+    miStoreRegMemParams.dwOffset        = sizeof(uint32_t) * (4 + params.ucPass);
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcImageStatusCtrlRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::ReadHcpStatus(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const EncodeStatusReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    auto mmioRegisters = m_hcpInterface->GetMmioRegisters(vdboxIndex);
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resBitstreamByteCountPerFrame;
+    miStoreRegMemParams.dwOffset        = params.bitstreamByteCountPerFrameOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resBitstreamSyntaxElementOnlyBitCount;
+    miStoreRegMemParams.dwOffset        = params.bitstreamSyntaxElementOnlyBitCountOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resQpStatusCount;
+    miStoreRegMemParams.dwOffset        = params.qpStatusCountOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncQpStatusCountRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::ReadImageStatusForHcp(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const EncodeStatusReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+
+    auto mmioRegisters = m_hcpInterface->GetMmioRegisters(vdboxIndex);
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resImageStatusMask;
+    miStoreRegMemParams.dwOffset        = params.imageStatusMaskOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusMaskRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resImageStatusCtrl;
+    miStoreRegMemParams.dwOffset        = params.imageStatusCtrlOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::ReadBrcPakStatisticsForHcp(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const BrcPakStatsReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+    CODECHAL_HW_CHK_NULL_RETURN(params.presBrcPakStatisticBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+
+    auto mmioRegisters = m_hcpInterface->GetMmioRegisters(vdboxIndex);
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.presBrcPakStatisticBuffer;
+    miStoreRegMemParams.dwOffset = params.bitstreamBytecountFrameOffset;
+    miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.presBrcPakStatisticBuffer;
+    miStoreRegMemParams.dwOffset = params.bitstreamBytecountFrameNoHeaderOffset;
+    miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncBitstreamBytecountFrameNoHeaderRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.presBrcPakStatisticBuffer;
+    miStoreRegMemParams.dwOffset = params.imageStatusCtrlOffset;
+    miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    storeDataParams.pOsResource = params.presStatusBuffer;
+    storeDataParams.dwResourceOffset = params.dwStatusBufNumPassesOffset;
+    storeDataParams.dwValue = params.ucPass;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::SetStatusTagByPipeCtrl(
+    PMOS_RESOURCE osResource,
+    uint32_t offset,
+    uint32_t tag,
+    bool needFlushCache,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS result = MOS_STATUS_SUCCESS;
+
+    MHW_PIPE_CONTROL_PARAMS pipeControlParams;
+    MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+
+    if (!needFlushCache)
+    {
+        pipeControlParams.presDest                  = osResource;
+        pipeControlParams.dwPostSyncOp              = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
+        pipeControlParams.dwResourceOffset          = offset;
+        pipeControlParams.dwDataDW1                 = tag;
+        result = m_miInterface->AddPipeControl(
+            cmdBuffer,
+            nullptr,
+            &pipeControlParams);
+
+        return result;
+    }
+
+    pipeControlParams.dwFlushMode  = MHW_FLUSH_WRITE_CACHE;
+    pipeControlParams.bGenericMediaStateClear = true;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(cmdBuffer, nullptr, &pipeControlParams));
+    
+    if (MEDIA_IS_WA(m_waTable, WaSendDummyVFEafterPipelineSelect))
+    {
+        MHW_VFE_PARAMS vfeStateParams;
+    
+        MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+        vfeStateParams.dwNumberofURBEntries = 1;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(cmdBuffer, &vfeStateParams));
+    }
+
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(MHW_MI_STORE_DATA_PARAMS));
+    storeDataParams.pOsResource      = osResource;
+    storeDataParams.dwResourceOffset = offset;
+    storeDataParams.dwValue          = tag;
+    result = m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &storeDataParams);
+
+    return result;
+}
+
+MOS_STATUS CodechalHwInterface::SetStatusTagByMiCommand(
+    PMOS_RESOURCE osResource,
+    uint32_t offset,
+    uint32_t tag,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS result = MOS_STATUS_SUCCESS;
+
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(MHW_MI_STORE_DATA_PARAMS));
+    storeDataParams.pOsResource      = osResource;
+    storeDataParams.dwResourceOffset = offset;
+    storeDataParams.dwValue          = tag;
+
+    result = m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &storeDataParams);
+
+    return result;
 }

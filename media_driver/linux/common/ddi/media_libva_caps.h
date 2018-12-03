@@ -514,7 +514,7 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
 
     //!
     //! \brief    Populate the color masks info 
@@ -526,7 +526,7 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
     
     //!
     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
@@ -546,14 +546,14 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP) = 0;
+    virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) = 0;
 
     //!
     //! \brief    Return the maxinum number of supported image formats 
     //!
     //! \return   The maxinum number of supported image formats 
     //!
-    static uint32_t GetImageFormatsMaxNum();
+    virtual uint32_t GetImageFormatsMaxNum();
 
     //!
     //! \brief    Check if the configID is a valid decode config 
@@ -713,13 +713,13 @@ protected:
 
     static const uint16_t m_maxProfiles = 17; //!< Maximum number of supported profiles
     static const uint16_t m_maxProfileEntries = 64; //!< Maximum number of supported profile & entrypoint combinations
-    static const uint32_t m_numVpSurfaceAttr = 10; //!< Number of VP surface attributes
+    static const uint32_t m_numVpSurfaceAttr = 11; //!< Number of VP surface attributes
     static const uint32_t m_numJpegSurfaceAttr = 7; //!< Number of JPEG surface attributes
     static const uint32_t m_numJpegEncSurfaceAttr = 4; //!< Number of JPEG encode surface attributes
     static const uint16_t m_maxEntrypoints = 7; //!<  Maximum number of supported entrypoints
     static const uint32_t m_decSliceMode[2]; //!< Store 2 decode slices modes
     static const uint32_t m_decProcessMode[2]; //!< Store 2 decode process modes
-    static const uint32_t m_encRcMode[7]; //!< Store 7 encode rate control modes
+    static const uint32_t m_encRcMode[8]; //!< Store 8 encode rate control modes
     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
     static const uint32_t m_jpegSurfaceAttr[m_numJpegSurfaceAttr]; //!< Store the JPEG surface attributes
     static const uint32_t m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr]; //!< Store the JPEG encode surface attributes

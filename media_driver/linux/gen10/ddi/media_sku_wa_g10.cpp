@@ -51,6 +51,7 @@ static struct LinuxCodecInfo cnlCodecInfo =
     .hevc10Decoding     = 1,
     .vp9b10Decoding     = 1,
     .hevc10Encoding     = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .hevc12Encoding     = 0,
     .vp8Encoding        = 1,
     .hevcVdenc          = 1,
     .vp9Vdenc           = 1,
@@ -146,6 +147,8 @@ static bool InitCnlMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
+
+    MEDIA_WR_SKU(skuTable, FtrTileY, 1);
 
     return true;
 }

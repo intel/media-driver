@@ -1863,10 +1863,11 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
     UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
     UserFeatureData.StringData.uSize       = 0;    //set the default value. 0 is empty buffer.
 
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME_ID,
         &UserFeatureData));
+
     if (UserFeatureData.StringData.uSize > 0)
     {
         // Copy the Output path
@@ -1876,6 +1877,36 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
             UserFeatureData.StringData.pStringData,
             UserFeatureData.StringData.uSize);
     }
+#if !defined(LINUX) && !defined(ANDROID)
+    else
+    {
+        std::string vphalDumpFilePath;
+
+        // Use state separation APIs to obtain appropriate storage location
+        if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
+        {
+            std::string m_outputFilePath;
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+
+            m_outputFilePath = vphalDumpFilePath.c_str();
+            m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
+
+            // Copy the Output path
+            MOS_SecureMemcpy(
+                pDumpSpec->pcOutputPath,
+                MAX_PATH,
+                m_outputFilePath.c_str(),
+                m_outputFilePath.size());
+
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.StringData.pStringData = cStringData;
+            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
+            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
+            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
+            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+        }
+    }
+#endif
 
     // Get dump locations
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -2170,7 +2201,7 @@ void VphalHwStateDumper::GetStateDumpSpec()
     UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
     UserFeatureData.StringData.uSize       = 0;    // set the default value. 0 is empty buffer.
 
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME_ID,
         &UserFeatureData));
@@ -2184,6 +2215,36 @@ void VphalHwStateDumper::GetStateDumpSpec()
             pUserFeatureData->StringData.pStringData,
             pUserFeatureData->StringData.uSize);
     }
+#if !defined(LINUX) && !defined(ANDROID)
+    else
+    {
+        std::string vphalDumpFilePath;
+
+        // Use state separation APIs to obtain appropriate storage location
+        if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
+        {
+            std::string m_outputFilePath;
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+
+            m_outputFilePath = vphalDumpFilePath.c_str();
+            m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
+
+            // Copy the Output path
+            MOS_SecureMemcpy(
+                pDumpSpec->pcOutputPath,
+                MAX_PATH,
+                m_outputFilePath.c_str(),
+                m_outputFilePath.size());
+
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.StringData.pStringData = cStringData;
+            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
+            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
+            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
+            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+        }
+    }
+#endif
 
     // Get dump locations
     UserFeatureData.StringData.pStringData = cStringData;
@@ -2664,7 +2725,7 @@ void VphalParameterDumper::GetParametersDumpSpec()
     UserFeatureData.StringData.uMaxSize = MOS_USER_CONTROL_MAX_DATA_SIZE;
     UserFeatureData.StringData.uSize = 0;    //set the default value. 0 is empty buffer.
 
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID,
         &UserFeatureData));
@@ -2678,8 +2739,39 @@ void VphalParameterDumper::GetParametersDumpSpec()
             UserFeatureData.StringData.uSize);
         bDumpEnabled = true;
     }
+#if !defined(LINUX) && !defined(ANDROID)
+    else
+    {
+        std::string vphalDumpFilePath;
 
-finish:
+        // Use state separation APIs to obtain appropriate storage location
+        if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
+        {
+            std::string m_outputFilePath;
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+
+            m_outputFilePath = vphalDumpFilePath.c_str();
+            m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
+
+            // Copy the Output path
+            MOS_SecureMemcpy(
+                pDumpSpec->outFileLocation,
+                MAX_PATH,
+                m_outputFilePath.c_str(),
+                m_outputFilePath.size());
+
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.StringData.pStringData = cStringData;
+            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
+            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
+            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
+            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+
+            bDumpEnabled = true;
+        }
+    }
+#endif
+
     if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled))
     {
         pDumpSpec->uiStartFrame = 1;

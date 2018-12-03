@@ -396,11 +396,16 @@ void VPHAL_VEBOX_STATE::VeboxCopySurfaceParams(
     const PVPHAL_SURFACE            pTempSurface,
     PVPHAL_SURFACE                  pOutSurface)
 {
-    PMOS_INTERFACE       pOsInterface;
-    const PVPHAL_VEBOX_STATE        pVeboxState = this;
-    const PVPHAL_VEBOX_RENDER_DATA  pRenderData = GetLastExecRenderData();
+    PMOS_INTERFACE                  pOsInterface        = nullptr;
+    const PVPHAL_VEBOX_STATE        pVeboxState         = this;
+    const PVPHAL_VEBOX_RENDER_DATA  pRenderData         = GetLastExecRenderData();
 
     pOsInterface = pVeboxState->m_pOsInterface;
+
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pTempSurface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pOutSurface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pOsInterface);
 
     // Copy all parameters from SrcSurface to Output Surface
     CopySurfaceValue(pOutSurface, pSrcSurface);
@@ -1271,9 +1276,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
 
         if (MEDIA_IS_WA(pRenderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS VfeStateParams;
-
-            MOS_ZeroMemory(&VfeStateParams, sizeof(VfeStateParams));
+            MHW_VFE_PARAMS VfeStateParams = {};
             VfeStateParams.dwNumberofURBEntries = 1;
             VPHAL_RENDER_CHK_STATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer, &VfeStateParams));
         }
@@ -1587,13 +1590,13 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetupIndirectStates(
     PVPHAL_SURFACE              pSrcSurface,
     PVPHAL_SURFACE              pOutSurface)
 {
-    PMOS_INTERFACE                  pOsInterface;
-    PMHW_VEBOX_INTERFACE            pVeboxInterface;
+    PMOS_INTERFACE                  pOsInterface       = nullptr;
+    PMHW_VEBOX_INTERFACE            pVeboxInterface    = nullptr;
     MOS_STATUS                      eStatus;
-    MHW_VEBOX_IECP_PARAMS           VeboxIecpParams;
-    MHW_VEBOX_GAMUT_PARAMS          VeboxGamutParams;
-    PVPHAL_VEBOX_STATE              pVeboxState = this;
-    PVPHAL_VEBOX_RENDER_DATA        pRenderData = GetLastExecRenderData();
+    MHW_VEBOX_IECP_PARAMS           VeboxIecpParams    = {};
+    MHW_VEBOX_GAMUT_PARAMS          VeboxGamutParams   = {};
+    PVPHAL_VEBOX_STATE              pVeboxState        = this;
+    PVPHAL_VEBOX_RENDER_DATA        pRenderData        = GetLastExecRenderData();
 
     VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_CHK_NULL(pVeboxState);
@@ -1648,6 +1651,19 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetupIndirectStates(
             &VeboxIecpParams));
     }
 
+    // Set Gamma Parameters
+    if (pRenderData->bHdr3DLut)
+    {        
+        VeboxGamutParams.bGammaCorr         = true;
+        VeboxGamutParams.ColorSpace         = VPHal_VpHalCspace2MhwCspace(pSrcSurface->ColorSpace);
+        VeboxGamutParams.InputGammaValue    = MHW_GAMMA_1P0;
+        VeboxGamutParams.OutputGammaValue   = MHW_GAMMA_1P0;
+
+        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxGamutState(
+            &VeboxIecpParams,
+            &VeboxGamutParams));
+    }
+
 finish:
     return eStatus;
 }
@@ -1685,6 +1701,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
 
     // initialize the command buffer struct
     MOS_ZeroMemory(&CmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+    GenericPrologParams = {};
 
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
 
@@ -1698,12 +1715,13 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
     pOsInterface->pfnResetPerfBufferID(pOsInterface);
     pOsInterface->pfnSetPerfTag(pOsInterface, pRenderData->PerfTag);
 
-    MOS_ZeroMemory(&GenericPrologParams, sizeof(GenericPrologParams));
-
     // Linux will do nothing here since currently no frame tracking support
 
 #ifndef EMUL
-    if (pOsInterface->bEnableKmdMediaFrameTracking)
+    // Don't enable MediaFrame Track on Vebox if one VPBlit Still need to do compostion. It can avoid the kmd notify
+    // the frame be handling finished twice for one VPBLIT. 
+    if ((pRenderData->OutputPipe != VPHAL_OUTPUT_PIPE_MODE_COMP) &&
+        pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
@@ -1900,7 +1918,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     VPHAL_RENDER_CHK_STATUS_RETURN(VeboxRenderMMCPipeCmd(
         pVeboxInterface,
         pMhwMiInterface,
-        &(MhwVeboxSurfaceStateCmdParams.SurfInput),
+        &(MhwVeboxSurfaceStateCmdParams),
         &VeboxDiIecpCmdParams,
         &CmdBuffer));
 
@@ -1994,23 +2012,23 @@ finish:
 //!
 MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
 {
-    PRENDERHAL_INTERFACE                    pRenderHal;
-    PMOS_INTERFACE                          pOsInterface;
-    MOS_COMMAND_BUFFER                      CmdBuffer;
-    MOS_STATUS                              eStatus;
-    int32_t                                 iRemaining, i;
-    MHW_VEBOX_DI_IECP_CMD_PARAMS            VeboxDiIecpCmdParams;
-    VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    VeboxSurfaceStateCmdParams;
-    MHW_VEBOX_SURFACE_STATE_CMD_PARAMS      MhwVeboxSurfaceStateCmdParams;
-    MHW_VEBOX_STATE_CMD_PARAMS              VeboxStateCmdParams;
-    MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams;
-    PMHW_VEBOX_INTERFACE                    pVeboxInterface;
-    RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams;
-    MOS_RESOURCE                            GpuStatusBuffer;
-    PVPHAL_VEBOX_STATE                      pVeboxState = this;
-    PVPHAL_VEBOX_RENDER_DATA                pRenderData = GetLastExecRenderData();
+    PRENDERHAL_INTERFACE                    pRenderHal                      = nullptr;
+    PMOS_INTERFACE                          pOsInterface                    = {};
+    MOS_COMMAND_BUFFER                      CmdBuffer                       = {};
+    MOS_STATUS                              eStatus                         = MOS_STATUS_SUCCESS;
+    int32_t                                 iRemaining                      = 0;
+    int32_t                                 i                               = 0;
+    MHW_VEBOX_DI_IECP_CMD_PARAMS            VeboxDiIecpCmdParams            = {};
+    VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    VeboxSurfaceStateCmdParams      = {};
+    MHW_VEBOX_SURFACE_STATE_CMD_PARAMS      MhwVeboxSurfaceStateCmdParams   = {};
+    MHW_VEBOX_STATE_CMD_PARAMS              VeboxStateCmdParams             = {};
+    MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams                   = {};
+    PMHW_VEBOX_INTERFACE                    pVeboxInterface                 = {};
+    RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams             = {};
+    MOS_RESOURCE                            GpuStatusBuffer                 = {};
+    PVPHAL_VEBOX_STATE                      pVeboxState                     = this;
+    PVPHAL_VEBOX_RENDER_DATA                pRenderData                     = GetLastExecRenderData();
 
-    eStatus                 = MOS_STATUS_SUCCESS;
     if (pVeboxState == nullptr)
     {
         VPHAL_RENDER_ASSERTMESSAGE("pVeboxState not available.");
@@ -2263,13 +2281,15 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
     PVPHAL_SURFACE              pSrc,
     PVPHAL_SURFACE              pRenderTarget)
 {
-    PRENDERHAL_INTERFACE        pRenderHal;
-    PMOS_INTERFACE              pOsInterface;
-    PVPHAL_VEBOX_STATE           pVeboxState = this;
-    PVPHAL_VEBOX_RENDER_DATA     pRenderData = GetLastExecRenderData();
+    PRENDERHAL_INTERFACE         pRenderHal         = nullptr;
+    PVPHAL_VEBOX_STATE           pVeboxState        = this;
+    PVPHAL_VEBOX_RENDER_DATA     pRenderData        = GetLastExecRenderData();
+
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrc);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderTarget);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
 
     pRenderHal                  = pVeboxState->m_pRenderHal;
-    pOsInterface                = pVeboxState->m_pOsInterface;
 
     VeboxSetCommonRenderingFlags(pSrc, pRenderTarget);
 
@@ -2329,10 +2349,32 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
     if (!(pRenderData->bDenoise          ||
           pRenderData->bDeinterlace      ||
           pRenderData->bIECP             ||
+          pRenderData->bHdr3DLut         ||
           IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData)))
     {
         pRenderData->bVeboxBypass = true;
     }
+
+    if (pSrc->pHDRParams)
+    {
+        // For H2S, it is possible that there is no HDR params for render target.
+        pRenderData->uiMaxContentLevelLum = pSrc->pHDRParams->MaxCLL;
+        if (pSrc->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+        {
+            pRenderData->hdrMode = VPHAL_HDR_MODE_TONE_MAPPING;
+            if (pRenderTarget->pHDRParams)
+            {
+                pRenderData->uiMaxDisplayLum = pRenderTarget->pHDRParams->max_display_mastering_luminance;
+                if (pRenderTarget->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+                {
+                    pRenderData->hdrMode = VPHAL_HDR_MODE_H2H;
+                }
+            }
+        }       
+    }
+
+finish:
+    return;
 }
 
 //!
@@ -3710,6 +3752,109 @@ void VPHAL_VEBOX_STATE::CopyReporting(VphalFeatureReport* pReporting)
     CopyResourceReporting(pReporting);
 }
 
+MOS_STATUS VpHal_VeboxAllocateTempSurfaces(
+    VphalRenderer                   *pRenderer,
+    PCVPHAL_RENDER_PARAMS           pcRenderParams,
+    PVPHAL_VEBOX_RENDER_DATA        pRenderData,
+    PVPHAL_SURFACE                  pInSurface,
+    PVPHAL_SURFACE                  pOutSurface,
+    PVPHAL_SURFACE                  pAllocatedSurface)
+{
+    MOS_STATUS               eStatus;
+    PMOS_INTERFACE           pOsInterface        = nullptr;
+    PVPHAL_VEBOX_STATE       pVeboxState         = nullptr;
+    bool                     bAllocated;
+    VPHAL_CSPACE             surfaceColorSpace;
+    MOS_FORMAT               surfaceFormat;
+    uint32_t                 dwSurfaceWidth;
+    uint32_t                 dwSurfaceHeight;
+
+    VPHAL_RENDER_CHK_NULL(pInSurface);
+    VPHAL_RENDER_CHK_NULL(pOutSurface);
+    VPHAL_RENDER_CHK_NULL(pRenderer);
+    VPHAL_RENDER_CHK_NULL(pcRenderParams);
+    VPHAL_RENDER_CHK_NULL(pRenderData);
+
+    pOsInterface = pRenderer->GetOsInterface();
+    VPHAL_RENDER_CHK_NULL(pOsInterface);
+
+    eStatus             = MOS_STATUS_SUCCESS;
+    dwSurfaceWidth      = pInSurface->dwWidth;
+    dwSurfaceHeight     = pInSurface->dwHeight;
+    surfaceFormat       = pOutSurface->Format;
+    surfaceColorSpace   = pOutSurface->ColorSpace;
+
+    // Hdr intermediate surface should be Y tile for best performance
+    VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+        pOsInterface,
+        pAllocatedSurface,
+        "VeboxHdrOutputSurface",
+        surfaceFormat,
+        MOS_GFXRES_2D,
+        MOS_TILE_Y,
+        dwSurfaceWidth,
+        dwSurfaceHeight,
+        false,
+        MOS_MMC_DISABLED,
+        &bAllocated));
+
+    VPHAL_RENDER_CHK_NULL(pAllocatedSurface);
+
+    // Copy rect sizes so that if input surface state needs to adjust,
+    // output surface can be adjusted also.
+    pAllocatedSurface->rcSrc            = pInSurface->rcSrc;
+    pAllocatedSurface->rcDst            = pInSurface->rcSrc;
+    pAllocatedSurface->rcMaxSrc         = pInSurface->rcSrc;
+    pAllocatedSurface->Rotation         = pInSurface->Rotation;
+    pAllocatedSurface->SampleType       = pInSurface->SampleType;
+    pAllocatedSurface->ColorSpace       = surfaceColorSpace;
+    pAllocatedSurface->Format           = surfaceFormat;
+    pAllocatedSurface->SurfType         = pInSurface->SurfType;
+    pAllocatedSurface->SampleType       = pInSurface->SampleType;
+    pAllocatedSurface->ScalingMode      = pInSurface->ScalingMode;
+    pAllocatedSurface->bIEF             = pInSurface->bIEF;
+    pAllocatedSurface->FrameID          = pInSurface->FrameID;
+
+    if (pInSurface->pBlendingParams)
+    {
+        if (!pAllocatedSurface->pBlendingParams)
+        {
+            pAllocatedSurface->pBlendingParams = (PVPHAL_BLENDING_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_BLENDING_PARAMS));
+            VPHAL_RENDER_CHK_NULL(pAllocatedSurface->pBlendingParams);
+        }
+
+        MOS_SecureMemcpy(pAllocatedSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS),
+            pInSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS));
+    }
+    else
+    {
+        MOS_FreeMemory(pAllocatedSurface->pBlendingParams);
+        pAllocatedSurface->pBlendingParams = nullptr;
+    }
+
+    if (pInSurface->pHDRParams)
+    {
+        if (!pAllocatedSurface->pHDRParams)
+        {
+            pAllocatedSurface->pHDRParams = (PVPHAL_HDR_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_HDR_PARAMS));
+            VPHAL_RENDER_CHK_NULL(pAllocatedSurface->pHDRParams);
+        }
+        if (pOutSurface->pHDRParams)
+        {
+            MOS_SecureMemcpy(pAllocatedSurface->pHDRParams, sizeof(VPHAL_HDR_PARAMS),
+                pOutSurface->pHDRParams, sizeof(VPHAL_HDR_PARAMS));
+        }
+    }
+    else
+    {
+        MOS_FreeMemory(pAllocatedSurface->pHDRParams);
+        pAllocatedSurface->pHDRParams = nullptr;
+    }
+
+finish:
+    return eStatus;
+}
+
 //!
 //! \brief    Perform Rendering in VEBOX
 //! \details  Check whether VEBOX Rendering is enabled. When it's enabled, perform VEBOX Rendering
@@ -3729,13 +3874,13 @@ MOS_STATUS VpHal_RndrRenderVebox(
     RenderpassData          *pRenderPassData)
 {
     MOS_STATUS               eStatus;
-    PMOS_INTERFACE           pOsInterface;
-    RenderState              *pRenderState;
-    VphalFeatureReport*      pReport;
-    PVPHAL_SURFACE           pOutSurface = nullptr;
-    RECT                     rcTemp;
-    PVPHAL_VEBOX_STATE       pVeboxState;
-    PVPHAL_VEBOX_RENDER_DATA pRenderData;
+    PMOS_INTERFACE           pOsInterface   = nullptr;
+    RenderState              *pRenderState  = nullptr;
+    VphalFeatureReport*      pReport        = nullptr;
+    PVPHAL_SURFACE           pOutSurface    = nullptr;
+    RECT                     rcTemp         = {};
+    PVPHAL_VEBOX_STATE       pVeboxState    = nullptr;
+    PVPHAL_VEBOX_RENDER_DATA pRenderData    = nullptr;
 
     //------------------------------------------------------
     VPHAL_RENDER_ASSERT(pRenderer);
@@ -3779,6 +3924,15 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pOutSurface = pcRenderParams->pTarget[0];
         }
 
+        if (pRenderData->bHdr3DLut)
+        {
+            VpHal_VeboxAllocateTempSurfaces(pRenderer, pcRenderParams, pRenderData, pcRenderParams->pSrc[0], pcRenderParams->pTarget[0], &pRenderer->IntermediateSurface);
+            SET_VPHAL_OUTPUT_PIPE(pRenderData, VPHAL_OUTPUT_PIPE_MODE_VEBOX);
+            SET_VEBOX_EXECUTION_MODE(pVeboxState->m_pVeboxExecState, VEBOX_EXEC_MODE_0);
+            pOutSurface                     = &pRenderer->IntermediateSurface;
+            pRenderData->pRenderTarget      = &pRenderer->IntermediateSurface;
+        }        
+
         pRenderPassData->pOutSurface    = pOutSurface;
 
         //Disable cache for output surface in vebox only condition
@@ -3799,13 +3953,23 @@ MOS_STATUS VpHal_RndrRenderVebox(
         {
             pRenderPassData->bOutputGenerated = true;
         }
+
+        if (pRenderData->bHdr3DLut)
+        {
+            pRenderPassData->bOutputGenerated   = true;
+            pRenderPassData->bCompNeeded        = true;
+            if (pOutSurface && pcRenderParams->pSrc[0])
+            {
+                pRenderPassData->pOutSurface->rcSrc      = pcRenderParams->pSrc[0]->rcSrc;
+                pRenderPassData->pOutSurface->rcDst      = pcRenderParams->pSrc[0]->rcDst;
+                pRenderPassData->pOutSurface->rcMaxSrc   = pcRenderParams->pSrc[0]->rcMaxSrc;                
+                pRenderPassData->pOutSurface->iLayerID   = -1;
+                pRenderPassData->pOutSurface->iPalette   = -1;
+            }
+        }
     }
 
 finish:
-    if (pRenderPassData->bOutputGenerated)
-    {
-        pRenderPassData->pOutSurface = pRenderPassData->pOutSurface;
-    }
     VPHAL_RENDER_NORMALMESSAGE("VPOutputPipe = %d, VEFeatureInUse = %d", 
         pRenderer->GetReport()->OutputPipeMode, pRenderer->GetReport()->VEFeatureInUse);    
 

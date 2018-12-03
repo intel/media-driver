@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -102,6 +102,7 @@ static bool InitBdwMediaSku(struct GfxDeviceInfo *devInfo,
     }
 
     MEDIA_WR_SKU(skuTable, FtrSliceShutdownOverride, 1);
+    MEDIA_WR_SKU(skuTable, FtrTileY, 1);
 
     return true;
 }
@@ -122,6 +123,7 @@ static bool InitBdwMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaSendDummyVFEafterPipelineSelect, 1);
     MEDIA_WR_WA(waTable, WaVC1UnequalFieldHeights, 1);
     MEDIA_WR_WA(waTable, WaJPEGHeightAlignYUV422H2YToNV12, 1);
+    MEDIA_WR_WA(waTable, WaEnableDscale, 1);
 
     return true;
 }

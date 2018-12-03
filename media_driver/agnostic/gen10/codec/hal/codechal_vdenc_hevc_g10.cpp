@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1736,7 +1736,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         if (bps_ratio < m_bpsRatioLow) bps_ratio = m_bpsRatioLow;
         if (bps_ratio > m_bpsRatioHigh) bps_ratio = m_bpsRatioHigh;
 
-        for (int i = 0; i < m_numDevThreshlds / 2; i++) {
+        for (uint32_t i = 0; i < m_numDevThreshlds / 2; i++) {
             DevThreshPB0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshPBFPNEG[i], bps_ratio));
             DevThreshPB0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshPBFPPOS[i], bps_ratio));
 
@@ -1821,7 +1821,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
 
         for (int i=0; i < numEstrateThreshlds +1; i++)
         {
-            for (int j=0; j < m_numDevThreshlds +1; j++)
+            for (uint32_t j = 0; j < m_numDevThreshlds + 1; j++)
             {
                 hucConstData->FrmSzAdjTabI_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszI[j][i];
                 hucConstData->FrmSzAdjTabP_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszP[j][i];
@@ -1908,7 +1908,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
         }
         else
         {
-            hucConstData->Slice[slcCount].SliceSaoLumaFlag_StartInBits = (uint16_t)0xFFFF;
+            hucConstData->Slice[slcCount].SliceSaoLumaFlag_StartInBits = (uint16_t)0x7FFF;
         }
 
         if (m_hevcVdencWeightedPredEnabled)
@@ -2130,7 +2130,6 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCBRC(PMOS_RESOURCE b
     // 1st Group : HCP_PIPE_MODE_SELECT
     // set HCP_PIPE_MODE_SELECT command
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bVdencEnabled = true;
     pipeModeSelectParams.bStreamOutEnabled = true;
@@ -2170,7 +2169,6 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCBRC(PMOS_RESOURCE b
 
     // 3rd Group : HCP_WEIGHTSOFFSETS_STATE + HCP_SLICE_STATE + HCP_PAK_INSERT_OBJECT + VDENC_WEIGHT_OFFSETS_STATE
     MHW_VDBOX_HEVC_SLICE_STATE sliceState;
-    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.presDataBuffer = &m_resMbCodeSurface;
     sliceState.pHevcPicIdx           = &m_picIdx[0];
     sliceState.pEncodeHevcSeqParams  = m_hevcSeqParams;

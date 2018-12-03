@@ -38,6 +38,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiSemaphoreWaitCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD *cmd =
         (mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD*)cmdBuffer->pCmdPtr;
@@ -140,6 +141,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiStoreRegisterMemCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD *cmd =
         (mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
@@ -163,6 +165,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterMemCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_MEM_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
@@ -186,6 +189,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterImmCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD*)cmdBuffer->pCmdPtr;
@@ -209,6 +213,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterRegCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_REG_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_REG_CMD*)cmdBuffer->pCmdPtr;
@@ -279,12 +284,6 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerRegisterOffset(
 {
     MHW_FUNCTION_ENTER;
 
-    if (m_osInterface->bMediaReset == false ||
-        m_osInterface->umdMediaResetEnable == false)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
     switch (gpuContext)
     {
         // RCS
@@ -326,6 +325,8 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerRegisterOffset(
 MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStartCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT     gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -335,6 +336,10 @@ MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStartCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     // Send Stop before Start is to help recover from incorrect wdt state if previous submission 
     // cause hang and not have a chance to execute the stop cmd in the end of batch buffer. 
@@ -365,6 +370,8 @@ MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStartCmd(
 MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStopCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -374,6 +381,10 @@ MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStopCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     //Stop Watchdog Timer
     MHW_MI_LOAD_REGISTER_IMM_PARAMS registerImmParams;

@@ -44,8 +44,8 @@ void MhwVeboxInterfaceG9::SetVeboxIecpStateBecsc(
     PMHW_CAPPIPE_PARAMS pCapPipeParams;
     MOS_FORMAT          dstFormat;
 
-    MHW_ASSERT(pVeboxIecpState);
-    MHW_ASSERT(pVeboxIecpParams);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
 
     pCapPipeParams = &pVeboxIecpParams->CapPipeParams;
     dstFormat      = pVeboxIecpParams->dstFormat;
@@ -230,10 +230,13 @@ void MhwVeboxInterfaceG9::SetVeboxSurfaces(
     uint8_t                                 bBayerStride;
     mhw_vebox_g9_X::VEBOX_SURFACE_STATE_CMD VeboxSurfaceState;
 
-    MHW_ASSERT(pSurfaceParam);
-    MHW_ASSERT(pVeboxSurfaceState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pSurfaceParam);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceState);
 
     // Initialize
+    dwSurfaceWidth      = 0;
+    dwSurfaceHeight     = 0;
+    dwSurfacePitch      = 0;
     bHalfPitchForChroma = false;
     bInterleaveChroma   = false;
     wUXOffset           = 0;
@@ -408,6 +411,7 @@ MOS_STATUS MhwVeboxInterfaceG9::GetVeboxAce_FullImageHistogram(
     mhw_vebox_g9_X::VEBOX_IECP_STATE_CMD *pVeboxIecpState;
 
     MHW_CHK_NULL(pFullImageHistogram);
+    MHW_CHK_NULL(m_veboxHeap);
 
     pVeboxHeap = m_veboxHeap;
     uiOffset   = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
@@ -690,8 +694,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxGamutState(
                                  pVeboxHeap->uiGamutStateOffset +
                                  uiOffset);
 
-    MHW_ASSERT(pIecpState);
-    MHW_ASSERT(pGamutState);
+    MHW_CHK_NULL(pIecpState);
+    MHW_CHK_NULL(pGamutState);
 
     // Must initialize VeboxIecpState even if it is not used because GCE
     // requires GlobalIECP enable bit to be turned on
@@ -1027,6 +1031,10 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxGamutState(
             pGamutState->DW31.PwlInvGammaSlope10 = 569;
             pGamutState->DW31.PwlInvGammaSlope11 = 633;
         }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown InputGammaValue");
+        }
 
         if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0)
         {
@@ -1138,6 +1146,10 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxGamutState(
             pGamutState->DW18.PwlGammaSlope9  = 124;
             pGamutState->DW19.PwlGammaSlope10 = 112;
             pGamutState->DW19.PwlGammaSlope11 = 103;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown OutputGammaValue");
         }
     }
     else if ((pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020 ||
@@ -1335,6 +1347,10 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxGamutState(
             pIecpState->CscState.DW11.OffsetOut3 = 0;
         }
     }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown Handled ColorSpace");
+    }
 
 finish:
     return eStatus;
@@ -1360,7 +1376,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxIecpAceState(
     pVeboxIecpState = (mhw_vebox_g9_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                pVeboxHeap->uiIecpStateOffset +
                                                                uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
 
     MhwVeboxInterfaceGeneric<mhw_vebox_g9_X>::SetVeboxAceLaceState(pVeboxIecpParams, pVeboxIecpState);
 
@@ -1608,7 +1624,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxDndiState(
         (mhw_vebox_g9_X::VEBOX_DNDI_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                  pVeboxHeap->uiDndiStateOffset +
                                                  uiOffset);
-    MHW_ASSERT(pVeboxDndiState);
+    MHW_CHK_NULL(pVeboxDndiState);
     *pVeboxDndiState = DndiStateCmd;
 
     pVeboxDndiState->DW0.DenoiseMovingPixelThreshold =
@@ -1744,7 +1760,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxIecpState(
     pVeboxIecpState = (mhw_vebox_g9_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                pVeboxHeap->uiIecpStateOffset +
                                                                uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
 
     *pVeboxIecpState = IecpState;
     IecpStateInitialization(pVeboxIecpState);
@@ -1848,7 +1864,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxIecpState(
             (PMHW_FORWARD_GAMMA_SEG)(pVeboxHeap->pLockedDriverResourceMem +
                                      pVeboxHeap->uiGammaCorrectionStateOffset +
                                      uiOffset);
-
+        MHW_CHK_NULL(pFwdGammaSeg);
         MOS_SecureMemcpy(
             pFwdGammaSeg,
             sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT_G9,
@@ -1929,7 +1945,7 @@ finish:
 void MhwVeboxInterfaceG9::IecpStateInitialization(
     mhw_vebox_g9_X::VEBOX_IECP_STATE_CMD  *pVeboxIecpState)
 {
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
     // Initialize the values to default for media driver.
     pVeboxIecpState->StdSteState.DW5.InvMarginVyl       = 3300;
     pVeboxIecpState->StdSteState.DW5.InvSkinTypesMargin = 1638;
@@ -1959,7 +1975,7 @@ void MhwVeboxInterfaceG9::IecpStateInitialization(
 void MhwVeboxInterfaceG9::GamutStateInitialization(
     mhw_vebox_g9_X::VEBOX_GAMUT_STATE_CMD  *pGamutState)
 {
-    MHW_ASSERT(pGamutState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pGamutState);
 
     mhw_vebox_g9_X::VEBOX_GAMUT_STATE_CMD cmd;
     *pGamutState = cmd;
@@ -2017,7 +2033,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxSurfaceControlBits(
     PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams,
     uint32_t                       *pSurfCtrlBits)
 {
-    PLATFORM   Platform;
+    PLATFORM   Platform = {};
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     mhw_vebox_g9_X::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD *pVeboxSurfCtrlBits;

@@ -34,6 +34,77 @@
 #include "media_ddi_decode_const_g11.h"
 #include "media_libva_vp.h"
 
+const VAImageFormat MediaLibvaCapsG11::m_G11ImageFormats[] =
+{    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
+     {VA_FOURCC_Y410, VA_LSB_FIRST, 24, 0,0,0,0,0},
+     {VA_FOURCC_Y416, VA_LSB_FIRST, 64, 0,0,0,0,0}
+};
+
+const VAConfigAttribValEncRateControlExt MediaLibvaCapsG11::m_encVp9RateControlExt =
+{
+    {CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS - 1, 1, 0}
+};
+
+VAStatus MediaLibvaCapsG11::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
+{
+    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    MediaLibvaCaps::QueryImageFormats(formatList, numFormats);
+
+    int32_t num = *numFormats;
+    uint32_t numG11ImageFormats = GetNumG11ImageFormats();
+
+    for (int32_t idx = 0; idx < numG11ImageFormats; idx++)
+    {
+        formatList[num].fourcc           = m_G11ImageFormats[idx].fourcc;
+        formatList[num].byte_order       = m_G11ImageFormats[idx].byte_order;
+        formatList[num].bits_per_pixel   = m_G11ImageFormats[idx].bits_per_pixel;
+        formatList[num].depth            = m_G11ImageFormats[idx].depth;
+        formatList[num].red_mask         = m_G11ImageFormats[idx].red_mask;
+        formatList[num].green_mask       = m_G11ImageFormats[idx].green_mask;
+        formatList[num].blue_mask        = m_G11ImageFormats[idx].blue_mask;
+        formatList[num].alpha_mask       = m_G11ImageFormats[idx].alpha_mask;
+        num++;
+    }
+    *numFormats = num;
+
+    return VA_STATUS_SUCCESS;
+}
+
+uint32_t MediaLibvaCapsG11::GetNumG11ImageFormats()
+{
+    return sizeof(m_G11ImageFormats)/sizeof(m_G11ImageFormats[0]);
+}
+
+uint32_t MediaLibvaCapsG11::GetImageFormatsMaxNum()
+{
+    return MediaLibvaCaps::GetImageFormatsMaxNum() +
+        GetNumG11ImageFormats();
+}
+
+VAStatus MediaLibvaCapsG11::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+{
+    if(MediaLibvaCaps::PopulateColorMaskInfo(vaImgFmt) == VA_STATUS_SUCCESS)
+        return VA_STATUS_SUCCESS;
+
+    uint32_t numG11ImageFormats = GetNumG11ImageFormats();
+
+    for (int32_t idx = 0; idx < numG11ImageFormats; idx++)
+    {
+        if (m_G11ImageFormats[idx].fourcc == vaImgFmt->fourcc)
+        {
+            vaImgFmt->red_mask = m_G11ImageFormats[idx].red_mask;
+            vaImgFmt->green_mask = m_G11ImageFormats[idx].green_mask;
+            vaImgFmt->blue_mask = m_G11ImageFormats[idx].blue_mask;
+            vaImgFmt->alpha_mask = m_G11ImageFormats[idx].alpha_mask;
+
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
+}
+
 CODECHAL_MODE MediaLibvaCapsG11::GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint)
 {
     if (entrypoint == VAEntrypointStats)
@@ -355,6 +426,8 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         (*attributeList)[VAConfigAttribMaxPictureWidth] = m_maxVp9EncWidth;
         (*attributeList)[VAConfigAttribMaxPictureHeight] = m_maxVp9EncHeight;
+        (*attributeList)[VAConfigAttribEncTileSupport] = 1;
+        (*attributeList)[VAConfigAttribEncRateControlExt] = m_encVp9RateControlExt.value;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
@@ -554,7 +627,7 @@ VAStatus MediaLibvaCapsG11::CheckDecodeResolution(
     }
 }
 
-VAStatus MediaLibvaCapsG11::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP)
+VAStatus MediaLibvaCapsG11::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP)
 {  
     DDI_CHK_NULL(maxNum, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);  
     DDI_CHK_NULL(isRoiInDeltaQP, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);

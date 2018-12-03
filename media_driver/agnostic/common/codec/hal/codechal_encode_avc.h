@@ -280,8 +280,10 @@ typedef struct _CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS
     uint32_t                                    dwMbCodeBottomFieldOffset;
     uint32_t                                    dwMvBottomFieldOffset;
     PMOS_SURFACE                                ps4xMeMvDataBuffer;
+    CmSurface2D                                 *ps4xMeMvDataCmBuffer;
     uint32_t                                    dwMeMvBottomFieldOffset;
     PMOS_SURFACE                                ps4xMeDistortionBuffer;
+    CmSurface2D                                 *ps4xMeDistortionCmBuffer;
     uint32_t                                    dwMeDistortionBottomFieldOffset;
     uint32_t                                    dwRefPicSelectBottomFieldOffset;
     PMOS_SURFACE                                psMeBrcDistortionBuffer;
@@ -783,7 +785,7 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
-    MOS_STATUS AllocateResourcesBrc();
+    virtual MOS_STATUS AllocateResourcesBrc();
 
     //!
     //! \brief    Allocate necessary resources for MBBRC case.
@@ -791,7 +793,7 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
-    MOS_STATUS AllocateResourcesMbBrc();
+    virtual MOS_STATUS AllocateResourcesMbBrc();
 
     //!
     //! \brief    Release allocated resources for BRC case.
@@ -799,7 +801,7 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
-    MOS_STATUS ReleaseResourcesBrc();
+    virtual MOS_STATUS ReleaseResourcesBrc();
 
     //!
     //! \brief    Release allocated resources for MBBRC case.
@@ -807,7 +809,7 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
-    MOS_STATUS ReleaseResourcesMbBrc();
+    virtual MOS_STATUS ReleaseResourcesMbBrc();
 
     //!
     //! \brief    AVC Enc State Initialization.
@@ -1102,6 +1104,14 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS InitKernelStateSFD();
+
+    //!
+    //! \brief    Init kernel state
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitKernelState();
 
     //!
     //! \brief    Insert RefPic Select List

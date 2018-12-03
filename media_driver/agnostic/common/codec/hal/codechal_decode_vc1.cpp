@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3361,7 +3361,6 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = m_streamOutEnabled;
     pipeModeSelectParams.bPostDeblockOutEnable = m_deblockingEnabled;
@@ -3375,7 +3374,6 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
     surfaceParams.psSurface = destSurface;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS  pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     if (m_deblockingEnabled)
     {
@@ -3412,6 +3410,17 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
         {
             m_presReferences[CodechalDecodeFwdRefBottom] =
                 &destSurface->OsResource;
+        }
+    }
+
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
+    {
+        if (m_presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_presReferences[i] = &m_dummyReference.OsResource;
         }
     }
 
@@ -3647,24 +3656,28 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelVLD()
 
             CodechalResLock ResourceLock(m_osInterface, &m_resDataBuffer);
             auto buf = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
-            if (offset >= 1 && buf != nullptr &&
+            buf += slc->slice_data_offset;
+            if (offset > 3 && buf != nullptr &&
                 m_vc1PicParams->sequence_fields.AdvancedProfileFlag)
             {
                 int i = 0;
                 int j = 0;
-                for ( i = 0, j = 0; i < offset - 1; i++, j++)
+                for (i = 0, j = 0; i < offset - 1; i++, j++)
+                {
                     if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4)
+                    {
                         i++, j += 2;
-
-                if (i == offset - 1) {
-                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4) {
+                    }
+                }
+                if (i == offset - 1)
+                {
+                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4)
+                    {
                         buf[j + 2] = 0;
                         j++;
                     }
-
                     j++;
                 }
-
                 offset = (8 * j + slc->macroblock_offset % 8)>>3;
             }
 
@@ -4457,8 +4470,7 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState = kernelState;
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddMediaVfeCmd(&cmdBuffer, &vfeParams));
 
@@ -4536,9 +4548,7 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
 
         if (MEDIA_IS_WA(m_hwInterface->GetWaTable(), WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS vfeStateParams;
-
-            MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+            MHW_VFE_PARAMS vfeStateParams = {};
             vfeStateParams.dwNumberofURBEntries = 1;
             CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
         }

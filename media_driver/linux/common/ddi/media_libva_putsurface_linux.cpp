@@ -70,9 +70,9 @@ void dso_close(struct dso_handle *h)
 /* Opens the named shared library */
 struct dso_handle * dso_open(const char *path)
 {
-    struct dso_handle *h;
+    struct dso_handle *h = nullptr;
 
-    h = (dso_handle*) calloc(1, sizeof(*h));
+    h = (dso_handle *)calloc(1, sizeof(*h));
     if (!h){
         return nullptr;
     }
@@ -95,9 +95,12 @@ error:
 /* Load function name from one dynamic lib */
 static bool get_symbol(struct dso_handle *h, void *func_vptr, const char *name)
 {
+    DDI_CHK_NULL(h, "nullptr h", false);
+    DDI_CHK_NULL(func_vptr, "nullptr func_vptr", false);
+
     dso_generic_func func;
     dso_generic_func * const func_ptr = (dso_generic_func*) func_vptr;
-    const char *error;
+    const char *error = nullptr;
 
     dlerror();
     func = (dso_generic_func)dlsym(h->handle, name);
@@ -133,7 +136,9 @@ dso_get_symbols(
     const struct dso_symbol    *symbols
 )
 {
-    const struct dso_symbol *s;
+    DDI_CHK_NULL(h, "nullptr h", false);
+
+    const struct dso_symbol *s = nullptr;
     if (nullptr == symbols)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -149,11 +154,14 @@ dso_get_symbols(
 
 bool output_dri_init(VADriverContextP ctx)
 {
-    PDDI_MEDIA_CONTEXT mediaDrvCtx;
-    mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(ctx, "nullptr ctx", false);
 
-    struct dso_handle *dso_handle;
-    struct dri_vtable *dri_vtable;
+    PDDI_MEDIA_CONTEXT mediaDrvCtx = nullptr;
+    mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaDrvCtx, "nullptr ctx", false);
+
+    struct dso_handle *dso_handle = nullptr;
+    struct dri_vtable *dri_vtable = nullptr;
 
     mediaDrvCtx->dri_output = nullptr;
 
@@ -208,8 +216,8 @@ inline Rect_init(
     }
     rect->left                    = destx;
     rect->top                     = desty;
-    rect->right                   = destw;
-    rect->bottom                  = desth;
+    rect->right                   = destx + destw;
+    rect->bottom                  = desty + desth;
 }
 
 VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
@@ -351,10 +359,11 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     static VPHAL_SURFACE    Surf;
     VPHAL_SURFACE           target;
     VPHAL_RENDER_PARAMS     renderParams;
+    VPHAL_COLORFILL_PARAMS  colorFill;
 
-    MOS_STATUS              eStatus = MOS_STATUS_INVALID_PARAMETER;
-    RECT                    rect = { 0, 0, 180, 120 };
-    RECT                    dstRect = { 0, 0, 180, 120 };
+    MOS_STATUS              eStatus    = MOS_STATUS_INVALID_PARAMETER;
+    RECT                    srcRect    = { 0, 0, 0, 0 };
+    RECT                    dstRect    = { 0, 0, 0, 0 };
     PDDI_MEDIA_CONTEXT      mediaCtx;
     PDDI_MEDIA_SURFACE      bufferObject;
     uint32_t                width,height,pitch;
@@ -365,8 +374,8 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
 
     uint32_t                ctxType;
     PDDI_VP_CONTEXT         vpCtx;
-    struct dri_drawable*    dri_drawable;
-    union dri_buffer*       buffer;
+    struct dri_drawable*    dri_drawable = nullptr;
+    union dri_buffer*       buffer = nullptr;
 
     GMM_RESCREATE_PARAMS    gmmParams;
 
@@ -378,6 +387,8 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     DDI_CHK_LESS((uint32_t)surface, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surfaceId", VA_STATUS_ERROR_INVALID_SURFACE);
 
     struct dri_vtable * const dri_vtable = &mediaCtx->dri_output->vtable;
+    DDI_CHK_NULL(dri_vtable, "Null dri_vtable", VA_STATUS_ERROR_INVALID_PARAMETER);
+
     dri_drawable = dri_vtable->get_drawable(ctx, (Drawable)draw);
     assert(dri_drawable);
     buffer = dri_vtable->get_rendering_buffer(ctx, dri_drawable);
@@ -409,15 +420,15 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
 
     renderParams.Component = COMPONENT_LibVA;
 
-   //Init source rectagle
-    Rect_init(&rect, 0, 0, srcw, srch);
-    Rect_init(&dstRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
+    //Init source rectangle
+    Rect_init(&srcRect, srcx, srcy, srcw, srch);
+    Rect_init(&dstRect, destx, desty, destw, desth);
 
     // Source Surface Information
-    Surf.Format               = VpGetFormatFromMediaFormat(bufferObject->format);           // Surface format
-    Surf.SurfType             = SURF_IN_PRIMARY;       // Surface type (context)
-    Surf.SampleType           = SAMPLE_PROGRESSIVE;
-    Surf.ScalingMode          = VPHAL_SCALING_AVS;
+    Surf.Format                 = VpGetFormatFromMediaFormat(bufferObject->format);           // Surface format
+    Surf.SurfType               = SURF_IN_PRIMARY;       // Surface type (context)
+    Surf.SampleType             = SAMPLE_PROGRESSIVE;
+    Surf.ScalingMode            = VPHAL_SCALING_AVS;
 
     Surf.OsResource.Format      = VpGetFormatFromMediaFormat(bufferObject->format);
     Surf.OsResource.iWidth      = bufferObject->iWidth;
@@ -429,10 +440,14 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     Surf.OsResource.bo          = bufferObject->bo;
     Surf.OsResource.pGmmResInfo = bufferObject->pGmmResourceInfo;
 
-    Surf.ColorSpace            = DdiVp_GetColorSpaceFromMediaFormat(bufferObject->format);
-    Surf.ExtendedGamut         = false;
-    Surf.rcSrc                 = rect;
-    Surf.rcDst                 = dstRect;
+    Surf.dwWidth                = bufferObject->iWidth;
+    Surf.dwHeight               = bufferObject->iHeight;
+    Surf.dwPitch                = bufferObject->iPitch;
+    Surf.TileType               = VpGetTileTypeFromMediaTileType(bufferObject->TileType);
+    Surf.ColorSpace             = DdiVp_GetColorSpaceFromMediaFormat(bufferObject->format);
+    Surf.ExtendedGamut          = false;
+    Surf.rcSrc                  = srcRect;
+    Surf.rcDst                  = dstRect;
 
     MOS_LINUX_BO* drawable_bo = mos_bo_gem_create_from_name(mediaCtx->pDrmBufMgr, "rendering buffer", buffer->dri2.name);
     if  (nullptr == drawable_bo)
@@ -475,7 +490,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     target.SurfType              = SURF_OUT_RENDERTARGET;
 
     //init target retangle
-    Rect_init(&rect, 0, 0, dri_drawable->width, dri_drawable->height);
+    Rect_init(&srcRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
     Rect_init(&dstRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
 
     // Create GmmResourceInfo
@@ -501,18 +516,23 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     target.OsResource.bo         = drawable_bo;
     target.OsResource.pData      = (uint8_t *)drawable_bo->virt;
     target.OsResource.TileType   = tileType;
+    target.TileType              = tileType;
     target.dwWidth               = dri_drawable->width;
     target.dwHeight              = dri_drawable->height;
     target.dwPitch               = target.OsResource.iPitch;
     target.ColorSpace            = CSpace_sRGB;
     target.ExtendedGamut         = false;
-    target.rcSrc                 = rect;
+    target.rcSrc                 = srcRect;
     target.rcDst                 = dstRect;
 
-    renderParams.uSrcCount          = 1;
-    renderParams.uDstCount          = 1;
-    renderParams.pSrc[0]            = &Surf;
-    renderParams.pTarget[0]         = &target;
+    renderParams.uSrcCount                  = 1;
+    renderParams.uDstCount                  = 1;
+    renderParams.pSrc[0]                    = &Surf;
+    renderParams.pTarget[0]                 = &target;
+    renderParams.pColorFillParams           = &colorFill;
+    renderParams.pColorFillParams->Color    = 0xFF000000;
+    renderParams.pColorFillParams->bYCbCr   = false;
+    renderParams.pColorFillParams->CSpace   = CSpace_sRGB;
 
     DdiMediaUtil_LockMutex(&mediaCtx->PutSurfaceRenderMutex);
     eStatus = vpHal->Render(&renderParams);
@@ -553,6 +573,7 @@ static void DdiMedia_yuv2pixel(uint32_t *pixel, int32_t y, int32_t u, int32_t v,
                                unsigned long gshift, unsigned long gmask,
                                unsigned long bshift, unsigned long bmask)
 {
+    DDI_CHK_NULL(pixel, "nullptr pixel", );
     /* Warning, magic values ahead */
     int32_t r = y + ((351 * (v-128)) >> 8);
     int32_t g = y - (((179 * (v-128)) + (86 * (u-128))) >> 8);

@@ -45,6 +45,7 @@
 #define MDF_COMMAND_BUFFER_DUMP         1 //avaliable in Debug/Release-internal
 #define MDF_CURBE_DATA_DUMP             1
 #define MDF_SURFACE_CONTENT_DUMP        1
+#define MDF_SURFACE_STATE_DUMP          1
 #endif
 
 //===============<Definitions>==================================================
@@ -340,6 +341,9 @@ typedef enum _CM_RETURN_CODE
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET                23
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_ENABLE               (1 << CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET)
 
+#define CM_DEVICE_CONFIG_FAST_PATH_OFFSET                   30
+#define CM_DEVICE_CONFIG_FAST_PATH_ENABLE                   (1 << CM_DEVICE_CONFIG_FAST_PATH_OFFSET)
+
 #define CM_DEVICE_CONFIG_MOCK_RUNTIME_OFFSET                31
 #define CM_DEVICE_CONFIG_MOCK_RUNTIME_ENABLE                (1 << CM_DEVICE_CONFIG_MOCK_RUNTIME_OFFSET)
 
@@ -409,6 +413,12 @@ enum CM_QUEUE_TYPE
     CM_QUEUE_TYPE_VEBOX = 3
 };
 
+enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
+{
+    CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
+    CM_QUEUE_SSEU_USAGE_HINT_VME  = 1
+};
+
 struct CM_QUEUE_CREATE_OPTION
 {
     CM_QUEUE_TYPE QueueType : 3;
@@ -416,10 +426,11 @@ struct CM_QUEUE_CREATE_OPTION
     unsigned int Reserved0  : 3;
     bool UserGPUContext     : 1;
     unsigned int GPUContext : 8; // user provided GPU CONTEXT in enum MOS_GPU_CONTEXT, this will override CM_QUEUE_TYPE if set
-    unsigned int Reserved2  : 16;
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
+    unsigned int Reserved2  : 13;
 };
 
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, 0, 0, 0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
 
 //------------------------------------------------------------------------------
 //|GT-PIN
@@ -512,6 +523,18 @@ typedef struct _CM_TASK_CONFIG
     uint32_t reserved1;
     uint32_t reserved2;              //reserve 2 uint32_t fields for future extention
 }CM_TASK_CONFIG, *PCM_TASK_CONFIG;
+
+typedef enum _CM_KERNEL_EXEC_MODE
+{
+    CM_KERNEL_EXECUTION_MODE_MONOPOLIZED =  0, // Kernel need occupy all DSS for execution.
+    CM_KERNEL_EXECUTION_MODE_CONCURRENT,       // Kernel can occupy part of DSS and concurrently execute together with other workloads.
+} CM_KERNEL_EXEC_MODE;
+
+struct CM_EXECUTION_CONFIG
+{
+    CM_KERNEL_EXEC_MODE kernelExecutionMode = CM_KERNEL_EXECUTION_MODE_MONOPOLIZED;
+    int                 concurrentPolicy    = 0; //Reserve for future extension.
+};
 
 struct L3ConfigRegisterValues
 {

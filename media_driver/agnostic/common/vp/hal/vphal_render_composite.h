@@ -50,6 +50,10 @@
 #define VPHAL_COMP_SAMPLER_LUMAKEY  4
 #define VPHAL_COMP_MAX_SAMPLER      (VPHAL_COMP_SAMPLER_NEAREST | VPHAL_COMP_SAMPLER_BILINEAR | VPHAL_COMP_SAMPLER_LUMAKEY)
 
+#define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH    1
+#define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT   1
+#define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_DEPTH    1
+
 // GRF 8 for unified kernel inline data (NLAS is enabled)
 struct MEDIA_OBJECT_NLAS_INLINE_DATA
 {
@@ -173,6 +177,7 @@ typedef struct _VPHAL_COMPOSITE_PARAMS
     PVPHAL_ALPHA_PARAMS     pCompAlpha;           //!< Alpha for composited surface
     bool                    bAlphaCalculateEnable;
     bool                    bForceSkipColorFill;  //!< Force skip colorfill even the first layer is translucent
+    bool                    bComputeWlaker;       //!< Compute walker in use
 
     // Resource counters
     int32_t                 nLayers;
@@ -201,6 +206,8 @@ typedef struct _VPHAL_RENDERING_DATA_COMPOSITE
     int32_t                             iBlocksY;
     int32_t                             iBindingTable;
     int32_t                             iMediaID;
+    int32_t                             iCurbeOffset;
+    int32_t                             iCurbeLength;
     RECT                                rcOutput;
 
     // Constriction parameters
@@ -778,18 +785,18 @@ private:
     //!           Pointer to Composite Rendering data
     //! \param    [in] pSource
     //!           Pointer to Source Surface
-    //! \param    [in,out] pRenderHalSurface
-    //!           Pointer to Source RenderHal Surface related to VPHAL Surface
-    //! \param    [in,out] pRenderHalSurfaceSrcField
-    //!           Pointer to Source RenderHal Surface (FieldWeaving) related to VPHAL Surface
+    //! \param    [in] iLayerIdInCompParams
+    //!           Layer id in pCompParams for pSource
+    //! \param    [in,out] pCompParams
+    //!           Pointer to Composite parameters
     //! \return   int32_t
     //!           Return 1 if set layer successful, otherwise -1
     //!
     int32_t SetLayer(
         PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
         PVPHAL_SURFACE                  pSource,
-        PRENDERHAL_SURFACE              pRenderHalSurfaceSrc,
-        PRENDERHAL_SURFACE              pRenderHalSurfaceSrcField);
+        int                             iLayerIdInCompParams,
+        PVPHAL_COMPOSITE_PARAMS         pCompParams);
 
     //!
     //! \brief    Set Composite Render Target Layer
@@ -842,6 +849,24 @@ private:
         PMHW_BATCH_BUFFER               pBatchBuffer,
         PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
         PMHW_WALKER_PARAMS              pWalkerParams);
+
+    //!
+    //! \brief    Render Compute Walker Buffer
+    //! \details  Render Compute Walker Buffer, fill Walker static data fields and set walker
+    //!           cmd params
+    //! \param    [in] pBatchBuffer
+    //!           Pointer to BatchBuffer
+    //! \param    [in] pRenderingData
+    //!           Pointer to Rendering Data
+    //! \param    [in] pWalkerParams
+    //!           Pointer to Walker parameters
+    //! \return   bool
+    //!           Return true if successful, otherwise false
+    //!
+    bool RenderBufferComputeWalker(
+        PMHW_BATCH_BUFFER               pBatchBuffer,
+        PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
+        PMHW_GPGPU_WALKER_PARAMS        pWalkerParams);
 
     //!
     //! \brief    Judge whether  media walker pattern  will be vertical or not
@@ -935,6 +960,28 @@ private:
     //!
     void InitColorFillParams();
 
+    //!
+    //! \brief    Check if sample unorm being used for source surface.
+    //! \param    [in] pCompParams
+    //!           Pointer to Composite parameters
+    //! \param    pSrc
+    //!           [in] Pointer to Source Surface
+    //! \return   bool
+    //!           Return TRUE if use sample unorm, otherwise FALSE
+    //!
+    bool IsUsingSampleUnorm(
+        PVPHAL_COMPOSITE_PARAMS         pCompParams,
+        PVPHAL_SURFACE                  pSrc);
+
+    //!
+    //! \brief    Check if sampler lumakey being supported or not for source surface.
+    //! \param    pSrc
+    //!           [in] Pointer to Source Surface
+    //! \return   bool
+    //!           Return TRUE if support, otherwise FALSE
+    //!
+    bool IsSamplerLumakeySupported(PVPHAL_SURFACE pSrc);
+
     // Procamp
     int32_t                         m_iMaxProcampEntries;
     int32_t                         m_iProcampVersion;
@@ -986,6 +1033,7 @@ protected:
     float                           m_fSamplerLinearBiasX;        //!< Linear sampler bias X
     float                           m_fSamplerLinearBiasY;        //!< Linear sampler bias Y
     bool                            m_bFtrMediaWalker;            //!< Media Object Walker enabled
+    bool                            m_bFtrComputeWalker;          //!< Compute Walker enabled
     bool                            m_bFtrCSCCoeffPatchMode;      //!< Set CSC Coeff using patch mode
     bool                            m_bSamplerSupportRotation;    //!< Use sampler for Rotation
     bool                            m_bChromaUpSampling;          //!< Chroma Up Sampling needed
@@ -995,6 +1043,7 @@ protected:
     bool                            m_bKernelSupportHdcDW;        //!< Kernel support HDC direct write
     bool                            m_bApplyTwoLayersCompOptimize;//!< Apply 2 layers composition optimization
     bool                            m_need3DSampler;              //!< If AVS Sampler not avaliable on specific platform, then we need 3D sampler instead
+    bool                            m_bEnableSamplerLumakey;      //!< Enable/Disable sampler lumakey feature.
     bool                            m_bYV12iAvsScaling;           //!< Interlace AVS scaling support YV12 input format
 
     // AVS table

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_vebox_rt.cpp 
-//! \brief     Contains CmVeboxRT implementations. 
+//! \file      cm_vebox_rt.cpp
+//! \brief     Contains CmVeboxRT implementations.
 //!
 
 #include "cm_vebox_rt.h"
@@ -72,9 +72,13 @@ int32_t CmVeboxRT::Destroy( CmVeboxRT* & cmVebox )
 
 CmVeboxRT::CmVeboxRT( CmDeviceRT* device, uint32_t index ):
             m_device( device ),
+            m_paramBuffer( nullptr ),
             m_indexInVeboxArray( index ),
             m_maxSurfaceIndex(VEBOX_MAX_SURFACE_COUNT)
 {
+    MOS_ZeroMemory(&m_veboxState, sizeof(m_veboxState));
+    MOS_ZeroMemory(&m_surface2D, sizeof(m_surface2D));
+    MOS_ZeroMemory(&m_surfaceCtrlBits, sizeof(m_surfaceCtrlBits));
 }
 
 CmVeboxRT::~CmVeboxRT( void )
@@ -190,12 +194,13 @@ CM_RT_API int32_t CmVeboxRT::SetCurFrameOutputSurface( CmSurface2D* surface )
 {
     int32_t ret = SetSurfaceInternal(VEBOX_CURRENT_FRAME_OUTPUT_SURF, surface);
     CmSurface2DRT* surf2D = static_cast<CmSurface2DRT *>(surface);
-    uint32_t width;
-    uint32_t height;
-    CM_SURFACE_FORMAT format;
-    uint32_t pixelsize;
     if (m_surface2D[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF] == nullptr)
     {
+        uint32_t width = 0;
+        uint32_t height = 0;
+        uint32_t pixelsize = 0;
+        CM_SURFACE_FORMAT format = CM_SURFACE_FORMAT_INVALID;
+
         if (ret == CM_SUCCESS)
         {
             ret = surf2D->GetSurfaceDesc(width, height, format, pixelsize);

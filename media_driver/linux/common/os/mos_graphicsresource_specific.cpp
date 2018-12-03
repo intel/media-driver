@@ -92,6 +92,9 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_422V        : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
         case Format_IMC3        : return GMM_FORMAT_IMC3_TYPE;
         case Format_411P        : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
+        case Format_411R        : return GMM_FORMAT_MFX_JPEG_YUV411R_TYPE;
+        case Format_RGBP        : return GMM_FORMAT_RGBP_TYPE;
+        case Format_BGRP        : return GMM_FORMAT_BGRP_TYPE;
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
@@ -102,6 +105,7 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
         case Format_Y210        : return GMM_FORMAT_Y210_TYPE;
         case Format_Y410        : return GMM_FORMAT_Y410_TYPE;
+        case Format_R10G10B10A2 : return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
 }
@@ -123,6 +127,11 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     }
 
     OsContextSpecific *pOsContextSpecific  = static_cast<OsContextSpecific *>(osContextPtr);
+    if (pOsContextSpecific == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Convert OsContextSpecific failed.");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
 
     MOS_STATUS         status          = MOS_STATUS_SUCCESS;
     uint32_t           tileFormatLinux = I915_TILING_NONE;
@@ -220,6 +229,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
     if (gmmResourceInfoPtr == nullptr)
     {
+        MOS_OS_ASSERTMESSAGE("Get gmmResourceInfoPtr failed.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -256,15 +266,15 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
 #if defined(I915_PARAM_CREATE_VERSION)
     drm_i915_getparam_t gp;
-    int32_t gpvalue;
-    int32_t ret;
+    int32_t gpvalue = 0;
+    int32_t ret = 0;
     gpvalue = 0;
     ret = -1;
     memset( &gp, 0, sizeof(gp) );
     gp.value = &gpvalue;
     gp.param = I915_PARAM_CREATE_VERSION;
 
-    ret = drmIoctl(pOsContextSpecific->m_fd, DRM_IOCTL_I915_GETPARAM, &gp );
+    ret = drmIoctl(pOsContextSpecific->m_fd, DRM_IOCTL_I915_GETPARAM, &gp);
 
     if ((0 == ret) && ( tileFormatLinux != I915_TILING_NONE))
     {
@@ -491,10 +501,11 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                         }
                         if (m_systemShadow)
                         {
+                            int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
                             MOS_OS_CHECK_CONDITION((m_tileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
                             MOS_OS_CHECK_CONDITION((boPtr->size <= 0 || m_pitch <= 0), "Invalid BO size or pitch", nullptr);
                             Mos_SwizzleData((uint8_t*)boPtr->virt, m_systemShadow, 
-                                    MOS_TILE_Y, MOS_TILE_LINEAR, boPtr->size / m_pitch, m_pitch);
+                                    MOS_TILE_Y, MOS_TILE_LINEAR, boPtr->size / m_pitch, m_pitch, flags);
                         }
                     }
                     else
@@ -519,7 +530,7 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
             m_pData  = m_systemShadow ? m_systemShadow : (uint8_t *)boPtr->virt;
         }
 
-        dataPtr = boPtr->virt;
+        dataPtr = m_pData;
     }
 
     MOS_OS_ASSERT(dataPtr);
@@ -568,8 +579,9 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
 #else
                if (m_systemShadow)
                {
+                   int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
                    Mos_SwizzleData(m_systemShadow, (uint8_t*)boPtr->virt, 
-                           MOS_TILE_LINEAR, MOS_TILE_Y, boPtr->size / m_pitch, m_pitch);
+                           MOS_TILE_LINEAR, MOS_TILE_Y, boPtr->size / m_pitch, m_pitch, flags);
                    MOS_FreeMemory(m_systemShadow);
                    m_systemShadow = nullptr;
                }

@@ -38,6 +38,7 @@
 #include "cm_surface_sampler.h"
 #include "cm_surface_sampler8x8.h"
 #include "cm_device_rt.h"
+#include "cm_execution_adv.h"
 
 namespace CMRT_UMD
 {
@@ -841,7 +842,7 @@ int32_t CmSurfaceManager::AllocateBuffer(uint32_t size, CM_BUFFER_TYPE type, uin
         }
         mosStatus = cmData->cmHalState->pfnAllocateBuffer(cmData->cmHalState, &inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mosStatus, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
     handle = inParam.handle;
 
@@ -858,7 +859,7 @@ int32_t CmSurfaceManager::FreeBuffer( uint32_t handle )
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnFreeBuffer(cmData->cmHalState, (uint32_t)handle));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFreeBuffer(cmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -958,7 +959,7 @@ int32_t CmSurfaceManager::AllocateSurface2DUP(uint32_t width, uint32_t height, C
         }
         mosStatus = cmData->cmHalState->pfnAllocateSurface2DUP(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mosStatus, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
     handle = inParam.handle;
 
@@ -976,7 +977,7 @@ int32_t CmSurfaceManager::FreeSurface2DUP( uint32_t handle )
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnFreeSurface2DUP(cmData->cmHalState, (uint32_t)handle));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFreeSurface2DUP(cmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -1094,12 +1095,12 @@ int32_t CmSurfaceManager::AllocateSurface2D(uint32_t width, uint32_t height, CM_
         }
         mosStatus = cmData->cmHalState->pfnAllocateSurface2D(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mosStatus, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
     handle = inParam.handle;
 
     //Get pitch size for 2D surface
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnGetSurface2DTileYPitch(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnGetSurface2DTileYPitch(cmData->cmHalState, &inParam));
 
     pitch = inParam.pitch;
 
@@ -1144,7 +1145,7 @@ int32_t CmSurfaceManager::AllocateSurface2D( uint32_t width, uint32_t height, CM
         }
         mosStatus = cmData->cmHalState->pfnAllocateSurface2D(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mosStatus, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
     handle = inParam.handle;
 
@@ -1161,7 +1162,7 @@ int32_t CmSurfaceManager::FreeSurface2D( uint32_t handle )
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnFreeSurface2D(cmData->cmHalState, handle));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFreeSurface2D(cmData->cmHalState, handle));
 
 finish:
     return hr;
@@ -2019,7 +2020,7 @@ int32_t CmSurfaceManager::Allocate3DSurface(uint32_t width, uint32_t height, uin
         }
         mosStatus = cmData->cmHalState->pfnAllocate3DResource(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mosStatus, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
     handle = inParam.handle;
 
@@ -2037,7 +2038,7 @@ int32_t CmSurfaceManager::Free3DSurface( uint32_t handle )
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnFree3DResource(cmData->cmHalState, (uint32_t)handle));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFree3DResource(cmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -2258,6 +2259,10 @@ int32_t CmSurfaceManager::UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME
     PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
     entry = &state->umdSurf2DTable[index];
     entry->frameType = frameType;
+    if(state->advExecutor)
+    {
+        state->advExecutor->Set2DFrameType(entry->surfStateMgr, frameType);
+    }
 
     return CM_SUCCESS;
 }
@@ -2496,4 +2501,38 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
             return false;
     }
 }
+
+int32_t CmSurfaceManager::UpdateBuffer(MOS_RESOURCE * mosResource, int index, uint32_t handle)
+{
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
+
+    MOS_SURFACE mosSurfDetails;
+    MOS_ZeroMemory(&mosSurfDetails, sizeof(mosSurfDetails));
+    int hr = state->osInterface->pfnGetResourceInfo(state->osInterface, mosResource, &mosSurfDetails);
+    if(hr != MOS_STATUS_SUCCESS)
+    {
+        CM_ASSERTMESSAGE("Error: Get resource info failure.");
+        return hr;
+    }
+
+    uint32_t size = mosSurfDetails.dwWidth;
+
+    CM_HAL_BUFFER_PARAM inParam;
+    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
+    inParam.size = size;
+    inParam.handle = handle;
+
+    inParam.type = CM_BUFFER_N;
+    inParam.mosResource = mosResource;
+    inParam.isAllocatedbyCmrtUmd = false;
+
+    state->pfnUpdateBuffer(state, &inParam);
+
+    CmBuffer_RT *buffer = static_cast<CmBuffer_RT*>(m_surfaceArray[index]);
+    int ret = buffer->UpdateProperty(size);
+
+    return ret;
+}
+
 }

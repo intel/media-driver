@@ -49,9 +49,10 @@ public:
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(pKernelState);
+        MHW_MI_CHK_NULL(m_pOsInterface);
 
-        uint8_t             *pIndirectState;
-        uint32_t            uiIndirectStateSize, uiIndirectStateOffset;
+        uint8_t             *pIndirectState = nullptr;
+        uint32_t            uiIndirectStateSize = 0, uiIndirectStateOffset = 0;
         MHW_MI_CHK_STATUS(m_pOsInterface->pfnGetIndirectStatePointer(m_pOsInterface, &pIndirectState));
         MHW_MI_CHK_STATUS(m_pOsInterface->pfnGetIndirectState(m_pOsInterface, &uiIndirectStateOffset, &uiIndirectStateSize));
 
@@ -63,11 +64,16 @@ public:
 
         uint32_t ui32BindingTableSize = pKernelState->dwSshSize;
         uint8_t *pBindingTablePtr     = (uint8_t*)(pIndirectState + pKernelState->dwSshOffset);
-        MOS_ZeroMemory(pBindingTablePtr, ui32BindingTableSize);
+        if (pBindingTablePtr != nullptr)
+        {
+            MOS_ZeroMemory(pBindingTablePtr, ui32BindingTableSize);
+        }
 
         typename            TCmds::BINDING_TABLE_STATE_CMD Cmd;
         for (uint32_t i = 0; i < (uint32_t)pKernelState->KernelParams.iBTCount; i++)
         {
+            MHW_MI_CHK_NULL(pBindingTablePtr);
+
             Cmd.DW0.SurfaceStatePointer =
                 ((pKernelState->dwSshOffset + pKernelState->dwBindingTableSize) +
                 (i * m_dwMaxSurfaceStateSize)) >>
@@ -83,7 +89,10 @@ public:
     MOS_STATUS SetBindingTableEntry(PMHW_BINDING_TABLE_PARAMS pParams)
     {
         MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
+        MHW_MI_CHK_NULL(pParams);
+
         uint8_t*     pBindingTablePtr = pParams->pBindingTableEntry;
+        MHW_MI_CHK_NULL(pBindingTablePtr);
 
         //Init Cmds
         typename     TCmds::BINDING_TABLE_STATE_CMD Cmd;
@@ -111,10 +120,12 @@ public:
 
         typename TCmds::BINDING_TABLE_STATE_CMD *pBtSrc =
             (typename TCmds::BINDING_TABLE_STATE_CMD *)pParams->pBindingTableSource ;
+        MHW_MI_CHK_NULL(pBtSrc);
 
         typename TCmds::BINDING_TABLE_STATE_CMD *pBtDst =
             (typename TCmds::BINDING_TABLE_STATE_CMD *)pParams->pBindingTableTarget;
-
+        MHW_MI_CHK_NULL(pBtDst);
+        
         uint32_t CmdByteSize = TCmds::BINDING_TABLE_STATE_CMD::byteSize;
 
         // Setup and increment BT pointers
@@ -153,6 +164,7 @@ public:
         for (uint32_t dwCurrId = 0; dwCurrId < dwNumIdsToSet; dwCurrId++)
         {
             PMHW_KERNEL_STATE pKernelState = pParams[dwCurrId].pKernelState;
+            MHW_MI_CHK_NULL(pKernelState);
 
             typename TCmds::INTERFACE_DESCRIPTOR_DATA_CMD cmd;
 

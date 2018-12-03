@@ -45,7 +45,7 @@ extern "C" {
 //!
 //! \brief Max number or sub-components per debug component
 //!
-#define MOS_MAX_SUBCOMPONENT_COUNT  16
+#define MOS_MAX_SUBCOMPONENT_COUNT  20
 
 //!
 //! \brief Mos message max buffer size
@@ -164,6 +164,15 @@ typedef enum
     MOS_SCALABILITY_SUBCOMP_SELF   = 0,
     MOS_SCALABILITY_SUBCOMP_COUNT
 } MOS_SCALABILITY_SUBCOMP_ID;
+
+//!
+//! \brief Define MMC Sub-Component IDs
+//!
+typedef enum
+{
+    MOS_MMC_SUBCOMP_SELF   = 0,
+    MOS_MMC_SUBCOMP_COUNT
+} MOS_MMC_SUBCOMP_ID;
 
 //!
 //! \brief MOS debug params structure, includes debug level and asserts enabled.

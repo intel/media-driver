@@ -38,31 +38,33 @@
 #define MHW_HCP_WORST_CASE_CU_TU_INFO            (4 * MHW_CACHELINE_SIZE) // 2+1+1
 #define MHW_HCP_WORST_CASE_CU_TU_INFO_REXT       (6 * MHW_CACHELINE_SIZE) // 4+1+1
 
-typedef struct _MHW_VDBOX_HEVC_PIC_STATE
+struct MHW_VDBOX_HEVC_PIC_STATE
 {
     // Decode
-    PCODEC_HEVC_PIC_PARAMS                  pHevcPicParams;
+    PCODEC_HEVC_PIC_PARAMS                  pHevcPicParams = nullptr;
 
     // Encode
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
-    bool                                    bSAOEnable;
-    bool                                    bNotFirstPass;
-    bool                                    bHevcRdoqEnabled;
-    bool                                    bUseVDEnc;
-    bool                                    sseEnabledInVmeEncode;
-    PMHW_BATCH_BUFFER                       pBatchBuffer;
-    bool                                    bBatchBufferInUse;
-    bool                                    bRDOQIntraTUDisable;
-    uint16_t                                wRDOQIntraTUThreshold;
-    uint32_t                                brcNumPakPasses;
-    bool                                    rhodomainRCEnable;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams = nullptr;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams = nullptr;
+    bool                                    bSAOEnable = false;
+    bool                                    bNotFirstPass = false;
+    bool                                    bHevcRdoqEnabled = false;
+    bool                                    bUseVDEnc = false;
+    bool                                    sseEnabledInVmeEncode = false;
+    PMHW_BATCH_BUFFER                       pBatchBuffer = nullptr;
+    bool                                    bBatchBufferInUse = false;
+    bool                                    bRDOQIntraTUDisable = false;
+    uint16_t                                wRDOQIntraTUThreshold = 0;
+    uint32_t                                brcNumPakPasses = 0;
+    bool                                    rhodomainRCEnable = false;
 
     //FEI multiple passes PAK ---max frame size
-    uint8_t                                 currPass;
-    uint8_t                                *deltaQp;
-    uint32_t                                maxFrameSize;
-} MHW_VDBOX_HEVC_PIC_STATE, *PMHW_VDBOX_HEVC_PIC_STATE;
+    uint8_t                                 currPass = 0;
+    uint8_t                                *deltaQp = nullptr;
+    uint32_t                                maxFrameSize = 0;
+    virtual ~MHW_VDBOX_HEVC_PIC_STATE(){}
+};
+using PMHW_VDBOX_HEVC_PIC_STATE = MHW_VDBOX_HEVC_PIC_STATE * ;
 
 typedef struct _MHW_VDBOX_HEVC_TILE_STATE
 {
@@ -97,20 +99,22 @@ typedef struct _MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS
     bool       bNeedBiggerSize;
 }MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS, *PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS;
 
-typedef struct _MHW_VDBOX_HEVC_REF_IDX_PARAMS
+struct MHW_VDBOX_HEVC_REF_IDX_PARAMS
 {
-    CODEC_PICTURE                   CurrPic;
-    bool                            isEncode;
-    uint8_t                         ucList;
-    uint8_t                         ucNumRefForList;
-    CODEC_PICTURE                   RefPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
-    void                            **hevcRefList;
-    int32_t                         poc_curr_pic;
-    int32_t                         poc_list[CODEC_MAX_NUM_REF_FRAME_HEVC];
-    int8_t                         *pRefIdxMapping;
-    uint16_t                        RefFieldPicFlag;
-    uint16_t                        RefBottomFieldFlag;
-} MHW_VDBOX_HEVC_REF_IDX_PARAMS, *PMHW_VDBOX_HEVC_REF_IDX_PARAMS;
+    CODEC_PICTURE                   CurrPic = {};
+    bool                            isEncode = false;
+    uint8_t                         ucList = 0;
+    uint8_t                         ucNumRefForList = 0;
+    CODEC_PICTURE                   RefPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
+    void                            **hevcRefList = nullptr;
+    int32_t                         poc_curr_pic = 0;
+    int32_t                         poc_list[CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
+    int8_t                         *pRefIdxMapping = 0;
+    uint16_t                        RefFieldPicFlag = 0;
+    uint16_t                        RefBottomFieldFlag = 0;
+    virtual ~MHW_VDBOX_HEVC_REF_IDX_PARAMS(){}
+};
+using PMHW_VDBOX_HEVC_REF_IDX_PARAMS = MHW_VDBOX_HEVC_REF_IDX_PARAMS * ;
 
 typedef struct _MHW_VDBOX_HEVC_WEIGHTOFFSET_PARAMS
 {
@@ -130,55 +134,57 @@ typedef struct _MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS
     uint8_t  Transformskip_Numnonzerocoeffs_Factor1;
 }MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS, *PMHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS;
 
-typedef struct _MHW_VDBOX_HEVC_SLICE_STATE
+struct MHW_VDBOX_HEVC_SLICE_STATE
 {
-    PCODEC_PIC_ID                   pHevcPicIdx;
-    PMOS_RESOURCE                   presDataBuffer;
-    uint32_t                        dwDataBufferOffset;
-    uint32_t                        dwOffset;
-    uint32_t                        dwLength;
-    uint32_t                        dwSliceIndex;
-    bool                            bLastSlice;
-    bool                            bLastSliceInTile;
-    bool                            bLastSliceInTileColumn;
-    bool                            bHucStreamOut;
-    int8_t                         *pRefIdxMapping;
-    bool                            bSaoLumaFlag;
-    bool                            bSaoChromaFlag;
+    PCODEC_PIC_ID                   pHevcPicIdx = nullptr;
+    PMOS_RESOURCE                   presDataBuffer = nullptr;
+    uint32_t                        dwDataBufferOffset = 0;
+    uint32_t                        dwOffset = 0;
+    uint32_t                        dwLength = 0;
+    uint32_t                        dwSliceIndex = 0;
+    bool                            bLastSlice = false;
+    bool                            bLastSliceInTile = false;
+    bool                            bLastSliceInTileColumn = false;
+    bool                            bHucStreamOut = false;
+    int8_t                         *pRefIdxMapping = nullptr;
+    bool                            bSaoLumaFlag = false;
+    bool                            bSaoChromaFlag = false;
 
-    PCODEC_HEVC_SLICE_PARAMS        pHevcSliceParams;
-    PCODEC_HEVC_PIC_PARAMS          pHevcPicParams;
+    PCODEC_HEVC_SLICE_PARAMS        pHevcSliceParams = nullptr;
+    PCODEC_HEVC_PIC_PARAMS          pHevcPicParams = nullptr;
 
     // Encoding Only
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pEncodeHevcSeqParams;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pEncodeHevcPicParams;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams;
-    PBSBuffer                               pBsBuffer;
-    PCODECHAL_NAL_UNIT_PARAMS              *ppNalUnitParams;
-    bool                                    bFirstPass;
-    bool                                    bLastPass;
-    bool                                    bIntraRefFetchDisable;
-    bool                                    bBrcEnabled;
-    uint32_t                                dwHeaderBytesInserted;
-    uint32_t                                dwHeaderDummyBytes;
-    uint32_t                                uiSkipEmulationCheckCount;
-    bool                                    bInsertBeforeSliceHeaders;
-    bool                                    bIsLowDelay;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pEncodeHevcSeqParams = nullptr;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pEncodeHevcPicParams = nullptr;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams = nullptr;
+    PBSBuffer                               pBsBuffer = nullptr;
+    PCODECHAL_NAL_UNIT_PARAMS              *ppNalUnitParams = nullptr;
+    bool                                    bFirstPass = false;
+    bool                                    bLastPass = false;
+    bool                                    bIntraRefFetchDisable = false;
+    bool                                    bBrcEnabled = false;
+    uint32_t                                dwHeaderBytesInserted = 0;
+    uint32_t                                dwHeaderDummyBytes = 0;
+    uint32_t                                uiSkipEmulationCheckCount = 0;
+    bool                                    bInsertBeforeSliceHeaders = false;
+    bool                                    bIsLowDelay = false;
     // Encoding + BRC only
-    PMHW_BATCH_BUFFER                       pBatchBufferForPakSlices;
-    bool                                    bSingleTaskPhaseSupported;
-    uint32_t                                dwBatchBufferForPakSlicesStartOffset;
-    bool                                    bVdencInUse;
-    bool                                    bVdencHucInUse;
-    bool                                    bWeightedPredInUse;
-    PMHW_BATCH_BUFFER                       pVdencBatchBuffer;
+    PMHW_BATCH_BUFFER                       pBatchBufferForPakSlices = nullptr;
+    bool                                    bSingleTaskPhaseSupported = false;
+    uint32_t                                dwBatchBufferForPakSlicesStartOffset = 0;
+    bool                                    bVdencInUse = false;
+    bool                                    bVdencHucInUse = false;
+    bool                                    bWeightedPredInUse = false;
+    PMHW_BATCH_BUFFER                       pVdencBatchBuffer = nullptr;
 
     //Pak related params
-    MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS EncodeHevcTransformSkipParams;
+    MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS EncodeHevcTransformSkipParams = {};
 
-    uint8_t                                 RoundingIntra;
-    uint8_t                                 RoundingInter;
-} MHW_VDBOX_HEVC_SLICE_STATE, *PMHW_VDBOX_HEVC_SLICE_STATE;
+    uint8_t                                 RoundingIntra = 0;
+    uint8_t                                 RoundingInter = 0;
+    virtual ~MHW_VDBOX_HEVC_SLICE_STATE(){}
+};
+using PMHW_VDBOX_HEVC_SLICE_STATE = MHW_VDBOX_HEVC_SLICE_STATE * ;
 
 typedef struct _MHW_VDBOX_VP9_ENCODE_PIC_STATE
 {

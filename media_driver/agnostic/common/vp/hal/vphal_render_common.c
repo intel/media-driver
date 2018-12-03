@@ -422,7 +422,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     MhwRenderInterface                  *pMhwRender;
     MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam;
     bool                                bEnableSLM;
-    RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
     MOS_RESOURCE                        GpuStatusBuffer;
     MediaPerfProfiler                   *pPerfProfiler;
 
@@ -444,8 +444,6 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrCommonSetPowerMode(
         pRenderHal,
         KernelID));
-
-    MOS_ZeroMemory(&GenericPrologParams, sizeof(GenericPrologParams));
 
 #ifndef EMUL
     if (pOsInterface->bEnableKmdMediaFrameTracking)
@@ -524,9 +522,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 
         if (MEDIA_IS_WA(pRenderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS VfeStateParams;
-
-            MOS_ZeroMemory(&VfeStateParams, sizeof(VfeStateParams));
+            MHW_VFE_PARAMS VfeStateParams = {};
             VfeStateParams.dwNumberofURBEntries = 1;
             VPHAL_RENDER_CHK_STATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer, &VfeStateParams));
         }
@@ -655,7 +651,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     MhwRenderInterface                  *pMhwRender;
     MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam;
     bool                                bEnableSLM;
-    RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
     MOS_RESOURCE                        GpuStatusBuffer;
     MediaPerfProfiler                   *pPerfProfiler;
 
@@ -677,8 +673,6 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrCommonSetPowerMode(
         pRenderHal,
         KernelID));
-
-    MOS_ZeroMemory(&GenericPrologParams, sizeof(GenericPrologParams));
 
 #ifndef EMUL
     if (pOsInterface->bEnableKmdMediaFrameTracking)
@@ -767,9 +761,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 
         if (MEDIA_IS_WA(pRenderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS VfeStateParams;
-
-            MOS_ZeroMemory(&VfeStateParams, sizeof(VfeStateParams));
+            MHW_VFE_PARAMS VfeStateParams = {};
             VfeStateParams.dwNumberofURBEntries = 1;
             VPHAL_RENDER_CHK_STATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer, &VfeStateParams));
         }

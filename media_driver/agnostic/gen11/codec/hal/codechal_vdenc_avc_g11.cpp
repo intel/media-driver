@@ -1290,6 +1290,7 @@ bool CodechalVdencAvcStateG11::CheckSupportedFormat(PMOS_SURFACE surface)
         case Format_UYVY:
         case Format_VYUY:
         case Format_AYUV:
+        case Format_A8R8G8B8:
             break;
         default:
             colorFormatSupported = false;
@@ -1511,7 +1512,6 @@ MOS_STATUS CodechalVdencAvcStateG11::AddVdencWalkerStateCmd(
     auto avcPicParams = m_avcPicParams[avcSlcParams->pic_parameter_set_id];
     auto avcSeqParams = m_avcSeqParams[avcPicParams->seq_parameter_set_id];
 
-    MOS_ZeroMemory(&vdencWalkerStateParams, sizeof(vdencWalkerStateParams));
     vdencWalkerStateParams.Mode = CODECHAL_ENCODE_MODE_AVC;
     vdencWalkerStateParams.pAvcSeqParams = avcSeqParams;
     vdencWalkerStateParams.pAvcSlcParams = m_avcSliceParams;
@@ -1528,7 +1528,6 @@ MOS_STATUS CodechalVdencAvcStateG11::CalculateVdencPictureStateCommandSize()
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 stateCmdSizeParams;
     uint32_t vdencPictureStatesSize, vdencPicturePatchListSize;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     m_hwInterface->GetHxxStateCommandSize(
         CODECHAL_ENCODE_MODE_AVC,
         (uint32_t*)&vdencPictureStatesSize,
@@ -1567,7 +1566,6 @@ MOS_STATUS CodechalVdencAvcStateG11::SendPrologWithFrameTracking(
 PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxStateCmdsizeParams()
 {
     PMHW_VDBOX_STATE_CMDSIZE_PARAMS cmdSizeParams = MOS_New(MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11);
-    MOS_ZeroMemory(cmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11));
 
     return cmdSizeParams;
 }
@@ -1575,7 +1573,6 @@ PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxStateCmd
 PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxPipeModeSelectParams()
 {
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11);
-    MOS_ZeroMemory(pipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11));
 
     return pipeModeSelectParams;
 }
@@ -1583,8 +1580,7 @@ PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxPipeM
 PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxVdencWalkerStateParams()
 {
     PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS vdencWalkerStateParams = MOS_New(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11);
-    MOS_ZeroMemory(vdencWalkerStateParams, sizeof(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11));
-
+ 
     return vdencWalkerStateParams;
 }
 

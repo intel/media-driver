@@ -283,7 +283,6 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9Execute(PMOS_COMMAND_BUFF
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucImemStateCmd(cmdBuffer, &imemParams));
 
     // HUC_PIPE_MODE_SELECT
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_vp9Params.mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
@@ -390,8 +389,8 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9SetDmem()
     hucInputCmd1.SADQPLambda = (uint16_t)(lambda * 4 + 0.5);
     hucInputCmd1.RDQPLambda = (uint16_t)(lambda * lambda * 4 + 0.5); //U14.2
 
-    hucInputCmd1.DstFrameHeightMinus1 = m_vp9Params.picParams->DstFrameHeightMinus1;
-    hucInputCmd1.DstFrameWidthMinus1 = m_vp9Params.picParams->DstFrameWidthMinus1;
+    hucInputCmd1.SrcFrameHeightMinus1 = m_vp9Params.picParams->SrcFrameHeightMinus1;
+    hucInputCmd1.SrcFrameWidthMinus1 = m_vp9Params.picParams->SrcFrameWidthMinus1;
     hucInputCmd1.SegmentationEnabled = m_vp9Params.segmentationEnabled;
     hucInputCmd1.PrevFrameSegEnabled = m_vp9Params.prevFrameSegEnabled;
     hucInputCmd1.LumaACQIndex = m_vp9Params.picParams->LumaACQIndex;
@@ -558,7 +557,6 @@ MOS_STATUS CodechalCmdInitializerG11::AddCopyCmds(
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_encoder);
     pipeModeSelectParams.Mode = m_encoder->m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));

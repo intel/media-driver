@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,14 @@
 #include "mhw_vebox.h"
 #include "vphal_common.h"       // Common interfaces and structures
 
+#if !defined(LINUX) && !defined(ANDROID)
+#include "UmdStateSeparation.h"
+#endif
+
 //==<DEFINITIONS>===============================================================
 #define MAX_NAME_LEN            100
+
+#define VPHAL_DBG_DUMP_OUTPUT_FOLDER                "\\vphaldump\\"
 
 //------------------------------------------------------------------------------
 // Dump macro.  Simply calls the dump function.  defined as null in production

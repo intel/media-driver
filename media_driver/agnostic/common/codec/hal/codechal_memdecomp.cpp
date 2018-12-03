@@ -306,16 +306,16 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     // preprocess in cp first
     m_osInterface->osCpInterface->PrepareResources((void **)&targetResource, 1, nullptr, 0);
 
-    bool overrideKernel = false;
-    if (m_osInterface->osCpInterface->IsSMEnabled() &&
-        kernelStateIdx == decompKernelStatePl2)
+    if (kernelStateIdx == decompKernelStatePl2)
     {
+        if (m_osInterface->osCpInterface->IsSMEnabled())
+        {
             uint32_t *kernelBase = nullptr;
-            uint32_t kernelSize = 0;
+            uint32_t  kernelSize = 0;
             m_osInterface->osCpInterface->GetTK(
-                    &kernelBase, 
-                    &kernelSize,
-                    nullptr);
+                &kernelBase,
+                &kernelSize,
+                nullptr);
             if (nullptr == kernelBase || 0 == kernelSize)
             {
                 MHW_ASSERT("Could not get TK kernels for MMC!");
@@ -323,10 +323,16 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
                 return eStatus;
             }
 
-        overrideKernel = true;
-
-        kernelState->KernelParams.pBinary = (uint8_t *)kernelBase;
-        kernelState->KernelParams.iSize   = kernelSize;
+            kernelState->KernelParams.pBinary = (uint8_t *)kernelBase;
+        }
+        else
+        {
+            kernelState->KernelParams.pBinary = m_kernelBinary[kernelStateIdx];
+        }
+        MHW_CHK_STATUS_RETURN(kernelState->m_ishRegion.AddData(
+            kernelState->KernelParams.pBinary,
+            0,
+            kernelState->KernelParams.iSize));
     }
 
     MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
@@ -486,8 +492,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
         &cmdBuffer,
         &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState = kernelState;
     auto waTable          = m_osInterface->pfnGetWaTable(m_osInterface);
 
@@ -620,9 +625,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
 
         if (MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS vfeStateParams;
-
-            MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+            MHW_VFE_PARAMS vfeStateParams = {};
             vfeStateParams.dwNumberofURBEntries = 1;
             MHW_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
         }
@@ -662,13 +665,6 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     if (gpuContext != m_renderContext)
     {
         m_osInterface->pfnSetGpuContext(m_osInterface, gpuContext);
-    }
-
-    if (overrideKernel)
-    {
-        //restore kernel state
-        kernelState->KernelParams.pBinary = m_kernelBinary[kernelStateIdx];
-        kernelState->KernelParams.iSize   = m_kernelSize[kernelStateIdx];
     }
 
     return eStatus;

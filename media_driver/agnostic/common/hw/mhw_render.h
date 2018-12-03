@@ -54,6 +54,7 @@ typedef struct _MHW_RENDER_ENGINE_L3_CACHE_SETTINGS
     uint32_t   dwSqcReg1  = 0;
     uint32_t   dwSqcReg4  = 0;
     uint32_t   dwLra1Reg  = 0;
+    virtual ~_MHW_RENDER_ENGINE_L3_CACHE_SETTINGS() {}
 } MHW_RENDER_ENGINE_L3_CACHE_SETTINGS, *PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS;
 
 typedef struct _MHW_RENDER_ENGINE_L3_CACHE_CONFIG
@@ -163,16 +164,17 @@ typedef struct _MHW_VFE_SCOREBOARD
 
 struct MHW_VFE_PARAMS
 {
-    uint32_t                        dwDebugCounterControl;      // Debug Counter Control
-    uint32_t                        dwMaximumNumberofThreads;
-    uint32_t                        dwNumberofURBEntries;
-    uint32_t                        dwCURBEAllocationSize;
-    uint32_t                        dwURBEntryAllocationSize;
-    uint32_t                        dwPerThreadScratchSpace;
-    uint32_t                        dwScratchSpaceBasePointer;
-    MHW_VFE_SLICE_DISABLE           eVfeSliceDisable;
-    MHW_VFE_SCOREBOARD              Scoreboard;
-    PMHW_KERNEL_STATE               pKernelState;
+    uint32_t                        dwDebugCounterControl = 0;      // Debug Counter Control
+    uint32_t                        dwMaximumNumberofThreads = 0;
+    uint32_t                        dwNumberofURBEntries = 0;
+    uint32_t                        dwCURBEAllocationSize = 0;
+    uint32_t                        dwURBEntryAllocationSize = 0;
+    uint32_t                        dwPerThreadScratchSpace = 0;
+    uint32_t                        dwScratchSpaceBasePointer = 0;
+    MHW_VFE_SLICE_DISABLE           eVfeSliceDisable = MHW_VFE_SLICE_ALL;
+    MHW_VFE_SCOREBOARD              Scoreboard = {};
+    PMHW_KERNEL_STATE               pKernelState = nullptr;
+    virtual ~MHW_VFE_PARAMS() {}
 };
 typedef MHW_VFE_PARAMS *PMHW_VFE_PARAMS;
 
@@ -277,10 +279,14 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     uint32_t                   GroupWidth;
     uint32_t                   GroupHeight;
     uint32_t                   GroupDepth;
+    uint32_t                   GroupStartingX;
+    uint32_t                   GroupStartingY;
+    uint32_t                   GroupStartingZ;
     uint32_t                   SLMSize;
 
     uint32_t                   IndirectDataLength;
     uint32_t                   IndirectDataStartAddress;
+    uint32_t                   BindingTableID;
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
 typedef struct _MHW_MEDIA_OBJECT_PARAMS

@@ -133,6 +133,20 @@ typedef int (__cdecl *pJITCompile)(const char *kernelName,
                                    char *errorMsg,
                                    FINALIZER_INFO *jitInfo);
 
+typedef int (__cdecl *pJITCompile_v2)(const char *kernelName,
+                                   const void *kernelIsa,
+                                   uint32_t kernelIsaSize,
+                                   void* &genBinary,
+                                   uint32_t &genBinarySize,
+                                   const char *platform,
+                                   int majorVersion,
+                                   int minorVersion,
+                                   int numArgs,
+                                   const char *args[],
+                                   char *errorMsg,
+                                   FINALIZER_INFO *jitInfo,
+                                   void *extra_info);
+
 typedef void (__cdecl *pFreeBlock)(void*);
 
 typedef void (__cdecl *pJITVersion)(unsigned int &majorV,
@@ -144,6 +158,7 @@ typedef void (__cdecl *pJITVersion)(unsigned int &majorV,
 #define CM_RT_JITTER_MAX_NUM_FLAGS 30
 
 #define JITCOMPILE_FUNCTION_STR "JITCompile"
+#define JITCOMPILEV2_FUNCTION_STR "JITCompile_v2"
 #define FREEBLOCK_FUNCTION_STR  "freeBlock"
 #define JITVERSION_FUNCTION_STR "getJITVersion"
 
@@ -229,6 +244,7 @@ protected:
     pJITCompile     m_fJITCompile;
     pFreeBlock      m_fFreeBlock;
     pJITVersion     m_fJITVersion;
+    pJITCompile_v2  m_fJITCompile_v2;
 
 public:
     uint32_t m_cisaMagicNumber;

@@ -561,6 +561,12 @@ enum CM_QUEUE_TYPE
     CM_QUEUE_TYPE_VEBOX = 3
 };
 
+enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
+{
+    CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
+    CM_QUEUE_SSEU_USAGE_HINT_VME     = 1
+};
+
 //**********************************************************************
 // Structures
 //**********************************************************************
@@ -1155,6 +1161,17 @@ struct _CM_TASK_CONFIG {
     uint32_t reserved1;
     uint32_t reserved2;
 };
+
+typedef enum _CM_KERNEL_EXEC_MODE {
+    CM_KERNEL_EXECUTION_MODE_MONOPOLIZED =  0, // Kernel can occupy all DSS for execution */
+    CM_KERNEL_EXECUTION_MODE_CONCURRENT,       // Kernel can occupy part of DSS  and concurrently execute together with other workloads.
+} CM_KERNEL_EXEC_MODE;
+
+struct CM_EXECUTION_CONFIG {
+    CM_KERNEL_EXEC_MODE kernelExecutionMode = CM_KERNEL_EXECUTION_MODE_MONOPOLIZED;
+    int                 concurrentPolicy    = 0; // Reserve for future extension.
+};
+
 #define CM_TASK_CONFIG _CM_TASK_CONFIG
 
 // parameters used to set the surface state of the buffer
@@ -1188,9 +1205,11 @@ struct CM_QUEUE_CREATE_OPTION
 {
     CM_QUEUE_TYPE QueueType : 3;
     bool RunAloneMode       : 1;
-    unsigned int Reserved0  : 4;
-    unsigned int Reserved1  : 8;
-    unsigned int Reserved2  : 16;
+    unsigned int Reserved0  : 3;
+    bool UserGPUContext     : 1;
+    unsigned int GPUContext : 8; // user provided GPU CONTEXT in enum MOS_GPU_CONTEXT, this will override CM_QUEUE_TYPE if set
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
+    unsigned int Reserved2  : 13;
 };
 
 typedef enum _CM_CONDITIONAL_END_OPERATOR_CODE {
@@ -1212,7 +1231,7 @@ struct CM_CONDITIONAL_END_PARAM {
 //**********************************************************************
 // Constants
 //**********************************************************************
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0x0, 0x0, 0x0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
 
 //**********************************************************************
 // Classes forward declarations
@@ -1292,7 +1311,8 @@ public:
     CM_RT_API virtual INT AddSync(void) = 0;
     CM_RT_API virtual INT SetPowerOption( PCM_POWER_OPTION pCmPowerOption ) = 0;
     CM_RT_API virtual INT AddConditionalEnd(SurfaceIndex* pSurface, UINT offset, CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
-    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0; 
+    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;
+    CM_RT_API virtual INT AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
 protected:
    ~CmTask(){};
 }; 
@@ -1429,6 +1449,11 @@ public:
     
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
+
+    CM_RT_API virtual INT EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr) = 0;
+    CM_RT_API virtual INT DestroyEventFast(CmEvent *&event) = 0;
 protected:
     ~CmQueue(){};
 };

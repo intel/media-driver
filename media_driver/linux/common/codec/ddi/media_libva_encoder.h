@@ -124,6 +124,8 @@ typedef struct _DDI_ENCODE_CONTEXT
     uint16_t                          wOriPicHeightInMB;
     uint16_t                          wContextPicWidthInMB;
     uint16_t                          wContextPicHeightInMB;
+    uint32_t                          dworiFrameWidth;        // Original Frame width in luma samples
+    uint32_t                          dworiFrameHeight;       // Original Frame height in luma samples
     uint32_t                          dwFrameWidth;           // Frame width in luma samples
     uint32_t                          dwFrameHeight;          // Frame height in luma samples
     PBSBuffer                         pbsBuffer;

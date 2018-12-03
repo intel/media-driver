@@ -29,6 +29,7 @@
 
 #include "cm_surface_2d_rt.h"
 #include "cm_device_rt.h"
+#include "cm_mem.h"
 
 namespace CMRT_UMD
 {
@@ -145,6 +146,9 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_Y216:
         case CM_SURFACE_FORMAT_Y416:
+        case CM_SURFACE_FORMAT_AYUV:
+        case CM_SURFACE_FORMAT_Y210:
+        case CM_SURFACE_FORMAT_Y410:
             break;
 
         case CM_SURFACE_FORMAT_R8_UINT:
@@ -185,10 +189,13 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
             break;
 
         case CM_SURFACE_FORMAT_411P:
+        case CM_SURFACE_FORMAT_411R:
         case CM_SURFACE_FORMAT_IMC3:
         case CM_SURFACE_FORMAT_422H:
         case CM_SURFACE_FORMAT_422V:
         case CM_SURFACE_FORMAT_444P:
+        case CM_SURFACE_FORMAT_RGBP:
+        case CM_SURFACE_FORMAT_BGRP:
         case CM_SURFACE_FORMAT_P208:
             if( width & 0x1 )
             {
@@ -242,4 +249,40 @@ int32_t CmSurfaceManager::GetSurfaceInfo( MOS_RESOURCE * mosResource, uint32_t &
 
     return CM_SUCCESS;
 }
+
+int32_t CmSurfaceManager::UpdateSurface2D(MOS_RESOURCE * mosResource, int index, uint32_t handle)
+{
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
+
+    CM_SURFACE_FORMAT format;
+    uint32_t width          = 0;
+    uint32_t height         = 0;
+    uint32_t pitch          = 0;
+    int result = GetSurfaceInfo(mosResource, width, height, pitch, format);
+    if( result != CM_SUCCESS )
+    {
+        CM_ASSERTMESSAGE("Error: Failed to get surface info from pMosResource.");
+        return result;
+    }
+
+    CM_HAL_SURFACE2D_PARAM inParam;
+    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_PARAM ) );
+    inParam.width                  = width;
+    inParam.height                 = height;
+    inParam.format                 = format;
+    inParam.mosResource            = mosResource;
+    inParam.isAllocatedbyCmrtUmd   = false;
+    inParam.handle                 = handle;
+
+    state->pfnUpdateSurface2D(state, &inParam);
+
+    CmSurface2DRT *surface = static_cast<CmSurface2DRT *>(m_surfaceArray[index]);
+
+    int ret = surface->UpdateSurfaceProperty(width, height, pitch, format);
+
+    return ret;
+
+}
+
 }  // namespace

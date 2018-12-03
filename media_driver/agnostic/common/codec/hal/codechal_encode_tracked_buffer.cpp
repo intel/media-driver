@@ -526,14 +526,12 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
     uint32_t downscaledSurfaceWidth32x, downscaledSurfaceHeight32x;
     if (m_encoder->m_useCommonKernel)
     {
-        downscaledSurfaceWidth4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_encoder->m_frameWidth);
-        downscaledSurfaceHeight4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_encoder->m_frameHeight);
-
-        downscaledSurfaceWidth16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceWidth4x);
-        downscaledSurfaceHeight16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceHeight4x);
-
-        downscaledSurfaceWidth32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceWidth16x);
-        downscaledSurfaceHeight32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceHeight16x);
+        downscaledSurfaceWidth4x = m_encoder->m_downscaledWidth4x;
+        downscaledSurfaceHeight4x = m_encoder->m_downscaledHeight4x;
+        downscaledSurfaceWidth16x = m_encoder->m_downscaledWidth16x;
+        downscaledSurfaceHeight16x = m_encoder->m_downscaledHeight16x;
+        downscaledSurfaceWidth32x = m_encoder->m_downscaledWidth32x;
+        downscaledSurfaceHeight32x = m_encoder->m_downscaledHeight32x;
     }
     else
     {

@@ -87,8 +87,10 @@ VAStatus DdiCpInterface::EndPictureCenc(
 }
 
 VAStatus DdiCpInterface::QueryCencStatus(
-    VADriverContextP    ctx,
-    VASurfaceStatus     *status)
+    uint16_t            mode,
+    uint32_t            infoSize,
+    void                *info)
+
 {
     DdiStubMessage();
     return VA_STATUS_SUCCESS;
@@ -165,27 +167,6 @@ void DdiCpInterface::SetHdcp2Enabled(int32_t flag)
 }
 
 bool DdiCpInterface::IsHdcp2Enabled()
-{
-    DdiStubMessage();
-    return false;
-}
-
-void DdiCpInterface::ResetCpContext()
-{
-    DdiStubMessage();
-}
-
-VAStatus DdiCpInterface::RenderPictureForVp(
-    VADriverContextP      vaDrvCtx,
-    VAContextID           vpCtxID,
-    DDI_MEDIA_BUFFER      *buf,
-    void                  *data)
-{
-    DdiStubMessage();
-    return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
-}
-
-bool DdiCpInterface::CheckSupportedBufferForVp(VABufferType type)
 {
     DdiStubMessage();
     return false;

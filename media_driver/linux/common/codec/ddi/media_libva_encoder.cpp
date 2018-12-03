@@ -303,8 +303,7 @@ VAStatus DdiEncode_CreateContext(
     // - HEVCMain10 profile
     // - VAProfileVP9Profile2
     // - VAProfileVP9Profile3
-    if (profile == VAProfileHEVCMain10 ||
-        profile == VAProfileVP9Profile2 ||
+    if (profile == VAProfileVP9Profile2 ||
         profile == VAProfileVP9Profile3)
     {
         encCtx->m_encode->m_is10Bit = true;
@@ -336,6 +335,8 @@ VAStatus DdiEncode_CreateContext(
     encCtx->pCodecHal = pCodecHal;
 
     // Setup some initial data
+    encCtx->dworiFrameWidth   = picture_width;
+    encCtx->dworiFrameHeight  = picture_height;
     encCtx->wPicWidthInMB     = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(picture_width));
     encCtx->wPicHeightInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(picture_height));
     encCtx->dwFrameWidth      = encCtx->wPicWidthInMB * CODECHAL_MACROBLOCK_WIDTH;

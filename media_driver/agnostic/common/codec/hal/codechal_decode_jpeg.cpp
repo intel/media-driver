@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -645,7 +645,6 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
 
     // Set PIPE_MODE_SELECT
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode                       = CODECHAL_DECODE_MODE_JPEG;
     pipeModeSelectParams.bStreamOutEnabled          = m_streamOutEnabled;
     pipeModeSelectParams.bDeblockerStreamOutEnable  = false;
@@ -668,7 +667,6 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
 
     // Set MFX_PIPE_BUF_ADDR_STATE_CMD
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = CODECHAL_DECODE_MODE_JPEG;
     // Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
     pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
@@ -816,9 +814,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
                 huffTableID = 1;
             }
 
-            int32_t AcTableSelector =
+            uint32_t AcTableSelector =
                 m_jpegScanParams->ScanHeader[scanCount].AcHuffTblSelector[scanComponent];
-            int32_t DcTableSelector =
+            uint32_t DcTableSelector =
                 m_jpegScanParams->ScanHeader[scanCount].DcHuffTblSelector[scanComponent];
 
             // Send the huffman table state command only if the table changed

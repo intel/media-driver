@@ -29,6 +29,7 @@ LOCAL_SRC_FILES := \
     agnostic/common/cm/cm_def.cpp \
     agnostic/common/cm/cm_device_rt.cpp \
     agnostic/common/cm/cm_event_rt.cpp \
+    agnostic/common/cm/cm_execution_adv.cpp \
     agnostic/common/cm/cm_global_api.cpp \
     agnostic/common/cm/cm_group_space.cpp \
     agnostic/common/cm/cm_hal.cpp \
@@ -129,6 +130,7 @@ LOCAL_SRC_FILES := \
     agnostic/common/heap_manager/memory_block.cpp \
     agnostic/common/heap_manager/memory_block_manager.cpp \
     agnostic/common/hw/mhw_block_manager.c \
+    agnostic/common/hw/mhw_cmd_reader.cpp \
     agnostic/common/hw/mhw_memory_pool.c \
     agnostic/common/hw/mhw_mi.cpp \
     agnostic/common/hw/mhw_render.c \
@@ -163,8 +165,10 @@ LOCAL_SRC_FILES := \
     agnostic/common/vp/hal/vphal_ddi.c \
     agnostic/common/vp/hal/vphal_debug.c \
     agnostic/common/vp/hal/vphal_mdf_wrapper.cpp \
+    agnostic/common/vp/hal/vphal_render_16alignment.cpp \
     agnostic/common/vp/hal/vphal_render_common.c \
     agnostic/common/vp/hal/vphal_render_composite.cpp \
+    agnostic/common/vp/hal/vphal_render_fast1ton.cpp \
     agnostic/common/vp/hal/vphal_render_ief.cpp \
     agnostic/common/vp/hal/vphal_render_renderstate.cpp \
     agnostic/common/vp/hal/vphal_render_sfc_base.cpp \
@@ -327,6 +331,7 @@ LOCAL_SRC_FILES := \
     agnostic/gen9_skl/hw/vdbox/mhw_vdbox_vdenc_g9_skl.cpp \
     agnostic/gen9_skl/hw/vdbox/mhw_vdbox_vdenc_hwcmd_g9_skl.cpp \
     agnostic/gen9_skl/media_interfaces/media_interfaces_g9_skl.cpp \
+    linux/common/cm/cm_debug_os.cpp \
     linux/common/cm/cm_device_rt_os.cpp \
     linux/common/cm/cm_event_rt_os.cpp \
     linux/common/cm/cm_ftrace.cpp \
@@ -371,12 +376,12 @@ LOCAL_SRC_FILES := \
     linux/common/ddi/media_libva_util.cpp \
     linux/common/media_interfaces/media_interfaces.cpp \
     linux/common/os/hwinfo_linux.c \
-    linux/common/os/libdrm/mos_bufmgr.c \
-    linux/common/os/libdrm/mos_bufmgr_api.c \
-    linux/common/os/libdrm/xf86drm.c \
-    linux/common/os/libdrm/xf86drmHash.c \
-    linux/common/os/libdrm/xf86drmMode.c \
-    linux/common/os/libdrm/xf86drmRandom.c \
+    linux/common/os/i915/mos_bufmgr.c \
+    linux/common/os/i915/mos_bufmgr_api.c \
+    linux/common/os/i915/xf86drm.c \
+    linux/common/os/i915/xf86drmHash.c \
+    linux/common/os/i915/xf86drmMode.c \
+    linux/common/os/i915/xf86drmRandom.c \
     linux/common/os/mos_auxtable_mgr.cpp \
     linux/common/os/mos_commandbuffer_specific.cpp \
     linux/common/os/mos_context_specific.cpp \
@@ -480,7 +485,10 @@ LOCAL_CONLYFLAGS = -x c++
 LOCAL_CFLAGS = $(LOCAL_CPPFLAGS)
 
 LOCAL_C_INCLUDES  = \
-    $(LOCAL_PATH)/linux/common/os/libdrm/include \
+    $(TARGET_OUT_HEADERS)/libva \
+    $(TARGET_OUT_HEADERS)/ufo \
+    $(LOCAL_PATH)/linux/common/os/i915/include \
+    $(LOCAL_PATH)/linux/common/os/i915/include/uapi \
     $(LOCAL_PATH)/agnostic/common/cm \
     $(LOCAL_PATH)/agnostic/common/codec/hal \
     $(LOCAL_PATH)/agnostic/common/codec/kernel \

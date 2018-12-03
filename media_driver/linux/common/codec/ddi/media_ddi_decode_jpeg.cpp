@@ -61,7 +61,7 @@ static const uint32_t zigzag_order[64] =
 VAStatus DdiDecodeJPEG::ParseSliceParams(
     DDI_MEDIA_CONTEXT                   *mediaCtx,
     VASliceParameterBufferJPEGBaseline  *slcParam,
-    int32_t                             numSlices)
+    uint32_t                             numSlices)
 {
     CodecDecodeJpegScanParameter *jpegSliceParam =
         (CodecDecodeJpegScanParameter *)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
@@ -83,7 +83,7 @@ VAStatus DdiDecodeJPEG::ParseSliceParams(
         picParam->m_interleavedData = 1;
     }
 
-    int32_t j, i;
+    uint32_t j, i;
     int32_t startIdx = m_numScans;
     for (j = 0; j < numSlices; j++)
     {
@@ -322,7 +322,7 @@ VAStatus DdiDecodeJPEG::SetBufferRendered(VABufferID bufferID)
     }
 
     bool renderFlag = false;
-    for (int32_t i = 0; i < bufMgr->dwNumSliceData; i++)
+    for (uint32_t i = 0; i < bufMgr->dwNumSliceData; i++)
     {
         // Depend on the ID we tracked, if application want to rendered one of them
         // we set some flags
@@ -398,12 +398,12 @@ VAStatus DdiDecodeJPEG::RenderPicture(
         }
         case VASliceParameterBufferType:
         {
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
 
-            int32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
 
             if ((m_numScans + numSlices) > jpegNumComponent)
             {
@@ -532,13 +532,13 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
-    m_jpegBitstreamBuf->iSize        = bufMgr->dwSizeOfRenderedSliceData;
-    m_jpegBitstreamBuf->iNumElements = bufMgr->dwNumOfRenderedSliceData;
-    m_jpegBitstreamBuf->uiType       = VASliceDataBufferType;
-    m_jpegBitstreamBuf->format       = Media_Format_Buffer;
-    m_jpegBitstreamBuf->uiOffset     = 0;
-    m_jpegBitstreamBuf->bCFlushReq   = false;
-    m_jpegBitstreamBuf->pMediaCtx    = m_ddiDecodeCtx->pMediaCtx;
+    m_jpegBitstreamBuf->iSize         = bufMgr->dwSizeOfRenderedSliceData;
+    m_jpegBitstreamBuf->uiNumElements = bufMgr->dwNumOfRenderedSliceData;
+    m_jpegBitstreamBuf->uiType        = VASliceDataBufferType;
+    m_jpegBitstreamBuf->format        = Media_Format_Buffer;
+    m_jpegBitstreamBuf->uiOffset      = 0;
+    m_jpegBitstreamBuf->bCFlushReq    = false;
+    m_jpegBitstreamBuf->pMediaCtx     = m_ddiDecodeCtx->pMediaCtx;
 
     // Create GPU buffer
     VAStatus va  = DdiMediaUtil_CreateBuffer(m_jpegBitstreamBuf, m_ddiDecodeCtx->pMediaCtx->pDrmBufMgr);
@@ -571,7 +571,7 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
     uint32_t bufOffset      = 0;
     int32_t  orderSlicePara = 0;
     int32_t  orderSliceData = 0;
-    for (int32_t i = 0; i < bufMgr->dwNumOfRenderedSliceData; i++)
+    for (uint32_t i = 0; i < bufMgr->dwNumOfRenderedSliceData; i++)
     {
         // get the rendered slice data index in rendered order.
         int32_t renderedBufIdx = bufMgr->pRenderedOrder[i];
@@ -638,7 +638,7 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
 }
 
 VAStatus DdiDecodeJPEG::AllocSliceParamContext(
-    int32_t numSlices)
+    uint32_t numSlices)
 {
     uint32_t baseSize = sizeof(CodecDecodeJpegScanParameter);
 
@@ -646,7 +646,7 @@ VAStatus DdiDecodeJPEG::AllocSliceParamContext(
     {
         // in order to avoid that the buffer is reallocated multi-times,
         // extra 10 slices are added.
-        int32_t extraSlices = numSlices + 10;
+        uint32_t extraSlices = numSlices + 10;
 
         m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
             baseSize * (m_sliceParamBufNum + extraSlices));
@@ -683,7 +683,7 @@ VAStatus DdiDecodeJPEG::AllocBsBuffer(
 {
     // Allocate JPEG slice data memory from CPU.
     uint8_t                   *bsAddr;
-    int32_t                    index;
+    uint32_t                   index;
 
     index = bufMgr->dwNumSliceData;
 
@@ -736,21 +736,21 @@ VAStatus DdiDecodeJPEG::AllocSliceControlBuffer(
     bufMgr     = &(m_ddiDecodeCtx->BufMgr);
     availSize = m_sliceCtrlBufNum - bufMgr->dwNumSliceControl;
 
-    if(availSize < buf->iNumElements)
+    if(availSize < buf->uiNumElements)
     {
-        newSize   = sizeof(VASliceParameterBufferJPEGBaseline) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+        newSize   = sizeof(VASliceParameterBufferJPEGBaseline) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
         bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG = (VASliceParameterBufferJPEGBaseline *)realloc(bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG, newSize);
         if(bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG == nullptr)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferJPEGBaseline) * (buf->iNumElements - availSize));
-        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferJPEGBaseline) * (buf->uiNumElements - availSize));
+        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
     }
     buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG;
     buf->uiOffset   = sizeof(VASliceParameterBufferJPEGBaseline) * bufMgr->dwNumSliceControl;
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }
@@ -820,7 +820,7 @@ void DdiDecodeJPEG::FreeResourceBuffer()
     MOS_FreeMemory(bufMgr->pRenderedOrder);
     bufMgr->pRenderedOrder = nullptr;
 
-    for (int32_t i = 0; i < bufMgr->dwNumSliceData && (bufMgr->pSliceData != nullptr); i++)
+    for (uint32_t i = 0; i < bufMgr->dwNumSliceData && (bufMgr->pSliceData != nullptr); i++)
     {
         if (bufMgr->pSliceData[i].pBaseAddress != nullptr)
         {

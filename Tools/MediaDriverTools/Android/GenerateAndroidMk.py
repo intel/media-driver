@@ -24,7 +24,7 @@
 """
 the basic idea from this script are:
 1. generate linux make file using cmake
-2. get soruce files using "grep -ir \\.o:$ Makefile  |sed s/.c.o:/.c/ |sed s/.cpp.o:/.cpp/ | sed s,^,\\t, | sed s/$/' \\'/"
+2. get source files using "grep -ir \\.o:$ Makefile  |sed s/.c.o:/.c/ |sed s/.cpp.o:/.cpp/ | sed s,^,\\t, | sed s/$/' \\'/"
 3. get c/cpp defines using "grep CXX_DEFINES flags.make | sed s/"CXX_DEFINES = "/""/g | sed s/" "/"\n"/g | sed s/"^"/"\t"/g | sed 's/$/ \\/'"
 4. get includes directories using "grep CXX_INCLUDES flags.make | sed s/"CXX_DEFINES = "/""/g | sed s/" "/"\n"/g | sed s/"^"/"\t"/g | sed 's/$/ \\/'"
 5. replace related text in template

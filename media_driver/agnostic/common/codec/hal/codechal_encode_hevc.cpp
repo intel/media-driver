@@ -1469,30 +1469,85 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (m_pictureCodingType == I_TYPE)
+    if (m_lowDelay)
     {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
-    }
-    else if (m_pictureCodingType == B_TYPE)
-    {
-        m_currFrameBrcLevel = (m_lowDelay) ? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
-    }
-    else if (m_pictureCodingType == B1_TYPE)
-    {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
-    }
-    else if (m_pictureCodingType == B2_TYPE)
-    {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
-    }
-    else if (m_pictureCodingType == P_TYPE)
-    {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+        // LDB
+        if (m_pictureCodingType == I_TYPE)
+        {
+            if (m_hevcPicParams->FrameLevel == 0)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel can only be 0 for I type for LDB\n");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+        else if ((m_pictureCodingType == P_TYPE) || (m_pictureCodingType == B_TYPE))
+        {
+            if (m_hevcPicParams->FrameLevel == 0)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+            }
+            else if (m_hevcPicParams->FrameLevel == 1)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B;
+            }
+            else if (m_hevcPicParams->FrameLevel == 2)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
+            }
+            else if (m_hevcPicParams->FrameLevel == 3)
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel 3 is not supported for LDB\n");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERT(false);
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+        else if ((m_pictureCodingType == B1_TYPE) || (m_pictureCodingType == B2_TYPE))
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("B1 & B2 Type is not supported for LDB\n");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        else
+        {
+            CODECHAL_ENCODE_ASSERT(false);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
     }
     else
     {
-        CODECHAL_ENCODE_ASSERT(false);
-        return MOS_STATUS_INVALID_PARAMETER;
+        // HB
+        if (m_pictureCodingType == I_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
+        }
+        else if (m_pictureCodingType == B_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B;
+        }
+        else if (m_pictureCodingType == B1_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
+        }
+        else if (m_pictureCodingType == B2_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
+        }
+        else if (m_pictureCodingType == P_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+        }
+        else
+        {
+                CODECHAL_ENCODE_ASSERT(false);
+                return MOS_STATUS_INVALID_PARAMETER;
+        }
     }
 
     return eStatus;

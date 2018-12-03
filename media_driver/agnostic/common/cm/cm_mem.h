@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_mem.h
-//! \brief     Contains CM memory function definitions
+//! \file      cm_mem.h 
+//! \brief     Contains CM memory function definitions 
 //!
 #pragma once
 

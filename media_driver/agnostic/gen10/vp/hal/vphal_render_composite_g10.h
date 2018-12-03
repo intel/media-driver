@@ -65,6 +65,7 @@ public:
         m_bAvsTableBalancedFilter       = true;
         m_bApplyTwoLayersCompOptimize   = false;
         m_bYV12iAvsScaling              = true;     // On Gen9+, iAVS scaling can support YV12 input format
+        m_bEnableSamplerLumakey         = true;     // Enable sampler lumakey on Gen10.
 
         if (*peStatus != MOS_STATUS_SUCCESS)
         {

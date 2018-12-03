@@ -40,6 +40,7 @@
 #include "cm_surface_manager.h"
 #include "cm_surface_2d_rt.h"
 #include "cm_vebox_rt.h"
+#include "cm_execution_adv.h"
 
 // Used by GPUCopy
 #define BLOCK_PIXEL_WIDTH            (32)
@@ -126,13 +127,11 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
 //*-----------------------------------------------------------------------------
 CmQueueRT::~CmQueueRT()
 {
-    uint32_t eventReleaseTimes = 0;
-
     uint32_t eventArrayUsedSize = m_eventArray.GetMaxSize();
     for( uint32_t i = 0; i < eventArrayUsedSize; i ++ )
     {
         CmEventRT* event = (CmEventRT*)m_eventArray.GetElement( i );
-        eventReleaseTimes = 0;
+        uint32_t eventReleaseTimes = 0;
         while( event )
         {   // destroy the event no matter if it is released by user
             if(eventReleaseTimes > 2)
@@ -184,15 +183,91 @@ int32_t CmQueueRT::Initialize()
     }
     else
     {
+        MOS_GPUCTX_CREATOPTIONS ctxCreateOption;
+        ctxCreateOption.CmdBufferNumScale = cmHalState->cmDeviceParam.maxTasks;
+
         // Create MDF preset GPU context, update GPUContext in m_queueOption
         if (m_queueOption.QueueType == CM_QUEUE_TYPE_RENDER)
         {
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, cmHalState->gpuContext, MOS_GPU_NODE_3D));
-            m_queueOption.GPUContext = cmHalState->gpuContext;
+            // command buffer number
+            ctxCreateOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(cmHalState->osInterface, cmHalState->cmDeviceParam.maxTasks);
+
+            MOS_GPU_CONTEXT tmpGpuCtx = (m_queueOption.GPUContext == 0) ? cmHalState->gpuContext : (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
+
+            // check if context handle was specified by user.
+            if (m_queueOption.GPUContext != 0)
+            {
+                tmpGpuCtx = (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
+            }
+            else
+            {
+                tmpGpuCtx = cmHalState->gpuContext;
+            }
+
+            // sanity check of context handle for CM
+            if (tmpGpuCtx != MOS_GPU_CONTEXT_RENDER3 && tmpGpuCtx != MOS_GPU_CONTEXT_RENDER4)
+            {
+                return CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX;
+            }
+            
+            // SSEU overriding
+            if (cmHalState->cmHalInterface->IsOverridePowerOptionPerGpuContext())
+            {
+                // checking if need shutdown sub-slices for VME usage
+                if (m_queueOption.SseuUsageHint == CM_QUEUE_SSEU_USAGE_HINT_VME
+                 && cmHalState->cmHalInterface->IsRequestShutdownSubslicesForVmeUsage())
+                {
+                    MEDIA_SYSTEM_INFO *gtSystemInfo = cmHalState->osInterface->pfnGetGtSystemInfo(cmHalState->osInterface);
+                    ctxCreateOption.packed.SliceCount    = (uint8_t)gtSystemInfo->SliceCount;
+                    ctxCreateOption.packed.SubSliceCount = (gtSystemInfo->SubSliceCount / gtSystemInfo->SliceCount) >> 1; // set to half
+                    ctxCreateOption.packed.MaxEUcountPerSubSlice = gtSystemInfo->EUCount/gtSystemInfo->SubSliceCount;
+                    ctxCreateOption.packed.MinEUcountPerSubSlice = gtSystemInfo->EUCount/gtSystemInfo->SubSliceCount;
+                }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+                MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+                MOS_UserFeature_ReadValue_ID(
+                    nullptr,
+                    __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
+                    &UserFeatureData);
+               
+                // +---------------+----------------+----------------+----------------+
+                // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
+                // +-------------24+--------------16+---------------8+---------------0+
+                if (UserFeatureData.u32Data != 0xDEADC0DE)
+                {
+                    ctxCreateOption.packed.SliceCount            = UserFeatureData.u32Data         & 0xFF;       // Bits 0-7
+                    ctxCreateOption.packed.SubSliceCount         = (UserFeatureData.u32Data >>  8) & 0xFF;       // Bits 8-15
+                    ctxCreateOption.packed.MaxEUcountPerSubSlice = (UserFeatureData.u32Data >> 16) & 0xFF;       // Bits 16-23
+                    ctxCreateOption.packed.MinEUcountPerSubSlice = (UserFeatureData.u32Data >> 24) & 0xFF;       // Bits 24-31
+                }
+#endif
+            }
+
+            // Create Render GPU Context
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D, &ctxCreateOption));
+
+            // Set current GPU context
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface, tmpGpuCtx));
+                    
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+            //init GuC
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->osInterface->pfnInitGuC(cmHalState->osInterface, MOS_GPU_NODE_3D));
+#endif
+#endif
+            m_queueOption.GPUContext = tmpGpuCtx;
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE, MOS_GPU_NODE_COMPUTE));
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
+                                                MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
+
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface,
+                                                          MOS_GPU_CONTEXT_CM_COMPUTE));
+
             m_queueOption.GPUContext = MOS_GPU_CONTEXT_CM_COMPUTE;
         }
         else
@@ -485,7 +560,8 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
                         PCM_POWER_OPTION powerOption,
                         uint64_t    conditionalEndBitmap,
                         CM_HAL_CONDITIONAL_BB_END_INFO* conditionalEndInfo,
-                        PCM_TASK_CONFIG  taskConfig)
+                        PCM_TASK_CONFIG  taskConfig,
+                        const CM_EXECUTION_CONFIG* krnExecCfg)
 {
     if(kernelArray == nullptr)
     {
@@ -502,7 +578,9 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     CLock Locker(m_criticalSectionTaskInternal);
 
     CmTaskInternal* task = nullptr;
-    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, threadGroupSpace, m_device, syncBitmap, task, conditionalEndBitmap, conditionalEndInfo);
+    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray,
+                                            threadGroupSpace, m_device, syncBitmap, task,
+                                            conditionalEndBitmap, conditionalEndInfo, krnExecCfg);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Create CmTaskInternal failure.");
@@ -727,7 +805,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
                          threadGroupSpace, taskRT->GetSyncBitmap(),
                          taskRT->GetPowerOption(),
                          taskRT->GetConditionalEndBitmap(), taskRT->GetConditionalEndInfo(),
-                         taskRT->GetTaskConfig());
+                         taskRT->GetTaskConfig(), taskRT->GetKernelExecuteConfig());
 
     if (eventRT)
     {
@@ -782,9 +860,9 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithHints(
         CmKernelRT* kernelTmp = nullptr;
         CmThreadSpaceRT* threadSpaceTmp = nullptr;
         kernelTmp = kernelArrayRT->GetKernelPointer(i);
-        CMCHK_NULL(kernelTmp);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelTmp);
         kernelTmp->GetThreadSpace(threadSpaceTmp);
-        CMCHK_NULL(threadSpaceTmp);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpaceTmp);
         if (threadSpaceTmp->GetNeedSetKernelPointer() && threadSpaceTmp->KernelPointerIsNULL())
         {
             threadSpaceTmp->SetKernelPointer(kernelTmp);
@@ -812,7 +890,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithHints(
     }
 
     kernels = MOS_NewArray(CmKernelRT*, (count + 1));
-    CMCHK_NULL(kernels);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(kernels);
 
     do
     {
@@ -835,7 +913,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithHints(
             lastTask = true;
         }
 
-        CMCHK_HR(Enqueue_RT( kernels, eventRT, numTasksGenerated, lastTask, hints, kernelArrayRT->GetPowerOption() ));
+        CM_CHK_CMSTATUS_GOTOFINISH(Enqueue_RT( kernels, eventRT, numTasksGenerated, lastTask, hints, kernelArrayRT->GetPowerOption() ));
         event = eventRT;
         numTasksGenerated++;
 
@@ -937,7 +1015,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
 
     if ( surface )
     {
-        CMCHK_HR( surface->GetSurfaceDesc(width, height, format, sizePerPixel));
+        CM_CHK_CMSTATUS_GOTOFINISH( surface->GetSurfaceDesc(width, height, format, sizePerPixel));
     }
     else
     {
@@ -980,37 +1058,37 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         bufferupSize = MOS_ALIGN_CEIL(strideInBytes * heightStrideInRows  + (uint32_t)dstAddShiftOffset, 64);
     }
 
-    CMCHK_HR(m_device->CreateBufferUP(bufferupSize, ( void * )linearAddressAligned, bufferUP));
-    CMCHK_HR(bufferUP->GetIndex(bufferIndexCM));
-    CMCHK_HR(surface->GetIndex(surf2DIndexCM));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(bufferupSize, ( void * )linearAddressAligned, bufferUP));
+    CM_CHK_CMSTATUS_GOTOFINISH(bufferUP->GetIndex(bufferIndexCM));
+    CM_CHK_CMSTATUS_GOTOFINISH(surface->GetIndex(surf2DIndexCM));
 
-    CMCHK_HR( m_device->LoadPredefinedCopyKernel(gpuCopyProgram));
-    CMCHK_NULL(gpuCopyProgram);
+    CM_CHK_CMSTATUS_GOTOFINISH( m_device->LoadPredefinedCopyKernel(gpuCopyProgram));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyProgram);
 
     if (direction == CM_FASTCOPY_CPU2GPU)
     {
         if (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016)
         {
-            CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_write_unaligned_NV12), kernel, "PredefinedGPUCopyKernel"));
+            CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_write_unaligned_NV12), kernel, "PredefinedGPUCopyKernel"));
         }
         else
         {
-            CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_write_unaligned), kernel, "PredefinedGPUCopyKernel"));
+            CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_write_unaligned), kernel, "PredefinedGPUCopyKernel"));
 
         }
-        CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), bufferIndexCM ));
-        CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), surf2DIndexCM ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), bufferIndexCM ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), surf2DIndexCM ));
     }
     else
     {
         if (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016)
         {
-            CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_read_unaligned_NV12), kernel, "PredefinedGPUCopyKernel"));
+            CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_read_unaligned_NV12), kernel, "PredefinedGPUCopyKernel"));
             auxiliaryBufferupSize = BLOCK_WIDTH * 2 * (heightStrideInRows + copyHeightRow * 1/2);
         }
         else
         {
-            CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_read_unaligned), kernel, "PredefinedGPUCopyKernel"));
+            CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(surfaceCopy_read_unaligned), kernel, "PredefinedGPUCopyKernel"));
             auxiliaryBufferupSize = BLOCK_WIDTH * 2 * heightStrideInRows;
         }
         hybridCopyAuxSysMem = (unsigned char*)MOS_AlignedAllocMemory(auxiliaryBufferupSize, PAGE_ALIGNED);
@@ -1019,34 +1097,34 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             CM_ASSERTMESSAGE("Error: Out of system memory.");
             return CM_OUT_OF_HOST_MEMORY;
         }
-        CMCHK_HR(m_device->CreateBufferUP(auxiliaryBufferupSize, (void*)hybridCopyAuxSysMem, hybridCopyAuxBufferUP));
-        CMCHK_HR(hybridCopyAuxBufferUP->GetIndex(hybridCopyAuxIndexCM));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(auxiliaryBufferupSize, (void*)hybridCopyAuxSysMem, hybridCopyAuxBufferUP));
+        CM_CHK_CMSTATUS_GOTOFINISH(hybridCopyAuxBufferUP->GetIndex(hybridCopyAuxIndexCM));
 
-        CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
-        CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), bufferIndexCM ));
-        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &copyWidthByte ));
-        CMCHK_HR(kernel->SetKernelArg( 6, sizeof( SurfaceIndex ), hybridCopyAuxIndexCM ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), bufferIndexCM ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 5, sizeof( uint32_t ), &copyWidthByte ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 6, sizeof( SurfaceIndex ), hybridCopyAuxIndexCM ));
     }
 
-    CMCHK_HR(kernel->SetKernelArg( 2, sizeof( uint32_t ), &strideInBytes ));
-    CMCHK_HR(kernel->SetKernelArg( 3, sizeof( uint32_t ), &heightStrideInRows ));
-    CMCHK_HR(kernel->SetKernelArg( 4, sizeof( uint32_t ), &dstAddShiftOffset ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 2, sizeof( uint32_t ), &strideInBytes ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 3, sizeof( uint32_t ), &heightStrideInRows ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 4, sizeof( uint32_t ), &dstAddShiftOffset ));
 
     threadWidth = ( uint32_t )ceil( ( double )copyWidthByte/BLOCK_WIDTH );
     threadHeight = ( uint32_t )ceil( ( double )copyHeightRow/BLOCK_HEIGHT );
 
     threadNum = threadWidth * threadHeight;
-    CMCHK_HR(kernel->SetThreadCount( threadNum ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount( threadNum ));
 
-    CMCHK_HR(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
-    CMCHK_HR(m_device->CreateQueue( cmQueue ));
-    CMCHK_HR(m_device->CreateTask(gpuCopyTask));
-    CMCHK_HR(gpuCopyTask->AddKernel( kernel ));
-    CMCHK_HR(cmQueue->Enqueue( gpuCopyTask, event, threadSpace ));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
+    CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
+    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, event, threadSpace ));
 
     if(event)
     {
-        CMCHK_HR(event->GetStatus(status));
+        CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
         while(status != CM_STATUS_FINISHED)
         {
             if (status == CM_STATUS_RESET)
@@ -1054,20 +1132,14 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
                 hr = CM_TASK_MEDIA_RESET;
                 goto finish;
             }
-            CMCHK_HR(event->GetStatus(status));
+            CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
         }
     }
     // CPU copy unaligned data
     if( direction == CM_FASTCOPY_GPU2CPU)
     {
-        uint32_t beginLineCopySize   = 0;
         uint32_t readOffset = 0;
         uint32_t copyLines = 0;
-        size_t beginLineWriteOffset = 0;
-        uint32_t mod = 0;
-        uint32_t alignedWrites = 0;
-        uint32_t endLineWriteOffset = 0;
-        uint32_t endLineCopySize = 0;
         unsigned char* startBuffer = (unsigned char*)linearAddressAligned;
 
         copyLines = (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016) ? heightStrideInRows + MOS_MIN(heightStrideInRows, height) * 1 / 2 : heightStrideInRows;
@@ -1075,9 +1147,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         for(uint32_t i = 0; i < copyLines; ++i)
         {
             //copy begining of line
-            beginLineWriteOffset = strideInBytes * i + dstAddShiftOffset;
-            mod = ((uintptr_t)startBuffer + beginLineWriteOffset) < BLOCK_WIDTH ? ((uintptr_t)startBuffer + beginLineWriteOffset) : ((uintptr_t)startBuffer + beginLineWriteOffset) & (BLOCK_WIDTH - 1);
-            beginLineCopySize = (mod == 0) ? 0:(BLOCK_WIDTH - mod);
+            size_t beginLineWriteOffset = strideInBytes * i + dstAddShiftOffset;
+            uint32_t mod = ((uintptr_t)startBuffer + beginLineWriteOffset) < BLOCK_WIDTH ? ((uintptr_t)startBuffer + beginLineWriteOffset) : ((uintptr_t)startBuffer + beginLineWriteOffset) & (BLOCK_WIDTH - 1);
+            uint32_t beginLineCopySize = (mod == 0) ? 0:(BLOCK_WIDTH - mod);
             //fix copy size for cases where the surface width is small
             if((beginLineCopySize > widthByte) || ( beginLineCopySize == 0 && widthByte < BLOCK_WIDTH ) )
             {
@@ -1089,9 +1161,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             }
 
             //copy end of line
-            alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
-            endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
-            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
+            uint32_t alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
+            uint32_t endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
+            uint32_t endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
             if(endLineCopySize > 0 && endLineWriteOffset > beginLineWriteOffset)
             {
                 CmSafeMemCopy((void *)((unsigned char *)startBuffer + endLineWriteOffset), (void *)(hybridCopyAuxSysMem + readOffset + BLOCK_WIDTH), endLineCopySize);
@@ -1100,14 +1172,14 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         }
     }
 
-    CMCHK_HR(m_device->DestroyTask(gpuCopyTask));
-    CMCHK_HR(m_device->DestroyThreadSpace(threadSpace));
-    CMCHK_HR(m_device->DestroyBufferUP(bufferUP));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyTask(gpuCopyTask));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyThreadSpace(threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(bufferUP));
     if (direction == CM_FASTCOPY_GPU2CPU)
     {
         if(hybridCopyAuxBufferUP)
         {
-            CMCHK_HR(m_device->DestroyBufferUP(hybridCopyAuxBufferUP));
+            CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(hybridCopyAuxBufferUP));
         }
         if(hybridCopyAuxSysMem)
         {
@@ -1169,7 +1241,7 @@ int32_t CmQueueRT::EnqueueCopyInternal(CmSurface2DRT* surface,
 
     if (surface)
     {
-        CMCHK_HR(surface->GetSurfaceDesc(width, height, format, sizePerPixel));
+        CM_CHK_CMSTATUS_GOTOFINISH(surface->GetSurfaceDesc(width, height, format, sizePerPixel));
     }
     else
     {
@@ -1317,43 +1389,43 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
         }
 
         kernel = nullptr;
-        CMCHK_HR( m_device->CreateBufferUP(  sliceCopyBufferUPSize, ( void * )linearAddressAligned, cmbufferUP ));
-        CMCHK_NULL(cmbufferUP);
+        CM_CHK_CMSTATUS_GOTOFINISH( m_device->CreateBufferUP(  sliceCopyBufferUPSize, ( void * )linearAddressAligned, cmbufferUP ));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUP);
         
         //Configure memory object control for BufferUP to solve the cache-line issue.
         if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
         {
-            CMCHK_HR(cmbufferUP->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
+            CM_CHK_CMSTATUS_GOTOFINISH(cmbufferUP->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
         }
-        CMCHK_HR(CreateGPUCopyKernel(copyWidthByte, sliceCopyHeightRow, format, direction, gpuCopyKernelParam));
-        CMCHK_NULL(gpuCopyKernelParam);
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateGPUCopyKernel(copyWidthByte, sliceCopyHeightRow, format, direction, gpuCopyKernelParam));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam);
         kernel = gpuCopyKernelParam->kernel;
 
-        CMCHK_NULL(kernel);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernel);
 
-        CMCHK_NULL(cmbufferUP);
-        CMCHK_HR(cmbufferUP->GetIndex( bufferIndexCM ));
-        CMCHK_HR(surface->GetIndex( surf2DIndexCM ));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUP);
+        CM_CHK_CMSTATUS_GOTOFINISH(cmbufferUP->GetIndex( bufferIndexCM ));
+        CM_CHK_CMSTATUS_GOTOFINISH(surface->GetIndex( surf2DIndexCM ));
 
         threadWidth = ( uint32_t )ceil( ( double )copyWidthByte/BLOCK_PIXEL_WIDTH/4 );
         threadHeight = ( uint32_t )ceil( ( double )sliceCopyHeightRow/BLOCK_HEIGHT/INNER_LOOP );
         threadNum = threadWidth * threadHeight;
-        CMCHK_HR(kernel->SetThreadCount( threadNum ));
-        CMCHK_HR(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount( threadNum ));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
 
         if( direction == CM_FASTCOPY_CPU2GPU)
         {
             if (cmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
             {
-                CMCHK_HR(surface->SetCompressionMode(MEMCOMP_DISABLED));
+                CM_CHK_CMSTATUS_GOTOFINISH(surface->SetCompressionMode(MEMCOMP_DISABLED));
             }
-            CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), bufferIndexCM) );
-            CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), surf2DIndexCM ));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), bufferIndexCM) );
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), surf2DIndexCM ));
         }
         else
         {
-            CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), bufferIndexCM ));
-            CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), bufferIndexCM ));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
         }
 
         if(direction == CM_FASTCOPY_GPU2CPU)
@@ -1364,28 +1436,28 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
         widthDword = (uint32_t)ceil((double)widthByte / 4);
         strideInDwords = (uint32_t)ceil((double)strideInBytes / 4);
 
-        CMCHK_HR(kernel->SetKernelArg( 2, sizeof( uint32_t ), &strideInDwords ));
-        CMCHK_HR(kernel->SetKernelArg( 3, sizeof( uint32_t ), &heightStrideInRows ));
-        CMCHK_HR(kernel->SetKernelArg( 4, sizeof( uint32_t ), &addedShiftLeftOffset ));
-        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &threadHeight ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 2, sizeof( uint32_t ), &strideInDwords ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 3, sizeof( uint32_t ), &heightStrideInRows ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 4, sizeof( uint32_t ), &addedShiftLeftOffset ));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 5, sizeof( uint32_t ), &threadHeight ));
 
         if (direction == CM_FASTCOPY_GPU2CPU)  //GPU-->CPU, read
         {
-            CMCHK_HR(kernel->SetKernelArg( 6, sizeof( uint32_t ), &widthDword ));
-            CMCHK_HR(kernel->SetKernelArg( 7, sizeof( uint32_t ), &tempHeight ));
-            CMCHK_HR(kernel->SetKernelArg( 8, sizeof(uint32_t), &startX));
-            CMCHK_HR(kernel->SetKernelArg( 9, sizeof(uint32_t), &startY));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 6, sizeof( uint32_t ), &widthDword ));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 7, sizeof( uint32_t ), &tempHeight ));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 8, sizeof(uint32_t), &startX));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 9, sizeof(uint32_t), &startY));
         }
         else  //CPU-->GPU, write
         {
             //this only works for the kernel surfaceCopy_write_32x32
-            CMCHK_HR(kernel->SetKernelArg( 6, sizeof( uint32_t ), &startX ));
-            CMCHK_HR(kernel->SetKernelArg( 7, sizeof( uint32_t ), &startY ));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 6, sizeof( uint32_t ), &startX ));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 7, sizeof( uint32_t ), &startY ));
         }
 
-        CMCHK_HR(m_device->CreateQueue( cmQueue ));
-        CMCHK_HR(m_device->CreateTask(gpuCopyTask));
-        CMCHK_HR(gpuCopyTask->AddKernel( kernel ));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
+        CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
         if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
         {
             // disable turbo
@@ -1394,12 +1466,9 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
             gpuCopyTask->SetProperty(taskConfig);
         }
-        CMCHK_HR(cmQueue->Enqueue( gpuCopyTask, internalEvent, threadSpace ));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, internalEvent, threadSpace ));
 
-        if( gpuCopyKernelParam )
-        {
-            GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-        }
+        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
         //update for next slice
         linearAddress += sliceCopyBufferUPSize - addedShiftLeftOffset;
@@ -1410,19 +1479,19 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
 
         if(totalBufferUPSize > 0)   //Intermediate event, we don't need it
         {
-            CMCHK_HR(cmQueue->DestroyEvent(internalEvent));
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->DestroyEvent(internalEvent));
         }
         else //Last one event, need keep or destroy it
         {
             if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (internalEvent))
             {
-                CMCHK_HR(internalEvent->WaitForTaskFinished());
+                CM_CHK_CMSTATUS_GOTOFINISH(internalEvent->WaitForTaskFinished());
             }
 
             if(event == CM_NO_EVENT)  //User doesn't need CmEvent for this copy
             {
                 event = nullptr;
-                CMCHK_HR(cmQueue->DestroyEvent(internalEvent));
+                CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->DestroyEvent(internalEvent));
             }
             else //User needs this CmEvent
             {
@@ -1430,9 +1499,9 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             }
         }
 
-        CMCHK_HR(m_device->DestroyTask(gpuCopyTask));
-        CMCHK_HR(m_device->DestroyThreadSpace(threadSpace));
-        CMCHK_HR(m_device->DestroyBufferUP(cmbufferUP));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyTask(gpuCopyTask));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyThreadSpace(threadSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(cmbufferUP));
     }
 
 finish:
@@ -1578,40 +1647,40 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
     }
 
     kernel = nullptr;
-    CMCHK_HR(m_device->CreateBufferUP(bufferUPYSize, (void *)linearAddressAlignedY, cmbufferUPY));
-    CMCHK_NULL(cmbufferUPY);
-    CMCHK_HR(m_device->CreateBufferUP(bufferUPUVSize, (void *)linearAddressAlignedUV, cmbufferUPUV));
-    CMCHK_NULL(cmbufferUPUV);
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(bufferUPYSize, (void *)linearAddressAlignedY, cmbufferUPY));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPY);
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(bufferUPUVSize, (void *)linearAddressAlignedUV, cmbufferUPUV));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPUV);
     
     //Configure memory object control for the two BufferUP to solve the same cache-line coherency issue.
     if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
     {
-        CMCHK_HR(cmbufferUPY->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
-        CMCHK_HR(cmbufferUPUV->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmbufferUPY->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmbufferUPUV->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
     }
     else
     {
-        CMCHK_HR(static_cast< CmBuffer_RT* >(cmbufferUPY)->SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_FROM_GTT_ENTRY, CM_WRITE_THROUGH, 0));
-        CMCHK_HR(static_cast< CmBuffer_RT* >(cmbufferUPUV)->SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_FROM_GTT_ENTRY, CM_WRITE_THROUGH, 0));
+        CM_CHK_CMSTATUS_GOTOFINISH(static_cast< CmBuffer_RT* >(cmbufferUPY)->SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_FROM_GTT_ENTRY, CM_WRITE_THROUGH, 0));
+        CM_CHK_CMSTATUS_GOTOFINISH(static_cast< CmBuffer_RT* >(cmbufferUPUV)->SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_FROM_GTT_ENTRY, CM_WRITE_THROUGH, 0));
     }
 
-    CMCHK_HR(CreateGPUCopyKernel(copyWidthByte, copyHeightRow, format, direction, gpuCopyKernelParam));
-    CMCHK_NULL(gpuCopyKernelParam);
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateGPUCopyKernel(copyWidthByte, copyHeightRow, format, direction, gpuCopyKernelParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam);
     kernel = gpuCopyKernelParam->kernel;
 
-    CMCHK_NULL(kernel);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(kernel);
 
-    CMCHK_NULL(cmbufferUPY);
-    CMCHK_NULL(cmbufferUPUV);
-    CMCHK_HR(cmbufferUPY->GetIndex(bufferUPIndexY));
-    CMCHK_HR(cmbufferUPUV->GetIndex(bufferUPIndexUV));
-    CMCHK_HR(surface->GetIndex(surf2DIndexCM));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPY);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPUV);
+    CM_CHK_CMSTATUS_GOTOFINISH(cmbufferUPY->GetIndex(bufferUPIndexY));
+    CM_CHK_CMSTATUS_GOTOFINISH(cmbufferUPUV->GetIndex(bufferUPIndexUV));
+    CM_CHK_CMSTATUS_GOTOFINISH(surface->GetIndex(surf2DIndexCM));
 
     threadWidth = (uint32_t)ceil((double)copyWidthByte / BLOCK_PIXEL_WIDTH / 4);
     threadHeight = (uint32_t)ceil((double)copyHeightRow / BLOCK_HEIGHT / INNER_LOOP);
     threadNum = threadWidth * threadHeight;
-    CMCHK_HR(kernel->SetThreadCount(threadNum));
-    CMCHK_HR(m_device->CreateThreadSpace(threadWidth, threadHeight, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount(threadNum));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace(threadWidth, threadHeight, threadSpace));
 
     widthDword = (uint32_t)ceil((double)widthByte / 4);
     strideInDwords = (uint32_t)ceil((double)strideInBytes / 4);
@@ -1621,41 +1690,41 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
         //Input BufferUP_Y and BufferUP_UV
         if (cmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
         {
-            CMCHK_HR(surface->SetCompressionMode(MEMCOMP_DISABLED));
+            CM_CHK_CMSTATUS_GOTOFINISH(surface->SetCompressionMode(MEMCOMP_DISABLED));
         }
-        CMCHK_HR(kernel->SetKernelArg(0, sizeof(SurfaceIndex), bufferUPIndexY));
-        CMCHK_HR(kernel->SetKernelArg(1, sizeof(SurfaceIndex), bufferUPIndexUV));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(0, sizeof(SurfaceIndex), bufferUPIndexY));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(1, sizeof(SurfaceIndex), bufferUPIndexUV));
         //Output Surface2D
-        CMCHK_HR(kernel->SetKernelArg(2, sizeof(SurfaceIndex), surf2DIndexCM));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(2, sizeof(SurfaceIndex), surf2DIndexCM));
         //Other parameters
-        CMCHK_HR(kernel->SetKernelArg(3, sizeof(uint32_t), &strideInDwords));
-        CMCHK_HR(kernel->SetKernelArg(4, sizeof(uint32_t), &heightStrideInRows));
-        CMCHK_HR(kernel->SetKernelArg(5, sizeof(uint32_t), &addedShiftLeftOffsetY));
-        CMCHK_HR(kernel->SetKernelArg(6, sizeof(uint32_t), &addedShiftLeftOffsetUV));
-        CMCHK_HR(kernel->SetKernelArg(7, sizeof(uint32_t), &threadHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(3, sizeof(uint32_t), &strideInDwords));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(4, sizeof(uint32_t), &heightStrideInRows));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(5, sizeof(uint32_t), &addedShiftLeftOffsetY));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(6, sizeof(uint32_t), &addedShiftLeftOffsetUV));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(7, sizeof(uint32_t), &threadHeight));
     }
     else  //Read
     {
         //Input Surface2D
-        CMCHK_HR(kernel->SetKernelArg(0, sizeof(SurfaceIndex), surf2DIndexCM));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(0, sizeof(SurfaceIndex), surf2DIndexCM));
         //Output BufferUP_Y and BufferUP_UV
-        CMCHK_HR(kernel->SetKernelArg(1, sizeof(SurfaceIndex), bufferUPIndexY));
-        CMCHK_HR(kernel->SetKernelArg(2, sizeof(SurfaceIndex), bufferUPIndexUV));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(1, sizeof(SurfaceIndex), bufferUPIndexY));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(2, sizeof(SurfaceIndex), bufferUPIndexUV));
         //Other parameters
-        CMCHK_HR(kernel->SetKernelArg(3, sizeof(uint32_t), &strideInDwords));
-        CMCHK_HR(kernel->SetKernelArg(4, sizeof(uint32_t), &heightStrideInRows));
-        CMCHK_HR(kernel->SetKernelArg(5, sizeof(uint32_t), &addedShiftLeftOffsetY));
-        CMCHK_HR(kernel->SetKernelArg(6, sizeof(uint32_t), &addedShiftLeftOffsetUV));
-        CMCHK_HR(kernel->SetKernelArg(7, sizeof(uint32_t), &threadHeight));
-        CMCHK_HR(kernel->SetKernelArg(8, sizeof(uint32_t), &widthDword));
-        CMCHK_HR(kernel->SetKernelArg(9, sizeof(uint32_t), &heightInRow));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(3, sizeof(uint32_t), &strideInDwords));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(4, sizeof(uint32_t), &heightStrideInRows));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(5, sizeof(uint32_t), &addedShiftLeftOffsetY));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(6, sizeof(uint32_t), &addedShiftLeftOffsetUV));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(7, sizeof(uint32_t), &threadHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(8, sizeof(uint32_t), &widthDword));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(9, sizeof(uint32_t), &heightInRow));
 
         surface->SetReadSyncFlag(true); // GPU -> CPU, set surf2d as read sync flag
     }
 
-    CMCHK_HR(m_device->CreateQueue(cmQueue));
-    CMCHK_HR(m_device->CreateTask(gpuCopyTask));
-    CMCHK_HR(gpuCopyTask->AddKernel(kernel));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue(cmQueue));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
+    CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel(kernel));
     if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
     {
         // disable turbo
@@ -1664,32 +1733,29 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
         taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
         gpuCopyTask->SetProperty(taskConfig);
     }
-    CMCHK_HR(cmQueue->Enqueue(gpuCopyTask, internalEvent, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(gpuCopyTask, internalEvent, threadSpace));
 
-    if (gpuCopyKernelParam)
-    {
-        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-    }
+    GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (internalEvent))
     {
-        CMCHK_HR(internalEvent->WaitForTaskFinished());
+        CM_CHK_CMSTATUS_GOTOFINISH(internalEvent->WaitForTaskFinished());
     }
 
     if (event == CM_NO_EVENT)  //User doesn't need CmEvent for this copy
     {
         event = nullptr;
-        CMCHK_HR(cmQueue->DestroyEvent(internalEvent));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->DestroyEvent(internalEvent));
     }
     else //User needs this CmEvent
     {
         event = internalEvent;
     }
 
-    CMCHK_HR(m_device->DestroyTask(gpuCopyTask));
-    CMCHK_HR(m_device->DestroyThreadSpace(threadSpace));
-    CMCHK_HR(m_device->DestroyBufferUP(cmbufferUPY));
-    CMCHK_HR(m_device->DestroyBufferUP(cmbufferUPUV));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyTask(gpuCopyTask));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyThreadSpace(threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(cmbufferUPY));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(cmbufferUPUV));
 
 finish:
 
@@ -1777,11 +1843,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
     CmSurface2DRT *inputSurfaceRT = static_cast<CmSurface2DRT *>(inputSurface);
     if (cmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
     {
-        CMCHK_HR(outputSurfaceRT->SetCompressionMode(MEMCOMP_DISABLED));
+        CM_CHK_CMSTATUS_GOTOFINISH(outputSurfaceRT->SetCompressionMode(MEMCOMP_DISABLED));
     }
 
-    CMCHK_HR(outputSurfaceRT->GetSurfaceDesc(dstSurfaceWidth, dstSurfaceHeight, dstSurfaceFormat, dstSizePerPixel));
-    CMCHK_HR(inputSurfaceRT->GetSurfaceDesc(srcSurfaceWidth, srcSurfaceHeight, srcSurfaceFormat, srcSizePerPixel));
+    CM_CHK_CMSTATUS_GOTOFINISH(outputSurfaceRT->GetSurfaceDesc(dstSurfaceWidth, dstSurfaceHeight, dstSurfaceFormat, dstSizePerPixel));
+    CM_CHK_CMSTATUS_GOTOFINISH(inputSurfaceRT->GetSurfaceDesc(srcSurfaceWidth, srcSurfaceHeight, srcSurfaceFormat, srcSizePerPixel));
 
     if ((dstSurfaceWidth != srcSurfaceWidth) ||
         (dstSurfaceHeight < srcSurfaceHeight) ||  //relax the restriction
@@ -1811,29 +1877,29 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
         return CM_GPUCOPY_INVALID_SIZE;
     }
 
-    CMCHK_HR(CreateGPUCopyKernel(srcSurfaceWidth*srcSizePerPixel, srcSurfaceHeight, srcSurfaceFormat, CM_FASTCOPY_GPU2GPU, gpuCopyKernelParam));
-    CMCHK_NULL(gpuCopyKernelParam);
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateGPUCopyKernel(srcSurfaceWidth*srcSizePerPixel, srcSurfaceHeight, srcSurfaceFormat, CM_FASTCOPY_GPU2GPU, gpuCopyKernelParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam);
 
-    CMCHK_NULL(gpuCopyKernelParam->kernel);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam->kernel);
     kernel = gpuCopyKernelParam->kernel;
 
-    CMCHK_HR(inputSurface->GetIndex(surfaceInputIndex));
-    CMCHK_HR(outputSurface->GetIndex(surfaceOutputIndex));
+    CM_CHK_CMSTATUS_GOTOFINISH(inputSurface->GetIndex(surfaceInputIndex));
+    CM_CHK_CMSTATUS_GOTOFINISH(outputSurface->GetIndex(surfaceOutputIndex));
 
     threadWidth = srcSurfAlignedWidthInBytes / (BLOCK_PIXEL_WIDTH * 4);
     threadHeight = (uint32_t)ceil((double)srcSurfaceHeight / BLOCK_HEIGHT / INNER_LOOP);
 
-    CMCHK_HR(kernel->SetThreadCount(threadWidth * threadHeight));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount(threadWidth * threadHeight));
 
-    CMCHK_HR(kernel->SetKernelArg(0, sizeof(SurfaceIndex), surfaceInputIndex));
-    CMCHK_HR(kernel->SetKernelArg(1, sizeof(SurfaceIndex), surfaceOutputIndex));
-    CMCHK_HR(kernel->SetKernelArg(2, sizeof(uint32_t), &threadHeight));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(0, sizeof(SurfaceIndex), surfaceInputIndex));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(1, sizeof(SurfaceIndex), surfaceOutputIndex));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(2, sizeof(uint32_t), &threadHeight));
 
-    CMCHK_HR(m_device->CreateThreadSpace(threadWidth, threadHeight, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace(threadWidth, threadHeight, threadSpace));
 
-    CMCHK_HR(m_device->CreateTask(task));
-    CMCHK_NULL(task);
-    CMCHK_HR(task->AddKernel(kernel));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(task));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(task);
+    CM_CHK_CMSTATUS_GOTOFINISH(task->AddKernel(kernel));
 
     if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
     {
@@ -1844,11 +1910,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
         task->SetProperty(taskConfig);
     }
 
-    CMCHK_HR(m_device->CreateQueue(cmQueue));
-    CMCHK_HR(cmQueue->Enqueue(task, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue(cmQueue));
+    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(task, event, threadSpace));
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (event))
     {
-        CMCHK_HR(event->WaitForTaskFinished());
+        CM_CHK_CMSTATUS_GOTOFINISH(event->WaitForTaskFinished());
     }
 
 finish:
@@ -1977,34 +2043,34 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
         }
     }
 
-    CMCHK_HR(m_device->CreateBufferUP(size + srcLeftShiftOffset, (void *)inputLinearAddressAligned,surfaceInput));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(size + srcLeftShiftOffset, (void *)inputLinearAddressAligned,surfaceInput));
 
-    CMCHK_HR(m_device->CreateBufferUP(size + dstLeftShiftOffset, (void *)outputLinearAddressAligned,surfaceOutput));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(size + dstLeftShiftOffset, (void *)outputLinearAddressAligned,surfaceOutput));
 
-    CMCHK_HR(CreateGPUCopyKernel(size, 0, CM_SURFACE_FORMAT_INVALID, CM_FASTCOPY_CPU2CPU, gpuCopyKernelParam));
-    CMCHK_NULL(gpuCopyKernelParam);
-    CMCHK_NULL(gpuCopyKernelParam->kernel);
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateGPUCopyKernel(size, 0, CM_SURFACE_FORMAT_INVALID, CM_FASTCOPY_CPU2CPU, gpuCopyKernelParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam->kernel);
     kernel = gpuCopyKernelParam->kernel;
 
-    CMCHK_NULL(surfaceInput);
-    CMCHK_HR(surfaceInput->GetIndex(surfaceInputIndex));
-    CMCHK_NULL(surfaceOutput);
-    CMCHK_HR(surfaceOutput->GetIndex(surfaceOutputIndex));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(surfaceInput);
+    CM_CHK_CMSTATUS_GOTOFINISH(surfaceInput->GetIndex(surfaceInputIndex));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(surfaceOutput);
+    CM_CHK_CMSTATUS_GOTOFINISH(surfaceOutput->GetIndex(surfaceOutputIndex));
 
-    CMCHK_HR(kernel->SetThreadCount(threadWidth * threadHeight));
-    CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surfaceInputIndex ));
-    CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), surfaceOutputIndex ));
-    CMCHK_HR(kernel->SetKernelArg( 2, sizeof( int ), &threadWidth ));
-    CMCHK_HR(kernel->SetKernelArg( 3, sizeof( int ), &threadHeight ));
-    CMCHK_HR(kernel->SetKernelArg( 4, sizeof( int ), &srcLeftShiftOffset ));
-    CMCHK_HR(kernel->SetKernelArg( 5, sizeof( int ), &dstLeftShiftOffset ));
-    CMCHK_HR(kernel->SetKernelArg( 6, sizeof( int ), &size ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount(threadWidth * threadHeight));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surfaceInputIndex ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), surfaceOutputIndex ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 2, sizeof( int ), &threadWidth ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 3, sizeof( int ), &threadHeight ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 4, sizeof( int ), &srcLeftShiftOffset ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 5, sizeof( int ), &dstLeftShiftOffset ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 6, sizeof( int ), &size ));
 
-    CMCHK_HR(m_device->CreateThreadSpace(threadWidth, threadHeight, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace(threadWidth, threadHeight, threadSpace));
 
-    CMCHK_HR(m_device->CreateTask(task));
-    CMCHK_NULL(task);
-    CMCHK_HR(task->AddKernel (kernel));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(task));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(task);
+    CM_CHK_CMSTATUS_GOTOFINISH(task->AddKernel (kernel));
 
     if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
     {
@@ -2015,12 +2081,12 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
         task->SetProperty(taskConfig);
     }
 
-    CMCHK_HR(m_device->CreateQueue( cmQueue));
-    CMCHK_HR(cmQueue->Enqueue(task, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue));
+    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(task, event, threadSpace));
 
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (event))
     {
-        CMCHK_HR(event->WaitForTaskFinished());
+        CM_CHK_CMSTATUS_GOTOFINISH(event->WaitForTaskFinished());
     }
 
     //Copy the unaligned part by using CPU
@@ -2031,15 +2097,12 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
                   (void *)(inputLinearAddress+gpuMemcopySize),
                           cpuMemcopySize); //SSE copy used in CMRT.
 
-    CMCHK_HR(m_device->DestroyThreadSpace(threadSpace));
-    CMCHK_HR(m_device->DestroyTask(task));
-    CMCHK_HR(m_device->DestroyBufferUP(surfaceOutput));   // ref_cnf to guarantee task finish before BufferUP being really destroy.
-    CMCHK_HR(m_device->DestroyBufferUP(surfaceInput));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyThreadSpace(threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyTask(task));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(surfaceOutput));   // ref_cnf to guarantee task finish before BufferUP being really destroy.
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(surfaceInput));
 
-    if( gpuCopyKernelParam )
-    {
-        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-    }
+    GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
 finish:
     if(hr != CM_SUCCESS)
@@ -2153,7 +2216,7 @@ int32_t CmQueueRT::QueryFlushedTasks()
     while( !m_flushedTasks.IsEmpty() )
     {
         CmTaskInternal* task = (CmTaskInternal*)m_flushedTasks.Top();
-        CMCHK_NULL(task);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(task);
 
         CM_STATUS status = CM_STATUS_FLUSHED ;
         task->GetTaskStatus(status);
@@ -2172,7 +2235,7 @@ int32_t CmQueueRT::QueryFlushedTasks()
                 int32_t taskId;
                 CmEventRT*pTopTaskEvent;
                 task->GetTaskEvent(pTopTaskEvent);
-                CMCHK_NULL(pTopTaskEvent);
+                CM_CHK_NULL_GOTOFINISH_CMERROR(pTopTaskEvent);
 
                 pTopTaskEvent->GetTaskDriverId(taskId);
                 cmData->cmHalState->taskStatusTable[taskId] = CM_INVALID_INDEX;
@@ -2318,43 +2381,43 @@ CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* surf2D, const ui
     }
     CmSurface2DRT *surf2DRT = static_cast<CmSurface2DRT *>(surf2D);
 
-    CMCHK_HR(m_device->LoadPredefinedInitKernel(gpuInitKernelProgram));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->LoadPredefinedInitKernel(gpuInitKernelProgram));
 
-    CMCHK_HR(surf2DRT->GetSurfaceDesc(width, height, format,sizePerPixel));
+    CM_CHK_CMSTATUS_GOTOFINISH(surf2DRT->GetSurfaceDesc(width, height, format,sizePerPixel));
 
     m_device->GetSurfaceManager(surfaceMgr);
-    CMCHK_NULL(surfaceMgr);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(surfaceMgr);
 
     if (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016)
     {
-        CMCHK_HR(m_device->CreateKernel( gpuInitKernelProgram, _NAME( surfaceCopy_set_NV12 ), kernel, "PredefinedGPUCopyKernel"));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel( gpuInitKernelProgram, _NAME( surfaceCopy_set_NV12 ), kernel, "PredefinedGPUCopyKernel"));
     }
     else
     {
-        CMCHK_HR(m_device->CreateKernel( gpuInitKernelProgram, _NAME( surfaceCopy_set ), kernel, "PredefinedGPUCopyKernel" ));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel( gpuInitKernelProgram, _NAME( surfaceCopy_set ), kernel, "PredefinedGPUCopyKernel" ));
     }
-    CMCHK_NULL(kernel);
-    CMCHK_HR(surf2D->GetIndex( outputIndexCM ));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(kernel);
+    CM_CHK_CMSTATUS_GOTOFINISH(surf2D->GetIndex( outputIndexCM ));
 
     threadWidth = ( uint32_t )ceil( ( double )width*sizePerPixel/BLOCK_PIXEL_WIDTH/4 );
     threadHeight = ( uint32_t )ceil( ( double )height/BLOCK_HEIGHT );
     threadNum = threadWidth * threadHeight;
-    CMCHK_HR(kernel->SetThreadCount( threadNum ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount( threadNum ));
 
-    CMCHK_HR(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
-    CMCHK_NULL(threadSpace);
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpace);
 
-    CMCHK_HR(kernel->SetKernelArg( 0, sizeof( uint32_t ), &initValue ));
-    CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), outputIndexCM ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( uint32_t ), &initValue ));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), outputIndexCM ));
 
-    CMCHK_HR(m_device->CreateQueue( cmQueue ));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
 
-    CMCHK_HR(m_device->CreateTask(gpuCopyTask));
-    CMCHK_NULL(gpuCopyTask);
+    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyTask);
 
-    CMCHK_HR(gpuCopyTask->AddKernel( kernel ));
+    CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
 
-    CMCHK_HR(cmQueue->Enqueue( gpuCopyTask, event, threadSpace ));
+    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, event, threadSpace ));
 
 finish:
 
@@ -2394,7 +2457,7 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
     //GT-PIN
     if(m_device->CheckGTPinEnabled())
     {
-        CMCHK_HR(task->GetKernelSurfInfo(param.surfEntryInfoArrays));
+        CM_CHK_CMSTATUS_GOTOFINISH(task->GetKernelSurfInfo(param.surfEntryInfoArrays));
     }
 
     task->GetKernelCount( count );
@@ -2405,17 +2468,17 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
     param.kernelCurbeOffset = MOS_NewArray(uint32_t,count);
     param.queueOption = m_queueOption;
 
-    CMCHK_NULL_RETURN(param.kernels, CM_OUT_OF_HOST_MEMORY);
-    CMCHK_NULL_RETURN(param.kernelSizes, CM_OUT_OF_HOST_MEMORY);
-    CMCHK_NULL_RETURN(param.kernelCurbeOffset, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(param.kernels, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(param.kernelSizes, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(param.kernelCurbeOffset, CM_OUT_OF_HOST_MEMORY);
 
     for( uint32_t i = 0; i < count; i ++ )
     {
         task->GetKernelData( i, kernelData );
-        CMCHK_NULL(kernelData);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelData);
 
         kernelParam = kernelData->GetHalCmKernelData();
-        CMCHK_NULL(kernelParam);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelParam);
 
         hasThreadArg |= kernelParam->perThreadArgExisted;
 
@@ -2474,8 +2537,8 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
             param.threadCoordinates = MOS_NewArray(PCM_HAL_SCOREBOARD, count);
             param.dependencyMasks = MOS_NewArray(PCM_HAL_MASK_AND_RESET, count);
 
-            CMCHK_NULL_RETURN(param.threadCoordinates, CM_OUT_OF_HOST_MEMORY);
-            CMCHK_NULL_RETURN(param.dependencyMasks, CM_OUT_OF_HOST_MEMORY);
+            CM_CHK_NULL_GOTOFINISH(param.threadCoordinates, CM_OUT_OF_HOST_MEMORY);
+            CM_CHK_NULL_GOTOFINISH(param.dependencyMasks, CM_OUT_OF_HOST_MEMORY);
             for(uint32_t i=0; i<count; i++)
             {
                 void *kernelCoordinates = nullptr;
@@ -2500,7 +2563,7 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
         if( task->CheckWalkingParametersSet( ) )
         {
             param.walkingParamsValid = 1;
-            CMCHK_HR(task->GetWalkingParameters(param.walkingParams));
+            CM_CHK_CMSTATUS_GOTOFINISH(task->GetWalkingParameters(param.walkingParams));
         }
         else
         {
@@ -2510,7 +2573,7 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
         if( task->CheckDependencyVectorsSet( ) )
         {
             param.dependencyVectorsValid = 1;
-            CMCHK_HR(task->GetDependencyVectors(param.dependencyVectors));
+            CM_CHK_CMSTATUS_GOTOFINISH(task->GetDependencyVectors(param.dependencyVectors));
         }
         else
         {
@@ -2533,10 +2596,10 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
     CmSafeMemCopy(&param.taskConfig, task->GetTaskConfig(), sizeof(param.taskConfig));
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
 
     m_device->RegisterSyncEvent(nullptr);
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnExecuteTask(cmData->cmHalState, &param));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnExecuteTask(cmData->cmHalState, &param));
 
     if( param.taskIdOut < 0 )
     {
@@ -2548,16 +2611,16 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
     TASK_LOG(task);
 
     task->GetTaskEvent( event );
-    CMCHK_NULL(event);
-    CMCHK_HR(event->SetTaskDriverId( param.taskIdOut ));
-    CMCHK_HR(event->SetTaskOsData( param.osData ));
-    CMCHK_HR(task->ResetKernelDataStatus());
+    CM_CHK_NULL_GOTOFINISH_CMERROR(event);
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskDriverId( param.taskIdOut ));
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskOsData( param.osData ));
+    CM_CHK_CMSTATUS_GOTOFINISH(task->ResetKernelDataStatus());
 
     //GT-PIN
     if(m_device->CheckGTPinEnabled())
     {
         //No need to clear the SurEntryInfoArrays here. It will be destored by CmInternalTask
-        CMCHK_HR(event->SetSurfaceDetails(param.surfEntryInfoArrays));
+        CM_CHK_CMSTATUS_GOTOFINISH(event->SetSurfaceDetails(param.surfEntryInfoArrays));
     }
 
 finish:
@@ -2596,7 +2659,7 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     //GT-PIN
     if(this->m_device->CheckGTPinEnabled())
     {
-        CMCHK_HR(task->GetKernelSurfInfo(param.surEntryInfoArrays));
+        CM_CHK_CMSTATUS_GOTOFINISH(task->GetKernelSurfInfo(param.surEntryInfoArrays));
     }
 
     task->GetKernelCount( count );
@@ -2608,14 +2671,14 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     param.queueOption = m_queueOption;
 
     CmSafeMemCopy(&param.taskConfig, task->GetTaskConfig(), sizeof(param.taskConfig));
-    CMCHK_NULL(param.kernels);
-    CMCHK_NULL(param.kernelSizes);
-    CMCHK_NULL(param.kernelCurbeOffset);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernels);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernelSizes);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernelCurbeOffset);
 
     for( uint32_t i = 0; i < count; i ++ )
     {
         task->GetKernelData( i, kernelData );
-        CMCHK_NULL(kernelData);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelData);
 
         task->GetKernelDataSize( i, kernelDataSize );
         if( kernelDataSize == 0)
@@ -2644,21 +2707,24 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
 
     if (task->IsThreadGroupSpaceCreated())//thread group size
     {
-        task->GetThreadGroupSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight, param.threadSpaceDepth, param.groupSpaceWidth, param.groupSpaceHeight, param.groupSpaceDepth);
+        task->GetThreadGroupSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight,
+                                      param.threadSpaceDepth, param.groupSpaceWidth,
+                                      param.groupSpaceHeight, param.groupSpaceDepth);
     }
 
     param.syncBitmap = task->GetSyncBitmap();
     param.conditionalEndBitmap = task->GetConditionalEndBitmap();
     param.userDefinedMediaState = task->GetMediaStatePtr();
     CmSafeMemCopy(param.conditionalEndInfo, task->GetConditionalEndInfo(), sizeof(param.conditionalEndInfo));
+    CmSafeMemCopy(param.krnExecCfg, task->GetKernelExecuteConfig(), sizeof(param.krnExecCfg));
 
     // Call HAL layer to execute pfnExecuteGroupTask
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR( cmData->cmHalState->pfnSetPowerOption( cmData->cmHalState, task->GetPowerOption() ) );
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnSetPowerOption( cmData->cmHalState, task->GetPowerOption() ) );
 
     m_device->RegisterSyncEvent(nullptr);
-    CHK_MOSSTATUS_RETURN_CMERROR( cmData->cmHalState->pfnExecuteGroupTask( cmData->cmHalState, &param ) );
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnExecuteGroupTask( cmData->cmHalState, &param ) );
 
     if( param.taskIdOut < 0 )
     {
@@ -2668,15 +2734,15 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     }
     TASK_LOG(task);
     task->GetTaskEvent( event );
-    CMCHK_NULL( event );
-    CMCHK_HR(event->SetTaskDriverId( param.taskIdOut ));
-    CMCHK_HR(event->SetTaskOsData( param.osData ));
-    CMCHK_HR(task->ResetKernelDataStatus());
+    CM_CHK_NULL_GOTOFINISH_CMERROR( event );
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskDriverId( param.taskIdOut ));
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskOsData( param.osData ));
+    CM_CHK_CMSTATUS_GOTOFINISH(task->ResetKernelDataStatus());
 
     //GT-PIN
     if(this->m_device->CheckGTPinEnabled())
     {
-        CMCHK_HR(event->SetSurfaceDetails(param.surEntryInfoArrays));
+        CM_CHK_CMSTATUS_GOTOFINISH(event->SetSurfaceDetails(param.surEntryInfoArrays));
     }
 
 finish:
@@ -2717,7 +2783,7 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
     task->GetVeboxState(cmVeboxState);
     task->GetVeboxParam(veboxParamBuf);
     task->GetVeboxSurfaceData(cmVeboxSurfaceData);
-    CMCHK_NULL(veboxParamBuf);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(veboxParamBuf);
 
     temp = static_cast<CmBuffer_RT*>(veboxParamBuf);
     temp->GetHandle(param.veboxParamIndex);
@@ -2732,7 +2798,7 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
 
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
     m_device->RegisterSyncEvent(nullptr);
-    CHK_MOSSTATUS_RETURN_CMERROR( cmData->cmHalState->pfnExecuteVeboxTask( cmData->cmHalState, &param ) );
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnExecuteVeboxTask( cmData->cmHalState, &param ) );
 
     if( param.taskIdOut < 0 )
     {
@@ -2742,9 +2808,9 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
     }
 
     task->GetTaskEvent( event );
-    CMCHK_NULL( event );
-    CMCHK_HR(event->SetTaskDriverId( param.taskIdOut ));
-    CMCHK_HR(event->SetTaskOsData( param.osData ));
+    CM_CHK_NULL_GOTOFINISH_CMERROR( event );
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskDriverId( param.taskIdOut ));
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskOsData( param.osData ));
 
 finish:
     return hr;
@@ -2781,9 +2847,9 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* task )
     param.kernelCurbeOffset = MOS_NewArray(uint32_t, count);
     param.queueOption = m_queueOption;
 
-    CMCHK_NULL(param.kernels);
-    CMCHK_NULL(param.kernelSizes);
-    CMCHK_NULL(param.kernelCurbeOffset);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernels);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernelSizes);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernelCurbeOffset);
 
     task->GetHints(param.hints);
     task->GetNumTasksGenerated(param.numTasksGenerated);
@@ -2792,7 +2858,7 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* task )
     for( uint32_t i = 0; i < count; i ++ )
     {
         task->GetKernelData( i, kernelData );
-        CMCHK_NULL( kernelData );
+        CM_CHK_NULL_GOTOFINISH_CMERROR( kernelData );
 
         task->GetKernelDataSize( i, kernelDataSize );
         if( kernelDataSize == 0 )
@@ -2811,12 +2877,12 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* task )
 
     param.userDefinedMediaState = task->GetMediaStatePtr();
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CMCHK_NULL(cmData);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmData);
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
 
     m_device->RegisterSyncEvent(nullptr);
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnExecuteHintsTask(cmData->cmHalState, &param));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnExecuteHintsTask(cmData->cmHalState, &param));
 
     if( param.taskIdOut < 0 )
     {
@@ -2828,10 +2894,10 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* task )
     TASK_LOG(task);
 
     task->GetTaskEvent( event );
-    CMCHK_NULL( event );
-    CMCHK_HR(event->SetTaskDriverId( param.taskIdOut ));
-    CMCHK_HR(event->SetTaskOsData( param.osData ));
-    CMCHK_HR(task->ResetKernelDataStatus());
+    CM_CHK_NULL_GOTOFINISH_CMERROR( event );
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskDriverId( param.taskIdOut ));
+    CM_CHK_CMSTATUS_GOTOFINISH(event->SetTaskOsData( param.osData ));
+    CM_CHK_CMSTATUS_GOTOFINISH(task->ResetKernelDataStatus());
 
 finish:
 
@@ -2893,7 +2959,7 @@ int32_t CmQueueRT::FlushTaskWithoutSync( bool flushBlocked )
         }
 
         task = (CmTaskInternal*)m_enqueuedTasks.Pop();
-        CMCHK_NULL( task );
+        CM_CHK_NULL_GOTOFINISH_CMERROR( task );
 
         CmNotifierGroup *notifiers = m_device->GetNotifiers();
         if (notifiers != nullptr)
@@ -2990,7 +3056,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueVebox(CmVebox * vebox, CmEvent* & event)
         return CM_NULL_POINTER;
     }
     CmVeboxRT *veboxRT = static_cast<CmVeboxRT *>(vebox);
-    CMCHK_HR(CmTaskInternal::Create(m_device,  veboxRT, task ));
+    CM_CHK_CMSTATUS_GOTOFINISH(CmTaskInternal::Create(m_device,  veboxRT, task ));
 
     LARGE_INTEGER nEnqueueTime;
     if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )) )
@@ -2999,7 +3065,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueVebox(CmVebox * vebox, CmEvent* & event)
         return CM_FAILURE;
     }
 
-    CMCHK_HR(CreateEvent(task, isEventVisible, taskDriverId, eventRT));
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateEvent(task, isEventVisible, taskDriverId, eventRT));
 
     if ( eventRT != nullptr )
     {
@@ -3014,7 +3080,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueVebox(CmVebox * vebox, CmEvent* & event)
         goto finish;
     }
 
-    CMCHK_HR(FlushTaskWithoutSync());
+    CM_CHK_CMSTATUS_GOTOFINISH(FlushTaskWithoutSync());
 
 finish:
 
@@ -3145,7 +3211,7 @@ int32_t CmQueueRT::CreateGPUCopyKernel(uint32_t widthInByte,
     int32_t     hr                 = CM_SUCCESS;
 
     //Search existing kernel
-    CMCHK_HR(SearchGPUCopyKernel(widthInByte, height, format, copyDirection, gpuCopyKernelParam));
+    CM_CHK_CMSTATUS_GOTOFINISH(SearchGPUCopyKernel(widthInByte, height, format, copyDirection, gpuCopyKernelParam));
 
     if(gpuCopyKernelParam != nullptr)
     { // reuse
@@ -3154,14 +3220,14 @@ int32_t CmQueueRT::CreateGPUCopyKernel(uint32_t widthInByte,
     else
     {
         gpuCopyKernelParam   = new (std::nothrow) CM_GPUCOPY_KERNEL ;
-        CMCHK_NULL(gpuCopyKernelParam);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam);
         CmSafeMemSet(gpuCopyKernelParam, 0, sizeof(CM_GPUCOPY_KERNEL));
 
-        CMCHK_HR(AllocateGPUCopyKernel(widthInByte, height, format, copyDirection, gpuCopyKernelParam->kernel));
-        CMCHK_HR(GetGPUCopyKrnID(widthInByte, height, format, copyDirection, gpuCopyKernelParam->kernelID));
+        CM_CHK_CMSTATUS_GOTOFINISH(AllocateGPUCopyKernel(widthInByte, height, format, copyDirection, gpuCopyKernelParam->kernel));
+        CM_CHK_CMSTATUS_GOTOFINISH(GetGPUCopyKrnID(widthInByte, height, format, copyDirection, gpuCopyKernelParam->kernelID));
         GPUCOPY_KERNEL_LOCK(gpuCopyKernelParam);
 
-        CMCHK_HR(AddGPUCopyKernel(gpuCopyKernelParam));
+        CM_CHK_CMSTATUS_GOTOFINISH(AddGPUCopyKernel(gpuCopyKernelParam));
     }
 
 finish:
@@ -3197,7 +3263,7 @@ int32_t CmQueueRT::SearchGPUCopyKernel(uint32_t widthInByte,
     CM_GPUCOPY_KERNEL_ID kernelTypeID = GPU_COPY_KERNEL_UNKNOWN;
 
     kernelParam = nullptr;
-    CMCHK_HR(GetGPUCopyKrnID(widthInByte, height, format, copyDirection, kernelTypeID));
+    CM_CHK_CMSTATUS_GOTOFINISH(GetGPUCopyKrnID(widthInByte, height, format, copyDirection, kernelTypeID));
 
     for(uint32_t index =0 ;  index< m_copyKernelParamArrayCount; index++)
     {
@@ -3236,7 +3302,7 @@ int32_t CmQueueRT::AddGPUCopyKernel(CM_GPUCOPY_KERNEL* &kernelParam)
     // critical section protection
     CLock locker(m_criticalSectionGPUCopyKrn);
 
-    CMCHK_NULL_RETURN(kernelParam, CM_INVALID_GPUCOPY_KERNEL);
+    CM_CHK_NULL_GOTOFINISH(kernelParam, CM_INVALID_GPUCOPY_KERNEL);
 
     // the newly created kernel must be locked
     if(!kernelParam->locked)
@@ -3362,8 +3428,8 @@ int32_t CmQueueRT::AllocateGPUCopyKernel( uint32_t widthInByte, uint32_t height,
     int32_t          hr                 = CM_SUCCESS;
     CmProgram       *gpuCopyProgram    = nullptr;
 
-    CMCHK_HR( m_device->LoadPredefinedCopyKernel(gpuCopyProgram));
-    CMCHK_NULL(gpuCopyProgram);
+    CM_CHK_CMSTATUS_GOTOFINISH( m_device->LoadPredefinedCopyKernel(gpuCopyProgram));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyProgram);
 
     if (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016)
     {
@@ -3372,24 +3438,24 @@ int32_t CmQueueRT::AllocateGPUCopyKernel( uint32_t widthInByte, uint32_t height,
             case CM_FASTCOPY_GPU2CPU:
                 if ( (height&0x7) ||(widthInByte&0x7f))
                 {
-                    CMCHK_HR(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_NV12_32x32 ) , kernel,"PredefinedGPUCopyKernel"));
+                    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_NV12_32x32 ) , kernel,"PredefinedGPUCopyKernel"));
                 }
                 else
                 {   // height 8-row aligned, widthByte 128 multiple
-                    CMCHK_HR(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_NV12_aligned_32x32 ) , kernel,"PredefinedGPUCopyKernel"));
+                    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_NV12_aligned_32x32 ) , kernel,"PredefinedGPUCopyKernel"));
                 }
                 break;
 
             case CM_FASTCOPY_CPU2GPU:
-                CMCHK_HR( m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_write_NV12_32x32 ), kernel, "PredefinedGPUCopyKernel"));
+                CM_CHK_CMSTATUS_GOTOFINISH( m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_write_NV12_32x32 ), kernel, "PredefinedGPUCopyKernel"));
                 break;
 
             case CM_FASTCOPY_GPU2GPU:
-                CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_2DTo2D_NV12_32x32), kernel, "PredefinedGPUCopyKernel"));
+                CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_2DTo2D_NV12_32x32), kernel, "PredefinedGPUCopyKernel"));
                 break;
 
             case CM_FASTCOPY_CPU2CPU:
-                CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_BufferToBuffer_4k), kernel, "PredefinedGPUCopyKernel"));
+                CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_BufferToBuffer_4k), kernel, "PredefinedGPUCopyKernel"));
                 break;
 
             default :
@@ -3405,24 +3471,24 @@ int32_t CmQueueRT::AllocateGPUCopyKernel( uint32_t widthInByte, uint32_t height,
             case CM_FASTCOPY_GPU2CPU:
                 if ( (height&0x7) ||(widthInByte&0x7f))
                 {
-                    CMCHK_HR(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_32x32 ) , kernel, "PredefinedGPUCopyKernel"));
+                    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_32x32 ) , kernel, "PredefinedGPUCopyKernel"));
                 }
                 else
                 {   // height 8-row aligned, widthByte 128 multiple
-                    CMCHK_HR(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_aligned_32x32  ) , kernel, "PredefinedGPUCopyKernel"));
+                    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_read_aligned_32x32  ) , kernel, "PredefinedGPUCopyKernel"));
                 }
                 break;
 
             case CM_FASTCOPY_CPU2GPU:
-                CMCHK_HR( m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_write_32x32 ), kernel, "PredefinedGPUCopyKernel" ));
+                CM_CHK_CMSTATUS_GOTOFINISH( m_device->CreateKernel( gpuCopyProgram, _NAME( surfaceCopy_write_32x32 ), kernel, "PredefinedGPUCopyKernel" ));
                 break;
 
             case CM_FASTCOPY_GPU2GPU:
-                CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_2DTo2D_32x32), kernel, "PredefinedGPUCopyKernel"));
+                CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_2DTo2D_32x32), kernel, "PredefinedGPUCopyKernel"));
                 break;
 
             case CM_FASTCOPY_CPU2CPU:
-                CMCHK_HR(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_BufferToBuffer_4k), kernel, "PredefinedGPUCopyKernel"));
+                CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateKernel(gpuCopyProgram, _NAME(SurfaceCopy_BufferToBuffer_4k), kernel, "PredefinedGPUCopyKernel"));
                 break;
 
             default :
@@ -3435,4 +3501,34 @@ int32_t CmQueueRT::AllocateGPUCopyKernel( uint32_t widthInByte, uint32_t height,
 finish:
     return hr;
 }
+
+CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace)
+{
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (state == nullptr || state->advExecutor == nullptr)
+    {
+        return CM_NULL_POINTER;
+    }
+    else
+    {
+        return state->advExecutor->SubmitTask(this, task, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    }
+}
+
+CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
+{
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    
+    if (state == nullptr || state->advExecutor == nullptr)
+    {
+        return CM_NULL_POINTER;
+    }
+    else
+    {
+        return state->advExecutor->DestoryEvent(this, event);
+    }
+}
+
 }

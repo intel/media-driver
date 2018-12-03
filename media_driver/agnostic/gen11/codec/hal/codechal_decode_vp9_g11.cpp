@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,45 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 m_scalabilityState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
                 codecHalSetting));
+
+            if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 2)
+            {
+                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    m_videoContext,
+                    MOS_GPU_NODE_VIDEO,
+                    m_gpuCtxCreatOpt));
+
+                MOS_GPUCTX_CREATOPTIONS createOption;
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    MOS_GPU_CONTEXT_VIDEO,
+                    MOS_GPU_NODE_VIDEO,
+                    &createOption));
+            }
+            else if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 3)
+            {
+                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    m_videoContext,
+                    MOS_GPU_NODE_VIDEO,
+                    m_gpuCtxCreatOpt));
+
+                MOS_GPUCTX_CREATOPTIONS createOption;
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    MOS_GPU_CONTEXT_VIDEO,
+                    MOS_GPU_NODE_VIDEO,
+                    &createOption));
+            }
+            else
+            {
+                m_videoContext = MOS_GPU_CONTEXT_VIDEO;
+            }
         }
         else
         {
@@ -94,6 +133,8 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 m_sinlgePipeVeState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
                 false));
+
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO;
         }
     }
 
@@ -479,8 +520,13 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
         }
     }
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11));
+    auto pipeModeSelectParams =
+        static_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(m_picMhwParams.PipeModeSelectParams);
+    *pipeModeSelectParams = {}; 
+    auto pipeBufAddrParams =
+        static_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11>(m_picMhwParams.PipeBufAddrParams);
+    *pipeBufAddrParams = {};
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicStateMhwParams());
 
     bool drmStartStatusFlag = true;
@@ -488,12 +534,7 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
     {
         // Put all DRM/Start Status related cmd into FE VDBOX
         drmStartStatusFlag = CodecHalDecodeScalabilityIsFEPhase(m_scalabilityState);
-        ;
 
-        PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11 pipeModeSelectParams =
-            static_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(m_picMhwParams.PipeModeSelectParams);
-        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11 pipeBufAddrParams =
-            static_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11>(m_picMhwParams.PipeBufAddrParams);
         CodecHalDecodeScalablity_DecPhaseToHwWorkMode(
             pipeModeSelectParams->MultiEngineMode,
             pipeModeSelectParams->PipeWorkMode);
@@ -884,7 +925,6 @@ MOS_STATUS CodechalDecodeVp9G11 :: AllocateStandard (
     m_chromaFormatinProfile = settings->chromaFormat;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11      stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bHucDummyStream = false;
     stateCmdSizeParams.bScalableMode   = static_cast<MhwVdboxMfxInterfaceG11*>(m_mfxInterface)->IsScalabilitySupported();
     //FE has more commands than BE.
@@ -934,8 +974,6 @@ MOS_STATUS CodechalDecodeVp9G11 :: AllocateStandard (
     m_picMhwParams.Vp9PicState = MOS_New(MHW_VDBOX_VP9_PIC_STATE);
     m_picMhwParams.Vp9SegmentState = MOS_New(MHW_VDBOX_VP9_SEGMENT_STATE);
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.Vp9PicState, sizeof(MHW_VDBOX_VP9_PIC_STATE));
     MOS_ZeroMemory(m_picMhwParams.Vp9SegmentState, sizeof(MHW_VDBOX_VP9_SEGMENT_STATE));

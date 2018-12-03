@@ -117,9 +117,9 @@ MOS_STATUS CM_HAL_G9_X::SetupHwDebugControl(
     MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegImm;
 
     //---------------------------------------
-    CM_CHK_NULL(renderHal);
-    CM_CHK_NULL(renderHal->pMhwMiInterface);
-    CM_CHK_NULL(cmdBuffer);
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(renderHal);
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(renderHal->pMhwMiInterface);
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(cmdBuffer);
     //---------------------------------------
 
     MOS_ZeroMemory(&loadRegImm, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
@@ -127,14 +127,14 @@ MOS_STATUS CM_HAL_G9_X::SetupHwDebugControl(
     // CS_DEBUG_MODE1, global debug enable
     loadRegImm.dwRegister = CS_DEBUG_MODE1;
     loadRegImm.dwData = (CS_DEBUG_MODE1_GLOBAL_DEBUG << 16) | CS_DEBUG_MODE1_GLOBAL_DEBUG;
-    CM_CHK_STATUS(renderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegImm));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegImm));
 
     // TD_CTL, force thread breakpoint enable
     // Also enable external exception, because the source-level debugger has to
     // be able to interrupt runing EU threads.
     loadRegImm.dwRegister = TD_CTL;
     loadRegImm.dwData = TD_CTL_FORCE_THREAD_BKPT_ENABLE | TD_CTL_FORCE_EXT_EXCEPTION_ENABLE;
-    CM_CHK_STATUS(renderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegImm));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegImm));
 
 finish:
     return eStatus;
@@ -254,7 +254,7 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
     PCM_HAL_SAMPLER_8X8_PARAM    param)
 {
     PCM_HAL_STATE               state = m_cmState;
-    MOS_STATUS                  hr = MOS_STATUS_SUCCESS;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     int16_t                     samplerIndex = 0;
     PMHW_SAMPLER_STATE_PARAM    samplerEntry = nullptr;
     PCM_HAL_SAMPLER_8X8_ENTRY   sampler8x8Entry = nullptr;
@@ -281,7 +281,8 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
         }
 
         if (!samplerEntry || !sampler8x8Entry) {
-            CM_ERROR_ASSERT("Sampler or AVS table is full");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            CM_ASSERTMESSAGE("Sampler or AVS table is full");
             goto finish;
         }
 
@@ -298,7 +299,7 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
         else
             param->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = false;
 
-        CM_CHK_MOSSTATUS(RegisterSampler8x8AVSTable(&sampler8x8Entry->sampler8x8State,
+        CM_CHK_MOSSTATUS_GOTOFINISH(RegisterSampler8x8AVSTable(&sampler8x8Entry->sampler8x8State,
                                                     &param->sampler8x8State.avsParam.avsTable));
 
         sampler8x8Entry->sampler8x8State.stateType  = CM_SAMPLER8X8_AVS;
@@ -480,7 +481,7 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
     }
 
 finish:
-    return hr;
+    return eStatus;
 }
 
 /*----------------------------------------------------------------------------
@@ -492,7 +493,7 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
     PRENDERHAL_SURFACE_STATE_PARAMS surfStateParams)
 {
     PRENDERHAL_INTERFACE renderHal = m_cmState->renderHal;
-    MOS_STATUS hr = MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CM_HAL_MEMORY_OBJECT_CONTROL_G9 cacheType;
 
@@ -504,7 +505,7 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
         surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
             MOS_CM_RESOURCE_USAGE_SurfaceState,
             renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        return hr;
+        return eStatus;
     }
 
     switch (cacheType)
@@ -550,10 +551,10 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
             renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     default:
-        hr = MOS_STATUS_UNKNOWN;
+        eStatus = MOS_STATUS_UNKNOWN;
     }
 
-    return hr;
+    return eStatus;
 }
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined (CM_DIRECT_GUC_SUPPORT)
@@ -563,7 +564,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     PCM_HAL_KERNEL_PARAM    *kernelParam,
     void                    **cmdBuffer)
 {
-    MOS_STATUS                   hr = MOS_STATUS_SUCCESS;
+    MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                state = m_cmState;
     PRENDERHAL_INTERFACE         renderHal = state->renderHal;
     MhwRenderInterface           *mhwRender = renderHal->pMhwRenderInterface;
@@ -579,11 +580,9 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     int64_t                      *taskSyncLocation;
     int32_t                      syncOffset;
     int32_t                      tmp;
-    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(taskId);
@@ -600,20 +599,20 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     // Register batch buffer for rendering
     if (!enableWalker && !enableGpGpu)
     {
-        CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
+        CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
             osInterface,
             &batchBuffer->OsResource,
             true,
             true));
     }
     // Register Timestamp Buffer
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
         osInterface,
         &state->renderTimeStampResource.osResource,
         true,
         true));
     // Allocate all available space, unused buffer will be returned later
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnGetCommandBuffer(osInterface, &mosCmdBuffer, 0));
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnGetCommandBuffer(osInterface, &mosCmdBuffer, 0));
     remaining = mosCmdBuffer.iRemaining;
 
     // Linux will just return next sync tag here since currently no frame tracking support
@@ -621,7 +620,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     //pStateHeap->pCurMediaState->dwSyncTag = dwFrameId;
 
     // Initialize command buffer and insert prolog
-    CM_CHK_MOSSTATUS(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
     //Send the First PipeControl Command to indicate the beginning of execution
     pipeCtlParams = g_cRenderHal_InitPipeControlParams;
@@ -629,10 +628,10 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     pipeCtlParams.dwResourceOffset = syncOffset;
     pipeCtlParams.dwPostSyncOp = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
     // Send Pipeline Select command
-    CM_CHK_MOSSTATUS(mhwRender->AddPipelineSelectCmd(&mosCmdBuffer, enableGpGpu));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddPipelineSelectCmd(&mosCmdBuffer, enableGpGpu));
     
     // issue a PIPE_CONTROL to flush all caches and the stall the CS before 
     // issuing a PIPE_CONTROL to write the timestamp
@@ -640,7 +639,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     pipeCtlParams.presDest = &state->renderTimeStampResource.osResource;
     pipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
     pipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
     // issue a PIPE_CONTROL to write timestamp
     syncOffset += sizeof(uint64_t);
@@ -649,7 +648,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     pipeCtlParams.dwResourceOffset = syncOffset;
     pipeCtlParams.dwPostSyncOp = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtlParams.dwFlushMode = MHW_FLUSH_READ_CACHE;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
     // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
     MHW_PIPE_CONTROL_PARAMS pipeControlParams;
@@ -659,15 +658,15 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     pipeControlParams.bGenericMediaStateClear = true;
     pipeControlParams.bIndirectStatePointersDisable = true;
     pipeControlParams.bDisableCSStall = false;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeControlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeControlParams));
 
     //Couple to the BB_START , otherwise GPU Hang without it in Linux KMD
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
 
     // Return unused command buffer space to OS
     osInterface->pfnReturnCommandBuffer(osInterface, &mosCmdBuffer, 0);
 
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnSubmitCommandBuffer(osInterface,
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnSubmitCommandBuffer(osInterface,
         &mosCmdBuffer,
         state->nullHwRenderCm))
 
@@ -685,16 +684,16 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
 
     state->pfnReferenceCommandBuffer(&mosCmdBuffer.OsResource, cmdBuffer);
 
-    hr = MOS_STATUS_SUCCESS;
+    eStatus = MOS_STATUS_SUCCESS;
 
 finish:
     // Failed -> discard all changes in Command Buffer
-    if (hr != MOS_STATUS_SUCCESS)
+    if (eStatus != MOS_STATUS_SUCCESS)
     {
         // Buffer overflow - display overflow size
         if (mosCmdBuffer.iRemaining < 0)
         {
-            CM_PUBLIC_ASSERTMESSAGE("Command Buffer overflow by %d bytes.", -mosCmdBuffer.iRemaining);
+            CM_ASSERTMESSAGE("Command Buffer overflow by %d bytes.", -mosCmdBuffer.iRemaining);
         }
 
         // Move command buffer back to beginning
@@ -707,7 +706,7 @@ finish:
         osInterface->pfnReturnCommandBuffer(osInterface, &mosCmdBuffer, 0);
     }
 
-    return hr;
+    return eStatus;
 }
 #endif
 #endif
@@ -718,7 +717,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     PCM_HAL_KERNEL_PARAM    *kernelParam,
     void                    **cmdBuffer)
 {
-    MOS_STATUS                   hr           = MOS_STATUS_SUCCESS;
+    MOS_STATUS                   eStatus     = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                state       = m_cmState;
     PRENDERHAL_INTERFACE         renderHal   = state->renderHal;
     MhwRenderInterface           *mhwRender  = renderHal->pMhwRenderInterface;
@@ -740,7 +739,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     bool                         csrEnable = renderHal->bCSRKernel? true: false;
     PCM_HAL_BB_ARGS              bbCmArgs;
     uint32_t                     i;
-    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
     MOS_RESOURCE                 osResource;
     uint32_t                     tag;
     CM_HAL_MI_REG_OFFSETS  miRegG9 = { REG_TIMESTAMP_BASE_G9, REG_GPR_BASE_G9 };
@@ -751,7 +750,6 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #endif
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));  
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
@@ -768,7 +766,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // Register batch buffer for rendering
     if (!enableWalker && !enableGpGpu)
     {
-        CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
+        CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
             osInterface,
             &batchBuffer->OsResource,
             true,
@@ -777,7 +775,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if !defined(CM_DIRECT_GUC_SUPPORT)
     // Register Timestamp Buffer
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
         osInterface,
         &state->renderTimeStampResource.osResource,
         true,
@@ -785,7 +783,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #endif
 #endif
     // Allocate all available space, unused buffer will be returned later
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnGetCommandBuffer(osInterface, &mosCmdBuffer, 0));
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnGetCommandBuffer(osInterface, &mosCmdBuffer, 0));
     remaining = mosCmdBuffer.iRemaining;
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
@@ -796,7 +794,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #endif
 #endif
     // Update power option of this command;
-    CM_CHK_MOSSTATUS( state->pfnUpdatePowerOption( state, &state->powerOption ) );
+    CM_CHK_MOSSTATUS_GOTOFINISH( state->pfnUpdatePowerOption( state, &state->powerOption ) );
 
     // use frame tracking to write the tracker ID to CM tracker resource
     osResource = renderHal->trackerResource.osResource;
@@ -806,12 +804,12 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     stateHeap->pCurMediaState->dwSyncTag = tag;
 
     // Initialize command buffer and insert prolog
-    CM_CHK_MOSSTATUS(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
     
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
     {
-        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectStartCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+        CM_CHK_MOSSTATUS_GOTOFINISH(state->perfProfiler->AddPerfCollectStartCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
     }
 
     //Send the First PipeControl Command to indicate the beginning of execution
@@ -820,7 +818,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pipeCtlParams.dwResourceOffset  = syncOffset;
     pipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
     // update tracker tag used with CM tracker resource
     renderHal->pfnIncTrackerId(state->renderHal);
@@ -835,7 +833,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     if (sipEnable)
     {
-        CM_CHK_MOSSTATUS(SetupHwDebugControl(renderHal, &mosCmdBuffer));
+        CM_CHK_MOSSTATUS_GOTOFINISH(SetupHwDebugControl(renderHal, &mosCmdBuffer));
     }
 
     // Adds granularity control for preemption for Gen9.
@@ -894,17 +892,17 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
                 loadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
         }
-        CM_CHK_MOSSTATUS(mhwMiInterface->AddMiLoadRegisterImmCmd(&mosCmdBuffer, &loadRegImm ) );
+        CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiLoadRegisterImmCmd(&mosCmdBuffer, &loadRegImm ) );
     }
 
     // Send Pipeline Select command
-    CM_CHK_MOSSTATUS(mhwRender->AddPipelineSelectCmd(&mosCmdBuffer, enableGpGpu));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddPipelineSelectCmd(&mosCmdBuffer, enableGpGpu));
 
     // Send State Base Address command
-    CM_CHK_MOSSTATUS(renderHal->pfnSendStateBaseAddress(renderHal, &mosCmdBuffer));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnSendStateBaseAddress(renderHal, &mosCmdBuffer));
 
     // Send Surface States
-    CM_CHK_MOSSTATUS(renderHal->pfnSendSurfaces(renderHal, &mosCmdBuffer));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnSendSurfaces(renderHal, &mosCmdBuffer));
 
     if (enableGpGpu) {
         if (csrEnable) {
@@ -916,23 +914,23 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             pipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
             pipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
             pipeCtlParams.bDisableCSStall = 0;
-            CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+            CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
         }
 
         if (sipEnable || csrEnable)
         {
             // Send SIP State
-            CM_CHK_MOSSTATUS(renderHal->pfnSendSipStateCmd(renderHal, &mosCmdBuffer));
+            CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnSendSipStateCmd(renderHal, &mosCmdBuffer));
 
-            CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
+            CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
                 osInterface,
                 &state->csrResource,
                 true,
                 true));
 
             // Send csr base addr command
-            CM_CHK_MOSSTATUS(mhwRender->AddGpgpuCsrBaseAddrCmd(&mosCmdBuffer, &state->csrResource));
+            CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddGpgpuCsrBaseAddrCmd(&mosCmdBuffer, &state->csrResource));
         }
     }
 
@@ -963,13 +961,13 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         &state->scoreboardParams);
 
     // Send VFE State
-    CM_CHK_MOSSTATUS(mhwRender->AddMediaVfeCmd(&mosCmdBuffer,
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaVfeCmd(&mosCmdBuffer,
                      renderHal->pRenderHalPltInterface->GetVfeStateParameters()));
 
     // Send CURBE Load
     if (state->taskParam->vfeCurbeSize > 0)
     {
-        CM_CHK_MOSSTATUS(renderHal->pfnSendCurbeLoad(renderHal, &mosCmdBuffer));
+        CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnSendCurbeLoad(renderHal, &mosCmdBuffer));
     }
 
     // Send Interface Descriptor Load
@@ -986,7 +984,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         idLoadParams.dwInterfaceDescriptorLength      = renderHal->StateHeapSettings.iMediaIDs * stateHeap->dwSizeMediaID;
     }
     idLoadParams.pKernelState = nullptr;
-    CM_CHK_MOSSTATUS(mhwRender->AddMediaIDLoadCmd(&mosCmdBuffer, &idLoadParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaIDLoadCmd(&mosCmdBuffer, &idLoadParams));
 
     if (enableWalker)
     {
@@ -998,10 +996,10 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             {
                 // this could be batch buffer end so need to update sync tag, media state flush, write end timestamp
 
-                CM_CHK_MOSSTATUS(renderHal->pfnSendSyncTag(renderHal, &mosCmdBuffer));
+                CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnSendSyncTag(renderHal, &mosCmdBuffer));
 
                 // conditionally write timestamp
-                CM_CHK_MOSSTATUS(HalCm_OsAddArtifactConditionalPipeControl(&miRegG9, state, &mosCmdBuffer, syncOffset, &taskParam->conditionalBBEndParams[i], tag));
+                CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_OsAddArtifactConditionalPipeControl(&miRegG9, state, &mosCmdBuffer, syncOffset, &taskParam->conditionalBBEndParams[i], tag));
 
                 // Insert conditional batch buffer end
                 mhwMiInterface->AddMiConditionalBatchBufferEndCmd(&mosCmdBuffer, &taskParam->conditionalBBEndParams[i]);
@@ -1020,10 +1018,10 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
                 pipeCtlParams.dwFlushMode      = MHW_FLUSH_CUSTOM;
                 pipeCtlParams.bInvalidateTextureCache = true;
                 pipeCtlParams.bFlushRenderTargetCache = true;
-                CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+                CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
             }
 
-            CM_CHK_MOSSTATUS(state->pfnSendMediaWalkerState(state, kernelParam[i], &mosCmdBuffer));
+            CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnSendMediaWalkerState(state, kernelParam[i], &mosCmdBuffer));
         }
     }
     else if (enableGpGpu)
@@ -1042,39 +1040,39 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
                 pipeCtlParams.dwFlushMode = MHW_FLUSH_CUSTOM;
                 pipeCtlParams.bInvalidateTextureCache = true;
                 pipeCtlParams.bFlushRenderTargetCache = true;
-                CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+                CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
             }
 
-            CM_CHK_MOSSTATUS(state->pfnSendGpGpuWalkerState(state, kernelParam[i], &mosCmdBuffer));
+            CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnSendGpGpuWalkerState(state, kernelParam[i], &mosCmdBuffer));
         }
     }
     else
     {
         // Send Start batch buffer command
-        CM_CHK_MOSSTATUS(mhwMiInterface->AddMiBatchBufferStartCmd(
+        CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferStartCmd(
             &mosCmdBuffer,
             batchBuffer));
 
-        CM_CHK_NULL_RETURN_MOSSTATUS(batchBuffer->pPrivateData);
+        CM_CHK_NULL_GOTOFINISH_MOSERROR(batchBuffer->pPrivateData);
         bbCmArgs = (PCM_HAL_BB_ARGS) batchBuffer->pPrivateData;
 
         if ( (bbCmArgs->refCount == 1) ||
                  (state->taskParam->reuseBBUpdateMask == 1) )
         {
             // Add BB end command
-            CM_CHK_MOSSTATUS(mhwMiInterface->AddMiBatchBufferEnd(nullptr, batchBuffer));
+            CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(nullptr, batchBuffer));
         }
         else //reuse BB
         {
             // Skip BB end command
-            CM_CHK_MOSSTATUS(mhwMiInterface->SkipMiBatchBufferEndBb(batchBuffer));
+            CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->SkipMiBatchBufferEndBb(batchBuffer));
         }
 
         // UnLock the batch buffer
         if ( (bbCmArgs->refCount == 1) ||
              (state->taskParam->reuseBBUpdateMask == 1) )
         {
-            CM_CHK_MOSSTATUS(renderHal->pfnUnlockBB(renderHal, batchBuffer));
+            CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnUnlockBB(renderHal, batchBuffer));
         }
     }
 
@@ -1084,7 +1082,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pipeCtlParams.presDest      = &state->renderTimeStampResource.osResource;
     pipeCtlParams.dwPostSyncOp  = MHW_FLUSH_NOWRITE;
     pipeCtlParams.dwFlushMode   = MHW_FLUSH_WRITE_CACHE;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
     if (state->svmBufferUsed)
     {
@@ -1094,7 +1092,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             //Only register SVM resource here
             if (state->bufferTable[i].address)
             {
-                CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
+                CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
                         osInterface,
                         &state->bufferTable[i].osResource,
                         true,
@@ -1110,19 +1108,19 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pipeCtlParams.dwResourceOffset  = syncOffset;
     pipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
     // Record registers by unified media profiler in the end
     if (state->perfProfiler != nullptr)
     {
-        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+        CM_CHK_MOSSTATUS_GOTOFINISH(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
     }
 
     // Send Sync Tag
-    CM_CHK_MOSSTATUS( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+    CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
 
     // Update tracker resource
-    CM_CHK_MOSSTATUS(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
 
     // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
     MHW_PIPE_CONTROL_PARAMS pipeControlParams;
@@ -1132,19 +1130,17 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pipeControlParams.bGenericMediaStateClear = true;
     pipeControlParams.bIndirectStatePointersDisable = true;
     pipeControlParams.bDisableCSStall = false;
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeControlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeControlParams));
 
     if (MEDIA_IS_WA(renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
     {
-        MHW_VFE_PARAMS vfeStateParams;
-
-        MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+        MHW_VFE_PARAMS vfeStateParams = {};
         vfeStateParams.dwNumberofURBEntries = 1;
-        CM_CHK_MOSSTATUS(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
+        CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
     }
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
-    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
+    CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
 
     // Return unused command buffer space to OS
     osInterface->pfnReturnCommandBuffer(osInterface, &mosCmdBuffer, 0);
@@ -1160,17 +1156,28 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     }
 #endif
 
-    CM_CHK_MOSSTATUS(state->pfnGetGlobalTime(&state->taskTimeStamp->submitTimeInCpu[taskId]));
-    CM_CHK_MOSSTATUS(state->pfnGetGpuTime(state, &state->taskTimeStamp->submitTimeInGpu[taskId]));
+#if MDF_SURFACE_STATE_DUMP
+    if (state->dumpSurfaceState)
+    {
+        state->pfnDumpSurfaceState(
+            state,
+            offsetof(PACKET_SURFACE_STATE, cmdSurfaceState), 
+            mhw_state_heap_g9_X::RENDER_SURFACE_STATE_CMD::byteSize);
+
+    }
+#endif
+
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGlobalTime(&state->taskTimeStamp->submitTimeInCpu[taskId]));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGpuTime(state, &state->taskTimeStamp->submitTimeInGpu[taskId]));
 
     // Submit command buffer
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined (CM_DIRECT_GUC_SUPPORT)    
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnSubmitWorkQueue(osInterface, MOS_GPU_NODE_3D, batchbufferaddress));
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnSubmitWorkQueue(osInterface, MOS_GPU_NODE_3D, batchbufferaddress));
 #endif
 #endif
 #if !defined (CM_DIRECT_GUC_SUPPORT)
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnSubmitCommandBuffer(osInterface,
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnSubmitCommandBuffer(osInterface,
         &mosCmdBuffer,
         state->nullHwRenderCm));
 #endif
@@ -1190,16 +1197,16 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     state->pfnReferenceCommandBuffer(&mosCmdBuffer.OsResource, cmdBuffer);
 
-    hr = MOS_STATUS_SUCCESS;
+    eStatus = MOS_STATUS_SUCCESS;
 
 finish:
     // Failed -> discard all changes in Command Buffer
-    if (hr != MOS_STATUS_SUCCESS)
+    if (eStatus != MOS_STATUS_SUCCESS)
     {
         // Buffer overflow - display overflow size
         if (mosCmdBuffer.iRemaining < 0)
         {
-            CM_PUBLIC_ASSERTMESSAGE("Command Buffer overflow by %d bytes.", -mosCmdBuffer.iRemaining);
+            CM_ASSERTMESSAGE("Command Buffer overflow by %d bytes.", -mosCmdBuffer.iRemaining);
         }
 
         // Move command buffer back to beginning
@@ -1212,7 +1219,7 @@ finish:
         osInterface->pfnReturnCommandBuffer(osInterface, &mosCmdBuffer, 0);
     }
 
-    return hr;
+    return eStatus;
 }
 
 MOS_STATUS CM_HAL_G9_X::GetCopyKernelIsa(void  *&isa, uint32_t &isaSize)
@@ -1307,14 +1314,14 @@ MOS_STATUS CM_HAL_G9_X::SetSuggestedL3Conf(
 
 MOS_STATUS CM_HAL_G9_X::AllocateSIPCSRResource()
 {
-    MOS_STATUS hr = MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     if (Mos_ResourceIsNull(&m_cmState->sipResource.osResource))
     {
         CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateSipResource(m_cmState)); // create  sip resource if it does not exist
         CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateCSRResource(m_cmState));
     }
 
-    return hr;
+    return eStatus;
 }
 
 MOS_STATUS CM_HAL_G9_X::GetGenStepInfo(char*& stepInfoStr)

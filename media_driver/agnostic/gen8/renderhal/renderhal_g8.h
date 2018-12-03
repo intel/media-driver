@@ -331,6 +331,16 @@ public:
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() {return mhw_state_heap_g8_X::BINDING_TABLE_STATE_CMD::byteSize;}
 
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   true of false
+    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal)
+    {
+        MOS_UNUSED(pRenderHal);
+        return false;
+    }
+
 protected:
     //!
     //! \brief    Get L3 control register value with SLM enabled

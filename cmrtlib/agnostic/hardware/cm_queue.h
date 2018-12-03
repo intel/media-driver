@@ -142,6 +142,12 @@ public:
 
     CM_RT_API int32_t EnqueueVebox(CmVebox *vebox, CmEvent *&event);
 
+    CM_RT_API int32_t EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr);
+
+    CM_RT_API int32_t DestroyEventFast(CmEvent *&event);
+
     CM_QUEUE_CREATE_OPTION GetQueueOption();
 
 protected:

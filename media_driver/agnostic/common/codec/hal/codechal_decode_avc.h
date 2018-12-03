@@ -341,7 +341,7 @@ public:
         PCODEC_AVC_IQ_MATRIX_PARAMS matrixData);
 #endif
 
-private:
+protected:
     //!
     //! \brief  Indicates whether or not the SFC is inuse
     //! \return If SFC is inuse
@@ -373,6 +373,7 @@ public:
     bool                            m_shortFormatInUse;                                 //!< Indicate it is Short Format
     bool                            m_picIdRemappingInUse;                              //!< Indicate PicId Remapping are in use
     bool                            m_deblockingEnabled;                                //!< Indicate Deblocking is enabled
+    bool                            m_fullFrameData;                                    //!< Indicate it is a full frame
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CodechalAvcSfcState *m_sfcState = nullptr;  //!< Avc Sfc State

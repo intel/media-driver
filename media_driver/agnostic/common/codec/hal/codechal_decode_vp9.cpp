@@ -1299,8 +1299,8 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Reset all pic Mhw Params
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
+    *m_picMhwParams.PipeModeSelectParams = {};
+    *m_picMhwParams.PipeBufAddrParams = {};
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.Vp9PicState, sizeof(MHW_VDBOX_VP9_PIC_STATE));
     MOS_ZeroMemory(m_picMhwParams.Vp9SegmentState, sizeof(MHW_VDBOX_VP9_SEGMENT_STATE));
@@ -1445,7 +1445,15 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     {
         if (!m_picMhwParams.PipeBufAddrParams->presReferences[i])
         {
-            m_picMhwParams.PipeBufAddrParams->presReferences[i] = &(m_destSurface.OsResource);
+            if (MEDIA_IS_WA(m_waTable, WaDummyReference) &&
+                !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+            {
+                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
+            }
+            else
+            {
+                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &(m_destSurface.OsResource);
+            }
         }
     }
 
@@ -1918,7 +1926,6 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateStandard (
     m_chromaFormatinProfile = settings->chromaFormat;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS      stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bHucDummyStream = false;
 
     // Picture Level Commands
@@ -1944,8 +1951,6 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateStandard (
     m_picMhwParams.Vp9PicState = MOS_New(MHW_VDBOX_VP9_PIC_STATE);
     m_picMhwParams.Vp9SegmentState = MOS_New(MHW_VDBOX_VP9_SEGMENT_STATE);
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.Vp9PicState, sizeof(MHW_VDBOX_VP9_PIC_STATE));
     MOS_ZeroMemory(m_picMhwParams.Vp9SegmentState, sizeof(MHW_VDBOX_VP9_SEGMENT_STATE));

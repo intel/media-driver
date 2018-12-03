@@ -99,6 +99,7 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
     MOS_GPU_CONTEXT                 VideoContext;
     MOS_GPU_CONTEXT                 VideoContextForSP;
     MOS_GPU_CONTEXT                 VideoContextForMP;
+    MOS_GPU_CONTEXT                 VideoContextFor3P;
     uint32_t                        HcpDecPhase;
     bool                            bScalableDecodeMode;
 
@@ -180,7 +181,9 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
 #define CodecHalDecodeScalabilityIsFinalBEPhase(pScalabilityState)                                                          \
      (pScalabilityState && pScalabilityState->bScalableDecodeMode &&                                                        \
       ((pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE0 && pScalabilityState->ucScalablePipeNum == 1)  ||   \
-       (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE1 && pScalabilityState->ucScalablePipeNum == 2)))
+       (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE1 && pScalabilityState->ucScalablePipeNum == 2)  ||   \
+       (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_RESERVED &&                                             \
+       pScalabilityState->ucScalablePipeNum == CODECHAL_HCP_DECODE_PHASE_RESERVED - CODECHAL_HCP_DECODE_PHASE_FE)))
 
 #define CodecHalDecodeScalablity_DecPhaseToHwWorkMode(EngineMode, PipeWorkMode)\
 do                                                                                                                      \
@@ -200,6 +203,12 @@ do                                                                              
         CODECHAL_DECODE_ASSERT(m_scalabilityState->ucScalablePipeNum >= 2);                                             \
         EngineMode     = (m_scalabilityState->ucScalablePipeNum == 2) ?                                                 \
                               MHW_VDBOX_HCP_MULTI_ENGINE_MODE_RIGHT : MHW_VDBOX_HCP_MULTI_ENGINE_MODE_MIDDLE;           \
+        PipeWorkMode   = MHW_VDBOX_HCP_PIPE_WORK_MODE_CODEC_BE;                                                         \
+    }                                                                                                                   \
+    else if (m_hcpDecPhase == CODECHAL_HCP_DECODE_PHASE_RESERVED)                                                       \
+    {                                                                                                                   \
+        CODECHAL_DECODE_ASSERT(m_scalabilityState->ucScalablePipeNum >= CODECHAL_HCP_DECODE_PHASE_RESERVED - CODECHAL_HCP_DECODE_PHASE_FE);  \
+        EngineMode     = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_RIGHT;                                                         \
         PipeWorkMode   = MHW_VDBOX_HCP_PIPE_WORK_MODE_CODEC_BE;                                                         \
     }                                                                                                                   \
 }while (0)
@@ -226,7 +235,8 @@ typedef enum _CODECHAL_DECODE_HCP_SCALABILITY_PIPE_NUM
 {
     CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1 = 1,
     CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2 = 2,
-    CODECHAL_DECODE_HCP_SCALABLE_MAX_PIPE_NUM = 2
+    CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED,
+    CODECHAL_DECODE_HCP_SCALABLE_MAX_PIPE_NUM
 }CODECHAL_DECODE_HCP_SCALABILITY_PIPE_NUM;
 
 #define CODECHAL_SCALABILITY_DECODE_SECONDARY_CMDBUFSET_NUM        16

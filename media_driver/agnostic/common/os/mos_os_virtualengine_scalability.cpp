@@ -32,12 +32,11 @@
 MOS_STATUS Mos_VirtualEngine_Scalability_PopulateDbgOvrdParams(
     PMOS_VIRTUALENGINE_INTERFACE pVEInterface)
 {
-    PMOS_INTERFACE          pOsInterface;
-    uint8_t                 ucMaxEngineCnt;
-    uint8_t                 ui8EngineId;
-    int32_t                 iForceEngine;
-    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
-
+    PMOS_INTERFACE          pOsInterface = nullptr;
+    uint8_t                 ucMaxEngineCnt = 0;
+    uint8_t                 ui8EngineId = 0;
+    int32_t                 iForceEngine = 0;
+    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL(pVEInterface);
@@ -122,6 +121,8 @@ MOS_STATUS Mos_VirtualEngine_Scalability_PopulateDbgOvrdParams(
         MOS_OS_ASSERTMESSAGE("number of engine specified exceeds HW engine number.");
         goto finish;
     }
+
+    eStatus = MOS_STATUS_SUCCESS;
 
 finish:
     return eStatus;

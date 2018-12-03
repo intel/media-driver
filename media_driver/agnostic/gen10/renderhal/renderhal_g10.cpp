@@ -485,7 +485,7 @@ MOS_STATUS XRenderHal_Interface_g10::EnableL3Caching(
     PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
 {
     MOS_STATUS                           eStatus;
-    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig;
+    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
 
@@ -501,7 +501,6 @@ MOS_STATUS XRenderHal_Interface_g10::EnableL3Caching(
 
     // customize the cache config for renderhal and let mhw_render overwrite it
     pCacheConfig = &mHwL3CacheConfig;
-    MOS_ZeroMemory(pCacheConfig, sizeof(MHW_RENDER_ENGINE_L3_CACHE_SETTINGS));
 
     if (pCacheSettings->bEnableSLM)
         pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_SLM_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;

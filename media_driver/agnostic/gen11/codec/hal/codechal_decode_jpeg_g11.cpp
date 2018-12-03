@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -55,10 +55,34 @@ MOS_STATUS CodechalDecodeJpegG11::SetGpuCtxCreatOption(
     {
         m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
 
+        bool sfcInUse = IsSfcInUse(codecHalSetting);
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(    
             m_veState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
-            false));
+            sfcInUse));
+
+        if (sfcInUse)
+        {
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO4;
+
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                m_videoContext,
+                MOS_GPU_NODE_VIDEO,
+                m_gpuCtxCreatOpt));
+
+            MOS_GPUCTX_CREATOPTIONS createOption;
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                MOS_GPU_CONTEXT_VIDEO,
+                MOS_GPU_NODE_VIDEO,
+                &createOption));
+        }
+        else
+        {
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO;
+        }
     }
         
     return eStatus;
@@ -152,7 +176,6 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
 
     // Set PIPE_MODE_SELECT
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = CODECHAL_DECODE_MODE_JPEG;
     pipeModeSelectParams.bStreamOutEnabled = m_streamOutEnabled;
     pipeModeSelectParams.bDeblockerStreamOutEnable = false;
@@ -175,7 +198,6 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
 
     // Set MFX_PIPE_BUF_ADDR_STATE_CMD
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = CODECHAL_DECODE_MODE_JPEG;
     // Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
     pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;

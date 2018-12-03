@@ -1364,6 +1364,7 @@ public:
     MOS_RESOURCE                    m_resMbCodeSurface;           //!< Pointer to MOS_SURFACE of MbCode surface
     MOS_RESOURCE                    m_resMvDataSurface;           //!< Pointer to MOS_SURFACE of MvData surface
     uint32_t                        m_mbDataBufferSize = 0;
+    HwCounter                       m_regHwCount[CODECHAL_ENCODE_STATUS_NUM + 1];    //!< HW count register value
 
     CODEC_PICTURE                   m_currOriginalPic;            //!< Raw.
     CODEC_PICTURE                   m_currReconstructedPic;       //!< Recon.
@@ -1470,6 +1471,7 @@ public:
     bool                            m_multipassBrcSupported = false;      //!< Multi-pass bitrate control supported flag
     uint8_t                         m_targetUsageOverride = 0;            //!< Target usage override
     bool                            m_userFeatureKeyReport = false;       //!< User feature key report flag
+    bool                            m_singlePassDys = false;              //!< sungle pass dynamic scaling supported flag
 
     // CmdGen HuC FW for HEVC/VP9 VDEnc
     MOS_RESOURCE                    m_resVdencCmdInitializerDmemBuffer;   //!< Resource of vdenc command initializer DMEM buffer
@@ -1714,6 +1716,17 @@ public:
     MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
 
     //!
+    //! \brief  Read counter value for encode.
+    //! \param  [in] index
+    //!         The index of status report number
+    //! \param  [in, out] encodeStatusReport
+    //!         The address of encodeStatusReport
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReadCounterValue(uint16_t index, EncodeStatusReport* encodeStatusReport);
+
+    //!
     //! \brief  Initialize the encoder state
     //! \param  [in] settings
     //!         Pointer to the initialize settings
@@ -1786,6 +1799,21 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS UserFeatureKeyReport();
+
+    //!
+    //! \brief    Help function to submit a command buffer
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Pointer to command buffer
+    //! \param    [in] nullRendering
+    //!           Null rendering flag
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SubmitCommandBuffer(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        int32_t             nullRendering);
 
     //!
     //! \brief  Check Supported Format

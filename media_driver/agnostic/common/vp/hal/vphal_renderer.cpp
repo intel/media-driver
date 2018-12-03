@@ -285,20 +285,22 @@ MOS_STATUS VphalRenderer::PrepareSources(
     uint32_t        uiLeftCount;
     uint32_t        uiRightCount;
     uint32_t        uiSources;
+    uint32_t        uiTargets;
     uint32_t        uiIndex;
-    PMOS_RESOURCE   ppOsResource[VPHAL_MAX_SOURCES] = { nullptr };
-
+    PMOS_RESOURCE   ppSource[VPHAL_MAX_SOURCES] = { nullptr };
+    PMOS_RESOURCE   ppTarget[VPHAL_MAX_TARGETS] = { nullptr };
     eStatus         = MOS_STATUS_SUCCESS;
     uiLeftCount     = 0;
     uiRightCount    = 0;
     uiIndex         = 0;
     uiSources       = 0;
+    uiTargets       = 0;
 
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
 
     for (uiSources=0, uiIndex=0;
-         (uiSources < pRenderParams->uSrcCount) && (uiIndex < VPHAL_MAX_SOURCES);
-         uiIndex++)
+        (uiIndex < pRenderParams->uSrcCount) && (uiIndex < VPHAL_MAX_SOURCES);
+        uiIndex++)
     {
         pcSrc = pRenderParams->pSrc[uiIndex];
 
@@ -307,11 +309,25 @@ MOS_STATUS VphalRenderer::PrepareSources(
             continue;
         }
 
-        ppOsResource[uiSources] = &pcSrc->OsResource;
+        ppSource[uiSources] = &pcSrc->OsResource;
 
         pSrcLeft[uiLeftCount++] = pcSrc;
 
         uiSources++;
+    }
+
+    //gather render target list
+    for (uiTargets = 0, uiIndex = 0;
+        (uiIndex < pRenderParams->uDstCount) && (uiIndex < VPHAL_MAX_TARGETS);
+        uiIndex++)
+    {
+        pcSrc = pRenderParams->pTarget[uiIndex];
+
+        if (pcSrc)
+        {
+            ppTarget[uiTargets] = &pcSrc->OsResource;
+            uiTargets++;
+        }
     }
 
     VPHAL_RENDER_ASSERT(uiRightCount == 0);
@@ -321,6 +337,13 @@ MOS_STATUS VphalRenderer::PrepareSources(
 
 finish:
     VPHAL_RENDER_ASSERT(eStatus == MOS_STATUS_SUCCESS);
+
+    if ((nullptr != m_pOsInterface) && (nullptr != m_pOsInterface->osCpInterface))
+    {
+        eStatus = m_pOsInterface->osCpInterface->PrepareResources(
+                    (void **)ppSource, uiSources,
+                    (void **)ppTarget, uiTargets);
+    }
     return eStatus;
 }
 
@@ -338,7 +361,6 @@ MOS_STATUS VphalRenderer::GetSurfaceInfoForSrc(
     MOS_STATUS              eStatus;
     PVPHAL_SURFACE          pSrcSurface;                                        // Current source surface
     PVPHAL_SURFACE          pSurface;                                           // Ptr to surface
-    PVPHAL_SURFACE          pTarget;                                            // Render Target
     uint32_t                uiSources;                                          // Number of Sources
     uint32_t                uiIndex;                                            // Current source index
     uint32_t                i;
@@ -346,7 +368,6 @@ MOS_STATUS VphalRenderer::GetSurfaceInfoForSrc(
 
     eStatus         = MOS_STATUS_SUCCESS;
     pSrcSurface     = nullptr;
-    pTarget         = pRenderParams->pTarget[0];
 
     // Loop through the sources
     for (uiSources = 0, uiIndex = 0;
@@ -540,6 +561,7 @@ MOS_STATUS VphalRenderer::ProcessRenderParameter(
     pRender[VPHAL_RENDER_ID_COMPOSITE]->SetStatusReportParams(this, pRenderParams);
     pRender[VPHAL_RENDER_ID_VEBOX+uiCurrentChannel]->SetStatusReportParams(this, pRenderParams);
 
+    VPHAL_RNDR_SET_STATUS_REPORT_PARAMS(&Align16State, this, pRenderParams);
     // Loop through the sources
     for (uiIndex = 0;
          uiIndex < VPHAL_MAX_SOURCES && uiIndex < pRenderParams->uSrcCount;
@@ -653,6 +675,7 @@ MOS_STATUS VphalRenderer::RenderPass(
     uint32_t                uiIndex;                                            // Current source index
     uint32_t                uiSources;                                          // Number of Sources
     PVPHAL_SURFACE          pSrcSurface;                                        // Current source surface
+    uint32_t                uiIndex_out;                                        // current target index
     PVPHAL_VEBOX_EXEC_STATE pVeboxExecState;
     RenderpassData          RenderPassData;
 
@@ -694,28 +717,63 @@ MOS_STATUS VphalRenderer::RenderPass(
         RenderPassData.pSrcSurface          = pSrcSurface;
         RenderPassData.uiSrcIndex           = uiIndex;
 
-        RenderSingleStream(pRenderParams, &RenderPassData);
-    }
+        if (VpHal_RndrIsFast1toNSupport(&Fast1toNState, pRenderParams, pSrcSurface))
+        {
+            // new 1toN path for multi ouput with scaling only case.
+            VPHAL_RENDER_NORMALMESSAGE("Enter fast 1to N render.");
+            VPHAL_RENDER_CHK_STATUS(RenderFast1toNComposite(pRenderParams, &RenderPassData));
+            UpdateReport(pRenderParams, &RenderPassData);
+        }
+        else
+        {
+            // loop through the dst for every src input.
+            for (uiIndex_out = 0;
+                 uiIndex_out < pRenderParams->uDstCount;
+                 uiIndex_out++)
+            {
+                VPHAL_RENDER_PARAMS     TPRenderParams;
+                TPRenderParams  = *pRenderParams;
+                if (pRenderParams->pTarget[uiIndex_out] == nullptr)
+                {
+                    continue;
+                }
+                // update the first target point, set the dst_count as 1 to compatible with legacy path
+                TPRenderParams.pTarget[0]                = pRenderParams->pTarget[uiIndex_out];
+                TPRenderParams.bUserPrt_16Align[0]       = pRenderParams->bUserPrt_16Align[uiIndex_out];
+                TPRenderParams.uDstCount                 = 1;
+                if (pRenderParams->uDstCount > 1)
+                {
+                    // for multi output, support different scaling ratio but doesn't support cropping.
+                    RenderPassData.pSrcSurface->rcDst.top    = TPRenderParams.pTarget[0]->rcSrc.top;
+                    RenderPassData.pSrcSurface->rcDst.left   = TPRenderParams.pTarget[0]->rcSrc.left;
+                    RenderPassData.pSrcSurface->rcDst.bottom = TPRenderParams.pTarget[0]->rcSrc.bottom;
+                    RenderPassData.pSrcSurface->rcDst.right  = TPRenderParams.pTarget[0]->rcSrc.right;
+                }
+                RenderSingleStream(&TPRenderParams, &RenderPassData);
 
-    if (!RenderPassData.bCompNeeded &&
-        pRenderParams->pTarget[0] &&
-        pRenderParams->pTarget[0]->bFastColorFill)
-    {
-        // with fast color fill enabled, we seperate target surface into two parts:
-        // (1) upper rectangle rendered by vebox
-        // (2) bottom rectangle with back ground color fill by composition
-        pRenderParams->uSrcCount = 0; // set to zero for color fill
-        pRenderParams->pTarget[0]->rcDst.top = pRenderParams->pSrc[0]->rcDst.bottom;
-        RenderPassData.bCompNeeded = true;
-    }
+                if (!RenderPassData.bCompNeeded &&
+                    TPRenderParams.pTarget[0] &&
+                    TPRenderParams.pTarget[0]->bFastColorFill)
+                {
+                    // with fast color fill enabled, we seperate target surface into two parts:
+                    // (1) upper rectangle rendered by vebox
+                    // (2) bottom rectangle with back ground color fill by composition
+                    pRenderParams->uSrcCount = 0; // set to zero for color fill
+                    TPRenderParams.pTarget[0]->rcDst.top = TPRenderParams.pTarget[0]->rcDst.bottom;
+                    RenderPassData.bCompNeeded = true;
+                    VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
+                }
 
-    if (RenderPassData.bCompNeeded)
-    {
-        VPHAL_RENDER_CHK_STATUS(RenderComposite(pRenderParams, &RenderPassData));
-    }
+                if (RenderPassData.bCompNeeded)
+                {
+                    VPHAL_RENDER_CHK_STATUS(RenderComposite(&TPRenderParams, &RenderPassData));
+                }
 
-    // Report Render modes
-    UpdateReport(pRenderParams, &RenderPassData);
+                // Report Render modes
+                UpdateReport(pRenderParams, &RenderPassData);
+            }
+        }
+    }
 
     //------------------------------------------
     VPHAL_RNDR_DUMP_SURF_PTR_ARRAY(
@@ -799,6 +857,35 @@ finish:
 }
 
 //!
+//! \brief    Compose input streams as fast 1toN
+//! \details  Use composite render to multi output streams
+//! \param    [in] pRenderParams
+//!           Pointer to VPHAL render parameter
+//! \param    [in,out] pRenderPassData
+//!           Pointer to the VPHAL render pass data
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRenderer::RenderFast1toNComposite(
+    PVPHAL_RENDER_PARAMS    pRenderParams,
+    RenderpassData          *pRenderPassData)
+{
+    MOS_STATUS              eStatus;
+    eStatus             = MOS_STATUS_SUCCESS;
+    if (pRenderPassData->pSrcSurface->SurfType == SURF_IN_PRIMARY)
+    {
+        VpHal_SaveRestorePrimaryFwdRefs(
+            this,
+            pRenderPassData->pPrimarySurface,
+            true /*save*/);
+        pRenderParams->pSrc[pRenderPassData->uiSrcIndex] = pRenderPassData->pSrcSurface;
+        eStatus = Fast1toNState.pfnRender(&Fast1toNState, pRenderParams);
+    }
+
+    return eStatus;
+}
+
+//!
 //! \brief    Compose input streams
 //! \details  Use composite render to compose input streams
 //! \param    [in] pRenderParams
@@ -822,7 +909,24 @@ MOS_STATUS VphalRenderer::RenderComposite(
         pRenderParams->uSrcCount, VPHAL_DBG_DUMP_TYPE_PRE_COMP);
     //------------------------------------------
 
-    VPHAL_RENDER_CHK_STATUS(pRender[VPHAL_RENDER_ID_COMPOSITE]->Render(pRenderParams, nullptr));
+    if (pRenderParams->bUserPrt_16Align[0])
+    {
+        if (VpHal_RndrIs16Align(pRenderParams))
+        {
+            eStatus = Align16State.pfnRender(&Align16State, pRenderParams);
+        }
+        else
+        {
+            // if doesn't support format under UserPtr mode, return error
+            VPHAL_RENDER_ASSERTMESSAGE("Invalid UserPtr parameters!");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            goto finish;
+        }
+    }
+    else
+    {
+        VPHAL_RENDER_CHK_STATUS(pRender[VPHAL_RENDER_ID_COMPOSITE]->Render(pRenderParams, nullptr));
+    }
 
     //------------------------------------------
     VPHAL_RNDR_DUMP_SURF_PTR_ARRAY(
@@ -895,6 +999,9 @@ bool VphalRenderer::IsFormatSupported(
             switch (pcRenderParams->pTarget[0]->Format)
             {
             case Format_P010:
+                bFormatSupported = MEDIA_IS_SKU(m_pSkuTable, FtrVpP010Output) ? true : false;
+                break;
+            case Format_P016:
                 bFormatSupported = MEDIA_IS_SKU(m_pSkuTable, FtrVpP010Output) ? true : false;
                 break;
             case Format_Y210:
@@ -980,6 +1087,14 @@ MOS_STATUS VphalRenderer::Render(
         goto finish;
     }
 
+    // Validate max number targets
+    if (pcRenderParams->uDstCount > VPHAL_MAX_TARGETS)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid number of targets.");
+        eStatus = MOS_STATUS_UNKNOWN;
+        goto finish;
+    }
+
     // Copy the Render Params structure (so we can update it)
     RenderParams = *pcRenderParams;
 
@@ -988,10 +1103,13 @@ MOS_STATUS VphalRenderer::Render(
     // Get resource information for render target
     MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
-    VPHAL_RENDER_CHK_STATUS(VpHal_GetSurfaceInfo(
-        m_pOsInterface,
-        &Info,
-        RenderParams.pTarget[0]));
+    for (uiDst = 0; uiDst < RenderParams.uDstCount; uiDst++)
+    {
+        VPHAL_RENDER_CHK_STATUS(VpHal_GetSurfaceInfo(
+            m_pOsInterface,
+            &Info,
+            RenderParams.pTarget[uiDst]));
+    }
 
     // Set the component info
     m_pOsInterface->Component = pcRenderParams->Component;
@@ -1021,7 +1139,10 @@ MOS_STATUS VphalRenderer::Render(
             &uiRenderPasses));
 
     // align rectangle and source surface
-    VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(RenderParams.pTarget[0]));
+    for (uiDst = 0; uiDst < RenderParams.uDstCount; uiDst++)
+    {
+        VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(RenderParams.pTarget[uiDst]));
+    }
 
     for (uiCurrentRenderPass = 0;
          uiCurrentRenderPass < uiRenderPasses;
@@ -1052,9 +1173,6 @@ MOS_STATUS VphalRenderer::Render(
 
         VPHAL_RENDER_CHK_STATUS(RenderPass(&RenderParams));
     }
-
-    FreeIntermediateSurfaces();
-
 finish:
     uiFrameCounter++;
     return eStatus;
@@ -1068,6 +1186,16 @@ finish:
 //!
 MOS_STATUS VphalRenderer::FreeIntermediateSurfaces()
 {
+    // Free IntermediateSurface
+    if (m_pOsInterface)
+    {
+        m_pOsInterface->pfnFreeResource(m_pOsInterface, &IntermediateSurface.OsResource);
+    }
+
+    MOS_SafeFreeMemory(IntermediateSurface.pBlendingParams);
+    MOS_SafeFreeMemory(IntermediateSurface.pIEFParams);
+    MOS_SafeFreeMemory(IntermediateSurface.pHDRParams);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1103,6 +1231,8 @@ MOS_STATUS VphalRenderer::Initialize(
     pRenderHal      = m_pRenderHal;
     pFcPatchBin     = nullptr;
 
+    Align16State.pPerfData   = &PerfData;
+    Fast1toNState.pPerfData  = &PerfData;
     // Current KDLL expects a writable memory for kernel binary. For that reason,
     // we need to copy the memory to a new location so that KDLL can overwrite.
     // !!! WARNING !!!
@@ -1180,6 +1310,20 @@ MOS_STATUS VphalRenderer::Initialize(
         pSettings,
         pKernelDllState));
 
+    // Initialize 16 Alignment Interface and renderer
+    VpHal_16AlignInitInterface(&Align16State, m_pRenderHal);
+    VPHAL_RENDER_CHK_STATUS(Align16State.pfnInitialize(
+           &Align16State,
+           pSettings,
+           pKernelDllState))
+
+    // Initialize fast 1to N Interface and render
+    VpHal_Fast1toNInitInterface(&Fast1toNState, m_pRenderHal);
+    VPHAL_RENDER_CHK_STATUS(Fast1toNState.pfnInitialize(
+           &Fast1toNState,
+           pSettings,
+           pKernelDllState))
+
     AllocateDebugDumper();
 
     if (MEDIA_IS_SKU(m_pSkuTable, FtrVpDisableFor4K))
@@ -1218,6 +1362,8 @@ VphalRenderer::~VphalRenderer()
     MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 #endif
 
+    FreeIntermediateSurfaces();
+
     MOS_Delete(m_reporting);
 
     for (int32_t i = 0; i < VPHAL_RENDER_ID_COUNT; i++)
@@ -1234,6 +1380,18 @@ VphalRenderer::~VphalRenderer()
     if (pKernelDllState)
     {
         KernelDll_ReleaseStates(pKernelDllState);
+    }
+
+    // Destroy resources allocated for 16 Alignment
+    if (Align16State.pfnDestroy)
+    {
+        Align16State.pfnDestroy(&Align16State);
+    }
+
+    // Destory resources allocated for fast1toN
+    if (Fast1toNState.pfnDestroy)
+    {
+        Fast1toNState.pfnDestroy(&Fast1toNState);
     }
 
     // Destroy surface dumper
@@ -1391,6 +1549,8 @@ VphalRenderer::VphalRenderer(
     m_pOsInterface(pRenderHal->pOsInterface),
     m_pSkuTable(nullptr),
     m_modifyKdllFunctionPointers(nullptr),
+    Align16State(),
+    Fast1toNState(),
     uiSsdControl(0),
     bDpRotationUsed(false),
     bSkuDisableVpFor4K(false),

@@ -56,7 +56,6 @@
 #define CODECHAL_ENCODE_VP9_PIC_STATE_BUFFER_SIZE_PER_PASS      192 // 42 DWORDs for Pic State one uint32_t for BB End + 5 uint32_tS reserved to make it aligned for kernel read
 #define CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH                 256
 #define CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_HEIGHT                128
-#define CODECHAL_ENCODE_VP9_VDENC_MAX_NUM_TEMPORAL_LAYERS       8
 #define CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS                 2
 #define CODECHAL_ENCODE_VP9_REF_SEGMENT_DISABLED                0xFF
 #define CODECHAL_ENCODE_VP9_BRC_MAX_NUM_OF_PASSES               4
@@ -228,8 +227,8 @@ enum VP9_MBBRC_MODE
 enum TU_MODE
 {
     TU_QUALITY = 1,
-    TU_NORMAL = 2,
-    TU_PERFORMANCE = 3
+    TU_NORMAL = 4,
+    TU_PERFORMANCE = 7
 };
 
 //!
@@ -1696,7 +1695,7 @@ public:
 
     bool                                        m_hucEnabled = false;
     bool                                        m_segmentMapAllocated = false;
-    MOS_RESOURCE                                m_resHucProbDmemBuffer[2];
+    MOS_RESOURCE                                m_resHucProbDmemBuffer[3];
     MOS_RESOURCE                                m_resHucDefaultProbBuffer;
     MOS_RESOURCE                                m_resHucProbOutputBuffer;
     MOS_RESOURCE                                m_resHucPakInsertUncompressedHeaderReadBuffer;
@@ -1839,6 +1838,13 @@ public:
     }
 
     virtual MOS_STATUS SetupSegmentationStreamIn() = 0;
+
+    //!
+    //! \brief    Create PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS.
+    //!
+    //! \return   PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS
+    //!
+    virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams();
 
     virtual void SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams);
 
@@ -2026,14 +2032,6 @@ public:
     //!
     MOS_STATUS PakConstructPicStateBatchBuf(
         PMOS_RESOURCE picStateBuffer);
-
-    //!
-    //! \brief      Dys Source frames
-    //!
-    //! \return     MOS_STATUS
-    //!             MOS_STATUS_SUCCESS if success, else fail reason 
-    //!
-    MOS_STATUS DysSrcFrame();
 
     //!
     //! \brief      Return if this surface has to be compressed

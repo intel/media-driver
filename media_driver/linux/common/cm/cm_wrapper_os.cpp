@@ -68,7 +68,7 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
 
     // allocate cmCtx
     cmCtx = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
-    CM_DDI_CHK_NULL(cmCtx, "Null cmCtx!", CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_RETURN_WITH_MSG(cmCtx, CM_INVALID_UMD_CONTEXT, "Null cmCtx!");
 
     // init cmCtx
     cmCtx->mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
@@ -85,7 +85,7 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     if(cmCtx->mosCtx.pPerfData == nullptr)
     {
         MOS_FreeMemAndSetNull(cmCtx); // free cm ctx
-        CM_DDI_ASSERTMESSAGE("Failed to allocate perfData in mos context \n");
+        CM_ASSERTMESSAGE("Failed to allocate perfData in mos context \n");
         return CM_OUT_OF_HOST_MEMORY;
     }
 
@@ -94,7 +94,7 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     if(hRes != CM_SUCCESS)
     {
         MOS_FreeMemAndSetNull(cmCtx); // free cm ctx
-        CM_DDI_ASSERTMESSAGE("Failed to call CmDevice::Create Error %d \n",hRes);
+        CM_ASSERTMESSAGE("Failed to call CmDevice::Create Error %d \n",hRes);
         return hRes;
     }
     CmDeviceRT* deviceRT = static_cast<CmDeviceRT*>(device);
@@ -108,7 +108,7 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
         device = nullptr;
         MOS_FreeMemAndSetNull(cmCtx); // free cm ctx
         DdiMediaUtil_UnLockMutex(&mediaCtx->CmMutex);
-        CM_DDI_ASSERTMESSAGE("CM Context number exceeds maximum.");
+        CM_ASSERTMESSAGE("CM Context number exceeds maximum.");
         return VA_STATUS_ERROR_INVALID_CONTEXT;
     }
 
@@ -164,9 +164,9 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
 
     //Get Cm Context
     cmCtx    = (PCM_CONTEXT)DdiMedia_GetContextFromContextID(vaDriverCtx, vaContextID, &ctxType);
-    CM_DDI_CHK_NULL(cmCtx, "Null cmCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    CM_CHK_NULL_RETURN_WITH_MSG(cmCtx, VA_STATUS_ERROR_INVALID_CONTEXT, "Null cmCtx.");
 
-    CHK_HR(DestroyCmDevice(device));
+    CM_CHK_CMSTATUS_GOTOFINISH(DestroyCmDevice(device));
 
     // remove from context array
     mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
@@ -200,19 +200,18 @@ int32_t CmFillMosResource( VASurfaceID        vaSurfaceID,
     DDI_MEDIA_SURFACE     *surface;
     CmDevice              *device;
 
-    CM_DDI_CHK_NULL(vaDriverCtx, "Null umdCtx", CM_INVALID_UMD_CONTEXT);
+    CM_CHK_NULL_RETURN_WITH_MSG(vaDriverCtx, CM_INVALID_UMD_CONTEXT, "Null umdCtx");
 
     mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
-    CM_DDI_CHK_NULL(mediaCtx, "Null mediaCtx", CM_INVALID_UMD_CONTEXT);
+    CM_CHK_NULL_RETURN_WITH_MSG(mediaCtx, CM_INVALID_UMD_CONTEXT, "Null mediaCtx");
 
-    CM_DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "Null mediaCtx->pSurfaceHeap", CM_INVALID_UMD_CONTEXT);
-    CM_CHK_LESS((uint32_t)vaSurfaceID, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surface", CM_INVALID_LIBVA_SURFACE);
-
+    CM_CHK_NULL_RETURN_WITH_MSG(mediaCtx->pSurfaceHeap, CM_INVALID_UMD_CONTEXT, "Null mediaCtx->pSurfaceHeap");
+    CM_CHK_COND_RETURN(((uint32_t)vaSurfaceID >= mediaCtx->pSurfaceHeap->uiAllocatedHeapElements), CM_INVALID_LIBVA_SURFACE, "Invalid surface");
     surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, vaSurfaceID);
-    CM_DDI_CHK_NULL(surface, "Null surface", CM_INVALID_LIBVA_SURFACE);
+    CM_CHK_NULL_RETURN_WITH_MSG(surface, CM_INVALID_LIBVA_SURFACE, "Null surface");
     CM_ASSERT(surface->iPitch == GFX_ULONG_CAST(surface->pGmmResourceInfo->GetRenderPitch()));
-    CM_DDI_CHK_NULL(surface->bo, "Null BO", CM_INVALID_LIBVA_SURFACE);
-    CM_DDI_CHK_NULL(surface->pGmmResourceInfo, "Null GMMResInfo", CM_INVALID_LIBVA_SURFACE);
+    CM_CHK_NULL_RETURN_WITH_MSG(surface->bo, CM_INVALID_LIBVA_SURFACE, "Null BO");
+    CM_CHK_NULL_RETURN_WITH_MSG(surface->pGmmResourceInfo, CM_INVALID_LIBVA_SURFACE, "Null GMMResInfo");
 
     // Resets the Resource
     Mos_ResetResource(osResource);
@@ -306,7 +305,7 @@ int32_t CmThinExecute(VADriverContextP vaDriverCtx,
             cmRet = CreateCmDeviceFromVA(vaDriverCtx, device, cmDeviceParam->devCreateOption);
             if ( cmRet == CM_SUCCESS)
             {
-                CM_DDI_CHK_NULL(device, "Null device.", VA_STATUS_ERROR_INVALID_CONTEXT);
+                CM_CHK_NULL_RETURN_WITH_MSG(device, VA_STATUS_ERROR_INVALID_CONTEXT, "Null device.");
                 deviceRT = static_cast<CmDeviceRT*>(device);
                 deviceRT->RegisterCallBack(cmDeviceParam->callbackReleaseVaSurf);
                 cmDeviceParam->driverStoreEnabled = deviceRT->GetDriverStoreFlag();

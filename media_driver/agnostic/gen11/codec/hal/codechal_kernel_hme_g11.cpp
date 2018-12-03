@@ -174,7 +174,7 @@ MOS_STATUS CodechalKernelHmeG11::SetCurbe(MHW_KERNEL_STATE *kernelState)
     }
 
     uint8_t tableIndex = (m_pictureCodingType == B_TYPE) ? 1 : 0;
-    memcpy_s(&curbe.m_data.SpDelta, 14 * sizeof(uint32_t), codechalEncodeSearchPath[tableIndex][0], 14 * sizeof(uint32_t));  //methodIndex set to 0 as per kernel requirement
+    MOS_SecureMemcpy(&curbe.m_data.SpDelta, 14 * sizeof(uint32_t), codechalEncodeSearchPath[tableIndex][0], 14 * sizeof(uint32_t));  //methodIndex set to 0 as per kernel requirement
 
     // Non legacy stream in is for hevc vp9 streamin kernel
     if (m_4xMeInUse && m_useNonLegacyStreamIn)
@@ -618,7 +618,7 @@ MOS_STATUS CodechalKernelHmeG11::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNE
     if (m_curbeParam.brcEnable && m_4xMeInUse)
     {
         MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-        surfaceParams.dwSize = m_surfaceParam.meSumMvandDistortionBuffer.dwSize;
+        surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(m_surfaceParam.meSumMvandDistortionBuffer.dwSize);
         surfaceParams.bIs2DSurface = false;
         surfaceParams.presBuffer = &m_surfaceParam.meSumMvandDistortionBuffer.sResource;
         surfaceParams.dwBindingTableOffset = BindingTableOffset::meSumMvandDistortionBuffer;

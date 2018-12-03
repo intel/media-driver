@@ -135,6 +135,7 @@ CmProgramRT::CmProgramRT( CmDeviceRT* device, uint32_t programId ):
     m_refCount(0),
     m_programIndex(programId),
     m_fJITCompile(nullptr),
+    m_fJITCompile_v2(nullptr),
     m_fFreeBlock(nullptr),
     m_fJITVersion(nullptr),
     m_cisaMagicNumber(0),
@@ -176,11 +177,11 @@ int32_t CmProgramRT::ReadUserFeatureValue(const char *pcMessageKey, uint32_t &va
     userFeature.pValues         = &userFeatureValue;
     userFeature.uiNumValues     = 1;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(MOS_UserFeature_ReadValue(
-                                nullptr,
-                                &userFeature,
-                                pcMessageKey,
-                                MOS_USER_FEATURE_VALUE_TYPE_UINT32));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(MOS_UserFeature_ReadValue(
+                                  nullptr,
+                                  &userFeature,
+                                  pcMessageKey,
+                                  MOS_USER_FEATURE_VALUE_TYPE_UINT32));
 
     value = userFeature.pValues->u32Data;
 
@@ -301,7 +302,7 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
 
     PCM_HAL_STATE  cmHalState = \
         ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
-    CMCHK_NULL(cmHalState);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmHalState);
 
     cmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);
 
@@ -329,6 +330,7 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
         }
 
         m_device->GetJITCompileFnt(m_fJITCompile);
+        m_device->GetJITCompileFntV2(m_fJITCompile_v2);
         m_device->GetFreeBlockFnt(m_fFreeBlock);
         m_device->GetJITVersionFnt(m_fJITVersion);
 
@@ -597,8 +599,23 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
             }
             CmSafeMemSet( jitProfInfo, 0, CM_JIT_PROF_INFO_SIZE );
 
-            result = m_fJITCompile( kernInfo->kernelName, (uint8_t*)cisaCode, cisaCodeSize,
+            void *extra_info = nullptr;
+            CmNotifierGroup *notifiers = m_device->GetNotifiers();
+            if (notifiers)
+            {
+                notifiers->NotifyCallingJitter(&extra_info);
+            }
+
+            if (m_fJITCompile_v2)
+            {
+                result = m_fJITCompile_v2( kernInfo->kernelName, (uint8_t*)cisaCode, cisaCodeSize,
+                                    jitBinary, jitBinarySize, platform, m_cisaMajorVersion, m_cisaMinorVersion, numJitFlags, jitFlags, errorMsg, jitProfInfo, extra_info );
+            }
+            else
+            {
+                result = m_fJITCompile( kernInfo->kernelName, (uint8_t*)cisaCode, cisaCodeSize,
                                     jitBinary, jitBinarySize, platform, m_cisaMajorVersion, m_cisaMinorVersion, numJitFlags, jitFlags, errorMsg, jitProfInfo );
+            }
 
             //if error code returned or error message not nullptr
             if(result != CM_SUCCESS)// || errorMsg[0])
@@ -839,10 +856,16 @@ uint32_t CmProgramRT::ReleaseKernelInfo(uint32_t index)
             {
                 if(m_isJitterEnabled)
                 {
-                    if(kernelInfo && kernelInfo->jitBinaryCode)
+                    if(kernelInfo->jitBinaryCode)
                         m_fFreeBlock(kernelInfo->jitBinaryCode);
-                    if(kernelInfo && kernelInfo->jitInfo)
+                    if(kernelInfo->jitInfo)
+                    {
+                        if (kernelInfo->jitInfo->freeGRFInfo)
+                        {
+                            m_fFreeBlock(kernelInfo->jitInfo->freeGRFInfo);
+                        }
                         free(kernelInfo->jitInfo);
+                    }
                 }
 
                 /////////////////////////////////////////////////////////////

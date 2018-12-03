@@ -150,8 +150,8 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* sysMem,
     m_surfaceMgr->GetCmDevice( device );
     CM_ASSERT( device );
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)device->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     inParam.handle = m_handle;
     inParam.data = (void*)sysMem; //Any non-nullptr value will work
@@ -163,8 +163,8 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* sysMem,
     // Lock 3D Resource
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock3DResource(cmData->cmHalState, &inParam));
-    CMCHK_NULL(inParam.data);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLock3DResource(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
     uWidthInBytes = inParam.width * pixel;
 
@@ -216,7 +216,7 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* sysMem,
     }
 
     // unlock 3D resource
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock3DResource(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlock3DResource(cmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -284,8 +284,8 @@ CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
     m_surfaceMgr->GetCmDevice( device );
     CM_ASSERT( device );
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)device->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     inParam.handle = m_handle;
     inParam.data = (void*)sysMem; //Any non-nullptr value will work
@@ -297,8 +297,8 @@ CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
     // Lock 3D Resource
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock3DResource(cmData->cmHalState, &inParam));
-    CMCHK_NULL(inParam.data);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLock3DResource(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
     uWidthInBytes = inParam.width * pixel;
 
@@ -350,7 +350,7 @@ CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
     }
 
     // unlock 3D resource
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock3DResource(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlock3DResource(cmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -413,12 +413,12 @@ CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* 
     m_surfaceMgr->GetCmDevice( device );
     CM_ASSERT( device );
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)device->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     uint32_t sizePerPixel = 0;
     uint32_t updatedHeight = 0;
-    CMCHK_HR(m_surfaceMgr->GetPixelBytesAndHeight(m_width, m_height, m_format, sizePerPixel, updatedHeight));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_surfaceMgr->GetPixelBytesAndHeight(m_width, m_height, m_format, sizePerPixel, updatedHeight));
 
     inParam.handle = m_handle;
     inParam.data = (void*)0x44; //Any non-nullptr value will work
@@ -427,8 +427,8 @@ CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* 
     inParam.depth = m_depth;
     inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock3DResource(cmData->cmHalState, &inParam));
-    CMCHK_NULL(inParam.data);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLock3DResource(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
     uSizeInBytes = inParam.width * inParam.height * inParam.depth * sizePerPixel;
     uWidthInBytes = inParam.width * sizePerPixel;
@@ -481,7 +481,7 @@ CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* 
     inParam.data = nullptr;
     inParam.handle = m_handle;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock3DResource(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlock3DResource(cmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -499,14 +499,14 @@ int32_t CmSurface3DRT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, ME
 
     CmDeviceRT *cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
-    CMCHK_NULL_AND_RETURN(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_3D));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_3D));
 
 finish:
     return hr;
@@ -536,7 +536,10 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
 {
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream outputFileName;
-    static uint32_t surface3DDumpNumber = 0;
+    static uint32_t    surface3DDumpNumber = 0;
+    char               fileNamePrefix[MAX_PATH];
+    std::ofstream      outputFileStream;
+
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_" << kernelName
@@ -548,8 +551,11 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
         << "_f_" << GetFormatString(m_format)
         << "_" << surface3DDumpNumber;
 
-    std::ofstream outputFileStream;
-    outputFileStream.open(outputFileName.str().c_str(), std::ofstream::binary);
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);   
+
+    // Open file
+    outputFileStream.open(fileNamePrefix, std::ios::app);
+    CM_ASSERT(outputFileStream);
 
     uint32_t        surfaceSize = 0;
     uint32_t        sizePerPixel = 0;

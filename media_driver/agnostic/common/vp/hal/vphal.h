@@ -32,6 +32,8 @@
 #include "vphal_common_tools.h"
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
+#include "mhw_vebox.h"
+#include "mhw_sfc.h"
 
 //*-----------------------------------------------------------------------------
 //| DEFINITIONS
@@ -240,6 +242,11 @@ enum VpKernelID
     kernelVeboxSecureBlockCopy,
     kernelVeboxUpdateDnState,
 
+    // User Ptr
+    kernelUserPtr,
+    // Fast 1toN
+    kernelFast1toN,
+
     baseKernelMaxNumID
 };
 
@@ -391,7 +398,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS Allocate(
+    virtual MOS_STATUS Allocate(
         const VphalSettings     *pVpHalSettings);
 
     //!
@@ -412,7 +419,7 @@ public:
     //! \return   VphalFeatureReport*
     //!           Pointer to VPHAL_FEATURE_REPOR: rendering features reported
     //!
-    VphalFeatureReport*       GetRenderFeatureReport();
+    virtual VphalFeatureReport*       GetRenderFeatureReport();
 
     //!
     //! \brief    Get Status Report
@@ -455,11 +462,38 @@ public:
 
     void SetMhwVeboxInterface(MhwVeboxInterface* veboxInterface)
     {
+        if (veboxInterface == nullptr)
+        {
+            return;
+        }
+
+        if (m_veboxInterface != nullptr)
+        {
+            MOS_STATUS eStatus = m_veboxInterface->DestroyHeap();
+            MOS_Delete(m_veboxInterface);
+            m_veboxInterface = nullptr;
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+            }
+        }
+
         m_veboxInterface = veboxInterface;
     }
 
     void SetMhwSfcInterface(MhwSfcInterface* sfcInterface)
     {
+        if (sfcInterface == nullptr)
+        {
+            return;
+        }
+
+        if (m_sfcInterface != nullptr)
+        {
+            MOS_Delete(m_sfcInterface);
+            m_sfcInterface = nullptr;
+        }
+
         m_sfcInterface = sfcInterface;
     }
 

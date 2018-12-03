@@ -58,6 +58,7 @@ source_group("MHW\\VEBOX" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_})
 
 set(TMP_4_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_block_manager.c
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_cmd_reader.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.c
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render.c
@@ -67,6 +68,7 @@ set(TMP_4_SOURCES_
 
 set(TMP_4_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_block_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_cmd_reader.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_generic.h

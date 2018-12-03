@@ -60,12 +60,18 @@ MOS_STATUS Mos_AddCommand(
     const void              *pCmd,
     uint32_t                dwCmdSize)
 {
-    uint32_t dwCmdSizeDwAligned;
+    uint32_t dwCmdSizeDwAligned = 0;
 
     //---------------------------------------------
-    MOS_OS_ASSERT(pCmdBuffer);
-    MOS_OS_ASSERT(pCmd);
+    MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
+    MOS_OS_CHK_NULL_RETURN(pCmd);
     //---------------------------------------------
+
+    if (dwCmdSize == 0)
+    {
+        MOS_OS_ASSERTMESSAGE("Incorrect command size to add to command buffer.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
 
     dwCmdSizeDwAligned = MOS_ALIGN_CEIL(dwCmdSize, sizeof(uint32_t));
 
@@ -74,6 +80,8 @@ MOS_STATUS Mos_AddCommand(
 
     if (pCmdBuffer->iRemaining < 0)
     {
+        pCmdBuffer->iOffset    -= dwCmdSizeDwAligned;
+        pCmdBuffer->iRemaining += dwCmdSizeDwAligned;
         MOS_OS_ASSERTMESSAGE("Unable to add command (no space).");
         return MOS_STATUS_UNKNOWN;
     }
@@ -104,16 +112,12 @@ MOS_STATUS Mos_OsFillResource(
     uint32_t          dwSize,
     uint8_t           iValue)
 {
-    MOS_STATUS      eStatus;
-    uint8_t         *pByte;
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsResource);
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    uint8_t *       pByte = nullptr;
     MOS_LOCK_PARAMS LockFlags;
-
-    eStatus = MOS_STATUS_SUCCESS;
-
-    if (dwSize == 0)
-    {
-        goto finish;
-    }
 
     // Lock the surface for writing
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -153,9 +157,9 @@ MOS_STATUS Mos_OsWaitOnResource(
     MOS_LOCK_PARAMS LockFlags;
 
     //--------------------------
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pOsResource);
-    MOS_OS_ASSERT(pOsInterface->pOsContext);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsResource);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->pOsContext);
     //--------------------------
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -369,8 +373,8 @@ MOS_STATUS Mos_DumpCommandBuffer(
     // Maximum length of engine name is 6
     char            sEngName[6];
 
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pCmdBuffer);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
 
     // Set the name of the engine that is going to be used.
     MOS_GPU_CONTEXT sGpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
@@ -408,6 +412,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     // Alloc output buffer.
     pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
+    MOS_OS_CHK_NULL(pOutputBuffer);
 
     dwBytesWritten = MOS_SecureStringPrint(
                          pOutputBuffer,
@@ -510,7 +515,7 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 
-    MOS_OS_ASSERT(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
     // Setup member function and variable.
     pOsInterface->pfnDumpCommandBuffer  = Mos_DumpCommandBuffer;
@@ -692,11 +697,14 @@ MOS_STATUS Mos_InitInterface(
     PMOS_CONTEXT   pOsDriverContext,
     MOS_COMPONENT  component)
 {
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsDriverContext);
     MOS_STATUS                  eStatus = MOS_STATUS_UNKNOWN;
-    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface;
+    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface = nullptr;
     MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
 
     pOsUserFeatureInterface = &pOsInterface->UserFeatureInterface;
+    MOS_OS_CHK_NULL_RETURN(pOsUserFeatureInterface);
 
     // Setup Member variables
     pOsUserFeatureInterface->pUserFeatureInit = &g_MosUserFeatureInit;
@@ -904,6 +912,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 
     MOS_OS_ASSERT(osInterface);
+    MOS_ZeroMemory(&platform, sizeof(PLATFORM));
 
     osInterface->pfnGetPlatform(osInterface, &platform);
 
@@ -936,6 +945,12 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         {
             osInterface->ctxBasedScheduling = false;
         }
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_USER_FEATURE_VALUE_WRITE_DATA  userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+        userFeatureWriteData.Value.i32Data = osInterface->ctxBasedScheduling ? true : false;
+        userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID;
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+#endif
     }
     else
     {

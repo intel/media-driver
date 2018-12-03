@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -118,7 +118,6 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
         &cmdBuffer, true));
 
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode                  = m_mode;
     pipeModeSelectParams.bStreamOutEnabled     = m_streamOutEnabled;
     pipeModeSelectParams.bPostDeblockOutEnable = m_deblockingEnabled;
@@ -130,7 +129,6 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
     surfaceParams.psSurface                 = &m_destSurface;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode                      = m_mode;
     if (m_deblockingEnabled)
     {
@@ -171,6 +169,17 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
         {
             m_presReferences[CodechalDecodeFwdRefBottom] =
                 &m_destSurface.OsResource;
+        }
+    }
+
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
+    {
+        if (m_presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_presReferences[i] = &m_dummyReference.OsResource;
         }
     }
 

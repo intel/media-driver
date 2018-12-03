@@ -930,12 +930,6 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
     }
     );
 
-    // Check if we need to dynamic scale the source
-    if (m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(DysSrcFrame());
-    }
-
     m_setRequestedEUSlices = ((m_frameHeight * m_frameWidth) >= m_ssdResolutionThreshold &&
         m_targetUsage <= m_ssdTargetUsageThreshold) ? true : false;
 

@@ -153,7 +153,7 @@ VAStatus DdiEncodeMpeg2::RenderPicture(
 
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    for (uint32_t i = 0; i < numBuffers; i++)
+    for (int32_t i = 0; i < numBuffers; i++)
     {
         DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, buffers[i]);
         DDI_CHK_NULL(buf, "Invalid buffer.", VA_STATUS_ERROR_INVALID_BUFFER);
@@ -190,7 +190,7 @@ VAStatus DdiEncodeMpeg2::RenderPicture(
 
         case VAEncSliceParameterBufferType:
             {
-                uint32_t numSlices = buf->iNumElements;
+                uint32_t numSlices = buf->uiNumElements;
                 DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
             }
             break;

@@ -422,6 +422,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bUsesGfxAddress;
     int32_t                         bMapOnCreate;                           // For limited GPU VA resource can not be mapped during creation
     int32_t                         bInlineCodecStatusUpdate;               // check whether use inline codec status update or seperate BB
+    int32_t                         bAllowExtraPatchToSameLoc;              // patch another resource to same location in cmdbuffer
 
     // Component info
     MOS_COMPONENT                   Component;
@@ -1177,5 +1178,10 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
     bool           isDecode,
     bool           veDefaultEnable);
 
+struct ContextRequirement
+{
+    bool IsEnc = false;
+    bool IsPak = false;
+};
 
 #endif  // __MOS_OS_H__

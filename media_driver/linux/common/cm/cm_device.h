@@ -1759,6 +1759,16 @@ public:
     //!             provide an existing MOS GPU Context.\n
     //!             <b>GPUContext</b> is the existing MOS GPU Context Enum
     //!             value.
+    //!             \n
+    //!             <b>CM_QUEUE_SSEU_USAGE_HINT_TYPE</b> indicates SSEU setting, will
+    //!             be created for:\n
+    //!             \code
+    //!             enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
+    //!             {
+    //!                 CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
+    //!                 CM_QUEUE_SSEU_USAGE_HINT_VME     = 1
+    //!             };
+    //!             \endcode
     //! \retval     CM_SUCCESS if the CmQueue object is created.
     //! \note       This API is implemented in hardware mode only. Only
     //!             CM_QUEUE_TYPE_RENDER and CM_QUEUE_TYPE_COMPUTE are
@@ -1768,6 +1778,42 @@ public:
     CreateQueueEx(CmQueue *&queue,
                   CM_QUEUE_CREATE_OPTION QueueCreateOption
                       = CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
+
+    //!
+    //! \brief    Update the MOS Resource in the CmBuffer. If surface is null, 
+    //!            creates a new CmBuffer
+    //! \details  CmBuffer is a wrapper of that MOS resource. This Mos resource is
+    //!            owned by caller.
+    //! \param    [in] mosResource
+    //!           pointer to MOS resource.
+    //! \param    [in,out] surface
+    //!           reference to pointer of surface to be created.
+    //! \retval   CM_SUCCESS if the CmBuffer is successfully created.
+    //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if mosResource is nullptr.
+    //! \retval   CM_OUT_OF_HOST_MEMORY if out of system memory
+    //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 1D surfaces is exceeded.
+    //! \retval   CM_FAILURE otherwise
+    //!
+    CM_RT_API virtual int32_t UpdateBuffer(PMOS_RESOURCE mosResource,
+                                           CmBuffer* &surface) = 0;
+
+    //!
+    //! \brief    Update the MOS Resource in the CmSurface2D. If surface is null, 
+    //!            creates a new CmSurface2D
+    //! \details  CmSurface2D is a wrapper of that MOS resource. This Mos resource is
+    //!            owned by caller.
+    //! \param    [in] mosResource
+    //!           pointer to MOS resource.
+    //! \param    [in,out] surface
+    //!           reference to pointer of surface to be created.
+    //! \retval   CM_SUCCESS if the CmSurface2D is successfully created.
+    //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResrouce is nullptr.
+    //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 2D surfaces
+    //!           is exceeded.
+    //! \retval   CM_FAILURE otherwise.
+    //!
+    CM_RT_API virtual int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
+                                              CmSurface2D* &surface) = 0;
 };
 }; //namespace
 

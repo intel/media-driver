@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3593,6 +3593,8 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencControlStateCmd(&cmdBuffer));
+
     // set MFX_SURFACE_STATE values
     // Ref surface
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
@@ -3610,9 +3612,9 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     surfaceParams.dwActualHeight = surfaceParams.psSurface->dwHeight;
     surfaceParams.dwActualWidth = surfaceParams.psSurface->dwWidth;
     surfaceParams.bDisplayFormatSwizzle = m_avcPicParam->bDisplayFormatSwizzle;
+    surfaceParams.bColorSpaceSelection = (m_avcSeqParam->InputColorSpace == ECOLORSPACE_P709) ? 1 : 0;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     pipeBufAddrParams.pRawSurfParam = &surfaceParams;
     pipeBufAddrParams.pDecodedReconParam = &reconSurfaceParams;
     SetMfxPipeBufAddrStateParams(encodePictureLevelParams, pipeBufAddrParams);
@@ -3698,7 +3700,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcImgCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencCostStateCmd(secondLevelBatchBufferUsed));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcCostStateCmd(secondLevelBatchBufferUsed, imageStateParams));
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
@@ -4094,7 +4096,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(RestoreTLBAllocation(&cmdBuffer, &m_vdencTlbMmioBuffer));
         }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, renderingFlags));
 
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState)
@@ -5159,6 +5161,7 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
     MOS_STATUS eStatus = CodechalEncodeAvcBase::SetMfxPipeBufAddrStateParams(genericParam, param);
 
     param.ps4xDsSurface                         = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
+    param.ps8xDsSurface                         = m_trackedBuf->Get8xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     param.presVdencIntraRowStoreScratchBuffer   = &m_vdencIntraRowStoreScratchBuffer;
     param.presVdencStreamOutBuffer              = &m_vdencStatsBuffer;
     param.presStreamOutBuffer                   = &m_pakStatsBuffer;
@@ -5181,6 +5184,8 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
                 param.presVdencReferences[refIdx] = &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
                 param.presVdenc4xDsSurface[refIdx] =
                     &(m_trackedBuf->Get4xDsReconSurface(m_refList[refPicIdx]->ucScalingIdx))->OsResource;
+                param.presVdenc8xDsSurface[refIdx] =
+                    &(m_trackedBuf->Get8xDsReconSurface(m_refList[refPicIdx]->ucScalingIdx))->OsResource;
             }
         }
     }
@@ -5210,6 +5215,7 @@ void CodechalVdencAvcState::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& pa
             m_vdencSliceMinusI : m_vdencSliceMinusP;
     }
 
+    param.bVdencEnabled = true;
     param.pVDEncModeCost = m_vdencModeCostTbl;
     param.pVDEncHmeMvCost = m_vdencHmeMvCostTbl;
     param.pVDEncMvCost = m_vdencMvCostTbl;
@@ -5220,15 +5226,12 @@ void CodechalVdencAvcState::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& pa
 PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcState::CreateMhwVdboxStateCmdsizeParams()
 {
     PMHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams = MOS_New(MHW_VDBOX_STATE_CMDSIZE_PARAMS);
-    MOS_ZeroMemory(stateCmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS));
-
     return stateCmdSizeParams;
 }
 
 PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcState::CreateMhwVdboxPipeModeSelectParams()
 {
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
-    MOS_ZeroMemory(pipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS));
 
     return pipeModeSelectParams;
 }
@@ -5236,7 +5239,6 @@ PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcState::CreateMhwVdboxPipeMode
 PMHW_VDBOX_AVC_IMG_PARAMS CodechalVdencAvcState::CreateMhwVdboxAvcImgParams()
 {
     PMHW_VDBOX_AVC_IMG_PARAMS avcImgParams = MOS_New(MHW_VDBOX_AVC_IMG_PARAMS);
-    MOS_ZeroMemory(avcImgParams, sizeof(MHW_VDBOX_AVC_IMG_PARAMS));
 
     return avcImgParams;
 }
@@ -5244,7 +5246,6 @@ PMHW_VDBOX_AVC_IMG_PARAMS CodechalVdencAvcState::CreateMhwVdboxAvcImgParams()
 PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CodechalVdencAvcState::CreateMhwVdboxVdencWalkerStateParams()
 {
     PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS vdencWalkerStateParams = MOS_New(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS);
-    MOS_ZeroMemory(vdencWalkerStateParams, sizeof(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS));
 
     return vdencWalkerStateParams;
 }

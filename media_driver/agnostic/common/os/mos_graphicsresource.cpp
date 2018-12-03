@@ -37,11 +37,15 @@ uint32_t GraphicsResource::m_memAllocCounterGfx;
 GraphicsResource::GraphicsResource()
 {
     MOS_OS_FUNCTION_ENTER;
+    m_allocationIndexMutex = MOS_CreateMutex();
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(m_allocationIndexMutex);
 }
 
 GraphicsResource::~GraphicsResource()
 {
     MOS_OS_FUNCTION_ENTER;
+    MOS_DestroyMutex(m_allocationIndexMutex);
+    m_allocationIndexMutex = nullptr;
 }
 
 MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffset, uint32_t overrideSize, std::string outputFileName, std::string outputPath)
@@ -131,9 +135,9 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
 
 class GraphicsResource* GraphicsResource::CreateGraphicResource(GraphicsResource::ResourceType resourceType)
 {
-    class GraphicsResource* pResource = nullptr;
-
     MOS_OS_FUNCTION_ENTER;
+
+    class GraphicsResource* pResource = nullptr;
 
     switch (resourceType)
     {
@@ -150,12 +154,13 @@ class GraphicsResource* GraphicsResource::CreateGraphicResource(GraphicsResource
 
 int32_t GraphicsResource::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle)
 {
-   MOS_OS_FUNCTION_ENTER;
+    MOS_OS_FUNCTION_ENTER;
 
     GPU_CONTEXT_HANDLE curGpuContext = 0;
     int32_t curAllocIndex            = MOS_INVALID_ALLOC_INDEX;
     int32_t ret                      = MOS_INVALID_ALLOC_INDEX; 
 
+    MOS_LockMutex(m_allocationIndexMutex);
     for (auto& curAllocationIndexTp : m_allocationIndexArray)
     {
         std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;
@@ -166,40 +171,15 @@ int32_t GraphicsResource::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle
         }
     }
 
+    MOS_UnlockMutex(m_allocationIndexMutex);
     return ret;
-}
-
-void GraphicsResource::SetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle, int32_t allocationIndex)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    GPU_CONTEXT_HANDLE curGpuContext = 0;
-    int32_t            curAllocIndex = MOS_INVALID_ALLOC_INDEX;
-    bool               found         = false;
-
-    for (auto& curAllocationIndexTp : m_allocationIndexArray)
-    {
-        std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;
-        if (curGpuContext == gpuContextHandle)
-        {
-             found = true;
-             curAllocationIndexTp = std::tie( gpuContextHandle, allocationIndex );
-             return;
-        }
-    }
-
-    if (!found)
-    {
-        // not found
-        m_allocationIndexArray.push_back(std::tie(gpuContextHandle, allocationIndex));
-    }
-    return;
 }
 
 void GraphicsResource::ResetResourceAllocationIndex()
 {
     MOS_OS_FUNCTION_ENTER;
-
+    MOS_LockMutex(m_allocationIndexMutex);
     m_allocationIndexArray.clear();
+    MOS_UnlockMutex(m_allocationIndexMutex);
 }
 

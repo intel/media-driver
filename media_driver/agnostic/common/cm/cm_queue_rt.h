@@ -180,6 +180,12 @@ public:
                                                     const uint32_t option,
                                                     CmEvent *&event);
 
+    CM_RT_API int32_t EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr);
+
+    CM_RT_API int32_t DestroyEventFast(CmEvent *&event);
+
     int32_t EnqueueCopyInternal_1Plane(CmSurface2DRT *surface,
                                        unsigned char *sysMem,
                                        CM_SURFACE_FORMAT format,
@@ -260,7 +266,8 @@ protected:
                        PCM_POWER_OPTION powerOption = nullptr,
                        const uint64_t conditionalEndBitmap = 0,
                        PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo = nullptr,
-                       CM_TASK_CONFIG *taskConfig = nullptr);
+                       CM_TASK_CONFIG *taskConfig = nullptr,
+                       const CM_EXECUTION_CONFIG* krnExecCfg = nullptr);
 
     int32_t Enqueue_RT(CmKernelRT *kernelArray[],
                        CmEventRT *&event,

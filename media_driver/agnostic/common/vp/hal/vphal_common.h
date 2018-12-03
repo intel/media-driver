@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #endif  // EMUL || VPHAL_LIB
 
 #include "mos_os.h"
+#include "vphal_common_hdr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -207,7 +208,7 @@ extern "C" {
 
 #define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
 #define VPHAL_MAX_CHANNELS              2
-#define VPHAL_MAX_TARGETS               2        //!< dual output support for Android
+#define VPHAL_MAX_TARGETS               8        //!< multi output support
 #define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
@@ -246,6 +247,25 @@ typedef struct _VPHAL_LACE_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL    WeitCoefSurfaceMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL    GlobalToneMappingCurveLUTSurfaceMemObjCtl;
 } VPHAL_LACE_CACHE_CNTL, *PVPHAL_LACE_CACHE_CNTL;
+
+typedef struct _VPHAL_16_ALIGN_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
+}VPHAL_16_ALIGN_CACHE_CNTL, *PVPHAL_16_ALIGN_CACHE_CNTL;
+
+typedef struct _VPHAL_FAST1TON_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
+}VPHAL_FAST1TON_CACHE_CNTL, *PVPHAL_FAST1TON_CACHE_CNTL;
+
 
 //!
 //! \brief  Feature specific cache control settings
@@ -382,6 +402,21 @@ typedef enum _VPHAL_CSPACE
     CSpace_Count                    //!< Keep this at the end
 } VPHAL_CSPACE;
 C_ASSERT(CSpace_Count == 15);       //!< When adding, update assert & vphal_solo_scenario.cpp
+
+//!
+//! Structure VPHAL_GAMMA_TYPE
+//! \brief GAMMA Function type
+//!
+typedef enum _VPHAL_GAMMA_TYPE
+{
+    VPHAL_GAMMA_NONE = 0,
+    VPHAL_GAMMA_TRADITIONAL_GAMMA,
+    VPHAL_GAMMA_SMPTE_ST2084,
+    VPHAL_GAMMA_BT1886,
+    VPHAL_GAMMA_SRGB,
+    VPHAL_GAMMA_Count
+} VPHAL_GAMMA_TYPE;
+C_ASSERT(VPHAL_GAMMA_Count == 5);       //!< When adding, update assert
 
 //!
 //! \def IS_COLOR_SPACE_BT2020_YUV(_a)
@@ -932,6 +967,15 @@ struct VPHAL_SURFACE
                                                     // The bIsCompressed in surface allocation structure should use this flag to initialize to allocate a compressible surface
     bool                        bIsCompressed;      // The surface is compressed, VEBox output can only support horizontal mode, but input can be horizontal / vertical
     MOS_RESOURCE_MMC_MODE       CompressionMode;
+
+    bool                        bUseSampleUnorm;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
+    bool                        bUseSamplerLumakey; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
+
+    //------------------------------------------
+    // HDR related parameters, provided by DDI
+    //------------------------------------------
+    PVPHAL_HDR_PARAMS           pHDRParams = nullptr;
+    VPHAL_GAMMA_TYPE            GammaType;          //!<Gamma Type
 };
 
 //!
@@ -1064,6 +1108,7 @@ struct VPHAL_RENDER_PARAMS
 
                                                                         // Status Report
     bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
+    bool                                    bUserPrt_16Align[VPHAL_MAX_TARGETS];           //!< is system memory 16 bytes alignment requirement.
     uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
@@ -1096,6 +1141,10 @@ struct VPHAL_RENDER_PARAMS
         bCalculatingAlpha(false),
         pExtensionData(nullptr)
     {
+        for (int i=0; i<VPHAL_MAX_TARGETS; i++)
+        {
+            bUserPrt_16Align[i] = false;
+        }
     }
 
 };

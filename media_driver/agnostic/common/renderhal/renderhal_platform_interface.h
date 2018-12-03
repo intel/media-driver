@@ -351,6 +351,30 @@ public:
     //! \return     size_t
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() = 0;
+
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to RenderHal Interface
+    //! \return   true or false
+    virtual bool IsComputeContextInUse(
+        PRENDERHAL_INTERFACE    pRenderHal) = 0;
+
+    //! \brief    Send Compute Walker
+    //! \details  Send Compute Walker
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \param    PRENDERHAL_GPGPU_WALKER_PARAMS pGpGpuWalkerParams
+    //!           [in]    Pointer to GPGPU walker parameters
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SendComputeWalker(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer,
+        PMHW_GPGPU_WALKER_PARAMS    pGpGpuWalkerParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__

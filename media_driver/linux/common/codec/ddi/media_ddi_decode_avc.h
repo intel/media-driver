@@ -84,14 +84,14 @@ private:
     //! \param   [in] *slcParam
     //!          VASliceParameterBufferH264
     //! \param   [in] numSlices
-    //!             int32_t
+    //!             uint32_t
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus ParseSliceParams(
         DDI_MEDIA_CONTEXT           *mediaCtx,
         VASliceParameterBufferH264  *slcParam,
-        int32_t                     numSlices);
+        uint32_t                     numSlices);
 
     //!
     //! \brief   ParaQMatrixParam for Avc
@@ -131,12 +131,12 @@ private:
     //! \details Alloc/resize SlicePram content for AVC decoding
     //!
     //! \param   [in] numSlices
-    //!          int32_t the required number of slices
+    //!          uint32_t the required number of slices
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus AllocSliceParamContext(
-        int32_t numSlices);
+        uint32_t numSlices);
 
     //! \brief   Init resource buffer for AVC
     //! \details Initialize and allocate the resource buffer for AVC

@@ -82,11 +82,23 @@ class CmTaskInternal: public CmDynamicArray
 {
 public:
 
-    static int32_t Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadSpaceRT* threadSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo);
+    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount,
+                           CmKernelRT* kernelArray[], const CmThreadSpaceRT* threadSpace,
+                           CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task,
+                           const uint64_t conditionalEndBitmap,
+                           PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo );
     static int32_t Destroy( CmTaskInternal* &task );
-    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo);
+    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount,
+                           CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace,
+                           CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task,
+                           const uint64_t conditionalEndBitmap,
+                           PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo,
+                           const CM_EXECUTION_CONFIG* krnExecCfg);
     static int32_t Create( CmDeviceRT* device, CmVeboxRT* vebox, CmTaskInternal*& task );
-    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], CmTaskInternal*& task, uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints, CmDeviceRT* device);
+    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount,
+                           CmKernelRT* kernelArray[], CmTaskInternal*& task,
+                           uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints,
+                           CmDeviceRT* device);
 
     int32_t GetKernelCount( uint32_t& count );
     int32_t GetKernel( const uint32_t index, CmKernelRT* & kernel );
@@ -111,7 +123,9 @@ public:
     int32_t DisplayThreadSpaceData(uint32_t width, uint32_t height);
 #endif
     int32_t GetThreadSpaceSize(uint32_t& width, uint32_t& height );
-    int32_t GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint32_t& threadSpaceHeight, uint32_t& threadSpaceDepth, uint32_t& groupSpaceWidth, uint32_t& groupSpaceHeight, uint32_t& groupSpaceDepth);
+    int32_t GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint32_t& threadSpaceHeight,
+                                    uint32_t& threadSpaceDepth, uint32_t& groupSpaceWidth,
+                                    uint32_t& groupSpaceHeight, uint32_t& groupSpaceDepth);
     int32_t GetSLMSize(uint32_t& slmSize);
     int32_t GetSpillMemUsed(uint32_t& spillMemUsed);
     int32_t GetColorCountMinusOne(uint32_t& colorCount);
@@ -146,6 +160,7 @@ public:
     int32_t GetTaskStatus(CM_STATUS & taskStatus);
     int32_t SetProperty(CM_TASK_CONFIG * taskConfig);
     PCM_TASK_CONFIG GetTaskConfig();
+    const CM_EXECUTION_CONFIG* GetKernelExecuteConfig() { return m_krnExecCfg; };
     void  *GetMediaStatePtr();
 #if CM_LOG_ON
     std::string Log();
@@ -159,7 +174,11 @@ public:
 
 protected:
 
-    CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], CmDeviceRT* device, const uint64_t syncBitmap, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo);
+    CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount,
+                   CmKernelRT* kernelArray[], CmDeviceRT* device, const uint64_t syncBitmap,
+                   const uint64_t conditionalEndBitmap,
+                   PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo,
+                   const CM_EXECUTION_CONFIG* krnExecCfg);
     ~CmTaskInternal( void );
 
     int32_t Initialize(const CmThreadSpaceRT* threadSpace, bool isWithHints);
@@ -230,6 +249,7 @@ protected:
     CM_POWER_OPTION m_powerOption;
     CM_PROFILING_INFO   m_taskProfilingInfo;
     CM_TASK_CONFIG  m_taskConfig;
+    CM_EXECUTION_CONFIG m_krnExecCfg[CM_MAX_KERNELS_PER_TASK];
     void            *m_mediaStatePtr;
 private:
     CmTaskInternal (const CmTaskInternal& other);

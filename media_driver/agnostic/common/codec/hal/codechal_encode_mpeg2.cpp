@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4293,7 +4293,6 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
 
     // set MFX_PIPE_MODE_SELECT values
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = true;
     bool suppressReconPic =
@@ -4304,7 +4303,6 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
 
     // set MFX_PIPE_BUF_ADDR_STATE values
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     pipeBufAddrParams.psPreDeblockSurface = &m_reconSurface;
 
@@ -4705,10 +4703,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteSliceLevel()
     if (!m_singleTaskPhaseSupported ||
         m_lastTaskInPhase)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
-            m_osInterface,
-            &cmdBuffer,
-            m_videoContextUsesNullHw));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, m_videoContextUsesNullHw));
 
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState)
@@ -5171,8 +5166,7 @@ MOS_STATUS CodechalEncodeMpeg2::AddMediaVfeCmd(
 {
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState                      = params->pKernelState;
     vfeParams.eVfeSliceDisable                  = MHW_VFE_SLICE_ALL;
     vfeParams.dwMaximumNumberofThreads          = m_encodeVfeMaxThreads;

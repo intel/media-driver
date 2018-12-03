@@ -132,6 +132,12 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
                 }
             }
         }
+        else if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive)
+        {
+            MHW_VDBOX_AVC_REF_IDX_PARAMS refIdxParams;
+            MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_AVC_REF_IDX_PARAMS));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBuffer, nullptr, &refIdxParams));
+        }
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcSlice(cmdBuffer, nullptr, avcSliceState));
     }
@@ -1151,6 +1157,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     m_picIdRemappingInUse = (m_decodeParams.m_picIdRemappingInUse) ? true : false;
 
     m_cencBuf = m_decodeParams.m_cencBuf;
+    m_fullFrameData = m_decodeParams.m_bFullFrameData;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcPicParams);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcIqMatrixParams);
@@ -1268,11 +1275,34 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
      MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
-    PMOS_RESOURCE firstValidFrame = &(m_destSurface.OsResource);
+    PMOS_RESOURCE firstValidFrame = nullptr;
+
+    if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+    {
+        firstValidFrame = &m_dummyReference.OsResource;
+    }
+    else
+    {
+        firstValidFrame = &m_destSurface.OsResource;
+    }
 
     CODECHAL_DECODE_CHK_NULL_RETURN(picMhwParams);
 
-    MOS_ZeroMemory(picMhwParams, sizeof(*picMhwParams));
+    picMhwParams->PipeModeSelectParams = {};
+    picMhwParams->PipeBufAddrParams = {};
+    picMhwParams->ImgParams = {};
+    MOS_ZeroMemory(&picMhwParams->SurfaceParams, 
+        sizeof(picMhwParams->SurfaceParams));
+    MOS_ZeroMemory(&picMhwParams->IndObjBaseAddrParams, 
+        sizeof(picMhwParams->IndObjBaseAddrParams));
+    MOS_ZeroMemory(&picMhwParams->BspBufBaseAddrParams, 
+        sizeof(picMhwParams->BspBufBaseAddrParams));
+    MOS_ZeroMemory(&picMhwParams->QmParams, 
+        sizeof(picMhwParams->QmParams));
+    MOS_ZeroMemory(&picMhwParams->PicIdParams, 
+        sizeof(picMhwParams->PicIdParams));
+    MOS_ZeroMemory(&picMhwParams->AvcDirectmodeParams, 
+        sizeof(picMhwParams->AvcDirectmodeParams));
 
     picMhwParams->PipeModeSelectParams.Mode = CODECHAL_DECODE_MODE_AVCVLD;
     //enable decodestreamout if either app or codechal dump need it
@@ -1668,6 +1698,7 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
         avcSliceState.dwNextLength = length;
         avcSliceState.dwSliceIndex = slcCount;
         avcSliceState.bLastSlice = (slcCount == lastValidSlice);
+        avcSliceState.bFullFrameData = m_fullFrameData;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(SendSlice(&avcSliceState, cmdBuf));
 
@@ -1967,6 +1998,8 @@ CodechalDecodeAvc::CodechalDecodeAvc(
 
     //Currently, crc calculation is only supported in AVC decoder
     m_reportFrameCrc = true;
+
+    m_fullFrameData = false;
 
 };
 

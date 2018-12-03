@@ -125,6 +125,8 @@ static bool InitBdwShadowSku(struct GfxDeviceInfo *devInfo,
 
     skuTable->FtrEDram = devInfo->hasERAM;
 
+    skuTable->FtrTileY = 1;
+
     return true;
 }
 

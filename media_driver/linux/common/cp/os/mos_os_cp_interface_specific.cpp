@@ -181,3 +181,8 @@ MOS_STATUS MosCpInterface::GetTK(
     OsStubMessage();
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS MosCpInterface::ReadCtrNounceRegister(bool readCtr0, uint32_t *pCounter)
+{
+    return  MOS_STATUS_UNIMPLEMENTED;
+}

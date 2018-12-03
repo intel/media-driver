@@ -1430,9 +1430,6 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     pStateHeap->dwSshIntanceSize   = dwSizeSSH;
     pRenderHal->dwIndirectHeapSize = MOS_ALIGN_CEIL(dwSizeSSH, MHW_PAGE_SIZE);
 
-    // Set indirect heap size - limits the size of the command buffer available for rendering
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnSetIndirectStateSize(pRenderHal->pOsInterface, pRenderHal->dwIndirectHeapSize));
-
     // Allocate SSH buffer in system memory, not Gfx
     pStateHeap->dwSizeSSH  = dwSizeSSH; // Single SSH instance
     pStateHeap->pSshBuffer = (uint8_t*)MOS_AllocAndZeroMemory(dwSizeSSH);
@@ -3311,7 +3308,8 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 // The max value is 16383. So use PL3 kernel to avoid out of range when Y_Uoffset is larger than 16383.
                 // Use PL3 plane to avoid YV12 bleeding issue with DI enabled
                 PlaneDefinition = (pRenderHal->bEnableYV12SinglePass                              &&
-                                   (!pRenderHalSurface->pDeinterlaceParams)                       &&
+                                   !pRenderHalSurface->pDeinterlaceParams                         &&
+                                   !pRenderHalSurface->bInterlacedScaling                         &&
                                    pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET &&
                                    (pSurface->dwHeight * 2 + pSurface->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9)?
                                    RENDERHAL_PLANES_YV12 : RENDERHAL_PLANES_PL3;
@@ -3387,9 +3385,11 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 // On G8, NV12 format needs the width and Height to be a multiple
                 // of 4 for both 3D sampler and 8x8 sampler; G75 needs the width
                 // of NV12 input surface to be a multiple of 4 for 3D sampler;
-                // G9+ does not has such restriction; to simplify the implementation,
-                // we enable 2 plane NV12 for all of the platform when the width
-                // or Height is not a multiple of 4
+                // On G9+, width need to be a multiple of 2, while height still need
+                // be a multiple of 4; since G9 already post PV, just keep the old logic
+                // to enable 2 plane NV12 when the width or Height is not a multiple of 4.
+                // For G10+, enable 2 plane NV12 when width is not multiple of 2 or height
+                // is not multiple of 4.
                 if ( pRenderHalSurface->SurfType == RENDERHAL_SURF_OUT_RENDERTARGET   ||
                      (pParams->bWidthInDword_Y && pParams->bWidthInDword_UV)          ||
                      pParams->b2PlaneNV12NeededByKernel                               ||
@@ -5280,14 +5280,23 @@ MOS_STATUS RenderHal_SendMediaStates(
     }
 
     // Send VFE State
-    pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
-    MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaVfeCmd(pCmdBuffer, pVfeStateParams));
+    if (!pRenderHal->bComputeContextInUse)
+    {
+        pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
+        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaVfeCmd(pCmdBuffer, pVfeStateParams));
+    }
 
     // Send CURBE Load
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendCurbeLoad(pRenderHal, pCmdBuffer));
+    if (!pRenderHal->bComputeContextInUse)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendCurbeLoad(pRenderHal, pCmdBuffer));
+    }
 
     // Send Interface Descriptor Load
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendMediaIdLoad(pRenderHal, pCmdBuffer));
+    if (!pRenderHal->bComputeContextInUse)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendMediaIdLoad(pRenderHal, pCmdBuffer));
+    }
 
     // Send Chroma Keys
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendChromaKey(pRenderHal, pCmdBuffer));
@@ -5302,9 +5311,16 @@ MOS_STATUS RenderHal_SendMediaStates(
             pCmdBuffer,
             pWalkerParams));
     }
-    else if (pGpGpuWalkerParams)
+    else if (pGpGpuWalkerParams && (!pRenderHal->bComputeContextInUse))
     {
         MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddGpGpuWalkerStateCmd(
+            pCmdBuffer,
+            pGpGpuWalkerParams));
+    }
+    else if (pGpGpuWalkerParams && pRenderHal->bComputeContextInUse)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendComputeWalker(
+            pRenderHal,
             pCmdBuffer,
             pGpGpuWalkerParams));
     }
@@ -6049,14 +6065,30 @@ bool RenderHal_Is2PlaneNV12Needed(
             break;
     }
 
-     if (!GFX_IS_GEN_10_OR_LATER(pRenderHal->Platform))
-     {
-         return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
-     }
-     else
-     {
-         return (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
-     }
+    // On G8, NV12 format needs the width and Height to be a multiple
+    // of 4 for both 3D sampler and 8x8 sampler; G75 needs the width
+    // of NV12 input surface to be a multiple of 4 for 3D sampler.
+    // On G9+, width need to be a multiple of 2, while height still need
+    // be a multiple of 4. Since G9 already post PV, just keep the old logic
+    // to enable 2 plane NV12 when the width or Height is not a multiple of 4.
+    // For G10+, enable 2 plane NV12 when width is not multiple of 2 or height
+    // is not multiple of 4.
+    if (!GFX_IS_GEN_10_OR_LATER(pRenderHal->Platform))
+    {
+        return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
+    }
+    else
+    {
+        // For AVS sampler, no limitation for 4 alignment.
+        if (RENDERHAL_SCALING_AVS == pRenderHalSurface->ScalingMode)
+        {
+            return (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+        }
+        else
+        {
+            return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+        }
+    }
 }
 
 //!
@@ -6812,6 +6844,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->bHasCombinedAVSSamplerState   = true;
     pRenderHal->bEnableYV12SinglePass         = pRenderHal->pRenderHalPltInterface->IsEnableYV12SinglePass(pRenderHal);
     pRenderHal->dwSamplerAvsIncrement         = pRenderHal->pRenderHalPltInterface->GetSizeSamplerStateAvs(pRenderHal);
+    pRenderHal->bComputeContextInUse          = pRenderHal->pRenderHalPltInterface->IsComputeContextInUse(pRenderHal);
 
     pRenderHal->dwMaskCrsThdConDataRdLn       = (uint32_t) -1;
     pRenderHal->dwMinNumberThreadsInGroup     = 1;

@@ -141,6 +141,8 @@ protected:
         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for VP9 encode
     static const uint32_t m_maxVp9EncHeight =
         CODEC_8K_MAX_PIC_HEIGHT; //!< maxinum height for VP9 encode
+    static const VAImageFormat m_G11ImageFormats[]; //!< Gen11 supported image formats
+    static const VAConfigAttribValEncRateControlExt m_encVp9RateControlExt; //!< External enc rate control caps for VP9 encode
 
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,
@@ -190,6 +192,44 @@ protected:
     //! \return VAStatus
     //!     if call succeeds
     //!
-    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP);
+    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
+
+    //! \brief    Query the suppported image formats
+    //!
+    //! \param    [in,out] formatList
+    //!           Pointer to a VAImageFormat array. The array size shouldn't be less than vaMaxNumImageFormats 
+    //!           It will return the supported image formats.
+    //!
+    //! \param    [in,out] num_formats
+    //!           Pointer to a integer that will return the real size of formatList.
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
+    //!
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) override;
+
+    //! \brief    Return the maxinum number of supported image formats
+    //!
+    //! \return   The maxinum number of supported image formats
+    //!
+    virtual uint32_t GetImageFormatsMaxNum();
+
+    //! \brief    Return the number of supported image formats for Gen 12
+    //!
+    //! \return   The number of supported image formats for Gen 12
+    //!
+    uint32_t GetNumG11ImageFormats();
+
+    //!
+    //! \brief    Populate the color masks info
+    //!
+    //! \param    [in,out] Image format
+    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
+    //!           structure.
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
+    //!
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
 };
 #endif

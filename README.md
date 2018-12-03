@@ -36,24 +36,25 @@ GmmLib - https://github.com/intel/gmmlib (please check https://github.com/intel/
 ## Building
 
 1. Build and install libva master
-2. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
+2. Build and install gmmlib master
+3. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
 ```
 <workspace>
     |- media-driver
 ```
-3. 
+4. 
 ```
 $ mkdir <workspace>/build_media
 ```
-4. 
+5. 
 ```
 $ cd <workspace>/build_media
 ```
-5. 
+6. 
 ```
 $ cmake ../media-driver
 ```
-6. 
+7. 
 ```
 $ make -j8
 ```
@@ -74,13 +75,6 @@ For iHD_drv_video.so please export related LIBVA environment variables.
 ```
 export LIBVA_DRIVERS_PATH=<path-contains-iHD_drv_video.so>
 export LIBVA_DRIVER_NAME=iHD
-```
-
-## Docker Image
-
-To simplify media stack installation you can use docker images. To generate your own docker image, read Tools/dockers/README.md. Alternatively you can use generated images located in [hub.docker/intelmediadriver](https://hub.docker.com/r/intelmediadriver/media-driver/tags/). Latest image is based on Ubuntu 18.04 and downloaded by below command.
-```
-$ docker pull intelmediadriver/media-driver
 ```
 
 
@@ -120,7 +114,7 @@ E1 - VME based encoding
 
 E2 - Low power encoding
 
-\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/tree/intel-media-18.3#known-issues-and-limitations).
+\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 
 ## Supported Decoding Features
@@ -179,7 +173,7 @@ Supported input format and max resoultuion:
 
 \** JPEG encoding supports input format NV12/YUY2/UYVY/AYUV/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24. 
 
-\*** ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/tree/intel-media-18.3#known-issues-and-limitations).
+\*** ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 
 ### VME Based Encoding:
@@ -201,8 +195,7 @@ Supported input format and max resolution:
 | HEVC 10bit |Input       |      |      |         |      |      | NV12 | P010/Y410      |
 |            |Max Res.    |      |      |         |      |      | 8k   | 8k             |
 
-\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/tree/intel-media-18.3#known-issues-and-limitations).
-
+\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 ## Supported Video Processing
 

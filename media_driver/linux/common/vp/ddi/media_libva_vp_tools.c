@@ -266,7 +266,7 @@ void VpDumpProcFiltersParameterBuffer(
         VAProcFilterParameterBufferBase* filter_param = (VAProcFilterParameterBufferBase*) pData;
         if (nullptr != pFilterBuf)
         {
-            fprintf(fpLog, "\t  num_elements = %d\n", pFilterBuf->iNumElements);
+            fprintf(fpLog, "\t  num_elements = %d\n", pFilterBuf->uiNumElements);
         }
 
         if (nullptr != filter_param)
@@ -280,14 +280,14 @@ void VpDumpProcFiltersParameterBuffer(
             case VAProcFilterColorBalance:
                 if (nullptr != pFilterBuf)
                 {
-                    VpDumpColorBalanceParameterBuffer(fpLog, (VAProcFilterParameterBufferColorBalance *)pData, pFilterBuf->iNumElements);
+                    VpDumpColorBalanceParameterBuffer(fpLog, (VAProcFilterParameterBufferColorBalance *)pData, pFilterBuf->uiNumElements);
                 }
                 break;
 
             case VAProcFilterTotalColorCorrection:
                 if (nullptr != pFilterBuf)
                 {
-                    VpDumpTotalColorCorrectionParameterBuffer(fpLog, (VAProcFilterParameterBufferTotalColorCorrection *)pData, pFilterBuf->iNumElements);
+                    VpDumpTotalColorCorrectionParameterBuffer(fpLog, (VAProcFilterParameterBufferTotalColorCorrection *)pData, pFilterBuf->uiNumElements);
                 }
                 break;
 

@@ -468,8 +468,10 @@ typedef enum _RENDERHAL_COMPONENT
     RENDERHAL_COMPONENT_DNDI,
     RENDERHAL_COMPONENT_VEBOX,
     RENDERHAL_COMPONENT_CM,
+    RENDERHAL_COMPONENT_16ALIGN,
+    RENDERHAL_COMPONENT_FAST1TON,
     RENDERHAL_COMPONENT_COUNT_BASE,
-    RENDERHAL_COMPONENT_RESERVED_NUM = 13,
+    RENDERHAL_COMPONENT_RESERVED_NUM = 15,
     RENDERHAL_COMPONENT_COUNT
 } RENDERHAL_COMPONENT;
 
@@ -1059,11 +1061,12 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
 //!
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS
 {
-    bool                            bMmcEnabled;
-    bool                            bEnableMediaFrameTracking;
-    uint32_t                        dwMediaFrameTrackingTag;
-    uint32_t                        dwMediaFrameTrackingAddrOffset;
-    PMOS_RESOURCE                   presMediaFrameTrackingSurface;
+    bool                            bMmcEnabled = 0;
+    bool                            bEnableMediaFrameTracking = 0;
+    uint32_t                        dwMediaFrameTrackingTag = 0;
+    uint32_t                        dwMediaFrameTrackingAddrOffset = 0;
+    PMOS_RESOURCE                   presMediaFrameTrackingSurface = nullptr;
+    virtual ~_RENDERHAL_GENERIC_PROLOG_PARAMS() {}
 } RENDERHAL_GENERIC_PROLOG_PARAMS, *PRENDERHAL_GENERIC_PROLOG_PARAMS;
 
 //!
@@ -1173,6 +1176,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bEUSaturationNoSSD;                             // No slice shutdown, must request 2 slices [CM EU saturation on]
     bool                        bEnableGpgpuMidBatchPreEmption;                 // Middle Batch Buffer Preemption
     bool                        bEnableGpgpuMidThreadPreEmption;                // Middle Thread Preemption
+    bool                        bComputeContextInUse;                           // Compute Context use for media
 
     uint32_t                    dwMaskCrsThdConDataRdLn;                        // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
     uint32_t                    dwMinNumberThreadsInGroup;                      // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
@@ -1241,6 +1245,8 @@ typedef struct _RENDERHAL_INTERFACE
 
     // Indicates whether it's AVS or not
     bool                        bIsAVS;
+
+    bool                        isMMCEnabled;
 
     MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
 

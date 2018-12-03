@@ -27,9 +27,11 @@
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_
 
-typedef struct CM_HAL_GENERIC *PCM_HAL_GENERIC;
+#include "cm_def.h"
+
+typedef struct CM_HAL_GENERIC *           PCM_HAL_GENERIC;
 typedef struct _CM_HAL_SAMPLER_8X8_PARAM *PCM_HAL_SAMPLER_8X8_PARAM;
-typedef struct CmHalL3Settings *PCmHalL3Settings;
+typedef struct CmHalL3Settings *          PCmHalL3Settings;
 
 //-------------------------------
 //| CM HW platform info
@@ -64,12 +66,12 @@ enum CM_HAL_WALKER_MODE
 {
     CM_HAL_WALKER_MODE_NOT_SET  = -1,
     CM_HAL_WALKER_MODE_DISABLED = 0,
-    CM_HAL_WALKER_MODE_SINGLE   = 1,    // dual = 0, repel = 1
-    CM_HAL_WALKER_MODE_DUAL     = 2,    // dual = 1, repel = 0)
-    CM_HAL_WALKER_MODE_TRI      = 3,    // applies in BDW GT2 which has 1 slice and 3 sampler/VME per slice
-    CM_HAL_WALKER_MODE_QUAD     = 4,    // applies in HSW GT3 which has 2 slices and 2 sampler/VME per slice
-    CM_HAL_WALKER_MODE_HEX      = 6,    // applies in BDW GT2 which has 2 slices and 3 sampler/VME per slice
-    CM_HAL_WALKER_MODE_OCT      = 8     // may apply in future Gen media architectures
+    CM_HAL_WALKER_MODE_SINGLE   = 1,  // dual = 0, repel = 1
+    CM_HAL_WALKER_MODE_DUAL     = 2,  // dual = 1, repel = 0)
+    CM_HAL_WALKER_MODE_TRI      = 3,  // applies in BDW GT2 which has 1 slice and 3 sampler/VME per slice
+    CM_HAL_WALKER_MODE_QUAD     = 4,  // applies in HSW GT3 which has 2 slices and 2 sampler/VME per slice
+    CM_HAL_WALKER_MODE_HEX      = 6,  // applies in BDW GT2 which has 2 slices and 3 sampler/VME per slice
+    CM_HAL_WALKER_MODE_OCT      = 8   // may apply in future Gen media architectures
 };
 
 // The following structure must match the structure
@@ -93,15 +95,15 @@ struct CM_HAL_WALKER_PARAMS
     uint32_t globalLoopExecCount;
 
     CM_HAL_WALKER_MODE walkerMode;
-    CM_HAL_WALKER_XY blockResolution;
-    CM_HAL_WALKER_XY localStart;
-    CM_HAL_WALKER_XY localEnd;
-    CM_HAL_WALKER_XY localOutLoopStride;
-    CM_HAL_WALKER_XY localInnerLoopUnit;
-    CM_HAL_WALKER_XY globalResolution;
-    CM_HAL_WALKER_XY globalStart;
-    CM_HAL_WALKER_XY globalOutlerLoopStride;
-    CM_HAL_WALKER_XY globalInnerLoopUnit;
+    CM_HAL_WALKER_XY   blockResolution;
+    CM_HAL_WALKER_XY   localStart;
+    CM_HAL_WALKER_XY   localEnd;
+    CM_HAL_WALKER_XY   localOutLoopStride;
+    CM_HAL_WALKER_XY   localInnerLoopUnit;
+    CM_HAL_WALKER_XY   globalResolution;
+    CM_HAL_WALKER_XY   globalStart;
+    CM_HAL_WALKER_XY   globalOutlerLoopStride;
+    CM_HAL_WALKER_XY   globalInnerLoopUnit;
 
     bool addMediaFlush;
     bool requestSingleSlice;
@@ -115,18 +117,18 @@ struct SamplerParam
     unsigned int bti;
     unsigned int btiStepping;
     unsigned int btiMultiplier;
-    bool userDefinedBti;
-    bool regularBti;
+    bool         userDefinedBti;
+    bool         regularBti;
     unsigned int elementType;
     unsigned int size;
 };
 
 struct CM_SURFACE_BTI_INFO
 {
-    uint32_t normalSurfaceStart;   // start index of normal surface
-    uint32_t normalSurfaceEnd;     // end index of normal surface
-    uint32_t reservedSurfaceStart; // start index of reserved surface
-    uint32_t reservedSurfaceEnd;   // end index of reserved surface
+    uint32_t normalSurfaceStart;    // start index of normal surface
+    uint32_t normalSurfaceEnd;      // end index of normal surface
+    uint32_t reservedSurfaceStart;  // start index of reserved surface
+    uint32_t reservedSurfaceEnd;    // end index of reserved surface
 };
 typedef CM_SURFACE_BTI_INFO *PCM_SURFACE_BTI_INFO;
 
@@ -142,7 +144,6 @@ typedef CM_EXPECTED_GT_SYSTEM_INFO *PCM_EXPECTED_GT_SYSTEM_INFO;
 
 struct CM_HAL_GENERIC
 {
-
 #define ASSIGN_IF_VALID(ptr, value) \
     if (ptr)                        \
     {                               \
@@ -152,9 +153,13 @@ struct CM_HAL_GENERIC
 public:
     PCM_HAL_STATE m_cmState;
 
-    CM_HAL_GENERIC(PCM_HAL_STATE cmState):
-        m_cmState(cmState),
-        m_sliceShutdownEnabled(false) {};
+    CM_HAL_GENERIC(PCM_HAL_STATE cmState) : m_cmState(cmState),
+                                            m_platformID(PLATFORM_INTEL_UNKNOWN),
+                                            m_genGT(PLATFORM_INTEL_GT_UNKNOWN),
+                                            m_platformStr(nullptr),
+                                            m_requestShutdownSubslicesForVmeUsage(false),
+                                            m_overridePowerOptionPerGpuContext(false),
+                                            m_redirectRcsToCcs(false){};
 
     virtual ~CM_HAL_GENERIC(){};
 
@@ -168,8 +173,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS GetCopyKernelIsa
-                        (void  *&isa, uint32_t &isaSize) = 0;
+    virtual MOS_STATUS GetCopyKernelIsa(void *&isa, uint32_t &isaSize) = 0;
 
     //!
     //! \brief    Get GPU Surface Initialization Kernel's ISA and Size
@@ -181,8 +185,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS GetInitKernelIsa
-                        (void  *&isa, uint32_t &isaSize) = 0;
+    virtual MOS_STATUS GetInitKernelIsa(void *&isa, uint32_t &isaSize) = 0;
 
     //!
     //! \brief    Set media walker parameters
@@ -195,8 +198,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetMediaWalkerParams(
-                        CM_WALKING_PARAMETERS          engineeringParams,
-                        PCM_HAL_WALKER_PARAMS          walkerParams) = 0;
+        CM_WALKING_PARAMETERS engineeringParams,
+        PCM_HAL_WALKER_PARAMS walkerParams) = 0;
 
     //!
     //! \brief    Set Surface Memory Object Control
@@ -209,8 +212,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS HwSetSurfaceMemoryObjectControl(
-                        uint16_t                        memObjCtl,
-                        PRENDERHAL_SURFACE_STATE_PARAMS surfStateParams) = 0;
+        uint16_t                        memObjCtl,
+        PRENDERHAL_SURFACE_STATE_PARAMS surfStateParams) = 0;
 
     //!
     //! \brief    Register Sampler8x8
@@ -221,7 +224,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS RegisterSampler8x8(
-                        PCM_HAL_SAMPLER_8X8_PARAM    param) = 0;
+        PCM_HAL_SAMPLER_8X8_PARAM param) = 0;
 
     //!
     //! \brief    Submit commmand to kernel mode driver
@@ -238,11 +241,11 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SubmitCommands(
-                        PMHW_BATCH_BUFFER       batchBuffer,
-                        int32_t                 taskId,
-                        PCM_HAL_KERNEL_PARAM    *kernelParam,
-                        void                    **cmdBuffer) = 0;
-#if (_RELEASE_INTERNAL ||_DEBUG)
+        PMHW_BATCH_BUFFER     batchBuffer,
+        int32_t               taskId,
+        PCM_HAL_KERNEL_PARAM *kernelParam,
+        void **               cmdBuffer) = 0;
+#if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
     //!
     //! \brief    Submit dummy commmand to kernel mode driver to set up page table for Direct submission
@@ -257,15 +260,15 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SubmitDummyCommands(
-        PMHW_BATCH_BUFFER       batchBuffer,
-        int32_t                 taskId,
-        PCM_HAL_KERNEL_PARAM    *kernelParam,
-        void                    **cmdBuffer) = 0;
+        PMHW_BATCH_BUFFER     batchBuffer,
+        int32_t               taskId,
+        PCM_HAL_KERNEL_PARAM *kernelParam,
+        void **               cmdBuffer) = 0;
 #endif
 #endif
 
     //!
-    //! \brief    Submit a commmand to get the time stamp base 
+    //! \brief    Submit a commmand to get the time stamp base
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -286,22 +289,22 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS UpdatePlatformInfoFromPower(
-                        PCM_PLATFORM_INFO platformInfo,
-                        bool              euSaturated) = 0;
+        PCM_PLATFORM_INFO platformInfo,
+        bool              euSaturated) = 0;
 
     //!
     //! \brief    Get media walker's max width
     //! \details  Get media walker's max width
     //! \return   media walker's max width
     //!
-    virtual uint32_t   GetMediaWalkerMaxThreadWidth() = 0;
+    virtual uint32_t GetMediaWalkerMaxThreadWidth() = 0;
 
     //!
     //! \brief    Get media walker's max height
     //! \details  Get media walker's max height
     //! \return   media walker's max height
     //!
-    virtual uint32_t   GetMediaWalkerMaxThreadHeight() = 0;
+    virtual uint32_t GetMediaWalkerMaxThreadHeight() = 0;
 
     //!
     //! \brief    Get Surface binding table index info
@@ -312,7 +315,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS GetHwSurfaceBTIInfo(
-                       PCM_SURFACE_BTI_INFO btiInfo) = 0;
+        PCM_SURFACE_BTI_INFO btiInfo) = 0;
 
     //!
     //! \brief    Set Suggested L3 Configuration to RenderHal
@@ -322,14 +325,14 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetSuggestedL3Conf(
-                       L3_SUGGEST_CONFIG l3Config) = 0;
+        L3_SUGGEST_CONFIG l3Config) = 0;
 
     //!
     //! \brief    Allocate SIP/CSR Resource for Preemption and Debug
     //! \details  Allocate SIP/CSR Resource for Preemption and Debug
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    virtual MOS_STATUS AllocateSIPCSRResource()  = 0;
+    virtual MOS_STATUS AllocateSIPCSRResource() = 0;
 
     //!
     //! \brief    Get the stepping string of Gen platform
@@ -338,7 +341,7 @@ public:
     //!           reference to stepping information string
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    virtual MOS_STATUS GetGenStepInfo(char*& stepInfoStr) = 0;
+    virtual MOS_STATUS GetGenStepInfo(char *&stepInfoStr) = 0;
 
     //!
     //! \brief    Get the platform code and GT type of Gen platform
@@ -351,8 +354,8 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS GetGenPlatformInfo(uint32_t *platformID,
-                                                 uint32_t *genGT,
-                                                 const char **platformStr)
+        uint32_t *                                  genGT,
+        const char **                               platformStr)
     {
         ASSIGN_IF_VALID(platformID, m_platformID);
         ASSIGN_IF_VALID(genGT, m_genGT);
@@ -371,11 +374,11 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetGenPlatformInfo(uint32_t platformID,
-                                                 uint32_t genGT,
-                                                 const char *platformStr)
+        uint32_t                                   genGT,
+        const char *                               platformStr)
     {
-        m_platformID = platformID;
-        m_genGT = genGT;
+        m_platformID  = platformID;
+        m_genGT       = genGT;
         m_platformStr = platformStr;
         return MOS_STATUS_SUCCESS;
     }
@@ -384,18 +387,18 @@ public:
     //! \brief    enable or disable the slice downdown feature
     //! \param    [in]  enabled
     //!           true: enable slice shutdown; false: disable slice shutdown
-    virtual void EnableSliceShutdown(bool enabled)
+    virtual void SetRequestShutdownSubslicesForVmeUsage(bool enabled)
     {
-        m_sliceShutdownEnabled = enabled;
+        m_requestShutdownSubslicesForVmeUsage = enabled;
     }
 
     //!
     //! \brief    return whether the slice downdown feature is enabled
     //! \return   bool
     //!           true: slice shutdown enabled; false: slice shutdown disabled
-    virtual bool IsSliceShutdownEnabled()
+    virtual bool IsRequestShutdownSubslicesForVmeUsage()
     {
-        return m_sliceShutdownEnabled;
+        return m_requestShutdownSubslicesForVmeUsage;
     }
 
     //!
@@ -438,27 +441,27 @@ public:
     //! \details  Check if Qpitch is supported by hw in surface 3d lock
     //!           Qpitch is supported from SKL
     //! \return   True for SKL+
-    virtual bool IsSurf3DQpitchSupportedbyHw(){ return true;};
+    virtual bool IsSurf3DQpitchSupportedbyHw() { return true; };
 
     //!
     //! \brief    Check if compare mask supported by hw in conditional buffer
     //! \details  Check if compare mask supported by hw in conditional buffer
     //!           compare mask is supported from SKL
     //! \return   True for SKL+
-    virtual bool IsCompareMaskSupportedbyHw(){ return true;};
+    virtual bool IsCompareMaskSupportedbyHw() { return true; };
 
     //!
     //! \brief    Check if two adjacent sampler index requried by hardware
     //! \details  Check if two adjacent sampler index requried by hardware
     //!           compare mask is supported from SKL
     //! \return   True for BDW, and False for SKL+
-    virtual bool IsAdjacentSamplerIndexRequiredbyHw(){ return false;};
+    virtual bool IsAdjacentSamplerIndexRequiredbyHw() { return false; };
 
     //!
     //! \brief    Check if the WA to disable surface compression required
     //! \details  Check if the WA to disable surface compression required
     //! \return   False for BDW, and True for SKL+
-    virtual bool IsSurfaceCompressionWARequired(){ return true;};
+    virtual bool IsSurfaceCompressionWARequired() { return true; };
 
     //!
     //! \brief    Check if scoreboading parameters are supported.
@@ -469,7 +472,8 @@ public:
     //!
     //! \brief    Check if surface color format is supported by VME
     //! \return   true if format is supported by VME surface
-    virtual bool IsSupportedVMESurfaceFormat(MOS_FORMAT format) {
+    virtual bool IsSupportedVMESurfaceFormat(MOS_FORMAT format)
+    {
         if (format != Format_NV12)
             return false;
         else
@@ -498,7 +502,7 @@ public:
     //!           Configure memory object control for the two BufferUP to solve the same
     //!           cache-line coherency issue.
     //! \return   False for BDW, and True for SKL+
-    virtual bool IsGPUCopySurfaceNoCacheWARequired(){ return true;};
+    virtual bool IsGPUCopySurfaceNoCacheWARequired() { return true; };
 
     //!
     //! \brief    Check if one plane P010 surface is supported.
@@ -520,10 +524,10 @@ public:
     //!           number of conv sampler
     //! \return   Sampler index.
     virtual int32_t GetConvSamplerIndex(
-            PMHW_SAMPLER_STATE_PARAM  samplerParam,
-            char                     *samplerIndexTable,
-            int32_t                   nSamp8X8Num,
-            int32_t                   nSampConvNum) = 0;
+        PMHW_SAMPLER_STATE_PARAM samplerParam,
+        char *                   samplerIndexTable,
+        int32_t                  nSamp8X8Num,
+        int32_t                  nSampConvNum) = 0;
 
     //!
     //! \brief    Set L3 values in CM hal layer.
@@ -535,8 +539,8 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetL3CacheConfig(
-            const L3ConfigRegisterValues *values,
-            PCmHalL3Settings cmHalL3Setting) = 0;
+        const L3ConfigRegisterValues *values,
+        PCmHalL3Settings              cmHalL3Setting) = 0;
 
     //!
     //! \brief    Get sampler element count for a given sampler type.
@@ -550,8 +554,8 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS GetSamplerParamInfoForSamplerType(
-            PMHW_SAMPLER_STATE_PARAM mhwSamplerParam,
-            SamplerParam  &samplerParam) = 0;
+        PMHW_SAMPLER_STATE_PARAM mhwSamplerParam,
+        SamplerParam &           samplerParam) = 0;
 
     //!
     //! \brief    Get the expected configuration for specific GT
@@ -589,17 +593,55 @@ public:
     //! \brief    Check if the platform has media mode or not
     //! \details  Check if the platform has media mode or not
     //! \return   bool
-    //!           true: the platform has media mode; false the platform 
+    //!           true: the platform has media mode; false the platform
     //!           does not have media mode.
     //!
     virtual bool CheckMediaModeAvailability() { return true; }
 
+    //!
+    //! \brief    enable or disable the power option per GPU context
+    //! \param    [in]  enabled
+    //!           true: enable per GPU context; false: disable per Batch command
+    virtual void SetOverridePowerOptionPerGpuContext(bool enabled)
+    {
+        m_overridePowerOptionPerGpuContext = enabled;
+    }
+
+    //!
+    //! \brief    return whether the power option per GPU context is enabled
+    //! \return   bool
+    //!           true: enable per GPU context; false: disable per Batch command
+    virtual bool IsOverridePowerOptionPerGpuContext()
+    {
+        return m_overridePowerOptionPerGpuContext;
+    }
+
+    //!
+    //! \brief    enable or disable redirect of RCS to CCS
+    //! \param    [in] enabled
+    //!           true: enable redirect of RCS to CCS; false: disable redirect of RCS to CCS
+    virtual void SetRedirectRcsToCcs(bool enabled)
+    {
+        m_redirectRcsToCcs = enabled;
+    }
+
+    //!
+    //! \brief    return whether need redirect RCS to CCS
+    //! \return   bool
+    //!           true: redirect is need; false: don't need redirect
+    virtual bool IsRedirectRcsToCcs()
+    {
+        return m_redirectRcsToCcs;
+    }
+
 protected:
-    uint32_t m_platformID;
-    uint32_t m_genGT;
-    const char *m_platformStr;
+    uint32_t              m_platformID;
+    uint32_t              m_genGT;
+    const char *          m_platformStr;
     std::vector<uint32_t> m_cisaGenIDs;
-    bool m_sliceShutdownEnabled;
+    bool                  m_requestShutdownSubslicesForVmeUsage;
+    bool                  m_overridePowerOptionPerGpuContext;
+    bool                  m_redirectRcsToCcs;
 };
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_

@@ -30,6 +30,7 @@
 #include "vphal_render_sfc_g11_base.h"
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
+#include "vphal_common_hdr.h"
 
 #define MAX_INPUT_PREC_BITS         16
 #define DOWNSHIFT_WITH_ROUND(x, n)  (((x) + (((n) > 0) ? (1 << ((n) - 1)) : 0)) >> (n))
@@ -655,6 +656,28 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             MOS_ROUNDUP_DIVIDE(VPHAL_VEBOX_STATISTICS_SIZE_G11 * sizeof(uint32_t), dwWidth);
     }
 
+    // Allocate Lace/Ace/Rgb Histogram surface----------------------------------------------
+    // Size of RGB histograms, 1 set for each slice. For single slice, other set will be 0
+    dwSize = VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_G11;
+    dwSize += VPHAL_VEBOX_RGB_ACE_HISTOGRAM_SIZE_RESERVED_G11;
+    // Size of ACE histograms, 1 set for each slice. For single slice, other set will be 0
+    dwSize += VPHAL_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE *       // Ace histogram size per slice
+        VPHAL_NUM_FRAME_PREVIOUS_CURRENT                   *             // Ace for Prev + Curr
+        VPHAL_VEBOX_MAX_SLICES_G11;                                      // Total number of slices
+
+    VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+        pOsInterface,
+        &pVeboxState->VeboxRGBHistogram,
+        "VeboxRgbHistogram_g11",
+        Format_Buffer,
+        MOS_GFXRES_BUFFER,
+        MOS_TILE_LINEAR,
+        dwSize,
+        1,
+        false,
+        MOS_MMC_DISABLED,
+        &bAllocated));
+
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     // Allocate Temp Surface for Vebox Update kernels----------------------------------------
     // the surface size is one Page
@@ -706,6 +729,32 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
     }
 #endif
 
+    if (pRenderData->bHdr3DLut)
+    {
+        // Allocate 3DLut Table Surface
+        const uint32_t dwSegSize = 65;
+        const uint32_t dwMulSize = 128;
+        dwSize = dwSegSize * dwSegSize * dwMulSize;
+        VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+            pOsInterface,
+            &pVeboxState->Vebox3DLookUpTables,
+            "Vebox3DLutTableSurface_g11",
+            Format_A16B16G16R16,
+            MOS_GFXRES_2D,
+            MOS_TILE_LINEAR,
+            dwSegSize,
+            dwMulSize * dwSegSize,
+            false,
+            MOS_MMC_DISABLED,
+            &bAllocated));
+
+        if (nullptr == m_hdr3DLutGenerator)
+        {
+            PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
+            m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal);
+        }
+    }
+
 finish:
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -725,6 +774,11 @@ void VPHAL_VEBOX_STATE_G11_BASE::FreeResources()
     PVPHAL_VEBOX_STATE_G11_BASE   pVeboxState = this;
     int32_t i;
     PMOS_INTERFACE       pOsInterface = pVeboxState->m_pOsInterface;
+
+    if ((nullptr == pVeboxState) || (nullptr == pOsInterface))
+    {
+        return;
+    }
 
     // Free FFDI surfaces
     for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
@@ -761,6 +815,11 @@ void VPHAL_VEBOX_STATE_G11_BASE::FreeResources()
         pOsInterface,
         &pVeboxState->VeboxStatisticsSurface.OsResource);
 
+    // Free LaceAceRgb Histogram surface for VEBOX
+    pOsInterface->pfnFreeResource(
+        pOsInterface,
+        &pVeboxState->VeboxRGBHistogram.OsResource);
+
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     // Free Spatial Attributes Configuration Surface for DN kernel
     pOsInterface->pfnFreeResource(
@@ -779,6 +838,13 @@ void VPHAL_VEBOX_STATE_G11_BASE::FreeResources()
     {
         m_sfcPipeState->FreeResources();
     }
+
+    // Free 3DLook Up table surface for VEBOX
+    pOsInterface->pfnFreeResource(
+        pOsInterface,
+        &pVeboxState->Vebox3DLookUpTables.OsResource);
+
+    MOS_Delete(m_hdr3DLutGenerator);
 }
 
 //!
@@ -962,10 +1028,18 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
     PVPHAL_VEBOX_STATE_G11_BASE         pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA            pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL(pVeboxDiIecpCmdParams);
+    VPHAL_RENDER_CHK_NULL(pVeboxState);
+    VPHAL_RENDER_CHK_NULL(pRenderData);
+
     pOsInterface    = pVeboxState->m_pOsInterface;
     pRenderHal      = pVeboxState->m_pRenderHal;
     pVeboxInterface = pVeboxState->m_pVeboxInterface;
     MOS_ZeroMemory(pVeboxDiIecpCmdParams, sizeof(*pVeboxDiIecpCmdParams));
+
+    VPHAL_RENDER_CHK_NULL(pOsInterface);
+    VPHAL_RENDER_CHK_NULL(pRenderHal);
+    VPHAL_RENDER_CHK_NULL(pVeboxInterface);
 
     // Align dwEndingX with surface state
     bDIEnable  = pRenderData->bDeinterlace || IsQueryVarianceEnabled();
@@ -1158,6 +1232,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
         &pVeboxState->VeboxStatisticsSurface.OsResource;
     pVeboxDiIecpCmdParams->StatisticsOutputSurfCtrl.Value =
         pVeboxState->DnDiSurfMemObjCtl.StatisticsOutputSurfMemObjCtl;
+
+    // LaceAceRgb Histogram
+    if (pRenderData->bHdr3DLut)
+    {
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
+            pOsInterface,
+            &pVeboxState->VeboxRGBHistogram.OsResource,
+            true,
+            true));
+
+        pVeboxDiIecpCmdParams->pOsResLaceOrAceOrRgbHistogram =
+            &pVeboxState->VeboxRGBHistogram.OsResource;
+    }
 
 finish:
     return eStatus;
@@ -1869,16 +1956,26 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupVeboxState(
     bool                                    bDiVarianceEnable,
     PMHW_VEBOX_STATE_CMD_PARAMS             pVeboxStateCmdParams)
 {
-    PMHW_VEBOX_MODE         pVeboxMode;
-    PMOS_INTERFACE          pOsInterface;
-    MOS_STATUS              eStatus;
+    PMHW_VEBOX_MODE                         pVeboxMode          = nullptr;
+    PMOS_INTERFACE                          pOsInterface        = nullptr;
+    PMHW_VEBOX_3D_LUT                       pLUT3D              = nullptr;
+    MOS_STATUS                              eStatus             = MOS_STATUS_SUCCESS;
+    PVPHAL_VEBOX_STATE_G11_BASE             pVeboxState         = this;
+    PVPHAL_VEBOX_RENDER_DATA                pRenderData         = GetLastExecRenderData();
+    uint8_t*                                p3DLutData          = nullptr;
+    uint32_t                                dw3DLutDataSize     = 0;
 
-    PVPHAL_VEBOX_STATE_G11_BASE              pVeboxState = this;
-    PVPHAL_VEBOX_RENDER_DATA                pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL(pVeboxStateCmdParams);
+    VPHAL_RENDER_CHK_NULL(pVeboxState);
+    VPHAL_RENDER_CHK_NULL(pRenderData);
 
     pVeboxMode    = &pVeboxStateCmdParams->VeboxMode;
     pOsInterface  = pVeboxState->m_pOsInterface;
-    eStatus       = MOS_STATUS_SUCCESS;
+
+    VPHAL_RENDER_CHK_NULL(pVeboxMode);
+    VPHAL_RENDER_CHK_NULL(pOsInterface);
+
+    pLUT3D        = &pVeboxStateCmdParams->LUT3D;
 
     MOS_ZeroMemory(pVeboxStateCmdParams, sizeof(*pVeboxStateCmdParams));
 
@@ -1930,7 +2027,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupVeboxState(
     {
         // Permanent program limitation that should go in all the configurations of SKLGT which have 2 VEBOXes (i.e. GT3 & GT4)
         // VEBOX1 should be disabled whenever there is an VE-SFC workload.
-        // This is because we have only one SFC all the GT configurations and that SFC is tied to VEBOX0.Hence the programming restriction.
+        // This is because we have only one SFC all the GT configurations and that SFC is tied to VEBOX0. Hence the programming restriction.
         if (IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))
         {
             pVeboxMode->SingleSliceVeboxEnable  = 1;
@@ -1939,8 +2036,34 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupVeboxState(
         {
             pVeboxMode->SingleSliceVeboxEnable  = 0;
         }
+    }    
+
+    if (pRenderData->bHdr3DLut && pLUT3D)
+    {
+        pVeboxMode->ColorGamutExpansionEnable = true;
+
+        // Set Vebox 3D Look Up Table Surfaces
+        pVeboxStateCmdParams->pVebox3DLookUpTables = &pVeboxState->Vebox3DLookUpTables.OsResource;
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
+            pOsInterface,
+            &pVeboxState->Vebox3DLookUpTables.OsResource,
+            false,
+            true));
+        pVeboxStateCmdParams->Vebox3DLookUpTablesSurfCtrl.Value =
+            pVeboxState->DnDiSurfMemObjCtl.Vebox3DLookUpTablesSurfMemObjCtl;
+
+        if (m_hdr3DLutGenerator)
+        {
+            m_hdr3DLutGenerator->Render(pRenderData->uiMaxDisplayLum, pRenderData->uiMaxContentLevelLum, pRenderData->hdrMode, &pVeboxState->Vebox3DLookUpTables);
+        }
+
+        pLUT3D->ArbitrationPriorityControl     = 0;
+        pLUT3D->Lut3dEnable                    = true;
+        // 65^3 is the default.
+        pLUT3D->Lut3dSize                      =  2;
     }
 
+finish:
     return eStatus;
 }
 
@@ -1961,11 +2084,12 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
     PVPHAL_SURFACE              pSrcSurface,
     bool*                       pbCompNeeded)
 {
-    VPHAL_OUTPUT_PIPE_MODE      OutputPipe;
-    bool                        bCompBypassFeasible;
-    bool                        bOutputPipeVeboxFeasible;
-    PVPHAL_SURFACE              pTarget;
-    PVPHAL_VEBOX_STATE_G11_BASE  pVeboxState = this;
+    VPHAL_OUTPUT_PIPE_MODE          OutputPipe;
+    bool                            bCompBypassFeasible             = false;
+    bool                            bOutputPipeVeboxFeasible        = false;
+    PVPHAL_SURFACE                  pTarget                         = nullptr;
+    PVPHAL_VEBOX_STATE_G11_BASE     pVeboxState                     = this;
+    bool                            bHDRToneMappingNeed             = false;
 
     OutputPipe  = VPHAL_OUTPUT_PIPE_MODE_COMP;
 
@@ -1985,8 +2109,9 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
     }
 
     pTarget    = pcRenderParams->pTarget[0];
+    bHDRToneMappingNeed = (pSrcSurface->pHDRParams || pTarget->pHDRParams);
     // Check if SFC can be the output pipe
-    if (m_sfcPipeState)
+    if (m_sfcPipeState && !bHDRToneMappingNeed)
     {
         OutputPipe = m_sfcPipeState->GetOutputPipe(
                         pSrcSurface,
@@ -2613,6 +2738,40 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsDiFormatSupported(
 
 finish:
     return bRet;
+}
+
+//!
+//! \brief    Vebox set rendering flag
+//! \details  Setup Rendering Flags due to different usage case - main entrance
+//! \param    [in] pSrc
+//!           Pointer to input surface of Vebox
+//! \param    [in] pRenderTarget
+//!           Pointer to Render target surface of VPP BLT
+//! \return   void
+//!
+void VPHAL_VEBOX_STATE_G11_BASE::VeboxSetRenderingFlags(
+    PVPHAL_SURFACE              pSrc,
+    PVPHAL_SURFACE              pRenderTarget)
+{
+    bool bToneMapping                           = false;
+    PVPHAL_VEBOX_RENDER_DATA pRenderData        = GetLastExecRenderData();
+
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrc);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderTarget);    
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
+
+    if ((pSrc->pHDRParams && (pSrc->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR)) ||
+        (pRenderTarget->pHDRParams && (pRenderTarget->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR)))
+    {
+        bToneMapping = true;
+    }
+    pRenderData->bHdr3DLut = bToneMapping;
+    VPHAL_RENDER_NORMALMESSAGE("Enable 3DLut for HDR ToneMapping %d.", pRenderData->bHdr3DLut);
+
+    VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(pSrc, pRenderTarget);
+
+finish:
+    return;
 }
 
 VphalSfcState* VPHAL_VEBOX_STATE_G11_BASE::CreateSfcState()

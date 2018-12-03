@@ -29,6 +29,8 @@
 
 #include "codec_def_common_encode.h"
 
+#define CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS 8
+
 typedef enum
 {
     VP9_ENCODED_CHROMA_FORMAT_YUV420 = 0,
@@ -76,7 +78,7 @@ typedef struct _CODEC_VP9_ENCODE_SEQUENCE_PARAMS
     uint16_t       GopPicSize;
     uint8_t        TargetUsage;
     uint8_t        RateControlMethod;
-    uint32_t       TargetBitRate[8];
+    uint32_t       TargetBitRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS];
     uint32_t       MaxBitRate;
     uint32_t       MinBitRate;
     uint32_t       InitVBVBufferFullnessInBit;
@@ -108,7 +110,7 @@ typedef struct _CODEC_VP9_ENCODE_SEQUENCE_PARAMS
     uint32_t     UserMaxFrameSize;
     uint16_t     reserved2;
     uint16_t     reserved3;
-    FRAME_RATE   FrameRate[8];
+    FRAME_RATE   FrameRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS];
     uint8_t      NumTemporalLayersMinus1;
     uint8_t      ICQQualityFactor;
 

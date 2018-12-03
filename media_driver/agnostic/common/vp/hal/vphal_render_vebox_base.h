@@ -749,6 +749,11 @@ public:
     // Scaling ratio is needed to determine if SFC or VEBOX is used
     float                               fScaleX;                                //!< X Scaling ratio
     float                               fScaleY;                                //!< Y Scaling ratio
+    
+    bool                                bHdr3DLut             = false;          //!< Enable 3DLut to process HDR
+    uint32_t                            uiMaxDisplayLum       = 4000;           //!< Maximum Display Luminance
+    uint32_t                            uiMaxContentLevelLum  = 1000;           //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE                      hdrMode               = VPHAL_HDR_MODE_NONE;
 
 protected:
     // Vebox State Parameters
@@ -855,6 +860,7 @@ public:
             VPHAL_SURFACE           *FFDISurfaces[VPHAL_MAX_NUM_FFDI_SURFACES];  //!< FFDI output surface structure
         };
     };
+    VPHAL_SURFACE                   VeboxRGBHistogram = {};            //!< VEBOX RGB Histogram surface for Vebox Gen9+
     VPHAL_SURFACE                   VeboxStatisticsSurface;                     //!< Statistics Surface for VEBOX
     RENDERHAL_SURFACE               RenderHalVeboxStatisticsSurface;            //!< Statistics Surface for VEBOX for MHW
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -943,6 +949,7 @@ public:
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
+    VPHAL_SURFACE                    Vebox3DLookUpTables = {};
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
 
@@ -1293,8 +1300,8 @@ protected:
     //!           [in] Pointers to Vebox Interface
     //! \param    pMhwMiInterface
     //!           [in] Pointers to MI HW Interface
-    //! \param    pInputSurfaceParams
-    //!           [in] Pointers to Vebox Input Interface
+    //! \param    pVeboxSurfaceParams
+    //!           [in] Pointers to Vebox Surface Params Interface
     //! \param    pVeboxDiIecpCmdParams
     //!           [in] Pointers to DI/IECP CMD Params Interface
     //! \param    pCmdBuffer
@@ -1303,11 +1310,11 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS VeboxRenderMMCPipeCmd(
-        PMHW_VEBOX_INTERFACE          pVeboxInterface,
-        MhwMiInterface *              pMhwMiInterface,
-        PMHW_VEBOX_SURFACE_PARAMS     pInputSurfaceParams,
-        PMHW_VEBOX_DI_IECP_CMD_PARAMS pVeboxDiIecpCmdParams,
-        PMOS_COMMAND_BUFFER           pCmdBuffer)
+        PMHW_VEBOX_INTERFACE                pVeboxInterface,
+        MhwMiInterface *                    pMhwMiInterface,
+        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceParams,
+        PMHW_VEBOX_DI_IECP_CMD_PARAMS       pVeboxDiIecpCmdParams,
+        PMOS_COMMAND_BUFFER                 pCmdBuffer)
     {
         MOS_UNUSED(*pCmdBuffer);
         return MOS_STATUS_SUCCESS;

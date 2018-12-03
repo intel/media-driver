@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1665,124 +1665,7 @@ MOS_STATUS CodechalEncodeAvcEnc::Initialize(CodechalSetting * settings)
     // common function for all codecs needed
     if (CodecHalUsesRenderEngine(m_codecFunction, m_standard))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMbEnc());
-        if(!CodecHalIsFeiEncode(m_codecFunction))
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMfeMbEnc());
-            CODECHAL_ENCODE_CHK_NULL_RETURN(pMbEncKernelStates);
-        }
-
-        if (CodecHalIsFeiEncode(m_codecFunction))
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStatePreProc());
-        }
-        else
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateBrc());
-        }
-        if (bWeightedPredictionSupported)
-        {
-            if(m_feiEnable == false)
-            {
-                if (m_wpUseCommonKernel)
-                {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_wpState->InitKernelState());
-                }
-                else
-                {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateWP());
-                }
-            }
-            else
-            {
-                if((m_codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK)||(m_codecFunction == CODECHAL_FUNCTION_FEI_ENC))
-                {
-                    if (m_wpUseCommonKernel)
-                    {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_wpState->InitKernelState());
-                    }
-                    else
-                    {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateWP());
-                    }
-                }
-            }
-        }
-
-        // SFD kernel don't been used on SKL+ platforms
-        if ((bStaticFrameDetectionEnable) && (!bPerMbSFD) && (!m_feiEnable))
-        {
-            // init Static frame detection kernel
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateSFD());
-        }
-
-        if (m_singleTaskPhaseSupported)
-        {
-            if (m_codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
-            {
-                uint32_t dwScalingBtCount = MOS_ALIGN_CEIL(
-                    m_scaling4xKernelStates[0].KernelParams.iBTCount,
-                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                uint32_t dwMeBtCount = MOS_ALIGN_CEIL(
-                    m_meKernelStates[0].KernelParams.iBTCount,
-                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                uint32_t dwPreProcBtCount = MOS_ALIGN_CEIL(
-                    PreProcKernelState.KernelParams.iBTCount,
-                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                // in preenc stateless case, the maximum scaling pass number is 1(for current frame/field)
-                // + 4 (4 forward ref frames/fields) + 2(2 backward ref frames/fields)
-                m_maxBtCount = dwScalingBtCount*(1 + 4 + 2) + dwMeBtCount + dwPreProcBtCount;
-            }
-            else
-            {
-                uint32_t dwScalingBtCount = MOS_ALIGN_CEIL(
-                    m_scaling4xKernelStates[0].KernelParams.iBTCount,
-                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                uint32_t dwMeBtCount = MOS_ALIGN_CEIL(
-                    m_hmeKernel ? m_hmeKernel->GetBTCount() : m_meKernelStates[0].KernelParams.iBTCount,
-                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-
-                uint32_t wpbtCount = 0;
-                if(bWeightedPredictionSupported)
-                {
-                    if (m_wpUseCommonKernel)
-                    {
-                        wpbtCount += MOS_ALIGN_CEIL(
-                            m_wpState->GetBTCount(),
-                            m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                    }
-                    else
-                    {
-                        wpbtCount += MOS_ALIGN_CEIL(
-                            pWPKernelState->KernelParams.iBTCount,
-                            m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                    }
-                }
-
-                uint32_t mbEncBtCount = 0;
-                if (nullptr != pMbEncKernelStates)
-                {
-                    mbEncBtCount = MOS_ALIGN_CEIL(
-                        pMbEncKernelStates->KernelParams.iBTCount,
-                        m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                }
-
-                uint32_t brcBtCount = 0;
-                for (uint32_t i = 0; i < CODECHAL_ENCODE_BRC_IDX_NUM; i++)
-                {
-                    brcBtCount += MOS_ALIGN_CEIL(
-                        BrcKernelStates[i].KernelParams.iBTCount,
-                        m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
-                }
-
-                uint32_t encOneBtCount = dwScalingBtCount + dwMeBtCount;
-                encOneBtCount += (m_16xMeSupported) ? encOneBtCount : 0;
-                encOneBtCount += (m_32xMeSupported) ? encOneBtCount : 0;
-                uint32_t encTwoBtCount = mbEncBtCount + brcBtCount + wpbtCount;
-                m_maxBtCount = MOS_MAX(encOneBtCount, encTwoBtCount);
-            }
-        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelState());
     }
 
     // Picture Level Commands
@@ -3276,6 +3159,133 @@ MOS_STATUS CodechalEncodeAvcEnc::InitKernelStateSFD()
     return eStatus;
 }
 
+MOS_STATUS CodechalEncodeAvcEnc::InitKernelState()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMbEnc());
+    if(!CodecHalIsFeiEncode(m_codecFunction))
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMfeMbEnc());
+        CODECHAL_ENCODE_CHK_NULL_RETURN(pMbEncKernelStates);
+    }
+
+    if (CodecHalIsFeiEncode(m_codecFunction))
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStatePreProc());
+    }
+    else
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateBrc());
+    }
+    if (bWeightedPredictionSupported)
+    {
+        if(m_feiEnable == false)
+        {
+            if (m_wpUseCommonKernel)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_wpState->InitKernelState());
+            }
+            else
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateWP());
+            }
+        }
+        else
+        {
+            if((m_codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK)||(m_codecFunction == CODECHAL_FUNCTION_FEI_ENC))
+            {
+                if (m_wpUseCommonKernel)
+                {
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_wpState->InitKernelState());
+                }
+                else
+                {
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateWP());
+                }
+            }
+        }
+    }
+
+    if ((bStaticFrameDetectionEnable) && (!bPerMbSFD) && (!m_feiEnable))
+    {
+        // init Static frame detection kernel
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateSFD());
+    }
+
+    if (m_singleTaskPhaseSupported)
+    {
+        if (m_codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
+        {
+            uint32_t dwScalingBtCount = MOS_ALIGN_CEIL(
+                    m_scaling4xKernelStates[0].KernelParams.iBTCount,
+                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+            uint32_t dwMeBtCount = MOS_ALIGN_CEIL(
+                    m_meKernelStates[0].KernelParams.iBTCount,
+                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+            uint32_t dwPreProcBtCount = MOS_ALIGN_CEIL(
+                    PreProcKernelState.KernelParams.iBTCount,
+                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+            // in preenc stateless case, the maximum scaling pass number is 1(for current frame/field)
+            // + 4 (4 forward ref frames/fields) + 2(2 backward ref frames/fields)
+            m_maxBtCount = dwScalingBtCount*(1 + 4 + 2) + dwMeBtCount + dwPreProcBtCount;
+        }
+        else
+        {
+            uint32_t dwScalingBtCount = MOS_ALIGN_CEIL(
+                    m_scaling4xKernelStates[0].KernelParams.iBTCount,
+                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+            uint32_t dwMeBtCount = MOS_ALIGN_CEIL(
+                    m_hmeKernel ? m_hmeKernel->GetBTCount() : m_meKernelStates[0].KernelParams.iBTCount,
+                    m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+
+            uint32_t wpbtCount = 0;
+            if(bWeightedPredictionSupported)
+            {
+                if (m_wpUseCommonKernel)
+                {
+                    wpbtCount += MOS_ALIGN_CEIL(
+                            m_wpState->GetBTCount(),
+                            m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+                }
+                else
+                {
+                    wpbtCount += MOS_ALIGN_CEIL(
+                            pWPKernelState->KernelParams.iBTCount,
+                            m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+                }
+            }
+
+            uint32_t mbEncBtCount = 0;
+            if (nullptr != pMbEncKernelStates)
+            {
+                mbEncBtCount = MOS_ALIGN_CEIL(
+                        pMbEncKernelStates->KernelParams.iBTCount,
+                        m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+            }
+
+            uint32_t brcBtCount = 0;
+            for (uint32_t i = 0; i < CODECHAL_ENCODE_BRC_IDX_NUM; i++)
+            {
+                brcBtCount += MOS_ALIGN_CEIL(
+                        BrcKernelStates[i].KernelParams.iBTCount,
+                        m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+            }
+
+            uint32_t encOneBtCount = dwScalingBtCount + dwMeBtCount;
+            encOneBtCount += (m_16xMeSupported) ? encOneBtCount : 0;
+            encOneBtCount += (m_32xMeSupported) ? encOneBtCount : 0;
+            uint32_t encTwoBtCount = mbEncBtCount + brcBtCount + wpbtCount;
+            m_maxBtCount = MOS_MAX(encOneBtCount, encTwoBtCount);
+        }
+    }
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalEncodeAvcEnc::InsertInRefPicSelectList()
 {
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
@@ -4213,7 +4223,6 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcFrameUpdateKernel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&initBrcConstantBufferParams));
 
         MHW_VDBOX_AVC_IMG_PARAMS imageStateParams;
-        MOS_ZeroMemory(&imageStateParams, sizeof(imageStateParams));
         imageStateParams.pEncodeAvcPicParams = m_avcPicParam;
         imageStateParams.pEncodeAvcSeqParams = m_avcSeqParam;
         imageStateParams.wPicWidthInMb = m_picWidthInMb;
@@ -4320,7 +4329,6 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcFrameUpdateKernel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&initBrcConstantBufferParams));
 
     MHW_VDBOX_AVC_IMG_PARAMS imageStateParams;
-    MOS_ZeroMemory(&imageStateParams, sizeof(imageStateParams));
     imageStateParams.pEncodeAvcPicParams = m_avcPicParam;
     imageStateParams.pEncodeAvcSeqParams = m_avcSeqParam;
     imageStateParams.wPicWidthInMb = m_picWidthInMb;
@@ -6978,7 +6986,7 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecuteSliceLevel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, renderingFlags));
 
         CODECHAL_DEBUG_TOOL(
             if (!m_mmcUserFeatureUpdated) {
@@ -8661,7 +8669,6 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
 
     // set MFX_PIPE_MODE_SELECT values
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = (m_currPass != m_numPasses);// Disable Stream Out for final pass; its important for multiple passes, because , next pass will take the qp from stream out
 
@@ -8672,7 +8679,6 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
 
     // set MFX_PIPE_BUF_ADDR_STATE values
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     pipeBufAddrParams.psPreDeblockSurface = params->psPreDeblockSurface;
     pipeBufAddrParams.psPostDeblockSurface = params->psPostDeblockSurface;
@@ -8897,7 +8903,6 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
     {
         //Set MFX_AVC_IMG_STATE command
         MHW_VDBOX_AVC_IMG_PARAMS imageStateParams;
-        MOS_ZeroMemory(&imageStateParams, sizeof(imageStateParams));
         imageStateParams.ucCurrPass = m_currPass;
         imageStateParams.pEncodeAvcPicParams = m_avcPicParam;
         imageStateParams.pEncodeAvcSeqParams = m_avcSeqParam;

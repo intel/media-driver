@@ -126,6 +126,20 @@ public:
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief       Add check to exit if expected secure mode is not active
+    /// \details     Add check to exit if expected secure mode is not active
+    ///
+    /// \param       osInterface    [in] pointer to OS interface
+    /// \param       cmdBuffer      [in] the command buffer to add the cmd
+    ///
+    /// \return      If success, return MOS_STATUS_SUCCESS
+    ///              If fail, return other MOS errors
+    ///////////////////////////////////////////////////////////////////////////
+    virtual MOS_STATUS AddConditionalBatchBufferEndForEarlyExit(
+        PMOS_INTERFACE      osInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
     virtual MOS_STATUS UpdateStatusReportNum(
         uint32_t            cencBufIndex,
         uint32_t            statusReportNum,
@@ -317,6 +331,16 @@ public:
 
     virtual void SetCpSecurityType(
         CP_SECURITY_TYPE type = static_cast<CP_SECURITY_TYPE>(1));
+
+    /////////////////////////////////////////////////////////////////////////////
+    /// \brief       get the address of internal counter value
+    /// \details 
+    /// \param       ctr [in, out] pointer to counter
+    ///
+    /// \return      If success, return MOS_STATUS_SUCCESS
+    ///              If fail, return other MOS errors
+    /////////////////////////////////////////////////////////////////////////////
+    virtual MOS_STATUS GetCounterValue(uint32_t* ctr){return MOS_STATUS_SUCCESS;}
 
 };
 

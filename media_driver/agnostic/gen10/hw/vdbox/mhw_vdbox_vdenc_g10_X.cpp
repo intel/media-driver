@@ -1190,9 +1190,9 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencWalkerStateCmd(
         MHW_MI_CHK_NULL(params->pVp9EncPicParams);
         auto vp9PicParams = params->pVp9EncPicParams;
 
-        cmd.DW2.NextsliceMbLcuStartXPosition = CODECHAL_GET_WIDTH_IN_BLOCKS(vp9PicParams->DstFrameWidthMinus1 + 1, CODEC_VP9_SUPER_BLOCK_WIDTH);
-        cmd.DW2.NextsliceMbStartYPosition    = CODECHAL_GET_HEIGHT_IN_BLOCKS(vp9PicParams->DstFrameHeightMinus1 + 1, CODEC_VP9_SUPER_BLOCK_HEIGHT);
-        cmd.DW5.TileWidth                    = vp9PicParams->DstFrameWidthMinus1;
+        cmd.DW2.NextsliceMbLcuStartXPosition = CODECHAL_GET_WIDTH_IN_BLOCKS(vp9PicParams->SrcFrameWidthMinus1 + 1, CODEC_VP9_SUPER_BLOCK_WIDTH);
+        cmd.DW2.NextsliceMbStartYPosition    = CODECHAL_GET_HEIGHT_IN_BLOCKS(vp9PicParams->SrcFrameHeightMinus1 + 1, CODEC_VP9_SUPER_BLOCK_HEIGHT);
+        cmd.DW5.TileWidth                    = vp9PicParams->SrcFrameWidthMinus1;
     }
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));

@@ -151,6 +151,8 @@ public:
                              int updateMosResource = 0,
                              PMOS_RESOURCE mosResource = nullptr);
 
+    int32_t UpdateResource(MOS_RESOURCE *resource);
+
     int32_t Create2DAlias(SurfaceIndex* &aliasSurfIndex);
 
     int32_t GetNumAliases(unsigned int &numAliases);
@@ -163,6 +165,8 @@ public:
                      uint32_t argIndex);
 
     int32_t SetVaSurfaceID(VASurfaceID vaSurface, void *vaDisplay);
+
+    int32_t UpdateSurfaceProperty(uint32_t width, uint32_t height, uint32_t pitch, CM_SURFACE_FORMAT format);
 
 protected:
     CmSurface2DRT(unsigned int handle,

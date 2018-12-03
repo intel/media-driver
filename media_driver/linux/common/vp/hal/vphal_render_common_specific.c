@@ -42,7 +42,11 @@ bool VpHal_RndrCommonIsMiBBEndNeeded(
 
     VPHAL_RENDER_ASSERT(pOsInterface);
 
-    // in linux, this flag is always false
+    if (pOsInterface->osCpInterface &&
+            pOsInterface->osCpInterface->IsHMEnabled())
+    {
+        needed = true;
+    }
 
     return needed;
 }

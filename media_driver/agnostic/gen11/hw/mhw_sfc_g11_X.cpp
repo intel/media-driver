@@ -472,6 +472,12 @@ MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
 
 MhwSfcInterfaceG11::MhwSfcInterfaceG11(PMOS_INTERFACE pOsInterface) : MhwSfcInterfaceGeneric(pOsInterface)
 {
+    if (m_osInterface == nullptr)
+    {
+         MHW_ASSERTMESSAGE("Invalid Input Paramete: m_osInterface is nullptr");
+        return;
+    }
+
     // Get Memory control object directly from MOS.
     // If any override is needed, something like pfnOverrideMemoryObjectCtrl() / pfnComposeSurfaceCacheabilityControl()
     // will need to be implemented.

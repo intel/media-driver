@@ -81,7 +81,7 @@ inline int memcpy_s(void *dst, size_t numberOfElements, const void *src, size_t 
 #define CM_CONTEXT_DATA  CM_CONTEXT
 #define PCM_CONTEXT_DATA PCM_CONTEXT
 
-#define CM_MAX_SURFACE2D_FORMAT_COUNT   23
+#define CM_MAX_SURFACE2D_FORMAT_COUNT   29
 #define CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL   (CM_MAX_SURFACE2D_FORMAT_COUNT-1)
 
 typedef enum _CM_TEXTURE_ADDRESS_TYPE

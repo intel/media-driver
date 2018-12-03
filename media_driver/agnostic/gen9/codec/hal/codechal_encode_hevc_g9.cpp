@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3867,7 +3867,7 @@ MOS_STATUS CodechalEncHevcStateG9::AllocateEncResources()
 
     width = sizeof(CODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION);
     height = HEVC_CONCURRENT_SURFACE_HEIGHT;
-    for (auto i = 0; i < NUM_CONCURRENT_THREAD; i++)
+    for (uint32_t i = 0; i < NUM_CONCURRENT_THREAD; i++)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
             &m_concurrentThreadSurface[i],
@@ -3924,7 +3924,7 @@ MOS_STATUS CodechalEncHevcStateG9::AllocateEncResources()
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))
     {
         // adding 10 bit support for KBL : output surface for format conversion from 10bit to 8 bit
-        for (auto i = 0; i < NUM_FORMAT_CONV_FRAMES; i++)
+        for (uint32_t i = 0; i < NUM_FORMAT_CONV_FRAMES; i++)
         {
             if (Mos_ResourceIsNull(&m_formatConvertedSurface[i].OsResource))
             {
@@ -3995,7 +3995,7 @@ MOS_STATUS CodechalEncHevcStateG9::FreeEncResources()
 
     MOS_FreeMemory(m_surfaceParams); m_surfaceParams = nullptr;
 
-    for (auto i = 0; i < NUM_FORMAT_CONV_FRAMES; i++)
+    for (uint32_t i = 0; i < NUM_FORMAT_CONV_FRAMES; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -4050,7 +4050,7 @@ MOS_STATUS CodechalEncHevcStateG9::FreeEncResources()
         m_osInterface,
         &m_minDistortion.OsResource);
 
-    for (auto i = 0; i < NUM_CONCURRENT_THREAD; i++)
+    for (uint32_t i = 0; i < NUM_CONCURRENT_THREAD; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -5550,7 +5550,7 @@ void CodechalEncHevcStateG9::CalcLambda(uint8_t sliceType, uint8_t intraSADTrans
     }
     else
     {
-        for (auto qp = 0; qp < QP_NUM; qp++)
+        for (uint32_t qp = 0; qp < QP_NUM; qp++)
         {
             double qpTemp = (double)qp - 12;
             double lambdaMd = 0.85 * pow(2.0, qpTemp/3.0);
@@ -6432,7 +6432,6 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeBrcUpdateKernel()
     // Fill HCP_IMG_STATE so that BRC kernel can use it to generate the write buffer for PAK
     auto                     brcHcpStateReadBuffer = &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     MHW_VDBOX_HEVC_PIC_STATE mhwHevcPicState;
-    MOS_ZeroMemory(&mhwHevcPicState, sizeof(mhwHevcPicState));
     mhwHevcPicState.pHevcEncSeqParams = m_hevcSeqParams;
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();

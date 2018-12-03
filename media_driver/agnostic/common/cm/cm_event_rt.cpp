@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_event_rt.cpp 
-//! \brief     Contains OS-agnostic CmEventRT member functions. 
+//! \file      cm_event_rt.cpp
+//! \brief     Contains OS-agnostic CmEventRT member functions.
 //!
 
 #include "cm_event_rt.h"
@@ -110,6 +110,8 @@ CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int
     m_kernelNames          = nullptr ;
     m_threadSpace          = nullptr ;
     m_kernelCount          = 0 ;
+
+    MOS_ZeroMemory(&m_surEntryInfoArrays, sizeof(m_surEntryInfoArrays));
 }
 
 //*-----------------------------------------------------------------------------
@@ -180,7 +182,6 @@ CmEventRT::~CmEventRT( void )
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::Initialize(void)
 {
-    CmSafeMemSet(&m_surEntryInfoArrays, 0, sizeof(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS));
     if( m_taskDriverId == -1 )
         // -1 is an invalid task id in driver, i.e. the task has NOT been passed down to driver yet
         // event is created at the enqueue time, so initial value is CM_STATUS_QUEUED
@@ -258,7 +259,7 @@ int32_t CmEventRT::GetQueue(CmQueueRT *& queue)
 //*-----------------------------------------------------------------------------
 //! Query the execution time of a task( one kernel or multiples kernels running concurrently )
 //! in the unit of nanoseconds.
-//! The execution time is from the time when the task starts to execution in GPU to the time 
+//! The execution time is from the time when the task starts to execution in GPU to the time
 //! when the task finished execution
 //! This is a non-blocking call.
 //! INPUT:
@@ -408,14 +409,14 @@ int32_t CmEventRT::SetKernelNames(CmTaskRT* task, CmThreadSpaceRT* threadSpace, 
     // Alloc memory for kernel names
     m_kernelNames = MOS_NewArray(char*, m_kernelCount);
     m_threadSpace = MOS_NewArray(uint32_t, (4*m_kernelCount));
-    CMCHK_NULL_RETURN(m_kernelNames, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(m_kernelNames, CM_OUT_OF_HOST_MEMORY);
     CmSafeMemSet(m_kernelNames, 0, m_kernelCount*sizeof(char*) );
-    CMCHK_NULL_RETURN(m_threadSpace, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(m_threadSpace, CM_OUT_OF_HOST_MEMORY);
 
     for (i = 0; i < m_kernelCount; i++)
     {
         m_kernelNames[i] = MOS_NewArray(char, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE);
-        CMCHK_NULL_RETURN(m_kernelNames[i], CM_OUT_OF_HOST_MEMORY);
+        CM_CHK_NULL_GOTOFINISH(m_kernelNames[i], CM_OUT_OF_HOST_MEMORY);
         CmKernelRT* kernel = task->GetKernelPointer(i);
         MOS_SecureStrcpy(m_kernelNames[i], CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, kernel->GetName());
 
@@ -550,7 +551,7 @@ int32_t CmEventRT::Query( void )
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnQueryTask(cmData->cmHalState, &param));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnQueryTask(cmData->cmHalState, &param));
 
     if( param.status == CM_TASK_FINISHED )
     {
@@ -722,43 +723,43 @@ CM_RT_API  int32_t CmEventRT::GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType,
 {
     int32_t hr = CM_SUCCESS;
 
-    CHK_NULL(value);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(value);
 
     switch(infoType)
     {
         case CM_EVENT_PROFILING_HWSTART:
-             CM_CHK_LESS_THAN(paramSize, sizeof(LARGE_INTEGER), CM_INVALID_PARAM_SIZE);
-             CMCHK_HR(GetHWStartTime((LARGE_INTEGER *)value));
+             CM_CHK_COND_RETURN((paramSize < sizeof(LARGE_INTEGER)), CM_INVALID_PARAM_SIZE, "Invalid parameter size.");
+             CM_CHK_CMSTATUS_GOTOFINISH(GetHWStartTime((LARGE_INTEGER *)value));
              break;
 
         case CM_EVENT_PROFILING_HWEND:
-             CM_CHK_LESS_THAN(paramSize, sizeof(LARGE_INTEGER), CM_INVALID_PARAM_SIZE);
-             CMCHK_HR(GetHWEndTime((LARGE_INTEGER *)value));
+             CM_CHK_COND_RETURN((paramSize < sizeof(LARGE_INTEGER)), CM_INVALID_PARAM_SIZE, "Invalid parameter size.");
+             CM_CHK_CMSTATUS_GOTOFINISH(GetHWEndTime((LARGE_INTEGER *)value));
              break;
 
         case CM_EVENT_PROFILING_SUBMIT:
-             CM_CHK_LESS_THAN(paramSize, sizeof(LARGE_INTEGER), CM_INVALID_PARAM_SIZE);
-             CMCHK_HR(GetSubmitTime((LARGE_INTEGER *)value));
+             CM_CHK_COND_RETURN((paramSize < sizeof(LARGE_INTEGER)), CM_INVALID_PARAM_SIZE, "Invalid parameter size.");
+             CM_CHK_CMSTATUS_GOTOFINISH(GetSubmitTime((LARGE_INTEGER *)value));
              break;
 
         case CM_EVENT_PROFILING_COMPLETE:
-             CM_CHK_LESS_THAN(paramSize, sizeof(LARGE_INTEGER), CM_INVALID_PARAM_SIZE);
-             CMCHK_HR(GetCompleteTime((LARGE_INTEGER *)value));
+            CM_CHK_COND_RETURN((paramSize < sizeof(LARGE_INTEGER)), CM_INVALID_PARAM_SIZE, "Invalid parameter size.");
+             CM_CHK_CMSTATUS_GOTOFINISH(GetCompleteTime((LARGE_INTEGER *)value));
              break;
 
         case CM_EVENT_PROFILING_ENQUEUE:
-             CM_CHK_LESS_THAN(paramSize, sizeof(LARGE_INTEGER), CM_INVALID_PARAM_SIZE);
-             CMCHK_HR(GetEnqueueTime((LARGE_INTEGER *)value));
+            CM_CHK_COND_RETURN((paramSize < sizeof(LARGE_INTEGER)), CM_INVALID_PARAM_SIZE, "Invalid parameter size.");
+             CM_CHK_CMSTATUS_GOTOFINISH(GetEnqueueTime((LARGE_INTEGER *)value));
              break;
 
         case CM_EVENT_PROFILING_KERNELCOUNT:
-             CM_CHK_LESS_THAN(paramSize, sizeof(uint32_t), CM_INVALID_PARAM_SIZE);
+             CM_CHK_COND_RETURN((paramSize < sizeof(uint32_t)), CM_INVALID_PARAM_SIZE, "Invalid parameter size.");
              *(uint32_t *)value =  GetKernelCount();
              break;
 
         case CM_EVENT_PROFILING_KERNELNAMES:
              {
-                 CHK_NULL(inputValue);
+                 CM_CHK_NULL_GOTOFINISH_CMERROR(inputValue);
                  uint32_t kernelIndex = *(uint32_t *)inputValue;
                  if( kernelIndex >= m_kernelCount)
                  {
@@ -771,7 +772,7 @@ CM_RT_API  int32_t CmEventRT::GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType,
 
         case CM_EVENT_PROFILING_THREADSPACE:
              {
-                 CHK_NULL(inputValue);
+                 CM_CHK_NULL_GOTOFINISH_CMERROR(inputValue);
                  uint32_t kernelIndex = *(uint32_t *)inputValue;
                  if( kernelIndex >= m_kernelCount)
                  {
@@ -785,9 +786,9 @@ CM_RT_API  int32_t CmEventRT::GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType,
 
         case CM_EVENT_PROFILING_CALLBACK:
             {
-                 CHK_NULL(inputValue);
-                 CHK_NULL(value);
-                 CMCHK_HR(SetCallBack((EventCallBackFunction)inputValue, value));
+                 CM_CHK_NULL_GOTOFINISH_CMERROR(inputValue);
+                 CM_CHK_NULL_GOTOFINISH_CMERROR(value);
+                 CM_CHK_CMSTATUS_GOTOFINISH(SetCallBack((EventCallBackFunction)inputValue, value));
             }
             break;
 

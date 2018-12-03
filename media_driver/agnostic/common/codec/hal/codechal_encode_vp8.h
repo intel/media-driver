@@ -929,6 +929,10 @@ public:
 
     CODEC_VP8_ENCODE_PIC_PARAMS *m_vp8PicParams = nullptr;  //<! Pointer to CodecVp8EncodePictureParams
 
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);
+#endif // USE_CODECHAL_DEBUG_TOOL
+
 protected:
 
     //!

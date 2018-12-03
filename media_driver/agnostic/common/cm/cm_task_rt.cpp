@@ -127,13 +127,11 @@ int32_t CmTaskRT::Initialize( )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Add Kernel to task
+//| Purpose:    Common implementation of Add Kernel to task
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
+int32_t CmTaskRT::AddKernelInternal( CmKernel *kernel, const CM_EXECUTION_CONFIG *config)
 {
-    INSERT_API_CALL_LOG();
-
     // already reached max kernel count
     if(m_maxKernelCount <= m_kernelCount)
     {
@@ -150,12 +148,42 @@ CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
     m_kernelArray[m_kernelCount] = kernelRT;
     kernelRT->SetIndexInTask(m_kernelCount);
 
+    if(config)
+    {
+        m_kernelExecuteConfig[m_kernelCount] = *config;
+    }
+    else
+    {
+        MOS_ZeroMemory(&m_kernelExecuteConfig[m_kernelCount], sizeof(CM_EXECUTION_CONFIG));
+    }
+
     m_kernelCount++;
 
 #if USE_EXTENSION_CODE
     AddKernelForGTPin(kernel);
 #endif
     return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Add Kernel to task
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
+{
+    INSERT_API_CALL_LOG();
+    return AddKernelInternal(kernel, nullptr);
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Add Kernel to task with execution configure
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmTaskRT::AddKernelWithConfig( CmKernel *kernel,
+    const CM_EXECUTION_CONFIG *config )
+{
+    INSERT_API_CALL_LOG();
+    return AddKernelInternal(kernel, config);
 }
 
 //*-----------------------------------------------------------------------------
@@ -239,8 +267,8 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
     threadSpaceMapping = MOS_NewArray(byte*, kernelCount);
     kernelInScoreboard = MOS_NewArray(byte, kernelCount);
 
-    CMCHK_NULL_RETURN(threadSpaceMapping, CM_OUT_OF_HOST_MEMORY);
-    CMCHK_NULL_RETURN(kernelInScoreboard, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(threadSpaceMapping, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(kernelInScoreboard, CM_OUT_OF_HOST_MEMORY);
 
     CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(byte *));
     CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(byte));
@@ -248,13 +276,13 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
     for( i = 0; i < kernelCount; ++i )
     {
         kernelRT = this->GetKernelPointer(i);
-        CMCHK_NULL(kernelRT);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelRT);
 
-        CMCHK_HR(kernelRT->GetThreadSpace(kernelThreadSpace));
-        CMCHK_NULL_RETURN(kernelThreadSpace, CM_KERNEL_THREADSPACE_NOT_SET);
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelRT->GetThreadSpace(kernelThreadSpace));
+        CM_CHK_NULL_GOTOFINISH(kernelThreadSpace, CM_KERNEL_THREADSPACE_NOT_SET);
 
-        CMCHK_HR(kernelThreadSpace->GetThreadSpaceSize(width, height));
-        CMCHK_HR(kernelRT->GetThreadCount(threadCount));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelThreadSpace->GetThreadSpaceSize(width, height));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelRT->GetThreadCount(threadCount));
         if (threadCount == 0)
         {
             threadCount = width * height;
@@ -263,7 +291,7 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
         if( kernelThreadSpace->IsThreadAssociated() )
         {
             threadSpaceMapping[i] = MOS_NewArray(byte, threadCount);
-            CMCHK_NULL_RETURN(threadSpaceMapping[i], CM_OUT_OF_HOST_MEMORY);
+            CM_CHK_NULL_GOTOFINISH(threadSpaceMapping[i], CM_OUT_OF_HOST_MEMORY);
             CmSafeMemSet(threadSpaceMapping[i], 0, threadCount * sizeof(byte));
             kernelInScoreboard[i] = false;
 
@@ -363,7 +391,6 @@ int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* index,
     CmSurface*        surface = nullptr;
     CmSurfaceManager* surfaceMgr = nullptr;
     uint32_t          surfIndex = 0;
-    uint32_t          handle = 0;
 
     m_device->GetSurfaceManager(surfaceMgr);
     if (!surfaceMgr)
@@ -383,6 +410,7 @@ int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* index,
 
     if (surface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT)
     {
+        uint32_t handle = 0;
         CmBuffer_RT* surf1D = static_cast<CmBuffer_RT*> (surface);
 
         surf1D->GetHandle(handle);

@@ -827,6 +827,8 @@ MOS_STATUS CodechalDecodeHevc::SetHucDmemParams(
     CODECHAL_DECODE_CHK_NULL_RETURN(hucHevcS2LBss);
     hucHevcS2LBss->ProductFamily = m_huCProductFamily;
     hucHevcS2LBss->RevId = m_hwInterface->GetPlatform().usRevId;
+    hucHevcS2LBss->DummyRefIdxState = 
+        MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LPictureBss(&hucHevcS2LBss->PictureBss));
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LSliceBss(&hucHevcS2LBss->SliceBss[0]));
@@ -1481,7 +1483,6 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
 
     // Pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode               = m_mode;
     pipeModeSelectParams.bStreamOutEnabled  = m_streamOutEnabled;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(
@@ -1575,12 +1576,12 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Reset all pic Mhw Params
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS ));
+    *m_picMhwParams.PipeModeSelectParams = {};
+    *m_picMhwParams.PipeBufAddrParams = {};
+    *m_picMhwParams.HevcPicState = {};
     MOS_ZeroMemory(m_picMhwParams.SurfaceParams,        sizeof(MHW_VDBOX_SURFACE_PARAMS          ));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams,    sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS    ));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.QmParams,             sizeof(MHW_VDBOX_QM_PARAMS               ));
-    MOS_ZeroMemory(m_picMhwParams.HevcPicState,         sizeof(MHW_VDBOX_HEVC_PIC_STATE          ));
     MOS_ZeroMemory(m_picMhwParams.HevcTileState,        sizeof(MHW_VDBOX_HEVC_TILE_STATE         ));
 
     PMOS_SURFACE destSurface = nullptr;
@@ -1682,6 +1683,38 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         CODECHAL_DECODE_ASSERT(k <= 8);
         CODECHAL_DECODE_ASSERT(m <= 8);
 
+        // Return error if reference surface's pitch * height is less than dest surface.
+        MOS_SURFACE destSurfaceDetails;
+        MOS_SURFACE refSurfaceDetails;
+
+        MOS_ZeroMemory(&destSurfaceDetails, sizeof(destSurfaceDetails));
+        destSurfaceDetails.Format = Format_Invalid;
+        MOS_ZeroMemory(&refSurfaceDetails, sizeof(refSurfaceDetails));
+        refSurfaceDetails.Format = Format_Invalid;
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+            m_osInterface,
+            &destSurface->OsResource,
+            &destSurfaceDetails));
+
+        for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+        {
+            if (m_picMhwParams.PipeBufAddrParams->presReferences[i] != nullptr)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+                    m_osInterface,
+                    m_picMhwParams.PipeBufAddrParams->presReferences[i],
+                    &refSurfaceDetails));
+
+                if ((refSurfaceDetails.dwPitch * refSurfaceDetails.dwHeight) <
+                    (destSurfaceDetails.dwPitch * destSurfaceDetails.dwHeight))
+                {
+                    CODECHAL_DECODE_ASSERTMESSAGE("Reference surface's pitch * height is less than Dest surface.");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+        }
+
         if (firstValidFrame == nullptr)
         {
             firstValidFrame = &destSurface->OsResource;
@@ -1708,6 +1741,17 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
             {
                 m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] = &m_resMvTemporalBuffer[n];
             }
+        }
+    }
+
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+    {
+        if (m_picMhwParams.PipeBufAddrParams->presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
         }
     }
 
@@ -2019,6 +2063,15 @@ MOS_STATUS CodechalDecodeHevc::SendSliceLongFormat(
                 &refIdxParams));
         }
     }
+    else if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive)
+    {
+        MHW_VDBOX_HEVC_REF_IDX_PARAMS refIdxParams;
+        MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_HEVC_REF_IDX_PARAMS));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpRefIdxStateCmd(
+            cmdBuffer,
+            nullptr,
+            &refIdxParams));
+    }
 
     if ((m_hevcPicParams->weighted_pred_flag &&
             m_hcpInterface->IsHevcPSlice(slc->LongSliceFlags.fields.slice_type)) ||
@@ -2166,7 +2219,6 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
     {
         // Setup static slice state parameters
         MHW_VDBOX_HEVC_SLICE_STATE hevcSliceState;
-        MOS_ZeroMemory(&hevcSliceState, sizeof(hevcSliceState));
         hevcSliceState.presDataBuffer = m_copyDataBufferInUse ? &m_resCopyDataBuffer : &m_resDataBuffer;
         hevcSliceState.pHevcPicParams = m_hevcPicParams;
         hevcSliceState.pRefIdxMapping = &m_refIdxMapping[0];
@@ -2554,7 +2606,6 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     }
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bShortFormat    = m_shortFormatInUse;
     stateCmdSizeParams.bHucDummyStream = (m_secureDecoder ? m_secureDecoder->IsDummyStreamEnabled() : false);
 
@@ -2583,12 +2634,9 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     m_picMhwParams.HevcPicState         = MOS_New(MHW_VDBOX_HEVC_PIC_STATE);
     m_picMhwParams.HevcTileState        = MOS_New(MHW_VDBOX_HEVC_TILE_STATE);
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.SurfaceParams, sizeof(MHW_VDBOX_SURFACE_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.QmParams, sizeof(MHW_VDBOX_QM_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.HevcPicState, sizeof(MHW_VDBOX_HEVC_PIC_STATE));
     MOS_ZeroMemory(m_picMhwParams.HevcTileState, sizeof(MHW_VDBOX_HEVC_TILE_STATE));
 
     return eStatus;

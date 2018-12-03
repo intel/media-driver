@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -613,7 +613,8 @@ MOS_STATUS CodechalVdencVp9StateG11::SetupSegmentationStreamIn()
     if (GetResType(&m_mbSegmentMapSurface.OsResource) == MOS_GFXRES_BUFFER)
     {
         //application can send 1D or 2D buffer, based on that change the pitch to correctly access the map buffer
-        dwPitch = CODEC_VP9_SUPER_BLOCK_WIDTH;
+        //driver reads the seg ids from the buffer for each 16x16 block. Reads 4 values for each 32x32 block
+        dwPitch = MOS_ALIGN_CEIL(m_frameWidth, CODECHAL_MACROBLOCK_WIDTH) / CODECHAL_MACROBLOCK_WIDTH;
     }
     // set seg ID's of streamin states
     for (uint32_t i = 0 ; i < blockHeight * blockWidth ; ++i)
@@ -1562,11 +1563,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteKernelFunctions()
     }
     );
 
-    // Check if we need to dynamic scale the source
-    if (m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(DysSrcFrame());
-    }
 
     m_setRequestedEUSlices = ((m_frameHeight * m_frameWidth) >= m_ssdResolutionThreshold &&
         m_targetUsage <= m_ssdTargetUsageThreshold) ? true : false;
@@ -1946,7 +1942,7 @@ MOS_STATUS CodechalVdencVp9StateG11::PlatformCapabilityCheck()
     }
 
     // Tile width needs to be minimum size 256, error out if less
-    if ((col != 1) && ((m_vp9PicParams->DstFrameWidthMinus1 + 1) < col * CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH))
+    if ((col != 1) && ((m_vp9PicParams->SrcFrameWidthMinus1 + 1) < col * CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH))
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Incorrect number of columns input parameter, Tile width is < 256");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -2078,8 +2074,8 @@ MOS_STATUS CodechalVdencVp9StateG11::SetTileData()
         tileWidthInSb  = (isLastTileCol ? m_picWidthInSb : (((tileX + 1) * m_picWidthInSb) >> m_vp9PicParams->log2_tile_columns)) - tileStartSbX;
         tileHeightInSb = (isLastTileRow ? m_picHeightInSb : (((tileY + 1) * m_picHeightInSb) >> m_vp9PicParams->log2_tile_rows)) - tileStartSbY;
 
-        lastTileColWidth  = (MOS_ALIGN_CEIL((m_vp9PicParams->DstFrameWidthMinus1 + 1 - tileStartSbX * CODEC_VP9_SUPER_BLOCK_WIDTH), CODEC_VP9_MIN_BLOCK_WIDTH) / CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
-        lastTileRowHeight = (MOS_ALIGN_CEIL((m_vp9PicParams->DstFrameHeightMinus1 + 1 - tileStartSbY * CODEC_VP9_SUPER_BLOCK_HEIGHT), CODEC_VP9_MIN_BLOCK_HEIGHT) / CODEC_VP9_MIN_BLOCK_HEIGHT) - 1;
+        lastTileColWidth  = (MOS_ALIGN_CEIL((m_vp9PicParams->SrcFrameWidthMinus1 + 1 - tileStartSbX * CODEC_VP9_SUPER_BLOCK_WIDTH), CODEC_VP9_MIN_BLOCK_WIDTH) / CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+        lastTileRowHeight = (MOS_ALIGN_CEIL((m_vp9PicParams->SrcFrameHeightMinus1 + 1 - tileStartSbY * CODEC_VP9_SUPER_BLOCK_HEIGHT), CODEC_VP9_MIN_BLOCK_HEIGHT) / CODEC_VP9_MIN_BLOCK_HEIGHT) - 1;
 
         numLcuInTile = tileWidthInSb * tileHeightInSb;
         tileCodingParams[tileCntr].NumberOfActiveBePipes     = m_numPipe;
@@ -2149,7 +2145,6 @@ MOS_STATUS CodechalVdencVp9StateG11::SetTileCommands(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11 vdencWalkerStateParams;
-    MOS_ZeroMemory(&vdencWalkerStateParams, sizeof(vdencWalkerStateParams));
     vdencWalkerStateParams.Mode             = CODECHAL_ENCODE_MODE_VP9;
     vdencWalkerStateParams.pVp9EncPicParams = m_vp9PicParams;
     vdencWalkerStateParams.dwNumberOfPipes  = VDENC_PIPE_SINGLE_PIPE;
@@ -2468,6 +2463,13 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteSliceLevel()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     return ExecuteTileLevel();
+}
+
+PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencVp9StateG11::CreateMhwVdboxPipeModeSelectParams()
+{
+    auto pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11);
+
+    return pipeModeSelectParams;
 }
 
 void CodechalVdencVp9StateG11::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams)
@@ -2946,7 +2948,6 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9PakInt(
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
@@ -3202,7 +3203,6 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
@@ -3210,7 +3210,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
 
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[currPass != 0];
+    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[currPass];
     dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucProbDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
@@ -3377,7 +3377,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resHucProbDmemBuffer[currPass != 0],
+                &m_resHucProbDmemBuffer[currPass],
                 sizeof(HucProbDmem),
                 currPass,
                 CodechalHucRegionDumpType::hucRegionDumpHpu));
@@ -3531,8 +3531,6 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
-    pipeModeSelectParams.Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcUpdate());
@@ -3633,23 +3631,6 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
-
-    // In case of other pipes running other tiles, signal the vdenc/pak hw commands there to proceed because brc update is done and no HPU in 2nd pass
-    if (m_scalableMode && m_isTilingSupported && !IsFirstPass() && !IsLastPass())
-    {
-        for (auto i = 1; i < m_numPipe; i++)
-        {
-            if (!Mos_ResourceIsNull(&m_hucDoneSemaphoreMem[i].sResource))
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                    SetSemaphoreMem(
-                        &m_hucDoneSemaphoreMem[i].sResource,
-                        &cmdBuffer,
-                        (currPass + 1))
-                );
-            }
-        }
-    }
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
@@ -3788,7 +3769,6 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcInitReset()
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
@@ -4128,7 +4108,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
     // run HuC_VP9Prob first pass (it runs in parallel with ENC)
     if (m_hucEnabled)
     {
-        if (IsFirstPipe() && (IsFirstPass() || IsLastPass()))  // Before the first PAK pass and for RePak pass
+        if (IsFirstPipe() && (IsFirstPass() || IsLastPass() || (m_vdencBrcEnabled)))  // Before the first PAK pass, for RePak pass and for BRC case, HuC_VP9Prob needs to be called on Pass 1 as well
         {
             if (!m_singleTaskPhaseSupported)
             {
@@ -4229,7 +4209,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
     }
 
-    // Place hw semaphore on all other pipe to wait for first pipe HUC to finish.
+    // Place hw semaphore on all other pipe to wait for first pipe HUC to finish. Apply for all passes after extend the Dmen HPU buffer size
     int currPipe = GetCurrentPipe();
     if (m_scalableMode && m_hucEnabled && m_isTilingSupported)
     {
@@ -4287,8 +4267,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
 
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
-    pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11);
-    MOS_ZeroMemory(pipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11));
+    pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
 
@@ -4407,7 +4386,7 @@ MOS_STATUS CodechalVdencVp9StateG11::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
+    pipeBufAddrParams = {};
     pipeBufAddrParams.Mode = m_mode;
     pipeBufAddrParams.psPreDeblockSurface = &m_reconSurface;
     pipeBufAddrParams.psPostDeblockSurface = &m_reconSurface;
@@ -5119,7 +5098,6 @@ MOS_STATUS CodechalVdencVp9StateG11::CalculateVdencPictureStateCommandSize()
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 stateCmdSizeParams;
     uint32_t vdencPictureStatesSize = 0, vdencPicturePatchListSize = 0;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bHucDummyStream = true;
     m_hwInterface->GetHxxStateCommandSize(
         CODECHAL_ENCODE_MODE_VP9,
@@ -5144,7 +5122,6 @@ MOS_STATUS CodechalVdencVp9StateG11::CalculateVdencPictureStateCommandSize()
 PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS CodechalVdencVp9StateG11::CreateHcpPipeBufAddrParams(PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams)
 {
     pipeBufAddrParams = MOS_New(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11);
-    MOS_ZeroMemory(pipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11));
 
     return pipeBufAddrParams;
 }
