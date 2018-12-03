@@ -67,38 +67,63 @@ typedef struct _MEDIA_WALKER_16ALIGN_STATIC_DATA
     // DWORD 4 - GRF R1.4
     union
     {
-        uint32_t        pOutSurface;          // Output - Buffer (NV12/YUY2/YV12), size need to be 16 bytes alignment.
+        uint32_t        pOutSurface;          // Output - Buffer (NV12/YUY2), size need to be 16 bytes alignment.
+        uint32_t        pOutSurface_Y;        // Output - Buffer YV12, size need to be 32 bytes alignment
     } DW4;
 
-    // DWORD 5 - GRF R1.5
+    // DWORD 5 - GRF R1.4
+    union
+    {
+        uint32_t        pOutSurface_U;        // Output - Buffer YV12, size need to be 16 bytes alignment.
+    } DW5;
+
+    // DWORD 6 - GRF R1.4
+    union
+    {
+        uint32_t        pOutSurface_V;        // Output - Buffer YV12, size need to be 16 bytes alignment.
+    } DW6;
+
+    // DWORD 7 - GRF R1.5
     union
     {
         float           ScalingStep_H;       // Scaling ratio in Horizontal direction.
-    } DW5;
+    } DW7;
 
-    // DWORD 6 - GRF R1.6
+    // DWORD 8 - GRF R1.6
     union
     {
         float           ScalingStep_V;       // Scaling ratio in Vertical direction.
-    } DW6;
+    } DW8;
 
-    // DWORD 7 - GRF R1.7
+    // DWORD 9 - GRF R1.7
     union
     {
         struct {
             uint32_t       Output_Format : 16;  // 0 NV12, 1 YUY2, 2 YV12， currently, YV12 is not supported yet.
             uint32_t       Output_Pitch  : 16;  // Pitch of Output surface (Map to 2D)
         };
-    } DW7;
+    } DW9;
 
-    // DWORD 8 - GRF R2.0
+    // DWORD 10 - GRF R2.0
     union
     {
         struct {
             uint32_t       Output_UVOffset : 16;  // UV Offset (Lines) of output surface comparing to Y (Map to 2D).
-            uint32_t       Reversed        : 16;
+            uint32_t       ScalingMode     : 16;  // 0 for 3D(bilinear, Nearest), 1 for AVS
         };
-    } DW8;
+    } DW10;
+
+    // DWORD 11 - GRF R2.1
+    union
+    {
+        uint32_t        Original_X;
+    } DW11;
+
+    // DWORD 12 - GRG R2.2
+    union
+    {
+        uint32_t        Original_Y;
+    } DW12;
 }MEDIA_WALKER_16ALIGN_STATIC_DATA, * PMEDIA_WALKER_16ALIGN_STATIC_DATA;
 
 //!
