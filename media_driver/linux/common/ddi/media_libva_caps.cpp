@@ -910,7 +910,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     else
     {
-        attrib.value = DEFAULT_CODEC_MAX_PIC_WIDTH;
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
 
     (*attribList)[attrib.type] = attrib.value;
@@ -942,7 +942,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     else
     {
-        attrib.value = DEFAULT_CODEC_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
 
     (*attribList)[attrib.type] = attrib.value;
