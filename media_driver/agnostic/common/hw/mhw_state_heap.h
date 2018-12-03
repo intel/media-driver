@@ -425,7 +425,7 @@ typedef struct _MHW_ID_ENTRY_PARAMS
     bool                bBarrierEnable;                 //! Enable Barrier
     bool                bGlobalBarrierEnable;           //! Enable Global Barrier (SKL+)
     uint32_t            dwNumberofThreadsInGPGPUGroup;  //! Number of threads per group
-    uint32_t            dwSharedLocalMemorySize;        //! Size of Shared Local Memory (SLM)
+    uint32_t            dwSharedLocalMemorySize;        //! Size of SharedLocalMemory (SLM)
     int32_t             iCrsThdConDataRdLn;             //!
     PMHW_STATE_HEAP     pGeneralStateHeap;              //! General state heap in use
     MemoryBlock         *memoryBlock;                   //! Memory block associated with the state heap
