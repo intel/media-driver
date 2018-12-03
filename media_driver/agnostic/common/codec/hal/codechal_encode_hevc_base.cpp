@@ -419,9 +419,9 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateResources()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
 
     // Allocate Ref Lists
-    CodecHalAllocateDataList(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_refList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
 
     // Create the sync objects which will be used by each reference frame
     for (uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_refSync); i++)
@@ -961,6 +961,12 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
             uint32_t numRef = (ll == 0) ? slcParams->num_ref_idx_l0_active_minus1 :
                 slcParams->num_ref_idx_l1_active_minus1;
 
+            if (numRef > CODEC_MAX_NUM_REF_FRAME_HEVC)
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("Invalid number of ref frames for l0 %d or l1 %d", slcParams->num_ref_idx_l0_active_minus1, slcParams->num_ref_idx_l1_active_minus1);
+                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                return eStatus;
+            }
             for (uint32_t i = 0; i <= numRef; i++)
             {
                 CODEC_PICTURE refPic = slcParams->RefPicList[ll][i];
