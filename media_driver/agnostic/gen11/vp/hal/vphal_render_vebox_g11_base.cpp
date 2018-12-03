@@ -2728,7 +2728,10 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsDiFormatSupported(
         pSrc->Format != Format_Y410 &&
         pSrc->Format != Format_A8B8G8R8 &&
         pSrc->Format != Format_A8R8G8B8 &&
-        pSrc->Format != Format_A16B16G16R16)
+        pSrc->Format != Format_B10G10R10A2 &&
+        pSrc->Format != Format_R10G10B10A2 &&
+        pSrc->Format != Format_A16B16G16R16 &&
+        pSrc->Format != Format_A16R16G16B16)
     {
         bRet = true;
     }

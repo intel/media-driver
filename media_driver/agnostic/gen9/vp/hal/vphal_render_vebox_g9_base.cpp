@@ -2176,9 +2176,16 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsDiFormatSupported(
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrc);
 
     if (pSrc->Format != Format_AYUV &&
+        pSrc->Format != Format_Y410 &&
         pSrc->Format != Format_Y416 &&
         pSrc->Format != Format_P010 &&
-        pSrc->Format != Format_P016)
+        pSrc->Format != Format_P016 &&
+        pSrc->Format != Format_A8B8G8R8 &&
+        pSrc->Format != Format_A8R8G8B8 &&
+        pSrc->Format != Format_B10G10R10A2 &&
+        pSrc->Format != Format_R10G10B10A2 &&
+        pSrc->Format != Format_A16B16G16R16 &&
+        pSrc->Format != Format_A16R16G16B16)
     {
         bRet = true;
     }
