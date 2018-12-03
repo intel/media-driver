@@ -74,7 +74,9 @@ VAProcFilterType vp_supported_filters[DDI_VP_MAX_NUM_FILTERS] = {
     VAProcFilterSharpening,
     VAProcFilterColorBalance,
     VAProcFilterSkinToneEnhancement,
-    VAProcFilterTotalColorCorrection
+    VAProcFilterTotalColorCorrection,
+    VAProcFilterHVSNoiseReduction,
+    VAProcFilterHighDynamicRangeToneMapping
 };
 
 VAProcColorStandardType vp_input_color_std[DDI_VP_NUM_INPUT_COLOR_STD] = {
@@ -5294,12 +5296,11 @@ DdiMedia_QueryVideoProcFilters(
     DDI_CHK_NULL(filters,     "nullptr filters",     VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(num_filters, "nullptr num_filters", VA_STATUS_ERROR_INVALID_PARAMETER);
 
+    uint32_t  max_num_filters = DDI_VP_MAX_NUM_FILTERS;
     // check if array size is less than VP_MAX_NUM_FILTERS
-    if(*num_filters < DDI_VP_MAX_NUM_FILTERS)
+    if(*num_filters < max_num_filters)
     {
-        // Tell the app, how many filter we can support
-        *num_filters = DDI_VP_MAX_NUM_FILTERS;
-        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+        DDI_NORMALMESSAGE("num_filters %d < max_num_filters %d. Probably caused by Libva version upgrade!", *num_filters, max_num_filters);
     }
 
     // Set the filters
@@ -5308,11 +5309,6 @@ DdiMedia_QueryVideoProcFilters(
     {
         filters[i] = vp_supported_filters[i];
         i++;
-    }
-
-    for (; i < DDI_VP_MAX_NUM_FILTERS ; i++)
-    {
-        filters[i] = VAProcFilterNone;
     }
 
     // Tell the app how many valid filters are filled in the array

@@ -107,7 +107,7 @@
 #define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE   1024 // Enc config_id starts at this value
 
 /* Some filters in va_private.h */
-#define DDI_VP_MAX_NUM_FILTERS  6
+#define DDI_VP_MAX_NUM_FILTERS  8
 
 #define DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE    2048 // VP config_id starts at this value
 
