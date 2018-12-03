@@ -2172,7 +2172,7 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
 #define VPHAL_BB_ALIGN_SIZE         32768
 
 //!
-//! \brief      SLM: shared local memory. DC: data cache. 
+//! \brief      SLM: sharedlocalmemory. DC: data cache. 
 //!             I/S: instruction/state cache 
 //!             C: constant cache. T: texture cache
 //!             Default for GT1/GT2

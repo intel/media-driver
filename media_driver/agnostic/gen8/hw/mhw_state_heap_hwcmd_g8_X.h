@@ -208,7 +208,7 @@ public:
 
         //! \brief SHARED_LOCAL_MEMORY_SIZE
         //! \details
-        //!     This field indicates how much shared local memory the thread group
+        //!     This field indicates how much sharedlocalmemory the thread group
         //!     requires.  The amount is specified in 4k blocks, but only powers of 2
         //!     are allowed: 0, 4k, 8k, 16k, 32k and 64k per half-slice.
         enum SHARED_LOCAL_MEMORY_SIZE
