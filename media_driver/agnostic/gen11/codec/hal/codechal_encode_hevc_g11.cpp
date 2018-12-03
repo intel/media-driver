@@ -4020,7 +4020,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_encBCombinedBuffer2[m_currRecycledBufIdx].sResource,
-        m_encBCombinedBuffer2[m_currRecycledBufIdx].dwSize,
+        MOS_BYTES_TO_DWORDS(m_encBCombinedBuffer2[m_currRecycledBufIdx].dwSize),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED2_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
