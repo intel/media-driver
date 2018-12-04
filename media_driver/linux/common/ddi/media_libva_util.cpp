@@ -886,6 +886,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
             }
         }
         surface->pData   = surface->pSystemShadow ? surface->pSystemShadow : (uint8_t*) surface->bo->virt;
+        surface->data_size = surface->bo->size;
         surface->bMapped = true;
     }
     else
