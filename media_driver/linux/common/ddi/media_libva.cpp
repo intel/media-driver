@@ -4636,7 +4636,7 @@ VAStatus DdiMedia_PutImage(
 
     //copy data from image to surferce
     //this is temp solution, will copy by difference size and difference format in further
-    MOS_STATUS eStatus = MOS_SecureMemcpy(surfData, vaimg->data_size, imageData, vaimg->data_size);
+    MOS_STATUS eStatus = MOS_SecureMemcpy(surfData, mediaSurface->data_size, imageData, vaimg->data_size);
     DDI_CHK_CONDITION((eStatus != MOS_STATUS_SUCCESS), "DDI:Failed to copy image to surface buffer data!", VA_STATUS_ERROR_OPERATION_FAILED);
 
     status = DdiMedia_UnmapBuffer(ctx, vaimg->buf);

@@ -261,6 +261,7 @@ typedef struct _DDI_MEDIA_SURFACE
     uint32_t                uiLockedImageID;
     int32_t                 iRefCount;
     uint8_t                *pData;
+    uint32_t                data_size;
     uint32_t                isTiled;
     uint32_t                TileType;
     uint32_t                bMapped;
