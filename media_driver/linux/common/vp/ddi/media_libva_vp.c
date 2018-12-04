@@ -1569,12 +1569,26 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
     pVpHalSurf->ColorSpace = CSpace_None;
 
     VP_DDI_FUNCTION_ENTER;
-    
+
     // Convert VAProcColorStandardType to VPHAL_CSPACE
     if (IS_RGB_FORMAT(pVpHalSurf->Format) || (pVpHalSurf->Format == Format_P8))
     {
         switch (colorStandard)
         {
+            case VAProcColorStandardBT2020:
+#if (VA_MAJOR_VERSION < 1)
+                if (flag & VA_SOURCE_RANGE_FULL)
+#else
+                if (color_range == VA_SOURCE_RANGE_FULL)
+#endif
+                {
+                    pVpHalSurf->ColorSpace = CSpace_BT2020_RGB;
+                }
+                else
+                {
+                    pVpHalSurf->ColorSpace = CSpace_BT2020_stRGB;
+                }
+                break;
             case VAProcColorStandardSTRGB:
                 pVpHalSurf->ColorSpace = CSpace_stRGB;
                 break;
@@ -1644,6 +1658,20 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
                         pVpHalSurf->ColorSpace = CSpace_BT601;
                     }
                     break;
+                case VAProcColorStandardBT2020:
+#if (VA_MAJOR_VERSION < 1)
+                    if (flag & VA_SOURCE_RANGE_FULL)
+ #else
+                    if (color_range == VA_SOURCE_RANGE_FULL)
+ #endif
+                    {
+                        pVpHalSurf->ColorSpace = CSpace_BT2020_FullRange;
+                    }
+                    else
+                    {
+                        pVpHalSurf->ColorSpace = CSpace_BT2020;
+                    }
+                    break;
                 case VAProcColorStandardBT470M:
                 case VAProcColorStandardBT470BG:
                 case VAProcColorStandardSMPTE170M:
@@ -1663,7 +1691,6 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
         }
     }
     DDI_CHK_CONDITION((pVpHalSurf->ColorSpace == CSpace_None), "Invalid color standard", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_CONDITION(((pVpHalSurf->ColorSpace == CSpace_BT2020) && (pVpHalSurf->Format != Format_P010)), "Invalid surface color standard", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     return VA_STATUS_SUCCESS;
 }
