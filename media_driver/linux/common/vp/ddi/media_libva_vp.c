@@ -87,6 +87,7 @@ VAStatus     DdiVp_SetProcFilterSharpnessParams(PDDI_VP_CONTEXT, uint32_t, VAPro
 VAStatus     DdiVp_SetProcFilterColorBalanceParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferColorBalance*, uint32_t );
 VAStatus     DdiVp_SetProcFilterSkinToneEnhancementParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBuffer*);
 VAStatus     DdiVp_SetProcFilterTotalColorCorrectionParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferTotalColorCorrection*, uint32_t);
+VAStatus     DdiVp_SetProcFilterHdrTmParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferHDRToneMapping*);
 VAStatus     DdiVp_SetProcPipelineBlendingParams(PDDI_VP_CONTEXT pVpCtx, uint32_t uiSurfIndex, VAProcPipelineParameterBuffer* pPipelineParam);
 VAStatus     DdiVp_ConvertSurface (VADriverContextP ctx, DDI_MEDIA_SURFACE  *srcSurface, int16_t srcx,  int16_t srcy, uint16_t srcw,  uint16_t srch,  DDI_MEDIA_SURFACE  *dstSurface,  int16_t destx,  int16_t desty, uint16_t destw, uint16_t desth );
 VAStatus     DdiVp_UpdateProcPipelineForwardReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
@@ -1226,9 +1227,8 @@ DdiVp_SetProcPipelineParams(
     vaStatus = DdiVp_UpdateVphalTargetSurfColorSpace(pVaDrvCtx, pVpCtx, pPipelineParam, 0);
     DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
     // Update the Render Target HDR params - this needs to be done once when Render Target is passed via BeginPicture
-    // vaStatus = VpUpdateProcHdrState(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_color_properties, pPipelineParam->output_hdr_metadata);
-    // DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
-
+    vaStatus = VpUpdateProcHdrState(pVpHalTgtSurf, pPipelineParam->output_hdr_metadata);
+    DDI_CHK_RET(vaStatus, "Failed to update vphal target surface HDR metadata!");
 
     //Using additional_outputs processing as 1:N case.
     for (i = 0; i < pPipelineParam->num_additional_outputs; i++)
@@ -1852,6 +1852,12 @@ DdiVp_UpdateFilterParamBuffer(
                                             (VAProcFilterParameterBufferTotalColorCorrection*) pData,
                                             uElementNum);
             break;
+        case VAProcFilterHighDynamicRangeToneMapping:
+            vaStatus = DdiVp_SetProcFilterHdrTmParams(
+                                            pVpCtx,
+                                            uSurfIndex,
+                                            (VAProcFilterParameterBufferHDRToneMapping*) pData);
+            break;
         case VAProcFilterNone:
             vaStatus = VA_STATUS_ERROR_INVALID_PARAMETER;
             break;
@@ -2447,6 +2453,40 @@ DdiVp_SetProcFilterTotalColorCorrectionParams(
     }
 
     return VA_STATUS_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//! \purpose High Dynamic Range (HDR) Tone Mapping filter params for VPHAL input surface
+//! \params
+//! [in]  pVpCtx : VP context
+//! [in]  uSurfIndex : uSurfIndex to the input surface array
+//! [in]  pHDRParamBuff : Pointer to High Dynamic Range Tone Mapping param buffer data
+//! [in]  uElementNum : number of elements in the High Dynamic Range Tone Mapping param buffer data
+//! [out] None
+//! \returns VA_STATUS_SUCCESS if call succeeds
+//////////////////////////////////////////////////////////////////////////////////////////////////
+VAStatus
+DdiVp_SetProcFilterHdrTmParams(
+    PDDI_VP_CONTEXT                                  pVpCtx,
+    uint32_t                                         uSurfIndex,
+    VAProcFilterParameterBufferHDRToneMapping*       pHdrTmParamBuff)
+{
+    PVPHAL_RENDER_PARAMS pVpHalRenderParams  = nullptr;
+    PVPHAL_SURFACE       pSrc = nullptr;
+    VAStatus             eStatus;
+
+    VP_DDI_FUNCTION_ENTER;
+    DDI_CHK_NULL(pHdrTmParamBuff, "Null pHdrTmParamBuff.", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    // initialize
+    pVpHalRenderParams = VpGetRenderParams(pVpCtx);
+    DDI_CHK_NULL(pVpHalRenderParams, "Null pVpHalRenderParams.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    pSrc = pVpHalRenderParams->pSrc[uSurfIndex];
+    DDI_CHK_NULL(pSrc, "Null pSrc.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    eStatus = VpUpdateProcHdrState(pSrc, &pHdrTmParamBuff->data);
+
+    return eStatus;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3880,6 +3920,35 @@ DdiVp_QueryVideoProcFilterCaps (
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
             }
             break;
+        case VAProcFilterHighDynamicRangeToneMapping:
+        {
+            PDDI_MEDIA_CONTEXT mediaDrvCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
+            if (mediaDrvCtx && GFX_IS_PRODUCT(mediaDrvCtx->platform, IGFX_ICELAKE_LP))
+            {
+                uExistCapsNum = 1;
+                *num_filter_caps = uExistCapsNum;
+                if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
+                {
+                    VAProcFilterCapHighDynamicRange *HdrTmCap = (VAProcFilterCapHighDynamicRange *)filter_caps;
+                    if (HdrTmCap)
+                    {
+                        HdrTmCap->metadata_type = VAProcHighDynamicRangeMetadataHDR10;
+                        HdrTmCap->caps_flag = VA_TONE_MAPPING_HDR_TO_HDR | VA_TONE_MAPPING_HDR_TO_SDR | VA_TONE_MAPPING_HDR_TO_EDR;
+                    }
+                }
+                else
+                {
+                    VP_DDI_NORMALMESSAGE("VAProcFilterHighDynamicRangeToneMapping uQueryFlag != QUERY_CAPS_ATTRIBUTE.\n");
+                    return VA_STATUS_ERROR_INVALID_VALUE;
+                }
+            }
+            else
+            {
+                VP_DDI_NORMALMESSAGE("Other platforms except ICL can not support VAProcFilterHighDynamicRangeToneMapping.\n");
+                return VA_STATUS_ERROR_INVALID_VALUE;
+            }
+            break;
+        }
         case VAProcFilterCount:
         case VAProcFilterNone:
             return VA_STATUS_ERROR_INVALID_VALUE;
