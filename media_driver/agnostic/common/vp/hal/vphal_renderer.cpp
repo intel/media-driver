@@ -759,7 +759,7 @@ MOS_STATUS VphalRenderer::RenderPass(
                     // (1) upper rectangle rendered by vebox
                     // (2) bottom rectangle with back ground color fill by composition
                     pRenderParams->uSrcCount = 0; // set to zero for color fill
-                    TPRenderParams.pTarget[0]->rcDst.top = TPRenderParams.pTarget[0]->rcDst.bottom;
+                    TPRenderParams.pTarget[0]->rcDst.top = TPRenderParams.pSrc[0]->rcDst.bottom;
                     RenderPassData.bCompNeeded = true;
                     VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
                 }
