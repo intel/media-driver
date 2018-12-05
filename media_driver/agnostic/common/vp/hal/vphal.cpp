@@ -614,6 +614,8 @@ VphalState::VphalState(
 
     eStatus                     = MOS_STATUS_UNKNOWN;
 
+    VPHAL_PUBLIC_CHK_NULL(m_osInterface);
+
     // Initialize platform, sku, wa tables
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
     m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
