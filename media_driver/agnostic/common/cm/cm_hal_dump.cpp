@@ -224,9 +224,10 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
                           __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER, 
                           HALCM_COMMAND_BUFFER_OUTPUT_DIR,
                           HALCM_COMMAND_BUFFER_OUTPUT_FILE);
-    
+
     //get the command buffer header size
-    offset = GetCommandBufferHeaderDWords();
+    offset = GetCommandBufferHeaderDWords(osInterface);
+
     numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t) - offset;
     sizeToAllocate = numberOfDwords * (SIZE_OF_DWORD_PLUS_ONE)+2 +   //length of command buffer line
         stateHeap->iCurrentSurfaceState *

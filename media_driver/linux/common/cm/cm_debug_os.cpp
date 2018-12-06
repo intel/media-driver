@@ -35,12 +35,12 @@ static int32_t IDDCounter = 0;
 uint32_t GetLogFileLocation(const char *filename, char fileNamePrefix[])
 {
     //Get driver persistent location
-    MOS_SecureStrcpy(fileNamePrefix, 260, filename); 
+    MOS_SecureStrcpy(fileNamePrefix, 260, filename);
     return 0;
 }
 
 int32_t GetCommandBufferDumpCounter(const char *pValueName)
-{    
+{
     return commandBufferCounter;
 }
 
@@ -71,7 +71,7 @@ int32_t RecordInterfaceDescriptorDataDumpCounter(int32_t count, uint32_t ValueID
     IDDCounter = count;
     return 0;
 }
-uint32_t GetCommandBufferHeaderDWords()
+uint32_t GetCommandBufferHeaderDWords(PMOS_INTERFACE osInterface)
 {
     return 0;
 }
