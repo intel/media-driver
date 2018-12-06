@@ -742,19 +742,39 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         break;
 
     case CM_FN_CMQUEUE_ENQUEUEWITHGROUP:
+    {
         PCM_ENQUEUEGROUP_PARAM enqueueGroupParam;
         enqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(cmPrivateInputData);
-        cmQueue    = (CmQueue *)enqueueGroupParam->queueHandle;
+        cmQueue = (CmQueue *)enqueueGroupParam->queueHandle;
         threadGrpSpace = (CmThreadGroupSpace *)enqueueGroupParam->threadGroupSpaceHandle;
-        cmTask     = (CmTask *)enqueueGroupParam->taskHandle;
-        cmEvent    = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
+        cmTask = (CmTask *)enqueueGroupParam->taskHandle;
+        cmEvent = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
 
         cmRet = cmQueue->EnqueueWithGroup(cmTask,
-                                        cmEvent,
-                                        threadGrpSpace);
+            cmEvent,
+            threadGrpSpace);
 
         enqueueGroupParam->eventHandle = cmEvent;
         enqueueGroupParam->returnValue = cmRet;
+    }
+        break;
+
+    case CM_FN_CMQUEUE_ENQUEUEWITHGROUPFAST:
+    {
+        PCM_ENQUEUEGROUP_PARAM enqueueGroupParam;
+        enqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(cmPrivateInputData);
+        cmQueue = (CmQueue *)enqueueGroupParam->queueHandle;
+        threadGrpSpace = (CmThreadGroupSpace *)enqueueGroupParam->threadGroupSpaceHandle;
+        cmTask = (CmTask *)enqueueGroupParam->taskHandle;
+        cmEvent = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
+
+        cmRet = cmQueue->EnqueueWithGroupFast(cmTask,
+            cmEvent,
+            threadGrpSpace);
+
+        enqueueGroupParam->eventHandle = cmEvent;
+        enqueueGroupParam->returnValue = cmRet;
+    }
         break;
 
     case CM_FN_CMDEVICE_GETCAPS:

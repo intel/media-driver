@@ -544,6 +544,7 @@ enum CM_FUNCTION_ID
     CM_FN_CMQUEUE_ENQUEUEWITHHINTS  = 0x1509,
     CM_FN_CMQUEUE_ENQUEUEFAST       = 0x150a,
     CM_FN_CMQUEUE_DESTROYEVENTFAST  = 0x150b,
+    CM_FN_CMQUEUE_ENQUEUEWITHGROUPFAST = 0x150c,
 };
 
 //*-----------------------------------------------------------------------------

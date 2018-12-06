@@ -186,6 +186,10 @@ public:
 
     CM_RT_API int32_t DestroyEventFast(CmEvent *&event);
 
+    CM_RT_API int32_t EnqueueWithGroupFast(CmTask *task,
+                                      CmEvent *&event,
+                                      const CmThreadGroupSpace *threadGroupSpace = nullptr);
+
     int32_t EnqueueCopyInternal_1Plane(CmSurface2DRT *surface,
                                        unsigned char *sysMem,
                                        CM_SURFACE_FORMAT format,
