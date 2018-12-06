@@ -133,6 +133,9 @@ typedef struct _MHW_STATE_BASE_ADDR_PARAMS
     PMOS_RESOURCE           presInstructionBuffer;
     uint32_t                dwInstructionBufferSize;
     uint32_t                mocs4InstructionCache;
+    uint32_t                mocs4GeneralState;
+    uint32_t                mocs4DynamicState;
+    uint32_t                mocs4SurfaceState;
 } MHW_STATE_BASE_ADDR_PARAMS, *PMHW_STATE_BASE_ADDR_PARAMS;
 
 typedef struct _MHW_VFE_SCOREBOARD_DELTA
