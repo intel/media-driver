@@ -4015,12 +4015,12 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
             CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
     );
 
-    // Combined 1D buffer 2, which contains non fixed sizes of buffers
+    // Combined 1D RAW buffer 2, which contains non fixed sizes of buffers
     startBTI = MBENC_B_FRAME_ENCODER_COMBINED_BUFFER2;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
         &m_encBCombinedBuffer2[m_currRecycledBufIdx].sResource,
-        MOS_BYTES_TO_DWORDS(m_encBCombinedBuffer2[m_currRecycledBufIdx].dwSize),
+        m_encBCombinedBuffer2[m_currRecycledBufIdx].dwSize,
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED2_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI++],
