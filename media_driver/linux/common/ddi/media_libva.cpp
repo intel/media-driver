@@ -3842,6 +3842,14 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
             gmmParams.Flags.Info.Linear = true;
             break;
+        case VA_FOURCC_ARGB:
+            gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_ABGR:
+            gmmParams.Format = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
         case VA_FOURCC_RGBX:
             gmmParams.Format = GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
             gmmParams.Flags.Info.Linear = true;
@@ -3908,7 +3916,10 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
-
+        case VA_FOURCC_UYVY:
+            gmmParams.Format = GMM_FORMAT_UYVY;
+            gmmParams.Flags.Info.TiledY = true;
+            break;
         default:
             MOS_FreeMemory(vaimg);
             return VA_STATUS_ERROR_UNIMPLEMENTED;
@@ -3942,6 +3953,8 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_BGRA:
         case VA_FOURCC_BGRX:
         case VA_FOURCC_RGBX:
+        case VA_FOURCC_ARGB:
+        case VA_FOURCC_ABGR:
             vaimg->format.bits_per_pixel = 32;
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
@@ -3955,6 +3968,7 @@ VAStatus DdiMedia_CreateImage(
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 4;
             break;
+        case VA_FOURCC_UYVY:
         case VA_FOURCC_YUY2:
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
