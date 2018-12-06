@@ -425,6 +425,27 @@ public:
     //! \retval   CM_FAILURE otherwise
     //!
     CM_RT_API virtual int32_t DestroyEventFast(CmEvent *&event) = 0;
+
+    //!
+    //! \brief    Enqueue the task with thread group space in a fast path.
+    //! \details
+    //! \param    [in]task
+    //!           pointer to task to submit
+    //! \param    [in,out] event
+    //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
+    //!           its value returned by runtime is NULL.
+    //! \param    [in] threadGroupSpace
+    //!           pointer to thread group space which defines the dimensions of the task.
+    //!           pThreadGroupSpace  can not be NULL.
+    //! \retval   CM_SUCCESS if the task is successfully enqueued.
+    //! \retval   CM_INVALID_ARG_VALUE if input task is not valid
+    //! \retval   CM_EXCEED_MAX_KERNEL_PER_ENQUEUE if the task's kernel number exceeds limitation.
+    //! \retval   CM_INVALID_THREAD_GROUP_SPACE if the thread group space specification is invalid.
+    //! \retval   CM_THREAD_ARG_NOT_ALLOWED if user has per thread arguments
+    //!
+    CM_RT_API virtual int32_t EnqueueWithGroupFast(CmTask *task,
+                                  CmEvent *&event,
+                                  const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
 };
 };//namespace
 
