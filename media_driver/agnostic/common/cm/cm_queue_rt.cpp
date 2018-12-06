@@ -3519,6 +3519,14 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
     }
     else
     {
+        const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
+        if (state->cmHalInterface->CheckMediaModeAvailability() == false) 
+        {
+            if (threadSpaceRTConst != nullptr) 
+            {
+                return state->advExecutor->SubmitComputeTask(this, task, event, threadSpaceRTConst->GetThreadGroupSpace(), (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+            }
+        }
         return state->advExecutor->SubmitTask(this, task, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
     }
 }
