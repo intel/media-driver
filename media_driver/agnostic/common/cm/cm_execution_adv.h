@@ -41,6 +41,7 @@ class CmProgramRT;
 class CmQueueRT;
 class CmTask;
 class CmThreadSpace;
+class CmThreadGroupSpace;
 class CmEvent;
 };
 class CmExecutionAdv
@@ -74,6 +75,12 @@ public:
                 MOS_GPU_CONTEXT gpuContext);
 
     virtual int DestoryEvent(CMRT_UMD::CmQueueRT *queue, CMRT_UMD::CmEvent *&event);
+
+    virtual int SubmitComputeTask(CMRT_UMD::CmQueueRT *queue,
+                CMRT_UMD::CmTask *task,
+                CMRT_UMD::CmEvent* &event, 
+                const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
+                MOS_GPU_CONTEXT gpuContext);
 
     
 };
