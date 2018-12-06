@@ -77,6 +77,14 @@ export LIBVA_DRIVERS_PATH=<path-contains-iHD_drv_video.so>
 export LIBVA_DRIVER_NAME=iHD
 ```
 
+## Configuration and build options
+
+| Option | Values | Description |
+| ------ | ------ | ----------- |
+| BUILD_CMRTLIB | ON\|OFF | Build and Install cmrtlib together with media driver (default: ON) |
+| MEDIA_BUILD_FATAL_WARNINGS | ON\|OFF | Turn compiler warnings into fatal errors (default: ON) |
+| MEDIA_RUN_TEST_SUITE | ON\|OFF | Run google test module after install (default: ON) |
+| INSTALL_DRIVER_SYSCONF | ON\|OFF | Install driver system configuration file (default: OFF) |
 
 ## Supported Platforms
 
