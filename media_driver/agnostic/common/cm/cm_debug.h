@@ -219,6 +219,6 @@ int32_t RecordSurfaceStateDumpCounter(int32_t count, uint32_t ValueID);
 int32_t GetInterfaceDescriptorDataDumpCounter(const char *pValueName);
 int32_t RecordInterfaceDescriptorDataDumpCounter(int32_t count, uint32_t ValueID);
 
-uint32_t GetCommandBufferHeaderDWords();
+uint32_t GetCommandBufferHeaderDWords(PMOS_INTERFACE osInterface);
 
 #endif // __CM_DEBUG_H__

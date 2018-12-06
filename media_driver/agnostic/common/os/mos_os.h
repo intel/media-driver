@@ -71,7 +71,8 @@
     ((GpuContext) == MOS_GPU_CONTEXT_RENDER2)       || \
     ((GpuContext) == MOS_GPU_CONTEXT_RENDER3)       || \
     ((GpuContext) == MOS_GPU_CONTEXT_RENDER4)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE)          \
+    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE)       || \
+    ((GpuContext) == MOS_GPU_CONTEXT_CM_COMPUTE)        \
 )
 
 #if MOS_MEDIASOLO_SUPPORTED
