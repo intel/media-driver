@@ -148,6 +148,10 @@ public:
 
     CM_RT_API int32_t DestroyEventFast(CmEvent *&event);
 
+    CM_RT_API int32_t EnqueueWithGroupFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadGroupSpace *threadGroupSpace = nullptr);
+
     CM_QUEUE_CREATE_OPTION GetQueueOption();
 
 protected:

@@ -1455,6 +1455,9 @@ public:
                               CmEvent *&event,
                               const CmThreadSpace *threadSpace = nullptr) = 0;
     CM_RT_API virtual INT DestroyEventFast(CmEvent *&event) = 0;
+    CM_RT_API virtual INT EnqueueWithGroupFast(CmTask *task,
+                                  CmEvent *&event,
+                                  const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
 protected:
     ~CmQueue(){};
 };

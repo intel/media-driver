@@ -3544,4 +3544,18 @@ CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
         return state->advExecutor->DestoryEvent(this, event);
     }
 }
+
+CM_RT_API int32_t CmQueueRT::EnqueueWithGroupFast(CmTask *task,
+                                      CmEvent *&event,
+                                      const CmThreadGroupSpace *threadGroupSpace)
+{
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (state == nullptr || state->advExecutor == nullptr)
+    {
+        return CM_NULL_POINTER;
+    }
+
+    return state->advExecutor->SubmitComputeTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+}
+
 }
