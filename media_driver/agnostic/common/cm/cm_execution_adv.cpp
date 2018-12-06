@@ -56,3 +56,13 @@ int CmExecutionAdv::DestoryEvent(CMRT_UMD::CmQueueRT *queue, CMRT_UMD::CmEvent *
     return queue->DestroyEvent(event);
 }
 
+int CmExecutionAdv::SubmitComputeTask(CMRT_UMD::CmQueueRT *queue,
+                CMRT_UMD::CmTask *task,
+                CMRT_UMD::CmEvent* &event, 
+                const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
+                MOS_GPU_CONTEXT gpuContext)
+{
+    CM_CHK_NULL_RETURN_CMERROR(queue);
+    return queue->EnqueueWithGroup(task, event, threadGroupSpace);
+}
+
