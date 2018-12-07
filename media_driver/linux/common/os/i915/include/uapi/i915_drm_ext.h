@@ -28,23 +28,6 @@
 
 #else
 
-struct drm_i915_gem_create_android {
-    /**
-     * Requested size for the object.
-     *
-     * The (page-aligned) allocated size for the object will be returned.
-     */
-    __u64 size;
-    /**
-     * Returned handle for the object.
-     *
-     * Object handles are nonzero.
-     */
-    __u32 handle;
-    __u32 pad;
-    __u32 flags;
-};
-
 struct drm_i915_gem_syncpt_driver_data {
         __u32 value;
         __u32 cycle;
