@@ -72,6 +72,7 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
     m_cscDsState->EnableCopy();
     m_cscDsState->EnableColor();
 #endif
+    m_mfeEnabled = settings->isMfeEnabled;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::Initialize(settings));
 
