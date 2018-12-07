@@ -60,6 +60,8 @@ public:
     bool                    disableUltraHME = false;       //!< Applies currently to HEVC VDEnc only to disable UHME
     bool                    disableSuperHME = false;       //!< Applies currently to HEVC VDEnc only to disable SHME
     void                    *cpParams = nullptr;           //!< CP params
+    bool                    isMfeEnabled = false;          //!< Flag to indicate if Mfe is enabled.
+
     //!
     //! \brief    Destructor 
     //!
