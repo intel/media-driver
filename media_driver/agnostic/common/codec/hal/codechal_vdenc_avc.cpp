@@ -5553,6 +5553,9 @@ MOS_STATUS CodechalVdencAvcState::DumpFrameParFile()
 
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
+    oss << "ImePredOverlapThr = " << std::dec << +m_avcPar->ImePredOverlapThr << std::endl;
+    oss << "LeftNbrPelMode = " << std::dec << +m_avcPar->LeftNbrPelMode << std::endl;
+
 
     if (m_pictureCodingType == I_TYPE)
     {

@@ -203,6 +203,8 @@ struct EncodeAvcPar
     bool                        VDEncPerfMode;
     bool                        VdencExtPakObjDisable;
     bool                        PPMVDisable;
+    uint8_t                     ImePredOverlapThr;
+    uint8_t                     LeftNbrPelMode;
 
     // PAK Params
     uint8_t                     RoundingIntra;
