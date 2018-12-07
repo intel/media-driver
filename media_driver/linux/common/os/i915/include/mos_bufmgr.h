@@ -308,12 +308,6 @@ int mos_get_reset_stats(struct mos_linux_context *ctx,
                   uint32_t *active,
                   uint32_t *pending);
 
-int mos_get_context_param_sseu(struct mos_linux_context *ctx,
-                struct drm_i915_gem_context_param_sseu *sseu);
-
-int mos_set_context_param_sseu(struct mos_linux_context *ctx,
-                struct drm_i915_gem_context_param_sseu sseu);
-
 int mos_get_slice_mask(uint32_t slice_count);
 
 int mos_get_context_param(struct mos_linux_context *ctx,
