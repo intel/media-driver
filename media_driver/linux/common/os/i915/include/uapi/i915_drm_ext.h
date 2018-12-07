@@ -26,25 +26,6 @@
 
 #ifndef ANDROID
 
-/** VDBOX balancing */
-#define DRM_I915_LOAD_BALANCING_HINT    0x3f
-#define DRM_IOCTL_I915_LOAD_BALANCING_HINT        DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_LOAD_BALANCING_HINT, struct drm_i915_ring_load_query)
-
-typedef struct drm_i915_ring_load_info
-{
-    /** ID of ring & load counter*/
-    int ring_id;
-    int load_cnt;
-} drm_i915_ring_load_info;
-
-typedef struct drm_i915_ring_load_query
-{
-    /** Number of rings, load counters of which we want to query & ptr to array
-      * of load info structures */
-    int query_size;
-    drm_i915_ring_load_info *load_info;
-} drm_i915_ring_load_query;
-
 /** SSEU programming */
 #define I915_CONTEXT_PARAM_SSEU     0x6
 
