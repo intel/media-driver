@@ -3270,11 +3270,6 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
         i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
     execbuf.rsvd2 = 0;
 
-#ifdef ANDROID
-    i915_execbuffer2_set_tag(execbuf, tag);
-    aub_exec(bo, flags, used);
-#endif
-
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
