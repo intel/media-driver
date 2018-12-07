@@ -233,6 +233,9 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteDysSliceLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencVp9StateG11::SetTileData());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(static_cast<MhwVdboxHcpInterfaceG11 *>(m_hcpInterface)->AddHcpTileCodingCmd(&cmdBuffer, &m_tileParams[0]));
 
+    //Disbale Frame Tracking Header for this submission as this is not the last submission
+    bool isFrameTrackingHeaderSet = cmdBuffer.Attributes.bEnableMediaFrameTracking;
+    cmdBuffer.Attributes.bEnableMediaFrameTracking = false;
 
     MOS_ZeroMemory(&secondLevelBatchBuffer, sizeof(MHW_BATCH_BUFFER));
     secondLevelBatchBuffer.OsResource = m_resMbCodeSurface;
@@ -294,6 +297,11 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteDysSliceLevel()
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, renderFlags));
     }
+
+    //Restore the frame tracking header for the further passes and submissions
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+    cmdBuffer.Attributes.bEnableMediaFrameTracking = isFrameTrackingHeaderSet;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
 
     CODECHAL_DEBUG_TOOL(
         if (m_vp9PicParams->PicFlags.fields.segmentation_enabled) {
@@ -3021,7 +3029,11 @@ MOS_STATUS CodechalVdencVp9StateG11::ConstructPicStateBatchBuf(
     if (!m_singleTaskPhaseSupported || m_firstTaskInPhase)
     {
         // Send command buffer header at the beginning (OS dependent)
-        bool requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : m_lastTaskInPhase;
+        bool requestFrameTracking = false;
+        //For Superframes, there is an extra submission at the end, so submit with frame tracking there
+        if (!m_vp9PicParams->PicFlags.fields.super_frame) {
+            requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : m_lastTaskInPhase;
+        }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
         m_firstTaskInPhase = false;
     }
@@ -3372,6 +3384,13 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
             &cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
             ((currPass == 0)? "HPU_Pass0":"HPU_Pass1"))));
+
+        if (m_superFrameHucPass) {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+            //For superframe submission, this is the last submission so add frame tracking header
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, m_vp9PicParams->PicFlags.fields.super_frame));
+            ReturnCommandBuffer(&cmdBuffer);
+        }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, renderFlags));
 
@@ -3912,13 +3931,8 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
     perfTag.PictureCodingType = m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
-    // Frame tracking feature check
-    if (m_tsEnabled || m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
-    {
-        // Frame submissions are different for temporal scalability
-        // Frametracking not viable
-        m_frameTrackingEnabled = false;
-    }
+    // Enable Frame Tracking for all features
+    m_frameTrackingEnabled = true;
 
     // Scalable Mode header
     if (m_scalableMode)
@@ -4084,6 +4098,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
         if (!IsLastPass() || (m_currPass == 0 && m_numPasses == 0))
         {
             bool origSingleTaskPhase = m_singleTaskPhaseSupported;
+            bool origFrameTrackingHeader = false;
             // If this is the case of Dynamic Scaling + BRC Pass 0'  VDENC + Pak  pass
             // Disable SingleTaskPhase before running 1st BRC update
             // To run HPU0 on the next pass i.e Pak only pass, we make Pass 1 as Pass 0 in which case the
@@ -4091,6 +4106,13 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
             if (m_dysBrc && m_dysRefFrameFlags != DYS_REF_NONE)
             {
                 m_singleTaskPhaseSupported = false;
+
+                //Reset Frame Tracking Header for this submission
+                MOS_COMMAND_BUFFER cmdBuffer;
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+                origFrameTrackingHeader = cmdBuffer.Attributes.bEnableMediaFrameTracking;
+                cmdBuffer.Attributes.bEnableMediaFrameTracking = false;
+                ReturnCommandBuffer(&cmdBuffer);
             }
 
             if (!m_singleTaskPhaseSupported)
@@ -4102,6 +4124,15 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcUpdate());
             //Restore the original state of SingleTaskPhaseSupported flag
             m_singleTaskPhaseSupported = origSingleTaskPhase;
+
+            //Restore Original Frame Tracking Header
+            if (m_dysBrc && m_dysRefFrameFlags != DYS_REF_NONE)
+            {
+                MOS_COMMAND_BUFFER cmdBuffer;
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+                cmdBuffer.Attributes.bEnableMediaFrameTracking = origFrameTrackingHeader;
+                ReturnCommandBuffer(&cmdBuffer);
+            }
         }
     }
 
