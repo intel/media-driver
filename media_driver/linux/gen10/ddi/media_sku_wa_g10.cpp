@@ -178,6 +178,8 @@ static bool InitCnlMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 0);
 
     MEDIA_WR_WA(waTable, WaDisablePreemptForMediaWalkerWithGroups, 1);
+
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     return true;
 }
 

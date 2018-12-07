@@ -6033,23 +6033,24 @@ bool RenderHal_Is2PlaneNV12Needed(
     PRENDERHAL_SURFACE     pRenderHalSurface,
     RENDERHAL_SS_BOUNDARY  Boundary)
 {
+    PMOS_SURFACE pSurface;
     uint16_t wWidthAlignUnit;
     uint16_t wHeightAlignUnit;
     uint32_t dwSurfaceHeight;
     uint32_t dwSurfaceWidth;
+    bool bRet = false;
 
     //---------------------------------------------
     if (pRenderHal == nullptr
      || pRenderHalSurface == nullptr)
     {
         MHW_RENDERHAL_ASSERTMESSAGE("nullptr pointer detected.");
-        return false;
+        goto finish;
     }
     //---------------------------------------------
-    
-    PMOS_SURFACE pSurface = &pRenderHalSurface->OsSurface;
 
     pRenderHal->pfnGetAlignUnit(&wWidthAlignUnit, &wHeightAlignUnit, pRenderHalSurface);
+    pSurface = &pRenderHalSurface->OsSurface;
 
      switch (Boundary)
     {
@@ -6080,20 +6081,27 @@ bool RenderHal_Is2PlaneNV12Needed(
     // is not multiple of 4.
     if (!GFX_IS_GEN_10_OR_LATER(pRenderHal->Platform))
     {
-        return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
+        bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
     }
     else
     {
         // For AVS sampler, no limitation for 4 alignment.
         if (RENDERHAL_SCALING_AVS == pRenderHalSurface->ScalingMode)
         {
-            return (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+            bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
         }
         else
         {
-            return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+            bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
         }
     }
+
+    // Note: Always using 2 plane NV12 as WA for the corruption of NV12 input
+    // of which the height is greater than 16352
+    bRet = bRet || (MEDIA_IS_WA(pRenderHal->pWaTable, Wa16KInputHeightNV12Planar420) && dwSurfaceHeight > 16352);
+
+finish:
+    return bRet;
 }
 
 //!

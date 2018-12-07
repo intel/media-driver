@@ -124,6 +124,7 @@ static bool InitBdwMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaVC1UnequalFieldHeights, 1);
     MEDIA_WR_WA(waTable, WaJPEGHeightAlignYUV422H2YToNV12, 1);
     MEDIA_WR_WA(waTable, WaEnableDscale, 1);
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
 
     return true;
 }
