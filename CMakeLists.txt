@@ -49,13 +49,24 @@ option (ENABLE_KERNELS "Build driver with shaders (kernels) support" ON)
 cmake_dependent_option( FREE_KERNELS
     "Use only shaders (kernels) with available sources" OFF
     "ENABLE_KERNELS" OFF)
-
+cmake_dependent_option( BUILD_KERNELS
+    "Rebuild shaders (kernels) from sources" OFF
+    "ENABLE_KERNELS;FREE_KERNELS" OFF)
 option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 include(GNUInstallDirs)
 
 if (BUILD_CMRTLIB)
     add_subdirectory(cmrtlib)
+endif()
+
+if (BUILD_KERNELS)
+    find_program(IGA iga64)
+    if (NOT IGA)
+        message(FATAL_ERROR "Failed to find IGA")
+    endif()
+
+    add_subdirectory(Tools/MediaDriverTools)
 endif()
 
 add_subdirectory(media_driver)
