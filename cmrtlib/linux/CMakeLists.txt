@@ -89,6 +89,24 @@ target_link_libraries( igfxcmrt dl va rt ${GCC_SECURE_LINK_FLAGS})
 
 include(GNUInstallDirs)
 
+configure_file(${CMAKE_CURRENT_LIST_DIR}/igfxcmrt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/igfxcmrt.pc @ONLY)
+
 install(TARGETS igfxcmrt LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT media NAMELINK_SKIP)
 install(TARGETS igfxcmrt LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT media NAMELINK_ONLY)
 
+set(CMRT_HEADERS
+    ${CMRT_HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g8.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g9.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g10.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_hw_vebox_cmd_g10.h
+    ${CMAKE_CURRENT_LIST_DIR}/share/cm_rt_def_os.h
+    ${CMAKE_CURRENT_LIST_DIR}/share/cm_rt_api_os.h
+    )
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cm_rt_extension.h "//empty file for future implementation")
+
+install(FILES ${CMRT_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/igfxcmrt COMPONENT media)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cm_rt_extension.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/igfxcmrt COMPONENT media)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/igfxcmrt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig COMPONENT media)
