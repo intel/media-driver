@@ -80,8 +80,6 @@ struct drm_i915_gem_create_android {
     __u32 flags;
 };
 
-#define i915_execbuffer2_set_tag(eb2, tag) \
-        ((eb2).rsvd1 |= (__u64)tag << 32)
 struct drm_i915_gem_syncpt_driver_data {
         __u32 value;
         __u32 cycle;
