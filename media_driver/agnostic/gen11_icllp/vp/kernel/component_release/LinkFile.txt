@@ -7,8 +7,6 @@ SrcBlend_444_16 SRC_BLEND export 0
 SrcBlend_4bits_444_16 SRC_BLEND_4BITS export 0
 ConstSrcBlend_444_16 CONSTSRC_BLEND export 0
 AlphaSrcBlendG ALPHASRC_BLENDG export 0
-ColorE ColorE export 0
-GammaC GammaC export 0
 Mirror_H_YUV MIRROR_H_YUV export 0
 Mirror_H_YUVA MIRROR_H_YUVA export 0
 VP_Setup_MediaWalker_32x16_Design VP_SETUP_32X16 export 0
@@ -25,19 +23,15 @@ SrcBlend_444_16 Return include 0
 SrcBlend_4bits_444_16 Return include 0
 ConstSrcBlend_444_16 Return include 0
 AlphaSrcBlendG Return include 0
-ColorE Return include 0
-GammaC Return include 0
 
 
 
 Call_AlphaSrcBlendG  ALPHASRC_BLENDG  import 1
-Call_ColorE  ColorE  import 1
 Call_Composite  COMPOSITE  import 1
 Call_ConstBlend  CONST_BLEND  import 1
 Call_ConstSrcBlend  CONSTSRC_BLEND  import 1
 Call_CSC  CSC  import 1
 Call_CSC_Premultiplied  CSC_Premultiplied  import 1
-Call_GammaC  GammaC  import 1
 Call_Mirror_H_YUV  MIRROR_H_YUV  import 1
 Call_Mirror_H_YUVA  MIRROR_H_YUVA  import 1
 Call_PartBlend  PART_BLEND  import 1
