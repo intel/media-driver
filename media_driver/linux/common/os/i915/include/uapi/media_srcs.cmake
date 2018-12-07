@@ -26,7 +26,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/drm_mode.h
     ${CMAKE_CURRENT_LIST_DIR}/drm_sarea.h
     ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
-    ${CMAKE_CURRENT_LIST_DIR}/i915_drm_ext.h
     ${CMAKE_CURRENT_LIST_DIR}/drm_header.h
 )
 
