@@ -5769,53 +5769,6 @@ MOS_VDBOX_NODE_IND Mos_Specific_GetVdboxNodeId(
         return idx;
     }
 
-#if defined(MEDIA_EXT) && !defined(ANDROID)
-    if (pOsInterface->pOsContext->bPerCmdBufferBalancing)
-    {
-        int32_t ret;
-
-        // Query KMD for VDBox load counters;
-        drm_i915_ring_load_info vdbox_load[] = {
-            {.ring_id = I915_EXEC_BSD | I915_EXEC_BSD_RING1, .load_cnt = 0},
-            {.ring_id = I915_EXEC_BSD | I915_EXEC_BSD_RING2, .load_cnt = 0},
-        };
-
-        drm_i915_ring_load_query vdbox_load_query = {
-            .query_size = sizeof(vdbox_load) / sizeof(vdbox_load[0]),
-            .load_info  = &vdbox_load[0],
-        };
-
-        ret = drmIoctl(pOsInterface->pOsContext->fd, DRM_IOCTL_I915_LOAD_BALANCING_HINT,
-            &vdbox_load_query);
-
-        if (ret) {
-            MOS_OS_ASSERTMESSAGE("Failed to query KMD for balancing hint:"
-                " error %d (falling back to ctx assigment)", ret);
-        } else {
-            int32_t cnt1 = vdbox_load[0].load_cnt;
-            int32_t cnt2 = vdbox_load[1].load_cnt;
-
-            // Assign task to VDBox with smaller load counter.
-            // Give small priority to VDBox 2;
-            if (0 == cnt2)
-            {
-                idx = MOS_VDBOX_NODE_2;
-            } else if (0 == cnt1)
-            {
-                idx = MOS_VDBOX_NODE_1;
-            } else if (cnt1 < cnt2)
-            {
-                idx = MOS_VDBOX_NODE_1;
-            } else {
-                idx = MOS_VDBOX_NODE_2;
-            }
-
-            // Save assigned VDBox number inside cmdbuf
-            pCmdBuffer->iVdboxNodeIndex = idx;
-        }
-    }
-#endif //#ifndef ANDROID
-
 finish:
     return idx;
 }
@@ -6310,16 +6263,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 #if MOS_MEDIASOLO_SUPPORTED
     Mos_Solo_Initialize(pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
-
-#if defined(MEDIA_EXT)
-    // read the "Disable VDBox load balancing" user feature key
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        NULL,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_BALANCING_ID,
-        &UserFeatureData);
-    pOsInterface->bEnableVdboxBalancing = (bool)UserFeatureData.u32Data;
-#endif
 
     // read the "Disable KMD Watchdog" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
