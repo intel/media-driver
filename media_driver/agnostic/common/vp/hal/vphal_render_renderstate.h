@@ -102,6 +102,12 @@ public:
         return TempOutputSurfaces[uiOutSurfaceIndex];
     }
 
+    // remove it after refactoring
+    PVPHAL_SURFACE GetTempOutputSurfaceByIndex(uint32_t index)
+    {
+        return TempOutputSurfaces[index];
+    }
+
     void MoveToNextTempOutputSurface()
     {
         uiOutSurfaceIndex++;
