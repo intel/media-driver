@@ -2387,7 +2387,7 @@ protected:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
-        if (params->dwPartitions == 0 || params->dwPartitions >= MhwVdboxMfxInterface::m_vp8MaxNumPartitions)
+        if (params->dwPartitions == 0 || params->dwPartitions > MhwVdboxMfxInterface::m_vp8MaxNumPartitions)
         {
             MHW_ASSERTMESSAGE("Invalid Partitions.");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
