@@ -44,6 +44,11 @@ const MOS_USER_FEATURE g_MosUserFeatureInit =
     0                                                                           // uiNumSettingValues
 };
 
+#if MOS_MEDIASOLO_SUPPORTED
+void *   _MOS_INTERFACE::pvSoloContext = nullptr; 
+uint32_t _MOS_INTERFACE::soloRefCnt = 0;
+#endif  // MOS_MEDIASOLO_SUPPORTED
+
 //! \brief    Unified OS add command to command buffer
 //! \details  Offset returned is dword aligned but size requested can be byte aligned
 //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
