@@ -459,7 +459,8 @@ typedef struct _MOS_INTERFACE
 #if MOS_MEDIASOLO_SUPPORTED
     // MediaSolo related
     int32_t                         bSoloInUse;                                   //!< Flag to indicate if MediaSolo is enabled
-    void                            *pvSoloContext;                                //!< pointer to MediaSolo context
+    static void                    *pvSoloContext;                                //!< pointer to MediaSolo context
+    static uint32_t                 soloRefCnt;
     uint32_t                        dwEnableMediaSoloFrameNum;                    //!< The frame number at which MediaSolo will be enabled, 0 is not valid.
 #endif // MOS_MEDIASOLO_SUPPORTED
 
