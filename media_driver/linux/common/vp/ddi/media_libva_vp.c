@@ -1188,10 +1188,6 @@ DdiVp_SetProcPipelineParams(
     vaStatus = VpUpdateProcMirrorState(pVpHalSrcSurf,pPipelineParam->mirror_state);
     DDI_CHK_RET(vaStatus, "Failed to update mirror state!");
 
-    // HDR
-    // vaStatus = VpUpdateProcHdrState(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties, pPipelineParam->input_hdr_metadata);
-    // DDI_CHK_RET(vaStatus, "Failed to update mirror state!");
-
     // Alpha blending
     // Note: the alpha blending region cannot overlay
     vaStatus = DdiVp_SetProcPipelineBlendingParams(pVpCtx, uSurfIndex, pPipelineParam);
