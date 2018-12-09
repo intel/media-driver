@@ -654,14 +654,15 @@ VAStatus VpUpdateProcHdrState(
 {
     DDI_CHK_NULL(pVpHalSurf, "Null pVpHalSurf.", VA_STATUS_ERROR_INVALID_BUFFER);
 
-    if (pVpHalSurf->pHDRParams == nullptr)
-    {
-        pVpHalSurf->pHDRParams = (PVPHAL_HDR_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_HDR_PARAMS));
-        DDI_CHK_NULL(pVpHalSurf->pHDRParams, "VPHAL_HDR_PARAMS MOS_AllocAndZeroMemory failed.", VA_STATUS_ERROR_ALLOCATION_FAILED);
-    }
     // pass HDR metadata
     if ((pHdrMetadata != nullptr) && (pHdrMetadata->metadata_size != 0))
     {
+        if (pVpHalSurf->pHDRParams == nullptr)
+        {
+            pVpHalSurf->pHDRParams = (PVPHAL_HDR_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_HDR_PARAMS));
+            DDI_CHK_NULL(pVpHalSurf->pHDRParams, "VPHAL_HDR_PARAMS MOS_AllocAndZeroMemory failed.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+        }
+
         // HDR10 Meta Data
         if (pHdrMetadata->metadata_type == VAProcHighDynamicRangeMetadataHDR10)
         {
