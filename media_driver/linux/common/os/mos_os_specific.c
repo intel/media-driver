@@ -4062,6 +4062,33 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
         auto cmdBufMgr = pOsContextSpecific->GetCmdBufMgr();
         MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
 
+        MOS_OS_CHK_NULL_RETURN(createOption);
+        if (GpuNode == MOS_GPU_NODE_3D && createOption->SSEUValue != 0)
+        {
+            struct drm_i915_gem_context_param_sseu sseu;
+            MOS_ZeroMemory(&sseu, sizeof(sseu));
+            sseu.engine_class = I915_ENGINE_CLASS_RENDER;
+            sseu.engine_instance = 0;
+
+            if (mos_get_context_param_sseu(pOsInterface->pOsContext->intel_context, &sseu))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to get sseu configuration.");
+                return MOS_STATUS_UNKNOWN;
+            };
+
+            if (mos_hweight8(sseu.subslice_mask) > createOption->packed.SubSliceCount)
+            {
+                sseu.subslice_mask = mos_switch_off_n_bits(sseu.subslice_mask,
+                        mos_hweight8(sseu.subslice_mask)-createOption->packed.SubSliceCount);
+            }
+
+            if (mos_set_context_param_sseu(pOsInterface->pOsContext->intel_context, sseu))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
+                return MOS_STATUS_UNKNOWN;
+            };
+        }
+
         if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
         {
             auto gpuContext = gpuContextMgr->CreateGpuContext(GpuNode, cmdBufMgr, mosGpuCxt);
