@@ -641,6 +641,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t
             return Media_Format_Buffer;
         case VA_FOURCC('P','0','1','0'):
             return Media_Format_P010;
+        case VA_FOURCC_AYUV:
+            return Media_Format_AYUV;
         default:
             return Media_Format_Count;
     }
