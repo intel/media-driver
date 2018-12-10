@@ -4165,22 +4165,6 @@ mos_get_reset_stats(struct mos_linux_context *ctx,
     return ret;
 }
 
-int mos_get_slice_mask(uint32_t slice_count)
-{
-    uint32_t bitflag = 1;
-    uint32_t bitmask = 0;
-    uint32_t count = 0;
-
-    while (count < slice_count)
-    {
-        bitmask = bitflag;
-        bitflag = bitmask | (bitflag << 1);
-        count++;
-    }
-
-    return bitmask;
-}
-
 int
 mos_get_context_param(struct mos_linux_context *ctx,
                 uint32_t size,
