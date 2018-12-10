@@ -308,8 +308,6 @@ int mos_get_reset_stats(struct mos_linux_context *ctx,
                   uint32_t *active,
                   uint32_t *pending);
 
-int mos_get_slice_mask(uint32_t slice_count);
-
 int mos_get_context_param(struct mos_linux_context *ctx,
                            uint32_t size,
                            uint64_t param,
