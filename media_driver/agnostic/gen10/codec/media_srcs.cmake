@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(hal)
-if(NOT "${Full_Open_Source_Support}" STREQUAL "yes")
+if(NOT FREE_KERNELS)
     media_include_subdirectory(kernel)
 endif()
 media_include_subdirectory(share)
