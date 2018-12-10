@@ -18,65 +18,83 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-bs_set_if_undefined(GEN8_Supported "yes")
-bs_set_if_undefined(GEN8_BDW_Supported "yes")
-bs_set_if_undefined(GEN9_Supported "yes")
-bs_set_if_undefined(GEN9_BXT_Supported "yes")
-bs_set_if_undefined(GEN9_SKL_Supported "yes")
-bs_set_if_undefined(GEN9_CFL_Supported "yes")
-bs_set_if_undefined(GEN9_GLK_Supported "yes")
-bs_set_if_undefined(GEN9_KBL_Supported "yes")
-bs_set_if_undefined(GEN10_Supported "yes")
-bs_set_if_undefined(GEN10_CNL_Supported "yes")
-bs_set_if_undefined(GEN11_Supported "yes")
-bs_set_if_undefined(GEN11_ICLLP_Supported "yes")
+option(GEN8 "Enable Gen8 support" ON)
+cmake_dependent_option(GEN8_BDW
+    "Enabled BDW support (Gen8)" ON
+    "GEN8" OFF)
 
+option(GEN9 "Enable Gen9 support" ON)
+cmake_dependent_option(GEN9_BXT
+    "Enabled BXT support (Gen9)" ON
+    "GEN9" OFF)
+cmake_dependent_option(GEN9_CFL
+    "Enabled CFL support (Gen9)" ON
+    "GEN9" OFF)
+cmake_dependent_option(GEN9_GLK
+    "Enabled GLK support (Gen9)" ON
+    "GEN9" OFF)
+cmake_dependent_option(GEN9_KBL
+    "Enabled KBL support (Gen9)" ON
+    "GEN9" OFF)
+cmake_dependent_option(GEN9_SKL
+    "Enabled SKL support (Gen9)" ON
+    "GEN9" OFF)
 
-if(${GEN8_Supported} STREQUAL "yes")
+option(GEN10 "Enable Gen10 support" ON)
+cmake_dependent_option(GEN10_CNL
+    "Enabled CNL support (Gen10)" ON
+    "GEN10" OFF)
+
+option(GEN11 "Enable Gen11 support" ON)
+cmake_dependent_option(GEN11_ICLLP
+    "Enabled ICLLP support (Gen11)" ON
+    "GEN11" OFF)
+
+if(GEN8)
     add_definitions(-DIGFX_GEN8_SUPPORTED)
 endif()
 
-if(${GEN8_BDW_Supported} STREQUAL "yes")
+if(GEN8_BDW)
     add_definitions(-DIGFX_GEN8_BDW_SUPPORTED)
 endif()
 
-if(${GEN9_Supported} STREQUAL "yes")
+if(GEN9)
     add_definitions(-DIGFX_GEN9_SUPPORTED)
 endif()
 
-if(${GEN9_BXT_Supported} STREQUAL "yes")
+if(GEN9_BXT)
     add_definitions(-DIGFX_GEN9_BXT_SUPPORTED)
 endif()
 
-if(${GEN9_SKL_Supported} STREQUAL "yes")
+if(GEN9_SKL)
     add_definitions(-DIGFX_GEN9_SKL_SUPPORTED)
 endif()
 
-if(${GEN9_CFL_Supported} STREQUAL "yes")
+if(GEN9_CFL)
     add_definitions(-DIGFX_GEN9_CFL_SUPPORTED)
 endif()
 
-if(${GEN9_GLK_Supported} STREQUAL "yes")
+if(GEN9_GLK)
     add_definitions(-DIGFX_GEN9_GLK_SUPPORTED)
 endif()
 
-if(${GEN9_KBL_Supported} STREQUAL "yes")
+if(GEN9_KBL)
     add_definitions(-DIGFX_GEN9_KBL_SUPPORTED)
 endif()
 
-if(${GEN10_Supported} STREQUAL "yes")
+if(GEN10)
     add_definitions(-DIGFX_GEN10_SUPPORTED)
 endif()
 
-if(${GEN10_CNL_Supported} STREQUAL "yes")
+if(GEN10_CNL)
     add_definitions(-DIGFX_GEN10_CNL_SUPPORTED)
 endif()
 
-if(${GEN11_Supported} STREQUAL "yes")
+if(GEN11)
     add_definitions(-DIGFX_GEN11_SUPPORTED)
 endif()
 
-if(${GEN11_ICLLP_Supported} STREQUAL "yes")
+if(GEN11_ICLLP)
     add_definitions(-DIGFX_GEN11_ICLLP_SUPPORTED)
 endif()
 

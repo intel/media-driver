@@ -20,51 +20,51 @@
 
 media_include_subdirectory(common)
 
-if(${GEN8_Supported} STREQUAL "yes")
+if(GEN8)
     media_include_subdirectory(gen8)
 endif()
 
-if(${GEN8_BDW_Supported} STREQUAL "yes")
+if(GEN8_BDW)
     media_include_subdirectory(gen8_bdw)
 endif()
 
-if(${GEN9_Supported} STREQUAL "yes")
+if(GEN9)
     media_include_subdirectory(gen9)
 endif()
 
-if(${GEN9_BXT_Supported} STREQUAL "yes")
+if(GEN9_BXT)
     media_include_subdirectory(gen9_bxt)
 endif()
 
-if(${GEN9_SKL_Supported} STREQUAL "yes")
+if(GEN9_SKL)
     media_include_subdirectory(gen9_skl)
 endif()
 
-if(${GEN9_CFL_Supported} STREQUAL "yes")
+if(GEN9_CFL)
     media_include_subdirectory(gen9_cfl)
 endif()
 
-if(${GEN9_GLK_Supported} STREQUAL "yes")
+if(GEN9_GLK)
     media_include_subdirectory(gen9_glk)
 endif()
 
-if(${GEN9_KBL_Supported} STREQUAL "yes")
+if(GEN9_KBL)
     media_include_subdirectory(gen9_kbl)
 endif()
 
-if(${GEN10_Supported} STREQUAL "yes")
+if(GEN10)
     media_include_subdirectory(gen10)
 endif()
 
-if(${GEN10_CNL_Supported} STREQUAL "yes")
+if(GEN10_CNL)
     media_include_subdirectory(gen10_cnl)
 endif()
 
-if(${GEN11_Supported} STREQUAL "yes")
+if(GEN11)
     media_include_subdirectory(gen11)
 endif()
 
-if(${GEN11_ICLLP_Supported} STREQUAL "yes")
+if(GEN11_ICLLP)
     media_include_subdirectory(gen11_icllp)
 endif()
 
