@@ -395,6 +395,10 @@ public:
 
     CM_HAL_CREATE_PARAM &GetCmHalCreateOption() {return m_cmHalCreateOption;}
 
+    inline bool HasGpuCopyKernel() {return m_hasGpuCopyKernel; }
+
+    inline bool HasGpuInitKernel() {return m_hasGpuInitKernel; }
+
 protected:
     int32_t Initialize(MOS_CONTEXT *mosContext);
 
@@ -582,6 +586,10 @@ protected:
     uint32_t m_isDriverStoreEnabled;
 
     CmNotifierGroup *m_notifierGroup;
+
+    bool m_hasGpuCopyKernel;
+
+    bool m_hasGpuInitKernel;
 
 private:
     CmDeviceRT(const CmDeviceRT& other);

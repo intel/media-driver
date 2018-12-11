@@ -26,10 +26,18 @@
 
 #include "cm_hal_g8.h"
 #include "cm_common.h"
-#include "cm_gpucopy_kernel_g8.h"
-#include "cm_gpuinit_kernel_g8.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
+#ifdef ENABLE_KERNELS
+#include "cm_gpucopy_kernel_g8.h"
+#include "cm_gpuinit_kernel_g8.h"
+#else
+unsigned int iGPUCopy_kernel_isa_size_gen8 = 0;
+unsigned int iGPUInit_kernel_isa_size_Gen8 = 0;
+unsigned char *pGPUCopy_kernel_isa_gen8 = nullptr;
+unsigned char *pGPUInit_kernel_isa_Gen8 = nullptr;
+
+#endif
 
 #define CM_NS_PER_TICK_RENDER_G8        (80)
 

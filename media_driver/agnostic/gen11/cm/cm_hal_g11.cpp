@@ -30,9 +30,16 @@
 #include "mhw_render_g11_X.h"
 #include "mhw_utilities.h"
 #include "cm_def.h"
+#include "renderhal_platform_interface.h"
+#ifdef ENABLE_KERNELS
 #include "cm_gpucopy_kernel_g11lp.h"
 #include "cm_gpuinit_kernel_g11lp.h"
-#include "renderhal_platform_interface.h"
+#else
+unsigned int iGPUCopy_kernel_isa_size_gen11lp = 0;
+unsigned int iGPUInit_kernel_isa_size_gen11lp = 0;
+unsigned char *pGPUCopy_kernel_isa_gen11lp = nullptr;
+unsigned char *pGPUInit_kernel_isa_gen11lp = nullptr;
+#endif
 
 // Gen11 Surface state tokenized commands - a SURFACE_STATE_G11 command and
 // a surface state command, either SURFACE_STATE_G11 or SURFACE_STATE_ADV_G11
