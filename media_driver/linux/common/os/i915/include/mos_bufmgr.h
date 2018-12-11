@@ -60,6 +60,7 @@ struct mos_linux_context {
 #ifndef ANDROID
     struct _MOS_OS_CONTEXT    *pOsContext;
 #endif
+    struct drm_i915_gem_vm_control* vm;
 };
 
 struct mos_linux_bo {
@@ -240,6 +241,27 @@ int mos_get_aperture_sizes(int fd, size_t *mappable, size_t *total);
 int mos_bufmgr_gem_get_devid(struct mos_bufmgr *bufmgr);
 
 struct mos_linux_context *mos_gem_context_create(struct mos_bufmgr *bufmgr);
+struct mos_linux_context *mos_gem_context_create_ext(
+                            struct mos_bufmgr *bufmgr,
+                            __u32 flags);
+struct mos_linux_context *mos_gem_context_create_shared(
+                            struct mos_bufmgr *bufmgr,
+                            mos_linux_context* ctx,
+                            __u32 flags);
+struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr);
+void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
+
+#define MAX_ENGINE_INSTANCE_NUM 8
+
+int mos_query_engines(int fd,
+                      __u16 engine_class,
+                      __u64 caps,
+                      unsigned int *nengine,
+                      struct i915_engine_class_instance *ci);
+int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
+                         struct i915_engine_class_instance *ci,
+                         unsigned int count);
+
 void mos_gem_context_destroy(struct mos_linux_context *ctx);
 int mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
                   int used, unsigned int flags);

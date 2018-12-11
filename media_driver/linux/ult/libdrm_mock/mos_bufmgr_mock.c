@@ -3537,6 +3537,35 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
     return context;
 }
 
+struct mos_linux_context *
+mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    struct drm_i915_gem_context_create_ext create;
+    struct mos_linux_context *context = nullptr;
+    int ret;
+
+    context = (struct mos_linux_context *)calloc(1, sizeof(*context));
+    if (!context)
+        return nullptr;
+
+    memclear(create);
+    create.flags = flags;
+    create.extensions = 0;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT, &create);
+    if (ret != 0) {
+        MOS_DBG("DRM_IOCTL_I915_GEM_CONTEXT_CREATE failed: %s\n",
+            strerror(errno));
+        free(context);
+        return nullptr;
+    }
+
+    context->ctx_id = create.ctx_id;
+    context->bufmgr = bufmgr;
+
+    return context;
+}
+
 void
 mos_gem_context_destroy(struct mos_linux_context *ctx)
 {
