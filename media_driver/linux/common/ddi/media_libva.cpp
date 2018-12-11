@@ -4454,7 +4454,13 @@ VAStatus DdiMedia_GetImage(
         }
 
         //Create target surface for VP pipeline.
-        vaStatus = DdiMedia_CreateSurfaces2(ctx, vaimg->format.fourcc, vaimg->width, vaimg->height, &target_surface, 1, NULL, 0);
+        DDI_MEDIA_FORMAT mediaFmt = DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
+        if (mediaFmt == Media_Format_Count)
+        {
+            DDI_ASSERTMESSAGE("Unsupported surface type.");
+            return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+        }
+        target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE);
         DDI_CHK_RET(vaStatus, "Create temp surface failed.");
 
         //Execute VP pipeline.
