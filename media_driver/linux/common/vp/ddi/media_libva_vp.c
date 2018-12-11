@@ -994,6 +994,13 @@ DdiVp_SetProcPipelineParams(
     // According to libva  definition, if alpha in output background color is zero, then colorfill is not needed
     if ((pPipelineParam->output_background_color >> 24) != 0)
     {
+        if (pVpHalRenderParams->pColorFillParams == nullptr)
+        {
+            pVpHalRenderParams->pColorFillParams = (PVPHAL_COLORFILL_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_COLORFILL_PARAMS));
+        }
+
+        DDI_CHK_NULL(pVpHalRenderParams->pColorFillParams, "Null pColorFillParams.", VA_STATUS_ERROR_UNKNOWN);
+
         // set background colorfill option
         pVpHalRenderParams->pColorFillParams->Color     = pPipelineParam->output_background_color;
         pVpHalRenderParams->pColorFillParams->bYCbCr    = false;
