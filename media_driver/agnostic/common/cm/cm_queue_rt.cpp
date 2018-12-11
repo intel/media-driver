@@ -947,6 +947,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPU( CmSurface2D* surface, const un
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, (unsigned char*)sysMem, 0, 0, CM_FASTCOPY_CPU2GPU, CM_FASTCOPY_OPTION_NONBLOCKING, event);
 }
@@ -973,6 +978,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPU( CmSurface2D* surface, const un
 CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToCPU( CmSurface2D* surface, unsigned char* sysMem, CmEvent* & event )
 {
     INSERT_API_CALL_LOG();
+
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, sysMem, 0, 0, CM_FASTCOPY_GPU2CPU, CM_FASTCOPY_OPTION_NONBLOCKING, event);
@@ -1813,6 +1823,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     uint32_t srcSurfaceWidth = 0;
     uint32_t srcSurfaceHeight = 0;
     uint32_t dstSurfaceWidth = 0;
@@ -1955,6 +1970,11 @@ finish:
 CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsigned char* srcSysMem, uint32_t size, uint32_t option, CmEvent* & event )
 {
     INSERT_API_CALL_LOG();
+
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     int hr = CM_SUCCESS;
     size_t inputLinearAddress  = (size_t )srcSysMem;
@@ -2361,6 +2381,11 @@ int32_t CmQueueRT::GetTaskCount( uint32_t& numTasks )
 CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* surf2D, const uint32_t initValue, CmEvent* &event)
 {
     INSERT_API_CALL_LOG();
+
+    if (!m_device->HasGpuInitKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     int32_t         hr                      = CM_SUCCESS;
     uint32_t        width                   = 0;
@@ -3159,6 +3184,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPUFullStride( CmSurface2D* surface
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, (unsigned char*)sysMem, widthStride, heightStride, CM_FASTCOPY_CPU2GPU, option, event);
 }
@@ -3190,6 +3220,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToCPUFullStride( CmSurface2D* surface
                                                      CmEvent* & event )
 {
     INSERT_API_CALL_LOG();
+
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, sysMem, widthStride, heightStride, CM_FASTCOPY_GPU2CPU, option, event);

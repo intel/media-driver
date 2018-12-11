@@ -26,10 +26,17 @@
 
 #include "cm_hal_g9.h"
 #include "mhw_render_hwcmd_g9_X.h"
-#include "cm_gpucopy_kernel_g9.h"
-#include "cm_gpuinit_kernel_g9.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
+#ifdef ENABLE_KERNELS
+#include "cm_gpucopy_kernel_g9.h"
+#include "cm_gpuinit_kernel_g9.h"
+#else
+unsigned int iGPUCopy_kernel_isa_size_gen9 = 0;
+unsigned int iGPUInit_kernel_isa_size_Gen9 = 0;
+unsigned char *pGPUCopy_kernel_isa_gen9 = nullptr;
+unsigned char *pGPUInit_kernel_isa_Gen9 = nullptr;
+#endif
 
 #define CM_NS_PER_TICK_RENDER_G9        (83.333)   // For SKL, 83.333 nano seconds per tick in render engine
 #define CM_NS_PER_TICK_RENDER_G9LP      (52.083)   //For BXT, 52.083 nano seconds per tick in render engine
