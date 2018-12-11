@@ -1100,6 +1100,11 @@ void Linux_Destroy(
 
     if (!MODSEnabled && (pOsContext->intel_context))
     {
+        if (pOsContext->intel_context->vm)
+        {
+            mos_gem_vm_destroy(pOsContext->intel_context->bufmgr,pOsContext->intel_context->vm);
+            pOsContext->intel_context->vm = nullptr;
+        }
         mos_gem_context_destroy(pOsContext->intel_context);
     }
 
@@ -1293,7 +1298,21 @@ MOS_STATUS Linux_InitContext(
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
     {
-       pContext->intel_context = mos_gem_context_create(pOsDriverContext->bufmgr);
+       pContext->intel_context = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
+       if (pContext->intel_context)
+       {
+           pContext->intel_context->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+           if (pContext->intel_context->vm == nullptr)
+           {
+               MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
+               return MOS_STATUS_UNKNOWN;
+           }
+       }
+       else //try legacy context create ioctl if DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT is not supported
+       {
+          pContext->intel_context = mos_gem_context_create(pOsDriverContext->bufmgr);
+          pContext->intel_context->vm = nullptr;
+       }
 
        if (pContext->intel_context == nullptr)
        {
@@ -4149,7 +4168,7 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
             auto gpuContextSpecific  = static_cast<GpuContextSpecific *>(gpuContext);
             MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
 
-            MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext()));
+            MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), pOsInterface, GpuNode, createOption));
 
             pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextSpecific->GetGpuContextHandle());
         }
@@ -6134,7 +6153,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     MOS_OS_NORMALMESSAGE("mm:Mos_Specific_InitInterface called.");
 
     pOsInterface->modularizedGpuCtxEnabled    = true;
-    pOsInterface->veDefaultEnable             = false;
+    pOsInterface->veDefaultEnable             = true;
 
     // Create Linux OS Context
     pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
