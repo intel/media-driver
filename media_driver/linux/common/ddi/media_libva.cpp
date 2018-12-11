@@ -3936,6 +3936,10 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Flags.Info.TiledY = true;
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
+        case VA_FOURCC_AYUV:
+            gmmParams.Format = GMM_FORMAT_AYUV_TYPE;
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+            break;
 
         default:
             MOS_FreeMemory(vaimg);
@@ -4045,6 +4049,7 @@ VAStatus DdiMedia_CreateImage(
             vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
             break;
         case VA_FOURCC_Y210:
+        case VA_FOURCC_AYUV:
             vaimg->format.bits_per_pixel = 32;
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;

@@ -130,7 +130,7 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_P016, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC_RGB565, VA_LSB_FIRST, 16, 16, 0xf800, 0x07e0, 0x001f, 0},
     {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
-    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_AYUV, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
     {VA_FOURCC_Y410, VA_LSB_FIRST, 32, 0,0,0,0,0},
     {VA_FOURCC_Y210, VA_LSB_FIRST, 32, 0,0,0,0,0}
 };
