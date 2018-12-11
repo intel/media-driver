@@ -129,6 +129,7 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_P208, VA_LSB_FIRST, 8, 0,0,0,0,0},
     {VA_FOURCC_P016, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_Y410, VA_LSB_FIRST, 32, 0,0,0,0,0},
 };
 
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)

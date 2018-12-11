@@ -3906,6 +3906,10 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
+        case VA_FOURCC_Y410:
+            gmmParams.Format = GMM_FORMAT_AYUV_TYPE;
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+            break;
 
         default:
             MOS_FreeMemory(vaimg);
@@ -4004,6 +4008,12 @@ VAStatus DdiMedia_CreateImage(
             vaimg->pitches[2] = gmmPitch;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
+            break;
+        case VA_FOURCC_Y410:
+            vaimg->format.bits_per_pixel = 32;
+            vaimg->num_planes = 1;
+            vaimg->pitches[0] = gmmPitch;
+            vaimg->offsets[0] = 0;
             break;
     }
 
