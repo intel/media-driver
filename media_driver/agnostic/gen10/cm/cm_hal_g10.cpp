@@ -28,10 +28,18 @@
 #include "mhw_render_hwcmd_g10_X.h"
 #include "mhw_state_heap_hwcmd_g10_X.h"
 #include "cm_def.h"
-#include "cm_gpucopy_kernel_g10.h"
-#include "cm_gpuinit_kernel_g10.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
+#ifdef ENABLE_KERNELS
+#include "cm_gpucopy_kernel_g10.h"
+#include "cm_gpuinit_kernel_g10.h"
+#else
+unsigned int iGPUCopy_kernel_isa_size_gen10 = 0;
+unsigned int iGPUInit_kernel_isa_size_Gen10 = 0;
+unsigned char *pGPUCopy_kernel_isa_gen10 = nullptr;
+unsigned char *pGPUInit_kernel_isa_Gen10 = nullptr;
+
+#endif
 
 // Gen10 Surface state tokenized commands - a SURFACE_STATE_G10 command and
 // a surface state command, either SURFACE_STATE_G10 or SURFACE_STATE_ADV_G10

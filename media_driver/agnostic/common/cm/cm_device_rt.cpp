@@ -201,7 +201,9 @@ CmDeviceRT::CmDeviceRT(uint32_t options):
     m_nGPUFreqMin(0),
     m_nGPUFreqMax(0),
     m_vtuneOn(false),
-    m_isDriverStoreEnabled(0)
+    m_isDriverStoreEnabled(0),
+    m_hasGpuCopyKernel(false),
+    m_hasGpuInitKernel(false)
 {
     //Initialize Dev Create Param
     InitDevCreateOption( m_cmHalCreateOption, options );
@@ -440,14 +442,14 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *mosContext)
     CmProgram* tmpProgram = nullptr;
     int32_t ret = 0;
     ret = LoadPredefinedCopyKernel(tmpProgram);
-    if (ret != CM_SUCCESS)
+    if (ret == CM_SUCCESS)
     {
-        return ret;
+        m_hasGpuCopyKernel = true;
     }
     ret = LoadPredefinedInitKernel(tmpProgram);
-    if (ret != CM_SUCCESS)
+    if (ret == CM_SUCCESS)
     {
-        return ret;
+        m_hasGpuInitKernel = true;
     }
 
     if (m_notifierGroup != nullptr)
@@ -2731,6 +2733,10 @@ int32_t CmDeviceRT::LoadPredefinedCopyKernel(CmProgram*& program)
     uint32_t gpucopyKernelIsaSize;
 
     cmHalState->cmHalInterface->GetCopyKernelIsa(gpucopyKernelIsa, gpucopyKernelIsaSize);
+    if (gpucopyKernelIsa == nullptr || gpucopyKernelIsaSize == 0)
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     hr = LoadProgram((void *)gpucopyKernelIsa, gpucopyKernelIsaSize, program, "PredefinedGPUKernel");
     if (hr != CM_SUCCESS)
@@ -2764,6 +2770,10 @@ int32_t CmDeviceRT::LoadPredefinedInitKernel(CmProgram*& program)
     uint32_t gpuinitKernelIsaSize;
 
     cmHalState->cmHalInterface->GetInitKernelIsa(gpuinitKernelIsa, gpuinitKernelIsaSize);
+    if (gpuinitKernelIsa == nullptr || gpuinitKernelIsaSize == 0)
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     hr = LoadProgram((void *)gpuinitKernelIsa, gpuinitKernelIsaSize, program, "PredefinedGPUKernel");
     if (hr != CM_SUCCESS)
