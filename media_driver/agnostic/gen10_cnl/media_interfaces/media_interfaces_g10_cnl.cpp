@@ -27,7 +27,7 @@
 #include "media_interfaces_g10_cnl.h"
 #include "codechal_encoder_base.h"
 #include "codechal_vdenc_hevc_g10.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
 #endif
 
@@ -418,10 +418,8 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
-#else
-            encoder->m_kernelBase = nullptr;
 #endif
         }
         else
@@ -451,10 +449,8 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
-#else
-            encoder->m_kernelBase = nullptr;
 #endif
         }
         else
@@ -480,7 +476,7 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             // Create CSC and Downscaling interface
