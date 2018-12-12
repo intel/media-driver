@@ -27,7 +27,7 @@
 
 #include "codechal_vdenc_avc_g9.h"
 #include "codeckrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g9.h"
 #endif
 #if USE_CODECHAL_DEBUG_TOOL
@@ -39,7 +39,7 @@ CodechalVdencAvcStateG9::CodechalVdencAvcStateG9(
         CodechalDebugInterface *debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo) : CodechalVdencAvcState(hwInterface, debugInterface, standardInfo)
 {
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G9;
 #endif
     m_kuid = IDR_CODEC_AllAVCEnc;
