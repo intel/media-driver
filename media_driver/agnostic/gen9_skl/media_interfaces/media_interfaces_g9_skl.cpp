@@ -25,7 +25,9 @@
 //!
 
 #include "media_interfaces_g9_skl.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g9.h"
+#endif
 
 #ifdef _HYBRID_HEVC_DECODE_SUPPORTED
 #include "codechal_decode_hybrid_hevc.h"

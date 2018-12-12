@@ -25,7 +25,9 @@
 //!
 
 #include "media_interfaces_g9_bxt.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g9.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
