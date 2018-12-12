@@ -23,7 +23,13 @@ bs_set_if_undefined(Encode_VME_Supported "yes")
 # global flag for encode AVC_VDENC/HEVC_VDENC/VP9_VDENC/JPEG
 bs_set_if_undefined(Encode_VDEnc_Supported "yes")
 
-if(FREE_KERNELS)
+# Some features can't be supported if shaders (kernels) are not
+# available. So, we switch such features off explicitly. That's
+# possible either if user requested a build entirely without
+# shaders or a build with free only shaders. The list of switched
+# off features correspnds to the free kernels case, but we can
+# reuse the full list for enable kernels as well.
+if(NOT ENABLE_KERNELS OR FREE_KERNELS)
     # full-open-source
     bs_set_if_undefined(AVC_Encode_VME_Supported "no")
     bs_set_if_undefined(HEVC_Encode_VME_Supported "no")

@@ -25,7 +25,7 @@
 //!
 
 #include "media_interfaces_g8_bdw.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g8.h"
 #endif
 
