@@ -110,7 +110,7 @@ public:
 private:
     GMM_CLIENT_CONTEXT *m_gmmClientContext = nullptr;     //!<  GMM Client Context for GMM Page table manager
     void *m_gmmPageTableMgr = nullptr;      //!<  The GMM Page Table Manager
-    bool  m_AuxTable64KAligned = false;     //!<  If Aux Table is 64K aligned or 16K aligned.
+    bool  m_AuxTable16KAligned = false;     //!<  If Aux Table is 16K aligned or 64K aligned.
 };
 
 #endif //MOS_AUXTABLE_MGR_H
