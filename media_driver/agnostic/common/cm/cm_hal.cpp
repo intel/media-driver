@@ -10668,7 +10668,6 @@ void HalCm_Destroy(
 
             // Delete sip surface
             HalCm_FreeSipResource(state);
-
         }
 
         // Delete tracker resource
@@ -10692,7 +10691,10 @@ void HalCm_Destroy(
         // Delete RenderHal Interface
         if (state->renderHal)
         {
-            state->renderHal->pfnDestroy(state->renderHal);
+            if (state->renderHal->pfnDestroy)
+            {
+                state->renderHal->pfnDestroy(state->renderHal);
+            }
             MOS_FreeMemory(state->renderHal);
             state->renderHal = nullptr;
         }
@@ -10709,7 +10711,10 @@ void HalCm_Destroy(
         // Delete OS Interface
         if (state->osInterface)
         {
-            state->osInterface->pfnDestroy(state->osInterface, true);
+            if (state->osInterface->pfnDestroy)
+            {
+                state->osInterface->pfnDestroy(state->osInterface, true);
+            }
             if (state->osInterface->bDeallocateOnExit)
             {
                 MOS_FreeMemory(state->osInterface);
