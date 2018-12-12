@@ -28,7 +28,7 @@
 #include "codechal_vdenc_hevc_g11.h"
 #include "codechal_kernel_header_g11.h"
 #include "codeckrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g11.h"
 #endif
 #include "mhw_vdbox_g11_X.h"
@@ -229,7 +229,7 @@ uint32_t CodechalVdencHevcStateG11::GetMaxBtCount()
 
     uint32_t maxBtCount = 0;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     auto btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
 
     // DsConversion kernel
@@ -333,7 +333,7 @@ MOS_STATUS CodechalVdencHevcStateG11::InitKernelState()
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateStreamIn());
 #endif
@@ -1579,7 +1579,7 @@ MOS_STATUS CodechalVdencHevcStateG11::EncodeKernelFunctions()
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
         m_rawSurfaceToEnc,
         CodechalDbgAttr::attrEncodeRawInputSurface,
@@ -4534,10 +4534,8 @@ CodechalVdencHevcStateG11::CodechalVdencHevcStateG11(
     m_useCommonKernel = true;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_useHwScoreboard = false;
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G11;
-#else
-    m_kernelBase = nullptr;
 #endif
     m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_hucPakStitchEnabled = true;
@@ -4575,10 +4573,8 @@ CodechalVdencHevcStateG11::CodechalVdencHevcStateG11(
 
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_HEVC_NUM_SYNC_TAGS;
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_INIT_DSH_SIZE_HEVC_ENC;
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G11;
-#else
-    m_kernelBase = nullptr;
 #endif
 
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(

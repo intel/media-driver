@@ -25,7 +25,9 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_g11_icllp.h"
+#if defined(ENABLE_KERNELS)
 #include "igvpkrn_g11_icllp.h"
+#endif
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_g11[];
 
@@ -34,9 +36,11 @@ MOS_STATUS VphalRendererG11Icllp::InitKdllParam()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // Set KDLL parameters (Platform dependent)
+#if defined(ENABLE_KERNELS)
     pKernelDllRules     = g_KdllRuleTable_g11;
     pcKernelBin         = (const void*)IGVPKRN_G11_ICLLP;
     dwKernelBinSize     = IGVPKRN_G11_ICLLP_SIZE;
+#endif
 
     return eStatus;
 }

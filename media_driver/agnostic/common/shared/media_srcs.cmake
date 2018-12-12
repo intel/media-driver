@@ -18,14 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(NOT ENABLE_KERNELS)
-    set(TMP_SOURCES_
-        ${CMAKE_CURRENT_LIST_DIR}/dummykrn.c
-    )
-endif()
-
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
 )
