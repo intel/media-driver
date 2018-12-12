@@ -26,7 +26,9 @@
 
 #include "media_interfaces_g11_icllp.h"
 #include "codechal_encoder_base.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g11.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -445,7 +447,9 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
                 m_codechalDevice = encoder;
             }
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G11;
+#endif
         }
         else
 #endif

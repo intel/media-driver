@@ -19,4 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(hal)
-media_include_subdirectory(kdll)
+if(ENABLE_KERNELS)
+    media_include_subdirectory(kdll)
+endif()

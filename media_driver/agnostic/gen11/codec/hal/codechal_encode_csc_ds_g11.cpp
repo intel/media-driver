@@ -29,7 +29,7 @@
 #include "codechal_encode_csc_ds_g11.h"
 #include "codechal_kernel_header_g11.h"
 #include "codeckrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g11.h"
 #endif
 #if USE_CODECHAL_DEBUG_TOOL
@@ -743,10 +743,8 @@ CodechalEncodeCscDsG11::CodechalEncodeCscDsG11(CodechalEncoderState* encoder)
 {
     m_cscKernelUID = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G11;
-#else
-    m_kernelBase = nullptr;
 #endif
 }
 
