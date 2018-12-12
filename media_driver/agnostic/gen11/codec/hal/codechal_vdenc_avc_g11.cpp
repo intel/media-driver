@@ -31,7 +31,9 @@
 #include "mhw_vdbox_vdenc_g11_X.h"
 #include "mhw_vdbox_g11_X.h"
 #include "mos_util_user_interface.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g11.h"
+#endif
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g11.h"
 #include "mhw_vdbox_mfx_hwcmd_g11_X.h"
@@ -674,10 +676,8 @@ CodechalVdencAvcStateG11::CodechalVdencAvcStateG11(
 
     CODECHAL_ENCODE_ASSERT(m_osInterface);
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G11;
-#else
-    m_kernelBase = nullptr;
 #endif
     m_cmKernelEnable = true;
     m_mbStatsSupported = true; //Starting from GEN9
@@ -1075,7 +1075,7 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
             &flushDwParams));
     }
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     // On-demand sync for VDEnc StreamIn surface and CSC surface
     if (m_currPass == 0)
     {

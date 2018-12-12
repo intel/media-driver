@@ -27,7 +27,9 @@
 #if !EMUL
 
 #include "vphal_render_hdr_g11.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_isa_g11_icllp.h"
+#endif
 #include "renderhal.h"
 
 static const std::string DumpRoot("C:\\temp\\");
@@ -218,7 +220,9 @@ Hdr3DLutCmRender::Hdr3DLutCmRender() :
     m_cmKernel(nullptr),
     m_cmPayload(nullptr)
 {
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_cmProgram = LoadProgram(IGVP3DLUT_GENERATION_G11_ICLLP, IGVP3DLUT_GENERATION_G11_ICLLP_SIZE);
+#endif
     if (!m_cmProgram)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Hdr3DLutCmRender [%s]: CM LoadProgram error %d\n");
