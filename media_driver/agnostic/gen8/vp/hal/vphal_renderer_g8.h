@@ -63,7 +63,7 @@ public:
     {
         // Set SSEUTable
         pRenderHal->sseuTable           = VpHalDefaultSSEUTableG8;
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         m_modifyKdllFunctionPointers    = KernelDll_ModifyFunctionPointers_g8;
 #endif
     }
