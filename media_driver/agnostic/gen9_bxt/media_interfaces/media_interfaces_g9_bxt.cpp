@@ -25,7 +25,7 @@
 //!
 
 #include "media_interfaces_g9_bxt.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g9.h"
 #endif
 
