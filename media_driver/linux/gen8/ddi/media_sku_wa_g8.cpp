@@ -40,7 +40,7 @@ static struct LinuxCodecInfo bdwCodecInfo =
     .vc1Decoding        = 1,
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
-    .mpeg2Encoding      = 1,
+    .mpeg2Encoding      = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitBdwMediaSku(struct GfxDeviceInfo *devInfo,
