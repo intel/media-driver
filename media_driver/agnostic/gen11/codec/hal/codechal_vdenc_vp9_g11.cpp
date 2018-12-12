@@ -37,7 +37,7 @@
 #include "codechal_vdenc_vp9_g11.h"
 #include "codechal_kernel_header_g11.h"
 #include "codeckrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
 #include "igcodeckrn_g11.h"
 #endif
@@ -84,7 +84,7 @@ CodechalVdencVp9StateG11::CodechalVdencVp9StateG11(
     m_useCommonKernel = true;
     m_isTilingSupported      = true;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t *)IGCODECKRN_G11;
 #endif
 
@@ -107,7 +107,7 @@ CodechalVdencVp9StateG11::CodechalVdencVp9StateG11(
     {
         m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
         eStatus = CodecHalGetKernelBinaryAndSize(
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             (uint8_t*)IGCODECKRN_G11,
 #else
             nullptr,
@@ -326,7 +326,7 @@ MOS_STATUS CodechalVdencVp9StateG11::InitKernelStateMe()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderEngineInterface->GetHwCaps());
 
     uint32_t combinedKernelSize = 0;
@@ -409,7 +409,7 @@ MOS_STATUS CodechalVdencVp9StateG11::InitKernelStates()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     // DYS
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateDys());
 
@@ -427,7 +427,7 @@ uint32_t CodechalVdencVp9StateG11::GetMaxBtCount()
     CODECHAL_ENCODE_FUNCTION_ENTER;
     uint32_t maxBtCount = 0;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     if (m_hmeSupported)
     {
         uint32_t scalingBtCount = 0;
@@ -468,7 +468,7 @@ MOS_STATUS CodechalVdencVp9StateG11::InitKernelStateDys()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     uint32_t combinedKernelSize = 0;
     uint8_t* binary = nullptr;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
@@ -1535,7 +1535,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     uint32_t dumpFormat = 0;
     CODECHAL_DEBUG_TOOL(
      //   CodecHal_DbgMapSurfaceFormatToDumpFormat(m_rawSurfaceToEnc->Format, &dumpFormat);
