@@ -19,15 +19,13 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
-if(ENABLE_KERNELS)
-    set(TMP_SOURCES_
-        ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.c
-    )
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.c
+)
 
-    set(TMP_HEADERS_
-        ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.h
-    )
-endif()
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g10.h
+)
 
 set(SOURCES_
     ${SOURCES_}

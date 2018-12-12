@@ -25,15 +25,6 @@ const unsigned int IGCDUMMYKRN_SIZE = 0;
 const unsigned int IGCDUMMYKRN[] = {
 };
 
-//gen10 dummy kernel
-extern const unsigned int IGCODECKRN_G10_SIZE = IGCDUMMYKRN_SIZE;
-extern const unsigned int* IGCODECKRN_G10;
-const unsigned int* IGCODECKRN_G10 = IGCDUMMYKRN;
-
-extern const unsigned int IGVPKRN_G10_SIZE = IGCDUMMYKRN_SIZE;
-extern const unsigned int* IGVPKRN_G10;
-const unsigned int* IGVPKRN_G10 = IGCDUMMYKRN;
-
 //gen11 dummy kernel
 extern const unsigned int IGCODECKRN_G11_SIZE = IGCDUMMYKRN_SIZE;
 extern const unsigned int* IGCODECKRN_G11;

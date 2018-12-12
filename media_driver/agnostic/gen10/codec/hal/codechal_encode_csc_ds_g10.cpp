@@ -28,7 +28,7 @@
 #include "codechal_encode_csc_ds_g10.h"
 #include "codeckrnheader.h"
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
 #endif
 
@@ -244,9 +244,7 @@ CodechalEncodeCscDsG10::CodechalEncodeCscDsG10(CodechalEncoderState* encoder)
 {
     m_cscKernelUID = IDR_CODEC_Downscale_Copy;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t *)IGCODECKRN_G10;
-#else
-    m_kernelBase = nullptr;
 #endif
 }
