@@ -30,7 +30,7 @@
 #include "vphal_render_sfc_g9_base.h"
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_isa_g9.h"
 #endif
 
@@ -2226,7 +2226,7 @@ VPHAL_VEBOX_STATE_G9_BASE::VPHAL_VEBOX_STATE_G9_BASE(
     pKernelParamTable                   = (PRENDERHAL_KERNEL_PARAM)g_Vebox_KernelParam_g9;
     iNumFFDISurfaces                    = 2;  // PE on: 4 used. PE off: 2 used
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_hvsKernelBinary                   = (uint8_t *)IGVP_HVS_DENOISE_G900;
     m_hvsKernelBinarySize               = IGVP_HVS_DENOISE_G900_SIZE;
 #endif
