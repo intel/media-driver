@@ -27,7 +27,9 @@
 #include "codechal_encoder_base.h"
 #include "codechal_encode_csc_ds_g8.h"
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g8.h"
+#endif
 
 CodechalEncodeCscDsG8::CodechalEncodeCscDsG8(CodechalEncoderState* encoder)
     : CodechalEncodeCscDs(encoder)
@@ -35,5 +37,7 @@ CodechalEncodeCscDsG8::CodechalEncodeCscDsG8(CodechalEncoderState* encoder)
     m_rawSurfAlignment = 16;  // on Gen8 raw surface has to be 16-aligned
     m_cscKernelUID = IDR_CODEC_Downscale_Copy;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
+#ifndef _FULL_OPEN_SOURCE
     m_kernelBase = (uint8_t*)IGCODECKRN_G8;
+#endif
 }
