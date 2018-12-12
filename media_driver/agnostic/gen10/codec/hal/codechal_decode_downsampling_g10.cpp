@@ -25,7 +25,7 @@
 //!
 #include "codechal_decoder.h"
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
 #endif
 
@@ -35,10 +35,8 @@ FieldScalingInterfaceG10::FieldScalingInterfaceG10(CodechalHwInterface *hwInterf
     FieldScalingInterface(hwInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G10;
-#else
-    m_kernelBase = nullptr;
 #endif
 
     InitInterfaceStateHeapSetting(hwInterface);

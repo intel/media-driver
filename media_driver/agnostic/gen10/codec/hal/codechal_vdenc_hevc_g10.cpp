@@ -26,7 +26,7 @@
 
 #include "codechal_vdenc_hevc_g10.h"
 #include "codeckrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
 #endif
 #include "codechal_huc_cmd_initializer.h"
@@ -714,7 +714,7 @@ MOS_STATUS CodechalVdencHevcStateG10::InitKernelState()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateStreamIn());
 #endif
@@ -728,7 +728,7 @@ uint32_t CodechalVdencHevcStateG10::GetMaxBtCount()
 
     uint32_t maxBtCount = 0;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     auto btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
 
     // 4x, 16x DS, 4x ME, 16x ME
@@ -1482,7 +1482,7 @@ MOS_STATUS CodechalVdencHevcStateG10::EncodeKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     if (m_pictureCodingType == P_TYPE)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("GEN10 HEVC VDENC does not support P slice");
@@ -2539,10 +2539,8 @@ CodechalVdencHevcStateG10::CodechalVdencHevcStateG10(
     m_brcRoiBufferSize             = m_roiStreamInBufferSize;
     m_deltaQpRoiBufferSize         = m_deltaQpBufferSize;
     m_maxNumSlicesSupported        = CODECHAL_VDENC_HEVC_MAX_SLICE_NUM;
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase                   = (uint8_t*)IGCODECKRN_G10;
-#else
-    m_kernelBase                   = nullptr;
 #endif
 
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_HEVC_NUM_SYNC_TAGS;
