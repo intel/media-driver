@@ -510,9 +510,10 @@ VAStatus MediaLibvaCapsG11::LoadProfileEntrypoints()
     DDI_CHK_RET(status, "Failed to initialize Caps!");
     status = LoadVp9EncProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
+#ifdef ENABLE_KERNELS
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
-
+#endif
     return status;
 }
 
