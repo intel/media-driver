@@ -27,7 +27,9 @@
 #include "codechal_encoder_base.h"
 #include "codechal_encode_csc_ds_g9.h"
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g9.h"
+#endif
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g9.h"
 #endif
@@ -240,5 +242,7 @@ CodechalEncodeCscDsG9::CodechalEncodeCscDsG9(CodechalEncoderState* encoder)
 {
     m_cscKernelUID = IDR_CODEC_Downscale_Copy;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
+#ifndef _FULL_OPEN_SOURCE
     m_kernelBase = (uint8_t*)IGCODECKRN_G9;
+#endif
 }
