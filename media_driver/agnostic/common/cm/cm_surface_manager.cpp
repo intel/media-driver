@@ -596,6 +596,11 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
 {
      switch( format )
     {
+
+        case CM_SURFACE_FORMAT_R32G32B32A32F:
+             sizePerPixel = 16;
+             break;
+
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
@@ -1655,6 +1660,10 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
     updatedHeight = height;
     switch( format )
     {
+        case CM_SURFACE_FORMAT_R32G32B32A32F:
+             sizePerPixel = 16;
+             break;
+
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
