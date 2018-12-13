@@ -560,7 +560,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer);
+    virtual MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief  Indicates whether or not the status query reporting is enabled
