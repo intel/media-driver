@@ -104,17 +104,17 @@ ICL (Ice Lake)
 
 ## Supported Codecs
 
-| CODEC      | BDW  | SKL  | BXT/APL |   KBL   |   CFL   | CNL  |   ICL*  |
-|------------|------|------|---------|---------|---------|------|---------|
-| AVC        | D/E1 | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1 | D/E1/E2 |
-| MPEG-2     | D/E1 | D/E1 | D       | D/E1    | D/E1    | D/E1 | D/E1    |
-| VC-1       | D    | D    | D       | D       | D       | D    | D       |
-| JPEG       | D    | D/E2 | D/E2    | D/E2    | D/E2    | D/E2 | D/E2    |
-| VP8        | D    | D    | D       | D       | D       | D/E1 | D/E1    |
-| HEVC 8bit  |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 | D/E1/E2 |
-| HEVC 10bit |      |      | D       | D       | D       | D/E1 | D/E1/E2 |
-| VP9 8bit   |      |      | D       | D       | D       | D    | D/E2    |
-| VP9 10bit  |      |      |         | D       | D       | D    | D/E2    |
+| CODEC      | BDW  | SKL     | BXT/APL |   KBL   |   CFL   | CNL  |   ICL*  |
+|------------|------|---------|---------|---------|---------|------|---------|
+| AVC        | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1 | D/E1/E2 |
+| MPEG-2     | D/E1 | D/E1    | D       | D/E1    | D/E1    | D/E1 | D/E1    |
+| VC-1       | D    | D       | D       | D       | D       | D    | D       |
+| JPEG       | D    | D/E2    | D/E2    | D/E2    | D/E2    | D/E2 | D/E2    |
+| VP8        | D    | D       | D       | D       | D       | D/E1 | D/E1    |
+| HEVC 8bit  |      | D/E1    | D/E1    | D/E1    | D/E1    | D/E1 | D/E1/E2 |
+| HEVC 10bit |      |         | D       | D       | D       | D/E1 | D/E1/E2 |
+| VP9 8bit   |      |         | D       | D       | D       | D    | D/E2    |
+| VP9 10bit  |      |         |         | D       | D       | D    | D/E2    |
 
 D  - decoding
 
