@@ -997,3 +997,64 @@ MOS_STATUS CodechalDecodeVp9G11 :: AllocateStandard (
     return eStatus;
 }
 
+MOS_STATUS CodechalDecodeVp9G11::SetCencBatchBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_DECODE_CHK_NULL_RETURN(cmdBuffer);
+
+    MHW_BATCH_BUFFER        batchBuffer;
+    MOS_ZeroMemory(&batchBuffer, sizeof(MHW_BATCH_BUFFER));
+    MOS_RESOURCE *resHeap = nullptr;
+    CODECHAL_DECODE_CHK_NULL_RETURN(resHeap = m_cencBuf->secondLvlBbBlock->GetResource());
+
+    batchBuffer.OsResource   = *resHeap;
+    batchBuffer.dwOffset     = m_cencBuf->secondLvlBbBlock->GetOffset() + VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+    batchBuffer.iSize        = m_cencBuf->secondLvlBbBlock->GetSize() - VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+    batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+        cmdBuffer,
+        &batchBuffer));
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+            &batchBuffer,
+            CODECHAL_NUM_MEDIA_STATES,
+            "_2ndLvlBatch_Pic_Cmd"));)
+
+    // Primitive level cmds should not be in BE phases
+    if (!(CodecHalDecodeScalabilityIsBEPhase(m_scalabilityState) && MOS_VE_SUPPORTED(m_osInterface)))
+    {
+        batchBuffer.dwOffset = m_cencBuf->secondLvlBbBlock->GetOffset();
+        batchBuffer.iSize = VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+        batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+            cmdBuffer,
+            &batchBuffer));
+
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+                &batchBuffer,
+                CODECHAL_NUM_MEDIA_STATES,
+                "_2ndLvlBatch_Primitive_Cmd"));)
+    }
+
+    // Update GlobalCmdBufId
+    MHW_MI_STORE_DATA_PARAMS miStoreDataParams;
+    MOS_ZeroMemory(&miStoreDataParams, sizeof(miStoreDataParams));
+    miStoreDataParams.pOsResource = m_cencBuf->resTracker;
+    miStoreDataParams.dwValue     = m_cencBuf->trackerId;
+    CODECHAL_DECODE_VERBOSEMESSAGE("dwCmdBufId = %d", miStoreDataParams.dwValue);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &miStoreDataParams));
+    return MOS_STATUS_SUCCESS;
+}
+

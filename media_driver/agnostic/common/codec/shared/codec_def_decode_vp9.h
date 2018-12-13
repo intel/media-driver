@@ -30,11 +30,11 @@
 #include "codec_def_common.h"
 #include "codec_def_common_vp9.h"
 
-#define CODEC_VP9_MAX_SEGMENTS                8
+#define CODEC_VP9_MAX_SEGMENTS                  8
 #define CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9      3
 #define CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME   8
 #define CODECHAL_VP9_NUM_MV_BUFFERS             2
-
+#define VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW     16
 
 //!
 //! \enum CODECHAL_DECODE_VP9_SEG_LVL_FEATURES
