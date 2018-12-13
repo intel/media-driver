@@ -80,6 +80,15 @@ public:
 
     MOS_STATUS DetermineDecodePhase() override;
 
+    //!
+    //! \brief  Sets cenc decoder batch buffer
+    //! \param    [in] cmdBuffer
+    //!           Pointer of command buffer.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer) override;
+
 protected:
     //!
     //! \brief  End status report for GEN specific decoder

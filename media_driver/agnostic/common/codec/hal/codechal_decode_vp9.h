@@ -186,6 +186,15 @@ public:
     //!
     virtual MOS_STATUS DetermineDecodePhase();
 
+    //!
+    //! \brief  Sets cenc decoder batch buffer
+    //! \param    [in] cmdBuffer
+    //!           Pointer of command buffer.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer) override;
+
     // Parameters passed by application
     uint16_t                  m_usFrameWidthAlignedMinBlk;   //!< Picture Width aligned to minBlock
     uint16_t                  m_usFrameHeightAlignedMinBlk;  //!< Picture Height aligned to minBlock
