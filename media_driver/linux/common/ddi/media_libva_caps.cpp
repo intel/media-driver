@@ -797,7 +797,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     else if(profile == VAProfileHEVCMain10)
     {
-        attrib.value = VA_RT_FORMAT_YUV420_10;
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10;
     }
     else if(profile == VAProfileHEVCMain422_10)
     {
