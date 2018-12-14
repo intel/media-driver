@@ -47,8 +47,8 @@ bool KrnToHex(char *file_krn, char *file_hex)
     char     line[40];
     FILE     *f_in, *f_out;
 
-    unsigned long   *pbuffer;
-    unsigned long    n_read;
+    unsigned int   *pbuffer;
+    unsigned int    n_read;
 
     int      i;
     char     *pfile_handle;
@@ -61,12 +61,12 @@ bool KrnToHex(char *file_krn, char *file_hex)
         strncpy(file_hex, file_krn, MAX_FILE_PATH - 5);
         file_hex[MAX_FILE_PATH - 5] = 0;
         i = (int)strlen(file_hex);
-        
-		pfile_handle = strrchr(file_hex, '.');
+
+        pfile_handle = strrchr(file_hex, '.');
         if (!pfile_handle)
-		{
-			pfile_handle = file_hex + i;
-		}
+        {
+            pfile_handle = file_hex + i;
+        }
         sprintf(pfile_handle, ".hex");
     }
 
@@ -79,13 +79,13 @@ bool KrnToHex(char *file_krn, char *file_hex)
     {
         while (true)
         {
-			n_read = fread(buffer, sizeof(char), BUFFER_SIZE, f_in);
-			if (n_read == 0)
+            n_read = fread(buffer, sizeof(char), BUFFER_SIZE, f_in);
+            if (n_read == 0)
             {
                 break;
             }
 
-            pbuffer = (unsigned long *)buffer;
+            pbuffer = (unsigned int *)buffer;
 
             for (; n_read >= 16; n_read -= 16, pbuffer+=4)
             {
@@ -101,7 +101,7 @@ bool KrnToHex(char *file_krn, char *file_hex)
                     fwrite(line, 1, 9, f_out);
                 }
                 sprintf(line, "%08x\r\n", pbuffer[0]);
-				fwrite(line, 1, 10, f_out);
+                fwrite(line, 1, 10, f_out);
             }
         }
     }
@@ -118,8 +118,8 @@ bool KrnToHex(char *file_krn, char *file_hex)
         }
     }
 
-	// Add 128 bytes padding at the end of each biniary
-	for (int i = 0; i < 8; i++)
+    // Add 128 bytes padding at the end of each biniary
+    for (int i = 0; i < 8; i++)
     {
         sprintf(line, "%08x %08x %08x %08x\r\n", 0, 0, 0, 0);
         fwrite(line, 1, 37, f_out);
