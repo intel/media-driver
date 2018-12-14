@@ -1708,11 +1708,13 @@ public:
     //!             \code
     //!             struct CM_QUEUE_CREATE_OPTION
     //!             {
-    //!                 CM_QUEUE_TYPE QueueType : 3;
-    //!                 bool RunAloneMode       : 1;
-    //!                 unsigned int Reserved0  : 4;
-    //!                 unsigned int Reserved1  : 8;
-    //!                 unsigned int Reserved2  : 16;
+    //!                 CM_QUEUE_TYPE QueueType                     : 3;
+    //!                 bool RunAloneMode                           : 1;
+    //!                 unsigned int IsMultipleContextCase          : 3;
+    //!                 bool UserGPUContext                         : 1;
+    //!                 unsigned int GPUContext                     : 8;
+    //!                 CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
+    //!                 unsigned int Reserved2                      : 13;
     //!             }
     //!             \endcode
     //!             \n
@@ -1730,6 +1732,14 @@ public:
     //!             \n
     //!             <b>RunAloneMode</b> decides if the queue will occupy GPU
     //!             exclusively during execution.
+    //!             \n
+    //!             <b>IsMultipleContextCase</b> indicates multiple context is enabled for
+    //!             simulation mode. The field is not used in hardware mode.
+    //!             \n
+    //!             <b>UserGPUContext</b> indicates whether a existed GPU context is passed
+    //!             by user via below GPUContext field.
+    //!             \n
+    //!             <b>GPUContext</b> indicates GPU context passed by user.
     //!             \n
     //!             <b>CM_QUEUE_SSEU_USAGE_HINT_TYPE</b> indicates SSEU setting, will
     //!             be created for:\n
