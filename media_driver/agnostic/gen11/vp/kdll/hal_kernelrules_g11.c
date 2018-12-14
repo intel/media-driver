@@ -931,10 +931,10 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_034x                , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_90                  , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_0_Rot_90 , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_1_Rot_90 , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_2_Rot_90 , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_3_Rot_90 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_0_Rot_90 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_1_Rot_90 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_2_Rot_90 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_3_Rot_90 , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done            , Kdll_None },
 
     // Rotate 180 degrees
@@ -947,10 +947,10 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_034x                , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_180                 , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_0_Rot_180, Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_1_Rot_180, Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_2_Rot_180, Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_3_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_0_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_1_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_2_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_3_Rot_180, Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done            , Kdll_None },
 
     // Rotate 270 degrees
@@ -963,10 +963,10 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_034x                , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_270                 , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_0_Rot_270, Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_1_Rot_270, Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_2_Rot_270, Kdll_None },
-    { RID_SetKernel        , IDR_VP_PA_444Dscale16_Buf_3_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_0_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_1_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_2_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_PA_444DScale16_Buf_3_Rot_270, Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done            , Kdll_None },
 
     // No Rotation
@@ -990,10 +990,10 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PL2                         , Kdll_Or   },
     { RID_IsSrc0Format     , Format_PL2_UnAligned               , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_034x                , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PL2_444Dscale16_Buf_0       , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PL2_444Dscale16_Buf_1       , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PL2_444Dscale16_Buf_2       , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PL2_444Dscale16_Buf_3       , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PL2_444DScale16_Buf_0       , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PL2_444DScale16_Buf_1       , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PL2_444DScale16_Buf_2       , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PL2_444DScale16_Buf_3       , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done            , Kdll_None },
 
     // Sample 0.34x PL3 -> Src0
@@ -2602,8 +2602,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PL2                         , Kdll_Or   },
     { RID_IsSrc1Format     , Format_PL2_UnAligned               , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_034x                , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PL2_444Dscale16_Buf_4       , Kdll_None },
-    { RID_SetKernel        , IDR_VP_PL2_444Dscale16_Buf_5       , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PL2_444DScale16_Buf_4       , Kdll_None },
+    { RID_SetKernel        , IDR_VP_PL2_444DScale16_Buf_5       , Kdll_None },
     { RID_SetSrc1Internal  , Internal_PL2                       , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer1Done            , Kdll_None },
 
@@ -3444,7 +3444,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0ColorFill  , ColorFill_True                     , Kdll_None },
     { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill, Kdll_None },
     { RID_SetKernel        , IDR_VP_Colorfill_444Scale16        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Save_444SCALE16_RGB_64Byte  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Save_444Scale16_RGB_64Byte  , Kdll_None },
     { RID_SetKernel        , IDR_VP_EOT                         , Kdll_None },
     { RID_SetSrc0ColorFill , ColorFill_False                    , Kdll_None },
     { RID_SetParserState   , Parser_End                         , Kdll_None },
@@ -3475,7 +3475,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0ColorFill  , ColorFill_True                     , Kdll_None },
     { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill, Kdll_None },
     { RID_SetKernel        , IDR_VP_Colorfill_444Scale16        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Save_444SCALE16_RGB_64Byte  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Save_444Scale16_RGB_64Byte  , Kdll_None },
     { RID_SetKernel        , IDR_VP_EOT                         , Kdll_None },
     { RID_SetSrc0ColorFill , ColorFill_False                    , Kdll_None },
     { RID_SetParserState   , Parser_End                         , Kdll_None },
@@ -3572,20 +3572,6 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
     { RID_SetParserState   , Parser_End                          , Kdll_None },
 
-    // Write 444P
-    { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
-    { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
-    { RID_IsLayerID        , Layer_RenderTarget                 , Kdll_None },
-    { RID_IsLayerFormat    , Format_444P                        , Kdll_None },
-    { RID_IsLayerNumber    , 0                                  , Kdll_None },
-    { RID_IsSrc0ColorFill  , ColorFill_True                     , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill, Kdll_None },
-    { RID_SetKernel        , IDR_VP_Colorfill_444Scale16        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Save_444Scale16_RGBP        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_EOT                         , Kdll_None },
-    { RID_SetSrc0ColorFill , ColorFill_False                    , Kdll_None },
-    { RID_SetParserState   , Parser_End                         , Kdll_None },
-
     // Write PL3
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
     { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
@@ -3610,7 +3596,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsLayerFormat    , Format_A8B8G8R8                    , Kdll_None },
     { RID_IsConstOutAlpha  , false                              , Kdll_None },
     { RID_Is64BSaveEnabled , true                               , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Save_444SCALE16_ARGB_64Byte , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Save_444Scale16_ARGB_64Byte , Kdll_None },
     { RID_SetKernel        , IDR_VP_EOT                         , Kdll_None },
     { RID_SetParserState   , Parser_End                         , Kdll_None },
 
@@ -3621,7 +3607,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsLayerFormat    , Format_A8B8G8R8                    , Kdll_None },
     { RID_Is64BSaveEnabled , true                               , Kdll_None },
     { RID_IsConstOutAlpha  , true                               , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Save_444SCALE16_RGB_64Byte  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Save_444Scale16_RGB_64Byte  , Kdll_None },
     { RID_SetKernel        , IDR_VP_EOT                         , Kdll_None },
     { RID_SetParserState   , Parser_End                         , Kdll_None },
 
@@ -3657,7 +3643,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsLayerFormat    , Format_X8R8G8B8                    , Kdll_Or   },
     { RID_IsLayerFormat    , Format_X8B8G8R8                    , Kdll_None },
     { RID_Is64BSaveEnabled , true                               , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Save_444SCALE16_RGB_64Byte  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Save_444Scale16_RGB_64Byte  , Kdll_None },
     { RID_SetKernel        , IDR_VP_EOT                         , Kdll_None },
     { RID_SetParserState   , Parser_End                         , Kdll_None },
 
@@ -3746,15 +3732,6 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetKernel        , IDR_VP_Save_444Scale16_NV12         , Kdll_None },
     { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
     { RID_SetParserState   , Parser_End                          , Kdll_None },
-
-    // Write 444P - Normal Save, Sample_8x8 not used or already shuffled
-    { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
-    { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
-    { RID_IsLayerID        , Layer_RenderTarget                 , Kdll_None },
-    { RID_IsLayerFormat    , Format_444P                        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Save_444Scale16_RGBP        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_EOT                         , Kdll_None },
-    { RID_SetParserState   , Parser_End                         , Kdll_None },
 
     // Write PL3 - Normal Save, Sample_8x8 not used or already shuffled
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
