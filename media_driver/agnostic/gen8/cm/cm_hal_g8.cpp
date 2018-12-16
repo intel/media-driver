@@ -28,7 +28,7 @@
 #include "cm_common.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
-#ifdef ENABLE_KERNELS
+#if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g8.h"
 #include "cm_gpuinit_kernel_g8.h"
 #else
