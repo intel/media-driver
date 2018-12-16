@@ -31,7 +31,7 @@
 #include "mhw_utilities.h"
 #include "cm_def.h"
 #include "renderhal_platform_interface.h"
-#ifdef ENABLE_KERNELS
+#if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g11lp.h"
 #include "cm_gpuinit_kernel_g11lp.h"
 #else
