@@ -28,7 +28,7 @@
 #include "mhw_render_hwcmd_g9_X.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
-#ifdef ENABLE_KERNELS
+#if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g9.h"
 #include "cm_gpuinit_kernel_g9.h"
 #else
