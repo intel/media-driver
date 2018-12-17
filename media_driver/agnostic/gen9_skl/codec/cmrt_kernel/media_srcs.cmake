@@ -23,7 +23,7 @@ set(TMP_3_SOURCES_ "")
 
 set(TMP_3_HEADERS_ "")
 
-if((${HEVC_Encode_Supported} STREQUAL "yes") AND (${CMRT_HEVC_ENC_FEI_Supported} STREQUAL "yes"))
+if((${HEVC_Encode_VME_Supported} STREQUAL "yes") AND (${CMRT_HEVC_ENC_FEI_Supported} STREQUAL "yes"))
     set(TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernelBase.cpp
@@ -62,16 +62,16 @@ if((${HEVC_Encode_Supported} STREQUAL "yes") AND (${CMRT_HEVC_ENC_FEI_Supported}
     )
 endif()
 
-if(${AVC_Encode_Supported} STREQUAL "yes")
-    set(TMP_3_SOURCES_
+if ("${AVC_Encode_VME_Supported}" STREQUAL "yes")
+    set (TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/AvcEncFei_Mfe_gen9.cpp
     )
-    set(TMP_3_HEADERS_
+    set (TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/AvcEncFei_Mfe_gen9.h
     )
-endif()
+endif ()
 
 set(SOURCES_
     ${SOURCES_}

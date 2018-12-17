@@ -89,7 +89,7 @@ VAStatus MediaLibvaCapsG10::GetPlatformSpecificAttrib(VAProfile profile,
             {
                 // the capacity is differnt for CQP and BRC mode, set it as larger one here
                 roi_attr.bits.num_roi_regions = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
-                roi_attr.bits.roi_rc_priority_support = 1;
+                roi_attr.bits.roi_rc_priority_support = 0;
                 roi_attr.bits.roi_rc_qp_delta_support = 1;
             }
 
@@ -125,7 +125,7 @@ VAStatus MediaLibvaCapsG10::LoadHevcEncLpProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VDENC_SUPPORTED
     AttribMap *attributeList = nullptr;
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain)
@@ -174,7 +174,7 @@ VAStatus MediaLibvaCapsG10::LoadVp9EncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
     AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
         MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
@@ -253,9 +253,7 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
             if (width > m_maxHevcEncWidth
                     || width < m_encMinWidth
                     || height > m_maxHevcEncHeight
-                    || height < m_encMinHeight
-                    || (width % CODECHAL_MACROBLOCK_WIDTH)
-                    || (height % CODECHAL_MACROBLOCK_HEIGHT))
+                    || height < m_encMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -275,9 +273,7 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
             if (width > m_encMax4kWidth
                     || width < m_encMinWidth
                     || height > m_encMax4kHeight
-                    || height < m_encMinHeight
-                    || (width % CODECHAL_MACROBLOCK_WIDTH)
-                    || (height % CODECHAL_MACROBLOCK_HEIGHT))
+                    || height < m_encMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -372,7 +368,7 @@ VAStatus MediaLibvaCapsG10::LoadAvcEncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _AVC_ENCODE_SUPPORTED
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAVC))
     {
         AttribMap *attributeList;
@@ -408,7 +404,7 @@ VAStatus MediaLibvaCapsG10::LoadHevcEncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
     AttribMap *attributeList = nullptr;
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC)

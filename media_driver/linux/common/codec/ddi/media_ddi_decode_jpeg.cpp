@@ -603,7 +603,16 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
     m_destSurface.dwOffset = 0;
     m_destSurface.Format   = Format_NV12;
 
-    DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+    CodecDecodeJpegPicParams *jpegPicParam = (CodecDecodeJpegPicParams *)(m_ddiDecodeCtx->DecodeParams.m_picParams);
+    if((m_ddiDecodeCtx->RTtbl.pCurrentRT->format == Media_Format_NV12)
+        &&(jpegPicParam->m_chromaType == jpegYUV444))
+    {
+        m_ddiDecodeCtx->RTtbl.pCurrentRT = DdiMedia_ReplaceSurfaceWithNewFormat(m_ddiDecodeCtx->RTtbl.pCurrentRT, Media_Format_444P);
+    }
+    if(m_ddiDecodeCtx->RTtbl.pCurrentRT != nullptr)
+    {
+        DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+    }
 
     (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;
 
@@ -844,7 +853,7 @@ VAStatus DdiDecodeJPEG::CodecHalInit(
     MOS_CONTEXT *mosCtx   = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
+    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));

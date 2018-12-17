@@ -28,6 +28,8 @@ bs_set_if_undefined(GEN9_GLK_Supported "yes")
 bs_set_if_undefined(GEN9_KBL_Supported "yes")
 bs_set_if_undefined(GEN10_Supported "yes")
 bs_set_if_undefined(GEN10_CNL_Supported "yes")
+bs_set_if_undefined(GEN11_Supported "yes")
+bs_set_if_undefined(GEN11_ICLLP_Supported "yes")
 
 
 if(${GEN8_Supported} STREQUAL "yes")
@@ -70,5 +72,12 @@ if(${GEN10_CNL_Supported} STREQUAL "yes")
     add_definitions(-DIGFX_GEN10_CNL_SUPPORTED)
 endif()
 
+if(${GEN11_Supported} STREQUAL "yes")
+    add_definitions(-DIGFX_GEN11_SUPPORTED)
+endif()
+
+if(${GEN11_ICLLP_Supported} STREQUAL "yes")
+    add_definitions(-DIGFX_GEN11_ICLLP_SUPPORTED)
+endif()
 
 include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)

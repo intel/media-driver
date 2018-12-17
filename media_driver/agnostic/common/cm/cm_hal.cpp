@@ -103,6 +103,8 @@ extern int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state);
 extern int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state);
 #endif
 
+extern uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE pOsInterface);
+
 //===============<Private Functions>============================================
 //*-----------------------------------------------------------------------------
 //| Purpose:    Align to the next power of 2
@@ -344,6 +346,8 @@ MOS_STATUS HalCm_InitializeDynamicStateHeaps(
     CM_CHK_MOSSTATUS(dgsHeap->SetInitialHeapSize(heapParam->initialSizeGSH));
     CM_CHK_MOSSTATUS(dgsHeap->SetExtendHeapSize(heapParam->extendSizeGSH));
     CM_CHK_MOSSTATUS(dgsHeap->RegisterTrackerResource(heapParam->trackerResourceGSH));
+    // lock the heap in the beginning, so cpu doesn't need to wait gpu finishing occupying it to lock it again
+    CM_CHK_MOSSTATUS(dgsHeap->LockHeapsOnAllocate());
 
     state->renderHal->dgsheapManager = dgsHeap;
 
@@ -1505,6 +1509,9 @@ MOS_STATUS HalCm_ParseGroupTask(
 
     taskParam->numKernels = execGroupParam->numKernels;
     taskParam->syncBitmap = execGroupParam->syncBitmap;
+    taskParam->conditionalEndBitmap = execGroupParam->conditionalEndBitmap;
+    MOS_SecureMemcpy(taskParam->conditionalEndInfo, sizeof(taskParam->conditionalEndInfo), execGroupParam->conditionalEndInfo, sizeof(execGroupParam->conditionalEndInfo));
+
     taskParam->taskConfig = execGroupParam->taskConfig;
     for (uint32_t krn = 0; krn < execGroupParam->numKernels; krn ++)
     {
@@ -2971,7 +2978,7 @@ int32_t HalCm_DSH_LoadKernelArray(
     renderHal = state->renderHal;
     nextId = renderHal->pfnGetNextTrackerId(renderHal);
     currId = renderHal->pfnGetCurrentTrackerId(renderHal);
-    state->criticalSectionDSH.Acquire();
+    state->criticalSectionDSH->Acquire();
     do
     {
         blockCount = 0;
@@ -2994,7 +3001,7 @@ int32_t HalCm_DSH_LoadKernelArray(
                 if (memoryBlock)
                 {
                     // Kernel needs to be reloaded in current heap
-                    if (memoryBlock->pStateHeap != renderHal->pMhwStateHeap->GetISHPointer()) //pInstructionStateHeaps
+                    if (memoryBlock->pStateHeap != renderHal->pMhwStateHeap->GetISHPointer() || state->forceKernelReload) //pInstructionStateHeaps
                     {
                         renderHal->pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, memoryBlock, currId);
                         krnAllocation[i]->pMemoryBlock = nullptr;
@@ -3158,7 +3165,7 @@ finish:
             renderHal->pfnTouchDynamicKernel(renderHal, krnAllocation[i]);
         }
     }
-    state->criticalSectionDSH.Release();
+    state->criticalSectionDSH->Release();
     return hr;
 }
 
@@ -3291,9 +3298,9 @@ MOS_STATUS HalCm_DSH_UnregisterKernel(
     PRENDERHAL_KRN_ALLOCATION krnAllocation = renderHal->pfnSearchDynamicKernel(renderHal, static_cast<int>((kernelId >> 32)), -1);
     if (krnAllocation)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         renderHal->pfnUnregisterKernel(renderHal, krnAllocation);
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -7224,6 +7231,34 @@ MOS_STATUS HalCm_SetupMediaWalkerParams(
 
                     break;
 
+                case CM_WALK_WAVEFRONT26D:
+                    walkerParams->localLoopExecCount = 0x7ff;
+                    walkerParams->globalLoopExecCount = 0x7ff;
+
+                    walkerParams->localStart.x = kernelThreadSpace.threadSpaceWidth;
+                    walkerParams->localOutLoopStride.x = 1;
+                    walkerParams->localOutLoopStride.y = 0;
+                    walkerParams->localInnerLoopUnit.x = 0xFFFE;  // -2 in uint32_t:16
+                    walkerParams->localInnerLoopUnit.y = 1;
+                    break;
+
+                case CM_WALK_WAVEFRONT26XD:
+                    walkerParams->localLoopExecCount = 0x7ff;
+                    walkerParams->globalLoopExecCount = 0x7ff;
+
+                    // Local
+                    walkerParams->localStart.x = kernelThreadSpace.threadSpaceWidth;
+                    walkerParams->localOutLoopStride.x = 1;
+                    walkerParams->localOutLoopStride.y = 0;
+                    walkerParams->localInnerLoopUnit.x = 0xFFFE;  // -2 in uint32_t:16
+                    walkerParams->localInnerLoopUnit.y = 2;
+
+                    // Mid
+                    walkerParams->middleLoopExtraSteps = 1;
+                    walkerParams->midLoopUnitX = 0;
+                    walkerParams->midLoopUnitY = 1;
+                    break;
+
                 default:
                     walkerParams->localLoopExecCount = MOS_MIN(kernelParam->numThreads, 0x3FF);
 
@@ -7626,10 +7661,12 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             {
                 PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
                 dynamicState->Curbe.iCurrent -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = dynamicState->Curbe.iCurrent;
             }
             else
             {
                 stateHeap->pCurMediaState->iCurbeOffset -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = stateHeap->pCurMediaState->iCurbeOffset;
             }
             // update curbe with data.
             renderHal->pfnLoadCurbeData(renderHal,
@@ -7646,10 +7683,12 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             {
                 PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
                 dynamicState->Curbe.iCurrent -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = dynamicState->Curbe.iCurrent;
             }
             else
             {
                 stateHeap->pCurMediaState->iCurbeOffset -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = stateHeap->pCurMediaState->iCurbeOffset;
             }
             // update curbe with data.
             renderHal->pfnLoadCurbeData(renderHal,
@@ -7848,9 +7887,8 @@ MOS_STATUS HalCm_Allocate(
     //Turn Turbo boost on
     CM_CHK_MOSSTATUS(state->pfnEnableTurboBoost(state));
 
-    // Send a command to get the timestamp base if needed
-    CM_CHK_MOSSTATUS(state->cmHalInterface->SubmitTimeStampBaseCommands());
-
+    state->tsFrequency = HalCm_GetTsFrequency(state->osInterface);
+    
     hr = MOS_STATUS_SUCCESS;
 
 finish:
@@ -8044,20 +8082,20 @@ MOS_STATUS HalCm_ExecuteTask(
             // update current state to dsh
             renderHal->pStateHeap->pCurMediaState = mediaState;
             // Refresh sync tag for all media states in submitted queue
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             renderHal->pfnRefreshSync( renderHal );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
         else
         {
             // Obtain media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
             RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             HalCm_DSH_GetDynamicStateConfiguration( state, &params, execParam->numKernels, execParam->kernels, execParam->kernelCurbeOffset );
 
             // Prepare Media States to accommodate all parameters - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs
             mediaState = renderHal->pfnAssignDynamicState( renderHal, &params, RENDERHAL_COMPONENT_CM );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
     }
     else
@@ -8208,7 +8246,7 @@ finish:
 
     if (state->dshEnabled)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         if (mediaState && hr != MOS_STATUS_SUCCESS)
         {
             // Failed, release media state and heap resources
@@ -8218,7 +8256,7 @@ finish:
         {
             renderHal->pfnSubmitDynamicState(renderHal, mediaState);
         }
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
 
     if (batchBuffer)  // for Media Walker, batchBuffer is empty
@@ -8356,10 +8394,10 @@ MOS_STATUS HalCm_ExecuteGroupTask(
 
             // update current state to dsh
             renderHal->pStateHeap->pCurMediaState = mediaState;
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             // Refresh sync tag for all media states in submitted queue
             renderHal->pfnRefreshSync( renderHal );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
         else
         {
@@ -8369,11 +8407,11 @@ MOS_STATUS HalCm_ExecuteGroupTask(
             // Obtain media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
             RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
 
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             HalCm_DSH_GetDynamicStateConfiguration(state, &params, execGroupParam->numKernels, execGroupParam->kernels, execGroupParam->kernelCurbeOffset);
             // Prepare Media States to accommodate all parameters
             mediaState = renderHal->pfnAssignDynamicState(renderHal, &params, RENDERHAL_COMPONENT_CM);
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
     }
     else
@@ -8406,6 +8444,11 @@ MOS_STATUS HalCm_ExecuteGroupTask(
             bti, mediaID, krnAllocations[i]));
 
         vfeCurbeSize += MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+
+        if (execGroupParam->conditionalEndBitmap & (uint64_t)1 << i)
+        {
+            CM_CHK_MOSSTATUS(HalCm_SetConditionalEndInfo(state, taskParam->conditionalEndInfo, taskParam->conditionalBBEndParams, i));
+        }
     }
 
     // Store the Max Payload Sizes in the Task params
@@ -8464,7 +8507,7 @@ finish:
 
     if (state->dshEnabled)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         if (mediaState && hr != MOS_STATUS_SUCCESS)
         {
             // Failed, release media state and heap resources
@@ -8474,7 +8517,7 @@ finish:
         {
             renderHal->pfnSubmitDynamicState(renderHal, mediaState);
         }
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
 
     return hr;
@@ -8620,20 +8663,20 @@ MOS_STATUS HalCm_ExecuteHintsTask(
             // update current state to dsh
             renderHal->pStateHeap->pCurMediaState = mediaState;
             // Refresh sync tag for all media states in submitted queue
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             renderHal->pfnRefreshSync( renderHal );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
         else
         {
             // Obtain media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
             RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             HalCm_DSH_GetDynamicStateConfiguration(state, &params, execHintsParam->numKernels, execHintsParam->kernels, execHintsParam->kernelCurbeOffset);
 
             // Prepare Media States to accommodate all parameters - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs
             mediaState = renderHal->pfnAssignDynamicState(renderHal, &params, RENDERHAL_COMPONENT_CM);
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
     }
     else
@@ -8789,7 +8832,7 @@ finish:
 
     if (state->dshEnabled)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         if (mediaState && hr != MOS_STATUS_SUCCESS)
         {
             // Failed, release media state and heap resources
@@ -8799,7 +8842,7 @@ finish:
         {
             renderHal->pfnSubmitDynamicState(renderHal, mediaState);
         }
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
 
     if (batchBuffer) // for MediaWalker, batchBuffer is empty
@@ -9456,6 +9499,65 @@ finish:
 }
 
 //*-----------------------------------------------------------------------------
+//| Purpose:    Allocate 3D resource
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+MOS_STATUS HalCm_AllocateSurface3D(CM_HAL_STATE *state, // [in]  Pointer to CM State
+                                   CM_HAL_3DRESOURCE_PARAM *param) // [in]  Pointer to Buffer Param)
+{
+    MOS_STATUS hr = MOS_STATUS_SUCCESS;
+
+    //-----------------------------------------------
+    CM_ASSERT(state);
+    CM_ASSERT(param->depth  > 1);
+    CM_ASSERT(param->width  > 0);
+    CM_ASSERT(param->height > 0);
+    //-----------------------------------------------
+
+    // Finds a free slot.
+    CM_HAL_3DRESOURCE_ENTRY *entry = nullptr;
+    for (uint32_t i = 0; i < state->cmDeviceParam.max3DSurfaceTableSize; i++)
+    {
+        if (Mos_ResourceIsNull(&state->surf3DTable[i].osResource))
+        {
+            entry = &state->surf3DTable[i];
+            param->handle = (uint32_t)i;
+            break;
+        }
+    }
+    if (!entry)
+    {
+        CM_ERROR_ASSERT("3D surface table is full");
+        return hr;
+    }
+    Mos_ResetResource(&entry->osResource);  // Resets the Resource
+
+    MOS_ALLOC_GFXRES_PARAMS alloc_params;
+    MOS_ZeroMemory(&alloc_params, sizeof(alloc_params));
+    alloc_params.Type          = MOS_GFXRES_VOLUME;
+    alloc_params.TileType      = MOS_TILE_Y;
+    alloc_params.dwWidth       = param->width;
+    alloc_params.dwHeight      = param->height;
+    alloc_params.dwDepth       = param->depth;
+    alloc_params.pSystemMemory = param->data;
+    alloc_params.Format        = param->format;
+    alloc_params.pBufName      = "CmSurface3D";
+
+    MOS_INTERFACE *osInterface = state->renderHal->pOsInterface;
+    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
+        osInterface,
+        &alloc_params,
+        &entry->osResource));
+    entry->width = param->width;
+    entry->height = param->height;
+    entry->depth = param->depth;
+    entry->format = param->format;
+
+finish:
+    return hr;
+}
+
+//*-----------------------------------------------------------------------------
 //| Purpose:    Frees the resource and removes from the table
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -10033,11 +10135,13 @@ MOS_STATUS HalCm_Create(
     mhwInterfaces = MhwInterfaces::CreateFactory(params, state->osInterface);
     if (mhwInterfaces)
     {
-        state->veboxInterface = mhwInterfaces->m_veboxInterface;
-
+        CM_CHK_NULL_RETURN_MOSSTATUS(mhwInterfaces->m_veboxInterface);
+        state->veboxInterface = mhwInterfaces->m_veboxInterface;       
+        
         // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
         MOS_Delete(mhwInterfaces->m_miInterface);
-        MOS_Delete(mhwInterfaces->m_cpInterface);
+        Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+        mhwInterfaces->m_cpInterface = nullptr;
         MOS_Delete(mhwInterfaces);
     }
     else
@@ -10114,7 +10218,8 @@ MOS_STATUS HalCm_Create(
     CM_CHK_NULL_RETURN_MOSSTATUS(state->perfProfiler);
     CM_CHK_MOSSTATUS(state->perfProfiler->Initialize((void*)state, state->osInterface));
 
-    state->criticalSectionDSH = CMRT_UMD::CSync();
+    state->criticalSectionDSH = MOS_New(CMRT_UMD::CSync);
+    CM_CHK_NULL_RETURN_MOSSTATUS(state->criticalSectionDSH);
 
     state->cmDeviceParam.maxKernelsPerTask        = CM_MAX_KERNELS_PER_TASK;
     state->cmDeviceParam.maxSamplerTableSize      = CM_MAX_SAMPLER_TABLE_SIZE;
@@ -10155,6 +10260,7 @@ MOS_STATUS HalCm_Create(
     state->pfnSetSurfaceMOCS              = HalCm_SetSurfaceMOCS;
     /************************************************************/
     state->pfnAllocateSurface2D           = HalCm_AllocateSurface2D;
+    state->pfnAllocate3DResource          = HalCm_AllocateSurface3D;
     state->pfnFreeSurface2D               = HalCm_FreeSurface2D;
     state->pfnLock2DResource              = HalCm_Lock2DResource;
     state->pfnUnlock2DResource            = HalCm_Unlock2DResource;
@@ -10215,6 +10321,7 @@ MOS_STATUS HalCm_Create(
 #endif
 
     state->cmHalInterface = CMHalDevice::CreateFactory(state);
+    CM_CHK_NULL_RETURN_MOSSTATUS(state->cmHalInterface);
 
 finish:
     if (hr != MOS_STATUS_SUCCESS)
@@ -10244,8 +10351,10 @@ void HalCm_Destroy(
     {
         //Delete CmHal Interface
         MosSafeDelete(state->cmHalInterface);
-        MosSafeDelete(state->cpInterface);
+        Delete_MhwCpInterface(state->cpInterface);
+        state->cpInterface = nullptr;
         MosSafeDelete(state->state_buffer_list_ptr);
+        MosSafeDelete(state->criticalSectionDSH);
 
         // Delete the unified media profiler
         if (state->perfProfiler)
@@ -10290,7 +10399,10 @@ void HalCm_Destroy(
         HalCm_FreeTrackerResources(state);
 
         // Delete heap manager
-        MOS_Delete(state->renderHal->dgsheapManager);
+        if (state->renderHal)
+        {
+            MOS_Delete(state->renderHal->dgsheapManager);
+        }
 
         if (state->hLibModule)
         {
@@ -11377,6 +11489,11 @@ MOS_STATUS HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(
     mhwVeboxSurface->dwWidth       = surface->dwWidth;
     mhwVeboxSurface->dwHeight      = surface->dwHeight;
     mhwVeboxSurface->dwPitch       = surface->dwPitch;
+    if (surface->dwPitch > 0)
+    {
+        mhwVeboxSurface->dwUYoffset = ((surface->UPlaneOffset.iSurfaceOffset - surface->YPlaneOffset.iSurfaceOffset) / surface->dwPitch)
+                                      + surface->UPlaneOffset.iYOffset;
+    }
     mhwVeboxSurface->TileType      = surface->TileType;
     mhwVeboxSurface->rcMaxSrc      = renderHalSurface->rcMaxSrc;
     mhwVeboxSurface->pOsResource   = &surface->OsResource;
@@ -11434,3 +11551,16 @@ void HalCm_GetLegacyRenderHalL3Setting( CmHalL3Settings *l3SettingsPtr, RENDERHA
 
     return;
 }
+
+uint64_t HalCm_ConvertTicksToNanoSeconds(
+    PCM_HAL_STATE               state,
+    uint64_t                    ticks)
+{
+    if (state->tsFrequency == 0)
+    {
+        // if KMD doesn't report an valid value, fall back to default configs
+        return state->cmHalInterface->ConverTicksToNanoSecondsDefault(ticks);
+    }
+    return (ticks * 1000000000) / (state->tsFrequency);
+}
+

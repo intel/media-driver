@@ -349,6 +349,10 @@ public:
     {
         m_32xMeMvBottomFieldOffset = offset;
     }
+    inline void setnoMEKernelForPFrame(bool flag)
+    {
+        m_noMEKernelForPFrame = flag;
+    }
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpKernelOutput() override;

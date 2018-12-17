@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -56,6 +56,7 @@ typedef struct _MHW_VDBOX_HEVC_PIC_STATE
     bool                                    bRDOQIntraTUDisable;
     uint16_t                                wRDOQIntraTUThreshold;
     uint32_t                                brcNumPakPasses;
+    bool                                    rhodomainRCEnable;
 
     //FEI multiple passes PAK ---max frame size
     uint8_t                                 currPass;
@@ -317,32 +318,7 @@ typedef enum _MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE
     MHW_VDBOX_VP9_INTERNAL_BUFFER_HVD_TILE
 } MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE;
 
-//!
-//! \struct   MmioRegistersHcp
-//! \brief    MMIO registers HCP
-//!
-struct MmioRegistersHcp
-{
-    uint32_t                   watchdogCountCtrlOffset;
-    uint32_t                   watchdogCountThresholdOffset;
-    uint32_t                   hcpDebugFEStreamOutSizeRegOffset;
-    uint32_t                   hcpEncImageStatusMaskRegOffset;
-    uint32_t                   hcpEncImageStatusCtrlRegOffset;
-    uint32_t                   hcpEncBitstreamBytecountFrameRegOffset;
-    uint32_t                   hcpEncBitstreamSeBitcountFrameRegOffset;
-    uint32_t                   hcpEncBitstreamBytecountFrameNoHeaderRegOffset;
-    uint32_t                   hcpEncQpStatusCountRegOffset;
-    uint32_t                   hcpEncSliceCountRegOffset;
-    uint32_t                   hcpEncVdencModeTimerRegOffset;
-    uint32_t                   hcpVp9EncBitstreamBytecountFrameRegOffset;
-    uint32_t                   hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset;
-    uint32_t                   hcpVp9EncImageStatusMaskRegOffset;
-    uint32_t                   hcpVp9EncImageStatusCtrlRegOffset;
-    uint32_t                   csEngineIdOffset;
-    uint32_t                   hcpDecStatusRegOffset;
-    uint32_t                   hcpCabacStatusRegOffset;
-    uint32_t                   hcpFrameCrcRegOffset;
-};
+
 
 //!  MHW Vdbox Hcp interface
 /*!
@@ -370,19 +346,19 @@ protected:
     MEDIA_WA_TABLE              *m_waTable = nullptr; //!< Pointer to WA table
     bool                        m_decodeInUse = false; //!< Flag to indicate if the interface is for decoder or encoder use
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]; //!< Cacheability settings
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {}; //!< Cacheability settings
 
     bool                        m_rhoDomainStatsEnabled = false; //!< Flag to indicate if Rho domain stats is enabled
     bool                        m_rowstoreCachingSupported = false; //!< Flag to indicate if row store cache is supported
     uint32_t                    m_brcNumPakPasses = 4; //!< Number of brc pak passes
 
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDatRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDfRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcSaoRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcHSaoRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_vp9HvdRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DfRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DatRowStoreCache;
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDatRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDfRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcSaoRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcHSaoRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_vp9HvdRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DfRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DatRowStoreCache = {};
 
     uint32_t                    m_hevcEncCuRecordSize = 0; //!< size of hevc enc cu record
     uint32_t                    m_pakHWTileSizeRecordSize = 0; //! pak HW tile size recored size
@@ -390,7 +366,7 @@ protected:
     static const uint32_t       m_timeStampCountsPerMillisecond = (12000048 / 1000);  //<! Time stamp coounts per millisecond
     static const uint32_t       m_hcpCabacErrorFlagsMask = 0x0879; //<! Hcp CABAC error flags mask
 
-    MmioRegistersHcp            m_mmioRegisters[MHW_VDBOX_NODE_MAX];  //!< hcp mmio registers
+    MmioRegistersHcp            m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< hcp mmio registers
 
     static const HevcSliceType  m_hevcBsdSliceType[3]; //!< HEVC Slice Types for Long Format
 
@@ -468,7 +444,15 @@ public:
     //!
     inline MmioRegistersHcp* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
     {
-        return &m_mmioRegisters[index];
+        if (index < MHW_VDBOX_NODE_MAX)
+        {
+            return &m_mmioRegisters[index];
+        }
+        else
+        {
+            MHW_ASSERT("index is out of range!");
+            return &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        }
     }
 
     //!

@@ -29,7 +29,7 @@
 #define __MHW_MI_GENERIC_H__
 
 #include "mhw_mi.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 template <class TMiCmds>
 class MhwMiInterfaceGeneric : public MhwMiInterface

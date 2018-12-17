@@ -42,6 +42,8 @@ MOS_STATUS MhwRenderInterface::AllocateHeaps(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_stateHeapInterface);
+
     if ((stateHeapSettings.dwIshSize > 0 ||
         stateHeapSettings.dwDshSize > 0 ) &&
         stateHeapSettings.dwNumSyncTags > 0)
@@ -142,6 +144,8 @@ MOS_STATUS MhwRenderInterface::EnablePreemption(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MHW_MI_CHK_NULL(cmdBuffer);
+    MHW_MI_CHK_NULL(m_osInterface);
+    MHW_MI_CHK_NULL(m_miInterface);
 
     MEDIA_FEATURE_TABLE *m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
     MHW_MI_CHK_NULL(m_skuTable);

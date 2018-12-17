@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@
 #define USE_CODECHAL_DEBUG_TOOL 1
 #define CODECHAL_DEBUG_TOOL(expr)   expr;
 
-#include "codechal.h"
 #include "BRCIF.h"
 #include "mhw_utilities.h"
 #include "mhw_state_heap.h"
@@ -116,6 +115,7 @@ static const char *bufSSH           = "SSH";
 static const char *bufSeqParams     = "SeqParams";
 static const char *bufPicParams     = "PicParams";
 static const char *bufSlcParams     = "SlcParams";
+static const char *bufSubsetsParams = "SubsetsParams";
 static const char *bufVuiParams     = "VuiParams";
 static const char *bufBitstream     = "Bitstream";
 static const char *bufFeiPicParams  = "FeiPicParams";

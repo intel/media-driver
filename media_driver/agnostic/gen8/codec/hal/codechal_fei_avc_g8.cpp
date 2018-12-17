@@ -6590,6 +6590,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
         ((currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
     uint8_t scaledIdx = params->ppRefList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
     auto currScaledSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(currScaledSurface);
     auto meMvDataBuffer = params->ps4xMeMvDataBuffer;
     uint32_t meMvBottomFieldOffset = params->dw4xMeMvBottomFieldOffset;
     uint32_t currScaledBottomFieldOffset = params->dw4xScaledBottomFieldOffset;
@@ -6683,7 +6684,15 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
             scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
-            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+            MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+            if (p4xSurface != nullptr)
+            {
+                refScaledSurface.OsResource = p4xSurface->OsResource;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+            }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L0 Reference Picture Y - VME
@@ -6744,7 +6753,15 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
             scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
-            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+            MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+            if (p4xSurface != nullptr)
+            {
+                refScaledSurface.OsResource = p4xSurface->OsResource;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+            }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L1 Reference Picture Y - VME

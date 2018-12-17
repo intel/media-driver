@@ -50,7 +50,7 @@
 #include "codechal_encoder_base.h"
 #include "media_libva_common.h"
 
-#define DDI_CODEC_GEN_MAX_PROFILES                 17   //  the number of va profiles, some profiles in va_private.h
+#define DDI_CODEC_GEN_MAX_PROFILES                 31   //  the number of va profiles, some profiles in va_private.h
 #define DDI_CODEC_GEN_MAX_ENTRYPOINTS              7    // VAEntrypointVLD, VAEntrypointEncSlice, VAEntrypointEncSliceLP, VAEntrypointVideoProc
 
 #define DDI_CODEC_GEN_MAX_IMAGE_FORMATS            2    // NV12 and P010
@@ -209,9 +209,14 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_HEVC
     // slice control buffer
     VASliceParameterBufferHEVC                  *pVASliceParaBufHEVC;
     VASliceParameterBufferBase                  *pVASliceParaBufBaseHEVC;
+    //slice control buffe for range extension
+    VASliceParameterBufferHEVCExtension          *pVASliceParaBufHEVCRext;
 
     // one picture buffer
     VAPictureParameterBufferHEVC                 PicParamHEVC;
+
+    //one picture buffer for range extension
+    VAPictureParameterBufferHEVCExtension        PicParamHEVCRext;
 
     // one IQ buffer
     VAIQMatrixBufferHEVC                         IQmHEVC;
@@ -267,6 +272,8 @@ typedef struct _DDI_CODEC_COM_BUFFER_MGR
     VAProcPipelineParameterBuffer                ProcPipelineParamBuffer;
     VAProcFilterParameterBuffer                  ProcFilterParamBuffer;
     VACodedBufferSegment                        *pCodedBufferSegmentForStatusReport; // for extended Status report such as long-term reference for VP8-F encode
+    void                                        *pCodecParamReserved;
+    void                                        *pCodecSlcParamReserved;
 
     // for External decode StreamOut Buffer
     MOS_RESOURCE                                 resExternalStreamOutBuffer;

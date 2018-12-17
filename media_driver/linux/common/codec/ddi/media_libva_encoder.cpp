@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include "media_libva_encoder.h"
 #include "media_ddi_encode_base.h"
-#include "media_libva_cp.h"
 #include "media_libva_util.h"
 #include "media_libva_caps.h"
 #include "media_ddi_factory.h"
@@ -182,7 +181,7 @@ void DdiEncodeCleanUp(PDDI_ENCODE_CONTEXT encCtx)
 
     if (encCtx->pCpDdiInterface)
     {
-        MOS_Delete(encCtx->pCpDdiInterface);
+        Delete_DdiCpInterface(encCtx->pCpDdiInterface);
         encCtx->pCpDdiInterface = nullptr;
     }
 
@@ -257,7 +256,7 @@ VAStatus DdiEncode_CreateContext(
 
     //initialize DDI level cp interface
     MOS_CONTEXT mosCtx = { };
-    encCtx->pCpDdiInterface = MOS_New(DdiCpInterface, mosCtx);
+    encCtx->pCpDdiInterface = Create_DdiCpInterface(mosCtx);
     if (nullptr == encCtx->pCpDdiInterface)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -280,6 +279,7 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.pfnMemoryDecompress   = mediaDrvCtx->pfnMemoryDecompress;
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
+    mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
 
     if (nullptr == mosCtx.pPerfData)
     {
@@ -299,10 +299,21 @@ VAStatus DdiEncode_CreateContext(
         encCtx->bVdencActive  = true;
     }
 
-    //Both dual pipe and LP pipe should support 10bit for HEVCMain10 profile
-    if (profile == VAProfileHEVCMain10)
+    //Both dual pipe and LP pipe should support 10bit for below profiles
+    // - HEVCMain10 profile
+    // - VAProfileVP9Profile2
+    // - VAProfileVP9Profile3
+    if (profile == VAProfileHEVCMain10 ||
+        profile == VAProfileVP9Profile2 ||
+        profile == VAProfileVP9Profile3)
     {
         encCtx->m_encode->m_is10Bit = true;
+    }
+
+    if (profile == VAProfileVP9Profile1 ||
+        profile == VAProfileVP9Profile3)
+    {
+        encCtx->m_encode->m_chromaFormat = DdiEncodeBase::yuv444;
     }
 
     CODECHAL_STANDARD_INFO standardInfo;
@@ -339,8 +350,8 @@ VAStatus DdiEncode_CreateContext(
     encCtx->pMediaCtx = mediaDrvCtx;
 
     encCtx->pCpDdiInterface->SetHdcp2Enabled(flag);
+    encCtx->pCpDdiInterface->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
 
-    encCtx->pCpDdiInterface->SetCodechalSetting(encCtx->m_encode->m_codechalSettings);
     vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
 
     if (vaStatus != VA_STATUS_SUCCESS)
@@ -453,7 +464,7 @@ VAStatus DdiEncode_DestroyContext(VADriverContextP ctx, VAContextID context)
 
     if (encCtx->pCpDdiInterface)
     {
-        MOS_Delete(encCtx->pCpDdiInterface);
+        Delete_DdiCpInterface(encCtx->pCpDdiInterface);
         encCtx->pCpDdiInterface = nullptr;
     }
 
@@ -613,8 +624,9 @@ VAStatus DdiEncode_MfeSubmit(
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
-        encoder->m_mfeEncodeParams.submitIndex  = i;
-        encoder->m_mfeEncodeParams.submitNumber = num_contexts;
+        encoder->m_mfeEncodeParams.submitIndex  = 0;
+        encoder->m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
+        encoder->m_mfeEncodeParams.streamId  = 0;
         encodeContexts.push_back(encodeContext);
         validContextNumber++;
     }

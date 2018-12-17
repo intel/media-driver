@@ -2025,7 +2025,15 @@ MOS_STATUS CodechalEncodeMpeg2G9::SendMeSurfaces(
         uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
         uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
         // for 4xMe
-        refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+        MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+        if (p4xSurface != nullptr)
+        {
+            refScaledSurface.OsResource = p4xSurface->OsResource;
+        }
+        else
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+        }
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
         // L0 Reference Picture Y - VME
@@ -2075,7 +2083,15 @@ MOS_STATUS CodechalEncodeMpeg2G9::SendMeSurfaces(
         uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
 
         // for 4xMe
-        refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+        MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+        if (p4xSurface != nullptr)
+        {
+            refScaledSurface.OsResource = p4xSurface->OsResource;
+        }
+        else
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+        }
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
         // L1 Reference Picture Y - VME

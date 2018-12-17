@@ -29,18 +29,6 @@
 
 #include "codechal_encode_vp8.h"
 
-struct CodechalEncodeVp8InitKernelStateParams
-{
-    PMHW_KERNEL_STATE               pKernelState;
-    MhwRenderInterface             *pRenderEngineInterface;
-    uint8_t*                        pui8Binary;
-    EncOperation                    Operation;
-    uint32_t                        dwKrnStateIdx;
-    uint32_t                        dwCombinedKernelSize;
-    int32_t                         iBtCount;
-    int32_t                         iCurbeCount;
-};
-
 class CodechalEncodeVp8G10 : public CodechalEncodeVp8
 {
 public:

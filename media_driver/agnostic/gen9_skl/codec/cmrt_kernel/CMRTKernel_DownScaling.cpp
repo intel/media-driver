@@ -136,7 +136,7 @@ CM_RETURN_CODE CMRTKernelDownScaling::CreateAndDispatchKernel(CmEvent *&cmEvent,
 
     CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(threadSpaceWidth * threadSpaceHeight));
     //create Thread Space
-    result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
+    result = CreateThreadSpace(threadSpaceWidth, threadSpaceHeight);
     if (result != CM_SUCCESS)
     {
         printf("CM Create ThreadSpace error : %d", result);
@@ -151,30 +151,8 @@ CM_RETURN_CODE CMRTKernelDownScalingUMD::AllocateSurfaces(void *params)
 {
     DownScalingKernelParams *scalingParams=(DownScalingKernelParams *)params;
 
-    if (scalingParams->m_resetPic)
-    {
-        MOS_ZeroMemory(&m_mosResourceWA, sizeof(MOS_RESOURCE));
-        MOS_SecureMemcpy(&m_mosResourceWA, sizeof(MOS_RESOURCE), (MOS_RESOURCE *)scalingParams->m_cmSurfDS_TopIn, sizeof(MOS_RESOURCE));
-
-//        m_mosResourceWA.Format = CM_SURFACE_FORMAT_R8G8_SNORM;
-//        m_mosResourceWA.iWidth = m_mosResourceWA.iPitch / 2;
-        Mos_Specific_SetResourceFormat(&m_mosResourceWA, CM_SURFACE_FORMAT_R8G8_SNORM);
-        Mos_Specific_SetResourceWidth(&m_mosResourceWA, Mos_Specific_GetResourcePitch(&m_mosResourceWA) / 2);
-
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&m_mosResourceWA, m_cmSurface2D[0]));
-        CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[0]));
-
-        CM_SURFACE2D_STATE_PARAM surfaceParams;
-        memset(&surfaceParams, 0, sizeof(CM_SURFACE2D_STATE_PARAM));
-        surfaceParams.width = scalingParams->m_width;
-
-        CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->SetSurfaceStateParam(m_surfIndex[0], &surfaceParams));
-    }
-    else
-    {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)scalingParams->m_cmSurfDS_TopIn, m_cmSurface2D[0]));
-        CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[0]));
-    }
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)scalingParams->m_cmSurfDS_TopIn, m_cmSurface2D[0]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[0]));
 
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)scalingParams->m_cmSurfDS_TopOut, m_cmSurface2D[1]));
     CM_CHK_STATUS_RETURN(m_cmSurface2D[1]->GetIndex(m_surfIndex[1]));

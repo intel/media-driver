@@ -40,7 +40,7 @@ MOS_STATUS CodechalEncodeTrackedBufferHevc::AllocateMvTemporalBuffer()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_trackedBufCurrIdx))
+    if ((m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_trackedBufCurrIdx)))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -48,7 +48,7 @@ MOS_STATUS CodechalEncodeTrackedBufferHevc::AllocateMvTemporalBuffer()
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcState);
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->AllocateResource(
-        m_standard, m_hevcState->m_sizeOfMvTemporalBuffer, 1, mvTemporalBuffer, m_trackedBufCurrIdx, true));
+        m_standard, m_hevcState->m_sizeOfMvTemporalBuffer, 1, mvTemporalBuffer, "mvTemporalBuffer", m_trackedBufCurrIdx, true));
 
     return MOS_STATUS_SUCCESS;
 }

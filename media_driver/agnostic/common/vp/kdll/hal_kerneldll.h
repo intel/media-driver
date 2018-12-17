@@ -410,6 +410,8 @@ typedef struct tagKdll_CSC_Params
     VPHAL_CSPACE      ColorSpace;                // Selected Color Space
     Kdll_CSC_Matrix   Matrix  [DL_CSC_MAX];      // CSC conversion matrix (3x3 + 1x3)
     uint8_t           MatrixID[DL_CSC_MAX];      // Coefficient allocation array
+    uint8_t           PatchMatrixID[DL_CSC_MAX]; // CSC Matrix ID
+    uint8_t           PatchMatrixNum;            // CSC Matrix Number
 } Kdll_CSC_Params;
 
 // Structure that defines a compositing layer

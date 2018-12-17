@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -323,14 +323,16 @@ VAStatus DdiDecodeAVC::ParseIQMatrix(
     int32_t i;
     for (i = 0; i < 6; i++)
     {
-        memcpy(avcIqMatrix->ScalingList4x4[i],
+        memcpy_s(avcIqMatrix->ScalingList4x4[i],
+            16,
             matrix->ScalingList4x4[i],
             16);
     }
     // 8x8 block
     for (i = 0; i < 2; i++)
     {
-        memcpy(avcIqMatrix->ScalingList8x8[i],
+        memcpy_s(avcIqMatrix->ScalingList8x8[i],
+            64,
             matrix->ScalingList8x8[i],
             64);
     }
@@ -466,8 +468,8 @@ VAStatus DdiDecodeAVC::SetDecodeParams()
         // Bridge the SFC input with VDBOX output
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
-        procParams                  = (&m_ddiDecodeCtx->DecodeParams)->m_procParams;
+        auto procParams = 
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
         procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
         // codechal_decode_sfc.c expects Input Width/Height information.
         procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
@@ -563,8 +565,10 @@ VAStatus DdiDecodeAVC::CodecHalInit(
     VAStatus     vaStatus = VA_STATUS_SUCCESS;
     MOS_CONTEXT *mosCtx = (MOS_CONTEXT *)ptr;
 
+    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
+
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
+    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -581,8 +585,6 @@ VAStatus DdiDecodeAVC::CodecHalInit(
     m_codechalSettings->intelEntrypointInUse = false;
 
     m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
-
-    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
     m_codechalSettings->mode     = CODECHAL_DECODE_MODE_AVCVLD;
     m_codechalSettings->standard = CODECHAL_AVC;
@@ -669,9 +671,8 @@ CleanUpandReturn:
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeCtx->DecodeParams.m_procParams)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams;
-
-        procParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
+        auto procParams = 
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
         MOS_FreeMemory(procParams->pOutputSurface);
 
         MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);

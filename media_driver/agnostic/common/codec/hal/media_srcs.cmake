@@ -68,6 +68,8 @@ set(TMP_2_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_singlepipe_virtualengine.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_scalability.cpp
 )
 
 set(TMP_2_HEADERS_
@@ -75,6 +77,9 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_singlepipe_virtualengine.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_scalability.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_secure_decode_interface.h
 )
 if(${Decode_Processing_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
@@ -291,6 +296,9 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_singlepipe_virtualengine.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_scalability.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard.cpp
     )
 
     set(TMP_3_HEADERS_
@@ -305,64 +313,103 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_singlepipe_virtualengine.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_scalability.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard.h
     )
 endif()
 
-if(${AVC_Encode_Supported} STREQUAL "yes")
-    set(TMP_3_SOURCES_
+if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+    set (TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_base.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc.cpp
     )
-    set(TMP_3_HEADERS_
+    set (TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_base.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_3_SOURCES_
+    if ("${AVC_Encode_VME_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc.h
+        )
+    endif ()
+
+    if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc.h
+        )
+    endif ()
+
+    if (${MMC_Supported} STREQUAL "yes")
+        set (TMP_3_SOURCES_
             ${TMP_3_SOURCES_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc.cpp
         )
-        set(TMP_3_HEADERS_
+        set (TMP_3_HEADERS_
             ${TMP_3_HEADERS_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc.h
         )
-    endif()
-endif()
+    endif ()
+endif ()
 
-if(${HEVC_Encode_Supported} STREQUAL "yes")
-    set(TMP_3_SOURCES_
+if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+    set (TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_base.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer_hevc.cpp
     )
-    set(TMP_3_HEADERS_
+    set (TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_base.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer_hevc.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_3_SOURCES_
+    if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc.h
+        )
+    endif ()
+
+    if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc.h
+        )
+    endif ()
+
+    if (${MMC_Supported} STREQUAL "yes")
+        set (TMP_3_SOURCES_
             ${TMP_3_SOURCES_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_hevc.cpp
         )
-        set(TMP_3_HEADERS_
+        set (TMP_3_HEADERS_
             ${TMP_3_HEADERS_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_hevc.h
         )
-    endif()
-endif()
+    endif ()
+endif ()
 
-if(${VP9_Encode_Supported} STREQUAL "yes")
+if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_base.cpp
@@ -409,7 +456,7 @@ if(${JPEG_Encode_Supported} STREQUAL "yes")
     )
 endif()
 
-if(${MPEG2_Encode_Supported} STREQUAL "yes")
+if(${MPEG2_Encode_VME_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_mpeg2.cpp

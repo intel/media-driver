@@ -257,16 +257,18 @@ public:
     }
 
     //!
-    //! \brief    Get Composite MMC Enable/Disable Flag
+    //! \brief    Get Render Hal MMC Enable/Disable Flag
     //! \param    [in] pRenderHal
     //!           Pointer to Hardware Interface
-    //! \return   bool
-    //!           true if Enabled, false if Disabled
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual bool IsCompositeMMCEnabled(
+    virtual MOS_STATUS IsRenderHalMMCEnabled(
         PRENDERHAL_INTERFACE         pRenderHal)
     {
-        return false;
+        MOS_UNUSED(pRenderHal);
+
+        return MOS_STATUS_SUCCESS;
     }
 
     //!

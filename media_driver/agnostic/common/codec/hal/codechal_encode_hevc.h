@@ -30,11 +30,29 @@
 #include "codechal_encode_hevc_base.h"
 #include "codechal_kernel_hme.h"
 
+#define  HUC_CMD_LIST_MODE 1
+#define  HUC_BATCH_BUFFER_END 0x05000000
+
 //! QP type
 enum {
     QP_TYPE_CONSTANT = 0,
     QP_TYPE_FRAME,
     QP_TYPE_CU_LEVEL
+};
+
+//!
+//! \struct HucCommandData
+//! \brief  The struct of Huc commands data
+//!
+struct HucCommandData
+{
+    uint32_t        TotalCommands;       //!< Total Commands in the Data buffer
+    struct
+    {
+        uint16_t    ID;              //!< Command ID, defined and order must be same as that in DMEM
+        uint16_t    SizeOfData;      //!< data size in uint32_t
+        uint32_t    data[40];
+    } InputCOM[10];
 };
 
 //! \class    CodechalEncHevcState
@@ -55,6 +73,7 @@ public:
     };
 
     enum {
+        BRCINIT_USEHUCBRC                  = 0x0001,
         BRCINIT_ISCBR                      = 0x0010,
         BRCINIT_ISVBR                      = 0x0020,
         BRCINIT_ISAVBR                     = 0x0040,
@@ -139,7 +158,8 @@ public:
     uint32_t                                    m_numBrcKrnStates;                              //!< Number of BRC kernel states
     uint8_t                                     m_slidingWindowSize = 0;                        //!< Sliding window size in number of frames
     bool                                        m_roiRegionSmoothEnabled = false;               //!< ROI region smooth transition enable flag
-    
+    HEVC_BRC_FRAME_TYPE                         m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;    //!< frame brc level
+
     // MBENC
     PMHW_KERNEL_STATE                           m_mbEncKernelStates       = nullptr;  //!< Pointer to MbEnc kernel state
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_mbEncKernelBindingTable = nullptr;  //!< MbEnc kernel binding table
@@ -359,6 +379,14 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS FreeEncStatsResources();
+    
+    //!
+    //! \brief    Get Current Frame BRC Level 
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetFrameBrcLevel();
 
     //! Inherited virtual functions
     virtual bool CheckSupportedFormat(PMOS_SURFACE surface);

@@ -28,6 +28,7 @@
 #define __CODECHAL_ALLOCATOR_H__
 
 #include "codechal.h"
+#include <map>
 
 //!
 //! This class provides a generic resource allocation service.
@@ -79,7 +80,8 @@ protected:
     //!
     //! \return   pointer to 1D buffer
     //!
-    void* Allocate1DBuffer(uint64_t resourceTag, uint32_t size, bool zeroOnAllocation = false);
+    void* Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
+        bool zeroOnAllocation = false, const char *bufName = nullptr);
 
     //!
     //! \brief    Allocate 2D buffer
@@ -87,7 +89,8 @@ protected:
     //! \return   pointer to 2D buffer
     //!
     void* Allocate2DBuffer(
-        uint64_t resourceTag, uint32_t width, uint32_t height, MOS_FORMAT format, MOS_TILE_TYPE tile, bool zeroOnAllocation = false);
+        uint64_t resourceTag, uint32_t width, uint32_t height, MOS_FORMAT format,
+        MOS_TILE_TYPE tile, bool zeroOnAllocation = false, const char *bufName = nullptr);
 
     //!
     //! \brief    Allocate batch buffer

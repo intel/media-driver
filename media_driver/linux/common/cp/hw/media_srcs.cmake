@@ -19,10 +19,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_cp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_cp_interface.cpp
 )
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_cp.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_cp_interface.h
 )
 
 set(SOURCES_

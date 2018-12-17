@@ -28,11 +28,11 @@
 #include "codechal_kernel_hme_g9.h"
 #include "igcodeckrn_g9.h"
 #include "codeckrnheader.h"
+#include "mhw_mmio_g9.h"
 
 #define CS_ALU_COMMAND_LOAD(bSrcRegA, GprReg)           ((0x80 << 20) | (((bSrcRegA) ? 0x20 : 0x21) << 10) | ((GprReg) & 0x0F))
 #define CS_ALU_COMMAND_STORE_ACCU(GprReg)               ((0x180 << 20) | (((GprReg) & 0x0F) << 10) | 0x31)
-#define MHW_CS_GENERAL_PURPOSE_REGISTER_BASE_G9         (0x2600)
-#define CS_GPR_REGISTER_INDEX(index)                    (MHW_CS_GENERAL_PURPOSE_REGISTER_BASE_G9 + 8 * (index))
+
 
 #define GPUMMU_WA_PADDING                               (64 * 1024)
 
@@ -3904,21 +3904,22 @@ MOS_STATUS CodechalEncHevcStateG9::AllocateEncResources()
         height,
         "Simplest Intra surface"));
 
-    m_allocator->AllocateResource(m_standard, 1024, 1, brcInputForEncKernel, true);
+    m_allocator->AllocateResource(m_standard, 1024, 1, brcInputForEncKernel, "brcInputForEncKernel", true);
 
     if (m_hmeKernel && m_hmeSupported)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hmeKernel->AllocateResources());
-
-        // BRC Distortion Surface which will be used in ME as the output, too
-        width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64);
-        height = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x * 4), 8);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
-            &m_brcBuffers.sMeBrcDistortionBuffer,
-            width,
-            height,
-            "BRC distortion surface"));
     }
+
+    // BRC Distortion Surface which will be used in ME as the output, too
+    // In addition, this surface should also be allocated as BRC resource once ENC is enabled
+    width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64);
+    height = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x * 4), 8);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
+        &m_brcBuffers.sMeBrcDistortionBuffer,
+        width,
+        height,
+        "BRC distortion surface"));
 
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))
     {
@@ -4060,7 +4061,7 @@ MOS_STATUS CodechalEncHevcStateG9::FreeEncResources()
         m_osInterface,
         &m_simplestIntraSurface.OsResource);
 
-    if (m_hmeSupported)
+    if (m_encEnabled)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -4244,17 +4245,40 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
             uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
             if (params->b32xMeInUse)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p32xSurface = m_trackedBuf->Get32xDsSurface(scaledIdx);
+                if (p32xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p32xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else if (params->b16xMeInUse)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
+                if (p16xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p16xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+                if (p4xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
-
             // L0 Reference picture Y - VME
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
             surfaceParams.bUseAdvState = true;
@@ -4301,17 +4325,40 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
             uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
             if (params->b32xMeInUse)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p32xSurface = m_trackedBuf->Get32xDsSurface(scaledIdx);
+                if (p32xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p32xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else if (params->b16xMeInUse)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
+                if (p16xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p16xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+                if (p4xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
-
             // L1 Reference picture Y - VME
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
             surfaceParams.bUseAdvState = true;
@@ -4791,7 +4838,7 @@ MOS_STATUS CodechalEncHevcStateG9::InitKernelStateMbEnc()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEncodeHEVC10bit))
+    if(MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEncodeHEVC10bit) && m_is10BitHevc)
     {
         m_numMbEncEncKrnStates = CODECHAL_HEVC_MBENC_NUM_KBL;
     }
@@ -9409,7 +9456,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeKernelFunctions()
         }
 
         //Step 1: perform 2:1 down-scaling
-        if ((m_hevcSeqParams->bit_depth_luma_minus8 == 0))  // use this for 8 bit only case.
+        if (m_hevcSeqParams->bit_depth_luma_minus8 == 0)  // use this for 8 bit only case.
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode2xScalingKernel());
         }

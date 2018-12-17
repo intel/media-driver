@@ -27,13 +27,13 @@
 std::vector<FeatureID> refFeatureIDTable_BDW = {
     { VAProfileH264Main               , VAEntrypointVLD                 },
     { VAProfileH264Main               , VAEntrypointEncSlice            },
-    { VAProfileH264Main               , (VAEntrypoint)VAEntrypointFEI   },
+    { VAProfileH264Main               , VAEntrypointFEI                 },
     { VAProfileH264High               , VAEntrypointVLD                 },
     { VAProfileH264High               , VAEntrypointEncSlice            },
-    { VAProfileH264High               , (VAEntrypoint)VAEntrypointFEI   },
+    { VAProfileH264High               , VAEntrypointFEI                 },
     { VAProfileH264ConstrainedBaseline, VAEntrypointVLD                 },
     { VAProfileH264ConstrainedBaseline, VAEntrypointEncSlice            },
-    { VAProfileH264ConstrainedBaseline, (VAEntrypoint)VAEntrypointFEI   },
+    { VAProfileH264ConstrainedBaseline, VAEntrypointFEI                 },
     { VAProfileMPEG2Simple            , VAEntrypointVLD                 },
     { VAProfileMPEG2Simple            , VAEntrypointEncSlice            },
     { VAProfileMPEG2Main              , VAEntrypointVLD                 },
@@ -44,7 +44,7 @@ std::vector<FeatureID> refFeatureIDTable_BDW = {
     { VAProfileJPEGBaseline           , VAEntrypointVLD                 },
     { VAProfileVP8Version0_3          , VAEntrypointVLD                 },
     { VAProfileNone                   , VAEntrypointVideoProc           },
-    { VAProfileNone                   , (VAEntrypoint)VAEntrypointStats },
+    { VAProfileNone                   , VAEntrypointStats               },
 };
 
 #endif // __REF_CAPS_TABLE_BDW_H__

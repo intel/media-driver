@@ -49,7 +49,6 @@ struct VME_STATE_G6;
 class CmDevice
 {
 public:
-
     //! \brief      Creates a CmBuffer with specified size in bytes.
     //! \details    This function creates a buffer in video memory with linear
     //!             layout.
@@ -1733,6 +1732,8 @@ public:
     CM_RT_API virtual int32_t
     CreateQueueEx(CmQueue *&queue,
                   CM_QUEUE_CREATE_OPTION queueCreateOption) = 0;
+protected:
+    virtual ~CmDevice() = default;
 };
 
 #endif  // #ifndef CMRTLIB_LINUX_SHARE_CM_DEVICE_BASE_H_

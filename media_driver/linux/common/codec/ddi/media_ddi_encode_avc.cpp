@@ -644,6 +644,11 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     }
 #ifndef ANDROID
     seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
+    if(picParams->NumROI != 0 && seqParams->ROIValueInDeltaQP == 0)
+    {
+        DDI_ASSERTMESSAGE("ROI does not support priority level now.");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
 #endif
     return VA_STATUS_SUCCESS;
 }
@@ -906,6 +911,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl     = &(m_encodeCtx->RTtbl);
 
@@ -931,6 +937,9 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
     rawSurface->dwOffset = 0;
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface->OsResource));
+
+    PMOS_INTERFACE osInterface = m_encodeCtx->pCodecHal->GetOsInterface();
+    m_encodeCtx->pCpDdiInterface->SetInputResourceEncryption(osInterface, &(rawSurface->OsResource));
 
     // Recon Surface
     PMOS_SURFACE reconSurface = &encodeParams->reconSurface;
@@ -1219,7 +1228,11 @@ VAStatus DdiEncodeAvc::ParseSeqParams(void *ptr)
     seqParams->MaxBitRate    = seq->bits_per_second;
     seqParams->MinBitRate    = seq->bits_per_second;
     // fps it set to 30 by default, can be overwritten by misc paramter
-    seqParams->FramesPer100Sec = 3000;
+    if(!seqParams->FramesPer100Sec)
+    {
+        seqParams->FramesPer100Sec = 3000;
+    }
+
 
     // set default same as MSDK, can be overwritten by HRD params
     seqParams->InitVBVBufferFullnessInBit = seq->bits_per_second;

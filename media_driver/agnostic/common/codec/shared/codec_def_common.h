@@ -201,7 +201,7 @@ typedef struct _CODEC_PIC_ID
     bool      bValid;
 } CODEC_PIC_ID, *PCODEC_PIC_ID;
 
-#ifdef _AVC_ENCODE_SUPPORTED
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
 struct _CODEC_AVC_REF_PIC_SELECT_LIST;
 typedef struct _CODEC_AVC_REF_PIC_SELECT_LIST   *PCODEC_AVC_REF_PIC_SELECT_LIST;
 #endif
@@ -235,9 +235,7 @@ struct _CODEC_REF_LIST
     uint8_t                             ucAvcPictureCodingType; // used for PAFF case, 0: frame, 1: tff field, 2: invalid, 3: bff field
     CODEC_PICTURE                       RefList[CODEC_MAX_NUM_REF_FRAME];
     int16_t                             sFrameNumber;
-    // Cenc Decode: stored 2nd level batch buffer and Pic Param index
-    uint8_t                             ucCencBufIdx[2]; // 0 - frame/top field, 1 - bottom field
-
+ 
     // Shared encoding parameters
     uint8_t                             ucMbCodeIdx;
     uint8_t                             ucScalingIdx;
@@ -266,7 +264,7 @@ struct _CODEC_REF_LIST
            uint16_t                             usNonExistingFrameFlags;
            bool                                 bUsedAsInterViewRef;
            uint32_t                             uiUsedForReferenceFlags;
-#ifdef _AVC_ENCODE_SUPPORTED
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
            PCODEC_AVC_REF_PIC_SELECT_LIST       pRefPicSelectListEntry;
 #endif
            MOS_RESOURCE                         resRefTopFieldMbCodeBuffer;

@@ -653,6 +653,9 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         else if (kind == 0x20) {
             kind = ARG_KIND_GENERAL_DEPVEC;
         }
+        else if (kind == 0x30) {
+            kind = ARG_KIND_GENERAL_DEPCNT;
+        }
 
         m_args[i].unitKind = kind;
         m_args[i].unitKindOrig = kind;
@@ -1463,7 +1466,7 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
 
     //Clear "set" flag in case user call API to set the same one argument multiple times.
     m_args[index].isSet = false;
-    if( m_args[ index ].unitKind == ARG_KIND_GENERAL || (m_args[index].unitKind == ARG_KIND_GENERAL_DEPVEC))
+    if( m_args[ index ].unitKind == ARG_KIND_GENERAL || (m_args[index].unitKind == ARG_KIND_GENERAL_DEPVEC) || (m_args[index].unitKind == ARG_KIND_GENERAL_DEPCNT))
     {
         if( size != m_args[ index ].unitSize )
         {
@@ -3609,7 +3612,9 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     CM_ARG                *tempArgs = nullptr;
     uint32_t              argSize = 0;
     uint32_t              surfNum = 0; //Pass needed BT entry numbers to HAL CM
-    CmKernelRT             *cmKernel = nullptr;
+    CmKernelRT            *cmKernel = nullptr;
+    uint32_t              minKernelPlayloadOffset = 0;
+    bool                  adjustLocalIdPayloadOffset = false;
 
     CMCHK_HR(CmKernelData::Create(this, kernelData));
     halKernelParam = kernelData->GetHalCmKernelData();
@@ -3658,6 +3663,28 @@ int32_t CmKernelRT::CreateKernelDataInternal(
 
     for (uint32_t i = 0; i < numArgs; i++)
     {
+        // get the min kernel payload offset
+        if ((halKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE) && IsKernelArg(tempArgs[i]))
+        {
+            if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3)) 
+            {
+                if (minKernelPlayloadOffset == 0 || minKernelPlayloadOffset > tempArgs[i].unitOffsetInPayload)
+                {
+                    minKernelPlayloadOffset = tempArgs[i].unitOffsetInPayload;
+                }
+            }
+            else
+            {
+                if ((minKernelPlayloadOffset == 0 || minKernelPlayloadOffset > tempArgs[i].unitOffsetInPayload) && (tempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID))
+                {
+                    minKernelPlayloadOffset = tempArgs[i].unitOffsetInPayload;
+                }
+            }
+        }
+    }
+
+    for (uint32_t i = 0; i < numArgs; i++)
+    {
         halKernelParam->argParams[i].unitCount = tempArgs[i].unitCount;
         halKernelParam->argParams[i].kind = (CM_HAL_KERNEL_ARG_KIND)(tempArgs[i].unitKind);
         halKernelParam->argParams[i].unitSize = tempArgs[i].unitSize;
@@ -3690,7 +3717,16 @@ int32_t CmKernelRT::CreateKernelDataInternal(
             if (IsKernelArg(halKernelParam->argParams[i]))
             {
                 // Kernel arg : calculate curbe size & adjust payloadoffset
-                halKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
+                if (tempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID)
+                {
+                    halKernelParam->argParams[i].payloadOffset -= minKernelPlayloadOffset;
+                }
+                else
+                {
+                    // ARG_KIND_IMPLICIT_LOCALID is only for visa3.3+, need to adjust payloadOffset of local id for visa3.3+ later.
+                    adjustLocalIdPayloadOffset = true;
+                }
+
                 if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3)) {
                     if ((halKernelParam->argParams[i].payloadOffset + halKernelParam->argParams[i].unitSize > kernelCurbeSize))
                     {  // The largest one
@@ -3777,6 +3813,12 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         halKernelParam->crossThreadConstDataLen = MOS_ALIGN_CEIL(kernelCurbeSize, 32);
     }
     halKernelParam->payloadSize = 0; // no thread arg allowed
+
+    // adjust payloadOffset of local id for visa3.3+
+    if (adjustLocalIdPayloadOffset)
+    {
+        halKernelParam->argParams[halKernelParam->localIdIndex].payloadOffset = halKernelParam->crossThreadConstDataLen;
+    }
 
     m_sizeInCurbe = GetAlignedCurbeSize(halKernelParam->totalCurbeSize);
 
@@ -4377,6 +4419,7 @@ int32_t CmKernelRT::UpdateKernelData(
         cmKernelThreadSpaceParam->threadSpaceHeight = (uint16_t)threadSpaceHeight;
         m_threadSpace->GetDependencyPatternType(cmKernelThreadSpaceParam->patternType);
         m_threadSpace->GetWalkingPattern(cmKernelThreadSpaceParam->walkingPattern);
+        m_threadSpace->GetColorCountMinusOne(cmKernelThreadSpaceParam->colorCountMinusOne);
 
         CM_HAL_DEPENDENCY*     dependency = nullptr;
         m_threadSpace->GetDependency( dependency);
@@ -4915,10 +4958,26 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadSpace(CmThreadSpace *&threadSpace)
         CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
         return CM_INVALID_ARG_VALUE;
     }
-    if (m_threadGroupSpace != nullptr)
+
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        CM_ASSERTMESSAGE("Error: It's exclusive with AssociateThreadGroupSpace().");
-        return CM_INVALID_KERNEL_THREADSPACE;
+        CmThreadSpaceRT *threadSpaceRTConst = static_cast<CmThreadSpaceRT *>(threadSpace);
+        if (threadSpaceRTConst == nullptr)
+        {
+            CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
+            return CM_INVALID_ARG_VALUE;
+        }
+        CmThreadGroupSpace *threadGroupSpace = threadSpaceRTConst->GetThreadGroupSpace();
+        return AssociateThreadGroupSpace(threadGroupSpace);
+    }
+    else 
+    {
+        if (m_threadGroupSpace != nullptr)
+        {
+            CM_ASSERTMESSAGE("Error: It's exclusive with AssociateThreadGroupSpace().");
+            return CM_INVALID_KERNEL_THREADSPACE;
+        }
     }
 
     bool threadSpaceChanged = false;
@@ -5049,12 +5108,34 @@ CM_RT_API int32_t CmKernelRT::DeAssociateThreadSpace(CmThreadSpace * &threadSpac
         CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
         return CM_NULL_POINTER;
     }
-    if (m_threadSpace != static_cast<CmThreadSpaceRT *>(threadSpace))
+
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        CM_ASSERTMESSAGE("Error: Invalid thread space handle.");
-        return CM_INVALID_ARG_VALUE;
+        CmThreadSpaceRT *threadSpaceRTConst = static_cast<CmThreadSpaceRT *>(threadSpace);
+        if (threadSpaceRTConst == nullptr)
+        {
+            CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
+            return CM_INVALID_ARG_VALUE;
+        }
+
+        CmThreadGroupSpace *threadGroupSpace = threadSpaceRTConst->GetThreadGroupSpace();
+        if (m_threadGroupSpace != threadGroupSpace)
+        {
+            CM_ASSERTMESSAGE("Error: Invalid thread group space handle.");
+            return CM_INVALID_ARG_VALUE;
+        }
+        m_threadGroupSpace = nullptr;
     }
-    m_threadSpace = nullptr;
+    else
+    {
+        if (m_threadSpace != static_cast<CmThreadSpaceRT *>(threadSpace))
+        {
+            CM_ASSERTMESSAGE("Error: Invalid thread space handle.");
+            return CM_INVALID_ARG_VALUE;
+        }
+        m_threadSpace = nullptr;
+    }
 
     return CM_SUCCESS;
 }

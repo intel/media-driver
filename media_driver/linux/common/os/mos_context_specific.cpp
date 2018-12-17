@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -438,10 +438,10 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         for (int sliceCountShm = m_gtSystemInfo.SliceCount; sliceCountShm > 0; sliceCountShm--)
         {
             uint64_t* pTimestampShm = (uint64_t*)m_sseuShm + sliceCountShm;
-            uint64_t   timestampShm = __atomic_load_8(pTimestampShm, __ATOMIC_SEQ_CST);
+            uint64_t   timestampShm = __atomic_load_n(pTimestampShm, __ATOMIC_SEQ_CST);
             if (sliceNum == sliceCountShm)
             {
-                __atomic_store_8(pTimestampShm, timestamp, __ATOMIC_SEQ_CST);
+                __atomic_store_n(pTimestampShm, timestamp, __ATOMIC_SEQ_CST);
                 break;
             }
             else if (sliceNum < sliceCountShm
@@ -505,7 +505,8 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
     m_cpContext = pOsDriverContext->pCpContext;
-    m_pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+    m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
+    m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
 
     // DDI layer can pass over the DeviceID.
     iDeviceId = pOsDriverContext->iDeviceId;
@@ -549,6 +550,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     }
 
     m_use64BitRelocs = true;
+    m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
 
 #ifndef ANDROID
     m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
@@ -655,7 +657,6 @@ void OsContextSpecific::Destroy()
     {
         mos_gem_context_destroy(m_intelContext);
     }
-    GmmDeleteClientContext(m_pGmmClientContext);
     SetOsContextValid(false);
 }
 

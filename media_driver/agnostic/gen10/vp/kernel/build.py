@@ -113,7 +113,7 @@ class LinuxKernel2Source(object):
 def main():
     if platform == "linux" or platform == "linux2":
         k2s = LinuxKernel2Source()
-    else
+    else:
         k2s = WinKernel2Source()
 
     k2s.iga_compile()

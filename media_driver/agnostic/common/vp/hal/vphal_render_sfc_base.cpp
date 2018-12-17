@@ -67,6 +67,8 @@ MOS_STATUS VpHal_InitMhwOutSurfParams(
     pMhwOutSurfParams->pOsResource                 = &(pSfcPipeOutSurface->OsResource);
     pMhwOutSurfParams->Format                      = pSfcPipeOutSurface->Format;
     pMhwOutSurfParams->bCompressible               = pSfcPipeOutSurface->bCompressible;
+    pMhwOutSurfParams->dwSurfaceXOffset            = pSfcPipeOutSurface->YPlaneOffset.iXOffset;
+    pMhwOutSurfParams->dwSurfaceYOffset            = pSfcPipeOutSurface->YPlaneOffset.iYOffset;
 
     if (pSfcPipeOutSurface->dwPitch > 0)
     {
@@ -1230,6 +1232,8 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
             pMhwAvsState->dwInputVerticalSitting = SFC_AVS_INPUT_SITING_COEF_4_OVER_8;
         }
     }
+
+    m_renderData.pAvsParams->bForcePolyPhaseCoefs = m_renderData.bForcePolyPhaseCoefs;
 
     VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcSamplerTable(
         &m_avsState.LumaCoeffs,

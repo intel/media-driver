@@ -52,6 +52,7 @@ set(TMP_3_SOURCES_
 set(TMP_3_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_g8_X.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_hwcmd_g8_X.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio_g8.h
 )
 
 set(TMP_4_SOURCES_
@@ -86,7 +87,7 @@ set(HEADERS_
     ${HEADERS_}
     ${TMP_3_HEADERS_}
     ${TMP_4_HEADERS_}
-    ${TMP_5_SOURCES_}
+    ${TMP_5_HEADERS_}
 )
 
 source_group("MHW\\Common MI" FILES ${TMP_3_SOURCES_} ${TMP_3_HEADERS_})

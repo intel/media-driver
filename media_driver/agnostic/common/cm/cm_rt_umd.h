@@ -41,8 +41,9 @@
 #include "cm_task.h"
 #include "cm_thread_space.h"
 #include "cm_vebox.h"
-
+#include "cm_type.h"
 using namespace CMRT_UMD;
+
 
 //!
 //! \brief    Creates a CmDevice from a MOS context.

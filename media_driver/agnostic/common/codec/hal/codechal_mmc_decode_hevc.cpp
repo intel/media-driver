@@ -156,7 +156,7 @@ MOS_STATUS CodechalMmcDecodeHevc::CheckReferenceList(
     {
         for (int i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
         {
-            if ((m_hevcState->m_hevcPicParams->CurrPic.FrameIdx == m_hevcState->m_hevcPicParams->RefFrameList[i].FrameIdx))
+            if (m_hevcState->m_hevcPicParams->CurrPic.FrameIdx == m_hevcState->m_hevcPicParams->RefFrameList[i].FrameIdx)
             {
                 selfReference = true;
                 break;

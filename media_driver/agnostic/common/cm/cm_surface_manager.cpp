@@ -518,6 +518,10 @@ int32_t CmSurfaceManager::TouchSurfaceInPoolForDestroy()
     std::vector<CmQueueRT*> &pCmQueue = m_device->GetQueue();
 
     DestroySurfaceInPool(freeNum, GC_DESTROY);
+    if (pCmQueue.size() == 0)
+    {
+        return freeNum;
+    }
     while (!freeNum)
     {
         CSync *lock = m_device->GetQueueLock();
@@ -662,6 +666,7 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_400P:
         case CM_SURFACE_FORMAT_P208:
         case CM_SURFACE_FORMAT_BUFFER_2D:
+        case CM_SURFACE_FORMAT_R8_UNORM:
             sizePerPixel = 1;
             break;
 
@@ -1579,6 +1584,12 @@ int32_t CmSurfaceManager::DestroySurface( CmSurfaceVme* & vmeSurface )
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceManager::GetSurface( const uint32_t index, CmSurface* & surface )
 {
+    if( index == CM_NULL_SURFACE)
+    {
+        surface = nullptr;
+        return CM_FAILURE;
+    }
+
     if( index < m_surfaceArraySize )
     {
         surface = m_surfaceArray[ index ];
@@ -1709,6 +1720,7 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_AI44:
         case CM_SURFACE_FORMAT_400P:
         case CM_SURFACE_FORMAT_BUFFER_2D:
+        case CM_SURFACE_FORMAT_R8_UNORM:
             sizePerPixel = 1;
             break;
 
@@ -2454,6 +2466,7 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_L16:
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_R16G16_UNORM:
+        case CM_SURFACE_FORMAT_R16_UNORM:
         case CM_SURFACE_FORMAT_NV12:
         case CM_SURFACE_FORMAT_L8:
         case CM_SURFACE_FORMAT_AYUV:

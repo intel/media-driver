@@ -583,7 +583,7 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
     //Create and register huc Cmd Initializer
-    m_hucCmdInitializer = MOS_New(CodechalCmdInitializer);
+    m_hucCmdInitializer = MOS_New(CodechalCmdInitializer, this);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencVp9State::Initialize(settings));
 

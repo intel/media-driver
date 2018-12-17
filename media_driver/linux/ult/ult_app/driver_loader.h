@@ -24,6 +24,8 @@
 
 #include <vector>
 #include "devconfig.h"
+#include "mos_defs_specific.h"
+#include "mos_os.h"
 #include "va/va_drmcommon.h"
 #include "va/va_backend.h"
 #include "va/va_backend_vpp.h"
@@ -73,6 +75,35 @@ typedef void (*MOS_SetUltFlagFunc)(uint8_t ultFlag);
 
 typedef int32_t (*MOS_GetMemNinjaCounterFunc)();
 
+typedef void (*UltGetCmdBufFunc)(PMOS_COMMAND_BUFFER pCmdBuffer);
+
+struct DriverSymbols
+{
+    bool Initialized() const
+    {
+        if (!__vaDriverInit_           ||
+            !vaCmExtSendReqMsg         ||
+            !MOS_SetUltFlag            ||
+            !MOS_GetMemNinjaCounter    ||
+            !MOS_GetMemNinjaCounterGfx ||
+            !ppfnUltGetCmdBuf)
+        {
+            return false;
+        }
+        return true;
+    }
+    
+    // Functions
+    VADriverInit                __vaDriverInit_;
+    CmExtSendReqMsgFunc         vaCmExtSendReqMsg;
+    MOS_SetUltFlagFunc          MOS_SetUltFlag;
+    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounter;
+    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounterGfx;
+
+    // Data
+    UltGetCmdBufFunc            *ppfnUltGetCmdBuf;
+};
+
 class DriverDllLoader
 {
 public:
@@ -81,18 +112,15 @@ public:
 
     DriverDllLoader(char *path);
 
-    std::vector<Platform_t> &GetPlatforms() { return m_platformArray; }
+    const std::vector<Platform_t> &GetPlatforms() const { return m_platformArray; }
 
-    int GetPlatformNum() { return m_platformArray.size(); }
+    int GetPlatformNum() const { return m_platformArray.size(); }
 
-    VAStatus InitDriver(int platform_id);
+    const DriverSymbols &GetDriverSymbols() const { return m_drvSyms; }
 
-    VAStatus CloseDriver();
+    VAStatus InitDriver(Platform_t platform_id);
 
-    CmExtSendReqMsgFunc         vaCmExtSendReqMsg;
-    MOS_SetUltFlagFunc          MOS_SetUltFlag;
-    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounter;
-    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounterGfx;
+    VAStatus CloseDriver(bool detectMemLeak = true);
 
 public:
 
@@ -102,10 +130,16 @@ public:
 
 private:
 
-    const char                  *m_driver_path;
-    void                        *m_umdhandle;
+    VAStatus LoadDriverSymbols();
+
+private:
+
+    const char                  *m_driver_path    = nullptr;
+    void                        *m_umdhandle      = nullptr;
+    DriverSymbols               m_drvSyms         = {};
+    drm_state                   m_drmstate        = {};
+    Platform_t                  m_currentPlatform = igfxSKLAKE;
     std::vector<Platform_t>     m_platformArray;
-    drm_state                   m_drmstate;
 };
 
 #endif // __DRIVER_LOADER_H__

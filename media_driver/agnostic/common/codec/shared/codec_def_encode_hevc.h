@@ -59,6 +59,14 @@
 #define ENCODE_DP_HEVC_ROI_BLOCK_Width        16    
 #define ENCODE_DP_HEVC_ROI_BLOCK_HEIGHT       16
 
+typedef enum
+{
+    ENCODE_HEVC_BIT_DEPTH_8     = 0,
+    ENCODE_HEVC_BIT_DEPTH_10    = 1,
+    ENCODE_HEVC_BIT_DEPTH_12    = 2,
+    ENCODE_HEVC_BIT_DEPTH_16    = 3,
+} ENCODE_HEVC_BIT_DEPTH;
+
 //!
 //! \enum HEVC_NAL_UNIT_TYPE
 //! \brief HEVC NAL unit type
@@ -286,8 +294,38 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1 : ROI[] value is in delta QP.
             *        \n Note: ROIValueInDeltaQP must be set to 1 for CQP. Currently only ROIValueInDeltaQP equal 1 is validated.
             */
-            uint32_t        ROIValueInDeltaQP   : 1;
-            uint32_t                            : 11;
+            uint32_t        ROIValueInDeltaQP        : 1;
+            /*! \brief Indicates block level absolute QP value is provided.
+            *
+            *        \n - 0 : block level absolute QP value is not provided.
+            *        \n - 1 : block level absolute QP value is provided.
+            */
+            uint32_t        BlockQPforNonRectROI     : 1;
+            /*! \brief Enables tile based encoding.
+            *
+            *        \n - 0 : tile based encoding disabled.
+            *        \n - 1 : tile based encoding enabled.
+            */
+            uint32_t        EnableTileBasedEncode    : 1;
+            /*! \brief Indicates if BRC can use larger P/B frame size than UserMaxPBFrameSize 
+            *
+            *        \n - 0 : BRC can not use larger P/B frame size  than UserMaxPBFrameSize.
+            *        \n - 1 : BRC can use larger P/B frame size  than UserMaxPBFrameSize.
+            */
+            uint32_t        bAutoMaxPBFrameSizeForSceneChange : 1;
+            /*! \brief Enables streaming buffer in LLC
+            *
+            *        \n - 0 : streaming buffer by LLC is disabled.
+            *        \n - 1 : streaming buffer by LLC is enabled.
+            */
+            uint32_t        EnableStreamingBufferLLC : 1;
+            /*! \brief Enables streaming buffer in DDR
+            *
+            *        \n - 0 : streaming buffer by DDR is disabled.
+            *        \n - 1 : streaming buffer by DDR is enabled.
+            */
+            uint32_t        EnableStreamingBufferDDR : 1;
+            uint32_t        ReservedBits             : 6;
         };
         uint32_t    SeqFlags;
     };
@@ -331,7 +369,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             */
             uint32_t    pcm_enabled_flag                    : 1;
             uint32_t    pcm_loop_filter_disable_flag        : 1;    //!< Same as HEVC syntax element
-            uint32_t    tiles_fixed_structure_flag          : 1;    //!< Same as HEVC syntax element
+            uint32_t    reserved                            : 1;
             uint32_t    chroma_format_idc                   : 2;    //!< Same as HEVC syntax element
             uint32_t    separate_colour_plane_flag          : 1;    //!< Same as HEVC syntax element
             uint32_t                                        : 21;
@@ -468,6 +506,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    \n For B1 and B2 explanation refer to NumOfBInGop[]
     */
     uint8_t                 CodingType;
+    uint8_t                 FrameLevel;
     uint16_t                NumSlices;
 
     union

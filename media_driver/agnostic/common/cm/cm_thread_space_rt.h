@@ -60,31 +60,7 @@ class CmTaskRT;
 class CmSurface2D;
 class CmThreadSpaceRT;
 class CmThreadSpaceEx;
-
-class CmThreadSpaceEx
-{
-public:
-    CmThreadSpaceEx() {}
-    virtual ~CmThreadSpaceEx() {}
-
-    virtual int32_t Initialize(CmThreadSpaceRT *threadspace)
-    {
-        // reserved for future implementation
-        return 0;
-    }
-
-    virtual int32_t UpdateDependency()
-    {
-        // reserved for future implementation
-        return 0;
-    }
-
-    virtual int32_t SetDependencyArgToKernel(CmKernelRT *pKernel)
-    {
-        // reserved for future implementation
-        return 0;
-    }
-};
+class CmThreadGroupSpace;
 
 class CmThreadSpaceRT: public CmThreadSpace
 {
@@ -207,18 +183,14 @@ public:
 
     int32_t GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT &groupSelect);
 
-    int32_t SetDependencyArgToKernel(CmKernelRT *pKernel) const
-    {
-        if (m_threadSpaceEx != nullptr)
-        {
-            return m_threadSpaceEx->SetDependencyArgToKernel(pKernel);
-        }
-        return -1;
-    }
+    int32_t UpdateDependency();
+    int32_t SetDependencyArgToKernel(CmKernelRT *pKernel) const;
 
 #if CM_LOG_ON
     std::string Log();
 #endif
+
+    CmThreadGroupSpace *GetThreadGroupSpace() const;
 
 protected:
     CmThreadSpaceRT(CmDeviceRT *device,
@@ -229,6 +201,8 @@ protected:
     ~CmThreadSpaceRT();
 
     int32_t Initialize();
+
+    int32_t InitSwScoreBoard();
 
 #ifdef _DEBUG
     int32_t PrintBoardOrder();
@@ -267,8 +241,12 @@ protected:
     bool m_dependencyVectorsSet;
     bool m_threadSpaceOrderSet;
 
-    friend class CmThreadSpaceExPriv;
-    CmThreadSpaceEx *m_threadSpaceEx;
+    CmSurface2D *m_swBoardSurf; // SWSB 2D atomic
+    uint32_t *m_swBoard; // SWSB system memory store
+    bool m_swScoreBoardEnabled;
+
+    // used to emulate thread space when media walker is not available
+    CmThreadGroupSpace *m_threadGroupSpace; 
 
 private:
     CmThreadSpaceRT(const CmThreadSpaceRT &other);

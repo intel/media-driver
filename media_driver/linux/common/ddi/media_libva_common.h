@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@
 #include "mos_cmdbufmgr.h"
 
 #include "mos_os.h"
+#include "mos_auxtable_mgr.h"
 
 #include <va/va.h>
 #include <va/va_backend.h>
@@ -147,6 +148,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_A8R8G8B8    ,
     Media_Format_X8B8G8R8    ,
     Media_Format_A8B8G8R8    ,
+    Media_Format_R8G8B8A8    ,
     Media_Format_R5G6B5      ,
     Media_Format_R10G10B10A2 ,
     Media_Format_B10G10R10A2 ,
@@ -167,6 +169,14 @@ typedef enum _DDI_MEDIA_FORMAT
 
     Media_Format_P010        ,
     Media_Format_R8G8B8      ,
+    Media_Format_RGBP        ,
+
+    Media_Format_P016        ,
+    Media_Format_Y210        ,
+    Media_Format_Y216        ,
+    Media_Format_AYUV        ,
+    Media_Format_Y410        ,
+    Media_Format_Y416        ,
 
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
@@ -262,6 +272,8 @@ typedef struct _DDI_MEDIA_SURFACE
     PDDI_MEDIA_CONTEXT      pMediaCtx; // Media driver Context
     PMEDIA_SEM_T            pCurrentFrameSemaphore;   // to sync render target for hybrid decoding multi-threading mode
     PMEDIA_SEM_T            pReferenceFrameSemaphore; // to sync reference frame surface. when this semaphore is posted, the surface is not used as reference frame, and safe to be destroied
+
+    uint8_t                 *pSystemShadow;           // Shadow surface in system memory
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
@@ -427,6 +439,13 @@ struct DDI_MEDIA_CONTEXT
 
     GMM_CLIENT_CONTEXT  *pGmmClientContext;
 
+    GmmExportEntries   GmmFuncs;
+
+    // Aux Table Manager
+    AuxTableMgr         *m_auxTableMgr;
+
+    bool                m_useSwSwizzling;
+
 #ifndef ANDROID
     // X11 Func table, for vpgPutSurface (Linux)
     PDDI_X11_FUNC_TABLE X11FuncTable;
@@ -488,6 +507,31 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 //!     Pointer to ddi media surface
 //!
 DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID);
+
+
+//!
+//! \brief  replace the surface with given format
+//!
+//! \param  [in] surface
+//!     Pointer to the old surface
+//! \param  [in] expectedFormat
+//!     VA surface ID
+//!
+//! \return DDI_MEDIA_SURFACE*
+//!     Pointer to new ddi media surface
+//!
+PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat);
+
+//!
+//! \brief  Get VA surface ID  from surface
+//!
+//! \param  [in] surface
+//!     surface
+//!
+//! \return VASurfaceID
+//!     VA Surface ID
+//!
+VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface);
 
 //!
 //! \brief  Get buffer from VA buffer ID

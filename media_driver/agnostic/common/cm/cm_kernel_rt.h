@@ -505,7 +505,7 @@ protected:
 
     CmMovInstConstructor *m_movInstConstructor;
 
-    friend class CmThreadSpaceExPriv;
+    friend class CmThreadSpaceRT;
 
 private:
     CmKernelRT(const CmKernelRT &other);
