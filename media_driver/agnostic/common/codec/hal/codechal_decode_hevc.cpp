@@ -1473,6 +1473,11 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(cmdBufferInUse);
 
+    if (m_statusQueryReportingEnabled)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(cmdBufferInUse));
+    }
+
     // Load HuC FW Kernel from WOPCM.
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS hucImemStateParams;
     MOS_ZeroMemory(&hucImemStateParams, sizeof(hucImemStateParams));
@@ -1532,11 +1537,6 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(
         cmdBufferInUse,
         &hucDmemStateParams));
-
-    if (m_statusQueryReportingEnabled)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(cmdBufferInUse));
-    }
 
     return eStatus;
 }
