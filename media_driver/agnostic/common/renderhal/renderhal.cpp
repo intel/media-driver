@@ -5730,6 +5730,9 @@ MOS_STATUS RenderHal_SetupSurfaceStateOs(
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     MHW_SURFACE_TOKEN_PARAMS        TokenParams;
 
+    uint32_t additional_plane_offset = 0;
+    uint32_t vertical_offset_in_surface_state = 0;
+
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHalSurface);
@@ -5742,16 +5745,35 @@ MOS_STATUS RenderHal_SetupSurfaceStateOs(
     // Surface, plane, offset
     TokenParams.pOsSurface         = pSurface;
     TokenParams.YUVPlane           = pSurfaceEntry->YUVPlane;
+
     switch (pSurfaceEntry->YUVPlane)
     {
         case MHW_U_PLANE:
-            TokenParams.dwSurfaceOffset = pSurface->UPlaneOffset.iSurfaceOffset;
+            vertical_offset_in_surface_state = pSurface->UPlaneOffset.iYOffset;
+            vertical_offset_in_surface_state &= 0x1C;  // The offset value in surface state commands.
+            additional_plane_offset = pSurface->UPlaneOffset.iYOffset
+                    - vertical_offset_in_surface_state;
+            additional_plane_offset *= pSurface->dwPitch;
+            TokenParams.dwSurfaceOffset = pSurface->UPlaneOffset.iSurfaceOffset
+                    + additional_plane_offset;
             break;
         case MHW_V_PLANE:
-            TokenParams.dwSurfaceOffset = pSurface->VPlaneOffset.iSurfaceOffset;
+            vertical_offset_in_surface_state = pSurface->VPlaneOffset.iYOffset;
+            vertical_offset_in_surface_state &= 0x1C;
+            additional_plane_offset = pSurface->VPlaneOffset.iYOffset
+                    - vertical_offset_in_surface_state;
+            additional_plane_offset *= pSurface->dwPitch;
+            TokenParams.dwSurfaceOffset = pSurface->VPlaneOffset.iSurfaceOffset
+                    + additional_plane_offset;
             break;
         default:
-            TokenParams.dwSurfaceOffset = pSurface->dwOffset;
+            vertical_offset_in_surface_state = pSurface->YPlaneOffset.iYOffset;
+            vertical_offset_in_surface_state &= 0x1C;
+            additional_plane_offset = pSurface->YPlaneOffset.iYOffset
+                    - vertical_offset_in_surface_state;
+            additional_plane_offset *= pSurface->dwPitch;
+            TokenParams.dwSurfaceOffset
+                    = pSurface->dwOffset + additional_plane_offset;
             break;
     }
 
