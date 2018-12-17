@@ -3242,14 +3242,8 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->MaxQP_U8 = m_hevcPicParams->BRCMaxQp < 10 ? 51 : (m_hevcPicParams->BRCMaxQp > 51 ? 51 : m_hevcPicParams->BRCMaxQp);   // Setting values from arch spec
 
     hucVdencBrcInitDmem->MaxBRCLevel_U8 = 1;
-    hucVdencBrcInitDmem->LumaBitDepth_U8 = 8;    // default: 8
-    hucVdencBrcInitDmem->ChromaBitDepth_U8 = 8;    // default: 8
-
-    if (m_hevcSeqParams->SourceBitDepth == ENCODE_HEVC_BIT_DEPTH_10)
-    {
-        hucVdencBrcInitDmem->LumaBitDepth_U8 = 10;
-        hucVdencBrcInitDmem->ChromaBitDepth_U8 = 10;
-    }
+    hucVdencBrcInitDmem->LumaBitDepth_U8   = m_hevcSeqParams->bit_depth_luma_minus8 + 8;
+    hucVdencBrcInitDmem->ChromaBitDepth_U8 = m_hevcSeqParams->bit_depth_chroma_minus8 + 8;
 
     if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))
     {
