@@ -31,6 +31,7 @@
 #include "cm_device_rt.h"
 #include "cm_mem.h"
 #include "cm_queue_rt.h"
+#include "cm_wrapper_os.h"
 
 #define COPY_OPTION(option)    (option & 0x1)
 
@@ -1089,7 +1090,11 @@ CM_RT_API int32_t CmSurface2DRT::SetSurfaceStateParam( SurfaceIndex *surfIndex, 
     CmSafeMemSet( &inParam, 0, sizeof( inParam ) );
     inParam.width       = surfStateParam->width;
     inParam.height      = surfStateParam->height;
-    inParam.format      = surfStateParam->format;
+    if (surfStateParam->format)
+    {
+        inParam.format = CmOSFmtToMosFmt(
+            static_cast<CM_OSAL_SURFACE_FORMAT>(surfStateParam->format));
+    }
     inParam.depth       = surfStateParam->depth;
     inParam.pitch       = surfStateParam->pitch;
     inParam.memoryObjectControl   = surfStateParam->memory_object_control;
