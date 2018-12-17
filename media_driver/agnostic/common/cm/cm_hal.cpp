@@ -4037,6 +4037,24 @@ MOS_STATUS HalCm_HwSetSurfaceProperty(
     return eStatus;
 }
 
+// A special treatment of NV12 format. Offset of the UV plane in an NV12 surface is adjusted, so
+// this plane can be accessed as a separate R8G8 surface in kernels.
+static bool UpdateSurfaceAliasPlaneOffset(
+    CM_HAL_SURFACE2D_SURFACE_STATE_PARAM *surfaceStateParam,
+    MOS_SURFACE *mosSurface)
+{
+    if (Format_R8G8UN != surfaceStateParam->format
+        || Format_NV12 != mosSurface->Format)
+    {
+        mosSurface->Format
+                = static_cast<MOS_FORMAT>(surfaceStateParam->format);
+        return false;  // No need to update offset.
+    }
+    mosSurface->dwOffset = mosSurface->UPlaneOffset.iSurfaceOffset;
+    mosSurface->Format = Format_R8G8UN;
+    return false;
+}
+
 //*-----------------------------------------------------------------------------
 //| Purpose: Setup 2D surface State
 //| Returns: Result of the operation
@@ -4224,7 +4242,7 @@ MOS_STATUS HalCm_Setup2DSurfaceStateBasic(
     }
     if (surfStateParam->format)
     {
-        surface->Format = (MOS_FORMAT)surfStateParam->format;
+        UpdateSurfaceAliasPlaneOffset(surfStateParam, surface);
     }
     if (surfStateParam->surfaceXOffset)
     {

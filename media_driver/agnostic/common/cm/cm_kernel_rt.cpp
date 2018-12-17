@@ -3703,7 +3703,9 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         halKernelParam->argParams[i].payloadOffset = tempArgs[i].unitOffsetInPayload;
         halKernelParam->argParams[i].perThread = false;
         halKernelParam->argParams[i].nCustomValue = tempArgs[i].nCustomValue;
-        halKernelParam->argParams[i].isNull = tempArgs[ i ].isNull;
+        halKernelParam->argParams[i].aliasIndex = tempArgs[i].aliasIndex;
+        halKernelParam->argParams[i].aliasCreated = tempArgs[i].aliasCreated;
+        halKernelParam->argParams[i].isNull = tempArgs[i].isNull;
 
         if (tempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_LOCALSIZE) {
             CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
