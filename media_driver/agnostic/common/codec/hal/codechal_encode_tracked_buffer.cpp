@@ -531,11 +531,11 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
     if (m_encoder->m_useCommonKernel)
     {
         downscaledSurfaceWidth4x = m_encoder->m_downscaledWidth4x;
-        downscaledSurfaceHeight4x = m_encoder->m_downscaledHeight4x;
+        downscaledSurfaceHeight4x = MOS_ALIGN_CEIL(m_encoder->m_downscaledHeight4x, MOS_YTILE_H_ALIGNMENT);
         downscaledSurfaceWidth16x = m_encoder->m_downscaledWidth16x;
-        downscaledSurfaceHeight16x = m_encoder->m_downscaledHeight16x;
+        downscaledSurfaceHeight16x = MOS_ALIGN_CEIL(m_encoder->m_downscaledHeight16x, MOS_YTILE_H_ALIGNMENT);
         downscaledSurfaceWidth32x = m_encoder->m_downscaledWidth32x;
-        downscaledSurfaceHeight32x = m_encoder->m_downscaledHeight32x;
+        downscaledSurfaceHeight32x = MOS_ALIGN_CEIL(m_encoder->m_downscaledHeight32x, MOS_YTILE_H_ALIGNMENT);
     }
     else
     {
