@@ -212,8 +212,8 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     else if (VA_RC_CBR == m_encodeCtx->uiRCMethod)
     {
         seqParams->RateControlMethod = RATECONTROL_CBR;
-        seqParams->MaxBitRate        = seqParams->TargetBitRate[0];
-        seqParams->MinBitRate        = seqParams->TargetBitRate[0];
+        seqParams->MaxBitRate        = MOS_MAX(seqParams->MaxBitRate, seqParams->TargetBitRate[0]);
+        seqParams->MinBitRate        = MOS_MIN(seqParams->MinBitRate, seqParams->TargetBitRate[0]);
     }
     else if (VA_RC_VBR == m_encodeCtx->uiRCMethod)
     {
@@ -467,6 +467,8 @@ VAStatus DdiEncodeVp9::ResetAtFrameLevel()
     if (vp9SeqParam)
     {
         vp9SeqParam->SeqFlags.fields.bResetBRC = 0;
+        vp9SeqParam->MaxBitRate = 0;
+        vp9SeqParam->MinBitRate = 0xffffffff;
     }
 
     m_encodeCtx->bMBQpEnable = false;
@@ -842,33 +844,34 @@ VAStatus DdiEncodeVp9::ParseMiscParamRC(void *data)
     DDI_CHK_LESS(temporalId, (seqParams->NumTemporalLayersMinus1+1),
         "invalid temporal id", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    seqParams->MaxBitRate                = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
+    uint32_t bitRate                     = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
+    seqParams->MaxBitRate                = MOS_MAX(seqParams->MaxBitRate, bitRate);
     seqParams->SeqFlags.fields.bResetBRC = vaEncMiscParamRC->rc_flags.bits.reset;  // adding reset here. will apply both CBR and VBR
 
     if (VA_RC_CBR == m_encodeCtx->uiRCMethod)
     {
-        seqParams->TargetBitRate[temporalId] = seqParams->MaxBitRate;
-        seqParams->MinBitRate                = seqParams->MaxBitRate;
+        seqParams->TargetBitRate[temporalId] = bitRate;
+        seqParams->MinBitRate                = MOS_MIN(seqParams->MinBitRate, bitRate);
         seqParams->RateControlMethod         = RATECONTROL_CBR;
-        if (savedTargetBit[temporalId] != seqParams->MaxBitRate)
+        if (savedTargetBit[temporalId] != bitRate)
         {
-            savedTargetBit[temporalId] = seqParams->MaxBitRate;
+            savedTargetBit[temporalId] = bitRate;
             seqParams->SeqFlags.fields.bResetBRC |= 0x1;
         }
     }
     else if (VA_RC_VBR == m_encodeCtx->uiRCMethod)
     {
-        seqParams->TargetBitRate[temporalId] = seqParams->MaxBitRate * vaEncMiscParamRC->target_percentage / 100;  // VBR target bits
-        seqParams->MinBitRate = seqParams->MaxBitRate * abs((int32_t)(2 * vaEncMiscParamRC->target_percentage) - 100) / 100;
-        seqParams->MinBitRate = MOS_MIN(seqParams->TargetBitRate[temporalId], seqParams->MinBitRate);
+        seqParams->TargetBitRate[temporalId] = bitRate * vaEncMiscParamRC->target_percentage / 100;  // VBR target bits
+        uint32_t minBitRate = bitRate * abs((int32_t)(2 * vaEncMiscParamRC->target_percentage) - 100) / 100;
+        seqParams->MinBitRate = MOS_MIN(seqParams->TargetBitRate[temporalId], minBitRate);
         seqParams->RateControlMethod = RATECONTROL_VBR;
 
         if ((savedTargetBit[temporalId] != seqParams->TargetBitRate[temporalId]) ||
-            (savedMaxBitRate[temporalId] != seqParams->MaxBitRate))
+            (savedMaxBitRate[temporalId] != bitRate))
         {
             savedTargetBit[temporalId]           = seqParams->TargetBitRate[temporalId];
             seqParams->SeqFlags.fields.bResetBRC |= 0x1;
-            savedMaxBitRate[temporalId]          = seqParams->MaxBitRate;
+            savedMaxBitRate[temporalId]          = bitRate;
         }
     }
 
