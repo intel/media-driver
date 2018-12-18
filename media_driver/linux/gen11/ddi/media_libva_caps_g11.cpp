@@ -766,18 +766,10 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         attribs[i].type = VASurfaceAttribMemoryType;
         attribs[i].value.type = VAGenericValueTypeInteger;
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
-#ifdef ANDROID
-        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
-            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
-            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
-            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
-            VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC;
-#else
         attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
             VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
             VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
             VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
-#endif
         i++;
 
         attribs[i].type = VASurfaceAttribExternalBufferDescriptor;
