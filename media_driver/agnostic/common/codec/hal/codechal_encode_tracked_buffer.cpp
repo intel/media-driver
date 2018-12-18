@@ -737,8 +737,10 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurr4xDsRecon));
 
     // Allocating VDEnc 8x DsRecon surfaces
+    uint32_t downscaledSurfaceWidth8x  = downscaledSurfaceWidth4x >> 1;
+    uint32_t downscaledSurfaceHeight8x = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x >> 1, MOS_YTILE_H_ALIGNMENT) << 1;
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurr8xDsRecon = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, downscaledSurfaceWidth4x >> 1, downscaledSurfaceHeight4x >> 1, ds8xRecon, "ds8xRecon", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+        m_standard, downscaledSurfaceWidth8x, downscaledSurfaceHeight8x, ds8xRecon, "ds8xRecon", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurr8xDsRecon));
 
