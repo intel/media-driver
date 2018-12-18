@@ -41,7 +41,9 @@ void CompositeStateG10::SubmitStatesFillGenSpecificStaticData(
 
     if (nullptr != pSurface && pSurface->bInterlacedScaling)
     {
-        if (pSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD || pSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD)
+        if (pSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD ||
+            pSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD  ||
+            pSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST)
         {
             //use the cropping size, not the surface size
             pStatic->DW12.TopBottomDelta = (float)(1.0 / (pSurface->rcDst.bottom - pSurface->rcDst.top) - 1.0 / (pSurface->rcSrc.bottom - pSurface->rcSrc.top));

@@ -2256,7 +2256,7 @@ void VPHAL_VEBOX_STATE::VeboxSetFieldRenderingFlags(
     // No need to check future surface for Mode2 here
     // Because only current frame will change the field setting.
     // And whether current blt are top or bottom field doesn't matter here
-    pRenderData->bTFF =
+    pRenderData->bTFF = (pSrc->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST) ||
         (pSrc->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD) ||
         (pSrc->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD);
 
