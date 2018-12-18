@@ -77,6 +77,24 @@ export LIBVA_DRIVERS_PATH=<path-contains-iHD_drv_video.so>
 export LIBVA_DRIVER_NAME=iHD
 ```
 
+## Build Modes
+
+This section summarizes key driver build modes which can be used in the different environment requirements:
+
+| Build option | Default value | Dependencies | Comments |
+|-|-|-|-|
+| ENABLE_KERNELS | ON | N/A | Enable/Disable shaders during driver build |
+| FREE_KERNELS | OFF | ENABLE_KERNELS=ON | If enabled, use only open source shaders (kernels) during the build |
+| BUILD_KERNELS | OFF | ENABLE_KERNELS=ON, FREE_KERNELS=ON | If enabled, rebuild open source shaders (kernels) from sources. Requires FREE_KERNELS=ON |
+
+With the above options it is possible to build (table assumes that non-listed options have default values):
+
+| No. | Build option(s) | HW Features | Shaders (Kernels) | Comments |
+|-|-|-|-|-|
+| 1 | ENABLE_KERNELS=ON | Yes | Close source (pre-built) | Default, full feature driver |
+| 2 | ENABLE_KERNELS=OFF | Yes | None | HW features only, include HW decoder, HW VDEnc Encoder (CQP mode) |
+| 3 | FREE_KERNELS=ON | Yes | Open source | Same as FREE_KERNELS=ON driver, but shaders are rebuilt from sources |
+| 4 | FREE_KERNELS=ON BUILD_KERNELS=ON | Yes | Open source (pre-built) | HW features available in prev.mode (ENABLE_KERNELS=ON) and features supported by open source shaders |
 
 ## Supported Platforms
 
@@ -90,144 +108,108 @@ KBL (Kaby Lake)
 
 CFL (Coffee Lake)
 
+WHL (Whiskey Lake)
+
 CNL (Cannonlake)
 
 ICL (Ice Lake)
 
-## Supported Codecs
+## Default Driver Build Features
 
-| CODEC      | BDW  | SKL  | BXT/APL |   KBL   |   CFL   | CNL  |   ICL*  |
-|------------|------|------|---------|---------|---------|------|---------|
-| AVC        | D/E1 | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1 | D/E1/E2 |
-| MPEG-2     | D/E1 | D/E1 | D       | D/E1    | D/E1    | D/E1 | D/E1    |
-| VC-1       | D    | D    | D       | D       | D       | D    | D       |
-| JPEG       | D    | D/E2 | D/E2    | D/E2    | D/E2    | D/E2 | D/E2    |
-| VP8        | D    | D    | D       | D       | D       | D/E1 | D/E1    |
-| HEVC 8bit  |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 | D/E1/E2 |
-| HEVC 10bit |      |      | D       | D       | D       | D/E1 | D/E1/E2 |
-| VP9 8bit   |      |      | D       | D       | D       | D    | D/E2    |
-| VP9 10bit  |      |      |         | D       | D       | D    | D/E2    |
+| CODEC      | BDW  |  SKL   | BXT/APL |   KBL   |  CFL  |  WHL  | CNL  |   ICL*  |
+|------------|------|--------|---------|---------|-------|-------|------|---------|
+| AVC        | D/Es | D/E/Es | D/E/Es  | D/E/Es  | D/E/Es| D/E/Es| D/Es | D/E/Es  |
+| MPEG-2     | D/Es |  D/Es  | D       | D/Es    | D/Es  | D/Es  | D/Es | D/Es    |
+| VC-1       | D    |   D    | D       | D       | D     | D     | D    | D       |
+| JPEG       | D    |   D/E  | D/E     | D/E     | D/E   | D/E   | D/E  | D/E     |
+| VP8        | D    |   D    | D       | D       | D     | D     | D/Es | D/Es    |
+| HEVC 8bit  |      |   D/Es | D/Es    | D/Es    | D/Es  | D/Es  | D/Es | D/E/Es  |
+| HEVC 10bit |      |        | D       | D       | D     | D     | D/Es | D/E/Es  |
+| VP9 8bit   |      |        | D       | D       | D     | D     | D    | D/E     |
+| VP9 10bit  |      |        |         | D       | D     | D     | D    | D/E     |
 
-D  - decoding
+D  - HW Decoding
 
-E1 - VME based encoding
+E  - HW Encoding
 
-E2 - Low power encoding
+Es - HW + Shader Encoding
+
+\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
+
+
+| Video Processing                             | BDW | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL |
+|----------------------------------------------|-----|-----|---------|-----|-----|-----|-----|-----|
+| Blending                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| CSC (Color Space Conversion)                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| De-interlace                                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| De-noise                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| Luma Key                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| Mirroring                                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| ProcAmp (brightness,contrast,hue,saturation) |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| Rotation                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| Scaling                                      |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| Sharpening                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| STD/E (Skin Tone Detect & Enhancement)       |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| TCC (Total Color Control)                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| Chroma Siting                                |     |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
+| HDR (High Dynamic Range)                     |     |     |         |     |     |     |     |  Y  |
+
+For detail feature information, you can access [Media Features](https://github.com/intel/media-driver/blob/master/docs/media_features.md).
+
+## HW Media Features
+
+| Media Features | BDW  | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL |
+|----------------|------|-----|---------|-----|-----|-----|-----|-----|
+| AVC            |   D  |  D  | D/E     | D/E | D/E | D/E |  D  | D/E |
+| MPEG-2         |   D  |  D  | D       | D   | D   | D   |  D  | D   |
+| VC-1           |   D  |  D  | D       | D   | D   | D   |  D  | D   |
+| JPEG           |   D  | D/E | D/E     | D/E | D/E | D/E | D/E | D/E |
+| VP8            |   D  |  D  | D       | D   | D   | D   |  D  | D   |
+| HEVC 8bit      |      |  D  | D       | D   | D   | D   |  D  | D/E |
+| HEVC 10bit     |      |     | D       | D   | D   | D   |  D  | D/E |
+| VP9 8bit       |      |     | D       | D   | D   | D   |  D  | D/E |
+| VP9 10bit      |      |     |         | D   | D   | D   |  D  | D/E |
+
+D  - HW Decoding
+
+E  - HW Encoding, VDEnc CQP mode only, BRC mode is pending on i915 support on upstream.
+
+
+## Open Source Shader Media Features
+
+| Media Features                               | BDW | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL |
+|----------------------------------------------|-----|-----|---------|-----|-----|-----|-----|-----|
+| Blending                                     |     |     |         |     |     |     |     |  Y  |
+| CSC (Color Space Conversion)                 |     |     |         |     |     |     |     |  Y  |
+| De-interlace                                 |     |     |         |     |     |     |     |  Y  |
+| Luma Key                                     |     |     |         |     |     |     |     |  Y  |
+| Mirroring                                    |     |     |         |     |     |     |     |  Y  |
+| ProcAmp (brightness,contrast,hue,saturation) |     |     |         |     |     |     |     |  Y  |
+| Rotation                                     |     |     |         |     |     |     |     |  Y  |
+| Scaling                                      |     |     |         |     |     |     |     |  Y  |
+| Sharpening                                   |     |     |         |     |     |     |     |  Y  |
+| Color fill                                   |     |     |         |     |     |     |     |  Y  |
+| Chroma Siting                                |     |     |         |     |     |     |     |  Y  |
+
+
+## Close Source Shader Media Codec Features
+
+All Open Source Shaders listed in the previous paragraph are still available, but Close Source Media Codec Shaders provide few additional features listed below.
+
+| Encode Features | BDW | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL* |
+|-----------------|-----|-----|---------|-----|-----|-----|-----|------|
+| AVC             |  Es |  Es |   Es    |  Es |  Es |  Es |  Es |  Es  |
+| MPEG-2          |  Es |  Es |         |  Es |  Es |  Es |  Es |  Es  |
+| VP8             |     |     |         |     |     |     |  Es |  Es  |
+| HEVC 8bit       |     |  Es |   Es    |  Es |  Es |  Es |  Es |  Es  |
+| HEVC 10bit      |     |     |         |     |     |     |  Es |  Es  |
+
+Es - HW + Shader Encoding
 
 \* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 
-## Supported Decoding Features
-
-Supported decoding output format and max resolution: 
-
-(2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384)
-
-| Codec      | Type     | BDW  | SKL  | BXT/APL | KBL  | CFL  | CNL  | ICL            |
-|------------|----------|------|------|---------|------|------|------|----------------|
-| AVC        |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| MPEG-2     |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 2k   | 2k   |  2k     | 2k   | 2k   | 2k   | 2k             |
-| VC-1       |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| JPEG*      |Max Res.  | 16k  | 16k  |  16k    | 16k  | 16k  | 16k  | 16k            |
-| VP8        |Output    | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.  | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| HEVC 8bit  |Output    |      | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12/YUY2/AYUV |
-|            |Max Res.  |      | 8k   |  8k     | 8k   | 8k   | 8k   | 8k             |
-| HEVC 10bit |Output    |      |      |  P010   | P010 | P010 | P010 | P010/Y210/Y410 |
-|            |Max Res.  |      |      |  8k     | 8k   | 8k   | 8k   | 8k             |
-| VP9  8bit  |Output    |      |      |  NV12   | NV12 | NV12 | NV12 | NV12/AYUV      |
-|            |Max Res.  |      |      |  4k     | 8k   | 8k   | 8k   | 8k             |
-| VP9  10bit |Output    |      |      |         | P010 | P010 | P010 | P010/Y410      |
-|            |Max Res.  |      |      |         | 8k   | 8k   | 8k   | 8k             |
-
-\* JPEG output format: NV12/411P/422H/422V/444P/BGRP/RGBP/YUY2/ARGB
-
-
-## Supported Encoding Features
-
-### Low Power Encoding:
-
-Supported input format and max resoultuion: 
-
-(4k=4096x4096, 16k=16384x16384)
-
-| Codec      | Type       | BDW  | SKL  | BXT/APL | KBL  | CFL  | CNL  | ICL***         |
-|------------|------------|------|------|---------|------|------|------|----------------|
-| AVC        |Input       |      |      |  NV12   | More*| More*|      | More*          |
-|            |Max Res.    |      |      |  4k     | 4k   | 4k   |      | 4k             |
-| JPEG       |Input/Output|      |Note**| Note**  |Note**|Note**|Note**| Note**         |
-|            |Max Res.    |      | 16k  |  16k    | 16k  | 16k  | 16k  | 16k            |
-| HEVC 8bit  |Input       |      |      |         |      |      |      | NV12/AYUV      |
-|            |Max Res.    |      |      |         |      |      |      | 8K             |
-| HEVC 10bit |Input       |      |      |         |      |      |      | P010/Y410      |
-|            |Max Res.    |      |      |         |      |      |      | 8k             |
-| VP9  8bit  |Input       |      |      |         |      |      |      | NV12/AYUV      |
-|            |Max Res.    |      |      |         |      |      |      | 8k             |
-| VP9  10bit |Input       |      |      |         |      |      |      | P010/Y410      |
-|            |Max Res.    |      |      |         |      |      |      | 8k             |
-
-\* KBL/CFL/ICL AVC encoding supported input formats: NV12/YUY2/YUYV/YVYU/UYVY/AYUV/ARGB
-
-\** JPEG encoding supports input format NV12/YUY2/UYVY/AYUV/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24. 
-
-\*** ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
-
-
-### VME Based Encoding:
-
-Supported input format and max resolution: 
-
-(2k=2048x2048, 4k=4096x4096, 8k=8192x8192)
-
-| Codec      | Type       | BDW  | SKL  | BXT/APL | KBL  | CFL  | CNL  | ICL*           |
-|------------|------------|------|------|---------|------|------|------|----------------|
-| AVC        |Input       | NV12 | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.    | 4k   | 4k   |  4k     | 4k   | 4k   | 4k   | 4k             |
-| MPEG2      |Input       | NV12 | NV12 |         | NV12 | NV12 | NV12 | NV12           |
-|            |Max Res.    | 2k   | 2k   |         | 2k   | 2k   | 2k   | 2k             |
-| VP8        |Input       |      |      |         |      |      | NV12 | NV12           |
-|            |Max Res.    |      |      |         |      |      | 4k   | 4k             |
-| HEVC 8bit  |Input       |      | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12/AYUV      |
-|            |Max Res.    |      | 8k   |  8k     | 8k   | 8k   | 8k   | 8k             |
-| HEVC 10bit |Input       |      |      |         |      |      | NV12 | P010/Y410      |
-|            |Max Res.    |      |      |         |      |      | 8k   | 8k             |
-
-\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
-
-## Supported Video Processing
-
-### Supported Feature List
-
-| Video Processing                             | BDW | SKL | BXT/APL | KBL | CFL | CNL | ICL |
-|----------------------------------------------|-----|-----|---------|-----|-----|-----|-----|
-| Blending                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| CSC (Color Space Conversion)                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| De-interlace                                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| De-noise                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| Luma Key                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| Mirroring                                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| ProcAmp (brightness,contrast,hue,saturation) |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| Rotation                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| Scaling                                      |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| Sharpening                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| STD/E (Skin Tone Detect & Enhancement)       |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| TCC (Total Color Control)                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-| Chroma Siting                                |  N  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
-
-### CSC/Scaling Format List
-
-|    Platform       | Format | NV12 | YV12 | I420 | P010 | YUY2 | UYVY | Y210 | AYUV | Y410 |
-|-------------------|--------|------|------|------|------|------|------|------|------|------|
-|      BDW          | Input  |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|                   | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|SKL/BXT/APL/KBL/CFL| Input  |  Y   |  Y   |  Y   |  Y   |  Y   |      |      |      |      |
-|                   | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|      ICL          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
-|                   | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |
 
 
 ## Known Issues and Limitations
@@ -235,10 +217,7 @@ Supported input format and max resolution:
 1. Intel(R) Media Driver for VAAPI is recommended to be built against gcc compiler v6.1
 or later, which officially supported C++11.
 
-2. SKL: Green or other incorrect color will be observed in output frames when using
-YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock
-(with kernel 4.10). The issue can be addressed with the kernel patch:
-WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75f6827](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
+2. SKL: Green or other incorrect color will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75f6827](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
 3. HuC firmware is needed for AVC low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
    * APL/KBL: starting from kernel 4.11
