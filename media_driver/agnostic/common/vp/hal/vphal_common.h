@@ -479,13 +479,28 @@ typedef enum _VPHAL_SAMPLE_TYPE
     SAMPLE_PROGRESSIVE,
     SAMPLE_SINGLE_TOP_FIELD,
     SAMPLE_SINGLE_BOTTOM_FIELD,
+    SAMPLE_INTERLEAVED_EVEN_FIRST,
+    SAMPLE_INTERLEAVED_ODD_FIRST,
     SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD,
     SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD,
     SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD,
     SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD,
     SAMPLE_INVALID
 } VPHAL_SAMPLE_TYPE;
-C_ASSERT(SAMPLE_INVALID == 7);      //!< When adding, update assert & vphal_solo_scenario.cpp
+C_ASSERT(SAMPLE_INVALID == 9);      //!< When adding, update assert & vphal_solo_scenario.cpp
+
+//!
+//! \brief Interlaced Scaling Mode enum
+//!
+typedef enum _VPHAL_ISCALING_TYPE
+{
+    ISCALING_NONE,
+    ISCALING_INTERLEAVED_TO_INTERLEAVED,
+    ISCALING_INTERLEAVED_TO_FIELD,
+    ISCALING_FIELD_TO_INTERLEAVED,
+    ISCALING_FIELD_TO_FIELD
+} VPHAL_ISCALING_TYPE;
+C_ASSERT(ISCALING_FIELD_TO_FIELD == 4);
 
 //!
 //! \brief DI Mode enum
@@ -919,12 +934,15 @@ struct VPHAL_SURFACE
     PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
     PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
     bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
-    bool                        bInterlacedScaling; //!< Interlaced scaling
-    bool                        bFieldWeaving;      //!< Field Weaving
     bool                        bQueryVariance;     //!< enable variance query
     bool                        bDirectionalScalar; //!< Vebox Directional Scalar
     bool                        bFastColorFill;     //!< enable fast color fill without copy surface
     bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
+
+    // Interlaced Scaling
+    bool                        bInterlacedScaling;    //!< Interlaced scaling
+    bool                        bFieldWeaving;         //!< Field Weaving
+    VPHAL_ISCALING_TYPE         InterlacedScalingType; //!< Interlaced scaling type for new interlaced scaling mode
 
     // Advanced Processing
     PVPHAL_DI_PARAMS            pDeinterlaceParams;
