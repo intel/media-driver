@@ -514,6 +514,21 @@ static __inline uint8_t Map44LutValue(uint32_t v, uint8_t max)
     return ret;
 }
 
+static __inline uint8_t GetU62ModeCost(double mcost)
+{
+    return (uint8_t)(mcost * 4 + 0.5);
+}
+
+static __inline uint8_t GetU71ModeCost(double mcost)
+{
+    return (uint8_t)(mcost * 2 + 0.5);
+}
+
+static __inline uint8_t GetU44ModeCost(double mcost)
+{
+    return (uint8_t)(mcost * 16 + 0.5);
+}
+
 static __inline uint32_t CodecHal_GetStandardFromMode(uint32_t mode)
 {
     uint32_t standard = CODECHAL_UNDEFINED;
