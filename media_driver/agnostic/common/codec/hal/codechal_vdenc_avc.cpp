@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1194,12 +1194,14 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeAvcBase::Initialize(settings));
 
-#ifndef _FULL_OPEN_SOURCE
-    // for AVC: the Ds+Copy kernel is by default used to do CSC and copy non-aligned surface
-    m_cscDsState->EnableCopy();
-    m_cscDsState->EnableColor();
-    m_cscDsState->EnableSfc();
-#endif
+    if (m_cscDsState)
+    {
+      // for AVC: the Ds+Copy kernel is by default used to do CSC and copy
+      // non-aligned surface
+      m_cscDsState->EnableCopy();
+      m_cscDsState->EnableColor();
+      m_cscDsState->EnableSfc();
+    }
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -1244,12 +1246,14 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
             m_16xMeSupported = true;
         }
 
+#ifndef _FULL_OPEN_SOURCE
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_STATIC_FRAME_DETECTION_ENABLE_ID,
             &userFeatureData);
         m_staticFrameDetectionEnable = (userFeatureData.i32Data) ? true : false;
+#endif
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
@@ -1349,9 +1353,8 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Initialize());
 
-#ifndef _FULL_OPEN_SOURCE
     // common function for all codecs needed
-    if (CodecHalUsesRenderEngine(m_codecFunction, m_standard))
+    if (m_cscDsState && CodecHalUsesRenderEngine(m_codecFunction, m_standard))
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
 
@@ -1382,7 +1385,6 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
             m_maxBtCount = MOS_MAX(encOneBtCount, encTwoBtCount);
         }
     }
-#endif
 
     // Picture Level Commands
     m_hwInterface->GetMfxStateCommandsDataSize(
@@ -3326,9 +3328,10 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-
-#ifndef _FULL_OPEN_SOURCE
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_cscDsState);
+    if (!m_cscDsState)
+    {
+        return eStatus;
+    }
 
     // SHME and CSC require calling EU kernels
     if (!(m_16xMeSupported || m_cscDsState->RequireCsc()))
@@ -3432,7 +3435,6 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
         }
 
     );
-#endif
 
     return eStatus;
 }
@@ -4065,9 +4067,8 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             &flushDwParams));
     }
 
-#ifndef _FULL_OPEN_SOURCE
     // On-demand sync for VDEnc StreamIn surface and CSC surface
-    if (m_currPass == 0)
+    if (m_cscDsState&& m_currPass == 0)
     {
         if (m_cscDsState->RequireCsc())
         {
@@ -4084,7 +4085,6 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
         }
     }
-#endif
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadMfcStatus(&cmdBuffer));
 
