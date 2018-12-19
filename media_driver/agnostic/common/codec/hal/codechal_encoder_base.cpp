@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1209,26 +1209,30 @@ MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()
     {
         ResizeOnResChange();
     }
-#ifndef _FULL_OPEN_SOURCE
-    // check recon surface's alignment meet HW requirement
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
 
-    if (!m_cscDsState->IsEnabled() ||
-        CodecHal_PictureIsField(m_currOriginalPic) ||
-        CodecHal_PictureIsInterlacedFrame(m_currOriginalPic))
+    if (m_cscDsState)
     {
-        // CSC disabled for interlaced frame
-        m_cscDsState->ResetCscFlag();
+        // check recon surface's alignment meet HW requirement
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
 
-        // check raw surface's alignment meet HW requirement
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckRawSurfaceAlignment(m_rawSurfaceToEnc));
+        if (!m_cscDsState->IsEnabled() ||
+            CodecHal_PictureIsField(m_currOriginalPic) ||
+            CodecHal_PictureIsInterlacedFrame(m_currOriginalPic))
+        {
+            // CSC disabled for interlaced frame
+            m_cscDsState->ResetCscFlag();
+
+            // check raw surface's alignment meet HW requirement
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckRawSurfaceAlignment(m_rawSurfaceToEnc));
+        }
+        else
+        {
+            // check if we need to do CSC or copy non-aligned surface
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckCondition());
+        }
     }
-    else
-    {
-        // check if we need to do CSC or copy non-aligned surface
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckCondition());
-    }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2073,14 +2077,14 @@ void CodechalEncoderState::FreeResources()
             }
         }
     }
-#ifndef _FULL_OPEN_SOURCE
+
     // release CSC Downscaling kernel resources
     if (m_cscDsState)
     {
         MOS_Delete(m_cscDsState);
         m_cscDsState = nullptr;
     }
-#endif
+
     if (m_encoderGenState)
     {
         MOS_Delete(m_encoderGenState);
@@ -4018,7 +4022,6 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-#ifndef _FULL_OPEN_SOURCE
     // report encode CSC method
     if (m_cscDsState)
     {
@@ -4043,8 +4046,6 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
     userFeatureWriteData.Value.i32Data = m_computeContextEnabled;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID;
     MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-
-#endif
 #endif
 
     return eStatus;
