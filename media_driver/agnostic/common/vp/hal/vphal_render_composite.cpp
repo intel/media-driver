@@ -1746,6 +1746,12 @@ bool CompositeState::AddCompLayer(
         }
     }
 
+    if (scalingMode == VPHAL_SCALING_AVS && m_need3DSampler)
+    {
+        scalingMode = VPHAL_SCALING_BILINEAR;
+        pComposite->nSampler &= VPHAL_COMP_SAMPLER_BILINEAR;
+    }
+
     // Fails if any of the limits are reached
     // Output structure has reason why failed :-)
     // multi-passes if rotation is not the same as Layer 0 rotation
@@ -2636,6 +2642,8 @@ static MOS_STATUS GetBindingIndex(
 
 //!
 //! \brief    Get Sampler Index associated with a surface state for composite
+//! \param    [in] ScalingMode
+//!           Set the ScalingMode
 //! \param    [in] pEntry
 //!           Pointer to Surface state
 //! \param    [out] pSamplerIndex
@@ -2645,17 +2653,18 @@ static MOS_STATUS GetBindingIndex(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise MOS_STATUS_UNKNOWN
 //!
-static MOS_STATUS GetSamplerIndex(
+MOS_STATUS CompositeState::GetSamplerIndex(
+    VPHAL_SCALING_MODE                  ScalingMode,
     PRENDERHAL_SURFACE_STATE_ENTRY      pEntry,
     int32_t*                            pSamplerIndex,
     PMHW_SAMPLER_TYPE                   pSamplerType)
 {
-    MOS_STATUS  eStatus;
+    MOS_UNUSED(ScalingMode);
 
-    eStatus = MOS_STATUS_UNKNOWN;
-    if (pSamplerIndex == nullptr || pSamplerType == nullptr)
+    if (pSamplerIndex == nullptr || pSamplerType == nullptr || pEntry == nullptr)
     {
-        goto finish;
+        VPHAL_RENDER_ASSERTMESSAGE(" Null pointer.");
+        return MOS_STATUS_NULL_POINTER;
     }
 
     // AVS
@@ -2695,10 +2704,8 @@ static MOS_STATUS GetSamplerIndex(
         }
     }
 
-    eStatus = MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 
-finish:
-    return eStatus;
 }
 
 //!
@@ -3324,7 +3331,8 @@ int32_t CompositeState::SetLayer(
     for (i = 0; i < iSurfaceEntries; i++, iBTentry++)
     {
         // Obtain Sampler ID and Type
-        eStatus = GetSamplerIndex(pSurfaceEntries[i],
+        eStatus = GetSamplerIndex(pSource->ScalingMode,
+                                  pSurfaceEntries[i],
                                   &iSamplerID,
                                   &SamplerType);
 
@@ -3370,7 +3378,7 @@ int32_t CompositeState::SetLayer(
             pSamplerStateParams->Unorm.AddressV = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressW = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
 
-            if (iSamplerID == VPHAL_SAMPLER_Y && pSource->bUseSamplerLumakey)
+            if (IsSamplerIDForY(iSamplerID) && pSource->bUseSamplerLumakey)
             {
                 if (IsNV12SamplerLumakeyNeeded(pSource, pRenderHal))
                 {
@@ -3389,7 +3397,7 @@ int32_t CompositeState::SetLayer(
                 pSamplerStateParams->Unorm.ChromaKeyIndex   = pRenderHal->pfnAllocateChromaKey(pRenderHal, dwLow, dwHigh);
             }
 
-            if (iSamplerID != VPHAL_SAMPLER_Y && bForceNearestForUV)
+            if ((!IsSamplerIDForY(iSamplerID)) && bForceNearestForUV)
             {
                 pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
             }
@@ -3864,6 +3872,8 @@ int32_t CompositeState::SetLayer(
             iResult = -1;
             goto finish;
     }
+
+    Set3DSamplerStatus(pSource->ScalingMode, (uint8_t)iLayer, pStatic);
 
     // Save rendering parameters, increment number of layers
     pRenderingData->pLayers[iLayer] = pSource;
@@ -7061,4 +7071,9 @@ int32_t CompositeState::GetThreadCountForVfeState(
     }
 
     return iThreadCount;
+}
+bool CompositeState::IsSamplerIDForY(
+    int32_t                            SamplerID)
+{
+    return (SamplerID == VPHAL_SAMPLER_Y) ? true : false;
 }
