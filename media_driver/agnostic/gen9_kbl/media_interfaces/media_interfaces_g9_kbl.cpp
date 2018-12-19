@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -445,7 +445,7 @@ MOS_STATUS CodechalInterfacesG9Kbl::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             // Create CSC and Downscaling interface
@@ -454,6 +454,7 @@ MOS_STATUS CodechalInterfacesG9Kbl::Initialize(
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
+#endif
     }
     else
     {
