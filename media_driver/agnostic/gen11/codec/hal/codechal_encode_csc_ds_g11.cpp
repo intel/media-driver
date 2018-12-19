@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 #include "codechal_encode_csc_ds_g11.h"
 #include "codechal_kernel_header_g11.h"
 #include "codeckrnheader.h"
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#if defined(ENABLE_KERNELS)
 #include "igcodeckrn_g11.h"
 #endif
 #if USE_CODECHAL_DEBUG_TOOL
@@ -790,7 +790,7 @@ CodechalEncodeCscDsG11::CodechalEncodeCscDsG11(CodechalEncoderState* encoder)
 {
     m_cscKernelUID = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#if defined(ENABLE_KERNELS)
     m_kernelBase = (uint8_t*)IGCODECKRN_G11;
 #endif
 }

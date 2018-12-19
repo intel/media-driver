@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -106,9 +106,9 @@ void CodechalEncodeTrackedBuffer::Resize()
             }
             ReleaseMvData(i);
             ReleaseDsRecon(i);
-#ifndef _FULL_OPEN_SOURCE
-            ReleaseSurfaceDS(i);
-#endif
+            if (m_encoder->m_cscDsState)
+                ReleaseSurfaceDS(i);
+
             // this slot can now be re-used
             m_tracker[i].ucSurfIndex7bits = PICTURE_MAX_7BITS;
         }
@@ -117,9 +117,9 @@ void CodechalEncodeTrackedBuffer::Resize()
             m_tracker[i].ucSurfIndex7bits = PICTURE_RESIZE;
         }
     }
-#ifndef _FULL_OPEN_SOURCE
-    ResizeCsc();
-#endif
+    if (m_encoder->m_cscDsState)
+        ResizeCsc();
+
     return;
 }
 
@@ -305,19 +305,19 @@ void CodechalEncodeTrackedBuffer::DeferredDeallocateOnResChange()
         }
         ReleaseMvData(m_trackedBufAnteIdx);
         ReleaseDsRecon(m_trackedBufAnteIdx);
-#ifndef _FULL_OPEN_SOURCE
-        ReleaseSurfaceDS(m_trackedBufAnteIdx);
-#endif
+        if (m_encoder->m_cscDsState)
+        {
+            ReleaseSurfaceDS(m_trackedBufAnteIdx);
+        }
         m_tracker[m_trackedBufAnteIdx].ucSurfIndex7bits = PICTURE_MAX_7BITS;
         CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer = %d re-allocated", m_trackedBufAnteIdx);
     }
-#ifndef _FULL_OPEN_SOURCE
-    if (m_cscBufAnteIdx != m_cscBufPenuIdx && m_cscBufAnteIdx != m_cscBufCurrIdx)
+
+    if (m_encoder->m_cscDsState && m_cscBufAnteIdx != m_cscBufPenuIdx && m_cscBufAnteIdx != m_cscBufCurrIdx)
     {
         ReleaseSurfaceCsc(m_cscBufAnteIdx);
         CODECHAL_ENCODE_NORMALMESSAGE("CSC buffer = %d re-allocated", m_cscBufAnteIdx);
     }
-#endif
 }
 
 MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMbCodeResources(uint8_t bufIndex)
