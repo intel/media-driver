@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,19 +36,27 @@ struct HmeDsScoreboardKernelHeaderG11 {
         struct
         {
             CODECHAL_KERNEL_HEADER hmeDownscaleGenX0;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             CODECHAL_KERNEL_HEADER hmeDownscaleGenX1;
+#endif
             CODECHAL_KERNEL_HEADER hmeDownscaleGenX2;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             CODECHAL_KERNEL_HEADER hmeDownscaleGenX3;
+#endif
             CODECHAL_KERNEL_HEADER hmeP;
             CODECHAL_KERNEL_HEADER hmeB;
             CODECHAL_KERNEL_HEADER hmeVdenc;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             CODECHAL_KERNEL_HEADER hmeHevcVdenc;
             CODECHAL_KERNEL_HEADER hmeDetectionGenX0;
+#endif
             CODECHAL_KERNEL_HEADER dsConvertGenX0;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             CODECHAL_KERNEL_HEADER initSwScoreboard;
             CODECHAL_KERNEL_HEADER intraDistortion;
             CODECHAL_KERNEL_HEADER dynamicScaling;
             CODECHAL_KERNEL_HEADER weightedPrediction;
+#endif
         };
     };
 };
@@ -57,18 +65,26 @@ enum HmeDsScoreboardKernelIdxG11
 {
     // HME + Scoreboard Kernel Surface
     CODECHAL_HME_DOWNSCALE_GENX_0_KRNIDX = 0,
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_HME_DOWNSCALE_GENX_1_KRNIDX,
+#endif
     CODECHAL_HME_DOWNSCALE_GENX_2_KRNIDX,
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_HME_DOWNSCALE_GENX_3_KRNIDX,
+#endif
     CODECHAL_HME_GENX_0_KRNIDX,
     CODECHAL_HME_GENX_1_KRNIDX,
     CODECHAL_HME_GENX_2_KRNIDX,
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_HME_HEVC_VDENC_KRNIDX,
     CODECHAL_HMEDetection_GENX_0_KRNIDX,
+#endif
     CODECHAL_DS_CONVERT_GENX_0_KRNIDX,
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_SW_SCOREBOARD_G11_KRNIDX,
     CODECHAL_INTRA_DISTORTION_G11_KRNIDX,
     CODECHAL_DYNAMIC_SCALING_G11_KRNIDX,
+#endif
     CODECHAL_HmeDsSwScoreboardInit_NUM_KRN_G11
 };
 
@@ -129,14 +145,15 @@ static MOS_STATUS GetCommonKernelHeaderAndSizeG11(
     case VDENC_ME:
         currKrnHeader = &kernelHeaderTable->hmeVdenc;
         break;
+    case ENC_SCALING_CONVERSION:
+        currKrnHeader = &kernelHeaderTable->dsConvertGenX0;
+        break;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     case VDENC_STREAMIN_HEVC:
         currKrnHeader = &kernelHeaderTable->hmeHevcVdenc;
         break;
     case ENC_SFD:
         currKrnHeader = &kernelHeaderTable->hmeDetectionGenX0;
-        break;
-    case ENC_SCALING_CONVERSION:
-        currKrnHeader = &kernelHeaderTable->dsConvertGenX0;
         break;
     case ENC_SCOREBOARD:
         currKrnHeader = &kernelHeaderTable->initSwScoreboard;
@@ -150,6 +167,7 @@ static MOS_STATUS GetCommonKernelHeaderAndSizeG11(
     case ENC_WP:
         currKrnHeader = &kernelHeaderTable->weightedPrediction;
         break;
+#endif
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Unsupported ENC mode requested");
         eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -160,7 +178,7 @@ static MOS_STATUS GetCommonKernelHeaderAndSizeG11(
     *((PCODECHAL_KERNEL_HEADER)krnHeader) = *currKrnHeader;
 
     PCODECHAL_KERNEL_HEADER invalidEntry;
-    invalidEntry = &(kernelHeaderTable->weightedPrediction) + 1;
+    invalidEntry = &(kernelHeaderTable->hmeDownscaleGenX0) + CODECHAL_HmeDsSwScoreboardInit_NUM_KRN_G11;
     PCODECHAL_KERNEL_HEADER nextKrnHeader;
     nextKrnHeader = (currKrnHeader + 1);
     uint32_t nextKrnOffset;
