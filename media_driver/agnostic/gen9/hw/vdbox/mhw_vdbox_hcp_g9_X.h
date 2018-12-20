@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #define __MHW_VDBOX_HCP_G9_X_H__
 
 #include "mhw_vdbox_hcp_generic.h"
+#include "mhw_mmio_g9.h"
 
 // CU Record structure
 struct EncodeHevcCuDataG9
@@ -141,21 +142,21 @@ protected:
     {
         MmioRegistersHcp *mmioRegisters = &this->m_mmioRegisters[MHW_VDBOX_NODE_1];
 
-        mmioRegisters->hcpEncImageStatusMaskRegOffset                    = 0x1E9B8;
-        mmioRegisters->hcpEncImageStatusCtrlRegOffset                    = 0x1E9BC;
-        mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset            = 0x1E9A0;
-        mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset           = 0x1E9A8;
-        mmioRegisters->hcpEncBitstreamBytecountFrameNoHeaderRegOffset    = 0x1E9A4;
-        mmioRegisters->hcpEncQpStatusCountRegOffset                      = 0x1E9C0;
-        mmioRegisters->hcpEncSliceCountRegOffset                         = 0;
-        mmioRegisters->hcpEncVdencModeTimerRegOffset                     = 0;
-        mmioRegisters->hcpVp9EncBitstreamBytecountFrameRegOffset         = 0x1E9E0;
-        mmioRegisters->hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset = 0x1E9E4;
-        mmioRegisters->hcpVp9EncImageStatusMaskRegOffset                 = 0x1E9F0;
-        mmioRegisters->hcpVp9EncImageStatusCtrlRegOffset                 = 0x1E9F4;
-        mmioRegisters->csEngineIdOffset                                  = 0;
-        mmioRegisters->hcpDecStatusRegOffset                             = 0x1E900;
-        mmioRegisters->hcpCabacStatusRegOffset                           = 0x1E904;
+        mmioRegisters->hcpEncImageStatusMaskRegOffset                    = HCP_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncImageStatusCtrlRegOffset                    = HCP_ENC_IMAGE_STATUS_CTRL_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset            = HCP_ENC_BIT_STREAM_BYTE_COUNT_FRAME_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset           = HCP_ENC_BIT_STREAM_SE_BIT_COUNT_FRAME_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncBitstreamBytecountFrameNoHeaderRegOffset    = HCP_ENC_BIT_STREAM_BYTE_COUNT_FRAME_NO_HEADER_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncQpStatusCountRegOffset                      = HCP_ENC_QP_STATUS_COUNT_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncSliceCountRegOffset                         = HCP_ENC_SLICE_COUNT_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncVdencModeTimerRegOffset                     = HCP_ENC_VDENC_MODE_TIMER_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncBitstreamBytecountFrameRegOffset         = HCP_VP9_ENC_BITSTREAM_BYTE_COUNT_FRAME_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset = HCP_VP9_ENC_BITSTREAM_BYTE_COUNT_FRAME_NO_HEADER_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncImageStatusMaskRegOffset                 = HCP_VP9_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncImageStatusCtrlRegOffset                 = HCP_VP9_ENC_IMAGE_STATUS_CTRL_REG_OFFSET_INIT_G9;
+        mmioRegisters->csEngineIdOffset                                  = CS_ENGINE_ID_OFFSET_INIT_G9;
+        mmioRegisters->hcpDecStatusRegOffset                             = HCP_DEC_STATUS_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpCabacStatusRegOffset                           = HCP_CABAC_STATUS_REG_OFFSET_INIT_G9;
 
     }
 
@@ -1779,7 +1780,7 @@ protected:
             data += BRC_IMG_STATE_SIZE_PER_PASS;
         }
 
-        this->m_osInterface->pfnUnlockResource(this->m_osInterface, hcpImgStates);
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnUnlockResource(this->m_osInterface, hcpImgStates));
 
         return eStatus;
     }

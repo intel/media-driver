@@ -60,31 +60,44 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_hwInterface = hwInterface;
     m_osInterface = m_hwInterface->GetOsInterface();
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.StringData.pStringData = stringData;
-    MOS_UserFeature_ReadValue_ID(
-        NULL,
-        __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY_ID,
-        &userFeatureData);
-
-    if (userFeatureData.StringData.uSize == MOS_MAX_PATH_LENGTH + 1)
+#ifdef LINUX
+    char* customizedOutputPath = getenv("MOS_DEBUG_OUTPUT_LOCATION");
+    if (customizedOutputPath != nullptr && strlen(customizedOutputPath) != 0)
     {
-        userFeatureData.StringData.uSize = 0;
-    }
-
-    if (userFeatureData.StringData.uSize > 0)
-    {
-        if (userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize - 2] != MOS_DIRECTORY_DELIMITER)
-        {
-            userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize - 1] = MOS_DIRECTORY_DELIMITER;
-            userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize]     = '\0';
-            userFeatureData.StringData.uSize++;
-        }
-        m_outputFilePath = userFeatureData.StringData.pStringData;
-    }
+        m_outputFilePath = customizedOutputPath;
+        m_outputFilePath.erase(m_outputFilePath.find_last_not_of(" \n\r\t") + 1);
+        if (m_outputFilePath[m_outputFilePath.length() - 1] != MOS_DIRECTORY_DELIMITER)
+             m_outputFilePath += MOS_DIRECTORY_DELIMITER;
+    } 
     else
+#endif
     {
-        m_outputFilePath = MOS_DEBUG_DEFAULT_OUTPUT_LOCATION;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        userFeatureData.StringData.pStringData = stringData;
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY_ID,
+            &userFeatureData);
+
+        if (userFeatureData.StringData.uSize == MOS_MAX_PATH_LENGTH + 1)
+        {
+            userFeatureData.StringData.uSize = 0;
+        }
+
+        if (userFeatureData.StringData.uSize > 0)
+        {
+            if (userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize - 2] != MOS_DIRECTORY_DELIMITER)
+            {
+                userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize - 1] = MOS_DIRECTORY_DELIMITER;
+                userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize]     = '\0';
+                userFeatureData.StringData.uSize++;
+            }
+            m_outputFilePath = userFeatureData.StringData.pStringData;
+        }
+        else
+        {
+            m_outputFilePath = MOS_DEBUG_DEFAULT_OUTPUT_LOCATION;
+        }
     }
     m_codecFunction = codecFunction;
     m_configMgr = MOS_New(CodechalDebugConfigMgr, this, codecFunction, m_outputFilePath);
@@ -501,8 +514,8 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         height /= 2;
     }
 
-    const char *funcName = m_codecFunction == CODECHAL_FUNCTION_DECODE ? "_DEC" : "_ENC";
-    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(width) + "]_h[" + std::to_string(height) + "]_p[" + std::to_string(pitch) + "]";
+    const char *funcName = (m_codecFunction == CODECHAL_FUNCTION_DECODE) ? "_DEC" :(m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE ? "_DEC" : "_ENC");
+    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(pitch) + "]";
 
     const char *filePath = CreateFileName(funcName, bufName.c_str(), CodechalDbgExtType::yuv);
 
@@ -548,7 +561,11 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         break;
     }
 
+#ifdef LINUX
+    data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
+#else
     data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
+#endif
 
     // write chroma data to file
     for (uint32_t h = 0; h < height; h++)

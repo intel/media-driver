@@ -175,10 +175,30 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     picVp9Params->subsampling_x = picParam->pic_fields.bits.subsampling_x;
     picVp9Params->subsampling_y = picParam->pic_fields.bits.subsampling_y;
 
-    memcpy(picVp9Params->SegTreeProbs, picParam->mb_segment_tree_probs, 7);
-    memcpy(picVp9Params->SegPredProbs, picParam->segment_pred_probs, 3);
+    memcpy_s(picVp9Params->SegTreeProbs, 7, picParam->mb_segment_tree_probs, 7);
+    memcpy_s(picVp9Params->SegPredProbs, 3, picParam->segment_pred_probs, 3);
 
     return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeVP9::SetDecodeParams()
+{
+     DDI_CHK_RET(DdiMediaDecode::SetDecodeParams(),"SetDecodeParams failed!");
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    // Bridge the SFC input with vdbox output
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        auto procParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
+        procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
+        // codechal_decode_sfc.c expects Input Width/Height information.
+        procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
+        procParams->pInputSurface->dwHeight = procParams->pInputSurface->OsResource.iHeight;
+        procParams->pInputSurface->dwPitch    = procParams->pInputSurface->OsResource.iPitch;
+        procParams->pInputSurface->Format    = procParams->pInputSurface->OsResource.Format;
+    }
+#endif
+     return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiDecodeVP9::RenderPicture(
@@ -266,7 +286,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
 
         case VAProcPipelineParameterBufferType:
         {
-            DDI_NORMALMESSAGE("ProcPipeline is not supported for VP9 decoding\n");
+            DDI_CHK_RET(ParseProcessingBuffer(mediaCtx, data),"ParseProcessingBuffer failed!");
             break;
         }
         case VADecodeStreamoutBufferType:
@@ -412,7 +432,7 @@ VAStatus DdiDecodeVP9::CodecHalInit(
     MOS_CONTEXT *mosCtx   = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
+    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -438,6 +458,12 @@ VAStatus DdiDecodeVP9::CodecHalInit(
     m_codechalSettings->standard       = CODECHAL_VP9;
     m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV420;
 
+    if(m_ddiDecodeAttr->profile == VAProfileVP9Profile1 ||
+       m_ddiDecodeAttr->profile == VAProfileVP9Profile3)
+    {
+        m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
+    }
+    
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = MOS_AllocAndZeroMemory(sizeof(CODEC_VP9_SEGMENT_PARAMS));
     if (m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer == nullptr)
     {
@@ -450,7 +476,29 @@ VAStatus DdiDecodeVP9::CodecHalInit(
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto CleanUpandReturn;
     }
-
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
+        
+        m_codechalSettings->downsamplingHinted = true;
+        
+        procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_DECODE_PROCESSING_PARAMS));
+        if (procParams == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+        
+        m_ddiDecodeCtx->DecodeParams.m_procParams = procParams;
+        procParams->pOutputSurface = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+        if (procParams->pOutputSurface == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+    }
+#endif
     vaStatus = CreateCodecHal(mediaCtx,
         ptr,
         &standardInfo);
@@ -484,6 +532,17 @@ CleanUpandReturn:
     m_ddiDecodeCtx->DecodeParams.m_picParams = nullptr;
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
     m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        if (m_ddiDecodeCtx->DecodeParams.m_procParams)
+        {
+            auto procParams =
+                (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
+            MOS_FreeMemory(procParams->pOutputSurface);
+            
+            MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);
+            m_ddiDecodeCtx->DecodeParams.m_procParams = nullptr;
+        }
+#endif
 
     return vaStatus;
 }
@@ -513,17 +572,44 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
 {
     slcFlag = false;
     MOS_FORMAT Format = Format_NV12;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
 
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;
+    if((picParams->profile == CODEC_PROFILE_VP9_PROFILE1) &&
+        (picParams->BitDepthMinus8 == 0))
+    {
+        Format = Format_AYUV;
+    }
     if (((picParams->profile == CODEC_PROFILE_VP9_PROFILE2) ||
         (picParams->profile == CODEC_PROFILE_VP9_PROFILE3)) &&
         (picParams->BitDepthMinus8 > 0))
     {
         Format = Format_P010;
-        if ((picParams->subsampling_x == 0) || (picParams->subsampling_y == 0))
+        if((picParams->BitDepthMinus8 > 2) || (rtTbl->pCurrentRT->format == Media_Format_P016))
+        {
+            Format = Format_P016;
+        }
+        if ((picParams->subsampling_x == 1) && (picParams->subsampling_y == 0))
         {
             Format = Format_Y210;
+        }
+        else if ((picParams->subsampling_x == 0) && (picParams->subsampling_y == 0))
+        {
+            if(picParams->BitDepthMinus8 == 2)
+            {
+                Format = Format_Y410;
+
+                //10bit decode in 12bit
+                if(rtTbl->pCurrentRT->format == Media_Format_Y416)
+                {
+                    Format = Format_Y416;
+                }
+            }
+            else if(picParams->BitDepthMinus8 > 2)
+            {
+                Format = Format_Y416;
+            }
         }
     }
     return Format;

@@ -194,6 +194,12 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
             renderGpuNode = MOS_GPU_NODE_3D;
         }
         MOS_GPUCTX_CREATOPTIONS createOption;
+
+        if (m_hwInterface->m_slicePowerGate)
+        {
+            createOption.packed.SubSliceCount = (m_gtSystemInfo->SubSliceCount / m_gtSystemInfo->SliceCount) >> 1;
+        }
+
         eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(m_osInterface, gpuContext, renderGpuNode, &createOption);
 
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -555,6 +561,8 @@ MOS_STATUS CodechalEncoderState::Execute(void *params)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Codechal::Execute(params));
 
     EncoderParams *encodeParams = (EncoderParams *)params;
+    // MSDK event handling
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_Solo_SetGpuAppTaskEvent(m_osInterface,encodeParams->gpuAppTaskEvent));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->SetWatchdogTimerThreshold(m_frameWidth, m_frameHeight));
 
@@ -798,6 +806,29 @@ MOS_STATUS CodechalEncoderState::Initialize(
         __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID,
         &userFeatureData);
     m_computeContextEnabled = (userFeatureData.u32Data) ? true : false;
+#endif
+
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_FAKE_HEADER_SIZE_ID,
+        &userFeatureData);
+    m_enableFakeHrdSize = (uint32_t)userFeatureData.u32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
+        &userFeatureData);
+    m_fakeIFrameHrdSize = (uint32_t)userFeatureData.u32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
+        &userFeatureData);
+    m_fakePBFrameHrdSize = (uint32_t)userFeatureData.u32Data;
 #endif
 
     m_oriFrameWidth   = settings->width;
@@ -1205,7 +1236,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    uint32_t numMbs = m_picWidthInMb * m_picHeightInMb;
+    uint32_t numMbs = m_picWidthInMb * ((m_picHeightInMb+1)>>1)<<1;
 
     // initiate allocation paramters and lock flags
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
@@ -1256,7 +1287,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
          ((m_mode == CODECHAL_ENCODE_MODE_AVC)                              ||
           (m_mode == CODECHAL_ENCODE_MODE_VP9 && m_vdencEnabled)))
     {
-        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
+        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams = {};
         rowstoreParams.Mode         = m_mode;
         rowstoreParams.dwPicWidth   = m_frameWidth;
         rowstoreParams.bMbaff       = false;
@@ -1594,7 +1625,7 @@ MOS_STATUS CodechalEncoderState::AllocateScalingResources()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     //Allocate the Batch Buffer for scaling Kernel.
-    numMBs = m_picWidthInMb * m_picHeightInMb;
+    numMBs = m_picWidthInMb * ((m_picHeightInMb + 1) >> 1) << 1;
     size = m_hwInterface->GetMediaObjectBufferSize(
         numMBs,
         64);
@@ -2433,27 +2464,6 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetDefaultSSEuSetting(params->EncFunctionType, m_setRequestedEUSlices, m_setRequestedSubSlices, m_setRequestedEUs));
-
-    if (m_hwInterface->m_slicePowerGate && (!m_vdencEnabled || (m_vdencEnabled && m_16xMeSupported)))
-    {
-        if (m_gtSystemInfo->SliceCount && m_gtSystemInfo->SubSliceCount) // check if SliceCount and SubSliceCount are valid
-        {
-            m_hwInterface->m_numRequestedEuSlices = m_gtSystemInfo->SliceCount;
-            m_hwInterface->m_numRequestedSubSlices = (m_gtSystemInfo->SubSliceCount / m_gtSystemInfo->SliceCount) >> 1;
-        }
-        else
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Currently KMD reports a wrong setting of slice/subslice numbers.");
-            m_hwInterface->m_numRequestedEuSlices  = 1;
-            m_hwInterface->m_numRequestedSubSlices = 2;
-        }
-        // Only update LRI once to avoid extra KMD overhead due to HW context switch
-        cmdBuffer->Attributes.bUmdSSEUEnable   = m_firstFrame;
-    }
-    else
-    {
-        cmdBuffer->Attributes.bUmdSSEUEnable   = false;
-    }
 
     if (!m_singleTaskPhaseSupported || m_firstTaskInPhase)
     {
@@ -3483,9 +3493,13 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
 
     encodeStatus->dwHeaderBytesInserted = m_headerBytesInserted;
     m_headerBytesInserted = 0;
-    m_storeData++;
-    encodeStatusBuf->wCurrIndex    = (encodeStatusBuf->wCurrIndex + 1) % CODECHAL_ENCODE_STATUS_NUM;
-    encodeStatusBufRcs->wCurrIndex = (encodeStatusBufRcs->wCurrIndex + 1) % CODECHAL_ENCODE_STATUS_NUM;
+
+    if (!m_disableStatusReport)
+    {
+        m_storeData++;
+        encodeStatusBuf->wCurrIndex    = (encodeStatusBuf->wCurrIndex + 1) % CODECHAL_ENCODE_STATUS_NUM;
+        encodeStatusBufRcs->wCurrIndex = (encodeStatusBufRcs->wCurrIndex + 1) % CODECHAL_ENCODE_STATUS_NUM;
+    }
 
     // clean up the Status for next frame
     encodeStatus =
@@ -3614,6 +3628,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             if (m_osInterface->pfnIsGPUHung(m_osInterface))
             {
                 encodeStatusReport->CodecStatus = CODECHAL_STATUS_ERROR;
+                *(encodeStatusBuf->pData) += 1;
             }
             else if (encodeStatusReport->Func != CODECHAL_ENCODE_ENC_ID &&
                 encodeStatusReport->Func != CODECHAL_ENCODE_FEI_ENC_ID &&
@@ -3685,7 +3700,11 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                 if (m_codecGetStatusReportDefined)
                 {
                     // Call corresponding CODEC's status report function if existing
-                    GetStatusReport(encodeStatus, encodeStatusReport);
+                    eStatus = GetStatusReport(encodeStatus, encodeStatusReport);
+                    if (MOS_STATUS_SUCCESS != eStatus)
+                    {
+                        return eStatus;
+                    }
 
                     if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
                     {
@@ -3747,6 +3766,14 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         encodeStatusReport->NumSlicesNonCompliant = 1;
                     }
                     encodeStatusReport->NumberSlices = numSlices->NumberOfSlices;
+                }
+
+                if (encodeStatusReport->bitstreamSize > m_bitstreamUpperBound)
+                {
+                    encodeStatusReport->CodecStatus = CODECHAL_STATUS_ERROR;
+                    encodeStatusReport->bitstreamSize = 0;
+                    CODECHAL_ENCODE_ASSERTMESSAGE("Bit-stream size exceeds upper bound!");
+                    return MOS_STATUS_NOT_ENOUGH_BUFFER;
                 }
 
                 if(refList->bMADEnabled)
@@ -3891,12 +3918,19 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
         }
         else
         {
+            //update GPU status, and skip the hang frame
+            if(m_osInterface->pfnIsGPUHung(m_osInterface))
+            {
+                *(encodeStatusBuf->pData) += 1;
+                reportsGenerated++;
+            }
+
             CODECHAL_ENCODE_VERBOSEMESSAGE("Status buffer %d is INCOMPLETE.", i);
             encodeStatusReport->CodecStatus = CODECHAL_STATUS_INCOMPLETE;
         }
         codecStatus[i] = *encodeStatusReport;
     }
-    
+
     encodeStatusBuf->wFirstIndex =
         (encodeStatusBuf->wFirstIndex + reportsGenerated) % CODECHAL_ENCODE_STATUS_NUM;
     CODECHAL_ENCODE_VERBOSEMESSAGE("wFirstIndex now becomes %d.", encodeStatusBuf->wFirstIndex);
@@ -4315,6 +4349,11 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
         m_currRecycledBufIdx =
             (m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
 
+        if (m_currRecycledBufIdx == 0)
+        {
+            MOS_ZeroMemory(m_recycledBufStatusNum, sizeof(m_recycledBufStatusNum));
+        }
+
         // Flush encode eStatus buffer
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
             "Flushing encode eStatus buffer failed.");
@@ -4372,15 +4411,18 @@ CodechalEncoderState::CodechalEncoderState(
     Codechal(hwInterface, debugInterface)
 {
     // Add Null checks here for all interfaces.
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
     m_mfxInterface = m_hwInterface->GetMfxInterface();
     m_hcpInterface = m_hwInterface->GetHcpInterface();
     m_hucInterface = m_hwInterface->GetHucInterface();
     m_vdencInterface = m_hwInterface->GetVdencInterface();
     m_miInterface = hwInterface->GetMiInterface();
     m_renderEngineInterface = hwInterface->GetRenderInterface();
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_renderEngineInterface);
     m_stateHeapInterface = m_renderEngineInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_ASSERT(m_renderEngineInterface->GetHwCaps());
 
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
     m_skuTable     = m_osInterface->pfnGetSkuTable(m_osInterface);
     m_waTable      = m_osInterface->pfnGetWaTable(m_osInterface);
@@ -4521,5 +4563,109 @@ MOS_STATUS CodechalEncoderState::DumpMbEncPakOutput(PCODEC_REF_LIST currRefList,
             CODECHAL_MEDIA_STATE_ENC_NORMAL : CODECHAL_MEDIA_STATE_HYBRID_PAK_P2));
     }
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncoderState::AddBufferWithIMMValue(
+    PMOS_COMMAND_BUFFER         cmdBuffer,
+    PMOS_RESOURCE               presStoreBuffer,
+    uint32_t                    offset,
+    uint32_t                    value,
+    bool                        bAdd)
+{
+    MHW_MI_STORE_REGISTER_MEM_PARAMS    StoreRegParams;
+    MHW_MI_STORE_DATA_PARAMS            StoreDataParams;
+    MHW_MI_LOAD_REGISTER_REG_PARAMS     LoadRegRegParams;
+    MHW_MI_LOAD_REGISTER_IMM_PARAMS     LoadRegisterImmParams;
+    MHW_MI_FLUSH_DW_PARAMS              FlushDwParams;
+    MHW_MI_MATH_PARAMS                  MiMathParams;
+    MHW_MI_ALU_PARAMS                   MiAluParams[4];
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_vdboxIndex > m_mfxInterface->GetMaxVdboxIndex())                                                                         \
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
+    auto pMmioRegistersMfx = m_mfxInterface->GetMmioRegisters(m_vdboxIndex);
+    auto pMmioRegistersHcp = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+
+    MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &FlushDwParams));
+
+    MOS_ZeroMemory(&LoadRegRegParams, sizeof(LoadRegRegParams));
+
+    MHW_MI_LOAD_REGISTER_MEM_PARAMS miLoadRegMemParams;
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+
+    miLoadRegMemParams.presStoreBuffer = presStoreBuffer;
+    miLoadRegMemParams.dwOffset = offset;
+    miLoadRegMemParams.dwRegister = pMmioRegistersMfx->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+
+    MOS_ZeroMemory(&LoadRegisterImmParams, sizeof(LoadRegisterImmParams));
+    LoadRegisterImmParams.dwData = 0;
+    LoadRegisterImmParams.dwRegister = pMmioRegistersMfx->generalPurposeRegister0HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
+        cmdBuffer,
+        &LoadRegisterImmParams));
+
+    MOS_ZeroMemory(&LoadRegisterImmParams, sizeof(LoadRegisterImmParams));
+    LoadRegisterImmParams.dwData = value;
+    LoadRegisterImmParams.dwRegister = pMmioRegistersMfx->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
+        cmdBuffer,
+        &LoadRegisterImmParams));
+    MOS_ZeroMemory(&LoadRegisterImmParams, sizeof(LoadRegisterImmParams));
+    LoadRegisterImmParams.dwData = 0;
+    LoadRegisterImmParams.dwRegister = pMmioRegistersMfx->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
+        cmdBuffer,
+        &LoadRegisterImmParams));
+
+    MOS_ZeroMemory(&MiMathParams, sizeof(MiMathParams));
+    MOS_ZeroMemory(&MiAluParams, sizeof(MiAluParams));
+    // load     srcA, reg0
+    MiAluParams[0].AluOpcode = MHW_MI_ALU_LOAD;
+    MiAluParams[0].Operand1 = MHW_MI_ALU_SRCA;
+    MiAluParams[0].Operand2 = MHW_MI_ALU_GPREG0;
+    // load     srcB, reg4
+    MiAluParams[1].AluOpcode = MHW_MI_ALU_LOAD;
+    MiAluParams[1].Operand1 = MHW_MI_ALU_SRCB;
+    MiAluParams[1].Operand2 = MHW_MI_ALU_GPREG4;
+
+    if (bAdd)
+    {
+        // add      srcA, srcB
+        MiAluParams[2].AluOpcode = MHW_MI_ALU_ADD;
+    }
+    else
+    {
+        // sub      srcA, srcB
+        MiAluParams[2].AluOpcode = MHW_MI_ALU_SUB;
+    }
+
+    // store      reg0, ACCU
+    MiAluParams[3].AluOpcode = MHW_MI_ALU_STORE;
+    MiAluParams[3].Operand1 = MHW_MI_ALU_GPREG0;
+    MiAluParams[3].Operand2 = MHW_MI_ALU_ACCU;
+
+    MiMathParams.pAluPayload = MiAluParams;
+    MiMathParams.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiMathCmd(
+        cmdBuffer,
+        &MiMathParams));
+
+    // update the value
+    MOS_ZeroMemory(&StoreRegParams, sizeof(StoreRegParams));
+    StoreRegParams.presStoreBuffer = presStoreBuffer;
+    StoreRegParams.dwOffset = offset;
+    StoreRegParams.dwRegister = pMmioRegistersMfx->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &StoreRegParams));
+
+    return eStatus;
 }
 #endif

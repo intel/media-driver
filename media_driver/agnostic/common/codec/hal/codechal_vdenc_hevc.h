@@ -121,7 +121,6 @@ public:
     bool                                    m_vdencHuCConditional2ndPass = false;              //!< HuC conditional 2nd pass enable flag
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only
-    bool                                    m_hucCmdInitializerUsed = false;                   //!< Command initializer HuC used flag
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
@@ -146,8 +145,8 @@ public:
     uint32_t                                m_brcRoiBufferSize;                                //!< BRC ROI input buffer size
 
     // Batch Buffer for VDEnc
-    MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer;                        //!< VDEnc 2nd level batch buffer
-    uint32_t                                m_vdenc2ndLevelBatchBufferSize = 0;
+    MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< VDEnc 2nd level batch buffer
+    uint32_t                                m_vdenc2ndLevelBatchBufferSize[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {0};
     uint32_t                                m_vdencBatchBufferPerSliceVarSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = { 0 };    //!< VDEnc batch buffer slice size array
     uint32_t                                m_1stPakInsertObjectCmdSize = 0;                   //!< Size of 1st PAK_INSERT_OBJ cmd
     uint32_t                                m_hcpWeightOffsetStateCmdSize = 0;                 //!< Size of HCP_WEIGHT_OFFSET_STATE cmd
@@ -657,11 +656,40 @@ public:
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE params);
 
+    void MotionEstimationDisableCheck();
+
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
     virtual MOS_STATUS DumpVdencOutputs();
     virtual MOS_STATUS DumpSeqParFile();
+
+    //!
+    //! \brief  Modify the frame size with fake header size
+    //!
+    //! \param  [in] cmdBuffer
+    //!         command buffer
+    //! \param  [in] fakeHeaderSizeInByte
+    //!         fake header size in bytes
+    //! \param  [in] resBrcUpdateCurbe
+    //!         Curebe/Dmem for brcupdate kernel
+    //! \param  [in] targetSizePos
+    //!         offset of targetSize in resBrcUpdateCurbe
+    //! \param  [in] resPakStat
+    //!         Pak stastics
+    //! \param  [in] slcHrdSizePos
+    //!         offset of slcHrdSizePos in resPakStat
+    //!
+    //! \return MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ModifyEncodedFrameSizeWithFakeHeaderSize(
+        PMOS_COMMAND_BUFFER                 cmdBuffer,
+        uint32_t                            fakeHeaderSizeInByte,
+        PMOS_RESOURCE                       resBrcUpdateCurbe,
+        uint32_t                            targetSizePos,
+        PMOS_RESOURCE                       resPakStat,
+        uint32_t                            slcHrdSizePos);
 #endif
 
 };

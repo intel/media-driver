@@ -24,7 +24,7 @@
 
 #include <map>
 #include <vector>
-#include "driver_loader.h"
+#include "devconfig.h"
 
 #define LOG_PATH             "./igd_0.log"
 #define HLT_PATH             "./igd_0.hlt"
@@ -52,7 +52,7 @@ class MemoryLeakDetector
 {
 public:
 
-    static void Detect(const DriverDllLoader &drvLoader, Platform_t platform);
+    static void Detect(int32_t memNinjaCnt, int32_t memNinjaCntGfx, Platform_t platform);
 };
 
 class MemoryLeakDetectorIpl

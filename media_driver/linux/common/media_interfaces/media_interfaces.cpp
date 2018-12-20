@@ -34,7 +34,7 @@
 #include "media_interfaces_nv12top010.h"
 #include "media_interfaces_decode_histogram.h"
 
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 #include "mhw_mi.h"
 #include "mhw_render.h"
 #include "mhw_sfc.h"
@@ -159,7 +159,8 @@ VphalState* VphalDevice::CreateFactory(
 
             // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
             MOS_Delete(mhwInterfaces->m_miInterface);
-            MOS_Delete(mhwInterfaces->m_cpInterface);
+            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+            mhwInterfaces->m_cpInterface = nullptr;
             MOS_Delete(mhwInterfaces);
         }
         else
@@ -202,7 +203,8 @@ MhwInterfaces* MhwInterfaces::CreateFactory(
 
 void MhwInterfaces::Destroy()
 {
-    MOS_Delete(m_cpInterface);
+    Delete_MhwCpInterface(m_cpInterface);
+    m_cpInterface = nullptr;
     MOS_Delete(m_miInterface);
     MOS_Delete(m_renderInterface);
     MOS_Delete(m_sfcInterface);
@@ -359,6 +361,10 @@ void* MmdDevice::CreateFactory(
     }
 
     mhwInterfaces = device->CreateMhwInterface(osInterface);
+    if (mhwInterfaces == nullptr)
+    {
+        MMD_FAILURE();
+    }
     device->Initialize(osInterface, mhwInterfaces);
     if (device->m_mmdDevice == nullptr)
     {

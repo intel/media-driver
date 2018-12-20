@@ -1206,6 +1206,18 @@ VphalRenderer::~VphalRenderer()
 {
     VPHAL_RENDER_CHK_NULL_NO_STATUS(m_pOsInterface);
 
+#if defined(LINUX)
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   userFeatureWriteData;
+    MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+    userFeatureWriteData.Value.i32Data  = m_reporting->OutputPipeMode;
+    userFeatureWriteData.ValueID        = __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID;
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+    userFeatureWriteData.Value.bData  = m_reporting->VEFeatureInUse;
+    userFeatureWriteData.ValueID        = __VPHAL_VEBOX_FEATURE_INUSE_ID;
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+#endif
+
     MOS_Delete(m_reporting);
 
     for (int32_t i = 0; i < VPHAL_RENDER_ID_COUNT; i++)

@@ -29,6 +29,7 @@
 #include "mos_utilities_specific.h"
 #ifdef __cplusplus
 #include "mos_util_user_interface.h"
+#include <sstream>
 #endif
 #include <fcntl.h>     //open
 
@@ -37,7 +38,162 @@
 #include <stdlib.h>    // atoi atol
 #include <math.h>
 
+#ifdef __cplusplus
+
+PerfUtility *PerfUtility::instance = nullptr;
+
+PerfUtility *PerfUtility::getInstance()
+{
+    if (instance == nullptr)
+    {
+        instance = new PerfUtility();
+    }
+
+    return instance;
+}
+
+PerfUtility::PerfUtility()
+{
+}
+
+PerfUtility::~PerfUtility()
+{
+    for (const auto data : records)
+    {
+        if (data.second)
+        {
+            delete data.second;
+        }
+    }
+    records.clear();
+}
+
+void PerfUtility::savePerfData()
+{
+    printPerfSummary();
+
+    printPerfDetails();
+}
+
+void PerfUtility::printPerfSummary()
+{
+    std::ofstream fout;
+    fout.open("perf_summary.txt");
+
+    printHeader(fout);
+    printBody(fout);
+    printFooter(fout);
+
+    fout.close();
+}
+
+void PerfUtility::printPerfDetails()
+{
+    std::ofstream fout;
+    fout.open("perf_details.txt");
+
+    for (auto data : records)
+    {
+        fout << getDashString((uint32_t)data.first.length());
+        fout << data.first << std::endl;
+        fout << getDashString((uint32_t)data.first.length());
+        for (auto t : *data.second)
+        {
+            fout << t.time << std::endl;
+        }
+        fout << std::endl;
+    }
+
+    fout.close();
+}
+
+void PerfUtility::printHeader(std::ofstream& fout)
+{
+    fout << "Summary: " << std::endl;
+    fout << getDashString(80);
+    std::stringstream ss;
+    ss.width(16);
+    ss << "CPU Latency Tag";
+    ss.width(16);
+    ss << "Hit Count";
+    ss.width(16);
+    ss << "Average (ms)";
+    ss.width(16);
+    ss << "Minimum (ms)";
+    ss.width(16);
+    ss << "Maximum (ms)" << std::endl;
+    fout << ss.str();
+    fout << getDashString(80);
+}
+
+void PerfUtility::printBody(std::ofstream& fout)
+{
+    for (const auto& data : records)
+    {
+        fout << formatPerfData(data.first, *data.second);
+    }
+}
+
+std::string PerfUtility::formatPerfData(std::string tag, std::vector<Tick>& record)
+{
+    std::stringstream ss;
+    PerfInfo info = {};
+    getPerfInfo(record, &info);
+
+    ss.width(16);
+    ss << tag;
+
+    ss.precision(2);
+    ss.setf(std::ios::fixed, std::ios::floatfield);
+
+    ss.width(16);
+    ss << info.count;
+    ss.width(16);
+    ss << info.avg;
+    ss.width(16);
+    ss << info.min;
+    ss.width(16);
+    ss << info.max << std::endl;
+
+    return ss.str();
+}
+
+void PerfUtility::getPerfInfo(std::vector<Tick>& record, PerfInfo* info)
+{
+    if (record.size() <= 0)
+        return;
+
+    info->count = (uint32_t)record.size();
+    double sum = 0, max = 0, min = 10000000.0;
+    for (auto t : record)
+    {
+        sum += t.time;
+        max = (max < t.time) ? t.time : max;
+        min = (min > t.time) ? t.time : min;
+    }
+    info->avg = sum / info->count;
+    info->max = max;
+    info->min = min;
+}
+
+void PerfUtility::printFooter(std::ofstream& fout)
+{
+    fout << getDashString(80);
+}
+
+std::string PerfUtility::getDashString(uint32_t num)
+{
+    std::stringstream ss;
+    ss.width(num);
+    ss.fill('-');
+    ss << std::left << "" << std::endl;
+    return ss.str();
+}
+
+#endif // __cplusplus
+
 int32_t MosMemAllocCounter;      //!< Counter to check memory leaks
+int32_t MosMemAllocFakeCounter;
 int32_t MosMemAllocCounterGfx;
 int32_t MosMemAllocCounterNoUserFeature;
 int32_t MosMemAllocCounterNoUserFeatureGfx;
@@ -939,6 +1095,24 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "0",
      "Enables/Disables UHME for HEVC."),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_16xME_ENABLE_ID,
+     "Enable HEVC VDEnc SuperHME",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "1",
+     "Enable/Disable SuperHme for HEVC VDEnc."),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_32xME_ENABLE_ID,
+     "Enable HEVC VDEnc UltraHME",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "1",
+     "Enables/Disables UHME for HEVC VDEnc."),
      MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID,
      "HEVC Encode 26Z Enable",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -1045,7 +1219,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      "Encode",
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
-     "0",
+     "1",
      "Enable ACQP for HEVC VDEnc"),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
      "Force PAK Pass Num",
@@ -1110,7 +1284,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
     MOS_USER_FEATURE_VALUE_TYPE_INT32,
     "0",
     "Enables/Disables MDF for HEVC Encoder."),
-    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
      "Enable Codec MMC",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
      __MEDIA_USER_FEATURE_SUBKEY_REPORT,
@@ -1155,6 +1329,15 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "0",
      "Report key to indicate if decode MMC is turned on "),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_FROM_VEBOX_ID,
+     "Decode Histogram from VEBox",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Report",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "0",
+     "Report key to indicate if decode histogram is from VEBox "),
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_DECODE_EXTENDED_MMC_IN_USE_ID,
      "Decode Extended MMC In Use",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -1445,6 +1628,26 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      "0",
      "If enabled, all of the command buffers submitted through MOS will be dumped (0: disabled, 1: to a file, 2: as a normal message)."),
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
+        "Dump Command Info Enable",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "If enabled, gpu command info will be dumped (0: disabled, 1: to a file)."),
+     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
+         "Dump Command Info Path",
+         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+         __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+         "MOS",
+         MOS_USER_FEATURE_TYPE_USER,
+         MOS_USER_FEATURE_VALUE_TYPE_STRING,
+         "",
+         "Path where command info will be dumped, for example: ./"),
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 #if (_DEBUG || _RELEASE_INTERNAL)
      MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE_ID,
      "Media Preemption Enable",
@@ -1752,6 +1955,60 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "0",
      "Enable the Generation of CodecHal Debug Cfg file."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_OVERRIDE_ID,
+     "RDOQ Intra TU Override",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Override Intra RDOQ TU setting."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_DISABLE_ID,
+     "RDOQ Intra TU Disable",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Disable RDOQ for Intra TU."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_THRESHOLD_ID,
+     "RDOQ Intra TU Threshold",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "RDOQ Intra TU Threshold"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_FAKE_HEADER_SIZE_ID,
+     "Fake Header Size Enable",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Enable Fake Header Size"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
+     "Fake IFrame Header Size",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "128",
+     "Fake I Frame Header Size"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
+     "Fake PBFrame Header Size",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "16",
+     "Fake P/B Frame Header Size"),
      MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HUC_DEMO_KERNEL_ID, // Used to indicate which huc kernel to load for the Huc Demo feature
      "Media Huc Demo kernel Id",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -2006,6 +2263,34 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_VALUE_TYPE_UINT64,
      "0",
      "Allows different CM subcomponents to have different debug levels. "),
+    MOS_DECLARE_UF_KEY(__MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
+     __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG,
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     "MOS",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE_STR,
+     "Enables messages and/or asserts for all of SCALABILITY "),
+    MOS_DECLARE_UF_KEY(__MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
+     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY,
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     "MOS",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "If enabled, will allow the subcomponent tags to take effect."),
+    MOS_DECLARE_UF_KEY(__MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID,
+     __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG,
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     "MOS",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT64,
+     "0",
+     "Allows different SCALABILITY subcomponents to have different debug levels. "),
+
 #endif // MOS_MESSAGES_ENABLED
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
      "Enable HEVC SF 2 DMA Submits",
@@ -2133,6 +2418,33 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_VALUE_TYPE_UINT32,
      "0",
      "Enable MDF Surface Dump"),
+     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE_ID,
+     __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE,
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "MDF",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "MDF EMU Enable"),
+     MOS_DECLARE_UF_KEY(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,
+     "VPOutputPipe Mode",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     "Report",
+     "VP",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "0",
+     "For Notify which datapath Vebox used"),
+     MOS_DECLARE_UF_KEY(__VPHAL_VEBOX_FEATURE_INUSE_ID,
+     "VeBox Feature In use",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     "Report",
+     "VP",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "0",
+     "For Notify which feature Vebox used"),
      MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_RNDR_SSD_CONTROL_ID,
      "SSD Control",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -2306,7 +2618,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_VALUE_TYPE_BOOL,
      "0",
      "For debugging purpose. Enable Vebox In-Place decompression"),
-    MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_ENABLE_MMC_ID,
+    MOS_DECLARE_UF_KEY(__VPHAL_ENABLE_MMC_ID,
      "Enable VP MMC",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
      __MEDIA_USER_FEATURE_SUBKEY_REPORT,
@@ -2429,6 +2741,268 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_VALUE_TYPE_STRING,
      "MOS",
      "Enable"),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
+     "Force VEBOX",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "VP",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Force the VEBox to be used. (Default 0: FORCE_VEBOX_NONE "),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
+     "Enable Vebox Scalability",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "VP",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0",
+     "TRUE for Enabling Vebox Scalability. (Default FALSE: disabled"),
+     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO_ID,
+     "Vebox Split Ratio",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "VP",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "50",
+     "Vebox Scalability Split Ratio. (Default 50: 50 percent"),
+    /* codec gen11 based */
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD1_ID,
+     "HCP Decode Mode Switch TH1",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Decode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Hcp Decode mode switch single pipe <-> 2 pipe"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD2_ID,
+     "HCP Decode Mode Switch TH2",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Decode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Hcp Decode mode switch single pipe <-> 2/3 pipe"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE,
+     "Enable VE Debug Override",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT64,
+     "0",
+     "Enable VE Debug Override."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_SEMAPHORE,
+     "Enable HW Semaphore",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "1",
+     "Enable HW Semaphore."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VDBOX_HW_SEMAPHORE,
+     "Enable HEVC Per VDBOX HW Semaphore in GEN11",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "1",
+     "Enable HEVC Per VDBOX HW Semaphore in GEN11."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_STITCH,
+     "HEVC Encode Enable HW Stitch",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "1",
+     "HEVC Encode Enable HW Stitch."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID,
+     "HEVC Encode SubThread Number",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "2",
+     "Used to enable HEVC ENCODE SubThread Number in the ENC kernel."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_PAK_ONLY_ID,
+     "HEVC PAK Only Mode",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_STRING,
+     "",
+     "Set the PAK command/CU record folder name for HEVC encoder"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_VME_ENCODE_SSE_ENABLE_ID,
+     "HEVC Encode SSE Enable",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "0",
+     "Used to enable HEVC VME ENCODE SSE.(default 0:disabled)"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
+     "Disable Media Encode Scalability",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "0",
+     "Disable Media Encode Scalability."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_PERF_DISABLE_ID,
+     "Disable HEVC RDOQ Perf",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Encode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_INT32,
+     "1",
+     "HEVC"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_WATCHDOG_TIMER_THRESHOLD,
+     "Watchdog Timer Threshold",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Decode",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "120",
+     "Used to override default watchdog timer threshold"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE_ID,
+     "Enable Decode VE",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "1",
+     "TRUE for Enabling Decode Virtual Engine. (Default TRUE: enabled"), 
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID,
+     "Enable Decode VE CtxBasedScheduling",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0",
+     "TRUE for Enabling Decode Virtual Engine context based scheduling. (Default false: disabled"), 
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
+     "Enable Encode VE",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "1",
+     "TRUE for Enabling Encode Virtual Engine. (Default TRUE: enabled"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID,
+     "Enable Encode VE CtxBasedScheduling",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0",
+     "TRUE for Enabling Encode Virtual Engine context based scheduling. (Default false: disabled"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
+     "Enable VE Debug Override",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0",
+     "TRUE for Enabling KMD Virtual Engine Debug Override. (Default FALSE: not override"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
+     "Enable HCP Scalability Decode",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "1",
+     "Enable HCP Scalability decode mode. (Default 1: Scalable Decode Mode "),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_ALWAYS_FRAME_SPLIT_ID,
+     "HCP Decode Always Frame Split",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0",
+     "HCP Decode always does frame split instead of make decision based on LZ table. (Default 0: using LZ table "),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB,
+     "Scalability Split Width In MinCb",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Override virtual tile scalability width. (Default 0: not overroded "),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_SCALABILITY_FE_SEPARATE_SUBMISSION_ENABLED_ID,
+     "FE Separate Submission Enabled",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0", //Disable FE separate submission by default. Will change it to "Enable" after proving it has performance enhancement.
+     "Enable FE separate submission in Scalability decode. (Default 0: Disable FE separate submission "),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_SCALABILITY_FE_SEPARATE_SUBMISSION_IN_USE_ID,
+     "FE Separate Submission In Use",
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Report",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "0",
+     "Report FE separate submission is in use in Scalability decode. (Default 0: Disable FE separate submission "),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_ENABLE_ID,
+     "HEVC VME BRC LTR Enable",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0", 
+     "Enable long term reference in hevc vme brc. (Default 0: Disable"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_INTERVAL_ID,
+     "HEVC VME BRC LTR Interval",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0", 
+     "HEVC Vme encode BRC Long term reference interval. (Default 0: interval=0"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_VME_FORCE_SCALABILITY_ID,
+     "HEVC VME Force Scalability For Low Size",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+     "0", 
+     "HEVC Vme encode force scalability for low (< 4K) resolution. (Default 0"),    
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
+     "BE Semaphore Reset Delay",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "15", 
+     "Control the num of placeholder cmds which are used for the delay of reset BE sync semaphore"),    
 };
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))
@@ -4252,6 +4826,7 @@ static MOS_STATUS MOS_UserFeature_ReadValueString(
     {
         MOS_SafeFreeMemory(pFeatureValue->Value.StringData.pStringData);
         pFeatureValue->Value.StringData.pStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
+        MosMemAllocFakeCounter++;
         MOS_SecureMemcpy(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr), pcTmpStr, strlen(pcTmpStr));
         pFeatureValue->Value.StringData.uSize = dwUFSize;
     }
@@ -4323,6 +4898,7 @@ static MOS_STATUS MOS_UserFeature_ReadValueMultiString(
     {
         MOS_SafeFreeMemory(pFeatureValue->Value.MultiStringData.pMultStringData);
         pFeatureValue->Value.MultiStringData.pMultStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
+        MosMemAllocFakeCounter++;
         if (pFeatureValue->Value.MultiStringData.pMultStringData == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to allocate memory.");

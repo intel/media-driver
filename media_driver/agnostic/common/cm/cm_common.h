@@ -223,7 +223,7 @@ typedef enum _CM_RETURN_CODE
 #define CM_HAL_MAX_NUM_2D_ALIASES           10                                  // maximum number of aliases for one 2D surface. Arbitrary - can be increased
 #define CM_HAL_MAX_NUM_BUFFER_ALIASES       10                                  // maximum number of aliases for one Buffer. Arbitrary - can be increased
 
-#define CM_MAX_SIP_SIZE                     0x2000                              // 8k system routine size
+#define CM_MAX_SIP_SIZE                     0x4000                              // 16k system routine size
 #define CM_DEBUG_SURFACE_INDEX              252                                 // reserved for tools
 #define CM_DEBUG_SURFACE_SIZE               0x10000                             // 64k for all threads
 #define CM_CSR_SURFACE_SIZE                 0x800000                            // 8 M Bytes for CSR surface
@@ -471,7 +471,9 @@ typedef enum _CM_WALKING_PATTERN
     CM_WALK_WAVEFRONT26ZIG = 6,
     CM_WALK_WAVEFRONT45D = 7,
     CM_WALK_WAVEFRONT45XD_2 = 8,
-    CM_WALK_WAVEFRONT26XALT = 9
+    CM_WALK_WAVEFRONT26XALT = 9,
+    CM_WALK_WAVEFRONT26D = 10,
+    CM_WALK_WAVEFRONT26XD = 11
 } CM_WALKING_PATTERN;
 
 //------------------------------------------------------------------------------
@@ -607,6 +609,21 @@ typedef enum _CM_HAL_MEMORY_OBJECT_CONTROL_G9
     CM_MEMORY_OBJECT_CONTROL_SKL_NO_CACHE    = 0x7
 }CM_HAL_MEMORY_OBJECT_CONTROL_G9;
 
+// Unified  CM_MEMORY_OBJECT_CONTROL enumeration
+typedef enum _CM_HAL_MEMORY_OBJECT_CONTROL
+{
+    CM_MEMORY_OBJECT_CONTROL_DEFAULT          = 0x0,
+    CM_MEMORY_OBJECT_CONTROL_NO_L3            = 0x1,
+    CM_MEMORY_OBJECT_CONTROL_NO_LLC_ELLC      = 0x2,
+    CM_MEMORY_OBJECT_CONTROL_NO_LLC           = 0x3,
+    CM_MEMORY_OBJECT_CONTROL_NO_ELLC          = 0x4,
+    CM_MEMORY_OBJECT_CONTROL_NO_LLC_L3        = 0x5,
+    CM_MEMORY_OBJECT_CONTROL_NO_ELLC_L3       = 0x6,
+    CM_MEMORY_OBJECT_CONTROL_NO_CACHE         = 0x7,
+    CM_MEMORY_OBJECT_CONTROL_L1_ENABLED       = 0x8
+}CM_HAL_MEMORY_OBJECT_CONTROL;
+
+
 typedef struct _CM_POWER_OPTION
 {
     uint16_t nSlice;                      // set number of slice to use: 0(default number), 1, 2...
@@ -690,7 +707,8 @@ enum CM_ARG_KIND
     ARG_KIND_IMPLICIT_LOCALID = 0x10,
     ARG_KIND_STATE_BUFFER = 0x11,
     ARG_KIND_GENERAL_DEPVEC = 0x20,
-    ARG_KIND_SURFACE_2D_SCOREBOARD = 0x2A  //used for SW scoreboarding
+    ARG_KIND_SURFACE_2D_SCOREBOARD = 0x2A,  //used for SW scoreboarding
+    ARG_KIND_GENERAL_DEPCNT = 0x30          //dependency count, used for SW scoreboarding
 };
 
 //non-depend on rtti::dynamic_cast

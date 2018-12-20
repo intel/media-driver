@@ -26,8 +26,7 @@
 //!
 
 #include "codechal_decoder.h"
-#include "codechal_secure_decode.h"
-#include "codechal_cenc_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "mos_solo_generic.h"
 #include "codechal_debug.h"
 #include "codechal_decode_histogram.h"
@@ -273,7 +272,7 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
     CODECHAL_DECODE_CHK_NULL_RETURN(codecHalSettings);
 
     MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
-    gpuNodeLimit.bHuCInUse = (m_cencDecoder != nullptr);
+    gpuNodeLimit.bHuCInUse = false;
     gpuNodeLimit.bHcpInUse = m_hcpInUse;
     gpuNodeLimit.bSfcInUse = IsSfcInUse(codecHalSettings);
 
@@ -511,7 +510,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
     }
 
-    CodechalSecureDecode::CreateSecureDecode(codecHalSettings, m_hwInterface, &m_secureDecoder);
+    m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface); 
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_downsamplingHinted = codecHalSettings->downsamplingHinted ? true : false;
@@ -619,7 +618,7 @@ CodechalDecode::~CodechalDecode()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    MOS_Delete(m_secureDecoder);
+    Delete_SecureDecodeInterface(m_secureDecoder);
     m_secureDecoder = nullptr;
 
     if (m_mmc)
@@ -696,20 +695,11 @@ void CodechalDecode::CalcRequestedSpace(
     uint32_t       &additionalSizeNeeded,
     uint32_t       &requestedPatchListSize)
 {
-    if (m_cencDecoder != nullptr)
-    {
-        requestedSize = m_commandBufferSizeNeeded;
-        requestedPatchListSize = m_commandPatchListSizeNeeded;
-        additionalSizeNeeded = 0;
-    }
-    else
-    {
-        requestedSize = m_commandBufferSizeNeeded +
-            (m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + 1));
-        requestedPatchListSize = m_commandPatchListSizeNeeded +
-            (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
-        additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
-    }
+    requestedSize = m_commandBufferSizeNeeded +
+        (m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + 1));
+    requestedPatchListSize = m_commandPatchListSizeNeeded +
+        (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
+    additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
 }
 
 MOS_STATUS CodechalDecode::VerifySpaceAvailable ()
@@ -945,18 +935,19 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 
     CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+
     MOS_TraceEvent(EVENT_CODEC_DECODE, EVENT_TYPE_START, &m_standard, sizeof(uint32_t), &m_frameNum, sizeof(uint32_t));
+
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_bufferDumpFrameNum = m_frameNum;)
 
-    if (m_cencDecoder != nullptr)
+    if (m_cencBuf!= nullptr)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_DisableAubcaptureOptimizations(
             m_osInterface,
-            m_firstExecuteCall));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_DisableAubcaptureOptimizations(
-            m_cencDecoder->osInterface,
             m_firstExecuteCall));
     }
 
@@ -1062,7 +1053,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     CODECHAL_DEBUG_TOOL(
 
         if (decodeParams->m_dataBuffer &&
-            (m_standard != CODECHAL_JPEG && m_cencDecoder == nullptr) &&
+            (m_standard != CODECHAL_JPEG && m_cencBuf == nullptr) &&
             !(m_standard == CODECHAL_HEVC && m_isHybridDecoder) &&
             !(m_standard == CODECHAL_HEVC && (m_incompletePicture || !m_firstExecuteCall)))
         {
@@ -1165,7 +1156,11 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessDecode(m_osInterface, m_decodeParams.m_destSurface));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+
     MOS_TraceEvent(EVENT_CODEC_DECODE, EVENT_TYPE_END, &eStatus, sizeof(eStatus), nullptr, 0);
+
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
     return eStatus;
 }
@@ -1737,6 +1732,45 @@ MOS_STATUS CodechalDecode::SendMarkerCommand(
     }
 
     return eStatus;
+}
+
+MOS_STATUS CodechalDecode::SetCencBatchBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_DECODE_CHK_NULL_RETURN(cmdBuffer);
+
+    MHW_BATCH_BUFFER        batchBuffer;
+    MOS_ZeroMemory(&batchBuffer, sizeof(MHW_BATCH_BUFFER));
+    MOS_RESOURCE *resHeap = nullptr;
+    CODECHAL_DECODE_CHK_NULL_RETURN(resHeap = m_cencBuf->secondLvlBbBlock->GetResource());
+    batchBuffer.OsResource   = *resHeap;
+    batchBuffer.dwOffset     = m_cencBuf->secondLvlBbBlock->GetOffset();
+    batchBuffer.iSize        = m_cencBuf->secondLvlBbBlock->GetSize();
+    batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+        cmdBuffer,
+        &batchBuffer));
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+            &batchBuffer,
+            CODECHAL_NUM_MEDIA_STATES,
+            "_2ndLvlBatch"));)
+
+    // Update GlobalCmdBufId
+    MHW_MI_STORE_DATA_PARAMS miStoreDataParams;
+    MOS_ZeroMemory(&miStoreDataParams, sizeof(miStoreDataParams));
+    miStoreDataParams.pOsResource = m_cencBuf->resTracker;
+    miStoreDataParams.dwValue     = m_cencBuf->trackerId;
+    CODECHAL_DECODE_VERBOSEMESSAGE("dwCmdBufId = %d", miStoreDataParams.dwValue);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &miStoreDataParams));
+    return MOS_STATUS_SUCCESS;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

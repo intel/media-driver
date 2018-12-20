@@ -73,10 +73,12 @@ LOCAL_SRC_FILES := \
     agnostic/common/codec/hal/codechal_decode_jpeg.cpp \
     agnostic/common/codec/hal/codechal_decode_mpeg2.cpp \
     agnostic/common/codec/hal/codechal_decode_nv12top010.cpp \
+    agnostic/common/codec/hal/codechal_decode_scalability.cpp \
     agnostic/common/codec/hal/codechal_decode_sfc.cpp \
     agnostic/common/codec/hal/codechal_decode_sfc_avc.cpp \
     agnostic/common/codec/hal/codechal_decode_sfc_hevc.cpp \
     agnostic/common/codec/hal/codechal_decode_sfc_jpeg.cpp \
+    agnostic/common/codec/hal/codechal_decode_singlepipe_virtualengine.cpp \
     agnostic/common/codec/hal/codechal_decode_vc1.cpp \
     agnostic/common/codec/hal/codechal_decode_vp8.cpp \
     agnostic/common/codec/hal/codechal_decode_vp9.cpp \
@@ -89,7 +91,10 @@ LOCAL_SRC_FILES := \
     agnostic/common/codec/hal/codechal_encode_hevc_base.cpp \
     agnostic/common/codec/hal/codechal_encode_jpeg.cpp \
     agnostic/common/codec/hal/codechal_encode_mpeg2.cpp \
+    agnostic/common/codec/hal/codechal_encode_scalability.cpp \
     agnostic/common/codec/hal/codechal_encode_sfc.cpp \
+    agnostic/common/codec/hal/codechal_encode_singlepipe_virtualengine.cpp \
+    agnostic/common/codec/hal/codechal_encode_sw_scoreboard.cpp \
     agnostic/common/codec/hal/codechal_encode_tracked_buffer.cpp \
     agnostic/common/codec/hal/codechal_encode_tracked_buffer_hevc.cpp \
     agnostic/common/codec/hal/codechal_encode_vp8.cpp \
@@ -142,6 +147,9 @@ LOCAL_SRC_FILES := \
     agnostic/common/os/mos_gpucontextmgr.cpp \
     agnostic/common/os/mos_graphicsresource.cpp \
     agnostic/common/os/mos_os.c \
+    agnostic/common/os/mos_os_virtualengine.cpp \
+    agnostic/common/os/mos_os_virtualengine_scalability.cpp \
+    agnostic/common/os/mos_os_virtualengine_singlepipe.cpp \
     agnostic/common/os/mos_util_debug.c \
     agnostic/common/os/mos_util_user_interface.cpp \
     agnostic/common/os/mos_utilities.c \
@@ -154,6 +162,7 @@ LOCAL_SRC_FILES := \
     agnostic/common/vp/hal/vphal_common.c \
     agnostic/common/vp/hal/vphal_ddi.c \
     agnostic/common/vp/hal/vphal_debug.c \
+    agnostic/common/vp/hal/vphal_mdf_wrapper.cpp \
     agnostic/common/vp/hal/vphal_render_common.c \
     agnostic/common/vp/hal/vphal_render_composite.cpp \
     agnostic/common/vp/hal/vphal_render_ief.cpp \
@@ -215,35 +224,6 @@ LOCAL_SRC_FILES := \
     agnostic/gen10/vp/kdll/hal_kernelrules_g10.c \
     agnostic/gen10/vp/kernel/igvpkrn_g10.c \
     agnostic/gen10_cnl/media_interfaces/media_interfaces_g10_cnl.cpp \
-    agnostic/gen8/cm/cm_hal_g8.cpp \
-    agnostic/gen8/codec/hal/codechal_decode_vc1_g8.cpp \
-    agnostic/gen8/codec/hal/codechal_encode_avc_g8.cpp \
-    agnostic/gen8/codec/hal/codechal_encode_csc_ds_g8.cpp \
-    agnostic/gen8/codec/hal/codechal_encode_mpeg2_g8.cpp \
-    agnostic/gen8/codec/hal/codechal_encode_wp_g8.cpp \
-    agnostic/gen8/codec/hal/codechal_fei_avc_g8.cpp \
-    agnostic/gen8/codec/hal/codechal_hw_g8_X.cpp \
-    agnostic/gen8/codec/hal/codechal_kernel_hme_g8.cpp \
-    agnostic/gen8/codec/kernel/igcodeckrn_g8.c \
-    agnostic/gen8/hw/mhw_mi_g8_X.cpp \
-    agnostic/gen8/hw/mhw_mi_hwcmd_g8_X.cpp \
-    agnostic/gen8/hw/mhw_render_g8_X.cpp \
-    agnostic/gen8/hw/mhw_render_hwcmd_g8_X.cpp \
-    agnostic/gen8/hw/mhw_state_heap_g8.c \
-    agnostic/gen8/hw/mhw_state_heap_hwcmd_g8_X.cpp \
-    agnostic/gen8/hw/mhw_vebox_g8_X.cpp \
-    agnostic/gen8/hw/mhw_vebox_hwcmd_g8_X.cpp \
-    agnostic/gen8/renderhal/renderhal_g8.cpp \
-    agnostic/gen8/vp/hal/vphal_g8.cpp \
-    agnostic/gen8/vp/hal/vphal_render_composite_g8.cpp \
-    agnostic/gen8/vp/hal/vphal_render_vebox_g8_base.cpp \
-    agnostic/gen8/vp/hal/vphal_renderer_g8.cpp \
-    agnostic/gen8/vp/kdll/hal_kerneldll_g8.c \
-    agnostic/gen8/vp/kdll/hal_kernelrules_g8.c \
-    agnostic/gen8/vp/kernel/igvpkrn_g8.c \
-    agnostic/gen8_bdw/hw/vdbox/mhw_vdbox_mfx_g8_bdw.cpp \
-    agnostic/gen8_bdw/hw/vdbox/mhw_vdbox_mfx_hwcmd_g8_bdw.cpp \
-    agnostic/gen8_bdw/media_interfaces/media_interfaces_g8_bdw.cpp \
     agnostic/gen9/cm/cm_hal_g9.cpp \
     agnostic/gen9/codec/hal/codechal_debug_encode_par_g9.cpp \
     agnostic/gen9/codec/hal/codechal_decode_downsampling_g9.cpp \
@@ -378,9 +358,12 @@ LOCAL_SRC_FILES := \
     linux/common/codec/ddi/media_libva_decoder.cpp \
     linux/common/codec/ddi/media_libva_encoder.cpp \
     linux/common/codec/ddi/media_libvpx_vp9.cpp \
-    linux/common/cp/ddi/media_libva_cp.cpp \
-    linux/common/cp/hw/mhw_cp.cpp \
-    linux/common/cp/os/mos_os_cp_specific.cpp \
+    linux/common/codec/hal/codechal_secure_decode_interface.cpp \
+    linux/common/cp/ddi/media_libva_caps_cp_interface.cpp \
+    linux/common/cp/ddi/media_libva_cp_interface.cpp \
+    linux/common/cp/hw/mhw_cp_interface.cpp \
+    linux/common/cp/os/mos_os_cp_interface_specific.cpp \
+    linux/common/cp/shared/cplib_utils.cpp \
     linux/common/ddi/media_ddi_base.cpp \
     linux/common/ddi/media_libva.cpp \
     linux/common/ddi/media_libva_caps.cpp \
@@ -394,12 +377,16 @@ LOCAL_SRC_FILES := \
     linux/common/os/libdrm/xf86drmHash.c \
     linux/common/os/libdrm/xf86drmMode.c \
     linux/common/os/libdrm/xf86drmRandom.c \
+    linux/common/os/mos_auxtable_mgr.cpp \
     linux/common/os/mos_commandbuffer_specific.cpp \
     linux/common/os/mos_context_specific.cpp \
     linux/common/os/mos_gpucontext_specific.cpp \
     linux/common/os/mos_graphicsresource_specific.cpp \
     linux/common/os/mos_os_specific.c \
+    linux/common/os/mos_os_virtualengine_scalability_specific.cpp \
+    linux/common/os/mos_os_virtualengine_singlepipe_specific.cpp \
     linux/common/os/mos_util_debug_specific.c \
+    linux/common/os/mos_util_devult_specific.cpp \
     linux/common/os/mos_util_user_interface_specific.cpp \
     linux/common/os/mos_utilities_specific.c \
     linux/common/renderhal/renderhal_dsh_specific.c \
@@ -412,9 +399,6 @@ LOCAL_SRC_FILES := \
     linux/gen10/ddi/media_sku_wa_g10.cpp \
     linux/gen10/ddi/media_sysinfo_g10.cpp \
     linux/gen10_cnl/ddi/media_libva_caps_g10_cnl.cpp \
-    linux/gen8/ddi/media_libva_caps_g8.cpp \
-    linux/gen8/ddi/media_sku_wa_g8.cpp \
-    linux/gen8/ddi/media_sysinfo_g8.cpp \
     linux/gen9/ddi/media_libva_caps_g9.cpp \
     linux/gen9/ddi/media_sku_wa_g9.cpp \
     linux/gen9/ddi/media_sysinfo_g9.cpp \
@@ -424,16 +408,14 @@ LOCAL_SRC_FILES := \
     linux/gen9_kbl/ddi/media_libva_caps_g9_kbl.cpp \
     linux/gen9_skl/ddi/media_libva_caps_g9_skl.cpp \
 
-LOCAL_SHARED_LIBRARIES += libsync
-LOCAL_SHARED_LIBRARIES += libbinder
-LOCAL_SHARED_LIBRARIES += libcutils
-LOCAL_SHARED_LIBRARIES += libutils
-LOCAL_SHARED_LIBRARIES += libdrm
-LOCAL_SHARED_LIBRARIES += libva
-LOCAL_SHARED_LIBRARIES += liblog
-LOCAL_SHARED_LIBRARIES += libpciaccess
-
-LOCAL_STATIC_LIBRARIES = \
+LOCAL_SHARED_LIBRARIES := \
+    libsync \
+    libcutils \
+    libutils \
+    libdrm \
+    libva \
+    liblog \
+    libpciaccess \
     libgmm_umd \
 
 LOCAL_CPPFLAGS = \
@@ -446,6 +428,8 @@ LOCAL_CPPFLAGS = \
     -DHEVC_FEI_ENABLE_CMRT \
     -DIGFX_GEN10_CNL_SUPPORTED \
     -DIGFX_GEN10_SUPPORTED \
+    -DIGFX_GEN11_ICLLP_SUPPORTED \
+    -DIGFX_GEN11_SUPPORTED \
     -DIGFX_GEN8_BDW_SUPPORTED \
     -DIGFX_GEN8_SUPPORTED \
     -DIGFX_GEN9_BXT_SUPPORTED \
@@ -457,27 +441,39 @@ LOCAL_CPPFLAGS = \
     -DUFO_VERSION=\"2.0.0\" \
     -DVEBOX_AUTO_DENOISE_SUPPORTED=1 \
     -D_AVC_DECODE_SUPPORTED \
-    -D_AVC_ENCODE_SUPPORTED \
+    -D_AVC_ENCODE_VDENC_SUPPORTED \
+    -D_AVC_ENCODE_VME_SUPPORTED \
     -D_COMMON_ENCODE_SUPPORTED \
     -D_DECODE_PROCESSING_SUPPORTED \
     -D_HEVC_DECODE_SUPPORTED \
-    -D_HEVC_ENCODE_SUPPORTED \
+    -D_HEVC_ENCODE_VDENC_SUPPORTED \
+    -D_HEVC_ENCODE_VME_SUPPORTED \
     -D_JPEG_DECODE_SUPPORTED \
     -D_JPEG_ENCODE_SUPPORTED \
     -D_MMC_SUPPORTED \
     -D_MPEG2_DECODE_SUPPORTED \
-    -D_MPEG2_ENCODE_SUPPORTED \
-    -D_RELEASE \
+    -D_MPEG2_ENCODE_VME_SUPPORTED \
     -D_VC1_DECODE_SUPPORTED \
     -D_VP8_DECODE_SUPPORTED \
     -D_VP8_ENCODE_SUPPORTED \
     -D_VP9_DECODE_SUPPORTED \
-    -D_VP9_ENCODE_SUPPORTED \
+    -D_VP9_ENCODE_VDENC_SUPPORTED \
     -D__STDC_CONSTANT_MACROS \
     -D__STDC_LIMIT_MACROS \
     -D__VPHAL_SFC_SUPPORTED=1 \
     -DiHD_drv_video_EXPORTS \
-	-Wno-error
+    -D_RELEASE \
+    -Wno-error \
+    -Wno-unused-parameter \
+    -Wno-reorder \
+    -Wno-missing-field-initializers \
+    -Wno-overloaded-virtual \
+    -Wno-missing-braces \
+    -Wno-sign-compare \
+    -Wno-ignored-qualifiers \
+    -Wno-logical-op-parentheses \
+    -Wno-parentheses \
+    -Wno-bitfield-constant-conversion \
 
 LOCAL_CPPFLAGS += \
     -msse2 \
@@ -490,8 +486,6 @@ LOCAL_CONLYFLAGS = -x c++
 LOCAL_CFLAGS = $(LOCAL_CPPFLAGS)
 
 LOCAL_C_INCLUDES  = \
-    $(TARGET_OUT_HEADERS)/libva \
-    $(TARGET_OUT_HEADERS)/ufo \
     $(LOCAL_PATH)/linux/common/os/libdrm/include \
     $(LOCAL_PATH)/agnostic/common/cm \
     $(LOCAL_PATH)/agnostic/common/codec/hal \
@@ -555,12 +549,25 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/agnostic/gen10/vp/hal \
     $(LOCAL_PATH)/agnostic/gen10/vp/kernel \
     $(LOCAL_PATH)/agnostic/gen10_cnl/media_interfaces \
+    $(LOCAL_PATH)/agnostic/gen11/cm \
+    $(LOCAL_PATH)/agnostic/gen11/codec/hal \
+    $(LOCAL_PATH)/agnostic/gen11/codec/kernel \
+    $(LOCAL_PATH)/agnostic/gen11/codec/share \
+    $(LOCAL_PATH)/agnostic/gen11/hw/vdbox \
+    $(LOCAL_PATH)/agnostic/gen11/hw \
+    $(LOCAL_PATH)/agnostic/gen11/renderhal \
+    $(LOCAL_PATH)/agnostic/gen11/vp/hal \
+    $(LOCAL_PATH)/agnostic/gen11_icllp/codec/hal \
+    $(LOCAL_PATH)/agnostic/gen11_icllp/codec/kernel \
+    $(LOCAL_PATH)/agnostic/gen11_icllp/media_interfaces \
+    $(LOCAL_PATH)/agnostic/gen11_icllp/vp/hal \
+    $(LOCAL_PATH)/agnostic/gen11_icllp/vp/kernel \
     $(LOCAL_PATH)/linux/common/cm \
     $(LOCAL_PATH)/linux/common/codec/ddi \
-    $(LOCAL_PATH)/linux/common/codec/hal \
     $(LOCAL_PATH)/linux/common/cp/ddi \
     $(LOCAL_PATH)/linux/common/cp/hw \
     $(LOCAL_PATH)/linux/common/cp/os \
+    $(LOCAL_PATH)/linux/common/cp/shared \
     $(LOCAL_PATH)/linux/common/ddi \
     $(LOCAL_PATH)/linux/common/os \
     $(LOCAL_PATH)/linux/common/vp/ddi \
@@ -573,10 +580,9 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/linux/gen9_cfl/ddi \
     $(LOCAL_PATH)/linux/gen10/ddi \
     $(LOCAL_PATH)/linux/gen10_cnl/ddi \
-    $(LOCAL_PATH)/../../gmmlib/Source/inc/common \
+    $(LOCAL_PATH)/linux/gen11/codec/ddi \
+    $(LOCAL_PATH)/linux/gen11/ddi \
 
-
-#LOCAL_HEADER_LIBRARIES := ufo_inc_headers libgui_headers
 
 #LOCAL_CPP_FEATURES := rtti exceptions
 

@@ -235,9 +235,6 @@ VAStatus DdiEncodeVp8::StatusReport(
             pVACodedBufferSegmentForStatusReport->buf  = (void *)((char *)(m_encodeCtx->BufMgr.pCodedBufferSegment->buf) + size);
             pVACodedBufferSegmentForStatusReport->next = nullptr;
 
-            // fill hdcp related buffer
-            DDI_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, &m_encodeCtx->statusReportBuf.infos[index]), "fail to get hdcp2 status report!");
-
             VACodedBufferSegment *pFindTheLastEntry;
             pFindTheLastEntry = m_encodeCtx->BufMgr.pCodedBufferSegment;
             // if HDCP2 is enabled, the second segment for counter values is already there  So, move the connection as the third one
@@ -251,7 +248,7 @@ VAStatus DdiEncodeVp8::StatusReport(
 
         mos_bo_wait_rendering(mediaBuf->bo);
 
-        EncodeStatusReport *encodeStatusReport = (EncodeStatusReport*)m_encodeCtx->pEncodeStatusReport;
+        EncodeStatusReport* encodeStatusReport = (EncodeStatusReport*)m_encodeCtx->pEncodeStatusReport;
         encodeStatusReport->bSequential = true;  //Query the encoded frame status in sequential.
 
         uint16_t numStatus = 1;
@@ -261,6 +258,8 @@ VAStatus DdiEncodeVp8::StatusReport(
         {
             // Only AverageQP is reported at this time. Populate other bits with relevant informaiton later;
             status = (encodeStatusReport[0].AverageQp & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
+            // fill hdcp related buffer
+            DDI_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReport), "fail to get hdcp2 status report!");
             if (UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, status) != VA_STATUS_SUCCESS)
             {
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);

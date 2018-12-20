@@ -28,7 +28,7 @@
 #include "mos_gpucontext_specific.h"
 #include "mos_graphicsresource_specific.h"
 #include "mos_commandbuffer_specific.h"
-
+#include "mos_util_devult_specific.h"
 #include "mos_cmdbufmgr.h"
 
 #define MI_BATCHBUFFER_END 0x05000000
@@ -41,6 +41,10 @@ GpuContextSpecific::GpuContextSpecific(
     GpuContext        *reusedContext)
 {
     MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_ASSERT(gpuNode != MOS_GPU_NODE_MAX);
+    MOS_OS_ASSERT(mosGpuCtx != MOS_GPU_CONTEXT_INVALID_HANDLE);
+    MOS_OS_ASSERT(cmdBufMgr);
 
     m_nodeOrdinal          = gpuNode;
     m_cmdBufMgr            = cmdBufMgr;
@@ -225,11 +229,13 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
         if (m_cmdBufPool.size() < MAX_CMD_BUF_NUM)
         {
             cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
+            MOS_OS_CHK_NULL_RETURN(cmdBuf);
             MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
             m_cmdBufPool.push_back(cmdBuf);
         }
-        else if (m_cmdBufPool.size() == MAX_CMD_BUF_NUM)
+        else
         {
+            MOS_OS_ASSERT(m_cmdBufPool.size() == MAX_CMD_BUF_NUM);
             auto cmdBufOld = m_cmdBufPool[m_nextFetchIndex];
             auto cmdBufSpecificOld = static_cast<CommandBufferSpecific *>(cmdBufOld);
             cmdBufSpecificOld->waitReady();
@@ -237,7 +243,8 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
             m_cmdBufMgr->ReleaseCmdBuf(cmdBufOld);  // here just return old command buffer to available pool
 
             //pick up new comamnd buffer
-            cmdBuf         = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
+            cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
+            MOS_OS_CHK_NULL_RETURN(cmdBuf);
             MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
             m_cmdBufPool[m_nextFetchIndex] = cmdBuf;
         }
@@ -410,6 +417,26 @@ uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
      return vcsExecFlag;
 }
 
+MOS_STATUS GpuContextSpecific::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
+{
+    OsContextSpecific *osCtx = static_cast<OsContextSpecific*>(m_osContext);
+    AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
+    if (auxTableMgr)
+    {
+        // Map compress allocations to aux table if it is not mapped.
+        for (int i = 0; i < m_numAllocations; i++)
+        {
+            auto res = (PMOS_RESOURCE)m_allocationList[i].hAllocation;
+            MOS_OS_CHK_NULL_RETURN(res);
+            
+            MOS_OS_CHK_STATUS_RETURN(auxTableMgr->MapResource(res->pGmmResInfo, res->bo));
+        }
+        MOS_OS_CHK_STATUS_RETURN(auxTableMgr->EmitAuxTableBOList(cmd_bo));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+
 MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     PMOS_INTERFACE      osInterface,
     PMOS_COMMAND_BUFFER cmdBuffer,
@@ -428,19 +455,20 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     uint32_t     addCb2   = 0xffffffff;
     MOS_STATUS   eStatus  = MOS_STATUS_SUCCESS;
     int32_t      ret      = 0;
+    PLATFORM     platform;
 
     // Command buffer object DRM pointer
     m_cmdBufFlushed = true;
     auto cmd_bo     = cmdBuffer->OsResource.bo;
 
+    // Map Resource to Aux if needed
+    MapResourcesToAuxTable(cmd_bo);
+
     // Now, the patching will be done, based on the patch list.
     for (uint32_t patchIndex = 0; patchIndex < m_currentNumPatchLocations; patchIndex++)
     {
         auto currentPatch = &m_patchLocationList[patchIndex];
-        if (nullptr == currentPatch)
-        {
-            MOS_OS_ASSERTMESSAGE("Unexpected, found null entry in patch list!");
-        }
+        MOS_OS_CHK_NULL_RETURN(currentPatch);
 
         auto allocationIndex = currentPatch->AllocationIndex;
         auto resourceOffset  = currentPatch->AllocationOffset;
@@ -556,8 +584,12 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     {
         if (true == osInterface->osCpInterface->IsHMEnabled())
         {
-            cliprects     = (drm_clip_rect *)(&addCb2);
-            num_cliprects = sizeof(addCb2);
+            osInterface->pfnGetPlatform(osInterface,&platform);
+            if (platform.eProductFamily < IGFX_BROXTON)
+            {
+                cliprects     = (drm_clip_rect *)(&addCb2);
+                num_cliprects = sizeof(addCb2);
+            }
         }
     }
     else
@@ -705,6 +737,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     {
         MOS_OS_ASSERTMESSAGE("Command buffer submission failed!");
     }
+
+    MOS_DEVULT_FuncCall(pfnUltGetCmdBuf, cmdBuffer);
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 pthread_mutex_lock(&command_dump_mutex);

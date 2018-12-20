@@ -29,9 +29,6 @@
 #define __VPHAL_H__
 
 #include "vphal_common.h"
-
-#include "vphal_common_composite.h"
-#include "vphal_common_vebox.h"
 #include "vphal_common_tools.h"
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
@@ -41,11 +38,6 @@
 //*-----------------------------------------------------------------------------
 // Incremental size for allocating/reallocating resource
 #define VPHAL_BUFFER_SIZE_INCREMENT     128
-
-#define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
-#define VPHAL_MAX_CHANNELS              2
-#define VPHAL_MAX_TARGETS               2        //!< dual output support for Android
-#define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
 
 // YUV input ranges
 #define YUV_RANGE_16_235                1
@@ -263,17 +255,6 @@ struct VphalSseuSetting
 };
 
 //-----------------------------------------------------------------------------
-// Forward declaration -
-// IMPORTANT - DDI interfaces are NOT to access internal VPHAL states
-//-----------------------------------------------------------------------------
-typedef struct _RENDERHAL_INTERFACE     *PRENDERHAL_INTERFACE;
-typedef class MhwVeboxInterface         *PMHW_VEBOX_INTERFACE;
-typedef class MhwSfcInterface           *PMHW_SFC_INTERFACE;
-class VphalRenderer;
-
-class MhwCpInterface;
-
-//-----------------------------------------------------------------------------
 // VPHAL-DDI RENDERING INTERFACE
 //
 //      Params that may apply to more than one layer are part of VPHAL_SURFACE
@@ -351,170 +332,8 @@ struct VphalFeatureReport
     uint8_t                         PrimaryCompressMode;//!< Input Primary Surface Compression mode
     VPHAL_COMPOSITION_REPORT_MODE   CompositionMode;    //!< Inplace/Legacy Compostion flag
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
+    bool                            DiScdMode;          //!< Scene change detection
 };
-
-//!
-//! Structure VPHAL_SURFACE
-//! \brief DDI-VPHAL surface definition
-//!
-struct VPHAL_SURFACE
-{
-    // Color Information
-    VPHAL_CSPACE                ColorSpace;         //!<Color Space
-    bool                        ExtendedGamut;      //!<Extended Gamut Flag
-    int32_t                     iPalette;           //!<Palette Allocation
-    VPHAL_PALETTE               Palette;            //!<Palette data
-
-    // Rendering parameters
-    RECT                        rcSrc;              //!< Source rectangle
-    RECT                        rcDst;              //!< Destination rectangle
-    RECT                        rcMaxSrc;           //!< Max source rectangle
-    PVPHAL_BLENDING_PARAMS      pBlendingParams;    //!< Blending parameters
-    PVPHAL_LUMAKEY_PARAMS       pLumaKeyParams;     //!< Luma keying parameters
-    PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
-    PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
-    bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
-    bool                        bInterlacedScaling; //!< Interlaced scaling
-    bool                        bFieldWeaving;      //!< Field Weaving
-    bool                        bQueryVariance;     //!< enable variance query
-    bool                        bDirectionalScalar; //!< Vebox Directional Scalar
-    bool                        bFastColorFill;     //!< enable fast color fill without copy surface
-    bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
-
-    // Advanced Processing
-    PVPHAL_DI_PARAMS            pDeinterlaceParams;
-    PVPHAL_DENOISE_PARAMS       pDenoiseParams;     //!< Denoise
-    PVPHAL_COLORPIPE_PARAMS     pColorPipeParams;   //!< ColorPipe
-
-    // Frame ID and reference samples -> for advanced processing
-    int32_t                     FrameID;
-    uint32_t                    uFwdRefCount;
-    uint32_t                    uBwdRefCount;
-    PVPHAL_SURFACE              pFwdRef;
-    PVPHAL_SURFACE              pBwdRef;
-
-    // VPHAL_SURFACE Linked list
-    PVPHAL_SURFACE              pNext;
-
-    //--------------------------------------
-    // FIELDS TO BE SETUP BY VPHAL int32_tERNALLY
-    //--------------------------------------
-    uint32_t                    dwWidth;            //!<  Surface width
-    uint32_t                    dwHeight;           //!<  Surface height
-    uint32_t                    dwPitch;            //!<  Surface pitch
-    MOS_TILE_TYPE               TileType;           //!<  Tile Type
-    bool                        bOverlay;           //!<  Overlay Surface
-    bool                        bFlipChain;         //!<  FlipChain Surface
-    VPHAL_PLANE_OFFSET          YPlaneOffset;       //!<  Y surface plane offset
-    VPHAL_PLANE_OFFSET          UPlaneOffset;       //!<  U surface plane offset
-    VPHAL_PLANE_OFFSET          VPlaneOffset;       //!<  V surface plane offset
-    int32_t                     iLayerID;           //!<  Layer index (0-based index)
-    VPHAL_SCALING_MODE          ScalingMode;        //!<  Scaling Mode
-    VPHAL_SCALING_PREFERENCE    ScalingPreference;  //!<  Scaling preference
-    bool                        bIEF;               //!<  IEF flag
-    uint32_t                    dwSlicePitch;       //!<  SlicePitch of a 3D surface(GT-PIN support)
-
-    //--------------------------------------
-    // FIELDS TO BE PROVIDED BY DDI
-    //--------------------------------------
-    // Sample information
-    MOS_FORMAT                  Format;             //!<  Surface format
-    VPHAL_SURFACE_TYPE          SurfType;           //!<  Surface type (context)
-    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type
-    uint32_t                    dwDepth;            //!<  Surface depth
-    MOS_S3D_CHANNEL             Channel;            //!<  Channel
-    uint32_t                    dwOffset;           //!<  Surface Offset (Y/Base)
-    MOS_RESOURCE                OsResource;         //!<  Surface resource
-    VPHAL_ROTATION              Rotation;           //!<  0: 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degreee
-
-    // Chroma siting
-    uint32_t                    ChromaSiting;
-    bool                        bChromaSiting;      //!<  Chromasiting flag
-
-    // Surface compression mode, enable flags
-    bool                        bCompressible;      // The surface is compressible, means there are additional 128 bit for MMC no matter it is compressed or not
-                                                    // The bIsCompressed in surface allocation structure should use this flag to initialize to allocate a compressible surface
-    bool                        bIsCompressed;      // The surface is compressed, VEBox output can only support horizontal mode, but input can be horizontal / vertical
-    MOS_RESOURCE_MMC_MODE       CompressionMode;
-};
-
-//!
-//! Structure VPHAL_RENDER_PARAMS
-//! \brief VPHAL Rendering Parameters
-//!
-struct VPHAL_RENDER_PARAMS
-{
-    // Input/output surfaces
-    uint32_t                                uSrcCount;                  //!< Num sources
-    VPHAL_SURFACE                           *pSrc[VPHAL_MAX_SOURCES];   //!< Source Samples
-    uint32_t                                uDstCount;                  //!< Num Targets
-    VPHAL_SURFACE                           *pTarget[VPHAL_MAX_TARGETS];//!< Render Target
-
-    // Additional parameters not included in PVPHAL_SURFACE
-    PRECT                                   pConstriction;              //!< Constriction rectangle
-    PVPHAL_COLORFILL_PARAMS                 pColorFillParams;           //!< ColorFill - BG only
-    bool                                    bTurboMode;                 //!< Enable Media Turbo Mode
-    bool                                    bStereoMode;                //!< Stereo BLT mode
-    PVPHAL_ALPHA_PARAMS                     pCompAlpha;                 //!< Alpha for composited surfaces
-    bool                                    bDisableDemoMode;           //!< Enable/Disable demo mode function calls
-    PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS    pSplitScreenDemoModeParams; //!< Split-screen demo mode for VP features
-    bool                                    bIsDefaultStream;           //!< Identifier to differentiate default stream
-
-    // Debugging parameters
-    MOS_COMPONENT                           Component;                  //!< DDI component (for DEBUGGING only)
-
-    // Status Report
-    bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
-    uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
-#endif
-
-    bool                                    bCalculatingAlpha;          //!< Alpha calculation parameters
-
-    // extension parameters
-    void                                    *pExtensionData;            //!< Extension data
-
-    VPHAL_RENDER_PARAMS():
-        uSrcCount(0),
-        pSrc(),
-        uDstCount(0),
-        pTarget(),
-        pConstriction(nullptr),
-        pColorFillParams(nullptr),
-        bTurboMode(false),
-        bStereoMode(false),
-        pCompAlpha(nullptr),
-        bDisableDemoMode(false),
-        pSplitScreenDemoModeParams(nullptr),
-        bIsDefaultStream(false),
-        Component(),
-        bReportStatus(false),
-        StatusFeedBackID(0),
-#if (_DEBUG || _RELEASE_INTERNAL)
-        bTriggerGPUHang(false),
-#endif
-        bCalculatingAlpha(false),
-        pExtensionData(nullptr)
-    {
-    }
-
-};
-
-typedef VPHAL_RENDER_PARAMS *PVPHAL_RENDER_PARAMS;
-
-//!
-//! Structure VPHAL_GET_SURFACE_INFO
-//! \brief VPHAL Get Surface Infomation Parameters
-//!
-struct VPHAL_GET_SURFACE_INFO
-{
-    uint32_t          ArraySlice;
-    uint32_t          MipSlice;
-    MOS_S3D_CHANNEL   S3dChannel;
-};
-
-typedef const VPHAL_RENDER_PARAMS  *PCVPHAL_RENDER_PARAMS;
 
 //!
 //! Class VphalState

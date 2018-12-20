@@ -34,14 +34,14 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_render_hwcmd_g8_X.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
+#include "mhw_mmio_g8.h"
 
 //!
 //! \brief      L3$ registers and configuration Gen8
 //!
-#define RENDERHAL_L3_CACHE_SQC_REG1_G8                      0xB100
-#define RENDERHAL_L3_CACHE_SQC_REG1_VALUE_G8                (0x00610000)
 
-#define RENDERHAL_L3_CACHE_CNTL_REG_G8                      0x7034
+
+
 
 #define RENDERHAL_SAMPLERS_AVS_G8           3   // 1 layer - One each for Y, U and V
 

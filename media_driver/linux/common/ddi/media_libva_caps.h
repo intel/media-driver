@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 #include <map>
 
 struct DDI_MEDIA_CONTEXT;
+class MediaLibvaCapsCpInterface;
 
 typedef std::map<VAConfigAttribType, uint32_t> AttribMap;
 
@@ -302,7 +303,7 @@ public:
     //!           VA_STATUS_SUCCESS if success
     //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
     //!
-    VAStatus QuerySurfaceAttributes(
+    virtual VAStatus QuerySurfaceAttributes(
             VAConfigID configId,
             VASurfaceAttrib *attribList,
             uint32_t *numAttribs);
@@ -395,7 +396,7 @@ public:
     //! \return   True if the profile is a HEVC profile
     //!           False if the profile isn't a HEVC profile
     //!
-    static bool IsHevcProfile(VAProfile profile);
+    virtual bool IsHevcProfile(VAProfile profile);
 
     //!
     //! \brief    Check if the give profile is VP8 
@@ -465,7 +466,7 @@ public:
     //!
     //! \return   Codehal mode 
     //!
-    CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint);
+    virtual CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint);
 
     //!
     //! \brief    Return internal decode mode for given profile 
@@ -475,7 +476,7 @@ public:
     //!
     //! \return   Codehal mode: decode codec mode 
     //!
-    CODECHAL_MODE GetDecodeCodecMode(VAProfile profile);
+    virtual CODECHAL_MODE GetDecodeCodecMode(VAProfile profile);
 
     //!
     //! \brief    Return the decode codec key for given profile 
@@ -498,7 +499,7 @@ public:
     //!
     //! \return   Std::string encode codec key 
     //!
-    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint);
+    virtual std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint);
 
     //!
     //! \brief    Query the suppported image formats 
@@ -515,6 +516,18 @@ public:
     //!
     VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
 
+    //!
+    //! \brief    Populate the color masks info 
+    //!
+    //! \param    [in,out] Image format
+    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
+    //!           structure.
+    //!
+    //! \return   VAStatus 
+    //!           VA_STATUS_SUCCESS if succeed 
+    //!
+    VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+    
     //!
     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
     //!
@@ -616,6 +629,17 @@ public:
     static MediaLibvaCaps * CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx);
 
     //!
+    //! \brief convert Media Format to Gmm Format for GmmResCreate parameter.
+    //!
+    //! \param    [in] format
+    //!         Pointer to DDI_MEDIA_FORMAT
+    //!
+    //! \return GMM_RESOURCE_FORMAT
+    //!         Pointer to gmm format type
+    //!
+    virtual GMM_RESOURCE_FORMAT ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT format);
+
+    //!
     //! \brief    Initialize the MediaLibvaCaps instance for current platform 
     //!
     //! \return   VAStatus 
@@ -705,8 +729,8 @@ protected:
     static const uint32_t m_decMpeg2MaxHeight = 2048; //!< Maximum height for Mpeg2 decode
     static const uint32_t m_decVc1MaxWidth = 3840; //!< Maximum width for VC1 decode
     static const uint32_t m_decVc1MaxHeight = 3840; //!< Maximum height for VC1 decode
-    static const uint32_t m_decJpegMaxWidth = 16352;  //!< Maximum width for JPEG decode
-    static const uint32_t m_decJpegMaxHeight = 16352; //!< Maximum height for JPEG decode
+    static const uint32_t m_decJpegMaxWidth = 16384;  //!< Maximum width for JPEG decode
+    static const uint32_t m_decJpegMaxHeight = 16384; //!< Maximum height for JPEG decode
     static const uint32_t m_decHevcMaxWidth = 8192; //!< Maximum width for HEVC decode
     static const uint32_t m_decHevcMaxHeight = 8192; //!< Maximum height for HEVC decode
     static const uint32_t m_decVp9MaxWidth = 8192; //!< Maximum width for VP9 decode
@@ -727,6 +751,8 @@ protected:
     static const uint32_t m_encJpegMaxHeight =
         ENCODE_JPEG_MAX_PIC_HEIGHT; //!< Maximum height for JPEG encoding
     DDI_MEDIA_CONTEXT *m_mediaCtx; //!< Pointer to media context
+
+    MediaLibvaCapsCpInterface* m_CapsCp;
 
     //!
     //! \brief  Store all the supported encode format
@@ -962,7 +988,7 @@ protected:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
     //!
-    VAStatus CreateDecAttributes(
+    virtual VAStatus CreateDecAttributes(
             VAProfile profile,
             VAEntrypoint entrypoint,
             AttribMap **attributeList);
@@ -1030,7 +1056,12 @@ protected:
     //!
     //! \brief    Initialize HEVC decode profiles, entrypoints and attributes
     //!
-    VAStatus LoadHevcDecProfileEntrypoints();
+    virtual VAStatus LoadHevcDecProfileEntrypoints();
+
+    //!
+    //! \brief    Initialize HEVC decode profiles, entrypoints and attributes for specified hevc profile
+    //!
+    VAStatus LoadDecProfileEntrypoints(VAProfile profile);
 
     //!
     //! \brief    Initialize HEVC encode profiles, entrypoints and attributes
@@ -1041,6 +1072,11 @@ protected:
     //! \brief    Initialize none profiles, entrypoints and attributes
     //!
     VAStatus LoadNoneProfileEntrypoints();
+
+    //!
+    //! \brief    Initialize Advanced decode profiles, entrypoints and attributes
+    //!
+    virtual VAStatus LoadAdvancedDecProfileEntrypoints();
 
     //!
     //! \brief    Initialize encode/decode/vp profiles, entrypoints and attributes

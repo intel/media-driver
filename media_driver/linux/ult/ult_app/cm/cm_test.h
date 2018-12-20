@@ -24,10 +24,11 @@
 #define MEDIADRIVER_LINUX_CODECHAL_ULT_ULTAPP_CMTEST_H_
 
 #include <malloc.h>
-
 #include "gtest/gtest.h"
-
 #include "mock_device.h"
+#include "../memory_leak_detector.h"
+
+#pragma GCC diagnostic ignored "-Wnonnull"
 
 class CmTest: public testing::Test
 {

@@ -392,6 +392,8 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
             weightOffsetParams.pAvcPicParams = params->pEncodeAvcPicParams;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcWeightsOffsetsStateCmd(cmdBuffer, &weightOffsetParams));
 
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer));
+
             MOS_ZeroMemory(&vdencWalkerStateParams, sizeof(vdencWalkerStateParams));
             vdencWalkerStateParams.Mode             = CODECHAL_ENCODE_MODE_AVC;
             vdencWalkerStateParams.pAvcSeqParams    = params->pEncodeAvcSeqParams;
@@ -2411,7 +2413,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetPictureStructs()
         {
             picParams->pic_scaling_list_present_flag[i] = 0;
         }
-        picParams->second_chroma_qp_index_offset = 0;
+        picParams->second_chroma_qp_index_offset = picParams->chroma_qp_index_offset;
     }
     if (picParams->QpY < 0)
     {
@@ -3233,7 +3235,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
 }
 
 void CodechalEncodeAvcBase::SetMfxPipeModeSelectParams(
-    CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS genericParam,
+    const CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS& genericParam,
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& param)
 {
     // set MFX_PIPE_MODE_SELECT values

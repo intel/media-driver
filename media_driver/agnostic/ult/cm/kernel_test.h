@@ -186,6 +186,8 @@ struct IsaData
 };
 typedef std::vector<IsaData> IsaArray;
 
+using CMRT_UMD::CmSampler;
+using CMRT_UMD::CmSampler8x8;
 class KernelTest: public CmTest
 {
 public:
@@ -255,9 +257,122 @@ public:
         return result;
     }//===============
 
+    //*-------------------------------------------------------------------------
+    //| Sets sampler BTI for CmSampler.
+    //*-------------------------------------------------------------------------
+    template<class SamplerType, class Function >
+    int32_t SetSamplerBTI(int sampler_count,
+                          uint32_t binding_table_index,
+                          Function Create)
+    {
+        int32_t result = CreateKernelFromDefaultIsa("DoNothing");
+        EXPECT_EQ(CM_SUCCESS, result);
+
+        SamplerType *samplers[2];
+        samplers[0] = samplers[1] = nullptr;
+
+        for (int i = 0; i < sampler_count; ++i)
+        {
+           samplers[i] = Create();
+           EXPECT_NE(nullptr, samplers[i]);
+        }
+
+        if (0 == sampler_count)
+        {
+            ++sampler_count;  // Test for nullptr;
+        }
+        SamplerIndex *sampler_index = nullptr;
+        int32_t return_value = 0;
+        for (int i = 0; i < sampler_count; ++i)
+        {
+            if (nullptr != samplers[i])
+            {
+                result = samplers[i]->GetIndex(sampler_index);
+                EXPECT_EQ(CM_SUCCESS, result);
+            }
+            result = m_kernel->SetSamplerBTI(sampler_index,
+                                             binding_table_index);
+            if (0 == i)
+            {
+                return_value = result;
+            }
+            else
+            {
+                EXPECT_EQ(CM_FAILURE, result);
+            }
+        }
+        
+        for (int i = 0; i < sampler_count; ++i)
+        {
+            if (nullptr != samplers[i])
+            {
+                result = DestroySampler(samplers[i]);
+                EXPECT_EQ(CM_SUCCESS, result);
+            }
+        }
+        
+        DestroyKernel();
+        return return_value;
+    }
+
 protected:
     //*-------------------------------------------------------------------------
-    //| Reset the default ISA array.
+    //| Creates CmSampler.
+    //*-------------------------------------------------------------------------
+    CmSampler* CreateSampler()
+    {
+        CM_SAMPLER_STATE sampler_state;
+        sampler_state.magFilterType = CM_TEXTURE_FILTER_TYPE_LINEAR;
+        sampler_state.minFilterType = CM_TEXTURE_FILTER_TYPE_LINEAR;
+        sampler_state.addressU = CM_TEXTURE_ADDRESS_CLAMP;
+        sampler_state.addressV = CM_TEXTURE_ADDRESS_CLAMP;
+        sampler_state.addressW = CM_TEXTURE_ADDRESS_CLAMP;
+        CmSampler *sampler = nullptr;
+        m_mockDevice->CreateSampler(sampler_state, sampler);
+        return sampler;
+    }
+
+    //*-------------------------------------------------------------------------
+    //| Creates CmSampler8x8.
+    //*-------------------------------------------------------------------------
+    CmSampler8x8* CreateSampler8x8()
+    {
+        CM_AVS_NONPIPLINED_STATE nonpipelined_state;
+        nonpipelined_state.BypassXAF = nonpipelined_state.BypassYAF = 1;
+        nonpipelined_state.DefaultSharpLvl = 255;
+        nonpipelined_state.maxDerivative4Pixels = 7; 
+        nonpipelined_state.maxDerivative8Pixels = 20;
+        nonpipelined_state.transitionArea4Pixels = 4;
+        nonpipelined_state.transitionArea8Pixels = 5;
+
+        CM_AVS_STATE_MSG state_message;
+        state_message.AvsState = &nonpipelined_state;
+        state_message.AVSTYPE = 0;
+        state_message.BypassIEF = 1;
+        state_message.GainFactor = 44;
+        state_message.GlobalNoiseEstm = 255;
+        state_message.StrongEdgeThr = 8;
+        state_message.WeakEdgeThr = 1;
+        state_message.StrongEdgeWght = 7;
+        state_message.RegularWght = 2;
+        state_message.NonEdgeWght = 1;
+        state_message.wR3xCoefficient = 6;
+        state_message.wR3cCoefficient = 15;
+        state_message.wR5xCoefficient = 9;
+        state_message.wR5cxCoefficient = 8;
+        state_message.wR5cCoefficient = 3;
+
+        CM_SAMPLER_8X8_DESCR descriptor;
+        descriptor.stateType = CM_SAMPLER8X8_AVS;
+        descriptor.avs = &state_message;
+  
+        CmSampler8x8 *sampler8x8 = nullptr;
+        m_mockDevice->CreateSampler8x8(descriptor, sampler8x8);
+        return sampler8x8;
+    }
+
+    //*-------------------------------------------------------------------------
+    //| Resets the default ISA array.
     //*-------------------------------------------------------------------------
     bool ResetDefaultIsaArray();
 
@@ -312,6 +427,16 @@ private:
         return result;
     }//===============
 
+    int32_t DestroySampler(CmSampler *sampler)
+    {
+        return m_mockDevice->DestroySampler(sampler);
+    }
+
+    int32_t DestroySampler(CmSampler8x8 *sampler)
+    {
+        return m_mockDevice->DestroySampler8x8(sampler);
+    }
+
     CMRT_UMD::CmProgram *m_program;
     CMRT_UMD::CmKernel *m_kernel;
 };
@@ -362,7 +487,7 @@ TEST_F(KernelTest, LoadWrongIsa)
 {
     const uint32_t CODE_SIZE = sizeof(SKYLAKE_DONOTHING_ISA);
     uint8_t wrong_isa_code[CODE_SIZE];
-    memcpy(wrong_isa_code, SKYLAKE_DONOTHING_ISA, CODE_SIZE);
+    memcpy_s(wrong_isa_code, CODE_SIZE, SKYLAKE_DONOTHING_ISA, CODE_SIZE);
     wrong_isa_code[0x23] = 0xff;
     uint8_t *wrong_isa_code_ptr = wrong_isa_code;
 
@@ -413,3 +538,37 @@ TEST_F(KernelTest, SetArgument)
                                                              nullptr); });
     return;    
 }//========
+
+TEST_F(KernelTest, SetSamplerBTI)
+{
+    auto CreateSampler = [this]() { return this->CreateSampler(); };
+
+    RunEach<int32_t>(CM_NULL_POINTER,
+                     [this, &CreateSampler]() {
+                         return SetSamplerBTI<CmSampler>(0, 5,
+                                                         CreateSampler); });
+    
+    static const uint32_t MAX_INDEX = 15;
+    RunEach<int32_t>(CM_KERNELPAYLOAD_SAMPLER_INVALID_BTINDEX,
+                     [this, &CreateSampler]() {
+                         return SetSamplerBTI<CmSampler>(1, MAX_INDEX + 1,
+                                                         CreateSampler); });
+
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this, &CreateSampler]() {
+                         return SetSamplerBTI<CmSampler>(2, 5,
+                                                         CreateSampler); });
+
+    auto CreateSampler8x8 = [this]() { return this->CreateSampler8x8(); };
+
+    RunEach<int32_t>(CM_KERNELPAYLOAD_SAMPLER_INVALID_BTINDEX,
+                     [this, &CreateSampler8x8]() {
+                         return SetSamplerBTI<CmSampler8x8>(
+                             1, MAX_INDEX + 1, CreateSampler8x8); });
+
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this, &CreateSampler8x8]() {
+                         return SetSamplerBTI<CmSampler8x8>(
+                             2, 5, CreateSampler8x8); });
+    return;
+}

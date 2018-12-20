@@ -438,7 +438,20 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
             /* Control the force panic mode through DDI other than user feature key */
             uint32_t           bForcePanicModeControl       : 1;
             uint32_t           bPanicModeDisable            : 1;
-            uint32_t           Reserved1                    : 7;
+
+            /*! \brief Enables streaming buffer in LLC
+            *
+            *        \n - 0 : streaming buffer by LLC is disabled.
+            *        \n - 1 : streaming buffer by LLC is enabled.
+            */
+            uint32_t           EnableStreamingBufferLLC     : 1;
+            /*! \brief Enables streaming buffer in DDR
+            *
+            *        \n - 0 : streaming buffer by DDR is disabled.
+            *        \n - 1 : streaming buffer by DDR is enabled.
+            */
+            uint32_t           EnableStreamingBufferDDR     : 1;
+            uint32_t           Reserved1                    : 5;
         };
         uint32_t            sFlags;
     };
@@ -838,6 +851,14 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    \n - 2 : FORCE_DISABLE - Disable this feature totally for all cases.
     */
     uint32_t        ForceRepartitionCheck;
+
+    /*! \brief Specifies force-to-skip for HRD compliance in BRC kernel that will be disabled.
+    *
+    *    bDisableFrameSkip is only valid for P/B frames
+    *    0: force-to-skip will be enabled as required in BRC kernel. Default value.
+    *    1: force-to-skip will be disabled in BRC kernel.
+    */
+    bool            bDisableFrameSkip;
 
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 

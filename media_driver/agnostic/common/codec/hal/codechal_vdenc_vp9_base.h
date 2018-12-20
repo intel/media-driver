@@ -54,7 +54,8 @@
 #define CODECHAL_ENCODE_VP9_BRC_SUPER_FRAME_BUFFER_SIZE         MOS_ALIGN_CEIL(3 + 2 * sizeof(uint32_t), sizeof(uint32_t))
 #define CODECHAL_ENCODE_VP9_VDENC_DATA_EXTENSION_SIZE           32
 #define CODECHAL_ENCODE_VP9_PIC_STATE_BUFFER_SIZE_PER_PASS      192 // 42 DWORDs for Pic State one uint32_t for BB End + 5 uint32_tS reserved to make it aligned for kernel read
-#define CODECHAL_ENCODE_VP9_MIN_TILE_SIZE                       256
+#define CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH                 256
+#define CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_HEIGHT                128
 #define CODECHAL_ENCODE_VP9_VDENC_MAX_NUM_TEMPORAL_LAYERS       8
 #define CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS                 2
 #define CODECHAL_ENCODE_VP9_REF_SEGMENT_DISABLED                0xFF
@@ -262,7 +263,7 @@ class CodechalVdencVp9State : public CodechalEncoderState
 {
 public:
     //!
-    //! \struct    CompressedHeader
+    //! \struct    Compressed Header
     //! \brief     Compressed header
     //!
     struct CompressedHeader
@@ -1756,7 +1757,7 @@ public:
     MOS_RESOURCE                                m_resVdencIntraRowStoreScratchBuffer;  // Handle of intra row store surface
     MOS_RESOURCE                                m_resVdencBrcStatsBuffer;
     MOS_RESOURCE                                m_resVdencSegmentMapStreamOut;
-    MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferRead[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
+    MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferRead[3][CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
     MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferWrite[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
     uint16_t                                    m_vdencPictureState2ndLevelBBIndex = 0;
     MOS_RESOURCE                                m_resVdencDysPictureState2NdLevelBatchBuffer;
@@ -1772,7 +1773,6 @@ public:
     uint8_t                                     m_chromaFormat;
     uint32_t                                    m_sizeOfSseSrcPixelRowStoreBufferPerLcu;
     PCODECHAL_CMD_INITIALIZER                   m_hucCmdInitializer = nullptr;
-    bool                                        m_hucCmdInitializerUsed = false;
 
 protected:
     //!
@@ -1781,6 +1781,25 @@ protected:
     CodechalVdencVp9State(CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
+
+    //!
+    //! \brief    Set pipe buffer address parameter
+    //! \details  Set pipe buffer address parameter in MMC case
+    //!
+    //! \param    [in,out] pipeBufAddrParams
+    //!           Pointer to PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS
+    //! \param    [in] refSurface
+    //!           Pointer to reference surfaces
+    //! \param    [in] cmdBuffer
+    //!           Pointer to MOS command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetPipeBufAddr(
+        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
+        PMOS_SURFACE refSurface[3],
+        PMOS_COMMAND_BUFFER cmdBuffer);
 
 public:
     //!
@@ -2017,6 +2036,18 @@ public:
     MOS_STATUS DysSrcFrame();
 
     //!
+    //! \brief      Return if this surface has to be compressed
+    //!
+    //! \param      [in] isDownScaledSurface
+    //!             indicating if surface is downscaled
+    //!
+    //! \return     int32_t
+    //!             1 if to be compressed
+    //!             0 if not
+    //!
+    virtual bool IsToBeCompressed(bool isDownScaledSurface);
+
+    //!
     //! \brief      Dys Reference frames
     //!
     //! \return     MOS_STATUS
@@ -2141,6 +2172,18 @@ public:
     void SetHcpDsSurfaceParams(MHW_VDBOX_SURFACE_PARAMS* dsSurfaceParams);
 
     //!
+    //! \brief      Resize 4x and 8x DS recon Surfaces to VDEnc
+    //!
+    //! \param      [in] bufIdx
+    //!             Index of the surface
+    //!
+    //! \return     MOS_STATUS
+    //!             MOS_STATUS_SUCCESS if success, else fail reason 
+    //!
+    MOS_STATUS Resize4x8xforDS(
+        uint8_t bufIdx);
+
+    //!
     //! \brief      Set hcp source surface parameters
     //!
     //! \param      [in] surfaceParams
@@ -2157,6 +2200,7 @@ public:
     //! \return     MOS_STATUS
     //!             MOS_STATUS_SUCCESS if success, else fail reason 
     //!
+
     MOS_STATUS SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS* surfaceParams,
         PMOS_SURFACE* refSurface,
         PMOS_SURFACE* refSurfaceNonScaled,

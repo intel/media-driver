@@ -25,6 +25,13 @@
 //!
 
 #include "cm_def.h"
+#include "cm_buffer.h"
+#include "cm_surface_2d.h"
+#include "cm_surface_3d.h"
+#include "cm_kernel.h"
+#include "cm_task.h"
+#include "cm_event.h"
+#include "cm_debug.h"
 
 //!
 //! \brief      Returns the corresponding CM_RETURN_CODE error string.
@@ -155,3 +162,74 @@ CM_RT_API const char* GetCmErrorString(int errCode)
 
     return errorString;
 }
+
+using namespace CMRT_UMD;
+// Surface::GetIndex
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_GetBufferIndex(CmBuffer* pSurface, SurfaceIndex*& pIndex)
+{
+    CMCHK_NULL_AND_RETURN(pSurface);
+    return pSurface->GetIndex(pIndex);
+}
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_GetSurface2DIndex(CmSurface2D* pSurface, SurfaceIndex*& pIndex)
+{
+    CMCHK_NULL_AND_RETURN(pSurface);
+    return pSurface->GetIndex(pIndex);
+}
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_GetSurface3DIndex(CmSurface3D* pSurface, SurfaceIndex*& pIndex)
+{
+    CMCHK_NULL_AND_RETURN(pSurface);
+    return pSurface->GetIndex(pIndex);
+}
+
+/// surface read API
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_ReadBuffer(CmBuffer* pBuffer, unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL)
+{
+    CMCHK_NULL_AND_RETURN(pBuffer);
+    return pBuffer->ReadSurface(pSysMem, pEvent, sysMemSize);
+}
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_ReadSurface2D(CmSurface2D* pSurface, unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL)
+{
+    CMCHK_NULL_AND_RETURN(pSurface);
+    return pSurface->ReadSurface(pSysMem, pEvent, sysMemSize);
+}
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_ReadSurface3D(CmSurface3D* pSurface, unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL)
+{
+    CMCHK_NULL_AND_RETURN(pSurface);
+    return pSurface->ReadSurface(pSysMem, pEvent, sysMemSize);
+}
+/// surface write API
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_WriteBuffer(CmBuffer* pBuffer, const unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL)
+{
+    CMCHK_NULL_AND_RETURN(pBuffer);
+    return pBuffer->WriteSurface(pSysMem, pEvent, sysMemSize);
+}
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_WriteSurface2D(CmSurface2D* pSurface, unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL)
+{
+    CMCHK_NULL_AND_RETURN(pSurface);
+    return pSurface->WriteSurface(pSysMem, pEvent, sysMemSize);
+}
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_WriteSurface3D(CmSurface2D* pSurface, unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL)
+{
+    CMCHK_NULL_AND_RETURN(pSurface);
+    return pSurface->WriteSurface(pSysMem, pEvent, sysMemSize);
+}
+
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_SetKernelArgument(CmKernel* pKernel, uint32_t index, size_t size, const void *pValue)
+{
+    CMCHK_NULL_AND_RETURN(pKernel);
+    return pKernel->SetKernelArg(index, size, pValue);
+}
+
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_AddKernel(CmTask* pTask, CmKernel* pKernel)
+{
+    CMCHK_NULL_AND_RETURN(pTask);
+    return pTask->AddKernel(pKernel);
+}
+
+// sync
+EXTERN_C CM_DRIVER_EXPOSED int CMRT_WaitForTaskFinished(CmEvent* pEvent, uint32_t TimeOutMs = 2000UL)
+{
+    CMCHK_NULL_AND_RETURN(pEvent);
+    return pEvent->WaitForTaskFinished(TimeOutMs);
+}
+

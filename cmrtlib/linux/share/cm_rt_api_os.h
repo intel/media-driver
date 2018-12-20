@@ -45,6 +45,8 @@ public:
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
     CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0; 
     CM_RT_API virtual INT SetSurfaceStateParam( SurfaceIndex *pSurfIndex, const CM_SURFACE2D_STATE_PARAM *pSSParam ) = 0;
+protected:
+    ~CmSurface2D(){}
 };
 
 class CmDevice
@@ -138,6 +140,8 @@ public:
     CM_RT_API virtual int32_t CreateQueueEx(CmQueue *&pQueue, CM_QUEUE_CREATE_OPTION QueueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
 
     //adding new functions in the bottom is a must 
+protected:
+    ~CmDevice(){}
 };
 
 class SurfaceIndex
@@ -150,6 +154,7 @@ public:
     CM_NOINLINE SurfaceIndex& operator + (const unsigned int& _n) { this->index += _n; return *this; };
     virtual unsigned int get_data(void) { return index; };
 
+    virtual ~SurfaceIndex(){};
 private:
     unsigned int index;
     unsigned char extra_byte; // an extra byte to align the object size among OSes
@@ -164,6 +169,7 @@ public:
     CM_NOINLINE SamplerIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
     virtual unsigned int get_data(void) { return index; };
 
+    virtual ~SamplerIndex(){};
 private:
     unsigned int index;
     unsigned char extra_byte; // an extra byte to align the object size among OSes

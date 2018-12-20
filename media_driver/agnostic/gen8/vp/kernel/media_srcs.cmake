@@ -18,11 +18,10 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(${USE_OPEN_KERNEL_ID} STREQUAL "yes")
-
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g8.c
 )
+
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g8.h
@@ -42,5 +41,3 @@ source_group( "Kernel\\VpKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 
 media_add_curr_to_include_path()
-
-endif()

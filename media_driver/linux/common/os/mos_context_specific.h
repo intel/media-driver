@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 
 #include "mos_os_specific.h"
 #include "mos_context.h"
+#include "mos_auxtable_mgr.h"
 
 class GraphicsResourceSpecific;
 class CmdBufMgr;
@@ -172,6 +173,10 @@ public:
 
     GMM_CLIENT_CONTEXT*  GetGmmClientContext() { return m_pGmmClientContext; };
 
+    AuxTableMgr* GetAuxTableMgr() { return m_auxTableMgr; }
+
+    bool UseSwSwizzling() { return m_useSwSwizzling; }
+
 #ifndef ANDROID
 
     //!
@@ -290,6 +295,11 @@ private:
     bool                m_use64BitRelocs = false;
 
     //!
+    //! \brief  tiling/untiling with CPU
+    //!
+    bool                m_useSwSwizzling = false;
+
+    //!
     //! \brief  flag to mark the existance of the second VDBox
     //!
     bool                m_kmdHasVCS2 = false;
@@ -392,6 +402,8 @@ private:
     //!UMD specific ClientContext object in GMM
     //!
     GMM_CLIENT_CONTEXT   *m_pGmmClientContext = nullptr;
+
+    AuxTableMgr          *m_auxTableMgr = nullptr;
 
     GPU_CONTEXT_HANDLE  m_GpuContextHandle[MOS_GPU_CONTEXT_MAX]; // Index to GPU Context (GpuContextHandles)
 

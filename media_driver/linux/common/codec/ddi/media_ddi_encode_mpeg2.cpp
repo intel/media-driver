@@ -714,11 +714,14 @@ VAStatus DdiEncodeMpeg2::ParseSlcParams(
     //attention memory area protection
     MOS_ZeroMemory(mpeg2SlcParams, sizeof(CodecEncodeMpeg2SliceParmas) * numSlices);
 
+    CodecEncodeMpeg2SequenceParams *mpeg2Sps = (CodecEncodeMpeg2SequenceParams *)m_encodeCtx->pSeqParams;
+    auto picWidthInMb = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(mpeg2Sps->m_frameWidth);
+
     for (uint32_t slcCount = 0; slcCount < numSlices; slcCount++)
     {
         mpeg2SlcParams->m_numMbsForSlice     = vaEncSlcParamsMPEG2->num_macroblocks;
-        mpeg2SlcParams->m_firstMbX           = (vaEncSlcParamsMPEG2->macroblock_address >> 16) & 0xFF;
-        mpeg2SlcParams->m_firstMbY           = vaEncSlcParamsMPEG2->macroblock_address & 0xFF;
+        mpeg2SlcParams->m_firstMbX           = (vaEncSlcParamsMPEG2->macroblock_address % picWidthInMb);
+        mpeg2SlcParams->m_firstMbY           = vaEncSlcParamsMPEG2->macroblock_address / picWidthInMb;
         mpeg2SlcParams->m_intraSlice         = vaEncSlcParamsMPEG2->is_intra_slice;
         mpeg2SlcParams->m_quantiserScaleCode = vaEncSlcParamsMPEG2->quantiser_scale_code;
         mpeg2SlcParams++;

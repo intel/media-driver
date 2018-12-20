@@ -95,6 +95,7 @@ typedef enum
     MOS_CODEC_SUBCOMP_HW           = 3,        // HW interface
     MOS_CODEC_SUBCOMP_PUBLIC       = 4,        // Public interface
     MOS_CODEC_SUBCOMP_DEBUG        = 5,        // Debug interface
+    MOS_CODEC_SUBCOMP_CENC         = 6,        // CencDecoders
     MOS_CODEC_SUBCOMP_COUNT                    // Must be last in the list
 } MOS_CODEC_SUBCOMP_ID;
 
@@ -129,6 +130,8 @@ typedef enum
     MOS_CP_SUBCOMP_MHW              = 12,            // CP MHW classes
     MOS_CP_SUBCOMP_PROTECTEDSESSION = 13,            // Protected session class
     MOS_CP_SUBCOMP_PROTECTED_RESOURCE_SESSION = 14,  // Protected Resource session class
+    MOS_CP_SUBCOMP_CAPS             = 16,            // CP CAPS clas
+    MOS_CP_SUBCOMP_CPLIB            = 17,            // CP CPLIB interacting
     MOS_CP_SUBCOMP_COUNT                             // Must be last in the list
 } MOS_CP_SUBCOMP_ID;
 
@@ -152,6 +155,15 @@ typedef enum
     MOS_CM_SUBCOMP_RENDERHAL       = 3,
     MOS_CM_SUBCOMP_COUNT
 } MOS_CM_SUBCOMP_ID;
+
+//!
+//! \brief Define Scalability Sub-Component IDs
+//!
+typedef enum
+{
+    MOS_SCALABILITY_SUBCOMP_SELF   = 0,
+    MOS_SCALABILITY_SUBCOMP_COUNT
+} MOS_SCALABILITY_SUBCOMP_ID;
 
 //!
 //! \brief MOS debug params structure, includes debug level and asserts enabled.

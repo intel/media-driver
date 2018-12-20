@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 
 #include "media_libva_decoder.h"
 #include "media_libva_util.h"
-#include "media_libva_cp.h"
+#include "media_libva_cp_interface.h"
 #include "media_libva_caps.h"
 #include "codechal_memdecomp.h"
 #include "mos_solo_generic.h"
@@ -199,7 +199,7 @@ void DdiDecodeCleanUp(
         if(decCtx->m_ddiDecode)
         {
             decCtx->m_ddiDecode->DestroyContext(ctx);
-        MOS_Delete(decCtx->m_ddiDecode);
+            MOS_Delete(decCtx->m_ddiDecode);
             MOS_FreeMemory(decCtx);
             decCtx = nullptr;
         }
@@ -314,6 +314,7 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
     mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
 
     if (nullptr == mosCtx.pPerfData)
     {
@@ -325,7 +326,7 @@ VAStatus DdiDecode_CreateContext (
     ddiDecBase->ContextInit(pictureWidth, pictureHeight);
 
     //initialize DDI level CP interface
-    decCtx->pCpDdiInterface = MOS_New(DdiCpInterface, mosCtx);
+    decCtx->pCpDdiInterface = Create_DdiCpInterface(mosCtx);
     if (nullptr == decCtx->pCpDdiInterface)
     {
         va = VA_STATUS_ERROR_ALLOCATION_FAILED;

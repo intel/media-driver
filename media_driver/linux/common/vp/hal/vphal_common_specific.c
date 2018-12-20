@@ -51,8 +51,9 @@ MOS_STATUS VpHal_GetSurfaceInfo(
     VPHAL_PUBLIC_ASSERT(pInfo);
     VPHAL_PUBLIC_ASSERT(pSurface);
 
-    PMOS_RESOURCE    pResource = &pSurface->OsResource;
-    MOS_SURFACE      ResDetails;
+    PMOS_RESOURCE     pResource = &pSurface->OsResource;
+    MOS_SURFACE       ResDetails;
+    MOS_MEMCOMP_STATE mmcMode;
 
     VPHAL_PUBLIC_ASSERT(!Mos_ResourceIsNull(&pSurface->OsResource));
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
@@ -71,6 +72,21 @@ MOS_STATUS VpHal_GetSurfaceInfo(
     pSurface->bCompressible   = ResDetails.bCompressible;
     pSurface->bIsCompressed   = ResDetails.bIsCompressed;
     pSurface->CompressionMode = ResDetails.CompressionMode;
+
+    MOS_ZeroMemory(&mmcMode, sizeof(mmcMode));
+    pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, &pSurface->OsResource, &mmcMode);
+
+    if (mmcMode && 
+       (pSurface->TileType == MOS_TILE_Y ||
+        pSurface->TileType == MOS_TILE_YS))
+    {
+        pSurface->bCompressible   = true;
+        pSurface->CompressionMode = (MOS_RESOURCE_MMC_MODE)mmcMode;
+    }
+    else
+    {
+        pSurface->CompressionMode = MOS_MMC_DISABLED;
+    }
 
     // Get planes
     pSurface->UPlaneOffset.iSurfaceOffset = 0;
@@ -130,6 +146,7 @@ MOS_STATUS VpHal_GetSurfaceInfo(
             pSurface->VPlaneOffset.iYOffset       = 0;
             break;
         case Format_444P:
+        case Format_RGBP:
             pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
             pSurface->UPlaneOffset.iYOffset       = 0;
             pSurface->VPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch * 2;

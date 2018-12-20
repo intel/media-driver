@@ -38,7 +38,7 @@ CodechalMmcDecodeMpeg2::CodechalMmcDecodeMpeg2(
 
     CODECHAL_HW_ASSERT(hwInterface);
     CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());
-    if (hwInterface &&  hwInterface->GetSkuTable() && MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrMemoryCompression))
+    if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrMemoryCompression))
     {
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

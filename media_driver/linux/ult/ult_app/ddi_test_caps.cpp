@@ -45,7 +45,13 @@ int Test_QueryConfigProfiles(VADriverContextP ctx, vector<FeatureID> &queriedFea
     int          num_profiles;
     int          num_entrypoint;
     int          max_num_profiles = ctx->max_profiles;
-    VAProfile    *profile_list    = (VAProfile *)malloc(max_num_profiles * sizeof(VAProfile));
+    VAProfile    *profile_list    = nullptr;
+
+    profile_list = (VAProfile *)malloc(max_num_profiles * sizeof(VAProfile));
+    if (profile_list == nullptr)
+    {
+        return -1;
+    }
 
     int ret = ctx->vtable->vaQueryConfigProfiles(ctx, profile_list, &num_profiles);
     if (ret)
@@ -103,7 +109,5 @@ TEST_F(MediaCapsDdiTest, DecodeEncodeProfile)
         ret = m_driverLoader.CloseDriver();
         EXPECT_EQ (VA_STATUS_SUCCESS , ret) << "Platform = " << g_platformName[platforms[i]]
             << ", Failed function = m_driverLoader.CloseDriver" << endl;
-
-        MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
     }
 }

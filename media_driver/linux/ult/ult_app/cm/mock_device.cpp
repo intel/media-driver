@@ -55,7 +55,7 @@ int32_t MockDevice::SendRequestMessage(InputData *input, uint32_t function_id)
 bool MockDevice::Create(DriverDllLoader *driver_loader,
                         uint32_t additinal_options)
 {
-    this->vaCmExtSendReqMsg = driver_loader->vaCmExtSendReqMsg;
+    this->vaCmExtSendReqMsg = driver_loader->GetDriverSymbols().vaCmExtSendReqMsg;
     if (nullptr == vaDestroySurfaces)
     {
         vaDestroySurfaces = driver_loader->m_vtable.vaDestroySurfaces;
@@ -67,11 +67,17 @@ bool MockDevice::Create(DriverDllLoader *driver_loader,
 
 bool MockDevice::Release()
 {
+    if (nullptr == m_cmDevice)
+    {
+        return true;
+    }
     int32_t result = ReleaseNewDevice(m_cmDevice);
     if (CM_SUCCESS == result)
     {
         vaDestroySurfaces = nullptr;
         m_cmDevice = nullptr;
+        vaCmExtSendReqMsg = nullptr;
+        m_vaDisplay.pDriverContext = nullptr;
         return true;
     }
     return false;

@@ -56,6 +56,8 @@ void VphalFeatureReport::InitReportValue()
     PrimaryCompressible =   false;
     PrimaryCompressMode =   0;
     CompositionMode     =   VPHAL_NO_COMPOSITION;
+    DiScdMode           =   false;
+    VEFeatureInUse      =   false;
 }
 
 //!
@@ -604,7 +606,8 @@ VphalState::VphalState(
         m_renderer(nullptr),
         m_veboxInterface(nullptr),
         m_renderGpuNode(MOS_GPU_NODE_3D),
-        m_renderGpuContext(MOS_GPU_CONTEXT_RENDER)
+        m_renderGpuContext(MOS_GPU_CONTEXT_RENDER),
+        m_gpuAppTaskEvent(nullptr)
 {
     MOS_STATUS                  eStatus;
 
@@ -657,7 +660,8 @@ VphalState::~VphalState()
 
     if (m_cpInterface)
     {
-        MOS_Delete(m_cpInterface);
+        Delete_MhwCpInterface(m_cpInterface);
+        m_cpInterface = nullptr;
     }
 
     if (m_sfcInterface)

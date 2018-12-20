@@ -26,6 +26,7 @@
 #include "mos_os.h"
 #include "cm_hal.h"
 #include "cm_def_os.h"
+#include "i915_drm.h"
 
 #define Y_TILE_WIDTH  128
 #define Y_TILE_HEIGHT 32
@@ -126,6 +127,9 @@ GMM_RESOURCE_FORMAT HalCm_ConvertMosFmtToGmmFmt(
         case Format_R32U        : return GMM_FORMAT_R32_UINT_TYPE;
         case Format_RAW         : return GMM_FORMAT_GENERIC_8BIT;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
+        case Format_P016        : return GMM_FORMAT_P016_TYPE;
+        case Format_Y216        : return GMM_FORMAT_Y216_TYPE;
+        case Format_Y416        : return GMM_FORMAT_Y416_TYPE;
         case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
@@ -217,7 +221,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
                 &info,
                 surface));
 
-            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12)
+            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12 || surface->Format == Format_Y216)
                   && (!pixelPitch))
             {
                 renderHalSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
@@ -331,7 +335,7 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_GetSurfPitchSize(
-    uint32_t width, uint32_t height, MOS_FORMAT format, uint32_t *pitch, uint32_t *physicalSize)
+    uint32_t width, uint32_t height, MOS_FORMAT format, uint32_t *pitch, uint32_t *physicalSize, PCM_HAL_STATE state)
 {
 
     MOS_STATUS      hr = MOS_STATUS_SUCCESS;
@@ -363,12 +367,18 @@ MOS_STATUS HalCm_GetSurfPitchSize(
     gmmParams.NoGfxMemory    = true;
 
     // get pitch and size
-    gmmResInfo = GmmResCreate( &gmmParams );
+    if (nullptr == state ||
+        nullptr == state->osInterface)
+    {
+        hr = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
+    gmmResInfo = state->osInterface->pfnGetGmmClientContext(state->osInterface)->CreateResInfoObject(&gmmParams);
     if (gmmResInfo != nullptr)
     {
-        *pitch             = GmmResGetLockPitch( gmmResInfo );
-        *physicalSize      = static_cast<uint32_t>( GmmResGetSizeSurface( gmmResInfo ) );
-        GmmResFree( gmmResInfo );
+        *pitch             = static_cast<uint32_t>( gmmResInfo->GetRenderPitch() );
+        *physicalSize      = static_cast<uint32_t>( gmmResInfo->GetSizeSurface() );
+        state->osInterface->pfnGetGmmClientContext(state->osInterface)->DestroyResInfoObject(gmmResInfo);
     }
     else
     {
@@ -391,7 +401,7 @@ MOS_STATUS HalCm_GetSurface2DPitchAndSize_Linux(
 {
     UNUSED(state);
     return HalCm_GetSurfPitchSize(param->width, param->height, param->format,
-                                  &param->pitch, &param->physicalSize);
+                                  &param->pitch, &param->physicalSize, state);
 }
 
 //*-----------------------------------------------------------------------------
@@ -448,78 +458,6 @@ uint32_t HalCm_GetSurf2DUPBaseWidth( uint32_t width, uint32_t pitch, MOS_FORMAT 
 
     baseWidth = pitch/pixelSize;
     return baseWidth;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Create Gmm Resource info for 2DUP
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_CreateGmmResInfo2DUP( PMOS_RESOURCE osResource, void  *sysMem, uint32_t sysMemSize)
-{
-    MOS_STATUS              eStatus;
-    GMM_RESCREATE_PARAMS    gmmParams;
-
-    eStatus               = MOS_STATUS_SUCCESS;
-    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-
-    CM_ASSERT(osResource);
-
-    // Set GmmParam
-    gmmParams.BaseWidth             = osResource->iWidth;
-    gmmParams.BaseHeight            = osResource->iHeight;
-    gmmParams.ArraySize             = 1;
-    gmmParams.Type                  = RESOURCE_2D;
-
-    gmmParams.Format                = HalCm_ConvertMosFmtToGmmFmt(osResource->Format);
-
-    gmmParams.Flags.Gpu.Video      = true;
-    gmmParams.Flags.Info.Linear    = true;
-    gmmParams.Flags.Info.ExistingSysMem = true;
-
-    gmmParams.ExistingSysMemSize   = sysMemSize;
-    gmmParams.pExistingSysMem      = (GMM_VOIDPTR64)sysMem;
-
-    //Create GmmResourceInfo
-    osResource->pGmmResInfo = GmmResCreate(&gmmParams);
-
-    MOS_OS_CHK_NULL(osResource->pGmmResInfo);
-
-finish:
-    return eStatus;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Create Gmm Resource info for 3D
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_CreateGmmResInfo3D( PMOS_RESOURCE osResource)
-{
-    MOS_STATUS              eStatus;
-    GMM_RESCREATE_PARAMS    gmmParams;
-
-    eStatus               = MOS_STATUS_SUCCESS;
-    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-
-    CM_ASSERT(osResource);
-
-    // Set GmmParam
-    gmmParams.BaseWidth             = osResource->iWidth;
-    gmmParams.BaseHeight            = osResource->iHeight;
-    gmmParams.Depth                 = osResource->iDepth;
-    gmmParams.ArraySize             = 1;
-    gmmParams.Type                  = RESOURCE_3D;
-    gmmParams.Format                = HalCm_ConvertMosFmtToGmmFmt(osResource->Format);
-
-    gmmParams.Flags.Gpu.Video      = true;
-    gmmParams.Flags.Info.Linear    = true;
-
-    //Create GmmResourceInfo
-    osResource->pGmmResInfo = GmmResCreate(&gmmParams);
-
-    MOS_OS_CHK_NULL(osResource->pGmmResInfo);
-
-finish:
-    return eStatus;
 }
 
 //*-----------------------------------------------------------------------------
@@ -669,36 +607,22 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_AllocateSurface2DUP_Linux(
-    PCM_HAL_STATE                   state,                                             // [in]  Pointer to CM State
-    PCM_HAL_SURFACE2D_UP_PARAM      param)                                             // [in]  Pointer to Buffer Param
+    PCM_HAL_STATE state,               // [in]  Pointer to CM State
+    PCM_HAL_SURFACE2D_UP_PARAM param)  // [in]  Pointer to Buffer Param
 {
-    MOS_STATUS                 hr;
-    PMOS_INTERFACE             osInterface;
+    MOS_STATUS hr = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE osInterface = state->renderHal->pOsInterface;
     PCM_HAL_SURFACE2D_UP_ENTRY entry = nullptr;
-    uint32_t                   i;
 
-    PMOS_RESOURCE              osResource;
-    MOS_FORMAT                 format;
-    uint32_t                   height;
-    uint32_t                   width;
-    uint32_t                   size   = 0;
-    uint32_t                   pitch  = 0;
-    uint32_t                   alignX = 0;
-    uint32_t                   alignY = 0;
-    MOS_LINUX_BO               *bo      = nullptr;
-    void                       *sysMem = nullptr;
-    uint32_t                   tileformat = I915_TILING_NONE;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
 
     //-----------------------------------------------
     CM_ASSERT(state);
-    CM_ASSERT(param->width > 0);
+    CM_ASSERT(param->width > 0 && param->height > 0);
     //-----------------------------------------------
 
-    hr              = MOS_STATUS_SUCCESS;
-    osInterface    = state->renderHal->pOsInterface;
-
     // Find a free slot
-    for (i = 0; i < state->cmDeviceParam.max2DSurfaceUPTableSize; i++)
+    for (uint32_t i = 0; i < state->cmDeviceParam.max2DSurfaceUPTableSize; ++i)
     {
         if (state->surf2DUPTable[i].width == 0)
         {
@@ -707,192 +631,28 @@ MOS_STATUS HalCm_AllocateSurface2DUP_Linux(
             break;
         }
     }
-
     if (!entry)
     {
         CM_ERROR_ASSERT("Surface2DUP table is full");
         goto finish;
     }
+    MOS_ZeroMemory(&allocParams, sizeof(allocParams));
+    allocParams.Type          = MOS_GFXRES_2D;
+    allocParams.TileType      = MOS_TILE_LINEAR;
+    allocParams.dwWidth       = param->width;
+    allocParams.dwHeight      = param->height;
+    allocParams.pSystemMemory = param->data; 
+    allocParams.Format        = param->format;
+    allocParams.pBufName      = "CmSurface2DUP";
 
-    format  = param->format;
-    width  = param->width;
-    height = param->height;
-    sysMem = (void *)param->data;
-
-    osResource = &(entry->osResource);
-    // Resets the Resource
-    Mos_ResetResource(osResource);
-    //Get Surface2D's physical size and pitch
-    HalCm_GetSurfPitchSize(width, height, format, &alignX, &size);
-
-#if defined(DRM_IOCTL_I915_GEM_USERPTR)
-    bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,
-                         "CM Surface2D UP",
-                         (void *)(sysMem),
-                         tileformat,
-                         alignX,
-                         size,
-#if defined(ANDROID)
-                         I915_USERPTR_UNSYNCHRONIZED
-#else
-             0
-#endif
-             );
-#else
-    bo =  mos_bo_alloc_vmap(osInterface->pOsContext->bufmgr,
-                         "CM Surface2D UP",
-                         (void *)(sysMem),
-                         tileformat,
-                         alignX,
-                         size,
-#if defined(ANDROID)
-                         I915_USERPTR_UNSYNCHRONIZED
-#else
-             0
-#endif
-                         );
-#endif
-
-    osResource->bMapped = false;
-    if (bo)
-    {
-        osResource->Format   = format;
-        osResource->iWidth   = width;
-        osResource->iHeight  = height;
-        osResource->iPitch   = alignX;
-        osResource->bo       = bo;
-        osResource->TileType = LinuxToMosTileType(tileformat);
-        osResource->pData    = (uint8_t*) bo->virt;
-
-        // Create Gmm resource info
-        CM_CHK_MOSSTATUS(HalCm_CreateGmmResInfo2DUP(osResource, sysMem, size));
-    }
-    else
-    {
-        hr = MOS_STATUS_UNKNOWN;
-    }
+    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
+        osInterface,
+        &allocParams,
+        &entry->osResource));
 
     entry->width  = param->width;
     entry->height = param->height;
-    entry->format  = format;
-
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Allocate 3D resource
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_Allocate3DResource_Linux(
-    PCM_HAL_STATE               state,                                         // [in]  Pointer to CM State
-    PCM_HAL_3DRESOURCE_PARAM    param)                                         // [in]  Pointer to Buffer Param
-{
-    MOS_STATUS                  hr;
-    PMOS_INTERFACE              osInterface;
-    PCM_HAL_3DRESOURCE_ENTRY    entry;
-    uint32_t                    i;
-
-    PMOS_RESOURCE               osResource;
-    MOS_FORMAT                  format;
-    uint32_t                    tileformat;
-    int32_t                     height;
-    int32_t                     width;
-    int32_t                     depth;
-    int32_t                     size  = 0;
-    int32_t                     pitch = 0;
-    MOS_LINUX_BO                *bo    = nullptr;
-
-    //-----------------------------------------------
-    CM_ASSERT(state);
-    CM_ASSERT(param->depth  > 1);
-    CM_ASSERT(param->width  > 0);
-    CM_ASSERT(param->height > 0);
-    //-----------------------------------------------
-
-    hr              = MOS_STATUS_SUCCESS;
-    osInterface    = state->renderHal->pOsInterface;
-    entry          = nullptr;
-
-    // Find a free slot
-    for (i = 0; i < state->cmDeviceParam.max3DSurfaceTableSize; i++)
-    {
-        if (Mos_ResourceIsNull(&state->surf3DTable[i].osResource))
-        {
-            entry              = &state->surf3DTable[i];
-            param->handle      = (uint32_t)i;
-            break;
-        }
-    }
-
-    if (!entry)
-    {
-        CM_ERROR_ASSERT("3D surface table is full");
-        goto finish;
-    }
-
-    format  = param->format;
-    width  = param->width;
-    height = param->height;
-    depth  = param->depth;
-
-    osResource = &(entry->osResource);
-    // Resets the Resource
-    Mos_ResetResource(osResource);
-
-    if ((depth < 1) || \
-        ((format != Format_A8R8G8B8) && \
-         (format != Format_X8R8G8B8) && \
-         (format != Format_A16B16G16R16)))
-    {
-        CM_ERROR_ASSERT("Invalid Argument for 3D surface!");
-        goto finish;
-    }
-
-    switch (format)
-    {
-        case Format_A8R8G8B8:
-            pitch = 4 * width;
-            tileformat = I915_TILING_NONE;
-            break;
-        case Format_X8R8G8B8:
-            pitch = 4 * width;
-            tileformat = I915_TILING_NONE;
-            break;
-        case Format_A16B16G16R16:
-            pitch = 8 * width;
-            tileformat = I915_TILING_NONE;
-            break;
-        default:
-            pitch = width;
-            tileformat = I915_TILING_NONE;
-    }
-
-    size = height * pitch * depth;
-
-    if( tileformat == I915_TILING_NONE ){
-        bo = mos_bo_alloc(osInterface->pOsContext->bufmgr, "CM 3D surface", size, 4096);
-    }
-
-    osResource->bMapped = false;
-
-    if (bo)
-    {
-        osResource->Format  = format;
-        osResource->iWidth  = width;
-        osResource->iHeight = height;
-        osResource->iPitch  = pitch;
-        osResource->iDepth  = depth;
-        osResource->bo      = bo;
-        osResource->TileType = LinuxToMosTileType(tileformat);
-        osResource->pData    = (uint8_t*) bo->virt;
-        HalCm_CreateGmmResInfo3D(osResource);
-    }
-    else
-    {
-        CM_DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource)\n", size, width, height);
-        hr = MOS_STATUS_UNKNOWN;
-    }
+    entry->format  = param->format;
 
 finish:
     return hr;
@@ -1099,13 +859,13 @@ MOS_STATUS HalCm_QueryTask_Linux(
     {
         queryParam->status = CM_TASK_FINISHED;
 
-        hwStartNs = state->cmHalInterface->ConvertTicksToNanoSeconds(*piSyncStart);
-        hwEndNs = state->cmHalInterface->ConvertTicksToNanoSeconds(*piSyncEnd);
+        hwStartNs = HalCm_ConvertTicksToNanoSeconds(state, *piSyncStart);
+        hwEndNs = HalCm_ConvertTicksToNanoSeconds(state, *piSyncEnd);
 
         ticks = *piSyncEnd - *piSyncStart;
 
         // Convert ticks to Nanoseconds
-        queryParam->taskDurationNs = state->cmHalInterface->ConvertTicksToNanoSeconds(ticks);
+        queryParam->taskDurationNs = HalCm_ConvertTicksToNanoSeconds(state, ticks);
 
         queryParam->taskGlobalSubmitTimeCpu = state->taskTimeStamp->submitTimeInCpu[queryParam->taskId];
         CM_CHK_MOSSTATUS(state->pfnConvertToQPCTime(state->taskTimeStamp->submitTimeInGpu[queryParam->taskId], &queryParam->taskSubmitTimeGpu));
@@ -1392,7 +1152,6 @@ void HalCm_OsInitInterface(
     cmState->pfnRegisterUMDNotifyEventHandle        = HalCm_RegisterUMDNotifyEventHandle_Linux;
     cmState->pfnAllocateBuffer                      = HalCm_AllocateBuffer_Linux;
     cmState->pfnAllocateSurface2DUP                 = HalCm_AllocateSurface2DUP_Linux;
-    cmState->pfnAllocate3DResource                  = HalCm_Allocate3DResource_Linux;
     cmState->pfnGetGPUCurrentFrequency              = HalCm_GetGPUCurrentFrequency_Linux;
     cmState->pfnGetGpuTime                          = HalCm_GetGpuTime_Linux;
     cmState->pfnGetPlatformInfo                     = HalCm_GetPlatformInfo_Linux;
@@ -1711,5 +1470,24 @@ MOS_STATUS HalCm_SetupSipSurfaceState(
     UNUSED(bindingTable);
     // Function not implemented on Linux, just return success for sanity check
     return MOS_STATUS_SUCCESS;
+}
+
+uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE osInterface)
+{
+    int32_t freq = 0;
+    drm_i915_getparam_t gp;
+    MOS_ZeroMemory(&gp, sizeof(gp));
+    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
+    gp.value = &freq;
+    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if(ret == 0)
+    {
+        return freq;
+    }
+    else
+    {
+        // fail to query it from KMD
+        return 0;
+    }
 }
 

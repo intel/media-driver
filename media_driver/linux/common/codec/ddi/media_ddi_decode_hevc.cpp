@@ -99,30 +99,38 @@ VAStatus DdiDecodeHEVC::ParseSliceParams(
             codecSlcParams->luma_log2_weight_denom         = slc->luma_log2_weight_denom;
             codecSlcParams->delta_chroma_log2_weight_denom = slc->delta_chroma_log2_weight_denom;
 
-            memcpy(codecSlcParams->luma_offset_l0,
-                slc->luma_offset_l0,
-                15);
-            memcpy(codecSlcParams->luma_offset_l1,
-                slc->luma_offset_l1,
-                15);
-            memcpy(codecSlcParams->delta_luma_weight_l0,
-                slc->delta_luma_weight_l0,
-                15);
-            memcpy(codecSlcParams->delta_luma_weight_l1,
-                slc->delta_luma_weight_l1,
-                15);
-            memcpy(codecSlcParams->ChromaOffsetL0,
-                slc->ChromaOffsetL0,
-                15 * 2);
-            memcpy(codecSlcParams->ChromaOffsetL1,
-                slc->ChromaOffsetL1,
-                15 * 2);
-            memcpy(codecSlcParams->delta_chroma_weight_l0,
-                slc->delta_chroma_weight_l0,
-                15 * 2);
-            memcpy(codecSlcParams->delta_chroma_weight_l1,
-                slc->delta_chroma_weight_l1,
-                15 * 2);
+            memcpy_s(codecSlcParams->luma_offset_l0,
+                    15,
+                    slc->luma_offset_l0,
+                    15);
+            memcpy_s(codecSlcParams->luma_offset_l1,
+                    15,
+                    slc->luma_offset_l1,
+                    15);
+            memcpy_s(codecSlcParams->delta_luma_weight_l0,
+                    15,
+                    slc->delta_luma_weight_l0,
+                    15);
+            memcpy_s(codecSlcParams->delta_luma_weight_l1,
+                    15,
+                    slc->delta_luma_weight_l1,
+                    15);
+            memcpy_s(codecSlcParams->ChromaOffsetL0,
+                    15*2,
+                    slc->ChromaOffsetL0,
+                    15 * 2);
+            memcpy_s(codecSlcParams->ChromaOffsetL1,
+                    15*2,
+                    slc->ChromaOffsetL1,
+                    15 * 2);
+            memcpy_s(codecSlcParams->delta_chroma_weight_l0,
+                    15*2,
+                    slc->delta_chroma_weight_l0,
+                    15 * 2);
+            memcpy_s(codecSlcParams->delta_chroma_weight_l1,
+                    15*2,
+                    slc->delta_chroma_weight_l1,
+                    15 * 2);
 
             codecSlcParams->five_minus_max_num_merge_cand = slc->five_minus_max_num_merge_cand;
 
@@ -321,22 +329,28 @@ VAStatus DdiDecodeHEVC::ParseIQMatrix(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    memcpy((void *)iqMatrix->ucScalingLists0,
+    memcpy_s((void *)iqMatrix->ucScalingLists0,
+        6 * 16 * sizeof(uint8_t),
         (void *)matrix->ScalingList4x4,
         6 * 16 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingLists1,
+    memcpy_s((void *)iqMatrix->ucScalingLists1,
+        6 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList8x8,
         6 * 64 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingLists2,
+    memcpy_s((void *)iqMatrix->ucScalingLists2,
+        6 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList16x16,
         6 * 64 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingLists3,
+    memcpy_s((void *)iqMatrix->ucScalingLists3,
+        2 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList32x32,
         2 * 64 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingListDCCoefSizeID2,
+    memcpy_s((void *)iqMatrix->ucScalingListDCCoefSizeID2,
+        6 * sizeof(uint8_t),
         (void *)matrix->ScalingListDC16x16,
         6 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingListDCCoefSizeID3,
+    memcpy_s((void *)iqMatrix->ucScalingListDCCoefSizeID3,
+        2 * sizeof(uint8_t),
         (void *)matrix->ScalingListDC32x32,
         2 * sizeof(uint8_t));
 
@@ -417,9 +431,14 @@ VAStatus DdiDecodeHEVC::RenderPicture(
             DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
             break;
         }
+        case VASubsetsParameterBufferType:
+        {
+            MOS_SecureMemcpy(m_ddiDecodeCtx->DecodeParams.m_subsetParams, dataSize, data, dataSize);
+            break;
+        }
         case VAProcPipelineParameterBufferType:
         {
-            DDI_NORMALMESSAGE("ProcPipeline is not supported for HEVC decoding\n");
+            DDI_CHK_RET(ParseProcessingBuffer(mediaCtx, data),"ParseProcessingBuffer failed!");
             break;
         }
         case VADecodeStreamoutBufferType:
@@ -506,6 +525,20 @@ VAStatus DdiDecodeHEVC::SetDecodeParams()
             0x10,
             2 * sizeof(uint8_t));
      }
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        // Bridge the SFC input with vdbox output
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        auto procParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
+        procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
+        // codechal_decode_sfc.c expects Input Width/Height information.
+        procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
+        procParams->pInputSurface->dwHeight = procParams->pInputSurface->OsResource.iHeight;
+        procParams->pInputSurface->dwPitch    = procParams->pInputSurface->OsResource.iPitch;
+        procParams->pInputSurface->Format    = procParams->pInputSurface->OsResource.Format;
+    }
+#endif
      return VA_STATUS_SUCCESS;
 }
 
@@ -737,7 +770,7 @@ VAStatus DdiDecodeHEVC::CodecHalInit(
     MOS_CONTEXT *mosCtx   = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
+    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -782,7 +815,29 @@ VAStatus DdiDecodeHEVC::CodecHalInit(
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto CleanUpandReturn;
     }
-
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
+        
+        m_codechalSettings->downsamplingHinted = true;
+        
+        procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_DECODE_PROCESSING_PARAMS));
+        if (procParams == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+        
+        m_ddiDecodeCtx->DecodeParams.m_procParams = procParams;
+        procParams->pOutputSurface = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+        if (procParams->pOutputSurface == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+    }
+#endif
     vaStatus = CreateCodecHal(mediaCtx,
         ptr,
         &standardInfo);
@@ -818,7 +873,17 @@ CleanUpandReturn:
     m_ddiDecodeCtx->DecodeParams.m_huffmanTable = nullptr;
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
     m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
-
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_ddiDecodeCtx->DecodeParams.m_procParams)
+    {
+        auto procParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
+        MOS_FreeMemory(procParams->pOutputSurface);
+        
+        MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);
+        m_ddiDecodeCtx->DecodeParams.m_procParams = nullptr;
+    }
+#endif
     return vaStatus;
 }
 

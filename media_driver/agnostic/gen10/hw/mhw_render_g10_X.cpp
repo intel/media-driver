@@ -125,6 +125,7 @@ MOS_STATUS MhwRenderInterfaceG10::AddMediaObjectWalkerCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g10_X>::AddMediaObjectWalkerCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard     = params->UseScoreboard;
     cmd->DW5.ScoreboardMask    = params->ScoreboardMask;
 
@@ -166,6 +167,7 @@ MOS_STATUS MhwRenderInterfaceG10::AddMediaObject(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g10_X>::AddMediaObject(cmdBuffer, batchBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard = params->VfeScoreboard.ScoreboardEnable;
     cmd->DW4.ScoreboardX = params->VfeScoreboard.Value[0];
     cmd->DW4.ScoredboardY = params->VfeScoreboard.Value[1];

@@ -19,12 +19,13 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/media_libva_cp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_libva_cp_interface.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps_cp_interface.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/media_libva_cp.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps_cp.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_libva_cp_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps_cp_interface.h
 )
 
 

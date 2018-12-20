@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -101,10 +101,6 @@ mhw_vdbox_huc_g9_bxt::HUC_DMEM_STATE_CMD::HUC_DMEM_STATE_CMD()
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    memset(&HucDataSourceBaseAddress, 0, sizeof(HucDataSourceBaseAddress));
-
-    memset(&HucDataSourceAttributes, 0, sizeof(HucDataSourceAttributes));
-
     DW4.Value                                        = 0x00000000;
 
     DW5.Value                                        = 0x00000000;
@@ -127,10 +123,6 @@ mhw_vdbox_huc_g9_bxt::HUC_CFG_STATE_CMD::HUC_CFG_STATE_CMD()
 
 mhw_vdbox_huc_g9_bxt::HUC_VIRTUAL_ADDR_REGION_CMD::HUC_VIRTUAL_ADDR_REGION_CMD()
 {
-    memset(&HucSurfaceBaseAddressVirtualaddrregion015, 0, sizeof(HucSurfaceBaseAddressVirtualaddrregion015));
-
-    memset(&HucSurfaceVirtualaddrregion015, 0, sizeof(HucSurfaceVirtualaddrregion015));
-
 }
 
 mhw_vdbox_huc_g9_bxt::HUC_VIRTUAL_ADDR_STATE_CMD::HUC_VIRTUAL_ADDR_STATE_CMD()
@@ -142,8 +134,6 @@ mhw_vdbox_huc_g9_bxt::HUC_VIRTUAL_ADDR_STATE_CMD::HUC_VIRTUAL_ADDR_STATE_CMD()
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    memset(&HucVirtualAddressRegion, 0, sizeof(HucVirtualAddressRegion));
-
 }
 
 mhw_vdbox_huc_g9_bxt::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::HUC_IND_OBJ_BASE_ADDR_STATE_CMD()
@@ -154,18 +144,6 @@ mhw_vdbox_huc_g9_bxt::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::HUC_IND_OBJ_BASE_ADDR_STA
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
-
-    memset(&HucIndirectStreamInObjectbaseAddress, 0, sizeof(HucIndirectStreamInObjectbaseAddress));
-
-    memset(&HucIndirectStreamInObjectbaseAttributes, 0, sizeof(HucIndirectStreamInObjectbaseAttributes));
-
-    memset(&HucIndirectStreamInObjectaccessUpperBound, 0, sizeof(HucIndirectStreamInObjectaccessUpperBound));
-
-    memset(&HucIndirectStreamOutObjectbaseAddress, 0, sizeof(HucIndirectStreamOutObjectbaseAddress));
-
-    memset(&HucIndirectStreamOutObjectbaseAttributes, 0, sizeof(HucIndirectStreamOutObjectbaseAttributes));
-
-    memset(&HucIndirectStreamOutObjectaccessUpperBound, 0, sizeof(HucIndirectStreamOutObjectaccessUpperBound));
 
 }
 

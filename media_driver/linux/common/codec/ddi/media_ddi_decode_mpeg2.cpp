@@ -103,7 +103,7 @@ VAStatus DdiDecodeMPEG2::ParseSliceParams(
     for (slcCount = 0; slcCount < numSlices; slcCount++)
     {
         codecSlcParams->m_sliceHorizontalPosition = slcParam->slice_horizontal_position;
-        codecSlcParams->m_sliceVerticalPosition   = slcParam->slice_vertical_position / (1 + isField);
+        codecSlcParams->m_sliceVerticalPosition   = slcParam->slice_vertical_position;
 
         codecSlcParams->m_sliceDataSize   = (slcParam->slice_data_size) * 8;
         codecSlcParams->m_sliceDataOffset = slcParam->slice_data_offset + sliceBaseOffset;
@@ -138,16 +138,20 @@ VAStatus DdiDecodeMPEG2::ParseIQMatrix(
     iqMatrix->m_loadChromaIntraQuantiserMatrix    = matrix->load_chroma_intra_quantiser_matrix;
     iqMatrix->m_loadChromaNonIntraQuantiserMatrix = matrix->load_chroma_non_intra_quantiser_matrix;
 
-    memcpy(iqMatrix->m_intraQuantiserMatrix,
+    memcpy_s(iqMatrix->m_intraQuantiserMatrix,
+        64,
         matrix->intra_quantiser_matrix,
         64);
-    memcpy(iqMatrix->m_nonIntraQuantiserMatrix,
+    memcpy_s(iqMatrix->m_nonIntraQuantiserMatrix,
+        64,
         matrix->non_intra_quantiser_matrix,
         64);
-    memcpy(iqMatrix->m_chromaIntraQuantiserMatrix,
+    memcpy_s(iqMatrix->m_chromaIntraQuantiserMatrix,
+        64,
         matrix->chroma_intra_quantiser_matrix,
         64);
-    memcpy(iqMatrix->m_chromaNonIntraQuantiserMatrix,
+    memcpy_s(iqMatrix->m_chromaNonIntraQuantiserMatrix,
+        64,
         matrix->chroma_non_intra_quantiser_matrix,
         64);
     return VA_STATUS_SUCCESS;
@@ -603,7 +607,7 @@ VAStatus DdiDecodeMPEG2::CodecHalInit(
     MOS_CONTEXT *mosCtx   = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
+    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));

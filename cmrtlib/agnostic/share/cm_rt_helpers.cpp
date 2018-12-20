@@ -24,6 +24,9 @@
 #include <cstdlib>
 #include "cm_include.h"
 #include "cm_def.h"
+#include "cm_device_base.h"
+#include "cm_queue_base.h"
+#include "cm_debug.h"
 
 //!
 //! \brief      Returns the corresponding CM_RETURN_CODE error string
@@ -153,4 +156,100 @@ extern "C" CM_RT_API const char* GetCmErrorString(int code)
 
     return errorString;
 
+}
+
+/// CreateCmDevice and DestroyCmDevice are implemented in other files.
+/// CMRT_Enqueue is also implemented in another file.
+
+/// program and kernel API
+EXTERN_C CM_RT_API int CMRT_LoadProgram(CmDevice* pDevice, void* pCommonISACode, const uint32_t size, CmProgram*& pProgram, const char* options)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->LoadProgram(pCommonISACode, size, pProgram, options);
+}
+
+EXTERN_C CM_RT_API int CMRT_CreateKernel(CmDevice* pDevice, CmProgram* pProgram, const char* kernelName, CmKernel*& pKernel, const char* options)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->CreateKernel(pProgram, kernelName, pKernel, options);
+}
+
+/// surface API
+EXTERN_C CM_RT_API int CMRT_CreateBuffer(CmDevice* pDevice, uint32_t size, CmBuffer* & pSurface)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->CreateBuffer(size, pSurface);
+}
+
+EXTERN_C CM_RT_API int CMRT_CreateSurface2D(CmDevice* pDevice, uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, CmSurface2D*& pSurface)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->CreateSurface2D(width, height, format, pSurface);
+}
+
+EXTERN_C CM_RT_API int CMRT_CreateSurface3D(CmDevice* pDevice, uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format, CmSurface3D*& pSurface)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->CreateSurface3D(width, height, depth, format, pSurface);
+}
+
+EXTERN_C CM_RT_API int CMRT_DestroyBuffer(CmDevice* pDevice, CmBuffer*& pSurface)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->DestroySurface(pSurface);
+}
+
+EXTERN_C CM_RT_API int CMRT_DestroySurface2D(CmDevice* pDevice, CmSurface2D*& pSurface)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->DestroySurface(pSurface);
+}
+
+EXTERN_C CM_RT_API int CMRT_DestroySurface3D(CmDevice* pDevice, CmSurface3D*& pSurface)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->DestroySurface(pSurface);
+}
+
+// queue, task, threadspace, and event API
+EXTERN_C CM_RT_API int CMRT_CreateQueue(CmDevice* pDevice, CmQueue*& pQueue)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->CreateQueue(pQueue);
+}
+
+EXTERN_C CM_RT_API int CMRT_CreateTask(CmDevice* pDevice, CmTask*& pTask)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->CreateTask(pTask);
+}
+
+EXTERN_C CM_RT_API int CMRT_CreateThreadSpace(CmDevice* pDevice, uint32_t width, uint32_t height, CmThreadSpace*& pTS)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->CreateThreadSpace(width, height, pTS);
+}
+
+EXTERN_C CM_RT_API int CMRT_DestroyProgram(CmDevice *pDevice, CmProgram*& pProgram)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->DestroyProgram(pProgram);
+}
+
+EXTERN_C CM_RT_API int CMRT_DestroyTask(CmDevice *pDevice, CmTask*& pTask)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->DestroyTask(pTask);
+}
+
+EXTERN_C CM_RT_API int CMRT_DestroyThreadSpace(CmDevice *pDevice, CmThreadSpace*& pTS)
+{
+    CHK_NULL_RETURN(pDevice);
+    return pDevice->DestroyThreadSpace(pTS);
+}
+
+EXTERN_C CM_RT_API int CMRT_DestroyEvent(CmQueue *pQueue, CmEvent*& pEvent)
+{
+    CHK_NULL_RETURN(pQueue);
+    return pQueue->DestroyEvent(pEvent);
 }

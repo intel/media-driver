@@ -24,7 +24,7 @@
 //! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components. 
 //!
 #include "mhw_state_heap_g9.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 #include "mhw_render_hwcmd_g9_X.h"
 #include "mhw_state_heap_hwcmd_g9_X.h"
 

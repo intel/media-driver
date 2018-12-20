@@ -19,18 +19,6 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-
-/**-----------------------------------------------------------------------------
-***
-*** Copyright  (C) 1985-2016 Intel Corporation. All rights reserved.
-***
-*** The information and source code contained herein is the exclusive
-*** property of Intel Corporation. and may not be disclosed, examined
-*** or reproduced in whole or in part without explicit written authorization
-*** from the company.
-***
-*** ----------------------------------------------------------------------------
-*/
 #include "cm_surface_manager.h"
 #include "cm_debug.h"
 #include "cm_def.h"
@@ -68,6 +56,8 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width,
     case CM_SURFACE_FORMAT_V8U8:
     case CM_SURFACE_FORMAT_R16_UINT:
     case CM_SURFACE_FORMAT_R8_UINT:
+    case CM_SURFACE_FORMAT_Y216:
+    case CM_SURFACE_FORMAT_Y416:
         break;
 
     case CM_SURFACE_FORMAT_UYVY:
@@ -182,7 +172,6 @@ int32_t CmSurfaceManager::CreateVaSurface2D(uint32_t width,
 {
     int32_t hr = CM_SUCCESS;
     VAStatus vaStatus = VA_STATUS_SUCCESS;
-    VASurfaceID vaSurfaceId = 0;
     VADisplay *dpy = nullptr;
     uint32_t vaFormat = 0;
 

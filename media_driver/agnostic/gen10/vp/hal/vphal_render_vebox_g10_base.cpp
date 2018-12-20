@@ -311,7 +311,15 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::GetOutputSurfParams(
 
     if (pRenderData->bDeinterlace)
     {
-        Format   = Format_YUY2;
+        //set vebox output as NV12 if render target is non_YUY2 for saving bandwidth.
+        if (pRenderData->pRenderTarget->Format == Format_YUY2)
+        {
+            Format = Format_YUY2;
+        }
+        else
+        {
+            Format = Format_NV12;
+        }
         TileType = MOS_TILE_Y;
     }
     else
@@ -1557,7 +1565,15 @@ void VPHAL_VEBOX_STATE_G10_BASE::SetupChromaSampling(
     bNeedUpSampling      = pRenderData->bIECP;
     // Only VEBOX output, we use VEO to do downsampling.
     // Else, we use SFC/FC path to do downscaling.
-    bNeedDownSampling    = IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData);
+    // if VEBOX intermediate buffer format is non_YUY2 on DI case, enable downsampling as center-left
+    if (pRenderData->bDeinterlace && (pRenderData->pRenderTarget->Format != Format_YUY2))
+    {
+        bNeedDownSampling    = true;
+    }
+    else
+    {
+        bNeedDownSampling    = IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData);
+    }
 
     // Source
     pSrcSurface   = pVeboxState->m_currentSurface;
@@ -1740,7 +1756,6 @@ void VPHAL_VEBOX_STATE_G10_BASE::SetupChromaSampling(
     // Handle render target chroma sitting
     if (bNeedDownSampling)
     {
-        bDIEnabled = pRenderData->bDeinterlace;
         // Type 0
         if ((pRenderTarget->ChromaSiting & MHW_CHROMA_SITING_HORZ_LEFT) &&
             (pRenderTarget->ChromaSiting & MHW_CHROMA_SITING_VERT_CENTER))

@@ -34,6 +34,7 @@
 #include "mhw_vebox_hwcmd_g9_X.h"
 #include "mhw_render_hwcmd_g9_X.h"
 #include "mhw_state_heap_hwcmd_g9_X.h"
+#include "mhw_mmio_g9.h"
 
 #define CM_NUM_HW_POLYPHASE_TABLES_G9            17
 #define CM_NUM_HW_POLYPHASE_EXTRA_TABLES_G9      15
@@ -165,7 +166,7 @@ public:
     MOS_STATUS GetExpectedGtSystemConfig(
         PCM_EXPECTED_GT_SYSTEM_INFO expectedConfig);
 
-    uint64_t ConvertTicksToNanoSeconds(uint64_t ticks);
+    uint64_t ConverTicksToNanoSecondsDefault(uint64_t ticks);
 
 private:
     MOS_STATUS RegisterSampler8x8AVSTable(
@@ -180,7 +181,6 @@ private:
 
 };
 
-#define REG_GPR_BASE_G9 0x2600
-#define REG_TIMESTAMP_BASE_G9  0x2358
+
 
 #endif  // __CM_HAL_G9_H__

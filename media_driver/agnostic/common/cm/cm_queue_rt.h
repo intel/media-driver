@@ -258,6 +258,8 @@ protected:
                        const CmThreadGroupSpace *threadGroupSpace = nullptr,
                        const uint64_t syncBitmap = 0,
                        PCM_POWER_OPTION powerOption = nullptr,
+                       const uint64_t conditionalEndBitmap = 0,
+                       PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo = nullptr,
                        CM_TASK_CONFIG *taskConfig = nullptr);
 
     int32_t Enqueue_RT(CmKernelRT *kernelArray[],

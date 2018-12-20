@@ -673,7 +673,9 @@ bool CompositeState::IsBobDiEnabled(PVPHAL_SURFACE pSrc)
     // Kernel don't support inderlaced Y410/Y210 as input format
     bRet = (pSrc->pDeinterlaceParams     &&
            (pSrc->Format != Format_Y410  &&
-            pSrc->Format != Format_Y210) &&
+            pSrc->Format != Format_Y210  &&
+            pSrc->Format != Format_Y216  &&
+            pSrc->Format != Format_Y416) &&
             !VpHal_RndrCommonIsAlignmentWANeeded(pSrc, m_pOsInterface->CurrentGpuContextOrdinal));
 
 finish:
@@ -702,7 +704,8 @@ bool CompositeState::Is8TapAdaptiveEnabled(
             (IS_RGB32_FORMAT(pSrc->Format)        ||
              pSrc->Format == Format_A16R16G16B16  ||
              pSrc->Format == Format_AYUV          ||
-             pSrc->Format == Format_Y410));
+             pSrc->Format == Format_Y410          ||
+             pSrc->Format == Format_Y416));
 }
 
 //!
@@ -1013,7 +1016,7 @@ static MOS_STATUS SamplerAvsCalcScalingTable(
         MOS_ZeroMemory(piUVCoefsParam, UVCoefTableSize);
 
         // 4-tap filtering for RGB format G-channel if 8tap adaptive filter is not enabled.
-        Plane = ((IS_RGB32_FORMAT(SrcFormat) || (SrcFormat == Format_Y410) || (SrcFormat == Format_AYUV)) && !b8TapAdaptiveEnable) ? MHW_U_PLANE : MHW_Y_PLANE;
+        Plane = ((IS_RGB32_FORMAT(SrcFormat) || (SrcFormat == Format_Y410) || (SrcFormat == Format_AYUV) || (SrcFormat == Format_Y416)) && !b8TapAdaptiveEnable) ? MHW_U_PLANE : MHW_Y_PLANE;
         if (bVertical)
         {
             pAvsParams->fScaleY = fScale;
@@ -1161,7 +1164,8 @@ MOS_STATUS CompositeState::SetSamplerAvsTableParam(
 
     bIsUpScaleAndYuvFormat = ((fScaleX > 1.0F || fScaleY > 1.0F) && IS_YUV_FORMAT(SrcFormat));
     if (SrcFormat == Format_Y410 ||
-        SrcFormat == Format_AYUV)
+        SrcFormat == Format_AYUV ||
+        SrcFormat == Format_Y416)
     {
         bIsUpScaleAndYuvFormat = false;
     }
@@ -1249,7 +1253,7 @@ MOS_STATUS CompositeState::SetSamplerAvsTableParam(
         m_AvsCoeffsCache.Insert(tag, *pAvsParams);
     }
 
-    pMhwSamplerAvsTableParam->b4TapGY   = ((IS_RGB32_FORMAT(SrcFormat) || SrcFormat == Format_Y410 || SrcFormat == Format_AYUV) && !pMhwSamplerAvsTableParam->b8TapAdaptiveEnable);
+    pMhwSamplerAvsTableParam->b4TapGY   = ((IS_RGB32_FORMAT(SrcFormat) || SrcFormat == Format_Y410 || SrcFormat == Format_AYUV || SrcFormat == Format_Y416) && !pMhwSamplerAvsTableParam->b8TapAdaptiveEnable);
     pMhwSamplerAvsTableParam->b4TapRBUV = (!pMhwSamplerAvsTableParam->b8TapAdaptiveEnable);
 
     VPHAL_RENDER_CHK_STATUS(VpHal_RenderCommonSetAVSTableParam(pAvsParams, pMhwSamplerAvsTableParam));
@@ -2589,30 +2593,6 @@ void CompositeState::CleanRenderingData(
     PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData)
 {
     MOS_UNUSED(pRenderingData);
-}
-
-//!
-//! \brief    Check if None Cp Composite is needed
-//! \param    [in,out] pCompParams
-//!           Pointer to Composite parameters
-//! \param    [in] ppOsResource
-//!           Pointer to MOS_RESOURCE
-//! \param    [in] resourceCount
-//!           The count of input resource
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS CompositeState::CheckIfNoneCpCompNeeded(
-    PVPHAL_COMPOSITE_PARAMS pCompParams,
-    PMOS_RESOURCE           ppOsResource[],
-    uint32_t                resourceCount)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    // Set the flag to false by default
-    m_bForceNoneCpCompCall = false;
-
-    return eStatus;
 }
 
 //!
@@ -4086,6 +4066,24 @@ finish:
 }
 
 //!
+//! \brief    Check whether parameters for composition valid or not.
+//! \param    [in] CompositeParams
+//!           Parameters for composition
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS CompositeState::IsCompositeParamsValid(
+    const VPHAL_COMPOSITE_PARAMS& CompositeParams)
+{
+    if (CompositeParams.uSourceCount > VPHAL_COMP_MAX_LAYERS)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid number of sources.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Calculate and set inline data size
 //! \param    [in] pRenderingData
 //!           pointer to render data
@@ -4459,7 +4457,8 @@ bool CompositeState::SubmitStates(
 
     // Set output format
     if (IS_PA_FORMAT(pTarget->Format)  &&
-        pTarget->Format != Format_Y410)
+        pTarget->Format != Format_Y410 &&
+        pTarget->Format != Format_Y416)
     {
         VpHal_RndrSetYUVComponents(
             pTarget->Format,
@@ -4477,7 +4476,8 @@ bool CompositeState::SubmitStates(
                     pFilter->format == Format_R10G10B10A2 ||
                     pFilter->format == Format_B10G10R10A2 ||
                     pFilter->format == Format_AYUV        ||
-                    pFilter->format == Format_Y410)
+                    pFilter->format == Format_Y410        ||
+                    pFilter->format == Format_Y416)
                 {
                     pStatic->DW15.DestinationRGBFormat = (uint8_t)(0xff * pRenderingData->pCompAlpha->fAlpha);
                 }
@@ -5533,8 +5533,6 @@ MOS_STATUS CompositeState::RenderPhase(
     PMHW_WALKER_PARAMS              pWalkerParams;
     bool                            bKernelEntryUpdate;
     bool                            bColorfill;
-    PMOS_RESOURCE                   ppOsResource[VPHAL_MAX_SOURCES] = { nullptr };
-
     eStatus                 = MOS_STATUS_UNKNOWN;
     pMediaState             = nullptr;
     pWalkerParams           = nullptr;
@@ -5553,11 +5551,8 @@ MOS_STATUS CompositeState::RenderPhase(
 
     //VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_STAGE(VPHAL_DBG_STAGE_COMP);
 
-    if (pCompParams->uSourceCount > VPHAL_COMP_MAX_LAYERS)
-    {
-        VPHAL_RENDER_ASSERTMESSAGE("Invalid number of sources.");
-        goto finish;
-    }
+    // Check whether composition parameters are valid.
+    VPHAL_RENDER_CHK_STATUS(IsCompositeParamsValid(*pCompParams));
 
     //============================
     // Allocate states for rendering
@@ -5646,8 +5641,6 @@ MOS_STATUS CompositeState::RenderPhase(
             goto finish;
         }
 
-        ppOsResource[iLayer] = &pSource->OsResource;
-
         // The parameter YOffset of surface state should be
         // a multiple of 4 when the input is accessed in field mode.For interlaced NV12
         // input, if its height is not a multiple of 4, the YOffset of UV plane will not
@@ -5719,17 +5712,6 @@ MOS_STATUS CompositeState::RenderPhase(
          VPHAL_RENDER_ASSERTMESSAGE("Failed to set Render Target.");
          eStatus = MOS_STATUS_UNKNOWN;
          goto finish;
-    }
-
-    VPHAL_RENDER_CHK_STATUS(CheckIfNoneCpCompNeeded(
-        pCompParams,
-        ppOsResource,
-        pCompParams->uSourceCount)
-    );
-    // disable cp if it is required.
-    if (m_bForceNoneCpCompCall)
-    {
-        pOsInterface->osCpInterface->SetCpEnabled(false);
     }
 
     //============================
@@ -5962,10 +5944,6 @@ MOS_STATUS CompositeState::RenderPhase(
         kernelCombinedFc));
 
 finish:
-    if (m_bForceNoneCpCompCall && pOsInterface && pOsInterface->osCpInterface)
-    {
-        pOsInterface->osCpInterface->SetCpEnabled(true);
-    }
     // clean rendering data
     CleanRenderingData(&RenderingData);
     pRenderHal->bCmfcCoeffUpdate  = false;
@@ -6131,6 +6109,15 @@ bool CompositeState::BuildFilter(
             pFilter->format = Format_YV12_Planar;
         }
 
+        if (pFilter->format == Format_A8R8G8B8 ||
+            pFilter->format == Format_X8R8G8B8 ||
+            pFilter->format == Format_A8B8G8R8 ||
+            pFilter->format == Format_X8B8G8R8 ||
+            pFilter->format == Format_R5G6B5)
+        {
+            pFilter->format = Format_RGB;
+        }
+
         //--------------------------------
         // Set layer rotation
         //--------------------------------
@@ -6218,7 +6205,8 @@ bool CompositeState::BuildFilter(
                 fStepY >= 3.0f                       ||
                 pSrc->Format == Format_R10G10B10A2   ||
                 pSrc->Format == Format_B10G10R10A2   ||
-                pSrc->Format == Format_Y410)
+                pSrc->Format == Format_Y410          ||
+                pSrc->Format == Format_Y416)
             {
                 pFilter->sampler = Sample_iScaling_034x;
             }
@@ -6233,7 +6221,8 @@ bool CompositeState::BuildFilter(
                 fStepY >= 3.0f                     ||
                 pSrc->Format == Format_R10G10B10A2 ||
                 pSrc->Format == Format_B10G10R10A2 ||
-                pSrc->Format == Format_Y410)
+                pSrc->Format == Format_Y410        ||
+                pSrc->Format == Format_Y416)
             {
                 pFilter->sampler = Sample_Scaling_034x;
             }
@@ -6247,7 +6236,8 @@ bool CompositeState::BuildFilter(
         // Dscale kernel should be used
         if (pSrc->Format == Format_R10G10B10A2 ||
             pSrc->Format == Format_B10G10R10A2 ||
-            pSrc->Format == Format_Y410)
+            pSrc->Format == Format_Y410        ||
+            pSrc->Format == Format_Y416)
         {
             pFilter->bWaEnableDscale = true;
         }
@@ -6636,7 +6626,6 @@ CompositeState::CompositeState(
     m_bAvsTableBalancedFilter(false),
     m_bNullHwRenderComp(false),
     m_b8TapAdaptiveEnable(false),
-    m_bForceNoneCpCompCall(false),
     m_pKernelDllState(nullptr),
     m_ThreadCountPrimary(0),
     m_iBatchBufferCount(0),
