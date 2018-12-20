@@ -5666,6 +5666,11 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
     m_vdencPakonlyMultipassEnabled = false;
     m_vdencPakObjCmdStreamOutEnabled = false;
 
+    // In case there is overflow
+    if ((m_vp9PicParams->LumaACQIndex + m_vp9PicParams->LumaDCQIndexDelta) < 0)
+    {
+        m_vp9PicParams->LumaACQIndex = MOS_ABS(m_vp9PicParams->LumaDCQIndexDelta) + 1;
+    }
     refList[currRefIdx]->ucQPValue[0] = m_vp9PicParams->LumaACQIndex + m_vp9PicParams->LumaDCQIndexDelta;
 
     m_txMode = CODEC_VP9_TX_SELECTABLE;
