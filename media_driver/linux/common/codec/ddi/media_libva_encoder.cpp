@@ -625,9 +625,8 @@ VAStatus DdiEncode_MfeSubmit(
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
-        encoder->m_mfeEncodeParams.submitIndex  = 0;
-        encoder->m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
-        encoder->m_mfeEncodeParams.streamId  = 0;
+        encoder->m_mfeEncodeParams.submitIndex  = i;
+        encoder->m_mfeEncodeParams.submitNumber = num_contexts;
         encodeContexts.push_back(encodeContext);
         validContextNumber++;
     }
