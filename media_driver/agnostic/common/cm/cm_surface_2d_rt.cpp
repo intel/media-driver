@@ -1092,8 +1092,7 @@ CM_RT_API int32_t CmSurface2DRT::SetSurfaceStateParam( SurfaceIndex *surfIndex, 
     inParam.height      = surfStateParam->height;
     if (surfStateParam->format)
     {
-        inParam.format = CmOSFmtToMosFmt(
-            static_cast<CM_OSAL_SURFACE_FORMAT>(surfStateParam->format));
+        inParam.format = surfStateParam->format;
     }
     inParam.depth       = surfStateParam->depth;
     inParam.pitch       = surfStateParam->pitch;
