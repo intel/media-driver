@@ -2761,13 +2761,11 @@ void CompositeState::SetSurfaceParams(
     // Set interlacing flags
     switch (pSource->SampleType)
     {
-        case SAMPLE_INTERLEAVED_EVEN_FIRST:
         case SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD:
         case SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD:
             pSurfaceParams->bVertStride     = true;
             pSurfaceParams->bVertStrideOffs = 0;
             break;
-        case SAMPLE_INTERLEAVED_ODD_FIRST:
         case SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD:
         case SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD:
             pSurfaceParams->bVertStride     = true;
@@ -3503,7 +3501,6 @@ int32_t CompositeState::SetLayer(
     {
         switch (pSource->SampleType)
         {
-            case SAMPLE_INTERLEAVED_EVEN_FIRST:
             case SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD:
             case SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD:
                 fDiScaleY = 0.5f;
@@ -3512,7 +3509,6 @@ int32_t CompositeState::SetLayer(
                 fOffsetY += 0.25f;
                 break;
 
-            case SAMPLE_INTERLEAVED_ODD_FIRST:
             case SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD:
             case SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD:
                 fDiScaleY = 0.5f;
