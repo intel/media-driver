@@ -3901,8 +3901,6 @@ const char * VphalParameterDumper::GetSampleTypeStr(VPHAL_SAMPLE_TYPE sample_typ
     case SAMPLE_PROGRESSIVE:                                 return _T("SAMPLE_PROGRESSIVE");
     case SAMPLE_SINGLE_TOP_FIELD:                            return _T("SAMPLE_SINGLE_TOP_FIELD");
     case SAMPLE_SINGLE_BOTTOM_FIELD:                         return _T("SAMPLE_SINGLE_BOTTOM_FIELD");
-    case SAMPLE_INTERLEAVED_EVEN_FIRST:                      return _T("SAMPLE_INTERLEAVED_EVEN_FIRST");
-    case SAMPLE_INTERLEAVED_ODD_FIRST:                       return _T("SAMPLE_INTERLEAVED_ODD_FIRST");
     case SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD:            return _T("SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD");
     case SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD:         return _T("SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD");
     case SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD:             return _T("SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD");
