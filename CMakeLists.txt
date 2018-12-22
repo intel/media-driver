@@ -85,7 +85,7 @@ if("${LIBVA_DRIVERS_PATH}" STREQUAL "")
 endif()
 message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
 
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION ${LIBVA_DRIVERS_PATH} COMPONENT media)
+install (PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION ${LIBVA_DRIVERS_PATH} COMPONENT media)
 
 option (INSTALL_DRIVER_SYSCONF "Install driver system configuration file" OFF)
 if (INSTALL_DRIVER_SYSCONF)
