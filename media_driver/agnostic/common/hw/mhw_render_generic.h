@@ -127,7 +127,7 @@ public:
         if (params->presDynamicState)
         {
             cmd.DW6_7.DynamicStateBaseAddressModifyEnable    = true;
-            cmd.DW6_7.DynamicStateMemoryObjectControlState = params->mocs4DynamicState;
+            cmd.DW6_7.DynamicStateMemoryObjectControlState   = params->mocs4DynamicState;
             cmd.DW13.DynamicStateBufferSizeModifyEnable      = true;
             resourceParams.presResource                      = params->presDynamicState;
             resourceParams.dwOffset                          = 0;
