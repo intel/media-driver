@@ -122,7 +122,7 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11
     uint32_t    Ref_L1_FrameID_U32[8];
     uint16_t    startGAdjFrame_U16[4];          // 10, 50, 100, 150
     uint16_t    TargetSliceSize_U16;
-    uint16_t    SLB_Data_SizeInBytes;
+    uint16_t    SLB_Data_SizeInBytes;           // Region12 group 3 batch buffer data size
     uint16_t    PIC_STATE_StartInBytes;         // PIC_STATE starts in byte. 0xFFFF means not available in SLB
     uint16_t    CMD2_StartInBytes;
     uint16_t    CMD1_StartInBytes;
@@ -508,6 +508,7 @@ public:
     MOS_STATUS ExecuteSliceLevel();
     MOS_STATUS ConstructBatchBufferHuCCQP(PMOS_RESOURCE batchBuffer);
     MOS_STATUS ConstructBatchBufferHuCBRC(PMOS_RESOURCE batchBuffer);
+    MOS_STATUS ConstructBatchBufferHuCBRCForGroup3(PMOS_RESOURCE batchBuffer);
     MOS_STATUS ConstructHucCmdForBRC(PMOS_RESOURCE batchBuffer);
     MOS_STATUS SetDmemHuCBrcInitReset();
     MOS_STATUS SetConstDataHuCBrcUpdate();
@@ -814,6 +815,7 @@ protected:
     virtual MOS_STATUS DumpHucPakIntegrate();
     virtual MOS_STATUS DumpVdencOutputs();
     virtual MOS_STATUS DumpHucCqp();
+    virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
 #endif
 
 };
