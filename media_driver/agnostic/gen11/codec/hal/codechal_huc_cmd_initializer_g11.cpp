@@ -222,7 +222,7 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerSetDmem(bool brcEnabled)
     hucCmdInitializerDmem->OutputCOM[1].ID           = 1;
     hucCmdInitializerDmem->OutputCOM[1].Type         = 1;
     hucCmdInitializerDmem->OutputCOM[1].StartInBytes = GetCmd2StartOffset(brcEnabled);
-    hucCmdInitializerDmem->OutputCOM[1].BBEnd        = brcEnabled ? 0 : BATCH_BUFFER_END;
+    hucCmdInitializerDmem->OutputCOM[1].BBEnd        = BATCH_BUFFER_END;
 
     offset += CODECHAL_CMDINITIALIZER_MAX_CMD_SIZE;
 

@@ -786,7 +786,7 @@ MOS_STATUS CodechalCmdInitializer::DumpHucCmdInit(PMOS_RESOURCE secondlevelBB)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetDebugInterface()->DumpHucRegion(
         secondlevelBB,
         0,
-        sizeof(HucComDmem),
+        m_hwInterface->m_vdencReadBatchBufferSize,
         1,
         "",
         false,

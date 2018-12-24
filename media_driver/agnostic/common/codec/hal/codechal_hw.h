@@ -405,7 +405,8 @@ public:
     uint32_t                    m_vdencBrcImgStateBufferSize = 0;               //!> vdenc brc img state buffer size
     uint32_t                    m_vdencBatchBuffer1stGroupSize = 0;             //!> vdenc batch buffer 1st group size
     uint32_t                    m_vdencBatchBuffer2ndGroupSize = 0;             //!> vdenc batch buffer 2nd group size
-    uint32_t                    m_vdencReadBatchBufferSize = 0;                 //!> vdenc read batch buffer size
+    uint32_t                    m_vdencReadBatchBufferSize = 0;                 //!> vdenc read batch buffer size for group1 and group2
+    uint32_t                    m_vdencGroup3BatchBufferSize = 0;               //!> vdenc read batch buffer size for group3
     uint32_t                    m_vdencCopyBatchBufferSize = 0;                 //!> vdenc copy batch buffer size
     uint32_t                    m_vdenc2ndLevelBatchBufferSize = 0;             //!> vdenc 2nd level batch buffer size
     uint32_t                    m_vdencBatchBufferPerSliceConstSize = 0;        //!> vdenc batch buffer per slice const size
