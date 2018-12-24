@@ -3166,6 +3166,7 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     MOS_ZeroMemory(&m_vdencBrcConstDataBuffer, sizeof(m_vdencBrcConstDataBuffer));
     MOS_ZeroMemory(&m_vdencBrcHistoryBuffer, sizeof(m_vdencBrcHistoryBuffer));
     MOS_ZeroMemory(&m_vdencReadBatchBuffer, sizeof(m_vdencReadBatchBuffer));
+    MOS_ZeroMemory(&m_vdencReadBatchBuffer, sizeof(m_vdencGroup3BatchBuffer));
     MOS_ZeroMemory(&m_vdencBrcDbgBuffer, sizeof(m_vdencBrcDbgBuffer));
     MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));
     MOS_ZeroMemory(m_resSliceReport, sizeof(m_resSliceReport));

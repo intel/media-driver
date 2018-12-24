@@ -140,6 +140,7 @@ public:
     MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                         //!< VDEnc brc constant data buffer
     MOS_RESOURCE                            m_vdencBrcHistoryBuffer;                           //!< VDEnc brc history buffer
     MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer
+    MOS_RESOURCE                            m_vdencGroup3BatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer for Group3
     MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
     uint32_t                                m_deltaQpRoiBufferSize;                            //!< VDEnc DeltaQp for ROI buffer size
     uint32_t                                m_brcRoiBufferSize;                                //!< BRC ROI input buffer size
