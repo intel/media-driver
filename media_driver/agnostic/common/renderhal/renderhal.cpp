@@ -5039,7 +5039,6 @@ MOS_STATUS RenderHal_Initialize(
     pStateBaseParams->dwGeneralStateSize            = pRenderHal->pStateHeap->dwSizeGSH;
     pStateBaseParams->presDynamicState              = &pRenderHal->pStateHeap->GshOsResource;
     pStateBaseParams->dwDynamicStateSize            = pRenderHal->pStateHeap->dwSizeGSH;
-    pStateBaseParams->dwDynamicStateMemObjCtrlState = 0;
     pStateBaseParams->bDynamicStateRenderTarget     = false;
     pStateBaseParams->presIndirectObjectBuffer      = &pRenderHal->pStateHeap->GshOsResource;
     pStateBaseParams->dwIndirectObjectBufferSize    = pRenderHal->pStateHeap->dwSizeGSH;
