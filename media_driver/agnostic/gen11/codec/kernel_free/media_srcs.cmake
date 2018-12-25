@@ -18,6 +18,33 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+if (BUILD_KERNELS)
+
+    function(gen_cm_kernel_from_source name platform)
+
+        set(cm_krn_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/${platform}/codec/kernel_free)
+        set(cm_krn ig${name}krn_g11)
+
+        # Generating source from the .krn file
+        add_custom_command(
+            OUTPUT ${cm_krn_dir}/${cm_krn}.c ${cm_krn_dir}/${cm_krn}.h
+            DEPENDS KernelBinToSource
+            COMMAND cp -r ${CMAKE_CURRENT_LIST_DIR}/Source .
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/build.py .
+            COMMAND ${PYTHON} ARGS build.py
+            COMMAND ${CMAKE_COMMAND} -E rename commonkernel.krn ${cm_krn}.krn
+            COMMAND KernelBinToSource ARGS -i ${cm_krn}.krn -o . -v ${cm_krn} -index 14 -t 17
+            COMMAND ${CMAKE_COMMAND} -E copy ${cm_krn}.c ${cm_krn}.h ${CMAKE_CURRENT_LIST_DIR}/
+            COMMENT "Generate source file from krn")
+    endfunction()
+
+    if(GEN11_ICLLP)
+
+        gen_cm_kernel_from_source(codec gen11)
+
+    endif()
+endif()
+
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g11.c
 )
