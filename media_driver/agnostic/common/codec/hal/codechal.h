@@ -326,6 +326,12 @@ public:
     //!
     CodechalDebugInterface * GetDebugInterface() { return m_debugInterface; }
 
+    //!
+    //! \brief    Check if Apogeios enabled.
+    //! \return   bool
+    //!           return m_apogeiosEnable
+    //!
+    bool IsApogeiosEnabled() { return m_apogeiosEnable; }
 protected:
     //! \brief    HW Inteface
     //! \details  Responsible for constructing all defined states and commands. 
@@ -347,6 +353,9 @@ protected:
 
     //! \brief    Indicates whether or not using null hardware
     bool                    m_useNullHw[MOS_GPU_CONTEXT_MAX] = { false };
+
+    //! \brief    Apogeios Enable Flag
+    bool                    m_apogeiosEnable = false;
 };
 
 //!
