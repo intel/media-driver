@@ -21,5 +21,5 @@
 if(${PLATFORM} STREQUAL "linux")
     include(${MEDIA_DRIVER_CMAKE}/linux/media_gen_flags_linux.cmake)
 else()
-    include(${MEDIA_DRIVER_CMAKE}/ext/media_gen_flags_ext.cmake OPTIONAL)
+    include(${MEDIA_EXT_CMAKE}/ext/media_gen_flags_ext.cmake OPTIONAL)
 endif()

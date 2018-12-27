@@ -60,4 +60,4 @@ if(GEN11)
     media_include_subdirectory(gen11)
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/media_srcs_ext.cmake OPTIONAL)
+include(${MEDIA_EXT}/linux/media_srcs_ext.cmake OPTIONAL)
