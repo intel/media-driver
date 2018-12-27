@@ -2664,6 +2664,11 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsRTFormatSupported(
         bRet = true;
     }
 
+    if (pRTSurface->Format == Format_P010)
+    {
+        bRet = true;
+    }
+
     return bRet;
 }
 
