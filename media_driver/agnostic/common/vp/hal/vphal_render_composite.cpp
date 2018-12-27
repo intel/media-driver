@@ -3321,6 +3321,11 @@ int32_t CompositeState::SetLayer(
     //-----------------------------------
     for (i = 0; i < iSurfaceEntries; i++, iBTentry++)
     {
+        if (pSurfaceEntries[i] == nullptr)
+        {
+            continue;
+        }
+
         // Obtain Sampler ID and Type
         eStatus = GetSamplerIndex(pSurfaceEntries[i],
                                   &iSamplerID,
@@ -3370,7 +3375,10 @@ int32_t CompositeState::SetLayer(
 
             if (iSamplerID == VPHAL_SAMPLER_Y && pSource->bUseSamplerLumakey)
             {
-                if (IsNV12SamplerLumakeyNeeded(pSource, pRenderHal))
+                //From Gen10,HW support 1 plane LumaKey process on NV12 format, Gen9 only support 2 plane LumaKey process
+                //if go to 1 plane, MHW_GFX3DSTATE_SURFACEFORMAT_PLANAR_420_8 format will be used, LumaKey value need to be set on Y channel, the corresponding bit range is 15:8
+                //if go to 2 plane, MHW_GFX3DSTATE_SURFACEFORMAT_R8_UNORM     format will be used, LumaKey value need to be set on R channel, the corresponding bit range is 23:16
+                if (IsNV12SamplerLumakeyNeeded(pSource, pRenderHal) || (pSurfaceEntries[i]->dwFormat == MHW_GFX3DSTATE_SURFACEFORMAT_R8_UNORM))
                 {
                     dwLow  = pSource->pLumaKeyParams->LumaLow << 16;
                     dwHigh = (pSource->pLumaKeyParams->LumaHigh << 16) | 0xFF00FFFF;
