@@ -140,4 +140,4 @@ if(GEN11_ICLLP)
     media_include_subdirectory(gen11_icllp)
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/media_srcs_ext.cmake OPTIONAL)
+include(${MEDIA_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)

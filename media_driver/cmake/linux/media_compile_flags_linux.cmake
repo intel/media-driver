@@ -176,9 +176,7 @@ set(MEDIA_COMPILER_FLAGS_DEBUG
     -DINSTR_GTUNE_EXT
 )
 
-
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_compile_flags_linux_ext.cmake OPTIONAL)
-
+include(${MEDIA_EXT_CMAKE}/ext/linux/media_compile_flags_linux_ext.cmake OPTIONAL)
 
 if(${PLATFORM} STREQUAL "linux")
     #set predefined compiler flags set

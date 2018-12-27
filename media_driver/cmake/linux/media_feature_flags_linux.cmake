@@ -166,4 +166,4 @@ if(FREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
 endif()
 
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)
+include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)

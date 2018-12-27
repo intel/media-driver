@@ -98,4 +98,4 @@ if(GEN11_ICLLP)
     add_definitions(-DIGFX_GEN11_ICLLP_SUPPORTED)
 endif()
 
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)
+include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)

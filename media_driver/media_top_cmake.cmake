@@ -55,8 +55,8 @@ set(SOURCES_ "")
 # add source
 media_include_subdirectory(agnostic)
 media_include_subdirectory(linux)
-media_include_subdirectory(../media_driver_next)
-include(${CMAKE_CURRENT_LIST_DIR}/media_srcs_ext.cmake OPTIONAL)
+media_include_subdirectory(${MEDIA_EXT}/media_driver_next)
+include(${MEDIA_EXT}/media_srcs_ext.cmake OPTIONAL)
 
 include(${MEDIA_DRIVER_CMAKE}/media_include_paths.cmake)
 
@@ -116,7 +116,7 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
     target_compile_options( ${LIB_NAME} PUBLIC ${LIBGMM_CFLAGS_OTHER})
     target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
 
-    include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
+    include(${MEDIA_EXT_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
@@ -125,5 +125,5 @@ bs_set_post_target()
 
 if(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
-    include(${CMAKE_CURRENT_LIST_DIR}/../media_driver_next/ult/ult_top_cmake.cmake OPTIONAL)
-endif()
+    include(${MEDIA_EXT}/media_driver_next/ult/ult_top_cmake.cmake OPTIONAL)
+endif(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS)
