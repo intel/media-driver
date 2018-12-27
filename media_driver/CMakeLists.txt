@@ -83,10 +83,14 @@ elseif ("${BUILD_TYPE}" STREQUAL "debug")
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
-# the media_defs.cmake will define path varible to media_driver and subfolder, so for media_defs.cmake itself,
-# only can refer it through below path
 include(${BS_DIR_MEDIA}/media_driver/cmake/media_defs.cmake)
 
 include(${MEDIA_DRIVER_CMAKE}/media_utils.cmake)
 
-include(${CMAKE_CURRENT_LIST_DIR}/media_top_cmake.cmake)
+find_file(EXT_CONF NAMES media_top_cmake_ext.cmake PATHS ${CMAKE_CURRENT_LIST_DIR})
+
+if(EXT_CONF)
+    include(${CMAKE_CURRENT_LIST_DIR}/media_top_cmake_ext.cmake)
+else()
+    include(${CMAKE_CURRENT_LIST_DIR}/media_top_cmake.cmake)
+endif()

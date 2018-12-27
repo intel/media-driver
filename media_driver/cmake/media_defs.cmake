@@ -33,5 +33,4 @@ bs_set_if_undefined(MEDIA_DRIVER_CMAKE       "${MEDIA_DRIVER_ROOT}/cmake")
 bs_set_if_undefined(MEDIA_DRIVER_AGNOSTIC    "${MEDIA_DRIVER_ROOT}/agnostic")
 bs_set_if_undefined(MEDIA_DRIVER_LINUX       "${MEDIA_DRIVER_ROOT}/linux")
 
-
-include( ${MEDIA_DRIVER_CMAKE}/ext/media_defs_ext.cmake OPTIONAL )
+include( ${MEDIA_EXT_CMAKE}/ext/media_defs_ext.cmake OPTIONAL )
