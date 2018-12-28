@@ -191,6 +191,9 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_P010:
         format = Format_P010;
         break;
+    case Media_Format_P016:
+        format = Format_P016;
+        break;
     case Media_Format_R10G10B10A2:
         format = Format_R10G10B10A2;
         break;
@@ -1620,7 +1623,7 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
             }//1080p
             else
             {
-                if (pVpHalSurf->Format == Format_P010)
+                if (pVpHalSurf->Format == Format_P010 || pVpHalSurf->Format == Format_P016)
                 {
                     pVpHalSurf->ColorSpace = CSpace_BT2020;
                 }
