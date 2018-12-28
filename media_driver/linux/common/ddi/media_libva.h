@@ -284,8 +284,7 @@ typedef struct _DDI_CODEC_RENDER_TARGET_TABLE
     int32_t                      iNumRenderTargets;
     DDI_MEDIA_SURFACE           *pCurrentRT;           // raw input for encode
     DDI_MEDIA_SURFACE           *pCurrentReconTarget;  // recon surface for encode
-    DDI_MEDIA_SURFACE           *pRT[DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT]; // Ring buffer for render targets (RT)
-    int32_t                      iNextRingBufferPosition;  // Position in pRT for the next registered RT to be inserted into
+    DDI_MEDIA_SURFACE           *pRT[DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT];
     uint8_t                      ucRTFlag[DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT];
 } DDI_CODEC_RENDER_TARGET_TABLE, *PDDI_CODEC_RENDER_TARGET_TABLE;
 
