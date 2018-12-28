@@ -67,13 +67,14 @@ typedef struct _MEDIA_WALKER_16ALIGN_STATIC_DATA
     // DWORD 4 - GRF R1.4
     union
     {
-        uint32_t        pOutSurface;          // Output - Buffer (NV12/YUY2), size need to be 16 bytes alignment.
-        uint32_t        pOutSurface_Y;        // Output - Buffer YV12, size need to be 32 bytes alignment
+        uint32_t        pOutSurface;          // Output - Buffer YUY2, size need to be 16 bytes alignment.
+        uint32_t        pOutSurface_Y;        // Output - Buffer NV12/YV12, size need to be 32 bytes alignment
     } DW4;
 
     // DWORD 5 - GRF R1.4
     union
     {
+        uint32_t        pOutSurface_UV;       // Output - Buffer NV12, size need to be 16 bytes alignment.
         uint32_t        pOutSurface_U;        // Output - Buffer YV12, size need to be 16 bytes alignment.
     } DW5;
 
@@ -99,8 +100,8 @@ typedef struct _MEDIA_WALKER_16ALIGN_STATIC_DATA
     union
     {
         struct {
-            uint32_t       Output_Format : 16;  // 0 NV12, 1 YUY2, 2 YV12， currently, YV12 is not supported yet.
-            uint32_t       Output_Pitch  : 16;  // Pitch of Output surface (Map to 2D)
+            uint32_t       Input_Format    : 16;  // 0 NV12, 1 YUY2, 2 YV12
+            uint32_t       Output_Format   : 16;  // 0 NV12, 1 YUY2, 2 YV12
         };
     } DW9;
 
@@ -108,22 +109,28 @@ typedef struct _MEDIA_WALKER_16ALIGN_STATIC_DATA
     union
     {
         struct {
+            uint32_t       Output_Pitch    : 16;  // Pitch of Output surface (Map to 2D)
             uint32_t       Output_UVOffset : 16;  // UV Offset (Lines) of output surface comparing to Y (Map to 2D).
-            uint32_t       ScalingMode     : 16;  // 0 for 3D(bilinear, Nearest), 1 for AVS
         };
     } DW10;
 
     // DWORD 11 - GRF R2.1
     union
     {
-        uint32_t        Original_X;
+        uint32_t        ScalingMode;    // 0 for 3D(bilinear, Nearest), 1 for AVS
     } DW11;
 
-    // DWORD 12 - GRG R2.2
+    // DWORD 12 - GRF R2.1
+    union
+    {
+        uint32_t        Original_X;
+    } DW12;
+
+    // DWORD 13 - GRG R2.2
     union
     {
         uint32_t        Original_Y;
-    } DW12;
+    } DW13;
 }MEDIA_WALKER_16ALIGN_STATIC_DATA, * PMEDIA_WALKER_16ALIGN_STATIC_DATA;
 
 //!
