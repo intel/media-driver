@@ -1747,7 +1747,37 @@ CM_RT_API int32_t CmDeviceRT::CreateQueue(CmQueue* & queue)
     }
     m_criticalSectionQueue.Release();
 
-    CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
+    CM_QUEUE_CREATE_OPTION queueCreateOption = {};
+
+    // Check queue type redirect is needed.
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->cmHalInterface);
+    if (cmData->cmHalState->cmHalInterface->IsRedirectRcsToCcs())
+    {
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
+    }
+    else
+    {
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_RENDER;
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Check queue type override for debugging is needed.
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+    if( MOS_UserFeature_ReadValue_ID( nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MDF_DEFAULT_CM_QUEUE_TYPE_ID,
+            &UserFeatureData) == MOS_STATUS_SUCCESS )
+    {
+        if (UserFeatureData.u32Data == CM_QUEUE_TYPE_RENDER
+         || UserFeatureData.u32Data == CM_QUEUE_TYPE_COMPUTE)
+        {
+            queueCreateOption.QueueType = (CM_QUEUE_TYPE)UserFeatureData.u32Data;
+        }
+    }
+#endif
+
     int32_t result = CreateQueueEx(tmpQueue, queueCreateOption);
 
     if (result != CM_SUCCESS)
@@ -1765,20 +1795,6 @@ CmDeviceRT::CreateQueueEx(CmQueue* & queue,
                           CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_API_CALL_LOG();
-
-    // Redirect RCS to CCS for some gen platforms. If test application already
-    // passed proper queue type, we can remove this w/a.
-    if (queueCreateOption.QueueType == CM_QUEUE_TYPE_RENDER)
-    {
-        PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
-        CM_CHK_NULL_RETURN_CMERROR(cmData);
-        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
-        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->cmHalInterface);
-        if (cmData->cmHalState->cmHalInterface->IsRedirectRcsToCcs())
-        {
-            queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
-        }
-    }
 
     m_criticalSectionQueue.Acquire();
     CmQueueRT *queueRT = nullptr;

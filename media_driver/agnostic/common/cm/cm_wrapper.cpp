@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_wrapper.cpp 
+//! \file      cm_wrapper.cpp
 //! \brief     Contains implementations of OS-agnostic functions for executing
 //!            commands from cmrtlib.
 //!
@@ -502,6 +502,32 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         break;
 
     case CM_FN_CMDEVICE_CREATEQUEUE:
+    {
+        CM_CREATEQUEUE_PARAM *cmCreateQueParam;
+        cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
+
+        cmRet = device->CreateQueue(cmQueue);
+
+        if (cmRet == CM_SUCCESS && cmQueue != nullptr)
+        {
+            // Sync queue option and handle to thin layer.
+            CmQueueRT *cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
+            cmCreateQueParam->queueType     = (unsigned int)cmQueueRT->GetQueueOption().QueueType;
+            cmCreateQueParam->runAloneMode  = (unsigned int)cmQueueRT->GetQueueOption().RunAloneMode;
+            cmCreateQueParam->gpuContext    = (unsigned int)cmQueueRT->GetQueueOption().GPUContext;
+            cmCreateQueParam->sseuUsageHint = (unsigned int)cmQueueRT->GetQueueOption().SseuUsageHint;
+            cmCreateQueParam->queueHandle   = (cmQueue);
+            cmCreateQueParam->returnValue   = CM_SUCCESS;
+        }
+        else
+        {
+            cmCreateQueParam->queueHandle   = nullptr;
+            cmCreateQueParam->returnValue   = cmRet;
+        }
+        break;
+    }
+
+    case CM_FN_CMDEVICE_CREATEQUEUEEX:
     {
         CM_CREATEQUEUE_PARAM *cmCreateQueParam;
         cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
