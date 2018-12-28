@@ -188,7 +188,7 @@ typedef enum _MOS_FORMAT
     // Last Format
     Format_Count
 } MOS_FORMAT, *PMOS_FORMAT;
-C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat().
+C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
 
 //!
 //! \brief Macros for format checking

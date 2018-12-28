@@ -86,9 +86,12 @@ const bool g_cIsFormatYUV[Format_Count] =
     true,   // Format_YVYU
     true,   // Format_UYVY
     true,   // Format_VYUY
+    true,   // Format_Y216
+    true,   // Format_Y210
     true,   // Format_Y416
     true,   // Format_AYUV
     true,   // Format_AUYV
+    true,   // Format_Y410
     true,   // Format_400P
     true,   // Format_NV12
     true,   // Format_NV12_UnAligned
