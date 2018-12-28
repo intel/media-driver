@@ -26,73 +26,6 @@
 
 #include "media_ddi_base.h"
 
-inline size_t IncrementRTEntryIdx(size_t curr_idx)
-{
-    return (curr_idx == DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT - 1) ? 0 : ++curr_idx;
-}
-
-inline size_t DecrementRTEntryIdx(size_t curr_idx)
-{
-    return (curr_idx == 0) ? (DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT - 1) : --curr_idx;
-}
-
-inline size_t GetIdxByOrder(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, size_t order)
-{
-    if (order < rtTbl->iNextRingBufferPosition)
-    {
-        return rtTbl->iNextRingBufferPosition - 1 - order;
-    }
-
-    return DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT + rtTbl->iNextRingBufferPosition - 1 - order;
-}
-
-VAStatus RemoveRTEntryByOrder(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, size_t order)
-{
-    if (order >= rtTbl->iNumRenderTargets)
-    {
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
-
-    size_t idx = GetIdxByOrder(rtTbl, order);
-    rtTbl->pRT[idx] = nullptr;
-    rtTbl->ucRTFlag[idx] = SURFACE_STATE_INACTIVE;
-
-    // Restore buffer continuity
-    DDI_MEDIA_SURFACE *tmp = nullptr;
-
-    if (order < rtTbl->iNumRenderTargets / 2)
-    { // Surface to evict is closer to the start of the buffer
-        size_t currPos = idx;
-        size_t nextPos = IncrementRTEntryIdx(currPos);
-        for (size_t i = 0; i < order; i++)
-        {
-            tmp = rtTbl->pRT[currPos];
-            rtTbl->pRT[currPos] = rtTbl->pRT[nextPos];
-            rtTbl->pRT[nextPos] = tmp;
-            currPos = nextPos;
-            nextPos = IncrementRTEntryIdx(currPos);
-        }
-        rtTbl->iNextRingBufferPosition = DecrementRTEntryIdx(rtTbl->iNextRingBufferPosition);
-    }
-    else
-    { // Surface to evict is closer to the end of the buffer
-        size_t currPos = idx;
-        size_t prevPos = DecrementRTEntryIdx(currPos);
-        for (size_t i = 0; i < rtTbl->iNumRenderTargets - order - 1; i++)
-        {
-            tmp = rtTbl->pRT[currPos];
-            rtTbl->pRT[currPos] = rtTbl->pRT[prevPos];
-            rtTbl->pRT[prevPos] = tmp;
-            currPos = prevPos;
-            prevPos = DecrementRTEntryIdx(currPos);
-        }
-    }
-
-    --rtTbl->iNumRenderTargets;
-
-    return VA_STATUS_SUCCESS;
-}
-
 int32_t DdiMediaBase::GetRenderTargetID(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, DDI_MEDIA_SURFACE *surface)
 {
     if((nullptr == surface) || (nullptr == rtTbl))
@@ -120,53 +53,57 @@ VAStatus DdiMediaBase::RegisterRTSurfaces(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, 
     DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(rtTbl, "nullptr rtTbl", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    uint32_t i = 0;
-    uint32_t nextPos = rtTbl->iNextRingBufferPosition;
-    uint32_t currPos = nextPos;
-
-    // Find out whether or not the surface is in the buffer already
-    for (i = 0; i < rtTbl->iNumRenderTargets; i++)
+    int32_t i = 0;
+    uint32_t emptyEntry = DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT + 1;
+    for (i = 0; i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; i++)
     {
-        currPos = DecrementRTEntryIdx(currPos);
-        if (rtTbl->pRT[currPos] == surface)
+        if (rtTbl->pRT[i] == surface)
         {
-            //surface has already been registered
-            return VA_STATUS_SUCCESS;
+            //pCurrRT has already been registered
+            break;
+        }
+        else if ((rtTbl->pRT[i] == nullptr) && (emptyEntry == (DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT + 1)))
+        {
+            //find the first empty entry
+            emptyEntry = i;
+            break;
         }
     }
 
-    // If the surface is not in the buffer and we have free space,
-    // insert the surface.
-    if (rtTbl->iNumRenderTargets < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
+    //if pCurrRT has not registered in pRT, add it into the array
+    if (i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
     {
-        rtTbl->pRT[nextPos] = surface;
-        rtTbl->ucRTFlag[nextPos] = SURFACE_STATE_ACTIVE_IN_CURFRAME;
-        ++rtTbl->iNumRenderTargets;
-        rtTbl->iNextRingBufferPosition = IncrementRTEntryIdx(nextPos);
-        return VA_STATUS_SUCCESS;
-    }
-
-    // The buffer is full - evict the oldest (farthest from the buffer head)
-    // unused surface and try again
-    currPos = nextPos;
-    for(i = rtTbl->iNumRenderTargets - 1; i >=0; --i)
-    {
-        if(rtTbl->ucRTFlag[currPos] == SURFACE_STATE_INACTIVE)
+        if (emptyEntry < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
         {
-            VAStatus sts = RemoveRTEntryByOrder(rtTbl, i);
-
-            if (sts != VA_STATUS_SUCCESS)
+            rtTbl->pRT[emptyEntry] = surface;
+            rtTbl->ucRTFlag[emptyEntry] = SURFACE_STATE_ACTIVE_IN_CURFRAME;
+            rtTbl->iNumRenderTargets++;
+        }
+        else
+        {
+            rtTbl->ucRTFlag[i] = SURFACE_STATE_ACTIVE_IN_CURFRAME;
+        }
+    }
+    else
+    {
+        uint32_t j = 0;
+        for(j = 0; j < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; j ++)
+        {
+            if(rtTbl->ucRTFlag[j] == SURFACE_STATE_INACTIVE)
             {
-                return sts;
+                rtTbl->pRT[j] = surface;
+                rtTbl->ucRTFlag[j] = SURFACE_STATE_ACTIVE_IN_CURFRAME;
+                break;
             }
-
-            return RegisterRTSurfaces(rtTbl, surface);
         }
-        currPos = IncrementRTEntryIdx(currPos);
+        if(j == DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
+        {
+            DDI_VERBOSEMESSAGE("RT table is full, and have no one can be resued");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
     }
 
-    DDI_VERBOSEMESSAGE("RT table is full, and no surface can be reused");
-    return VA_STATUS_ERROR_INVALID_PARAMETER;
+    return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiMediaBase::ClearRefList(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, bool withDpb)
@@ -222,19 +159,23 @@ VAStatus DdiMediaBase::UnRegisterRTSurfaces(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl
     DDI_CHK_NULL(rtTbl, "nullptr rtTbl", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    uint32_t i = 0;
-    uint32_t currPos = rtTbl->iNextRingBufferPosition;
+    uint32_t i;
 
-    for (i = 0; i < rtTbl->iNumRenderTargets; i++)
+    for (i = 0; i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; i++)
     {
-        currPos = DecrementRTEntryIdx(currPos);
-        if (rtTbl->pRT[currPos] == surface)
+        if (rtTbl->pRT[i] == surface)
         {
-            return RemoveRTEntryByOrder(rtTbl, i);
+            rtTbl->pRT[i] = nullptr;
+            rtTbl->ucRTFlag[i] = SURFACE_STATE_INACTIVE;
+            rtTbl->iNumRenderTargets--;
+            break;
         }
     }
-
-    DDI_VERBOSEMESSAGE("The surface to be unregistered cannot be found in RTTbl!");
-    return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if (i == DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
+    {
+        DDI_VERBOSEMESSAGE("The surface to be unregistered can not find in RTtbl!");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    return VA_STATUS_SUCCESS;
 }
 
