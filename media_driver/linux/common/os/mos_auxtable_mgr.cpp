@@ -27,7 +27,7 @@
 #include "mos_auxtable_mgr.h"
 
 #ifndef _AUXTABLE_SUPPORTED
-AuxTableMgr::AuxTableMgr(MOS_BUFMGR *bufMgr, bool is64KAligned)
+AuxTableMgr::AuxTableMgr(MOS_BUFMGR *bufMgr, bool is16KAligned)
 {
 }
 
