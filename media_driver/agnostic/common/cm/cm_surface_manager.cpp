@@ -48,16 +48,15 @@ int32_t CmSurfaceManager::UpdateStateForDelayedDestroy(SURFACE_DESTROY_KIND dest
     {
         case DELAYED_DESTROY:
         case GC_DESTROY:
-            if (!m_surfaceReleased[index] ||
-                m_surfaceStates[index])
+            if (!m_surfaceArray[index]->CanBeDestroyed())
             {
                 return CM_SURFACE_IN_USE;
             }
             break;
 
         case APP_DESTROY:
-            m_surfaceReleased[index] = true;
-            if (m_surfaceStates[index])
+            m_surfaceArray[index]->DelayDestroy();
+            if (!m_surfaceArray[index]->CanBeDestroyed())
             {
                 return CM_SURFACE_IN_USE;
             }
@@ -73,7 +72,6 @@ int32_t CmSurfaceManager::UpdateStateForDelayedDestroy(SURFACE_DESTROY_KIND dest
 
 int32_t CmSurfaceManager::UpdateStateForRealDestroy(uint32_t index, CM_ENUM_CLASS_TYPE surfaceType)
 {
-    m_surfaceReleased[index] = false;
     m_surfaceArray[index] = nullptr;
 
     m_surfaceSizes[index] = 0;
@@ -217,8 +215,6 @@ CmSurfaceManager::CmSurfaceManager( CmDeviceRT* device):
     m_device( device ),
     m_surfaceArraySize( 0 ),
     m_surfaceArray( nullptr ),
-    m_surfaceStates(nullptr),
-    m_surfaceReleased(nullptr),
     m_surfaceSizes(nullptr),
     m_maxBufferCount(0),
     m_bufferCount(0),
@@ -237,7 +233,9 @@ CmSurfaceManager::CmSurfaceManager( CmDeviceRT* device):
     m_garbageCollectionTriggerTimes(0),
     m_garbageCollection1DSize(0),
     m_garbageCollection2DSize(0),
-    m_garbageCollection3DSize(0)
+    m_garbageCollection3DSize(0),
+    m_latestRenderTracker(nullptr),
+    m_latestVeboxTracker(nullptr)
 {
     GetSurfaceBTIInfo();
 };
@@ -267,8 +265,6 @@ CmSurfaceManager::~CmSurfaceManager()
     printf("\n\n");
 #endif
 
-    MosSafeDeleteArray(m_surfaceStates);
-    MosSafeDeleteArray(m_surfaceReleased);
     MosSafeDeleteArray(m_surfaceSizes);
     MosSafeDeleteArray(m_surfaceArray);
 }
@@ -400,17 +396,11 @@ int32_t CmSurfaceManager::Initialize( CM_HAL_MAX_VALUES halMaxValues, CM_HAL_MAX
     typedef CmSurface* PCMSURFACE;
 
     m_surfaceArray      = MOS_NewArray(PCMSURFACE, m_surfaceArraySize);
-    m_surfaceStates      = MOS_NewArray(int32_t, m_surfaceArraySize);
-    m_surfaceReleased   = MOS_NewArray(bool, m_surfaceArraySize);
     m_surfaceSizes      = MOS_NewArray(int32_t, m_surfaceArraySize);
 
     if( m_surfaceArray == nullptr ||
-        m_surfaceStates == nullptr ||
-        m_surfaceReleased == nullptr ||
         m_surfaceSizes == nullptr)
     {
-        MosSafeDeleteArray(m_surfaceStates);
-        MosSafeDeleteArray(m_surfaceReleased);
         MosSafeDeleteArray(m_surfaceSizes);
         MosSafeDeleteArray(m_surfaceArray);
 
@@ -419,8 +409,6 @@ int32_t CmSurfaceManager::Initialize( CM_HAL_MAX_VALUES halMaxValues, CM_HAL_MAX
     }
 
     CmSafeMemSet( m_surfaceArray, 0, m_surfaceArraySize * sizeof( CmSurface* ) );
-    CmSafeMemSet( m_surfaceStates, 0, m_surfaceArraySize * sizeof( int32_t ) );
-    CmSafeMemSet( m_surfaceReleased, 0, m_surfaceArraySize * sizeof( bool ) );
     CmSafeMemSet( m_surfaceSizes, 0, m_surfaceArraySize * sizeof( int32_t ) );
     return CM_SUCCESS;
 }
@@ -731,7 +719,6 @@ int32_t CmSurfaceManager::AllocateSurfaceIndex(uint32_t width, uint32_t height, 
     }
 
     freeIndex = index;
-    m_surfaceReleased[index] = false;
     m_maxSurfaceIndexAllocated = Max(index, m_maxSurfaceIndexAllocated);
 
     return CM_SUCCESS;
@@ -1438,7 +1425,11 @@ int32_t CmSurfaceManager::DestroySurface( CmBuffer_RT* & buffer, SURFACE_DESTROY
         return result;
     }
 
+    uint64_t start, end, freq;
+    MOS_QueryPerformanceFrequency(&freq);
+    MOS_QueryPerformanceCounter(&start);
     result = FreeBuffer( handle );
+    MOS_QueryPerformanceCounter(&end);
     if( result != CM_SUCCESS )
     {
         return result;
@@ -2201,13 +2192,6 @@ int32_t CmSurfaceManager::DestroySurface( CmSurfaceSampler* & surfaceSampler )
 uint32_t CmSurfaceManager::GetSurfacePoolSize()
 {
     return m_surfaceArraySize;
-}
-
-uint32_t CmSurfaceManager::GetSurfaceState(int32_t * &surfState)
-{
-    surfState =  m_surfaceStates;
-
-    return CM_SUCCESS;
 }
 
 int32_t CmSurfaceManager::UpdateSurface2DTableMosResource( uint32_t index, MOS_RESOURCE * mosResource )

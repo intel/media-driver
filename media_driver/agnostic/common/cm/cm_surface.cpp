@@ -53,7 +53,10 @@ int32_t CmSurface::Destroy( CmSurface* &surface )
 CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_index( nullptr ),
     m_surfaceMgr( surfMgr ),
-    m_isCmCreated (isCmCreated)
+    m_isCmCreated (isCmCreated),
+    m_lastRenderTracker(0),
+    m_lastVeboxTracker(0),
+    m_released(false)
 {
     MOS_ZeroMemory(&m_memObjCtrl, sizeof(m_memObjCtrl));
 }
@@ -158,14 +161,12 @@ int32_t CmSurface::TouchDeviceQueue()
 int32_t CmSurface::WaitForReferenceFree()
 {
     // Make sure the surface is not referenced any more
-    int32_t * surfState = nullptr;
-    m_surfaceMgr->GetSurfaceState(surfState);
-    while (surfState[m_index->get_data()])
+    while (!AllReferenceCompleted())
     {
         if (FAILED(TouchDeviceQueue()))
         {
             CM_ASSERTMESSAGE("Error: Failed to touch device queue.")
-             return CM_FAILURE;
+            return CM_FAILURE;
         };
     };
 

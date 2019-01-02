@@ -191,7 +191,6 @@ protected:
     int32_t VtuneReleaseProfilingInfo();
 
     int32_t UpdateSurfaceStateOnTaskCreation();
-    int32_t UpdateSurfaceStateOnTaskDestroy();
 
     CmDynamicArray m_kernels;
     CmDynamicArray m_kernelData; // one CmKernelData* per kernel

@@ -158,7 +158,6 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::Destroy( CmTaskInternal* &task )
 {
-    task->UpdateSurfaceStateOnTaskDestroy();
     CmSafeDelete( task );
     return CM_SUCCESS;
 }
@@ -1780,16 +1779,10 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
         return CM_NULL_POINTER;
     }
 
-    surfaceMgr->GetSurfaceState(surfState);
-    if (surfState == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface state is null.");
-        return CM_NULL_POINTER;
-    }
-
     uint32_t poolSize = surfaceMgr->GetSurfacePoolSize();
 
     CSync* surfaceLock = m_cmDevice->GetSurfaceCreationLock();
+
     if (surfaceLock == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface creation lock is null.");
@@ -1797,6 +1790,10 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
     }
 
     surfaceLock->Acquire();
+    
+    // get the last tracker
+    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_cmDevice->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
 
     if (!m_isSurfaceUpdateDone)
     {
@@ -1804,61 +1801,24 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
         {
             if (m_surfaceArray[i])
             {
-                surfState[i] ++;
+                CmSurface *surface = NULL;
+                CM_CHK_CMSTATUS_RETURN(surfaceMgr->GetSurface(i, surface));
+                if (surface == nullptr) // surface destroyed but not updated in kernel
+                {
+                    continue;
+                }
+                if (m_taskType == CM_INTERNAL_TASK_VEBOX)
+                {
+                    surface->SetVeboxTracker(state->renderHal->veBoxTrackerRes.currentTrackerId);
+                }
+                else
+                {
+                    surface->SetRenderTracker(state->renderHal->trackerResource.currentTrackerId);
+                }
             }
         }
 
         m_isSurfaceUpdateDone = true;
-    }
-
-    surfaceLock->Release();
-    return CM_SUCCESS;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Update surface state on task creation stage
-//*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::UpdateSurfaceStateOnTaskDestroy()
-{
-    CmSurfaceManager*   surfaceMgr = nullptr;
-    int32_t             *surfState  = nullptr;
-
-    m_cmDevice->GetSurfaceManager(surfaceMgr);
-    if (!surfaceMgr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface manager is null.");
-        return CM_NULL_POINTER;
-    }
-
-    surfaceMgr->GetSurfaceState(surfState);
-    if (surfState == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface state is null.");
-        return CM_NULL_POINTER;
-    }
-
-    uint32_t poolSize = surfaceMgr->GetSurfacePoolSize();
-
-    CSync* surfaceLock = m_cmDevice->GetSurfaceCreationLock();
-    if (surfaceLock == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface creation lock is null.");
-        return CM_NULL_POINTER;
-    }
-
-    surfaceLock->Acquire();
-
-    if (m_isSurfaceUpdateDone)
-    {
-        for (uint32_t i = 0; i < poolSize; i++)
-        {
-            if (m_surfaceArray[i])
-            {
-                surfState[i] --;
-            }
-        }
-
-        m_isSurfaceUpdateDone = false;
     }
 
     surfaceLock->Release();
