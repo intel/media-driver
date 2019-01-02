@@ -93,7 +93,6 @@ public:
     int32_t DestroySamplerSurface(SurfaceIndex* &samplerSurfaceIndex);
     int32_t DestroySurface( CmSurfaceSampler* &samplerSurface);
     uint32_t GetSurfacePoolSize();
-    uint32_t GetSurfaceState(int32_t * &surfaceState);
     int32_t IncreaseSurfaceUsage(uint32_t index);
     int32_t DecreaseSurfaceUsage(uint32_t index);
     int32_t DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFACE_DESTROY_KIND destroyKind);
@@ -132,6 +131,11 @@ public:
     uint32_t MaxIndirectSurfaceCount();
     uint32_t ValidSurfaceIndexStart();
     bool IsSupportedForSamplerSurface2D(CM_SURFACE_FORMAT format);
+
+    inline void SetLatestRenderTrackerAddr(uint32_t *tracker) {m_latestRenderTracker = tracker; }
+    inline void SetLatestVeboxTrackerAddr(uint32_t *tracker) {m_latestVeboxTracker = tracker; }
+    inline uint32_t LatestRenderTracker() {return *m_latestRenderTracker; }
+    inline uint32_t LatestVeboxTracker() {return *m_latestVeboxTracker; }
 protected:
     CmSurfaceManager(CmDeviceRT* device);
     CmSurfaceManager();
@@ -170,8 +174,6 @@ protected:
 
     CmSurface** m_surfaceArray;
     uint32_t m_maxSurfaceIndexAllocated; // the max index allocated in the m_surfaceArray
-    int32_t *m_surfaceStates;         //Surface reference counting state.
-    bool* m_surfaceReleased; //Surface has been released by API
 
     int32_t *m_surfaceSizes;         // Size of each surface in surface array
 
@@ -201,6 +203,9 @@ protected:
     uint32_t m_garbageCollection3DSize;
 
     CM_SURFACE_BTI_INFO m_surfaceBTIInfo;
+
+    uint32_t *m_latestRenderTracker;
+    uint32_t *m_latestVeboxTracker;
 
 private:
     CmSurfaceManager (const CmSurfaceManager& other);
