@@ -4701,7 +4701,9 @@ MOS_STATUS CodechalVdencHevcStateG11::SetRegionsHuCPakIntegrate(
     virtualAddrParams->regionParams[3].dwOffset   = 0;                                                                           // Tile record is at offset 0 in combined statistics region
     virtualAddrParams->regionParams[3].isWritable = true;
     virtualAddrParams->regionParams[4].presRegion = &m_resBitstreamBuffer;                         // Region 4 - Last Tile bitstream
+    virtualAddrParams->regionParams[4].dwOffset   = MOS_ALIGN_FLOOR(m_tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
     virtualAddrParams->regionParams[5].presRegion = &m_resBitstreamBuffer;                         // Region 5 - HuC modifies the last tile bitstream before stitch command
+    virtualAddrParams->regionParams[5].dwOffset   = MOS_ALIGN_FLOOR(m_tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
     virtualAddrParams->regionParams[5].isWritable = true;
     virtualAddrParams->regionParams[6].presRegion = &m_vdencBrcHistoryBuffer;                 // Region 6  History Buffer (Input/Output)
     virtualAddrParams->regionParams[6].isWritable = true;
@@ -4757,7 +4759,8 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCPakIntegrate(
     hucPakStitchDmem->bitdepth_luma            = m_hevcSeqParams->bit_depth_luma_minus8 + 8;    // default: 8
     hucPakStitchDmem->bitdepth_chroma          = m_hevcSeqParams->bit_depth_chroma_minus8 + 8;  // default: 8
     hucPakStitchDmem->ChromaFormatIdc          = m_hevcSeqParams->chroma_format_idc;
-    hucPakStitchDmem->LastTileBS_StartInBytes  = m_tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE;
+
+    hucPakStitchDmem->LastTileBS_StartInBytes = (m_tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE) & (CODECHAL_PAGE_SIZE - 1);
     hucPakStitchDmem->PIC_STATE_StartInBytes   = (uint16_t)m_picStateCmdStartInBytes;
 
     if (m_numPipe > 1)
