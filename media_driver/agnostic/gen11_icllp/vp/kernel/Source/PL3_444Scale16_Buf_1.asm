@@ -26,6 +26,10 @@ L16:
          mov     (8|M0)                 r17.0<1>:ud    r25.0<8;8,1>:ud    
          mov     (1|M0)                 r16.2<1>:ud    0xE000:ud          
          cmp     (1|M0)     (eq)f1.0    null.0<1>:w    r24.2<0;1,0>:ub    0x1:uw          
+         mov     (16|M0)                r82.0<1>:uw    0xFFFF:uw          
+         mov     (16|M0)                r83.0<1>:uw    0xFFFF:uw          
+         mov     (16|M0)                r90.0<1>:uw    0xFFFF:uw          
+         mov     (16|M0)                r91.0<1>:uw    0xFFFF:uw          
          add     (1|M0)                 a0.0<1>:ud     r23.5<0;1,0>:ud    0x42EC100:ud    
 (~f1.0)  mov     (1|M0)                 r17.2<1>:f     r10.6<0;1,0>:f     
 (~f1.0)  mov     (1|M0)                 r17.3<1>:f     r10.3<0;1,0>:f     
@@ -59,10 +63,6 @@ L16:
 (f1.0)   mov     (1|M0)                 r17.2<1>:f     r10.1<0;1,0>:f     
 (f1.0)   mov     (1|M0)                 r17.3<1>:f     r10.5<0;1,0>:f     
          send    (1|M0)                 r94:uw         r16:ub             0x2             a0.0    
-         mov     (16|M0)                r82.0<1>:uw    0xFFFF:uw          
-         mov     (16|M0)                r83.0<1>:uw    0xFFFF:uw          
-         mov     (16|M0)                r90.0<1>:uw    0xFFFF:uw          
-         mov     (16|M0)                r91.0<1>:uw    0xFFFF:uw          
          mov     (1|M0)                 a0.8<1>:uw     0xA00:uw           
          mov     (1|M0)                 a0.9<1>:uw     0xA80:uw           
          mov     (1|M0)                 a0.10<1>:uw    0xAC0:uw           

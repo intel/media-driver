@@ -24,9 +24,10 @@ L0:
          mov     (8|M0)     acc0.0<1>:w         0x24060000:v         
          add     (8|M0)     acc0.0<1>:w         acc0.0<8;8,1>:w      0x1C:uw           
          shl     (4|M0)     r22.4<1>:w          acc0.4<4;4,1>:w      0x5:uw            
+         mov     (1|M0)     r22.14<1>:uw        0xFF80:uw            
          mov     (1|M0)     f0.0<1>:uw          r24.0<0;1,0>:ub      
-(W&~f0.0)jmpi    L1632      
-L80:
+(W&~f0.0)jmpi    L1648      
+L96:
          mov     (1|M0)     r23.3<1>:f          r26.2<0;1,0>:f       
          mov     (4|M0)     r10.0<1>:f          0x5054585C:vf        
          mov     (4|M0)     r10.4<1>:f          0x304048:vf          
@@ -124,5 +125,5 @@ L80:
          mov     (1|M0)     a0.9<1>:uw          0x400:uw             
          mov     (1|M0)     a0.10<1>:uw         0x440:uw             
          add     (4|M0)     a0.12<1>:uw         a0.8<4;4,1>:uw       0x120:uw          
-L1632:
+L1648:
          nop     
