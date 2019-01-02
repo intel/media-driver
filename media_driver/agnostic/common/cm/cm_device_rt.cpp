@@ -430,12 +430,6 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *mosContext)
         return result;
     }
 
-    if( result != CM_SUCCESS )
-    {
-        CM_ASSERTMESSAGE("Error: Create CmQueue failure.");
-        return result;
-    }
-
     ReadVtuneProfilingFlag();
 
     // Load Predefined Kernels
@@ -451,6 +445,11 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *mosContext)
     {
         m_hasGpuInitKernel = true;
     }
+
+    // get the last tracker
+    PCM_HAL_STATE state = (( PCM_CONTEXT_DATA )m_accelData)->cmHalState;
+    m_surfaceMgr->SetLatestRenderTrackerAddr(state->renderHal->trackerResource.data);
+    m_surfaceMgr->SetLatestVeboxTrackerAddr(state->renderHal->veBoxTrackerRes.data);
 
     if (m_notifierGroup != nullptr)
     {
