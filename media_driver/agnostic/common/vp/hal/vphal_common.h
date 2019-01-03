@@ -516,7 +516,7 @@ C_ASSERT(BLEND_CONSTANT == 3);      //!< When adding, update assert & vphal_solo
 //!
 typedef enum _VPHAL_SCALING_MODE
 {
-    VPHAL_SCALING_NEAREST,
+    VPHAL_SCALING_NEAREST = 0,
     VPHAL_SCALING_BILINEAR,
     VPHAL_SCALING_AVS
 } VPHAL_SCALING_MODE;
