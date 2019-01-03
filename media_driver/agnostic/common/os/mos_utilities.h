@@ -1664,6 +1664,33 @@ MOS_STATUS MOS_UserFeature_WriteValues(
     PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
     uint32_t                                 uiNumOfValues);
 
+
+// User Feature Report Writeout
+#define WriteUserFeature64(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i64Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeature(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i32Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeatureString(key, value, len)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.StringData.pStringData = (value);\
+    UserFeatureWriteData.Value.StringData.uSize = (len);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
 //!
 //! \brief    Lookup the user feature value name associated with the ID
 //! \details  Lookup the user feature value name associated with the ID
