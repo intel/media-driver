@@ -2950,11 +2950,6 @@ void MOS_GfxInfoClose()
     // not implemented
 }
 
-void MOS_GfxInfo(uint8_t ver, uint16_t compId, uint16_t tmtryID, char const* xmlTmtryStr)
-{
-    // not implemented
-}
-
 void MOS_GfxInfo_RTErr(uint8_t ver,
     uint16_t    compId,
     uint16_t    FtrId,
@@ -2965,7 +2960,7 @@ void MOS_GfxInfo_RTErr(uint8_t ver,
     // not implemented
 }
 
-void MOS_GfxInfo_Params(
+void MOS_GfxInfo(
     uint8_t         ver,
     uint16_t        compId,
     uint32_t        tmtryID,
