@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -819,6 +819,7 @@ typedef struct _VPHAL_DI_PARAMS
     VPHAL_DI_MODE       DIMode;            //!< DeInterlacing mode
     bool                bEnableFMD;        //!< FMD
     bool                bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
+    bool                bSCDEnable;        //!< Scene change detection
 } VPHAL_DI_PARAMS, *PVPHAL_DI_PARAMS;
 
 //!
