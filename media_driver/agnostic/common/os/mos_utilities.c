@@ -4101,6 +4101,9 @@ MOS_STATUS MOS_CopyUserFeatureValueData(
                 pDstData->StringData.uSize,
                 pSrcData->StringData.pStringData,
                 pSrcData->StringData.uSize);
+
+            MOS_SafeFreeMemory(pSrcData->StringData.pStringData);
+            pSrcData->StringData.pStringData = nullptr;
         }
         break;
     case MOS_USER_FEATURE_VALUE_TYPE_MULTI_STRING:
@@ -4999,7 +5002,7 @@ static MOS_STATUS MOS_UserFeature_ReadValueString(
     {
         MOS_SafeFreeMemory(pFeatureValue->Value.StringData.pStringData);
         pFeatureValue->Value.StringData.pStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
-        MosMemAllocFakeCounter++;
+
         MOS_SecureMemcpy(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr), pcTmpStr, strlen(pcTmpStr));
         pFeatureValue->Value.StringData.uSize = dwUFSize;
     }
