@@ -3321,7 +3321,11 @@ mos_gem_bo_exec2(struct mos_linux_bo *bo, int used,
                int DR4)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            I915_EXEC_RENDER);
+            I915_EXEC_RENDER
+#ifdef ANDROID
+            , 0
+#endif
+            );
 }
 
 static int
@@ -3330,7 +3334,11 @@ mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
             unsigned int flags)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            flags);
+            flags
+#ifdef ANDROID
+           , 0
+#endif
+           );
 }
 
 int

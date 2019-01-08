@@ -33,6 +33,9 @@
 #include "media_ddi_encode_const.h"
 #include "media_ddi_decode_const_g11.h"
 #include "media_libva_vp.h"
+#ifdef ANDROID
+    #include "va/va_android.h"
+#endif
 
 const VAImageFormat MediaLibvaCapsG11::m_G11ImageFormats[] =
 {    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
