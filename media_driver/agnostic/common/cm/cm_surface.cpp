@@ -56,7 +56,9 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_isCmCreated (isCmCreated),
     m_lastRenderTracker(0),
     m_lastVeboxTracker(0),
-    m_released(false)
+    m_released(false),
+    m_delayDestroyPrev(nullptr),
+    m_delayDestroyNext(nullptr)
 {
     MOS_ZeroMemory(&m_memObjCtrl, sizeof(m_memObjCtrl));
 }
