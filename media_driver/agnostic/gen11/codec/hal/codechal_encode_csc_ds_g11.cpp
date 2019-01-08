@@ -276,10 +276,18 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
     m_surfaceParamsCsc.presMBVProcStatsBuffer = mbStatsSurface;
     m_surfaceParamsCsc.hevcExtParams = params->hevcExtParams;
 
+    if (dsStage16x == params->stageDsConversion)
+    {
+        // here to calculate the walkder resolution, we need to use the input surface resolution.
+        // it is inputFrameWidth/height / 4 in 16xStage, becasue kernel internally will do this.
+        inputFrameWidth = inputFrameWidth >> 2;
+        inputFrameHeight = inputFrameHeight >> 2;
+    }
+    
     // setup walker param
     m_walkerResolutionX = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameWidth) >> 3;
     m_walkerResolutionY = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameHeight) >> 3;
-
+    
     return eStatus;
 }
 
