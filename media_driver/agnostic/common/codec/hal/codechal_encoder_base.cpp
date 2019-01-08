@@ -3817,7 +3817,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     return MOS_STATUS_NOT_ENOUGH_BUFFER;
                 }
 
-                if(refList->bMADEnabled)
+                if(refList && refList->bMADEnabled)
                 {
                     // set lock flag to READ_ONLY
                     MOS_LOCK_PARAMS lockFlags;
