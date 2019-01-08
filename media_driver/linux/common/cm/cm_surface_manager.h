@@ -95,7 +95,7 @@ public:
     uint32_t GetSurfacePoolSize();
     int32_t IncreaseSurfaceUsage(uint32_t index);
     int32_t DecreaseSurfaceUsage(uint32_t index);
-    int32_t DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFACE_DESTROY_KIND destroyKind);
+    int32_t RefreshDelayDestroySurfaces(uint32_t &freeSurfaceCount);
     int32_t TouchSurfaceInPoolForDestroy();
     int32_t GetFreeSurfaceIndexFromPool(uint32_t &freeIndex);
     int32_t GetFreeSurfaceIndex(uint32_t &index);
@@ -136,6 +136,10 @@ public:
     inline void SetLatestVeboxTrackerAddr(uint32_t *tracker) {m_latestVeboxTracker = tracker; }
     inline uint32_t LatestRenderTracker() {return *m_latestRenderTracker; }
     inline uint32_t LatestVeboxTracker() {return *m_latestVeboxTracker; }
+
+    void AddToDelayDestroyList(CmSurface *surface);
+    void RemoveFromDelayDestroyList(CmSurface *surface);
+    
 protected:
     CmSurfaceManager(CmDeviceRT* device);
     CmSurfaceManager();
@@ -206,6 +210,10 @@ protected:
 
     uint32_t *m_latestRenderTracker;
     uint32_t *m_latestVeboxTracker;
+
+    CmSurface *m_delayDestroyHead;
+    CmSurface *m_delayDestroyTail;
+    CSync m_delayDestoryListSync;
 
 private:
     CmSurfaceManager (const CmSurfaceManager& other);
