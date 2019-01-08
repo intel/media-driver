@@ -3056,7 +3056,7 @@ finish:
         return CM_NULL_POINTER;
     }
     surfaceLock->Acquire();
-    surfaceMgr->DestroySurfaceInPool(freeSurfNum, DELAYED_DESTROY);
+    surfaceMgr->RefreshDelayDestroySurfaces(freeSurfNum);
     surfaceLock->Release();
 
     return hr;

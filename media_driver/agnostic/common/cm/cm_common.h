@@ -703,9 +703,8 @@ typedef enum _L3_SUGGEST_CONFIG
 
 enum SURFACE_DESTROY_KIND{
     APP_DESTROY         = 0,
-    GC_DESTROY          = 1,
-    FORCE_DESTROY       = 2,
-    DELAYED_DESTROY     = 3
+    DELAYED_DESTROY     = 1,
+    FORCE_DESTROY       = 2
 };
 
 // Need to consistant with compiler

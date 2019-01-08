@@ -28,10 +28,9 @@
 enum DESTROY_KIND
 {
     APP_DESTROY         = 0,
-    GC_DESTROY          = 1,
+    DELAYED_DESTROY     = 1,
     FORCE_DESTROY       = 2,
-    DELAYED_DESTROY     = 3,
-    THIN_DESTROY        = 4
+    THIN_DESTROY        = 3
 };
 
 struct CM_DESTROYSURFACE2D_PARAM

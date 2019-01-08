@@ -33,6 +33,7 @@ namespace CMRT_UMD
 
 class CmSurfaceManager;
 class CmEventRT;
+class CSync;
 
 class CmSurface
 {
@@ -60,6 +61,9 @@ public:
         return m_released && AllReferenceCompleted();
         }
 
+    inline CmSurface*& DelayDestroyPrev() {return m_delayDestroyPrev; }
+    inline CmSurface*& DelayDestroyNext() {return m_delayDestroyNext; } 
+
 protected:
     CmSurface( CmSurfaceManager* surfMgr , bool isCmCreated );
     virtual ~CmSurface( void );
@@ -81,6 +85,10 @@ protected:
     uint32_t m_lastVeboxTracker;
 
     bool m_released; // if true, means it is been destroyed by app and added in the delaydestroy queue in surfmgr
+
+    CmSurface *m_delayDestroyPrev; // previous node in bi-directional list
+
+    CmSurface *m_delayDestroyNext; // next node in bi-directional list
 
 private:
     CmSurface (const CmSurface& other);
