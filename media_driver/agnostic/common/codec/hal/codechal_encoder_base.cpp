@@ -898,11 +898,6 @@ MOS_STATUS CodechalEncoderState::Initialize(
         m_frameTrackingEnabled = m_osInterface->bEnableKmdMediaFrameTracking ? true: false;
     }
 
-    if (m_standard == CODECHAL_VP9)
-    {
-        m_frameTrackingEnabled = false;
-    }
-
     if (m_standard == CODECHAL_AVC)
     {
         if (CodecHalUsesVideoEngine(m_codecFunction))
