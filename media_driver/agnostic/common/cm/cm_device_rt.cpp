@@ -44,6 +44,7 @@
 #include "cm_surface_3d_rt.h"
 #include "cm_vebox_rt.h"
 #include "cm_printf_host.h"
+#include "cm_execution_adv.h"
 
 struct CM_SET_CAPS
 {
@@ -449,6 +450,7 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *mosContext)
     // get the last tracker
     PCM_HAL_STATE state = (( PCM_CONTEXT_DATA )m_accelData)->cmHalState;
     m_surfaceMgr->SetLatestRenderTrackerAddr(state->renderHal->trackerResource.data);
+    m_surfaceMgr->SetLatestFastTrackerAddr(state->advExecutor->GetLatestFastTracker());
     m_surfaceMgr->SetLatestVeboxTrackerAddr(state->renderHal->veBoxTrackerRes.data);
 
     if (m_notifierGroup != nullptr)
