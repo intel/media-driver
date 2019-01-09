@@ -3,4 +3,4 @@
 cmake ../media-driver \
 -DGEN8=OFF \
 -DGEN9=OFF \
--DFREE_KERNELS=ON $@
+-DENABLE_NONFREE_KERNELS=OFF $@

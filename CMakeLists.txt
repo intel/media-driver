@@ -43,15 +43,14 @@ endif()
 include(CMakeDependentOption)
 
 option (ENABLE_KERNELS "Build driver with shaders (kernels) support" ON)
-# FREE_KERNELS option means using only open source EU shaders (kernels) and
-# fixed function hardware. The opposite is a full-feature build which permits
-# usage of shaders (kernels) in binary form.
-cmake_dependent_option( FREE_KERNELS
-    "Use only shaders (kernels) with available sources" OFF
+# ENABLE_NONFREE_KERNELS option permits to enable closed source EU shaders (kernels)
+# additionally to open source EU shaders and fixed function hardware.
+cmake_dependent_option( ENABLE_NONFREE_KERNELS
+    "Use closed source pre-built  binary shaders (kernels)" ON
     "ENABLE_KERNELS" OFF)
 cmake_dependent_option( BUILD_KERNELS
     "Rebuild shaders (kernels) from sources" OFF
-    "ENABLE_KERNELS;FREE_KERNELS" OFF)
+    "ENABLE_KERNELS;NOT ENABLE_NONFREE_KERNELS" OFF)
 option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 include(GNUInstallDirs)
