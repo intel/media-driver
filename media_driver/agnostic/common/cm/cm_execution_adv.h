@@ -63,6 +63,7 @@ public:
     virtual void Set2DRenderTarget(CmSurfaceState2DMgr *stateMgr, bool renderTarget) {}
     virtual void Set2DMemoryObjectControl(CmSurfaceState2DMgr *stateMgr, uint16_t mocs) {}
     virtual void Set2DFrameType(CmSurfaceState2DMgr *stateMgr, CM_FRAME_TYPE frameType) {}
+    virtual uint32_t *GetLatestFastTracker() {return nullptr; }
     virtual CMRT_UMD::CmKernelRT *CreateKernelRT(CMRT_UMD::CmDeviceRT *device,
                 CMRT_UMD::CmProgramRT *program,
                 uint32_t kernelIndex,
