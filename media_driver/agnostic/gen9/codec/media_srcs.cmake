@@ -19,6 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(hal)
-if(ENABLE_KERNELS AND NOT FREE_KERNELS)
+if(ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS)
     media_include_subdirectory(kernel)
 endif()

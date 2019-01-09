@@ -84,17 +84,17 @@ This section summarizes key driver build modes which can be used in the differen
 | Build option | Default value | Dependencies | Comments |
 |-|-|-|-|
 | ENABLE_KERNELS | ON | N/A | Enable/Disable shaders during driver build |
-| FREE_KERNELS | OFF | ENABLE_KERNELS=ON | If enabled, use only open source shaders (kernels) during the build |
-| BUILD_KERNELS | OFF | ENABLE_KERNELS=ON, FREE_KERNELS=ON | If enabled, rebuild open source shaders (kernels) from sources. Requires FREE_KERNELS=ON |
+| ENABLE_NONFREE_KERNELS | ON | ENABLE_KERNELS=ON | Enable/disable close source shaders (kernels) during the build |
+| BUILD_KERNELS | OFF | ENABLE_KERNELS=ON, ENABLE_NONFREE_KERNELS=OFF | If enabled, rebuild open source shaders (kernels) from sources. Requires ENABLE_NONFREE_KERNELS=OFF |
 
 With the above options it is possible to build (table assumes that non-listed options have default values):
 
 | No. | Build option(s) | HW Features | Shaders (Kernels) | Comments |
 |-|-|-|-|-|
-| 1 | ENABLE_KERNELS=ON | Yes | Close source (pre-built) | Default, full feature driver |
+| 1 | ENABLE_KERNELS=ON | Yes | Close source (pre-built) | **Default**, full feature driver |
 | 2 | ENABLE_KERNELS=OFF | Yes | None | HW features only, include HW decoder, HW VDEnc Encoder (CQP mode) |
-| 3 | FREE_KERNELS=ON | Yes | Open source | Same as FREE_KERNELS=ON driver, but shaders are rebuilt from sources |
-| 4 | FREE_KERNELS=ON BUILD_KERNELS=ON | Yes | Open source (pre-built) | HW features available in prev.mode (ENABLE_KERNELS=ON) and features supported by open source shaders |
+| 3 | ENABLE_NONFREE_KERNELS=OFF | Yes | Open source (pre-built) | HW features available in prev. mode (ENABLE_KERNELS=ON) and features supported by open source shaders |
+| 4 | ENABLE_NONFREE_KERNELS=OFF BUILD_KERNELS=ON | Yes | Open source | Same as ENABLE_NONFREE_KERNELS=OFF driver, but shaders are rebuilt from sources |
 
 ## Supported Platforms
 

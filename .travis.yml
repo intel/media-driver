@@ -68,7 +68,7 @@ script:
       intelmediadriver/media-driver-docker
       cmake
       -DMEDIA_VERSION="0.1.0"
-      -DFREE_KERNELS=ON
+      -DENABLE_NONFREE_KERNELS=OFF
       -DBUILD_TYPE=Release
       ../media-driver
   - >
