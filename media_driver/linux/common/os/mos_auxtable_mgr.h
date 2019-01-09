@@ -43,7 +43,7 @@ public:
     //!
     //! \brief  Constructor
     //!
-    AuxTableMgr(MOS_BUFMGR *bufMgr, bool is16KAligned);
+    AuxTableMgr(MOS_BUFMGR *bufMgr, bool is64KAligned);
 
     //!
     //! \brief  Destructor
