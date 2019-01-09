@@ -44,7 +44,7 @@ endif ()
 aux_source_directory(. SOURCES)
 aux_source_directory(./cm SOURCES)
 aux_source_directory(${agnostic_cm_tests} SOURCES)
-if (NOT FREE_KERNELS)
+if (ENABLE_NONFREE_KERNELS)
     aux_source_directory(./gpu_cmd SOURCES)
     set(SOURCES
         ${SOURCES}
@@ -67,7 +67,7 @@ if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
     # must explictly pass along BYPASS_MEDIA_ULT as yes then could bypass the running of media ult
     message("-- media -- BYPASS_MEDIA_ULT = ${BYPASS_MEDIA_ULT}")
 else ()
-    if (NOT FREE_KERNELS)
+    if (ENABLE_NONFREE_KERNELS)
         add_custom_target(RunULT ALL DEPENDS ${LIB_NAME} devult)
 
         add_custom_command(
