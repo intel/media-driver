@@ -29,7 +29,7 @@ bs_set_if_undefined(Encode_VDEnc_Supported "yes")
 # shaders or a build with free only shaders. The list of switched
 # off features correspnds to the free kernels case, but we can
 # reuse the full list for enable kernels as well.
-if(NOT ENABLE_KERNELS OR FREE_KERNELS)
+if(NOT ENABLE_KERNELS OR NOT ENABLE_NONFREE_KERNELS)
     # full-open-source
     bs_set_if_undefined(AVC_Encode_VME_Supported "no")
     bs_set_if_undefined(HEVC_Encode_VME_Supported "no")
@@ -162,7 +162,7 @@ if(ENABLE_KERNELS)
     add_definitions(-DENABLE_KERNELS)
 endif()
 
-if(FREE_KERNELS)
+if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
 endif()
 
