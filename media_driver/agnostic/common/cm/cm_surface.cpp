@@ -55,6 +55,7 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_surfaceMgr( surfMgr ),
     m_isCmCreated (isCmCreated),
     m_lastRenderTracker(0),
+    m_lastFastTracker(0),
     m_lastVeboxTracker(0),
     m_released(false),
     m_delayDestroyPrev(nullptr),

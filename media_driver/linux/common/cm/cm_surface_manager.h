@@ -133,13 +133,14 @@ public:
     bool IsSupportedForSamplerSurface2D(CM_SURFACE_FORMAT format);
 
     inline void SetLatestRenderTrackerAddr(uint32_t *tracker) {m_latestRenderTracker = tracker; }
+    inline void SetLatestFastTrackerAddr(uint32_t *tracker) {m_latestFastTracker = tracker; }
     inline void SetLatestVeboxTrackerAddr(uint32_t *tracker) {m_latestVeboxTracker = tracker; }
-    inline uint32_t LatestRenderTracker() {return *m_latestRenderTracker; }
-    inline uint32_t LatestVeboxTracker() {return *m_latestVeboxTracker; }
+    inline uint32_t LatestRenderTracker() {return (m_latestRenderTracker == nullptr)?0:*m_latestRenderTracker; }
+    inline uint32_t LatestFastTracker() {return (m_latestFastTracker == nullptr)?0:*m_latestFastTracker; }
+    inline uint32_t LatestVeboxTracker() {return (m_latestVeboxTracker == nullptr)?0:*m_latestVeboxTracker; }
 
     void AddToDelayDestroyList(CmSurface *surface);
     void RemoveFromDelayDestroyList(CmSurface *surface);
-    
 protected:
     CmSurfaceManager(CmDeviceRT* device);
     CmSurfaceManager();
@@ -209,6 +210,7 @@ protected:
     CM_SURFACE_BTI_INFO m_surfaceBTIInfo;
 
     uint32_t *m_latestRenderTracker;
+    uint32_t *m_latestFastTracker;
     uint32_t *m_latestVeboxTracker;
 
     CmSurface *m_delayDestroyHead;
