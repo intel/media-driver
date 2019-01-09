@@ -3401,10 +3401,9 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
     curbe.RoundingIntra      = (m_roundingIntra + 1) << 4;  // Should be an input from par in the cmodel (slice state)
     curbe.RDEQuantRoundValue = (m_roundingInter + 1) << 4;
 
-    uint32_t gopP = (m_hevcSeqParams->GopRefDist) ? ((m_hevcSeqParams->GopPicSize - 1) / m_hevcSeqParams->GopRefDist) : 0;
-    uint32_t gopB = m_hevcSeqParams->GopPicSize - 1 - gopP;
+    uint32_t gopB = m_hevcSeqParams->GopRefDist;
 
-    curbe.CostScalingForRA = 1; // default setting
+    curbe.CostScalingForRA = 1;  // default setting
 
     // get the min distance between current pic and ref pics
     uint32_t minPocDist     = 255;
@@ -3427,13 +3426,17 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
 
             if (gopB == 4)
             {
-                if (minPocDist == 1 || minPocDist == 2 || minPocDist == 4)
-                    costTableIndex = minPocDist;
+                costTableIndex = minPocDist;
+                if (minPocDist == 4)
+                    costTableIndex -= 1;
             }
             if (gopB == 8)
             {
-                if (minPocDist == 1 || minPocDist == 2 || minPocDist == 4 || minPocDist == 8)
-                    costTableIndex = minPocDist + 3;
+                costTableIndex = minPocDist + 3;
+                if (minPocDist == 4)
+                    costTableIndex -= 1;
+                if (minPocDist == 8)
+                    costTableIndex -= 4;
             }
         }
     }
