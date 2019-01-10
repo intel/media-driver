@@ -46,6 +46,10 @@
 #endif
 #endif
 
+// FIXME: detect whether we are running secure or clear content to set RequireCPLIB flag
+#include <cutils/properties.h>
+static int32_t enable_cp = 0;
+
 #define VP_SETTING_MAX_PHASES                           1
 #define VP_SETTING_MEDIA_STATES                         32
 #define VP_SETTING_SAME_SAMPLE_THRESHOLD                1000
@@ -1340,6 +1344,16 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     pVpCtx->MosDrvCtx.ppMediaMemDecompState = &pMediaCtx->pMediaMemDecompState;
     pVpCtx->MosDrvCtx.pfnMemoryDecompress   = pMediaCtx->pfnMemoryDecompress;
     pVpCtx->MosDrvCtx.pPerfData             = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+
+    // FIXME: detect whether we are running secure or clear content to set RequireCPLIB flag
+    char switch_value[PROPERTY_VALUE_MAX];
+    property_get("debug.DdiCodec_.enable_cp", switch_value, "0");
+    enable_cp = atoi(switch_value);
+    if (enable_cp)
+    {
+        pVpCtx->MosDrvCtx.RequireCPLIB = 1;
+    }
+
     if( nullptr == pVpCtx->MosDrvCtx.pPerfData)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;

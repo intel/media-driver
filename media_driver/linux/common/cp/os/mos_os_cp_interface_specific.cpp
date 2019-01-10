@@ -40,10 +40,15 @@ static void OsStubMessage()
 MosCpInterface* Create_MosCpInterface(void* pvOsInterface)
 {
     MosCpInterface* pMosCpInterface = nullptr;
-    using Create_MosCpFuncType = MosCpInterface* (*)(void* pvOsResource);
-    CPLibUtils::InvokeCpFunc<Create_MosCpFuncType>(
-        pMosCpInterface, 
-        CPLibUtils::FUNC_CREATE_MOSCP, pvOsInterface);
+    PMOS_INTERFACE osInterface = (PMOS_INTERFACE)pvOsInterface;
+    if(osInterface != nullptr && osInterface->pOsContext != nullptr && osInterface->pOsContext->RequireCPLIB)
+    {
+        using Create_MosCpFuncType = MosCpInterface *(*)(void *pvOsResource);
+        CPLibUtils::InvokeCpFunc<Create_MosCpFuncType>(
+            pMosCpInterface,
+            CPLibUtils::FUNC_CREATE_MOSCP,
+            pvOsInterface);
+    }
 
     if(nullptr == pMosCpInterface) OsStubMessage();
 
