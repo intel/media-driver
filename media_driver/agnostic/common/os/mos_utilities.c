@@ -5903,11 +5903,18 @@ MOS_STATUS MOS_UserFeature_WriteValues_Tbl_ID(
     PMOS_USER_FEATURE_VALUE             pUserFeature       = nullptr;
     uint32_t                            ValueID            = __MOS_USER_FEATURE_KEY_INVALID_ID;
     MOS_STATUS                          eStatus            = MOS_STATUS_SUCCESS;
-    MOS_UNUSED(pOsUserFeatureInterface);
+    char                                WritePathWithPID[MAX_PATH];
+    int32_t                             pid;
 
+    MOS_UNUSED(pOsUserFeatureInterface);
     //--------------------------------------------------
     MOS_OS_ASSERT(pWriteValues);
     //--------------------------------------------------
+
+    MOS_ZeroMemory(WritePathWithPID, MAX_PATH);
+
+    pid = MOS_GetPid();
+
     for (ui = 0; ui < uiNumOfValues; ui++)
     {
         ValueID = pWriteValues[ui].ValueID;
@@ -5927,16 +5934,30 @@ MOS_STATUS MOS_UserFeature_WriteValues_Tbl_ID(
         // Open the user feature
         // Assigned the pUserFeature to UFKey for future reading
         UFKey = pUserFeature;
-        if((eStatus = MOS_UserFeature_Open(
-                       pUserFeature->Type,
-                       pUserFeature->pcWritePath,
-                       KEY_WRITE,
-                       &UFKey)) != MOS_STATUS_SUCCESS)
+
+        //append write path with pid
+        sprintf_s(WritePathWithPID, MAX_PATH, "%s\\%d", pUserFeature->pcWritePath, pid);
+
+        //try to open Write path with pid first
+        if ((eStatus = MOS_UserFeature_Open(
+                 pUserFeature->Type,
+                 WritePathWithPID,
+                 KEY_WRITE,
+                 &UFKey)) != MOS_STATUS_SUCCESS)
         {
-            MOS_OS_NORMALMESSAGE("Failed to open user feature for reading.");
-            eStatus = MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
-            goto finish;
+            MOS_OS_NORMALMESSAGE("Failed to open user feature for concurrency.");
+            if ((eStatus = MOS_UserFeature_Open(
+                     pUserFeature->Type,
+                     pUserFeature->pcWritePath,
+                     KEY_WRITE,
+                     &UFKey)) != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_NORMALMESSAGE("Failed to open user feature for reading.");
+                eStatus = MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
+                goto finish;
+            }
         }
+
         //------------------------------------
         MOS_OS_ASSERT(pUserFeature->ValueType != MOS_USER_FEATURE_VALUE_TYPE_INVALID);
         //------------------------------------
