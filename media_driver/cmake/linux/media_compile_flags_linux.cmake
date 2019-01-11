@@ -176,6 +176,10 @@ set(MEDIA_COMPILER_FLAGS_DEBUG
     -DINSTR_GTUNE_EXT
 )
 
+if(X11_FOUND)
+    add_definitions(-DX11_FOUND)
+endif()
+
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_compile_flags_linux_ext.cmake OPTIONAL)
 
 if(${PLATFORM} STREQUAL "linux")
