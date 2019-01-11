@@ -21,6 +21,7 @@
 project( media )
 
 find_package(PkgConfig)
+find_package(X11)
 
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
 
@@ -46,7 +47,10 @@ message("-- media -- LIB_NAME = ${LIB_NAME}")
 message("-- media -- OUTPUT_NAME = ${OUTPUT_NAME}")
 message("-- media -- BUILD_TYPE/UFO_BUILD_TYPE/CMAKE_BUILD_TYPE = ${BUILD_TYPE}/${UFO_BUILD_TYPE}/${CMAKE_BUILD_TYPE}")
 message("-- media -- LIBVA_INSTALL_PATH = ${LIBVA_INSTALL_PATH}")
-Message("-- media -- MEDIA_VERSION = ${MEDIA_VERSION}")
+message("-- media -- MEDIA_VERSION = ${MEDIA_VERSION}")
+if(X11_FOUND)
+message("-- media -- X11 Found")
+endif()
 
 set(LIB_NAME_OBJ    "${LIB_NAME}_OBJ")
 set(LIB_NAME_STATIC "${LIB_NAME}_STATIC")
