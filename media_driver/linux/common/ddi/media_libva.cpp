@@ -32,7 +32,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
 #include <X11/Xutil.h>
 #endif
 
@@ -43,7 +43,7 @@
 #include "media_libva_util.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
 #include "media_libva_putsurface_linux.h"
 #endif
 #include "media_libva_vp.h"
@@ -648,7 +648,7 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t
     }
 }
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
 
 #define X11_LIB_NAME "libX11.so.6"
 
@@ -1172,7 +1172,7 @@ VAStatus DdiMedia__Initialize (
     int32_t         *minor_version      /* out */
 )
 {
-#ifdef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
     // ATRACE code in <cutils/trace.h> started from KitKat, version = 440
     // ENABLE_TRACE is defined only for eng build so release build won't leak perf data
     // thus trace code enabled only on KitKat (and newer) && eng build
@@ -1409,7 +1409,7 @@ VAStatus DdiMedia__Initialize (
     DdiMediaUtil_InitMutex(&mediaCtx->VpMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->MfeMutex);
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
     DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceRenderMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
 
@@ -1420,14 +1420,14 @@ VAStatus DdiMedia__Initialize (
         // PutSurface (Linux) needs X11 support, so just replace
         // it with a dummy version. DdiCodec_PutSurfaceDummy() will
         // return VA_STATUS_ERROR_UNIMPLEMENTED directly.
-        ctx->vtable->vaPutSurface = DdiMedia_PutSurfaceDummy;
+        ctx->vtable->vaPutSurface = NULL;
     }
 #endif
 
     ctx->pDriverData  = (void*)mediaCtx;
     mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
     output_dri_init(ctx);
 #endif
 
@@ -1544,7 +1544,7 @@ static VAStatus DdiMedia_Terminate (
         mediaCtx->m_auxTableMgr = nullptr;
     }
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
     DdiMedia_DestroyX11Connection(mediaCtx);
 
     if (mediaCtx->m_caps)
@@ -3744,16 +3744,15 @@ static VAStatus DdiMedia_PutSurface(
         vpCtx = DdiMedia_GetContextFromContextID(ctx, (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP), &ctxType);
     }
 
-#ifdef ANDROID
+#if defined(ANDROID) || !defined(X11_FOUND)
        return VA_STATUS_ERROR_UNIMPLEMENTED;
 #else
     if(nullptr == vpCtx)
     {
         VAContextID context = VA_INVALID_ID;
         VAStatus vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
-        DDI_CHK_RET(vaStatus, "Create VP Context failed");       
+        DDI_CHK_RET(vaStatus, "Create VP Context failed");
     }
-  
     return DdiCodec_PutSurfaceLinuxHW(ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
 #endif
 
@@ -6073,7 +6072,11 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTable->vaQuerySurfaceStatus            = DdiMedia_QuerySurfaceStatus;
     pVTable->vaQuerySurfaceError             = DdiMedia_QuerySurfaceError;
     pVTable->vaQuerySurfaceAttributes        = DdiMedia_QuerySurfaceAttributes;
+#if defined(X11_FOUND)
     pVTable->vaPutSurface                    = DdiMedia_PutSurface;
+#else
+    pVTable->vaPutSurface                    = NULL;
+#endif
     pVTable->vaQueryImageFormats             = DdiMedia_QueryImageFormats;
 
     pVTable->vaCreateImage                   = DdiMedia_CreateImage;

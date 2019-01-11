@@ -459,7 +459,7 @@ struct DDI_MEDIA_CONTEXT
     bool                m_useSwSwizzling;
     bool                m_tileYFlag;
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
     // X11 Func table, for vpgPutSurface (Linux)
     PDDI_X11_FUNC_TABLE X11FuncTable;
 
