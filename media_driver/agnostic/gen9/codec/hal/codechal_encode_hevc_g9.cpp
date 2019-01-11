@@ -815,9 +815,12 @@ struct CODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9
         struct
         {
             uint32_t   PicHeightMinus1                  : MOS_BITFIELD_RANGE(0, 15);
-            uint32_t   Res_16_23                        : MOS_BITFIELD_RANGE(16, 23);
+            uint32_t   Res_16_22                        : MOS_BITFIELD_RANGE(16, 22);
+            uint32_t   EnableQualityImprovement         : MOS_BITFIELD_BIT(23);
             uint32_t   EnableDebug                      : MOS_BITFIELD_BIT(24);
-            uint32_t   Res_25_27                        : MOS_BITFIELD_RANGE(25, 27);
+            uint32_t   EnableFlexibleParam              : MOS_BITFIELD_BIT(25);
+            uint32_t   EnableStatsDataDump              : MOS_BITFIELD_BIT(26);
+            uint32_t   Res_27                           : MOS_BITFIELD_BIT(27);
             uint32_t   HMEEnable                        : MOS_BITFIELD_BIT(28);
             uint32_t   SliceType                        : MOS_BITFIELD_RANGE(29, 30);
             uint32_t   UseActualRefQPValue              : MOS_BITFIELD_BIT(31);
@@ -1367,7 +1370,8 @@ struct CODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9
 
     union {
         struct {
-            uint32_t       Reserved;
+            uint32_t       TransformThreshold2          : MOS_BITFIELD_RANGE(0, 15);
+            uint32_t       TextureIntraCostThreshold    : MOS_BITFIELD_RANGE(16, 31);
         };
         uint32_t Value;
     } DW41;
@@ -1657,21 +1661,57 @@ struct CODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9
         };
         //For P frame
         struct {
-            uint32_t       BTI_Debug;
+            uint32_t       BTI_Haar_Dist16x16;
         };
         uint32_t Value;
     } DW75;
+
+    union {
+        //For B frame
+        struct {
+            uint32_t       BTI_Haar_Dist16x16;
+        };
+        //For P frame
+        struct {
+            uint32_t       BTI_Stats_Data;
+        };
+        uint32_t Value;
+    } DW76;
+
+    union {
+        //For B frame
+        struct {
+            uint32_t       BTI_Stats_Data;
+        };
+        //For P frame
+        struct {
+            uint32_t       BTI_Frame_Stats_Data;
+        };
+        uint32_t Value;
+    } DW77;
+
+    union {
+        //For B frame
+        struct {
+            uint32_t       BTI_Frame_Stats_Data;
+        };
+        //For P frame
+        struct {
+            uint32_t       BTI_Debug;
+        };
+        uint32_t Value;
+    } DW78;
 
     union {
         struct {
             uint32_t       BTI_Debug;
         };
         uint32_t Value;
-    } DW76;
+    } DW79;
 };
 
 using PCODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9 = struct CODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9*;
-C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9)) == 77 );
+C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9)) == 80);
 
 //! HEVC encoder BRC init/reset curbe for GEN9
 struct CODECHAL_ENC_HEVC_BRC_INITRESET_CURBE_G9
@@ -3838,7 +3878,7 @@ MOS_STATUS CodechalEncHevcStateG9::AllocateEncResources()
         size,
         "SAD 16x16 PU"));
 
-    size = 32 * (m_widthAlignedMaxLcu >> 4) * (m_heightAlignedMaxLcu >> 4);
+    size = 64 * (m_widthAlignedMaxLcu >> 4) * (m_heightAlignedMaxLcu >> 4);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer(
         &m_vme8x8Mode,
         size,
@@ -6826,7 +6866,9 @@ MOS_STATUS CodechalEncHevcStateG9::Encode8x8BPakKernel(
     curbe->DW21.BTI_Brc_Data           = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW22.BTI_MB_Data            = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW23.BTI_MVP_Surface        = bindingTable->dwBindingTableEntries[startBTI++];
-    curbe->DW24.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW24.BTI_WA_PAK_Data        = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW25.BTI_WA_PAK_Obj         = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW26.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
 
     CODECHAL_ENCODE_ASSERT(startBTI == bindingTable->dwNumBindingTableEntries);
 
@@ -7125,7 +7167,7 @@ MOS_STATUS CodechalEncHevcStateG9::Encode8x8PBMbEncKernel()
         curbe->DW37.ActualQpRefID1List0 = GetQPValueFromRefList(LIST_0, CODECHAL_ENCODE_REF_ID_1);
         curbe->DW37.ActualQpRefID2List0 = GetQPValueFromRefList(LIST_0, CODECHAL_ENCODE_REF_ID_2);
         curbe->DW37.ActualQpRefID3List0 = GetQPValueFromRefList(LIST_0, CODECHAL_ENCODE_REF_ID_3);
-
+        curbe->DW41.TextureIntraCostThreshold = 500;
         if(m_pictureCodingType == B_TYPE) {
             curbe->DW39.ActualQpRefID0List1 = GetQPValueFromRefList(LIST_1, CODECHAL_ENCODE_REF_ID_0);
             curbe->DW39.ActualQpRefID1List1 = GetQPValueFromRefList(LIST_1, CODECHAL_ENCODE_REF_ID_1);
@@ -7207,7 +7249,10 @@ MOS_STATUS CodechalEncHevcStateG9::Encode8x8PBMbEncKernel()
         curbe->DW72.BTI_ConcurrentThreadMap= bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW73.BTI_MB_Data_CurFrame   = bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW74.BTI_MVP_CurFrame       = bindingTable->dwBindingTableEntries[startBTI++];
-        curbe->DW75.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW75.BTI_Haar_Dist16x16     = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW76.BTI_Stats_Data         = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW77.BTI_Frame_Stats_Data   = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW78.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
     }
     else
     {
@@ -7219,7 +7264,10 @@ MOS_STATUS CodechalEncHevcStateG9::Encode8x8PBMbEncKernel()
         curbe->DW73.BTI_ConcurrentThreadMap= bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW74.BTI_MB_Data_CurFrame   = bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW75.BTI_MVP_CurFrame       = bindingTable->dwBindingTableEntries[startBTI++];
-        curbe->DW76.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW76.BTI_Haar_Dist16x16     = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW77.BTI_Stats_Data         = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW78.BTI_Frame_Stats_Data   = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW79.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
     }
 
     // Intra refresh is enabled. Program related CURBE fields
@@ -7832,7 +7880,8 @@ MOS_STATUS CodechalEncHevcStateG9::Encode32x32PuModeDecisionKernel()
     curbe->DW13.BTI_Brc_Input      = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW14.BTI_LCU_Qp_Surface = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW15.BTI_Brc_Data       = bindingTable->dwBindingTableEntries[startIndex++];
-    curbe->DW16.BTI_Kernel_Debug   = bindingTable->dwBindingTableEntries[startIndex++];
+    curbe->DW16.BTI_Stats_Data     = bindingTable->dwBindingTableEntries[startIndex++];
+    curbe->DW17.BTI_Kernel_Debug   = bindingTable->dwBindingTableEntries[startIndex++];
 
     CODECHAL_ENCODE_ASSERT(startIndex == bindingTable->dwNumBindingTableEntries);
 
@@ -8866,7 +8915,10 @@ MOS_STATUS CodechalEncHevcStateG9::Encode8x8PUFMODEKernel()
     curbe->DW23.BTI_Simplest_Intra       = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW24.BTI_LCU_Qp_Surface       = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW25.BTI_BRC_Data             = bindingTable->dwBindingTableEntries[startBTI++];
-    curbe->DW26.BTI_Debug                = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW26.BTI_Haar_Dist16x16       = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW27.BTI_Stats_Data           = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW28.BTI_Frame_Stats_Data     = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW29.BTI_Debug                = bindingTable->dwBindingTableEntries[startBTI++];
 
     CODECHAL_ENCODE_ASSERT(startBTI == bindingTable->dwNumBindingTableEntries);
 
