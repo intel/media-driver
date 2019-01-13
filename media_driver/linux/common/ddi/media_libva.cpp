@@ -5448,6 +5448,7 @@ DdiMedia_QueryVideoProcPipelineCaps(
     pipeline_caps->pipeline_flags             = VA_PROC_PIPELINE_FAST;
     pipeline_caps->filter_flags               = 0;
     pipeline_caps->rotation_flags             = (1 << VA_ROTATION_NONE) | (1 << VA_ROTATION_90) | (1 << VA_ROTATION_180) | (1 << VA_ROTATION_270);
+    pipeline_caps->mirror_flags               = VA_MIRROR_HORIZONTAL  | VA_MIRROR_VERTICAL;
     pipeline_caps->blend_flags                = VA_BLEND_GLOBAL_ALPHA | VA_BLEND_PREMULTIPLIED_ALPHA | VA_BLEND_LUMA_KEY;
     pipeline_caps->num_forward_references     = DDI_CODEC_NUM_FWD_REF;
     pipeline_caps->num_backward_references    = DDI_CODEC_NUM_BK_REF;
