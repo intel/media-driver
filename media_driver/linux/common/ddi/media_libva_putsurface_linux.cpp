@@ -356,7 +356,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
 {
     VphalState             *vpHal = nullptr;
     int32_t                 ovRenderIndex = 0;
-    static VPHAL_SURFACE    Surf;
+    VPHAL_SURFACE           Surf;
     VPHAL_SURFACE           target;
     VPHAL_RENDER_PARAMS     renderParams;
     VPHAL_COLORFILL_PARAMS  colorFill;
