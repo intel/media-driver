@@ -1702,47 +1702,42 @@ public:
     //! \brief      Creates a CmQueue object with option.
     //! \param      [out] queue
     //!             Pointer to the CmQueue object created.
-    //! \param      [in] queueCreateOption
-    //!             The option to create a queue. The sturcture of the 
+    //! \param      [in] createOption
+    //!             The option to create a queue. The sturcture of the
     //!             <b>QueueCreateOption</b> is:\n
     //!             \code
     //!             struct CM_QUEUE_CREATE_OPTION
     //!             {
     //!                 CM_QUEUE_TYPE QueueType                     : 3;
     //!                 bool RunAloneMode                           : 1;
-    //!                 unsigned int IsMultipleContextCase          : 3;
+    //!                 unsigned int Reserved0                      : 3;
     //!                 bool UserGPUContext                         : 1;
     //!                 unsigned int GPUContext                     : 8;
     //!                 CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
-    //!                 unsigned int Reserved2                      : 13;
+    //!                 unsigned int Reserved1                      : 1;
+    //!                 unsigned int Reserved2                      : 12;
     //!             }
     //!             \endcode
     //!             \n
-    //!             <b>CM_QUEUE_TYPE</b> indicates which engine the queue will
-    //!             be created for:\n
+    //!             <b>QueueType</b> indicates which engine the queue will be created for:\n
     //!             \code
     //!             enum CM_QUEUE_TYPE
     //!             {
     //!                 CM_QUEUE_TYPE_NONE      = 0,
     //!                 CM_QUEUE_TYPE_RENDER    = 1,
-    //!                 CM_QUEUE_TYPE_COMPUTE   = 2,
-    //!                 CM_QUEUE_TYPE_VEBOX     = 3
+    //!                 CM_QUEUE_TYPE_COMPUTE   = 2
     //!             };
     //!             \endcode
     //!             \n
     //!             <b>RunAloneMode</b> decides if the queue will occupy GPU
     //!             exclusively during execution.
     //!             \n
-    //!             <b>IsMultipleContextCase</b> indicates multiple context is enabled for
-    //!             simulation mode. The field is not used in hardware mode.
-    //!             \n
     //!             <b>UserGPUContext</b> indicates whether a existed GPU context is passed
     //!             by user via below GPUContext field.
     //!             \n
     //!             <b>GPUContext</b> indicates GPU context passed by user.
     //!             \n
-    //!             <b>CM_QUEUE_SSEU_USAGE_HINT_TYPE</b> indicates SSEU setting, will
-    //!             be created for:\n
+    //!             <b>SseuUsageHint</b> indicates SSEU setting, will be created for:\n
     //!             \code
     //!             enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
     //!             {
@@ -1750,6 +1745,7 @@ public:
     //!                 CM_QUEUE_SSEU_USAGE_HINT_VME     = 1
     //!             };
     //!             \endcode
+    //!             \n
     //! \retval     CM_SUCCESS if the CmQueue object is created.
     //! \note       This API is implemented in hardware mode only. Only
     //!             CM_QUEUE_TYPE_RENDER and CM_QUEUE_TYPE_COMPUTE are
@@ -1757,7 +1753,7 @@ public:
     //!
     CM_RT_API virtual int32_t
     CreateQueueEx(CmQueue *&queue,
-                  CM_QUEUE_CREATE_OPTION queueCreateOption) = 0;
+                  CM_QUEUE_CREATE_OPTION createOption) = 0;
 protected:
     virtual ~CmDevice() = default;
 };

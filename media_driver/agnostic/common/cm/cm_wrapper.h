@@ -125,12 +125,9 @@ typedef struct _CM_DESTROYTASK_PARAM
 
 struct CM_CREATEQUEUE_PARAM
 {
-    unsigned int            queueType;           // [in]
-    bool                    runAloneMode;        // [in]
-    unsigned int            gpuContext;          // [in]
-    unsigned int            sseuUsageHint;       // [in]
+    CM_QUEUE_CREATE_OPTION  createOption;        // [in/out]
     void                   *queueHandle;         // [out]
-    int32_t                 returnValue;           // [out]
+    int32_t                 returnValue;         // [out]
 };
 
 typedef struct _CM_ENQUEUE_PARAM
