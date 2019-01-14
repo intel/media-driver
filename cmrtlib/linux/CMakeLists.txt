@@ -38,6 +38,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif(CMAKE_COMPILER_IS_GNUCC)
 
 #include paths
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../proprietary/share/)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../agnostic/share)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../agnostic/hardware)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../linux/share)

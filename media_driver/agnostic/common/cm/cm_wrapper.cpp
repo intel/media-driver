@@ -512,10 +512,7 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         {
             // Sync queue option and handle to thin layer.
             CmQueueRT *cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
-            cmCreateQueParam->queueType     = (unsigned int)cmQueueRT->GetQueueOption().QueueType;
-            cmCreateQueParam->runAloneMode  = (unsigned int)cmQueueRT->GetQueueOption().RunAloneMode;
-            cmCreateQueParam->gpuContext    = (unsigned int)cmQueueRT->GetQueueOption().GPUContext;
-            cmCreateQueParam->sseuUsageHint = (unsigned int)cmQueueRT->GetQueueOption().SseuUsageHint;
+            cmCreateQueParam->createOption  = cmQueueRT->GetQueueOption();
             cmCreateQueParam->queueHandle   = (cmQueue);
             cmCreateQueParam->returnValue   = CM_SUCCESS;
         }
@@ -531,13 +528,9 @@ int32_t CmThinExecuteInternal(CmDevice *device,
     {
         CM_CREATEQUEUE_PARAM *cmCreateQueParam;
         cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
+        CM_ASSERT(cmCreateQueParam);
 
-        CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
-        queueCreateOption.QueueType = (CM_QUEUE_TYPE)cmCreateQueParam->queueType;
-        queueCreateOption.RunAloneMode = cmCreateQueParam->runAloneMode;
-        queueCreateOption.GPUContext = cmCreateQueParam->gpuContext;
-        queueCreateOption.SseuUsageHint = (CM_QUEUE_SSEU_USAGE_HINT_TYPE)cmCreateQueParam->sseuUsageHint;
-        cmRet = device->CreateQueueEx(cmQueue, queueCreateOption);
+        cmRet = device->CreateQueueEx(cmQueue, cmCreateQueParam->createOption);
 
         cmCreateQueParam->returnValue = cmRet;
         cmCreateQueParam->queueHandle = (cmQueue);
