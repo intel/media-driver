@@ -895,6 +895,7 @@ MOS_STATUS VpHal_16AlignRender(
 finish:
     MOS_ZeroMemory(pCacheSettings, sizeof(*pCacheSettings));
     VPHAL_RENDER_ASSERT(eStatus == MOS_STATUS_SUCCESS);
+    VPHAL_RENDER_NORMALMESSAGE("finish 16alignment process!");
     return eStatus;
 }
 
