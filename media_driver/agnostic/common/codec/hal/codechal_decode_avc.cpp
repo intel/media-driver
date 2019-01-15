@@ -954,9 +954,9 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesFixedSizes()
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_avcRefList,
-        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
+        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
 
     m_currPic.PicFlags = PICTURE_INVALID;
     m_currPic.FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
