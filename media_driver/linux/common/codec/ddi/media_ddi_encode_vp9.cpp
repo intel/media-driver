@@ -309,8 +309,8 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
     DDI_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
-    codecHalSettings->width       = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->height      = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->width       = m_encodeCtx->dworiFrameWidth;
+    codecHalSettings->height      = m_encodeCtx->dworiFrameHeight;
     codecHalSettings->mode          = m_encodeCtx->wModeType;
     codecHalSettings->standard      = CODECHAL_VP9;
     codecHalSettings->chromaFormat  = (m_chromaFormat == yuv444) ?

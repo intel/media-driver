@@ -523,6 +523,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
         uint32_t height)
 {
     uint32_t maxWidth, maxHeight;
+
     switch (profile)
     {
         case VAProfileJPEGBaseline:
@@ -553,9 +554,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
             if ((width > m_maxVp9EncWidth) ||
                 (width < m_encMinWidth) ||
                 (height > m_maxVp9EncHeight) ||
-                (height < m_encMinHeight) ||
-                (width % 8) ||
-                (height % 8))
+                (height < m_encMinHeight))
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
