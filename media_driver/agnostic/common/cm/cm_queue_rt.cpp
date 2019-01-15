@@ -116,7 +116,8 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_halMaxValues(nullptr),
     m_copyKernelParamArray(CM_INIT_GPUCOPY_KERNL_COUNT),
     m_copyKernelParamArrayCount(0),
-    m_queueOption(queueCreateOption)
+    m_queueOption(queueCreateOption),
+    m_usingVirtualEngine(false)
 {
 
 }
@@ -259,6 +260,16 @@ int32_t CmQueueRT::Initialize()
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
             ctxCreateOption.runAloneMode = m_queueOption.RunAloneMode;
+
+            if (cmHalState->osInterface->veDefaultEnable) // check if VE enabled on OS
+            {
+                // prepare virtual egine hint param on this cm queue.
+                CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                    HalCm_PrepareVEHintParam(cmHalState, false, &m_mosVeHintParams));
+
+                m_usingVirtualEngine = true;
+            }
+
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
                 cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
                                                 MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
@@ -2685,6 +2696,7 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     param.kernelSizes = MOS_NewArray(uint32_t, count);
     param.kernelCurbeOffset = MOS_NewArray(uint32_t, count);
     param.queueOption = m_queueOption;
+    param.mosVeHintParams = (m_usingVirtualEngine)? &m_mosVeHintParams: nullptr;
 
     CmSafeMemCopy(&param.taskConfig, task->GetTaskConfig(), sizeof(param.taskConfig));
     CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernels);
