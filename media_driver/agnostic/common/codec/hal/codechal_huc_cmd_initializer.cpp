@@ -531,7 +531,7 @@ MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencV
     m_vp9Params.segmentMapProvided           = state->m_segmentMapProvided;
     m_vp9Params.prevFrameSegEnabled          = state->m_prevFrameSegEnabled;
     m_vp9Params.numRefFrames                 = state->m_numRefFrames;
-    m_vp9Params.hmeEnabled                   = state->m_hmeEnabled;
+    m_vp9Params.me16Enabled                  = state->m_16xMeEnabled;
     m_vp9Params.dysVdencMultiPassEnabled     = state->m_dysVdencMultiPassEnabled;
     m_vp9Params.vdencPakOnlyMultipassEnabled = state->m_vdencPakonlyMultipassEnabled;
     m_vp9Params.pictureCodingType            = state->m_pictureCodingType;
@@ -683,8 +683,8 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
 
     HucInputCmd1  hucInputCmd1;
     MOS_ZeroMemory(&hucInputCmd1, sizeof(hucInputCmd1));
-    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
-    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
+    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
+    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
     hucInputCmd1.PakOnlyMultipassEnable = m_vp9Params.vdencPakOnlyMultipassEnabled;
     hucInputCmd1.num_ref_idx_l0_active_minus1 = (m_vp9Params.picParams->PicFlags.fields.frame_type) ? m_vp9Params.numRefFrames - 1 : 0;
 

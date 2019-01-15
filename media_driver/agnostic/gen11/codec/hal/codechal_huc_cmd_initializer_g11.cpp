@@ -381,8 +381,8 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9SetDmem()
 
     HucInputCmd1G11 hucInputCmd1;
     MOS_ZeroMemory(&hucInputCmd1, sizeof(hucInputCmd1));
-    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
-    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
+    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
+    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
     hucInputCmd1.PakOnlyMultipassEnable = m_vp9Params.vdencPakOnlyMultipassEnabled;
     hucInputCmd1.num_ref_idx_l0_active_minus1 = (m_vp9Params.picParams->PicFlags.fields.frame_type) ? m_vp9Params.numRefFrames - 1 : 0;
 
