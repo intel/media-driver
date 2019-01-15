@@ -180,7 +180,7 @@ struct Vp9CmdInitializerParams
     PCODEC_VP9_ENCODE_SEGMENT_PARAMS    segmentParams;
     bool                                prevFrameSegEnabled;
     uint8_t                             numRefFrames;
-    bool                                hmeEnabled;
+    bool                                me16Enabled;
     uint8_t                             dysRefFrameFlags;
     bool                                dysVdencMultiPassEnabled;
     int                                 currentPass;
