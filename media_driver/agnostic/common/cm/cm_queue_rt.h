@@ -343,6 +343,9 @@ protected:
     CM_HAL_MAX_VALUES *m_halMaxValues;
     CM_QUEUE_CREATE_OPTION m_queueOption;
 
+    bool m_usingVirtualEngine;
+    MOS_VIRTUALENGINE_HINT_PARAMS m_mosVeHintParams;
+
 private:
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);

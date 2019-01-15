@@ -403,6 +403,7 @@ struct CM_HAL_EXEC_TASK_GROUP_PARAM
     CM_EXECUTION_CONFIG krnExecCfg[CM_MAX_KERNELS_PER_TASK]; // [in] kernel execution config in a task. replace numOfWalkers in CM_TASK_CONFIG.
     void *userDefinedMediaState;     // [in] pointer to a user defined media state heap block
     CM_QUEUE_CREATE_OPTION queueOption;  // [in] multiple contexts queue option
+    PMOS_VIRTUALENGINE_HINT_PARAMS mosVeHintParams; // [in] pointer to virtual engine paramter saved in CmQueueRT
     uint64_t conditionalEndBitmap;       // [in] bit map for conditional end b/w kernels
     CM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];
 };
@@ -545,6 +546,7 @@ struct CM_HAL_TASK_PARAM
     unsigned int samplerIndirectOffsetsByKernel[CM_MAX_KERNELS_PER_TASK];
 
     CM_QUEUE_CREATE_OPTION queueOption;         // [in] multiple contexts queue option
+    PMOS_VIRTUALENGINE_HINT_PARAMS mosVeHintParams; // [in] pointer to virtual engine paramter saved in CmQueueRT
 };
 typedef CM_HAL_TASK_PARAM *PCM_HAL_TASK_PARAM;
 
@@ -2263,6 +2265,11 @@ uint64_t HalCm_ConvertTicksToNanoSeconds(
 
 bool HalCm_IsValidGpuContext(
     MOS_GPU_CONTEXT             gpuContext);
+
+MOS_STATUS HalCm_PrepareVEHintParam(
+    PCM_HAL_STATE                  state,
+    bool                           bScalable,
+    PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam);
 
 //*-----------------------------------------------------------------------------
 //| Helper functions for EnqueueWithHints

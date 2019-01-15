@@ -1589,6 +1589,7 @@ MOS_STATUS HalCm_ParseGroupTask(
     taskParam->surfacePerBT = MOS_MIN(CM_MAX_STATIC_SURFACE_STATES_PER_BT, taskParam->surfacePerBT);
 
     taskParam->queueOption = execGroupParam->queueOption;
+    taskParam->mosVeHintParams = execGroupParam->mosVeHintParams;
 
     return eStatus;
 }
