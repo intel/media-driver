@@ -1462,3 +1462,22 @@ uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE osInterface)
     }
 }
 
+//!
+//! \brief    Prepare virtual engine hint parametere
+//! \details  Prepare virtual engine hint parameter for CCS node
+//! \param    PCM_HAL_STATE state
+//!           [in] Pointer to CM_HAL_STATE Structure
+//! \param    bool bScalable
+//!           [in] is scalable pipe or single pipe
+//! \param    PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam
+//!           [out] Pointer to prepared VE hint parameter struct
+//! \return   MOS_STATUS
+//!
+MOS_STATUS HalCm_PrepareVEHintParam(
+    PCM_HAL_STATE                  state,
+    bool                           bScalable,
+    PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
