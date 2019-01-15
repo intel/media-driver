@@ -672,9 +672,7 @@ MOS_STATUS VphalRenderer::RenderPass(
     PVPHAL_RENDER_PARAMS    pRenderParams)
 {
     MOS_STATUS              eStatus;
-    uint32_t                uiIndex;                                            // Current source index
-    uint32_t                uiSources;                                          // Number of Sources
-    PVPHAL_SURFACE          pSrcSurface;                                        // Current source surface
+    uint32_t                uiIndex_in;                                         // Current source index
     uint32_t                uiIndex_out;                                        // current target index
     PVPHAL_VEBOX_EXEC_STATE pVeboxExecState;
     RenderpassData          RenderPassData;
@@ -683,7 +681,6 @@ MOS_STATUS VphalRenderer::RenderPass(
 
     eStatus                 = MOS_STATUS_SUCCESS;
     pVeboxExecState         = &VeboxExecState[uiCurrentChannel];
-    pSrcSurface             = nullptr;
 
     RenderPassData.AllocateTempOutputSurfaces();
     RenderPassData.bCompNeeded      = true;
@@ -695,85 +692,82 @@ MOS_STATUS VphalRenderer::RenderPass(
     VPHAL_RENDER_CHK_STATUS(ProcessRenderParameter(pRenderParams, &RenderPassData));
 
     // Loop through the sources
-    for (uiSources = 0, uiIndex = 0;
-         uiSources < pRenderParams->uSrcCount && uiIndex < VPHAL_MAX_SOURCES;
-         uiIndex++)
+    for (uiIndex_in = 0; uiIndex_in < pRenderParams->uSrcCount; uiIndex_in++)
     {
-        pSrcSurface = pRenderParams->pSrc[uiIndex];
-
-        if (pSrcSurface == nullptr)
+        if (pRenderParams->pSrc[uiIndex_in] == nullptr)
         {
             continue;
         }
 
-        uiSources++;
-
         //------------------------------------------
         VPHAL_RNDR_DUMP_SURF(
-            this, uiIndex, VPHAL_DBG_DUMP_TYPE_PRE_ALL, pSrcSurface);
+            this, uiIndex_in, VPHAL_DBG_DUMP_TYPE_PRE_ALL, pRenderParams->pSrc[uiIndex_in]);
         //------------------------------------------
 
-        RenderPassData.pOriginalSrcSurface  = pSrcSurface;
-        RenderPassData.pSrcSurface          = pSrcSurface;
-        RenderPassData.uiSrcIndex           = uiIndex;
+        RenderPassData.pOriginalSrcSurface  = pRenderParams->pSrc[uiIndex_in];
+        RenderPassData.pSrcSurface          = pRenderParams->pSrc[uiIndex_in];
+        RenderPassData.uiSrcIndex           = uiIndex_in;
 
-        if (VpHal_RndrIsFast1toNSupport(&Fast1toNState, pRenderParams, pSrcSurface))
+        if (VpHal_RndrIsFast1toNSupport(&Fast1toNState, pRenderParams, pRenderParams->pSrc[uiIndex_in]))
         {
             // new 1toN path for multi ouput with scaling only case.
             VPHAL_RENDER_NORMALMESSAGE("Enter fast 1to N render.");
             VPHAL_RENDER_CHK_STATUS(RenderFast1toNComposite(pRenderParams, &RenderPassData));
-            UpdateReport(pRenderParams, &RenderPassData);
         }
         else
         {
             // loop through the dst for every src input.
-            for (uiIndex_out = 0;
-                 uiIndex_out < pRenderParams->uDstCount;
-                 uiIndex_out++)
+            // backup the render params to execute as dst_count=1 to compatible with legacy logic.
+            VPHAL_RENDER_PARAMS StoreRenderParams = *pRenderParams;
+            pRenderParams->uDstCount              = 1;
+            for (uiIndex_out = 0; uiIndex_out < StoreRenderParams.uDstCount; uiIndex_out++)
             {
-                VPHAL_RENDER_PARAMS     TPRenderParams;
-                TPRenderParams  = *pRenderParams;
-                if (pRenderParams->pTarget[uiIndex_out] == nullptr)
+                if (StoreRenderParams.pTarget[uiIndex_out] == nullptr)
                 {
                     continue;
                 }
-                // update the first target point, set the dst_count as 1 to compatible with legacy path
-                TPRenderParams.pTarget[0]                = pRenderParams->pTarget[uiIndex_out];
-                TPRenderParams.bUserPrt_16Align[0]       = pRenderParams->bUserPrt_16Align[uiIndex_out];
-                TPRenderParams.uDstCount                 = 1;
-                if (pRenderParams->uDstCount > 1)
+                // update the first target point
+                pRenderParams->pTarget[0]                = StoreRenderParams.pTarget[uiIndex_out];
+                pRenderParams->bUserPrt_16Align[0]       = StoreRenderParams.bUserPrt_16Align[uiIndex_out];
+                if (StoreRenderParams.uDstCount > 1)
                 {
                     // for multi output, support different scaling ratio but doesn't support cropping.
-                    RenderPassData.pSrcSurface->rcDst.top    = TPRenderParams.pTarget[0]->rcSrc.top;
-                    RenderPassData.pSrcSurface->rcDst.left   = TPRenderParams.pTarget[0]->rcSrc.left;
-                    RenderPassData.pSrcSurface->rcDst.bottom = TPRenderParams.pTarget[0]->rcSrc.bottom;
-                    RenderPassData.pSrcSurface->rcDst.right  = TPRenderParams.pTarget[0]->rcSrc.right;
+                    RenderPassData.pSrcSurface->rcDst.top    = pRenderParams->pTarget[0]->rcSrc.top;
+                    RenderPassData.pSrcSurface->rcDst.left   = pRenderParams->pTarget[0]->rcSrc.left;
+                    RenderPassData.pSrcSurface->rcDst.bottom = pRenderParams->pTarget[0]->rcSrc.bottom;
+                    RenderPassData.pSrcSurface->rcDst.right  = pRenderParams->pTarget[0]->rcSrc.right;
                 }
-                RenderSingleStream(&TPRenderParams, &RenderPassData);
+
+                RenderSingleStream(pRenderParams, &RenderPassData);
 
                 if (!RenderPassData.bCompNeeded &&
-                    TPRenderParams.pTarget[0] &&
-                    TPRenderParams.pTarget[0]->bFastColorFill)
+                    pRenderParams->pTarget[0] &&
+                    pRenderParams->pTarget[0]->bFastColorFill)
                 {
                     // with fast color fill enabled, we seperate target surface into two parts:
                     // (1) upper rectangle rendered by vebox
                     // (2) bottom rectangle with back ground color fill by composition
                     pRenderParams->uSrcCount = 0; // set to zero for color fill
-                    TPRenderParams.pTarget[0]->rcDst.top = TPRenderParams.pSrc[0]->rcDst.bottom;
+                    pRenderParams->pTarget[0]->rcDst.top = pRenderParams->pSrc[0]->rcDst.bottom;
                     RenderPassData.bCompNeeded = true;
                     VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
                 }
-
-                if (RenderPassData.bCompNeeded)
+                if (RenderPassData.bCompNeeded &&
+                    (uiIndex_in == pRenderParams->uSrcCount-1 || // compatible with N:1 case, only render at the last input.
+                     pRenderParams->uSrcCount == 0))             // fast color fill
                 {
-                    VPHAL_RENDER_CHK_STATUS(RenderComposite(&TPRenderParams, &RenderPassData));
+                    VPHAL_RENDER_CHK_STATUS(RenderComposite(pRenderParams, &RenderPassData));
                 }
-
-                // Report Render modes
-                UpdateReport(pRenderParams, &RenderPassData);
             }
+            // restore render pointer and count.
+            pRenderParams->pTarget[0]            = StoreRenderParams.pTarget[0];
+            pRenderParams->bUserPrt_16Align[0]   = StoreRenderParams.bUserPrt_16Align[0];
+            pRenderParams->uDstCount             = StoreRenderParams.uDstCount;
         }
     }
+
+    // Report Render modes
+    UpdateReport(pRenderParams, &RenderPassData);
 
     //------------------------------------------
     VPHAL_RNDR_DUMP_SURF_PTR_ARRAY(
