@@ -6072,11 +6072,7 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTable->vaQuerySurfaceStatus            = DdiMedia_QuerySurfaceStatus;
     pVTable->vaQuerySurfaceError             = DdiMedia_QuerySurfaceError;
     pVTable->vaQuerySurfaceAttributes        = DdiMedia_QuerySurfaceAttributes;
-#if defined(X11_FOUND)
     pVTable->vaPutSurface                    = DdiMedia_PutSurface;
-#else
-    pVTable->vaPutSurface                    = NULL;
-#endif
     pVTable->vaQueryImageFormats             = DdiMedia_QueryImageFormats;
 
     pVTable->vaCreateImage                   = DdiMedia_CreateImage;
