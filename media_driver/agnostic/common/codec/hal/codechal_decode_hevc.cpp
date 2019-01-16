@@ -1632,6 +1632,7 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
     m_picMhwParams.PipeBufAddrParams->presCurMvTempBuffer          = &m_resMvTemporalBuffer[m_hevcMvBufferIndex];
 
     MOS_ZeroMemory(m_presReferences, sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_HEVC);
+    MOS_ZeroMemory(m_dummyReferenceSlot, sizeof(m_dummyReferenceSlot));
 
     if (!m_curPicIntra)
     {
@@ -1752,6 +1753,7 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
             !Mos_ResourceIsNull(&m_dummyReference.OsResource))
         {
             m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
+            m_dummyReferenceSlot[i] = true;
         }
     }
 
