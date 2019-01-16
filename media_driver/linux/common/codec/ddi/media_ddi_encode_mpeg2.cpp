@@ -796,9 +796,9 @@ void DdiEncodeMpeg2::ParseMiscParamVBV(void *data)
 
     CodecEncodeMpeg2SequenceParams *mpeg2SeqParams = (CodecEncodeMpeg2SequenceParams *)m_encodeCtx->pSeqParams;
 
-    mpeg2SeqParams->m_vbvBufferSize              = vaEncMiscParamHRD->buffer_size;
+    mpeg2SeqParams->m_vbvBufferSize              = vaEncMiscParamHRD->buffer_size / CODEC_ENCODE_MPEG2_VBV_BUFFER_SIZE_UNITS;
     mpeg2SeqParams->m_initVBVBufferFullnessInBit = vaEncMiscParamHRD->initial_buffer_fullness;
-    mpeg2SeqParams->m_rateControlMethod          = RATECONTROL_CBR;
+    //mpeg2SeqParams->m_rateControlMethod          = RATECONTROL_CBR;
 }
 
 // Parse the frame rate paramters from app
