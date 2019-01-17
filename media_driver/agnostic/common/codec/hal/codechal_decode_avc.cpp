@@ -77,8 +77,8 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
         if (!m_mfxInterface->IsAvcISlice(slc->slice_type))
         {
             refIdxParams.CurrPic = avcPicParams->CurrPic;
-            refIdxParams.uiList = 0;
-            refIdxParams.uiNumRefForList = slc->num_ref_idx_l0_active_minus1 + 1;
+            refIdxParams.uiList = LIST_0;
+            refIdxParams.uiNumRefForList[LIST_0] = slc->num_ref_idx_l0_active_minus1 + 1;
 
             CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(
                 &refIdxParams.RefPicList,
@@ -112,8 +112,8 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
 
             if (m_mfxInterface->IsAvcBSlice(slc->slice_type))
             {
-                refIdxParams.uiList = 1;
-                refIdxParams.uiNumRefForList = slc->num_ref_idx_l1_active_minus1 + 1;
+                refIdxParams.uiList = LIST_1;
+                refIdxParams.uiNumRefForList[LIST_1] = slc->num_ref_idx_l1_active_minus1 + 1;
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBuffer, nullptr, &refIdxParams));
 
                 if (avcPicParams->pic_fields.weighted_bipred_idc == 1)

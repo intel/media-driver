@@ -399,16 +399,17 @@ typedef struct _MHW_VDBOX_AVC_DIRECTMODE_PARAMS
 
 typedef struct _MHW_VDBOX_AVC_REF_IDX_PARAMS
 {
-    CODEC_PICTURE                   CurrPic;
-    bool                            isEncode;
-    uint32_t                        uiList;
-    uint32_t                        uiNumRefForList;
-    CODEC_PICTURE                   RefPicList[2][32];
-    PCODEC_PIC_ID                   pAvcPicIdx;
-    void                            **avcRefList;
-    bool                            bIntelEntrypointInUse;
-    bool                            bPicIdRemappingInUse;
-    bool                            oneOnOneMapping = false;
+    CODEC_PICTURE                   CurrPic               = {};
+    uint32_t                        uiNumRefForList[2]    = {};
+    CODEC_PICTURE                   RefPicList[2][32]     = {};
+    PCODEC_PIC_ID                   pAvcPicIdx            = {};
+    uint32_t                        uiList                = 0;
+    void                            **avcRefList          = nullptr;
+    bool                            isEncode              = false;
+    bool                            bVdencInUse           = false;
+    bool                            bIntelEntrypointInUse = false;
+    bool                            bPicIdRemappingInUse  = false;
+    bool                            oneOnOneMapping       = false;
 } MHW_VDBOX_AVC_REF_IDX_PARAMS, *PMHW_VDBOX_AVC_REF_IDX_PARAMS;
 
 typedef struct _MHW_VDBOX_PIC_ID_PARAMS

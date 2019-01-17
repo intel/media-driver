@@ -875,6 +875,9 @@ private:
     static const uint8_t  AdaptiveInterRoundingPWithoutB[CODEC_AVC_NUM_QP];                //!< InterRounding Table.
     static const uint8_t  AdaptiveInterRoundingP[CODEC_AVC_NUM_QP];                        //!< InterRounding Table.
     static const uint32_t InterRoundingP[NUM_TARGET_USAGE_MODES];                          //!< P Picture InterRounding Table.
+    static const uint32_t InterRoundingB[NUM_TARGET_USAGE_MODES];                          //!< B Picture InterRounding Table.
+    static const uint32_t InterRoundingBRef[NUM_TARGET_USAGE_MODES];                       //!< B Ref Picture InterRounding Table.
+    static const uint8_t  AdaptiveInterRoundingB[CODEC_AVC_NUM_QP];                        //!< B Picture Adaptive InterRounding Table.
 
 #if USE_CODECHAL_DEBUG_TOOL
 protected:

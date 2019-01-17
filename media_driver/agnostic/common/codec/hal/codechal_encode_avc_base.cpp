@@ -198,11 +198,11 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     }
 
     // Add reference index and weight offset commands
-    MOS_ZeroMemory(&refIdxParams, sizeof(refIdxParams));
-    refIdxParams.CurrPic = params->pEncodeAvcPicParams->CurrReconstructedPic;
-    refIdxParams.isEncode = true;
-    refIdxParams.pAvcPicIdx = params->pAvcPicIdx;
-    refIdxParams.avcRefList = (void**)m_refList;
+    refIdxParams.CurrPic         = params->pEncodeAvcPicParams->CurrReconstructedPic;
+    refIdxParams.isEncode        = true;
+    refIdxParams.bVdencInUse     = params->bVdencInUse;
+    refIdxParams.pAvcPicIdx      = params->pAvcPicIdx;
+    refIdxParams.avcRefList      = (void **)m_refList;
     refIdxParams.oneOnOneMapping = params->oneOnOneMapping;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
@@ -213,7 +213,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     if (Slice_Type[avcSlcParams->slice_type] == SLICE_P)
     {
         refIdxParams.uiList = LIST_0;
-        refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
+        refIdxParams.uiNumRefForList[LIST_0] = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
@@ -241,12 +241,12 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     else if (Slice_Type[avcSlcParams->slice_type] == SLICE_B)
     {
         refIdxParams.uiList = LIST_0;
-        refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
+        refIdxParams.uiNumRefForList[LIST_0] = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
         refIdxParams.uiList = LIST_1;
-        refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l1_active_minus1 + 1;
+        refIdxParams.uiNumRefForList[LIST_1] = avcSlcParams->num_ref_idx_l1_active_minus1 + 1;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
