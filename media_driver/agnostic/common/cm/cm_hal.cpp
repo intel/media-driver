@@ -9608,6 +9608,7 @@ MOS_STATUS HalCm_AllocateSurface2D(
     if (state->advExecutor)
     {
         entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
+        state->advExecutor->Set2DOrigFormat(entry->surfStateMgr, entry->format);
     }
    
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
@@ -9656,6 +9657,7 @@ MOS_STATUS HalCm_UpdateSurface2D(
     {
         state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
         entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
+        state->advExecutor->Set2DOrigFormat(entry->surfStateMgr, entry->format);
     }
     
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
