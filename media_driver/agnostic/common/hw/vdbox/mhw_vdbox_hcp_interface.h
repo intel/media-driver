@@ -113,6 +113,7 @@ struct MHW_VDBOX_HEVC_REF_IDX_PARAMS
     int8_t                         *pRefIdxMapping = 0;
     uint16_t                        RefFieldPicFlag = 0;
     uint16_t                        RefBottomFieldFlag = 0;
+    bool                            bDummyReference = false;
     virtual ~MHW_VDBOX_HEVC_REF_IDX_PARAMS(){}
 };
 using PMHW_VDBOX_HEVC_REF_IDX_PARAMS = MHW_VDBOX_HEVC_REF_IDX_PARAMS * ;

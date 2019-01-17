@@ -410,6 +410,7 @@ typedef struct _MHW_VDBOX_AVC_REF_IDX_PARAMS
     bool                            bIntelEntrypointInUse = false;
     bool                            bPicIdRemappingInUse  = false;
     bool                            oneOnOneMapping       = false;
+    bool                            bDummyReference       = false;
 } MHW_VDBOX_AVC_REF_IDX_PARAMS, *PMHW_VDBOX_AVC_REF_IDX_PARAMS;
 
 typedef struct _MHW_VDBOX_PIC_ID_PARAMS

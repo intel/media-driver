@@ -136,6 +136,7 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
         {
             MHW_VDBOX_AVC_REF_IDX_PARAMS refIdxParams;
             MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_AVC_REF_IDX_PARAMS));
+            refIdxParams.bDummyReference = true;
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBuffer, nullptr, &refIdxParams));
         }
 
