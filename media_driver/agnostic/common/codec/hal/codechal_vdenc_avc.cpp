@@ -765,6 +765,24 @@ const uint32_t CodechalVdencAvcState::InterRoundingP[NUM_TARGET_USAGE_MODES] =
     0, 3, 3, 3, 3, 3, 3, 3
 };
 
+const uint32_t CodechalVdencAvcState::InterRoundingB[NUM_TARGET_USAGE_MODES] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+const uint32_t CodechalVdencAvcState::InterRoundingBRef[NUM_TARGET_USAGE_MODES] =
+{
+    0, 2, 2, 2, 2, 2, 2, 2
+};
+
+const uint8_t CodechalVdencAvcState::AdaptiveInterRoundingB[CODEC_AVC_NUM_QP] =
+{
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  //QP=[0~12]
+    4, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,  //QP=[13~25]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //QP=[26~38]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0   //QP=[39~51]
+};
+
 /* real thresholds are computed as multiplication on -50 and casting to int */
 const double CodechalVdencAvcState::BRC_DevThreshI0_FP_NEG[CODECHAL_VDENC_AVC_N_DEV_THRESHLDS / 2] =
 {
@@ -1719,7 +1737,21 @@ MOS_STATUS CodechalVdencAvcState::GetInterRounding(PMHW_VDBOX_AVC_SLICE_STATE sl
         }
         break;
     case SLICE_B:
-        return MOS_STATUS_INVALID_PARAMETER;
+        if (m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef)
+        {
+            sliceState->dwRoundingValue = InterRoundingBRef[avcSeqParams->TargetUsage];
+        }
+        else
+        {
+            if (m_adaptiveRoundingInterEnable && !m_vdencBrcEnabled)
+            {
+                sliceState->dwRoundingValue = AdaptiveInterRoundingB[sliceQP];
+            }
+            else
+            {
+                sliceState->dwRoundingValue = InterRoundingB[avcSeqParams->TargetUsage];
+            }
+        }
         break;
     default:
         // do nothing
@@ -2115,9 +2147,9 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
         return eStatus;
     }
 
-    if ((picParams->CodingType == B_TYPE) || (picParams->FieldCodingFlag || picParams->FieldFrameCodingFlag))
+    if (picParams->FieldCodingFlag || picParams->FieldFrameCodingFlag)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("VDEnc does not support B or interlaced picture\n");
+        CODECHAL_ENCODE_ASSERTMESSAGE("VDEnc does not support interlaced picture\n");
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         return eStatus;
     }
