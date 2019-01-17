@@ -1112,6 +1112,7 @@ MOS_STATUS CodechalDecodeHevcG11::SendSliceLongFormat(
     {
         MHW_VDBOX_HEVC_REF_IDX_PARAMS refIdxParams;
         MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_HEVC_REF_IDX_PARAMS));
+        refIdxParams.bDummyReference = true;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpRefIdxStateCmd(
             cmdBuffer,
             nullptr,
