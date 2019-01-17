@@ -60,6 +60,7 @@ public:
     virtual void DeleteSurfStateVme(CmSurfaceStateVME *state) {}
     virtual void SetBufferOrigSize(CmSurfaceStateBufferMgr *stateMgr, uint32_t size) {}
     virtual void SetBufferMemoryObjectControl(CmSurfaceStateBufferMgr *stateMgr, uint16_t mocs) {}
+    virtual void Set2DOrigFormat(CmSurfaceState2DMgr *stateMgr, MOS_FORMAT format) {}
     virtual void Set2DRenderTarget(CmSurfaceState2DMgr *stateMgr, bool renderTarget) {}
     virtual void Set2DMemoryObjectControl(CmSurfaceState2DMgr *stateMgr, uint16_t mocs) {}
     virtual void Set2DFrameType(CmSurfaceState2DMgr *stateMgr, CM_FRAME_TYPE frameType) {}
