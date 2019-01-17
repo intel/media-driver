@@ -471,7 +471,9 @@ protected:
 
         typename THcpCmds::HCP_REF_IDX_STATE_CMD cmd;
 
-        if (params->ucNumRefForList != 0)
+        // Need to add an empty HCP_REF_IDX_STATE_CMD for dummy reference on I-Frame
+        // ucNumRefForList could be 0 for encode
+        if (!params->bDummyReference)
         {
             MHW_ASSERT(params->CurrPic.FrameIdx != 0x7F);
 

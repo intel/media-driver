@@ -395,10 +395,12 @@ protected:
         }
 
         typename TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD cmd;
-        auto uiList = params->uiList;
 
-        if (params->uiNumRefForList[uiList] != 0)
+        // Need to add an empty MFX_AVC_REF_IDX_STATE_CMD for dummy reference on I-Frame
+        if (!params->bDummyReference)
         {
+            auto uiList = params->uiList;
+
             cmd.DW1.RefpiclistSelect = uiList;
 
             CODEC_REF_LIST  **avcRefList        = (CODEC_REF_LIST **)params->avcRefList;
