@@ -203,8 +203,6 @@ struct EncodeAvcPar
     bool                        VDEncPerfMode;
     bool                        VdencExtPakObjDisable;
     bool                        PPMVDisable;
-    uint8_t                     ImePredOverlapThr;
-    uint8_t                     LeftNbrPelMode;
 
     // PAK Params
     uint8_t                     RoundingIntra;
@@ -1802,6 +1800,14 @@ protected:
     MOS_STATUS PopulateConstParam();
 
     //!
+    //! \brief    Populate target usage as the first parameter of dumped par file
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS PopulateTargetUsage();
+
+    //!
     //! \brief    Set MHW_VDBOX_AVC_IMG_STATE parameter
     //!
     //! \param    [in] avcSeqParams
@@ -1921,7 +1927,8 @@ protected:
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER   secondLevelBatchBuffer) { return MOS_STATUS_SUCCESS; }
 
-    EncodeAvcPar *m_avcPar = nullptr;  //!< AVC PAR parameters
+    EncodeAvcPar *m_avcPar             = nullptr;  //!< AVC PAR parameters
+    bool         m_populateTargetUsage = false;
 #endif
 
     //!
