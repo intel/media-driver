@@ -180,8 +180,7 @@ void VpHal_DdiReportFeatureMode(
 
     // Report Scaling mode
     pConfigValues->dwCurrentScalingMode =
-        (pReport->ScalingMode == VPHAL_SCALING_AVS) ? VPDDI_ADVANCEDSCALING :
-            (pReport->ScalingMode > VPHAL_SCALING_AVS) ? VPDDI_SUPERRESOLUTIONSCALING : VPDDI_SCALING;
+        (pReport->ScalingMode == VPHAL_SCALING_AVS) ? VPDDI_ADVANCEDSCALING : VPDDI_SCALING;
 
     // Report Output Pipe
     pConfigValues->dwCurrentOutputPipeMode = pReport->OutputPipeMode;

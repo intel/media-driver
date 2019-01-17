@@ -518,11 +518,9 @@ typedef enum _VPHAL_SCALING_MODE
 {
     VPHAL_SCALING_NEAREST,
     VPHAL_SCALING_BILINEAR,
-    VPHAL_SCALING_AVS,
-    VPHAL_SCALING_ADV_PERF,        // !< Advance Perf mode
-    VPHAL_SCALING_ADV_QUALITY      // !< Advance Quality mode
+    VPHAL_SCALING_AVS
 } VPHAL_SCALING_MODE;
-C_ASSERT(VPHAL_SCALING_ADV_QUALITY == 4);   //!< When adding, update assert & vphal_solo_scenario.cpp
+C_ASSERT(VPHAL_SCALING_AVS == 2);   //!< When adding, update assert & vphal_solo_scenario.cpp
 
 typedef enum _VPHAL_SCALING_PREFERENCE
 {
