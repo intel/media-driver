@@ -4208,6 +4208,8 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
         return MOS_STATUS_SUCCESS;
     }
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateTargetUsage());
+
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
 
@@ -4265,6 +4267,31 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalEncodeAvcBase::PopulateTargetUsage()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    if (m_populateTargetUsage == false)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char *fileName = m_debugInterface->CreateFileName(
+        "EncodeSequence",
+        "EncodePar",
+        CodechalDbgExtType::par);
+
+    std::ifstream ifs(fileName);
+    std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    ifs.close();
+    std::ofstream ofs(fileName, std::ios::trunc);
+    ofs << "TargetUsage = " << static_cast<uint32_t>(m_avcSeqParam->TargetUsage) << std::endl;
+    ofs << str;
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS avcSeqParams,
     PCODEC_AVC_ENCODE_PIC_PARAMS      avcPicParams,
@@ -4292,10 +4319,10 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
             0 : (CodecHal_PictureIsTopField(avcPicParams->CurrOriginalPic) ? 1 : 3);
         m_avcPar->PictureCodingType = pictureCodingType;
 
-        uint16_t gopP = (avcSeqParams->GopRefDist) ? ((avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist) : 0;
-        uint16_t gopB = avcSeqParams->GopPicSize - 1 - gopP;
+        uint16_t gopP  = (avcSeqParams->GopRefDist) ? ((avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist) : 0;
+        uint16_t gopB  = avcSeqParams->GopPicSize - 1 - gopP;
         m_avcPar->NumP = gopP;
-        m_avcPar->NumB = m_vdencEnabled ? 0 : ((gopP > 0) ? (gopB / gopP) : 0);
+        m_avcPar->NumB = ((gopP > 0) ? (gopB / gopP) : 0);
 
         if ((avcPicParams->NumSlice * m_sliceHeight) >=
             (uint32_t)(avcSeqParams->pic_height_in_map_units_minus1 + 1 + m_sliceHeight))
