@@ -5585,9 +5585,6 @@ MOS_STATUS CodechalVdencAvcState::DumpFrameParFile()
 
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
-    oss << "ImePredOverlapThr = " << std::dec << +m_avcPar->ImePredOverlapThr << std::endl;
-    oss << "LeftNbrPelMode = " << std::dec << +m_avcPar->LeftNbrPelMode << std::endl;
-
 
     if (m_pictureCodingType == I_TYPE)
     {
@@ -5767,6 +5764,10 @@ MOS_STATUS CodechalVdencAvcState::DumpFrameParFile()
         oss << "RoundingInter = " << std::dec << +m_avcPar->RoundingInter << std::endl;
         oss << "FrmHdrEncodingFrequency = " << std::dec << +m_avcPar->FrmHdrEncodingFrequency << std::endl;
         oss << "AdaptiveRoundingEnabled = " << std::dec << +m_avcPar->EnableAdaptiveRounding << std::endl;
+    }
+    else
+    {
+        oss << "BSliceQP = " << std::dec << +m_avcPar->BSliceQP << std::endl;
     }
 
     // Dump per frame par file
@@ -5972,6 +5973,11 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
         oss << "RoundingInter = " << std::dec << +m_avcPar->RoundingInter << std::endl;
         oss << "FrmHdrEncodingFrequency = " << std::dec << +m_avcPar->FrmHdrEncodingFrequency << std::endl;
         oss << "AdaptiveRoundingEnabled = " << std::dec << +m_avcPar->EnableAdaptiveRounding << std::endl;
+    }
+
+    if (m_avcPar->NumB > 0)
+    {
+        oss << "BSliceQP = " << std::dec << +m_avcPar->BSliceQP << std::endl;
     }
 
     const char *fileName = m_debugInterface->CreateFileName(
