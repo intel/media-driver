@@ -3437,7 +3437,15 @@ MOS_STATUS CodechalVdencHevcStateG11::SetConstDataHuCBrcUpdate()
     MOS_SecureMemcpy(hucConstData->RDQPLambdaI, sizeof(m_rdQpLambdaI), m_rdQpLambdaI, sizeof(m_rdQpLambdaI));
     MOS_SecureMemcpy(hucConstData->RDQPLambdaP, sizeof(m_rdQpLambdaP), m_rdQpLambdaP, sizeof(m_rdQpLambdaP));
 
-    MOS_SecureMemcpy(hucConstData->SADQPLambdaI, sizeof(m_sadQpLambdaI), m_sadQpLambdaI, sizeof(m_sadQpLambdaI));
+    if (m_hevcVisualQualityImprovement)
+    {
+        MOS_SecureMemcpy(hucConstData->SADQPLambdaI, sizeof(m_sadQpLambdaI), m_sadQpLambdaI_VQI, sizeof(m_sadQpLambdaI));
+    }
+    else
+    {
+        MOS_SecureMemcpy(hucConstData->SADQPLambdaI, sizeof(m_sadQpLambdaI), m_sadQpLambdaI, sizeof(m_sadQpLambdaI));
+    }
+
     MOS_SecureMemcpy(hucConstData->SADQPLambdaP, sizeof(m_sadQpLambdaP), m_sadQpLambdaP, sizeof(m_sadQpLambdaP));
 
     if (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
