@@ -346,6 +346,7 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     bool                        oneOnOneMapping = false;                 // Flag for indicating using 1:1 ref index mapping for vdenc
     bool                        isLowDelayB = true;                      // Flag to indicate if it is LDB
     uint8_t                     IBCRefIdxMask = 0;
+    PMOS_RESOURCE               presVdencCumulativeCuCountStreamoutSurface = nullptr;
     virtual ~MHW_VDBOX_PIPE_BUF_ADDR_PARAMS() {}
 };
 using PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS = MHW_VDBOX_PIPE_BUF_ADDR_PARAMS * ;
