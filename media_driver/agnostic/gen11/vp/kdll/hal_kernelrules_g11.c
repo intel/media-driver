@@ -1974,8 +1974,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_Y210                                    , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_90                              , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_90, Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_90, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4_Rot_90            , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5_Rot_90            , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                               , Kdll_None },
 
     // Rotate 180 degrees
@@ -1984,8 +1984,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_Y210                                     , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                                  , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_180                              , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_180, Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4_Rot_180            , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5_Rot_180            , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                                , Kdll_None },
 
     // Rotate 270 degrees
@@ -1994,8 +1994,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_Y210                                     , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                                  , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_270                              , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_270, Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4_Rot_270            , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5_Rot_270            , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                                , Kdll_None },
 
     // Mirror Horizontal
@@ -2004,9 +2004,9 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_Y210                             , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                          , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_MIRROR_HORIZONTAL                 , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                        , Kdll_None },
 
@@ -2016,9 +2016,9 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_Y210                                     , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                                  , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_MIRROR_VERTICAL                           , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4_Rot_180            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_180, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5_Rot_180            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                        , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                                , Kdll_None },
 
@@ -2028,9 +2028,9 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_Y210                                     , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                                  , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_VERTICAL                 , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4_Rot_270            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                        , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_270, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5_Rot_270            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                        , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                                , Kdll_None },
 
@@ -2040,9 +2040,9 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_Y210                                    , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_HORIZONTAL              , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_90, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4_Rot_90            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                       , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_90, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5_Rot_90            , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                       , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                               , Kdll_None },
 
@@ -2051,8 +2051,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsParserState    , Parser_SampleLayer1                     , Kdll_None },
     { RID_IsSrc1Format     , Format_Y210                             , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                          , Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4, Kdll_None },
-    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5, Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_4            , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5            , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                        , Kdll_None },
 
     // Sample (RGB | AYUV | Packed YUV | YV12 | NV12 | 400P) -> Src1
