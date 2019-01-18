@@ -85,6 +85,7 @@ struct HucInputCmd1G11
     uint8_t  PanicEnabled;
     uint8_t  TemporalMvpEnableFlag;
     uint8_t  TransformSkip;
+    uint32_t Intra32X32ModeMask;
 
     // VP9
     uint16_t SrcFrameWidthMinus1;
@@ -243,6 +244,8 @@ public:
     MOS_STATUS CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE picStateBuffer) override;
 #endif
 
+    bool m_hevcVisualQualityImprovement = false;            //!< VQI enable flag
+
 protected:
 #if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
     MOS_STATUS ConstructHevcHucCmd1ConstData(
@@ -251,6 +254,12 @@ protected:
         PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
         struct HucComData *                hucConstData) override;
         
+    MOS_STATUS ConstructHevcHucCmd2ConstData(
+        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+        PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+        struct HucComData *                hucConstData) override;
+
     uint16_t GetCmd2StartOffset(bool brcEnabled) override;
     uint16_t GetCmd1StartOffset(bool brcEnabled) override;
     virtual uint16_t GetCmd5StartOffset(bool brcEnabled);
