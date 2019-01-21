@@ -198,7 +198,7 @@ GpuContext *GpuContextMgr::GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHandle)
         return nullptr;
     }
 
-    if (!m_gpuContextArray.empty() && gpuContextHandle <= m_gpuContextArray.size())
+    if (!m_gpuContextArray.empty() && gpuContextHandle < m_gpuContextArray.size())
     {
         return m_gpuContextArray.at(gpuContextHandle);
     }
