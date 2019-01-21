@@ -2154,6 +2154,7 @@ finish:
         {
             pKernelEntry->dwLoaded = 1;
         }
+        pRenderHal->iKernelAllocationID = iKernelAllocationID;
     }
 
     // Return kernel allocation index
