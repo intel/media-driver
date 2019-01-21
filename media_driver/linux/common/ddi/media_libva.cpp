@@ -1455,7 +1455,7 @@ VAStatus DdiMedia__Initialize (
     // Create GMM Client Context
     mediaCtx->pGmmClientContext = mediaCtx->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
 
-    // Create GMM page table manager 
+    // Create GMM page table manager
     mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr,
         &mediaCtx->SkuTable, &mediaCtx->WaTable);
 
@@ -4143,6 +4143,9 @@ VAStatus DdiMedia_DeriveImage (
     vaimg->height                   = mediaSurface->iRealHeight;
     vaimg->format.byte_order        = VA_LSB_FIRST;
 
+    uint32_t gmmUPlaneYOffset = mediaSurface->pGmmResourceInfo->GetPlanarYOffset(GMM_PLANE_U);
+    uint32_t gmmVPlaneYOffset = mediaSurface->pGmmResourceInfo->GetPlanarYOffset(GMM_PLANE_V);
+
     switch( mediaSurface->format )
     {
     case Media_Format_YV12:
@@ -4152,8 +4155,8 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch / 2;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
-        vaimg->offsets[2]               = mediaSurface->iPitch * mediaSurface->iHeight * 5 / 4;
+        vaimg->offsets[1]               = gmmVPlaneYOffset * mediaSurface->iPitch;
+        vaimg->offsets[2]               = gmmUPlaneYOffset * mediaSurface->iPitch;
         break;
     case Media_Format_I420:
         vaimg->format.bits_per_pixel    = 12;
@@ -4162,8 +4165,8 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch / 2;
-        vaimg->offsets[1]               = mediaSurface->iPitch * mediaSurface->iHeight * 5 / 4;
-        vaimg->offsets[2]               = mediaSurface->iHeight * mediaSurface->iPitch;
+        vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
+        vaimg->offsets[2]               = gmmVPlaneYOffset * mediaSurface->iPitch;
         break;
     case Media_Format_A8B8G8R8:
     case Media_Format_R8G8B8A8:
@@ -4231,8 +4234,8 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
-        vaimg->offsets[2]               = mediaSurface->iHeight * mediaSurface->iPitch * 3 / 2;
+        vaimg->offsets[1]               = gmmVPlaneYOffset * mediaSurface->iPitch;
+        vaimg->offsets[2]               = gmmUPlaneYOffset * mediaSurface->iPitch;
         break;
     case Media_Format_411P:
         vaimg->format.bits_per_pixel    = 12;
@@ -4241,8 +4244,8 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
-        vaimg->offsets[2]               = mediaSurface->iHeight * mediaSurface->iPitch * 2;
+        vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
+        vaimg->offsets[2]               = gmmVPlaneYOffset * mediaSurface->iPitch;
         break;
     case Media_Format_422V:
         vaimg->format.bits_per_pixel    = 16;
@@ -4251,8 +4254,8 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
-        vaimg->offsets[2]               = mediaSurface->iHeight * mediaSurface->iPitch * 3 / 2;
+        vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
+        vaimg->offsets[2]               = gmmVPlaneYOffset * mediaSurface->iPitch;
         break;
     case Media_Format_422H:
         vaimg->format.bits_per_pixel    = 16;
@@ -4261,8 +4264,8 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
-        vaimg->offsets[2]               = mediaSurface->iHeight * mediaSurface->iPitch * 2;
+        vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
+        vaimg->offsets[2]               = gmmVPlaneYOffset * mediaSurface->iPitch;
         break;
      case Media_Format_P010:
          vaimg->format.bits_per_pixel    = 24;
@@ -4271,7 +4274,7 @@ VAStatus DdiMedia_DeriveImage (
          vaimg->pitches[0]               = mediaSurface->iPitch;
          vaimg->pitches[1]               =
          vaimg->pitches[2]               = mediaSurface->iPitch;
-         vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
+         vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
          vaimg->offsets[2]               = vaimg->offsets[1] + 2;
         break;
      default:
@@ -4281,11 +4284,11 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
+        vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
         vaimg->offsets[2]               = vaimg->offsets[1] + 1;
         break;
     }
-    
+
     mediaCtx->m_caps->PopulateColorMaskInfo(&vaimg->format);
 
     DDI_MEDIA_BUFFER *buf               = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
