@@ -29,7 +29,7 @@
 
 #define __MEDIA_USER_FEATURE_SUBKEY_INTERNAL                        "LibVa"
 #define __MEDIA_USER_FEATURE_SUBKEY_PERFORMANCE                     ""
-#define __MEDIA_USER_FEATURE_SUBKEY_REPORT                          "LibVa/Report"
+#define __MEDIA_USER_FEATURE_SUBKEY_REPORT                          "Report"
 #define __MEDIA_USER_FEATURE_VALUE_VP_DBG_STATE_DUMP_LOCATION       ""
 #define __MOS_USER_FEATURE_KEY_XML_FILEPATH_LOCATION                ""
 
