@@ -4582,8 +4582,6 @@ bool CompositeState::SubmitStates(
         goto finish;
     }
 
-    pRenderHal->iKernelAllocationID = iKrnAllocation;
-
     SubmitStatesFillGenSpecificStaticData(pRenderingData,
                                    pTarget,
                                    pStatic);
