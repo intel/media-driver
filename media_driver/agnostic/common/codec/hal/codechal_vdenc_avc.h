@@ -912,7 +912,8 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     auto avcSeqParams = m_avcSeqParam;
-    if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW) // Low Delay Mode
+    if ((avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW) || // Low Delay Mode
+        (avcSeqParams->RateControlMethod == RATECONTROL_VBR))
     {
         avcSeqParams->MaxBitRate = avcSeqParams->TargetBitRate;
     }
