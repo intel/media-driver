@@ -424,7 +424,7 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9SetDmem()
 
     // Command ID 1
     hucConstData->InputCOM[1].ID = 1;
-    hucConstData->InputCOM[1].SizeOfData = 0x18;
+    hucConstData->InputCOM[1].SizeOfData = sizeof(HucInputCmd1G11) / sizeof(uint32_t);
 
     HucInputCmd1G11 hucInputCmd1;
     MOS_ZeroMemory(&hucInputCmd1, sizeof(hucInputCmd1));
