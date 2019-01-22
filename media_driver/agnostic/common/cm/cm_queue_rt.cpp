@@ -261,7 +261,7 @@ int32_t CmQueueRT::Initialize()
         {
             ctxCreateOption.runAloneMode = m_queueOption.RunAloneMode;
 
-            if (cmHalState->osInterface->veDefaultEnable) // check if VE enabled on OS
+            if (cmHalState->osInterface->veDefaultEnable && cmHalState->osInterface->bSupportVirtualEngine) // check if VE enabled on OS
             {
                 // prepare virtual egine hint param on this cm queue.
                 CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
