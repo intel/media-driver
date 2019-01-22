@@ -3378,9 +3378,20 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
     curbe.CollocatedFromL0Flag  = m_hevcSliceParams->collocated_from_l0_flag;
     curbe.theSameRefList        = m_sameRefList;
     curbe.IsLowDelay            = m_lowDelay;
-    curbe.MaxNumMergeCand       = m_hevcSliceParams->MaxNumMergeCand;
     curbe.NumRefIdxL0           = m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1;
     curbe.NumRefIdxL1           = (curbe.SliceType == CODECHAL_ENCODE_HEVC_P_SLICE) ? 0 : (m_hevcSliceParams->num_ref_idx_l1_active_minus1 + 1);
+    if (m_hevcSeqParams->TargetUsage == 1)
+    {
+        // MaxNumMergeCand C Model uses 4 for TU1, 
+        // for quality consideration, make sure not larger than the value from App as it will be used in PAK
+        curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 4);        
+    }
+    else
+    {
+        // MaxNumMergeCand C Model uses 2 for TU4 and TU7, 
+        // for quality consideration, make sure not larger than the value from App as it will be used in PAK
+       curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 2);        
+    }
 
     int32_t tbRefListL0[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L0_REF_G10] = { 0 }, tbRefListL1[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L1_REF_G10] = {0};
     curbe.FwdPocNumber_L0_mTb_0 = tbRefListL0[0] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][0]);
