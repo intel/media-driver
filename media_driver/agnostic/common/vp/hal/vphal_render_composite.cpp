@@ -1629,6 +1629,17 @@ bool CompositeState::AddCompLayer(
     bSinglePhaseRotate = false;
     scalingMode           = pSource->ScalingMode;
 
+    if (pComposite == nullptr || pSource == nullptr)
+    {
+        goto finish;
+    }
+
+    // set default Scaling Model as Bilinear if AVS was not supported.
+    if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
+    {
+        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
+    }
+
     // On Gen9+, Rotation is done in sampler. Multiple phases are not required.
     if (!m_bSamplerSupportRotation)
     {
@@ -2636,6 +2647,8 @@ static MOS_STATUS GetBindingIndex(
 
 //!
 //! \brief    Get Sampler Index associated with a surface state for composite
+//! \param    [in] pSurface
+//!           point to input Surface
 //! \param    [in] pEntry
 //!           Pointer to Surface state
 //! \param    [out] pSamplerIndex
@@ -2645,17 +2658,18 @@ static MOS_STATUS GetBindingIndex(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise MOS_STATUS_UNKNOWN
 //!
-static MOS_STATUS GetSamplerIndex(
+MOS_STATUS CompositeState::GetSamplerIndex(
+    PVPHAL_SURFACE                      pSurface,
     PRENDERHAL_SURFACE_STATE_ENTRY      pEntry,
     int32_t*                            pSamplerIndex,
     PMHW_SAMPLER_TYPE                   pSamplerType)
 {
-    MOS_STATUS  eStatus;
+    MOS_UNUSED(pSurface);
 
-    eStatus = MOS_STATUS_UNKNOWN;
-    if (pSamplerIndex == nullptr || pSamplerType == nullptr)
+    if (pSamplerIndex == nullptr || pSamplerType == nullptr || pEntry == nullptr)
     {
-        goto finish;
+        VPHAL_RENDER_ASSERTMESSAGE(" Null pointer.");
+        return MOS_STATUS_NULL_POINTER;
     }
 
     // AVS
@@ -2695,10 +2709,7 @@ static MOS_STATUS GetSamplerIndex(
         }
     }
 
-    eStatus = MOS_STATUS_SUCCESS;
-
-finish:
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -3327,7 +3338,8 @@ int32_t CompositeState::SetLayer(
         }
 
         // Obtain Sampler ID and Type
-        eStatus = GetSamplerIndex(pSurfaceEntries[i],
+        eStatus = GetSamplerIndex(pSource,
+                                  pSurfaceEntries[i],
                                   &iSamplerID,
                                   &SamplerType);
 
@@ -3373,7 +3385,7 @@ int32_t CompositeState::SetLayer(
             pSamplerStateParams->Unorm.AddressV = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressW = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
 
-            if (iSamplerID == VPHAL_SAMPLER_Y && pSource->bUseSamplerLumakey)
+            if (IsSamplerIDForY(iSamplerID) && pSource->bUseSamplerLumakey)
             {
                 //From Gen10,HW support 1 plane LumaKey process on NV12 format, Gen9 only support 2 plane LumaKey process
                 //if go to 1 plane, MHW_GFX3DSTATE_SURFACEFORMAT_PLANAR_420_8 format will be used, LumaKey value need to be set on Y channel, the corresponding bit range is 15:8
@@ -3395,7 +3407,7 @@ int32_t CompositeState::SetLayer(
                 pSamplerStateParams->Unorm.ChromaKeyIndex   = pRenderHal->pfnAllocateChromaKey(pRenderHal, dwLow, dwHigh);
             }
 
-            if (iSamplerID != VPHAL_SAMPLER_Y && bForceNearestForUV)
+            if ((!IsSamplerIDForY(iSamplerID)) && bForceNearestForUV)
             {
                 pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
             }
@@ -3868,6 +3880,8 @@ int32_t CompositeState::SetLayer(
             iResult = -1;
             goto finish;
     }
+
+    Set3DSamplerStatus(pSource, (uint8_t)iLayer, pStatic);
 
     // Save rendering parameters, increment number of layers
     pRenderingData->pLayers[iLayer] = pSource;
@@ -5738,7 +5752,7 @@ MOS_STATUS CompositeState::RenderPhase(
         pSource = *pSourceArray;
 
         // Check Scaling mode for 3D Sampler use case
-        if (m_need3DSampler)
+        if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
         {
             pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
         }
@@ -7063,4 +7077,10 @@ int32_t CompositeState::GetThreadCountForVfeState(
     }
 
     return iThreadCount;
+}
+
+bool CompositeState::IsSamplerIDForY(
+    int32_t                            SamplerID)
+{
+    return (SamplerID == VPHAL_SAMPLER_Y) ? true : false;
 }

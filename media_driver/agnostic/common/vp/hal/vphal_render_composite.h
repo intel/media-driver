@@ -50,6 +50,9 @@
 #define VPHAL_COMP_SAMPLER_LUMAKEY  4
 #define VPHAL_COMP_MAX_SAMPLER      (VPHAL_COMP_SAMPLER_NEAREST | VPHAL_COMP_SAMPLER_BILINEAR | VPHAL_COMP_SAMPLER_LUMAKEY)
 
+#define VPHAL_SAMPLER_Y                 1
+#define VPHAL_SAMPLER_U                 2
+#define VPHAL_SAMPLER_V                 3
 #define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH    1
 #define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT   1
 #define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_DEPTH    1
@@ -649,6 +652,54 @@ protected:
     //!
     virtual MOS_STATUS IsCompositeParamsValid(
         const VPHAL_COMPOSITE_PARAMS& CompositeParams);
+
+    //!
+    //! \brief    Get Sampler Index associated with a surface state for composite
+    //! \param    [in] pSurface
+    //!           point to input Surface
+    //! \param    [in] pEntry
+    //!           Pointer to Surface state
+    //! \param    [out] pSamplerIndex
+    //!           Pointer to Sampler Index
+    //! \param    [out] pSamplerType
+    //!           Pointer to Sampler Type
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise MOS_STATUS_UNKNOWN
+    //!
+    virtual MOS_STATUS GetSamplerIndex(
+        PVPHAL_SURFACE                      pSurface,
+        PRENDERHAL_SURFACE_STATE_ENTRY      pEntry,
+        int32_t*                            pSamplerIndex,
+        PMHW_SAMPLER_TYPE                   pSamplerType);
+
+    //!
+    //! \brief    Check whether the 3Dsampler use for Y plane
+    //! \param    [in] SamplerID
+    //!           sampler ID
+    //! \return   bool
+    //!           Return true if the 3Dsampler use for Y plane, otherwise fase
+    //!
+    virtual bool IsSamplerIDForY(
+        int32_t                            SamplerID);
+
+    //! \brief    set Sampler status
+    //! \param    [in] pSurface
+    //!           point to input Surface
+    //! \param    [in] Layer
+    //!           composition layer
+    //! \param    [in] pStatic
+    //!           Pointer to static data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise MOS_STATUS_UNKNOWN
+    //!
+    virtual MOS_STATUS Set3DSamplerStatus(
+        PVPHAL_SURFACE                 pSurface,
+        uint8_t                        Layer,
+        MEDIA_OBJECT_KA2_STATIC_DATA   *pStatic)
+    {
+        // Just need the sub class to implement if it is needed;
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     //!
