@@ -4474,10 +4474,14 @@ void KernelDll_StartKernelSearch(
         pSearchState->pFilter      = pSearchState->Filter;
         pSearchState->iFilterSize  = iFilterSize;
 
-        // DScale Kernels are enabled for all gen9 stepping.
-        if (!pFilter->bWaEnableDscale)
+        for (nLayer = 0; nLayer < iFilterSize; nLayer++)
         {
-            for (nLayer = 0; nLayer < iFilterSize; nLayer++)
+            // DScale Kernels are enabled for all gen9 stepping.
+            //For Gen9+, kernel don't support sublayer DScale+rotation
+            //Sampler_unorm does not support Y410/RGB10, we need to use sampler_16 to support Y410/RGB10
+            if (!pFilter[nLayer].bWaEnableDscale ||
+                (pFilter[nLayer].layer == Layer_SubVideo &&
+                 pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY))
             {
                 if (pFilter[nLayer].sampler == Sample_Scaling_034x)
                 {
@@ -4490,28 +4494,6 @@ void KernelDll_StartKernelSearch(
                 else if (pFilter[nLayer].sampler == Sample_iScaling_AVS)
                 {
                     pSearchState->pFilter[nLayer].sampler = Sample_iScaling_AVS;
-                }
-            }
-        }
-        else
-        {
-            //For Gen9+, kernel don't support sublayer DScale+rotation
-            for (nLayer = 0; nLayer < iFilterSize; nLayer++)
-            {
-                if (pFilter[nLayer].layer == Layer_SubVideo && pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY)
-                {
-                    if (pFilter[nLayer].sampler == Sample_Scaling_034x)
-                    {
-                        pSearchState->pFilter[nLayer].sampler = Sample_Scaling;
-                    }
-                    else if (pFilter[nLayer].sampler == Sample_iScaling_034x)
-                    {
-                        pSearchState->pFilter[nLayer].sampler = Sample_iScaling;
-                    }
-                    else if (pFilter[nLayer].sampler == Sample_iScaling_AVS)
-                    {
-                        pSearchState->pFilter[nLayer].sampler = Sample_iScaling_AVS;
-                    }
                 }
             }
         }
