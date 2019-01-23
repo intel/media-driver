@@ -1207,7 +1207,7 @@ typedef struct _CM_SURFACE2D_STATE_PARAM
 struct _CM_QUEUE_CREATE_OPTION
 {
     CM_QUEUE_TYPE                 QueueType               : 3;
-    bool                          RunAloneMode            : 1;
+    bool                          RAMode                  : 1;
     unsigned int                  Reserved0               : 3;
     bool                          UserGPUContext          : 1; // Is the user-provided GPU Context already created externally
     unsigned int                  GPUContext              : 8; // user-provided GPU Context ordinal

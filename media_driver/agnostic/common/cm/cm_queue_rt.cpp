@@ -241,7 +241,7 @@ int32_t CmQueueRT::Initialize()
 #endif
             }
 
-            ctxCreateOption.runAloneMode = m_queueOption.RunAloneMode;
+            ctxCreateOption.RAMode = m_queueOption.RAMode;
 
             // Create Render GPU Context
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D, &ctxCreateOption));
@@ -259,7 +259,7 @@ int32_t CmQueueRT::Initialize()
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
-            ctxCreateOption.runAloneMode = m_queueOption.RunAloneMode;
+            ctxCreateOption.RAMode = m_queueOption.RAMode;
 
             if (cmHalState->osInterface->veDefaultEnable && cmHalState->osInterface->bSupportVirtualEngine) // check if VE enabled on OS
             {

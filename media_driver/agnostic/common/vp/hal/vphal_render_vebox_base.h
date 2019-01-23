@@ -1061,6 +1061,15 @@ public:
     virtual MOS_STATUS VeboxQueryStatLayout(
         VEBOX_STAT_QUERY_TYPE           QueryType,
         uint32_t*                       pQuery) = 0;
+    //!
+    //! \brief    Update RenderGpuContext
+    //! \details  Update RenderGpuContext
+    //! \param    [in] renderGpuContext
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateRenderGpuContext(
+        MOS_GPU_CONTEXT renderGpuContext);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     //!
@@ -1776,6 +1785,7 @@ protected:
     //!
     virtual MOS_STATUS VeboxSetHVSDNParams(
         PVPHAL_SURFACE pSrcSurface);
+
 };
 
 //!

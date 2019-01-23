@@ -1478,7 +1478,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxUpdateVeboxStates(
         // only when auto denoise is on do we need to update VEBOX states
         return MOS_STATUS_SUCCESS;
     }
-
     // Switch GPU Context to Render Engine
     pOsInterface->pfnSetGpuContext(pOsInterface, RenderGpuContext);
 
@@ -3549,7 +3548,8 @@ finish:
                                    pVeboxState->IsQueryVarianceEnabled()) &&
                                    pRenderData->bRefValid;
     }
-
+    
+    // Switch GPU Context to Render Engine
     pOsInterface->pfnSetGpuContext(pOsInterface, RenderGpuContext);
 
     // Vebox feature report -- set the output pipe
@@ -3973,6 +3973,22 @@ MOS_STATUS VpHal_RndrRenderVebox(
 finish:
     VPHAL_RENDER_NORMALMESSAGE("VPOutputPipe = %d, VEFeatureInUse = %d", 
         pRenderer->GetReport()->OutputPipeMode, pRenderer->GetReport()->VEFeatureInUse);    
+
+    return eStatus;
+}
+MOS_STATUS VPHAL_VEBOX_STATE::UpdateRenderGpuContext(
+    MOS_GPU_CONTEXT renderGpuContext)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    if (MOS_RCS_ENGINE_USED(renderGpuContext))
+    {
+        RenderGpuContext = renderGpuContext;
+        VPHAL_RENDER_NORMALMESSAGE("RenderGpuContext turns to %d", renderGpuContext);
+    }
+    else
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid Render GpuContext: %d! Update RenderGpuContext Failed", renderGpuContext);
+    }
 
     return eStatus;
 }

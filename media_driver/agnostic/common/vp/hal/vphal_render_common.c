@@ -1330,6 +1330,8 @@ bool VpHal_RndrCommonIsAlignmentWANeeded(
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
         case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
+        case MOS_GPU_CONTEXT_RENDER_RA:
             if (!(MOS_IS_ALIGNED(MOS_MIN((uint32_t)pSurface->dwHeight, (uint32_t)pSurface->rcMaxSrc.bottom), 4)) &&
                 (pSurface->Format == Format_NV12))
             {
