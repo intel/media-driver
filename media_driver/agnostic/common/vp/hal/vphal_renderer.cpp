@@ -1132,6 +1132,11 @@ MOS_STATUS VphalRenderer::Render(
             pSrcRight,
             &uiRenderPasses));
 
+    //Update GpuContext
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrCCSNode))
+    {
+        UpdateRenderGpuContext();
+    }
     // align rectangle and source surface
     for (uiDst = 0; uiDst < RenderParams.uDstCount; uiDst++)
     {
@@ -1173,6 +1178,82 @@ finish:
 }
 
 //!
+//! \brief    Update Render Gpu Context
+//! \details  Update Render Gpu Context
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRenderer::UpdateRenderGpuContext()
+{
+    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+    MOS_GPU_CONTEXT         renderGpuContext, currentGpuContext;
+    MOS_GPU_NODE            renderGpuNode;
+    MOS_GPUCTX_CREATOPTIONS createOption;
+    PVPHAL_VEBOX_STATE      pVeboxState = nullptr;
+    int                     i           = 0;
+    currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+    if (m_pOsInterface->osCpInterface->IsCpEnabled() &&
+        (m_pOsInterface->osCpInterface->IsHMEnabled() || m_pOsInterface->osCpInterface->IsSMEnabled()))
+    {
+        if (currentGpuContext == MOS_GPU_CONTEXT_COMPUTE ||
+            currentGpuContext == MOS_GPU_CONTEXT_COMPUTE_RA)  // CCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_COMPUTE_RA;
+            renderGpuNode    = MOS_GPU_NODE_COMPUTE;
+        }
+        else  // RCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_RENDER_RA;
+            renderGpuNode    = MOS_GPU_NODE_3D;
+        }
+        createOption.RAMode = 1;
+    }
+    else
+    {
+        if (currentGpuContext == MOS_GPU_CONTEXT_COMPUTE ||
+            currentGpuContext == MOS_GPU_CONTEXT_COMPUTE_RA)  // CCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_COMPUTE;
+            renderGpuNode    = MOS_GPU_NODE_COMPUTE;
+        }
+        else  // RCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_RENDER;
+            renderGpuNode    = MOS_GPU_NODE_3D;
+        }
+        createOption.RAMode = 0;
+    }
+
+    // no gpucontext will be created if the gpu context has been created before.
+    VPHAL_PUBLIC_CHK_STATUS(m_pOsInterface->pfnCreateGpuContext(
+        m_pOsInterface,
+        renderGpuContext,
+        renderGpuNode,
+        &createOption));
+
+    VPHAL_PUBLIC_CHK_STATUS(m_pOsInterface->pfnSetGpuContext(
+        m_pOsInterface,
+        renderGpuContext));
+
+    // Register Render GPU context with the event
+    VPHAL_PUBLIC_CHK_STATUS(m_pOsInterface->pfnRegisterBBCompleteNotifyEvent(
+        m_pOsInterface,
+        renderGpuContext));
+
+    //update sub render status one by one
+    for (i = 0; i < VPHAL_RENDER_ID_COUNT - 1; i++)
+    {  // VPHAL_RENDER_ID_COMPOSITE is not inherited from vphal_vebox_state, skip it.
+        pVeboxState = (PVPHAL_VEBOX_STATE)(pRender[i]);
+        if (pVeboxState != nullptr)
+        {
+            pVeboxState->UpdateRenderGpuContext(renderGpuContext);
+        }
+    }
+finish:
+    VPHAL_RENDER_NORMALMESSAGE("gpucontext switch from %d to %d", currentGpuContext, renderGpuContext);
+    return eStatus;
+}
+    //!
 //! \brief    Release intermediate surfaces
 //! \details  Release intermediate surfaces created for main render function
 //! \return   MOS_STATUS

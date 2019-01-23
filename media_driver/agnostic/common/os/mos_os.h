@@ -66,13 +66,15 @@
     ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO3)    \
 )
 
-#define MOS_RCS_ENGINE_USED(GpuContext) (              \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER)        || \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER2)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER3)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER4)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_CM_COMPUTE)        \
+#define MOS_RCS_ENGINE_USED(GpuContext) (                 \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER)           || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER2)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER3)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER4)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_CM_COMPUTE)       || \
+    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE_RA)       || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER_RA)           \
 )
 
 #if MOS_MEDIASOLO_SUPPORTED
@@ -322,7 +324,7 @@ typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CR
 struct _MOS_GPUCTX_CREATOPTIONS
 {
     uint32_t  CmdBufferNumScale;
-
+    uint32_t  RAMode;
     //For slice shutdown
     union
     {
@@ -337,12 +339,10 @@ struct _MOS_GPUCTX_CREATOPTIONS
         uint32_t SSEUValue;
     };
 
-    bool  runAloneMode;
-
-    _MOS_GPUCTX_CREATOPTIONS()
-            : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
-              SSEUValue(0),
-              runAloneMode(false) {}
+    _MOS_GPUCTX_CREATOPTIONS() : 
+        CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
+        SSEUValue(0),
+        RAMode(0) {}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };
