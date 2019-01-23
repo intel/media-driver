@@ -105,7 +105,6 @@ MOS_STATUS VphalState::Allocate(
 
     if (MEDIA_IS_SKU(m_skuTable, FtrVERing) && m_veboxInterface)
     {
-        GpuNodeLimit.bCpEnabled        = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
         GpuNodeLimit.bSfcInUse         = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
 
         // Check GPU Node decide logic together in this function
@@ -550,7 +549,6 @@ MOS_STATUS VphalState::Render(
     VPHAL_RENDER_PARAMS RenderParams;
 
     VPHAL_PUBLIC_CHK_NULL(pcRenderParams);
-
     RenderParams    = *pcRenderParams;
 
     if (VpHal_IsAvsSampleForMultiStreamsEnabled(pcRenderParams))

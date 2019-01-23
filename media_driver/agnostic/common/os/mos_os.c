@@ -398,7 +398,9 @@ MOS_STATUS Mos_DumpCommandBuffer(
         case MOS_GPU_CONTEXT_RENDER2:
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
+        case MOS_GPU_CONTEXT_RENDER_RA:
         case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
             MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
             break;
         case MOS_GPU_CONTEXT_VEBOX:

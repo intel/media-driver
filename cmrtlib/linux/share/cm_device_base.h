@@ -1709,7 +1709,7 @@ public:
     //!             struct CM_QUEUE_CREATE_OPTION
     //!             {
     //!                 CM_QUEUE_TYPE QueueType                     : 3;
-    //!                 bool RunAloneMode                           : 1;
+    //!                 bool RAMode                           : 1;
     //!                 unsigned int Reserved0                      : 3;
     //!                 bool UserGPUContext                         : 1;
     //!                 unsigned int GPUContext                     : 8;
@@ -1729,7 +1729,7 @@ public:
     //!             };
     //!             \endcode
     //!             \n
-    //!             <b>RunAloneMode</b> decides if the queue will occupy GPU
+    //!             <b>RAMode</b> decides if the queue will occupy GPU
     //!             exclusively during execution.
     //!             \n
     //!             <b>UserGPUContext</b> indicates whether a existed GPU context is passed

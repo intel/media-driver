@@ -287,6 +287,14 @@ public:
     //!
     virtual MOS_STATUS InitKdllParam() = 0;
 
+    //!
+    //! \brief    Update Render Gpu Context
+    //! \details  Update Render Gpu Context
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateRenderGpuContext();
+
 protected:
     //!
     //! \brief    Prepare input surface list for top level render processing
