@@ -3320,10 +3320,10 @@ static int
 do_fence_wait(int fd, uint64_t flags)
 {
     /* Temporary solution waits in userland */
-    int rc = -ENOENT;
-    struct sync_fence_info_data *info;
+    int rc = -ENOENT, i = 0;
+    struct sync_file_info* file_info = nullptr;
+    struct sync_fence_info* fence_info = nullptr;
     unsigned int same_ring = 0;
-    struct sync_pt_info *pt_info = nullptr;
     struct drm_i915_gem_syncpt_driver_data *data;
     static const char driver_name[] = "i915_syn";
     static const uint64_t *driver_name_check = (uint64_t *)driver_name;
@@ -3334,20 +3334,18 @@ do_fence_wait(int fd, uint64_t flags)
 
     /* Optimisation: Avoiding waiting on fences on same ring. */
     flags &= I915_EXEC_RING_MASK;
-    info = sync_fence_info(fd);
-    if (info) {
+    file_info = sync_file_info(fd);
+    if (file_info) {
         same_ring = 1;
-        while ((pt_info = sync_pt_info(info, pt_info))) {
-            data = (struct drm_i915_gem_syncpt_driver_data *)
-                    &pt_info->driver_data;
-            driver_name_pt = (uint64_t *)&pt_info->driver_name[0];
-            if (*driver_name_pt != *driver_name_check
-                 || flags != (data->flags & I915_EXEC_RING_MASK)) {
+        fence_info = sync_get_fence_info(file_info);
+        for (i = 0; i < file_info->num_fences; i++) {
+            driver_name_pt = (uint64_t *)&(fence_info[i].driver_name[0]);
+            if (*driver_name_pt != *driver_name_check) {
                 same_ring = 0;
                 break;
             }
         }
-        sync_fence_info_free(info);
+        sync_file_info_free(file_info);
     }
 
     /* KMD doesn't currently support this so
@@ -3359,21 +3357,19 @@ do_fence_wait(int fd, uint64_t flags)
         rc = 0;
     } else {
         sync_wait(fd, -1);
-
-        info = sync_fence_info(fd);
-        if (!info) {
+        file_info = sync_file_info(fd);
+        if (!file_info) {
             /* EIO if an arbitrary choice for the error code.
              * The called function either fails due to ENOMEM
              * or error return from an ioctl.
              */
             rc = -EIO;
         } else {
-            if (info->status != 1) {
+            if (file_info->status != 1) {
                 rc = -ETIMEDOUT;
             } else
                 rc = 0;
-
-            sync_fence_info_free(info);
+            sync_file_info_free(file_info);
         }
     }
 
