@@ -20,12 +20,10 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g11_icllp.c
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g11_icllp.c
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g11_icllp.h
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g11_icllp.h
 )
 
 set(SOURCES_
