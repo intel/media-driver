@@ -4862,6 +4862,10 @@ MOS_STATUS RenderHal_InitCommandBuffer(
             pCmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = pGenericPrologParams->dwMediaFrameTrackingAddrOffset;
             pCmdBuffer->Attributes.resMediaFrameTrackingSurface = *(pGenericPrologParams->presMediaFrameTrackingSurface);
         }
+        else
+        {
+            pCmdBuffer->Attributes.bEnableMediaFrameTracking = false;
+        }
     }
 
     // Check if Override is needed
