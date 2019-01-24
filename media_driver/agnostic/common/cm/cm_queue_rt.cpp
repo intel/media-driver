@@ -1139,7 +1139,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
     CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
-    CM_CHK_CMSTATUS_GOTOFINISH(Enqueue(gpuCopyTask, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, event, threadSpace));
 
     if(event)
     {
@@ -1191,7 +1191,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         }
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(DestroyEvent(event));
+    CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(event));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyTask(gpuCopyTask));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyThreadSpace(threadSpace));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(bufferUP));
@@ -1216,7 +1216,7 @@ finish:
             hr = CM_GPUCOPY_OUT_OF_RESOURCE;
         }
 
-        if(event)                          DestroyEvent(event);
+        if(event)                          DestroyEventFast(event);
         if(kernel)                         m_device->DestroyKernel(kernel);
         if(threadSpace)                    m_device->DestroyThreadSpace(threadSpace);
         if(gpuCopyTask)                    m_device->DestroyTask(gpuCopyTask);
@@ -1485,7 +1485,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
             gpuCopyTask->SetProperty(taskConfig);
         }
-        CM_CHK_CMSTATUS_GOTOFINISH(Enqueue(gpuCopyTask, internalEvent,
+        CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, internalEvent,
                                            threadSpace));
 
         GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
@@ -1499,7 +1499,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
 
         if(totalBufferUPSize > 0)   //Intermediate event, we don't need it
         {
-            CM_CHK_CMSTATUS_GOTOFINISH(DestroyEvent(internalEvent));
+            CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(internalEvent));
         }
         else //Last one event, need keep or destroy it
         {
@@ -1511,7 +1511,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             if(event == CM_NO_EVENT)  //User doesn't need CmEvent for this copy
             {
                 event = nullptr;
-                CM_CHK_CMSTATUS_GOTOFINISH(DestroyEvent(internalEvent));
+                CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(internalEvent));
             }
             else //User needs this CmEvent
             {
@@ -1538,7 +1538,7 @@ finish:
         if(threadSpace)                                m_device->DestroyThreadSpace(threadSpace);
         if(gpuCopyTask)                       m_device->DestroyTask(gpuCopyTask);
         if(cmbufferUP)                        m_device->DestroyBufferUP(cmbufferUP);
-        if(internalEvent)                     DestroyEvent(internalEvent);
+        if(internalEvent)                     DestroyEventFast(internalEvent);
 
         // CM_FAILURE for all the other errors
         // return CM_EXCEED_MAX_TIMEOUT to notify app that gpu reset happens
@@ -1751,7 +1751,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
         taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
         gpuCopyTask->SetProperty(taskConfig);
     }
-    CM_CHK_CMSTATUS_GOTOFINISH(Enqueue(gpuCopyTask, internalEvent,
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, internalEvent,
                                        threadSpace));
 
     GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
@@ -1764,7 +1764,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
     if (event == CM_NO_EVENT)  //User doesn't need CmEvent for this copy
     {
         event = nullptr;
-        CM_CHK_CMSTATUS_GOTOFINISH(DestroyEvent(internalEvent));
+        CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(internalEvent));
     }
     else //User needs this CmEvent
     {
@@ -1791,7 +1791,7 @@ finish:
         if (gpuCopyTask)                       m_device->DestroyTask(gpuCopyTask);
         if (cmbufferUPY)                      m_device->DestroyBufferUP(cmbufferUPY);
         if (cmbufferUPUV)                     m_device->DestroyBufferUP(cmbufferUPUV);
-        if (internalEvent)                     DestroyEvent(internalEvent);
+        if (internalEvent)                     DestroyEventFast(internalEvent);
 
         // CM_FAILURE for all the other errors
         // return CM_EXCEED_MAX_TIMEOUT to notify app that gpu reset happens
@@ -1933,7 +1933,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
         task->SetProperty(taskConfig);
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(Enqueue(task, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, event, threadSpace));
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (event))
     {
         CM_CHK_CMSTATUS_GOTOFINISH(event->WaitForTaskFinished());
@@ -2107,7 +2107,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
         task->SetProperty(taskConfig);
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(Enqueue(task, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, event, threadSpace));
 
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (event))
     {
@@ -2303,7 +2303,11 @@ CM_RT_API int32_t CmQueueRT::DestroyEvent( CmEvent* & event )
 
     uint32_t index = 0;
 
-    CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+    CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+    if (eventRT == nullptr)
+    {
+        return DestroyEventFast(event);
+    }
     eventRT->GetIndex(index);
     CM_ASSERT( m_eventArray.GetElement( index ) == eventRT );
 
@@ -2444,7 +2448,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* surf2D, const ui
 
     CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
 
-    CM_CHK_CMSTATUS_GOTOFINISH(Enqueue(gpuCopyTask, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, event, threadSpace));
 
 finish:
 
