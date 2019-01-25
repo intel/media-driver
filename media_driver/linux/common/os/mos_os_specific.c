@@ -4366,6 +4366,7 @@ MOS_FORMAT Mos_Specific_FmtOsToMos(
         case DDI_FORMAT_A8L8         : return Format_A8L8;
         case DDI_FORMAT_V8U8         : return Format_V8U8;
         case DDI_FORMAT_A16B16G16R16 : return Format_A16B16G16R16;
+        case DDI_FORMAT_R32G32B32A32F: return Format_R32G32B32A32F;
         case FOURCC_YVYU             : return Format_YVYU;
         case FOURCC_UYVY             : return Format_UYVY;
         case FOURCC_VYUY             : return Format_VYUY;
@@ -4465,6 +4466,7 @@ MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     case Format_A16B16G16R16 : return (MOS_OS_FORMAT)DDI_FORMAT_A16B16G16R16;
     case Format_Y210         : return (MOS_OS_FORMAT)FOURCC_Y216;
     case Format_Y410         : return (MOS_OS_FORMAT)FOURCC_Y410;
+    case Format_R32G32B32A32F: return (MOS_OS_FORMAT)DDI_FORMAT_R32G32B32A32F;
     default                  : return (MOS_OS_FORMAT)DDI_FORMAT_UNKNOWN;
     }
 }
