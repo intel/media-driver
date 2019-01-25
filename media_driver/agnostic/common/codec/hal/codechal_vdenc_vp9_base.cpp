@@ -915,6 +915,27 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
         dmem->SegmentSkip[i] = m_vp9SegmentParams->SegData[i].SegmentFlags.fields.SegmentSkipped;
     }
 
+    if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_KEY_FRAME && m_currPass == 0)
+    {
+        for (auto i = 1; i < CODEC_VP9_NUM_CONTEXTS; i++)
+        {
+            uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
+                m_osInterface,
+                &m_resProbBuffer[i],
+                &lockFlagsWriteOnly);
+
+            CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+            ContextBufferInit(data, 0);
+            CtxBufDiffInit(data, 0);
+
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+                m_osInterface,
+                &m_resProbBuffer[i]));
+        }
+    }
+
+
     // in multipasses, only delta seg qp (SegCodeAbs = 0) is supported, confirmed by the arch team
     dmem->SegCodeAbs                     = 0;
     dmem->SegTemporalUpdate              = m_vp9PicParams->PicFlags.fields.segmentation_temporal_update;
