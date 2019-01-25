@@ -1627,12 +1627,13 @@ bool CompositeState::AddCompLayer(
     bResult            = false;
     pPrevSource        = nullptr;
     bSinglePhaseRotate = false;
-    scalingMode           = pSource->ScalingMode;
 
     if (pComposite == nullptr || pSource == nullptr)
     {
         goto finish;
     }
+
+    scalingMode           = pSource->ScalingMode;
 
     // set default Scaling Model as Bilinear if AVS was not supported.
     if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
