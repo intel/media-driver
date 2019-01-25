@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -313,11 +313,11 @@ public:
         m_bDisableRender = bDisable;
     };
 
-protected:
     // External components
     PMOS_INTERFACE              m_pOsInterface;
     PRENDERHAL_INTERFACE        m_pRenderHal;
 
+protected:
     // External tables
     MEDIA_FEATURE_TABLE         *m_pSkuTable;
     MEDIA_WA_TABLE              *m_pWaTable;

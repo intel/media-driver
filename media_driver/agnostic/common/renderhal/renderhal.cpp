@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4830,7 +4830,10 @@ MOS_STATUS RenderHal_InitCommandBuffer(
 
     // Init Cmd Buffer
 #ifdef _MMC_SUPPORTED
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SetCompositePrologCmd(pRenderHal, pCmdBuffer));
+    if (isRender)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SetCompositePrologCmd(pRenderHal, pCmdBuffer));
+    }
 #endif // _MMC_SUPPORTED
 
     // Set indirect heap size - limits the size of the command buffer available for rendering
