@@ -35,9 +35,6 @@
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
-#ifndef __user
-#define __user
-#endif
 #include "i915_drm.h"
 #include "mos_bufmgr.h"
 #include "xf86drm.h"
