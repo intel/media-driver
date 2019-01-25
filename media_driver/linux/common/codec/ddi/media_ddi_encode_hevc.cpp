@@ -1031,9 +1031,8 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         //enable parallelBRC for Android and Linux
         seqParams->ParallelBRC = vaEncMiscParamRC->rc_flags.bits.enable_parallel_brc;
 
-        // Assuming picParams are sent before MiscParams
-        picParams->BRCMinQp = vaEncMiscParamRC->min_qp;
-        picParams->BRCMaxQp = vaEncMiscParamRC->max_qp;
+        picParams->BRCMaxQp  = (vaEncMiscParamRC->max_qp == 0) ? 51 : (uint8_t)CodecHal_Clip3(1, 51, (int8_t)vaEncMiscParamRC->max_qp);
+        picParams->BRCMinQp = (vaEncMiscParamRC->min_qp == 0) ? 1 : (uint8_t)CodecHal_Clip3(1, picParams->BRCMaxQp, (int8_t)vaEncMiscParamRC->min_qp);
 
         if (VA_RC_NONE == m_encodeCtx->uiRCMethod || VA_RC_CQP == m_encodeCtx->uiRCMethod)
         {
