@@ -1,6 +1,6 @@
 /*
 *
-* Copyright (c) Intel Corporation (2018).
+* Copyright (c) Intel Corporation (2018 - 2019).
 *
 * INTEL MAKES NO WARRANTY OF ANY KIND REGARDING THE CODE.  THIS CODE IS
 * LICENSED ON AN "AS IS" BASIS AND INTEL WILL NOT PROVIDE ANY SUPPORT,
@@ -214,10 +214,10 @@ MOS_STATUS VpHal_16AlignSetupKernel(
     pRenderData->iCurbeLength   = pRenderData->pKernelParam->CURBE_Length * GRF_SIZE;
 
     // Set Kernel entry
-    pRenderData->KernelEntry.iKUID     = IDR_VP_avs_scale_16aligned;
+    pRenderData->KernelEntry.iKUID     = IDR_VP_1_1_16aligned;
     pRenderData->KernelEntry.iKCID     = -1;
-    pRenderData->KernelEntry.iSize     = pCacheEntryTable[IDR_VP_avs_scale_16aligned].iSize;
-    pRenderData->KernelEntry.pBinary   = pCacheEntryTable[IDR_VP_avs_scale_16aligned].pBinary;
+    pRenderData->KernelEntry.iSize     = pCacheEntryTable[IDR_VP_1_1_16aligned].iSize;
+    pRenderData->KernelEntry.pBinary   = pCacheEntryTable[IDR_VP_1_1_16aligned].pBinary;
 
 finish:
     return eStatus;
