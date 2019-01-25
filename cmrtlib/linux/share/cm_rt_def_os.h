@@ -107,6 +107,7 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_L16                  =  81,
     VA_CM_FMT_A16B16G16R16F        = 113,
     VA_CM_FMT_R32F                 = 114,
+    VA_CM_FMT_R32G32B32A32F        = 115,
     VA_CM_FMT_NV12                 =  VA_FOURCC_NV12,
     VA_CM_FMT_UYVY                 =  VA_FOURCC_UYVY,
     VA_CM_FMT_YUY2                 =  VA_FOURCC_YUY2,
@@ -206,6 +207,7 @@ inline int CM_THREAD_JOIN(THREAD_HANDLE *handle_array, int thread_cnt)
 #define CM_SURFACE_FORMAT_A16B16G16R16          VA_CM_FMT_A16B16G16R16
 #define CM_SURFACE_FORMAT_R10G10B10A2           VA_CM_FMT_A2B10G10R10 
 #define CM_SURFACE_FORMAT_A16B16G16R16F         VA_CM_FMT_A16B16G16R16F
+#define CM_SURFACE_FORMAT_R32G32B32A32F         VA_CM_FMT_R32G32B32A32F
 
 #define CM_SURFACE_FORMAT_444P                  VA_CM_FMT_444P
 #define CM_SURFACE_FORMAT_422H                  VA_CM_FMT_422H

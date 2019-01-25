@@ -106,6 +106,8 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_Y210        : return GMM_FORMAT_Y210_TYPE;
         case Format_Y410        : return GMM_FORMAT_Y410_TYPE;
         case Format_R10G10B10A2 : return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
+        case Format_A16B16G16R16F: return GMM_FORMAT_R16G16B16A16_FLOAT;
+        case Format_R32G32B32A32F: return GMM_FORMAT_R32G32B32A32_FLOAT;
         default                 : return GMM_FORMAT_INVALID;
     }
 }

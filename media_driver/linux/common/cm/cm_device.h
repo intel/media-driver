@@ -1143,6 +1143,7 @@ public:
     //!             following formats: \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16 \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16F \n
+    //!                 CM_SURFACE_FORMAT_R32G32B32A32F \n
     //!                 CM_SURFACE_FORMAT_A8 \n
     //!                 CM_SURFACE_FORMAT_A8R8G8B8 \n
     //!                 CM_SURFACE_FORMAT_YUY2 \n
@@ -1622,6 +1623,7 @@ public:
     //!             surface's formats, for now, we support following: \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16 \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16F \n
+    //!                 CM_SURFACE_FORMAT_R32G32B32A32F \n
     //!                 CM_SURFACE_FORMAT_A8 \n
     //!                 CM_SURFACE_FORMAT_A8R8G8B8 \n
     //!                 CM_SURFACE_FORMAT_YUY2 \n

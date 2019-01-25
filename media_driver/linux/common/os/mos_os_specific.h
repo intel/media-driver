@@ -79,7 +79,8 @@ enum DdiSurfaceFormat
     DDI_FORMAT_V8U8         = 60,
     DDI_FORMAT_UYVY         = MAKEFOURCC('U', 'Y', 'V', 'Y'),
     DDI_FORMAT_NV12         = MAKEFOURCC('N', 'V', '1', '2'),
-    DDI_FORMAT_A16B16G16R16 = 36
+    DDI_FORMAT_A16B16G16R16 = 36,
+    DDI_FORMAT_R32G32B32A32F = 115,
 };
 
 #define INDIRECT_HEAP_SIZE_UNITS    (1024)
