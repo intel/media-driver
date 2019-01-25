@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010-2017, Intel Corporation
+* Copyright (c) 2010-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -287,6 +287,24 @@ public:
     virtual MOS_STATUS SendSfcCmd(
         PVPHAL_VEBOX_RENDER_DATA        pRenderData,
         PMOS_COMMAND_BUFFER             pCmdBuffer);
+
+    //!
+    //! \brief    Set Sfc index used by HW
+    //! \details  VPHAL set Sfc index used by HW
+    //! \param    [in] dwSfcIndex;
+    //!           set which Sfc can be used by HW
+    //! \param    [in] dwSfcCount;
+    //!           set Sfc Count
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS SetSfcIndex(
+        uint32_t                    dwSfcIndex,
+        uint32_t                    dwSfcCount)
+    {
+        MOS_UNUSED(dwSfcIndex);
+        MOS_UNUSED(dwSfcCount);
+        return MOS_STATUS_SUCCESS;
+    }
 
 protected:
     //!
