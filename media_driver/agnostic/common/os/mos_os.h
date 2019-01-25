@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -159,11 +159,15 @@ typedef enum _MOS_FORCE_VDBOX
 //!
 typedef enum _MOS_FORCE_VEBOX
 {
-    MOS_FORCE_VEBOX_NONE = 0,
-    MOS_FORCE_VEBOX_1 = 0x0001,
-    MOS_FORCE_VEBOX_2 = 0x0002,
+    MOS_FORCE_VEBOX_NONE    = 0,
+    MOS_FORCE_VEBOX_1       = 0x0001,
+    MOS_FORCE_VEBOX_2       = 0x0002,
+    MOS_FORCE_VEBOX_3       = 0x0003,
+    MOS_FORCE_VEBOX_4       = 0x0004,
     // For scalability case
-    MOS_FORCE_VEBOX_1_2 = 0x0012
+    MOS_FORCE_VEBOX_1_2     = 0x0012,
+    MOS_FORCE_VEBOX_1_2_3   = 0x0123,
+    MOS_FORCE_VEBOX_1_2_3_4 = 0x1234
 } MOS_FORCE_VEBOX;
 
 #define MOS_FORCEVEBOX_VEBOXID_BITSNUM              4 //each VEBOX ID occupies 4 bits see defintion MOS_FORCE_VEBOX
