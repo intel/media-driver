@@ -122,7 +122,7 @@ ICL (Ice Lake)
 | MPEG-2     | D/Es |  D/Es  | D       | D/Es    | D/Es  | D/Es  | D/Es | D/Es    |
 | VC-1       | D    |   D    | D       | D       | D     | D     | D    | D       |
 | JPEG       | D    |   D/E  | D/E     | D/E     | D/E   | D/E   | D/E  | D/E     |
-| VP8        | D    |   D    | D       | D       | D     | D     | D/Es | D/Es    |
+| VP8        | D    |   D    | D       | D       | D     | D/Es  | D/Es | D/Es    |
 | HEVC 8bit  |      |   D/Es | D/Es    | D/Es    | D/Es  | D/Es  | D/Es | D/E/Es  |
 | HEVC 10bit |      |        | D       | D       | D     | D     | D/Es | D/E/Es  |
 | VP9 8bit   |      |        | D       | D       | D     | D     | D    | D/E     |
@@ -153,7 +153,7 @@ Es - HW + Shader Encoding
 | TCC (Total Color Control)                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
 | Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
 | Chroma Siting                                |     |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| HDR (High Dynamic Range)                     |     |     |         |     |     |     |     |  Y  |
+| HDR10 Tone Mapping                           |     |     |         |     |     |     |     |  Y  |
 
 For detail feature information, you can access [Media Features](https://github.com/intel/media-driver/blob/master/docs/media_features.md).
 
@@ -201,7 +201,7 @@ All Open Source Shaders listed in the previous paragraph are still available, bu
 |-----------------|-----|-----|---------|-----|-----|-----|-----|------|
 | AVC             |  Es |  Es |   Es    |  Es |  Es |  Es |  Es |  Es  |
 | MPEG-2          |  Es |  Es |         |  Es |  Es |  Es |  Es |  Es  |
-| VP8             |     |     |         |     |     |     |  Es |  Es  |
+| VP8             |     |     |         |     |     |  Es |  Es |  Es  |
 | HEVC 8bit       |     |  Es |   Es    |  Es |  Es |  Es |  Es |  Es  |
 | HEVC 10bit      |     |     |         |     |     |     |  Es |  Es  |
 
