@@ -20,5 +20,9 @@
 
 media_include_subdirectory(hal)
 if(ENABLE_KERNELS)
-    media_include_subdirectory(kernel)
+        if(ENABLE_NONFREE_KERNELS)
+            media_include_subdirectory(kernel)
+        else()
+            media_include_subdirectory(kernel_free)
+        endif()
 endif()

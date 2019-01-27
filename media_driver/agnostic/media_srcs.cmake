@@ -55,7 +55,7 @@ if (BUILD_KERNELS)
     function(gen_kernel_from_asm name platform)
         platform_to_genx(${platform} genx kind)
 
-        set(krn_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/${platform}/vp/kernel)
+        set(krn_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/${platform}/vp/kernel_free)
         set(link_file ${krn_dir}/component_release/LinkFile.txt)
         set(krn ig${name}krn_g${genx}_${kind})
         set(krn_header ${CMAKE_CURRENT_LIST_DIR}/common/vp/kernel/${name}krnheader.h)
