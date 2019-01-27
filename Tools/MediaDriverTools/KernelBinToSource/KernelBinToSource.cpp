@@ -47,7 +47,7 @@ static const char *FILE_SEP         = "\\";
 
 static const char *COPYRIGHT    =
     "/*                                                                                     \n"
-    " * Copyright (c) 2017, Intel Corporation                                               \n"
+    " * Copyright (c) 2019, Intel Corporation                                               \n"
     " *                                                                                     \n"
     " * Permission is hereby granted, free of charge, to any person obtaining a             \n"
     " * copy of this software and associated documentation files (the                       \n"
