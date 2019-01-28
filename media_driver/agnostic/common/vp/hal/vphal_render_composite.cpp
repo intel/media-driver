@@ -6135,7 +6135,8 @@ MOS_STATUS CompositeState::RenderPhase(
         pWalkerParams,
         pComputeWalkerParams,
         &m_StatusTableUpdateParams,
-        kernelCombinedFc));
+        kernelCombinedFc,
+        m_bLastPhase));
 
 finish:
     // clean rendering data

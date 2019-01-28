@@ -890,7 +890,8 @@ MOS_STATUS VpHal_16AlignRender(
         &WalkerParams,
         nullptr,
         &p16AlignState->StatusTableUpdateParams,
-        kernelUserPtr));
+        kernelUserPtr,
+        true));
 
 finish:
     MOS_ZeroMemory(pCacheSettings, sizeof(*pCacheSettings));
