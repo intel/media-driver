@@ -631,6 +631,8 @@ finish:
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSumission
+//!             Is last sumission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrSubmitCommands(
@@ -640,7 +642,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
     PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
-    VpKernelID                          KernelID)
+    VpKernelID                          KernelID,
+    bool                                bLastSumission)
 {
     PMOS_INTERFACE                      pOsInterface;
     MOS_COMMAND_BUFFER                  CmdBuffer;
@@ -675,7 +678,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         KernelID));
 
 #ifndef EMUL
-    if (pOsInterface->bEnableKmdMediaFrameTracking)
+    if (bLastSumission && pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));

@@ -909,7 +909,8 @@ MOS_STATUS VpHal_Fast1toNRender(
         &WalkerParams,
         nullptr,
         &pFast1toNState->StatusTableUpdateParams,
-        kernelFast1toN));
+        kernelFast1toN,
+        true));
 
 finish:
     MOS_ZeroMemory(pCacheSettings, sizeof(*pCacheSettings));
