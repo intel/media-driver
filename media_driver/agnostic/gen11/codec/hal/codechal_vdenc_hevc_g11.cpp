@@ -3223,7 +3223,6 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
     auto hucVdencBrcInitDmem = (PCODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G11)m_osInterface->pfnLockResource(
         m_osInterface, &m_vdencBrcInitDmemBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVdencBrcInitDmem);
-    MOS_ZeroMemory(hucVdencBrcInitDmem, sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G11));
 
     hucVdencBrcInitDmem->BRCFunc_U32 = 0;  // 0: Init, 1: Reset
     hucVdencBrcInitDmem->UserMaxFrame = GetProfileLevelMaxFrameSize();
@@ -3267,7 +3266,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
             break;
         case RATECONTROL_QVBR:
             hucVdencBrcInitDmem->BRCFlag = 2;
-            hucVdencBrcInitDmem->ACQP_U32 = m_hevcSeqParams->ICQQualityFactor;
+            hucVdencBrcInitDmem->ACQP_U32 = m_hevcSeqParams->ICQQualityFactor;;
             break;
         default:
             break;
@@ -3621,7 +3620,6 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcUpdate()
     auto hucVDEncBrcUpdateDmem = (PCODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11)m_osInterface->pfnLockResource(
         m_osInterface, &m_vdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][GetCurrentPass()], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVDEncBrcUpdateDmem);
-    MOS_ZeroMemory(hucVDEncBrcUpdateDmem, sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11));
 
     hucVDEncBrcUpdateDmem->TARGETSIZE_U32 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)? m_hevcSeqParams->InitVBVBufferFullnessInBit :
                                             MOS_MIN(m_hevcSeqParams->InitVBVBufferFullnessInBit, m_hevcSeqParams->VBVBufferSizeInBit);
