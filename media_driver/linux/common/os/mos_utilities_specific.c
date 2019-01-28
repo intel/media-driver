@@ -673,6 +673,7 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
     int32_t       iPos;
     MOS_UF_VALUE  *pValueArray;
     MOS_UF_KEY    *Key;
+    void          *ulValueBuf;
 
     iPos         = -1;
     pValueArray  = nullptr;
@@ -683,6 +684,12 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
         return MOS_STATUS_UNKNOWN;
     }
 
+    // Prepare the ValueBuff of the NewKey
+    if ((ulValueBuf = MOS_AllocMemory(NewKey.pValueArray[0].ulValueLen)) == nullptr)
+    {
+         return MOS_STATUS_NO_SPACE;
+    }
+
     if ( (iPos = _UserFeature_FindValue(*Key, NewKey.pValueArray[0].pcValueName)) == NOT_FOUND)
     {
         //not found, add a new value to key struct.
@@ -690,6 +697,7 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
         pValueArray = (MOS_UF_VALUE*)MOS_AllocMemory(sizeof(MOS_UF_VALUE)*(Key->ulValueNum+1));
         if (pValueArray == nullptr)
         {
+            MOS_FreeMemory(ulValueBuf);
             return MOS_STATUS_NO_SPACE;
         }
 
@@ -708,14 +716,15 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
             NewKey.pValueArray[0].pcValueName);
         Key->ulValueNum ++;
     }
+    else
+    {
+        //if found, the previous value buffer needs to be freed before reallocating
+        MOS_FreeMemory(Key->pValueArray[iPos].ulValueBuf);
+    }
 
     Key->pValueArray[iPos].ulValueLen  = NewKey.pValueArray[0].ulValueLen;
     Key->pValueArray[iPos].ulValueType = NewKey.pValueArray[0].ulValueType;
-    Key->pValueArray[iPos].ulValueBuf  = MOS_AllocMemory(NewKey.pValueArray[0].ulValueLen);
-    if(Key->pValueArray[iPos].ulValueBuf == nullptr)
-    {
-        return MOS_STATUS_NO_SPACE;
-    }
+    Key->pValueArray[iPos].ulValueBuf  = ulValueBuf;
 
     MOS_ZeroMemory(Key->pValueArray[iPos].ulValueBuf, NewKey.pValueArray[0].ulValueLen);
 
@@ -1024,16 +1033,28 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
             if(_UserFeature_Add(pKeyList, CurKey) != MOS_STATUS_SUCCESS)
             {
                 // if the CurKey didn't be added in pKeyList, free it.
+                for (uint32_t i = 0; i < iCount; i++)
+                {
+                    MOS_FreeMemory(CurValue[i].ulValueBuf);
+                }
                 MOS_FreeMemory(CurKey);
             }
         }
         else
         {
+            for (uint32_t i = 0; i < iCount; i++)
+            {
+                MOS_FreeMemory(CurValue[i].ulValueBuf);
+            }
             MOS_FreeMemory(CurKey);
         }
     }
     else
     {
+        for (uint32_t i = 0; i < iCount; i++)
+        {
+            MOS_FreeMemory(CurValue[i].ulValueBuf);
+        }
         MOS_FreeMemory(CurKey);
     }
     fclose(File);
