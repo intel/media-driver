@@ -2586,6 +2586,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSumission
+//!             whether it is the last sumission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrSubmitCommands(
@@ -2594,8 +2596,9 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     bool                                bNullRendering,
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
-    PSTATUS_TABLE_UPDATE_PARAMS            pStatusTableUpdateParams,
-    VpKernelID                          KernelID);
+    PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
+    VpKernelID                          KernelID,
+    bool                                bLastSumission);
 
 //!
 //! \brief      Is Alignment WA needed
