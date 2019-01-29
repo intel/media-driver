@@ -3755,6 +3755,7 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelVLD()
                         offset = CODECHAL_DECODE_VC1_STUFFING_BYTES - 1;
                         length += CODECHAL_DECODE_VC1_STUFFING_BYTES;
                         slc->macroblock_offset += CODECHAL_DECODE_VC1_STUFFING_BYTES << 3;
+                        slc->macroblock_offset &= (~0x7); // Clear bit offset of first MB for short format
                     }
                 }
             }
