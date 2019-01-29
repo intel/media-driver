@@ -55,6 +55,7 @@ uint32_t CodecHalAvcEncode_GetMaxVmvR(uint8_t levelIdc)
     switch (levelIdc)
     {
     case CODEC_AVC_LEVEL_1:
+    case CODEC_AVC_LEVEL_1b:
         maxVmvR = 64 * 4;
         break;
     case CODEC_AVC_LEVEL_11:
@@ -96,6 +97,7 @@ uint32_t CodecHalAvcEncode_GetMaxMvLen(uint8_t levelIdc)
     switch (levelIdc)
     {
     case CODEC_AVC_LEVEL_1:
+    case CODEC_AVC_LEVEL_1b:
         maxMvLen = 63;
         break;
     case CODEC_AVC_LEVEL_11:
@@ -446,6 +448,7 @@ static int32_t GetMaxMBPS(uint8_t levelIdc)
     switch (levelIdc)
     {
     case CODEC_AVC_LEVEL_1:
+    case CODEC_AVC_LEVEL_1b:
         maxMBPS = 1485;
         break;
     case CODEC_AVC_LEVEL_11:
