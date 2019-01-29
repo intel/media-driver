@@ -1621,7 +1621,7 @@ VphalRenderer::VphalRenderer(
     PRENDERHAL_INTERFACE                pRenderHal,
     MOS_STATUS                          *pStatus) :
     m_pRenderHal(pRenderHal),
-    m_pOsInterface(pRenderHal->pOsInterface),
+    m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
     m_pSkuTable(nullptr),
     m_modifyKdllFunctionPointers(nullptr),
     Align16State(),
@@ -1655,6 +1655,9 @@ VphalRenderer::VphalRenderer(
     MOS_STATUS                          eStatus;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 
+    VPHAL_RENDER_CHK_NULL(m_pRenderHal);
+    VPHAL_RENDER_CHK_NULL(m_pOsInterface);
+
     MOS_ZeroMemory(&pRender, sizeof(pRender));
 
     // Read Slice Shutdown (SSD Control) User Feature Key once during initialization
@@ -1674,7 +1677,11 @@ VphalRenderer::VphalRenderer(
     // Get SKU table
     m_pSkuTable = m_pOsInterface->pfnGetSkuTable(m_pOsInterface);
 
-    *pStatus = eStatus;
+finish:
+    if (pStatus)
+    {
+        *pStatus = eStatus;
+    }
 }
 
 //!

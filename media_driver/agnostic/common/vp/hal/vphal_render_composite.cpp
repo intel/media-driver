@@ -6910,8 +6910,11 @@ CompositeState::CompositeState(
     m_bYV12iAvsScaling(false),
     m_bLastPhase(false)
 {
-    MOS_STATUS                  eStatus;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+
+    VPHAL_RENDER_CHK_NULL(pOsInterface);
+    VPHAL_RENDER_CHK_NULL(pRenderHal);
 
     MOS_ZeroMemory(&m_Procamp, sizeof(m_Procamp));
     MOS_ZeroMemory(&m_csSrc, sizeof(m_csSrc));
@@ -6971,11 +6974,12 @@ CompositeState::CompositeState(
         &UserFeatureData));
     m_bFtrCSCCoeffPatchMode = UserFeatureData.bData ? false : true;
 
-    // Constructor completed, set status to success
-    eStatus = MOS_STATUS_SUCCESS;
-
+finish:
     // copy status to output argument to pass status to caller
-    *peStatus = eStatus;
+    if (peStatus)
+    {
+        *peStatus = eStatus;
+    }
 }
 
 //!
