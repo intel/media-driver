@@ -68,6 +68,7 @@ typedef enum
 typedef enum
 {
     CODEC_AVC_LEVEL_1                    = 10,
+    CODEC_AVC_LEVEL_1b                   = 9,
     CODEC_AVC_LEVEL_11                   = 11,
     CODEC_AVC_LEVEL_12                   = 12,
     CODEC_AVC_LEVEL_13                   = 13,
