@@ -47,15 +47,24 @@ RenderState::RenderState(
     m_pOsInterface(pOsInterface),
     m_pRenderHal(pRenderHal),
     m_pPerfData(pPerfData),
+    m_pSkuTable(nullptr),
+    m_pWaTable(nullptr),
     m_reporting(nullptr),
     m_bDisableRender(false)
 {
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    VPHAL_RENDER_CHK_NULL(pRenderHal);
+
     // Connect renderer to other VPHAL components (HW/OS interfaces)
     m_pWaTable  = pRenderHal->pWaTable;
     m_pSkuTable = pRenderHal->pSkuTable;
 
-    // Constructor completed, set status to success
-    *peStatus   = MOS_STATUS_SUCCESS;
+finish:
+    if (peStatus)
+    {
+        *peStatus = eStatus;
+    }
 }
 
 //!

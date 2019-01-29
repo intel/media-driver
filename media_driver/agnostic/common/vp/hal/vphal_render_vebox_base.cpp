@@ -4180,7 +4180,7 @@ VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()
     }
 
     // Destroy SFC state
-    if (MEDIA_IS_SKU(m_pSkuTable, FtrSFCPipe) && m_sfcPipeState)
+    if (m_pSkuTable && MEDIA_IS_SKU(m_pSkuTable, FtrSFCPipe) && m_sfcPipeState)
     {
         MOS_Delete(m_sfcPipeState);
         m_sfcPipeState = nullptr;
