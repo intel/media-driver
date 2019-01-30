@@ -488,6 +488,8 @@ protected:
     {
         bool                        bFlatnessCheckEnabled = false;
         bool                        bMBVProcStatsEnabled = false;
+        bool                        bScalingInUses16UnormSurfFmt = false;
+        bool                        bScalingInUses32UnormSurfFmt = false;
         PMOS_SURFACE                psInputSurface = nullptr;
         PMOS_SURFACE                psOutput4xDsSurface = nullptr;
         PMOS_SURFACE                psOutput2xDsSurface = nullptr;
