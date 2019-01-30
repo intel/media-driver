@@ -130,8 +130,8 @@ typedef sem_t MEDIA_SEM_T, *PMEDIA_SEM_T;
 #define VA_FOURCC_I420        VA_FOURCC('I','4','2', '0')
 #endif
 
-#define RGB_10BIT_ALPHAMASK     0X30000
-#define RGB_8BIT_ALPHAMASK      0XFF0000
+#define RGB_10BIT_ALPHAMASK     VA_RT_FORMAT_RGB32_10BPP
+#define RGB_8BIT_ALPHAMASK      0
 
 #define MEDIAAPI_EXPORT __attribute__((visibility("default")))
 
