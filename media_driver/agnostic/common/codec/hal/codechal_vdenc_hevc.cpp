@@ -3569,6 +3569,32 @@ MOS_STATUS CodechalVdencHevcState::DumpSeqParFile()
 
     return MOS_STATUS_SUCCESS;
 }
+ 
+MOS_STATUS CodechalVdencHevcState::PopulateDdiParam(
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS  hevcPicParams,
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS    hevcSlcParams)
+{
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(
+        CodechalEncodeHevcBase::PopulateDdiParam(
+            hevcSeqParams,
+            hevcPicParams,
+            hevcSlcParams));
+
+    if (m_hevcVdencAcqpEnabled)
+    {
+        m_hevcPar->BRCMethod = 2;
+        m_hevcPar->BRCType = 0;
+        m_hevcPar->DisableCuQpAdj = 1;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS CodechalVdencHevcState::ModifyEncodedFrameSizeWithFakeHeaderSize(
     PMOS_COMMAND_BUFFER                 cmdBuffer,
