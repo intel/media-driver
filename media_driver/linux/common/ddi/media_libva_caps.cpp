@@ -716,14 +716,20 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribEncROI;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
+        VAConfigAttribValEncROI roi_attrib = {0};
         if (IsAvcProfile(profile))
         {
-            attrib.value = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
+            roi_attrib.bits.num_roi_regions = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
         }
         else if (IsHevcProfile(profile))
         {
-            attrib.value = 8;
+            roi_attrib.bits.num_roi_regions = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
         }
+
+        roi_attrib.bits.roi_rc_priority_support = 0;
+        roi_attrib.bits.roi_rc_qp_delta_support = 1;
+
+        attrib.value = roi_attrib.value;
     }
     else
     {
