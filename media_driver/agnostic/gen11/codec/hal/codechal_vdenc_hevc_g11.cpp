@@ -1623,25 +1623,13 @@ MOS_STATUS CodechalVdencHevcStateG11::EncodeKernelFunctions()
 
         CodechalEncodeCscDs::KernelParams cscScalingKernelParams;
         MOS_ZeroMemory(&cscScalingKernelParams, sizeof(cscScalingKernelParams));
-        //4x Downscaling
-        cscScalingKernelParams.b32xScalingInUse = false;
-        cscScalingKernelParams.b16xScalingInUse = false;
+        
+        cscScalingKernelParams.bLastTaskInPhaseCSC  =
+        cscScalingKernelParams.bLastTaskInPhase4xDS = false;
+        cscScalingKernelParams.bLastTaskInPhase16xDS    = !(m_32xMeSupported || m_hmeEnabled);
+        cscScalingKernelParams.bLastTaskInPhase32xDS    = !m_hmeEnabled;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
-
-        //16x Downscaling - 4x downscaled images used as the input for 16x downscaling
-        cscScalingKernelParams.b16xScalingInUse = true;
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
-
-        if (m_b32XMeEnabled)
-        {
-            //32x Downscaling
-            cscScalingKernelParams.b32xScalingInUse = true;
-            cscScalingKernelParams.b16xScalingInUse = false;
-
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
-        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->KernelFunctions(&cscScalingKernelParams));
     }
 
     if (m_b16XMeEnabled)
@@ -1732,7 +1720,7 @@ MOS_STATUS CodechalVdencHevcStateG11::EncodeKernelFunctions()
                         "MvData",
                         meOutputParams.psMeMvBuffer->dwHeight *meOutputParams.psMeMvBuffer->dwPitch,
                         CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb32x * 32), 64) * (m_downscaledFrameFieldHeightInMb32x * 4) : 0,
-                        CODECHAL_MEDIA_STATE_16X_ME));
+                        CODECHAL_MEDIA_STATE_32X_ME));
             }
 
             MOS_ZeroMemory(&meOutputParams, sizeof(meOutputParams));
