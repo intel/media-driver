@@ -201,6 +201,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             m_curbeParams.downscaleStage = dsStage2x4x;
             m_currRefList->b4xScalingUsed =
             m_currRefList->b2xScalingUsed = true;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = true;
         }
         else if (m_2xScalingEnabled)
         {
@@ -208,12 +210,16 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             m_currRefList->b2xScalingUsed = true;
             output4xDsSurface = nullptr;
             mbStatsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = true;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = false;
         }
         else if (m_scalingEnabled)
         {
             m_curbeParams.downscaleStage = dsStage4x;
             m_currRefList->b4xScalingUsed = true;
             output2xDsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = true;
         }
         else
         {
@@ -222,6 +228,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             output4xDsSurface = nullptr;
             output2xDsSurface = nullptr;
             mbStatsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = false;
         }
 
         // history sum to be enabled only for the 4x stage
@@ -246,10 +254,11 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             m_curbeParams.downscaleStage = dsStage16x;
             inputFrameWidth = m_encoder->m_downscaledWidth4x << 2;
             inputFrameHeight = m_encoder->m_downscaledHeight4x << 2;
-            
             inputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output4xDsSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output2xDsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = true;
         }
         else if (dsStage32x == params->stageDsConversion)
         {
@@ -261,6 +270,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             inputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output4xDsSurface = nullptr;
             output2xDsSurface = m_encoder->m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = true;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = false;
         }
     }
 
@@ -407,17 +418,32 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         cscColorP210 == m_colorRawSurface ||
         cscColorNv12Linear == m_colorRawSurface);
     surfaceParams.bMediaBlockRW = true;
-    /*
-    * Unify surface format to avoid mismatches introduced by DS kernel between MMC on and off cases.
-    * bUseCommonKernel        | FormatIsNV12 | MmcdOn | SurfaceFormatToUse
-    *            1            |       1      |  0/1   |        R8
-    *            1            |       0      |  0/1   |        R16
-    *            0            |       1      |  0/1   |        R8
-    *            0            |       0      |   1    |        R8
-    *            0            |       0      |   0    |        R32
-    */
-    surfaceParams.bUse16UnormSurfaceFormat = !(cscColorNv12TileY == m_colorRawSurface ||
-        cscColorNv12Linear == m_colorRawSurface);
+
+    // Configure to R16/32 for input surface
+    if (m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt)
+    {
+        // 32x scaling requires R16_UNROM
+        surfaceParams.bUse16UnormSurfaceFormat = true;
+    }
+    else if (m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt)
+    {
+        surfaceParams.bUse32UnormSurfaceFormat = true;
+    }
+    else
+    {
+        /*
+        * Unify surface format to avoid mismatches introduced by DS kernel between MMC on and off cases.
+        * bUseCommonKernel        | FormatIsNV12 | MmcdOn | SurfaceFormatToUse
+        *            1            |       1      |  0/1   |        R8
+        *            1            |       0      |  0/1   |        R16
+        *            0            |       1      |  0/1   |        R8
+        *            0            |       0      |   1    |        R8
+        *            0            |       0      |   0    |        R32
+        */
+        surfaceParams.bUse16UnormSurfaceFormat = !(cscColorNv12TileY == m_colorRawSurface ||
+            cscColorNv12Linear == m_colorRawSurface);
+    }
+
     surfaceParams.psSurface = m_surfaceParamsCsc.psInputSurface;
     if (cscColorNv12Linear == m_colorRawSurface)
     {
@@ -434,6 +460,18 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         cmdBuffer,
         &surfaceParams,
         m_cscKernelState));
+
+    /*
+    * Unify surface format to avoid mismatches introduced by DS kernel between MMC on and off cases.
+    * bUseCommonKernel        | FormatIsNV12 | MmcdOn | SurfaceFormatToUse
+    *            1            |       1      |  0/1   |        R8
+    *            1            |       0      |  0/1   |        R16
+    *            0            |       1      |  0/1   |        R8
+    *            0            |       0      |   1    |        R8
+    *            0            |       0      |   0    |        R32
+    */
+    surfaceParams.bUse16UnormSurfaceFormat = !(cscColorNv12TileY == m_colorRawSurface ||
+                                               cscColorNv12Linear == m_colorRawSurface);
 
     // Converted NV12 output surface, or ENC 8-bit output surface
     if (m_surfaceParamsCsc.psOutputCopiedSurface)
