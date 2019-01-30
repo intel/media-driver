@@ -563,98 +563,6 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
     }
 }
 
-//!
-//! \brief  Apply Os format alpha mask to media format 
-//! 
-//! \param  [in] fourcc
-//!         FourCC
-//! \param  [in] alphaMask
-//!         Alpha mask
-//!
-//! \return DDI_MEDIA_FORMAT
-//!     Ddi media format
-//!
-DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t alphaMask)
-{
-    switch (fourcc)
-    {
-        case VA_FOURCC_BGRA:
-        case VA_FOURCC_ARGB:
-            if(RGB_10BIT_ALPHAMASK == alphaMask)
-            {
-                return Media_Format_B10G10R10A2;
-            }
-            else
-            {
-                return Media_Format_A8R8G8B8;
-            }
-        case VA_FOURCC_RGBA:
-            if(RGB_10BIT_ALPHAMASK == alphaMask)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-            else
-            {
-                return Media_Format_R8G8B8A8;
-            }
-        case VA_FOURCC_ABGR:
-            if(RGB_10BIT_ALPHAMASK == alphaMask)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-            else
-            {
-                return Media_Format_A8B8G8R8;
-            }
-        case VA_FOURCC_BGRX:
-        case VA_FOURCC_XRGB:
-            return Media_Format_X8R8G8B8;
-        case VA_FOURCC_XBGR:
-        case VA_FOURCC_RGBX:
-            return Media_Format_X8B8G8R8;
-        case VA_FOURCC_R5G6B5:
-            return Media_Format_R5G6B5;
-        case VA_FOURCC_R8G8B8:
-            return Media_Format_R8G8B8;
-        case VA_FOURCC_NV12:
-            return Media_Format_NV12;
-        case VA_FOURCC_NV21:
-            return Media_Format_NV21;
-        case VA_FOURCC_YUY2:
-            return Media_Format_YUY2;
-        case VA_FOURCC_YV12:
-            return Media_Format_YV12;
-        case VA_FOURCC_IYUV:
-            return Media_Format_IYUV;
-        case VA_FOURCC_I420:
-            return Media_Format_I420;
-        case VA_FOURCC_422H:
-            return Media_Format_422H;
-        case VA_FOURCC_422V:
-            return Media_Format_422V;
-        case VA_FOURCC('4','0','0','P'):
-        case VA_FOURCC_Y800:
-            return Media_Format_400P;
-        case VA_FOURCC_411P:
-            return Media_Format_411P;
-        case VA_FOURCC_IMC3:
-            return Media_Format_IMC3;
-        case VA_FOURCC_444P:
-        case VA_FOURCC_BGRP:
-            return Media_Format_444P;
-        case VA_FOURCC_RGBP:
-            return Media_Format_RGBP;
-        case VA_FOURCC_P208:
-            return Media_Format_Buffer;
-        case VA_FOURCC('P','0','1','0'):
-            return Media_Format_P010;
-        case VA_FOURCC_AYUV:
-            return Media_Format_AYUV;
-        default:
-            return Media_Format_Count;
-    }
-}
-
 #if !defined(ANDROID) && defined(X11_FOUND)
 
 #define X11_LIB_NAME "libX11.so.6"
@@ -4601,7 +4509,7 @@ VAStatus DdiMedia_GetImage(
     VASurfaceID     output_surface = surface;
 
     //VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (inputSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+    if (inputSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
         width != vaimg->width || height != vaimg->height)
     {
         VAContextID context = VA_INVALID_ID;
@@ -4803,7 +4711,7 @@ VAStatus DdiMedia_PutImage(
     DDI_CHK_NULL(imageData, "nullptr imageData.", VA_STATUS_ERROR_INVALID_IMAGE);
 
     // VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (mediaSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc,vaimg->format.alpha_mask))
+    if (mediaSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc,vaimg->format.alpha_mask))
     {
         VAContextID context     = VA_INVALID_ID;
 
