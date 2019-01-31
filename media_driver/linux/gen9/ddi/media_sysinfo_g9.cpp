@@ -816,6 +816,9 @@ static bool cflDevice3e91 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool cflDevice3e96 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e96, &cflGt2Info);
 
+static bool cflDevice3e98 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3e98, &cflGt2Info);
+
 static bool cflDevice3e9b = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e9b, &cflGt2Info);
 
