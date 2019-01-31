@@ -358,6 +358,7 @@ public:
         Log2TUMaxDepthIntraTuParam,
         MaxNumIMESearchCenterTuParam,
         Fake32EnableTuParam,
+        Dynamic64Min32,
         TotalTuParams
     };
 

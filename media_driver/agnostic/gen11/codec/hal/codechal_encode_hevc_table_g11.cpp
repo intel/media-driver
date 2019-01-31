@@ -45,6 +45,7 @@ const uint8_t CodechalEncHevcStateG11::m_tuSettings[TotalTuParams][3]
     { 2, 2, 1 }, // Log2TUMaxDepthIntraTuParam
     { 3, 2, 2 }, // MaxNumIMESearchCenterTuParam
     { 0, 1, 1 }, // Fake32EnableTuParam
+    { 3, 0, 0 }, // Dynamic64Min32
 };
 
 //!< Mode bits LUT based on LCUType/Mode/SliceType
