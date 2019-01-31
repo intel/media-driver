@@ -226,16 +226,17 @@ MOS_STATUS CodechalEncodeScalability_ChkGpuCtxReCreation(
         // Create a scalable GPU context once based on MOS_GPU_CONTEXT_VDBOX2_VIDEO3 if needed
         if (pScalabilityState->VideoContextScalable == MOS_GPU_CONTEXT_INVALID_HANDLE)
         {
+            pScalabilityState->VideoContextScalable = MOS_VE_MULTINODESCALING_SUPPORTED(pOsInterface) ? MOS_GPU_CONTEXT_VIDEO6 : MOS_GPU_CONTEXT_VDBOX2_VIDEO3;
+
             eStatus = (MOS_STATUS)pOsInterface->pfnCreateGpuContext(
                 pOsInterface,
-                MOS_GPU_CONTEXT_VDBOX2_VIDEO3,
+                pScalabilityState->VideoContextScalable,
                 MOS_GPU_NODE_VIDEO,
                 CurgpuCtxCreatOpts);
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(pOsInterface->pfnRegisterBBCompleteNotifyEvent(
                 pOsInterface,
-                MOS_GPU_CONTEXT_VDBOX2_VIDEO3));
-            pScalabilityState->VideoContextScalable = MOS_GPU_CONTEXT_VDBOX2_VIDEO3;
+                pScalabilityState->VideoContextScalable));
         }
 
         // Switch across single pipe/ scalable mode gpu contexts

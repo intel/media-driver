@@ -90,7 +90,7 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
 
             if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 2)
             {
-                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO5 : MOS_GPU_CONTEXT_VDBOX2_VIDEO;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
@@ -102,12 +102,12 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
                     MOS_GPU_CONTEXT_VIDEO,
-                    MOS_GPU_NODE_VIDEO,
+                    m_videoGpuNode,
                     &createOption));
             }
             else if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 3)
             {
-                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO7 : MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
@@ -119,7 +119,7 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
                     MOS_GPU_CONTEXT_VIDEO,
-                    MOS_GPU_NODE_VIDEO,
+                    m_videoGpuNode,
                     &createOption));
             }
             else

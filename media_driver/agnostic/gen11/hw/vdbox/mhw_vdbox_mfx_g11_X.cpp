@@ -313,11 +313,25 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::CheckScalabilityOverrideValidity()
 MOS_STATUS MhwVdboxMfxInterfaceG11::FindGpuNodeToUse(
     PMHW_VDBOX_GPUNODE_LIMIT       gpuNodeLimit)
 {
-    MOS_GPU_NODE videoGpuNode = MOS_GPU_NODE_VIDEO;
+    bool setVideoNode = false;
     MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
 
-    //KMD Virtual Engine, use virtual GPU NODE-- MOS_GPU_NODE_VIDEO
-    gpuNodeLimit->dwGpuNodeToUse = videoGpuNode;
+    MOS_GPU_NODE videoGpuNode = MOS_GPU_NODE_VIDEO;
+
+    if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface))
+    {
+        if (GetNumVdbox() == 1)
+        {
+            videoGpuNode = MOS_GPU_NODE_VIDEO;
+        }
+        else
+        {
+            MHW_MI_CHK_STATUS(m_osInterface->pfnCreateVideoNodeAssociation(
+                m_osInterface,
+                setVideoNode,
+                &videoGpuNode));
+        }
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface != nullptr && m_osInterface->bEnableDbgOvrdInVE &&
@@ -333,6 +347,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::FindGpuNodeToUse(
         MHW_MI_CHK_STATUS(CheckScalabilityOverrideValidity());
     }
 #endif
+
+    gpuNodeLimit->dwGpuNodeToUse = videoGpuNode;
 
     return eStatus;
 }

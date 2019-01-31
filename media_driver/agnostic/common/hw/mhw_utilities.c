@@ -374,7 +374,10 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
                 GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO  ||
                 GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO2 ||
                 GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO3 ||
-                GpuContext == MOS_GPU_CONTEXT_VEBOX)
+                GpuContext == MOS_GPU_CONTEXT_VEBOX         ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO5        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO6        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO7        )
         {
             MHW_CHK_STATUS(pMiInterface->AddWatchdogTimerStartCmd(pCmdBuffer));
         }

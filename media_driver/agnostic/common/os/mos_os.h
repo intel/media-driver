@@ -63,7 +63,10 @@
     ((GpuContext) == MOS_GPU_CONTEXT_VIDEO4)        || \
     ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO)  || \
     ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO2) || \
-    ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO3)    \
+    ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO3) || \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO5)        || \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO6)        || \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO7)           \
 )
 
 #define MOS_RCS_ENGINE_USED(GpuContext) (                 \
@@ -1046,6 +1049,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bUseHwSemaForResSyncInVE;                     //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface 
     PMOS_VIRTUALENGINE_INTERFACE    pVEInterf;
     bool                            ctxBasedScheduling;                           //!< Flag to indicate if context based scheduling enabled for virtual engine, that is VE2.0.
+    bool                            multiNodeScaling;                             //!< Flag to indicate if multi-node scaling is enabled for virtual engine, that is VE3.0.
     bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
 
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
@@ -1160,6 +1164,9 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
 
 #define MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface) \
     (pOsInterface ? pOsInterface->ctxBasedScheduling : false)
+
+#define MOS_VE_MULTINODESCALING_SUPPORTED(pOsInterface) \
+    (pOsInterface ? pOsInterface->multiNodeScaling : false)
 
 #if MOS_MEDIASOLO_SUPPORTED
 #define MOS_MEDIASOLO_VE_SUPPORTED(pOsInterface) \
