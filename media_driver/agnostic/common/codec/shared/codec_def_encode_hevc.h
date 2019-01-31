@@ -683,6 +683,20 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    Applies only to BRC case.
     */
     char                    MinDeltaQp;
+    
+    union
+    {
+        struct
+        {
+            uint32_t        EnableCustomRoudingIntra : 1;
+            uint32_t        RoundingOffsetIntra : 7;
+            uint32_t        EnableCustomRoudingInter : 1;
+            uint32_t        RoundingOffsetInter : 7;
+            uint32_t        reservedbits : 16;
+        } fields;
+        
+        uint32_t            value;
+    } CustomRoundingOffsetsParams;
 
     /*! \brief Specifies skip frames.
     *
