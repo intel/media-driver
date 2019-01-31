@@ -33,6 +33,9 @@ void CodechalEncoderState::PrepareNodes(
     MOS_GPU_NODE& videoGpuNode,
     bool&         setVideoNode)
 {
+    if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface))
+        return;
+
     if (m_vdboxOneDefaultUsed)
     {
         setVideoNode = true;
@@ -69,7 +72,8 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         bool setVideoNode = false;
 
         // Create Video Context
-        if (MEDIA_IS_SKU(m_skuTable, FtrVcs2))
+        if (MEDIA_IS_SKU(m_skuTable, FtrVcs2) || 
+            (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) && m_numVdbox > 1))   // Eventually move this functionality to Mhw
         {
             setVideoNode = false;
 
@@ -86,7 +90,8 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetGpuCtxCreatOption());
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_gpuCtxCreatOpt);
 
-        MOS_GPU_CONTEXT gpuContext = ((videoGpuNode == MOS_GPU_NODE_VIDEO2) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO3 : MOS_GPU_CONTEXT_VIDEO3);
+        MOS_GPU_CONTEXT gpuContext = (videoGpuNode == MOS_GPU_NODE_VIDEO2) && !MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO3 : MOS_GPU_CONTEXT_VIDEO3;
+
         eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(
             m_osInterface,
             gpuContext,
