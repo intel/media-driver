@@ -3312,6 +3312,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
     curbe.IncreaseExitThresh     = m_tuSettings[IncreaseExitThreshTuParam][tuMapping];
     curbe.IntraSpotCheck         = m_tuSettings[IntraSpotCheckFlagTuParam][tuMapping];
     curbe.Fake32Enable           = m_tuSettings[Fake32EnableTuParam][tuMapping];
+    curbe.Dynamic64Min32         = m_tuSettings[Dynamic64Min32][tuMapping];
 
     curbe.FrameWidthInSamples   = m_frameWidth;
     curbe.FrameHeightInSamples  = m_frameHeight;
