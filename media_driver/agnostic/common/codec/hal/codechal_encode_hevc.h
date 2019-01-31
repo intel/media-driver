@@ -165,6 +165,7 @@ public:
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_mbEncKernelBindingTable = nullptr;  //!< MbEnc kernel binding table
     uint32_t                                    m_numMbEncEncKrnStates    = 0;        //!< Number of MbEnc kernel states
     EncStatsBuffers                             m_encStatsBuffers;
+    uint8_t                                     m_mbCodeIdxForTempMVP     = 0xFF;
 
     // ScalingAndConversion
     PMHW_KERNEL_STATE                      m_scalingAndConversionKernelState        = nullptr;  //!< Pointer to ScalingAndConversion kernel state
