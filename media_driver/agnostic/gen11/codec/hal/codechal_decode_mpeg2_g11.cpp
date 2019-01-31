@@ -56,12 +56,12 @@ MOS_STATUS CodechalDecodeMpeg2G11::SetGpuCtxCreatOption(
     {
         m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(    
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation( 
             m_veState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
             false));
+        m_videoContext = MOS_GPU_CONTEXT_VIDEO; // Move functionality to CodecHalDecodeMapGpuNodeToGpuContex
     }
-        
     return eStatus;
 }
 

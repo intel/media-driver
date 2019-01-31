@@ -1903,8 +1903,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     }
 
     pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO;
-    pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
-    pScalabilityState->VideoContextFor3P = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+    pScalabilityState->VideoContextForMP = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO5 : MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+    pScalabilityState->VideoContextFor3P = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO7 : MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
 
     pScalabilityState->numDelay = 15;
 
@@ -1961,15 +1961,18 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     if (pScalabilityState->bFESeparateSubmission)
     {
         MOS_GPU_CONTEXT         GpuContext = MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO : MOS_GPU_CONTEXT_VIDEO4;
-        MOS_GPUCTX_CREATOPTIONS createOpts;
-        MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
+        GpuContext = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO4 : GpuContext;
 
+        MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
         CODECHAL_DECODE_CHK_STATUS_RETURN(vdboxMfxInterface->FindGpuNodeToUse(
             &gpuNodeLimit));
+        MOS_GPU_NODE videoGpuNode = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
+
+        MOS_GPUCTX_CREATOPTIONS createOpts;
         CODECHAL_DECODE_CHK_STATUS_RETURN(osInterface->pfnCreateGpuContext(
             osInterface,
             GpuContext,
-            (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse),
+            videoGpuNode,
             &createOpts));
         pScalabilityState->VideoContextForFE = GpuContext;
     }

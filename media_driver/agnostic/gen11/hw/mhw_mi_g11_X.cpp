@@ -299,6 +299,9 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerRegisterOffset(
     case MOS_GPU_CONTEXT_VIDEO2:
     case MOS_GPU_CONTEXT_VIDEO3:
     case MOS_GPU_CONTEXT_VIDEO4:
+    case MOS_GPU_CONTEXT_VIDEO5:
+    case MOS_GPU_CONTEXT_VIDEO6:
+    case MOS_GPU_CONTEXT_VIDEO7:
         MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VCS0_G11;
         MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS0_G11;
         break;
