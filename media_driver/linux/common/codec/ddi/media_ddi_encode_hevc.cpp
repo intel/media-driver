@@ -1126,32 +1126,64 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         uint32_t                     maxROIsupported   = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
         uint8_t                      blockSize         = (m_encodeCtx->bVdencActive) ? vdencRoiBlockSize : CODECHAL_MACROBLOCK_WIDTH;
 
+         uint32_t frameWidth = (seqParams->wFrameWidthInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
+         uint32_t frameHeight = (seqParams->wFrameHeightInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
+         uint16_t rightBorder = (uint16_t)CODECHAL_GET_WIDTH_IN_BLOCKS(frameWidth, blockSize) - 1;
+         uint16_t bottomBorder = (uint16_t)CODECHAL_GET_HEIGHT_IN_BLOCKS(frameHeight, blockSize) - 1;
+
         if (vaEncMiscParamROI->num_roi)
         {
             for (uint32_t i = 0; i < vaEncMiscParamROI->num_roi; ++i)
             {
-                picParams->ROI[i].PriorityLevelOrDQp = vaEncMiscParamROI->roi[i].roi_value;
-                picParams->ROI[i].Top                = vaEncMiscParamROI->roi[i].roi_rectangle.y;
-                picParams->ROI[i].Left               = vaEncMiscParamROI->roi[i].roi_rectangle.x;
-                picParams->ROI[i].Bottom             = vaEncMiscParamROI->roi[i].roi_rectangle.y +
-                                           vaEncMiscParamROI->roi[i].roi_rectangle.height - 1;
-                picParams->ROI[i].Right = vaEncMiscParamROI->roi[i].roi_rectangle.x +
-                                          vaEncMiscParamROI->roi[i].roi_rectangle.width - 1;
+                auto &pic_param_roi = picParams->ROI[i];
+                auto &va_roi = vaEncMiscParamROI->roi[i];
+
+                pic_param_roi.Top    = va_roi.roi_rectangle.y;
+                pic_param_roi.Left   = va_roi.roi_rectangle.x;
+                pic_param_roi.Right  = va_roi.roi_rectangle.x + va_roi.roi_rectangle.width - 1;
+                pic_param_roi.Bottom = va_roi.roi_rectangle.y+va_roi.roi_rectangle.height - 1;
+
+                pic_param_roi.PriorityLevelOrDQp = va_roi.roi_value;
+
+                if( pic_param_roi.Left > pic_param_roi.Right){
+                    DDI_ASSERTMESSAGE("ROI left > ROI Right.");
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+                }
+
+                // check frame boundary
+                if( pic_param_roi.Top > pic_param_roi.Bottom){
+                    DDI_ASSERTMESSAGE("ROI Top > ROI Bottom.");
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+                }
+
 
                 if (m_encodeCtx->bVdencActive == false)
                 {
                     // align to CTB edge (32 on Gen9) to avoid QP average issue
-                    picParams->ROI[i].Left   = MOS_ALIGN_FLOOR(picParams->ROI[i].Left, 32);
-                    picParams->ROI[i].Right  = MOS_ALIGN_CEIL(picParams->ROI[i].Right, 32);
-                    picParams->ROI[i].Top    = MOS_ALIGN_FLOOR(picParams->ROI[i].Top, 32);
-                    picParams->ROI[i].Bottom = MOS_ALIGN_CEIL(picParams->ROI[i].Bottom, 32);
+                    pic_param_roi.Left   = MOS_ALIGN_FLOOR(pic_param_roi.Left, 32);
+                    pic_param_roi.Right  = MOS_ALIGN_CEIL(pic_param_roi.Right, 32);
+                    pic_param_roi.Top    = MOS_ALIGN_FLOOR(pic_param_roi.Top, 32);
+                    pic_param_roi.Bottom = MOS_ALIGN_CEIL(pic_param_roi.Bottom, 32);
                 }
 
+
                 // Convert from pixel units to block size units
-                picParams->ROI[i].Left /= blockSize;
-                picParams->ROI[i].Right /= blockSize;
-                picParams->ROI[i].Top /= blockSize;
-                picParams->ROI[i].Bottom /= blockSize;
+                pic_param_roi.Left   /= blockSize;
+                pic_param_roi.Right  /= blockSize;
+                pic_param_roi.Top    /= blockSize;
+                pic_param_roi.Bottom /= blockSize;
+
+                // DDI defination for right and bottom parameters is inclusive whereas
+                // the defination in BRC kernel input is exclusive. So adding 1 to right & bottom.
+                 pic_param_roi.Right += 1;
+                 pic_param_roi.Bottom += 1;
+
+                 // check frame boundary
+                 pic_param_roi.Left   = pic_param_roi.Left  > rightBorder  ? rightBorder : pic_param_roi.Left;
+                 pic_param_roi.Right  = pic_param_roi.Right  > rightBorder  ? rightBorder  : pic_param_roi.Right;
+                 pic_param_roi.Top    = pic_param_roi.Top    > bottomBorder ? bottomBorder : pic_param_roi.Top;
+                 pic_param_roi.Bottom = pic_param_roi.Bottom > bottomBorder ? bottomBorder : pic_param_roi.Bottom;
+
             }
             picParams->NumROI = MOS_MIN(vaEncMiscParamROI->num_roi, maxROIsupported);
         }
