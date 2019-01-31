@@ -2329,7 +2329,10 @@ void CodechalEncHevcStateG11::SetHcpSliceStateCommonParams(
 {
     CodechalEncHevcState::SetHcpSliceStateCommonParams(sliceState);
 
-    sliceState.bWeightedPredInUse           = m_useWeightedSurfaceForL0 || m_useWeightedSurfaceForL1;
+    sliceState.RoundingIntra         = m_roundingIntraInUse;
+    sliceState.RoundingInter         = m_roundingInterInUse;
+    
+    sliceState.bWeightedPredInUse    = m_useWeightedSurfaceForL0 || m_useWeightedSurfaceForL1;
     static_cast<MHW_VDBOX_HEVC_SLICE_STATE_G11 &>(sliceState).dwNumPipe = m_numPipe;
 }
 
@@ -3407,10 +3410,11 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
     curbe.RefFrameWinHeight     = m_frameHeight;
     curbe.RefFrameWinWidth      = m_frameWidth;
 
-    // Hard coding for now from Gen10HEVC_TU4_default.par
-    curbe.RoundingInter      = (m_roundingInter + 1) << 4;  // Should be an input from par in the cmodel (slice state)
-    curbe.RoundingIntra      = (m_roundingIntra + 1) << 4;  // Should be an input from par in the cmodel (slice state)
-    curbe.RDEQuantRoundValue = (m_roundingInter + 1) << 4;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::GetRoundingIntraInterToUse());
+    
+    curbe.RoundingInter      = (m_roundingInterInUse + 1) << 4;  // Should be an input from par in the cmodel (slice state)
+    curbe.RoundingIntra      = (m_roundingIntraInUse + 1) << 4;  // Should be an input from par in the cmodel (slice state)
+    curbe.RDEQuantRoundValue = (m_roundingInterInUse + 1) << 4;
 
     uint32_t gopB = m_hevcSeqParams->GopRefDist;
 

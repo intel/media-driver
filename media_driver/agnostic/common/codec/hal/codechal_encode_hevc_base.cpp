@@ -3549,7 +3549,7 @@ MOS_STATUS CodechalEncodeHevcBase::DumpMbEncPakOutput(PCODEC_REF_LIST currRefLis
     CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
         &currRefList->resRefMbCodeBuffer,
         CodechalDbgAttr::attrOutput,
-        "MbCode",
+        "PakObj",
         m_mvOffset,
         0,
         CODECHAL_MEDIA_STATE_ENC_NORMAL));
