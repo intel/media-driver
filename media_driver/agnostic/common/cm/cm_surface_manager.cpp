@@ -2514,6 +2514,7 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_BGRP:
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_R10G10B10A2:
+        case CM_SURFACE_FORMAT_R8_UNORM:
             return true;
 
         default:
