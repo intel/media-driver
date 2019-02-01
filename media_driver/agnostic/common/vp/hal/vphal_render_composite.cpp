@@ -6913,9 +6913,6 @@ CompositeState::CompositeState(
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
 
-    VPHAL_RENDER_CHK_NULL(pOsInterface);
-    VPHAL_RENDER_CHK_NULL(pRenderHal);
-
     MOS_ZeroMemory(&m_Procamp, sizeof(m_Procamp));
     MOS_ZeroMemory(&m_csSrc, sizeof(m_csSrc));
     MOS_ZeroMemory(&m_csDst, sizeof(m_csDst));
@@ -6933,11 +6930,6 @@ CompositeState::CompositeState(
     MOS_ZeroMemory(&m_mhwSamplerAvsTableParam, sizeof(m_mhwSamplerAvsTableParam));
     MOS_ZeroMemory(&m_BatchBuffer, sizeof(m_BatchBuffer));
     MOS_ZeroMemory(&m_BufferParam, sizeof(m_BufferParam));
-
-    // Reset Intermediate output surface (multiple phase)
-    pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate.OsResource);
-    m_Intermediate.dwWidth      = 0;
-    m_Intermediate.dwHeight     = 0;
 
     // Set Max number of procamp entries
     m_iMaxProcampEntries        = VPHAL_MAX_PROCAMP;
@@ -6963,9 +6955,14 @@ CompositeState::CompositeState(
     // Composite Kernel
     m_KernelParams              = g_cInitKernelParamsComposite;
     m_ThreadCountPrimary        = VPHAL_USE_MEDIA_THREADS_MAX;
+    VPHAL_RENDER_CHK_NULL(pRenderHal);
     m_bFtrMediaWalker           = pRenderHal->pfnGetMediaWalkerStatus(pRenderHal) ? true : false;
 
     MOS_ZeroMemory(&m_mhwSamplerAvsTableParam, sizeof(m_mhwSamplerAvsTableParam));
+
+    VPHAL_RENDER_CHK_NULL(pOsInterface);
+    // Reset Intermediate output surface (multiple phase)
+    pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate.OsResource);
 
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
