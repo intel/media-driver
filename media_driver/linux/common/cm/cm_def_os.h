@@ -40,8 +40,6 @@
 #include "dlfcn.h"
 #include "media_libva_cm.h"
 
-#define USERMODE_DEVICE_CONTEXT      MOS_CONTEXT
-
 #ifndef SUCCEEDED
 #define SUCCEEDED(hr)   (hr == VA_STATUS_SUCCESS)
 #endif // !SUCCEEDED
