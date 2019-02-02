@@ -1223,9 +1223,19 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
 
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendSurfaces(pRenderHal, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(pMhwRender->AddMediaVfeCmd(
-        &CmdBuffer,
-        pRenderHal->pRenderHalPltInterface->GetVfeStateParameters()));
+    VPHAL_RENDER_CHK_NULL(pRenderHal->pRenderHalPltInterface);
+    if(!pRenderHal->bComputeContextInUse)
+    {// Set VFE
+        VPHAL_RENDER_CHK_STATUS(pMhwRender->AddMediaVfeCmd(
+            &CmdBuffer,
+            pRenderHal->pRenderHalPltInterface->GetVfeStateParameters()));
+    }
+    else
+    {// Set CFE
+        VPHAL_RENDER_CHK_STATUS(pMhwRender->AddCfeStateCmd(
+            &CmdBuffer,
+            pRenderHal->pRenderHalPltInterface->GetVfeStateParameters()));
+    }
 
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendCurbeLoad(pRenderHal, &CmdBuffer));
 

@@ -369,6 +369,28 @@ public:
         PMHW_VFE_PARAMS                 params) = 0;
 
     //!
+    //! \brief    Adds CFE_STATE to the command buffer
+    //! \param    cmdBuffer
+    //!           [in] Command buffer to which HW command is added
+    //! \param    params
+    //!           [in] Params structure used to populate the HW command
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddCfeStateCmd(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_VFE_PARAMS                 params)
+    {
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(params);
+
+        // CFE_STATE will replace the MEDIA_VFE_STATE on some platform; Just keep the
+        // platform which really uses CFE to implement it on inheriting class .
+        MHW_ASSERTMESSAGE("Don't support it on this platform");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
     //! \brief    Adds MEDIA_CURBE_LOAD to the command buffer
     //! \param    cmdBuffer
     //!           [in] Command buffer to which HW command is added
