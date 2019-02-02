@@ -5259,6 +5259,7 @@ MOS_STATUS RenderHal_SendMediaStates(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     MHW_RENDERHAL_ASSERT(pRenderHal->pStateHeap->bGshLocked);
     //---------------------------------------
     pOsInterface    = pRenderHal->pOsInterface;
@@ -5305,11 +5306,16 @@ MOS_STATUS RenderHal_SendMediaStates(
                                                                 &pRenderHal->SipStateParams));
     }
 
-    // Send VFE State
+    pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
     if (!pRenderHal->bComputeContextInUse)
     {
-        pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
+        // set VFE State
         MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaVfeCmd(pCmdBuffer, pVfeStateParams));
+    }
+    else
+    {
+        // set CFE State
+        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddCfeStateCmd(pCmdBuffer, pVfeStateParams));
     }
 
     // Send CURBE Load
