@@ -599,7 +599,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSamplerState(
             UnormSamplerInit.DW0.MinModeFilter = UnormSamplerInit.MIN_MODE_FILTER_LINEAR;
             UnormSamplerInit.DW0.MagModeFilter = UnormSamplerInit.MAG_MODE_FILTER_LINEAR;
             UnormSamplerInit.DW0.TextureBorderColorMode = UnormSamplerInit.TEXTURE_BORDER_COLOR_MODE_8BIT;
-            UnormSamplerInit.DW0.SamplerDisable = true;
+            UnormSamplerInit.DW0.SamplerDisable = false;
             UnormSamplerInit.DW1.ShadowFunction = UnormSamplerInit.SHADOW_FUNCTION_PREFILTEROPNEVER;
             UnormSamplerInit.DW3.TczAddressControlMode = UnormSamplerInit.TCZ_ADDRESS_CONTROL_MODE_CLAMP;
             UnormSamplerInit.DW3.TcyAddressControlMode = UnormSamplerInit.TCY_ADDRESS_CONTROL_MODE_CLAMP;
@@ -612,8 +612,6 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSamplerState(
             UnormSamplerInit.DW3.UAddressMagFilterRoundingEnable = true;
 
             *pUnormSampler = UnormSamplerInit;
-
-            pUnormSampler->DW0.SamplerDisable = false;
 
             if (pParam->Unorm.SamplerFilterMode == MHW_SAMPLER_FILTER_NEAREST)
             {
