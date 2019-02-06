@@ -5737,90 +5737,6 @@ uint32_t RenderHal_GetScratchSpaceSize(
 //! \details  Setup Platform and Operating System Specific Surface State
 //! \param    PRENDERHAL_INTERFACE pRenderHal
 //!           [in] Pointer to Hardware Interface Structure
-//! \param    PRENDERHAL_SURFACE pRenderHalSurface
-//!           [in] Pointer to Surface
-//! \param    PRENDERHAL_SURFACE_STATE_PARAMS pParams
-//!           [in] Pointer to Surface Params
-//! \param    PRENDERHAL_SURFACE_STATE_ENTRY pSurfaceEntry
-//!           [in] Pointer to Surface State Entry
-//! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if successful
-//!
-MOS_STATUS RenderHal_SetupSurfaceStateOs(
-    PRENDERHAL_INTERFACE            pRenderHal,
-    PRENDERHAL_SURFACE              pRenderHalSurface,
-    PRENDERHAL_SURFACE_STATE_PARAMS pParams,
-    PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceEntry)
-{
-    PMOS_SURFACE                    pSurface;
-    MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-    MHW_SURFACE_TOKEN_PARAMS        TokenParams;
-
-    uint32_t additional_plane_offset = 0;
-    uint32_t vertical_offset_in_surface_state = 0;
-
-    //-----------------------------------------
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pParams);
-    MHW_RENDERHAL_CHK_NULL(pSurfaceEntry);
-    //-----------------------------------------
-
-    pSurface = pSurfaceEntry->pSurface;
-
-    // Surface, plane, offset
-    TokenParams.pOsSurface = pSurface;
-    TokenParams.YUVPlane = pSurfaceEntry->YUVPlane;
-
-    switch (pSurfaceEntry->YUVPlane)
-    {
-    case MHW_U_PLANE:
-        vertical_offset_in_surface_state = pSurface->UPlaneOffset.iYOffset;
-        vertical_offset_in_surface_state &= 0x1C;  // The offset value in surface state commands.
-        additional_plane_offset = pSurface->UPlaneOffset.iYOffset
-            - vertical_offset_in_surface_state;
-        additional_plane_offset *= pSurface->dwPitch;
-        TokenParams.dwSurfaceOffset = pSurface->UPlaneOffset.iSurfaceOffset
-            + additional_plane_offset;
-        break;
-    case MHW_V_PLANE:
-        vertical_offset_in_surface_state = pSurface->VPlaneOffset.iYOffset;
-        vertical_offset_in_surface_state &= 0x1C;
-        additional_plane_offset = pSurface->VPlaneOffset.iYOffset
-            - vertical_offset_in_surface_state;
-        additional_plane_offset *= pSurface->dwPitch;
-        TokenParams.dwSurfaceOffset = pSurface->VPlaneOffset.iSurfaceOffset
-            + additional_plane_offset;
-        break;
-    default:
-        vertical_offset_in_surface_state = pSurface->YPlaneOffset.iYOffset;
-        vertical_offset_in_surface_state &= 0x1C;
-        additional_plane_offset = pSurface->YPlaneOffset.iYOffset
-            - vertical_offset_in_surface_state;
-        additional_plane_offset *= pSurface->dwPitch;
-        TokenParams.dwSurfaceOffset
-            = pSurface->dwOffset + additional_plane_offset;
-        break;
-    }
-
-    // Surface type
-    TokenParams.bRenderTarget = pParams->bRenderTarget;
-    TokenParams.bSurfaceTypeAvs = pSurfaceEntry->bAVS;
-
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetSurfaceStateToken(
-        pRenderHal,
-        &TokenParams,
-        &pSurfaceEntry->SurfaceToken));
-
-finish:
-    return eStatus;
-}
-
-
-//!
-//! \brief    Setup OS specific surface state parameters
-//! \details  Setup Platform and Operating System Specific Surface State
-//! \param    PRENDERHAL_INTERFACE pRenderHal
-//!           [in] Pointer to Hardware Interface Structure
 //! \param    PRENDERHAL_SURFACE_STATE_PARAMS pParams
 //!           [in] Pointer to Surface Params
 //! \param    PRENDERHAL_SURFACE_STATE_ENTRY pSurfaceEntry
@@ -6904,7 +6820,6 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnAdjustBoundary             = RenderHal_AdjustBoundary;
     pRenderHal->pfnAssignBindingTable         = RenderHal_AssignBindingTable;
     pRenderHal->pfnSetupBufferSurfaceState    = RenderHal_SetupBufferSurfaceState;
-    pRenderHal->pfnSetupSurfaceStateOs        = RenderHal_SetupSurfaceStateOs;
     pRenderHal->pfnSetupSurfaceStatesOs       = RenderHal_SetupSurfaceStatesOs;
     pRenderHal->pfnBindSurfaceState           = RenderHal_BindSurfaceState;
     pRenderHal->pfnSendSurfaces               = RenderHal_SendSurfaces_PatchList;
