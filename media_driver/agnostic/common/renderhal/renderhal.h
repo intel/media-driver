@@ -1346,12 +1346,6 @@ typedef struct _RENDERHAL_INTERFACE
     //---------------------------
     // State Setup - HW + OS Specific
     //---------------------------
-    MOS_STATUS(*pfnSetupSurfaceStateOs) (
-               PRENDERHAL_INTERFACE            pRenderHal,
-               PRENDERHAL_SURFACE              pRenderHalSurface,
-               PRENDERHAL_SURFACE_STATE_PARAMS pParams,
-               PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceStateEntry);
-
     MOS_STATUS (* pfnSetupSurfaceStatesOs) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 PRENDERHAL_SURFACE_STATE_PARAMS pParams,
