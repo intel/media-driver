@@ -138,7 +138,6 @@ MOS_STATUS XRenderHal_Interface_g9::SetupSurfaceState (
     MHW_RENDERHAL_ASSERT(pRenderHalSurface->Rotation >= 0 && pRenderHalSurface->Rotation < 8);
     //-----------------------------------------
 
-    pSurface      = &pRenderHalSurface->OsSurface;
     dwSurfaceSize = pRenderHal->pHwSizes->dwSizeSurfaceState;
 
     MOS_ZeroMemory(&SurfStateParams, sizeof(SurfStateParams));
@@ -155,6 +154,8 @@ MOS_STATUS XRenderHal_Interface_g9::SetupSurfaceState (
     {
         // Pointer to surface state entry for current plane
         pSurfaceEntry = ppSurfaceEntries[i];
+
+        pSurface = pSurfaceEntry->pSurface;
 
         // Set the Surface State Offset from base of SSH
         pSurfaceEntry->dwSurfStateOffset = pRenderHal->pStateHeap->iSurfaceStateOffset +                // Offset to Base Of Current Surface State Area
@@ -296,7 +297,7 @@ MOS_STATUS XRenderHal_Interface_g9::SetupSurfaceState (
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStateOs(pRenderHal, pRenderHalSurface, pParams, pSurfaceEntry));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStatesOs(pRenderHal, pParams, pSurfaceEntry));
     }
 
     eStatus = MOS_STATUS_SUCCESS;
