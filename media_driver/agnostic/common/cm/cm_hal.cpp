@@ -3726,7 +3726,6 @@ MOS_STATUS HalCm_SetupBufferSurfaceState(
                 &surfaceEntry));
 
         // Bind the surface State
-        surfaceEntry->pSurface = &surface.OsSurface;
         CM_ASSERT(((int32_t)btIndex) < renderHal->StateHeapSettings.iSurfacesPerBT + surfBTIInfo.normalSurfaceStart);
         CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnBindSurfaceState(
                renderHal,
@@ -3926,6 +3925,8 @@ MOS_STATUS HalCm_Setup3DSurfaceState(
         btIndex = HalCm_GetFreeBindingIndex(state, indexParam, nSurfaceEntries);
         for (i = 0; i < (uint32_t)nSurfaceEntries; i++)
         {
+            *(surfaceEntries[i]->pSurface) = surface.OsSurface;
+
             // Bind the surface State
             CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnBindSurfaceState(
                         renderHal,
@@ -4311,6 +4312,8 @@ MOS_STATUS HalCm_Setup2DSurfaceStateBasic(
                     surfaceParam,
                     CM_ARGUMENT_SURFACE2D));
         }
+        surfaceEntries[i]->pSurface->dwWidth = state->umdSurf2DTable[index].width;
+        surfaceEntries[i]->pSurface->dwHeight = state->umdSurf2DTable[index].height;
     }
 
     // only update the reuse table for non-aliased surface
@@ -5115,7 +5118,6 @@ MOS_STATUS HalCm_SetupStateBufferSurfaceState(
         &surfaceEntry ) );
 
     // Bind the surface State
-    surfaceEntry->pSurface = &renderhalSurface.OsSurface;
     CM_ASSERT( ( ( int32_t )btIndex ) < renderHal->StateHeapSettings.iSurfacesPerBT + surfBTIInfo.normalSurfaceStart );
     CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnBindSurfaceState(
         renderHal,

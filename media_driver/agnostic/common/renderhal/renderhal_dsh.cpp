@@ -746,6 +746,13 @@ MOS_STATUS RenderHal_DSH_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
     // Free Surface State Entries
     if (pStateHeap->pSurfaceEntry)
     {
+        // Free MOS surface in surface state entry
+        for (int32_t index = 0; index < pRenderHal->StateHeapSettings.iSurfaceStates; ++index) {
+            PRENDERHAL_SURFACE_STATE_ENTRY entry = pStateHeap->pSurfaceEntry + index;
+            MOS_SafeFreeMemory(entry->pSurface);
+            entry->pSurface = nullptr;
+        }
+
         MOS_FreeMemory(pStateHeap->pSurfaceEntry);
         pStateHeap->pSurfaceEntry = nullptr;
     }
