@@ -1220,6 +1220,8 @@ public:
     MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
     MOS_RESOURCE           m_resPipeCompleteSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
     PCODECHAL_ENCODE_SCALABILITY_STATE  m_scalabilityState = nullptr;                                                                                  //!< Scalability state
+    MOS_RESOURCE           m_resDelayMinus;
+    uint32_t               m_numDelay;
 
     // the following constant integers and tables are from the kernel for score board computation
     static uint32_t const m_ct = 3;
