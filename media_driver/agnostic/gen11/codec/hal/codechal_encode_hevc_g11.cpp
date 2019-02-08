@@ -1496,6 +1496,33 @@ MOS_STATUS CodechalEncHevcStateG11::AllocatePakResources()
         m_hwInterface->m_HucStitchCmdBatchBufferSize));
     }
 
+    if (m_numDelay)
+    {
+        allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+        allocParamsForBufferLinear.pBufName = "DelayMinusMemory";
+
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_resDelayMinus), "Failed to allocate delay minus memory.");
+
+        uint8_t* data;
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+        data = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resDelayMinus,
+            &lockFlags);
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resDelayMinus);
+    }
+
+
     return eStatus;
 }
 
@@ -1604,6 +1631,11 @@ MOS_STATUS CodechalEncHevcStateG11::FreePakResources()
             }
         }
         Mhw_FreeBb(m_osInterface, &m_HucStitchCmdBatchBuffer, nullptr);
+    }
+
+    if (m_numDelay)
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &m_resDelayMinus);
     }
 
     return CodechalEncHevcState::FreePakResources();
@@ -2113,6 +2145,18 @@ MOS_STATUS CodechalEncHevcStateG11::ExecutePictureLevel()
             &m_resPipeStartSemaMem,
             &cmdBuffer,
             m_numPipe));
+        
+        // Program some placeholder cmds to resolve the hazard between BEs sync
+        MHW_MI_STORE_DATA_PARAMS dataParams;
+        dataParams.pOsResource = &m_resDelayMinus;
+        dataParams.dwResourceOffset = 0;
+        dataParams.dwValue = 0xDE1A;
+        for (uint32_t i = 0; i < m_numDelay; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+                &cmdBuffer,
+                &dataParams));
+        }
         //clean HW semaphore memory
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resPipeStartSemaMem, 1, MHW_MI_ATOMIC_DEC, &cmdBuffer));
 
@@ -2957,6 +3001,7 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
     // Common initialization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::Initialize(settings));
 
+    m_numDelay                              = 15; //
     m_bmeMethodTable                        = (uint8_t *)m_meMethod;
     m_b4XMeDistortionBufferSupported        = true;
     m_brcBuffers.dwBrcConstantSurfaceWidth  = HEVC_BRC_CONSTANT_SURFACE_WIDTH_G9;
