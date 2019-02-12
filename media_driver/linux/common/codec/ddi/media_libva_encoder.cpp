@@ -256,6 +256,10 @@ VAStatus DdiEncode_CreateContext(
 
     //initialize DDI level cp interface
     MOS_CONTEXT mosCtx = { };
+    if(flag > VA_PROGRESSIVE)
+    {
+        mosCtx.RequireCPLIB = true;
+    }
     encCtx->pCpDdiInterface = Create_DdiCpInterface(mosCtx);
     if (nullptr == encCtx->pCpDdiInterface)
     {

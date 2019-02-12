@@ -36,10 +36,14 @@ static void MhwStubMessage()
 MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface)
 {
     MhwCpInterface* pMhwCpInterface = nullptr;
-    using Create_MhwCpFuncType = MhwCpInterface* (*)(PMOS_INTERFACE osInterface);
-    CPLibUtils::InvokeCpFunc<Create_MhwCpFuncType>(
-        pMhwCpInterface, 
-        CPLibUtils::FUNC_CREATE_MHWCP, osInterface);
+    if (osInterface != nullptr && osInterface->pOsContext != nullptr && osInterface->pOsContext->RequireCPLIB)
+    {
+        using Create_MhwCpFuncType = MhwCpInterface *(*)(PMOS_INTERFACE osInterface);
+        CPLibUtils::InvokeCpFunc<Create_MhwCpFuncType>(
+            pMhwCpInterface,
+            CPLibUtils::FUNC_CREATE_MHWCP,
+            osInterface);
+    }
 
     if(nullptr == pMhwCpInterface) MhwStubMessage();
 
