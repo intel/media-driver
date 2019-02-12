@@ -4540,6 +4540,12 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     /* support Gen 8+ */
     bufmgr_gem->pci_device = get_pci_device_id(bufmgr_gem);
 
+    if (bufmgr_gem->pci_device == 0) {
+        free(bufmgr_gem);
+        bufmgr_gem = nullptr;
+        goto exit;
+    }
+
     memclear(gp);
     gp.value = &tmp;
 
