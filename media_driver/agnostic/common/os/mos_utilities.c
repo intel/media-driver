@@ -38,6 +38,10 @@
 #include <stdlib.h>    // atoi atol
 #include <math.h>
 
+#if MOS_MESSAGES_ENABLED
+#include <time.h>     //for simulate random memory allcation failure
+#endif
+
 #ifdef _MOS_UTILITY_EXT
 #include "mos_utilities_ext.h"
 #endif
@@ -202,6 +206,7 @@ int32_t MosMemAllocCounterGfx;
 int32_t MosMemAllocCounterNoUserFeature;
 int32_t MosMemAllocCounterNoUserFeatureGfx;
 uint8_t MosUltFlag;
+int32_t MosSimulateRandomAllocMemoryFailFreq;
 
 #ifdef __cplusplus
 extern "C" {
@@ -3191,6 +3196,68 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))
 
+#if MOS_MESSAGES_ENABLED
+
+#define MIN_MEMORY_ALLOCATION_FAILURE_FREQ  (2)  //max random memory allcation fail rate 1/2
+#define MAX_MEMORY_ALLOCATION_FAILURE_FREQ (1000)  //max random memory allcation fail rate 1/1000
+
+//!
+//! \brief    Init simulate random memory allocation fail flag
+//! \details  init MosSimulateRandomAllocMemoryFailFlag according user feature value:
+//!           __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL
+//! \return   void
+//!
+void MOS_InitSimulateRandomAllocMemoryFailFlag()
+{
+    MOS_USER_FEATURE       UserFeature;
+    MOS_USER_FEATURE_VALUE UserFeatureValue;
+
+    //default off for simulate random fail
+    MosSimulateRandomAllocMemoryFailFreq = 0;
+
+    // Read Config if need to simulate random memory allocation failure
+    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
+    UserFeatureValue.u32Data = 0;  // Init as default value
+
+    UserFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
+    UserFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    UserFeature.pValues     = &UserFeatureValue;
+    UserFeature.uiNumValues = 1;
+
+    MOS_UserFeature_ReadValue(
+        nullptr,
+        &UserFeature,
+        __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+
+    if ((UserFeature.pValues[0].u32Data >= MIN_MEMORY_ALLOCATION_FAILURE_FREQ) &&
+        (UserFeature.pValues[0].u32Data <= MAX_MEMORY_ALLOCATION_FAILURE_FREQ))
+    {
+        MosSimulateRandomAllocMemoryFailFreq = UserFeature.pValues[0].u32Data;
+        MOS_OS_NORMALMESSAGE("Init MosSimulateRandomAllocMemoryFailFreq as %d \n ", MosSimulateRandomAllocMemoryFailFreq);
+    }
+}
+
+#define MOS_SimulateRandomAllocMemoryFail(size)                 \
+    {                                                           \
+        srand((unsigned int)time(nullptr));                     \
+        if (rand() % MosSimulateRandomAllocMemoryFailFreq == 1) \
+        {                                                       \
+            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_NORMAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
+                "Simulated Allocate Memory Fail for: functionName: %s, filename: %s, line: %d, size: %d \n", \
+                 functionName, filename, line, size);           \
+            return nullptr;                                     \
+        }                                                       \
+    }
+#else
+void MOS_InitSimulateRandomAllocMemoryFailFlag()
+{
+    MosSimulateRandomAllocMemoryFailFreq = 0;
+}
+
+#define MOS_SimulateRandomAllocMemoryFail(size) {};
+#endif  // MOS_MESSAGES_ENABLED
+
 //!
 //! \brief    Init Function for MOS utilities
 //! \details  Initial MOS utilities related structures, and only execute once for multiple entries
@@ -3205,6 +3272,10 @@ MOS_STATUS MOS_utilities_init()
     MOS_OS_FUNCTION_ENTER;
 
     eStatus = MOS_OS_Utilities_Init();
+
+    //Initialize MOS simulate random alloc memory fail flag
+    MOS_InitSimulateRandomAllocMemoryFailFlag();
+
     return eStatus;
 }
 
@@ -3227,6 +3298,9 @@ MOS_STATUS MOS_utilities_close()
     // Because Memninja will calc mem leak here.
     // Any memory allocation release after MOS_OS_Utilities_Close() will be treated as mem leak.
     eStatus = MOS_OS_Utilities_Close();
+
+    //Reset Simulate Random Alloc Memory Fail Frequence to 0
+    MosSimulateRandomAllocMemoryFailFreq = 0;
 
     return eStatus;
 }
@@ -3276,6 +3350,12 @@ void  *MOS_AlignedAllocMemory(
 #endif // MOS_MESSAGES_ENABLED
 {
     void  *ptr;
+
+    if (MosSimulateRandomAllocMemoryFailFreq != 0)
+    {
+        //Try to simulate random allocate memory fail if flag turned on
+        MOS_SimulateRandomAllocMemoryFail(size);
+    }
 
     ptr = _aligned_malloc(size, alignment);
 
@@ -3343,6 +3423,12 @@ void  *MOS_AllocMemory(size_t size)
 {
     void  *ptr;
 
+    if (MosSimulateRandomAllocMemoryFailFreq != 0)
+    {
+        //Try to simulate random allocate memory fail if flag turned on
+        MOS_SimulateRandomAllocMemoryFail(size);
+    }
+
     ptr = malloc(size);
 
     MOS_OS_ASSERT(ptr != nullptr);
@@ -3378,6 +3464,12 @@ void  *MOS_AllocAndZeroMemory(size_t size)
 #endif // MOS_MESSAGES_ENABLED
 {
     void  *ptr;
+
+    if (MosSimulateRandomAllocMemoryFailFreq != 0)
+    {
+        //Try to simulate random allocate memory fail if flag turned on
+        MOS_SimulateRandomAllocMemoryFail(size);
+    }
 
     ptr = malloc(size);
 

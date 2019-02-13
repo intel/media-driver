@@ -257,4 +257,8 @@
 #define __MOS_USER_FEATURE_KEY_XML_FILEPATH             "XML File Path"
 #define __MOS_USER_FEATURE_KEY_XML_DUMP_GROUPS          "XML Dump Group"
 
+
+//User feature key for enable simulating random memory allocation failure
+#define __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL "Simulate Random Alloc Memory Fail"
+
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_H__
