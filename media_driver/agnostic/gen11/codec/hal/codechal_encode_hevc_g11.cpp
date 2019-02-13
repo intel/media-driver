@@ -2862,7 +2862,7 @@ MOS_STATUS CodechalEncHevcStateG11::GetSystemPipeNumberCommon()
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
         &userFeatureData);
 
-    bool disableScalability = false;
+    bool disableScalability = true;
     if (statusKey == MOS_STATUS_SUCCESS)
     {
         disableScalability = userFeatureData.i32Data ? true : false;
@@ -3001,7 +3001,7 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
     // Common initialization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::Initialize(settings));
 
-    m_numDelay                              = 15; //
+    m_numDelay                              = 15; //Value suggested by HW team.
     m_bmeMethodTable                        = (uint8_t *)m_meMethod;
     m_b4XMeDistortionBufferSupported        = true;
     m_brcBuffers.dwBrcConstantSurfaceWidth  = HEVC_BRC_CONSTANT_SURFACE_WIDTH_G9;
