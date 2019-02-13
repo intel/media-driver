@@ -13,9 +13,24 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit :
 
-commit 9235dd441af43599b9cdcce599a3da4083fcad3c
-Merge: d7563c5 36b486b
-Author: Dave Airlie <airlied@redhat.com>
-Date:   Mon Nov 19 11:07:52 2018 +1000
+commit 16065fcdd19ddb9e093192914ac863884f308766
+Author: Gerd Hoffmann <kraxel@redhat.com>
+Date:   Fri Feb 8 15:04:09 2019 +0100
 
-    Merge branch 'drm-next-4.21' of git://people.freedesktop.org/~agd5f/linux into drm-next
+    drm/virtio: do NOT reuse resource ids
+
+    Bisected guest kernel changes crashing qemu.  Landed at
+    "6c1cd97bda drm/virtio: fix resource id handling".  Looked again, and
+    noticed we where not only leaking *some* ids, but *all* ids.  The old
+    code never ever called virtio_gpu_resource_id_put().
+
+    So, commit 6c1cd97bda effectively makes the linux kernel starting
+    re-using IDs after releasing them, and apparently virglrenderer can't
+    deal with that.  Oops.
+
+    This patch puts a temporary stopgap into place for the 5.0 release.
+
+    Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+    Reviewed-by: Dave Airlie <airlied@redhat.com>
+    Signed-off-by: Dave Airlie <airlied@redhat.com>
+    Link: https://patchwork.freedesktop.org/patch/msgid/20190208140409.15280-1-kraxel@redhat.com
