@@ -1291,6 +1291,7 @@ bool CodechalVdencAvcStateG11::CheckSupportedFormat(PMOS_SURFACE surface)
         case Format_VYUY:
         case Format_AYUV:
         case Format_A8R8G8B8:
+        case Format_A8B8G8R8:
             break;
         default:
             colorFormatSupported = false;
