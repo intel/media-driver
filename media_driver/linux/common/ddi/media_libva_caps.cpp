@@ -2220,7 +2220,7 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
     VAProcessingRateParameterEnc *processingRateBuffEnc = nullptr;
     VAProcessingRateParameterDec *processingRateBuffDec = nullptr;
     uint32_t tuIdx = tuIdxTable[TARGETUSAGE_BEST_SPEED];
-    bool res = false;
+    VAStatus res = VA_STATUS_SUCCESS;
     CODECHAL_MODE encodeMode = CODECHAL_UNSUPPORTED_MODE;
 
     if ((entrypoint == VAEntrypointEncSlice) ||
@@ -2282,7 +2282,7 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    return res ? VA_STATUS_SUCCESS: VA_STATUS_ERROR_OPERATION_FAILED;
+    return res;
 }
 
 VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
