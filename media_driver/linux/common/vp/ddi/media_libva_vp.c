@@ -3265,31 +3265,27 @@ VAStatus DdiVp_EndPicture (
 ////////////////////////////////////////////////////////////////////////////////
 //! \purpose
 //!  Execute video processing pipeline.
-//!  For CSC/Scaling after decode.
+//!  For CSC/Scaling after decode by decode context.
 //! \params
 //! [in]  pVaDrvCtxv    : VA Driver Context
 //! [in]  vaCtxID       : VA Context ID
-//! [in]  src_surface   : Input surface ID
-//! [in]  x             : X offset of the input surface region
-//! [in]  y             : Y offset of the input surface region
-//! [in]  width         : Width the input surface region
-//! [in]  height        : Height the input surface region
-//! [in]  dst_surface   : Output surface ID
+//! [in]  srcSurface    : Input surface ID
+//! [in]  srcRect       : Rectangle of the input surface region
+//! [in]  dstSurface    : Output surface ID
+//! [in]  dstRect       : Rectangle of the output surface region
 //! [out] None
 //! \returns VA_STATUS_SUCCESS if call succeeds
 ////////////////////////////////////////////////////////////////////////////////
 VAStatus DdiVp_VideoProcessPipeline(
     VADriverContextP    pVaDrvCtx,
     VAContextID         vpCtxID,
-    VASurfaceID         src_surface,
-    int32_t             x,     
-    int32_t             y,
-    uint32_t            width, 
-    uint32_t            height,
-    VASurfaceID         dst_surface)
+    VASurfaceID         srcSurface,
+    VARectangle         *srcRect,
+    VASurfaceID         dstSurface,
+    VARectangle         *dstRect)
 {
     VAStatus            vaStatus;
-    uint32_t            ctxType; 
+    uint32_t            ctxType;
     PDDI_VP_CONTEXT     pVpCtx;
 
     VP_DDI_FUNCTION_ENTER;
@@ -3299,19 +3295,16 @@ VAStatus DdiVp_VideoProcessPipeline(
     pVpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(pVaDrvCtx, vpCtxID, &ctxType);
     DDI_CHK_NULL(pVpCtx, "nullptr pVpCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    vaStatus = DdiVp_BeginPicture(pVaDrvCtx, vpCtxID, dst_surface);
+    vaStatus = DdiVp_BeginPicture(pVaDrvCtx, vpCtxID, dstSurface);
     DDI_CHK_RET(vaStatus, "VP BeginPicture failed");
-    
+
     //Set parameters
     VAProcPipelineParameterBuffer* pInputPipelineParam = (VAProcPipelineParameterBuffer*)MOS_AllocAndZeroMemory(sizeof(VAProcPipelineParameterBuffer));
     DDI_CHK_NULL(pInputPipelineParam, "nullptr pInputPipelineParam", VA_STATUS_ERROR_ALLOCATION_FAILED);
-    VARectangle surface_region;
-    surface_region.x                    = x;
-    surface_region.y                    = y;
-    surface_region.width                = width;
-    surface_region.height               = height;
-    pInputPipelineParam->surface_region = &surface_region;
-    pInputPipelineParam->surface        = src_surface;
+
+    pInputPipelineParam->surface_region = srcRect;
+    pInputPipelineParam->output_region  = dstRect;
+    pInputPipelineParam->surface        = srcSurface;
 
     vaStatus = DdiVp_SetProcPipelineParams(pVaDrvCtx, pVpCtx, pInputPipelineParam);
     if(vaStatus != VA_STATUS_SUCCESS)
