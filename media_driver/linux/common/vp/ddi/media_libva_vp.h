@@ -174,12 +174,10 @@ VAStatus DdiVp_RenderPicture(
 VAStatus DdiVp_VideoProcessPipeline(
     VADriverContextP    pVaDrvCtx,
     VAContextID         vpCtxID,
-    VASurfaceID         src_surface,
-    int32_t             x,     
-    int32_t             y,
-    uint32_t            width, 
-    uint32_t            height,
-    VASurfaceID         dst_surface
+    VASurfaceID         srcSurface,
+    VARectangle         *srcRect,
+    VASurfaceID         dstSurface,
+    VARectangle         *dstRect
 );
 
 VAStatus DdiVp_QueryVideoProcFilterCaps(
