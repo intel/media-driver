@@ -144,6 +144,10 @@ private:
     //! \brief   Free Resource buffer for VP8
     //!
     void FreeResourceBuffer();
+
+    MOS_RESOURCE m_resNoneRegLastRefFrame;
+    MOS_RESOURCE m_resNoneRegGoldenRefFrame;
+    MOS_RESOURCE m_resNoneRegAltRefFrame;
 };
 
 #endif /* _MEDIA_DDI_DECODE_VP8_H */

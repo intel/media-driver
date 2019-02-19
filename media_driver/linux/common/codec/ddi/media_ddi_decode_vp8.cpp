@@ -163,8 +163,26 @@ VAStatus DdiDecodeVP8::ParsePicParams(
     if (picParam->pic_fields.bits.key_frame)
     {
         lastRefSurface   = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->last_ref_frame);
+        if(lastRefSurface)
+        {
+            DdiMedia_MediaSurfaceToMosResource(lastRefSurface, &m_resNoneRegLastRefFrame);
+            m_ddiDecodeCtx->DecodeParams.m_presNoneRegLastRefFrame = &m_resNoneRegLastRefFrame;
+            RegisterRTSurfaces(&m_ddiDecodeCtx->RTtbl, lastRefSurface);
+        }
         goldenRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->golden_ref_frame);
+        if(goldenRefSurface)
+        {
+            DdiMedia_MediaSurfaceToMosResource(lastRefSurface, &m_resNoneRegGoldenRefFrame);
+            m_ddiDecodeCtx->DecodeParams.m_presNoneRegGoldenRefFrame = &m_resNoneRegGoldenRefFrame;
+            RegisterRTSurfaces(&m_ddiDecodeCtx->RTtbl, lastRefSurface);
+        }
         altRefSurface    = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->alt_ref_frame);
+        if(altRefSurface)
+        {
+            DdiMedia_MediaSurfaceToMosResource(lastRefSurface, &m_resNoneRegAltRefFrame);
+            m_ddiDecodeCtx->DecodeParams.m_presNoneRegAltRefFrame = &m_resNoneRegAltRefFrame;
+            RegisterRTSurfaces(&m_ddiDecodeCtx->RTtbl, lastRefSurface);
+        }
     }
 
     int32_t frameIdx;

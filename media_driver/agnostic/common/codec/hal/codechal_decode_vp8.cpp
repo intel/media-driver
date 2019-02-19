@@ -1128,6 +1128,10 @@ MOS_STATUS CodechalDecodeVp8::SetFrameStates()
     m_dataSize          = m_decodeParams.m_dataSize;
     m_dataOffset        = m_decodeParams.m_dataOffset;
     m_destSurface       = *(m_decodeParams.m_destSurface);
+    m_presLastRefSurface    = m_decodeParams.m_presNoneRegLastRefFrame;
+    m_presAltRefSurface     = m_decodeParams.m_presNoneRegAltRefFrame;
+    m_presGoldenRefSurface  = m_decodeParams.m_presNoneRegGoldenRefFrame;
+
     m_resDataBuffer     = *(m_decodeParams.m_dataBuffer);
     m_vp8PicParams      = (PCODEC_VP8_PIC_PARAMS)m_decodeParams.m_picParams;
     m_vp8IqMatrixParams = (PCODEC_VP8_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
@@ -1235,9 +1239,30 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
     }
     else
     {
-        m_presLastRefSurface   = &(m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic);
-        m_presGoldenRefSurface = &(m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic);
-        m_presAltRefSurface    = &(m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic);
+        if((Mos_ResourceIsNull(&m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic)) && (m_presLastRefSurface))
+        {
+           m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic = *m_presLastRefSurface;
+        }
+        else
+        {
+           m_presLastRefSurface = &(m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic);
+        }
+        if((Mos_ResourceIsNull(&m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic)) && (m_presGoldenRefSurface))
+        {
+           m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic = *m_presGoldenRefSurface;
+        }
+        else
+        {
+           m_presGoldenRefSurface = &(m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic);
+        }
+        if((Mos_ResourceIsNull(&m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic)) && (m_presAltRefSurface))
+        {
+           m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic = *m_presAltRefSurface;
+        }
+        else
+        {
+           m_presAltRefSurface = &(m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic);
+        }
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
