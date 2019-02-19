@@ -321,6 +321,16 @@ int mos_set_context_param(struct mos_linux_context *ctx,
 
 int mos_get_subslice_total(int fd, unsigned int *subslice_total);
 int mos_get_eu_total(int fd, unsigned int *eu_total);
+
+int mos_get_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu *sseu);
+int mos_set_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu sseu);
+int mos_get_subslice_mask(int fd, unsigned int *subslice_mask);
+int mos_get_slice_mask(int fd, unsigned int *slice_mask);
+uint8_t mos_switch_off_n_bits(uint8_t in_mask, int n);
+unsigned int mos_hweight8(uint8_t w);
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
