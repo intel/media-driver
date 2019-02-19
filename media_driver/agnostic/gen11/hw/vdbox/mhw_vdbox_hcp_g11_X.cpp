@@ -2928,7 +2928,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSliceStateCmd(
     cmd.DW6.Roundinter = 4;
     cmd.DW6.Roundintra = 10;
 
-    cmd.DW7.Cabaczerowordinsertionenable    = 1;
+    cmd.DW7.Cabaczerowordinsertionenable    = hevcSliceState->bVdencInUse ? 0 : 1;
     cmd.DW7.Emulationbytesliceinsertenable  = 1;
     cmd.DW7.TailInsertionEnable             = (hevcPicParams->bLastPicInSeq || hevcPicParams->bLastPicInStream) && hevcSliceState->bLastSlice;
     cmd.DW7.SlicedataEnable                 = 1;
