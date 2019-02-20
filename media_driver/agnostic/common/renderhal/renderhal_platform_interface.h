@@ -75,14 +75,24 @@ public:
     //!
     //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
     //! \details    For BDW GT1/2/3 A0 steppings, per thread scratch space size in VFE state
-    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k … 10=2M
-    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k … 11=2M
+    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k ... 10=2M
+    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k ... 11=2M
     //! \param      PRENDERHAL_INTERFACE pRenderHal
     //!             [in]    Pointer to RenderHal interface
     //! \return     true if BDW A0 stepping, false otherwise
     //!
     virtual bool PerThreadScratchSpaceStart2K(
         PRENDERHAL_INTERFACE pRenderHal) = 0;
+
+    //!
+    //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
+    //! \details    On some new platforms, per thread scratch space size can be 2^n (n >= 6) bytes.
+    //!             If this is supported, total scratch space size can be reduced.
+    //! \return     64-byte base size is supported on specific platforms, so false is returned in
+    //!             base class implementation.
+    //!
+    virtual bool PerThreadScratchSpaceStart64Byte(
+        RENDERHAL_INTERFACE *renderHal) { return false; }
 
     //!
     //! \brief    Encode SLM Size for Interface Descriptor
@@ -389,6 +399,23 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     };
+
+    //! \brief    Allocates scratch space buffer.
+    //! \details  On some new pltforms, a single scratch space buffer may be allocated and used for
+    //!           all threads.
+    //! \return   Single scratch space buffer is supported on specific platforms, so
+    //!           MOS_STATUS_UNIMPLEMENTED is returned in base class implementation.
+    virtual MOS_STATUS AllocateScratchSpaceBuffer(
+        uint32_t perThreadScratchSpace,
+        RENDERHAL_INTERFACE *renderHal) { return MOS_STATUS_UNIMPLEMENTED; }
+
+    //! \brief    Frees scratch space buffer.
+    //! \details  On some new pltforms, a single scratch space buffer may be allocated and used for
+    //!           all threads.
+    //! \return   Single scratch space buffer is supported on specific platforms, so
+    //!           MOS_STATUS_UNIMPLEMENTED is returned in base class implementation.
+    virtual MOS_STATUS FreeScratchSpaceBuffer(
+        RENDERHAL_INTERFACE *renderHal) { return MOS_STATUS_UNIMPLEMENTED; }
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__
