@@ -47,10 +47,6 @@
 
 #include <linux/fb.h>
 
-#ifndef VA_ENCRYPTION_TYPE_NONE
-#define VA_ENCRYPTION_TYPE_NONE 0x00000000
-#endif
-
 typedef MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR> DdiDecodeFactory;
 static int32_t DdiDecode_GetDisplayInfo(VADriverContextP ctx)
 {
@@ -319,7 +315,6 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
-    mosCtx.RequireCPLIB          = decConfigAttr.uiEncryptionType != VA_ENCRYPTION_TYPE_NONE;
 
     if (nullptr == mosCtx.pPerfData)
     {
