@@ -999,6 +999,8 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     CODECHAL_DECODE_CHK_STATUS_RETURN(Codechal::Execute(params));
 
     CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
+    // MSDK event handling
+    Mos_Solo_SetGpuAppTaskEvent(m_osInterface, decodeParams->m_gpuAppTaskEvent);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
