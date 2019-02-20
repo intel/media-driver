@@ -257,6 +257,11 @@ void CmDeviceRT::DestructCommon()
         (*iter)->CleanQueue();
     }
     m_criticalSectionQueue.Release();
+    PCM_CONTEXT_DATA  pCmData = (PCM_CONTEXT_DATA)m_accelData;
+    if (pCmData && pCmData->cmHalState && pCmData->cmHalState->advExecutor)
+    {
+        pCmData->cmHalState->advExecutor->WaitForAllTasksFinished();
+    }
 
     for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {

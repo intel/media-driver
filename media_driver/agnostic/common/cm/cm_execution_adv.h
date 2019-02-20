@@ -83,6 +83,6 @@ public:
                 CMRT_UMD::CmEvent* &event, 
                 const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
                 MOS_GPU_CONTEXT gpuContext);
-
+    virtual int WaitForAllTasksFinished() {return 0; }
     
 };
