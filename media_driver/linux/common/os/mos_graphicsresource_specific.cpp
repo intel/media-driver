@@ -147,6 +147,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     switch (params.m_type)
     {
         case MOS_GFXRES_BUFFER:
+        case MOS_GFXRES_SCRATCH:
           gmmParams.Type = RESOURCE_BUFFER;
           gmmParams.Flags.Gpu.State = true;
           alignedHeight = 1;

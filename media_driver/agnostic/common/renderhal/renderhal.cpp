@@ -5536,44 +5536,61 @@ MOS_STATUS RenderHal_SetSurfaceStateBuffer(
     MHW_MI_CHK_NULL(pParams->psSurface);
     MHW_MI_CHK_NULL(pSurfaceState);
 
-    MHW_SURFACE_STATE_PARAMS    Params;
+    MHW_SURFACE_STATE_PARAMS Params;
     MOS_ZeroMemory(&Params, sizeof(Params));
-
     PMOS_SURFACE pSurface = pParams->psSurface;
-
     uint32_t dwBufferSize = pSurface->dwWidth - 1;
-    Params.SurfaceType3D = GFX3DSTATE_SURFACETYPE_BUFFER;
-    // Width  contains bits [ 6:0] of the number of entries in the buffer
-    Params.dwWidth = (uint8_t)(dwBufferSize & MOS_MASKBITS32(0, 6));
-    // Height contains bits [20:7] of the number of entries in the buffer
-    Params.dwHeight = (uint16_t)((dwBufferSize & MOS_MASKBITS32(7, 20)) >> 7);
-    // For SURFTYPE_BUFFER, this field indicates the size of the structure
-    Params.dwPitch = 0;
+    Params.SurfaceType3D = MOS_GFXRES_SCRATCH == pSurface->Type?
+            GFX3DSTATE_SURFACETYPE_SCRATCH
+            : GFX3DSTATE_SURFACETYPE_BUFFER;
 
-    uint32_t depthMaskBuffer        = pRenderHal->pRenderHalPltInterface->GetDepthBitMaskForBuffer();
-    uint32_t depthMaskRawBuffer     = pRenderHal->pRenderHalPltInterface->GetDepthBitMaskForRawBuffer();
-
-    switch (pSurface->Format)
+    if (MOS_GFXRES_SCRATCH == pSurface->Type)
     {
-        // We consider MOS's Format_Buffer as MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM format for most of cases
-    case Format_Buffer:
-        Params.dwFormat = MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM;
-        Params.dwDepth = (uint16_t)((dwBufferSize & depthMaskBuffer) >> 21);
-        break;
-
-    case Format_RAW:
+        Params.dwPitch = 1023;
+        uint32_t entry_count = pSurface->dwWidth/(Params.dwPitch + 1);
+        Params.dwWidth = (entry_count - 1) & MOS_MASKBITS32(0, 6);
+        Params.dwHeight = (((entry_count - 1) & MOS_MASKBITS32(7, 20)) >> 7);
+        Params.dwDepth = (((entry_count - 1) & 0xFFE00000) >> 21);
         Params.dwFormat = MHW_GFX3DSTATE_SURFACEFORMAT_RAW;
-        Params.dwDepth = (uint16_t)((dwBufferSize & depthMaskRawBuffer) >> 21);
-        break;
+    }
+    else
+    {
+        // Width  contains bits [ 6:0] of the number of entries in the buffer
+        Params.dwWidth = (uint8_t)(dwBufferSize & MOS_MASKBITS32(0, 6));
+        // Height contains bits [20:7] of the number of entries in the buffer
+        Params.dwHeight = (uint16_t)((dwBufferSize & MOS_MASKBITS32(7, 20)) >> 7);
+        // For SURFTYPE_BUFFER, pitch is defaulted to 0. Resetting is unnecessary.
 
-    case Format_L8:
-        Params.dwFormat = MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM;
-        Params.dwDepth = (uint16_t)((dwBufferSize & depthMaskBuffer) >> 21);
-        break;
+        uint32_t depthMaskBuffer = pRenderHal->pRenderHalPltInterface
+                ->GetDepthBitMaskForBuffer();
+        uint32_t depthMaskRawBuffer = pRenderHal->pRenderHalPltInterface
+                ->GetDepthBitMaskForRawBuffer();
+        switch (pSurface->Format)
+        {
+            // We consider MOS's Format_Buffer as MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM
+            // format for most of cases
+            case Format_Buffer:
+                Params.dwFormat = MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM;
+                Params.dwDepth
+                        = (uint16_t)((dwBufferSize & depthMaskBuffer) >> 21);
+                break;
 
-    default:
-        MHW_ASSERTMESSAGE("Invalid buffer Resource format");
-        break;
+            case Format_RAW:
+                Params.dwFormat = MHW_GFX3DSTATE_SURFACEFORMAT_RAW;
+                Params.dwDepth
+                        = (uint16_t)((dwBufferSize & depthMaskRawBuffer) >> 21);
+                break;
+
+            case Format_L8:
+                Params.dwFormat = MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM;
+                Params.dwDepth
+                        = (uint16_t)((dwBufferSize & depthMaskBuffer) >> 21);
+                break;
+
+            default:
+                MHW_ASSERTMESSAGE("Invalid buffer Resource format");
+                break;
+        }
     }
 
     Params.pSurfaceState = (uint8_t*)pSurfaceState;
