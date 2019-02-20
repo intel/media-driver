@@ -157,6 +157,8 @@ struct CodechalDecodeParams
     uint32_t                setMarkerNumTs = 0;
     //! \brief [CENC Decode] Indicates if it's a full frame
     bool                    m_bFullFrameData = false;
+    //! \brief MSDK event handling
+    HANDLE                  m_gpuAppTaskEvent;
 };
 
 
