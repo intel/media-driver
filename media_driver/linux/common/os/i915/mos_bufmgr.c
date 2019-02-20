@@ -63,7 +63,6 @@
 #include "libdrm_lists.h"
 #include "mos_bufmgr.h"
 #include "mos_bufmgr_priv.h"
-#include "intel_chipset.h"
 #ifdef ANDROID
 #include "intel_aub.h"
 #endif
@@ -104,6 +103,14 @@
  * @n: the number we're accessing
  */
 #define lower_32_bits(n) ((__u32)(n))
+
+#define PCI_CHIP_I915_G         0x2582
+#define PCI_CHIP_E7221_G        0x258A
+#define PCI_CHIP_I915_GM        0x2592
+
+#define IS_915(devid)        ((devid) == PCI_CHIP_I915_G || \
+                 (devid) == PCI_CHIP_E7221_G || \
+                 (devid) == PCI_CHIP_I915_GM)
 
 struct mos_gem_bo_bucket {
     drmMMListHead head;
