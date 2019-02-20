@@ -5207,16 +5207,8 @@ int32_t Mos_Specific_SetCpuCacheability(
 MOS_STATUS Mos_Specific_SkipResourceSync(
     PMOS_RESOURCE               pOsResource)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    //---------------------------------------
-    MOS_OS_CHK_NULL(pOsResource);
-    //---------------------------------------
-
-    mos_bo_set_exec_object_async(pOsResource->bo);
-
-finish:
-    return eStatus;
+    MOS_UNUSED(pOsResource);
+    return MOS_STATUS_SUCCESS;
 }
 
 //!
