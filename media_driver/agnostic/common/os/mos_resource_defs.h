@@ -491,9 +491,10 @@ C_ASSERT(MOS_TILE_LINEAR == 4); //!< When adding, update assert
 typedef enum _MOS_GFXRES_TYPE
 {
     MOS_GFXRES_INVALID = -1,
-    MOS_GFXRES_BUFFER,                               //!< Think malloc. This resource is a series of bytes. Is not 2 dimensional.
-    MOS_GFXRES_2D,                                   //!< 2 dimensional resource w/ width and height. 1D is a subset of 2D.
-    MOS_GFXRES_VOLUME,                               //!< 3 dimensional resource w/ depth.
+    MOS_GFXRES_BUFFER,  //!< Think malloc. This resource is a series of bytes. Is not 2 dimensional.
+    MOS_GFXRES_2D,      //!< 2 dimensional resource w/ width and height. 1D is a subset of 2D.
+    MOS_GFXRES_VOLUME,  //!< 3 dimensional resource w/ depth.
+    MOS_GFXRES_SCRATCH, //!< scratch space buffer.
 } MOS_GFXRES_TYPE;
 
 //!

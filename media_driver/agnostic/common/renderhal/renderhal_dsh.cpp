@@ -783,6 +783,8 @@ MOS_STATUS RenderHal_DSH_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
     MOS_AlignedFreeMemory(pStateHeap);
     pRenderHal->pStateHeap = nullptr;
 
+    pRenderHal->pRenderHalPltInterface->FreeScratchSpaceBuffer(pRenderHal);
+
     eStatus = MOS_STATUS_SUCCESS;
 
 finish:
@@ -1993,30 +1995,50 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
     // Kernel Spill Area
     if (pParams->iMaxSpillSize > 0)
-    {   
+    {
         // per thread scratch space must be 1K*(2^n), (2K*(2^n) for BDW A0), alignment is 1kB
-        int iPerThreadScratchSpace;
+        int iPerThreadScratchSpace = 0;
         if (pRenderHal->pfnPerThreadScratchSpaceStart2K(pRenderHal))
+        {
             iPerThreadScratchSpace = 2048;
+        }
+        else if (pRenderHal->pRenderHalPltInterface
+                 ->PerThreadScratchSpaceStart64Byte(pRenderHal))
+        {
+            iPerThreadScratchSpace = 64;
+        }
         else
+        {
             iPerThreadScratchSpace = 1024;
+        }
 
         for (iPerThreadScratchSpace; iPerThreadScratchSpace < pParams->iMaxSpillSize; iPerThreadScratchSpace <<= 1);
+        pDynamicState->iMaxScratchSpacePerThread = pParams->iMaxSpillSize
+                = iPerThreadScratchSpace;
 
-        pDynamicState->iMaxScratchSpacePerThread = pParams->iMaxSpillSize = iPerThreadScratchSpace;
-        pDynamicState->dwScratchSpace = pRenderHal->pfnGetScratchSpaceSize(pRenderHal, iPerThreadScratchSpace);
-        pDynamicState->scratchSpaceOffset = dwSizeMediaState;
-
-        // Allocate more 1k space in state heap, which is used to make scratch space offset 1k-aligned.
-        dwSizeMediaState += pDynamicState->dwScratchSpace + MHW_SCRATCH_SPACE_ALIGN;
-
-        currentExtendSize = pRenderHal->dgsheapManager->GetExtendSize();
-        if (currentExtendSize < pDynamicState->dwScratchSpace)
+        MOS_STATUS result = pRenderHal->pRenderHalPltInterface
+            ->AllocateScratchSpaceBuffer(iPerThreadScratchSpace, pRenderHal);
+        if (MOS_STATUS_UNIMPLEMENTED == result)  // Scratch space buffer is not supported
         {
-            // update extend size for scratch space
-            MHW_RENDERHAL_CHK_STATUS(
-                pRenderHal->dgsheapManager->SetExtendHeapSize(
-                    pDynamicState->dwScratchSpace));
+            pDynamicState->dwScratchSpace
+                    = pRenderHal->pfnGetScratchSpaceSize(pRenderHal,
+                                                         iPerThreadScratchSpace);
+            pDynamicState->scratchSpaceOffset = dwSizeMediaState;
+
+            // Allocate more 1k space in state heap, which is used to make scratch space offset 1k-aligned.
+            dwSizeMediaState += pDynamicState->dwScratchSpace + MHW_SCRATCH_SPACE_ALIGN;
+            currentExtendSize = pRenderHal->dgsheapManager->GetExtendSize();
+            if (currentExtendSize < pDynamicState->dwScratchSpace)
+            {
+                // update extend size for scratch space
+                MHW_RENDERHAL_CHK_STATUS(
+                    pRenderHal->dgsheapManager->SetExtendHeapSize(
+                        pDynamicState->dwScratchSpace));
+            }
+        }
+        else
+        {
+            MHW_RENDERHAL_CHK_STATUS(result);
         }
     }
 
@@ -2034,7 +2056,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         true,
         true));
 
-    if (pParams->iMaxSpillSize > 0)
+    if (pParams->iMaxSpillSize > 0 && currentExtendSize > 0)
     {
         // Restore original extend heap size
         MHW_RENDERHAL_CHK_STATUS(
