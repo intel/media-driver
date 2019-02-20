@@ -24,7 +24,6 @@ set(TMP_SOURCES_ "")
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/intel_aub.h
-    ${CMAKE_CURRENT_LIST_DIR}/intel_chipset.h
     ${CMAKE_CURRENT_LIST_DIR}/libdrm_lists.h
     ${CMAKE_CURRENT_LIST_DIR}/libdrm_macros.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.h
