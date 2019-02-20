@@ -691,7 +691,7 @@ MOS_STATUS CodechalVdencHevcState::SetupROIStreamIn(PMOS_RESOURCE streamIn)
             }
         }
         // Calculate ForceQp
-        int8_t forceQp = (int8_t)CodecHal_Clip3(0, 51, m_hevcPicParams->QpY + m_hevcPicParams->ROI[i].PriorityLevelOrDQp + m_hevcSliceParams->slice_qp_delta);
+        int8_t forceQp = (int8_t)CodecHal_Clip3(10, 51, m_hevcPicParams->QpY + m_hevcPicParams->ROI[i].PriorityLevelOrDQp + m_hevcSliceParams->slice_qp_delta);
 
         MOS_ZeroMemory(&streaminDataParams, sizeof(streaminDataParams));
         streaminDataParams.setQpRoiCtrl = true;
