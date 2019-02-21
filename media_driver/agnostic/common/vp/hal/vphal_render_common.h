@@ -2559,6 +2559,8 @@ MOS_STATUS VpHal_CommonSetBufferSurfaceForHwAccess(
 //!             Pointer to GPGPU walker parameters
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSubmission
+//!             whether it is the last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrCommonSubmitCommands(
@@ -2567,7 +2569,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     bool                                bNullRendering,
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
-    VpKernelID                          KernelID);
+    VpKernelID                          KernelID,
+    bool                                bLastSubmission);
 
 //!
 //! \brief      Submit commands for rendering
@@ -2586,8 +2589,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
-//! \param      [in] bLastSumission
-//!             whether it is the last sumission
+//! \param      [in] bLastSubmission
+//!             whether it is the last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrSubmitCommands(
@@ -2598,7 +2601,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
     PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
     VpKernelID                          KernelID,
-    bool                                bLastSumission);
+    bool                                bLastSubmission);
 
 //!
 //! \brief      Is Alignment WA needed

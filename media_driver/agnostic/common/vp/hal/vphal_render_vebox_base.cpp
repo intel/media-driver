@@ -1728,8 +1728,11 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
 
 #ifndef EMUL
     // Don't enable MediaFrame Track on Vebox if one VPBlit Still need to do compostion. It can avoid the kmd notify
-    // the frame be handling finished twice for one VPBLIT. 
-    if ((pRenderData->OutputPipe != VPHAL_OUTPUT_PIPE_MODE_COMP) &&
+    // the frame be handling finished twice for one VPBLIT.
+    // For VE+Render colorfill case, don't enable MediaFrame Track on vebox to avoid twice notification for one VP Blt.
+    // We need to refactor decision code of bCompNeeded by setting bCompNeeded flag before Vebox/SFC processing in the future.
+    if ((pRenderData->OutputPipe != VPHAL_OUTPUT_PIPE_MODE_COMP &&
+        !pRenderData->pRenderTarget->bFastColorFill) &&
         pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
