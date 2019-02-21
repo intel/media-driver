@@ -906,6 +906,11 @@ MOS_STATUS HalCm_Lock2DResource(
                   &surface));
 
         param->pitch = surface.dwPitch;
+        param->format = surface.Format;
+        param->YSurfaceOffset = surface.YPlaneOffset;
+        param->USurfaceOffset = surface.UPlaneOffset;
+        param->VSurfaceOffset = surface.VPlaneOffset;
+
         // Lock the resource
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
 
