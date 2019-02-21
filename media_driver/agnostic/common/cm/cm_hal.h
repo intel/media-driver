@@ -877,6 +877,9 @@ typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
     MOS_FORMAT                  format;                                      // [in]         Surface Format
     void                        *data;                                       // [in/out]     Pointer to data
     uint32_t                    pitch;                                       // [out]        Pitch
+    MOS_PLANE_OFFSET            YSurfaceOffset;                              // [out]        Y plane Offset
+    MOS_PLANE_OFFSET            USurfaceOffset;                              // [out]        U plane Offset
+    MOS_PLANE_OFFSET            VSurfaceOffset;                              // [out]        V plane Offset
     uint32_t                    lockFlag;                                    // [out]        lock flag
     uint32_t                    handle;                                      // [in/out]     Handle
 } CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM, *PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM;
