@@ -2345,21 +2345,12 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
 
     m_targetUsage = (uint32_t)m_hevcSeqParams->TargetUsage;
 
-    // HuC based Advanced CQP is used only for TU1 Quality & TU4 Normal
-    // Even for TU7 Performance, HuC is disabled only when there is no SSC.
-    if (m_hevcSeqParams->TargetUsage == 0x07 && m_hevcSeqParams->SliceSizeControl == false)
+    // ACQP is by default disabled, enable it when SSC/QpAdjust required.
+    if (m_hevcSeqParams->SliceSizeControl == true ||
+        m_hevcSeqParams->QpAdjustment == true)
     {
-        m_hevcVdencAcqpEnabled = false;
+        m_hevcVdencAcqpEnabled = true;
     }
-
-    // ACQP is also considered as BRC (special version of ICQ)
-    if (m_brcEnabled)
-    {
-        m_vdencBrcEnabled = true;
-        m_hevcVdencAcqpEnabled = false;  // when BRC is enabled, ACQP has to be turned off
-    }
-
-    m_vdencHucUsed = m_hevcVdencAcqpEnabled || m_vdencBrcEnabled;
 
     // Get row store cache offset as all the needed information is got here
     if (m_vdencInterface->IsRowStoreCachingSupported())
@@ -2398,7 +2389,7 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
     // When it happens, PAK would indicate SSC violation in MMIO register
     // and HuC would adjust SSC threshold and triggers another VDEnc+PAK pass.
     // SSC requires HuC for all target usages. (allow 1 pass SSC temporarily for testing purpose)
-    if (m_vdencHucUsed && m_hevcSeqParams->SliceSizeControl)
+    if (m_hevcSeqParams->SliceSizeControl)
     {
         m_vdencHuCConditional2ndPass = true;
     }
@@ -2409,8 +2400,14 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
         // with SAO, needs to increase total number of passes to 3 later (2 for SAO, 1 for WP)
         m_hevcVdencWeightedPredEnabled = true;
         m_vdencHuCConditional2ndPass = true;
-    }
 
+        // Set ACQP enabled if GPU base WP is required.
+        if(m_hevcPicParams->bEnableGPUWeightedPrediction)
+        {
+            m_hevcVdencAcqpEnabled = true;
+        }
+    }
+    
     if (m_brcEnabled)  // VDEnc BRC supports maximum 2 PAK passes
     {
         if (m_hevcPicParams->BRCPrecision == 1)  // single-pass BRC, App requirment with first priority
@@ -2427,6 +2424,9 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
         {
             m_numPasses = 0;
         }
+
+        m_vdencBrcEnabled = true;
+        m_hevcVdencAcqpEnabled = false;  // when BRC is enabled, ACQP has to be turned off
     }
     else   // CQP, ACQP
     {
@@ -2439,6 +2439,8 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
             m_numPasses += 1;
         }
     }
+
+    m_vdencHucUsed = m_hevcVdencAcqpEnabled || m_vdencBrcEnabled;
 
     // VDEnc always needs to enable due to pak fractional QP features
     // In VDENC mode, this field "Cu_Qp_Delta_Enabled_Flag" should always be set to 1.
