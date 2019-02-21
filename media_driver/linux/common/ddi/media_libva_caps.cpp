@@ -561,7 +561,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
         if (IsHevcProfile(profile))
         {
-            attrib.value |= VA_RC_ICQ | VA_RC_VCM;
+            attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR;
         }
     }
     if (IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
@@ -1536,7 +1536,8 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < configStartIdx; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1564,7 +1565,8 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < configStartIdx; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1581,7 +1583,8 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < configStartIdx; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1598,7 +1601,8 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < configStartIdx; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1615,7 +1619,8 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < configStartIdx; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
