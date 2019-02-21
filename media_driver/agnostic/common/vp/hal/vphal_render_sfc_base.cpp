@@ -632,6 +632,9 @@ void VphalSfcState::SetRenderingFlags(
 
     m_renderData.bForcePolyPhaseCoefs = VpHal_IsChromaUpSamplingNeeded(pSrc, pRenderTarget);
 
+    // Cache Render Target pointer
+    pRenderData->pRenderTarget = pRenderTarget;
+
 finish:
     return;
 }
