@@ -338,6 +338,7 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    bVerticalLineStrideOffset : 1;
     uint32_t    bCompressionEnabled       : 1;
     uint32_t    bCompressionMode          : 1;
+    uint32_t    MmcState                  : 3;
     uint32_t    bInterleaveChroma         : 1;
     uint32_t    bHalfPitchChroma          : 1;
     uint32_t    bSeperateUVPlane          : 1;

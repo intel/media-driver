@@ -6666,6 +6666,58 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
         pOsInterface,
         &PatchEntryParams);
 
+    MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
+    PMOS_RESOURCE pMosResource = (PMOS_RESOURCE)pSurfaceStateToken->pResourceInfo;
+    pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, pMosResource, &mmcMode);
+
+    if(mmcMode == MOS_MEMCOMP_RC)
+    {
+# if !EMUL
+        if (pOsInterface->bUsesGfxAddress)
+        {
+            pdwCmd = (uint32_t*)(pParams->pIndirectStateBase + pParams->iSurfaceStateOffset); //point to the start of current RENDER_SURFACE_STATE_CMD
+
+            // Set GFX address of AuxiliarySurfaceBaseAddress
+            *(pdwCmd + 10) = pSurfaceStateToken->DW4.SurfaceBaseAddress
+                             + (uint32_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CCS);
+            *(pdwCmd + 11) = pSurfaceStateToken->DW5.SurfaceBaseAddress64;
+
+            // Set GFX address of ClearAddress
+            *(pdwCmd + 12) = pSurfaceStateToken->DW4.SurfaceBaseAddress
+                             + (uint32_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CC);;
+            *(pdwCmd + 13) = pSurfaceStateToken->DW5.SurfaceBaseAddress64;
+        }
+        else
+        {
+            // Set patch for AuxiliarySurfaceBaseAddress
+            MOS_ZeroMemory(&PatchEntryParams, sizeof(PatchEntryParams));
+            PatchEntryParams.uiAllocationIndex  = pSurfaceStateToken->DW1.SurfaceAllocationIndex;
+            PatchEntryParams.uiResourceOffset = pSurfaceStateToken->DW2.SurfaceOffset
+                                                + (uint32_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CCS);
+            PatchEntryParams.uiPatchOffset    = iIndirectStateBase + pParams->iSurfaceStateOffset + 10 * sizeof(uint32_t);
+            PatchEntryParams.bWrite           = pSurfaceStateToken->DW3.RenderTargetEnable;
+            PatchEntryParams.HwCommandType    = (MOS_HW_COMMAND)pSurfaceStateToken->DW0.DriverID;
+            PatchEntryParams.forceDwordOffset = 0;
+            PatchEntryParams.cmdBufBase       = pbPtrCmdBuf;
+            PatchEntryParams.presResource     = (PMOS_RESOURCE)pSurfaceStateToken->pResourceInfo;
+            pOsInterface->pfnSetPatchEntry(pOsInterface, &PatchEntryParams);
+
+            // Set patch for ClearAddress
+            MOS_ZeroMemory(&PatchEntryParams, sizeof(PatchEntryParams));
+            PatchEntryParams.uiAllocationIndex  = pSurfaceStateToken->DW1.SurfaceAllocationIndex;
+            PatchEntryParams.uiResourceOffset = pSurfaceStateToken->DW2.SurfaceOffset
+                                                + (uint32_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CC);
+            PatchEntryParams.uiPatchOffset    = iIndirectStateBase + pParams->iSurfaceStateOffset + 12 * sizeof(uint32_t);
+            PatchEntryParams.bWrite           = pSurfaceStateToken->DW3.RenderTargetEnable;
+            PatchEntryParams.HwCommandType    = (MOS_HW_COMMAND)pSurfaceStateToken->DW0.DriverID;
+            PatchEntryParams.forceDwordOffset = 0;
+            PatchEntryParams.cmdBufBase       = pbPtrCmdBuf;
+            PatchEntryParams.presResource     = (PMOS_RESOURCE)pSurfaceStateToken->pResourceInfo;
+            pOsInterface->pfnSetPatchEntry(pOsInterface, &PatchEntryParams);
+        }
+#endif
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

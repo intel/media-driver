@@ -74,6 +74,7 @@ extern const MHW_SURFACE_STATE_PARAMS g_cInit_MhwSurfaceStateParams =
     false,    // bVerticalLineStrideOffset
     false,    // bCompressionEnabled
     false,    // bCompressionMode
+    0,        // MmcState
     false,    // bInterleaveChroma
     false,    // bHalfPitchChroma
     false,    // bSeperateUVPlane
