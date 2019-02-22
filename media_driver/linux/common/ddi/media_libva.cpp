@@ -1455,7 +1455,7 @@ VAStatus DdiMedia__Initialize (
     // Create GMM Client Context
     mediaCtx->pGmmClientContext = mediaCtx->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
 
-    // Create GMM page table manager 
+    // Create GMM page table manager
     mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr,
         &mediaCtx->SkuTable, &mediaCtx->WaTable);
 
@@ -4143,6 +4143,8 @@ VAStatus DdiMedia_DeriveImage (
     vaimg->height                   = mediaSurface->iRealHeight;
     vaimg->format.byte_order        = VA_LSB_FIRST;
 
+    uint32_t gmmUPlaneYOffset = mediaSurface->pGmmResourceInfo->GetPlanarYOffset(GMM_PLANE_U);
+
     switch( mediaSurface->format )
     {
     case Media_Format_YV12:
@@ -4272,7 +4274,7 @@ VAStatus DdiMedia_DeriveImage (
          vaimg->pitches[0]               = mediaSurface->iPitch;
          vaimg->pitches[1]               =
          vaimg->pitches[2]               = mediaSurface->iPitch;
-         vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
+         vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
          vaimg->offsets[2]               = vaimg->offsets[1] + 2;
         break;
      default:
@@ -4282,11 +4284,11 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
+        vaimg->offsets[1]               = gmmUPlaneYOffset * mediaSurface->iPitch;
         vaimg->offsets[2]               = vaimg->offsets[1] + 1;
         break;
     }
-    
+
     mediaCtx->m_caps->PopulateColorMaskInfo(&vaimg->format);
 
     DDI_MEDIA_BUFFER *buf               = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
