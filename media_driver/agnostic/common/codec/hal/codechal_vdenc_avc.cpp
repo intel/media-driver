@@ -1493,6 +1493,7 @@ void CodechalVdencAvcState::InitializeDataMember()
     m_skipBiasAdjustmentSupported = false;  // SkipBiasAdjustment support for P frame
     m_sliceLevelReportSupported   = false;  // Slice Level Report support
     m_brcRoiSupported             = false;
+    m_brcMotionAdaptiveEnable     = false;
 
     m_roundingInterEnable         = false;
     m_adaptiveRoundingInterEnable = false;
@@ -1647,6 +1648,13 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
         __MEDIA_USER_FEATURE_VALUE_VDENC_THRESHOLD_P_SLICE_SIZE_MINUS_ID,
         &userFeatureData);
     m_vdencSliceMinusP = (userFeatureData.i32Data);
+    
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_VDENC_BRC_MOTION_ADAPTIVE_ENABLE_ID,
+        &userFeatureData);
+    m_brcMotionAdaptiveEnable = (userFeatureData.i32Data) ? true : false;
 
     m_vdencBrcStatsBufferSize = AVC_BRC_STATS_BUF_SIZE;
     m_vdencBrcPakStatsBufferSize = AVC_BRC_PAK_STATS_BUF_SIZE;

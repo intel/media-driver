@@ -776,6 +776,7 @@ protected:
     bool    m_skipBiasAdjustmentSupported;  //!< SkipBiasAdjustment support for P frame
     bool    m_sliceLevelReportSupported;    //!< Slice Level Report support
     bool    m_brcRoiSupported;              //!< BRC Roi Support Flag.
+    bool    m_brcMotionAdaptiveEnable;      //!< BRC motion adaptive optimization enabled. 
 
     bool     m_roundingInterEnable;          //!< RoundingInter Enable Flag.
     bool     m_adaptiveRoundingInterEnable;  //!< Adaptive Rounding Inter Enable Flag.
@@ -912,8 +913,7 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     auto avcSeqParams = m_avcSeqParam;
-    if ((avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW) || // Low Delay Mode
-        (avcSeqParams->RateControlMethod == RATECONTROL_VBR))
+    if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW) // Low Delay Mode
     {
         avcSeqParams->MaxBitRate = avcSeqParams->TargetBitRate;
     }
