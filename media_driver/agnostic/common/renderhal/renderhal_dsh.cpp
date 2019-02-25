@@ -1829,7 +1829,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     uint8_t                             *performanceMemory = nullptr;
     uint32_t                            performanceSize;
     uint32_t                            dwFrameId;
-    uint32_t                            currentExtendSize;
+    uint32_t                            currentExtendSize = 0;
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
