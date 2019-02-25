@@ -465,7 +465,14 @@ VAStatus DdiMediaUtil_AllocateSurface(
     if (DdiMediaUtil_IsExternalSurface(mediaSurface))
     {
         gmmParams.BaseWidth         = mediaSurface->iWidth;
-        gmmParams.BaseHeight        = mediaSurface->iHeight;
+        if(mediaSurface->pSurfDesc->uiPlanes > 1)
+        {
+            gmmParams.BaseHeight = (mediaSurface->pSurfDesc->uiOffsets[1] - mediaSurface->pSurfDesc->uiOffsets[0]) / mediaSurface->pSurfDesc->uiPitches[0];
+        }
+        else
+        {
+            gmmParams.BaseHeight = mediaSurface->pSurfDesc->uiSize / mediaSurface->pSurfDesc->uiPitches[0];
+        }
     }
     else
     {
