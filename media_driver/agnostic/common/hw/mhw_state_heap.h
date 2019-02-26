@@ -346,6 +346,7 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    UVPixelOffsetVDirection   : 2;
     uint32_t    RotationMode              : 3;
     uint32_t    bSurfaceArraySpacing      : 1;
+    uint32_t    bBoardColorOGL            : 1;
     int32_t     iXOffset;
     int32_t     iYOffset;
     uint32_t    dwXOffsetForU; // U or UV
