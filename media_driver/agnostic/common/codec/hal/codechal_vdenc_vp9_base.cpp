@@ -2226,8 +2226,11 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
     // and to simplify handling the boundary condition, we set each CU with size 8x8, inter and zero MV.
     // Segment skip needs to be turned on also.
 
-    uint32_t numCuLastSbCol = (m_oriFrameWidth / CODEC_VP9_MIN_BLOCK_WIDTH) - (m_picWidthInSb - 1) * (CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH);
-    uint32_t numCuLastSbRow = (m_oriFrameHeight / CODEC_VP9_MIN_BLOCK_HEIGHT) - (m_picHeightInSb - 1) * (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT);
+    auto oriFrameHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_HEIGHT);
+    auto oriFrameWidth  = MOS_ALIGN_CEIL(m_oriFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH);
+
+    uint32_t numCuLastSbCol = (oriFrameWidth / CODEC_VP9_MIN_BLOCK_WIDTH) - (m_picWidthInSb - 1) * (CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH);
+    uint32_t numCuLastSbRow = (oriFrameHeight / CODEC_VP9_MIN_BLOCK_HEIGHT) - (m_picHeightInSb - 1) * (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT);
 
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
