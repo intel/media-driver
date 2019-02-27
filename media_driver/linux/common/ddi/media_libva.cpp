@@ -2104,6 +2104,9 @@ DdiMedia_CreateSurfaces2(
         case VA_FOURCC_Y416:
             expected_fourcc = VA_FOURCC_Y416;
             break;
+        case VA_FOURCC_I420:
+            expected_fourcc = VA_FOURCC_I420;
+            break;
 #endif
         default:
             DDI_ASSERTMESSAGE("Invalid VAConfigAttribRTFormat: 0x%x. Please uses the format defined in libva/va.h", format);
