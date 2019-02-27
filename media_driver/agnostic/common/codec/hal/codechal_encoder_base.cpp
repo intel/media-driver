@@ -4274,10 +4274,19 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             }
         }
 
-        // Check if source surface needs to be synchronized and should wait for decode or VPP or any other context
         MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
-        syncParams.presSyncResource = &m_rawSurface.OsResource;
         syncParams.bReadOnly = true;
+
+        // Synchronize MB QP data surface resource if any.
+        if (encodeParams->bMbQpDataEnabled)
+        {
+            syncParams.presSyncResource = &encodeParams->psMbQpDataSurface->OsResource;
+            syncParams.GpuContext       = m_renderContext;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
+        }
+
+        // Check if source surface needs to be synchronized and should wait for decode or VPP or any other context
+        syncParams.presSyncResource = &m_rawSurface.OsResource;
 
         if (CodecHalUsesRenderEngine(m_codecFunction, m_standard) &&
             m_firstField)
