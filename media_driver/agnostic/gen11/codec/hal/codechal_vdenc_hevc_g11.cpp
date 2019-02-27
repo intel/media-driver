@@ -2595,6 +2595,12 @@ MOS_STATUS CodechalVdencHevcStateG11::EncTileLevel()
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 break;
             }
+
+            if (sliceNumInTile > 1 && (numTileColumns > 1 || numTileRows > 1))
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("Multi-slices in a tile is not supported!");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
         } // end of row tile
     } // end of column tile
 
