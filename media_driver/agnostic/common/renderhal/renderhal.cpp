@@ -6670,22 +6670,25 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
     PMOS_RESOURCE pMosResource = (PMOS_RESOURCE)pSurfaceStateToken->pResourceInfo;
     pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, pMosResource, &mmcMode);
 
-    if(mmcMode == MOS_MEMCOMP_RC)
+    if (mmcMode == MOS_MEMCOMP_RC && pSurfaceStateToken->DW3.SurfaceStateType == MEDIASTATE_BTS_DEFAULT_TYPE)
     {
 # if !EMUL
         if (pOsInterface->bUsesGfxAddress)
         {
+            uint64_t ui64GfxAddress = 0;
+            ui64GfxAddress |= (uint64_t)(pSurfaceStateToken->DW5.SurfaceBaseAddress64 & 0x0000FFFF) << 32;
+            ui64GfxAddress |= (uint64_t)(pSurfaceStateToken->DW4.SurfaceBaseAddress);
             pdwCmd = (uint32_t*)(pParams->pIndirectStateBase + pParams->iSurfaceStateOffset); //point to the start of current RENDER_SURFACE_STATE_CMD
 
             // Set GFX address of AuxiliarySurfaceBaseAddress
-            *(pdwCmd + 10) = pSurfaceStateToken->DW4.SurfaceBaseAddress
-                             + (uint32_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CCS);
-            *(pdwCmd + 11) = pSurfaceStateToken->DW5.SurfaceBaseAddress64;
+            uint64_t auxAddress = ui64GfxAddress + (uint64_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CCS);
+            *(pdwCmd + 10) = (uint32_t)( auxAddress & 0x00000000FFFFFFFF );
+            *(pdwCmd + 11) = (uint32_t)( ( auxAddress & 0x0000FFFF00000000 ) >> 32 );
 
             // Set GFX address of ClearAddress
-            *(pdwCmd + 12) = pSurfaceStateToken->DW4.SurfaceBaseAddress
-                             + (uint32_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CC);;
-            *(pdwCmd + 13) = pSurfaceStateToken->DW5.SurfaceBaseAddress64;
+            uint64_t clearAddress = ui64GfxAddress + (uint32_t)pMosResource->pGmmResInfo->GetUnifiedAuxSurfaceOffset(GMM_AUX_CC);
+            *(pdwCmd + 12) = (uint32_t)( clearAddress & 0x00000000FFFFFFFF );
+            *(pdwCmd + 13) = (uint32_t)( ( clearAddress & 0x0000FFFF00000000 ) >> 32 );
         }
         else
         {
