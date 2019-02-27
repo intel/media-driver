@@ -897,6 +897,31 @@ MOS_STATUS CodechalVdencHevcState::SetupDirtyRectStreamIn(PMOS_RESOURCE streamIn
         SetStreaminDataPerLcu(&streaminDataParams, data + (i * 64));
     }
 
+    uint32_t streamInWidthNo64Align  = (MOS_ALIGN_CEIL(m_frameWidth, 32) / 32);
+    uint32_t streamInHeightNo64Align = (MOS_ALIGN_CEIL(m_frameHeight, 32) / 32);
+
+    // Set the static region when the width is not 64 CU aligned.
+    if (streamInWidthNo64Align != streamInWidth)
+    {
+        auto border_top    = 0;
+        auto border_bottom = streamInHeight;
+        auto border_left   = streamInWidthNo64Align - 1;
+        auto border_right  = streamInWidth;
+
+        StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top, border_bottom, border_left, border_right, data);
+    }
+
+    // Set the static region when the height is not 64 CU aligned.
+    if (streamInHeightNo64Align != streamInHeight)
+    {
+        auto border_top    = streamInHeightNo64Align - 1;
+        auto border_bottom = streamInHeight;
+        auto border_left   = 0;
+        auto border_right  = streamInWidth;
+
+        StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top, border_bottom, border_left, border_right, data);
+    }
+
     for (int i = m_hevcPicParams->NumDirtyRects - 1; i >= 0; i--)
     {
         //Check if the region is with in the borders
