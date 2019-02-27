@@ -1433,6 +1433,11 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
         CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount( threadNum ));
         CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
 
+        if(direction == CM_FASTCOPY_GPU2CPU)
+        {
+            surface->SetReadSyncFlag(true, this); // GPU -> CPU, set surf2d as read sync flag
+        }
+
         if( direction == CM_FASTCOPY_CPU2GPU)
         {
             if (cmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
@@ -1448,10 +1453,6 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
         }
 
-        if(direction == CM_FASTCOPY_GPU2CPU)
-        {
-            surface->SetReadSyncFlag(true, this); // GPU -> CPU, set surf2d as read sync flag
-        }
 
         widthDword = (uint32_t)ceil((double)widthByte / 4);
         strideInDwords = (uint32_t)ceil((double)strideInBytes / 4);
