@@ -104,6 +104,295 @@ bool CmSurface2DRT::IsUnalignedGPUCopy(uint32_t widthInBytes, uint32_t height)
     return (widthInBytes <= CM_MAX_THREADSPACE_WIDTH_FOR_MW*64) && (height <= CM_MAX_THREADSPACE_HEIGHT_FOR_MW*8);
 }
 
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Get planar memory layout information details
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t GetPlanarInfomation(CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam, uint32_t& sizePerPixel, uint32_t& UVwidth, uint32_t& UVheight, uint32_t& UVpitch)
+{
+    //default single plane format UVheight = 0
+    UVheight = 0;
+    UVpitch = 0;
+    UVwidth = 0;
+    switch (inParam.format)
+    {
+    case CM_SURFACE_FORMAT_R32G32B32A32F:
+        sizePerPixel = 16;
+        break;
+
+    case CM_SURFACE_FORMAT_A16B16G16R16:
+    case CM_SURFACE_FORMAT_A16B16G16R16F:
+    case CM_SURFACE_FORMAT_Y416:
+    case CM_SURFACE_FORMAT_D32F_S8X24_UINT:
+    case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:
+        sizePerPixel = 8;
+        break;
+
+    case CM_SURFACE_FORMAT_X8R8G8B8:
+    case CM_SURFACE_FORMAT_A8R8G8B8:
+    case CM_SURFACE_FORMAT_A8B8G8R8:
+    case CM_SURFACE_FORMAT_R32F:
+    case CM_SURFACE_FORMAT_D32F:
+    case CM_SURFACE_FORMAT_R32_UINT:
+    case CM_SURFACE_FORMAT_R32_SINT:
+    case CM_SURFACE_FORMAT_R10G10B10A2:
+    case CM_SURFACE_FORMAT_AYUV:
+    case CM_SURFACE_FORMAT_R16G16_UNORM:
+    case CM_SURFACE_FORMAT_Y410:
+    case CM_SURFACE_FORMAT_Y216:
+    case CM_SURFACE_FORMAT_Y210:
+    case CM_SURFACE_FORMAT_D24_UNORM_S8_UINT:
+    case CM_SURFACE_FORMAT_R32_TYPELESS:
+    case CM_SURFACE_FORMAT_R24G8_TYPELESS:
+    case CM_SURFACE_FORMAT_R16G16_SINT:
+        sizePerPixel = 4;
+        break;
+
+    case CM_SURFACE_FORMAT_R8G8_SNORM:
+    case CM_SURFACE_FORMAT_R16_UINT:
+    case CM_SURFACE_FORMAT_R16_SINT:
+    case CM_SURFACE_FORMAT_R16_UNORM:
+    case CM_SURFACE_FORMAT_D16:
+    case CM_SURFACE_FORMAT_L16:
+    case CM_SURFACE_FORMAT_R8G8_UNORM:
+    case CM_SURFACE_FORMAT_UYVY:
+    case CM_SURFACE_FORMAT_VYUY:
+    case CM_SURFACE_FORMAT_YUY2:
+    case CM_SURFACE_FORMAT_Y16_SNORM:
+    case CM_SURFACE_FORMAT_Y16_UNORM:
+    case CM_SURFACE_FORMAT_IRW0:
+    case CM_SURFACE_FORMAT_IRW1:
+    case CM_SURFACE_FORMAT_IRW2:
+    case CM_SURFACE_FORMAT_IRW3:
+    case CM_SURFACE_FORMAT_R16_FLOAT:
+    case CM_SURFACE_FORMAT_V8U8:
+    case CM_SURFACE_FORMAT_A8P8:
+    case CM_SURFACE_FORMAT_R16_TYPELESS:
+        sizePerPixel = 2;
+        break;
+
+    case CM_SURFACE_FORMAT_A8:
+    case CM_SURFACE_FORMAT_P8:
+    case CM_SURFACE_FORMAT_R8_UINT:
+    case CM_SURFACE_FORMAT_Y8_UNORM:
+    case CM_SURFACE_FORMAT_L8:
+    case CM_SURFACE_FORMAT_IA44:
+    case CM_SURFACE_FORMAT_AI44:
+    case CM_SURFACE_FORMAT_400P:
+    case CM_SURFACE_FORMAT_BUFFER_2D:
+    case CM_SURFACE_FORMAT_R8_UNORM:
+        sizePerPixel = 1;
+        break;
+
+        // 2 planes
+        //_________________________
+        //|Y0|Y1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|________________________|
+        //|U0|V0|                  |
+        //|__|__|                  |
+        //|                        |
+        //|________________________|
+
+    case CM_SURFACE_FORMAT_P016:
+    case CM_SURFACE_FORMAT_P010:
+        sizePerPixel = 2;
+        UVheight = (inParam.height + 1) / 2;
+        UVpitch = inParam.pitch;
+        UVwidth = inParam.width;
+        break;
+    case CM_SURFACE_FORMAT_NV12:            //NV12
+        sizePerPixel = 1;
+        //To support NV12 format with odd height here.
+        //if original height is even, the UV plane's height is set as updatedHeight/2, which equals to (updatedHeight+1)/2
+        //if original height is odd, the UV plane's height is set as roundup(updatedHeight/2), which equals to (updatedHeight+1)/2 too
+        UVheight = (inParam.height + 1) / 2;
+        UVpitch = inParam.pitch;
+        UVwidth = inParam.width;
+        break;
+    case CM_SURFACE_FORMAT_P208:
+        sizePerPixel = 1;
+        UVheight = inParam.height;
+        UVpitch = inParam.pitch;
+        UVwidth = inParam.width;
+        break;
+
+        // 3 planes
+        // 4:1:1 (12-bits per pixel)      // 4:2:2 (16-bits per pixel)
+        // 411P                           // 422H
+        // ----------------->             // ----------------->
+        // ________________________       // ________________________
+        //|Y0|Y1|                  |      //|Y0|Y1|                  |
+        //|__|__|                  |      //|__|__|                  |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|________________________|      //|________________________|
+        //|U0|U1||                 |      //|U0|U1|      |           |
+        //|__|__||                 |      //|__|__|      |           |
+        //|      |                 |      //|            |           |
+        //|      |      PAD        |      //|            |    PAD    |
+        //|      |                 |      //|            |           |
+        //|      |                 |      //|            |           |
+        //|      |                 |      //|            |           |
+        //|______|_________________|      //|____________|___________|
+        //|V0|V1||                 |      //|V0|V1|      |           |
+        //|__|__||                 |      //|__|__|      |           |
+        //|      |                 |      //|            |           |
+        //|      |      PAD        |      //|            |    PAD    |
+        //|      |                 |      //|            |           |
+        //|      |                 |      //|            |           |
+        //|      |                 |      //|            |           |
+        //|______|_________________|      //|____________|___________|
+
+        // 4:4:4 (24-bits per pixel)
+        // 444P
+        // ----------------->
+        // ________________________
+        //|Y0|Y1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|________________________|
+        //|U0|U1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|________________________|
+        //|V0|V1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|________________________|
+
+    case CM_SURFACE_FORMAT_411P:
+    case CM_SURFACE_FORMAT_422H:
+    case CM_SURFACE_FORMAT_444P:
+    case CM_SURFACE_FORMAT_RGBP:
+    case CM_SURFACE_FORMAT_BGRP:
+        sizePerPixel = 1;
+        UVheight = inParam.height;
+        UVpitch = inParam.pitch;
+        UVwidth = inParam.width;
+        break;
+
+        // 4:2:0 (12-bits per pixel)
+        // IMC1                           // IMC3
+        // ----------------->             // ----------------->
+        // ________________________       // ________________________
+        //|Y0|Y1|                  |      //|Y0|Y1|                  |
+        //|__|__|                  |      //|__|__|                  |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|                        |      //|                        |
+        //|________________________|      //|________________________|
+        //|V0|V1|      |           |      //|U0|U1|      |           |
+        //|__|__|      |           |      //|__|__|      |           |
+        //|            |           |      //|            |           |
+        //|____________|  PAD      |      //|____________|  PAD      |
+        //|U0|U1|      |           |      //|V0|V1|      |           |
+        //|__|__|      |           |      //|__|__|      |           |
+        //|            |           |      //|            |           |
+        //|____________|___________|      //|____________|___________|
+    case CM_SURFACE_FORMAT_IMC3:
+        sizePerPixel = 1;
+        UVheight = (inParam.height + 1) / 2;
+        UVpitch = inParam.pitch;
+        UVwidth = inParam.width;
+        break;
+
+
+        // 4:2:2V (16-bits per pixel)
+        // 422V
+        // ----------------->
+        // ________________________
+        //|Y0|Y1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|________________________|
+        //|U0|U1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|________________________|
+        //|V0|V1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|________________________|
+
+    case CM_SURFACE_FORMAT_422V:
+        sizePerPixel = 1;
+        UVheight = (inParam.height + 1) / 2;
+        UVpitch = inParam.pitch;
+        UVwidth = inParam.width;
+
+        break;
+
+        // 4:2:0 (12-bits per pixel)
+        // I420
+        // ----------------->
+        // ________________________
+        //|Y0|Y1|                  |
+        //|__|__|                  |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|                        |
+        //|________________________|
+        //|U0|U1|      |
+        //|__|__|      |
+        //|            |
+        //|____________|
+        //|V0|V1|      |
+        //|__|__|      |
+        //|            |
+        //|____________|
+    case CM_SURFACE_FORMAT_YV12:
+    case CM_SURFACE_FORMAT_I420:            //I420
+        sizePerPixel = 1;
+        UVheight = (inParam.height + 1) / 2;
+        UVpitch = inParam.pitch / 2;
+        UVwidth = inParam.width / 2;
+        break;
+    case CM_SURFACE_FORMAT_411R://411R
+        sizePerPixel = 1;
+        UVheight = inParam.height;
+        UVpitch = inParam.pitch / 4;
+        UVwidth = inParam.width / 4;
+        break;
+
+    default:
+        CM_ASSERTMESSAGE("Error: Unsupported surface format.");
+        return CM_SURFACE_FORMAT_NOT_SUPPORTED;
+    }
+
+    return CM_SUCCESS;
+}
+
+
 //*-----------------------------------------------------------------------------
 //| Purpose:    Hybrid memory copy from  system memory to Surface 2D to with stride
 //| Arguments :
@@ -179,27 +468,35 @@ finish:
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::WriteSurface(const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
 {
     INSERT_API_CALL_LOG();
 
-    CM_RETURN_CODE  hr              = CM_SUCCESS;
-    uint8_t         *dst            = nullptr;
-    uint8_t         *surf           = nullptr;
-    uint32_t        sizePerPixel    = 0;
-    uint32_t        updatedHeight   = 0;
-    uint32_t        size            = 0;
-    uint32_t        pitch           = 0;
-    uint32_t        row             = 0;
+    CM_RETURN_CODE  hr = CM_SUCCESS;
+    uint8_t         *dst = nullptr;
+    uint8_t         *src = nullptr;
+    uint32_t        sizePerPixel = 0;
+    uint32_t        updatedHeight = 0;
+    uint32_t        widthInByte = 0;
+    uint32_t        pitch = 0;
+    uint32_t        row = 0;
+    uint32_t        UVHeight = 0;
+    uint32_t        UVpitch = 0;
+    uint32_t        UVwidth = 0;
+    uint32_t        planeHeight = 0;
+    uint32_t        offset0 = 0;
+    uint32_t        offset1 = 0;
+    uint32_t        offset2 = 0;
+    uint32_t        tmp = 0;
     UNUSED(sysMemSize);
 
-    if(sysMem == nullptr)
+    if (sysMem == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to system memory is null.")
-        return CM_INVALID_ARG_VALUE;
+            return CM_INVALID_ARG_VALUE;
     }
 
-    if( event )
+    if (event)
     {
         CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
         if (eventRT)
@@ -216,7 +513,8 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* sysMem, CmEv
     CmDeviceRT * cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
     CM_CHK_NULL_RETURN_CMERROR(cmDevice);
-
+    uint32_t platform = 0;
+    cmDevice->GetGenPlatform(platform);
     //Lock for surface read/write
     CSync* surfaceLock = cmDevice->GetSurfaceLock();
     CM_ASSERT(surfaceLock);
@@ -227,7 +525,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* sysMem, CmEv
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
-    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
+    CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM));
     inParam.width = m_width;
     inParam.height = m_height;
     inParam.handle = m_handle;
@@ -238,38 +536,94 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* sysMem, CmEv
     // Touch queue for the buffer/surface data release
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
+    inParam.format = m_format;
+    // Get planar memory layout information according to the format
+    CM_CHK_CMSTATUS_GOTOFINISH(GetPlanarInfomation(inParam, sizePerPixel, UVwidth, UVHeight, UVpitch));
 
-    //Copy data
-    dst  = ( uint8_t *)(inParam.data);
-    surf = ( uint8_t *)sysMem;
-
-    // Get the memory size according to the format
-    CM_CHK_CMSTATUS_GOTOFINISH(m_surfaceMgr->GetPixelBytesAndHeight(m_width, m_height, m_format, sizePerPixel, updatedHeight));
-
-    size = m_width * sizePerPixel;
+    // Write copy surface content data
+    widthInByte = m_width * sizePerPixel;
     pitch = m_pitch;
-    if(pitch != size)
-    {
-        for (row = 0; row < updatedHeight; row ++)
-        {
-            CmFastMemCopyWC(dst, surf, size);
+    planeHeight = inParam.height;
 
-            surf += size;
+    // convert gmmlib plane offset to linear offset
+    // recent gmm surface info change makes  iLockSurfaceOffset == iSurfaceOffset + iYOffset * pitch
+    offset0 = inParam.YSurfaceOffset.iSurfaceOffset + (inParam.YSurfaceOffset.iXOffset * sizePerPixel) + (inParam.YSurfaceOffset.iYOffset * pitch);
+    offset1 = inParam.USurfaceOffset.iSurfaceOffset + (inParam.USurfaceOffset.iXOffset * sizePerPixel) + (inParam.USurfaceOffset.iYOffset * pitch);
+    offset2 = inParam.VSurfaceOffset.iSurfaceOffset + (inParam.VSurfaceOffset.iXOffset * sizePerPixel) + (inParam.VSurfaceOffset.iYOffset * pitch);
+
+    tmp = offset1;
+    if (offset1 > offset2)
+    {
+        offset1 = offset2;
+        offset2 = tmp;
+    }
+
+    // write copy Y plane or single plane format
+    dst = (uint8_t *)(inParam.data);
+    src = (uint8_t *)sysMem;
+    if (pitch > widthInByte)
+    {
+        // scan line copy
+        for (row = 0; row < planeHeight; row++)
+        {
+            CmFastMemCopyWC(dst, src, widthInByte);
+            src += widthInByte;
             dst += pitch;
         }
     }
     else
+    {   // block copy
+        CmFastMemCopyWC(dst, src, widthInByte * planeHeight);
+    }
+
+    if (UVHeight > 0)
     {
-        CmFastMemCopyWC(dst, surf, pitch * updatedHeight);
+        // Write copy 2nd plane
+        if (offset1 > offset0)
+        {
+            int offsetn = offset1;
+            // specail WA for ICLLP
+            if (platform == IGFX_GEN11_CORE)
+            {
+                offsetn = (planeHeight * pitch);
+            }
+            dst = (uint8_t *)(inParam.data) + offsetn;
+            src = (uint8_t *)sysMem + (widthInByte * m_height);
+            for (row = 0; row < UVHeight; row++)
+            {
+                CmFastMemCopyWC(dst, src, widthInByte);
+                src += UVwidth * sizePerPixel;
+                dst += UVpitch;
+            }
+        }
+
+        // Write copy 3rd plane
+        if (offset2 > offset1)
+        {
+            int offsetn = offset2;
+            // specail WA for ICLLP
+            if (platform == IGFX_GEN11_CORE)
+            {
+                offsetn = (planeHeight * pitch) + (UVHeight * UVpitch);
+            }
+            dst = (uint8_t *)(inParam.data) + offsetn;
+            src = (uint8_t *)sysMem + (widthInByte * m_height) + (UVwidth * sizePerPixel * UVHeight);
+            for (row = 0; row < UVHeight; row++)
+            {
+                CmFastMemCopyWC(dst, src, widthInByte);
+                src += UVwidth * sizePerPixel;
+                dst += UVpitch;
+            }
+        }
     }
 
     //Unlock Surface2D
     inParam.data = nullptr;
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
-
 finish:
     return hr;
 }
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Hybrid memory copy from  Surface 2D to system memory with stride
@@ -346,27 +700,35 @@ finish:
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::ReadSurface(unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
 {
     INSERT_API_CALL_LOG();
 
-    CM_RETURN_CODE  hr              = CM_SUCCESS;
-    uint8_t         *dst            = nullptr;
-    uint8_t         *surf           = nullptr;
-    uint32_t        sizePerPixel    = 0;
-    uint32_t        updatedHeight   = 0;
-    uint32_t        widthInByte     = 0;
-    uint32_t        pitch           = 0;
-    uint32_t        row             = 0;
+    CM_RETURN_CODE  hr = CM_SUCCESS;
+    uint8_t         *dst = nullptr;
+    uint8_t         *src = nullptr;
+    uint32_t        sizePerPixel = 0;
+    uint32_t        UVHeight = 0;
+    uint32_t        UVwidth = 0;
+    uint32_t        UVpitch = 0;
+    uint32_t        updatedHeight = 0;
+    uint32_t        widthInByte = 0;
+    uint32_t        pitch = 0;
+    uint32_t        row = 0;
+    uint32_t        planeHeight = 0;
+    uint32_t        offset0 = 0;
+    uint32_t        offset1 = 0;
+    uint32_t        offset2 = 0;
+    uint32_t        tmp = 0;
     UNUSED(sysMemSize);
 
-    if(sysMem == nullptr)
+    if (sysMem == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to system memory is null.")
-        return CM_INVALID_ARG_VALUE;
+            return CM_INVALID_ARG_VALUE;
     }
 
-    if( event )
+    if (event)
     {
         CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
         if (eventRT)
@@ -384,6 +746,8 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
     CmDeviceRT * cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
     CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    uint32_t platform = 0;
+    cmDevice->GetGenPlatform(platform);
 
     //Lock for surface read/write
     CSync* surfaceLock = cmDevice->GetSurfaceLock();
@@ -395,7 +759,8 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
-    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
+    CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM));
+    inParam.format = m_format;
     inParam.width = m_width;
     inParam.height = m_height;
     inParam.handle = m_handle;
@@ -406,27 +771,84 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
     // Touch queue for the buffer/surface data release
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
+    inParam.format = m_format;
+    // Get planar memory layout information according to the format
+    CM_CHK_CMSTATUS_GOTOFINISH(GetPlanarInfomation(inParam, sizePerPixel, UVwidth, UVHeight, UVpitch));
 
-    //Copy data
-    dst = ( uint8_t *)sysMem;
-    surf= ( uint8_t *)(inParam.data);
-
-    CM_CHK_CMSTATUS_GOTOFINISH(m_surfaceMgr->GetPixelBytesAndHeight(m_width, m_height, m_format, sizePerPixel, updatedHeight));
-
+    // Read copy surface content data
     widthInByte = m_width * sizePerPixel;
     pitch = m_pitch;
-    if (pitch != widthInByte)
+    planeHeight = inParam.height;
+
+    // convert gmmlib plane offset to linear offset
+    // recent gmm surface info change makes  iLockSurfaceOffset == iSurfaceOffset + iYOffset * pitch
+    offset0 = inParam.YSurfaceOffset.iSurfaceOffset + (inParam.YSurfaceOffset.iXOffset * sizePerPixel) + (inParam.YSurfaceOffset.iYOffset * pitch);
+    offset1 = inParam.USurfaceOffset.iSurfaceOffset + (inParam.USurfaceOffset.iXOffset * sizePerPixel) + (inParam.USurfaceOffset.iYOffset * pitch);
+    offset2 = inParam.VSurfaceOffset.iSurfaceOffset + (inParam.VSurfaceOffset.iXOffset * sizePerPixel) + (inParam.VSurfaceOffset.iYOffset * pitch);
+
+    tmp = offset1;
+    if (offset1 > offset2)
     {
-        for (row = 0; row < updatedHeight; row ++)
+        offset1 = offset2;
+        offset2 = tmp;
+    }
+
+    dst = (uint8_t *)sysMem;
+    src = (uint8_t *)(inParam.data);
+    // Read copy Y plane
+    if (pitch > widthInByte)
+    {
+        // scan line copy
+        for (row = 0; row < planeHeight; row++)
         {
-            CmFastMemCopyFromWC(dst, surf, widthInByte, GetCpuInstructionLevel());
-            surf += pitch;
+            CmFastMemCopyFromWC(dst, src, widthInByte, GetCpuInstructionLevel());
             dst += widthInByte;
+            src += pitch;
         }
     }
     else
+    {   // block copy
+        CmFastMemCopyFromWC(dst, src, pitch * planeHeight, GetCpuInstructionLevel());
+    }
+
+    if (UVHeight > 0)
     {
-        CmFastMemCopyFromWC(dst, surf, pitch * updatedHeight, GetCpuInstructionLevel());
+        if (offset1 > offset0)
+        {
+            int offsetn = offset1;
+            // specail WA for ICLLP
+            if (platform == IGFX_GEN11_CORE)
+            {
+                offsetn = planeHeight * pitch;
+            }
+            src = (uint8_t *)(inParam.data) + offsetn;
+            dst = (uint8_t *)sysMem + (widthInByte * m_height);
+            for (row = 0; row < UVHeight; row++)
+            {
+                CmFastMemCopyFromWC(dst, src, widthInByte, GetCpuInstructionLevel());
+                dst += UVwidth * sizePerPixel;
+                src += UVpitch;
+            }
+        }
+
+        // Read copy 3rd plane  gmmlib use Yoffset in some 3rd plane offset
+        if (offset2 > offset1)
+        {
+            int offsetn = offset2;
+            // specail WA for ICLLP
+            if (platform == IGFX_GEN11_CORE)
+            {
+                offsetn = (planeHeight * pitch) + (UVHeight * UVpitch);
+            }
+            src = (uint8_t *)(inParam.data) + offsetn;
+            dst = (uint8_t *)sysMem + (widthInByte * m_height) + (UVwidth * sizePerPixel * UVHeight);
+            for (row = 0; row < UVHeight; row++)
+            {
+                CmFastMemCopyFromWC(dst, src, widthInByte, GetCpuInstructionLevel());
+                dst += UVwidth * sizePerPixel;
+                src += UVpitch;
+            }
+        }
     }
 
     //Unlock
@@ -436,6 +858,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
 finish:
     return hr;
 }
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get the index of CmSurface2D
