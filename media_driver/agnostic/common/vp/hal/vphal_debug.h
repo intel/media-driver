@@ -200,6 +200,7 @@ struct VPHAL_DBG_SURF_DUMP_SPEC
     uint32_t                      uiStartFrame;                                 //!< Frame to start dumping at
     uint32_t                      uiEndFrame;                                   //!< Frame to stop dumping at
     int32_t                       iNumDumpLocs;                                 //!< Number of pipe stage dump locations
+    bool                          enableAuxDump;                                //!< Enable aux data dump for compressed surface
 };
 
 //!
@@ -424,7 +425,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS DumpSurfaceToFile(
+    MOS_STATUS DumpSurfaceToFile(
         PMOS_INTERFACE              pOsInterface,
         PVPHAL_SURFACE              pSurface,
         const char                  *psPathPrefix,
@@ -544,11 +545,12 @@ private:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS GetPlaneDefs(
+    MOS_STATUS GetPlaneDefs(
         PVPHAL_SURFACE                      pSurface,
         VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
         uint32_t*                           pdwNumPlanes,
-        uint32_t*                           pdwSize);
+        uint32_t*                           pdwSize,
+        bool                                paddingNeeded);
 
     //!
     //! \brief    Parse dump location
