@@ -694,6 +694,7 @@ public:
     bool                                bBeCsc;
     bool                                bVeboxBypass;
     bool                                b60fpsDi;
+    bool                                bQueryVariance;
 
     // Surface Information
     int32_t                             iFrame0;
