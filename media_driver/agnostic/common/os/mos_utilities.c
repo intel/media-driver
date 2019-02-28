@@ -5118,7 +5118,6 @@ static MOS_STATUS MOS_UserFeature_ReadValueString(
     }
     if (strlen(pcTmpStr) > 0)
     {
-        MOS_SafeFreeMemory(pFeatureValue->Value.StringData.pStringData);
         pFeatureValue->Value.StringData.pStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
 
         MOS_SecureMemcpy(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr), pcTmpStr, strlen(pcTmpStr));
