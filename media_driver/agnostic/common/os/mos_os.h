@@ -945,6 +945,11 @@ typedef struct _MOS_INTERFACE
         PMOS_RESOURCE               pOsResource,
         int32_t                     bHintOn);
 
+    MOS_STATUS (* pfnGetMemoryCompressionFormat) (
+        PMOS_INTERFACE              pOsInterface,
+        PMOS_RESOURCE               pOsResource,
+        uint32_t                    *pResMmcFormat);
+
     MOS_STATUS (* pfnCreateVideoNodeAssociation)(
         PMOS_INTERFACE              pOsInterface,
         int32_t                     bSetVideoNode,
