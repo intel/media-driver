@@ -29,11 +29,13 @@
 
 struct CM_KERNEL_INFO;
 
+class CmSSH;
 namespace CMRT_UMD
 {
 class CmDevice;
 class CmKernel;
 class CmTaskInternal;
+class CmTask;
 
 const uint32_t NOTIFIER_NULL_ID = 0;
 
@@ -74,6 +76,18 @@ public:
     }
 
     virtual int NotifyCallingJitter(void **extraInfo)
+    {
+        // if the derived class doesn't implement this, just return 0
+        return 0;
+    }
+
+    virtual int NotifyTaskFlushed(CmDevice *device, CmTask *task, CmSSH *ssh, uint32_t taskId)
+    {
+        // if the derived class doesn't implement this, just return 0
+        return 0;
+    }
+
+    virtual int NotifyTaskCompleted(uint32_t taskId)
     {
         // if the derived class doesn't implement this, just return 0
         return 0;
@@ -184,6 +198,32 @@ public:
         for (unsigned int i = 0; i < m_notifiers.size(); i++)
         {
             if (m_notifiers[i]->NotifyCallingJitter(extraInfo) != 0)
+            {
+                ret = -1;
+            }
+        }
+        return ret;
+    }
+
+    int NotifyTaskFlushed(CmDevice *device, CmTask *task, CmSSH *ssh, uint32_t taskId)
+    {
+        int ret = 0;
+        for (unsigned int i = 0; i < m_notifiers.size(); i++)
+        {
+            if (m_notifiers[i]->NotifyTaskFlushed(device, task, ssh, taskId) != 0)
+            {
+                ret = -1;
+            }
+        }
+        return ret;
+    }
+
+    int NotifyTaskCompleted(uint32_t taskId)
+    {
+        int ret = 0;
+        for (unsigned int i = 0; i < m_notifiers.size(); i++)
+        {
+            if (m_notifiers[i]->NotifyTaskCompleted(taskId) != 0)
             {
                 ret = -1;
             }
