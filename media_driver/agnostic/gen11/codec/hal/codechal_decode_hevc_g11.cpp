@@ -440,6 +440,8 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
     if (m_shortFormatInUse)
     {
         m_dmemBufferProgrammed = false;
+        m_dmemBufferIdx++;
+        m_dmemBufferIdx %= CODECHAL_HEVC_NUM_DMEM_BUFFERS;
     }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
