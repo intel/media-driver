@@ -5556,6 +5556,44 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Get the memory compression format
+//! \details  Gets the memory compression format from GMM
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] pointer to OS interface structure
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] pointer to input OS resource
+//! \param    uint32_t *pResMmcFormat
+//!           [out] the memory compression format gotten from GMM resource
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_Specific_GetMemoryCompressionFormat(
+    PMOS_INTERFACE      pOsInterface,
+    PMOS_RESOURCE       pOsResource,
+    uint32_t            *pResMmcFormat)
+{
+
+    PGMM_RESOURCE_INFO      pGmmResourceInfo;
+    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
+    MOS_UNUSED(pOsInterface);
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL(pOsResource);
+    MOS_OS_CHK_NULL(pResMmcFormat);
+
+    // Get Gmm resource info
+    pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
+    MOS_OS_CHK_NULL(pGmmResourceInfo);
+
+    // GetResourceFormat() is not declared in Linux project, use Mos_Specific_ConvertMosFmtToGmmFmt()?
+    eStatus = MOS_STATUS_SUCCESS;
+
+finish:
+    return eStatus;
+
+}
+
+
 #ifdef ANDROID
 //!
 //! \brief    Create GPU node association.
@@ -6200,6 +6238,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetMemoryCompressionMode               = Mos_Specific_GetMemoryCompressionMode;
     pOsInterface->pfnSetMemoryCompressionMode               = Mos_Specific_SetMemoryCompressionMode;
     pOsInterface->pfnSetMemoryCompressionHint               = Mos_Specific_SetMemoryCompressionHint;
+    pOsInterface->pfnGetMemoryCompressionFormat             = Mos_Specific_GetMemoryCompressionFormat;
     pOsInterface->pfnCreateVideoNodeAssociation             = Mos_Specific_CreateVideoNodeAssociation;
     pOsInterface->pfnDestroyVideoNodeAssociation            = Mos_Specific_DestroyVideoNodeAssociation;
     pOsInterface->pfnGetVdboxNodeId                         = Mos_Specific_GetVdboxNodeId;
