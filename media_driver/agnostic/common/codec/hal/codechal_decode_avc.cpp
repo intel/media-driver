@@ -1462,6 +1462,9 @@ MOS_STATUS CodechalDecodeAvc::AddPictureCmds(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->AddSfcCommands(cmdBuf));
 #endif
 
+#ifdef _MMC_SUPPORTED
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(&picMhwParams->SurfaceParams));
+#endif
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(cmdBuf, &picMhwParams->SurfaceParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(cmdBuf, &picMhwParams->PipeBufAddrParams));
