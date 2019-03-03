@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,7 @@
 #include "hwinfo_linux.h"
 #include <stdlib.h>
 
-#ifdef ANDROID
-#include <ufo/gralloc.h>
-#else
+#ifndef ANDROID
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
@@ -43,9 +41,16 @@
 #endif
 
 #include "mos_context_specific.h"
+#include "mos_gpucontextmgr.h"
+#include "mos_cmdbufmgr.h"
 
 OsContextSpecific::OsContextSpecific()
 {
+    for (int i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+    {
+        m_GpuContextHandle[i] = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    }
+
     MOS_OS_FUNCTION_ENTER;
 }
 
@@ -101,6 +106,7 @@ MOS_STATUS OsContextSpecific::UnLockSemaphore(int32_t semid)
 int16_t OsContextSpecific::ShmAttachedNumber(unsigned int shmid)
 {
     struct shmid_ds buf;
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
@@ -112,7 +118,7 @@ int16_t OsContextSpecific::ShmAttachedNumber(unsigned int shmid)
 
 MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
 {
-    int32_t nwait;
+    int32_t nwait = 0;
 
     if (semid < 0)
     {
@@ -134,12 +140,17 @@ MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, uint32_t *pShmid, void* *ppShm)
+MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, int32_t *pShmid, void* *ppShm)
 {
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(pShmid);
+    MOS_OS_CHK_NULL_RETURN(ppShm);
+
     struct shmid_ds buf;
-    int32_t         shmid;
+    int32_t         shmid = 0;
     key_t           key_value = (key_t)key;
     void            *shmptr = nullptr;
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     shmid = shmget(key_value, size, IPC_CREAT | 0666);
     if (shmid < 0)
@@ -169,7 +180,11 @@ MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, uint32_t
 
 MOS_STATUS OsContextSpecific::DetachDestroyShm(int32_t shmid, void  *pShm)
 {
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(pShm);
+
     struct shmid_ds buf;
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     if (shmid < 0)
     {
@@ -196,14 +211,19 @@ MOS_STATUS OsContextSpecific::DetachDestroyShm(int32_t shmid, void  *pShm)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, uint32_t *pSemid)
+MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, int32_t *pSemid)
 {
-    int32_t         semid;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(pSemid);
+
+    int32_t         semid = 0;
     struct sembuf   sop;
     struct semid_ds buf;
-    uint32_t        i;
     key_t           key_value = (key_t)key;
     int32_t         val = 0;
+
+    MOS_ZeroMemory(&sop, sizeof(sop));
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
 
@@ -224,7 +244,6 @@ MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, uint32_t *pSemid)
         {
             return MOS_STATUS_UNKNOWN;
         }
-
     }
     else
     {
@@ -250,11 +269,16 @@ MOS_STATUS OsContextSpecific::CreateIPC()
     m_shm   = MOS_LINUX_SHM_INVALID;
 
     struct semid_ds buf;
+    MOS_ZeroMemory(&buf, sizeof(buf));
     //wait and retry till to get a valid semphore
     for(int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i++)
     {
         ConnectCreateSemaphore(m_dualVdboxKey, &m_semId);
 
+        if (m_semId == MOS_LINUX_IPC_INVALID_ID)
+        {
+            return MOS_STATUS_UNKNOWN;
+        }
         //check wether the semid is initialized or not
         if (semctl(m_semId, 0, IPC_STAT, &buf) == -1)
         {
@@ -292,7 +316,7 @@ void OsContextSpecific::DestroyIPC()
             m_shmId = MOS_LINUX_IPC_INVALID_ID;
             m_shm   = MOS_LINUX_SHM_INVALID;
 
-            if (iAttachedNum) 
+            if (iAttachedNum)
             {
                 --iAttachedNum;
             }
@@ -309,34 +333,6 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
     m_sseuShmId = MOS_LINUX_IPC_INVALID_ID;
     m_sseuShm   = MOS_LINUX_SHM_INVALID;
 
-    // Read dynamic slice shutdown user feature key
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DYNAMIC_SLICE_SHUTDOWN_ID,
-        &UserFeatureData);
-    m_enableDSS = UserFeatureData.i32Data;
-
-    if (m_enableDSS < 0 && m_enableDSS < -1 || 
-        m_enableDSS > 0 && (uint32_t) m_enableDSS > m_gtSystemInfo.SliceCount)
-    {
-        m_enableDSS = m_gtSystemInfo.SliceCount;
-    }
-
-    eStatus = ConnectCreateSemaphore(m_sseuKey, &m_sseuSemId);
-    MOS_CHK_STATUS_SAFE(eStatus);
-
-    LockSemaphore(m_sseuSemId);
-    eStatus = ConnectCreateShm(m_sseuKey, m_sseuShmSize, &m_sseuShmId, &m_sseuShm);
-    if(m_sseuShm)
-    {
-        *(int32_t*)m_sseuShm = m_enableDSS;
-        *((uint32_t*)m_sseuShm+1) = m_gtSystemInfo.SliceCount;
-    }
-    UnLockSemaphore(m_sseuSemId);
-
-finish:
     return eStatus;
 }
 
@@ -366,262 +362,204 @@ void OsContextSpecific::DestroySSEUIPC()
 
 void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
 {
-    uint32_t rulingSliceCount;
-    void *value;
-
     if (pSliceCount == nullptr)
-    {
         MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
-        goto finish;
-    }
-    
-    if (m_enableDSS == 0)
-    {
-        // m_enableDSS == 0, default slice count
-        rulingSliceCount = m_gtSystemInfo.SliceCount;
-    }
-    else if (m_enableDSS > 0)
-    {
-        // m_enableDSS > 0, static slice shutdown
-        rulingSliceCount = (m_enableDSS < m_gtSystemInfo.SliceCount)? m_enableDSS:m_gtSystemInfo.SliceCount;
-    }
-    else 
-    {
-        // m_enableDSS = -1, dynamic slice shutdown
-        //
-        // Use the highest slice number of all the contexts as the rulling slice number.
-        // A context's slice count expires after it is inactive for 1 second.
-        // For example, there are 2 contexts:
-        //     - ctx1 requests 1 slice;
-        //     - ctx2 requests 2 slices;
-        // When both ctx1 and ctx2 are running, 2 slices are configured for both ctx1 and ctx2.
-        // When ctx2 exited, ctx1 will be re-configured as 1 slice after 1 second.
-
-        uint32_t sliceCount = *pSliceCount;
-        if (sliceCount == 0)
-        {
-            sliceCount = m_gtSystemInfo.SliceCount;
-        }
-        else if (sliceCount > m_gtSystemInfo.SliceCount)
-        {
-            sliceCount = m_gtSystemInfo.SliceCount;
-        }
-        rulingSliceCount = sliceCount;
-
-        struct timespec ts;
-        if (clock_gettime( CLOCK_MONOTONIC, &ts))
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to get time.");
-            goto finish;
-        }
-        uint64_t timestamp = ts.tv_sec*1000 + ts.tv_nsec/1000000; //milliseconds
-
-        for (int sliceCountShm = m_gtSystemInfo.SliceCount; sliceCountShm > 0; sliceCountShm--)
-        {
-            uint64_t* pTimestampShm = (uint64_t*)m_sseuShm + sliceCountShm;
-            uint64_t   timestampShm = __atomic_load_8(pTimestampShm, __ATOMIC_SEQ_CST);
-            if (sliceCount == sliceCountShm)
-            {
-                __atomic_store_8(pTimestampShm, timestamp, __ATOMIC_SEQ_CST);
-                break;
-            }
-            else if (sliceCount < sliceCountShm
-                        && timestamp - timestampShm < m_sliceCountTimeoutMS
-                        && rulingSliceCount < sliceCountShm)
-            {
-                rulingSliceCount = sliceCountShm;
-            }
-        }
-    }
-
-    union drm_i915_gem_context_param_sseu sseu;
-    sseu.value = m_sseu;
-
-    value = &sseu.value;
-
-    if (rulingSliceCount != sseu.packed.slice_mask)
-    {
-        if (mos_get_context_param(m_intelContext, 0,
-                        I915_CONTEXT_PARAM_SSEU, (uint64_t*)value))
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to get context parameter.");
-            goto finish;
-        };
-        sseu.packed.slice_mask = rulingSliceCount;
-        if (mos_set_context_param(m_intelContext, 0,
-                       I915_CONTEXT_PARAM_SSEU, sseu.value))
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to set context parameter.");
-            goto finish;
-        }
-        m_sseu = sseu.value;
-    }
-
-    *pSliceCount = rulingSliceCount;
-
-finish:
-    return ;
 }
 
 #endif //#ifndef ANDROID
 
 MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
 {
-    uint32_t      iDeviceId;
+    uint32_t      iDeviceId = 0;
     MOS_STATUS    eStatus;
-    uint32_t      i;
+    uint32_t      i = 0;
 
     MOS_OS_FUNCTION_ENTER;
 
     eStatus = MOS_STATUS_SUCCESS;
 
-    if( nullptr == pOsDriverContext         ||
-        nullptr == pOsDriverContext->bufmgr ||
-        0 >= pOsDriverContext->fd )
+    if (GetOsContextValid() == false)
     {
-        MOS_OS_ASSERT(false);
-        return MOS_STATUS_INVALID_HANDLE;
-    }
-
-    m_bufmgr = pOsDriverContext->bufmgr;
-    m_fd     = pOsDriverContext->fd;
-    MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
-    mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
-    m_cpContext = pOsDriverContext->pCpContext;
-
-    // DDI layer can pass over the DeviceID.
-    iDeviceId = pOsDriverContext->iDeviceId;
-    if (0 == iDeviceId) 
-    {   
-        PLATFORM           platformInfo;
-        MEDIA_FEATURE_TABLE  skuTable;
-        MEDIA_WA_TABLE       waTable;
-        MEDIA_SYSTEM_INFO    gtSystemInfo;
-
-        eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);                                                          
+        if( nullptr == pOsDriverContext         ||
+            nullptr == pOsDriverContext->bufmgr ||
+            0 >= pOsDriverContext->fd )
+        {
+            MOS_OS_ASSERT(false);
+            return MOS_STATUS_INVALID_HANDLE;
+        }
+    
+        m_bufmgr        = pOsDriverContext->bufmgr;
+        m_gpuContextMgr = static_cast<GpuContextMgr *>(pOsDriverContext->m_gpuContextMgr);
+        m_cmdBufMgr     = static_cast<CmdBufMgr *>(pOsDriverContext->m_cmdBufMgr);
+        m_fd            = pOsDriverContext->fd;
+        MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
+        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
+        m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
+        m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
+    
+        // DDI layer can pass over the DeviceID.
+        iDeviceId = pOsDriverContext->iDeviceId;
+        if (0 == iDeviceId)
+        {
+            PLATFORM           platformInfo;
+            MEDIA_FEATURE_TABLE  skuTable;
+            MEDIA_WA_TABLE       waTable;
+            MEDIA_SYSTEM_INFO    gtSystemInfo;
+    
+            MOS_ZeroMemory(&platformInfo, sizeof(platformInfo));
+            MOS_ZeroMemory(&skuTable, sizeof(skuTable));
+            MOS_ZeroMemory(&waTable, sizeof(waTable));
+            MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
+            eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
+                return eStatus;
+            }
+    
+            MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
+            MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
+    
+            pOsDriverContext->iDeviceId      = platformInfo.usDeviceID;
+            m_skuTable = skuTable;
+            m_waTable  = waTable;
+    
+            pOsDriverContext->SkuTable       = skuTable;
+            pOsDriverContext->WaTable        = waTable;
+            pOsDriverContext->gtSystemInfo   = gtSystemInfo;
+            pOsDriverContext->platform       = platformInfo;
+    
+            MOS_OS_NORMALMESSAGE("DeviceID was created DeviceID = %d, platform product %d", iDeviceId, platformInfo.eProductFamily);
+        }
+        else
+        {
+            // pOsDriverContext's parameters were passed by CmCreateDevice.
+            // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
+            MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->platform), sizeof(PLATFORM));
+            MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
+    
+            m_skuTable = pOsDriverContext->SkuTable;
+            m_waTable  = pOsDriverContext->WaTable;
+        }
+    
+        m_use64BitRelocs = true;
+        m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
+        m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
+    
+    #ifndef ANDROID
+        m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
+    
+        if (m_intelContext == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
+            return MOS_STATUS_UNKNOWN;
+        }
+    #else
+        m_intelContext                   = nullptr;
+    #endif
+    
+        m_isAtomSOC = IS_ATOMSOC(iDeviceId);
+    
+    #ifndef ANDROID
+    
+        if ((m_gtSystemInfo.VDBoxInfo.IsValid) && (m_gtSystemInfo.VDBoxInfo.NumberOfVDBoxEnabled > 1))
+        {
+            m_kmdHasVCS2 = true;
+        }
+        else
+        {
+            m_kmdHasVCS2 = false;
+        }
+    
+        if (m_kmdHasVCS2)
+        {
+            eStatus = CreateIPC();
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Fatal error - create IPC failed");
+                return eStatus;
+            }
+        }
+    
+        eStatus = CreateSSEUIPC();
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
+            MOS_OS_ASSERTMESSAGE("Fatal error - Failed to create shared memory for SSEU configuration.");
             return eStatus;
         }
-
-        MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
-        MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
-
-        pOsDriverContext->iDeviceId      = platformInfo.usDeviceID;
-        m_skuTable = skuTable;
-        m_waTable  = waTable;
-
-        pOsDriverContext->SkuTable       = skuTable;
-        pOsDriverContext->WaTable        = waTable;
-        pOsDriverContext->gtSystemInfo   = gtSystemInfo;
-        pOsDriverContext->platform       = platformInfo;
-
-        MOS_OS_NORMALMESSAGE("DeviceID was created DeviceID = %d, platform product %d", iDeviceId, platformInfo.eProductFamily);
+    #endif
+    
+        m_transcryptedKernels       = nullptr;
+        m_transcryptedKernelsSize   = 0;
+    
+        // For Media Memory compression
+        m_mediaMemDecompState       = pOsDriverContext->ppMediaMemDecompState;
+        m_memoryDecompress       = pOsDriverContext->pfnMemoryDecompress;
+        m_mosContext                = pOsDriverContext;
+    
+        m_noParsingAssistanceInKmd  = true;
+        m_numNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;
+    
+        // Init reset count for the context
+        uint32_t dwResetCount       = 0;
+        mos_get_reset_stats(m_intelContext, &dwResetCount, nullptr, nullptr);
+        m_gpuResetCount             = dwResetCount;
+        m_gpuActiveBatch            = 0;
+        m_gpuPendingBatch           = 0;
+    
+        m_usesPatchList             = true;
+        m_usesGfxAddress            = false;
+    
+        m_inlineCodecStatusUpdate   = true;
+    
+    #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+        CommandBufferDumpInit();
+    #endif
+    
+        SetOsContextValid(true);
     }
-    else
-    {
-        // pOsDriverContext's parameters were passed by CmCreateDevice.
-        // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
-        MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->platform), sizeof(PLATFORM));
-        MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
-
-        m_skuTable = pOsDriverContext->SkuTable;
-        m_waTable  = pOsDriverContext->WaTable;
-    }
-
-    m_use64BitRelocs = true;
-
-#ifndef ANDROID
-    m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
-
-    if (m_intelContext == nullptr)
-    {
-       	MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
-       	return MOS_STATUS_UNKNOWN;
-    }
-#else
-    m_intelContext                   = nullptr;
-#endif
-
-    m_isAtomSOC = IS_ATOMSOC(iDeviceId);
-
-#ifndef ANDROID
-
-    if ((m_gtSystemInfo.VDBoxInfo.IsValid) && (m_gtSystemInfo.VDBoxInfo.NumberOfVDBoxEnabled > 1))
-    {
-        m_kmdHasVCS2 = true;
-    }
-    else
-    {
-        m_kmdHasVCS2 = false;
-    }
-
-    if (m_kmdHasVCS2)
-    {
-        eStatus = CreateIPC();
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_ASSERTMESSAGE("Fatal error - create IPC failed");
-            return eStatus;
-        }     
-    }
-
-    eStatus = CreateSSEUIPC();
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        MOS_OS_ASSERTMESSAGE("Fatal error - Failed to create shared memory for SSEU configuration.");
-        return eStatus;
-    }
-#endif
-
-    m_transcryptedKernels       = nullptr;
-    m_transcryptedKernelsSize   = 0;
-
-    // For Media Memory compression
-    m_mediaMemDecompState       = pOsDriverContext->ppMediaMemDecompState;
-    m_memoryDecompress       = pOsDriverContext->pfnMemoryDecompress;
-    m_mosContext                = pOsDriverContext;
-
-    m_noParsingAssistanceInKmd  = true;
-    m_numNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;
-
-    // Init reset count for the context
-    uint32_t dwResetCount       = 0;
-    mos_get_reset_stats(m_intelContext, &dwResetCount, nullptr, nullptr);
-    m_gpuResetCount             = dwResetCount;
-    m_gpuActiveBatch            = 0;
-    m_gpuPendingBatch           = 0;
-
-    m_usesPatchList             = true;
-    m_usesGfxAddress            = false;
-   
-    m_inlineCodecStatusUpdate   = true;
-
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-    CommandBufferDumpInit();
-#endif
-
-    SetOsContextValid(true);
     return eStatus;
 }
 
 void OsContextSpecific::Destroy()
 {
- #ifndef ANDROID
-    if (m_kmdHasVCS2)
-    {
-        DestroyIPC();
-    }
-    DestroySSEUIPC();
- #endif
-    m_skuTable.reset();
-    m_waTable.reset(); 
-    if (m_intelContext)
-    {
-        mos_gem_context_destroy(m_intelContext);
-    }
+    MOS_OS_FUNCTION_ENTER;
 
-    SetOsContextValid(false);
+    if (GetOsContextValid() == true)
+    {
+        for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+        {
+            if (m_GpuContextHandle[i] != MOS_GPU_CONTEXT_INVALID_HANDLE)
+            {
+                if (m_gpuContextMgr == nullptr)
+                {
+                    MOS_OS_ASSERTMESSAGE("GpuContextMgr is null when destroy GpuContext");
+                    break;
+                }
+                auto gpuContext = m_gpuContextMgr->GetGpuContext(m_GpuContextHandle[i]);
+                if (gpuContext == nullptr)
+                {
+                    MOS_OS_ASSERTMESSAGE("cannot find the gpuContext corresponding to the active gpuContextHandle");
+                    continue;
+                }
+                m_gpuContextMgr->DestroyGpuContext(gpuContext);
+            }
+        }
+    
+     #ifndef ANDROID
+        if (m_kmdHasVCS2)
+        {
+            DestroyIPC();
+        }
+        DestroySSEUIPC();
+     #endif
+        m_skuTable.reset();
+        m_waTable.reset();
+        if (m_intelContext)
+        {
+            mos_gem_context_destroy(m_intelContext);
+        }
+        SetOsContextValid(false);
+    }
 }
 

@@ -25,6 +25,10 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.cpp
 )
 
 set(TMP_HEADERS_
@@ -41,6 +45,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.h
 )
 
 set(SOURCES_
@@ -54,6 +62,35 @@ set(HEADERS_
 )
 
 source_group( "MOS" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+
+if(${Media_Scalability_Supported} STREQUAL "yes")
+
+set(TMP_2_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_scalability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_singlepipe.cpp
+)
+
+set(TMP_2_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_scalability.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_singlepipe.h
+)
+
+set(SOURCES_
+    ${SOURCES_}
+    ${TMP_2_SOURCES_}
+ )
+
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_2_HEADERS_}
+)
+
+source_group( "MOS" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_} )
+
+endif()
 
 
 media_add_curr_to_include_path()

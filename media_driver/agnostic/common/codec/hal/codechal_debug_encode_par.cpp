@@ -41,8 +41,8 @@ MOS_STATUS CodechalDebugEncodePar::Initialize()
         return MOS_STATUS_SUCCESS;
     }
 
-    CODECHAL_DEBUG_CHK_NULL(commonPar = MOS_New(EncodeCommonPar));
-    MOS_ZeroMemory(commonPar, sizeof(EncodeCommonPar));
+    CODECHAL_DEBUG_CHK_NULL(m_commonPar = MOS_New(EncodeCommonPar));
+    MOS_ZeroMemory(m_commonPar, sizeof(EncodeCommonPar));
 
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
@@ -70,10 +70,10 @@ MOS_STATUS CodechalDebugEncodePar::Destroy()
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
-    if (!commonPar)
+    if (!m_commonPar)
     {
-        MOS_Delete(commonPar);
-        commonPar = nullptr;
+        MOS_Delete(m_commonPar);
+        m_commonPar = nullptr;
     }
 
     return MOS_STATUS_SUCCESS;

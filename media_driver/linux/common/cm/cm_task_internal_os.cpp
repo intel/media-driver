@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_task_internal_os.cpp  
-//! \brief     Contains Class CmTaskInternal  definitions  
+//! \file      cm_task_internal_os.cpp 
+//! \brief     Contains Class CmTaskInternal  definitions 
 //!
 
 #include "cm_task_internal.h"
@@ -30,19 +30,21 @@
 #include "cm_device_rt.h"
 #include "cm_event_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Write task info into trace_marker
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::VtuneWriteEventInfo()
 {
-    if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    if(!m_cmDevice->IsVtuneLogOn())
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
 
-    if (m_TaskProfilingInfo.dwKernelCount == 0 ||
-        m_TaskProfilingInfo.pKernelNames == nullptr)
+    if (m_taskProfilingInfo.kernelCount == 0 ||
+        m_taskProfilingInfo.kernelNames == nullptr)
     {
         //Skip ETW Write since information is not filled
         //Vebox/EnqueueWithHints
@@ -50,18 +52,18 @@ int32_t CmTaskInternal::VtuneWriteEventInfo()
     }
 
     //Get Complete Time
-    m_pTaskEvent->GetCompleteTime(&m_TaskProfilingInfo.CompleteTime);
+    m_taskEvent->GetCompleteTime(&m_taskProfilingInfo.completeTime);
 
     //Get HW start/end Time
-    m_pTaskEvent->GetHWStartTime(&m_TaskProfilingInfo.HwStartTime);
-    m_pTaskEvent->GetHWEndTime(&m_TaskProfilingInfo.HwEndTime);
-    CmFtrace *pCmFtrace = CmFtrace::GetInstance();
-    if (pCmFtrace == nullptr)
+    m_taskEvent->GetHWStartTime(&m_taskProfilingInfo.hwStartTime);
+    m_taskEvent->GetHWEndTime(&m_taskProfilingInfo.hwEndTime);
+    CmFtrace *ftrace = CmFtrace::GetInstance();
+    if (ftrace == nullptr)
     {
         return CM_NULL_POINTER;
     }
-    pCmFtrace->WriteTaskProfilingInfo(&m_TaskProfilingInfo);
-    
+    ftrace->WriteTaskProfilingInfo(&m_taskProfilingInfo);
+
     return CM_SUCCESS;
 }
-
+}  // namespace

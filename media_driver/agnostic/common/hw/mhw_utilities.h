@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_utilities.h  
-//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface.  
+//! \file      mhw_utilities.h 
+//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface. 
 //!
 #ifndef __MHW_UTILITIES_H__
 #define __MHW_UTILITIES_H__
@@ -29,6 +29,7 @@
 #include "mos_os.h"
 #include <math.h>
 #include "mos_util_debug.h"
+#include "mhw_mmio.h"
 
 typedef struct _MHW_RCS_SURFACE_PARAMS MHW_RCS_SURFACE_PARAMS, *PMHW_RCS_SURFACE_PARAMS;
 typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
@@ -36,7 +37,7 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define MHW_CACHELINE_SIZE      64
 #define MHW_PAGE_SIZE           0x1000
 
-#define MHW_TIMEOUT_MS_DEFAULT  100
+#define MHW_TIMEOUT_MS_DEFAULT  1000
 #define MHW_EVENT_TIMEOUT_MS    5
 
 #define MHW_WIDTH_IN_DW(w)  ((w + 0x3) >> 2)
@@ -54,18 +55,18 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define NUM_POLYPHASE_UV_ENTRIES 4
 
 #define NUM_HW_POLYPHASE_TABLES_G8              17
-#define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G8  (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G8 * sizeof(INT))
-#define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G8 (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G8 * sizeof(INT))
+#define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G8  (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G8 * sizeof(int32_t))
+#define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G8 (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G8 * sizeof(int32_t))
 
 #define NUM_HW_POLYPHASE_TABLES_G9              32
-#define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G9   (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G9 * sizeof(INT))
-#define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G9  (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G9 * sizeof(INT))
+#define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G9   (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G9 * sizeof(int32_t))
+#define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G9  (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G9 * sizeof(int32_t))
 
 #define NUM_HW_POLYPHASE_TABLES_G10              32
-#define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G10   (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(INT))
-#define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G10  (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(INT))
+#define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G10   (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(int32_t))
+#define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G10  (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(int32_t))
 
-#define MHW__PWR_CLK_STATE_REG	0x20C8  //MMIO register for power clock state
+
 
 // Calculates the number of bits between the startbit and the endbit (0 based).
 #ifndef MHW_BITFIELD_RANGE
@@ -132,8 +133,11 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define MHW_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
 
+#define MHW_CHK_NULL_NO_STATUS_RETURN(_ptr) \
+    MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+
 #define MHW_CHK_COND(_condition,  _message, ...)                                \
-    MOS_CHK_COND(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, (_condition),  (_message),  ##__VA_ARGS__)
+    MOS_CHK_COND_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, (_condition),  (_message),  ##__VA_ARGS__)
 
 #define MHW_CHK_NULL_RETURN(_ptr)                                                      \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
@@ -378,6 +382,8 @@ enum GFX3DSTATE_SURFACETYPE
     GFX3DSTATE_SURFACETYPE_3D      = 2,
     GFX3DSTATE_SURFACETYPE_CUBE    = 3,
     GFX3DSTATE_SURFACETYPE_BUFFER  = 4,
+    GFX3DSTATE_SURFACETYPE_SREBUF  = 5,  // Structured buffer surface.
+    GFX3DSTATE_SURFACETYPE_SCRATCH = 6,  // Scratch space buffer.
     GFX3DSTATE_SURFACETYPE_NULL    = 7
 };
 
@@ -421,7 +427,8 @@ enum MEDIASTATE_SFC_CHROMA_SUBSAMPLING_MODE
     MEDIASTATE_SFC_CHROMA_SUBSAMPLING_400  = 0,
     MEDIASTATE_SFC_CHROMA_SUBSAMPLING_420  = 1,
     MEDIASTATE_SFC_CHROMA_SUBSAMPLING_422H = 2,
-    MEDIASTATE_SFC_CHROMA_SUBSAMPLING_444  = 4
+    MEDIASTATE_SFC_CHROMA_SUBSAMPLING_444  = 4,
+    MEDIASTATE_SFC_CHROMA_SUBSAMPLING_411  = 5
 };
 
 enum MEDIASTATE_SFC_INPUT_ORDERING_MODE
@@ -446,7 +453,7 @@ enum  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_MODE
     MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_422TO420   = 0x3
 };
 
-// SFC Pre-AVS Chroma Downsampling Coefficient -- Fractional Position of the Bilinear Filter 
+// SFC Pre-AVS Chroma Downsampling Coefficient -- Fractional Position of the Bilinear Filter
 enum MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF
 {
     MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8   = 0x0,
@@ -510,7 +517,7 @@ typedef struct _MHW_RENDER_PWR_CLK_STATE_PARAMS
             // 0010: 2 EUs
             // 0100: 4 EUs
             // 0110: 6 EUs
-            // 1000: 8 EUs 
+            // 1000: 8 EUs
             uint32_t EUmin : BITFIELD_RANGE(0, 3); // Minimum number of EUs to power (per subslice if multiple subslices enabled)
             uint32_t EUmax : BITFIELD_RANGE(4, 7); // Maximum number of EUs to power (per subslice if multiple subslices enabled)
                                               //  To specify an exact number of subslices, set EUmax equal to EUmin
@@ -523,7 +530,7 @@ typedef struct _MHW_RENDER_PWR_CLK_STATE_PARAMS
 
             uint32_t SCountEn : BITFIELD_RANGE(18, 18);
 
-            uint32_t Reserved1 : BITFIELD_RANGE(19, 30); 
+            uint32_t Reserved1 : BITFIELD_RANGE(19, 30);
 
                                                     // Main trigger: Power Clock State Enable
                                                     //  0: No specific power state set, no message/wait with PMunit
@@ -584,8 +591,8 @@ typedef struct _MHW_RESOURCE_PARAMS
     uint32_t                            dwLsbNum;
     uint32_t                            dwOffsetInSSH;
 
-    // Location of upper bound value relative to 
-    // allocated resource address. The upper bound 
+    // Location of upper bound value relative to
+    // allocated resource address. The upper bound
     // value will be set if this parameter is > zero
     uint32_t                            dwUpperBoundLocationOffsetFromCmd;
     uint32_t                            dwSize;
@@ -593,6 +600,11 @@ typedef struct _MHW_RESOURCE_PARAMS
     MOS_HW_COMMAND                      HwCommandType;
     uint32_t                            dwSharedMocsOffset;
     bool                                bIsWritable;
+
+    // If the patching location does not start at bit 0 then the value to be patched needs to be shifted
+    uint32_t                            shiftAmount;
+    uint32_t                            shiftDirection;
+    MOS_PATCH_TYPE                      patchType;
 }MHW_RESOURCE_PARAMS, *PMHW_RESOURCE_PARAMS;
 
 typedef struct _MHW_GENERIC_PROLOG_PARAMS

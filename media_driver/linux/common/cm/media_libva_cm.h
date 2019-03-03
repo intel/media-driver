@@ -21,7 +21,7 @@
 */
 //!
 //! \file      media_libva_cm.h
-//! \brief     LibVA CM(C for Media) extensions interface definition  
+//! \brief     LibVA CM(C for Media) extensions interface definition
 //!
 
 #ifndef _MEDIA_LIBVA_CM_H_
@@ -33,18 +33,20 @@
 #include <va/va_backend_vpp.h>
 
 #include "vphal.h"
-#include "cm_hal.h"
 #include "mos_os.h"
 
 #define VAExtModuleCMRT 2
+
 //core structure for CM DDI
+struct _CM_HAL_STATE;
+typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
 typedef struct _CM_CONTEXT
 {
-    MOS_CONTEXT  VphalDrvCtx;
-    union 
+    MOS_CONTEXT  mosCtx;
+    union
     {
-        void                  *pCmHal;
-        PCM_HAL_STATE         pCmHalState;
+        void                  *cmHal;
+        PCM_HAL_STATE         cmHalState;
     };
 } CM_CONTEXT, *PCM_CONTEXT;
 
@@ -53,25 +55,23 @@ extern "C" {
 #endif
 //Public APIs to access CM acceleration capability in VPG drivers
 VAStatus DdiDestroyContextCM (
-    VADriverContextP    pVaDrvCtx,
+    VADriverContextP    vaDriverCtx,
     VAContextID         vaCtxID);
-    
+
 MEDIAAPI_EXPORT VAStatus vaCmExtSendReqMsg(
-     VADisplay dpy, 
+     VADisplay dpy,
      void      *moduleType,
-     uint32_t  *inputFunId,  
-     void      *inputData, 
-     uint32_t  *inputDataLen, 
-     uint32_t  *outputFunId, 
+     uint32_t  *inputFunId,
+     void      *inputData,
+     uint32_t  *inputDataLen,
+     uint32_t  *outputFunId,
      void      *outputData,
      uint32_t  *outputDataLen);
 
 uint32_t CmGetFreeCtxIndex (
-    PDDI_MEDIA_CONTEXT pMediaCtx);
+    PDDI_MEDIA_CONTEXT mediaCtx);
 
 #ifdef __cplusplus
 }
 #endif
 #endif //_MEDIA_LIBVA_CM_H_
-
-

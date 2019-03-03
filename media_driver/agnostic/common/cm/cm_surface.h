@@ -21,47 +21,80 @@
 */
 //!
 //! \file      cm_surface.h
-//! \brief     Contains Class CmSurface  definitions  
+//! \brief     Contains Class CmSurface  definitions 
 //!
 #pragma once
 
 #include "cm_def.h"
+#include "cm_surface_manager.h"
 
 namespace CMRT_UMD
 {
 
 class CmSurfaceManager;
 class CmEventRT;
+class CSync;
 
 class CmSurface
 {
 public:
-    static int32_t Destroy( CmSurface* &pSurface );
-    bool IsCmCreated( void ){ return m_IsCmCreated; }
+    static int32_t Destroy( CmSurface* &surface );
+    bool IsCmCreated( void ){ return m_isCmCreated; }
     virtual CM_ENUM_CLASS_TYPE Type() const = 0;
     int32_t TouchDeviceQueue();
     int32_t WaitForReferenceFree();
-    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY_TYPE mem_type, uint32_t age);
+    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age);
     std::string GetFormatString(CM_SURFACE_FORMAT format);
-    virtual void DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t argIndex) { return; }
+    virtual void DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex) { return; }
     virtual void Log(std::ostringstream &oss) { return; }
+    inline void SetRenderTracker(uint32_t tracker) {m_lastRenderTracker = tracker; }
+    inline void SetFastTracker(uint32_t tracker) {m_lastFastTracker = tracker; }
+    inline void SetVeboxTracker(uint32_t tracker) {m_lastVeboxTracker = tracker; }
+    inline void DelayDestroy() { m_released = true; }
+    inline bool IsDelayDestroyed() {return m_released; }
+    inline bool AllReferenceCompleted() {
+            // not called in render, otherwise it finished execution in render
+        return (m_lastRenderTracker == 0 || ((int)(m_lastRenderTracker - m_surfaceMgr->LatestRenderTracker()) <= 0))
+           // not called in enqueuefast, otherwise it finished execution in enqueuefast
+           && (m_lastFastTracker == 0 || ((int)(m_lastFastTracker - m_surfaceMgr->LatestFastTracker()) <= 0))
+           // not called in vebox, otherwise it finished execution in vebox
+           && (m_lastVeboxTracker == 0 || ((int)(m_lastVeboxTracker - m_surfaceMgr->LatestVeboxTracker()) <= 0));
+        }
+    inline bool CanBeDestroyed() {
+        return m_released && AllReferenceCompleted();
+        }
+
+    inline CmSurface*& DelayDestroyPrev() {return m_delayDestroyPrev; }
+    inline CmSurface*& DelayDestroyNext() {return m_delayDestroyNext; } 
 
 protected:
-    CmSurface( CmSurfaceManager* Mgr , bool IsCmCreated );                  
+    CmSurface( CmSurfaceManager* surfMgr , bool isCmCreated );
     virtual ~CmSurface( void );
     int32_t Initialize( uint32_t index );
 
-    int32_t FlushDeviceQueue( CmEventRT* pEvent );
+    int32_t FlushDeviceQueue( CmEventRT* event );
     bool MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl);
 
-    SurfaceIndex* m_pIndex;
+    SurfaceIndex* m_index;
 
-    CmSurfaceManager* m_SurfaceMgr;
+    CmSurfaceManager* m_surfaceMgr;
 
-    bool m_IsCmCreated;
-    
-    CM_SURFACE_MEM_OBJ_CTRL m_MemObjCtrl;
-    
+    bool m_isCmCreated;
+
+    CM_SURFACE_MEM_OBJ_CTRL m_memObjCtrl;
+
+    uint32_t m_lastRenderTracker;
+
+    uint32_t m_lastFastTracker;
+
+    uint32_t m_lastVeboxTracker;
+
+    bool m_released; // if true, means it is been destroyed by app and added in the delaydestroy queue in surfmgr
+
+    CmSurface *m_delayDestroyPrev; // previous node in bi-directional list
+
+    CmSurface *m_delayDestroyNext; // next node in bi-directional list
+
 private:
     CmSurface (const CmSurface& other);
     CmSurface& operator= (const CmSurface& other);

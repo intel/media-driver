@@ -31,28 +31,34 @@
 
 #include "codechal_decode_sfc.h"
 
-class CODECHAL_AVC_SFC_STATE : public CODECHAL_SFC_STATE
+//!
+//! \class    CodechalAvcSfcState
+//! \brief    Codechal AVC SFC state
+//!
+class CodechalAvcSfcState : public CodechalSfcState
 {
 public:
     //!
     //! \brief    Constructor
     //!
-    CODECHAL_AVC_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    CodechalAvcSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
     //!
     //! \brief    Destructor
     //!
-    ~CODECHAL_AVC_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    ~CodechalAvcSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
 
     //!
     //! \brief    Check if SFC output is supported and Initialize SFC
     //! \param    [in] decProcessingParams
     //!           Pointer to decode processing params
-    //! \param    [in] decProcessingParams
+    //! \param    [in] picParams
     //!           Pointer to Avc Pic Params
     //! \param    [in] width
     //!           Input Frame width and height
     //! \param    [in] height
     //!           Input Frame width and height
+    //! \param    [in] deblockingEnabled
+    //!           Enable deblocking
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!

@@ -59,4 +59,3 @@ VAStatus    VpDumpProcPipelineParams(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT
 
 #endif //_MEDIA_LIBVA_VP_TOOLS_H_
 
-

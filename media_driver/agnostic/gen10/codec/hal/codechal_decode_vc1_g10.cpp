@@ -27,7 +27,9 @@
 //!
 
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 #include "codechal_decode_vc1_g10.h"
 
 CodechalDecodeVc1G10::CodechalDecodeVc1G10(
@@ -40,17 +42,22 @@ CodechalDecodeVc1G10::CodechalDecodeVc1G10(
 
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
 
-    u32OlpCurbeStaticDataLength = CODECHAL_DECODE_VC1_CURBE_SIZE_OLP;
+    m_olpCurbeStaticDataLength = CODECHAL_DECODE_VC1_CURBE_SIZE_OLP;
+    uint8_t* kernelBase = nullptr;
 
-    MOS_STATUS eStatus = CodecHal_GetKernelBinaryAndSize(
-        (uint8_t*)IGCODECKRN_G10,
+#ifndef _FULL_OPEN_SOURCE
+    kernelBase = (uint8_t*)IGCODECKRN_G10;
+#endif
+
+    MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
+        kernelBase,
         IDR_CODEC_AllVC1_NV12,
-        &OlpKernelBase,
-        &OlpKernelSize);
+        &m_olpKernelBase,
+        &m_olpKernelSize);
     CODECHAL_DECODE_ASSERT(eStatus == MOS_STATUS_SUCCESS);
 
     hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_DECODE_VC1_NUM_SYNC_TAGS;
     hwInterface->GetStateHeapSettings()->dwIshSize =
-        MOS_ALIGN_CEIL(OlpKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
+        MOS_ALIGN_CEIL(m_olpKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
     hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_DECODE_VC1_INITIAL_DSH_SIZE;
 }

@@ -39,7 +39,7 @@ class CodechalEncodeMpeg2G8 : public CodechalEncodeMpeg2
 public:
     //!
     //! \brief    Constructor
-    //!                                                                                         
+    //!
     CodechalEncodeMpeg2G8(
         CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
@@ -51,23 +51,23 @@ public:
     ~CodechalEncodeMpeg2G8() {};
 
     //!
-    //! \brief    Update the slice count according to the DSS policy
+    //! \brief    Update the slice count according to the DymanicSliceShutdown policy
     //!
     void UpdateSSDSliceCount();
 
 protected:
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS codecHalSettings);
+    MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
 
     MOS_STATUS InitKernelState();
 
     MOS_STATUS InitKernelStateMe();
 
     MOS_STATUS InitKernelStateMbEnc();
-        
+
     MOS_STATUS SetCurbeMe();
-    
+
     MOS_STATUS SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer);
-    
+
     MOS_STATUS SetCurbeMbEnc(
         bool mbEncIFrameDistEnabled,
         bool mbQpDataEnabled);
@@ -92,9 +92,9 @@ protected:
     static MOS_STATUS GetKernelHeaderAndSize(
         void                           *binary,
         EncOperation                   operation,
-		uint32_t                       krnStateIdx,
+        uint32_t                       krnStateIdx,
         void                           *krnHeader,
-		uint32_t                       *krnSize);
+        uint32_t                       *krnSize);
 
 };
 

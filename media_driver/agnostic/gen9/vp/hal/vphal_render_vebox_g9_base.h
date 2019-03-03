@@ -35,23 +35,10 @@
                                                                  VPHAL_NUM_RGB_CHANNEL                    * \
                                                                  VPHAL_VEBOX_MAX_SLICES_G9)
 //!
-//! \brief Noise Detection Definitions for SKL+
-//!
-#define NOISE_HIGH_NOISE_LEVEL_G9                               450
-
-//!
 //! \brief Temporal Denoise Definitions for SKL+
 //!
 #define NOISE_HISTORY_MAX_DEFAULT_G9                            208
-#define NOISE_NUMMOTIONPIXELS_THRESHOLD_LOW_G9                  0 
-#define NOISE_NUMMOTIONPIXELS_THRESHOLD_HIGH_G9                 2
 #define NOISE_NUMMOTIONPIXELS_THRESHOLD_DEFAULT_G9              2
-#define NOISE_CHROMA_LOWTEMPORALPIXELDIFF_THRESHOLD_LOW_G9      4
-#define NOISE_CHROMA_LOWTEMPORALPIXELDIFF_THRESHOLD_HIGH_G9     8
-#define NOISE_CHROMA_TEMPORALPIXELDIFF_THRESHOLD_LOW_G9         10
-#define NOISE_CHROMA_TEMPORALPIXELDIFF_THRESHOLD_HIGH_G9        14
-#define NOISE_CHROMA_SUMABSTEMPORALDIFF_THRESHOLD_LOW_G9        128
-#define NOISE_CHROMA_SUMABSTEMPORALDIFF_THRESHOLD_HIGH_G9       144
 
 //!
 //! \brief SKL+ added 4 LSB for ASD/STAD/SCM/LTDT/TDT, hence shifting 4 below.
@@ -95,10 +82,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // DN State Update
         struct
         {
-            DWORD       OffsetToSlice0;
+            uint32_t       OffsetToSlice0;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW00;
 
     // DWORD 1 - GRF R1.1
@@ -107,10 +94,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // DN State Update
         struct
         {
-            DWORD       OffsetToSlice1;
+            uint32_t       OffsetToSlice1;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW01;
 
     // DWORD 2 - GRF R1.2
@@ -119,11 +106,11 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // DN State Update
         struct
         {
-            DWORD       FirstFrameFlag : 16;
-            DWORD       NoiseLevel : 16;
+            uint32_t       FirstFrameFlag : 16;
+            uint32_t       NoiseLevel : 16;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW02;
 
     // DWORD 3 - GRF R1.3
@@ -132,11 +119,11 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // RangeThr Adp2NLvl: 1 ifenabled, 0 otherwise
         struct
         {
-            DWORD       RangeThrAdp2NLvl : 16;
-            DWORD       reserved : 16;
+            uint32_t       RangeThrAdp2NLvl : 16;
+            uint32_t       reserved : 16;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW03;
 
     // DWORD 4 - GRF R1.4
@@ -145,10 +132,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // Vebox Statistics Surface
         struct
         {
-            DWORD       VeboxStatisticsSurface;
+            uint32_t       VeboxStatisticsSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW04;
 
     // DWORD 5 - GRF R1.5
@@ -157,10 +144,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // Vebox DnDi State Surface
         struct
         {
-            DWORD       VeboxDndiStateSurface;
+            uint32_t       VeboxDndiStateSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW05;
 
     // DWORD 6 - GRF R1.6
@@ -169,10 +156,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // Vebox GNE surface
         struct
         {
-            DWORD       VeboxTempSurface;
+            uint32_t       VeboxTempSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW06;
 
     // DWORD 7 - GRF R1.7
@@ -181,10 +168,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G9
         // Vebox Spatial Attributes Configuration Surface
         struct
         {
-            DWORD       VeboxSpatialAttributesConfigurationSurface;
+            uint32_t       VeboxSpatialAttributesConfigurationSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW07;
 };
 
@@ -228,7 +215,7 @@ public:
     virtual bool IsNeeded(
         PCVPHAL_RENDER_PARAMS       pcRenderParams,
         RenderpassData              *pRenderPassData);
-    
+
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     virtual MOS_STATUS LoadUpdateDenoiseKernelStaticData(
         int32_t*                        iCurbeOffsetOutDN);
@@ -361,7 +348,7 @@ protected:
 
     //!
     //! \brief    Check if 2 passes CSC are supported on the platform
-    //!               
+    //!
     virtual bool Is2PassesCscPlatformSupported()
     {
         return true;

@@ -27,6 +27,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_group_space.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_hal_hashtable.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_dump.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_vebox.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_rt.cpp
@@ -53,7 +54,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_vebox_data.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_visa.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.cpp
-)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_global_api.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_execution_adv.cpp)
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_array.h
@@ -67,6 +69,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_group_space.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_generic.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_hal_hashtable.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_vebox.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_kernel.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_rt.h
@@ -102,7 +105,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_vebox_data.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_visa.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_rt.h)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_execution_adv.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_rt_umd.h)
 
 set(SOURCES_
     ${SOURCES_}

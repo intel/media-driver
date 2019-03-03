@@ -29,6 +29,10 @@
 
 #include "media_ddi_encode_hevc.h"
 
+//!
+//! \class  DdiEncodeHevcFei
+//! \brief  Ddi encode HEVC FEI
+//!
 class DdiEncodeHevcFei : public DdiEncodeHevc
 {
 public:
@@ -42,7 +46,7 @@ public:
     //!
     virtual ~DdiEncodeHevcFei();
 
-    virtual VAStatus ContextInitialize(PCODECHAL_SETTINGS codecHalSettings);
+    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings);
 
     virtual VAStatus EncodeInCodecHal(uint32_t numSlices);
 
@@ -97,5 +101,8 @@ public:
 
     virtual VAStatus ParseMiscParams(void *ptr);
 
+private:
+    //! \brief    Max passes number for HEVC FEI
+    static const uint8_t feiHevcMaxPassesNum = 8;
 };
 #endif /* __MEDIA_DDI_ENCODE_FEI_HEVC_H__ */

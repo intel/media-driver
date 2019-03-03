@@ -27,6 +27,8 @@
 #ifndef _CMRTKERNEL_I_KERNEL_DEF_
 #define _CMRTKERNEL_I_KERNEL_DEF_
 
+#include "HevcEncFei_I_gen9.h"
+
 #define NUM_MBENC_I_32x32_SURFACES                10
 #define NUM_MBENC_I_16x16_SAD_SURFACES             6
 #define NUM_MBENC_I_16X16_MODE_SURFACES           12
@@ -39,7 +41,6 @@
 #define CURBEDATA_SIZE_I_8X8_PU                   32
 #define CURBEDATA_SIZE_I_8X8_PU_MODE_LCU          64
 
-#define HEVC_I_ISA_FILE_NAME_G9                   "/opt/intel/mediasdk/lib64/HevcEnc_I_genx.isa"
 #define HEVCENCKERNELNAME_I_32x32                 "Hevc_LCUEnc_I_32x32_PU_ModeDecision"
 #define HEVCENCKERNELNAME_I_16x16SAD              "HEVC_LCUEnc_I_16x16_PU_SADComputation"
 #define HEVCENCKERNELNAME_I_16x16MODE             "HEVC_LCUEnc_I_16x16_PU_ModeDecision"

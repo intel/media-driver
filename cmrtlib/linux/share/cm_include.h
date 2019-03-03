@@ -30,7 +30,6 @@
 #include <dlfcn.h>
 
 #ifndef ANDROID
-#include "va/va_x11.h"
 #include "va/va.h"
 #else
 #include <va/va_android.h>
@@ -43,11 +42,11 @@
 #ifdef CM_RT_EXPORTS
 #define CM_RT_API __attribute__((visibility("default")))
 #else
-#define CM_RT_API 
+#define CM_RT_API
 #endif
 
 #ifndef CM_NOINLINE
-  #define CM_NOINLINE __attribute__((noinline)) 
+  #define CM_NOINLINE __attribute__((noinline))
 #endif
 
 #define __cdecl
@@ -75,15 +74,15 @@ typedef union _LARGE_INTEGER
 {
     struct
     {
-        uint32_t LowPart;
-        int32_t HighPart;
+        unsigned int LowPart;
+        int HighPart;
     } u;
-    int64_t QuadPart;
+    long long int QuadPart;
 } LARGE_INTEGER;
 
 typedef int HANDLE;
 
-extern "C" int32_t QueryPerformanceFrequency(LARGE_INTEGER *pFrequency);
-extern "C" int32_t QueryPerformanceCounter(LARGE_INTEGER *pPerformanceCount);
+extern "C" int32_t QueryPerformanceFrequency(LARGE_INTEGER *frequency);
+extern "C" int32_t QueryPerformanceCounter(LARGE_INTEGER *performanceCount);
 
 #endif  // #ifndef CMRTLIB_LINUX_SHARE_CM_INCLUDE_H_

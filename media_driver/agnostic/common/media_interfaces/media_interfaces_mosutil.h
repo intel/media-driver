@@ -31,6 +31,10 @@
 #include "mos_util_user_interface.h"
 #include "media_interfaces.h"
 
+//!
+//! \class    MosUtilDevice
+//! \brief    MOS util device
+//!
 class MosUtilDevice
 {
 public:
@@ -40,8 +44,8 @@ public:
 
     //!
     //! \brief    Create Mos Utilities instance
-    //! \param    [in] platform
-    //!           current platform.
+    //! \param    [in] productFamily
+    //!           Product family.
     //!
     //! \return   Pointer to Gen specific Mos util instance if
     //!           successful, otherwise return nullptr

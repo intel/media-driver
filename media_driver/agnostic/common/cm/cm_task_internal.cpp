@@ -20,14 +20,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_task_internal.cpp  
-//! \brief     Contains Class CmTaskInternal  definitions  
+//! \file      cm_task_internal.cpp 
+//! \brief     Contains Class CmTaskInternal  definitions 
 //!
 
 #include "cm_task_internal.h"
 
-#include "cm_hal.h"
 #include "cm_kernel_rt.h"
+#include "cm_mem.h"
 #include "cm_event_rt.h"
 #include "cm_device_rt.h"
 #include "cm_kernel_data.h"
@@ -37,27 +37,36 @@
 #include "cm_vebox_data.h"
 #include "cm_queue_rt.h"
 #include "cm_surface_manager.h"
-#include "cm_log.h"
+#include "cm_buffer_rt.h"
 #include "cm_surface_2d_rt.h"
+#include "cm_surface_2d_up_rt.h"
+#include "cm_surface_3d_rt.h"
+#include "cm_surface_vme.h"
+#include "cm_surface_sampler.h"
+#include "cm_surface_sampler8x8.h"
 
-#if USE_EXTENSION_CODE
-#include "cm_thread_space_ext.h"
-#endif
-
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Task internal 
+//| Purpose:    Create Task internal
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], const CmThreadSpaceRT* pTS, CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, CmTaskInternal*& pTask, const uint64_t uiConditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO pConditionalEndInfo)
+int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], const CmThreadSpaceRT* threadSpace,
+                               CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task,
+                               const uint64_t conditionalEndBitmap,
+                               PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo)
 {
     int32_t result = CM_SUCCESS;
-    pTask = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, pKernelArray, pCmDevice, uiSyncBitmap, uiConditionalEndBitmap, pConditionalEndInfo);
-    if( pTask )
+    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device,
+                                             syncBitmap, conditionalEndBitmap, conditionalEndInfo,
+                                             nullptr);
+    if( task )
     {
-        result = pTask->Initialize(pTS, false);
+        result = task->Initialize(threadSpace, false);
         if( result != CM_SUCCESS )
         {
-            CmTaskInternal::Destroy( pTask);
+            CmTaskInternal::Destroy( task);
         }
     }
     else
@@ -69,20 +78,27 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Task internal with Thread Group Space 
+//| Purpose:    Create Task internal with Thread Group Space
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], const CmThreadGroupSpace* pTGS, CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, CmTaskInternal*& pTask )
+int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace,
+                               CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task,
+                               const uint64_t conditionalEndBitmap,
+                               PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo,
+                               const CM_EXECUTION_CONFIG* krnExecCfg)
 {
     int32_t result = CM_SUCCESS;
-    pTask = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, pKernelArray, pCmDevice, uiSyncBitmap, CM_NO_CONDITIONAL_END, nullptr);
+    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device,
+                                             syncBitmap, conditionalEndBitmap, conditionalEndInfo,
+                                             krnExecCfg);
 
-    if( pTask )
+    if( task )
     {
-        result = pTask->Initialize(pTGS);
+        result = task->Initialize(threadGroupSpace);
         if( result != CM_SUCCESS )
         {
-            CmTaskInternal::Destroy( pTask);
+            CmTaskInternal::Destroy( task);
         }
     }
     else
@@ -93,16 +109,17 @@ int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t total
     return result;
 }
 
-int32_t CmTaskInternal::Create( CmDeviceRT* pCmDevice, CmVeboxRT* pVebox, CmTaskInternal*& pTask )
+int32_t CmTaskInternal::Create( CmDeviceRT* device, CmVeboxRT* vebox, CmTaskInternal*& task )
 {
     int32_t result = CM_SUCCESS;
-    pTask = new (std::nothrow) CmTaskInternal(0, 0, nullptr, pCmDevice, CM_NO_KERNEL_SYNC, CM_NO_CONDITIONAL_END, nullptr);
-    if( pTask )
+    task = new (std::nothrow) CmTaskInternal(0, 0, nullptr, device, CM_NO_KERNEL_SYNC,
+                                             CM_NO_CONDITIONAL_END, nullptr, nullptr);
+    if( task )
     {
-        result = pTask->Initialize(pVebox);
+        result = task->Initialize(vebox);
         if( result != CM_SUCCESS )
         {
-            CmTaskInternal::Destroy( pTask);
+            CmTaskInternal::Destroy( task);
         }
     }
     else
@@ -117,16 +134,20 @@ int32_t CmTaskInternal::Create( CmDeviceRT* pCmDevice, CmVeboxRT* pVebox, CmTask
 //| Purpose:    Create Task internal with hints
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], CmTaskInternal*& pTask,  uint32_t numTasksGenerated, bool isLastTask, uint32_t hints, CmDeviceRT* pCmDevice)
+int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], CmTaskInternal*& task,
+                               uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints,
+                               CmDeviceRT* device)
 {
     int32_t result = CM_SUCCESS;
-    pTask = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, pKernelArray, pCmDevice, CM_NO_KERNEL_SYNC, CM_NO_CONDITIONAL_END, nullptr);
-    if ( pTask )
+    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device,
+                                             CM_NO_KERNEL_SYNC, CM_NO_CONDITIONAL_END, nullptr, nullptr);
+    if ( task )
     {
-        result = pTask->Initialize(hints, numTasksGenerated, isLastTask);
+        result = task->Initialize(hints, numGeneratedTasks, isLastTask);
         if ( result != CM_SUCCESS )
         {
-            CmTaskInternal::Destroy( pTask );
+            CmTaskInternal::Destroy( task );
         }
     }
     else
@@ -137,15 +158,13 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
     return result;
 }
 
-
 //*-----------------------------------------------------------------------------
-//| Purpose:    Destroy Task internal 
+//| Purpose:    Destroy Task internal
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Destroy( CmTaskInternal* &pTask )
+int32_t CmTaskInternal::Destroy( CmTaskInternal* &task )
 {
-    pTask->UpdateSurfaceStateOnTaskDestroy();
-    CmSafeDelete( pTask );
+    CmSafeDelete( task );
     return CM_SUCCESS;
 }
 
@@ -153,68 +172,84 @@ int32_t CmTaskInternal::Destroy( CmTaskInternal* &pTask )
 //| Purpose:    Constructor of  CmTaskInternal
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
-CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, const uint64_t uiConditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO pConditionalEndInfo) :
-    m_Kernels( kernelCount ),
-    m_KernelData( kernelCount ),
-    m_KernelCount( kernelCount ),
-    m_TotalThreadCount(totalThreadCount),
-    m_pTaskEvent( nullptr ),
-    m_IsThreadSpaceCreated(false),
-    m_IsThreadCoordinatesExisted(false),
-    m_ThreadSpaceWidth(0),
-    m_ThreadSpaceHeight(0),
-    m_pThreadCoordinates(nullptr),
-    m_DependencyPattern(CM_NONE_DEPENDENCY),
-    m_WalkingPattern(CM_WALK_DEFAULT),
-    m_MediaWalkerParamsSet( false ),
-    m_DependencyVectorsSet( false ),
-    m_pDependencyMasks( nullptr ),
-    m_MediaWalkerGroupSelect(CM_MW_GROUP_NONE),
-    m_IsThreadGroupSpaceCreated(false),
-    m_GroupSpaceWidth(0),
-    m_GroupSpaceHeight(0),
-    m_SLMSize(0),
-    m_SpillMemUsed(0),
-    m_ColorCountMinusOne( 0 ),
-    m_Hints(0),
-    m_NumTasksGenerated( 0 ),
-    m_IsLastTask( false ),
-    m_ui64SyncBitmap (uiSyncBitmap ),
-    m_ui64ConditionalEndBitmap(uiConditionalEndBitmap),
-    m_pCmDevice( pCmDevice ),
-    m_SurfaceArray (nullptr),
-    m_IsSurfaceUpdateDone(false),
-    m_TaskType(CM_TASK_TYPE_DEFAULT),
-    m_media_state_ptr( nullptr )
+CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount,
+                               CmKernelRT* kernelArray[], CmDeviceRT* device,
+                               const uint64_t syncBitmap, const uint64_t conditionalEndBitmap,
+                               PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo,
+                               const CM_EXECUTION_CONFIG* krnExecCfg) :
+    m_kernels( kernelCount ),
+    m_kernelData( kernelCount ),
+    m_kernelCount( kernelCount ),
+    m_totalThreadCount(totalThreadCount),
+    m_taskEvent( nullptr ),
+    m_isThreadSpaceCreated(false),
+    m_isThreadCoordinatesExisted(false),
+    m_threadSpaceWidth(0),
+    m_threadSpaceHeight(0),
+    m_threadSpaceDepth(0),
+    m_threadCoordinates(nullptr),
+    m_dependencyPattern(CM_NONE_DEPENDENCY),
+    m_walkingPattern(CM_WALK_DEFAULT),
+    m_mediaWalkerParamsSet( false ),
+    m_dependencyVectorsSet( false ),
+    m_dependencyMasks( nullptr ),
+    m_mediaWalkerGroupSelect(CM_MW_GROUP_NONE),
+    m_isThreadGroupSpaceCreated(false),
+    m_groupSpaceWidth(0),
+    m_groupSpaceHeight(0),
+    m_groupSpaceDepth(0),
+    m_slmSize(0),
+    m_spillMemUsed(0),
+    m_colorCountMinusOne( 0 ),
+    m_hints(0),
+    m_numTasksGenerated( 0 ),
+    m_isLastTask( false ),
+    m_ui64SyncBitmap (syncBitmap ),
+    m_ui64ConditionalEndBitmap(conditionalEndBitmap),
+    m_cmDevice( device ),
+    m_surfaceArray (nullptr),
+    m_isSurfaceUpdateDone(false),
+    m_taskType(CM_TASK_TYPE_DEFAULT),
+    m_mediaStatePtr( nullptr )
 {
-    m_KernelSurfInfo.dwKrnNum = 0;
-    m_KernelSurfInfo.pSurfEntryInfosArray = nullptr;
-    m_pKernelCurbeOffsetArray = MOS_NewArray(uint32_t, kernelCount);
-    CM_ASSERT(m_pKernelCurbeOffsetArray != nullptr);
-    
+    m_kernelSurfInfo.kernelNum = 0;
+    m_kernelSurfInfo.surfEntryInfosArray = nullptr;
+    m_kernelCurbeOffsetArray = MOS_NewArray(uint32_t, kernelCount);
+    CM_ASSERT(m_kernelCurbeOffsetArray != nullptr);
+
     for( uint32_t i = 0 ; i < kernelCount; i ++ )
     {
-        m_Kernels.SetElement( i, pKernelArray[ i ] );
-        m_KernelData.SetElement( i, nullptr );
+        m_kernels.SetElement( i, kernelArray[ i ] );
+        m_kernelData.SetElement( i, nullptr );
     }
 
-    CmSafeMemSet( &m_WalkingParameters, 0, sizeof(m_WalkingParameters));
-    CmSafeMemSet( &m_DependencyVectors, 0, sizeof(m_DependencyVectors));
-    CmSafeMemSet( &m_TaskConfig, 0, sizeof(m_TaskConfig));
-    if ( m_pKernelCurbeOffsetArray != nullptr )
+    CmSafeMemSet( &m_walkingParameters, 0, sizeof(m_walkingParameters));
+    CmSafeMemSet( &m_dependencyVectors, 0, sizeof(m_dependencyVectors));
+    CmSafeMemSet( &m_taskConfig, 0, sizeof(m_taskConfig));
+    if ( m_kernelCurbeOffsetArray != nullptr )
     {
-        CmSafeMemSet( m_pKernelCurbeOffsetArray, 0, sizeof(uint32_t) * kernelCount );
+        CmSafeMemSet( m_kernelCurbeOffsetArray, 0, sizeof(uint32_t) * kernelCount );
     }
 
-    CmSafeMemSet(&m_TaskProfilingInfo, 0, sizeof(m_TaskProfilingInfo));
+    CmSafeMemSet(&m_taskProfilingInfo, 0, sizeof(m_taskProfilingInfo));
 
-    if (pConditionalEndInfo != nullptr)
+    if (conditionalEndInfo != nullptr)
     {
-        CmSafeMemCopy(&m_ConditionalEndInfo, pConditionalEndInfo, sizeof(m_ConditionalEndInfo));
+        CmSafeMemCopy(&m_conditionalEndInfo, conditionalEndInfo, sizeof(m_conditionalEndInfo));
     }
     else
     {
-        CmSafeMemSet(&m_ConditionalEndInfo, 0, sizeof(m_ConditionalEndInfo));
+        CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
+    }
+
+    CmSafeMemSet(&m_veboxParam, 0, sizeof(m_veboxParam));
+    CmSafeMemSet(&m_veboxState, 0, sizeof(m_veboxState));
+    CmSafeMemSet(&m_veboxSurfaceData, 0, sizeof(m_veboxSurfaceData));
+    CmSafeMemSet(&m_powerOption, 0, sizeof(m_powerOption));
+
+    if (krnExecCfg != nullptr)
+    {
+        CmSafeMemCopy(&m_krnExecCfg, krnExecCfg, sizeof(m_krnExecCfg));
     }
 }
 
@@ -230,58 +265,57 @@ CmTaskInternal::~CmTaskInternal( void )
 
     //Release Profiling Info
     VtuneReleaseProfilingInfo();
-    
-    for( uint32_t i = 0; i < m_KernelCount; i ++ )
+
+    for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {
-        CmKernelRT *pKernel = (CmKernelRT*)m_Kernels.GetElement(i);
-        CmKernelData* pKernelData = (CmKernelData*)m_KernelData.GetElement( i );
-        if(pKernel && pKernelData)
+        CmKernelRT *kernel = (CmKernelRT*)m_kernels.GetElement(i);
+        CmKernelData* kernelData = (CmKernelData*)m_kernelData.GetElement( i );
+        if(kernel && kernelData)
         {
-           pKernel->ReleaseKernelData(pKernelData);
-           CmKernel *pKernelBase = pKernel;
-           m_pCmDevice->DestroyKernel(pKernelBase);
+           kernel->ReleaseKernelData(kernelData);
+           CmKernel *kernelBase = kernel;
+           m_cmDevice->DestroyKernel(kernelBase);
         }
     }
-    m_KernelData.Delete();
-    m_Kernels.Delete();
+    m_kernelData.Delete();
+    m_kernels.Delete();
 
+    MosSafeDeleteArray(m_kernelCurbeOffsetArray);
 
-    MosSafeDeleteArray(m_pKernelCurbeOffsetArray);
-
-    if( m_pTaskEvent )
+    if( m_taskEvent )
     {
-        CmEvent *pEventBase = m_pTaskEvent;
-        CmQueueRT *pCmQueue = nullptr;
-        m_pTaskEvent->GetQueue(pCmQueue);
-        pCmQueue->DestroyEvent(pEventBase); // need to update the m_EventArray
+        CmEvent *eventBase = m_taskEvent;
+        CmQueueRT *cmQueue = nullptr;
+        m_taskEvent->GetQueue(cmQueue);
+        cmQueue->DestroyEvent(eventBase); // need to update the m_EventArray
     }
 
-    if(m_pThreadCoordinates){
-        for (uint32_t i=0; i<m_KernelCount; i++)
+    if(m_threadCoordinates){
+        for (uint32_t i=0; i<m_kernelCount; i++)
         {
-            if (m_pThreadCoordinates[i])
+            if (m_threadCoordinates[i])
             {
-                MosSafeDeleteArray(m_pThreadCoordinates[i]);
-            } 
+                MosSafeDeleteArray(m_threadCoordinates[i]);
+            }
         }
-        MosSafeDeleteArray( m_pThreadCoordinates );
+        MosSafeDeleteArray( m_threadCoordinates );
     }
 
-    if( m_pDependencyMasks )
+    if( m_dependencyMasks )
     {
-        for( uint32_t i = 0; i < m_KernelCount; ++i )
+        for( uint32_t i = 0; i < m_kernelCount; ++i )
         {
-            MosSafeDeleteArray(m_pDependencyMasks[i]);
+            MosSafeDeleteArray(m_dependencyMasks[i]);
         }
-        MosSafeDeleteArray( m_pDependencyMasks );
+        MosSafeDeleteArray( m_dependencyMasks );
     }
 
-    if((m_KernelSurfInfo.dwKrnNum != 0)&&(m_KernelSurfInfo.pSurfEntryInfosArray != nullptr))
+    if((m_kernelSurfInfo.kernelNum != 0)&&(m_kernelSurfInfo.surfEntryInfosArray != nullptr))
     {
         ClearKernelSurfInfo();
     }
 
-    MosSafeDeleteArray(m_SurfaceArray);
+    MosSafeDeleteArray(m_surfaceArray);
 
 }
 
@@ -289,34 +323,33 @@ CmTaskInternal::~CmTaskInternal( void )
 //| Purpose:    Initialize Class  CmTaskInternal
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
+int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* threadSpace, bool isWithHints)
 {
     uint32_t totalCurbeSize             = 0;
     uint32_t surfacePoolSize            = 0;
     uint32_t totalKernelBinarySize      = 0;
     uint32_t kernelCurbeSize            = 0;
     uint32_t kernelPayloadSize          = 0;
-    CmSurfaceManager* pSurfaceMgr = nullptr;
+    CmSurfaceManager* surfaceMgr = nullptr;
     int32_t result              = CM_SUCCESS;
-    CM_HAL_MAX_VALUES* pHalMaxValues = nullptr;
-    CM_HAL_MAX_VALUES_EX* pHalMaxValuesEx = nullptr;
-    m_pCmDevice->GetHalMaxValues( pHalMaxValues, pHalMaxValuesEx );
-    PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pCmDevice->GetAccelData())->pCmHalState;
+    CM_HAL_MAX_VALUES* halMaxValues = nullptr;
+    CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
+    m_cmDevice->GetHalMaxValues( halMaxValues, halMaxValuesEx );
 
-    if (m_pCmDevice->IsPrintEnable())
+    if (m_cmDevice->IsPrintEnable())
     {
-        SurfaceIndex *pPrintBufferIndex = nullptr;
-        m_pCmDevice->GetPrintBufferIndex(pPrintBufferIndex);
-        CM_ASSERT(pPrintBufferIndex);
-        for (uint32_t i = 0; i < m_KernelCount; i++)
+        SurfaceIndex *printBufferIndex = nullptr;
+        m_cmDevice->GetPrintBufferIndex(printBufferIndex);
+        CM_ASSERT(printBufferIndex);
+        for (uint32_t i = 0; i < m_kernelCount; i++)
         {
-            CmKernelRT* pKernel = (CmKernelRT*)m_Kernels.GetElement(i);
-            if(pKernel == nullptr)
+            CmKernelRT* kernel = (CmKernelRT*)m_kernels.GetElement(i);
+            if(kernel == nullptr)
             {
                 CM_ASSERTMESSAGE("Error: Invalid kernel pointer.");
                 return CM_FAILURE;
             }
-            if(FAILED(pKernel->SetStaticBuffer(CM_PRINTF_STATIC_BUFFER_ID, pPrintBufferIndex)))
+            if(FAILED(kernel->SetStaticBuffer(CM_PRINTF_STATIC_BUFFER_ID, printBufferIndex)))
             {
                 CM_ASSERTMESSAGE("Error: Failed to set static buffer.");
                 return CM_FAILURE;
@@ -324,136 +357,146 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
         }
     }
 
-    m_pCmDevice->GetSurfaceManager( pSurfaceMgr );
-    surfacePoolSize = pSurfaceMgr->GetSurfacePoolSize();
+    m_cmDevice->GetSurfaceManager( surfaceMgr );
+    surfacePoolSize = surfaceMgr->GetSurfacePoolSize();
 
-    m_SurfaceArray = MOS_NewArray(bool, surfacePoolSize);
-    if (!m_SurfaceArray)
+    m_surfaceArray = MOS_NewArray(bool, surfacePoolSize);
+    if (!m_surfaceArray)
     {
         CM_ASSERTMESSAGE("Error: Out of system memory.");
         return CM_FAILURE;
     }
-    CmSafeMemSet( m_SurfaceArray, 0, surfacePoolSize * sizeof( bool ) );
+    CmSafeMemSet( m_surfaceArray, 0, surfacePoolSize * sizeof( bool ) );
 
-    for( uint32_t i = 0; i < m_KernelCount; i ++ )
+    for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {
 
-        CmKernelRT* pKernel = (CmKernelRT*)m_Kernels.GetElement( i );
-        if(pKernel == nullptr)
+        CmKernelRT* kernel = (CmKernelRT*)m_kernels.GetElement( i );
+        if(kernel == nullptr)
         {
             CM_ASSERTMESSAGE("Error: Invalid kernel pointer.");
             return CM_FAILURE;
         }
 
         uint32_t totalSize =  0;
-        CmKernelData* pKernelData = nullptr; 
+        CmKernelData* kernelData = nullptr;
 
         if ( isWithHints )
         {
-            CmThreadSpaceRT* pKTS = nullptr;
-            pKernel->GetThreadSpace(pKTS);
-            if( pKTS )
+            CmThreadSpaceRT* kernelThreadSpace = nullptr;
+            kernel->GetThreadSpace(kernelThreadSpace);
+            if( kernelThreadSpace )
             {
                 for(uint32_t j = i; j > 0; --j)
                 {
                     uint32_t width, height, myAdjY;
-                    CmKernelRT* pTmpKern = (CmKernelRT*)m_Kernels.GetElement( j-1 );
-                    if( !pTmpKern )
+                    CmKernelRT* tmpKernel = (CmKernelRT*)m_kernels.GetElement( j-1 );
+                    if( !tmpKernel )
                     {
                         CM_ASSERTMESSAGE("Error: Invalid kernel pointer.");
                         return CM_FAILURE;
                     }
-                    pTmpKern->GetThreadSpace(pKTS);
-                    pKTS->GetThreadSpaceSize(width, height);
-                    myAdjY = pKernel->GetAdjustedYCoord();
-                    pKernel->SetAdjustedYCoord(myAdjY + height);
+                    tmpKernel->GetThreadSpace(kernelThreadSpace);
+                    kernelThreadSpace->GetThreadSpaceSize(width, height);
+                    myAdjY = kernel->GetAdjustedYCoord();
+                    kernel->SetAdjustedYCoord(myAdjY + height);
                 }
             }
         }
-#if USE_EXTENSION_CODE
-        if (pTS != nullptr && pTS->threadSpaceExt != nullptr)
+        
+        if (threadSpace == nullptr)
         {
-            pTS->threadSpaceExt->SetPrivateArgToKernel(pKernel);
+            CmThreadSpaceRT* kernelThreadSpace = nullptr;
+            kernel->GetThreadSpace(kernelThreadSpace);
+            if (kernelThreadSpace)
+            {
+                kernelThreadSpace->SetDependencyArgToKernel(kernel);
+            }
         }
-#endif
-        pKernel->CollectKernelSurface();
-        result = pKernel->CreateKernelData( pKernelData, totalSize, pTS );
-        if( (pKernelData == nullptr) || (result != CM_SUCCESS))
+
+        if (threadSpace != nullptr)
+        {
+            threadSpace->SetDependencyArgToKernel(kernel);
+        }
+
+        kernel->CollectKernelSurface();
+        result = kernel->CreateKernelData( kernelData, totalSize, threadSpace );
+        if( (kernelData == nullptr) || (result != CM_SUCCESS))
         {
             CM_ASSERTMESSAGE("Error: Failed to create kernel data.");
-            CmKernelData::Destroy( pKernelData );
+            CmKernelData::Destroy( kernelData );
             return result;
         }
 
-        pKernel->GetSizeInPayload( kernelPayloadSize );
-        pKernel->GetSizeInCurbe( kernelCurbeSize );
+        kernel->GetSizeInPayload( kernelPayloadSize );
+        kernel->GetSizeInCurbe( kernelCurbeSize );
 
-        if ( ( kernelCurbeSize + kernelPayloadSize ) > pHalMaxValues->iMaxArgByteSizePerKernel )
+        if ( ( kernelCurbeSize + kernelPayloadSize ) > halMaxValues->maxArgByteSizePerKernel )
         {   //Failed, exceed the maximum of inline data
             CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
             return CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE;
         }
         else
         {
-            kernelCurbeSize = pKernel->GetAlignedCurbeSize( kernelCurbeSize );
+            kernelCurbeSize = kernel->GetAlignedCurbeSize( kernelCurbeSize );
             totalCurbeSize += kernelCurbeSize;
         }
-        m_pKernelCurbeOffsetArray[ i ] = totalCurbeSize - kernelCurbeSize;
+        m_kernelCurbeOffsetArray[ i ] = totalCurbeSize - kernelCurbeSize;
 
-        m_KernelData.SetElement( i, pKernelData );
+        m_kernelData.SetElement( i, kernelData );
 
-        totalKernelBinarySize += pKernel->GetKernelGenxBinarySize();
-        totalKernelBinarySize += CM_KERNEL_BINARY_PADDING_SIZE;  //Padding is necessary after kernel binary to work around page fault issue
+        totalKernelBinarySize += kernel->GetKernelGenxBinarySize();
+        totalKernelBinarySize += CM_KERNEL_BINARY_PADDING_SIZE;  //Padding is necessary after kernel binary to avoid page fault issue
 
         bool *surfArray = nullptr;
-        pKernel->GetKernelSurfaces(surfArray);
+        kernel->GetKernelSurfaces(surfArray);
         for (uint32_t j = 0; j < surfacePoolSize; j ++)
         {
-            m_SurfaceArray[j] |= surfArray[j];
+            m_surfaceArray[j] |= surfArray[j];
         }
-        pKernel->ResetKernelSurfaces();
+        kernel->ResetKernelSurfaces();
 
-        PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDevice->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->pCmHalState;
-        PRENDERHAL_MEDIA_STATE media_state_ptr = pState->pfnGetMediaStatePtrForKernel( pState, pKernel );
+        PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_cmDevice->GetAccelData();
+        PCM_HAL_STATE state = cmData->cmHalState;
+        PRENDERHAL_MEDIA_STATE mediaStatePtr = state->pfnGetMediaStatePtrForKernel( state, kernel );
 
-        if ( ( media_state_ptr != nullptr ) && ( m_media_state_ptr == nullptr ) )
+        if ( ( mediaStatePtr != nullptr ) && ( m_mediaStatePtr == nullptr ) )
         {
-            m_media_state_ptr = media_state_ptr;
+            m_mediaStatePtr = mediaStatePtr;
         }
-        else if ( ( media_state_ptr != nullptr ) && ( m_media_state_ptr != nullptr ) )
+        else if ( ( mediaStatePtr != nullptr ) && ( m_mediaStatePtr != nullptr ) )
         {
             CM_ASSERTMESSAGE( "Error: More than one media state heap are used in one task! User-provided state heap error.\n" );
             return CM_INVALID_ARG_VALUE;
         }
     }
 
-    if (totalKernelBinarySize > pHalMaxValues->iMaxKernelBinarySize * pHalMaxValues->iMaxKernelsPerTask)
+    if (totalKernelBinarySize > halMaxValues->maxKernelBinarySize * halMaxValues->maxKernelsPerTask)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
         return CM_EXCEED_MAX_KERNEL_SIZE_IN_BYTE;
     }
 
-    if (pTS)
+    if (threadSpace)
     {
-        if(FAILED(this->CreateThreadSpaceData(pTS)))
+        if(FAILED(this->CreateThreadSpaceData(threadSpace)))
         {
             CM_ASSERTMESSAGE("Error: Failed to create thread space data.");
             return CM_FAILURE;
         }
-        m_IsThreadSpaceCreated = true;
+        m_isThreadSpaceCreated = true;
     }
 
     UpdateSurfaceStateOnTaskCreation();
 
-    m_TaskType = CM_INTERNAL_TASK_WITH_THREADSPACE;
+    m_taskType = CM_INTERNAL_TASK_WITH_THREADSPACE;
 
-    if ( m_pCmDevice->CheckGTPinEnabled())
+    if ( m_cmDevice->CheckGTPinEnabled())
     {
         AllocateKernelSurfInfo();
     }
 
-    this->VtuneInitProfilingInfo(pTS);
+    this->VtuneInitProfilingInfo(threadSpace);
 
     return CM_SUCCESS;
 }
@@ -462,7 +505,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
 //| Purpose:    Initialize Class  CmTaskInternal with thread group space
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
+int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* threadGroupSpace)
 {
     uint32_t totalCurbeSize         = 0;
     uint32_t surfacePoolSize        = 0;
@@ -470,36 +513,36 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
     uint32_t kernelCurbeSize        = 0;
     uint32_t kernelPayloadSize      = 0;
 
-    CmSurfaceManager* pSurfaceMgr = nullptr;
-    CM_HAL_MAX_VALUES* pHalMaxValues = nullptr;
-    CM_HAL_MAX_VALUES_EX* pHalMaxValuesEx = nullptr;
-    m_pCmDevice->GetHalMaxValues( pHalMaxValues, pHalMaxValuesEx );
+    CmSurfaceManager* surfaceMgr = nullptr;
+    CM_HAL_MAX_VALUES* halMaxValues = nullptr;
+    CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
+    m_cmDevice->GetHalMaxValues( halMaxValues, halMaxValuesEx );
 
-    m_pCmDevice->GetSurfaceManager( pSurfaceMgr );
-    CM_ASSERT( pSurfaceMgr );
-    surfacePoolSize = pSurfaceMgr->GetSurfacePoolSize();
-    m_SurfaceArray = MOS_NewArray(bool, surfacePoolSize);
-    if (!m_SurfaceArray)
+    m_cmDevice->GetSurfaceManager( surfaceMgr );
+    CM_ASSERT( surfaceMgr );
+    surfacePoolSize = surfaceMgr->GetSurfacePoolSize();
+    m_surfaceArray = MOS_NewArray(bool, surfacePoolSize);
+    if (!m_surfaceArray)
     {
         CM_ASSERTMESSAGE("Error: Out of system memory.");
         return CM_OUT_OF_HOST_MEMORY;
     }
-    CmSafeMemSet( m_SurfaceArray, 0, surfacePoolSize * sizeof( bool ) );
+    CmSafeMemSet( m_surfaceArray, 0, surfacePoolSize * sizeof( bool ) );
 
-    if (m_pCmDevice->IsPrintEnable())
+    if (m_cmDevice->IsPrintEnable())
     {
-        SurfaceIndex *pPrintBufferIndex = nullptr;
-        m_pCmDevice->GetPrintBufferIndex(pPrintBufferIndex);
-        CM_ASSERT(pPrintBufferIndex);
-        for (uint32_t i = 0; i < m_KernelCount; i++)
+        SurfaceIndex *printBufferIndex = nullptr;
+        m_cmDevice->GetPrintBufferIndex(printBufferIndex);
+        CM_ASSERT(printBufferIndex);
+        for (uint32_t i = 0; i < m_kernelCount; i++)
         {
-            CmKernelRT* pKernel = (CmKernelRT*)m_Kernels.GetElement(i);
-            if(pKernel == nullptr)
+            CmKernelRT* kernel = (CmKernelRT*)m_kernels.GetElement(i);
+            if(kernel == nullptr)
             {
                 CM_ASSERTMESSAGE("Error: Invalid kernel pointer.");
                 return CM_FAILURE;
             }
-            if(FAILED(pKernel->SetStaticBuffer(CM_PRINTF_STATIC_BUFFER_ID, pPrintBufferIndex)))
+            if(FAILED(kernel->SetStaticBuffer(CM_PRINTF_STATIC_BUFFER_ID, printBufferIndex)))
             {
                 CM_ASSERTMESSAGE("Error: Failed to set static buffer.");
                 return CM_FAILURE;
@@ -507,80 +550,81 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
         }
     }
 
-    for( uint32_t i = 0; i < m_KernelCount; i ++ )
+    for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {
-        CmKernelRT* pKernel = (CmKernelRT*)m_Kernels.GetElement( i );
-        if(pKernel == nullptr)
+        CmKernelRT* kernel = (CmKernelRT*)m_kernels.GetElement( i );
+        if(kernel == nullptr)
         {
             CM_ASSERTMESSAGE("Error: Invalid kernel pointer.");
             return CM_FAILURE;
         }
 
-        pKernel->CollectKernelSurface();
+        kernel->CollectKernelSurface();
 
         uint32_t totalSize =  0;
-        CmKernelData* pKernelData = nullptr; 
-        
-        int32_t result = pKernel->CreateKernelData( pKernelData, totalSize, pTGS );
+        CmKernelData* kernelData = nullptr;
+
+        int32_t result = kernel->CreateKernelData( kernelData, totalSize, threadGroupSpace );
         if(result != CM_SUCCESS)
         {
             CM_ASSERTMESSAGE("Error: Failed to create kernel data.");
-            CmKernelData::Destroy( pKernelData );
+            CmKernelData::Destroy( kernelData );
             return result;
         }
 
-        pKernelData->SetKernelDataSize(totalSize);
+        kernelData->SetKernelDataSize(totalSize);
 
-        pKernel->GetSizeInPayload(kernelPayloadSize);
-            
-        PCM_HAL_KERNEL_PARAM  pHalKernelParam = pKernelData->GetHalCmKernelData();
-        if (pHalKernelParam->iCrsThrdConstDataLn + pHalKernelParam->iCurbeSizePerThread + kernelPayloadSize > pHalMaxValues->iMaxArgByteSizePerKernel)
+        kernel->GetSizeInPayload(kernelPayloadSize);
+
+        PCM_HAL_KERNEL_PARAM  halKernelParam = kernelData->GetHalCmKernelData();
+        if (halKernelParam->crossThreadConstDataLen + halKernelParam->curbeSizePerThread + kernelPayloadSize
+            > halMaxValues->maxArgByteSizePerKernel)
         {   //Failed, exceed the maximum of inline data
             CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
             return CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE;
         }
         else
         {
-            pKernel->GetSizeInCurbe(kernelCurbeSize);
-            kernelCurbeSize = pKernel->GetAlignedCurbeSize(kernelCurbeSize);
+            kernel->GetSizeInCurbe(kernelCurbeSize);
+            kernelCurbeSize = kernel->GetAlignedCurbeSize(kernelCurbeSize);
             totalCurbeSize += kernelCurbeSize;
         }
-            
-        m_pKernelCurbeOffsetArray[ i ] = totalCurbeSize - kernelCurbeSize;
-                
-        m_KernelData.SetElement( i, pKernelData );
 
-        m_SLMSize = pKernel->GetSLMSize();
+        m_kernelCurbeOffsetArray[ i ] = totalCurbeSize - kernelCurbeSize;
 
-        m_SpillMemUsed = pKernel->GetSpillMemUsed();
+        m_kernelData.SetElement( i, kernelData );
 
-        totalKernelBinarySize += pKernel->GetKernelGenxBinarySize();
+        m_slmSize = kernel->GetSLMSize();
+
+        m_spillMemUsed = kernel->GetSpillMemUsed();
+
+        totalKernelBinarySize += kernel->GetKernelGenxBinarySize();
         totalKernelBinarySize += CM_KERNEL_BINARY_PADDING_SIZE;
 
         bool *surfArray = nullptr;
-        pKernel->GetKernelSurfaces(surfArray);
+        kernel->GetKernelSurfaces(surfArray);
         for (uint32_t j = 0; j < surfacePoolSize; j ++)
         {
-            m_SurfaceArray[j] |= surfArray[j];
+            m_surfaceArray[j] |= surfArray[j];
         }
-        pKernel->ResetKernelSurfaces();
+        kernel->ResetKernelSurfaces();
 
-        PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDevice->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->pCmHalState;
-        PRENDERHAL_MEDIA_STATE media_state_ptr = pState->pfnGetMediaStatePtrForKernel( pState, pKernel );
+        PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_cmDevice->GetAccelData();
+        PCM_HAL_STATE state = cmData->cmHalState;
+        PRENDERHAL_MEDIA_STATE mediaStatePtr = state->pfnGetMediaStatePtrForKernel( state, kernel );
 
-        if ( ( media_state_ptr != nullptr ) && ( m_media_state_ptr == nullptr ) )
+        if ( ( mediaStatePtr != nullptr ) && ( m_mediaStatePtr == nullptr ) )
         {
-            m_media_state_ptr = media_state_ptr;
+            m_mediaStatePtr = mediaStatePtr;
         }
-        else if ( ( media_state_ptr != nullptr ) && ( m_media_state_ptr != nullptr ) )
+        else if ( ( mediaStatePtr != nullptr ) && ( m_mediaStatePtr != nullptr ) )
         {
             CM_ASSERTMESSAGE("Error: More than one media state heap are used in one task! User-provided state heap error.\n" );
             return CM_INVALID_ARG_VALUE;
         }
     }
 
-    if( totalKernelBinarySize > pHalMaxValues->iMaxKernelBinarySize * pHalMaxValues->iMaxKernelsPerTask)
+    if( totalKernelBinarySize > halMaxValues->maxKernelBinarySize * halMaxValues->maxKernelsPerTask)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
         return CM_EXCEED_MAX_KERNEL_SIZE_IN_BYTE;
@@ -588,21 +632,23 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
 
     UpdateSurfaceStateOnTaskCreation();
 
-    m_TaskType = CM_INTERNAL_TASK_WITH_THREADGROUPSPACE;
+    m_taskType = CM_INTERNAL_TASK_WITH_THREADGROUPSPACE;
 
-    if (pTGS)
+    if (threadGroupSpace)
     {
-        pTGS->GetThreadGroupSpaceSize(m_ThreadSpaceWidth, m_ThreadSpaceHeight, m_ThreadSpaceDepth,  m_GroupSpaceWidth, m_GroupSpaceHeight, m_GroupSpaceDepth);
-        m_IsThreadGroupSpaceCreated = true;
+        threadGroupSpace->GetThreadGroupSpaceSize(m_threadSpaceWidth, m_threadSpaceHeight,
+                                                  m_threadSpaceDepth, m_groupSpaceWidth,
+                                                  m_groupSpaceHeight, m_groupSpaceDepth);
+        m_isThreadGroupSpaceCreated = true;
     }
 
-    if ( m_pCmDevice->CheckGTPinEnabled())
+    if ( m_cmDevice->CheckGTPinEnabled())
     {
         AllocateKernelSurfInfo();
     }
-    
-    this->VtuneInitProfilingInfo(pTGS);
-    
+
+    this->VtuneInitProfilingInfo(threadGroupSpace);
+
     return CM_SUCCESS;
 }
 
@@ -610,60 +656,57 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
 //| Purpose:    Initialize Class  CmTaskInternal
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Initialize(CmVeboxRT* pVebox)
+int32_t CmTaskInternal::Initialize(CmVeboxRT* vebox)
 {
-    int32_t result = CM_SUCCESS; 
-    CmSurfaceManager* pSurfaceMgr = nullptr;
+    int32_t result = CM_SUCCESS;
+    CmSurfaceManager* surfaceMgr = nullptr;
     uint32_t surfacePoolSize = 0;
 
-    m_pCmDevice->GetSurfaceManager( pSurfaceMgr );
-    CM_ASSERT( pSurfaceMgr );
-    surfacePoolSize = pSurfaceMgr->GetSurfacePoolSize();
-    m_SurfaceArray = MOS_NewArray(bool, surfacePoolSize);
-    if (!m_SurfaceArray)
+    m_cmDevice->GetSurfaceManager( surfaceMgr );
+    CM_ASSERT( surfaceMgr );
+    surfacePoolSize = surfaceMgr->GetSurfacePoolSize();
+    m_surfaceArray = MOS_NewArray(bool, surfacePoolSize);
+    if (!m_surfaceArray)
     {
         CM_ASSERTMESSAGE("Error: Out of system memory.");
         return CM_FAILURE;
     }
-    CmSafeMemSet( m_SurfaceArray, 0, surfacePoolSize * sizeof( bool ) );
+    CmSafeMemSet( m_surfaceArray, 0, surfacePoolSize * sizeof( bool ) );
 
-    CmBufferUP *pParamBuffer = nullptr;
+    CmBufferUP *paramBuffer = nullptr;
 
-    pParamBuffer = pVebox->GetParam();
-    m_VeboxState = pVebox->GetState();
+    paramBuffer = vebox->GetParam();
+    m_veboxState = vebox->GetState();
 
-
-    m_pVeboxParam = pParamBuffer;
-    m_TaskType = CM_INTERNAL_TASK_VEBOX;
+    m_veboxParam = paramBuffer;
+    m_taskType = CM_INTERNAL_TASK_VEBOX;
 
     //Update used surfaces
     for (int i = 0; i < VEBOX_SURFACE_NUMBER; i++)
     {
-        CmSurface2DRT* pSurf = nullptr;
-        uint32_t surfaceHandle = 0;
-        pVebox->GetSurface(i, pSurf);
-        if (pSurf)
+        CmSurface2DRT* surf = nullptr;
+        vebox->GetSurface(i, surf);
+        if (surf)
         {
-            SurfaceIndex* pSurfIndex = nullptr;
-            pSurf->GetIndex(pSurfIndex);
-            pSurf->GetHandle(surfaceHandle);
-            m_SurfaceArray[pSurfIndex->get_data()] = true;
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceIndex = (uint16_t)surfaceHandle;
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceCtrlBits = pVebox->GetSurfaceControlBits(i);
+            uint32_t surfaceHandle = 0;
+            SurfaceIndex* surfIndex = nullptr;
+            surf->GetIndex(surfIndex);
+            surf->GetHandle(surfaceHandle);
+            m_surfaceArray[surfIndex->get_data()] = true;
+            m_veboxSurfaceData.surfaceEntry[i].surfaceIndex = (uint16_t)surfaceHandle;
+            m_veboxSurfaceData.surfaceEntry[i].surfaceCtrlBits = vebox->GetSurfaceControlBits(i);
         }
         else
         {
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceIndex = CM_INVALID_INDEX; 
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceCtrlBits = CM_INVALID_INDEX;  
+            m_veboxSurfaceData.surfaceEntry[i].surfaceIndex = CM_INVALID_INDEX;
+            m_veboxSurfaceData.surfaceEntry[i].surfaceCtrlBits = CM_INVALID_INDEX;
         }
     }
-
 
     UpdateSurfaceStateOnTaskCreation();
 
     return result;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize Class  CmTaskInternal with hints
@@ -671,24 +714,23 @@ int32_t CmTaskInternal::Initialize(CmVeboxRT* pVebox)
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::Initialize(uint32_t hints, uint32_t numTasksGenerated, bool isLastTask)
 {
-    CmThreadSpaceRT* pTS = nullptr;
+    CmThreadSpaceRT* threadSpace = nullptr;
     int32_t result = CM_SUCCESS;
 
     // use ThreadSpace Initialize function to create kernel data
-    result = this->Initialize(pTS, true);
+    result = this->Initialize(threadSpace, true);
 
     // set hints in task
-    m_Hints = hints;
+    m_hints = hints;
 
-    m_NumTasksGenerated = numTasksGenerated;
-    m_IsLastTask = isLastTask;
+    m_numTasksGenerated = numTasksGenerated;
+    m_isLastTask = isLastTask;
 
     // set task type to be EnqueueWithHints
-    m_TaskType = CM_INTERNAL_TASK_ENQUEUEWITHHINTS;
+    m_taskType = CM_INTERNAL_TASK_ENQUEUEWITHHINTS;
 
     return result;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get Kernel Count
@@ -696,13 +738,13 @@ int32_t CmTaskInternal::Initialize(uint32_t hints, uint32_t numTasksGenerated, b
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetKernelCount( uint32_t& count )
 {
-    count = m_KernelCount;
+    count = m_kernelCount;
     return CM_SUCCESS;
 }
 
 int32_t CmTaskInternal::GetTaskSurfaces( bool  *&surfArray )
 {
-    surfArray = m_SurfaceArray;
+    surfArray = m_surfaceArray;
     return CM_SUCCESS;
 }
 
@@ -710,12 +752,12 @@ int32_t CmTaskInternal::GetTaskSurfaces( bool  *&surfArray )
 //| Purpose:    Geth Kernel from the Kernel array
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetKernel( const uint32_t index, CmKernelRT* & pKernel )
+int32_t CmTaskInternal::GetKernel( const uint32_t index, CmKernelRT* & kernel )
 {
-    pKernel = nullptr;
-    if( index < m_Kernels.GetSize() )
+    kernel = nullptr;
+    if( index < m_kernels.GetSize() )
     {
-        pKernel = (CmKernelRT*)m_Kernels.GetElement( index );
+        kernel = (CmKernelRT*)m_kernels.GetElement( index );
         return CM_SUCCESS;
     }
     else
@@ -728,12 +770,12 @@ int32_t CmTaskInternal::GetKernel( const uint32_t index, CmKernelRT* & pKernel )
 //| Purpose:    Geth Kernel data by kernel's index
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetKernelData( const uint32_t index, CmKernelData* & pKernelData )
+int32_t CmTaskInternal::GetKernelData( const uint32_t index, CmKernelData* & kernelData )
 {
-    pKernelData = nullptr;
-    if( index < m_KernelData.GetSize() )
+    kernelData = nullptr;
+    if( index < m_kernelData.GetSize() )
     {
-        pKernelData = (CmKernelData*)m_KernelData.GetElement( index );
+        kernelData = (CmKernelData*)m_kernelData.GetElement( index );
         return CM_SUCCESS;
     }
     else
@@ -749,16 +791,16 @@ int32_t CmTaskInternal::GetKernelData( const uint32_t index, CmKernelData* & pKe
 int32_t CmTaskInternal::GetKernelDataSize( const uint32_t index, uint32_t & size )
 {
     size = 0;
-    CmKernelData*  pKernelData = nullptr;
-    if( index < m_KernelData.GetSize() )
+    CmKernelData*  kernelData = nullptr;
+    if( index < m_kernelData.GetSize() )
     {
-        pKernelData = (CmKernelData*)m_KernelData.GetElement( index );
-        if (pKernelData == nullptr)
+        kernelData = (CmKernelData*)m_kernelData.GetElement( index );
+        if (kernelData == nullptr)
         {
             CM_ASSERTMESSAGE("Error: Invalid kernel data.");
             return CM_FAILURE;
         }
-        size = pKernelData->GetKernelDataSize();
+        size = kernelData->GetKernelDataSize();
         return CM_SUCCESS;
     }
     else
@@ -773,18 +815,18 @@ int32_t CmTaskInternal::GetKernelDataSize( const uint32_t index, uint32_t & size
 //*-----------------------------------------------------------------------------
 uint32_t CmTaskInternal::GetKernelCurbeOffset( const uint32_t index )
 {
-    return ( uint32_t ) m_pKernelCurbeOffsetArray[ index ];
+    return ( uint32_t ) m_kernelCurbeOffsetArray[ index ];
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Set task event, need add refcount hehe.
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::SetTaskEvent( CmEventRT* pEvent )
+int32_t CmTaskInternal::SetTaskEvent( CmEventRT* event )
 {
-    m_pTaskEvent = pEvent;
+    m_taskEvent = event;
     // add refCount
-     m_pTaskEvent->Acquire();
+     m_taskEvent->Acquire();
     return CM_SUCCESS;
 }
 
@@ -792,9 +834,9 @@ int32_t CmTaskInternal::SetTaskEvent( CmEventRT* pEvent )
 //| Purpose:    Get the task event
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetTaskEvent( CmEventRT* & pEvent )
+int32_t CmTaskInternal::GetTaskEvent( CmEventRT* & event )
 {
-    pEvent = m_pTaskEvent;
+    event = m_taskEvent;
     return CM_SUCCESS;
 }
 
@@ -802,14 +844,14 @@ int32_t CmTaskInternal::GetTaskEvent( CmEventRT* & pEvent )
 //| Purpose:    Get the task's status
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetTaskStatus(CM_STATUS & TaskStatus)
+int32_t CmTaskInternal::GetTaskStatus(CM_STATUS & taskStatus)
 {
-    if(m_pTaskEvent == nullptr)
+    if(m_taskEvent == nullptr)
     {
         return CM_FAILURE;
     }
 
-    return m_pTaskEvent->GetStatusNoFlush(TaskStatus);
+    return m_taskEvent->GetStatusNoFlush(taskStatus);
 }
 
 //*-----------------------------------------------------------------------------
@@ -818,12 +860,12 @@ int32_t CmTaskInternal::GetTaskStatus(CM_STATUS & TaskStatus)
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::VtuneSetFlushTime()
 {
-    if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    if(!m_cmDevice->IsVtuneLogOn())
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
-    
-    MOS_QueryPerformanceCounter((uint64_t*)&m_TaskProfilingInfo.FlushTime.QuadPart);
+
+    MOS_QueryPerformanceCounter((uint64_t*)&m_taskProfilingInfo.flushTime.QuadPart);
     return CM_SUCCESS;
 }
 
@@ -831,83 +873,82 @@ int32_t CmTaskInternal::VtuneSetFlushTime()
 //| Purpose:    Initialize Profiling Information for Media Pipeline
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *pPerTaskTs)
+int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *perTaskThreadSpace)
 {
-    CmKernelRT    *pCmKernel = nullptr;
-    CmThreadSpaceRT *pPerKernelTS = nullptr;
-    uint32_t    TsWidth = 0;
-    uint32_t    TsHeight = 0;
+    CmKernelRT    *cmKernel = nullptr;
+    CmThreadSpaceRT *perKernelThreadSpace = nullptr;
+    uint32_t    threadSpaceWidth = 0;
+    uint32_t    threadSpaceHeight = 0;
 
     int32_t     hr = CM_SUCCESS;
 
-    if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    if(!m_cmDevice->IsVtuneLogOn())
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
 
-    CmSafeMemSet(&m_TaskProfilingInfo, 0, sizeof(m_TaskProfilingInfo));
-    m_TaskProfilingInfo.dwKernelCount = m_KernelCount;
-    m_TaskProfilingInfo.dwThreadID    = CmGetCurThreadId(); // Get Thread ID
+    CmSafeMemSet(&m_taskProfilingInfo, 0, sizeof(m_taskProfilingInfo));
+    m_taskProfilingInfo.kernelCount = m_kernelCount;
+    m_taskProfilingInfo.threadID    = CmGetCurThreadId(); // Get Thread ID
 
-    MOS_QueryPerformanceCounter((uint64_t*)&m_TaskProfilingInfo.EnqueueTime.QuadPart); // Get Enqueue Time
-
+    MOS_QueryPerformanceCounter((uint64_t*)&m_taskProfilingInfo.enqueueTime.QuadPart); // Get Enqueue Time
 
     //  Currently, the Kernel/ThreadSpace/ThreadGroupSpace could not be deleted before task finished.
-    m_TaskProfilingInfo.pKernelNames = MOS_NewArray(char, (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE * m_KernelCount));
-    CMCHK_NULL(m_TaskProfilingInfo.pKernelNames);
+    m_taskProfilingInfo.kernelNames = MOS_NewArray(char, (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE * m_kernelCount));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.kernelNames);
 
-    m_TaskProfilingInfo.pLocalWorkWidth = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pLocalWorkWidth);
+    m_taskProfilingInfo.localWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkWidth);
 
-    m_TaskProfilingInfo.pLocalWorkHeight = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pLocalWorkHeight);
+    m_taskProfilingInfo.localWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkHeight);
 
-    m_TaskProfilingInfo.pGlobalWorkWidth = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pGlobalWorkWidth);
+    m_taskProfilingInfo.globalWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkWidth);
 
-    m_TaskProfilingInfo.pGlobalWorkHeight = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pGlobalWorkHeight);
+    m_taskProfilingInfo.globalWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkHeight);
 
-    for (uint32_t i = 0; i < m_KernelCount; i++)
+    for (uint32_t i = 0; i < m_kernelCount; i++)
     {
-        CMCHK_HR(GetKernel(i, pCmKernel));
-        CMCHK_NULL(pCmKernel);
+        CM_CHK_CMSTATUS_GOTOFINISH(GetKernel(i, cmKernel));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(cmKernel);
 
         //Copy Kernel Name
-        MOS_SecureStrcpy(m_TaskProfilingInfo.pKernelNames + m_TaskProfilingInfo.dwKernelNameLen, 
-                 CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName());
+        MOS_SecureStrcpy(m_taskProfilingInfo.kernelNames + m_taskProfilingInfo.kernelNameLen,
+                 CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, cmKernel->GetName());
 
         //Add Kernel Name Length
-        m_TaskProfilingInfo.dwKernelNameLen += strlen(pCmKernel->GetName()) + 1;
+        m_taskProfilingInfo.kernelNameLen += strlen(cmKernel->GetName()) + 1;
 
-        CMCHK_HR(pCmKernel->GetThreadSpace(pPerKernelTS));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmKernel->GetThreadSpace(perKernelThreadSpace));
 
-        if (pPerTaskTs)
+        if (perTaskThreadSpace)
         {
             //Per Task Thread Space Exists
-            m_TaskProfilingInfo.pLocalWorkWidth[i] = m_ThreadSpaceWidth;
-            m_TaskProfilingInfo.pLocalWorkHeight[i] = m_ThreadSpaceHeight;
-            m_TaskProfilingInfo.pGlobalWorkWidth[i] = m_ThreadSpaceWidth;
-            m_TaskProfilingInfo.pGlobalWorkHeight[i] = m_ThreadSpaceHeight;
+            m_taskProfilingInfo.localWorkWidth[i] = m_threadSpaceWidth;
+            m_taskProfilingInfo.localWorkHeight[i] = m_threadSpaceHeight;
+            m_taskProfilingInfo.globalWorkWidth[i] = m_threadSpaceWidth;
+            m_taskProfilingInfo.globalWorkHeight[i] = m_threadSpaceHeight;
         }
-        else if (pPerKernelTS)
+        else if (perKernelThreadSpace)
         {
             //Fill each threads Space's info
-            pPerKernelTS->GetThreadSpaceSize(TsWidth, TsHeight);
-            m_TaskProfilingInfo.pLocalWorkWidth[i] = TsWidth;
-            m_TaskProfilingInfo.pLocalWorkHeight[i] = TsHeight;
-            m_TaskProfilingInfo.pGlobalWorkWidth[i] = TsWidth;
-            m_TaskProfilingInfo.pGlobalWorkHeight[i] = TsHeight;
+            perKernelThreadSpace->GetThreadSpaceSize(threadSpaceWidth, threadSpaceHeight);
+            m_taskProfilingInfo.localWorkWidth[i] = threadSpaceWidth;
+            m_taskProfilingInfo.localWorkHeight[i] = threadSpaceHeight;
+            m_taskProfilingInfo.globalWorkWidth[i] = threadSpaceWidth;
+            m_taskProfilingInfo.globalWorkHeight[i] = threadSpaceHeight;
         }
         else
         {
-            //Fill the thread count 
-            uint32_t ThreadCount = 0;
-            pCmKernel->GetThreadCount(ThreadCount);
-            m_TaskProfilingInfo.pLocalWorkWidth[i] = ThreadCount;
-            m_TaskProfilingInfo.pLocalWorkHeight[i] = 1;
-            m_TaskProfilingInfo.pGlobalWorkWidth[i] = ThreadCount;
-            m_TaskProfilingInfo.pGlobalWorkHeight[i] = 1;
+            //Fill the thread count
+            uint32_t threadCount = 0;
+            cmKernel->GetThreadCount(threadCount);
+            m_taskProfilingInfo.localWorkWidth[i] = threadCount;
+            m_taskProfilingInfo.localWorkHeight[i] = 1;
+            m_taskProfilingInfo.globalWorkWidth[i] = threadCount;
+            m_taskProfilingInfo.globalWorkHeight[i] = 1;
         }
 
     }
@@ -915,11 +956,11 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *pPerTaskTs
 finish:
     if (hr != CM_SUCCESS)
     {
-        MosSafeDeleteArray(m_TaskProfilingInfo.pKernelNames);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkWidth);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkHeight);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pGlobalWorkWidth);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pGlobalWorkHeight);
+        MosSafeDeleteArray(m_taskProfilingInfo.kernelNames);
+        MosSafeDeleteArray(m_taskProfilingInfo.localWorkWidth);
+        MosSafeDeleteArray(m_taskProfilingInfo.localWorkHeight);
+        MosSafeDeleteArray(m_taskProfilingInfo.globalWorkWidth);
+        MosSafeDeleteArray(m_taskProfilingInfo.globalWorkHeight);
     }
     return hr;
 
@@ -929,76 +970,80 @@ finish:
 //| Purpose:    Initialize Profiling Information
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *pPerTaskThreadGroupSpace)
+int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *perTaskThreadGroupSpace)
 {
-    CmKernelRT    *pCmKernel = nullptr;
-    CmThreadGroupSpace *pPerKernelGroupSpace = nullptr;
-    uint32_t    TsWidth = 0;
-    uint32_t    TsHeight = 0;
-    uint32_t    TsDepth = 0;
-    uint32_t    TgsWidth = 0;
-    uint32_t    TgsHeight = 0;
-    uint32_t    TgsDepth = 0;
+    CmKernelRT    *cmKernel = nullptr;
+    CmThreadGroupSpace *perKernelGroupSpace = nullptr;
+    uint32_t    threadSpaceWidth = 0;
+    uint32_t    threadSpaceHeight = 0;
+    uint32_t    threadSpaceDepth = 0;
+    uint32_t    threadGroupSpaceWidth = 0;
+    uint32_t    threadGroupSpaceHeight = 0;
+    uint32_t    threadGroupSpaceDepth = 0;
     int32_t     hr = CM_SUCCESS;
 
-    if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    if(!m_cmDevice->IsVtuneLogOn())
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
 
-    CmSafeMemSet(&m_TaskProfilingInfo, 0, sizeof(m_TaskProfilingInfo));
-    m_TaskProfilingInfo.dwKernelCount = m_KernelCount;
+    CmSafeMemSet(&m_taskProfilingInfo, 0, sizeof(m_taskProfilingInfo));
+    m_taskProfilingInfo.kernelCount = m_kernelCount;
 
-    m_TaskProfilingInfo.dwThreadID    = CmGetCurThreadId(); // Get Thread ID
+    m_taskProfilingInfo.threadID    = CmGetCurThreadId(); // Get Thread ID
 
-    MOS_QueryPerformanceCounter((uint64_t*)&m_TaskProfilingInfo.EnqueueTime.QuadPart); // Get Enqueue Time
+    MOS_QueryPerformanceCounter((uint64_t*)&m_taskProfilingInfo.enqueueTime.QuadPart); // Get Enqueue Time
 
-    m_TaskProfilingInfo.pKernelNames = MOS_NewArray(char, (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE * m_KernelCount));
-    CMCHK_NULL(m_TaskProfilingInfo.pKernelNames);
+    m_taskProfilingInfo.kernelNames = MOS_NewArray(char, (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE * m_kernelCount));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.kernelNames);
 
-    m_TaskProfilingInfo.pLocalWorkWidth = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pLocalWorkWidth);
+    m_taskProfilingInfo.localWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkWidth);
 
-    m_TaskProfilingInfo.pLocalWorkHeight = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pLocalWorkHeight);
+    m_taskProfilingInfo.localWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkHeight);
 
-    m_TaskProfilingInfo.pGlobalWorkWidth = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pGlobalWorkWidth);
+    m_taskProfilingInfo.globalWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkWidth);
 
-    m_TaskProfilingInfo.pGlobalWorkHeight = MOS_NewArray(uint32_t, m_KernelCount);
-    CMCHK_NULL(m_TaskProfilingInfo.pGlobalWorkHeight);
+    m_taskProfilingInfo.globalWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkHeight);
 
-    for (uint32_t i = 0; i < m_KernelCount; i++)
+    for (uint32_t i = 0; i < m_kernelCount; i++)
     {
-        CMCHK_HR(GetKernel(i, pCmKernel));
-        CMCHK_NULL(pCmKernel);
-        
+        CM_CHK_CMSTATUS_GOTOFINISH(GetKernel(i, cmKernel));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(cmKernel);
+
         //Copy Kernel Name
-        MOS_SecureStrcpy(m_TaskProfilingInfo.pKernelNames + m_TaskProfilingInfo.dwKernelNameLen,
-                 CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName());
+        MOS_SecureStrcpy(m_taskProfilingInfo.kernelNames + m_taskProfilingInfo.kernelNameLen,
+                 CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, cmKernel->GetName());
 
         //Add Kernel Name Length
-        m_TaskProfilingInfo.dwKernelNameLen += strlen(pCmKernel->GetName()) + 1;
+        m_taskProfilingInfo.kernelNameLen += strlen(cmKernel->GetName()) + 1;
 
-        CMCHK_HR(pCmKernel->GetThreadGroupSpace(pPerKernelGroupSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmKernel->GetThreadGroupSpace(perKernelGroupSpace));
 
-        if (pPerTaskThreadGroupSpace)
+        if (perTaskThreadGroupSpace)
         {  // Per Thread Group Space
-            pPerTaskThreadGroupSpace->GetThreadGroupSpaceSize(TsWidth, TsHeight, TsDepth, TgsWidth, TgsHeight, TgsDepth); 
-            m_TaskProfilingInfo.pLocalWorkWidth[i] = TsWidth;
-            m_TaskProfilingInfo.pLocalWorkHeight[i] = TsHeight;
-            m_TaskProfilingInfo.pGlobalWorkWidth[i] = TsWidth*TgsWidth;
-            m_TaskProfilingInfo.pGlobalWorkHeight[i] = TsHeight*TgsHeight;
+            perTaskThreadGroupSpace->GetThreadGroupSpaceSize(threadSpaceWidth, threadSpaceHeight,
+                                                             threadSpaceDepth, threadGroupSpaceWidth,
+                                                             threadGroupSpaceHeight, threadGroupSpaceDepth);
+            m_taskProfilingInfo.localWorkWidth[i] = threadSpaceWidth;
+            m_taskProfilingInfo.localWorkHeight[i] = threadSpaceHeight;
+            m_taskProfilingInfo.globalWorkWidth[i] = threadSpaceWidth*threadGroupSpaceWidth;
+            m_taskProfilingInfo.globalWorkHeight[i] = threadSpaceHeight*threadGroupSpaceHeight;
 
         }
-        else if (pPerKernelGroupSpace)
+        else if (perKernelGroupSpace)
         {
             //Fill each threads group space's info
-            pPerKernelGroupSpace->GetThreadGroupSpaceSize(TsWidth, TsHeight, TsDepth, TgsWidth, TgsHeight, TgsDepth);
-            m_TaskProfilingInfo.pLocalWorkWidth[i] = TsWidth;
-            m_TaskProfilingInfo.pLocalWorkHeight[i] = TsHeight;
-            m_TaskProfilingInfo.pGlobalWorkWidth[i] = TsWidth*TgsWidth;
-            m_TaskProfilingInfo.pGlobalWorkHeight[i] = TsHeight*TgsHeight;  //Yi need to rethink
+            perKernelGroupSpace->GetThreadGroupSpaceSize(threadSpaceWidth, threadSpaceHeight,
+                                                         threadSpaceDepth, threadGroupSpaceWidth,
+                                                         threadGroupSpaceHeight, threadGroupSpaceDepth);
+            m_taskProfilingInfo.localWorkWidth[i] = threadSpaceWidth;
+            m_taskProfilingInfo.localWorkHeight[i] = threadSpaceHeight;
+            m_taskProfilingInfo.globalWorkWidth[i] = threadSpaceWidth*threadGroupSpaceWidth;
+            m_taskProfilingInfo.globalWorkHeight[i] = threadSpaceHeight*threadGroupSpaceHeight;  //Yi need to rethink
         }
 
     }
@@ -1006,15 +1051,14 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *pPerTas
 finish:
     if (hr != CM_SUCCESS)
     {
-        MosSafeDeleteArray(m_TaskProfilingInfo.pKernelNames);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkWidth);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkHeight);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pGlobalWorkWidth);
-        MosSafeDeleteArray(m_TaskProfilingInfo.pGlobalWorkHeight);
+        MosSafeDeleteArray(m_taskProfilingInfo.kernelNames);
+        MosSafeDeleteArray(m_taskProfilingInfo.localWorkWidth);
+        MosSafeDeleteArray(m_taskProfilingInfo.localWorkHeight);
+        MosSafeDeleteArray(m_taskProfilingInfo.globalWorkWidth);
+        MosSafeDeleteArray(m_taskProfilingInfo.globalWorkHeight);
     }
     return hr;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Release Profiling information
@@ -1022,23 +1066,22 @@ finish:
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::VtuneReleaseProfilingInfo()
 {
-    if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    if(!m_cmDevice->IsVtuneLogOn())
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
-    
-    MosSafeDeleteArray(m_TaskProfilingInfo.pKernelNames);
-    MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkWidth);
-    MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkHeight);
-    MosSafeDeleteArray(m_TaskProfilingInfo.pGlobalWorkWidth);
-    MosSafeDeleteArray(m_TaskProfilingInfo.pGlobalWorkHeight);
+
+    MosSafeDeleteArray(m_taskProfilingInfo.kernelNames);
+    MosSafeDeleteArray(m_taskProfilingInfo.localWorkWidth);
+    MosSafeDeleteArray(m_taskProfilingInfo.localWorkHeight);
+    MosSafeDeleteArray(m_taskProfilingInfo.globalWorkWidth);
+    MosSafeDeleteArray(m_taskProfilingInfo.globalWorkHeight);
 
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
-//| Purpose:    Reset KernelData status from IN_USE to IDLE. 
+//| Purpose:    Reset KernelData status from IN_USE to IDLE.
 //              It is called immediately after the task being flushed.
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
@@ -1046,12 +1089,12 @@ int32_t CmTaskInternal::ResetKernelDataStatus()
 {
     int32_t     hr          = CM_SUCCESS;
 
-    for(uint32_t KrnDataIndex =0 ; KrnDataIndex < m_KernelCount; KrnDataIndex++ )
+    for(uint32_t krnDataIndex =0 ; krnDataIndex < m_kernelCount; krnDataIndex++ )
     {
-        CmKernelData    *pKernelData;
-        CMCHK_HR(GetKernelData(KrnDataIndex, pKernelData));
-        CMCHK_NULL(pKernelData);
-        CMCHK_HR(pKernelData->ResetStatus());
+        CmKernelData    *kernelData;
+        CM_CHK_CMSTATUS_GOTOFINISH(GetKernelData(krnDataIndex, kernelData));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelData);
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelData->ResetStatus());
     }
 
 finish:
@@ -1062,67 +1105,67 @@ finish:
 //| Purpose:    Create thread space data
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* pTS)
+int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* threadSpace)
 {
     uint32_t i;
     uint32_t width, height;
-    uint32_t *pKernelCoordinateIndex = nullptr;
+    uint32_t *kernelCoordinateIndex = nullptr;
     int hr = CM_SUCCESS;
-    CmThreadSpaceRT *pTS_RT = const_cast<CmThreadSpaceRT*>(pTS);
-    CmKernelRT* pKernel_inTS = nullptr;
-    CmKernelRT* pKernel_inTask = nullptr;
-    CMCHK_NULL_RETURN(pTS_RT, CM_NULL_POINTER);
+    CmThreadSpaceRT *threadSpaceRT = const_cast<CmThreadSpaceRT*>(threadSpace);
+    CmKernelRT* kernelInThreadSpace = nullptr;
+    CmKernelRT* kernelInTask = nullptr;
+    CM_CHK_NULL_GOTOFINISH(threadSpaceRT, CM_NULL_POINTER);
 
-    pTS_RT->GetThreadSpaceSize(m_ThreadSpaceWidth, m_ThreadSpaceHeight);
+    threadSpaceRT->GetThreadSpaceSize(m_threadSpaceWidth, m_threadSpaceHeight);
 
-    if (pTS_RT->IsThreadAssociated())
+    if (threadSpaceRT->IsThreadAssociated())
     {
-        m_pThreadCoordinates = MOS_NewArray(PCM_HAL_SCOREBOARD, m_KernelCount);
-        CMCHK_NULL_RETURN(m_pThreadCoordinates, CM_FAILURE);
-        CmSafeMemSet(m_pThreadCoordinates, 0, m_KernelCount*sizeof(PCM_HAL_SCOREBOARD));
-        
-        m_pDependencyMasks = MOS_NewArray(PCM_HAL_MASK_AND_RESET, m_KernelCount);
-        CMCHK_NULL_RETURN(m_pDependencyMasks, CM_FAILURE);
-        CmSafeMemSet(m_pDependencyMasks, 0, m_KernelCount*sizeof(PCM_HAL_MASK_AND_RESET));
-        
-        pKernelCoordinateIndex = MOS_NewArray(uint32_t, m_KernelCount);
-        if(m_pThreadCoordinates && pKernelCoordinateIndex && m_pDependencyMasks)
-        {
-            CmSafeMemSet(pKernelCoordinateIndex, 0, m_KernelCount*sizeof(uint32_t));
-            for (i = 0; i< m_KernelCount; i++)
-            {
-                pKernelCoordinateIndex[i] = 0;
-                uint32_t threadCount;
-                this->GetKernel(i, pKernel_inTask);
+        m_threadCoordinates = MOS_NewArray(PCM_HAL_SCOREBOARD, m_kernelCount);
+        CM_CHK_NULL_GOTOFINISH(m_threadCoordinates, CM_FAILURE);
+        CmSafeMemSet(m_threadCoordinates, 0, m_kernelCount*sizeof(PCM_HAL_SCOREBOARD));
 
-                if(pKernel_inTask == nullptr)
+        m_dependencyMasks = MOS_NewArray(PCM_HAL_MASK_AND_RESET, m_kernelCount);
+        CM_CHK_NULL_GOTOFINISH(m_dependencyMasks, CM_FAILURE);
+        CmSafeMemSet(m_dependencyMasks, 0, m_kernelCount*sizeof(PCM_HAL_MASK_AND_RESET));
+
+        kernelCoordinateIndex = MOS_NewArray(uint32_t, m_kernelCount);
+        if(m_threadCoordinates && kernelCoordinateIndex && m_dependencyMasks)
+        {
+            CmSafeMemSet(kernelCoordinateIndex, 0, m_kernelCount*sizeof(uint32_t));
+            for (i = 0; i< m_kernelCount; i++)
+            {
+                kernelCoordinateIndex[i] = 0;
+                uint32_t threadCount;
+                this->GetKernel(i, kernelInTask);
+
+                if(kernelInTask == nullptr)
                 {
                     CM_ASSERTMESSAGE("Error: Invalid kernel pointer in task.");
                     hr = CM_NULL_POINTER;
                     goto finish;
                 }
 
-                pKernel_inTask->GetThreadCount(threadCount);
+                kernelInTask->GetThreadCount(threadCount);
                 if (threadCount == 0)
                 {
-                    threadCount = m_ThreadSpaceWidth*m_ThreadSpaceHeight;
+                    threadCount = m_threadSpaceWidth*m_threadSpaceHeight;
                 }
-                m_pThreadCoordinates[i] = MOS_NewArray(CM_HAL_SCOREBOARD, threadCount);
-                if (m_pThreadCoordinates[i])
+                m_threadCoordinates[i] = MOS_NewArray(CM_HAL_SCOREBOARD, threadCount);
+                if (m_threadCoordinates[i])
                 {
-                    CmSafeMemSet(m_pThreadCoordinates[i], 0, sizeof(CM_HAL_SCOREBOARD)* threadCount);
+                    CmSafeMemSet(m_threadCoordinates[i], 0, sizeof(CM_HAL_SCOREBOARD)* threadCount);
                 }
-                else 
+                else
                 {
                     CM_ASSERTMESSAGE("Error: Pointer to thread coordinates is null.");
                     hr = CM_NULL_POINTER;
                     goto finish;
                 }
 
-                m_pDependencyMasks[i] = MOS_NewArray(CM_HAL_MASK_AND_RESET, threadCount);
-                if( m_pDependencyMasks[i] )
+                m_dependencyMasks[i] = MOS_NewArray(CM_HAL_MASK_AND_RESET, threadCount);
+                if( m_dependencyMasks[i] )
                 {
-                    CmSafeMemSet(m_pDependencyMasks[i], 0, sizeof(CM_HAL_MASK_AND_RESET) * threadCount);
+                    CmSafeMemSet(m_dependencyMasks[i], 0, sizeof(CM_HAL_MASK_AND_RESET) * threadCount);
                 }
                 else
                 {
@@ -1132,124 +1175,133 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* pTS)
                 }
             }
 
-            CM_THREAD_SPACE_UNIT *pThreadSpaceUnit = nullptr;
-            pTS_RT->GetThreadSpaceSize(width, height);
-            pTS_RT->GetThreadSpaceUnit(pThreadSpaceUnit);
+            CM_THREAD_SPACE_UNIT *threadSpaceUnit = nullptr;
+            threadSpaceRT->GetThreadSpaceSize(width, height);
+            threadSpaceRT->GetThreadSpaceUnit(threadSpaceUnit);
 
-            uint32_t *pBoardOrder = nullptr;
-            pTS_RT->GetBoardOrder(pBoardOrder);
+            uint32_t *boardOrder = nullptr;
+            threadSpaceRT->GetBoardOrder(boardOrder);
             for (uint32_t tIndex=0; tIndex < height*width; tIndex ++)
             {
-                pKernel_inTS = static_cast<CmKernelRT *>(pThreadSpaceUnit[pBoardOrder[tIndex]].pKernel);
-                if (pKernel_inTS == nullptr)
+                kernelInThreadSpace = static_cast<CmKernelRT *>(threadSpaceUnit[boardOrder[tIndex]].kernel);
+                if (kernelInThreadSpace == nullptr)
                 {
-                    if (pTS_RT->GetNeedSetKernelPointer())
+                    if (threadSpaceRT->GetNeedSetKernelPointer())
                     {
-                        pKernel_inTS = pTS_RT->GetKernelPointer();
+                        kernelInThreadSpace = threadSpaceRT->GetKernelPointer();
                     }
-                    if (pKernel_inTS == nullptr)
+                    if (kernelInThreadSpace == nullptr)
                     {
                         CM_ASSERTMESSAGE("Error: Invalid kernel pointer in task.");
                         hr = CM_NULL_POINTER;
                         goto finish;
                     }
                 }
-                uint32_t kIndex = pKernel_inTS->GetIndexInTask();
+                uint32_t kIndex = kernelInThreadSpace->GetIndexInTask();
 
-                m_pThreadCoordinates[kIndex][pKernelCoordinateIndex[kIndex]].x = pThreadSpaceUnit[pBoardOrder[tIndex]].scoreboardCoordinates.x;
-                m_pThreadCoordinates[kIndex][pKernelCoordinateIndex[kIndex]].y = pThreadSpaceUnit[pBoardOrder[tIndex]].scoreboardCoordinates.y;
-                m_pThreadCoordinates[kIndex][pKernelCoordinateIndex[kIndex]].mask = pThreadSpaceUnit[pBoardOrder[tIndex]].dependencyMask;
-                m_pThreadCoordinates[kIndex][pKernelCoordinateIndex[kIndex]].resetMask = pThreadSpaceUnit[pBoardOrder[tIndex]].reset;
-                m_pThreadCoordinates[kIndex][pKernelCoordinateIndex[kIndex]].color = pThreadSpaceUnit[pBoardOrder[tIndex]].scoreboardColor;
-                m_pThreadCoordinates[kIndex][pKernelCoordinateIndex[kIndex]].sliceSelect = pThreadSpaceUnit[pBoardOrder[tIndex]].sliceDestinationSelect;
-                m_pThreadCoordinates[kIndex][pKernelCoordinateIndex[kIndex]].subSliceSelect = pThreadSpaceUnit[pBoardOrder[tIndex]].subSliceDestinationSelect;
-                m_pDependencyMasks[kIndex][pKernelCoordinateIndex[kIndex]].mask = pThreadSpaceUnit[pBoardOrder[tIndex]].dependencyMask;
-                m_pDependencyMasks[kIndex][pKernelCoordinateIndex[kIndex]].resetMask = pThreadSpaceUnit[pBoardOrder[tIndex]].reset;
-                pKernelCoordinateIndex[kIndex] ++;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].x
+                  = threadSpaceUnit[boardOrder[tIndex]].scoreboardCoordinates.x;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].y
+                  = threadSpaceUnit[boardOrder[tIndex]].scoreboardCoordinates.y;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].mask
+                  = threadSpaceUnit[boardOrder[tIndex]].dependencyMask;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].resetMask
+                  = threadSpaceUnit[boardOrder[tIndex]].reset;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].color
+                  = threadSpaceUnit[boardOrder[tIndex]].scoreboardColor;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].sliceSelect
+                  = threadSpaceUnit[boardOrder[tIndex]].sliceDestinationSelect;
+                m_threadCoordinates[kIndex][kernelCoordinateIndex[kIndex]].subSliceSelect
+                  = threadSpaceUnit[boardOrder[tIndex]].subSliceDestinationSelect;
+                m_dependencyMasks[kIndex][kernelCoordinateIndex[kIndex]].mask
+                  = threadSpaceUnit[boardOrder[tIndex]].dependencyMask;
+                m_dependencyMasks[kIndex][kernelCoordinateIndex[kIndex]].resetMask
+                  = threadSpaceUnit[boardOrder[tIndex]].reset;
+                kernelCoordinateIndex[kIndex] ++;
             }
 
-            MosSafeDeleteArray(pKernelCoordinateIndex);
+            MosSafeDeleteArray(kernelCoordinateIndex);
         }
-        else 
+        else
         {
             CM_ASSERTMESSAGE("Error: Failed to create thread space data.");
             hr = CM_FAILURE;
             goto finish;
         }
 
-        m_IsThreadCoordinatesExisted = true;
+        m_isThreadCoordinatesExisted = true;
     }
-    else 
+    else
     {
-        m_pThreadCoordinates = nullptr;
-        m_pDependencyMasks = nullptr;
-        m_IsThreadCoordinatesExisted = false;
+        m_threadCoordinates = nullptr;
+        m_dependencyMasks = nullptr;
+        m_isThreadCoordinatesExisted = false;
     }
 
-    if (pTS_RT->IsDependencySet())
+    if (threadSpaceRT->IsDependencySet())
     {
-        pTS_RT->GetDependencyPatternType(m_DependencyPattern);
+        threadSpaceRT->GetDependencyPatternType(m_dependencyPattern);
     }
 
-    pTS_RT->GetColorCountMinusOne(m_ColorCountMinusOne);
-    pTS_RT->GetMediaWalkerGroupSelect(m_MediaWalkerGroupSelect);
+    threadSpaceRT->GetColorCountMinusOne(m_colorCountMinusOne);
+    threadSpaceRT->GetMediaWalkerGroupSelect(m_mediaWalkerGroupSelect);
 
-    pTS_RT->GetWalkingPattern(m_WalkingPattern);
+    threadSpaceRT->GetWalkingPattern(m_walkingPattern);
 
-    m_MediaWalkerParamsSet = pTS_RT->CheckWalkingParametersSet();
-    if( m_MediaWalkerParamsSet )
+    m_mediaWalkerParamsSet = threadSpaceRT->CheckWalkingParametersSet();
+    if( m_mediaWalkerParamsSet )
     {
         CM_WALKING_PARAMETERS tmpMWParams;
-        CMCHK_HR(pTS_RT->GetWalkingParameters(tmpMWParams));
-        CmSafeMemCopy(&m_WalkingParameters, &tmpMWParams, sizeof(tmpMWParams));
+        CM_CHK_CMSTATUS_GOTOFINISH(threadSpaceRT->GetWalkingParameters(tmpMWParams));
+        CmSafeMemCopy(&m_walkingParameters, &tmpMWParams, sizeof(tmpMWParams));
     }
 
-    m_DependencyVectorsSet = pTS_RT->CheckDependencyVectorsSet();
-    if( m_DependencyVectorsSet )
+    m_dependencyVectorsSet = threadSpaceRT->CheckDependencyVectorsSet();
+    if( m_dependencyVectorsSet )
     {
         CM_HAL_DEPENDENCY tmpDepVectors;
-        CMCHK_HR(pTS_RT->GetDependencyVectors(tmpDepVectors));
-        CmSafeMemCopy(&m_DependencyVectors, &tmpDepVectors, sizeof(tmpDepVectors));
+        CM_CHK_CMSTATUS_GOTOFINISH(threadSpaceRT->GetDependencyVectors(tmpDepVectors));
+        CmSafeMemCopy(&m_dependencyVectors, &tmpDepVectors, sizeof(tmpDepVectors));
     }
 
 finish:
     if(hr != CM_SUCCESS)
     {
-        if(m_pThreadCoordinates )
+        if(m_threadCoordinates )
         {
-            for (i = 0; i< m_KernelCount; i++)
+            for (i = 0; i< m_kernelCount; i++)
             {
-                MosSafeDeleteArray(m_pThreadCoordinates[i]);
+                MosSafeDeleteArray(m_threadCoordinates[i]);
             }
         }
-        
-        if(m_pDependencyMasks)
+
+        if(m_dependencyMasks)
         {
-            for (i = 0; i< m_KernelCount; i++)
+            for (i = 0; i< m_kernelCount; i++)
             {
-                MosSafeDeleteArray(m_pDependencyMasks[i]);
+                MosSafeDeleteArray(m_dependencyMasks[i]);
             }
         }
-        MosSafeDeleteArray(m_pThreadCoordinates);
-        MosSafeDeleteArray(m_pDependencyMasks);
-        MosSafeDeleteArray(pKernelCoordinateIndex);
+        MosSafeDeleteArray(m_threadCoordinates);
+        MosSafeDeleteArray(m_dependencyMasks);
+        MosSafeDeleteArray(kernelCoordinateIndex);
     }
     return hr;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get thread space's coordinates 
+//| Purpose:    Get thread space's coordinates
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetKernelCoordinates(const uint32_t index, void  *&pKernelCoordinates)
+int32_t CmTaskInternal::GetKernelCoordinates(const uint32_t index, void  *&kernelCoordinates)
 {
-    if (m_pThreadCoordinates != nullptr)
+    if (m_threadCoordinates != nullptr)
     {
-        pKernelCoordinates = (void *)m_pThreadCoordinates[index]; 
+        kernelCoordinates = (void *)m_threadCoordinates[index];
     }
     else
     {
-        pKernelCoordinates = nullptr;
+        kernelCoordinates = nullptr;
     }
 
     return CM_SUCCESS;
@@ -1259,37 +1311,37 @@ int32_t CmTaskInternal::GetKernelCoordinates(const uint32_t index, void  *&pKern
 //| Purpose:    Get thread space's dependency masks
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetKernelDependencyMasks(const uint32_t index, void  *&pKernelDependencyMasks)
+int32_t CmTaskInternal::GetKernelDependencyMasks(const uint32_t index, void  *&kernelDependencyMasks)
 {
-    if (m_pDependencyMasks != nullptr)
+    if (m_dependencyMasks != nullptr)
     {
-        pKernelDependencyMasks = (void *)m_pDependencyMasks[index]; 
+        kernelDependencyMasks = (void *)m_dependencyMasks[index];
     }
     else
     {
-        pKernelDependencyMasks = nullptr;
+        kernelDependencyMasks = nullptr;
     }
 
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get dependency pattern 
+//| Purpose:    Get dependency pattern
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetDependencyPattern(CM_DEPENDENCY_PATTERN &DependencyPattern)
+int32_t CmTaskInternal::GetDependencyPattern(CM_DEPENDENCY_PATTERN &dependencyPattern)
 {
-    DependencyPattern = m_DependencyPattern;
+    dependencyPattern = m_dependencyPattern;
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get media walking pattern 
+//| Purpose:    Get media walking pattern
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetWalkingPattern(CM_WALKING_PATTERN &WalkingPattern)
+int32_t CmTaskInternal::GetWalkingPattern(CM_WALKING_PATTERN &walkingPattern)
 {
-    WalkingPattern = m_WalkingPattern;
+    walkingPattern = m_walkingPattern;
     return CM_SUCCESS;
 }
 
@@ -1297,38 +1349,38 @@ int32_t CmTaskInternal::GetWalkingPattern(CM_WALKING_PATTERN &WalkingPattern)
 //| Purpose:    Get media walking parameters
 //| Returns:    CM_FAILURE if dest ptr is nullptr, CM_SUCCESS otherwise
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetWalkingParameters(CM_WALKING_PARAMETERS &pWalkingParameters)
+int32_t CmTaskInternal::GetWalkingParameters(CM_WALKING_PARAMETERS &walkingParameters)
 {
-    CmSafeMemCopy(&pWalkingParameters, &m_WalkingParameters, sizeof(m_WalkingParameters));
+    CmSafeMemCopy(&walkingParameters, &m_walkingParameters, sizeof(m_walkingParameters));
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Check to see if media walking parameters have been set 
+//| Purpose:    Check to see if media walking parameters have been set
 //| Returns:    true if media walking parameters set, false otherwise
 //*-----------------------------------------------------------------------------
 bool CmTaskInternal::CheckWalkingParametersSet( )
 {
-    return m_MediaWalkerParamsSet;
+    return m_mediaWalkerParamsSet;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get dependency vectors 
+//| Purpose:    Get dependency vectors
 //| Returns:    CM_FAILURE if dest ptr is nullptr, CM_SUCCESS otherwise
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetDependencyVectors(CM_HAL_DEPENDENCY &pDependencyVectors)
+int32_t CmTaskInternal::GetDependencyVectors(CM_HAL_DEPENDENCY &dependencyVectors)
 {
-    CmSafeMemCopy(&pDependencyVectors, &m_DependencyVectors, sizeof(m_DependencyVectors));
+    CmSafeMemCopy(&dependencyVectors, &m_dependencyVectors, sizeof(m_dependencyVectors));
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Check to see if dependency vectors have been set 
+//| Purpose:    Check to see if dependency vectors have been set
 //| Returns:    true if dependency vectors are set, false otherwise
 //*-----------------------------------------------------------------------------
 bool CmTaskInternal::CheckDependencyVectorsSet( )
 {
-    return m_DependencyVectorsSet;
+    return m_dependencyVectorsSet;
 }
 
 //*-----------------------------------------------------------------------------
@@ -1337,20 +1389,20 @@ bool CmTaskInternal::CheckDependencyVectorsSet( )
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetTotalThreadCount( uint32_t& totalThreadCount )
 {
-    totalThreadCount = m_TotalThreadCount;
+    totalThreadCount = m_totalThreadCount;
 
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get the width,height of thread space 
+//| Purpose:    Get the width,height of thread space
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
 
 int32_t CmTaskInternal::GetThreadSpaceSize(uint32_t& width, uint32_t& height )
 {
-    width = m_ThreadSpaceWidth;
-    height = m_ThreadSpaceHeight;
+    width = m_threadSpaceWidth;
+    height = m_threadSpaceHeight;
 
     return CM_SUCCESS;
 }
@@ -1364,7 +1416,7 @@ int32_t CmTaskInternal::GetThreadSpaceSize(uint32_t& width, uint32_t& height )
 
 int32_t CmTaskInternal::GetColorCountMinusOne( uint32_t& colorCount )
 {
-    colorCount = m_ColorCountMinusOne;
+    colorCount = m_colorCountMinusOne;
 
     return CM_SUCCESS;
 }
@@ -1376,7 +1428,7 @@ int32_t CmTaskInternal::GetColorCountMinusOne( uint32_t& colorCount )
 
 bool CmTaskInternal::IsThreadSpaceCreated(void )
 {
-    return m_IsThreadSpaceCreated;
+    return m_isThreadSpaceCreated;
 }
 
 //*-----------------------------------------------------------------------------
@@ -1385,7 +1437,7 @@ bool CmTaskInternal::IsThreadSpaceCreated(void )
 //*-----------------------------------------------------------------------------
 bool CmTaskInternal::IsThreadCoordinatesExisted(void)
 {
-    return m_IsThreadCoordinatesExisted;
+    return m_isThreadCoordinatesExisted;
 }
 
 //*-----------------------------------------------------------------------------
@@ -1393,25 +1445,26 @@ bool CmTaskInternal::IsThreadCoordinatesExisted(void)
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
 
-
-int32_t CmTaskInternal::GetThreadGroupSpaceSize(uint32_t& trdSpaceWidth, uint32_t& trdSpaceHeight, uint32_t& trdSpaceDepth, uint32_t& grpSpaceWidth, uint32_t& grpSpaceHeight, uint32_t& grpSpaceDepth)
+int32_t CmTaskInternal::GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint32_t& threadSpaceHeight,
+                                                uint32_t& threadSpaceDepth, uint32_t& groupSpaceWidth,
+                                                uint32_t& groupSpaceHeight, uint32_t& groupSpaceDepth)
 {
-    trdSpaceWidth = m_ThreadSpaceWidth;
-    trdSpaceHeight = m_ThreadSpaceHeight;
-    trdSpaceDepth  = m_ThreadSpaceDepth;
-    grpSpaceWidth = m_GroupSpaceWidth;
-    grpSpaceHeight = m_GroupSpaceHeight;
-    grpSpaceDepth = m_GroupSpaceDepth;
+    threadSpaceWidth = m_threadSpaceWidth;
+    threadSpaceHeight = m_threadSpaceHeight;
+    threadSpaceDepth  = m_threadSpaceDepth;
+    groupSpaceWidth = m_groupSpaceWidth;
+    groupSpaceHeight = m_groupSpaceHeight;
+    groupSpaceDepth = m_groupSpaceDepth;
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get the size of shared local memory
+//| Purpose:    Get the size of sharedlocalmemory
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetSLMSize(uint32_t& iSLMSize)
+int32_t CmTaskInternal::GetSLMSize(uint32_t& slmSize)
 {
-    iSLMSize = m_SLMSize;
+    slmSize = m_slmSize;
     return CM_SUCCESS;
 }
 
@@ -1419,9 +1472,9 @@ int32_t CmTaskInternal::GetSLMSize(uint32_t& iSLMSize)
 //| Purpose:    Get the size of spill memory used
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetSpillMemUsed(uint32_t& iSpillMemUsed)
+int32_t CmTaskInternal::GetSpillMemUsed(uint32_t& spillMemUsed)
 {
-    iSpillMemUsed = m_SpillMemUsed;
+    spillMemUsed = m_spillMemUsed;
     return CM_SUCCESS;
 }
 
@@ -1431,7 +1484,7 @@ int32_t CmTaskInternal::GetSpillMemUsed(uint32_t& iSpillMemUsed)
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetHints(uint32_t& hints)
 {
-    hints = m_Hints;
+    hints = m_hints;
     return CM_SUCCESS;
 }
 
@@ -1442,7 +1495,7 @@ int32_t CmTaskInternal::GetHints(uint32_t& hints)
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetNumTasksGenerated(uint32_t& numTasksGenerated)
 {
-    numTasksGenerated = m_NumTasksGenerated;
+    numTasksGenerated = m_numTasksGenerated;
     return CM_SUCCESS;
 }
 
@@ -1453,7 +1506,7 @@ int32_t CmTaskInternal::GetNumTasksGenerated(uint32_t& numTasksGenerated)
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetLastTask(bool& isLastTask)
 {
-    isLastTask = m_IsLastTask;
+    isLastTask = m_isLastTask;
     return CM_SUCCESS;
 }
 
@@ -1463,7 +1516,7 @@ int32_t CmTaskInternal::GetLastTask(bool& isLastTask)
 //*-----------------------------------------------------------------------------
 bool CmTaskInternal::IsThreadGroupSpaceCreated(void)
 {
-    return m_IsThreadGroupSpaceCreated;
+    return m_isThreadGroupSpaceCreated;
 }
 
 //*-----------------------------------------------------------------------------
@@ -1473,39 +1526,40 @@ bool CmTaskInternal::IsThreadGroupSpaceCreated(void)
 int32_t CmTaskInternal::AllocateKernelSurfInfo()
 {
     //Allocate Surf info array
-    m_KernelSurfInfo.dwKrnNum = m_KernelCount;
-    m_KernelSurfInfo.pSurfEntryInfosArray = (CM_HAL_SURFACE_ENTRY_INFO_ARRAY*)MOS_AllocAndZeroMemory(m_KernelCount *
-                                sizeof(CM_HAL_SURFACE_ENTRY_INFO_ARRAY));
-    if(m_KernelSurfInfo.pSurfEntryInfosArray == nullptr)
+    m_kernelSurfInfo.kernelNum = m_kernelCount;
+    m_kernelSurfInfo.surfEntryInfosArray
+      = (CM_HAL_SURFACE_ENTRY_INFO_ARRAY*)MOS_AllocAndZeroMemory(m_kernelCount *
+                                                                 sizeof(CM_HAL_SURFACE_ENTRY_INFO_ARRAY));
+    if(m_kernelSurfInfo.surfEntryInfosArray == nullptr)
     {
 
         CM_ASSERTMESSAGE("Error: Mem allocation fail.");
         return CM_OUT_OF_HOST_MEMORY;
     }
 
-    for( uint32_t i = 0; i < m_KernelCount; i ++ )
+    for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {
-        CmKernelRT * pTempCmKrn = nullptr;
-        this->GetKernel(i, pTempCmKrn);
-        if(pTempCmKrn == nullptr)
+        CmKernelRT * tempCmKernel = nullptr;
+        this->GetKernel(i, tempCmKernel);
+        if(tempCmKernel == nullptr)
         {
             CM_ASSERTMESSAGE("Error: Invalid kernel pointer.");
             return CM_FAILURE;
         }
 
-        CM_ARG* pArg=NULL;
-        pTempCmKrn->GetArgs( pArg );
+        CM_ARG* arg=NULL;
+        tempCmKernel->GetArgs( arg );
 
-        uint32_t iArgCount = 0;
-        pTempCmKrn->GetArgCount( iArgCount);
+        uint32_t argCount = 0;
+        tempCmKernel->GetArgCount( argCount);
         //allocate memory for non_static buffer&2D&3D
-        uint32_t iSurfEntryNum = 0;
-        for( uint32_t j = 0; j < iArgCount; j ++ )
+        uint32_t surfEntryNum = 0;
+        for( uint32_t j = 0; j < argCount; j ++ )
         {
-            switch(pArg[ j ].unitKind)
+            switch(arg[ j ].unitKind)
             {
                 case    ARG_KIND_SURFACE_1D:
-                        iSurfEntryNum = iSurfEntryNum + pArg[ j ].unitCount * pArg[j].unitSize/sizeof(int);
+                        surfEntryNum = surfEntryNum + arg[ j ].unitCount * arg[j].unitSize/sizeof(int);
                         break;
 
                 case    ARG_KIND_SURFACE_2D:
@@ -1513,24 +1567,24 @@ int32_t CmTaskInternal::AllocateKernelSurfInfo()
                 case    ARG_KIND_SURFACE_3D:
                 case    ARG_KIND_SURFACE_SAMPLER8X8_AVS:
                 case    ARG_KIND_SURFACE_SAMPLER8X8_VA:
-                        iSurfEntryNum = iSurfEntryNum + 3 * pArg[ j ].unitCount * pArg[j].unitSize/sizeof(int);//one 2D or 3D can have upto 3 planes
+                        surfEntryNum = surfEntryNum + 3 * arg[ j ].unitCount * arg[j].unitSize/sizeof(int);//one 2D or 3D can have upto 3 planes
                         break;
 
                 case    ARG_KIND_SURFACE_VME:
-                        iSurfEntryNum = iSurfEntryNum + 9 * pArg[ j ].unitCount;//surfaceVME will use upto 3 surfaces, each one can have upto 3 planes
+                        surfEntryNum = surfEntryNum + 24 * arg[ j ].unitCount;//surfaceVME will use upto 8 surfaces, each one can have upto 3 planes
                         break;
 
                 default:
                     break;
             }
         }
-        CM_HAL_SURFACE_ENTRY_INFO_ARRAY* pTempArray =  m_KernelSurfInfo.pSurfEntryInfosArray;
-        if(iSurfEntryNum>0)
+        CM_HAL_SURFACE_ENTRY_INFO_ARRAY* tempArray =  m_kernelSurfInfo.surfEntryInfosArray;
+        if(surfEntryNum>0)
         {
-            pTempArray[i].dwMaxEntryNum = iSurfEntryNum;
-            pTempArray[i].pSurfEntryInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(iSurfEntryNum*sizeof(CM_SURFACE_DETAILS));
+            tempArray[i].maxEntryNum = surfEntryNum;
+            tempArray[i].surfEntryInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(surfEntryNum*sizeof(CM_SURFACE_DETAILS));
 
-            if(pTempArray[i].pSurfEntryInfos == nullptr)
+            if(tempArray[i].surfEntryInfos == nullptr)
             {
                 CM_ASSERTMESSAGE("Error: Mem allocation fail.");
                 return CM_OUT_OF_HOST_MEMORY;
@@ -1539,11 +1593,11 @@ int32_t CmTaskInternal::AllocateKernelSurfInfo()
         }
 
         //allocate memory for those 7 static buffers
-        uint32_t iGBufNum=CM_GLOBAL_SURFACE_NUMBER + CM_GTPIN_BUFFER_NUM;
-        pTempArray[i].dwGlobalSurfNum=iGBufNum;
-        pTempArray[i].pGlobalSurfInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(
-                                iGBufNum*sizeof(CM_SURFACE_DETAILS));
-        if(pTempArray[i].pGlobalSurfInfos == nullptr)
+        uint32_t globalBufNum=CM_GLOBAL_SURFACE_NUMBER + CM_GTPIN_BUFFER_NUM;
+        tempArray[i].globalSurfNum=globalBufNum;
+        tempArray[i].globalSurfInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(
+                                globalBufNum*sizeof(CM_SURFACE_DETAILS));
+        if(tempArray[i].globalSurfInfos == nullptr)
         {
             CM_ASSERTMESSAGE("Mem allocation fail.");
             return CM_OUT_OF_HOST_MEMORY;
@@ -1552,69 +1606,68 @@ int32_t CmTaskInternal::AllocateKernelSurfInfo()
     return CM_SUCCESS;
 }
 
-int32_t CmTaskInternal::GetKernelSurfInfo(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS & SurfEntryInfoArray)
+int32_t CmTaskInternal::GetKernelSurfInfo(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS & surfEntryInfoArray)
 {
-    SurfEntryInfoArray = m_KernelSurfInfo;
+    surfEntryInfoArray = m_kernelSurfInfo;
     return CM_SUCCESS;
 }
 
 int32_t CmTaskInternal::ClearKernelSurfInfo()
 {
-    if (m_KernelSurfInfo.pSurfEntryInfosArray == nullptr)
-    { // if pSurfEntryInfosArray is empty, return directly
+    if (m_kernelSurfInfo.surfEntryInfosArray == nullptr)
+    { // if surfEntryInfosArray is empty, return directly
         return CM_SUCCESS;
     }
-    
+
     //free memory
-    for( uint32_t i = 0; i < m_KernelCount; i ++ )
+    for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {
-        if (m_KernelSurfInfo.pSurfEntryInfosArray[i].pSurfEntryInfos != nullptr)
+        if (m_kernelSurfInfo.surfEntryInfosArray[i].surfEntryInfos != nullptr)
         {
-            MosSafeDelete(m_KernelSurfInfo.pSurfEntryInfosArray[i].pSurfEntryInfos);
+            MosSafeDelete(m_kernelSurfInfo.surfEntryInfosArray[i].surfEntryInfos);
         }
-        if (m_KernelSurfInfo.pSurfEntryInfosArray[i].pGlobalSurfInfos!= nullptr)
+        if (m_kernelSurfInfo.surfEntryInfosArray[i].globalSurfInfos!= nullptr)
         {
-            MosSafeDelete(m_KernelSurfInfo.pSurfEntryInfosArray[i].pGlobalSurfInfos);
+            MosSafeDelete(m_kernelSurfInfo.surfEntryInfosArray[i].globalSurfInfos);
         }
     }
 
-    MosSafeDelete(m_KernelSurfInfo.pSurfEntryInfosArray);
+    MosSafeDelete(m_kernelSurfInfo.surfEntryInfosArray);
 
-    m_KernelSurfInfo.dwKrnNum = 0 ;
-    m_KernelSurfInfo.pSurfEntryInfosArray = nullptr;
+    m_kernelSurfInfo.kernelNum = 0 ;
+    m_kernelSurfInfo.surfEntryInfosArray = nullptr;
 
     return CM_SUCCESS;
 }
 
 int32_t CmTaskInternal::GetTaskType(uint32_t& taskType)
 {
-    taskType = m_TaskType;
+    taskType = m_taskType;
 
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get vebox state
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::GetVeboxState(CM_VEBOX_STATE &pVeboxState)
+int32_t CmTaskInternal::GetVeboxState(CM_VEBOX_STATE &veboxState)
 {
-    pVeboxState = m_VeboxState;
+    veboxState = m_veboxState;
 
     return CM_SUCCESS;
 }
 
-int32_t CmTaskInternal::GetVeboxParam(CmBufferUP * &pVeboxParam)
+int32_t CmTaskInternal::GetVeboxParam(CmBufferUP * &veboxParam)
 {
-    pVeboxParam = m_pVeboxParam;
+    veboxParam = m_veboxParam;
 
     return CM_SUCCESS;
 }
 
-int32_t CmTaskInternal::GetVeboxSurfaceData(CM_VEBOX_SURFACE_DATA &VeboxSurfaceData)
+int32_t CmTaskInternal::GetVeboxSurfaceData(CM_VEBOX_SURFACE_DATA &veboxSurfaceData)
 {
-    VeboxSurfaceData = m_VeboxSurfaceData;
+    veboxSurfaceData = m_veboxSurfaceData;
     return CM_SUCCESS;
 }
 
@@ -1630,22 +1683,22 @@ uint64_t CmTaskInternal::GetConditionalEndBitmap()
 
 CM_HAL_CONDITIONAL_BB_END_INFO* CmTaskInternal::GetConditionalEndInfo()
 {
-    return m_ConditionalEndInfo;
+    return m_conditionalEndInfo;
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Set power option for this task
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::SetPowerOption( PCM_POWER_OPTION pPowerOption )
+int32_t CmTaskInternal::SetPowerOption( PCM_POWER_OPTION powerOption )
 {
-    if (pPowerOption == nullptr)
+    if (powerOption == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to power option is null.");
         return CM_NULL_POINTER;
     }
-    CmFastMemCopy( &m_PowerOption, pPowerOption, sizeof( m_PowerOption ) );
-    return CM_SUCCESS;   
+    CmSafeMemCopy( &m_powerOption, powerOption, sizeof( m_powerOption ) );
+    return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
@@ -1654,11 +1707,11 @@ int32_t CmTaskInternal::SetPowerOption( PCM_POWER_OPTION pPowerOption )
 //*-----------------------------------------------------------------------------
 PCM_POWER_OPTION CmTaskInternal::GetPowerOption()
 {
-    return &m_PowerOption;
+    return &m_powerOption;
 }
 
 #if _DEBUG
-const char *g_DependencyPatternString[] =
+const char *gDependencyPatternString[] =
 {
     "DEPENDENCY_NONE",
     "DEPENDENCY_WAVEFRONT45",
@@ -1668,29 +1721,28 @@ const char *g_DependencyPatternString[] =
 //Only for debugging
 int32_t CmTaskInternal::DisplayThreadSpaceData(uint32_t width, uint32_t height)
 {
-    uint32_t i;
-    if (m_pThreadCoordinates != nullptr)
+    if (m_threadCoordinates != nullptr)
     {
         CM_NORMALMESSAGE("Score board[Kernel x: (x1, y1), (x2, y2)...]:");
-        for (i = 0; i < m_KernelCount; i ++)
+        for (uint32_t i = 0; i < m_kernelCount; i ++)
         {
-            CmKernelRT *pKernel_RT = nullptr;
-            GetKernel(i, pKernel_RT);
-            if(nullptr == pKernel_RT)
+            CmKernelRT *kernelRT = nullptr;
+            GetKernel(i, kernelRT);
+            if(nullptr == kernelRT)
             {
                 return CM_FAILURE;
             }
 
             uint32_t threadCount;
-            pKernel_RT->GetThreadCount(threadCount);
+            kernelRT->GetThreadCount(threadCount);
             if (threadCount == 0)
             {
-                threadCount = m_ThreadSpaceWidth*m_ThreadSpaceHeight;
+                threadCount = m_threadSpaceWidth*m_threadSpaceHeight;
             }
             CM_NORMALMESSAGE("Kernel %d: ", i);
             for (uint32_t j=0; j<threadCount; j++)
             {
-                CM_NORMALMESSAGE("(%d, %d) ", m_pThreadCoordinates[i][j].x, m_pThreadCoordinates[i][j].y);
+                CM_NORMALMESSAGE("(%d, %d) ", m_threadCoordinates[i][j].x, m_threadCoordinates[i][j].y);
             }
         }
     }
@@ -1699,11 +1751,11 @@ int32_t CmTaskInternal::DisplayThreadSpaceData(uint32_t width, uint32_t height)
         CM_NORMALMESSAGE("Score Board is NULL.");
     }
 
-    if (m_DependencyPattern <= CM_WAVEFRONT26)
+    if (m_dependencyPattern <= CM_WAVEFRONT26)
     {
-        CM_NORMALMESSAGE("Dependency Pattern: %s.", g_DependencyPatternString[m_DependencyPattern]);
+        CM_NORMALMESSAGE("Dependency Pattern: %s.", gDependencyPatternString[m_dependencyPattern]);
     }
-    else 
+    else
     {
         CM_NORMALMESSAGE("Dependency Pattern: UNASSIGNED.");
     }
@@ -1712,21 +1764,9 @@ int32_t CmTaskInternal::DisplayThreadSpaceData(uint32_t width, uint32_t height)
 }
 #endif
 
-int32_t CmTaskInternal::SetPreemptionMode(CM_PREEMPTION_MODE mode)
-{
-    m_PreemptionMode = mode;
-    
-    return CM_SUCCESS;   
-}
-
-CM_PREEMPTION_MODE CmTaskInternal::GetPreemptionMode()
-{
-    return m_PreemptionMode;   
-}
-
 int32_t CmTaskInternal::GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT& groupSelect)
 {
-    groupSelect = m_MediaWalkerGroupSelect;
+    groupSelect = m_mediaWalkerGroupSelect;
     return CM_SUCCESS;
 }
 
@@ -1735,98 +1775,159 @@ int32_t CmTaskInternal::GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT& groupSelec
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
 {
-    CmSurfaceManager*   pSurfaceMgr = nullptr;
-    int32_t             *pSurfState = nullptr;
+    CmSurfaceManager*   surfaceMgr = nullptr;
+    int32_t             *surfState = nullptr;
 
-    m_pCmDevice->GetSurfaceManager(pSurfaceMgr);
-    if (pSurfaceMgr == nullptr)
+    m_cmDevice->GetSurfaceManager(surfaceMgr);
+    if (surfaceMgr == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface manager is null.");
         return CM_NULL_POINTER;
     }
 
-    pSurfaceMgr->GetSurfaceState(pSurfState);
-    if (pSurfState == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface state is null.");
-        return CM_NULL_POINTER;
-    }
+    uint32_t poolSize = surfaceMgr->GetSurfacePoolSize();
+    uint32_t handle = 0;
+    uint32_t curTaskSurfCnt = 0;
+    void **  curTaskSurfResArray = nullptr;
+    uint32_t  refSurfCnt = 0;
+    uint32_t *refSurfHandleArray = nullptr;
 
-    uint32_t poolSize = pSurfaceMgr->GetSurfacePoolSize();
-    
-    CSync* pSurfaceLock = m_pCmDevice->GetSurfaceCreationLock();
-    if (pSurfaceLock == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface creation lock is null.");
-        return CM_NULL_POINTER;
-    }
+    curTaskSurfResArray = (void **)MOS_AllocAndZeroMemory(sizeof(void *)*poolSize);
+    CM_CHK_NULL_RETURN_CMERROR(curTaskSurfResArray);
 
-    pSurfaceLock->Acquire();
+    CSync* surfaceLock = m_cmDevice->GetSurfaceCreationLock();
 
-    if (!m_IsSurfaceUpdateDone)
-    {
-        for (uint32_t i = 0; i < poolSize; i++)
-        {
-            if (m_SurfaceArray[i])
-            {
-                pSurfState[i] ++;
-            }
-        }
-
-        m_IsSurfaceUpdateDone = true;
-    }
-
-    pSurfaceLock->Release();
-    return CM_SUCCESS;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Update surface state on task creation stage
-//*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::UpdateSurfaceStateOnTaskDestroy()
-{
-    CmSurfaceManager*   pSurfaceMgr = nullptr;
-    int32_t             *pSurfState  = nullptr;
-
-    m_pCmDevice->GetSurfaceManager(pSurfaceMgr);
-    if (!pSurfaceMgr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface manager is null.");
-        return CM_NULL_POINTER;
-    }
-
-    pSurfaceMgr->GetSurfaceState(pSurfState);
-    if (pSurfState == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface state is null.");
-        return CM_NULL_POINTER;
-    }
-
-    uint32_t poolSize = pSurfaceMgr->GetSurfacePoolSize();
-    
-    CSync* pSurfaceLock = m_pCmDevice->GetSurfaceCreationLock();
-    if (pSurfaceLock == nullptr)
+    if (surfaceLock == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface creation lock is null.");
         return CM_NULL_POINTER;
     }
 
-    pSurfaceLock->Acquire();
+    surfaceLock->Acquire();
 
-    if (m_IsSurfaceUpdateDone)
+    // get the last tracker
+    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    PCM_HAL_STATE state = cmData->cmHalState;
+    CM_CHK_NULL_RETURN_CMERROR(state);
+
+    if (!m_isSurfaceUpdateDone)
     {
         for (uint32_t i = 0; i < poolSize; i++)
         {
-            if (m_SurfaceArray[i])
+            if (m_surfaceArray[i])
             {
-                pSurfState[i] --;
+                CmSurface *surface = NULL;
+                CM_CHK_CMSTATUS_RETURN(surfaceMgr->GetSurface(i, surface));
+                if (surface == nullptr) // surface destroyed but not updated in kernel
+                {
+                    continue;
+                }
+                if (m_taskType == CM_INTERNAL_TASK_VEBOX)
+                {
+                    surface->SetVeboxTracker(state->renderHal->veBoxTrackerRes.currentTrackerId);
+                }
+                else
+                {
+                    surface->SetRenderTracker(state->renderHal->trackerResource.currentTrackerId);
+                }
+
+                // Push this surface's resource into array for CP check.
+                switch (surface->Type())
+                {
+                    case CM_ENUM_CLASS_TYPE_CMBUFFER_RT :
+                        static_cast< CmBuffer_RT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->bufferTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACE2D :
+                        static_cast< CmSurface2DRT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
+                        static_cast< CmSurface2DUPRT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf2DUPTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACE3D :
+                        static_cast< CmSurface3DRT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf3DTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACEVME:
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexCurrent(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource; // current surface
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardCount(refSurfCnt);
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardArray(refSurfHandleArray);
+                        for(i = 0; i < refSurfCnt; i++)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[refSurfHandleArray[i]].osResource; // forward surfaces
+                        }
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardCount(refSurfCnt);
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardArray(refSurfHandleArray);
+                        for(i = 0; i < refSurfCnt; i++)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[refSurfHandleArray[i]].osResource; // backward surfaces
+                        }
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8:
+                        static_cast< CmSurfaceSampler8x8* >( surface )->GetIndexCurrent(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER:
+                        static_cast< CmSurfaceSampler* >( surface )->GetHandle(handle);
+                        SAMPLER_SURFACE_TYPE type;
+                        static_cast< CmSurfaceSampler* >( surface )->GetSurfaceType(type);
+                        if (type == SAMPLER_SURFACE_TYPE_2D)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource;
+                        }
+                        else if (type == SAMPLER_SURFACE_TYPE_2DUP)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf2DUPTable[handle].osResource;
+                        }
+                        else if (type == SAMPLER_SURFACE_TYPE_3D)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf3DTable[handle].osResource;
+                        }
+                        else
+                        {
+                            surfaceLock->Release();
+                            if (curTaskSurfResArray)
+                            {
+                                MOS_FreeMemory(curTaskSurfResArray);
+                                curTaskSurfResArray = nullptr;
+                            }
+                            return CM_INVALID_ARG_INDEX;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
             }
         }
 
-        m_IsSurfaceUpdateDone = false;
+        m_isSurfaceUpdateDone = true;
     }
 
-    pSurfaceLock->Release();
+    surfaceLock->Release();
+
+    // Check if there is any secure surface.
+    if (curTaskSurfCnt > 0 && state->osInterface && state->osInterface->osCpInterface)
+    {
+        state->osInterface->osCpInterface->PrepareResources(curTaskSurfResArray, curTaskSurfCnt, nullptr, 0);
+    }
+
+    if (curTaskSurfResArray)
+    {
+        MOS_FreeMemory(curTaskSurfResArray);
+        curTaskSurfResArray = nullptr;
+    }
+
     return CM_SUCCESS;
 }
 
@@ -1835,28 +1936,28 @@ std::string CmTaskInternal::Log()
 {
     std::ostringstream  oss;
 
-    oss << "Enqueue Task Type:" << m_TaskType 
-        << " Kernel Count:" << m_KernelCount 
-        << " Total Thread Count:" << m_TotalThreadCount
+    oss << "Enqueue Task Type:" << m_taskType
+        << " Kernel Count:" << m_kernelCount
+        << " Total Thread Count:" << m_totalThreadCount
         << " Sync Bit:"<<m_ui64SyncBitmap
         << " Conditional End Bit:" << m_ui64ConditionalEndBitmap
         << std::endl;
 
-    switch(m_TaskType)
+    switch(m_taskType)
     {
         case CM_INTERNAL_TASK_WITH_THREADSPACE:
-            if ( m_IsThreadSpaceCreated )
+            if ( m_isThreadSpaceCreated )
             {
-                oss << "Thread Space Width :" << m_ThreadSpaceWidth << " Height :" << m_ThreadSpaceHeight 
-                    << "Walker Patten :" << (int)m_WalkingPattern << std::endl;
+                oss << "Thread Space Width :" << m_threadSpaceWidth << " Height :" << m_threadSpaceHeight
+                    << "Walker Patten :" << (int)m_walkingPattern << std::endl;
             }
             break;
 
         case CM_INTERNAL_TASK_WITH_THREADGROUPSPACE:
-            if(m_IsThreadGroupSpaceCreated)
+            if(m_isThreadGroupSpaceCreated)
             {
-                oss << "Thread Group Space Width:" << m_GroupSpaceWidth << " Height:" << m_GroupSpaceHeight
-                    << "SLM Size:" <<m_SLMSize << std::endl;
+                oss << "Thread Group Space Width:" << m_groupSpaceWidth << " Height:" << m_groupSpaceHeight
+                    << "SLM Size:" <<m_slmSize << std::endl;
             }
             break;
 
@@ -1864,10 +1965,10 @@ std::string CmTaskInternal::Log()
             break;
 
         case CM_INTERNAL_TASK_ENQUEUEWITHHINTS:
-            oss << " Hints :" << m_Hints 
-                << " Thread Space Width :" << m_ThreadSpaceWidth 
-                << " Height :" << m_ThreadSpaceHeight 
-                << " Walker Patten :" << (int)m_WalkingPattern
+            oss << " Hints :" << m_hints
+                << " Thread Space Width :" << m_threadSpaceWidth
+                << " Height :" << m_threadSpaceHeight
+                << " Walker Patten :" << (int)m_walkingPattern
                 << std::endl;
             break;
 
@@ -1875,47 +1976,46 @@ std::string CmTaskInternal::Log()
             break;
     }
 
-    for (uint32_t i=0 ; i< m_KernelCount; i++)
+    for (uint32_t i=0 ; i< m_kernelCount; i++)
     {
-        CmKernelRT* pKernel = (CmKernelRT*)m_Kernels.GetElement( i );
+        CmKernelRT* kernel = (CmKernelRT*)m_kernels.GetElement( i );
 
-        oss << pKernel->Log(); // log each kernel
+        oss << kernel->Log(); // log each kernel
     }
 
     return oss.str();
 }
 #endif
 
-
 void CmTaskInternal::SurfaceDump(int32_t taskId)
 {
 #if MDF_SURFACE_CONTENT_DUMP
-    for (uint32_t i=0 ; i< m_KernelCount; i++)
+    for (uint32_t i=0 ; i< m_kernelCount; i++)
     {
-        CmKernelRT* pKernel = (CmKernelRT*)m_Kernels.GetElement( i );
-        pKernel->SurfaceDump(i, taskId);
+        CmKernelRT* kernel = (CmKernelRT*)m_kernels.GetElement( i );
+        kernel->SurfaceDump(i, taskId);
     }
 #endif
 }
 
-
-int32_t CmTaskInternal::SetProperty(CM_TASK_CONFIG * pTaskConfig)
+int32_t CmTaskInternal::SetProperty(CM_TASK_CONFIG * taskConfig)
 {
-    if (pTaskConfig == nullptr)
+    if (taskConfig == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to task config is null.");
         return CM_NULL_POINTER;
     }
-    CmFastMemCopy(&m_TaskConfig, pTaskConfig, sizeof(m_TaskConfig));
+    CmSafeMemCopy(&m_taskConfig, taskConfig, sizeof(m_taskConfig));
     return CM_SUCCESS;
 }
 
 PCM_TASK_CONFIG CmTaskInternal::GetTaskConfig()
 {
-    return &m_TaskConfig;
+    return &m_taskConfig;
 }
 
 void  *CMRT_UMD::CmTaskInternal::GetMediaStatePtr()
 {
-    return m_media_state_ptr;
+    return m_mediaStatePtr;
+}
 }

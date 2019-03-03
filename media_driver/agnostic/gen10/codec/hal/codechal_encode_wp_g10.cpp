@@ -24,7 +24,6 @@
 //! \brief    This file implements the weighted prediction feature for all codecs on Gen10 platform
 //!
 
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 #include "codechal_encode_wp_g10.h"
 #include "codeckrnheader.h"
@@ -32,12 +31,6 @@
 //!
 //! \brief    Public member functions
 //!
-CodechalEncodeWPG10::CodechalEncodeWPG10(PCODECHAL_ENCODER encoder)
-    : CodechalEncodeWP(encoder)
-{
-    m_kernelUID = IDR_CODEC_AllAVCEnc;
-}
-
 CodechalEncodeWPG10::CodechalEncodeWPG10(CodechalEncoderState* encoder)
     : CodechalEncodeWP(encoder)
 {
@@ -56,20 +49,20 @@ MOS_STATUS CodechalEncodeWPG10::InitKernelState()
     }
 
     uint8_t* binary;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
         m_kernelUID,
         &binary,
         &m_combinedKernelSize));
 
     auto kernelSize = m_combinedKernelSize;
-    CODECHAL_KERNEL_HEADER CurrKrnHeader;
+    CODECHAL_KERNEL_HEADER currKrnHeader;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnGetKernelHeaderAndSize(
         binary,
         ENC_WP,
         0,
-        &CurrKrnHeader,
+        &currKrnHeader,
         &kernelSize));
 
     m_kernelState->KernelParams.iBTCount          = wpNumSurfaces;
@@ -80,7 +73,7 @@ MOS_STATUS CodechalEncodeWPG10::InitKernelState()
     m_kernelState->KernelParams.iIdCount          = 1;
     m_kernelState->KernelParams.iInlineDataLength = 0;
     m_kernelState->dwCurbeOffset                  = m_stateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
-    m_kernelState->KernelParams.pBinary           = binary + (CurrKrnHeader.KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT);
+    m_kernelState->KernelParams.pBinary           = binary + (currKrnHeader.KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT);
     m_kernelState->KernelParams.iSize             = kernelSize;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->CalculateSshAndBtSizesRequested(
         m_kernelState->KernelParams.iBTCount,
@@ -88,7 +81,7 @@ MOS_STATUS CodechalEncodeWPG10::InitKernelState()
         &m_kernelState->dwBindingTableSize));
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderInterface->m_stateHeapInterface);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_renderInterface->m_stateHeapInterface, m_kernelState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_renderInterface->m_stateHeapInterface, m_kernelState));
 
     return eStatus;
 }

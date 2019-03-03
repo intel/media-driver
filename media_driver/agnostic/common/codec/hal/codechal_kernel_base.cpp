@@ -62,7 +62,7 @@ CodechalKernelBase::CodechalKernelBase(CodechalEncoderState *encoder) :
     m_debugInterface     = encoder->GetDebugInterface();
     m_miInterface        = m_hwInterface->GetMiInterface();
     m_renderInterface    = m_hwInterface->GetRenderInterface();
-    m_stateHeapInterface = m_renderInterface->m_stateHeapInterface->pStateHeapInterface; 
+    m_stateHeapInterface = m_renderInterface->m_stateHeapInterface->pStateHeapInterface;
 }
 
 CodechalKernelBase::~CodechalKernelBase()
@@ -117,7 +117,7 @@ MOS_STATUS CodechalKernelBase::Initialize(
     CODECHAL_ENCODE_CHK_NULL_RETURN(binaryBase);
 
     m_callback           = callback;
- 
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_miInterface);
@@ -167,7 +167,7 @@ MOS_STATUS CodechalKernelBase::CreateKernelState(
         &(*kernelState)->dwSshSize,
         &(*kernelState)->dwBindingTableSize));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_renderInterface->m_stateHeapInterface, (*kernelState)));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_renderInterface->m_stateHeapInterface, (*kernelState)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -191,7 +191,7 @@ MOS_STATUS CodechalKernelBase::Run()
     }
 
     auto stateHeapInterface = m_renderInterface->m_stateHeapInterface;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         stateHeapInterface,
         kernelState,
         false,
@@ -235,7 +235,7 @@ MOS_STATUS CodechalKernelBase::Run()
     InitWalkerCodecParams(walkerCodecParams);
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));

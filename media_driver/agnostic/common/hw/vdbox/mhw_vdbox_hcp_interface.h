@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,27 +38,34 @@
 #define MHW_HCP_WORST_CASE_CU_TU_INFO            (4 * MHW_CACHELINE_SIZE) // 2+1+1
 #define MHW_HCP_WORST_CASE_CU_TU_INFO_REXT       (6 * MHW_CACHELINE_SIZE) // 4+1+1
 
-
-typedef struct _MHW_VDBOX_HEVC_PIC_STATE
+struct MHW_VDBOX_HEVC_PIC_STATE
 {
     // Decode
-    PCODEC_HEVC_PIC_PARAMS                  pHevcPicParams;
-    PCODEC_HEVC_EXT_PIC_PARAMS              pHevcExtPicParams;
-    PCODEC_HEVC_SCC_PIC_PARAMS              pHevcSccPicParams;
+    PCODEC_HEVC_PIC_PARAMS                  pHevcPicParams = nullptr;
 
     // Encode
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
-    bool                                    bSAOEnable;
-    bool                                    bNotFirstPass;
-    bool                                    bHevcRdoqEnabled;
-    bool                                    bUseVDEnc;
-    PMHW_BATCH_BUFFER                       pBatchBuffer;
-    bool                                    bBatchBufferInUse;
-    bool                                    bRDOQIntraTUDisable;
-    uint16_t                                wRDOQIntraTUThreshold;
-    uint32_t                                brcNumPakPasses;
-} MHW_VDBOX_HEVC_PIC_STATE, *PMHW_VDBOX_HEVC_PIC_STATE;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams = nullptr;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams = nullptr;
+    bool                                    bSAOEnable = false;
+    bool                                    bNotFirstPass = false;
+    bool                                    bHevcRdoqEnabled = false;
+    bool                                    bUseVDEnc = false;
+    bool                                    sseEnabledInVmeEncode = false;
+    PMHW_BATCH_BUFFER                       pBatchBuffer = nullptr;
+    bool                                    bBatchBufferInUse = false;
+    bool                                    bRDOQIntraTUDisable = false;
+    uint16_t                                wRDOQIntraTUThreshold = 0;
+    uint32_t                                brcNumPakPasses = 0;
+    bool                                    rhodomainRCEnable = false;
+    bool                                    bTransformSkipEnable = false;
+
+    //FEI multiple passes PAK ---max frame size
+    uint8_t                                 currPass = 0;
+    uint8_t                                *deltaQp = nullptr;
+    uint32_t                                maxFrameSize = 0;
+    virtual ~MHW_VDBOX_HEVC_PIC_STATE(){}
+};
+using PMHW_VDBOX_HEVC_PIC_STATE = MHW_VDBOX_HEVC_PIC_STATE * ;
 
 typedef struct _MHW_VDBOX_HEVC_TILE_STATE
 {
@@ -93,19 +100,23 @@ typedef struct _MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS
     bool       bNeedBiggerSize;
 }MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS, *PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS;
 
-typedef struct _MHW_VDBOX_HEVC_REF_IDX_PARAMS
+struct MHW_VDBOX_HEVC_REF_IDX_PARAMS
 {
-    CODEC_PICTURE                   CurrPic;
-    uint8_t                         ucList;
-    uint8_t                         ucNumRefForList;
-    CODEC_PICTURE                   RefPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
-    PCODEC_REF_LIST                *ppHevcRefList;
-    int32_t                         poc_curr_pic;
-    int32_t                         poc_list[CODEC_MAX_NUM_REF_FRAME_HEVC];
-    int8_t                         *pRefIdxMapping;
-    uint16_t                        RefFieldPicFlag;
-    uint16_t                        RefBottomFieldFlag;
-} MHW_VDBOX_HEVC_REF_IDX_PARAMS, *PMHW_VDBOX_HEVC_REF_IDX_PARAMS;
+    CODEC_PICTURE                   CurrPic = {};
+    bool                            isEncode = false;
+    uint8_t                         ucList = 0;
+    uint8_t                         ucNumRefForList = 0;
+    CODEC_PICTURE                   RefPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
+    void                            **hevcRefList = nullptr;
+    int32_t                         poc_curr_pic = 0;
+    int32_t                         poc_list[CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
+    int8_t                         *pRefIdxMapping = 0;
+    uint16_t                        RefFieldPicFlag = 0;
+    uint16_t                        RefBottomFieldFlag = 0;
+    bool                            bDummyReference = false;
+    virtual ~MHW_VDBOX_HEVC_REF_IDX_PARAMS(){}
+};
+using PMHW_VDBOX_HEVC_REF_IDX_PARAMS = MHW_VDBOX_HEVC_REF_IDX_PARAMS * ;
 
 typedef struct _MHW_VDBOX_HEVC_WEIGHTOFFSET_PARAMS
 {
@@ -118,6 +129,7 @@ typedef struct _MHW_VDBOX_HEVC_WEIGHTOFFSET_PARAMS
 
 typedef struct _MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS
 {
+    bool     Transformskip_enabled;
     uint16_t Transformskip_lambda;
     uint8_t  Transformskip_Numzerocoeffs_Factor0;
     uint8_t  Transformskip_Numnonzerocoeffs_Factor0;
@@ -125,56 +137,60 @@ typedef struct _MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS
     uint8_t  Transformskip_Numnonzerocoeffs_Factor1;
 }MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS, *PMHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS;
 
-typedef struct _MHW_VDBOX_HEVC_SLICE_STATE
+struct MHW_VDBOX_HEVC_SLICE_STATE
 {
-    PCODEC_PIC_ID                   pHevcPicIdx;
-    PCODEC_REF_LIST                *ppHevcRefList;
-    PMOS_RESOURCE                   presDataBuffer;
-    uint32_t                        dwDataBufferOffset;
-    uint32_t                        dwOffset;
-    uint32_t                        dwLength;
-    uint32_t                        dwSliceIndex;
-    bool                            bLastSlice;
-    bool                            bLastSliceInTile;
-    bool                            bLastSliceInTileColumn;
-    bool                            bHucStreamOut;
-    int8_t                         *pRefIdxMapping;
-    bool                            bSaoLumaFlag;
-    bool                            bSaoChromaFlag;
+    PCODEC_PIC_ID                   pHevcPicIdx = nullptr;
+    PMOS_RESOURCE                   presDataBuffer = nullptr;
+    uint32_t                        dwDataBufferOffset = 0;
+    uint32_t                        dwOffset = 0;
+    uint32_t                        dwLength = 0;
+    uint32_t                        dwSliceIndex = 0;
+    bool                            bLastSlice = false;
+    bool                            bLastSliceInTile = false;
+    bool                            bLastSliceInTileColumn = false;
+    bool                            bHucStreamOut = false;
+    int8_t                         *pRefIdxMapping = nullptr;
+    bool                            bSaoLumaFlag = false;
+    bool                            bSaoChromaFlag = false;
 
-    PCODEC_HEVC_SLICE_PARAMS        pHevcSliceParams;
-    PCODEC_HEVC_PIC_PARAMS          pHevcPicParams;
+    PCODEC_HEVC_SLICE_PARAMS        pHevcSliceParams = nullptr;
+    PCODEC_HEVC_PIC_PARAMS          pHevcPicParams = nullptr;
 
     // Encoding Only
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pEncodeHevcSeqParams;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pEncodeHevcPicParams;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams;
-    PBSBuffer                               pBsBuffer;
-    PCODECHAL_NAL_UNIT_PARAMS              *ppNalUnitParams;
-    bool                                    bFirstPass;
-    bool                                    bLastPass;
-    bool                                    bIntraRefFetchDisable;
-    bool                                    bBrcEnabled;
-    uint32_t                                dwHeaderBytesInserted;
-    uint32_t                                dwHeaderDummyBytes;
-    uint32_t                                uiSkipEmulationCheckCount;
-    bool                                    bInsertBeforeSliceHeaders;
-    bool                                    bIsLowDelay;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pEncodeHevcSeqParams = nullptr;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pEncodeHevcPicParams = nullptr;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams = nullptr;
+    PBSBuffer                               pBsBuffer = nullptr;
+    PCODECHAL_NAL_UNIT_PARAMS              *ppNalUnitParams = nullptr;
+    bool                                    bFirstPass = false;
+    bool                                    bLastPass = false;
+    bool                                    bIntraRefFetchDisable = false;
+    bool                                    bBrcEnabled = false;
+    uint32_t                                dwHeaderBytesInserted = 0;
+    uint32_t                                dwHeaderDummyBytes = 0;
+    uint32_t                                uiSkipEmulationCheckCount = 0;
+    bool                                    bInsertBeforeSliceHeaders = false;
+    bool                                    bIsLowDelay = false;
     // Encoding + BRC only
-    PMHW_BATCH_BUFFER                       pBatchBufferForPakSlices;
-    bool                                    bSingleTaskPhaseSupported;
-    uint32_t                                dwBatchBufferForPakSlicesStartOffset;
-    bool                                    bVdencInUse;
-    bool                                    bVdencHucInUse;
-    bool                                    bWeightedPredInUse;
-    PMHW_BATCH_BUFFER                       pVdencBatchBuffer;
+    PMHW_BATCH_BUFFER                       pBatchBufferForPakSlices = nullptr;
+    bool                                    bSingleTaskPhaseSupported = false;
+    uint32_t                                dwBatchBufferForPakSlicesStartOffset = 0;
+    bool                                    bVdencInUse = false;
+    bool                                    bVdencHucInUse = false;
+    bool                                    bWeightedPredInUse = false;
+    PMHW_BATCH_BUFFER                       pVdencBatchBuffer = nullptr;
 
     //Pak related params
-    MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS EncodeHevcTransformSkipParams;
+    MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS EncodeHevcTransformSkipParams = {};
+    bool                                    DeblockingFilterDisable = false;
+    char                                    TcOffsetDiv2 = 0;
+    char                                    BetaOffsetDiv2 = 0;
 
-    uint8_t                                 RoundingIntra;
-    uint8_t                                 RoundingInter;
-} MHW_VDBOX_HEVC_SLICE_STATE, *PMHW_VDBOX_HEVC_SLICE_STATE;
+    uint8_t                                 RoundingIntra = 0;
+    uint8_t                                 RoundingInter = 0;
+    virtual ~MHW_VDBOX_HEVC_SLICE_STATE(){}
+};
+using PMHW_VDBOX_HEVC_SLICE_STATE = MHW_VDBOX_HEVC_SLICE_STATE * ;
 
 typedef struct _MHW_VDBOX_VP9_ENCODE_PIC_STATE
 {
@@ -314,28 +330,7 @@ typedef enum _MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE
     MHW_VDBOX_VP9_INTERNAL_BUFFER_HVD_TILE
 } MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE;
 
-struct MmioRegistersHcp
-{
-    uint32_t                   watchdogCountCtrlOffset;
-    uint32_t                   watchdogCountThresholdOffset;
-    uint32_t                   hcpDebugFEStreamOutSizeRegOffset;
-    uint32_t                   hcpEncImageStatusMaskRegOffset;
-    uint32_t                   hcpEncImageStatusCtrlRegOffset;
-    uint32_t                   hcpEncBitstreamBytecountFrameRegOffset;
-    uint32_t                   hcpEncBitstreamSeBitcountFrameRegOffset;
-    uint32_t                   hcpEncBitstreamBytecountFrameNoHeaderRegOffset;
-    uint32_t                   hcpEncQpStatusCountRegOffset;
-    uint32_t                   hcpEncSliceCountRegOffset;
-    uint32_t                   hcpEncVdencModeTimerRegOffset;
-    uint32_t                   hcpVp9EncBitstreamBytecountFrameRegOffset;
-    uint32_t                   hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset;
-    uint32_t                   hcpVp9EncImageStatusMaskRegOffset;
-    uint32_t                   hcpVp9EncImageStatusCtrlRegOffset;
-    uint32_t                   csEngineIdOffset;
-    uint32_t                   hcpDecStatusRegOffset;
-    uint32_t                   hcpCabacStatusRegOffset;
-    uint32_t                   hcpFrameCrcRegOffset;
-};
+
 
 //!  MHW Vdbox Hcp interface
 /*!
@@ -344,7 +339,10 @@ This class defines the interfaces for constructing Vdbox Hcp commands across all
 class MhwVdboxHcpInterface
 {
 public:
-
+    //!
+    //! \enum     HevcSliceType
+    //! \brief    HEVC slice type
+    //!
     enum HevcSliceType
     {
         hevcSliceB  = 0,
@@ -360,19 +358,19 @@ protected:
     MEDIA_WA_TABLE              *m_waTable = nullptr; //!< Pointer to WA table
     bool                        m_decodeInUse = false; //!< Flag to indicate if the interface is for decoder or encoder use
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]; //!< Cacheability settings
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {}; //!< Cacheability settings
 
     bool                        m_rhoDomainStatsEnabled = false; //!< Flag to indicate if Rho domain stats is enabled
     bool                        m_rowstoreCachingSupported = false; //!< Flag to indicate if row store cache is supported
     uint32_t                    m_brcNumPakPasses = 4; //!< Number of brc pak passes
 
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDatRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDfRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcSaoRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_hevcHSaoRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_vp9HvdRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DfRowStoreCache;
-    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DatRowStoreCache;
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDatRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcDfRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcSaoRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_hevcHSaoRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_vp9HvdRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DfRowStoreCache = {};
+    MHW_VDBOX_ROWSTORE_CACHE    m_vp9DatRowStoreCache = {};
 
     uint32_t                    m_hevcEncCuRecordSize = 0; //!< size of hevc enc cu record
     uint32_t                    m_pakHWTileSizeRecordSize = 0; //! pak HW tile size recored size
@@ -380,7 +378,7 @@ protected:
     static const uint32_t       m_timeStampCountsPerMillisecond = (12000048 / 1000);  //<! Time stamp coounts per millisecond
     static const uint32_t       m_hcpCabacErrorFlagsMask = 0x0879; //<! Hcp CABAC error flags mask
 
-    MmioRegistersHcp            m_mmioRegisters[MHW_VDBOX_NODE_MAX];  //!< hcp mmio registers
+    MmioRegistersHcp            m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< hcp mmio registers
 
     static const HevcSliceType  m_hevcBsdSliceType[3]; //!< HEVC Slice Types for Long Format
 
@@ -458,7 +456,15 @@ public:
     //!
     inline MmioRegistersHcp* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
     {
-        return &m_mmioRegisters[index];
+        if (index < MHW_VDBOX_NODE_MAX)
+        {
+            return &m_mmioRegisters[index];
+        }
+        else
+        {
+            MHW_ASSERT("index is out of range!");
+            return &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        }
     }
 
     //!
@@ -682,7 +688,7 @@ public:
     //!
     //! \brief    Calculates maximum size for HCP slice/MB level commands
     //! \details  Client facing function to calculate maximum size for HCP slice/MB level commands
-    //! \param    [in] Mode
+    //! \param    [in] mode
     //!           Indicate the codec mode
     //! \param    [out] commandsSize
     //!            The maximum command buffer size
@@ -734,7 +740,7 @@ public:
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!   
+    //!
     virtual MOS_STATUS GetHevcBufferSize(
         MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE  bufferType,
         PMHW_VDBOX_HCP_BUFFER_SIZE_PARAMS   hcpBufSizeParam) = 0;
@@ -759,10 +765,10 @@ public:
     //! \brief    Get the required buffer size for VDBOX
     //! \details  Internal function to judge if buffer realloc is needed for HEVC codec
     //!
-    //! \param    MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE    bufferType
-    //!           [in] HEVC Buffer type
-    //! \param    PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS  reallocParam
-    //!           [in, out] HCP Re-allocate parameters
+    //! \param    [in] bufferType
+    //!          HEVC Buffer type
+    //! \param    [in, out] reallocParam
+    //!          HCP Re-allocate parameters
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -926,10 +932,10 @@ public:
     //!
     //! \brief    Adds HCP QM State command in command buffer
     //!
-    //! \param    PMOS_COMMAND_BUFFER cmdBuffer
-    //!           [in] Command buffer to which HW command is added
-    //! \param    PMHW_VDBOX_QM_PARAMS params
-    //!           [in] Params structure used to populate the HW command
+    //! \param    [in] cmdBuffer
+    //!          Command buffer to which HW command is added
+    //! \param    [in] params
+    //!          Params structure used to populate the HW command
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -1164,7 +1170,7 @@ public:
     //!
     //! \brief    Adds HEVC Brc buffer
     //!
-    //! \param    [in] resHcpImgStates
+    //! \param    [in] hcpImgStates
     //!           Resource to which Brc buffer is added
     //! \param    [in] hevcPicState
     //!           Params structure used to add the Brc buffer
@@ -1174,16 +1180,16 @@ public:
     //!
     virtual MOS_STATUS AddHcpHevcPicBrcBuffer(
         PMOS_RESOURCE                    hcpImgStates,
-        MHW_VDBOX_HEVC_PIC_STATE         hevcPicState) = 0;
+        PMHW_VDBOX_HEVC_PIC_STATE         hevcPicState) = 0;
 
     //!
     //! \brief    Get OsResLaceOrAceOrRgbHistogramBuffer Size
     //!
-    //! \param    [in] dwWidth
+    //! \param    [in] width
     //!           Width of Surface
-    //! \param    [in] dwHeight
+    //! \param    [in] height
     //!           Height of Surface
-    //! \param    [out] pSize
+    //! \param    [out] size
     //!           Size of OsResLaceOrAceOrRgbHistogramBuffer
     //!
     //! \return   MOS_STATUS
@@ -1197,11 +1203,11 @@ public:
     //!
     //! \brief    Get OsResStatisticsOutputBuffer Size
     //!
-    //! \param    [in] dwWidth
+    //! \param    [in] width
     //!           Width of Surface
-    //! \param    [in] dwHeight
+    //! \param    [in] height
     //!           Height of Surface
-    //! \param    [out] pSize
+    //! \param    [out] size
     //!           Size of OsResStatisticsOutputBuffer
     //!
     //! \return   MOS_STATUS

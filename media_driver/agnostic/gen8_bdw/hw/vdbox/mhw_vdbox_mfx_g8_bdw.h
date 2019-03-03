@@ -42,10 +42,10 @@ public:
     //!
     MhwVdboxMfxInterfaceG8Bdw(
         PMOS_INTERFACE osInterface,
-        MhwMiInterface *pMiInterface,
+        MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface,
         bool decodeInUse) :
-        MhwVdboxMfxInterfaceG8(osInterface, pMiInterface, cpInterface, decodeInUse)
+        MhwVdboxMfxInterfaceG8(osInterface, miInterface, cpInterface, decodeInUse)
     {
         MHW_FUNCTION_ENTER;
     }
@@ -57,24 +57,24 @@ public:
 
 protected:
     MOS_STATUS GetRowstoreCachingAddrs(
-        PMHW_VDBOX_ROWSTORE_PARAMS pRowstoreParams)
+        PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams)
     {
-        MOS_UNUSED(pRowstoreParams);
+        MOS_UNUSED(rowstoreParams);
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddMfxPipeBufAddrCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS params);
-   
+
     MOS_STATUS AddMfxBspBufBaseAddrCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS params);
-   
+
     MOS_STATUS AddMfxJpegPicCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_JPEG_PIC_STATE params);
-   
+
     MOS_STATUS AddMfxJpegEncodePicStateCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         MhwVdboxJpegEncodePicState *params)

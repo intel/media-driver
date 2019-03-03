@@ -32,11 +32,12 @@
 #include <map>
 #include <vector>
 #include "mos_defs.h"
-#include "codechal_common.h"
+#include "codechal_hw.h"
 
 namespace CodechalDbgAttr
 {
 static const char *attrPicParams             = "PicParams";
+static const char *attrSubsetsParams         = "SubsetsParams";
 static const char *attrFeiPicParams          = "FeiPicParams";
 static const char *attrMvcExtPicParams       = "MvcExtPicParams";
 static const char *attrSegmentParams         = "SegmentParams";
@@ -59,6 +60,7 @@ static const char *attrHuCDmem               = "HucDmem";
 static const char *attrCmdBufferMfx          = "CmdBufferMfx";
 static const char *attr2ndLvlBatchMfx        = "2ndLvlBatchMfx";
 static const char *attrDecodeOutputSurface   = "DecodeOutputSurface";
+static const char *attrDecodeAuxSurface      = "DumpAuxsurface";
 static const char *attrSfcOutputSurface      = "SfcOutputSurface";
 static const char *attrReferenceSurfaces     = "ReferenceSurfaces";
 static const char *attrEncodeRawInputSurface = "EncodeRawInputSurface";
@@ -74,8 +76,7 @@ static const char *attrOverwriteCommands     = "OverwriteCommands";
 static const char *attrHuffmanTbl            = "HuffmanTbl";
 static const char *attrScanParams            = "ScanParams";
 static const char *attrDriverUltDump         = "DriverUltDump";
-static const char *attrDumpDataInBinary      = "DumpDataInBinary";
-static const char *attrDumpBitstreamInBinary = "DumpBitstreamInBinary";
+static const char *attrDumpBufferInBinary    = "DumpBufferInBinary";
 static const char *attrDumpToThreadFolder    = "DumpToThreadFolder";
 static const char *attrDumpCmdBufInBinary    = "DumpCmdBufInBinary";
 static const char *attrDumpEncodePar         = "DumpEncodePar";
@@ -84,10 +85,17 @@ static const char *attrForceCurbeDumpLvl     = "ForceCurbeDumpLvl";
 static const char *attrVdencOutput           = "VdencOutput";
 static const char *attrDecodeProcParams      = "DecodeProcParams";
 static const char *attrFrameState            = "FrameState";
+static const char *attrCUStreamout           = "CUStreamout";
+static const char *attrBrcPakStats           = "BrcPakStats";
 static const char *attrImageState            = "ImageState";
 static const char *attrSliceSizeStreamout    = "SliceSizeStreamout";
 static const char *attrCoeffProb             = "PakHwCoeffProbs";
 static const char *attrStatusReport          = "StatusReport";
+static const char *attrPakObjStreamout       = "PakObjStreamOut";
+static const char *attrTileBasedStats        = "TileBasedStats";
+static const char *attrROISurface            = "ROIInput";
+static const char *attrHuCStitchDataBuf      = "HuCStitchDataBuffer";
+
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";
 static const char *attrMD5FlushInterval = "MD5FlushInterval";
@@ -228,7 +236,7 @@ static bool regHevcLcu64BMbenc              = KernelStateMap::RegisterKernelStr(
 static bool regMbBrcUpdate                  = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_MB_BRC_UPDATE, kernelMbBrcUpdate);
 static bool regStaticFrameDetection         = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION, kernelStaticFrameDetection);
 static bool regHevcRoi                      = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_HEVC_ROI, kernelHevcRoi);
-}; 
+};
 
 struct KernelDumpConfig
 {
@@ -266,6 +274,7 @@ public:
     bool AttrIsEnabled(CODECHAL_MEDIA_STATE_TYPE mediaState, std::string attrib);
 
 protected:
+    void GenerateDefaultConfig();
     uint32_t GetFrameConfig(uint32_t frameIdx);
     void StoreDebugAttribs(std::string line, CodechalDbgCfg *dbgCfg);
     void ParseKernelAttribs(std::string line, CodechalDbgCfg *dbgCfg);

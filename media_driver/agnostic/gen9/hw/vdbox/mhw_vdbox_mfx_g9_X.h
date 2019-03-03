@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #include "mhw_vdbox_mfx_generic.h"
 #include "mhw_mi_hwcmd_g9_X.h"
-
+#include "mhw_mmio_g9.h"
 //!  MHW Vdbox Mfx interface for Gen9
 /*!
 This class defines the Mfx command construction functions for Gen9 platforms as template
@@ -88,10 +88,10 @@ protected:
     //!
     MhwVdboxMfxInterfaceG9<TMfxCmds>(
         PMOS_INTERFACE osInterface,
-        MhwMiInterface *pMiInterface,
+        MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface,
-        bool decodeInUse) 
-        : MhwVdboxMfxInterfaceGeneric<TMfxCmds, mhw_mi_g9_X>(osInterface, pMiInterface, cpInterface, decodeInUse)
+        bool decodeInUse)
+        : MhwVdboxMfxInterfaceGeneric<TMfxCmds, mhw_mi_g9_X>(osInterface, miInterface, cpInterface, decodeInUse)
     {
         MHW_FUNCTION_ENTER;
 
@@ -108,63 +108,63 @@ protected:
     {
         MmioRegistersMfx *mmioRegisters = &this->m_mmioRegisters[MHW_VDBOX_NODE_1];
 
-        mmioRegisters->generalPurposeRegister0LoOffset            = 0x12600;
-        mmioRegisters->generalPurposeRegister0HiOffset            = 0x12604;
-        mmioRegisters->generalPurposeRegister4LoOffset            = 0x12620;
-        mmioRegisters->generalPurposeRegister4HiOffset            = 0x12624;
-        mmioRegisters->mfcImageStatusMaskRegOffset                = 0x128B4;
-        mmioRegisters->mfcImageStatusCtrlRegOffset                = 0x128B8;
-        mmioRegisters->mfcAvcNumSlicesRegOffset                   = 0x12954;
-        mmioRegisters->mfcQPStatusCountOffset                     = 0x128BC;
-        mmioRegisters->mfxErrorFlagsRegOffset                     = 0x12800;
-        mmioRegisters->mfxFrameCrcRegOffset                       = 0x12850;
-        mmioRegisters->mfxMBCountRegOffset                        = 0x12868;
-        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = 0x128A0;
-        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = 0x128A4;
-        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = 0x128D0;
-        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = 0x12908;
-        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = 0x12900;
-        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = 0x12904;
-        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = 0x12910;
-        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = 0x12914;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = 0X12918;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = 0X1291C;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = 0X12920;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = 0X12924;
-        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = 0X12928;
-        mmioRegisters->mfxLra0RegOffset                           = 0x04A50;
-        mmioRegisters->mfxLra1RegOffset                           = 0x04A54;
-        mmioRegisters->mfxLra2RegOffset                           = 0x04A58;
+        mmioRegisters->generalPurposeRegister0LoOffset            = GENERAL_PURPOSE_REGISTER0_LO_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->generalPurposeRegister0HiOffset            = GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->generalPurposeRegister4LoOffset            = GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->generalPurposeRegister4HiOffset            = GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcImageStatusMaskRegOffset                = MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcImageStatusCtrlRegOffset                = MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcAvcNumSlicesRegOffset                   = MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcQPStatusCountOffset                     = MFC_QP_STATUS_COUNT_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxErrorFlagsRegOffset                     = MFX_ERROR_FLAG_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxFrameCrcRegOffset                       = MFX_FRAME_CRC_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxMBCountRegOffset                        = MFX_MB_COUNT_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = MFC_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = MFC_BITSTREAM_SE_BITCOUNT_FRAME_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = MFC_BITSTREAM_BYTECOUNT_SLICE_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = MFC_VP8_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = MFC_VP8_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = MFC_VP8_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = MFX_VP8_BRC_DQ_INDEX_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = MFX_VP8_BRC_LOOP_FILTER_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX01_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX23_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER01_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER23_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = MFX_VP8_BRC_CONVERGENCE_STATUS_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxLra0RegOffset                           = MFX_LRA0_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxLra1RegOffset                           = MFX_LRA1_REG_OFFSET_NODE_1_INIT_G9;
+        mmioRegisters->mfxLra2RegOffset                           = MFX_LRA2_REG_OFFSET_NODE_1_INIT_G9;
 
         mmioRegisters = &this->m_mmioRegisters[MHW_VDBOX_NODE_2];
 
-        mmioRegisters->generalPurposeRegister0LoOffset            = 0x1C600;
-        mmioRegisters->generalPurposeRegister0HiOffset            = 0x1C604;
-        mmioRegisters->generalPurposeRegister4LoOffset            = 0x1C620;
-        mmioRegisters->generalPurposeRegister4HiOffset            = 0x1C624;
-        mmioRegisters->mfcImageStatusMaskRegOffset                = 0x1C8B4;
-        mmioRegisters->mfcImageStatusCtrlRegOffset                = 0x1C8B8;
-        mmioRegisters->mfcAvcNumSlicesRegOffset                   = 0x1C954;
-        mmioRegisters->mfcQPStatusCountOffset                     = 0x1C8BC;
-        mmioRegisters->mfxErrorFlagsRegOffset                     = 0x1C800;
-        mmioRegisters->mfxFrameCrcRegOffset                       = 0x1C850;
-        mmioRegisters->mfxMBCountRegOffset                        = 0x1C868;
-        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = 0x1C8A0;
-        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = 0x1C8A4;
-        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = 0x1C8D0;
-        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = 0x1C908;
-        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = 0x1C900;
-        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = 0x1C904;
-        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = 0x1C910;
-        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = 0x1C914;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = 0X1C918;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = 0X1C91C;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = 0X1C920;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = 0X1C924;
-        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = 0X1C928;
-        mmioRegisters->mfxLra0RegOffset                           = 0;
-        mmioRegisters->mfxLra1RegOffset                           = 0;
-        mmioRegisters->mfxLra2RegOffset                           = 0;
+        mmioRegisters->generalPurposeRegister0LoOffset            = GENERAL_PURPOSE_REGISTER0_LO_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->generalPurposeRegister0HiOffset            = GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->generalPurposeRegister4LoOffset            = GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->generalPurposeRegister4HiOffset            = GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcImageStatusMaskRegOffset                = MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcImageStatusCtrlRegOffset                = MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcAvcNumSlicesRegOffset                   = MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcQPStatusCountOffset                     = MFC_QP_STATUS_COUNT_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxErrorFlagsRegOffset                     = MFX_ERROR_FLAG_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxFrameCrcRegOffset                       = MFX_FRAME_CRC_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxMBCountRegOffset                        = MFX_MB_COUNT_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = MFC_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = MFC_BITSTREAM_SE_BITCOUNT_FRAME_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = MFC_BITSTREAM_BYTECOUNT_SLICE_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = MFC_VP8_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = MFC_VP8_IMAGE_STATUS_MASK_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = MFC_VP8_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = MFX_VP8_BRC_DQ_INDEX_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = MFX_VP8_BRC_LOOP_FILTER_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX01_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX23_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER01_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER23_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = MFX_VP8_BRC_CONVERGENCE_STATUS_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxLra0RegOffset                           = MFX_LRA0_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxLra1RegOffset                           = MFX_LRA1_REG_OFFSET_NODE_2_INIT_G9;
+        mmioRegisters->mfxLra2RegOffset                           = MFX_LRA2_REG_OFFSET_NODE_2_INIT_G9;
     }
 
     void InitRowstoreUserFeatureSettings()
@@ -287,7 +287,7 @@ protected:
             }
         }
 
-        if (!rowstoreParams->bVdenc && this->m_bsdMpcRowstoreCache.bSupported && rowstoreParams->dwPicWidth < MHW_VDBOX_PICWIDTH_4K)         // mbaff and non mbaff mode for all resolutions
+        if (this->m_bsdMpcRowstoreCache.bSupported && rowstoreParams->dwPicWidth < MHW_VDBOX_PICWIDTH_4K)         // mbaff and non mbaff mode for all resolutions
         {
             this->m_bsdMpcRowstoreCache.bEnabled = true;
             this->m_bsdMpcRowstoreCache.dwAddress = BSDMPCROWSTORE_BASEADDRESS;
@@ -316,7 +316,7 @@ protected:
                     this->m_mprRowstoreCache.dwAddress = MPRROWSTORE_FRAME_FIELD_BASEADDRESS_PICWIDTH_GREATER_THAN_3K;
                 }
             }
-            else  //Mbaff 
+            else  //Mbaff
             {
                 if (rowstoreParams->dwPicWidth < MHW_VDBOX_PICWIDTH_2K)
                 {
@@ -498,7 +498,7 @@ protected:
         }
         else if (standard == CODECHAL_JPEG)
         {
-            // Added to prevent error for JPEG 
+            // Added to prevent error for JPEG
         }
         else
         {
@@ -555,7 +555,7 @@ protected:
 
                     patchListMaxSize +=
                         PATCH_LIST_COMMAND(MFD_AVC_DPB_STATE_CMD) +
-						PATCH_LIST_COMMAND(MFD_AVC_SLICEADDR_CMD);
+                        PATCH_LIST_COMMAND(MFD_AVC_SLICEADDR_CMD);
                 }
                 else
                 {
@@ -571,30 +571,26 @@ protected:
             else // CODECHAL_ENCODE_MODE_AVC
             {
                 // 1 PAK_INSERT_OBJECT inserted for every end of frame/stream with 1 DW payload
-                maxSize = TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize + sizeof(uint32_t);
-                patchListMaxSize = PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD);
-
-                if (isModeSpecific)
-                {
-                    // isModeSpecific = bSingleTaskPhaseSupported for AVC encode
-                    maxSize += (2 * mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize);
-                    patchListMaxSize += (2 * PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD));
-                }
-                else
-                {
-                    maxSize +=
+                maxSize = TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize + sizeof(uint32_t) +
                         TMfxCmds::MFX_AVC_SLICE_STATE_CMD::byteSize +
                         (2 * TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD::byteSize) +
                         (2 * TMfxCmds::MFX_AVC_WEIGHTOFFSET_STATE_CMD::byteSize) +
                         TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize +
                         MHW_VDBOX_PAK_BITSTREAM_OVERFLOW_SIZE + // slice header payload
-                        mhw_mi_g9_X::MI_BATCH_BUFFER_END_CMD::byteSize;
+                        mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize;
 
-                    patchListMaxSize +=
+                patchListMaxSize = PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD) +
                         PATCH_LIST_COMMAND(MFX_AVC_SLICE_STATE_CMD) +
                         (2 * PATCH_LIST_COMMAND(MFX_AVC_REF_IDX_STATE_CMD)) +
                         (2 * PATCH_LIST_COMMAND(MFX_AVC_WEIGHTOFFSET_STATE_CMD)) +
-                        PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD);
+                        PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD) +
+                        PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD);
+
+                if (isModeSpecific)
+                {
+                    // isModeSpecific = bSingleTaskPhaseSupported for AVC encode
+                    maxSize += mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize;
+                    patchListMaxSize += PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD);
                 }
             }
         }
@@ -647,7 +643,7 @@ protected:
         else if (standard == CODECHAL_JPEG)
         {
             // Adds only 2 DWORDs per PAK_INSERT_OBJ command since the rest of the DWORDs are currently unknown
-            // This also does not include PAK_INSERT_OBJ for app data 
+            // This also does not include PAK_INSERT_OBJ for app data
             maxSize +=
                 TMfxCmds::MFX_FQM_STATE_CMD::byteSize * 3 +
                 TMfxCmds::MFC_JPEG_HUFF_TABLE_STATE_CMD::byteSize * 2 +
@@ -680,7 +676,7 @@ protected:
 
         typename TMfxCmds::MFX_PIPE_MODE_SELECT_CMD cmd;
 
-        this->m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd);
+        MHW_MI_CHK_STATUS(this->m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd));
 
         // VDEnc does not use Multi-pass PAK streamOut
         cmd.DW1.StreamOutEnable = params->bStreamOutEnabled && (!params->bVdencEnabled);
@@ -719,9 +715,9 @@ protected:
             cmd.DW1.VdencMode = 1;
             // Enable 4xDS in PAK for VDENC HME
             cmd.DW1.ScaledSurfaceEnable = 1;
-            // Disable PAK streamout from previous PAK pass, as VDEnc does not support standalone PAK 
+            // Disable PAK streamout from previous PAK pass, as VDEnc does not support standalone PAK
             cmd.DW1.StreamOutEnable = 0;
-            // Enable PAK statistics streamout 
+            // Enable PAK statistics streamout
             cmd.DW1.FrameStatisticsStreamoutEnable = 1;
         }
 
@@ -783,7 +779,7 @@ protected:
             // this parameter must always be 0 for JPEG regardless of the YUV format
             cmd.DW3.InterleaveChroma = 0;
 
-            // Separate function for JPEG decode because this surface format should match with that programmed 
+            // Separate function for JPEG decode because this surface format should match with that programmed
             // in JPEG Picture State
             cmd.DW3.SurfaceFormat = this->GetJpegDecodeFormat(params->psSurface->Format);
 
@@ -1017,7 +1013,7 @@ protected:
         MHW_MI_CHK_NULL(params->pAvcPicParams);
 
         auto avcPicParams = params->pAvcPicParams;
-        
+
         typename TMfxCmds::MFX_AVC_IMG_STATE_CMD cmd;
 
         uint32_t numMBs =
@@ -1045,8 +1041,6 @@ protected:
         cmd.DW4.Fieldpicflag = avcPicParams->pic_fields.field_pic_flag;
 
         cmd.DW5.TrellisQuantizationChromaDisableTqchromadisable = true;
-
-        cmd.DW12.VadErrorLogic = 1;
 
         cmd.DW13.CurrentPictureHasPerformedMmco5 = 0;
         cmd.DW13.NumberOfReferenceFrames = params->ucActiveFrameCnt;
@@ -1203,8 +1197,6 @@ protected:
         cmd.DW11.Framebitratemaxdelta = bitrateParams.frameBitRateMaxDelta;
         cmd.DW11.SliceStatsStreamoutEnable = params->bSliceSizeStreamOutEnabled;
 
-        cmd.DW12.VadErrorLogic = 1;
-
         //add for multiple pass
         if (params->dwMaxFrameSize > 0 && params->pDeltaQp && (!params->bIPCMPass))
         {
@@ -1275,8 +1267,6 @@ protected:
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_AVC_DIRECTMODE_PARAMS params)
     {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(cmdBuffer);
@@ -1310,20 +1300,23 @@ protected:
                 &resourceParams));
         }
 
+        CODEC_REF_LIST** refList;
+        MHW_MI_CHK_NULL(refList = (CODEC_REF_LIST**)params->avcRefList);
+
         if (CodecHal_PictureIsBottomField(params->CurrPic))
         {
             cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_TOP] = 0;
             cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_BOTTOM] =
-                params->ppAvcRefList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
+                refList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
         }
         else
         {
             cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_TOP] = cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_BOTTOM] =
-                params->ppAvcRefList[params->CurrPic.FrameIdx]->iFieldOrderCnt[0];
+                refList[params->CurrPic.FrameIdx]->iFieldOrderCnt[0];
             if (CodecHal_PictureIsFrame(params->CurrPic))
             {
                 cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_BOTTOM] =
-                    params->ppAvcRefList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
+                    refList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
             }
         }
 
@@ -1340,8 +1333,8 @@ protected:
             if (params->pAvcPicIdx[i].bValid)
             {
                 uint8_t idx = params->pAvcPicIdx[i].ucPicIdx;
-                uint8_t picID = params->bPicIdRemappingInUse ? i : params->ppAvcRefList[idx]->ucFrameId;
-                uint8_t mvIdx = params->ppAvcRefList[idx]->ucDMVIdx[0];
+                uint8_t picID = params->bPicIdRemappingInUse ? i : refList[idx]->ucFrameId;
+                uint8_t mvIdx = refList[idx]->ucDMVIdx[0];
 
                 uint8_t validRef = ((params->uiUsedForReferenceFlags >> (i * 2)) >> 0) & 1;
                 uint8_t frameID = picID << 1;
@@ -1365,8 +1358,7 @@ protected:
                             &resourceParams));
                     }
 
-                    cmd.PocList[frameID] =
-                        params->ppAvcRefList[idx]->iFieldOrderCnt[0] * validRef;
+                    cmd.PocList[frameID] = refList[idx]->iFieldOrderCnt[0] * validRef;
                 }
                 else
                 {
@@ -1377,8 +1369,7 @@ protected:
                 frameID = (picID << 1) + 1;
                 if (frameID < CODEC_AVC_NUM_REF_DMV_BUFFERS * 2)
                 {
-                    cmd.PocList[frameID] =
-                        params->ppAvcRefList[idx]->iFieldOrderCnt[1] * validRef;
+                    cmd.PocList[frameID] = refList[idx]->iFieldOrderCnt[1] * validRef;
                 }
                 else
                 {
@@ -1413,7 +1404,7 @@ protected:
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddMfdAvcSliceAddrCmd(
@@ -1429,8 +1420,16 @@ protected:
 
         typename TMfxCmds::MFD_AVC_SLICEADDR_CMD cmd;
 
-        cmd.DW1.IndirectBsdDataLength = (avcSliceState->dwNextLength + 1 - this->m_osInterface->dwNumNalUnitBytesIncluded);
-        cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + this->m_osInterface->dwNumNalUnitBytesIncluded);
+        if (avcSliceState->bFullFrameData)
+        {
+            cmd.DW1.IndirectBsdDataLength       = avcSliceState->dwNextLength;
+            cmd.DW2.IndirectBsdDataStartAddress = avcSliceState->dwNextOffset;
+        }
+        else
+        {
+            cmd.DW1.IndirectBsdDataLength       = (avcSliceState->dwNextLength + 1 - this->m_osInterface->dwNumNalUnitBytesIncluded);
+            cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + this->m_osInterface->dwNumNalUnitBytesIncluded);
+        }
 
         MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
         sliceInfoParam.presDataBuffer = avcSliceState->presDataBuffer;
@@ -1439,11 +1438,11 @@ protected:
         sliceInfoParam.dwDataStartOffset[0] = cmd.DW2.IndirectBsdDataStartAddress;
         sliceInfoParam.dwDataStartOffset[1] = avcSliceState->pAvcSliceParams->slice_data_offset;
 
-        this->m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(this->m_cpInterface->SetMfxProtectionState(
             this->m_decodeInUse,
             cmdBuffer,
             nullptr,
-            &sliceInfoParam);
+            &sliceInfoParam));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -1474,9 +1473,17 @@ protected:
 
         if (avcSliceState->bShortFormatInUse)
         {
-            cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - this->m_osInterface->dwNumNalUnitBytesIncluded;
-            cmd.DW2.IndirectBsdDataStartAddress =
-                sliceParams->slice_data_offset - 1 + this->m_osInterface->dwNumNalUnitBytesIncluded;
+            if (avcSliceState->bFullFrameData)
+            {
+                cmd.DW1.IndirectBsdDataLength       = avcSliceState->dwLength;
+                cmd.DW2.IndirectBsdDataStartAddress = sliceParams->slice_data_offset;
+            }
+            else
+            {
+                cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - this->m_osInterface->dwNumNalUnitBytesIncluded;
+                cmd.DW2.IndirectBsdDataStartAddress =
+                    sliceParams->slice_data_offset - 1 + this->m_osInterface->dwNumNalUnitBytesIncluded;
+            }
             cmd.DW4.FirstMbByteOffsetOfSliceDataOrSliceHeader = 0;
         }
         else
@@ -1486,7 +1493,7 @@ protected:
             cmd.DW2.IndirectBsdDataStartAddress = sliceParams->slice_data_offset + avcSliceState->dwOffset;
             cmd.DW4.FirstMacroblockMbBitOffset = sliceParams->slice_data_bit_offset;
 
-            if (!avcSliceState->bIntelProprietaryFormatInUse)
+            if (!avcSliceState->bIntelEntrypointInUse)
             {
                 // NAL Header Unit must be passed to HW in the compressed bitstream buffer
                 avcSliceState->dwOffset -= (this->m_osInterface->dwNumNalUnitBytesIncluded - 1);
@@ -1507,11 +1514,11 @@ protected:
         sliceInfoParam.dwDataStartOffset[1] = sliceParams->slice_data_offset;
         sliceInfoParam.dwDataLength[1] = sliceParams->slice_data_size;
 
-        this->m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(this->m_cpInterface->SetMfxProtectionState(
             this->m_decodeInUse,
             cmdBuffer,
             nullptr,
-            &sliceInfoParam);
+            &sliceInfoParam));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -1528,7 +1535,7 @@ protected:
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(params);
-       
+
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("No valid buffer to add the command to!");
@@ -1602,7 +1609,7 @@ protected:
                 params->bHeaderLengthExcludeFrmSize; // Cannot be set to true if emulation byte bit insertion is enabled
             MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
-            // Add actual data 
+            // Add actual data
             uint8_t* data = (uint8_t*)(params->pBsBuffer->pBase + params->dwOffset);
             MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
         }
@@ -1766,7 +1773,7 @@ protected:
 
             auto j = 0;
             // Copy over 32 uint32_t worth of values - Each uint32_t will contain 2 16 bit quantizer values
-            // where for the DWordx Bits [15: 0] = 1/QM[0][x] Bits[32:16] = 1/QM[1][x] 
+            // where for the DWordx Bits [15: 0] = 1/QM[0][x] Bits[32:16] = 1/QM[1][x]
             for (auto k = 0; k < 8; k++)
             {
                 for (auto l = k; l < 64; l += 16)
@@ -1799,15 +1806,15 @@ protected:
         cmd.DW1.HuffTableId = params->HuffTableID;
 
         // cmd DWORDS 2:13 for DC Table
-        // Format- 3Bytes: Byte0 for Code length, Byte1 and Byte2 for Code word, and Byte3 for dummy 
+        // Format- 3Bytes: Byte0 for Code length, Byte1 and Byte2 for Code word, and Byte3 for dummy
         for (auto j = 0; j < JPEG_NUM_HUFF_TABLE_DC_HUFFVAL; j++)
         {
             cmd.DcTable[j] = 0;
             cmd.DcTable[j] = (params->pDCCodeLength[j] & 0xFF) | ((params->pDCCodeValues[j] & 0xFFFF) << 8);
         }
 
-        // cmd DWORDS 14:175 for AC table 
-        // Format- 3Bytes: Byte0 for Code length, Byte1 and Byte2 for Code word, and Byte3 for dummy 
+        // cmd DWORDS 14:175 for AC table
+        // Format- 3Bytes: Byte0 for Code length, Byte1 and Byte2 for Code word, and Byte3 for dummy
         for (auto j = 0; j < JPEG_NUM_HUFF_TABLE_AC_HUFFVAL; j++)
         {
             cmd.AcTable[j] = 0;
@@ -1839,8 +1846,8 @@ protected:
         cmd.DW1.McuCount = ((params->dwPicWidth + (horizontalSamplingFactor * 8 - 1)) / (horizontalSamplingFactor * 8))
             * ((params->dwPicHeight + (verticalSamplingFactor * 8 - 1)) / (verticalSamplingFactor * 8));
         cmd.DW2.RestartInterval = params->pJpegEncodeScanParams->m_restartInterval;
-        cmd.DW2.IsLastScan = 1; // Always 1 since there is only 1 scan in the JPEG frame 
-        cmd.DW2.HeadPresentFlag = 1; // There will always be MFC_JPEG_PAK_INSERT_OBJECT commands sent 
+        cmd.DW2.IsLastScan = 1; // Always 1 since there is only 1 scan in the JPEG frame
+        cmd.DW2.HeadPresentFlag = 1; // There will always be MFC_JPEG_PAK_INSERT_OBJECT commands sent
 
         for (auto i = 0; i < jpegNumComponent; i++)
         {
@@ -1865,183 +1872,183 @@ protected:
         MHW_MI_CHK_NULL(params);
 
         typename TMfxCmds::MFX_VP8_PIC_STATE_CMD cmd;
-        auto pVp8PicParams = params->pVp8PicParams;
-        auto pVp8IqMatrixParams = params->pVp8IqMatrixParams;
+        auto vp8PicParams = params->pVp8PicParams;
+        auto vp8IqMatrixParams = params->pVp8IqMatrixParams;
 
-        cmd.DW1.FrameWidthMinus1 = pVp8PicParams->wFrameWidthInMbsMinus1;
-        cmd.DW1.FrameHeightMinus1 = pVp8PicParams->wFrameHeightInMbsMinus1;
-        cmd.DW2.McFilterSelect = (pVp8PicParams->version != 0);
-        cmd.DW2.ChromaFullPixelMcFilterMode = (pVp8PicParams->version == 3);
-        cmd.DW2.Dblkfiltertype = pVp8PicParams->filter_type;
-        cmd.DW2.Skeyframeflag = pVp8PicParams->key_frame;
+        cmd.DW1.FrameWidthMinus1 = vp8PicParams->wFrameWidthInMbsMinus1;
+        cmd.DW1.FrameHeightMinus1 = vp8PicParams->wFrameHeightInMbsMinus1;
+        cmd.DW2.McFilterSelect = (vp8PicParams->version != 0);
+        cmd.DW2.ChromaFullPixelMcFilterMode = (vp8PicParams->version == 3);
+        cmd.DW2.Dblkfiltertype = vp8PicParams->filter_type;
+        cmd.DW2.Skeyframeflag = vp8PicParams->key_frame;
         cmd.DW2.SegmentationIdStreamoutEnable =
-            (pVp8PicParams->segmentation_enabled) && (pVp8PicParams->update_mb_segmentation_map);
+            (vp8PicParams->segmentation_enabled) && (vp8PicParams->update_mb_segmentation_map);
         cmd.DW2.SegmentationIdStreaminEnable =
-            (pVp8PicParams->segmentation_enabled) && !(pVp8PicParams->update_mb_segmentation_map);
-        cmd.DW2.SegmentEnableFlag = pVp8PicParams->segmentation_enabled;
+            (vp8PicParams->segmentation_enabled) && !(vp8PicParams->update_mb_segmentation_map);
+        cmd.DW2.SegmentEnableFlag = vp8PicParams->segmentation_enabled;
         cmd.DW2.UpdateMbsegmentMapFlag =
-            (pVp8PicParams->segmentation_enabled) ? pVp8PicParams->update_mb_segmentation_map : 0;
-        cmd.DW2.MbNocoeffSkipflag = pVp8PicParams->mb_no_coeff_skip;
-        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = pVp8PicParams->loop_filter_adj_enable;
-        cmd.DW2.GoldenRefPictureMvSignbiasFlag = pVp8PicParams->sign_bias_golden;
-        cmd.DW2.AlternateRefPicMvSignbiasFlag = pVp8PicParams->sign_bias_alternate;
-        cmd.DW2.DeblockSharpnessLevel = pVp8PicParams->ucSharpnessLevel;
-        cmd.DW3.DblkfilterlevelForSegment3 = pVp8PicParams->ucLoopFilterLevel[3];
-        cmd.DW3.DblkfilterlevelForSegment2 = pVp8PicParams->ucLoopFilterLevel[2];
-        cmd.DW3.DblkfilterlevelForSegment1 = pVp8PicParams->ucLoopFilterLevel[1];
-        cmd.DW3.DblkfilterlevelForSegment0 = pVp8PicParams->ucLoopFilterLevel[0];
+            (vp8PicParams->segmentation_enabled) ? vp8PicParams->update_mb_segmentation_map : 0;
+        cmd.DW2.MbNocoeffSkipflag = vp8PicParams->mb_no_coeff_skip;
+        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = vp8PicParams->loop_filter_adj_enable;
+        cmd.DW2.GoldenRefPictureMvSignbiasFlag = vp8PicParams->sign_bias_golden;
+        cmd.DW2.AlternateRefPicMvSignbiasFlag = vp8PicParams->sign_bias_alternate;
+        cmd.DW2.DeblockSharpnessLevel = vp8PicParams->ucSharpnessLevel;
+        cmd.DW3.DblkfilterlevelForSegment3 = vp8PicParams->ucLoopFilterLevel[3];
+        cmd.DW3.DblkfilterlevelForSegment2 = vp8PicParams->ucLoopFilterLevel[2];
+        cmd.DW3.DblkfilterlevelForSegment1 = vp8PicParams->ucLoopFilterLevel[1];
+        cmd.DW3.DblkfilterlevelForSegment0 = vp8PicParams->ucLoopFilterLevel[0];
 
         uint32_t i = 0;
         uint32_t j = 0;
-        cmd.DW4.dec.QuantizerValue0Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW4.dec.QuantizerValue0Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW4.dec.QuantizerValue0Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW4.dec.QuantizerValue0Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 0;
         j = 2;
-        cmd.DW5.dec.QuantizerValue0Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW5.dec.QuantizerValue0Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW5.dec.QuantizerValue0Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW5.dec.QuantizerValue0Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 0;
         j = 4;
-        cmd.DW6.dec.QuantizerValue0Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW6.dec.QuantizerValue0Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW6.dec.QuantizerValue0Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW6.dec.QuantizerValue0Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 1;
         j = 0;
-        cmd.DW7.dec.QuantizerValue1Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW7.dec.QuantizerValue1Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW7.dec.QuantizerValue1Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW7.dec.QuantizerValue1Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 1;
         j = 2;
-        cmd.DW8.QuantizerValue1Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW8.QuantizerValue1Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW8.QuantizerValue1Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW8.QuantizerValue1Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 1;
         j = 4;
-        cmd.DW9.QuantizerValue1Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW9.QuantizerValue1Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW9.QuantizerValue1Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW9.QuantizerValue1Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 2;
         j = 0;
-        cmd.DW10.QuantizerValue2Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW10.QuantizerValue2Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW10.QuantizerValue2Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW10.QuantizerValue2Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 2;
         j = 2;
-        cmd.DW11.QuantizerValue2Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW11.QuantizerValue2Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW11.QuantizerValue2Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW11.QuantizerValue2Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 2;
         j = 4;
-        cmd.DW12.QuantizerValue2Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW12.QuantizerValue2Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW12.QuantizerValue2Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW12.QuantizerValue2Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 3;
         j = 0;
-        cmd.DW13.QuantizerValue3Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW13.QuantizerValue3Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW13.QuantizerValue3Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW13.QuantizerValue3Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 3;
         j = 2;
-        cmd.DW14.QuantizerValue3Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW14.QuantizerValue3Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW14.QuantizerValue3Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW14.QuantizerValue3Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 3;
         j = 4;
-        cmd.DW15.QuantizerValue3Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW15.QuantizerValue3Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW15.QuantizerValue3Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW15.QuantizerValue3Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
-        cmd.DW19.Mbsegmentidtreeprobs2 = pVp8PicParams->cMbSegmentTreeProbs[2];
-        cmd.DW19.Mbsegmentidtreeprobs1 = pVp8PicParams->cMbSegmentTreeProbs[1];
-        cmd.DW19.Mbsegmentidtreeprobs0 = pVp8PicParams->cMbSegmentTreeProbs[0];
-        cmd.DW20.Mbnocoeffskipfalseprob = pVp8PicParams->ucProbSkipFalse;
-        cmd.DW20.Intrambprob = pVp8PicParams->ucProbIntra;
-        cmd.DW20.Interpredfromlastrefprob = pVp8PicParams->ucProbLast;
-        cmd.DW20.Interpredfromgrefrefprob = pVp8PicParams->ucProbGolden;
-        cmd.DW21.Ymodeprob3 = pVp8PicParams->ucYModeProbs[3];
-        cmd.DW21.Ymodeprob2 = pVp8PicParams->ucYModeProbs[2];
-        cmd.DW21.Ymodeprob1 = pVp8PicParams->ucYModeProbs[1];
-        cmd.DW21.Ymodeprob0 = pVp8PicParams->ucYModeProbs[0];
-        cmd.DW22.Uvmodeprob2 = pVp8PicParams->ucUvModeProbs[2];
-        cmd.DW22.Uvmodeprob1 = pVp8PicParams->ucUvModeProbs[1];
-        cmd.DW22.Uvmodeprob0 = pVp8PicParams->ucUvModeProbs[0];
+        cmd.DW19.Mbsegmentidtreeprobs2 = vp8PicParams->cMbSegmentTreeProbs[2];
+        cmd.DW19.Mbsegmentidtreeprobs1 = vp8PicParams->cMbSegmentTreeProbs[1];
+        cmd.DW19.Mbsegmentidtreeprobs0 = vp8PicParams->cMbSegmentTreeProbs[0];
+        cmd.DW20.Mbnocoeffskipfalseprob = vp8PicParams->ucProbSkipFalse;
+        cmd.DW20.Intrambprob = vp8PicParams->ucProbIntra;
+        cmd.DW20.Interpredfromlastrefprob = vp8PicParams->ucProbLast;
+        cmd.DW20.Interpredfromgrefrefprob = vp8PicParams->ucProbGolden;
+        cmd.DW21.Ymodeprob3 = vp8PicParams->ucYModeProbs[3];
+        cmd.DW21.Ymodeprob2 = vp8PicParams->ucYModeProbs[2];
+        cmd.DW21.Ymodeprob1 = vp8PicParams->ucYModeProbs[1];
+        cmd.DW21.Ymodeprob0 = vp8PicParams->ucYModeProbs[0];
+        cmd.DW22.Uvmodeprob2 = vp8PicParams->ucUvModeProbs[2];
+        cmd.DW22.Uvmodeprob1 = vp8PicParams->ucUvModeProbs[1];
+        cmd.DW22.Uvmodeprob0 = vp8PicParams->ucUvModeProbs[0];
 
         i = 0;
         j = 0;
-        cmd.DW23.Mvupdateprobs00 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW23.Mvupdateprobs01 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW23.Mvupdateprobs02 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW23.Mvupdateprobs03 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW23.Mvupdateprobs00 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW23.Mvupdateprobs01 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW23.Mvupdateprobs02 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW23.Mvupdateprobs03 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 4;
-        cmd.DW24.Mvupdateprobs04 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW24.Mvupdateprobs05 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW24.Mvupdateprobs06 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW24.Mvupdateprobs07 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW24.Mvupdateprobs04 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW24.Mvupdateprobs05 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW24.Mvupdateprobs06 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW24.Mvupdateprobs07 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 8;
-        cmd.DW25.Mvupdateprobs08 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW25.Mvupdateprobs09 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW25.Mvupdateprobs010 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW25.Mvupdateprobs011 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW25.Mvupdateprobs08 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW25.Mvupdateprobs09 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW25.Mvupdateprobs010 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW25.Mvupdateprobs011 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 12;
-        cmd.DW26.Mvupdateprobs012 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW26.Mvupdateprobs013 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW26.Mvupdateprobs014 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW26.Mvupdateprobs015 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW26.Mvupdateprobs012 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW26.Mvupdateprobs013 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW26.Mvupdateprobs014 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW26.Mvupdateprobs015 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 16;
-        cmd.DW27.Mvupdateprobs016 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW27.Mvupdateprobs017 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW27.Mvupdateprobs018 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW27.Mvupdateprobs016 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW27.Mvupdateprobs017 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW27.Mvupdateprobs018 = vp8PicParams->ucMvUpdateProb[i][j + 2];
 
         i = 1;
         j = 0;
-        cmd.DW28.Mvupdateprobs10 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW28.Mvupdateprobs11 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW28.Mvupdateprobs12 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW28.Mvupdateprobs13 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW28.Mvupdateprobs10 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW28.Mvupdateprobs11 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW28.Mvupdateprobs12 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW28.Mvupdateprobs13 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 4;
-        cmd.DW29.Mvupdateprobs14 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW29.Mvupdateprobs15 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW29.Mvupdateprobs16 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW29.Mvupdateprobs17 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW29.Mvupdateprobs14 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW29.Mvupdateprobs15 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW29.Mvupdateprobs16 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW29.Mvupdateprobs17 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 8;
-        cmd.DW30.Mvupdateprobs18 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW30.Mvupdateprobs19 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW30.Mvupdateprobs110 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW30.Mvupdateprobs111 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW30.Mvupdateprobs18 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW30.Mvupdateprobs19 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW30.Mvupdateprobs110 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW30.Mvupdateprobs111 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 12;
-        cmd.DW31.Mvupdateprobs112 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW31.Mvupdateprobs113 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW31.Mvupdateprobs114 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW31.Mvupdateprobs115 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW31.Mvupdateprobs112 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW31.Mvupdateprobs113 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW31.Mvupdateprobs114 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW31.Mvupdateprobs115 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 16;
-        cmd.DW32.Mvupdateprobs116 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW32.Mvupdateprobs117 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW32.Mvupdateprobs118 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW32.Mvupdateprobs116 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW32.Mvupdateprobs117 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW32.Mvupdateprobs118 = vp8PicParams->ucMvUpdateProb[i][j + 2];
 
-        cmd.DW33.Reflfdelta0ForIntraFrame = pVp8PicParams->cRefLfDelta[0];
-        cmd.DW33.Reflfdelta1ForLastFrame = pVp8PicParams->cRefLfDelta[1];
-        cmd.DW33.Reflfdelta2ForGoldenFrame = pVp8PicParams->cRefLfDelta[2];
-        cmd.DW33.Reflfdelta3ForAltrefFrame = pVp8PicParams->cRefLfDelta[3];
-        cmd.DW34.Modelfdelta0ForBPredMode = pVp8PicParams->cModeLfDelta[0];
-        cmd.DW34.Modelfdelta1ForZeromvMode = pVp8PicParams->cModeLfDelta[1];
-        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = pVp8PicParams->cModeLfDelta[2];
-        cmd.DW34.Modelfdelta3ForSplitmvMode = pVp8PicParams->cModeLfDelta[3];
+        cmd.DW33.Reflfdelta0ForIntraFrame = vp8PicParams->cRefLfDelta[0];
+        cmd.DW33.Reflfdelta1ForLastFrame = vp8PicParams->cRefLfDelta[1];
+        cmd.DW33.Reflfdelta2ForGoldenFrame = vp8PicParams->cRefLfDelta[2];
+        cmd.DW33.Reflfdelta3ForAltrefFrame = vp8PicParams->cRefLfDelta[3];
+        cmd.DW34.Modelfdelta0ForBPredMode = vp8PicParams->cModeLfDelta[0];
+        cmd.DW34.Modelfdelta1ForZeromvMode = vp8PicParams->cModeLfDelta[1];
+        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = vp8PicParams->cModeLfDelta[2];
+        cmd.DW34.Modelfdelta3ForSplitmvMode = vp8PicParams->cModeLfDelta[3];
 
         MHW_RESOURCE_PARAMS resourceParams;
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
@@ -2059,7 +2066,7 @@ protected:
             cmdBuffer,
             &resourceParams));
 
-        if (pVp8PicParams->segmentation_enabled)
+        if (vp8PicParams->segmentation_enabled)
         {
             resourceParams.presResource = params->presSegmentationIdStreamBuffer;
             resourceParams.dwOffset = 0;
@@ -2093,52 +2100,52 @@ protected:
         MHW_MI_CHK_NULL(params->pEncodeVP8QuantData);
 
         typename TMfxCmds::MFX_VP8_PIC_STATE_CMD cmd;
-        auto pVp8SeqParams = params->pEncodeVP8SeqParams;
-        auto pVp8PicParams = params->pEncodeVP8PicParams;
-        auto pVp8QuantData = params->pEncodeVP8QuantData;
+        auto vp8SeqParams = params->pEncodeVP8SeqParams;
+        auto vp8PicParams = params->pEncodeVP8PicParams;
+        auto vp8QuantData = params->pEncodeVP8QuantData;
 
         cmd.DW1.FrameWidthMinus1 = params->wPicWidthInMb - 1;
         cmd.DW1.FrameHeightMinus1 = params->wPicHeightInMb - 1;
 
-        cmd.DW2.McFilterSelect = (pVp8PicParams->version != 0);
-        cmd.DW2.ChromaFullPixelMcFilterMode = (pVp8PicParams->version == 3);
-        cmd.DW2.Dblkfiltertype = pVp8PicParams->filter_type;
-        cmd.DW2.Skeyframeflag = !pVp8PicParams->frame_type;
-        cmd.DW2.SegmentEnableFlag = pVp8PicParams->segmentation_enabled;
+        cmd.DW2.McFilterSelect = (vp8PicParams->version != 0);
+        cmd.DW2.ChromaFullPixelMcFilterMode = (vp8PicParams->version == 3);
+        cmd.DW2.Dblkfiltertype = vp8PicParams->filter_type;
+        cmd.DW2.Skeyframeflag = !vp8PicParams->frame_type;
+        cmd.DW2.SegmentEnableFlag = vp8PicParams->segmentation_enabled;
         cmd.DW2.UpdateMbsegmentMapFlag =
-            (pVp8PicParams->segmentation_enabled) ? pVp8PicParams->update_mb_segmentation_map : 0;
-        cmd.DW2.MbNocoeffSkipflag = pVp8PicParams->mb_no_coeff_skip;
-        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = pVp8PicParams->loop_filter_adj_enable;
-        cmd.DW2.GoldenRefPictureMvSignbiasFlag = pVp8PicParams->sign_bias_golden;
-        cmd.DW2.AlternateRefPicMvSignbiasFlag = pVp8PicParams->sign_bias_alternate;
-        cmd.DW2.DeblockSharpnessLevel = pVp8PicParams->sharpness_level;
-        cmd.DW2.Log2NumOfPartition = pVp8PicParams->CodedCoeffTokenPartition;
+            (vp8PicParams->segmentation_enabled) ? vp8PicParams->update_mb_segmentation_map : 0;
+        cmd.DW2.MbNocoeffSkipflag = vp8PicParams->mb_no_coeff_skip;
+        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = vp8PicParams->loop_filter_adj_enable;
+        cmd.DW2.GoldenRefPictureMvSignbiasFlag = vp8PicParams->sign_bias_golden;
+        cmd.DW2.AlternateRefPicMvSignbiasFlag = vp8PicParams->sign_bias_alternate;
+        cmd.DW2.DeblockSharpnessLevel = vp8PicParams->sharpness_level;
+        cmd.DW2.Log2NumOfPartition = vp8PicParams->CodedCoeffTokenPartition;
 
-        cmd.DW3.DblkfilterlevelForSegment3 = pVp8PicParams->loop_filter_level[3];
-        cmd.DW3.DblkfilterlevelForSegment2 = pVp8PicParams->loop_filter_level[2];
-        cmd.DW3.DblkfilterlevelForSegment1 = pVp8PicParams->loop_filter_level[1];
-        cmd.DW3.DblkfilterlevelForSegment0 = pVp8PicParams->loop_filter_level[0];
+        cmd.DW3.DblkfilterlevelForSegment3 = vp8PicParams->loop_filter_level[3];
+        cmd.DW3.DblkfilterlevelForSegment2 = vp8PicParams->loop_filter_level[2];
+        cmd.DW3.DblkfilterlevelForSegment1 = vp8PicParams->loop_filter_level[1];
+        cmd.DW3.DblkfilterlevelForSegment0 = vp8PicParams->loop_filter_level[0];
 
         //Y1 AC is the reference.
-        cmd.DW4.enc.Seg0Qindex = pVp8QuantData->QIndex[0];
-        cmd.DW4.enc.Seg1Qindex = pVp8QuantData->QIndex[1];
-        cmd.DW4.enc.Seg2Qindex = pVp8QuantData->QIndex[2];
-        cmd.DW4.enc.Seg3Qindex = pVp8QuantData->QIndex[3];
+        cmd.DW4.enc.Seg0Qindex = vp8QuantData->QIndex[0];
+        cmd.DW4.enc.Seg1Qindex = vp8QuantData->QIndex[1];
+        cmd.DW4.enc.Seg2Qindex = vp8QuantData->QIndex[2];
+        cmd.DW4.enc.Seg3Qindex = vp8QuantData->QIndex[3];
 
-        cmd.DW5.enc.Y2DcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC];
-        cmd.DW5.enc.Y2AcQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC] < 0) ? 1 : 0;
-        cmd.DW5.enc.Y2AcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC];
-        cmd.DW5.enc.Y2AcQindexSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC] < 0) ? 1 : 0;
-        cmd.DW5.enc.UvdcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC];
-        cmd.DW5.enc.UvdcQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC] < 0) ? 1 : 0;
-        cmd.DW5.enc.UvacQindexdelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC];
-        cmd.DW5.enc.UvacQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC] < 0) ? 1 : 0;
+        cmd.DW5.enc.Y2DcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC];
+        cmd.DW5.enc.Y2AcQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC] < 0) ? 1 : 0;
+        cmd.DW5.enc.Y2AcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC];
+        cmd.DW5.enc.Y2AcQindexSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC] < 0) ? 1 : 0;
+        cmd.DW5.enc.UvdcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC];
+        cmd.DW5.enc.UvdcQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC] < 0) ? 1 : 0;
+        cmd.DW5.enc.UvacQindexdelta = vp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC];
+        cmd.DW5.enc.UvacQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC] < 0) ? 1 : 0;
 
-        cmd.DW6.enc.Y1DcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC];
-        cmd.DW6.enc.Y1DcQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC] < 0) ? 1 : 0;
+        cmd.DW6.enc.Y1DcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC];
+        cmd.DW6.enc.Y1DcQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC] < 0) ? 1 : 0;
 
-        cmd.DW7.enc.ClampQindexLow = pVp8PicParams->ClampQindexLow;
-        cmd.DW7.enc.ClampQindexHigh = pVp8PicParams->ClampQindexHigh;
+        cmd.DW7.enc.ClampQindexLow = vp8PicParams->ClampQindexLow;
+        cmd.DW7.enc.ClampQindexHigh = vp8PicParams->ClampQindexHigh;
 
         MHW_RESOURCE_PARAMS resourceParams;
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
@@ -2232,15 +2239,15 @@ protected:
         cmd.DW32.Mvupdateprobs117 = DefaultMvContext[i][j + 1];
         cmd.DW32.Mvupdateprobs118 = DefaultMvContext[i][j + 2];
 
-        cmd.DW33.Reflfdelta0ForIntraFrame = pVp8PicParams->ref_lf_delta[0];
-        cmd.DW33.Reflfdelta1ForLastFrame = pVp8PicParams->ref_lf_delta[1];
-        cmd.DW33.Reflfdelta2ForGoldenFrame = pVp8PicParams->ref_lf_delta[2];
-        cmd.DW33.Reflfdelta3ForAltrefFrame = pVp8PicParams->ref_lf_delta[3];
+        cmd.DW33.Reflfdelta0ForIntraFrame = vp8PicParams->ref_lf_delta[0];
+        cmd.DW33.Reflfdelta1ForLastFrame = vp8PicParams->ref_lf_delta[1];
+        cmd.DW33.Reflfdelta2ForGoldenFrame = vp8PicParams->ref_lf_delta[2];
+        cmd.DW33.Reflfdelta3ForAltrefFrame = vp8PicParams->ref_lf_delta[3];
 
-        cmd.DW34.Modelfdelta0ForBPredMode = pVp8PicParams->mode_lf_delta[0];
-        cmd.DW34.Modelfdelta1ForZeromvMode = pVp8PicParams->mode_lf_delta[1];
-        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = pVp8PicParams->mode_lf_delta[2];
-        cmd.DW34.Modelfdelta3ForSplitmvMode = pVp8PicParams->mode_lf_delta[3];
+        cmd.DW34.Modelfdelta0ForBPredMode = vp8PicParams->mode_lf_delta[0];
+        cmd.DW34.Modelfdelta1ForZeromvMode = vp8PicParams->mode_lf_delta[1];
+        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = vp8PicParams->mode_lf_delta[2];
+        cmd.DW34.Modelfdelta3ForSplitmvMode = vp8PicParams->mode_lf_delta[3];
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -2283,9 +2290,9 @@ protected:
         MHW_MI_CHK_NULL(params->pEncodeVP8SeqParams);
         MHW_MI_CHK_NULL(params->pEncodeVP8QuantData);
 
-        auto pPicParams = params->pEncodeVP8PicParams;
-        auto pSeqParams = params->pEncodeVP8SeqParams;
-        auto pQuantData = params->pEncodeVP8QuantData;
+        auto picParams = params->pEncodeVP8PicParams;
+        auto seqParams = params->pEncodeVP8SeqParams;
+        auto quantData = params->pEncodeVP8QuantData;
 
         MOS_LOCK_PARAMS lockFlags;
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -2338,7 +2345,7 @@ protected:
         cmd->DW1.PerSegmentDeltaQindexLoopfilterDisable = (params->bFirstPass || !params->bBRCEnabled);
         cmd->DW1.TokenStatisticsOutputEnable = 1;
 
-        if (pPicParams->segmentation_enabled)
+        if (picParams->segmentation_enabled)
         {
             cmd->DW1.UpdateSegmentFeatureDataFlag = 1;
         }
@@ -2350,11 +2357,11 @@ protected:
             cmd->DW2.MinFrameBitCountRateControlEnableMask = 1;
         }
 
-        cmd->DW22.ShowFrame = pPicParams->show_frame;
-        cmd->DW22.BitstreamFormatVersion = pPicParams->version;
+        cmd->DW22.ShowFrame = picParams->show_frame;
+        cmd->DW22.BitstreamFormatVersion = picParams->version;
 
-        cmd->DW23.HorizontalSizeCode = ((pSeqParams->FrameWidthScale << 14) | pSeqParams->FrameWidth);
-        cmd->DW23.VerticalSizeCode = ((pSeqParams->FrameHeightScale << 14) | pSeqParams->FrameHeight);
+        cmd->DW23.HorizontalSizeCode = ((seqParams->FrameWidthScale << 14) | seqParams->FrameWidth);
+        cmd->DW23.VerticalSizeCode = ((seqParams->FrameHeightScale << 14) | seqParams->FrameHeight);
 
         //Add batch buffer end command
         data += sizeof(*cmd);
@@ -2362,9 +2369,9 @@ protected:
         mhw_mi_g9_X::MI_BATCH_BUFFER_END_CMD *miBatchBufferEndCmd = (mhw_mi_g9_X::MI_BATCH_BUFFER_END_CMD *)data;
         *miBatchBufferEndCmd = mhw_mi_g9_X::MI_BATCH_BUFFER_END_CMD();
 
-        this->m_osInterface->pfnUnlockResource(
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnUnlockResource(
             this->m_osInterface,
-            cfgCmdBuffer);
+            cfgCmdBuffer));
 
         return eStatus;
     }
@@ -2380,7 +2387,7 @@ protected:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
-        if (params->dwPartitions == 0 || params->dwPartitions >= MhwVdboxMfxInterface::m_vp8MaxNumPartitions)
+        if (params->dwPartitions == 0 || params->dwPartitions > MhwVdboxMfxInterface::m_vp8MaxNumPartitions)
         {
             MHW_ASSERTMESSAGE("Invalid Partitions.");
             eStatus = MOS_STATUS_INVALID_PARAMETER;

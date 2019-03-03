@@ -98,7 +98,7 @@ class LinuxKernel2Source(object):
                 os.remove(hexfp)
  
                 print("Compiled %s" % fp);
-		
+        
     def kernel2bin(self):
         cmd = './compile/GenKrnBin component_release vp'
         os.system(cmd)
@@ -113,7 +113,7 @@ class LinuxKernel2Source(object):
 def main():
     if platform == "linux" or platform == "linux2":
         k2s = LinuxKernel2Source()
-    else
+    else:
         k2s = WinKernel2Source()
 
     k2s.iga_compile()

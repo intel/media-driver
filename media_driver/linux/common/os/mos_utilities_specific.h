@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_utilities_specific.h  
-//! \brief       This module defines MOS interface on Linux/Android platform  
+//! \file        mos_utilities_specific.h 
+//! \brief       This module defines MOS interface on Linux/Android platform 
 //!
 #ifndef __MOS_UTILITIES_SPECIFIC_H__
 #define __MOS_UTILITIES_SPECIFIC_H__

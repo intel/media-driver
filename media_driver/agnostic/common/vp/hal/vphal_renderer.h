@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,8 @@
 #include "vphal_render_common.h"
 #include "vphal_render_renderstate.h"
 #include "vphal_render_vebox_base.h"
-
+#include "vphal_render_16alignment.h"
+#include "vphal_render_fast1ton.h"
 #include "vphal_debug.h"
 
 #define VPHAL_RNDR_TEMP_OUT_SURFS            2
@@ -110,14 +111,18 @@ C_ASSERT(VPHAL_RENDER_ID_COUNT == 3);      //!< When adding, update assert
 //!
 class VphalRenderer
 {
-public: 
+public:
+    // 16 Bytes Alignment state
+    VPHAL_16_ALIGN_STATE        Align16State;
+    // Fast 1toN state
+    VPHAL_FAST1TON_STATE        Fast1toNState;
     // Rendering engines
     VPHAL_VEBOX_EXEC_STATE      VeboxExecState[VPHAL_MAX_CHANNELS];             //!< Vebox Execution State
 
     RenderState                 *pRender[VPHAL_RENDER_ID_COUNT];
 
     // VpHal surfaces
-    PVPHAL_SURFACE              pPrimaryFwdRef[VPHAL_MAX_FUTURE_FRAMES];   
+    PVPHAL_SURFACE              pPrimaryFwdRef[VPHAL_MAX_FUTURE_FRAMES];
 
     bool                        bVeboxUsedForCapPipe;                           //!< VEBOX used for CapPipe
 
@@ -149,6 +154,11 @@ public:
 
     // max src rectangle
     RECT                        maxSrcRect;
+
+    // Intermediate surface, currently two usages:
+    // 1) It is for viedo surveillance usage, when applying AVS for multiple surfaces;
+    // 2) It could be VEBOX output or input for HDR processing;
+    VPHAL_SURFACE               IntermediateSurface = {};
 
 protected:
     // Renderer private data
@@ -186,6 +196,15 @@ public:
         PRENDERHAL_INTERFACE                pRenderHal,
         MOS_STATUS                          *pStatus);
 
+    //!
+    //! \brief    Copy constructor
+    //!
+    VphalRenderer(const VphalRenderer&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    VphalRenderer& operator=(const VphalRenderer&) = delete;
 
     //!
     //! \brief    VPHAL renderer destructor
@@ -267,6 +286,14 @@ public:
     //! \return   MOS_STATUS
     //!
     virtual MOS_STATUS InitKdllParam() = 0;
+
+    //!
+    //! \brief    Update Render Gpu Context
+    //! \details  Update Render Gpu Context
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateRenderGpuContext();
 
 protected:
     //!
@@ -353,6 +380,20 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS RenderSingleStream(
+        PVPHAL_RENDER_PARAMS    pRenderParams,
+        RenderpassData          *pRenderPassData);
+
+    //!
+    //! \brief    Compose input streams as fast 1toN
+    //! \details  Use composite render to multi output streams
+    //! \param    [in] pRenderParams
+    //!           Pointer to VPHAL render parameter
+    //! \param    [in,out] pRenderPassData
+    //!           Pointer to the VPHAL render pass data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS RenderFast1toNComposite(
         PVPHAL_RENDER_PARAMS    pRenderParams,
         RenderpassData          *pRenderPassData);
 

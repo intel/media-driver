@@ -38,7 +38,7 @@ class CodechalEncHevcStateG9Skl : public CodechalEncHevcStateG9
 public:
     //!
     //! \brief    Constructor
-    //!     
+    //!
     CodechalEncHevcStateG9Skl(CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
@@ -75,14 +75,14 @@ private:
         uint32_t                       krnStateIdx,
         void                           *krnHeader,
         uint32_t                       *krnSize);
-   
+
     // Inherited virtual function
     bool UsePlatformControlFlag()
     {
         return false;
     }
 
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    MOS_STATUS Initialize(CodechalSetting * settings);
 };
 
 #endif  // __CODECHAL_ENCODE_HEVC_G9_SKL_H__

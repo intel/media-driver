@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_printf_host.cpp  
-//! \brief     Contains Class PFParser definitions   
+//! \file      cm_printf_host.cpp 
+//! \brief     Contains Class PFParser definitions 
 //!
 
 #include "cm_printf_host.h"
@@ -256,7 +256,6 @@ bool PFParser::expect(Token::TokenType s)
     return false;
 }
 
-
 int PFParser::format(void)
 {
     if (mCurrToken == Token::_None_)
@@ -278,25 +277,25 @@ int PFParser::format(void)
 
 int PFParser::directive(void)
 {
-    int num_args = 0;
+    int numArgs = 0;
     flags();
-    num_args += width();
-    num_args += precision();
+    numArgs += width();
+    numArgs += precision();
     length_modifier();
-    
-    int num_conv_args = conversion();
-    if (num_conv_args == 0)
+
+    int numConvArgs = conversion();
+    if (numConvArgs == 0)
     {
         // Not expecting ANY arguments
         // Ignore any previous directives (width, precision etc.)
-        num_args = 0;
+        numArgs = 0;
     }
     else
     {
-        num_args += num_conv_args;
+        numArgs += numConvArgs;
     }
 
-    return num_args;
+    return numArgs;
 }
 
 void PFParser::flags(void)
@@ -321,7 +320,7 @@ void PFParser::flags(void)
     {
     }
 }
-    
+
 int PFParser::width(void)
 {
     if (accept(Token::Integer))
@@ -385,10 +384,10 @@ void PFParser::length_modifier(void)
 
 int PFParser::conversion(void)
 {
-    int num_args = 1;
+    int numArgs = 1;
     if (accept(Token::Percent))
     {
-        num_args = 0;
+        numArgs = 0;
     }
     else if (accept(Token::c_Conv))
     {
@@ -448,49 +447,48 @@ int PFParser::conversion(void)
     else
     {
         // Expect must have failed
-        num_args = 0;
+        numArgs = 0;
     }
-    return num_args;
+    return numArgs;
 }
-
 
 int CalcSizeFromHeader(unsigned char * memory)
 {
     PCM_PRINT_HEADER header = (PCM_PRINT_HEADER)memory;
 
-    if((header->object_type == CM_PRINT_OBJECT_TYPE_MATRIX) ||
-       (header->object_type == CM_PRINT_OBJECT_TYPE_VECTOR))
+    if((header->objectType == CM_PRINT_OBJECT_TYPE_MATRIX) ||
+       (header->objectType == CM_PRINT_OBJECT_TYPE_VECTOR))
     {
-        switch (header->data_type) 
+        switch (header->dataType)
         {
-            case CM_PRINT_DATA_TYPE_CHAR   : 
+            case CM_PRINT_DATA_TYPE_CHAR   :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(char           ));
 
-            case CM_PRINT_DATA_TYPE_UCHAR  : 
+            case CM_PRINT_DATA_TYPE_UCHAR  :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(unsigned char  ));
 
-            case CM_PRINT_DATA_TYPE_INT    : 
+            case CM_PRINT_DATA_TYPE_INT    :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(int            ));
 
-            case CM_PRINT_DATA_TYPE_UINT   : 
+            case CM_PRINT_DATA_TYPE_UINT   :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(unsigned int   ));
 
-            case CM_PRINT_DATA_TYPE_FLOAT  : 
+            case CM_PRINT_DATA_TYPE_FLOAT  :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(float          ));
 
-            case CM_PRINT_DATA_TYPE_SHORT  : 
+            case CM_PRINT_DATA_TYPE_SHORT  :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(short          ));
 
-            case CM_PRINT_DATA_TYPE_USHORT : 
+            case CM_PRINT_DATA_TYPE_USHORT :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(unsigned short ));
 
-            case CM_PRINT_DATA_TYPE_QWORD  : 
+            case CM_PRINT_DATA_TYPE_QWORD  :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(long long      ));
 
-            case CM_PRINT_DATA_TYPE_UQWORD : 
+            case CM_PRINT_DATA_TYPE_UQWORD :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(unsigned long long ));
 
-            case CM_PRINT_DATA_TYPE_DOUBLE : 
+            case CM_PRINT_DATA_TYPE_DOUBLE :
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(double         ));
 
             default:
@@ -498,23 +496,23 @@ int CalcSizeFromHeader(unsigned char * memory)
         }
         return PRINT_HEADER_SIZE;
     }
-    else if(header->object_type == CM_PRINT_OBJECT_TYPE_STRING || 
-            header->object_type == CM_PRINT_OBJECT_TYPE_FORMAT)
+    else if(header->objectType == CM_PRINT_OBJECT_TYPE_STRING ||
+            header->objectType == CM_PRINT_OBJECT_TYPE_FORMAT)
     {
         return PRINT_HEADER_SIZE + PRINT_FORMAT_STRING_SIZE;
     }
-    else if(header->object_type == CM_PRINT_OBJECT_TYPE_SCALAR)
+    else if(header->objectType == CM_PRINT_OBJECT_TYPE_SCALAR)
     {
-        if(!((header->data_type == CM_PRINT_DATA_TYPE_CHAR)   ||
-             (header->data_type == CM_PRINT_DATA_TYPE_UCHAR)  ||
-             (header->data_type == CM_PRINT_DATA_TYPE_UINT)   ||
-             (header->data_type == CM_PRINT_DATA_TYPE_INT)    ||
-             (header->data_type == CM_PRINT_DATA_TYPE_USHORT) ||
-             (header->data_type == CM_PRINT_DATA_TYPE_SHORT)  ||
-             (header->data_type == CM_PRINT_DATA_TYPE_DOUBLE) ||
-             (header->data_type == CM_PRINT_DATA_TYPE_QWORD)  ||
-             (header->data_type == CM_PRINT_DATA_TYPE_UQWORD) ||
-             (header->data_type == CM_PRINT_DATA_TYPE_FLOAT)))
+        if(!((header->dataType == CM_PRINT_DATA_TYPE_CHAR)   ||
+             (header->dataType == CM_PRINT_DATA_TYPE_UCHAR)  ||
+             (header->dataType == CM_PRINT_DATA_TYPE_UINT)   ||
+             (header->dataType == CM_PRINT_DATA_TYPE_INT)    ||
+             (header->dataType == CM_PRINT_DATA_TYPE_USHORT) ||
+             (header->dataType == CM_PRINT_DATA_TYPE_SHORT)  ||
+             (header->dataType == CM_PRINT_DATA_TYPE_DOUBLE) ||
+             (header->dataType == CM_PRINT_DATA_TYPE_QWORD)  ||
+             (header->dataType == CM_PRINT_DATA_TYPE_UQWORD) ||
+             (header->dataType == CM_PRINT_DATA_TYPE_FLOAT)))
         {
             CM_ASSERTMESSAGE("Error: Invalid print data type.");
         }
@@ -537,7 +535,7 @@ void PFParser::flush(void)
             // Tidy up any remaining characters
             // Any characters that remain to be flushed need to be check for illegal directives (e.g. %n
             // will cause an exception if attempted to be printed with no argument)
-            int num_args = format();
+            int numArgs = format();
             if (mUnsupported)
             {
                 CM_PRINTF(mStreamOut,"Unsupported (but valid C++11) format string used : %s", mInputStart);
@@ -548,7 +546,7 @@ void PFParser::flush(void)
                 CM_PRINTF(mStreamOut,"Error in printf format string : %s", mInputStart);
                 reset();
             }
-            else if (num_args > 0) 
+            else if (numArgs > 0)
             {
                 // Not enough arguments provided for remaining directives
                 CM_PRINTF(mStreamOut,"Not enough (no) arguments supplied for format string : %s", mInputStart);
@@ -584,8 +582,8 @@ PRINT_FMT_STATUS PFParser::GetNextFmtToken(char* tkn, size_t size)
         return PF_SUCCESS;
     }
 
-    int num_args = format();
-    switch (num_args)
+    int numArgs = format();
+    switch (numArgs)
     {
     default:
         return PF_FAIL; // Something has gone wrong
@@ -601,8 +599,8 @@ PRINT_FMT_STATUS PFParser::GetNextFmtToken(char* tkn, size_t size)
         return PF_FAIL;
     case 2:
     case 3:
-        mNumMultArg = num_args - 1;
-        mArgsExpected = num_args - 1;
+        mNumMultArg = numArgs - 1;
+        mArgsExpected = numArgs - 1;
         return PF_SUCCESS;
     }
 }
@@ -612,32 +610,32 @@ bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
     if (mNumMultArg && mArgsExpected)
     {
         // Processing items for multi-arg directives
-        if (header->object_type == CM_PRINT_OBJECT_TYPE_SCALAR &&
-            header->data_type != CM_PRINT_DATA_TYPE_FLOAT &&
-            header->data_type != CM_PRINT_DATA_TYPE_DOUBLE &&
-            header->data_type != CM_PRINT_DATA_TYPE_QWORD &&
-            header->data_type != CM_PRINT_DATA_TYPE_UQWORD)
+        if (header->objectType == CM_PRINT_OBJECT_TYPE_SCALAR &&
+            header->dataType != CM_PRINT_DATA_TYPE_FLOAT &&
+            header->dataType != CM_PRINT_DATA_TYPE_DOUBLE &&
+            header->dataType != CM_PRINT_DATA_TYPE_QWORD &&
+            header->dataType != CM_PRINT_DATA_TYPE_UQWORD)
         {
             // Received an int type argument as expected
-            switch (header->data_type)
+            switch (header->dataType)
             {
-                case CM_PRINT_DATA_TYPE_INT    : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((int*            )&(header->scalar_low32)); 
+                case CM_PRINT_DATA_TYPE_INT    :
+                    mArgs[mNumMultArg - mArgsExpected] = *((int*            )&(header->scalar64));
                     break;
                 case CM_PRINT_DATA_TYPE_UINT   :
-                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned int*   )&(header->scalar_low32)); 
+                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned int*   )&(header->scalar64));
                     break;
-                case CM_PRINT_DATA_TYPE_CHAR   : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((char*           )&(header->scalar_low32)); 
+                case CM_PRINT_DATA_TYPE_CHAR   :
+                    mArgs[mNumMultArg - mArgsExpected] = *((char*           )&(header->scalar64));
                     break;
-                case CM_PRINT_DATA_TYPE_UCHAR  : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned char*  )&(header->scalar_low32)); 
+                case CM_PRINT_DATA_TYPE_UCHAR  :
+                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned char*  )&(header->scalar64));
                     break;
-                case CM_PRINT_DATA_TYPE_SHORT  : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((short*         )&(header->scalar_low32)); 
+                case CM_PRINT_DATA_TYPE_SHORT  :
+                    mArgs[mNumMultArg - mArgsExpected] = *((short*         )&(header->scalar64));
                     break;
-                case CM_PRINT_DATA_TYPE_USHORT : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned short*)&(header->scalar_low32)); 
+                case CM_PRINT_DATA_TYPE_USHORT :
+                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned short*)&(header->scalar64));
                     break;
             }
             mArgsExpected -= 1;
@@ -670,136 +668,136 @@ bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
     // Output as appropriate
     if (!mNumMultArg)
     {
-        switch (header->data_type)
+        switch (header->dataType)
         {
-        case CM_PRINT_DATA_TYPE_INT    : 
-            CM_PRINTF(mStreamOut, tkn, *((int*)&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_INT    :
+            CM_PRINTF(mStreamOut, tkn, *((int*)&(header->scalar64)));
             break;
-        
+
         case CM_PRINT_DATA_TYPE_UINT   :
-            CM_PRINTF(mStreamOut, tkn, *((unsigned int*)&(header->scalar_low32)));
-            break;
-            
-        case CM_PRINT_DATA_TYPE_CHAR   : 
-            CM_PRINTF(mStreamOut, tkn, *((char*)&(header->scalar_low32)));
+            CM_PRINTF(mStreamOut, tkn, *((unsigned int*)&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_UCHAR  : 
-            CM_PRINTF(mStreamOut, tkn, *((unsigned char*)&(header->scalar_low32)));
-            break;
-            
-        case CM_PRINT_DATA_TYPE_FLOAT  : 
-            CM_PRINTF(mStreamOut, tkn, *((float*)&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_CHAR   :
+            CM_PRINTF(mStreamOut, tkn, *((char*)&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_SHORT  : 
-            CM_PRINTF(mStreamOut, tkn, *((short*)&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_UCHAR  :
+            CM_PRINTF(mStreamOut, tkn, *((unsigned char*)&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_USHORT : 
-            CM_PRINTF(mStreamOut, tkn, *((unsigned short*)&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_FLOAT  :
+            CM_PRINTF(mStreamOut, tkn, *((float*)&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_DOUBLE : 
-            CM_PRINTF(mStreamOut, tkn, *((double*)&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_SHORT  :
+            CM_PRINTF(mStreamOut, tkn, *((short*)&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_QWORD  : 
-            CM_PRINTF(mStreamOut, tkn, *((long long*)&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_USHORT :
+            CM_PRINTF(mStreamOut, tkn, *((unsigned short*)&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_UQWORD : 
-            CM_PRINTF(mStreamOut, tkn, *((unsigned long long*)&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_DOUBLE :
+            CM_PRINTF(mStreamOut, tkn, *((double*)&(header->scalar64)));
+            break;
+
+        case CM_PRINT_DATA_TYPE_QWORD  :
+            CM_PRINTF(mStreamOut, tkn, *((long long*)&(header->scalar64)));
+            break;
+
+        case CM_PRINT_DATA_TYPE_UQWORD :
+            CM_PRINTF(mStreamOut, tkn, *((unsigned long long*)&(header->scalar64)));
             break;
         }
     }
     else if (mNumMultArg == 1)
     {
-        switch (header->data_type)
+        switch (header->dataType)
         {
-        case CM_PRINT_DATA_TYPE_INT    : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((int*            )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_INT    :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((int*            )&(header->scalar64)));
             break;
-        
+
         case CM_PRINT_DATA_TYPE_UINT   :
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned int*   )&(header->scalar_low32))); 
-            break;
-            
-        case CM_PRINT_DATA_TYPE_CHAR   : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((char*           )&(header->scalar_low32))); 
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned int*   )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_UCHAR  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned char*  )&(header->scalar_low32))); 
-            break;
-            
-        case CM_PRINT_DATA_TYPE_FLOAT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((float*          )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_CHAR   :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((char*           )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_SHORT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((short*          )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_UCHAR  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned char*  )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_USHORT : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned short* )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_FLOAT  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((float*          )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_DOUBLE : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((double*         )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_SHORT  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((short*          )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_QWORD  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((long long*          )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_USHORT :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned short* )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_UQWORD : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned long long* )&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_DOUBLE :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((double*         )&(header->scalar64)));
             break;
-        }        
+
+        case CM_PRINT_DATA_TYPE_QWORD  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((long long*          )&(header->scalar64)));
+            break;
+
+        case CM_PRINT_DATA_TYPE_UQWORD :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned long long* )&(header->scalar64)));
+            break;
+        }
     }
     else if (mNumMultArg == 2)
     {
-        switch (header->data_type)
+        switch (header->dataType)
         {
-        case CM_PRINT_DATA_TYPE_INT    : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((int*            )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_INT    :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((int*            )&(header->scalar64)));
             break;
-        
+
         case CM_PRINT_DATA_TYPE_UINT   :
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned int*   )&(header->scalar_low32))); 
-            break;
-            
-        case CM_PRINT_DATA_TYPE_CHAR   : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((char*           )&(header->scalar_low32))); 
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned int*   )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_UCHAR  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned char*  )&(header->scalar_low32))); 
-            break;
-            
-        case CM_PRINT_DATA_TYPE_FLOAT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((float*          )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_CHAR   :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((char*           )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_SHORT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((short*          )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_UCHAR  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned char*  )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_USHORT : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned short* )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_FLOAT  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((float*          )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_DOUBLE : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((double*         )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_SHORT  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((short*          )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_QWORD  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((long long*          )&(header->scalar_low32))); 
+        case CM_PRINT_DATA_TYPE_USHORT :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned short* )&(header->scalar64)));
             break;
 
-        case CM_PRINT_DATA_TYPE_UQWORD : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned long long* )&(header->scalar_low32)));
+        case CM_PRINT_DATA_TYPE_DOUBLE :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((double*         )&(header->scalar64)));
+            break;
+
+        case CM_PRINT_DATA_TYPE_QWORD  :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((long long*          )&(header->scalar64)));
+            break;
+
+        case CM_PRINT_DATA_TYPE_UQWORD :
+            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned long long* )&(header->scalar64)));
             break;
         }
     }
@@ -813,21 +811,21 @@ void PFParser::DumpMemory(unsigned char * memory)
     memory += PRINT_HEADER_SIZE;
     int threadid = header->tid;
 
-    if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_MATRIX )
+    if(!mNumMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_MATRIX )
     {
-        CM_PRINTF(mStreamOut,"\n Thread id %d, Matrix , Width %d, Height %d \n", threadid, header->width, header->height);
+        CM_PRINTF(mStreamOut,"\n Thread id %d, Matrix , Width %ud, Height %ud \n", threadid, header->width, header->height);
     }
-    else if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_VECTOR)
+    else if(!mNumMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_VECTOR)
     {
-        CM_PRINTF(mStreamOut, " \n Thread id %d, Vector , Width %d\n", threadid, header->width);
+        CM_PRINTF(mStreamOut, " \n Thread id %d, Vector , Width %ud\n", threadid, header->width);
     }
-    else if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_FORMAT)
+    else if(!mNumMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_FORMAT)
     {
         // Flush any remaining characters from existing format string (if any)
         flush();
         setStart((char *)memory);
     }
-    else if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_STRING)
+    else if(!mNumMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_STRING)
     {
         char tkn[PRINT_FORMAT_STRING_SIZE];
         PRINT_FMT_STATUS status = GetNextFmtToken(tkn, PRINT_FORMAT_STRING_SIZE);
@@ -844,26 +842,26 @@ void PFParser::DumpMemory(unsigned char * memory)
             {
                 CM_PRINTF(mStreamOut, "Error in printf format string : %s", tkn);
             }
-            
+
             if (mUnsupported || mError)
             {
                 reset();
                 return;
             }
-            
+
             CM_PRINTF(mStreamOut, tkn, (char*)memory);
             reset();
         }
 
         return;
     }
-    else if(header->object_type == CM_PRINT_OBJECT_TYPE_SCALAR)
+    else if(header->objectType == CM_PRINT_OBJECT_TYPE_SCALAR)
     {
         char tkn[PRINT_FORMAT_STRING_SIZE];
         PRINT_FMT_STATUS status = GetNextFmtToken(tkn, PRINT_FORMAT_STRING_SIZE);
         if (status == PF_SUCCESS)
         {
-            if (!outputToken(tkn, header)) 
+            if (!outputToken(tkn, header))
             {
                 // Something has gone wrong
                 // Reset multi-arg at least
@@ -890,11 +888,8 @@ void PFParser::DumpMemory(unsigned char * memory)
     }
 }
 
-void DumpAllThreadOutput(FILE *streamout, unsigned char * DumpMem, size_t buffersize)
+void DumpAllThreadOutput(FILE *streamout, unsigned char * dumpMem, size_t buffersize)
 {
-
-
-    unsigned int offset_from_header =   0;
     unsigned int off                =   PRINT_BUFFER_HEADER_SIZE;
     PFParser     pState(streamout);
 
@@ -902,17 +897,17 @@ void DumpAllThreadOutput(FILE *streamout, unsigned char * DumpMem, size_t buffer
     {
         if((off + PRINT_HEADER_SIZE) >= buffersize)
             break;
-        
-        if(off >= (*(unsigned int *)DumpMem))
+
+        if(off >= (*(unsigned int *)dumpMem))
             break;
 
-        offset_from_header = CalcSizeFromHeader(DumpMem + off);
-        if( (off + offset_from_header) >= buffersize )
+        unsigned int offsetFromHeader = CalcSizeFromHeader(dumpMem + off);
+        if( (off + offsetFromHeader) >= buffersize )
             break;
 
-        pState.DumpMemory(DumpMem + off);
+        pState.DumpMemory(dumpMem + off);
 
-        off += offset_from_header;
+        off += offsetFromHeader;
     }
 
     // Flush any remaining characters in the format buffer

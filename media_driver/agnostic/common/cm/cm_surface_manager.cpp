@@ -20,16 +20,16 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_manager.cpp  
-//! \brief     Contains Class CmSurfaceManager  definitions  
+//! \file      cm_surface_manager.cpp 
+//! \brief     Contains Class CmSurfaceManager  definitions 
 //!
 
 #include "cm_surface_manager.h"
 
 #include "cm_debug.h"
-#include "cm_hal.h"
 #include "cm_queue_rt.h"
 #include "cm_buffer_rt.h"
+#include "cm_mem.h"
 #include "cm_state_buffer.h"
 #include "cm_surface_2d_up_rt.h"
 #include "cm_surface_2d_rt.h"
@@ -38,28 +38,24 @@
 #include "cm_surface_sampler.h"
 #include "cm_surface_sampler8x8.h"
 #include "cm_device_rt.h"
+#include "cm_execution_adv.h"
 
+namespace CMRT_UMD
+{
 int32_t CmSurfaceManager::UpdateStateForDelayedDestroy(SURFACE_DESTROY_KIND destroyKind, uint32_t index)
 {
     switch (destroyKind)
     {
         case DELAYED_DESTROY:
-        case GC_DESTROY:
-            if (m_surfaceCached[index])
-            {
-                return CM_SURFACE_CACHED;
-            }
-            
-            if (!m_surfaceReleased[index] ||
-                m_surfaceStates[index])
+            if (!m_surfaceArray[index]->CanBeDestroyed())
             {
                 return CM_SURFACE_IN_USE;
             }
             break;
 
         case APP_DESTROY:
-            m_surfaceReleased[index] = true;
-            if (m_surfaceStates[index])
+            m_surfaceArray[index]->DelayDestroy();
+            if (!m_surfaceArray[index]->CanBeDestroyed())
             {
                 return CM_SURFACE_IN_USE;
             }
@@ -69,61 +65,16 @@ int32_t CmSurfaceManager::UpdateStateForDelayedDestroy(SURFACE_DESTROY_KIND dest
             CM_ASSERTMESSAGE("Error: Invalid surface destroy kind.");
             return CM_FAILURE;
     }
-    
-    return CM_SUCCESS;
-}
-            
-int32_t CmSurfaceManager:: UpdateStateForReuseDestroy(SURFACE_DESTROY_KIND destroyKind, uint32_t index)
-{
-    switch (destroyKind)
-    {
-        case DELAYED_DESTROY:
-            if (m_surfaceCached[index])
-            {
-                return CM_SURFACE_CACHED;
-            }
-            
-            if (!m_surfaceReleased[index] ||
-                m_surfaceStates[index])
-            {
-                return CM_SURFACE_IN_USE;
-            }
-            break;
 
-        case APP_DESTROY:
-            m_surfaceReleased[index] = true;
-            
-            if (m_surfaceReleased[index] && 
-                  !m_surfaceCached[index])
-            {
-                m_surfaceCached[index] = true;
-            }
-            return CM_SURFACE_CACHED;
-
-        case GC_DESTROY:
-            if (!m_surfaceReleased[index] ||
-                m_surfaceStates[index])
-            {
-                return CM_SURFACE_IN_USE;
-            }
-            break;
-
-        default:
-            CM_ASSERTMESSAGE("Error: Invalid surface destroy kind.");
-            return CM_FAILURE;
-    }
-    
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceManager::UpdateStateForRealDestroy(uint32_t index, CM_ENUM_CLASS_TYPE surfaceType)
 {
-    m_surfaceReleased[index] = false;
-    m_surfaceCached[index] = false;
     m_surfaceArray[index] = nullptr;
-    m_surfaceDestroyId[index] ++;
+
     m_surfaceSizes[index] = 0;
-    
+
     switch (surfaceType)
     {
     case CM_ENUM_CLASS_TYPE_CMBUFFER_RT:
@@ -132,7 +83,7 @@ int32_t CmSurfaceManager::UpdateStateForRealDestroy(uint32_t index, CM_ENUM_CLAS
     case CM_ENUM_CLASS_TYPE_CMSURFACE2D:
         m_2DSurfaceCount--;
         break;
-    case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP: 
+    case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
         m_2DUPSurfaceCount--;
         break;
     case CM_ENUM_CLASS_TYPE_CMSURFACE3D:
@@ -146,23 +97,15 @@ int32_t CmSurfaceManager::UpdateStateForRealDestroy(uint32_t index, CM_ENUM_CLAS
         CM_ASSERTMESSAGE("Error: Invalid surface type.");
         break;
     }
-    
-    return CM_SUCCESS;
-}
-
-int32_t CmSurfaceManager::UpdateStateForSurfaceReuse(uint32_t index)
-{
-    m_surfaceCached[index] = false;
-    m_surfaceReleased[index] = false;
 
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceManager::UpdateProfileFor2DSurface(uint32_t index, uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, bool reuse)
+int32_t CmSurfaceManager::UpdateProfileFor2DSurface(uint32_t index, uint32_t width, uint32_t height, CM_SURFACE_FORMAT format)
 {
     uint32_t size = 0;
     uint32_t sizeperpixel = 1;
-     
+
     int32_t hr = GetFormatSize(format, sizeperpixel);
     if (hr != CM_SUCCESS)
     {
@@ -170,42 +113,28 @@ int32_t CmSurfaceManager::UpdateProfileFor2DSurface(uint32_t index, uint32_t wid
         return  hr;
     }
     size = width * height * sizeperpixel;
-    
+
     m_2DSurfaceAllCount++;
     m_2DSurfaceAllSize += size;
-    if (reuse)
-    {
-        m_2DSurfaceReuseCount++;
-        m_2DSurfaceReuseSize += size;
-    }
-    else
-    {
-        m_2DSurfaceCount ++;        
-        m_surfaceSizes[index] = size;
-    }
+
+    m_2DSurfaceCount ++;
+    m_surfaceSizes[index] = size;
 
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceManager::UpdateProfileFor1DSurface(uint32_t index, uint32_t size, bool reuse)
+int32_t CmSurfaceManager::UpdateProfileFor1DSurface(uint32_t index, uint32_t size)
 {
     m_bufferAllCount++;
     m_bufferAllSize += size;
-    if (reuse)
-    {
-        m_bufferReuseSize += size;
-        m_bufferReuseCount++;
-    }
-    else
-    {
-        m_bufferCount++;
-        m_surfaceSizes[index] = size;
-    }
-    
+
+    m_bufferCount++;
+    m_surfaceSizes[index] = size;
+
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceManager::UpdateProfileFor3DSurface(uint32_t index, uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format, bool reuse)
+int32_t CmSurfaceManager::UpdateProfileFor3DSurface(uint32_t index, uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format)
 {
     uint32_t size = 0;
     uint32_t sizeperpixel = 1;
@@ -220,25 +149,17 @@ int32_t CmSurfaceManager::UpdateProfileFor3DSurface(uint32_t index, uint32_t wid
 
     m_3DSurfaceAllCount++;
     m_3DSurfaceAllSize += size;
-    
-    if (reuse)
-    {
-        m_3DSurfaceReuseCount++;
-        m_3DSurfaceReuseSize += size;
-    }
-    else
-    {
-        m_3DSurfaceCount ++;        
-        m_surfaceSizes[index] = size;
-    }
+
+    m_3DSurfaceCount ++;
+    m_surfaceSizes[index] = size;
 
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Surface Manager 
+//| Purpose:    Create Surface Manager
 //| Arguments :
-//|               device         [in]       Pointer to Cm Device 
+//|               device         [in]       Pointer to Cm Device
 //|               halMaxValues      [in]       Cm Max values
 //|               surfaceManager          [out]      Reference to pointer to CmSurfaceManager
 //|
@@ -293,10 +214,6 @@ CmSurfaceManager::CmSurfaceManager( CmDeviceRT* device):
     m_device( device ),
     m_surfaceArraySize( 0 ),
     m_surfaceArray( nullptr ),
-    m_surfaceStates(nullptr),
-    m_surfaceCached(nullptr),
-    m_surfaceReleased(nullptr),
-    m_surfaceDestroyId(nullptr),
     m_surfaceSizes(nullptr),
     m_maxBufferCount(0),
     m_bufferCount(0),
@@ -312,16 +229,15 @@ CmSurfaceManager::CmSurfaceManager( CmDeviceRT* device):
     m_bufferAllSize(0),
     m_2DSurfaceAllSize(0),
     m_3DSurfaceAllSize(0),
-    m_bufferReuseCount(0),
-    m_2DSurfaceReuseCount(0),
-    m_3DSurfaceReuseCount(0),
-    m_bufferReuseSize(0),
-    m_2DSurfaceReuseSize(0),
-    m_3DSurfaceReuseSize(0),
     m_garbageCollectionTriggerTimes(0),
     m_garbageCollection1DSize(0),
     m_garbageCollection2DSize(0),
-    m_garbageCollection3DSize(0)
+    m_garbageCollection3DSize(0),
+    m_latestRenderTracker(nullptr),
+    m_latestFastTracker(nullptr),
+    m_latestVeboxTracker(nullptr),
+    m_delayDestroyHead(nullptr),
+    m_delayDestroyTail(nullptr)
 {
     GetSurfaceBTIInfo();
 };
@@ -332,7 +248,7 @@ CmSurfaceManager::CmSurfaceManager( CmDeviceRT* device):
 //*-----------------------------------------------------------------------------
 CmSurfaceManager::~CmSurfaceManager()
 {
-    for( uint32_t i = ValidSurfaceIndexStart(); i < m_surfaceArraySize; i ++) 
+    for( uint32_t i = ValidSurfaceIndexStart(); i < m_surfaceArraySize; i ++)
     {
         DestroySurfaceArrayElement(i);
     }
@@ -343,10 +259,6 @@ CmSurfaceManager::~CmSurfaceManager()
     printf("Total %d 2D surfaces, with size: %d\n", m_2DSurfaceAllCount, m_2DSurfaceAllSize);
     printf("Total %d 3D surfaces, with size: %d\n", m_3DSurfaceAllCount, m_3DSurfaceAllSize);
 
-    printf("\nReused %d 1D buffers, with size: %d\n", m_bufferReuseCount, m_bufferReuseSize);
-    printf("Reused %d 2D surfaces, with size: %d\n", m_2DSurfaceReuseCount, m_2DSurfaceReuseSize);
-    printf("Reused %d 3D surfaces, with size: %d\n", m_3DSurfaceReuseCount, m_3DSurfaceReuseSize);
-
     printf("\nGarbage Collection trigger times: %d\n", m_garbageCollectionTriggerTimes);
     printf("Garbage collection 1D surface size: %d\n", m_garbageCollection1DSize);
     printf("Garbage collection 2D surface size: %d\n", m_garbageCollection2DSize);
@@ -355,10 +267,6 @@ CmSurfaceManager::~CmSurfaceManager()
     printf("\n\n");
 #endif
 
-    MosSafeDeleteArray(m_surfaceStates);
-    MosSafeDeleteArray(m_surfaceCached);
-    MosSafeDeleteArray(m_surfaceReleased);
-    MosSafeDeleteArray(m_surfaceDestroyId);
     MosSafeDeleteArray(m_surfaceSizes);
     MosSafeDeleteArray(m_surfaceArray);
 }
@@ -369,91 +277,91 @@ CmSurfaceManager::~CmSurfaceManager()
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceManager::DestroySurfaceArrayElement( uint32_t index )
 {
-    uint32_t i = index; 
+    uint32_t i = index;
 
     if (i >=  m_surfaceArraySize)
         return CM_FAILURE;
 
-    CmSurface* pSurface = m_surfaceArray[ i ];
+    CmSurface* surface = m_surfaceArray[ i ];
 
-    if( pSurface )
+    if( surface )
     {
-        CmSurface2DRT*   pSurf2D  = nullptr;
-        CmBuffer_RT*   pSurf1D  = nullptr;
-        CmSurface3DRT*   pSurf3D  = nullptr;
-        CmSurfaceVme*  pSurfVme = nullptr;
-        CmSurface2DUPRT* pSurf2DUP = nullptr;
-        CmSurfaceSampler* pSurfaceSampler = nullptr;
-        CmSurfaceSampler8x8* pSurfaceSampler8x8 = nullptr;
-        CmStateBuffer* pStateBuff = nullptr;
+        CmSurface2DRT*   surf2D  = nullptr;
+        CmBuffer_RT*   surf1D  = nullptr;
+        CmSurface3DRT*   surf3D  = nullptr;
+        CmSurfaceVme*  surfVme = nullptr;
+        CmSurface2DUPRT* surf2DUP = nullptr;
+        CmSurfaceSampler* surfaceSampler = nullptr;
+        CmSurfaceSampler8x8* surfaceSampler8x8 = nullptr;
+        CmStateBuffer* stateBuff = nullptr;
 
-        switch (pSurface->Type())
+        switch (surface->Type())
         {
-        case CM_ENUM_CLASS_TYPE_CMSURFACE2D : 
-            pSurf2D = static_cast< CmSurface2DRT* >( pSurface );
-            if (pSurf2D)
+        case CM_ENUM_CLASS_TYPE_CMSURFACE2D :
+            surf2D = static_cast< CmSurface2DRT* >( surface );
+            if (surf2D)
             {
-                DestroySurface( pSurf2D, FORCE_DESTROY);
-            }
-            break; 
-
-        case CM_ENUM_CLASS_TYPE_CMBUFFER_RT : 
-            pSurf1D = static_cast< CmBuffer_RT* >( pSurface );
-            if (pSurf1D)
-            {
-                DestroySurface( pSurf1D, FORCE_DESTROY);
-            }
-            break; 
-
-        case CM_ENUM_CLASS_TYPE_CMSURFACE3D :
-            pSurf3D = static_cast< CmSurface3DRT* >( pSurface );
-            if (pSurf3D)
-            {
-                 DestroySurface( pSurf3D, FORCE_DESTROY);
-            }
-            break; 
-
-        case CM_ENUM_CLASS_TYPE_CMSURFACEVME: 
-            pSurfVme = static_cast< CmSurfaceVme* >( pSurface );
-            if( pSurfVme )
-            {
-                 DestroySurface( pSurfVme );
+                DestroySurface( surf2D, FORCE_DESTROY);
             }
             break;
 
-        case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP: 
-             pSurf2DUP = static_cast< CmSurface2DUPRT* >( pSurface );
-             if( pSurf2DUP )
+        case CM_ENUM_CLASS_TYPE_CMBUFFER_RT :
+            surf1D = static_cast< CmBuffer_RT* >( surface );
+            if (surf1D)
+            {
+                DestroySurface( surf1D, FORCE_DESTROY);
+            }
+            break;
+
+        case CM_ENUM_CLASS_TYPE_CMSURFACE3D :
+            surf3D = static_cast< CmSurface3DRT* >( surface );
+            if (surf3D)
+            {
+                 DestroySurface( surf3D, FORCE_DESTROY);
+            }
+            break;
+
+        case CM_ENUM_CLASS_TYPE_CMSURFACEVME:
+            surfVme = static_cast< CmSurfaceVme* >( surface );
+            if( surfVme )
+            {
+                 DestroySurface( surfVme );
+            }
+            break;
+
+        case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
+             surf2DUP = static_cast< CmSurface2DUPRT* >( surface );
+             if( surf2DUP )
              {
-                  DestroySurface( pSurf2DUP, FORCE_DESTROY );
+                  DestroySurface( surf2DUP, FORCE_DESTROY );
              }
              break;
 
-        case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER: 
-             pSurfaceSampler = static_cast< CmSurfaceSampler* >( pSurface );
-             if ( pSurfaceSampler )
+        case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER:
+             surfaceSampler = static_cast< CmSurfaceSampler* >( surface );
+             if ( surfaceSampler )
              {
-                  DestroySurface( pSurfaceSampler );
+                  DestroySurface( surfaceSampler );
              }
              break;
 
          case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8:
-              pSurfaceSampler8x8 = static_cast< CmSurfaceSampler8x8* >( pSurface );
-              if ( pSurfaceSampler8x8 )
+              surfaceSampler8x8 = static_cast< CmSurfaceSampler8x8* >( surface );
+              if ( surfaceSampler8x8 )
               {
-                   DestroySurface( pSurfaceSampler8x8 );
+                   DestroySurface( surfaceSampler8x8 );
               }
               break;
-            
+
         case CM_ENUM_CLASS_TYPE_CM_STATE_BUFFER:
-            pStateBuff = static_cast< CmStateBuffer* >( pSurface );
-            if ( pStateBuff )
+            stateBuff = static_cast< CmStateBuffer* >( surface );
+            if ( stateBuff )
             {
-                DestroyStateBuffer( pStateBuff, FORCE_DESTROY );
+                DestroyStateBuffer( stateBuff, FORCE_DESTROY );
             }
             break;
-              
-         default: 
+
+         default:
               break;
          }
     }
@@ -468,7 +376,7 @@ int32_t CmSurfaceManager::GetSurfaceArraySize(uint32_t& surfaceArraySize)
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Surface 2D 
+//| Purpose:    Create Surface 2D
 //| Arguments :
 //|               halMaxValues     [in]      HAL max values
 //|               halMaxValuesEx   [in]      Extended HAL max values
@@ -477,36 +385,24 @@ int32_t CmSurfaceManager::GetSurfaceArraySize(uint32_t& surfaceArraySize)
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceManager::Initialize( CM_HAL_MAX_VALUES halMaxValues, CM_HAL_MAX_VALUES_EX halMaxValuesEx )
 {
-    uint32_t totalSurfaceCount = halMaxValues.iMaxBufferTableSize + halMaxValues.iMax2DSurfaceTableSize + halMaxValues.iMax3DSurfaceTableSize + halMaxValuesEx.iMax2DUPSurfaceTableSize;
-    uint32_t totalVirtualSurfaceCount = halMaxValues.iMaxSamplerTableSize + halMaxValuesEx.iMaxSampler8x8TableSize;
+    uint32_t totalSurfaceCount = halMaxValues.maxBufferTableSize + halMaxValues.max2DSurfaceTableSize + halMaxValues.max3DSurfaceTableSize + halMaxValuesEx.max2DUPSurfaceTableSize;
+    uint32_t totalVirtualSurfaceCount = halMaxValues.maxSamplerTableSize + halMaxValuesEx.maxSampler8x8TableSize;
     m_surfaceArraySize = totalSurfaceCount + totalVirtualSurfaceCount;
     m_maxSurfaceIndexAllocated = 0;
 
-    m_maxBufferCount = halMaxValues.iMaxBufferTableSize;
-    m_max2DSurfaceCount = halMaxValues.iMax2DSurfaceTableSize;
-    m_max3DSurfaceCount = halMaxValues.iMax3DSurfaceTableSize;
-    m_max2DUPSurfaceCount = halMaxValuesEx.iMax2DUPSurfaceTableSize;
+    m_maxBufferCount = halMaxValues.maxBufferTableSize;
+    m_max2DSurfaceCount = halMaxValues.max2DSurfaceTableSize;
+    m_max3DSurfaceCount = halMaxValues.max3DSurfaceTableSize;
+    m_max2DUPSurfaceCount = halMaxValuesEx.max2DUPSurfaceTableSize;
 
     typedef CmSurface* PCMSURFACE;
 
     m_surfaceArray      = MOS_NewArray(PCMSURFACE, m_surfaceArraySize);
-    m_surfaceStates      = MOS_NewArray(int32_t, m_surfaceArraySize);
-    m_surfaceCached     = MOS_NewArray(bool, m_surfaceArraySize);
-    m_surfaceReleased   = MOS_NewArray(bool, m_surfaceArraySize);
-    m_surfaceDestroyId  = MOS_NewArray(int32_t, m_surfaceArraySize);
     m_surfaceSizes      = MOS_NewArray(int32_t, m_surfaceArraySize);
 
     if( m_surfaceArray == nullptr ||
-        m_surfaceStates == nullptr ||
-        m_surfaceCached == nullptr ||
-        m_surfaceReleased == nullptr ||
-        m_surfaceDestroyId == nullptr ||
         m_surfaceSizes == nullptr)
     {
-        MosSafeDeleteArray(m_surfaceStates);
-        MosSafeDeleteArray(m_surfaceCached);
-        MosSafeDeleteArray(m_surfaceReleased);
-        MosSafeDeleteArray(m_surfaceDestroyId);
         MosSafeDeleteArray(m_surfaceSizes);
         MosSafeDeleteArray(m_surfaceArray);
 
@@ -515,78 +411,68 @@ int32_t CmSurfaceManager::Initialize( CM_HAL_MAX_VALUES halMaxValues, CM_HAL_MAX
     }
 
     CmSafeMemSet( m_surfaceArray, 0, m_surfaceArraySize * sizeof( CmSurface* ) );
-    CmSafeMemSet( m_surfaceStates, 0, m_surfaceArraySize * sizeof( int32_t ) );
-    CmSafeMemSet( m_surfaceCached, 0, m_surfaceArraySize * sizeof( bool ) );
-    CmSafeMemSet( m_surfaceReleased, 0, m_surfaceArraySize * sizeof( bool ) );
-    CmSafeMemSet( m_surfaceDestroyId, 0, m_surfaceArraySize * sizeof( int32_t ) );
     CmSafeMemSet( m_surfaceSizes, 0, m_surfaceArraySize * sizeof( int32_t ) );
     return CM_SUCCESS;
 }
 
 // Sysmem based surface allocation will always use new surface entry.
-int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFACE_DESTROY_KIND destroyKind)
+int32_t CmSurfaceManager::RefreshDelayDestroySurfaces(uint32_t &freeSurfaceCount)
 {
-    CmSurface*   pSurface = nullptr;
-    CmBuffer_RT*   pSurf1D  = nullptr;
-    CmSurface2DRT*   pSurf2D  = nullptr;
-    CmSurface2DUPRT*   pSurf2DUP = nullptr;
-    CmSurface3DRT*   pSurf3D  = nullptr;
-    CmStateBuffer* pSurfStateBuffer = nullptr;
+    CmSurface*   surface = m_delayDestroyHead;
+    CmBuffer_RT*   surf1D  = nullptr;
+    CmSurface2DRT*   surf2D  = nullptr;
+    CmSurface2DUPRT*   surf2DUP = nullptr;
+    CmSurface3DRT*   surf3D  = nullptr;
+    CmStateBuffer* surfStateBuffer = nullptr;
     int32_t status = CM_FAILURE;
-    uint32_t index = ValidSurfaceIndexStart();
-    
-    freeSurfaceCount = 0;
 
-    while(index <= m_maxSurfaceIndexAllocated )
+    freeSurfaceCount = 0;
+    uint32_t count = 0;
+
+    while(surface != nullptr && count <= m_maxSurfaceIndexAllocated)
     {
-        pSurface  = m_surfaceArray[index];
-        if (!pSurface)
-        {
-            index ++;
-            continue;
-        }
-        
         status = CM_FAILURE;
-        
-        switch (pSurface->Type())
+        CmSurface *next = surface->DelayDestroyNext();
+
+        switch (surface->Type())
         {
         case CM_ENUM_CLASS_TYPE_CMSURFACE2D :
-            pSurf2D = static_cast< CmSurface2DRT* >( pSurface );
-            if (pSurf2D)
+            surf2D = static_cast< CmSurface2DRT* >( surface );
+            if (surf2D)
             {
-                status = DestroySurface( pSurf2D, destroyKind);
+                status = DestroySurface( surf2D, DELAYED_DESTROY);
             }
-            break; 
+            break;
 
-        case CM_ENUM_CLASS_TYPE_CMBUFFER_RT : 
-            pSurf1D = static_cast< CmBuffer_RT* >( pSurface );
-            if (pSurf1D)
+        case CM_ENUM_CLASS_TYPE_CMBUFFER_RT :
+            surf1D = static_cast< CmBuffer_RT* >( surface );
+            if (surf1D)
             {
-                status = DestroySurface( pSurf1D, destroyKind);
+                status = DestroySurface( surf1D, DELAYED_DESTROY);
             }
-            break; 
+            break;
 
         case CM_ENUM_CLASS_TYPE_CMSURFACE3D :
-            pSurf3D = static_cast< CmSurface3DRT* >( pSurface );
-            if (pSurf3D)
+            surf3D = static_cast< CmSurface3DRT* >( surface );
+            if (surf3D)
             {
-                 status = DestroySurface( pSurf3D, destroyKind);
+                 status = DestroySurface( surf3D, DELAYED_DESTROY);
             }
-            break; 
+            break;
 
-        case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP: 
-             pSurf2DUP = static_cast< CmSurface2DUPRT* >( pSurface );
-             if( pSurf2DUP )
+        case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
+             surf2DUP = static_cast< CmSurface2DUPRT* >( surface );
+             if( surf2DUP )
              {
-                  status = DestroySurface( pSurf2DUP, destroyKind );
+                  status = DestroySurface( surf2DUP, DELAYED_DESTROY );
              }
              break;
 
         case CM_ENUM_CLASS_TYPE_CM_STATE_BUFFER:
-            pSurfStateBuffer = static_cast< CmStateBuffer* >( pSurface );
-            if ( pSurfStateBuffer )
+            surfStateBuffer = static_cast< CmStateBuffer* >( surface );
+            if ( surfStateBuffer )
             {
-                status = DestroyStateBuffer( pSurfStateBuffer, destroyKind );
+                status = DestroyStateBuffer( surfStateBuffer, DELAYED_DESTROY );
             }
             break;
 
@@ -595,17 +481,19 @@ int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFA
         case CM_ENUM_CLASS_TYPE_CMSURFACEVME:
             //Do nothing to these kind surfaces
             break;
-        
-         default: 
+
+         default:
              CM_ASSERTMESSAGE("Error: Invalid surface type.");
              break;
         }
-        
+
         if(status == CM_SUCCESS)
         {
             freeSurfaceCount++;
         }
-        index ++;
+
+        surface = next;
+        ++ count;
     }
 
     return CM_SUCCESS;
@@ -615,8 +503,12 @@ int32_t CmSurfaceManager::TouchSurfaceInPoolForDestroy()
 {
     uint32_t freeNum = 0;
     std::vector<CmQueueRT*> &pCmQueue = m_device->GetQueue();
-    
-    DestroySurfaceInPool(freeNum, GC_DESTROY);
+
+    RefreshDelayDestroySurfaces(freeNum);
+    if (pCmQueue.size() == 0)
+    {
+        return freeNum;
+    }
     while (!freeNum)
     {
         CSync *lock = m_device->GetQueueLock();
@@ -626,14 +518,14 @@ int32_t CmSurfaceManager::TouchSurfaceInPoolForDestroy()
             int32_t result = (*iter)->TouchFlushedTasks();
             if (FAILED(result))
             {
-            	CM_ASSERTMESSAGE("Error: Flush tasks to flushed queue failure.");
+                CM_ASSERTMESSAGE("Error: Flush tasks to flushed queue failure.");
                 lock->Release();
                 return result;
             }
         }
         lock->Release();
 
-        DestroySurfaceInPool(freeNum, GC_DESTROY);
+        RefreshDelayDestroySurfaces(freeNum);
     }
 
     m_garbageCollectionTriggerTimes++;
@@ -664,7 +556,7 @@ int32_t CmSurfaceManager::GetFreeSurfaceIndexFromPool(uint32_t &freeIndex)
 int32_t CmSurfaceManager::GetFreeSurfaceIndex(uint32_t &freeIndex)
 {
     uint32_t index = 0;
-    
+
     if (GetFreeSurfaceIndexFromPool(index) != CM_SUCCESS)
     {
         if (!TouchSurfaceInPoolForDestroy())
@@ -682,24 +574,31 @@ int32_t CmSurfaceManager::GetFreeSurfaceIndex(uint32_t &freeIndex)
 
    freeIndex = index;
    m_maxSurfaceIndexAllocated = Max(freeIndex, m_maxSurfaceIndexAllocated);
-   
+
    return CM_SUCCESS;
 }
-
 
 int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizePerPixel)
 {
      switch( format )
     {
+
+        case CM_SURFACE_FORMAT_R32G32B32A32F:
+             sizePerPixel = 16;
+             break;
+
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
+        case CM_SURFACE_FORMAT_D32F_S8X24_UINT:
+        case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:
             sizePerPixel = 8;
             break;
 
         case CM_SURFACE_FORMAT_X8R8G8B8:
         case CM_SURFACE_FORMAT_A8R8G8B8:
         case CM_SURFACE_FORMAT_R32F:
+        case CM_SURFACE_FORMAT_D32F:
         case CM_SURFACE_FORMAT_R10G10B10A2:
         case CM_SURFACE_FORMAT_R32_UINT:
         case CM_SURFACE_FORMAT_R32_SINT:
@@ -709,6 +608,10 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_Y410:
         case CM_SURFACE_FORMAT_Y216:
         case CM_SURFACE_FORMAT_Y210:
+        case CM_SURFACE_FORMAT_D24_UNORM_S8_UINT:
+        case CM_SURFACE_FORMAT_R16G16_SINT:
+        case CM_SURFACE_FORMAT_R24G8_TYPELESS:
+        case CM_SURFACE_FORMAT_R32_TYPELESS:
             sizePerPixel = 4;
             break;
 
@@ -733,6 +636,7 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_IRW3:
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_A8P8:
+        case CM_SURFACE_FORMAT_R16_TYPELESS:
             sizePerPixel = 2;
             break;
 
@@ -752,7 +656,9 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_IA44:
         case CM_SURFACE_FORMAT_AI44:
         case CM_SURFACE_FORMAT_400P:
+        case CM_SURFACE_FORMAT_P208:
         case CM_SURFACE_FORMAT_BUFFER_2D:
+        case CM_SURFACE_FORMAT_R8_UNORM:
             sizePerPixel = 1;
             break;
 
@@ -772,7 +678,7 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
 inline int32_t CmSurfaceManager::GetMemorySizeOfSurfaces()
 {
     uint32_t index = ValidSurfaceIndexStart();
-    uint32_t MemSize = 0;
+    uint32_t memSize = 0;
 
     while( ( index < m_surfaceArraySize ))
     {
@@ -782,191 +688,15 @@ inline int32_t CmSurfaceManager::GetMemorySizeOfSurfaces()
             continue;
         }
 
-        MemSize += m_surfaceSizes[index];
+        memSize += m_surfaceSizes[index];
         index++;
     }
 
-    return MemSize;
-}
-
-
-#define REUSE_SIZE_FACTOR 1.5
-int32_t CmSurfaceManager:: GetReuseSurfaceIndex(uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format)
-{
-    uint32_t index = ValidSurfaceIndexStart();
-    uint32_t s_width = 0;
-    uint32_t s_height = 0;
-    uint32_t s_depth = 0;
-    CM_SURFACE_FORMAT s_format;
-    uint32_t minSize = 0;
-    uint32_t t_index = 0;
-    uint32_t s_sizeperpixel = 0;
-
-    while( index < m_surfaceArraySize )
-    {
-        if (!m_surfaceArray[index])
-        {
-            index ++;
-            continue;
-        }
-    
-        if (m_surfaceCached[index])
-        {
-            CmSurface* pSurface  = m_surfaceArray[index];
-            if (depth) 
-            {
-                CmSurface3DRT* pSurf3D = nullptr;
-                if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE3D ))
-                {
-                    pSurf3D = static_cast< CmSurface3DRT* >( pSurface );
-                }
-
-                if (!pSurf3D)
-                {
-                    index++;
-                    continue;
-                }
-                pSurf3D->GetProperties(s_width, s_height, s_depth, s_format);
-                if (width <= s_width &&
-                      height <= s_height &&
-                      depth <= s_depth &&
-                      s_format == format)
-                {
-                    uint32_t t_size;
-                    t_size = s_width * s_height * s_depth;
-                    if (!minSize || minSize > t_size) //To find out the smallest one
-                    {
-                        minSize = t_size;
-                        t_index = index;
-                    }
-                }
-            }
-            else if (width && height)
-            {
-                CmSurface2DRT* pSurf2D = nullptr;
-                if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2D ))
-                {
-                    pSurf2D = static_cast< CmSurface2DRT* >( pSurface );
-                }
-
-                if (!pSurf2D)
-                {
-                    index++;
-                    continue;
-                }
-                pSurf2D->GetSurfaceDesc(s_width, s_height, s_format, s_sizeperpixel);
-                if (width <= s_width &&
-                     height <= s_height &&
-                     s_format == format &&
-                     (width * s_sizeperpixel % 4 == 0))
-                {
-                     uint32_t t_size;
-                     t_size = s_width * s_height * s_sizeperpixel;
-                     if (!minSize || minSize > t_size)
-                     {
-                         minSize = t_size;
-                         t_index = index;
-                     }
-                }
-            }
-            else if (width && !height)
-            {
-                CmBuffer_RT* pBuffer = nullptr;
-                if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT ))
-                {
-                    pBuffer = static_cast< CmBuffer_RT* >( pSurface );
-                }
-
-                if (!pBuffer)
-                {
-                    index++;
-                    continue;
-                }
-                pBuffer->GetSize(s_width);
-                if (width <= s_width)
-                {
-                    if (!minSize || minSize > s_width) //To find out the smallest one
-                    {
-                        minSize = s_width;
-                        t_index = index;
-                    }
-                }
-            }
-        }
-
-        index++;
-    }
-
-    if (t_index) //Reuse existing
-    {
-        if (minSize >= width * (height == 0 ? 1: height) * (depth == 0 ? 1 : depth) * REUSE_SIZE_FACTOR)
-        {
-            index = 0;
-        }
-        else
-        {
-            index = t_index;
-        }
-    }
-    else
-    {
-        index = 0;
-    }
-
-    return index;
-}
-
-int32_t CmSurfaceManager:: GetSurface2DInPool(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, CmSurface2DRT* &surface2d)
-{
-    uint32_t index = ValidSurfaceIndexStart();
-
-    surface2d = nullptr;
-
-    if (m_2DSurfaceCount >= m_max2DSurfaceCount)
-    {
-        if (!TouchSurfaceInPoolForDestroy())
-        {
-            CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
-            return CM_FAILURE;
-        }
-    }
-
-    if (m_device->IsSurfaceReuseEnabled())
-    {
-        index = GetReuseSurfaceIndex(width, height, 0, format);
-        if (index)
-        {
-            CmSurface* pSurface  = m_surfaceArray[index];
-            if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2D ))
-            {
-                surface2d = static_cast< CmSurface2DRT* >( pSurface );
-            }
-            else
-            {
-                CM_ASSERTMESSAGE("Error: Invalid surface.");
-                return CM_FAILURE;
-            }
-            UpdateSurface2D(surface2d, width, height, format);
-            UpdateStateForSurfaceReuse(index);
-
-            int32_t hr = UpdateProfileFor2DSurface(index, width, height, format, true);
-            if (hr != CM_SUCCESS)
-            {
-                CM_ASSERTMESSAGE("Error: Failed to update profile for surface 2D.");
-                return hr;
-            }
-
-            return CM_SUCCESS;
-        }
-    }
-
-    return CM_FAILURE;
+    return memSize;
 }
 
 // Allocate surface index from surface pool
-// Reuse checking only work for 1D and 3D, 
-// For 2D, GetSurface2dInPool will be used.
-int32_t CmSurfaceManager::AllocateSurfaceIndex(uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format, uint32_t &freeIndex, bool &useNewSurface, void *sysMem)
+int32_t CmSurfaceManager::AllocateSurfaceIndex(uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format, uint32_t &freeIndex, void *sysMem)
 {
     uint32_t index = ValidSurfaceIndexStart();
 
@@ -981,27 +711,12 @@ int32_t CmSurfaceManager::AllocateSurfaceIndex(uint32_t width, uint32_t height, 
         }
     }
 
-    if (m_device->IsSurfaceReuseEnabled() && !sysMem)
-    {
-        index = GetReuseSurfaceIndex(width, height, depth, format);
-        if (index)
-        {
-            useNewSurface = false;
-            freeIndex = index;
-            m_surfaceReleased[index] = false;
-            UpdateStateForSurfaceReuse(index);
-            return CM_SUCCESS;
-        }
-    }
-    
     if (GetFreeSurfaceIndex(index) != CM_SUCCESS)
     {
         return CM_FAILURE;
     }
 
-    useNewSurface = true;
     freeIndex = index;
-    m_surfaceReleased[index] = false;
     m_maxSurfaceIndexAllocated = Max(index, m_maxSurfaceIndexAllocated);
 
     return CM_SUCCESS;
@@ -1032,30 +747,12 @@ int32_t CmSurfaceManager::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type, bool 
     }
     else
     {
-        bool useNewSurface = true;
 
-        if (AllocateSurfaceIndex(size, 0, 0, CM_SURFACE_FORMAT_INVALID, index, useNewSurface, sysMem) != CM_SUCCESS)
+        if (AllocateSurfaceIndex(size, 0, 0, CM_SURFACE_FORMAT_INVALID, index, sysMem) != CM_SUCCESS)
         {
             return CM_EXCEED_SURFACE_AMOUNT;
         }
 
-        if (!useNewSurface)
-        {
-            //Found out a reusable buffer.
-            CmSurface* pSurface  = m_surfaceArray[index];
-            if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT ))
-            {
-                buffer = static_cast< CmBuffer_RT* >( pSurface );
-            }
-            else
-            {
-                return CM_FAILURE;
-            }
-            UpdateBuffer(buffer, size);
-            UpdateProfileFor1DSurface(index, size, true);
-            
-            return CM_SUCCESS;
-        }
     }
 
     if( m_bufferCount >= m_maxBufferCount )
@@ -1065,7 +762,7 @@ int32_t CmSurfaceManager::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type, bool 
     }
 
     uint32_t handle = 0;
-    int32_t result = AllocateBuffer( size, type, handle, mosResource, sysMem );  
+    int32_t result = AllocateBuffer( size, type, handle, mosResource, sysMem );
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Falied to allocate buffer.");
@@ -1081,7 +778,7 @@ int32_t CmSurfaceManager::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type, bool 
     }
 
     m_surfaceArray[ index ] = buffer;
-    UpdateProfileFor1DSurface(index, size, false);
+    UpdateProfileFor1DSurface(index, size);
 
     return CM_SUCCESS;
 }
@@ -1099,45 +796,45 @@ int32_t CmSurfaceManager::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type, bool 
 int32_t CmSurfaceManager::AllocateBuffer(uint32_t size, CM_BUFFER_TYPE type, uint32_t & handle, MOS_RESOURCE * mosResource, void* sysMem )
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
-    MOS_STATUS      mos_status  = MOS_STATUS_SUCCESS;
+    MOS_STATUS      mosStatus  = MOS_STATUS_SUCCESS;
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
     handle = 0;
     CM_HAL_BUFFER_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
-    inParam.iSize = size;
+    inParam.size = size;
 
     inParam.type = type;
 
     if (mosResource)
     {
-        inParam.pMosResource = mosResource;
+        inParam.mosResource = mosResource;
         inParam.isAllocatedbyCmrtUmd = false;
     }
     else
     {
-        inParam.pMosResource = nullptr;
+        inParam.mosResource = nullptr;
         inParam.isAllocatedbyCmrtUmd = true;
     }
     if( sysMem )
     { // For BufferUp/BufferSVM
-        inParam.pData = sysMem;
+        inParam.data = sysMem;
     }
 
-    mos_status = pCmData->pCmHalState->pfnAllocateBuffer(pCmData->pCmHalState, &inParam);
-    while (mos_status == MOS_STATUS_NO_SPACE )
+    mosStatus = cmData->cmHalState->pfnAllocateBuffer(cmData->cmHalState, &inParam);
+    while (mosStatus == MOS_STATUS_NO_SPACE )
     {
         if (!TouchSurfaceInPoolForDestroy())
         {
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateBuffer(pCmData->pCmHalState, &inParam);
+        mosStatus = cmData->cmHalState->pfnAllocateBuffer(cmData->cmHalState, &inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mos_status, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -1151,54 +848,8 @@ int32_t CmSurfaceManager::FreeBuffer( uint32_t handle )
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFreeBuffer(pCmData->pCmHalState, (uint32_t)handle));
-
-finish:
-    return hr;
-}
-
-int32_t CmSurfaceManager::UpdateBuffer( CmBuffer_RT *buffer, uint32_t size)
-{
-    CM_RETURN_CODE  hr          = CM_SUCCESS;
-
-    uint32_t handle = 0;
-    buffer->GetHandle(handle);
-    buffer->SetSize(size);
-
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnUpdateBuffer(pCmData->pCmHalState, (uint32_t)handle, size));
-
-finish:
-    return hr;
-}
-
-int32_t CmSurfaceManager::UpdateSurface2D( CmSurface2DRT* surface, uint32_t width, uint32_t height, CM_SURFACE_FORMAT format)
-{
-    CM_RETURN_CODE  hr          = CM_SUCCESS;
-
-    uint32_t handle = 0;
-    surface->GetHandle(handle);
-    surface->SetSurfaceProperties(width, height, format);
-
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnUpdateSurface2D(pCmData->pCmHalState, (uint32_t)handle, width, height));
-
-finish:
-    return hr;
-}
-
-int32_t CmSurfaceManager::UpdateSurface3D( CmSurface3DRT* surface, uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format)
-{
-    CM_RETURN_CODE  hr          = CM_SUCCESS;
-
-    uint32_t handle = 0;
-    surface->GetHandle(handle);
-    surface->SetProperties(width, height, depth, format);
-
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnUpdateSurface3D(pCmData->pCmHalState, (uint32_t)handle, width, height, depth));
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFreeBuffer(cmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -1232,7 +883,7 @@ int32_t CmSurfaceManager::CreateSurface2DUP(uint32_t width, uint32_t height, CM_
     }
 
     uint32_t handle = 0;
-    int32_t result = AllocateSurface2DUP( width, height, format, sysMem, handle ); 
+    int32_t result = AllocateSurface2DUP( width, height, format, sysMem, handle );
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Falied to allocate surface 2D UP.");
@@ -1276,31 +927,31 @@ int32_t CmSurfaceManager::CreateSurface2DUP(uint32_t width, uint32_t height, CM_
 int32_t CmSurfaceManager::AllocateSurface2DUP(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, void* sysMem, uint32_t & handle)
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
-    MOS_STATUS      mos_status  = MOS_STATUS_SUCCESS;
+    MOS_STATUS      mosStatus  = MOS_STATUS_SUCCESS;
 
     handle = 0;
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
     CM_HAL_SURFACE2D_UP_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_UP_PARAM ) );
-    inParam.iWidth  = width;
-    inParam.iHeight = height;
+    inParam.width  = width;
+    inParam.height = height;
     inParam.format  = format;
-    inParam.pData   = sysMem;
+    inParam.data   = sysMem;
 
-    mos_status = pCmData->pCmHalState->pfnAllocateSurface2DUP(pCmData->pCmHalState,&inParam);
-    while ( mos_status == MOS_STATUS_NO_SPACE )
+    mosStatus = cmData->cmHalState->pfnAllocateSurface2DUP(cmData->cmHalState,&inParam);
+    while ( mosStatus == MOS_STATUS_NO_SPACE )
     {
         if (!TouchSurfaceInPoolForDestroy())
         {
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateSurface2DUP(pCmData->pCmHalState,&inParam);
+        mosStatus = cmData->cmHalState->pfnAllocateSurface2DUP(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mos_status, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -1314,19 +965,19 @@ int32_t CmSurfaceManager::FreeSurface2DUP( uint32_t handle )
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFreeSurface2DUP(pCmData->pCmHalState, (uint32_t)handle));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFreeSurface2DUP(cmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create surface 2d 
+//| Purpose:    Create surface 2d
 //| Arguments :
-//|               width        [in]       width of surface 2d 
-//|               height       [in]       height of surface 2d 
+//|               width        [in]       width of surface 2d
+//|               height       [in]       height of surface 2d
 //|               pitch        [in]       pitch of surface 2d
 //|               format       [in]       format of  surface 2d
 //|               surface   [IN/out]   Reference to CmSurface2D
@@ -1352,36 +1003,9 @@ int32_t CmSurfaceManager::CreateSurface2D(uint32_t width, uint32_t height, uint3
 
     if (createdByCm)
     {
-        bool useNewSurface = true;
-
-        if (AllocateSurfaceIndex(width, height, 0, format, index, useNewSurface, nullptr) != CM_SUCCESS)
+        if (AllocateSurfaceIndex(width, height, 0, format, index, nullptr) != CM_SUCCESS)
         {
             return CM_EXCEED_SURFACE_AMOUNT;
-        }
-
-        if (!useNewSurface)
-        {
-            //Found out a reusable buffer.
-            CmSurface* pSurface  = m_surfaceArray[index];
-            if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2D ))
-            {
-                surface = static_cast< CmSurface2DRT* >( pSurface );
-            }
-            else
-            {
-                return CM_FAILURE;
-            }
-
-            UpdateSurface2D(surface, width, height, format);
-
-            result = UpdateProfileFor2DSurface(index, width, height, format, true);
-            if (result != CM_SUCCESS)
-            {
-                CM_ASSERTMESSAGE("Error: Falied to update profile for surface 2D.");
-                return  result;
-            }
-            
-            return CM_SUCCESS;
         }
     }
     else
@@ -1398,7 +1022,7 @@ int32_t CmSurfaceManager::CreateSurface2D(uint32_t width, uint32_t height, uint3
         return CM_EXCEED_SURFACE_AMOUNT;
     }
 
-    result = AllocateSurface2D( width, height, format, handle, pitch); 
+    result = AllocateSurface2D( width, height, format, handle, pitch);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Falied to allocate surface.");
@@ -1415,7 +1039,7 @@ int32_t CmSurfaceManager::CreateSurface2D(uint32_t width, uint32_t height, uint3
 
     m_surfaceArray[ index ] = surface;
 
-    result = UpdateProfileFor2DSurface(index, width, height, format, false);
+    result = UpdateProfileFor2DSurface(index, width, height, format);
     if (result != CM_SUCCESS)
     {
         FreeSurface2D(handle);
@@ -1423,16 +1047,14 @@ int32_t CmSurfaceManager::CreateSurface2D(uint32_t width, uint32_t height, uint3
         return  result;
     }
 
-
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
-//| Purpose:    Allocate surface 2d 
+//| Purpose:    Allocate surface 2d
 //| Arguments :
-//|               width        [in]       width of surface 2d 
-//|               height       [in]       height of surface 2d 
+//|               width        [in]       width of surface 2d
+//|               height       [in]       height of surface 2d
 //|               format       [in]       format of  surface 2d
 //|               handle       [in/out]   Reference to handle of Surface 2D
 //|               pitch        [in/out]   Reference to pitch of surface 2d
@@ -1442,45 +1064,45 @@ int32_t CmSurfaceManager::CreateSurface2D(uint32_t width, uint32_t height, uint3
 int32_t CmSurfaceManager::AllocateSurface2D(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, uint32_t & handle,uint32_t & pitch)
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
-    MOS_STATUS      mos_status  = MOS_STATUS_SUCCESS;
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    MOS_STATUS      mosStatus  = MOS_STATUS_SUCCESS;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
     CM_HAL_SURFACE2D_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_PARAM ) );
-    inParam.iWidth = width;
-    inParam.iHeight = height;
+    inParam.width = width;
+    inParam.height = height;
     inParam.format = format;
-    inParam.pData  = nullptr;
+    inParam.data  = nullptr;
     inParam.isAllocatedbyCmrtUmd = true;
 
-    mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
-    while (mos_status == MOS_STATUS_NO_SPACE)
+    mosStatus = cmData->cmHalState->pfnAllocateSurface2D(cmData->cmHalState,&inParam);
+    while (mosStatus == MOS_STATUS_NO_SPACE)
     {
         if (!TouchSurfaceInPoolForDestroy())
         {
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
+        mosStatus = cmData->cmHalState->pfnAllocateSurface2D(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mos_status, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
     //Get pitch size for 2D surface
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnGetSurface2DTileYPitch(pCmData->pCmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnGetSurface2DTileYPitch(cmData->cmHalState, &inParam));
 
-    pitch = inParam.iPitch;
+    pitch = inParam.pitch;
 
 finish:
     return hr;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create surface 2d 
+//| Purpose:    Create surface 2d
 //| Arguments :
-//|               width        [in]       width of surface 2d 
-//|               height       [in]       height of surface 2d 
+//|               width        [in]       width of surface 2d
+//|               height       [in]       height of surface 2d
 //|               format       [in]       format of  surface 2d
 //|               mosResource [in]       pointer to mos resource
 //|               handle       [in/out]   Reference to handle of Surface 2D
@@ -1491,31 +1113,31 @@ finish:
 int32_t CmSurfaceManager::AllocateSurface2D( uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, MOS_RESOURCE * mosResource, uint32_t &handle)
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
-    MOS_STATUS      mos_status  = MOS_STATUS_SUCCESS;
+    MOS_STATUS      mosStatus  = MOS_STATUS_SUCCESS;
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
     CM_HAL_SURFACE2D_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_PARAM ) );
-    inParam.iWidth                 = width;
-    inParam.iHeight                = height;
+    inParam.width                  = width;
+    inParam.height                 = height;
     inParam.format                 = format;
-    inParam.pMosResource           = mosResource;
+    inParam.mosResource            = mosResource;
     inParam.isAllocatedbyCmrtUmd   = false;
 
-    mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
-    while (mos_status == MOS_STATUS_NO_SPACE)
+    mosStatus = cmData->cmHalState->pfnAllocateSurface2D(cmData->cmHalState,&inParam);
+    while (mosStatus == MOS_STATUS_NO_SPACE)
     {
         if (!TouchSurfaceInPoolForDestroy())
         {
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
+        mosStatus = cmData->cmHalState->pfnAllocateSurface2D(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mos_status, hr);
-    
-    handle = inParam.dwHandle;
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
+
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -1529,8 +1151,8 @@ int32_t CmSurfaceManager::FreeSurface2D( uint32_t handle )
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFreeSurface2D(pCmData->pCmHalState, handle));
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFreeSurface2D(cmData->cmHalState, handle));
 
 finish:
     return hr;
@@ -1542,20 +1164,14 @@ finish:
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceManager::CreateSampler8x8Surface(CmSurface2DRT* currentSurface, SurfaceIndex* & sampler8x8SurfaceIndex, CM_SAMPLER8x8_SURFACE sampler8x8Type, CM_SURFACE_ADDRESS_CONTROL_MODE addressControl, CM_FLAG* flag)
 {
-    bool useNewSurface = true;
     uint32_t index = ValidSurfaceIndexStart();
-    CmSurfaceSampler8x8* pCmSurfaceSampler8x8 = nullptr;
+    CmSurfaceSampler8x8* cmSurfaceSampler8x8 = nullptr;
     SurfaceIndex * surfCurrent = nullptr;
     uint32_t cmIndex = 0xFFFFFFFF;
 
-    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, useNewSurface, nullptr) != CM_SUCCESS)
+    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, nullptr) != CM_SUCCESS)
     {
         return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    if (!useNewSurface)
-    {
-        return CM_FAILURE;
     }
 
     uint32_t indexFor2D = 0xFFFFFFFF;
@@ -1563,17 +1179,17 @@ int32_t CmSurfaceManager::CreateSampler8x8Surface(CmSurface2DRT* currentSurface,
     currentSurface->GetIndex(surfCurrent);
     cmIndex = surfCurrent->get_data();
 
-    int32_t result = CmSurfaceSampler8x8::Create( index, indexFor2D, cmIndex, this, pCmSurfaceSampler8x8, sampler8x8Type, addressControl, flag);
+    int32_t result = CmSurfaceSampler8x8::Create( index, indexFor2D, cmIndex, this, cmSurfaceSampler8x8, sampler8x8Type, addressControl, flag);
     if ( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Falied to create sampler8x8 surface.");
         return result;
     }
 
-    if(pCmSurfaceSampler8x8)
+    if(cmSurfaceSampler8x8)
     {
-        m_surfaceArray[ index ] = pCmSurfaceSampler8x8; 
-        pCmSurfaceSampler8x8->GetIndex( sampler8x8SurfaceIndex );
+        m_surfaceArray[ index ] = cmSurfaceSampler8x8;
+        cmSurfaceSampler8x8->GetIndex( sampler8x8SurfaceIndex );
         return CM_SUCCESS;
     }
     else
@@ -1593,16 +1209,16 @@ int32_t CmSurfaceManager::DestroySampler8x8Surface(SurfaceIndex* & sampler8x8Sur
     }
 
     uint32_t index = sampler8x8SurfaceIndex->get_data();
-    CmSurface* pSurface = m_surfaceArray[ index ]; 
-    CmSurfaceSampler8x8* pSurfSampler8x8 = nullptr;
-    if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8 ))
+    CmSurface* surface = m_surfaceArray[ index ];
+    CmSurfaceSampler8x8* surfSampler8x8 = nullptr;
+    if (surface && ( surface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8 ))
     {
-        pSurfSampler8x8 = static_cast< CmSurfaceSampler8x8* >( pSurface );
+        surfSampler8x8 = static_cast< CmSurfaceSampler8x8* >( surface );
     }
 
-    if(pSurfSampler8x8)
+    if(surfSampler8x8)
     {
-        int32_t result = DestroySurface( pSurfSampler8x8 );
+        int32_t result = DestroySurface( surfSampler8x8 );
         if( result == CM_SUCCESS )
         {
             sampler8x8SurfaceIndex = nullptr;
@@ -1630,20 +1246,19 @@ int32_t CmSurfaceManager::DestroySurface( CmSurfaceSampler8x8* & sampler8x8Surfa
         return CM_FAILURE;
     }
 
-    SurfaceIndex* pIndex = nullptr;
-    sampler8x8Surface->GetIndex( pIndex );
-    CM_ASSERT( pIndex );
-    uint32_t index = pIndex->get_data();
+    SurfaceIndex* index = nullptr;
+    sampler8x8Surface->GetIndex( index );
+    CM_ASSERT( index );
+    uint32_t indexData = index->get_data();
 
-    CM_ASSERT( m_surfaceArray[ index ] == sampler8x8Surface ); 
+    CM_ASSERT( m_surfaceArray[ indexData ] == sampler8x8Surface );
 
-    UpdateStateForRealDestroy(index, CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8);
+    UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8);
 
-    CmSurface* pSurface = sampler8x8Surface;
-    CmSurface::Destroy( pSurface ) ;
+    CmSurface* surface = sampler8x8Surface;
+    CmSurface::Destroy( surface ) ;
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destroy Vme surface
@@ -1658,21 +1273,21 @@ int32_t CmSurfaceManager::DestroyVmeSurface( SurfaceIndex* & vmeSurfaceIndex )
 
     uint32_t index = vmeSurfaceIndex->get_data();
 
-    CmSurface* pSurface = m_surfaceArray[ index ]; 
-    CmSurfaceVme* pSurfVme = nullptr;
-    if (pSurface && ( pSurface->Type() ==  CM_ENUM_CLASS_TYPE_CMSURFACEVME ))
+    CmSurface* surface = m_surfaceArray[ index ];
+    CmSurfaceVme* surfVme = nullptr;
+    if (surface && ( surface->Type() ==  CM_ENUM_CLASS_TYPE_CMSURFACEVME ))
     {
-        pSurfVme = static_cast< CmSurfaceVme* >( pSurface );
+        surfVme = static_cast< CmSurfaceVme* >( surface );
     }
 
-    if( pSurfVme )
+    if( surfVme )
     {
-        int32_t result = DestroySurface( pSurfVme);
+        int32_t result = DestroySurface( surfVme);
         if( result == CM_SUCCESS )
         {
             vmeSurfaceIndex = nullptr;
         }
-		return result;
+        return result;
     }
     else
     {
@@ -1681,24 +1296,18 @@ int32_t CmSurfaceManager::DestroyVmeSurface( SurfaceIndex* & vmeSurfaceIndex )
 }
 
 int32_t CmSurfaceManager::CreateVmeSurface( CmSurface2DRT* currentSurface,
-                                        CmSurface2DRT** forwardSurfaceArray, 
+                                        CmSurface2DRT** forwardSurfaceArray,
                                         CmSurface2DRT** backwardSurfaceArray,
-                                        const uint32_t surfaceCountForward, 
+                                        const uint32_t surfaceCountForward,
                                         const uint32_t surfaceCountBackward,
                                         SurfaceIndex* & vmeSurfaceIndex )
 {
-    bool useNewSurface = true;
     uint32_t index = ValidSurfaceIndexStart();
-    CmSurfaceVme* pCmSurfaceVme = nullptr;
+    CmSurfaceVme* cmSurfaceVme = nullptr;
 
-    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, useNewSurface, nullptr) != CM_SUCCESS)
+    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, nullptr) != CM_SUCCESS)
     {
         return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    if (!useNewSurface)
-    {
-        return CM_FAILURE;
     }
 
     uint32_t indexFor2DCurrent = CM_INVALID_VME_SURFACE;
@@ -1718,7 +1327,7 @@ int32_t CmSurfaceManager::CreateVmeSurface( CmSurface2DRT* currentSurface,
 
     if( forwardSurfaceArray )
     {
-        
+
         indexFor2DForward = MOS_NewArray(uint32_t, surfaceCountForward);
         indexForward = MOS_NewArray(uint32_t, surfaceCountForward);
 
@@ -1751,7 +1360,7 @@ int32_t CmSurfaceManager::CreateVmeSurface( CmSurface2DRT* currentSurface,
             return CM_OUT_OF_HOST_MEMORY;
         }
 
-        for (uint32_t i = 0; i < surfaceCountBackward; i++) 
+        for (uint32_t i = 0; i < surfaceCountBackward; i++)
         {
             backwardSurfaceArray[i]->GetIndexFor2D( indexFor2DBackward[i]);
             backwardSurfaceArray[i]->GetIndex(surfBackward);
@@ -1759,7 +1368,7 @@ int32_t CmSurfaceManager::CreateVmeSurface( CmSurface2DRT* currentSurface,
         }
     }
 
-    int32_t result = CmSurfaceVme::Create( index, indexFor2DCurrent, indexFor2DForward, indexFor2DBackward, indexCurrent, indexForward, indexBackward, surfaceCountForward, surfaceCountBackward, this, pCmSurfaceVme );
+    int32_t result = CmSurfaceVme::Create( index, indexFor2DCurrent, indexFor2DForward, indexFor2DBackward, indexCurrent, indexForward, indexBackward, surfaceCountForward, surfaceCountBackward, this, cmSurfaceVme );
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Failed to create CmSurfaceVme.");
@@ -1770,13 +1379,12 @@ int32_t CmSurfaceManager::CreateVmeSurface( CmSurface2DRT* currentSurface,
         return result;
     }
 
-    m_surfaceArray[ index ] = pCmSurfaceVme; 
-    pCmSurfaceVme->GetIndex( vmeSurfaceIndex );
+    m_surfaceArray[ index ] = cmSurfaceVme;
+    cmSurfaceVme->GetIndex( vmeSurfaceIndex );
 
     return CM_SUCCESS;
 }
 
-    
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destroy CMBuffer in SurfaceManager
 //| Returns:    Result of the operation.
@@ -1784,18 +1392,14 @@ int32_t CmSurfaceManager::CreateVmeSurface( CmSurface2DRT* currentSurface,
 int32_t CmSurfaceManager::DestroySurface( CmBuffer_RT* & buffer, SURFACE_DESTROY_KIND destroyKind)
 {
     uint32_t handle = 0;
-    void  *pAddress = nullptr;
+    void  *address = nullptr;
     int32_t result =  CM_SUCCESS;
-    
-    if ( !buffer )
-    {
-        return CM_FAILURE;
-    }
-    SurfaceIndex* pIndex = nullptr;
-    buffer->GetIndex( pIndex );
-    CM_ASSERT( pIndex );
-    uint32_t index = pIndex->get_data();
-    CM_ASSERT( m_surfaceArray[ index ] == buffer ); 
+
+    SurfaceIndex* index = nullptr;
+    buffer->GetIndex( index );
+    CM_ASSERT( index );
+    uint32_t indexData = index->get_data();
+    CM_ASSERT( m_surfaceArray[ indexData ] == buffer );
 
     if (destroyKind == FORCE_DESTROY)
     {
@@ -1803,17 +1407,17 @@ int32_t CmSurfaceManager::DestroySurface( CmBuffer_RT* & buffer, SURFACE_DESTROY
     }
     else
     {
-        if(m_device->IsSurfaceReuseEnabled() && !buffer->IsUpSurface())
-        {
-            result = UpdateStateForReuseDestroy(destroyKind, index);
-        }
-        else  //Delayed destroy
-        {
-            result = UpdateStateForDelayedDestroy(destroyKind, index);
-        }
-        
+        //Delayed destroy
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
+        result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
+
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -1831,16 +1435,17 @@ int32_t CmSurfaceManager::DestroySurface( CmBuffer_RT* & buffer, SURFACE_DESTROY
         return result;
     }
 
-    buffer->GetAddress(pAddress);
-    if ((buffer->GetBufferType() == CM_BUFFER_SVM) && pAddress && buffer->IsCMRTAllocatedSVMBuffer()) 
+    buffer->GetAddress(address);
+    if ((buffer->GetBufferType() == CM_BUFFER_SVM) && address && buffer->IsCMRTAllocatedSVMBuffer())
     {
-        MOS_AlignedFreeMemory(pAddress);
+        MOS_AlignedFreeMemory(address);
     }
 
-    CmSurface* pSurface = buffer;
-    CmSurface::Destroy( pSurface ) ;
+    CmSurface* surface = buffer;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
+    CmSurface::Destroy( surface ) ;
 
-    UpdateStateForRealDestroy(index, CM_ENUM_CLASS_TYPE_CMBUFFER_RT);
+    UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMBUFFER_RT);
 
     return CM_SUCCESS;
 }
@@ -1853,29 +1458,29 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DUPRT* & surface2dUP, SURFAC
 {
     uint32_t handle = 0;
     int32_t result = CM_SUCCESS;
-    
-    if ( !surface2dUP  )
-    {
-        return CM_FAILURE;
-    }
 
-    SurfaceIndex* pIndex = nullptr;
-    surface2dUP->GetIndex( pIndex );
-    CM_ASSERT( pIndex );
-    uint32_t index = pIndex->get_data();
+    SurfaceIndex* index = nullptr;
+    surface2dUP->GetIndex( index );
+    CM_ASSERT( index );
+    uint32_t indexData = index->get_data();
 
-    CM_ASSERT( m_surfaceArray[ index ] == surface2dUP ); 
+    CM_ASSERT( m_surfaceArray[ indexData ] == surface2dUP );
 
-    
     if (destroyKind == FORCE_DESTROY)
     {
         surface2dUP->WaitForReferenceFree();
     }
     else
     {
-        result = UpdateStateForDelayedDestroy(destroyKind, index);
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
+        result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -1892,15 +1497,14 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DUPRT* & surface2dUP, SURFAC
         return result;
     }
 
+    CmSurface* surface = surface2dUP;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
+    CmSurface::Destroy( surface ) ;
 
-    CmSurface* pSurface = surface2dUP;
-    CmSurface::Destroy( pSurface ) ;
-
-    UpdateStateForRealDestroy(index, CM_ENUM_CLASS_TYPE_CMSURFACE2DUP);
+    UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACE2DUP);
 
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destroy surface  in SurfaceManager
@@ -1909,13 +1513,13 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DUPRT* & surface2dUP, SURFAC
 int32_t CmSurfaceManager::DestroySurface( CmSurface2DRT* & surface2d,  SURFACE_DESTROY_KIND destroyKind)
 {
     uint32_t handle = 0;
-    SurfaceIndex* pIndex = nullptr;
-    surface2d->GetIndex( pIndex );
-    CM_ASSERT( pIndex );
-    uint32_t index = pIndex->get_data();
+    SurfaceIndex* index = nullptr;
+    surface2d->GetIndex( index );
+    CM_ASSERT( index );
+    uint32_t indexData = index->get_data();
     int32_t result  =  CM_SUCCESS;
-    
-    CM_ASSERT( m_surfaceArray[ index ] == surface2d ); 
+
+    CM_ASSERT( m_surfaceArray[ indexData ] == surface2d );
 
     if (destroyKind == FORCE_DESTROY )
     {
@@ -1924,17 +1528,16 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DRT* & surface2d,  SURFACE_D
     }
     else
     {
-        if(m_device->IsSurfaceReuseEnabled() && surface2d->IsCmCreated())
-        {
-            result = UpdateStateForReuseDestroy(destroyKind, index);
-        }
-        else
-        {
-            result = UpdateStateForDelayedDestroy(destroyKind, index);
-        }
-        
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
+        result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
+
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -1951,10 +1554,11 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DRT* & surface2d,  SURFACE_D
         return result;
     }
 
-    CmSurface* pSurface = surface2d;
-    CmSurface::Destroy( pSurface ) ;
-    
-    UpdateStateForRealDestroy(index, CM_ENUM_CLASS_TYPE_CMSURFACE2D);
+    CmSurface* surface = surface2d;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
+    CmSurface::Destroy( surface ) ;
+
+    UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACE2D);
 
     return CM_SUCCESS;
 }
@@ -1970,17 +1574,17 @@ int32_t CmSurfaceManager::DestroySurface( CmSurfaceVme* & vmeSurface )
         return CM_FAILURE;
     }
 
-    SurfaceIndex* pIndex = nullptr;
-    vmeSurface->GetIndex( pIndex );
-    CM_ASSERT( pIndex );
+    SurfaceIndex* index = nullptr;
+    vmeSurface->GetIndex( index );
+    CM_ASSERT( index );
 
-    uint32_t index = pIndex->get_data();
-    CM_ASSERT( m_surfaceArray[ index ] == vmeSurface );
+    uint32_t indexData = index->get_data();
+    CM_ASSERT( m_surfaceArray[ indexData ] == vmeSurface );
 
-    UpdateStateForRealDestroy(index, CM_ENUM_CLASS_TYPE_CMSURFACEVME);
+    UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACEVME);
 
-    CmSurface* pSurface = vmeSurface;
-    CmSurface::Destroy( pSurface ) ;
+    CmSurface* surface = vmeSurface;
+    CmSurface::Destroy( surface ) ;
 
     return CM_SUCCESS;
 }
@@ -1991,6 +1595,12 @@ int32_t CmSurfaceManager::DestroySurface( CmSurfaceVme* & vmeSurface )
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceManager::GetSurface( const uint32_t index, CmSurface* & surface )
 {
+    if( index == CM_NULL_SURFACE)
+    {
+        surface = nullptr;
+        return CM_FAILURE;
+    }
+
     if( index < m_surfaceArraySize )
     {
         surface = m_surfaceArray[ index ];
@@ -2001,10 +1611,10 @@ int32_t CmSurfaceManager::GetSurface( const uint32_t index, CmSurface* & surface
         surface = m_surfaceArray[(index % m_surfaceArraySize)];
         if (surface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2D)
         {
-            CmSurface2DRT* pSurf2D = nullptr;
+            CmSurface2DRT* surf2D = nullptr;
             uint32_t numAliases = 0;
-            pSurf2D = static_cast< CmSurface2DRT* >(surface);
-            pSurf2D->GetNumAliases(numAliases);
+            surf2D = static_cast< CmSurface2DRT* >(surface);
+            surf2D->GetNumAliases(numAliases);
             if (numAliases == 0)
             {
                 // index was out of bounds and not alias surface
@@ -2014,10 +1624,10 @@ int32_t CmSurfaceManager::GetSurface( const uint32_t index, CmSurface* & surface
         }
         else if (surface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT)
         {
-            CmBuffer_RT* pBufRT = nullptr;
+            CmBuffer_RT* bufferRT = nullptr;
             uint32_t numAliases = 0;
-            pBufRT = static_cast< CmBuffer_RT* >(surface);
-            pBufRT->GetNumAliases(numAliases);
+            bufferRT = static_cast< CmBuffer_RT* >(surface);
+            bufferRT->GetNumAliases(numAliases);
             if (numAliases == 0)
             {
                 // index was out of bounds and not alias surface
@@ -2055,9 +1665,15 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
     updatedHeight = height;
     switch( format )
     {
+        case CM_SURFACE_FORMAT_R32G32B32A32F:
+             sizePerPixel = 16;
+             break;
+
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
+        case CM_SURFACE_FORMAT_D32F_S8X24_UINT:
+        case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:
             sizePerPixel = 8;
             break;
 
@@ -2065,6 +1681,7 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_A8R8G8B8:
         case CM_SURFACE_FORMAT_A8B8G8R8:
         case CM_SURFACE_FORMAT_R32F:
+        case CM_SURFACE_FORMAT_D32F:
         case CM_SURFACE_FORMAT_R32_UINT:
         case CM_SURFACE_FORMAT_R32_SINT:
         case CM_SURFACE_FORMAT_R10G10B10A2:
@@ -2073,6 +1690,10 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_Y410:
         case CM_SURFACE_FORMAT_Y216:
         case CM_SURFACE_FORMAT_Y210:
+        case CM_SURFACE_FORMAT_D24_UNORM_S8_UINT:
+        case CM_SURFACE_FORMAT_R32_TYPELESS:
+        case CM_SURFACE_FORMAT_R24G8_TYPELESS:
+        case CM_SURFACE_FORMAT_R16G16_SINT:
             sizePerPixel = 4;
             break;
 
@@ -2095,13 +1716,14 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_V8U8:
         case CM_SURFACE_FORMAT_A8P8:
+        case CM_SURFACE_FORMAT_R16_TYPELESS:
             sizePerPixel = 2;
             break;
 
         case CM_SURFACE_FORMAT_P016:
         case CM_SURFACE_FORMAT_P010:
             sizePerPixel = 2;
-            updatedHeight += updatedHeight/2; 
+            updatedHeight += updatedHeight/2;
             break;
 
         case CM_SURFACE_FORMAT_A8:
@@ -2113,13 +1735,14 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_AI44:
         case CM_SURFACE_FORMAT_400P:
         case CM_SURFACE_FORMAT_BUFFER_2D:
+        case CM_SURFACE_FORMAT_R8_UNORM:
             sizePerPixel = 1;
             break;
 
         case CM_SURFACE_FORMAT_NV12:            //NV12
             sizePerPixel = 1;
             //To support NV12 format with odd height here.
-            //if original height is even, the UV plane's height is set as updatedHeight/2, which equals to (updatedHeight+1)/2 
+            //if original height is even, the UV plane's height is set as updatedHeight/2, which equals to (updatedHeight+1)/2
             //if original height is odd, the UV plane's height is set as roundup(updatedHeight/2), which equals to (updatedHeight+1)/2 too
             updatedHeight += (updatedHeight + 1) / 2;
             break;
@@ -2188,7 +1811,7 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_RGBP:
         case CM_SURFACE_FORMAT_BGRP:
             sizePerPixel = 1;
-            updatedHeight = height * 3; 
+            updatedHeight = height * 3;
             break;
 
         // 4:2:0 (12-bits per pixel)
@@ -2213,7 +1836,7 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         //|____________|___________|      //|____________|___________|
         case CM_SURFACE_FORMAT_IMC3:
             sizePerPixel = 1;
-            updatedHeight = height * 2; 
+            updatedHeight = height * 2;
             break;
 
         // 4:2:2V (16-bits per pixel)
@@ -2238,14 +1861,17 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         //|________________________|
         case CM_SURFACE_FORMAT_422V:
             sizePerPixel = 1;
-            updatedHeight = height * 2; 
+            updatedHeight = height * 2;
             break;
-
+        case CM_SURFACE_FORMAT_P208:
+            sizePerPixel = 1;
+            updatedHeight = height * 2;
+            break;
         case CM_SURFACE_FORMAT_YV12:
         case CM_SURFACE_FORMAT_411R://411R
         case CM_SURFACE_FORMAT_I420:            //I420
             sizePerPixel = 1;
-            updatedHeight += updatedHeight/2; 
+            updatedHeight += updatedHeight/2;
             break;
 
         default:
@@ -2275,7 +1901,7 @@ int32_t CmSurfaceManager::CreateSurface3D(uint32_t width, uint32_t height, uint3
 
     uint32_t size = 0;
     uint32_t sizeperpixel = 1;
-    bool useNewSurface = true;
+
     uint32_t index = ValidSurfaceIndexStart();
     int32_t result = 0;
     result = GetFormatSize(format, sizeperpixel);
@@ -2287,33 +1913,9 @@ int32_t CmSurfaceManager::CreateSurface3D(uint32_t width, uint32_t height, uint3
     size = width * height * depth * sizeperpixel;
     surface3d = nullptr;
 
-    if (AllocateSurfaceIndex(width, height, depth, format, index, useNewSurface, nullptr) != CM_SUCCESS)
+    if (AllocateSurfaceIndex(width, height, depth, format, index, nullptr) != CM_SUCCESS)
     {
         return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    if (!useNewSurface)
-    {
-        CmSurface* pSurface = m_surfaceArray[ index ]; 
-
-        if (pSurface && ( pSurface->Type() ==  CM_ENUM_CLASS_TYPE_CMSURFACE3D ))
-        {
-            surface3d = static_cast< CmSurface3DRT* >( pSurface );
-        }
-        else
-        {
-            return CM_FAILURE;
-        }
-        UpdateSurface3D(surface3d, width, height, depth, format);
-
-        result = UpdateProfileFor3DSurface(index, width, height, depth, format, true);
-        if (result != CM_SUCCESS)
-        {
-            CM_ASSERTMESSAGE("Error: Failed to update profile for surface 3d.");
-            return  result;
-        }
-        
-        return CM_SUCCESS;
     }
 
     if( m_3DSurfaceCount >= m_max3DSurfaceCount )
@@ -2341,7 +1943,7 @@ int32_t CmSurfaceManager::CreateSurface3D(uint32_t width, uint32_t height, uint3
 
     m_surfaceArray[ index ] = surface3d;
 
-    result = UpdateProfileFor3DSurface(index, width, height, depth, format, false);
+    result = UpdateProfileFor3DSurface(index, width, height, depth, format);
     if (result != CM_SUCCESS)
     {
         Free3DSurface(handle);
@@ -2359,13 +1961,13 @@ int32_t CmSurfaceManager::CreateSurface3D(uint32_t width, uint32_t height, uint3
 int32_t CmSurfaceManager::DestroySurface( CmSurface3DRT* & surface3d, SURFACE_DESTROY_KIND destroyKind)
 {
     uint32_t handle = 0;
-    SurfaceIndex* pIndex = nullptr;
-    surface3d->GetIndex( pIndex );
-    CM_ASSERT( pIndex );
-    uint32_t index = pIndex->get_data();
+    SurfaceIndex* index = nullptr;
+    surface3d->GetIndex( index );
+    CM_ASSERT( index );
+    uint32_t indexData = index->get_data();
     int32_t result = CM_SUCCESS;
-    
-    CM_ASSERT( m_surfaceArray[ index ] == surface3d ); 
+
+    CM_ASSERT( m_surfaceArray[ indexData ] == surface3d );
 
     if (destroyKind == FORCE_DESTROY)
     {
@@ -2373,16 +1975,16 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface3DRT* & surface3d, SURFACE_DE
     }
     else
     {
-        if(m_device->IsSurfaceReuseEnabled())
-        {
-            result = UpdateStateForReuseDestroy(destroyKind, index);
-        }
-        else
-        {
-            result = UpdateStateForDelayedDestroy(destroyKind, index);
-        }
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
+        result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
+
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -2399,10 +2001,11 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface3DRT* & surface3d, SURFACE_DE
         return result;
     }
 
-    CmSurface* pSurface = surface3d;
-    CmSurface::Destroy( pSurface ) ;
-    
-    UpdateStateForRealDestroy(index, CM_ENUM_CLASS_TYPE_CMSURFACE3D);
+    CmSurface* surface = surface3d;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
+    CmSurface::Destroy( surface ) ;
+
+    UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACE3D);
 
     return CM_SUCCESS;
 }
@@ -2414,32 +2017,32 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface3DRT* & surface3d, SURFACE_DE
 int32_t CmSurfaceManager::Allocate3DSurface(uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format, uint32_t & handle )
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
-    MOS_STATUS      mos_status  = MOS_STATUS_SUCCESS;
+    MOS_STATUS      mosStatus  = MOS_STATUS_SUCCESS;
 
     handle = 0;
 
     CM_HAL_3DRESOURCE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_3DRESOURCE_PARAM ) );
-    inParam.iWidth = width;
-    inParam.iHeight = height;
-    inParam.iDepth = depth;
+    inParam.width = width;
+    inParam.height = height;
+    inParam.depth = depth;
     inParam.format = format;
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    mos_status = pCmData->pCmHalState->pfnAllocate3DResource(pCmData->pCmHalState,&inParam);
-    while (mos_status == MOS_STATUS_NO_SPACE)
+    mosStatus = cmData->cmHalState->pfnAllocate3DResource(cmData->cmHalState,&inParam);
+    while (mosStatus == MOS_STATUS_NO_SPACE)
     {
         if (!TouchSurfaceInPoolForDestroy())
         {
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocate3DResource(pCmData->pCmHalState,&inParam);
+        mosStatus = cmData->cmHalState->pfnAllocate3DResource(cmData->cmHalState,&inParam);
     }
-    MOSSTATUS2CM_AND_CHECK(mos_status, hr);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -2453,9 +2056,9 @@ int32_t CmSurfaceManager::Free3DSurface( uint32_t handle )
 {
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFree3DResource(pCmData->pCmHalState, (uint32_t)handle));
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnFree3DResource(cmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -2463,20 +2066,14 @@ finish:
 
 int32_t CmSurfaceManager::CreateSamplerSurface(CmSurface2DRT* currentSurface2d, SurfaceIndex* & samplerSurfaceIndex, CM_FLAG* flag)
 {
-    bool useNewSurface = true;
     uint32_t index = ValidSurfaceIndexStart();
-    CmSurfaceSampler* pCmSurfaceSampler = nullptr;
+    CmSurfaceSampler* cmSurfaceSampler = nullptr;
     SurfaceIndex * surfCurrent = nullptr;
     uint32_t indexForCurrent = 0xFFFFFFFF;
 
-    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, useNewSurface, nullptr) != CM_SUCCESS)
+    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, nullptr) != CM_SUCCESS)
     {
         return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    if (!useNewSurface)
-    {
-        return CM_FAILURE;
     }
 
     uint32_t indexFor2D = 0xFFFFFFFF;
@@ -2485,36 +2082,29 @@ int32_t CmSurfaceManager::CreateSamplerSurface(CmSurface2DRT* currentSurface2d, 
     currentSurface2d->GetIndex(surfCurrent);
     indexForCurrent = surfCurrent->get_data();
 
-
-    int32_t result = CmSurfaceSampler::Create( index, indexFor2D, indexForCurrent, SAMPLER_SURFACE_TYPE_2D, this, pCmSurfaceSampler, flag);
+    int32_t result = CmSurfaceSampler::Create( index, indexFor2D, indexForCurrent, SAMPLER_SURFACE_TYPE_2D, this, cmSurfaceSampler, flag);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Failed to create CM sampler surface.");
         return result;
     }
 
-    m_surfaceArray[ index ] = pCmSurfaceSampler; 
-    pCmSurfaceSampler->GetSurfaceIndex( samplerSurfaceIndex );
+    m_surfaceArray[ index ] = cmSurfaceSampler;
+    cmSurfaceSampler->GetSurfaceIndex( samplerSurfaceIndex );
 
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceManager::CreateSamplerSurface(CmSurface2DUPRT* currentSurface2dUP, SurfaceIndex* & samplerSurfaceIndex)
 {
-    bool useNewSurface = true;
     uint32_t index = ValidSurfaceIndexStart();
-    CmSurfaceSampler* pCmSurfaceSampler = nullptr;
+    CmSurfaceSampler* cmSurfaceSampler = nullptr;
     SurfaceIndex * surfCurrent = nullptr;
     uint32_t indexForCurrent = 0xFFFFFFFF;
 
-    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, useNewSurface, nullptr) != CM_SUCCESS)
+    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, nullptr) != CM_SUCCESS)
     {
         return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    if (!useNewSurface)
-    {
-        return CM_FAILURE;
     }
 
     uint32_t indexFor2D = 0xFFFFFFFF;
@@ -2523,49 +2113,43 @@ int32_t CmSurfaceManager::CreateSamplerSurface(CmSurface2DUPRT* currentSurface2d
     currentSurface2dUP->GetIndex(surfCurrent);
     indexForCurrent = surfCurrent->get_data();
 
-    int32_t result = CmSurfaceSampler::Create( index, indexFor2D, indexForCurrent, SAMPLER_SURFACE_TYPE_2DUP, this, pCmSurfaceSampler, nullptr);
+    int32_t result = CmSurfaceSampler::Create( index, indexFor2D, indexForCurrent, SAMPLER_SURFACE_TYPE_2DUP, this, cmSurfaceSampler, nullptr);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Failed to create CM sampler surface.");
         return result;
     }
 
-    m_surfaceArray[ index ] = pCmSurfaceSampler; 
-    pCmSurfaceSampler->GetSurfaceIndex( samplerSurfaceIndex );
+    m_surfaceArray[ index ] = cmSurfaceSampler;
+    cmSurfaceSampler->GetSurfaceIndex( samplerSurfaceIndex );
 
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceManager::CreateSamplerSurface(CmSurface3DRT* currentSurface3d, SurfaceIndex* & samplerSurfaceIndex)
 {
-    bool useNewSurface = true;
     uint32_t index = ValidSurfaceIndexStart();
-    CmSurfaceSampler* pCmSurfaceSampler = nullptr;
+    CmSurfaceSampler* cmSurfaceSampler = nullptr;
     SurfaceIndex * surfCurrent = nullptr;
     uint32_t indexForCurrent = 0xFFFFFFFF;
 
-    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, useNewSurface, nullptr) != CM_SUCCESS)
+    if (AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID, index, nullptr) != CM_SUCCESS)
     {
         return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    if (!useNewSurface)
-    {
-        return CM_FAILURE;
     }
 
     uint32_t handleFor3D = 0xFFFFFFFF;
     currentSurface3d->GetHandle( handleFor3D );
     currentSurface3d->GetIndex(surfCurrent);
     indexForCurrent = surfCurrent->get_data();
-    int32_t result = CmSurfaceSampler::Create( index, handleFor3D, indexForCurrent, SAMPLER_SURFACE_TYPE_3D, this, pCmSurfaceSampler, nullptr);
+    int32_t result = CmSurfaceSampler::Create( index, handleFor3D, indexForCurrent, SAMPLER_SURFACE_TYPE_3D, this, cmSurfaceSampler, nullptr);
     if( result != CM_SUCCESS )  {
         CM_ASSERTMESSAGE("Error: Failed to create CM sampler surface.");
         return result;
     }
 
-    m_surfaceArray[ index ] = pCmSurfaceSampler; 
-    pCmSurfaceSampler->GetSurfaceIndex( samplerSurfaceIndex );
+    m_surfaceArray[ index ] = cmSurfaceSampler;
+    cmSurfaceSampler->GetSurfaceIndex( samplerSurfaceIndex );
 
     return CM_SUCCESS;
 }
@@ -2577,16 +2161,16 @@ int32_t CmSurfaceManager::DestroySamplerSurface(SurfaceIndex* &samplerSurfaceInd
     }
 
     uint32_t index = samplerSurfaceIndex->get_data();
-    CmSurface* pSurface = m_surfaceArray[ index ]; 
+    CmSurface* surface = m_surfaceArray[ index ];
 
-    CmSurfaceSampler* pSurfSampler = nullptr;
-    if (pSurface && ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER ))
+    CmSurfaceSampler* surfSampler = nullptr;
+    if (surface && ( surface->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER ))
     {
-        pSurfSampler = static_cast< CmSurfaceSampler* >( pSurface );
+        surfSampler = static_cast< CmSurfaceSampler* >( surface );
     }
 
-    if(pSurfSampler)  {
-        int32_t result = DestroySurface( pSurfSampler);
+    if(surfSampler)  {
+        int32_t result = DestroySurface( surfSampler);
         if( result == CM_SUCCESS )
         {
             samplerSurfaceIndex = nullptr;
@@ -2610,17 +2194,17 @@ int32_t CmSurfaceManager::DestroySurface( CmSurfaceSampler* & surfaceSampler )
         return CM_FAILURE;
     }
 
-    SurfaceIndex* pIndex = nullptr;
-    surfaceSampler->GetSurfaceIndex( pIndex );
-    CM_ASSERT( pIndex );
-    uint32_t index = pIndex->get_data();
+    SurfaceIndex* index = nullptr;
+    surfaceSampler->GetSurfaceIndex( index );
+    CM_ASSERT( index );
+    uint32_t indexData = index->get_data();
 
-    CM_ASSERT( m_surfaceArray[ index ] == surfaceSampler ); 
+    CM_ASSERT( m_surfaceArray[ indexData ] == surfaceSampler );
 
-    CmSurface* pSurface = surfaceSampler;
-    CmSurface::Destroy( pSurface ) ;
-    
-    UpdateStateForRealDestroy(index, CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER);
+    CmSurface* surface = surfaceSampler;
+    CmSurface::Destroy( surface ) ;
+
+    UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER);
 
     return CM_SUCCESS;
 }
@@ -2630,31 +2214,19 @@ uint32_t CmSurfaceManager::GetSurfacePoolSize()
     return m_surfaceArraySize;
 }
 
-uint32_t CmSurfaceManager::GetSurfaceState(int32_t * &surfState)
-{
-    surfState =  m_surfaceStates;
-
-    return CM_SUCCESS;
-}
-
-int32_t CmSurfaceManager::GetSurfaceIdInPool(int32_t index)
-{
-    return m_surfaceDestroyId[index]; 
-}
-
 int32_t CmSurfaceManager::UpdateSurface2DTableMosResource( uint32_t index, MOS_RESOURCE * mosResource )
 {
-    PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
 
-    PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[ index ];
-    pEntry->OsResource = *mosResource;
-    HalCm_OsResource_Reference( &pEntry->OsResource );
+    PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
+    entry = &state->umdSurf2DTable[ index ];
+    entry->osResource = *mosResource;
+    HalCm_OsResource_Reference( &entry->osResource );
 
     for ( int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++ )
     {
-        pEntry->bReadSync[ i ] = false;
+        entry->readSyncs[ i ] = false;
     }
     return CM_SUCCESS;
 }
@@ -2682,65 +2254,69 @@ MHW_ROTATION CmRotationToMhwRotation(CM_ROTATION cmRotation)
 
 int32_t CmSurfaceManager::UpdateSurface2DTableRotation(uint32_t index, CM_ROTATION rotationFlag)
 {
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
 
-    PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[index];
-    pEntry->rotationFlag = CmRotationToMhwRotation(rotationFlag);
+    PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
+    entry = &state->umdSurf2DTable[index];
+    entry->rotationFlag = CmRotationToMhwRotation(rotationFlag);
 
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceManager::UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME_TYPE frameType)
 {
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
 
-    PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[index];
-    pEntry->frameType = frameType;
+    PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
+    entry = &state->umdSurf2DTable[index];
+    entry->frameType = frameType;
+    if(state->advExecutor)
+    {
+        state->advExecutor->Set2DFrameType(entry->surfStateMgr, frameType);
+    }
 
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceManager::UpdateSurface2DTableChromaSiting(uint32_t index, int32_t chromaSiting)
 {
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
-    PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[index];
-    pEntry->chromaSiting = chromaSiting;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
+    PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
+    entry = &state->umdSurf2DTable[index];
+    entry->chromaSiting = chromaSiting;
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceManager::GetSurfaceBTIInfo()
 {
-    PCM_HAL_STATE           pCmHalState;
-    pCmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->pCmHalState;
+    PCM_HAL_STATE           cmHalState;
+    cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
 
-    return pCmHalState->pCmHalInterface->GetHwSurfaceBTIInfo(&m_surfaceBTIInfo);
+    return cmHalState->cmHalInterface->GetHwSurfaceBTIInfo(&m_surfaceBTIInfo);
 }
 
 uint32_t CmSurfaceManager::ValidSurfaceIndexStart()
 {
-    return m_surfaceBTIInfo.dwNormalSurfaceStart;
+    return m_surfaceBTIInfo.normalSurfaceStart;
 }
 
 uint32_t CmSurfaceManager::MaxIndirectSurfaceCount()
 {
-    return (m_surfaceBTIInfo.dwNormalSurfaceEnd - 
-            m_surfaceBTIInfo.dwNormalSurfaceStart + 1);
+    return (m_surfaceBTIInfo.normalSurfaceEnd -
+            m_surfaceBTIInfo.normalSurfaceStart + 1);
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    To check if the surface index is CM reserved or not
 //| Returns:    Result of the operation.
-//*----------------------------------------------------------------------------- 
+//*-----------------------------------------------------------------------------
 bool CmSurfaceManager::IsCmReservedSurfaceIndex(uint32_t surfaceBTI)
 {
-    if(surfaceBTI >= m_surfaceBTIInfo.dwReservedSurfaceStart && 
-        surfaceBTI <= m_surfaceBTIInfo.dwReservedSurfaceEnd)
+    if(surfaceBTI >= m_surfaceBTIInfo.reservedSurfaceStart &&
+        surfaceBTI <= m_surfaceBTIInfo.reservedSurfaceEnd)
     {
         return true;
     }
@@ -2754,11 +2330,11 @@ bool CmSurfaceManager::IsCmReservedSurfaceIndex(uint32_t surfaceBTI)
 //*-----------------------------------------------------------------------------
 //| Purpose:    To check if the surface index a normal surface index
 //| Returns:    Result of the operation.
-//*----------------------------------------------------------------------------- 
+//*-----------------------------------------------------------------------------
 bool CmSurfaceManager::IsValidSurfaceIndex(uint32_t surfaceBTI)
 {
-    if(surfaceBTI >= m_surfaceBTIInfo.dwNormalSurfaceStart && 
-       surfaceBTI <= m_surfaceBTIInfo.dwNormalSurfaceEnd)
+    if(surfaceBTI >= m_surfaceBTIInfo.normalSurfaceStart &&
+       surfaceBTI <= m_surfaceBTIInfo.normalSurfaceEnd)
     {
         return true;
     }
@@ -2775,10 +2351,10 @@ int32_t CmSurfaceManager::CreateStateBuffer( CM_STATE_BUFFER_TYPE stateBufferTyp
 
     uint32_t index = ValidSurfaceIndexStart();
     buffer = nullptr;
-    bool useNewSurface = true;
+
     uint32_t handle = 0;
 
-    if ( AllocateSurfaceIndex( size, 0, 0, CM_SURFACE_FORMAT_INVALID, index, useNewSurface, nullptr ) != CM_SUCCESS )
+    if ( AllocateSurfaceIndex( size, 0, 0, CM_SURFACE_FORMAT_INVALID, index, nullptr ) != CM_SUCCESS )
     {
         return CM_EXCEED_SURFACE_AMOUNT;
     }
@@ -2804,7 +2380,7 @@ int32_t CmSurfaceManager::CreateStateBuffer( CM_STATE_BUFFER_TYPE stateBufferTyp
     }
 
     m_surfaceArray[ index ] = buffer;
-    UpdateProfileFor1DSurface( index, size, false );
+    UpdateProfileFor1DSurface( index, size);
 
     switch ( stateBufferType )
     {
@@ -2830,11 +2406,11 @@ int32_t CmSurfaceManager::DestroyStateBuffer( CmStateBuffer *&buffer, SURFACE_DE
     {
         return CM_FAILURE;
     }
-    SurfaceIndex* pIndex = nullptr;
-    buffer->GetIndex( pIndex );
-    CM_ASSERT( pIndex );
-    uint32_t index = pIndex->get_data();
-    CM_ASSERT( m_surfaceArray[ index ] == buffer );
+    SurfaceIndex* index = nullptr;
+    buffer->GetIndex( index );
+    CM_ASSERT( index );
+    uint32_t indexData = index->get_data();
+    CM_ASSERT( m_surfaceArray[ indexData ] == buffer );
 
     if ( destroyKind == FORCE_DESTROY )
     {
@@ -2842,26 +2418,27 @@ int32_t CmSurfaceManager::DestroyStateBuffer( CmStateBuffer *&buffer, SURFACE_DE
     }
     else
     {
-        if ( m_device->IsSurfaceReuseEnabled() && !buffer->IsUpSurface() )
-        {
-            result = UpdateStateForReuseDestroy( destroyKind, index );
-        }
-        else  //Delayed destroy
-        {
-            result = UpdateStateForDelayedDestroy( destroyKind, index );
-        }
+        //Delayed destroy
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
+        result = UpdateStateForDelayedDestroy( destroyKind, indexData );
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
 
         if ( result != CM_SUCCESS )
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
 
     //Destroy surface
-    CmSurface* pSurface = buffer;
-    CmSurface::Destroy( pSurface );
+    CmSurface* surface = buffer;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
+    CmSurface::Destroy( surface );
 
-    UpdateStateForRealDestroy( index, CM_ENUM_CLASS_TYPE_CMBUFFER_RT );
+    UpdateStateForRealDestroy( indexData, CM_ENUM_CLASS_TYPE_CMBUFFER_RT );
 
     return result;
 }
@@ -2871,24 +2448,24 @@ int32_t CMRT_UMD::CmSurfaceManager::CreateMediaStateByCurbeSize( void  *& mediaS
     int32_t result = CM_SUCCESS;
 
     // create media state heap
-    PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
 
     // Max media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
-    RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS Params;
-    Params.iMax8x8Tables = CM_MAX_SAMPLER_8X8_TABLE_SIZE;
-    Params.iMaxCurbeOffset = curbeSize;
-    Params.iMaxCurbeSize = curbeSize;
-    Params.iMaxMediaIDs = CM_MAX_KERNELS_PER_TASK;
-    Params.iMaxSamplerIndex3D = CM_MAX_3D_SAMPLER_SIZE;
-    Params.iMaxSamplerIndexAVS = CM_MAX_SAMPLER_8X8_TABLE_SIZE;
-    Params.iMaxSamplerIndexConv = 0;
-    Params.iMaxSamplerIndexMisc = 0;
-    Params.iMaxSpillSize = CM_MAX_SPILL_SIZE_PER_THREAD_HEVC;
-    Params.iMaxThreads = CM_MAX_USER_THREADS;
+    RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
+    params.iMax8x8Tables = CM_MAX_SAMPLER_8X8_TABLE_SIZE;
+    params.iMaxCurbeOffset = curbeSize;
+    params.iMaxCurbeSize = curbeSize;
+    params.iMaxMediaIDs = CM_MAX_KERNELS_PER_TASK;
+    params.iMaxSamplerIndex3D = CM_MAX_3D_SAMPLER_SIZE;
+    params.iMaxSamplerIndexAVS = CM_MAX_SAMPLER_8X8_TABLE_SIZE;
+    params.iMaxSamplerIndexConv = 0;
+    params.iMaxSamplerIndexMisc = 0;
+    params.iMaxSpillSize = CM_MAX_SPILL_SIZE_PER_THREAD_HEVC;
+    params.iMaxThreads = CM_MAX_USER_THREADS;
 
     // Prepare Media States to accommodate all parameters - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs
-    mediaState = pState->pRenderHal->pfnAssignDynamicState( pState->pRenderHal, &Params, RENDERHAL_COMPONENT_CM );
+    mediaState = state->renderHal->pfnAssignDynamicState( state->renderHal, &params, RENDERHAL_COMPONENT_CM );
 
     return result;
 }
@@ -2914,6 +2491,7 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_L16:
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_R16G16_UNORM:
+        case CM_SURFACE_FORMAT_R16_UNORM:
         case CM_SURFACE_FORMAT_NV12:
         case CM_SURFACE_FORMAT_L8:
         case CM_SURFACE_FORMAT_AYUV:
@@ -2922,6 +2500,7 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_Y210:
         case CM_SURFACE_FORMAT_Y216:
         case CM_SURFACE_FORMAT_P010:
+        case CM_SURFACE_FORMAT_P208:
         case CM_SURFACE_FORMAT_P016:
         case CM_SURFACE_FORMAT_YV12:
         case CM_SURFACE_FORMAT_411P:
@@ -2935,10 +2514,103 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_BGRP:
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_R10G10B10A2:
+        case CM_SURFACE_FORMAT_R8_UNORM:
             return true;
 
         default:
             CM_ASSERTMESSAGE("Error: Unsupported surface format.");
             return false;
     }
+}
+
+int32_t CmSurfaceManager::UpdateBuffer(MOS_RESOURCE * mosResource, int index, uint32_t handle)
+{
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
+
+    MOS_SURFACE mosSurfDetails;
+    MOS_ZeroMemory(&mosSurfDetails, sizeof(mosSurfDetails));
+    int hr = state->osInterface->pfnGetResourceInfo(state->osInterface, mosResource, &mosSurfDetails);
+    if(hr != MOS_STATUS_SUCCESS)
+    {
+        CM_ASSERTMESSAGE("Error: Get resource info failure.");
+        return hr;
+    }
+
+    uint32_t size = mosSurfDetails.dwWidth;
+
+    CM_HAL_BUFFER_PARAM inParam;
+    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
+    inParam.size = size;
+    inParam.handle = handle;
+
+    inParam.type = CM_BUFFER_N;
+    inParam.mosResource = mosResource;
+    inParam.isAllocatedbyCmrtUmd = false;
+
+    state->pfnUpdateBuffer(state, &inParam);
+
+    CmBuffer_RT *buffer = static_cast<CmBuffer_RT*>(m_surfaceArray[index]);
+    int ret = buffer->UpdateProperty(size);
+
+    return ret;
+}
+
+void CmSurfaceManager::AddToDelayDestroyList(CmSurface *surface)
+{
+    CM_ASSERT(surface->DelayDestroyNext() == nullptr); // not added in any list
+    CM_ASSERT(surface->DelayDestroyPrev() == nullptr);
+
+    m_delayDestoryListSync.Acquire();
+    
+    // add to the end of the list
+    if (m_delayDestroyTail == nullptr)
+    {
+        CM_ASSERT(m_delayDestroyHead == nullptr);
+        m_delayDestroyHead = m_delayDestroyTail = surface;
+    }
+    else
+    {
+        m_delayDestroyTail->DelayDestroyNext() = surface;
+        surface->DelayDestroyPrev() = m_delayDestroyTail;
+        m_delayDestroyTail = surface;
+    }
+
+    m_delayDestoryListSync.Release();
+}
+
+void CmSurfaceManager::RemoveFromDelayDestroyList(CmSurface *surface)
+{
+    if (surface->DelayDestroyPrev() == nullptr && (m_delayDestroyHead != surface))
+    {
+        return; // not in the list
+    }
+    if (surface->DelayDestroyNext() == nullptr && (m_delayDestroyTail != surface))
+    {
+        return; // not in the list
+    }
+    m_delayDestoryListSync.Acquire();
+    if (surface->DelayDestroyPrev() == nullptr) // remove the first node
+    {
+        m_delayDestroyHead = surface->DelayDestroyNext();
+    }
+    else
+    {
+        surface->DelayDestroyPrev()->DelayDestroyNext() = surface->DelayDestroyNext();
+    }
+
+    if (surface->DelayDestroyNext() == nullptr) // remove the last node
+    {
+        m_delayDestroyTail = surface->DelayDestroyPrev();
+    }
+    else
+    {
+        surface->DelayDestroyNext()->DelayDestroyPrev() = surface->DelayDestroyPrev();
+    }
+
+    surface->DelayDestroyNext() = surface->DelayDestroyPrev() = nullptr;
+    m_delayDestoryListSync.Release();
+}
+
+
 }

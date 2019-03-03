@@ -27,7 +27,7 @@
 
 #include "codechal_decode_sfc_hevc.h"
 
-MOS_STATUS CODECHAL_HEVC_SFC_STATE::CheckAndInitialize(
+MOS_STATUS CodechalHevcSfcState::CheckAndInitialize(
     PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
     PCODEC_HEVC_PIC_PARAMS              hevcPicParams)
 {
@@ -39,17 +39,17 @@ MOS_STATUS CODECHAL_HEVC_SFC_STATE::CheckAndInitialize(
     {
         if (IsSfcOutputSupported(decProcessingParams,  MhwSfcInterface::SFC_PIPE_MODE_VEBOX))
         {
-            bSfcPipeOut = true;
+            m_sfcPipeOut = true;
 
             // Set the input region as the HCP output frame region
-            dwInputFrameWidth = hevcPicParams->PicWidthInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
-            dwInputFrameHeight = hevcPicParams->PicHeightInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
+            m_inputFrameWidth                                = hevcPicParams->PicWidthInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
+            m_inputFrameHeight                               = hevcPicParams->PicHeightInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
             decProcessingParams->rcInputSurfaceRegion.X = 0;
             decProcessingParams->rcInputSurfaceRegion.Y = 0;
-            decProcessingParams->rcInputSurfaceRegion.Width = dwInputFrameWidth;
-            decProcessingParams->rcInputSurfaceRegion.Height = dwInputFrameHeight;
+            decProcessingParams->rcInputSurfaceRegion.Width  = m_inputFrameWidth;
+            decProcessingParams->rcInputSurfaceRegion.Height = m_inputFrameHeight;
 
-            // SFC Initialization. 
+            // SFC Initialization.
             // Initialize once for most of the resources
             // Destroy them in CodecHalHevc_Destroy()
             CODECHAL_HW_CHK_STATUS_RETURN(Initialize(
@@ -66,7 +66,7 @@ MOS_STATUS CODECHAL_HEVC_SFC_STATE::CheckAndInitialize(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_HEVC_SFC_STATE::UpdateInputInfo(
+MOS_STATUS CodechalHevcSfcState::UpdateInputInfo(
     PMHW_SFC_STATE_PARAMS   sfcStateParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -83,11 +83,11 @@ MOS_STATUS CODECHAL_HEVC_SFC_STATE::UpdateInputInfo(
     // Adjust SFC input surface alignment.
     // As VEBOX doesn't do scaling, input size equals to output size
     // For the VEBOX output to SFC, width is multiple of 16 and height is multiple of 4
-    widthAlignUnit                             = pSfcInterface->m_veWidthAlignment;
-    heightAlignUnit                            = pSfcInterface->m_veHeightAlignment;
+    widthAlignUnit  = m_sfcInterface->m_veWidthAlignment;
+    heightAlignUnit = m_sfcInterface->m_veHeightAlignment;
 
-    sfcStateParams->dwInputFrameWidth          = MOS_ALIGN_CEIL(pInputSurface->dwWidth, widthAlignUnit);
-    sfcStateParams->dwInputFrameHeight         = MOS_ALIGN_CEIL(pInputSurface->dwHeight, heightAlignUnit);
+    sfcStateParams->dwInputFrameWidth  = MOS_ALIGN_CEIL(m_inputSurface->dwWidth, widthAlignUnit);
+    sfcStateParams->dwInputFrameHeight = MOS_ALIGN_CEIL(m_inputSurface->dwHeight, heightAlignUnit);
 
     return eStatus;
 }

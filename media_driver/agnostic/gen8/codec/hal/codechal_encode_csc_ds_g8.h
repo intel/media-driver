@@ -34,8 +34,7 @@ class CodechalEncodeCscDsG8 : public CodechalEncodeCscDs
 public:
     //!
     //! \brief    Constructor
-    //!            
-    CodechalEncodeCscDsG8(PCODECHAL_ENCODER pEncoder);
+    //!
     CodechalEncodeCscDsG8(CodechalEncoderState* encoder);
 
     //!

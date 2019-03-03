@@ -32,17 +32,17 @@
 //!
 //! \struct CodecMpeg2IqMatrix
 //! \brief Inverse Quantization Matrix Buffer
-//! 
+//!
 struct CodecMpeg2IqMatrix
 {
     int32_t m_loadIntraQuantiserMatrix;         //!< Indicate if intra Quantiser Matrix is available
     int32_t m_loadNonIntraQuantiserMatrix;      //!< Indicate if non intra Quantiser Matrix is available
     int32_t m_loadChromaIntraQuantiserMatrix;   //!< Indicate if chroma intra Quantiser Matrix is available
     int32_t m_loadChromaNonIntraQuantiserMatrix;//!< Indicate if chroma non intra Quantiser Matrix is available
-    uint8_t m_intraQuantiserMatrix[64];         //!< Intra Quantiser Matrix 
-    uint8_t m_nonIntraQuantiserMatrix[64];      //!< Non intra Quantiser Matrix   
-    uint8_t m_chromaIntraQuantiserMatrix[64];   //!< Chroma intra Quantiser Matrix 
-    uint8_t m_chromaNonIntraQuantiserMatrix[64];//!< Chroma non intra Quantiser Matrix 
+    uint8_t m_intraQuantiserMatrix[64];         //!< Intra Quantiser Matrix
+    uint8_t m_nonIntraQuantiserMatrix[64];      //!< Non intra Quantiser Matrix
+    uint8_t m_chromaIntraQuantiserMatrix[64];   //!< Chroma intra Quantiser Matrix
+    uint8_t m_chromaNonIntraQuantiserMatrix[64];//!< Chroma non intra Quantiser Matrix
 };
 
 #endif  // __CODEC_DEF_COMMON_MPEG2_H__

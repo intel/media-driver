@@ -77,7 +77,7 @@ struct CodecDecodeJpegPicParams
                                                                         //! 1: rotate clockwise 90 degree,
                                                                         //! 2: rotate counter-clockwise 90 degree (same as rotating 270 degree clockwise)
                                                                         //! 3: rotate 180 degree (NOT the same as flipped on the x-axis)
-                                                                        //!                                  
+                                                                        //!
 
     uint16_t              m_totalScans;                                 //!< total scans
 

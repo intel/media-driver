@@ -33,7 +33,7 @@
 //! 
 //! \file     codechal_vdenc_vp9_g10.h
 //! \brief    VP9 VDENC encoder for GEN10 platform.
-//! 
+//!
 
 #ifndef __CODECHAL_VDENC_VP9_G10_H__
 #define __CODECHAL_VDENC_VP9_G10_H__
@@ -53,7 +53,7 @@ public:
         // DownScaling
         CODECHAL_KERNEL_HEADER PLY_DSCALE;
 
-        // HME 
+        // HME
         CODECHAL_KERNEL_HEADER VP9_ME_P;
 
         // 32x32 I ENC KERNEL
@@ -97,7 +97,7 @@ public:
     bool CheckSupportedFormat(
         PMOS_SURFACE surface);
 
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    MOS_STATUS Initialize(CodechalSetting * settings);
 
     //!
     //! \brief    Gets the kernel header/size from the kernel descriptor table

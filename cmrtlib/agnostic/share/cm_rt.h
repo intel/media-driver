@@ -132,7 +132,6 @@
 #define CM_NO_EVENT  ((CmEvent *)(-1))  //NO Event
 
 // Cm Device Create Option
-#define CM_DEVICE_CREATE_OPTION_DEFAULT                     0
 #define CM_DEVICE_CREATE_OPTION_SCRATCH_SPACE_DISABLE       1
 #define CM_DEVICE_CREATE_OPTION_TDR_DISABLE                 64
 
@@ -143,6 +142,10 @@
 #define CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_DISENABLE         (1 << CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_OFFSET)    
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET                  23
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_ENABLE               (1 << CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET)
+#define CM_DEVICE_CONFIG_FAST_PATH_OFFSET                  30
+#define CM_DEVICE_CONFIG_FAST_PATH_ENABLE                  (1 << CM_DEVICE_CONFIG_FAST_PATH_OFFSET)
+
+#define CM_DEVICE_CREATE_OPTION_DEFAULT                    CM_DEVICE_CONFIG_FAST_PATH_ENABLE
 
 #define CM_MAX_DEPENDENCY_COUNT         8
 #define CM_NUM_DWORD_FOR_MW_PARAM       16
@@ -307,7 +310,9 @@ typedef enum _CM_STATUS
     CM_STATUS_QUEUED         = 0,
     CM_STATUS_FLUSHED        = 1,
     CM_STATUS_FINISHED       = 2,
-    CM_STATUS_STARTED        = 3
+    CM_STATUS_STARTED        = 3,
+    CM_STATUS_RESET          = 4
+
 } CM_STATUS;
 
 typedef enum _CM_PIXEL_TYPE
@@ -330,6 +335,7 @@ enum GPU_PLATFORM{
     PLATFORM_INTEL_CNL         = 9,
     PLATFORM_INTEL_KBL         = 11,
     PLATFORM_INTEL_GLK         = 16,
+    PLATFORM_INTEL_CFL         = 17,
 };
 
 enum GPU_GT_PLATFORM{
@@ -385,8 +391,8 @@ typedef enum _CM_DEPENDENCY_PATTERN
     CM_NONE_DEPENDENCY          = 0,    //All threads run parallel, scanline dispatch
     CM_WAVEFRONT                = 1,
     CM_WAVEFRONT26              = 2,
-    CM_VERTICAL_WAVE			= 3,
-    CM_HORIZONTAL_WAVE			= 4,
+    CM_VERTICAL_WAVE            = 3,
+    CM_HORIZONTAL_WAVE          = 4,
     CM_WAVEFRONT26Z             = 5,
     CM_WAVEFRONT26X             = 6,
     CM_WAVEFRONT26ZIG           = 7,
@@ -554,8 +560,13 @@ enum CM_QUEUE_TYPE
 {
     CM_QUEUE_TYPE_NONE = 0,
     CM_QUEUE_TYPE_RENDER = 1,
-    CM_QUEUE_TYPE_COMPUTE = 2,
-    CM_QUEUE_TYPE_VEBOX = 3
+    CM_QUEUE_TYPE_COMPUTE = 2
+};
+
+enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
+{
+    CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
+    CM_QUEUE_SSEU_USAGE_HINT_VME     = 1
 };
 
 //**********************************************************************
@@ -1147,11 +1158,23 @@ struct CM_FLAG {
 };
 
 struct _CM_TASK_CONFIG {
-    uint32_t turboBoostFlag;        //CM_TURBO_BOOST_DISABLE----disabled, CM_TURBO_BOOST_ENABLE--------enabled.
+    bool     turboBoostFlag     : 1;
+    uint32_t reserved_bits      :31;
     uint32_t reserved0;
     uint32_t reserved1;
     uint32_t reserved2;
 };
+
+typedef enum _CM_KERNEL_EXEC_MODE {
+    CM_KERNEL_EXECUTION_MODE_MONOPOLIZED =  0, // Kernel can occupy all DSS for execution */
+    CM_KERNEL_EXECUTION_MODE_CONCURRENT,       // Kernel can occupy part of DSS  and concurrently execute together with other workloads.
+} CM_KERNEL_EXEC_MODE;
+
+struct CM_EXECUTION_CONFIG {
+    CM_KERNEL_EXEC_MODE kernelExecutionMode = CM_KERNEL_EXECUTION_MODE_MONOPOLIZED;
+    int                 concurrentPolicy    = 0; // Reserve for future extension.
+};
+
 #define CM_TASK_CONFIG _CM_TASK_CONFIG
 
 // parameters used to set the surface state of the buffer
@@ -1181,14 +1204,18 @@ typedef struct _CM_SURFACE2D_STATE_PARAM
     UINT reserved[4]; // for future usage
 } CM_SURFACE2D_STATE_PARAM;
 
-struct CM_QUEUE_CREATE_OPTION
+struct _CM_QUEUE_CREATE_OPTION
 {
-    CM_QUEUE_TYPE QueueType : 3;
-    bool RunAloneMode       : 1;
-    unsigned int Reserved0  : 4;
-    unsigned int Reserved1  : 8;
-    unsigned int Reserved2  : 16;
+    CM_QUEUE_TYPE                 QueueType               : 3;
+    bool                          RAMode                  : 1;
+    unsigned int                  Reserved0               : 3;
+    bool                          UserGPUContext          : 1; // Is the user-provided GPU Context already created externally
+    unsigned int                  GPUContext              : 8; // user-provided GPU Context ordinal
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint           : 3;
+    unsigned int                  Reserved1               : 1;
+    unsigned int                  Reserved2               : 12;
 };
+#define CM_QUEUE_CREATE_OPTION _CM_QUEUE_CREATE_OPTION
 
 typedef enum _CM_CONDITIONAL_END_OPERATOR_CODE {
     MAD_GREATER_THAN_IDD = 0,
@@ -1207,14 +1234,8 @@ struct CM_CONDITIONAL_END_PARAM {
 };
 
 //**********************************************************************
-// Constants
+// Classes forward declarations
 //**********************************************************************
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0x0, 0x0, 0x0 };
-
-//**********************************************************************
-// Classes
-//**********************************************************************
-// forward declarations
 class CmSampler8x8;
 class CmEvent;
 class CmThreadGroupSpace;
@@ -1233,12 +1254,26 @@ class CmVebox;
 class CmQueue;
 class SurfaceIndex;
 class SamplerIndex;
-class VmeIndex; // will be removed in API refreshment
 
+//**********************************************************************
+// Extended definitions if any
+//**********************************************************************
+#include "cm_rt_extension.h"
+
+//**********************************************************************
+// Constants
+//**********************************************************************
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0, 0 };
+
+//**********************************************************************
+// Classes
+//**********************************************************************
 class CmSampler8x8
 {
 public:
     CM_RT_API virtual INT GetIndex( SamplerIndex* & pIndex ) = 0 ;
+protected:
+    ~CmSampler8x8(){};
 };
 
 class CmEvent
@@ -1250,6 +1285,8 @@ public:
     CM_RT_API virtual INT GetSurfaceDetails( UINT kernIndex, UINT surfBTI,CM_SURFACE_DETAILS& outDetails )=0;
     CM_RT_API virtual INT GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType, size_t paramSize, PVOID pInputValue, PVOID pValue) = 0;
     CM_RT_API virtual INT GetExecutionTickTime(UINT64& ticks) = 0;
+protected:
+   ~CmEvent(){};
 };
 
 class CmKernel
@@ -1267,6 +1304,8 @@ public:
     CM_RT_API virtual INT DeAssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
     CM_RT_API virtual INT QuerySpillSize(unsigned int &spillSize) = 0;
     CM_RT_API virtual INT GetIndexForCurbeData( UINT curbe_data_size, SurfaceIndex *pSurface ) = 0;
+protected:
+   ~CmKernel(){};
 };
 
 class CmTask
@@ -1277,7 +1316,10 @@ public:
     CM_RT_API virtual INT AddSync(void) = 0;
     CM_RT_API virtual INT SetPowerOption( PCM_POWER_OPTION pCmPowerOption ) = 0;
     CM_RT_API virtual INT AddConditionalEnd(SurfaceIndex* pSurface, UINT offset, CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
-    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0; 
+    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;
+    CM_RT_API virtual INT AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
+protected:
+   ~CmTask(){};
 }; 
 
 class CmBuffer
@@ -1289,6 +1331,8 @@ public:
     CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent) = 0;
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
     CM_RT_API virtual INT SetSurfaceStateParam(SurfaceIndex *pSurfIndex, const CM_BUFFER_STATE_PARAM *pSSParam) = 0;
+protected:
+   ~CmBuffer(){};
 };
 
 class CmBufferUP
@@ -1296,6 +1340,8 @@ class CmBufferUP
 public:
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
+protected:
+   ~CmBufferUP(){};
 };
 
 class CmBufferSVM
@@ -1303,17 +1349,21 @@ class CmBufferSVM
 public:
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
     CM_RT_API virtual INT GetAddress( void * &pAddr) = 0;
+protected:
+    ~CmBufferSVM(){};
 };
 
-class CmSurface2DUP  
+class CmSurface2DUP
 {
 public:    
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
     CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0; 
+protected:
+    ~CmSurface2DUP(){};
 };
 
-class CmSurface3D  
+class CmSurface3D
 {
 public:    
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
@@ -1321,12 +1371,16 @@ public:
     CM_RT_API virtual INT WriteSurface( const unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent) = 0;
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
+protected:
+   ~CmSurface3D(){};
 };
 
 class CmSampler
 {
 public:
     CM_RT_API virtual INT GetIndex( SamplerIndex* & pIndex ) = 0 ;
+protected:
+    ~CmSampler(){};
 };
 
 class CmThreadSpace
@@ -1343,6 +1397,8 @@ public:
     CM_RT_API virtual INT SelectMediaWalkingParameters( CM_WALKING_PARAMETERS paramaters ) = 0;
     CM_RT_API virtual INT SelectThreadDependencyVectors( CM_DEPENDENCY dependVectors ) = 0;
     CM_RT_API virtual INT SetThreadSpaceOrder(UINT threadCount, PCM_THREAD_PARAM pThreadSpaceOrder) = 0;
+protected:
+    ~CmThreadSpace(){};
 };
 
 class CmVebox
@@ -1374,6 +1430,8 @@ public:
     CM_RT_API virtual INT SetStatisticsOutputSurface( CmSurface2D* pSurf ) = 0;
     CM_RT_API virtual INT SetStatisticsOutputSurfaceControlBits( const WORD ctrlBits ) = 0;
     CM_RT_API virtual INT SetParam(CmBufferUP *pParamBuffer) = 0;
+protected:
+   ~CmVebox(){};
 };
 
 class CmQueue
@@ -1391,8 +1449,21 @@ public:
     CM_RT_API virtual INT EnqueueCopyCPUToGPUFullStride( CmSurface2D* pSurface, const unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
     CM_RT_API virtual INT EnqueueCopyGPUToCPUFullStride( CmSurface2D* pSurface, unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
 
+    CM_RT_API virtual INT EnqueueCopyCPUToGPUFullStrideDup( CmSurface2D* pSurface, const unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
+    CM_RT_API virtual INT EnqueueCopyGPUToCPUFullStrideDup( CmSurface2D* pSurface, unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
+    
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
+
+    CM_RT_API virtual INT EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr) = 0;
+    CM_RT_API virtual INT DestroyEventFast(CmEvent *&event) = 0;
+    CM_RT_API virtual INT EnqueueWithGroupFast(CmTask *task,
+                                  CmEvent *&event,
+                                  const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
+protected:
+    ~CmQueue(){};
 };
 
 //**********************************************************************
@@ -1409,24 +1480,8 @@ typedef void (*IMG_WALKER_FUNTYPE)(void* img, void* arg);
 //**********************************************************************
 // Functions declaration
 //**********************************************************************
-EXTERN_C CM_RT_API INT CMRT_GetSurfaceDetails(CmEvent* pEvent, UINT kernIndex, UINT surfBTI, CM_SURFACE_DETAILS& outDetails);
-EXTERN_C CM_RT_API void CMRT_PrepareGTPinBuffers(void* ptr0, int size0InBytes, void* ptr1, int size1InBytes, void* ptr2, int size2InBytes);
-EXTERN_C CM_RT_API void CMRT_SetGTPinArguments(char* commandLine, void* gtpinInvokeStruct);
-EXTERN_C CM_RT_API void CMRT_EnableGTPinMarkers(void);
 EXTERN_C CM_RT_API INT DestroyCmDevice(CmDevice* &device);
-
-EXTERN_C CM_RT_API UINT CMRT_GetKernelCount(CmEvent *pEvent);
-EXTERN_C CM_RT_API INT CMRT_GetKernelName(CmEvent *pEvent, UINT index, char** KernelName);
-EXTERN_C CM_RT_API INT CMRT_GetKernelThreadSpace(CmEvent *pEvent, UINT index, UINT* localWidth, UINT* localHeight, UINT* globalWidth, UINT* globalHeight);
-EXTERN_C CM_RT_API INT CMRT_GetSubmitTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_GetHWStartTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_GetHWEndTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_GetCompleteTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_SetEventCallback(CmEvent* pEvent, callback_function function, void* user_data);
 EXTERN_C CM_RT_API INT CMRT_Enqueue(CmQueue* queue, CmTask* task, CmEvent** event, const CmThreadSpace* threadSpace = nullptr);
-
-EXTERN_C CM_RT_API INT CMRT_GetEnqueueTime( CmEvent *pEvent, LARGE_INTEGER* time );
-
 EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 
 //**********************************************************************
@@ -1435,10 +1490,5 @@ EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 #include "cm_rt_g8.h"
 #include "cm_rt_g9.h"
 #include "cm_rt_g10.h"
-
-//**********************************************************************
-// Embargoed definitions if any
-//**********************************************************************
-#include "cm_rt_embargoed.h"
 
 #endif //__CM_RT_H__

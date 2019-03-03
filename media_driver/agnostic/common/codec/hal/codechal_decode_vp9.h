@@ -30,38 +30,11 @@
 #define __CODECHAL_DECODE_VP9_H__
 
 #include "codechal_decoder.h"
-#include "codechal_common_vp9.h"
+#include "codec_def_vp9_probs.h"
 
 //!
-//! \enum CODECHAL_DECODE_VP9_SEG_LVL_FEATURES
-//! VP9 decode segment level
-//!
-typedef enum
-{
-    CODECHAL_DECODE_VP9_SEG_LVL_ALT_Q = 0,          //!< Use alternate Quantizer
-    CODECHAL_DECODE_VP9_SEG_LVL_ALT_LF = 1,         //!< Use alternate loop filter value
-    CODECHAL_DECODE_VP9_SEG_LVL_REF_FRAME = 2,      //!< Optional Segment reference frame
-    CODECHAL_DECODE_VP9_SEG_LVL_SKIP = 3,           //!< Optional Segment (0,0) + skip mode
-    CODECHAL_DECODE_VP9_SEG_LVL_MAX = 4             //!< Number of features supported
-} CODECHAL_DECODE_VP9_SEG_LVL_FEATURES;
-
-//!
-//! \enum CODECHAL_DECODE_VP9_MV_REFERENCE_FRAME
-//! VP9 decode mv reference
-//!
-typedef enum
-{
-    CODECHAL_DECODE_VP9_NONE = -1,
-    CODECHAL_DECODE_VP9_INTRA_FRAME = 0,
-    CODECHAL_DECODE_VP9_LAST_FRAME = 1,
-    CODECHAL_DECODE_VP9_GOLDEN_FRAME = 2,
-    CODECHAL_DECODE_VP9_ALTREF_FRAME = 3,
-    CODECHAL_DECODE_VP9_MAX_REF_FRAMES = 4
-} CODECHAL_DECODE_VP9_MV_REFERENCE_FRAME;
-
-//!
-//! \struct CODECHAL_DECODE_VP9_PROB_UPDATE
-//! \brief Define variables for VP9 decode probabilty updated
+//! \struct _CODECHAL_DECODE_VP9_PROB_UPDATE
+//! \brief  Define variables for VP9 decode probabilty updated
 //!
 typedef struct _CODECHAL_DECODE_VP9_PROB_UPDATE
 {
@@ -76,8 +49,6 @@ typedef struct _CODECHAL_DECODE_VP9_PROB_UPDATE
     uint8_t      SegPredProbs[3];  //!< Segment predict prob buffers
 } CODECHAL_DECODE_VP9_PROB_UPDATE, *PCODECHAL_DECODE_VP9_PROB_UPDATE;
 
-
-
 //!
 //! \class CodechalDecodeVp9
 //! \brief This class defines the member fields, functions etc used by VP9 decoder.
@@ -86,7 +57,7 @@ class CodechalDecodeVp9 : public CodechalDecode
 {
 public:
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -107,12 +78,12 @@ public:
     //!
     //! \brief    Allocate and initialize VP9 decoder standard
     //! \param    [in] settings
-    //!           Pointer to CODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS  AllocateStandard (
-        PCODECHAL_SETTINGS          settings) override;
+        CodechalSetting *          settings) override;
 
     //!
     //! \brief  Set states for each frame to prepare for VP9 decode
@@ -142,6 +113,38 @@ public:
     MOS_STATUS  InitMmcState() override;
 
     //!
+    //! \brief    Init context buffer 
+    //! \details
+    //! \param    [in,out] ctxBuffer 
+    //!           Pointer to context buffer 
+    //!
+    //! \param    [in] setToKey 
+    //!           Specify if it's key frame 
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ContextBufferInit(
+            uint8_t *ctxBuffer,
+            bool setToKey);
+
+    //!
+    //! \brief    Populate prob values which are different between Key and Non-Key frame 
+    //! \details
+    //! \param    [in,out] ctxBuffer 
+    //!           Pointer to context buffer 
+    //!
+    //! \param    [in] setToKey 
+    //!           Specify if it's key frame 
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS CtxBufDiffInit(
+            uint8_t *ctxBuffer,
+            bool setToKey);
+
+    //!
     //! \brief    Intialize VP9 decode mode
     //! \details  Do nothing for base class, will be overloaded by inheritted class for dynamic mode switch support
     //!
@@ -165,7 +168,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateResources_FixedSizes();
+    virtual MOS_STATUS AllocateResourcesFixedSizes();
 
     //!
     //! \brief    Allocate variable sized resources
@@ -173,7 +176,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateResources_VariableSizes();
+    virtual MOS_STATUS AllocateResourcesVariableSizes();
 
     //!
     //! \brief    Determine Decode Phase
@@ -183,54 +186,59 @@ public:
     //!
     virtual MOS_STATUS DetermineDecodePhase();
 
+    //!
+    //! \brief  Sets cenc decoder batch buffer
+    //! \param    [in] cmdBuffer
+    //!           Pointer of command buffer.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer) override;
 
     // Parameters passed by application
-    uint16_t                        usFrameWidthAlignedMinBlk;                  //!< Picture Width aligned to minBlock
-    uint16_t                        usFrameHeightAlignedMinBlk;                 //!< Picture Height aligned to minBlock
-    uint8_t                         ucVP9DepthIndicator;                        //!< Indicate it is 8/10/12 bit VP9
-    uint8_t                         ucChromaFormatinProfile;                    //!< Chroma format with current profilce
-    uint32_t                        dwDataSize;                                 //!< Data size
-    uint32_t                        dwDataOffset;                               //!< Date offset
-    PCODEC_VP9_PIC_PARAMS           pVp9PicParams;                              //!< Pointer to VP9 picture parameter
-    PCODEC_VP9_SEGMENT_PARAMS       pVp9SegmentParams;                          //!< Pointer to VP9 segment parameter
-    PCODEC_VP9_SLICE_PARAMS         pVp9SliceParams;                            //!< Pointer to VP9 slice parameter
-    MOS_SURFACE                     sDestSurface;                               //!< MOS_SURFACE of render surface
-    PMOS_RESOURCE                   presLastRefSurface;                         //!< Pointer to last reference surface
-    PMOS_RESOURCE                   presGoldenRefSurface;                       //!< Pointer to golden reference surface
-    PMOS_RESOURCE                   presAltRefSurface;                          //!< Pointer to alternate reference surface
-    MOS_SURFACE                     sLastRefSurface;                            //!< MOS_SURFACE of last reference surface
-    MOS_SURFACE                     sGoldenRefSurface;                          //!< MOS_SURFACE of golden reference surface
-    MOS_SURFACE                     sAltRefSurface;                             //!< MOS_SURFACE of alternate reference surface
-    MOS_RESOURCE                    resDataBuffer;                              //!< Handle of bitstream data surface
-    MOS_RESOURCE                    resCoefProbBuffer;                          //!< Handle of Coefficient Probability Data surface
+    uint16_t                  m_usFrameWidthAlignedMinBlk;   //!< Picture Width aligned to minBlock
+    uint16_t                  m_usFrameHeightAlignedMinBlk;  //!< Picture Height aligned to minBlock
+    uint8_t                   m_vp9DepthIndicator;           //!< Indicate it is 8/10/12 bit VP9
+    uint8_t                   m_chromaFormatinProfile;       //!< Chroma format with current profilce
+    uint32_t                  m_dataSize;                    //!< Data size
+    uint32_t                  m_dataOffset;                  //!< Date offset
+    PCODEC_VP9_PIC_PARAMS     m_vp9PicParams;                //!< Pointer to VP9 picture parameter
+    PCODEC_VP9_SEGMENT_PARAMS m_vp9SegmentParams;            //!< Pointer to VP9 segment parameter
+    PCODEC_VP9_SLICE_PARAMS   m_vp9SliceParams;              //!< Pointer to VP9 slice parameter
+    MOS_SURFACE               m_destSurface;                 //!< MOS_SURFACE of render surface
+    PMOS_RESOURCE             m_presLastRefSurface;          //!< Pointer to last reference surface
+    PMOS_RESOURCE             m_presGoldenRefSurface;        //!< Pointer to golden reference surface
+    PMOS_RESOURCE             m_presAltRefSurface;           //!< Pointer to alternate reference surface
+    MOS_SURFACE               m_lastRefSurface;              //!< MOS_SURFACE of last reference surface
+    MOS_SURFACE               m_goldenRefSurface;            //!< MOS_SURFACE of golden reference surface
+    MOS_SURFACE               m_altRefSurface;               //!< MOS_SURFACE of alternate reference surface
+    MOS_RESOURCE              m_resDataBuffer;               //!< Handle of bitstream data surface
+    MOS_RESOURCE              m_resCoefProbBuffer;           //!< Handle of Coefficient Probability Data surface
 
     // Internally maintained
-    uint8_t                         ucFrameCtxIdx;
-    MOS_RESOURCE                    resDeblockingFilterLineRowStoreScratchBuffer;          //!< Handle of Deblocking Filter Line Row Store Scratch data surface
-    MOS_RESOURCE                    resDeblockingFilterTileRowStoreScratchBuffer;          //!< Handle of Deblocking Filter Tile Row Store Scratch data surface
-    MOS_RESOURCE                    resDeblockingFilterColumnRowStoreScratchBuffer;        //!< Handle of Deblocking Filter Column Row Store Scratch data surface
-    MOS_RESOURCE                    resMetadataLineBuffer;                                 //!< Handle of Metadata Line data buffer
-    MOS_RESOURCE                    resMetadataTileLineBuffer;                             //!< Handle of Metadata Tile Line data buffer
-    MOS_RESOURCE                    resMetadataTileColumnBuffer;                           //!< Handle of Metadata Tile Column data buffer
-    MOS_RESOURCE                    resHvcLineRowstoreBuffer;                              //!< Handle of HVC Line Row Store surface
-    MOS_RESOURCE                    resHvcTileRowstoreBuffer;                              //!< Handle of HVC Tile Row Store surface
-    MOS_RESOURCE                    resVp9ProbBuffer[CODECHAL_VP9_NUM_CONTEXTS + 1];       //!< Handle of VP9 Probability surface
-    MOS_RESOURCE                    resVp9SegmentIdBuffer;                                 //!< Handle of VP9 Segment ID surface
-    MOS_RESOURCE                    resVp9MvTemporalBuffer[CODECHAL_VP9_NUM_MV_BUFFERS];   //!< Handle of VP9 MV Temporal buffer
-    PCODEC_REF_LIST                 pVp9RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9];    //!< Pointer to reference list
-    MOS_RESOURCE                    resSyncObject;                                         //!< Handle of synce object
-    uint8_t                         ucCurMvTempBufIdx;                                     //!< Current mv temporal buffer index
-    uint8_t                         ucColMvTempBufIdx;                                     //!< Colocated mv temporal buffer index
-    MOS_RESOURCE                    resCopyDataBuffer;                                     //!< Handle of buffer to store copy data
-    uint32_t                        dwCopyDataBufferSize;                                  //!< Buffer size of copy data
-    uint32_t                        dwCopyDataOffset;                                      //!< Data offset of copy data
-    bool                            bCopyDataBufferInUse;                                  //!< Indicate if copy data buffer is in use
-    MOS_RESOURCE                    resSyncObjectWaContextInUse;                           //!< signals on the video WA context
-    MOS_RESOURCE                    resSyncObjectVideoContextInUse;                        //!< signals on the video contex
-    uint32_t                        HcpDecPhase;                                           //!< Hcp Decode phase
-
-
-    uint8_t                         RefFrameMap[CODECHAL_VP9_NUM_REF_FRAMES];              //!< Reference frame map for DPB management
+    uint8_t         m_frameCtxIdx;
+    MOS_RESOURCE    m_resDeblockingFilterLineRowStoreScratchBuffer;         //!< Handle of Deblocking Filter Line Row Store Scratch data surface
+    MOS_RESOURCE    m_resDeblockingFilterTileRowStoreScratchBuffer;         //!< Handle of Deblocking Filter Tile Row Store Scratch data surface
+    MOS_RESOURCE    m_resDeblockingFilterColumnRowStoreScratchBuffer;       //!< Handle of Deblocking Filter Column Row Store Scratch data surface
+    MOS_RESOURCE    m_resMetadataLineBuffer;                                //!< Handle of Metadata Line data buffer
+    MOS_RESOURCE    m_resMetadataTileLineBuffer;                            //!< Handle of Metadata Tile Line data buffer
+    MOS_RESOURCE    m_resMetadataTileColumnBuffer;                          //!< Handle of Metadata Tile Column data buffer
+    MOS_RESOURCE    m_resHvcLineRowstoreBuffer;                             //!< Handle of HVC Line Row Store surface
+    MOS_RESOURCE    m_resHvcTileRowstoreBuffer;                             //!< Handle of HVC Tile Row Store surface
+    MOS_RESOURCE    m_resVp9ProbBuffer[CODEC_VP9_NUM_CONTEXTS + 1];         //!< Handle of VP9 Probability surface
+    MOS_RESOURCE    m_resVp9SegmentIdBuffer;                                //!< Handle of VP9 Segment ID surface
+    MOS_RESOURCE    m_resVp9MvTemporalBuffer[CODECHAL_VP9_NUM_MV_BUFFERS];  //!< Handle of VP9 MV Temporal buffer
+    PCODEC_REF_LIST m_vp9RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9];    //!< Pointer to reference list
+    MOS_RESOURCE    m_resSyncObject;                                        //!< Handle of synce object
+    uint8_t         m_curMvTempBufIdx;                                      //!< Current mv temporal buffer index
+    uint8_t         m_colMvTempBufIdx;                                      //!< Colocated mv temporal buffer index
+    MOS_RESOURCE    m_resCopyDataBuffer;                                    //!< Handle of buffer to store copy data
+    uint32_t        m_copyDataBufferSize;                                   //!< Buffer size of copy data
+    uint32_t        m_copyDataOffset;                                       //!< Data offset of copy data
+    bool            m_copyDataBufferInUse;                                  //!< Indicate if copy data buffer is in use
+    MOS_RESOURCE    m_resSyncObjectWaContextInUse;                          //!< signals on the video WA context
+    MOS_RESOURCE    m_resSyncObjectVideoContextInUse;                       //!< signals on the video contex
+    uint32_t        m_hcpDecPhase;                                          //!< Hcp Decode phase
 
     union
     {
@@ -242,37 +250,37 @@ public:
             uint8_t                 ReservedField       : 5;                    //!< [0]
         } fields;
         uint8_t                     value;
-    } PrevFrameParams;                                                          //!< Previous frame parameters
+    } m_prevFrameParams;  //!< Previous frame parameters
 
-    uint32_t                           dwPrevFrmWidth;                          //!< Frame width of the previous frame
-    uint32_t                           dwPrevFrmHeight;                         //!< Frame height of the previous frame
-    uint32_t                           dwAllocatedWidthInSB;                    //!< Frame width in super block
-    uint32_t                           dwAllocatedHeightInSB;                   //!< Frame height in super block
-    uint32_t                           dwMVBufferSize;                          //!< MV buffer size
+    uint32_t m_prevFrmWidth;         //!< Frame width of the previous frame
+    uint32_t m_prevFrmHeight;        //!< Frame height of the previous frame
+    uint32_t m_allocatedWidthInSb;   //!< Frame width in super block
+    uint32_t m_allocatedHeightInSb;  //!< Frame height in super block
+    uint32_t m_mvBufferSize;         //!< MV buffer size
 
     //for Internal buffer upating
-    bool                            bResetSegIdBuffer;                                  //!< if segment id buffer need to do reset
-    bool                            bPendingResetPartial;                               //!< indicating if there is pending partial reset operation on prob buffer 0.
-    bool                            bSaveInterProbs;                                    //!< indicating if inter probs is saved for prob buffer 0.
-    bool                            bPendingResetFullTables[CODECHAL_VP9_NUM_CONTEXTS]; //!< indicating if there is pending full frame context table reset operation on each prob buffers except 0.
-    bool                            bPendingCopySegProbs[CODECHAL_VP9_NUM_CONTEXTS];    //!< indicating if there is pending seg probs copy operation on each prob buffers.
-    uint8_t                         SegTreeProbs[7];                                    //!< saved seg tree probs for pending seg probs copy operation to use
-    uint8_t                         SegPredProbs[3];                                    //!< saved seg pred probs for pending seg probs copy operation to use
-    bool                            bFullProbBufferUpdate;                              //!< indicating if prob buffer is a full buffer update
-    uint8_t                         InterProbSaved[CODECHAL_VP9_INTER_PROB_SIZE];       //!< indicating if internal prob buffer saved
+    bool    m_resetSegIdBuffer;                                //!< if segment id buffer need to do reset
+    bool    m_pendingResetPartial;                             //!< indicating if there is pending partial reset operation on prob buffer 0.
+    bool    m_saveInterProbs;                                  //!< indicating if inter probs is saved for prob buffer 0.
+    bool    m_pendingResetFullTables[CODEC_VP9_NUM_CONTEXTS];  //!< indicating if there is pending full frame context table reset operation on each prob buffers except 0.
+    bool    m_pendingCopySegProbs[CODEC_VP9_NUM_CONTEXTS];     //!< indicating if there is pending seg probs copy operation on each prob buffers.
+    uint8_t m_segTreeProbs[7];                                 //!< saved seg tree probs for pending seg probs copy operation to use
+    uint8_t m_segPredProbs[3];                                 //!< saved seg pred probs for pending seg probs copy operation to use
+    bool    m_fullProbBufferUpdate;                            //!< indicating if prob buffer is a full buffer update
+    uint8_t m_interProbSaved[CODECHAL_VP9_INTER_PROB_SIZE];    //!< indicating if internal prob buffer saved
 
-    uint32_t                        dwDmemBufferSize;                                   //!< Dmem buffer size
-    MOS_RESOURCE                    resDmemBuffer;                                      //!< Handle of Dmem buffer
-    MOS_RESOURCE                    resInterProbSaveBuffer;                             //!< Handle of inter prob saved buffer
-    CODECHAL_DECODE_VP9_PROB_UPDATE ProbUpdateFlags;                                    //!< Prob update flags
-    MOS_RESOURCE                    resSegmentIdBuffReset;                              //!< Handle of segment Id reset buffer
-    MOS_RESOURCE                    resHucSharedBuffer;                                 //!< Handle of Huc shared buffer
+    uint32_t                        m_dmemBufferSize;          //!< Dmem buffer size
+    MOS_RESOURCE                    m_resDmemBuffer;           //!< Handle of Dmem buffer
+    MOS_RESOURCE                    m_resInterProbSaveBuffer;  //!< Handle of inter prob saved buffer
+    CODECHAL_DECODE_VP9_PROB_UPDATE m_probUpdateFlags;         //!< Prob update flags
+    MOS_RESOURCE                    m_resSegmentIdBuffReset;   //!< Handle of segment Id reset buffer
+    MOS_RESOURCE                    m_resHucSharedBuffer;      //!< Handle of Huc shared buffer
 
 protected:
 
     //!
     //! \struct CodechalDecodeVp9:: PIC_STATE_MHW_PARAMS
-    //! \brief Define MHW parameters for picture state
+    //! \brief  Define MHW parameters for picture state
     //!
     typedef struct
     {
@@ -289,7 +297,7 @@ protected:
     //!
     //! \brief    VP9 Prob buffer partial update with driver
     //! \details  using driver to do the parital prob buffer update
-    //!           for clear decode and cp lite mode
+    //!           for clear decode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -297,7 +305,7 @@ protected:
 
     //!
     //! \brief    VP9 Prob buffer full update with driver
-    //! \details  full prob buffer udpate in clear decode and cp lite mode
+    //! \details  full prob buffer udpate in clear decode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -306,7 +314,6 @@ protected:
     //!
     //! \brief    VP9 Segment id buffer reset with driver
     //! \details  VP9 Segment id buffer reset with driver in clear decode
-    //!           and cp lite mode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -314,7 +321,7 @@ protected:
 
     //!
     //! \brief    VP9 Prob buffer full update with Huc Streamout command
-    //! \details  VP9 prob buffer full update with Huc Streamout in cp heavy mode
+    //! \details  VP9 prob buffer full update with Huc Streamout
     //! \param    cmdBuffer
     //!           [in] command buffer to hold HW commands
     //! \return   MOS_STATUS
@@ -325,7 +332,7 @@ protected:
 
     //!
     //! \brief    VP9 Segment Id buffer reset with HucStreamout command
-    //! \details  vp9 segment id buffer reset in CP heavy mode using Huc Streamout command
+    //! \details  vp9 segment id buffer reset using Huc Streamout command
     //! \param    cmdBuffer
     //!           [in] command buffer to hold HW commands
     //! \return   MOS_STATUS
@@ -387,7 +394,7 @@ protected:
     //!
     virtual MOS_STATUS  AddPicStateMhwCmds(
         PMOS_COMMAND_BUFFER       cmdBuffer
-	);
+    );
 
     //!
     //! \brief    Update picture state buffers

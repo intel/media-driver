@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,40 +27,59 @@
 #include "mos_os.h"
 #include "renderhal.h"
 
-uint32_t RenderHal_GetNextFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext)
+void RenderHal_IncTrackerId(PRENDERHAL_INTERFACE renderHal)
 {
-    return pRenderHal->pStateHeap->dwNextTag;
-}
+    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
 
-void RenderHal_IncNextFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext)
-{
-    pRenderHal->pStateHeap->dwNextTag++;
-}
 
-uint32_t RenderHal_GetCurrentFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext)
-{
-    return (pRenderHal->pStateHeap->pSync[0] - 1);
-}
-
-bool RenderHal_WaitFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext, uint32_t dwFrameId)
-{
-    PRENDERHAL_STATE_HEAP pStateHeap = pRenderHal->pStateHeap;
-    uint32_t gpuTag = pStateHeap->pSync[0] - 1;
-    while ((int32_t)(gpuTag - dwFrameId) < 0) 
+    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
     {
-        gpuTag = pStateHeap->pSync[0] - 1;
+        renderHal->veBoxTrackerRes.currentTrackerId++;
     }
-
-    return true;
+    else
+    {
+        renderHal->trackerResource.currentTrackerId++;
+    }
 }
 
-uint32_t RenderHal_EnableFrameTracking(
-    PRENDERHAL_INTERFACE              pRenderHal,
-    MOS_GPU_CONTEXT                   GpuContext,
-    RENDERHAL_GENERIC_PROLOG_PARAMS  *pPrologParams,
-    PMOS_RESOURCE                     pOsResource)
+uint32_t RenderHal_GetNextTrackerId(PRENDERHAL_INTERFACE renderHal)
 {
-    return pRenderHal->pStateHeap->dwNextTag;
+    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
+
+    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
+    {
+        return renderHal->veBoxTrackerRes.currentTrackerId;
+    }
+    else
+    {
+        return renderHal->trackerResource.currentTrackerId;
+    }
+}
+
+uint32_t RenderHal_GetCurrentTrackerId(PRENDERHAL_INTERFACE renderHal)
+{
+    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
+
+    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
+    {
+        return *(renderHal->veBoxTrackerRes.data);
+    }
+    else
+    {
+        return *(renderHal->trackerResource.data);
+    }
+}
+
+void RenderHal_SetupPrologParams(
+    PRENDERHAL_INTERFACE              renderHal,
+    RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
+    PMOS_RESOURCE                     osResource,
+    uint32_t                          tag)
+{
+    return;
 }
 
 //!
@@ -104,6 +123,7 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
     pSurface->dwQPitch        = ResDetails.dwQPitch;
     pSurface->TileType        = ResDetails.TileType;
     pSurface->dwDepth         = ResDetails.dwDepth;
+    pSurface->Format          = ResDetails.Format;
     pSurface->bCompressible   = ResDetails.bCompressible;
     pSurface->bIsCompressed   = ResDetails.bIsCompressed;
     pSurface->CompressionMode = ResDetails.CompressionMode;
@@ -121,9 +141,10 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
         case Format_NV12:
             pSurface->UPlaneOffset.iSurfaceOffset     = ResDetails.RenderOffset.YUV.U.BaseOffset;
             pSurface->UPlaneOffset.iYOffset           = ResDetails.RenderOffset.YUV.U.YOffset;
-            break;            
+            break;
         case Format_P010:
         case Format_P016:
+        case Format_P208:
             pSurface->UPlaneOffset.iSurfaceOffset = (pSurface->dwHeight - pSurface->dwHeight % 32) * pSurface->dwPitch;
             pSurface->UPlaneOffset.iYOffset       = pSurface->dwHeight % 32;
             break;
@@ -163,6 +184,7 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
             pSurface->VPlaneOffset.iYOffset       = 0;
             break;
         case Format_444P:
+        case Format_RGBP:
             pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
             pSurface->UPlaneOffset.iYOffset       = 0;
             pSurface->VPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch * 2;
@@ -263,8 +285,8 @@ finish:
 //! \details  Set surface state token
 //! \param    [in] pRenderHal
 //!           pointer to render hal 
-//! \param    [in] Surface token parameters   
-//!           Surface token parameters   
+//! \param    [in] Surface token parameters 
+//!           Surface token parameters 
 //! \param    void  *pSurfaceStateToken
 //!           [in/out] pointer to surface state token
 //! \return   MOS_STATUS
@@ -334,22 +356,34 @@ MOS_STATUS RenderHal_SetSurfaceStateToken(
 //!
 //! \brief    Get Y Offset according to the planeOffset struct and surface pitch
 //! \details  Get Y Offset according to the planeOffset struct and surface pitch
-//! \param   PMOS_PLANE_OFFSET pPlaneOffset
-//!           [in] pointer to the Plane offset
-//! \param    uint32_t pitch
-//!           [in] Pitch of the surface
+//! \param    pOsInterface
+//!           [in] pointer to OS Interface
+//! \param    pSurface
+//!           [in] Pointers to Surface
 //! \return   uint16_t
 //!           [out] the Y offset
 //!
-uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_SURFACE pSurface)
+uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_RESOURCE pOsResource)
 {
+    // This is for MMCD/Non-MMCD, GMM will allocate the surface 32 height align surface, the the UV offset will not equal to the surface height.
     MOS_SURFACE    ResDetails;
+    uint16_t       UYoffset = 0;
 
-    MHW_RENDERHAL_ASSERT(!Mos_ResourceIsNull(&pSurface->OsResource));
+    MHW_RENDERHAL_ASSERT(!Mos_ResourceIsNull(pOsResource));
+    MHW_RENDERHAL_ASSERT(pOsInterface);
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
-    
-    pOsInterface->pfnGetResourceInfo(pOsInterface, &pSurface->OsResource, &ResDetails);
-    return (uint16_t)ResDetails.dwHeight;
+
+    pOsInterface->pfnGetResourceInfo(pOsInterface, pOsResource, &ResDetails);
+
+    if (ResDetails.dwPitch)
+    {
+        UYoffset = (uint16_t)((ResDetails.RenderOffset.YUV.U.BaseOffset - ResDetails.RenderOffset.YUV.Y.BaseOffset) / ResDetails.dwPitch + ResDetails.RenderOffset.YUV.U.YOffset);
+        return MOS_MAX(UYoffset, (uint16_t)ResDetails.dwHeight);
+    }
+    else
+    {
+        return (uint16_t)ResDetails.dwHeight;
+    }
 }
 
 //!

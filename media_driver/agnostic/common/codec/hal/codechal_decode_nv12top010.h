@@ -29,8 +29,7 @@
 #ifndef __CODECHAL_DECODE_NV12TOP010_H__
 #define __CODECHAL_DECODE_NV12TOP010_H__
 
-#include "cm_wrapper.h"
-
+#include "cm_rt_umd.h"
 //!
 //! \class CodechalDecodeNV12ToP010
 //! \brief This class converts NV12 to P010 format.
@@ -88,8 +87,6 @@ private:
     CmTask          *m_cmTask = nullptr;
     //! \brief Pointer to CM thread space
     CmThreadSpace   *m_cmThreadSpace = nullptr;
-    //! \brief Pointer to MOS context
-    MOS_CONTEXT     *m_osContext = nullptr;
 };
 
 #endif

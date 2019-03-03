@@ -20,14 +20,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_innerdef_os.h  
-//! \brief     Contains CM definitions (cm_innerdef_os.h)  
+//! \file      cm_innerdef_os.h 
+//! \brief     Contains CM definitions (cm_innerdef_os.h) 
 //!
 
 #pragma once
 
-#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor" 
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor" 
+#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 
 // Use this Macro to distinguish open-source and close-source.
 // Note that this will be moved to CMake Files in future
@@ -37,13 +37,14 @@
 #include "media_libva_common.h"
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <unistd.h>
 
 //Require DRM VMAP patch,
 //Referecing:
 //    [Intel-gfx] [PATCH 21/21] drm/i915: Introduce vmap (mapping of user pages into video memory) ioctl
 //    http://lists.freedesktop.org/archives/intel-gfx/2011-April/010241.html
-#if defined(DRM_IOCTL_I915_GEM_USERPTR)  
-#define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_userptr" 
+#if defined(DRM_IOCTL_I915_GEM_USERPTR)
+#define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_userptr"
 #else
 #define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_vmap"  //for usrptr
 #endif
@@ -52,11 +53,11 @@ typedef void* UMD_RESOURCE;
 
 #define CM_LINUX  1
 
-typedef INT  (__cdecl *pCallBackReleaseVaSurface)( PVOID VaDpy, PVOID pVaSurfID);
+typedef int  (__cdecl *pCallBackReleaseVaSurface)( void *VaDpy, void *pVaSurfID);
 
 #define CM_INVALID_TAG              (LONG_LONG_MAX)
 
-#define CM_FRAME_TRACKING_QWORD_PER_TASK    0
+#define CM_TRACKER_ID_QWORD_PER_TASK     0
 
 #define CM_ERROR_NULL_POINTER CM_NULL_POINTER
 
@@ -77,10 +78,10 @@ typedef struct _SYSTEMTIME
 
 inline void GetLocalTime(PSYSTEMTIME psystime)
 {
-    time_t Tm;
+    time_t temp;
     struct tm *ltime;
-    time(&Tm);
-    ltime=localtime(&Tm);
+    time(&temp);
+    ltime=localtime(&temp);
     psystime->wYear = ltime->tm_year;
     psystime->wMonth = ltime->tm_mon;
     psystime->wDayOfWeek = ltime->tm_wday;

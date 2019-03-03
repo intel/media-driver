@@ -38,6 +38,10 @@
 #define SURFACE_STATE_ACTIVE_IN_LASTFRAME   1   //!< Surface state active in last frame flag, means surface appears in DPB of last frame and certainly some of them will appear in DPB of current frame.
 #define SURFACE_STATE_ACTIVE_IN_CURFRAME    64  //!< Surface state active in current frame flag, means surface will be used in current frame.
 
+//!
+//! \class  DdiMediaBase
+//! \brief  Ddi media base class
+//!
 class DdiMediaBase
 {
 public:
@@ -56,7 +60,7 @@ public:
     //! \details  It begins the process (encode/decode/vp) for a specified target surface
     //!
     //! \param    [in] ctx
-    //!           VADriverContextP
+    //!           Pointer to VA driver context
     //! \param    [in] context
     //!           Already created context for the process
     //! \param    [in] renderTarget
@@ -75,7 +79,7 @@ public:
     //! \details  It sends needed buffers by the process (encode/decode/vp) to the driver
     //!
     //! \param    [in] ctx
-    //!           VADriverContextP
+    //!           Pointer to VA driver context
     //! \param    [in] context
     //!           Already created context for the process
     //! \param    [in] buffers
@@ -99,7 +103,7 @@ public:
     //!           Begin/Render/End sequence on a different render target
     //!
     //! \param    [in] ctx
-    //!           VADriverContextP
+    //!           Pointer to VA driver context
     //! \param    [in] context
     //!           Already created context for the process
     //!

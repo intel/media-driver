@@ -394,7 +394,7 @@ const float FieldScalingInterface::m_minScaleRatio = 0.125f;
 FieldScalingInterface::FieldScalingInterface(CodechalHwInterface *hwInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
-    
+
     memset(&m_kernelSize, 0, sizeof(m_kernelSize));
     memset(&m_dshSize, 0, sizeof(m_dshSize));
     memset(&m_syncObject, 0, sizeof(m_syncObject));
@@ -412,6 +412,12 @@ FieldScalingInterface::FieldScalingInterface(CodechalHwInterface *hwInterface)
 FieldScalingInterface::~FieldScalingInterface()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
+
+    if (m_mmcState != nullptr)
+    {
+        MOS_Delete(m_mmcState);
+        m_mmcState = nullptr;
+    }
 
     CODECHAL_DECODE_ASSERT(m_osInterface);
     if (m_osInterface != nullptr)
@@ -432,7 +438,7 @@ MOS_STATUS FieldScalingInterface::InitInterfaceStateHeapSetting(
     {
         kernelState = &m_kernelStates[krnlIdx];
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
             m_kernelBase,
             m_kernelUID[krnlIdx],
             &m_kernelBinary[krnlIdx],
@@ -550,7 +556,7 @@ bool FieldScalingInterface::IsFieldScalingSupported(
     }
 
     // Check output size
-    if (!MOS_WITHIN_RANGE(destSurface->dwWidth, m_minInputWidth, m_maxInputWidth)     || 
+    if (!MOS_WITHIN_RANGE(destSurface->dwWidth, m_minInputWidth, m_maxInputWidth)     ||
         !MOS_WITHIN_RANGE(destSurface->dwHeight, m_minInputHeight, m_maxInputHeight))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Output Resolution '0x%08x'x'0x%08x' for field scaling.", destSurface->dwWidth, destSurface->dwHeight);
@@ -617,7 +623,7 @@ MOS_STATUS FieldScalingInterface::InitializeKernelState(
         kernelState->KernelParams.iSamplerLength = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdSampleState();
 
         kernelState->dwCurbeOffset        = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
-        kernelState->dwSamplerOffset      = 
+        kernelState->dwSamplerOffset      =
             kernelState->dwCurbeOffset +
             MOS_ALIGN_CEIL(kernelState->KernelParams.iCurbeLength, m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
         kernelState->dwKernelBinaryOffset = 0;
@@ -633,7 +639,7 @@ MOS_STATUS FieldScalingInterface::InitializeKernelState(
             MOS_ALIGN_CEIL(kernelState->KernelParams.iCurbeLength, m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment()) +
             kernelState->KernelParams.iSamplerLength * m_samplerNum;
 
-        MHW_CHK_STATUS_RETURN(CodecHal_MhwInitISH(
+        MHW_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(
             m_stateHeapInterface,
             kernelState));
     }
@@ -645,6 +651,17 @@ MOS_STATUS FieldScalingInterface::InitializeKernelState(
     return eStatus;
 }
 
+MOS_STATUS FieldScalingInterface::SetupMediaVfe(
+    PMOS_COMMAND_BUFFER  cmdBuffer,
+    MHW_KERNEL_STATE     *kernelState)
+{
+    MHW_VFE_PARAMS vfeParams = {};
+
+    vfeParams.pKernelState = kernelState;
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(cmdBuffer, &vfeParams));
+
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS FieldScalingInterface::DoFieldScaling(
     CODECHAL_DECODE_PROCESSING_PARAMS   *procParams,
@@ -660,6 +677,8 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     CODECHAL_DECODE_CHK_NULL_RETURN(procParams->pInputSurface);
     CODECHAL_DECODE_CHK_NULL_RETURN(procParams->pOutputSurface);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
     MOS_SYNC_PARAMS syncParams;
     syncParams                  = g_cInitSyncParams;
@@ -697,7 +716,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         m_stateHeapInterface,
         kernelState->KernelParams.iBTCount));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -715,14 +734,14 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         &idParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetCurbeFieldScaling(
-        kernelState, 
+        kernelState,
         procParams));
 
     MHW_SAMPLER_STATE_PARAM samplerParams[m_samplerNum];
     memset(&samplerParams[0], 0, sizeof(MHW_SAMPLER_STATE_PARAM) * m_samplerNum);
     samplerParams[0].bInUse                 = false;
     samplerParams[0].pKernelState           = kernelState;
-    for (auto index = 1; index < m_samplerNum - 1; index++)
+    for (uint32_t index = 1; index < m_samplerNum - 1; index++)
     {
         samplerParams[index].bInUse       = true;
         samplerParams[index].pKernelState = kernelState;
@@ -741,7 +760,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
 
     // Send command buffer header at the beginning (OS dependent)
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_decoder->SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     if (m_renderInterface->GetL3CacheConfig()->bL3CachingEnabled)
     {
@@ -774,15 +793,17 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     surfaceCodecParams.bForceChromaFormat         = true;
     surfaceCodecParams.ChromaType                 = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM;
 
-    if (m_hwInterface->m_mmcEnabled)
+    PMOS_INTERFACE osInterface = m_osInterface;
+    CodecHalGetResourceInfo(osInterface,surfaceCodecParams.psSurface);
+    
+#ifdef _MMC_SUPPORTED
+    if (m_mmcState)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-            m_osInterface, 
-            &surfaceCodecParams.psSurface->OsResource,
-            (MOS_MEMCOMP_STATE*) &surfaceCodecParams.psSurface->CompressionMode));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
     }
+#endif
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         &cmdBuffer,
         &surfaceCodecParams,
@@ -793,7 +814,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     surfaceCodecParams.dwUVBindingTableOffset     = fieldBotSrcUV;
     surfaceCodecParams.dwVerticalLineStrideOffset = 1;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         &cmdBuffer,
         &surfaceCodecParams,
@@ -816,15 +837,15 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         surfaceCodecParams.ChromaType               = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM;
     }
 
-    if (m_hwInterface->m_mmcEnabled)
+#ifdef _MMC_SUPPORTED
+    if (m_mmcState)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-            m_osInterface, 
-            &surfaceCodecParams.psSurface->OsResource,
-            (PMOS_MEMCOMP_STATE) &surfaceCodecParams.psSurface->CompressionMode));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
     }
+#endif
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CodecHalGetResourceInfo(osInterface,surfaceCodecParams.psSurface);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         &cmdBuffer,
         &surfaceCodecParams,
@@ -841,10 +862,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    memset(&vfeParams, 0, sizeof(vfeParams));
-    vfeParams.pKernelState          = kernelState;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SetupMediaVfe(&cmdBuffer, kernelState));
 
     MHW_CURBE_LOAD_PARAMS curbeLoadParams;
     memset(&curbeLoadParams, 0, sizeof(curbeLoadParams));
@@ -868,7 +886,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     walkerCodecParams.bNoDependency         = true;     // raster scan mode
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -896,7 +914,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->WriteSyncTagToResource(&cmdBuffer, &syncParams));
     }
-    
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
         m_stateHeapInterface));
 
@@ -914,4 +932,16 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     m_osInterface->pfnSetGpuContext(m_osInterface, m_decoder->GetVideoContext());
 
     return (MOS_STATUS)eStatus;
+}
+
+MOS_STATUS FieldScalingInterface::InitMmcState()
+{
+#ifdef _MMC_SUPPORTED
+    if (m_mmcState == nullptr)
+    {
+        m_mmcState = MOS_New(CodecHalMmcState, m_hwInterface);
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_mmcState);
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
 }

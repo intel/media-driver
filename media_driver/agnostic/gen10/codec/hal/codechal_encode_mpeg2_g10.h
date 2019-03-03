@@ -39,7 +39,7 @@ class CodechalEncodeMpeg2G10 : public CodechalEncodeMpeg2
 public:
     //!
     //! \brief    Constructor
-    //!                                                                                         
+    //!
     CodechalEncodeMpeg2G10(
         CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
@@ -51,18 +51,18 @@ public:
     ~CodechalEncodeMpeg2G10() {};
 
 protected:
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS codecHalSettings);
+    MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
 
     MOS_STATUS InitKernelState();
 
     MOS_STATUS InitKernelStateMe();
 
     MOS_STATUS InitKernelStateMbEnc();
-        
+
     MOS_STATUS SetCurbeMe();
-    
+
     MOS_STATUS SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer);
-    
+
     MOS_STATUS SetCurbeMbEnc(
         bool mbEncIFrameDistEnabled,
         bool mbQpDataEnabled);
@@ -70,15 +70,15 @@ protected:
     //!
     //! \brief    Get encoder kernel header and kernel size
     //!
-    //! \param    [in] pvBinary
+    //! \param    [in] binary
     //!           Pointer to kernel binary
     //! \param    [in] operation
     //!           Enc kernel operation
-    //! \param    [in] dwKrnStateIdx
+    //! \param    [in] krnStateIdx
     //!           Kernel state index
-    //! \param    [out] pvKrnHeader
+    //! \param    [out] krnHeader
     //!           Pointer to kernel header
-    //! \param    [out] pdwKrnSize
+    //! \param    [out] krnSize
     //!           Pointer to kernel size
     //!
     //! \return   MOS_STATUS
@@ -87,9 +87,9 @@ protected:
     static MOS_STATUS GetKernelHeaderAndSize(
         void                           *binary,
         EncOperation                   operation,
-		uint32_t                       krnStateIdx,
+        uint32_t                       krnStateIdx,
         void                           *krnHeader,
-		uint32_t                       *krnSize);
+        uint32_t                       *krnSize);
 
 };
 

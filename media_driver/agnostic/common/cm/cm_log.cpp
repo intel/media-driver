@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_log.h  
-//! \brief     Contains Class Cm Logger definitions  
+//! \file      cm_log.h
+//! \brief     Contains Class Cm Logger definitions
 //!
 
 #include <iostream>
@@ -29,14 +29,12 @@
 #include "cm_log.h"
 #include "cm_csync.h"
 #include "mos_utilities.h"
-#include "cm_perf.h"
 
 #if CM_LOG_ON
 
 // Definition (and initialization) of static attributes
-CmLogger* CmLogger::GlobalCmLogger = nullptr;
-CSync     GlobalCmLogLock;
-
+CmLogger *      CmLogger::m_globalCmLogger = nullptr;
+CMRT_UMD::CSync globalCmLogLock;
 
 /**
  * Logger Constructor.
@@ -48,42 +46,41 @@ CSync     GlobalCmLogLock;
  */
 CmLogger::CmLogger()
 {
-
     //Get Verbosity Level
     GetVerbosityLevel();
 
-    if(mVerbosityLevel == CM_LOG_LEVEL_NONE)
-    {// if it is not set, no file will be generated.
-        return ;
+    if (m_verbosityLevel == CM_LOG_LEVEL_NONE)
+    {  // if it is not set, no file will be generated.
+        return;
     }
-        
+
     //Get Log File name
     std::ostringstream OutPutFile;
+    char               fileNamePrefix[MAX_PATH];
 
-    SYSTEMTIME Systime;
-    GetLocalTime(&Systime);
+    SYSTEMTIME systime;
+    GetLocalTime(&systime);
 
-    OutPutFile << "CM_LOG_" << CmGetCurProcessId() << "_" << Systime.wMonth 
-                << "_" << Systime.wDay << "_" << Systime.wHour
-                << "_" << Systime.wMinute << "_" << Systime.wSecond<<".log";
+    OutPutFile << "CM_LOG_" << CmGetCurProcessId() << "_" << systime.wMonth
+               << "_" << systime.wDay << "_" << systime.wHour
+               << "_" << systime.wMinute << "_" << systime.wSecond << ".log";
+    m_logFile = OutPutFile.str();
+    GetLogFileLocation(OutPutFile.str().c_str(), fileNamePrefix);
 
-    mLogFile = OutPutFile.str();
-
-    // Open file 
-    mStreamOut.open(mLogFile.c_str(), std::ios::app);
-    
-
+    // Open file
+    m_streamOut.open(fileNamePrefix, std::ios::app);
+    if (!m_streamOut)
+    {
+        CM_ASSERTMESSAGE("Open file failed!");
+    }
 }
-
 
 CmLogger::~CmLogger()
 {
-
-    if(mLogFile.empty())
+    if (m_logFile.empty())
     {  // empty, dump to screen
-        mStreamOut.close();
+        m_streamOut.close();
     }
-
 }
 
 /**
@@ -91,42 +88,40 @@ CmLogger::~CmLogger()
  * It is a static method.
  * @return Reference to the object.
  */
-CmLogger& CmLogger::GetInstance()
+CmLogger &CmLogger::GetInstance()
 {
     CmLogger::Lock();
-    
-    if (GlobalCmLogger == nullptr)
-    {   
-        GlobalCmLogger = new CmLogger();
-    }
-    
-    CmLogger::Unlock();
-    return *GlobalCmLogger;
-}
 
+    if (m_globalCmLogger == nullptr)
+    {
+        m_globalCmLogger = new CmLogger();
+    }
+
+    CmLogger::Unlock();
+    return *m_globalCmLogger;
+}
 
 void CmLogger::GetVerbosityLevel()
 {
     // Read VerbosityLevel from RegisterKey
-    MOS_USER_FEATURE_VALUE      UserFeatureValue;
-    MOS_USER_FEATURE            UserFeature;    
+    MOS_USER_FEATURE_VALUE userFeatureValue;
+    MOS_USER_FEATURE       userFeature;
     // User feature key reads
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues         = &UserFeatureValue;
-    UserFeature.uiNumValues     = 1;
+    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
+    userFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
+    userFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    userFeature.pValues     = &userFeatureValue;
+    userFeature.uiNumValues = 1;
 
-    UserFeatureValue.u32Data = CM_LOG_LEVEL_NONE; // default value
-    
+    userFeatureValue.u32Data = CM_LOG_LEVEL_NONE;  // default value
+
     MOS_UserFeature_ReadValue(
         nullptr,
-        &UserFeature,
+        &userFeature,
         __MEDIA_USER_FEATURE_VALUE_MDF_LOG_LEVEL,
         MOS_USER_FEATURE_VALUE_TYPE_UINT32);
 
-    mVerbosityLevel = UserFeatureValue.u32Data;
-
+    m_verbosityLevel = userFeatureValue.u32Data;
 }
 
 /**
@@ -140,47 +135,44 @@ void CmLogger::GetVerbosityLevel()
  * @param Message
  */
 void CmLogger::Print(const unsigned int verbosityLevel,
-                    const std::string& file,
-                    const int line,
-                    const std::string& message)
+    const std::string &                 file,
+    const int                           line,
+    const std::string &                 message)
 {
-
     CmLogger::Lock();
 
-    if(verbosityLevel <= mVerbosityLevel)
+    if (verbosityLevel <= m_verbosityLevel)
     {
         switch (verbosityLevel)
         {
         case CM_LOG_LEVEL_DEBUG:
-            mStreamOut << "[DEBUG]";
+            m_streamOut << "[DEBUG]";
             break;
 
         case CM_LOG_LEVEL_INFO:
-            mStreamOut << "[INFO]";
+            m_streamOut << "[INFO]";
             break;
 
         case CM_LOG_LEVEL_WARN:
-            mStreamOut << "[WARN]";
+            m_streamOut << "[WARN]";
             break;
 
         case CM_LOG_LEVEL_ERROR:
-            mStreamOut << "[ERROR]";
+            m_streamOut << "[ERROR]";
             break;
         }
 
-        mStreamOut << "[PID :" << CmGetCurProcessId() << "][TID :" << CmGetCurThreadId() << "]"
-                   << "[" << file << ":" << line << "] @ " <<
-                   ":" << message << std::endl;
-
+        m_streamOut << "[PID :" << CmGetCurProcessId() << "][TID :" << CmGetCurThreadId() << "]"
+                    << "[" << file << ":" << line << "] @ "
+                    << ":" << message << std::endl;
     }
 
     CmLogger::Unlock();
 }
 
-
-void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char * data, unsigned int size )
+void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char *data, unsigned int size)
 {
-    std::ios::fmtflags f(oss.flags()); // store the oss flags
+    std::ios::fmtflags f(oss.flags());  // store the oss flags
 
     oss << "Data[Hex] : ";
 
@@ -188,42 +180,37 @@ void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char * data, un
     {
         oss << std::setfill('0') << std::setw(2) << std::hex << static_cast<short>(data[i]);
     }
-    oss << std::endl; 
+    oss << std::endl;
 
-    oss.flags(f);// restore the flags
-    
+    oss.flags(f);  // restore the flags
 }
-
 
 void CmLogger::Lock()
 {
-    GlobalCmLogLock.Acquire();
-
+    globalCmLogLock.Acquire();
 }
 
 void CmLogger::Unlock()
 {
-    GlobalCmLogLock.Release();
+    globalCmLogLock.Release();
 }
 
-CmLogTimer::CmLogTimer(std::string str) :
-    mString(str),
-    mTimer (str)
+CmLogTimer::CmLogTimer(const std::string str) :
+    m_string(str),
+    m_timer(str)
 {
 }
 
 CmLogTimer::~CmLogTimer()
 {
-    mTimer.Stop();
-    mString = mTimer.ToString();
-    CM_INFO(mString);
+    m_timer.Stop();
+    m_string = m_timer.ToString();
+    CM_INFO(m_string);
 }
-
 
 void CmLogTimer::Stop()
 {
-    mTimer.Stop();
+    m_timer.Stop();
 }
-
 
 #endif

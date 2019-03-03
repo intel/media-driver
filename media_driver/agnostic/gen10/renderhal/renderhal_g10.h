@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_g10.h  
-//! \brief      
+//! \file      renderhal_g10.h 
+//! \brief 
 //!
 //!
 //! \file       renderhal_g10.h
@@ -32,7 +32,7 @@
 #define __RENDERHAL_G10_H__
 
 #include "renderhal_platform_interface.h"
-#include "mhw_render_hwcmd_g10_X.h" 
+#include "mhw_render_hwcmd_g10_X.h"
 #include "mhw_state_heap_hwcmd_g10_X.h"
 
 //! \brief      for CNL GT2 VP and MDF
@@ -49,7 +49,7 @@ class XRenderHal_Interface_g10 : public XRenderHal_Platform_Interface
 public:
     XRenderHal_Interface_g10() {}
     virtual ~XRenderHal_Interface_g10() {}
-    
+
     //!
     //! \brief    Setup Surface State
     //! \details  Setup Surface States for Gen10
@@ -91,8 +91,8 @@ public:
     //!             [in]    Pointer to RenderHal interface
     //! \return     true if BDW A0 stepping, false otherwise
     //!
-    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal) 
-    { 
+    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal)
+    {
         MOS_UNUSED(pRenderHal);
         return true;
     }
@@ -160,10 +160,9 @@ public:
     //! \return   true of false
     //!
     inline bool IsEnableYV12SinglePass(
-        PRENDERHAL_INTERFACE    pRenderHal) 
-    { 
-        MOS_UNUSED(pRenderHal);
-        return false; 
+        PRENDERHAL_INTERFACE    pRenderHal)
+    {
+        return MEDIA_IS_WA(pRenderHal->pWaTable, WaEnableYV12BugFixInHalfSliceChicken7);
     }
 
     //!
@@ -276,6 +275,16 @@ public:
     //! \return     size_t
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() {return mhw_state_heap_g10_X::BINDING_TABLE_STATE_CMD::byteSize;}
+
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   true of false
+    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal) 
+    {
+        MOS_UNUSED(pRenderHal);
+        return false;
+    }
 protected:
     MHW_VFE_PARAMS               m_vfeStateParams;
     mhw_render_g10_X::PALETTE_ENTRY_CMD

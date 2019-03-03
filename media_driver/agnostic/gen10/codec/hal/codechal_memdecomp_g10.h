@@ -21,7 +21,7 @@
 */
 //! \file     codechal_memdecomp_g10.h
 //! \brief    Defines data structures and interfaces for Gen10 media memory decompression.
-//! \details  
+//! \details 
 //!
 
 #ifndef __CODECHAL_MEDIAMEMCOMP_G10_H__

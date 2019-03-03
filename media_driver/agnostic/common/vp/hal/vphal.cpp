@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include "vphal_renderer.h"
 #include "mos_solo_generic.h"
 #include "media_interfaces_vphal.h"
+#include "media_interfaces_mhw.h"
 
 void VphalFeatureReport::InitReportValue()
 {
@@ -56,6 +57,8 @@ void VphalFeatureReport::InitReportValue()
     PrimaryCompressible =   false;
     PrimaryCompressMode =   0;
     CompositionMode     =   VPHAL_NO_COMPOSITION;
+    DiScdMode           =   false;
+    VEFeatureInUse      =   false;
 }
 
 //!
@@ -81,11 +84,14 @@ MOS_STATUS VphalState::Allocate(
     VPHAL_PUBLIC_CHK_NULL(m_renderHal);
 
     // Create Render GPU Context
-    VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
-        m_osInterface,
-        m_renderGpuContext,
-        m_renderGpuNode,
-        MOS_GPU_CONTEXT_CREATE_DEFAULT));
+    {
+        MOS_GPUCTX_CREATOPTIONS createOption;
+        VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
+            m_osInterface,
+            m_renderGpuContext,
+            m_renderGpuNode,
+            &createOption));
+    }
 
     // Set current GPU context
     VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnSetGpuContext(
@@ -99,7 +105,6 @@ MOS_STATUS VphalState::Allocate(
 
     if (MEDIA_IS_SKU(m_skuTable, FtrVERing) && m_veboxInterface)
     {
-        GpuNodeLimit.bCpEnabled        = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
         GpuNodeLimit.bSfcInUse         = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
 
         // Check GPU Node decide logic together in this function
@@ -109,11 +114,10 @@ MOS_STATUS VphalState::Allocate(
         VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
 
         // Create VEBOX/VEBOX2 Context
-        VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
+        VPHAL_PUBLIC_CHK_STATUS(m_veboxInterface->CreateGpuContext(
             m_osInterface,
             VeboxGpuContext,
-            VeboxGpuNode,
-            MOS_GPU_CONTEXT_CREATE_DEFAULT));
+            VeboxGpuNode));
 
         // Register Vebox GPU context with the Batch Buffer completion event
         // Ignore if creation fails
@@ -126,8 +130,8 @@ MOS_STATUS VphalState::Allocate(
     RenderHalSettings.iMediaStates  = pVpHalSettings->mediaStates;
     VPHAL_PUBLIC_CHK_STATUS(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
 
-    if (m_veboxInterface && 
-        m_veboxInterface->m_veboxSettings.uiNumInstances > 0 && 
+    if (m_veboxInterface &&
+        m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
         m_veboxInterface->m_veboxHeap == nullptr)
     {
         // Allocate VEBOX Heap
@@ -139,6 +143,391 @@ MOS_STATUS VphalState::Allocate(
 
     // Allocate and initialize renderer states
     VPHAL_PUBLIC_CHK_STATUS(m_renderer->Initialize(pVpHalSettings));
+
+finish:
+    return eStatus;
+}
+
+//!
+//! \brief    Check if need to apply AVS for specified surface
+//! \details  Check if need to apply AVS for specified surface
+//! \param    pSurf
+//!           [in] Pointer to VPHAL_SURFACE
+//! \return   bool
+//!           Return true if the input surface needs AVS scaling
+//!
+static bool IsSurfNeedAvs(
+    PVPHAL_SURFACE pSurf)
+{
+    VPHAL_PUBLIC_CHK_NULL_NO_STATUS(pSurf);
+
+    // Not perform AVS for surface with alpha channel.
+    if (pSurf->Format == Format_AYUV || pSurf->Format == Format_AUYV)
+    {
+        return false;
+    }
+
+    if (pSurf->SurfType == SURF_IN_PRIMARY ||
+        pSurf->SurfType == SURF_IN_SUBSTREAM)
+    {
+        if (pSurf->pBlendingParams)
+        {
+            return false;
+        }
+
+        if (IS_YUV_FORMAT(pSurf->Format))
+        {
+            return true;
+        }
+    }
+finish:
+    return false;
+}
+
+//!
+//! \brief    Check if all surfaces format order in pcRenderParams is suitable to enable multiple avs rendering (YUV is prior than RGB)
+//! \details  In VpHal_RenderWithAvsForMultiStreams() we group YUV surfaces in phase one and the others in phase two.
+//!           However, if there are 2+ overlapped source surfaces, e.g., pSrc[0]=B8G8R8A8 and pSrc[1]=NV12.
+//!           We don't enable multiple avs rendering for such case since we expect pSrc[1] is above pSrc[0] on target.
+//!           If multiple avs rendering is enabled, the compositing order is reverse and turns out pSrc[1] is below pSrc[0],
+//!           which is the case need to prevent.
+//! \param    pcRenderParams
+//!           [in] Pointer to const VPHAL_RENDER_PARAMS
+//! \return   bool
+//!           Allow to enable multiple avs rendering
+//!
+static bool IsYuvPriorRgbInCompositeOrder(
+    PCVPHAL_RENDER_PARAMS   pcRenderParams)
+{
+    bool     bHasRgbSurface = false;
+    uint32_t uiLastYuvIdx   = 0;
+    uint32_t uiFirstRgbIdx  = 0;
+    uint32_t iSourceIdx;
+
+    VPHAL_PUBLIC_CHK_NULL_NO_STATUS(pcRenderParams);
+
+    for (iSourceIdx = 0; iSourceIdx < pcRenderParams->uSrcCount; iSourceIdx++)
+    {
+        PVPHAL_SURFACE pSurf = pcRenderParams->pSrc[iSourceIdx];
+        if (IsSurfNeedAvs(pSurf))
+        {
+                uiLastYuvIdx = iSourceIdx;
+        }
+        else if (!bHasRgbSurface)
+        {
+                bHasRgbSurface = true;
+                uiFirstRgbIdx  = iSourceIdx;
+        }
+    }
+
+finish:
+    if (!bHasRgbSurface)
+    {   // return true if not contain any RGB surface
+        return true;
+    }
+    return (uiLastYuvIdx < uiFirstRgbIdx);
+}
+
+//!
+//! \brief    Check if need to apply AVS scaling for multiple surfaces
+//! \details  Check if need to apply AVS scaling for multiple surfaces
+//! \param    pcRenderParams
+//!           [in] Pointer to const VPHAL_RENDER_PARAMS
+//! \return   bool
+//!           Return true if neeeded to enable AVS for all primary surfaces.
+//!
+static bool VpHal_IsAvsSampleForMultiStreamsEnabled(
+    PCVPHAL_RENDER_PARAMS   pcRenderParams)
+{
+    int32_t  iSourceIdx;
+    int32_t  iSourceBIdx;
+    int32_t  iAvsSurfaceCnt            = 0; 
+    bool     bEnableAvsForMultiSurface = false;
+
+    VPHAL_PUBLIC_CHK_NULL_NO_STATUS(pcRenderParams);
+
+    //disable if only one or zero source
+    if (pcRenderParams->uSrcCount <= 1)
+    {
+       goto finish;
+    }
+
+    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    {
+        PVPHAL_SURFACE pSrcSurf = pcRenderParams->pSrc[iSourceIdx];
+        if (pSrcSurf && pSrcSurf->SurfType == SURF_IN_PRIMARY)
+        {
+            // VPHAL_SCALING_PREFER_SFC_FOR_VEBOX means scaling mode is FastMode, don't apply AVS for multiples
+            if (pSrcSurf->ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX)
+            {
+                goto finish;
+            }
+
+            if (!IS_YUV_FORMAT(pSrcSurf->Format))
+            {
+                goto finish;
+            }
+
+            // disabled if need denoise or deinterlace
+            if (pSrcSurf->pDenoiseParams || pSrcSurf->pDeinterlaceParams)
+            {
+                goto finish;
+            }
+
+            if (0 < pSrcSurf->uFwdRefCount || 0 < pSrcSurf->uBwdRefCount)
+            {
+                goto finish;
+            }
+        }
+        if (pSrcSurf && IsSurfNeedAvs(pSrcSurf))
+        {
+            iAvsSurfaceCnt++;
+        }
+    }
+
+    if (iAvsSurfaceCnt <= 1)
+    {
+        goto finish;
+    }
+
+    if (!IsYuvPriorRgbInCompositeOrder(pcRenderParams))
+    {
+        goto finish;
+    }
+  
+    // disable if any AVS surface overlay to other AVS surface.
+    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    {
+        PVPHAL_SURFACE pSrcSurfA         = pcRenderParams->pSrc[iSourceIdx];
+        if (pSrcSurfA && IsSurfNeedAvs(pSrcSurfA))
+        {
+            for (iSourceBIdx = iSourceIdx + 1; iSourceBIdx < VPHAL_MAX_SOURCES; iSourceBIdx++)
+            {
+                PVPHAL_SURFACE pSrcSurfB = pcRenderParams->pSrc[iSourceBIdx];
+                if (pSrcSurfB && IsSurfNeedAvs(pSrcSurfB) &&
+                    !RECT1_OUTSIDE_RECT2(pSrcSurfA->rcDst, pSrcSurfB->rcDst)) // not outside means overlay
+                {
+                    goto finish;
+                }
+            }
+        }
+    }
+
+    bEnableAvsForMultiSurface = true;
+finish:
+    return bEnableAvsForMultiSurface;
+}
+
+//!
+//! \brief    Rendering with AVS scaling for multiple surfaces
+//! \details  Rendering with AVS scaling for multiple surfaces
+//!           Currently composition kernel only allows first primary surface with AVS.
+//!           To apply AVS for multiple surfaces, this function do the following steps:
+//!           (1) separating each AVS surface into different phases containing only one primary
+//!           (2) rendering with individual primary, and let first pass with color filler
+//!           (3) rendering remaining non-AVS substreams, if any, with intermediate surface in one phase to allow alpha blending.
+//! \param    pRenderer
+//!           [in]  Pointer to VphalRenderer
+//! \param    pcRenderParams
+//!           [in] Pointer to const VPHAL_RENDER_PARAMS
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
+    VphalRenderer        *pRenderer,
+    PCVPHAL_RENDER_PARAMS   pcRenderParams)
+{
+    int32_t                  iSourceIdx;
+    VPHAL_RENDER_PARAMS      RenderParams;
+    VPHAL_COLORFILL_PARAMS   colorFillForFirstRenderPass;
+    bool                     bColorFillForFirstRender;
+    bool                     bHasNonAvsSubstream;
+    MOS_STATUS               eStatusSingleRender;
+    PVPHAL_SURFACE           pIntermediateSurface;
+    PVPHAL_SURFACE           pBackGroundSurface;
+    MOS_STATUS               eStatus                   = MOS_STATUS_SUCCESS;
+    VPHAL_SCALING_PREFERENCE ePrimaryScalingPreference = VPHAL_SCALING_PREFER_SFC;
+    VPHAL_RENDER_PARAMS      *pRenderParams;
+
+    VPHAL_PUBLIC_CHK_NULL(pRenderer);
+    VPHAL_PUBLIC_CHK_NULL(pRenderer->GetOsInterface());
+    VPHAL_PUBLIC_CHK_NULL(pcRenderParams);
+    VPHAL_PUBLIC_CHK_NULL(pcRenderParams->pTarget[0]);
+
+    pRenderParams =
+        (VPHAL_RENDER_PARAMS*)pcRenderParams;
+
+    if (pcRenderParams->pColorFillParams)
+    {
+        colorFillForFirstRenderPass = *pcRenderParams->pColorFillParams;
+    }
+    else
+    {
+        colorFillForFirstRenderPass.bYCbCr = false;
+        colorFillForFirstRenderPass.Color  = 0;
+        colorFillForFirstRenderPass.CSpace = CSpace_sRGB;
+    }
+
+    pIntermediateSurface = &pRenderer->IntermediateSurface;
+
+    // check if having non-AVS substream
+    bHasNonAvsSubstream   = false;
+    pBackGroundSurface    = nullptr;
+    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    {
+        PVPHAL_SURFACE pSurf = (PVPHAL_SURFACE)pcRenderParams->pSrc[iSourceIdx];
+        if (pSurf && pSurf->SurfType == SURF_IN_SUBSTREAM)
+        {
+            if (!IS_YUV_FORMAT(pSurf->Format))
+            {
+                bHasNonAvsSubstream = true;
+            }
+        }
+
+        if (pSurf && pSurf->SurfType == SURF_IN_BACKGROUND)
+        {
+            pBackGroundSurface = pSurf;
+        }
+
+        // keep scaling preference of primary for later usage
+        if (pSurf && pSurf->SurfType == SURF_IN_PRIMARY)
+        {
+            ePrimaryScalingPreference = pSurf->ScalingPreference;
+        }
+    }
+
+    // create an intermediate surface if having non-AVS substream, as phase 1 output and phase 2 input.
+    if (bHasNonAvsSubstream)
+    {
+        bool     bAllocated;
+        uint32_t dwTempWidth  = pcRenderParams->pTarget[0]->dwWidth;
+        uint32_t dwTempHeight = pcRenderParams->pTarget[0]->dwHeight;
+
+        // Allocate/Reallocate temporary output
+        if (dwTempWidth  > pRenderer->IntermediateSurface.dwWidth ||
+            dwTempHeight > pRenderer->IntermediateSurface.dwHeight)
+        {
+            dwTempWidth  = MOS_MAX(dwTempWidth , pRenderer->IntermediateSurface.dwWidth);
+            dwTempHeight = MOS_MAX(dwTempHeight, pRenderer->IntermediateSurface.dwHeight);
+            dwTempWidth  = MOS_ALIGN_CEIL(dwTempWidth , VPHAL_BUFFER_SIZE_INCREMENT);
+            dwTempHeight = MOS_ALIGN_CEIL(dwTempHeight, VPHAL_BUFFER_SIZE_INCREMENT);
+
+            eStatusSingleRender = VpHal_ReAllocateSurface(
+                pRenderer->GetOsInterface(),
+                &pRenderer->IntermediateSurface,
+                "RenderIntermediateSurface",
+                pcRenderParams->pTarget[0]->Format,
+                MOS_GFXRES_2D,
+                pcRenderParams->pTarget[0]->TileType,
+                dwTempWidth,
+                dwTempHeight,
+                false,
+                MOS_MMC_DISABLED,
+                &bAllocated);
+
+            if (MOS_SUCCEEDED(eStatusSingleRender))
+            {
+                pIntermediateSurface->SurfType      = SURF_IN_PRIMARY;
+                pIntermediateSurface->SampleType    = SAMPLE_PROGRESSIVE;
+                pIntermediateSurface->ColorSpace    = pcRenderParams->pTarget[0]->ColorSpace;
+                pIntermediateSurface->ExtendedGamut = pcRenderParams->pTarget[0]->ExtendedGamut;
+                pIntermediateSurface->rcSrc         = pcRenderParams->pTarget[0]->rcSrc;
+                pIntermediateSurface->rcDst         = pcRenderParams->pTarget[0]->rcDst;
+                pIntermediateSurface->ScalingMode   = VPHAL_SCALING_AVS;
+                pIntermediateSurface->bIEF          = false;
+            }
+            else
+            {
+                eStatus             = eStatusSingleRender;
+                bHasNonAvsSubstream = false;
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to create intermediate surface, eStatus: %d.\n", eStatus);
+            }
+        }
+    } 
+
+    // phase 1: render each AVS surface in separated pass
+    bColorFillForFirstRender = true;
+    RenderParams             = *pRenderParams;
+    RenderParams.uDstCount   = 1;
+    MOS_ZeroMemory(RenderParams.pSrc, sizeof(PVPHAL_SURFACE) * VPHAL_MAX_SOURCES);
+    
+    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    {
+        VPHAL_SURFACE               SinglePassSource;
+        PVPHAL_SURFACE              pSurf = (PVPHAL_SURFACE)pcRenderParams->pSrc[iSourceIdx];
+        RenderParams.uSrcCount         = 0;
+
+        if (pSurf && IsSurfNeedAvs(pSurf))
+        {
+            SinglePassSource                   = *(pSurf);
+            SinglePassSource.SurfType          = SURF_IN_PRIMARY;
+            SinglePassSource.ScalingMode       = VPHAL_SCALING_AVS;
+            SinglePassSource.ScalingPreference = ePrimaryScalingPreference;
+
+            RenderParams.pTarget[0]   = (bHasNonAvsSubstream ? pIntermediateSurface : pcRenderParams->pTarget[0]);
+
+            if (bColorFillForFirstRender) // apply color-fill for the first rendering
+            {
+                bColorFillForFirstRender      = false;
+                RenderParams.pColorFillParams = &colorFillForFirstRenderPass;
+
+                if (pBackGroundSurface)
+                {
+                    RenderParams.pSrc[RenderParams.uSrcCount] = pBackGroundSurface;
+                    RenderParams.uSrcCount++;
+                }
+            }
+            else
+            {
+                RenderParams.pTarget[0]->rcDst = SinglePassSource.rcDst;
+                RenderParams.pColorFillParams  = nullptr;
+            }
+
+            RenderParams.pSrc[RenderParams.uSrcCount] = &SinglePassSource;
+            RenderParams.uSrcCount++;
+
+            // continue the next pfnRender even if single pass failed, but return eStatus failed. 
+            eStatusSingleRender = pRenderer->Render((PCVPHAL_RENDER_PARAMS)(&RenderParams));
+            if (MOS_FAILED(eStatusSingleRender)) 
+            {
+                eStatus = eStatusSingleRender;
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to redner for primary streams, eStatus: %d.\n", eStatus);
+            }
+        }
+    }
+    
+    // phase 2: if having non-AVS substream, render them with previous output in one pass.
+    if (bHasNonAvsSubstream)
+    {
+        RenderParams                = *pRenderParams;
+        MOS_ZeroMemory(RenderParams.pSrc, sizeof(PVPHAL_SURFACE) * VPHAL_MAX_SOURCES);
+
+        pIntermediateSurface->rcSrc = pcRenderParams->pTarget[0]->rcSrc;
+        pIntermediateSurface->rcDst = pcRenderParams->pTarget[0]->rcDst;
+        RenderParams.pSrc[0]        = pIntermediateSurface;
+        RenderParams.uSrcCount      = 1;
+        RenderParams.uDstCount      = 1;
+
+        for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES && RenderParams.uSrcCount < VPHAL_MAX_SOURCES; iSourceIdx++)
+        {
+            PVPHAL_SURFACE pSurf = pcRenderParams->pSrc[iSourceIdx];
+            bool bIsSurfForPhase2   = (pSurf && 
+                                    (!IsSurfNeedAvs(pSurf)) &&
+                                    (pSurf->SurfType != SURF_IN_BACKGROUND));
+            if (bIsSurfForPhase2)
+            {
+                RenderParams.pSrc[RenderParams.uSrcCount] = pSurf;
+                RenderParams.uSrcCount++;
+            }
+        }
+
+        eStatusSingleRender = pRenderer->Render((PCVPHAL_RENDER_PARAMS)(&RenderParams));
+        if (MOS_FAILED(eStatusSingleRender)) 
+        {
+            eStatus = eStatusSingleRender;
+            VPHAL_PUBLIC_ASSERTMESSAGE("Failed to redner for substreams, eStatus: %d.\n", eStatus);
+        }
+    }
 
 finish:
     return eStatus;
@@ -160,8 +549,13 @@ MOS_STATUS VphalState::Render(
     VPHAL_RENDER_PARAMS RenderParams;
 
     VPHAL_PUBLIC_CHK_NULL(pcRenderParams);
-
     RenderParams    = *pcRenderParams;
+
+    if (VpHal_IsAvsSampleForMultiStreamsEnabled(pcRenderParams))
+    {
+        eStatus = VpHal_RenderWithAvsForMultiStreams(m_renderer, pcRenderParams);
+        goto finish;
+    }
 
     // default render of video
     RenderParams.bIsDefaultStream = true;
@@ -211,11 +605,14 @@ VphalState::VphalState(
         m_renderer(nullptr),
         m_veboxInterface(nullptr),
         m_renderGpuNode(MOS_GPU_NODE_3D),
-        m_renderGpuContext(MOS_GPU_CONTEXT_RENDER)
+        m_renderGpuContext(MOS_GPU_CONTEXT_RENDER),
+        m_gpuAppTaskEvent(nullptr)
 {
     MOS_STATUS                  eStatus;
 
     eStatus                     = MOS_STATUS_UNKNOWN;
+
+    VPHAL_PUBLIC_CHK_NULL(m_osInterface);
 
     // Initialize platform, sku, wa tables
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
@@ -228,6 +625,34 @@ VphalState::VphalState(
         m_renderHal,
         &m_cpInterface,
         m_osInterface));
+
+    if (MEDIA_IS_SKU(m_skuTable, FtrVERing) ||
+        MEDIA_IS_SKU(m_skuTable, FtrSFCPipe))
+    {
+        MhwInterfaces *mhwInterfaces = nullptr;
+        MhwInterfaces::CreateParams params;
+        MOS_ZeroMemory(&params, sizeof(params));
+        params.Flags.m_sfc   = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
+        params.Flags.m_vebox = MEDIA_IS_SKU(m_skuTable, FtrVERing);
+
+        mhwInterfaces = MhwInterfaces::CreateFactory(params, pOsInterface);
+        if (mhwInterfaces)
+        {
+            SetMhwVeboxInterface(mhwInterfaces->m_veboxInterface);
+            SetMhwSfcInterface(mhwInterfaces->m_sfcInterface);
+
+            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
+            MOS_Delete(mhwInterfaces->m_miInterface);
+            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+            mhwInterfaces->m_cpInterface = nullptr;
+            MOS_Delete(mhwInterfaces);
+        }
+        else
+        {
+            VPHAL_DEBUG_ASSERTMESSAGE("Allocate MhwInterfaces failed");
+            eStatus = MOS_STATUS_NO_SPACE;
+        }
+    }
 
 finish:
     if(peStatus)
@@ -264,7 +689,8 @@ VphalState::~VphalState()
 
     if (m_cpInterface)
     {
-        MOS_Delete(m_cpInterface);
+        Delete_MhwCpInterface(m_cpInterface);
+        m_cpInterface = nullptr;
     }
 
     if (m_sfcInterface)
@@ -294,7 +720,7 @@ VphalState::~VphalState()
             // Deallocate OS interface structure (except if externally provided)
             MOS_FreeMemory(m_osInterface);
         }
-    }       
+    }
 }
 
 VphalState* VphalState::VphalStateFactory(
@@ -339,16 +765,16 @@ MOS_STATUS VphalState::GetStatusReport(
 
     pOsContext           = m_osInterface->pOsContext;
     pStatusTable         = &m_renderer->StatusTable;
-    uiNewHead            = pStatusTable->uiHead; // uiNewHead start from previous head value 
-    // entry length from head to tail 
+    uiNewHead            = pStatusTable->uiHead; // uiNewHead start from previous head value
+    // entry length from head to tail
     uiTableLen           = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 
     // step 1 - update pStatusEntry from driver if command associated with the dwTag is done by gpu
     for (i = 0; i < wStatusNum && i < uiTableLen; i++)
     {
-        uint32_t	dwGpuTag; // hardware tag updated by gpu command pipectl
-        bool		bDoneByGpu;
-        bool		bFailedOnSubmitCmd;
+        uint32_t    dwGpuTag; // hardware tag updated by gpu command pipectl
+        bool        bDoneByGpu;
+        bool        bFailedOnSubmitCmd;
 
         uiIndex            = (pStatusTable->uiHead + i) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
         pStatusEntry       = &pStatusTable->aTableEntries[uiIndex];
@@ -362,9 +788,9 @@ MOS_STATUS VphalState::GetStatusReport(
         }
 
 #if LINUX
-        dwGpuTag           = pOsContext->GetGPUTag(pOsContext, pStatusEntry->GpuContextOrdinal);
+        dwGpuTag           = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
-        dwGpuTag           = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal));
+        dwGpuTag           = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal, m_osInterface->streamIndex));
 #endif
         bDoneByGpu         = (dwGpuTag >= pStatusEntry->dwTag);
         bFailedOnSubmitCmd = (pStatusEntry->dwStatus == VPREP_ERROR);
@@ -408,7 +834,7 @@ MOS_STATUS VphalState::GetStatusReport(
 
     // step 2 - mark VPREP_NOTAVAILABLE for unused entry
     for (/* continue from previous i */; i < wStatusNum; i++)
-    {  
+    {
         pQueryReport[i].dwStatus         = VPREP_NOTAVAILABLE;
         pQueryReport[i].StatusFeedBackID = 0;
     }
@@ -433,7 +859,7 @@ MOS_STATUS VphalState::GetStatusReportEntryLength(
     uint32_t*                      puiLength)
 {
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
-#if LINUX // this function is only for Linux now
+#if __linux__  // this function is only for Linux now
     PVPHAL_STATUS_TABLE            pStatusTable;
 
     VPHAL_PUBLIC_CHK_NULL(m_renderer);
@@ -441,7 +867,7 @@ MOS_STATUS VphalState::GetStatusReportEntryLength(
 
     pStatusTable = &m_renderer->StatusTable;
 
-    // entry length from head to tail 
+    // entry length from head to tail
     *puiLength = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 finish:
 #else

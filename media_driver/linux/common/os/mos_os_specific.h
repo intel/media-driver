@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,26 +31,24 @@
 #include "GmmLib.h"
 #include "mos_resource_defs.h"
 #include "mos_defs.h"
-#include "mos_os_cp_specific.h"
+#include "mos_os_cp_interface_specific.h"
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
-
 #include "i915_drm.h"
 #include "mos_bufmgr.h"
 #include "xf86drm.h"
 
-#ifndef ANDROID
 #include <vector>
-#endif
 
 typedef unsigned int MOS_OS_FORMAT;
 
 class GraphicsResource;
+class AuxTableMgr;
 
 ////////////////////////////////////////////////////////////////////
 
-#define HINSTANCE PVOID
+typedef void* HINSTANCE;
 
 #define MAKEFOURCC(ch0, ch1, ch2, ch3)  \
     ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) |  \
@@ -69,7 +67,7 @@ enum DdiSurfaceFormat
     DDI_FORMAT_YUY2         = MAKEFOURCC('Y', 'U', 'Y', '2'),
     DDI_FORMAT_P8           = 41,
     DDI_FORMAT_A8P8         = 40,
-    DDI_FORMAT_A8           = 28,   
+    DDI_FORMAT_A8           = 28,
     DDI_FORMAT_L8           = 50,
     DDI_FORMAT_L16          = 81,
     DDI_FORMAT_A4L4         = 52,
@@ -78,7 +76,8 @@ enum DdiSurfaceFormat
     DDI_FORMAT_V8U8         = 60,
     DDI_FORMAT_UYVY         = MAKEFOURCC('U', 'Y', 'V', 'Y'),
     DDI_FORMAT_NV12         = MAKEFOURCC('N', 'V', '1', '2'),
-    DDI_FORMAT_A16B16G16R16 = 36
+    DDI_FORMAT_A16B16G16R16 = 36,
+    DDI_FORMAT_R32G32B32A32F = 115,
 };
 
 #define INDIRECT_HEAP_SIZE_UNITS    (1024)
@@ -104,6 +103,7 @@ enum DdiSurfaceFormat
 #define MOS_LOCKFLAG_WRITEONLY                    OSKM_LOCKFLAG_WRITEONLY
 #define MOS_LOCKFLAG_READONLY                     OSKM_LOCKFLAG_READONLY
 #define MOS_LOCKFLAG_NOOVERWRITE                  OSKM_LOCKFLAG_NOOVERWRITE
+#define MOS_LOCKFLAG_NO_SWIZZLE                   OSKM_LOCKFLAG_NO_SWIZZLE
 
 #define MOS_DIR_SEPERATOR                         '/'
 
@@ -118,6 +118,7 @@ enum DdiSurfaceFormat
 #define OSKM_LOCKFLAG_WRITEONLY                   0x00000001
 #define OSKM_LOCKFLAG_READONLY                    0x00000002
 #define OSKM_LOCKFLAG_NOOVERWRITE                 0x00000004
+#define OSKM_LOCKFLAG_NO_SWIZZLE                  0x00000008
 
 // should be defined in libdrm, this is a temporary solution to pass QuickBuild
 #define I915_EXEC_VEBOX                  (4<<0)
@@ -153,13 +154,12 @@ typedef struct _MOS_INTERFACE      *PMOS_INTERFACE;
 typedef struct _MOS_COMMAND_BUFFER *PMOS_COMMAND_BUFFER;
 typedef struct _MOS_LOCK_PARAMS    *PMOS_LOCK_PARAMS;
 
-
 //!
 //! \brief enum to video device operations 
 //!
 typedef enum _MOS_MEDIA_OPERATION
 {
-    MOS_MEDIA_OPERATION_NONE    = 0, 
+    MOS_MEDIA_OPERATION_NONE    = 0,
     MOS_MEDIA_OPERATION_DECODE,
     MOS_MEDIA_OPERATION_ENCODE,
     MOS_MEDIA_OPERATION_MAX
@@ -170,8 +170,8 @@ typedef enum _MOS_MEDIA_OPERATION
 //!
 typedef enum _MOS_GPU_NODE
 {
-    MOS_GPU_NODE_3D      = I915_EXEC_RENDER,        
-    MOS_GPU_NODE_COMPUTE = I915_EXEC_RENDER, //To change to compute CS later when linux define the name
+    MOS_GPU_NODE_3D      = I915_EXEC_RENDER,
+    MOS_GPU_NODE_COMPUTE = (6<<0), //To change to compute CS later when linux define the name
     MOS_GPU_NODE_VE      = I915_EXEC_VEBOX,
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,
@@ -220,7 +220,7 @@ static inline MOS_GPU_NODE OSKMGetGpuNode(MOS_GPU_CONTEXT uiGpuContext)
 //!
 typedef enum _MOS_MMAP_OPERATION
 {
-    MOS_MMAP_OPERATION_NONE    = 0, 
+    MOS_MMAP_OPERATION_NONE    = 0,
     MOS_MMAP_OPERATION_MMAP,
     MOS_MMAP_OPERATION_MMAP_GTT,
     MOS_MMAP_OPERATION_MMAP_WC
@@ -249,7 +249,8 @@ struct _MOS_SPECIFIC_RESOURCE
     uint32_t            name;
     GMM_RESOURCE_INFO   *pGmmResInfo;        //!< GMM resource descriptor
     MOS_MMAP_OPERATION  MmapOperation;
-
+    uint8_t             *pSystemShadow;
+    
     //!< to sync render target for multi-threading decoding mode
     struct
     {
@@ -271,7 +272,7 @@ struct _MOS_SPECIFIC_RESOURCE
     int32_t                 bPermaLocked;
 #endif // MOS_MEDIASOLO_SUPPORTED
 
-    // This is used by MDF when a wrapper/virtual MOS Resource is used to set surface state for a given VA, not necessary from start, in an actual MOS resource 
+    // This is used by MDF when a wrapper/virtual MOS Resource is used to set surface state for a given VA, not necessary from start, in an actual MOS resource
     uint64_t                user_provided_va;
     // for MODS Wrapper
     GraphicsResource*       pGfxResource;
@@ -287,7 +288,7 @@ struct MOS_SURFACE
     MOS_RESOURCE        OsResource;                                             //Surface Resource
 
     uint32_t            dwArraySlice;                                           //!< [in]
-    uint32_t            dwMipSlice;                                             //!< [in] 
+    uint32_t            dwMipSlice;                                             //!< [in]
     MOS_S3D_CHANNEL     S3dChannel;                                             //!< [in]
 
     MOS_GFXRES_TYPE     Type;                                                   //!< [out] Basic resource geometry
@@ -309,13 +310,13 @@ struct MOS_SURFACE
     int32_t             bCompressible;                                          //!< [out] Memory compression
 
     uint32_t            dwOffset;                                               // Surface Offset (Y/Base)
-    MOS_PLANE_OFFSET    YPlaneOffset;                                           // Y surface plane offset 
-    MOS_PLANE_OFFSET    UPlaneOffset;                                           // U surface plane offset 
+    MOS_PLANE_OFFSET    YPlaneOffset;                                           // Y surface plane offset
+    MOS_PLANE_OFFSET    UPlaneOffset;                                           // U surface plane offset
     MOS_PLANE_OFFSET    VPlaneOffset;                                           // V surface plane
 
-    union 
+    union
     {
-        struct 
+        struct
         {
             MOS_RESOURCE_OFFSETS Y;
             MOS_RESOURCE_OFFSETS U;
@@ -325,9 +326,9 @@ struct MOS_SURFACE
         MOS_RESOURCE_OFFSETS RGB;                                               //!< [out] Valid non planar RGB formats. Invalid for YUV and planar RGB formats.
     } RenderOffset;                                                             //!< [out] Offsets request by input parameters. Used to program HW.
 
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t Y;
             uint32_t U;
@@ -353,7 +354,7 @@ typedef struct _PATCHLOCATIONLIST
     uint32_t                    AllocationIndex;
     uint32_t                    AllocationOffset;
     uint32_t                    PatchOffset;
-    MOS_CP_COMMAND_PROPERTIES   cpCmdProps;
+    uint32_t                    cpCmdProps;
     int32_t                     uiRelocFlag;
     uint32_t                    uiWriteOperation;
 } PATCHLOCATIONLIST, *PPATCHLOCATIONLIST;
@@ -385,7 +386,7 @@ typedef struct _COMMAND_BUFFER
 
     int64_t             *pSyncTag;
     int64_t             qSyncTag;
- 
+
     // Status
     int32_t             bActive;        //!< Active / Inactive flag
     int32_t             bRunning;       //!< CB is running in Gfx Device
@@ -435,9 +436,9 @@ typedef struct _CODECHAL_OS_GPU_CONTEXT
     int32_t                     iResIndex[CODECHAL_MAX_REGS];  //!< Resource indices
     PMOS_RESOURCE                pResources;                   //!< Pointer to resources list
     int32_t                     *pbWriteMode;                  //!< Write mode
-    
+
     // GPU Status
-	uint32_t                    uiGPUStatusTag;
+    uint32_t                    uiGPUStatusTag;
 } MOS_OS_GPU_CONTEXT, *PMOS_OS_GPU_CONTEXT;
 
 //!
@@ -454,7 +455,7 @@ struct MOS_CONTEXT_OFFSET
 {
     MOS_LINUX_CONTEXT *intel_context;
     MOS_LINUX_BO      *target_bo;
-    uint64_t          offset64;	
+    uint64_t          offset64;
 };
 #endif
 
@@ -470,11 +471,11 @@ struct _MOS_OS_CONTEXT
     uint32_t            uIndirectStateSize;
 
     MOS_OS_GPU_CONTEXT  OsGpuContext[MOS_GPU_CONTEXT_MAX];
-    PMOS_CP_CONTEXT     pCpContext;
+
     // Buffer rendering
     LARGE_INTEGER       Frequency;                //!< Frequency
     LARGE_INTEGER       LastCB;                   //!< End time for last CB
- 
+
     CMD_BUFFER_BO_POOL  CmdBufferPool;
 
     // Emulated platform, sku, wa tables
@@ -484,7 +485,7 @@ struct _MOS_OS_CONTEXT
     MEDIA_SYSTEM_INFO      gtSystemInfo;
 
     // Controlled OS resources (for analysis)
-    MOS_BUFMGR   	*bufmgr;
+    MOS_BUFMGR       *bufmgr;
     MOS_LINUX_CONTEXT   *intel_context;
     uint32_t            uEnablePerfTag;           //!< 0: Do not pass PerfTag to KMD, perf data collection disabled;
                                                   //!< 1: Pass PerfTag to MVP driver, perf data collection enabled;
@@ -493,7 +494,6 @@ struct _MOS_OS_CONTEXT
                                                   //!< 1: Disable kmd watchdog, that is to say, DO NOT pass I915_EXEC_ENABLE_WATCHDOG flag to KMD;
     PERF_DATA           *pPerfData;               //!< Add Perf Data for KMD to capture perf tag
 
-    int32_t             *pbHybridDecMultiThreadEnabled;  //!< Hybrid Decoder Multi-Threading Enable Flag
     int32_t             bHybridDecoderRunningFlag;      //!< Flag to indicate if hybrid decoder is running
 
     int                 iDeviceId;
@@ -502,11 +502,18 @@ struct _MOS_OS_CONTEXT
     int                 fd;                     //!< handle for /dev/dri/card0
 
     int32_t             bUse64BitRelocs;
+    bool                bUseSwSwizzling;
+    bool                bTileYFlag;
 
     void                **ppMediaMemDecompState; //!<Media memory decompression data structure
 
+    // For modulized GPU context
+    void*               m_gpuContextMgr;
+    void*               m_cmdBufMgr;
+
     //For 2VD box
     int32_t             bKMDHasVCS2;
+    bool                bPerCmdBufferBalancing;
     int32_t             semid;
     int32_t             shmid;
     void                *pShm;
@@ -515,16 +522,17 @@ struct _MOS_OS_CONTEXT
     uint32_t            uiTranscryptedKernelsSize; //!< Size in bytes of the cached version of transcrypted and authenticated kernels
     void                *pLibdrmHandle;
 
-    int32_t             cmDevRefCount;
-    void                *pCmDev;
-
+    GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
+    GmmExportEntries    GmmFuncs;
+    AuxTableMgr         *m_auxTableMgr;
+   
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 
 #ifndef ANDROID
-    std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;   
+    std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
 #endif
- 
+
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT                pOsContext,
@@ -533,7 +541,8 @@ struct _MOS_OS_CONTEXT
     // Os Context interface functions
     void (* pfnDestroy)(
         struct _MOS_OS_CONTEXT      *pOsContext,
-        int32_t                     MODSEnabled);
+        int32_t                     MODSEnabled,
+        int32_t                     MODSForGpuContext);
 
     int32_t (* pfnRefresh)(
         struct _MOS_OS_CONTEXT      *pOsContext);
@@ -560,28 +569,31 @@ struct _MOS_OS_CONTEXT
         struct _MOS_OS_CONTEXT      *pOsContext,
         int32_t                     index);
 
-    uint32_t (* GetDmaBufID ) ( 
+    uint32_t (* GetDmaBufID ) (
         struct _MOS_OS_CONTEXT      *pOsContext);
 
-    void (* SetDmaBufID ) ( 
+    void (* SetDmaBufID ) (
         struct _MOS_OS_CONTEXT      *pOsContext,
         uint32_t                    dwDmaBufID);
 
-    void (* SetPerfHybridKernelID ) ( 
+    void (* SetPerfHybridKernelID ) (
         struct _MOS_OS_CONTEXT      *pOsContext,
         uint32_t                    KernelID);
 
     uint32_t (* pfnGetGpuCtxBufferTag)(
-		PMOS_CONTEXT               pOsContext,
-		MOS_GPU_CONTEXT            GpuContext);
+        PMOS_CONTEXT               pOsContext,
+        MOS_GPU_CONTEXT            GpuContext);
 
-	void (* pfnIncGpuCtxBufferTag)(
-		PMOS_CONTEXT               pOsContext,
-		MOS_GPU_CONTEXT            GpuContext);
+    void (* pfnIncGpuCtxBufferTag)(
+        PMOS_CONTEXT               pOsContext,
+        MOS_GPU_CONTEXT            GpuContext);
 
-	uint32_t (* GetGPUTag)(
-		PMOS_CONTEXT               pOsContext,
-		MOS_GPU_CONTEXT            GpuContext);
+    uint32_t (* GetGPUTag)(
+        PMOS_INTERFACE             pOsInterface,
+        MOS_GPU_CONTEXT            GpuContext);
+
+    GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
+        PMOS_CONTEXT               pOsContext);
 
 };
 
@@ -629,6 +641,16 @@ extern "C" {
 //!           Return true if nullptr, otherwise false
 //!
 int32_t Mos_ResourceIsNull(
+    PMOS_RESOURCE pOsResource);
+
+//!
+//! \brief    Get Buffer Type
+//! \details  Returns the type of buffer, 1D, 2D or volume
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] Pointer to OS Resource
+//! \return   GFX resource Type
+//!
+MOS_GFXRES_TYPE GetResType(
     PMOS_RESOURCE pOsResource);
 
 //!
@@ -755,6 +777,17 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     PMOS_RESOURCE               pOsResource,
     PMOS_SURFACE                pResDetails);
 
+//!
+//! \brief    Get resource index
+//! \details  Get resource index of MOS_RESOURCE
+//! \param    PMOS_RESOURCE osResource
+//!           [in] Pointer to OS resource
+//! \return   uint32_t
+//!           Resource index
+//!
+uint32_t Mos_Specific_GetResourceIndex(
+    PMOS_RESOURCE               osResource);
+
 uint32_t Mos_Specific_GetResourcePitch(
     PMOS_RESOURCE               pOsResource);
 
@@ -765,6 +798,36 @@ void Mos_Specific_SetResourceWidth(
 void Mos_Specific_SetResourceFormat(
     PMOS_RESOURCE               pOsResource,
     MOS_FORMAT                  mosFormat);
+
+//!
+//! \brief    Get SetMarker enabled flag
+//! \details  Get SetMarker enabled flag from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   bool
+//!           SetMarker enabled flag
+//!
+bool Mos_Specific_IsSetMarkerEnabled(
+    PMOS_INTERFACE         pOsInterface);
+
+//!
+//! \brief    Get SetMarker resource address
+//! \details  Get SetMarker resource address from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   PMOS_RESOURCE
+//!           SetMarker resource address
+//!
+PMOS_RESOURCE Mos_Specific_GetMarkerResource(
+    PMOS_INTERFACE         pOsInterface);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
+    PMOS_INTERFACE        pOsInterface);
+
+MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
+    PMOS_INTERFACE        pOsInterface);
+#endif
 
 #ifdef __cplusplus
 }

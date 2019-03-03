@@ -65,15 +65,6 @@ typedef enum _CM_DEVICE_CAP_NAME {
   CAP_MAX_BUFFER_SIZE
 } CM_DEVICE_CAP_NAME;
 
-// CM RT DLL File Version
-typedef struct _CM_DLL_FILE_VERSION {
-  uint16_t wMANVERSION;
-  uint16_t wMANREVISION;
-  uint16_t wSUBREVISION;
-  uint16_t wBUILD_NUMBER; 
-  //Version constructed as : "wMANVERSION.wMANREVISION.wSUBREVISION.wBUILD_NUMBER"
-} CM_DLL_FILE_VERSION, *PCM_DLL_FILE_VERSION;
-
 // parameters used to set the surface state of the CmSurface
 struct CM_VME_SURFACE_STATE_PARAM {
   uint32_t width;
@@ -132,7 +123,7 @@ typedef int32_t  (__cdecl *ReleaseSurfaceCallback)(void *cmDevice, void *surface
 struct CmDeviceCreationParam
 {
     uint32_t createOption;        // [in]  Dev create option
-    ReleaseSurfaceCallback ReleaseSurfaceFunc;  // [in]  Function Pointer to free surface
+    ReleaseSurfaceCallback releaseSurfaceFunc;  // [in]  Function Pointer to free surface
     void *deviceHandleInUmd;      // [out] pointer to handle in driver
     uint32_t version;             // [out] the Cm version
     uint32_t driverStoreEnabled;  // [out] DriverStoreEnable flag
@@ -147,10 +138,15 @@ struct CmDeviceCreationParam
 #define CM_RT_SKU "CM_RT_SKU"
 #define CM_RT_MAX_THREADS "CM_RT_MAX_THREADS"
 #define CM_RT_AUB_PARAM "CM_RT_AUB_PARAM"
+#define CM_RT_GRITS_PARAM "CM_RT_GRITS_PARAM"
 #define CM_RT_MULTIPLE_FRAMES "CM_RT_MULTIPLE_FRAMES"
 #define CM_RT_STEPPING "CM_RT_STEPPING"
+#define GRITS_PATH "GRITS_PATH"
 
-#define CM_DEVICE_CREATE_OPTION_DEFAULT 0
+#define CM_DEVICE_CONFIG_FAST_PATH_OFFSET 30
+#define CM_DEVICE_CONFIG_FAST_PATH_ENABLE (1 << CM_DEVICE_CONFIG_FAST_PATH_OFFSET)
+// enable the fast path by default from cmrtlib
+#define CM_DEVICE_CREATE_OPTION_DEFAULT   CM_DEVICE_CONFIG_FAST_PATH_ENABLE
 #define IGFX_UNKNOWN_CORE 0
 
 struct CM_PLATFORM_INFO
@@ -181,23 +177,23 @@ enum CM_QUERY_TYPE
 
 struct CM_QUERY_CAPS
 {
-    CM_QUERY_TYPE Type;
+    CM_QUERY_TYPE type;
     union
     {
-        int32_t iVersion;
+        int32_t version;
         HANDLE hRegistration;
-        CM_HAL_MAX_VALUES MaxValues;
-        CM_HAL_MAX_VALUES_EX MaxValuesEx;
-        uint32_t MaxVmeTableSize;
+        CM_HAL_MAX_VALUES maxValues;
+        CM_HAL_MAX_VALUES_EX maxValuesEx;
+        uint32_t maxVmeTableSize;
         uint32_t genCore;
         uint32_t genGT;
-        uint32_t MinRenderFreq;
-        uint32_t MaxRenderFreq;
+        uint32_t minRenderFreq;
+        uint32_t maxRenderFreq;
         uint32_t genStepId;
-        uint32_t GPUCurrentFreq;
-        uint32_t Surf2DCount;
-        uint32_t *pSurf2DFormats;
-        CM_PLATFORM_INFO PlatformInfo;
+        uint32_t gpuCurrentFreq;
+        uint32_t surf2DCount;
+        uint32_t *surf2DFormats;
+        CM_PLATFORM_INFO platformInfo;
     };
 };
 
@@ -259,7 +255,6 @@ enum CM_FUNCTION_ID
     CM_FN_CMDEVICE_CREATEBUFFERSVM          = 0x1131,
     CM_FN_CMDEVICE_DESTROYBUFFERSVM         = 0x1132,
     CM_FN_CMDEVICE_CREATESAMPLERSURFACE2DUP= 0x1133,
-    CM_FN_CMDEVICE_CHECK_EXISTING_2DWRAPPER= 0x1135,
     CM_FN_CMDEVICE_REGISTER_GTPIN_MARKERS  = 0x1136,
     CM_FN_CMDEVICE_CLONEKERNEL             = 0x1137,
     CM_FN_CMDEVICE_CREATESURFACE2D_ALIAS   = 0x1138,
@@ -271,6 +266,7 @@ enum CM_FUNCTION_ID
     CM_FN_CMDEVICE_CONFIGVMESURFACEDIMENSION = 0x113E,
     CM_FN_CMDEVICE_CREATEHEVCVMESURFACEG10 = 0x113F,
     CM_FN_CMDEVICE_GETVISAVERSION          = 0x1140,
+    CM_FN_CMDEVICE_CREATEQUEUEEX           = 0x1141,
 
     CM_FN_CMQUEUE_ENQUEUE                  = 0x1500,
     CM_FN_CMQUEUE_DESTROYEVENT             = 0x1501,
@@ -281,6 +277,9 @@ enum CM_FUNCTION_ID
     CM_FN_CMQUEUE_ENQUEUECOPY_L2L          = 0x1507,
     CM_FN_CMQUEUE_ENQUEUEVEBOX             = 0x1508,
     CM_FN_CMQUEUE_ENQUEUEWITHHINTS         = 0x1509,
+    CM_FN_CMQUEUE_ENQUEUEFAST              = 0x150a,
+    CM_FN_CMQUEUE_DESTROYEVENTFAST         = 0x150b,
+    CM_FN_CMQUEUE_ENQUEUEWITHGROUPFAST     = 0x150c,
 };
 
 #endif  // #ifndef CMRTLIB_AGNOSTIC_SHARE_CM_DEVICE_DEF_H_

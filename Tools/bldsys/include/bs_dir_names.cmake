@@ -41,12 +41,12 @@ endif(NOT DEFINED GFX_DEVELOPMENT_DIR)
 #
 # These will be used later to help with separation of components.
 #
-bs_set_if_undefined(BS_DIR_SOURCE          "${GFX_DEVELOPMENT_DIR}/Source")
+bs_set_if_undefined(BS_DIR_SOURCE          "${CMAKE_SOURCE_DIR}/..")
 
-bs_set_if_undefined(BS_DIR_COMMON          "${BS_DIR_SOURCE}/Common")
-bs_set_if_undefined(BS_DIR_GMMLIB          "${BS_DIR_SOURCE}/GmmLib")
-bs_set_if_undefined(BS_DIR_INC             "${BS_DIR_SOURCE}/inc")
+bs_set_if_undefined(BS_DIR_COMMON          "${BS_DIR_SOURCE}/gmmlib/Source/Common")
+bs_set_if_undefined(BS_DIR_GMMLIB          "${BS_DIR_SOURCE}/gmmlib/Source/GmmLib")
+bs_set_if_undefined(BS_DIR_INC             "${BS_DIR_SOURCE}/gmmlib/Source/inc")
 bs_set_if_undefined(BS_DIR_INSTALL         "${BS_DIR_SOURCE}/install")
-bs_set_if_undefined(BS_DIR_MEDIA           "${BS_DIR_SOURCE}/media")
+bs_set_if_undefined(BS_DIR_MEDIA           "${CMAKE_SOURCE_DIR}")
 
 endif(NOT DEFINED _bs_include_dir_names)

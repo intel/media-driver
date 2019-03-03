@@ -32,6 +32,10 @@
 // forward declaration
 class MediaMemDecompBaseState;
 
+//!
+//! \class    MmdDevice
+//! \brief    MMD device
+//!
 class MmdDevice
 {
 public:
@@ -55,7 +59,7 @@ public:
     //! \brief    Initializes platform specific MMD (media memory decompression) states
     //! \param    [in] osInterface
     //!           OS interface
-    //! \param    [in] mhw
+    //! \param    [in] mhwInterfaces
     //!           HW interfaces to be used by MMD
     //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
     //!

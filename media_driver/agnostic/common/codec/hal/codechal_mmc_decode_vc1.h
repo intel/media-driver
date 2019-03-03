@@ -41,7 +41,7 @@ public:
     //! \brief    Constructor
     //!
     CodechalMmcDecodeVc1(
-        CodechalHwInterface    *hwInterface, 
+        CodechalHwInterface    *hwInterface,
         void *standardState);
 
     //!

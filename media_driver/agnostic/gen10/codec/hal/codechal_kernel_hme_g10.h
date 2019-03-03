@@ -67,7 +67,7 @@ public:
     public:
         Curbe()
         {
-            memcpy((void *)&m_data, &m_initCurbe, sizeof(m_initCurbe));
+            MOS_SecureMemcpy(&m_data, sizeof(m_data), &m_initCurbe, sizeof(m_initCurbe));
         }
         struct CurbeData
         {
@@ -300,7 +300,7 @@ public:
                 uint32_t Value;
             } DW15;
 
-            struct 
+            struct
             {
                 // DW16
                 union

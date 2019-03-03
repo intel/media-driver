@@ -162,7 +162,7 @@ VAStatus DdiMediaBase::UnRegisterRTSurfaces(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl
     uint32_t i;
 
     for (i = 0; i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; i++)
-    {    
+    {
         if (rtTbl->pRT[i] == surface)
         {
             rtTbl->pRT[i] = nullptr;

@@ -52,9 +52,10 @@ public:
         void *cmd);
 
     virtual MOS_STATUS PopulateHmeParam(
-        bool is16xMeEnabled,
-        bool is32xMeEnabled,
-        void *cmd) { return MOS_STATUS_SUCCESS; }
+        bool    is16xMeEnabled,
+        bool    is32xMeEnabled,
+        uint8_t meMethod,
+        void    *cmd) { return MOS_STATUS_SUCCESS; }
 };
 
 #endif // USE_CODECHAL_DEBUG_TOOL

@@ -52,11 +52,10 @@ public:
     VphalStateG8(
         PMOS_INTERFACE          pOsInterface,
         PMOS_CONTEXT            pOsDriverContext,
-        MOS_STATUS              *peStatus) : 
+        MOS_STATUS              *peStatus) :
         VphalState(pOsInterface, pOsDriverContext, peStatus)
-    {        
+    {
     }
-
 
     //!
     //! \brief    VphalState Destuctor
@@ -64,7 +63,7 @@ public:
     //! \return   VOID
     //!
     virtual ~VphalStateG8()
-    {        
+    {
     }
 
 protected:

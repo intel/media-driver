@@ -31,7 +31,6 @@
 //!
 static MOS_MUTEX mosUtilUserIntrMutex = PTHREAD_MUTEX_INITIALIZER;
 
-
 MOS_STATUS MosUtilUserInterfaceInit(PRODUCT_FAMILY productFamily)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;

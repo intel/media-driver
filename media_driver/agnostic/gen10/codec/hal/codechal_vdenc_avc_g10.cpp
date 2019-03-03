@@ -27,7 +27,9 @@
 
 #include "codechal_vdenc_avc_g10.h"
 #include "codeckrnheader.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
+#endif
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g10.h"
 #include "mhw_vdbox_mfx_hwcmd_g10_X.h"
@@ -195,9 +197,9 @@ struct BrcUpdateDmem
     uint8_t     UPD_SLCSZ_ConsertativeThreshold_U8;   // =0, 0: do not set conservative threshold (suggested for video conference) 1: set conservative threshold for non-video conference
     uint16_t    UPD_TargetSliceSize_U16;              // default: 1498, max target slice size from app DDI
     uint16_t    UPD_MaxNumSliceAllowed_U16;           // computed by driver based on level idc
-    uint16_t    UPD_SLBB_Size_U16;                    // second level batch buffer (SLBB) size in bytes, the input buffer will contain two SLBBs A and B, A followed by B, A and B have the same structure. 
+    uint16_t    UPD_SLBB_Size_U16;                    // second level batch buffer (SLBB) size in bytes, the input buffer will contain two SLBBs A and B, A followed by B, A and B have the same structure.
     uint16_t    UPD_SLBB_B_Offset_U16;                // offset in bytes from the beginning of the input buffer, it points to the start of SLBB B, set by driver for skip frame support
-    uint16_t    UPD_AvcImgStateOffset_U16;            // offset in bytes from the beginning of SLBB A 
+    uint16_t    UPD_AvcImgStateOffset_U16;            // offset in bytes from the beginning of SLBB A
     uint16_t    reserved_u16;
     uint32_t    NumOfSlice;                           // PAK output via MMIO
 
@@ -212,10 +214,10 @@ struct BrcUpdateDmem
     uint32_t    MiniFramePaddingSize_U32;             // PAK output via MMIO
     uint16_t    UPD_WidthInMB_U16;                    // width in MB
     uint16_t    UPD_HeightInMB_U16;                   // height in MB
-    int8_t      UPD_ROIQpDelta_I8[8];                 // Application specified ROI QP Adjustment for Zone0, Zone1, Zone2 and Zone3, Zone4, Zone5, Zone6 and Zone7. 
+    int8_t      UPD_ROIQpDelta_I8[8];                 // Application specified ROI QP Adjustment for Zone0, Zone1, Zone2 and Zone3, Zone4, Zone5, Zone6 and Zone7.
     uint8_t     RSVD2[36];
 };
-using PBrcUpdateDmem = struct BrcUpdateDmem*; 
+using PBrcUpdateDmem = struct BrcUpdateDmem*;
 
 const uint32_t CodechalVdencAvcStateG10::m_mvCostSkipBiasQPel[3][8] =
 {
@@ -379,22 +381,6 @@ MOS_STATUS CodechalVdencAvcStateG10::GetKernelHeaderAndSize(void *binary, EncOpe
     {
         currKrnHeader = &kernelHeaderTable->m_meVdenc;
     }
-    else if (operation == ENC_BRC)
-    {
-        currKrnHeader = &kernelHeaderTable->m_initFrameBrc;
-    }
-    else if (operation == ENC_MBENC)
-    {
-        currKrnHeader = &kernelHeaderTable->m_mbEncQltyI;
-    }
-    else if (operation == ENC_MBENC_ADV)
-    {
-        currKrnHeader = &kernelHeaderTable->m_mbEncAdvI;
-    }
-    else if (operation == ENC_WP)
-    {
-        currKrnHeader = &kernelHeaderTable->m_weightedPrediction;
-    }
     else if (operation == ENC_SFD)
     {
         currKrnHeader = &kernelHeaderTable->m_staticFrameDetection;
@@ -427,16 +413,19 @@ CodechalVdencAvcStateG10::CodechalVdencAvcStateG10(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     m_kuid = IDR_CODEC_AllAVCEnc;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#endif
     AddIshSize(m_kuid, m_kernelBase);
-    
+
     m_cmKernelEnable = true;
     m_mbStatsSupported = true; //Starting from GEN9
+    m_needCheckCpEnabled = true;
 
     pfnGetKernelHeaderAndSize    = CodechalVdencAvcStateG10::GetKernelHeaderAndSize;
 
-    dwVdencBrcInitDmemBufferSize   = sizeof(BrcInitDmem);
-    dwVdencBrcUpdateDmemBufferSize = sizeof(BrcUpdateDmem);
+    m_vdencBrcInitDmemBufferSize   = sizeof(BrcInitDmem);
+    m_vdencBrcUpdateDmemBufferSize = sizeof(BrcUpdateDmem);
     m_vdencBrcNumOfSliceOffset = CODECHAL_OFFSETOF(BrcUpdateDmem, NumOfSlice);
 
     CODECHAL_DEBUG_TOOL(
@@ -450,8 +439,8 @@ CodechalVdencAvcStateG10::~CodechalVdencAvcStateG10()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_DEBUG_TOOL(
-        MOS_Delete(m_encodeParState);
         DestroyAvcPar();
+        MOS_Delete(m_encodeParState);
     )
 }
 
@@ -464,7 +453,6 @@ MOS_STATUS CodechalVdencAvcStateG10::InitializeState()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcState::InitializeState());
 
     m_sliceSizeStreamoutSupported = true;
-    bForceBrcMbStatsEnabled = true;
 
     return eStatus;
 }
@@ -535,8 +523,8 @@ MOS_STATUS CodechalVdencAvcStateG10::SetDmemHuCBrcInitReset()
     MOS_LOCK_PARAMS lockFlagsWriteOnly;
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
-    auto hucVDEncBrcInitDmem = (PBrcInitDmem)m_osInterface->pfnLockResource(
-        m_osInterface, &resVdencBrcInitDmemBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
+    auto hucVDEncBrcInitDmem     = (PBrcInitDmem)m_osInterface->pfnLockResource(
+        m_osInterface, &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVDEncBrcInitDmem);
     MOS_ZeroMemory(hucVDEncBrcInitDmem, sizeof(BrcInitDmem));
@@ -558,7 +546,7 @@ MOS_STATUS CodechalVdencAvcStateG10::SetDmemHuCBrcInitReset()
     }
 
     //Override the DistQPDelta setting.
-    if (bMbBrcEnabled)
+    if (m_mbBrcEnabled)
     {
         if (m_avcSeqParam->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
         {
@@ -575,7 +563,7 @@ MOS_STATUS CodechalVdencAvcStateG10::SetDmemHuCBrcInitReset()
             hucVDEncBrcInitDmem));
     )
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &resVdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
 
     return eStatus;
 }
@@ -591,7 +579,7 @@ MOS_STATUS CodechalVdencAvcStateG10::SetDmemHuCBrcUpdate()
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.WriteOnly = 1;
     auto hucVDEncBrcDmem = (PBrcUpdateDmem)m_osInterface->pfnLockResource(
-        m_osInterface, &resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass], &lockFlags);
+        m_osInterface, &m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass], &lockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVDEncBrcDmem);
     SetDmemHuCBrcUpdateImpl<BrcUpdateDmem>(hucVDEncBrcDmem);
 
@@ -616,7 +604,7 @@ MOS_STATUS CodechalVdencAvcStateG10::SetDmemHuCBrcUpdate()
             hucVDEncBrcDmem));
     )
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &(resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass]));
+    m_osInterface->pfnUnlockResource(m_osInterface, &(m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass]));
 
     return eStatus;
 }
@@ -627,7 +615,7 @@ MOS_STATUS CodechalVdencAvcStateG10::LoadMvCost(uint8_t qp)
 
     for (uint8_t i=0; i< 8; i++)
     {
-        VDEncMvCost[i] = Map44LutValue((uint32_t)(m_mvCostSkipBiasQPel[0][i]), 0x6f);
+        m_vdEncMvCost[i] = Map44LutValue((uint32_t)(m_mvCostSkipBiasQPel[0][i]), 0x6f);
     }
 
     if (!m_vdencBrcEnabled)
@@ -636,14 +624,14 @@ MOS_STATUS CodechalVdencAvcStateG10::LoadMvCost(uint8_t qp)
         {
             for (uint8_t i = 3; i < 8; i++)
             {
-                VDEncMvCost[i] = Map44LutValue((uint32_t)(m_mvCostSkipBiasQPel[1][i]), 0x6f);
+                m_vdEncMvCost[i] = Map44LutValue((uint32_t)(m_mvCostSkipBiasQPel[1][i]), 0x6f);
             }
         }
         if (qp == 50 || qp == 51)
         {
             for (uint8_t i = 3; i < 8; i++)
             {
-                VDEncMvCost[i] = Map44LutValue((uint32_t)(m_mvCostSkipBiasQPel[2][i]), 0x6f);
+                m_vdEncMvCost[i] = Map44LutValue((uint32_t)(m_mvCostSkipBiasQPel[2][i]), 0x6f);
             }
         }
     }
@@ -668,7 +656,7 @@ MOS_STATUS CodechalVdencAvcStateG10::LoadHmeMvCost(uint8_t qp)
 
     for (uint8_t i = 0; i < 8; i++)
     {
-        VDEncHmeMvCost[i] = Map44LutValue(*(vdencHmeCostTable[i] + qp), 0x6f);
+        m_vdEncHmeMvCost[i] = Map44LutValue(*(vdencHmeCostTable[i] + qp), 0x6f);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -679,7 +667,7 @@ MOS_STATUS CodechalVdencAvcStateG10::LoadHmeMvCostTable(PCODEC_AVC_ENCODE_SEQUEN
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     const uint32_t(*vdencHmeCostTable)[CODEC_AVC_NUM_QP];
-    if (m_avcSeqParam->ScenarioInfo == ESCENARIO_DISPLAYREMOTING)
+    if ((m_avcSeqParam->ScenarioInfo == ESCENARIO_DISPLAYREMOTING) || (m_avcSeqParam->RateControlMethod == RATECONTROL_QVBR))
     {
         vdencHmeCostTable = m_hmeCostDisplayRemote;
     }
@@ -716,33 +704,35 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulateBrcInitParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->MBBRCEnable                    = bMbBrcEnabled;
-        avcPar->MBRC                           = bMbBrcEnabled;
-        avcPar->BitRate                        = dmem->INIT_TargetBitrate_U32;
-        avcPar->InitVbvFullnessInBit           = dmem->INIT_InitBufFull_U32;
-        avcPar->MaxBitRate                     = dmem->INIT_MaxRate_U32;
-        avcPar->VbvSzInBit                     = dmem->INIT_BufSize_U32;
-        avcPar->UserMaxFrame                   = dmem->INIT_ProfileLevelMaxFrame_U32;
-        avcPar->SlidingWindowEnable            = dmem->INIT_SlidingWidowRCEnable_U8;
-        avcPar->SlidingWindowSize              = dmem->INIT_SlidingWindowSize_U8;
-        avcPar->SlidingWindowMaxRateRatio      = dmem->INIT_SlidingWindowMaxRateRatio_U8;
-        avcPar->LowDelayGoldenFrameBoost       = dmem->INIT_LowDelayGoldenFrameBoost_U8;
-        avcPar->TopQPDeltaThrforAdaptive2Pass  = dmem->INIT_TopQPDeltaThrForAdapt2Pass_U8;
-        avcPar->BotQPDeltaThrforAdaptive2Pass  = dmem->INIT_BotQPDeltaThrForAdapt2Pass_U8;
-        avcPar->TopFrmSzPctThrforAdaptive2Pass = dmem->INIT_TopFrmSzThrForAdapt2Pass_U8;
-        avcPar->BotFrmSzPctThrforAdaptive2Pass = dmem->INIT_BotFrmSzThrForAdapt2Pass_U8;
-        avcPar->MBHeaderCompensation           = dmem->INIT_MBHeaderCompensation_U8;
-        avcPar->QPSelectMethodforFirstPass     = dmem->INIT_QPSelectForFirstPass_U8;
-        avcPar->MBQpCtrl                       = (dmem->INIT_MbQpCtrl_U8 > 0) ? true : false;
-        avcPar->QPMax                          = dmem->INIT_MaxQP_U16;
-        avcPar->QPMin                          = dmem->INIT_MinQP_U16;
-        avcPar->HrdConformanceCheckDisable     = (dmem->INIT_HRDConformanceCheckDisable_U8 > 0) ? true : false;
-        avcPar->ICQReEncode                    = (dmem->INIT_ICQReEncode_U8 > 0) ? true : false;
-        avcPar->AdaptiveCostAdjustEnable       = (dmem->INIT_AdaptiveCostEnable_U8 > 0) ? true : false;
-        avcPar->AdaptiveHMEExtension           = (dmem->INIT_AdaptiveHMEExtensionEnable_U8 > 0) ? true : false;
-        avcPar->StreamInStaticRegion           = dmem->INIT_StaticRegionStreamIn_U8;;
-        avcPar->ScenarioInfo                   = dmem->INIT_ScenarioInfo_U8;;
-        avcPar->SliceSizeWA                    = (dmem->INIT_SliceSizeCtrlWA > 0) ? true : false;
+        m_avcPar->MBBRCEnable                    = m_mbBrcEnabled;
+        m_avcPar->MBRC                           = m_mbBrcEnabled;
+        m_avcPar->BitRate                        = dmem->INIT_TargetBitrate_U32;
+        m_avcPar->InitVbvFullnessInBit           = dmem->INIT_InitBufFull_U32;
+        m_avcPar->MaxBitRate                     = dmem->INIT_MaxRate_U32;
+        m_avcPar->VbvSzInBit                     = dmem->INIT_BufSize_U32;
+        m_avcPar->UserMaxFrame                   = dmem->INIT_ProfileLevelMaxFrame_U32;
+        m_avcPar->SlidingWindowEnable            = dmem->INIT_SlidingWidowRCEnable_U8;
+        m_avcPar->SlidingWindowSize              = dmem->INIT_SlidingWindowSize_U8;
+        m_avcPar->SlidingWindowMaxRateRatio      = dmem->INIT_SlidingWindowMaxRateRatio_U8;
+        m_avcPar->LowDelayGoldenFrameBoost       = dmem->INIT_LowDelayGoldenFrameBoost_U8;
+        m_avcPar->TopQPDeltaThrforAdaptive2Pass  = dmem->INIT_TopQPDeltaThrForAdapt2Pass_U8;
+        m_avcPar->BotQPDeltaThrforAdaptive2Pass  = dmem->INIT_BotQPDeltaThrForAdapt2Pass_U8;
+        m_avcPar->TopFrmSzPctThrforAdaptive2Pass = dmem->INIT_TopFrmSzThrForAdapt2Pass_U8;
+        m_avcPar->BotFrmSzPctThrforAdaptive2Pass = dmem->INIT_BotFrmSzThrForAdapt2Pass_U8;
+        m_avcPar->MBHeaderCompensation           = dmem->INIT_MBHeaderCompensation_U8;
+        m_avcPar->QPSelectMethodforFirstPass     = dmem->INIT_QPSelectForFirstPass_U8;
+        m_avcPar->MBQpCtrl                       = (dmem->INIT_MbQpCtrl_U8 > 0) ? true : false;
+        m_avcPar->QPMax                          = dmem->INIT_MaxQP_U16;
+        m_avcPar->QPMin                          = dmem->INIT_MinQP_U16;
+        m_avcPar->HrdConformanceCheckDisable     = (dmem->INIT_HRDConformanceCheckDisable_U8 > 0) ? true : false;
+        m_avcPar->ICQReEncode                    = (dmem->INIT_ICQReEncode_U8 > 0) ? true : false;
+        m_avcPar->AdaptiveCostAdjustEnable       = (dmem->INIT_AdaptiveCostEnable_U8 > 0) ? true : false;
+        m_avcPar->AdaptiveHMEExtension           = (dmem->INIT_AdaptiveHMEExtensionEnable_U8 > 0) ? true : false;
+        m_avcPar->StreamInStaticRegion           = dmem->INIT_StaticRegionStreamIn_U8;
+        ;
+        m_avcPar->ScenarioInfo = dmem->INIT_ScenarioInfo_U8;
+        ;
+        m_avcPar->SliceSizeWA = (dmem->INIT_SliceSizeCtrlWA > 0) ? true : false;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -764,19 +754,19 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulateBrcUpdateParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->EnableMultipass            = (dmem->UPD_MaxNumPass_U8 > 0) ? true : false;
-        avcPar->MaxNumPakPasses            = dmem->UPD_MaxNumPass_U8;
-        avcPar->SceneChgDetectEn           = (dmem->UPD_SceneChgDetectEn_U8 > 0) ? true : false;
-        avcPar->SceneChgPrevIntraPctThresh = dmem->UPD_SceneChgPrevIntraPctThreshold_U8;
-        avcPar->SceneChgCurIntraPctThresh  = dmem->UPD_SceneChgCurIntraPctThreshold_U8;
-        avcPar->SceneChgWidth0             = dmem->UPD_SceneChgWidth_U8[0];
-        avcPar->SceneChgWidth1             = dmem->UPD_SceneChgWidth_U8[1];
-        avcPar->SliceSizeThr               = dmem->UPD_SLCSZ_TARGETSLCSZ_U16;
-        avcPar->SliceMaxSize               = dmem->UPD_TargetSliceSize_U16;
+        m_avcPar->EnableMultipass            = (dmem->UPD_MaxNumPass_U8 > 0) ? true : false;
+        m_avcPar->MaxNumPakPasses            = dmem->UPD_MaxNumPass_U8;
+        m_avcPar->SceneChgDetectEn           = (dmem->UPD_SceneChgDetectEn_U8 > 0) ? true : false;
+        m_avcPar->SceneChgPrevIntraPctThresh = dmem->UPD_SceneChgPrevIntraPctThreshold_U8;
+        m_avcPar->SceneChgCurIntraPctThresh  = dmem->UPD_SceneChgCurIntraPctThreshold_U8;
+        m_avcPar->SceneChgWidth0             = dmem->UPD_SceneChgWidth_U8[0];
+        m_avcPar->SceneChgWidth1             = dmem->UPD_SceneChgWidth_U8[1];
+        m_avcPar->SliceSizeThr               = dmem->UPD_SLCSZ_TARGETSLCSZ_U16;
+        m_avcPar->SliceMaxSize               = dmem->UPD_TargetSliceSize_U16;
     }
     else if (m_pictureCodingType == P_TYPE)
     {
-        avcPar->Transform8x8PDisable       = (dmem->UPD_DisablePFrame8x8Transform_U8 > 0) ? true : false;
+        m_avcPar->Transform8x8PDisable = (dmem->UPD_DisablePFrame8x8Transform_U8 > 0) ? true : false;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -803,7 +793,7 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulateEncParam(
     if (m_vdencBrcEnabled)
     {
         // BRC case: VDENC IMG STATE is updated by HuC FW
-        data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
+        data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
         data = data + mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD::byteSize;
     }
     else
@@ -816,7 +806,7 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulateEncParam(
         }
         else
         {
-            data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &resVdencSFDImageStateReadBuffer, &lockFlags);
+            data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencSfdImageStateReadBuffer, &lockFlags);
         }
     }
 
@@ -827,18 +817,18 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulateEncParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->BlockBasedSkip        = vdencCmd.DW4.BlockBasedSkipEnabled;
-        avcPar->VDEncPerfMode         = vdencCmd.DW1.VdencPerfmode;
+        m_avcPar->BlockBasedSkip = vdencCmd.DW4.BlockBasedSkipEnabled;
+        m_avcPar->VDEncPerfMode  = vdencCmd.DW1.VdencPerfmode;
     }
     else if (m_pictureCodingType == P_TYPE)
     {
-        avcPar->SubPelMode            = vdencCmd.DW4.SubPelMode;
-        avcPar->FTQBasedSkip          = vdencCmd.DW4.ForwardTransformSkipCheckEnable;
-        avcPar->BiMixDisable          = vdencCmd.DW1.BidirectionalMixDisable;
-        avcPar->SurvivedSkipCost      = (vdencCmd.DW8.NonSkipZeroMvCostAdded << 1) + vdencCmd.DW8.NonSkipMbModeCostAdded;
-        avcPar->UniMixDisable         = vdencCmd.DW2.UnidirectionalMixDisable;
-        avcPar->VdencExtPakObjDisable = !vdencCmd.DW1.VdencExtendedPakObjCmdEnable;
-        avcPar->PPMVDisable           = vdencCmd.DW34.PpmvDisable;
+        m_avcPar->SubPelMode            = vdencCmd.DW4.SubPelMode;
+        m_avcPar->FTQBasedSkip          = vdencCmd.DW4.ForwardTransformSkipCheckEnable;
+        m_avcPar->BiMixDisable          = vdencCmd.DW1.BidirectionalMixDisable;
+        m_avcPar->SurvivedSkipCost      = (vdencCmd.DW8.NonSkipZeroMvCostAdded << 1) + vdencCmd.DW8.NonSkipMbModeCostAdded;
+        m_avcPar->UniMixDisable         = vdencCmd.DW2.UnidirectionalMixDisable;
+        m_avcPar->VdencExtPakObjDisable = !vdencCmd.DW1.VdencExtendedPakObjCmdEnable;
+        m_avcPar->PPMVDisable           = vdencCmd.DW34.PpmvDisable;
     }
 
     if (data)
@@ -847,7 +837,7 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulateEncParam(
         {
             m_osInterface->pfnUnlockResource(
                 m_osInterface,
-                &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
+                &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
         }
         else
         {
@@ -855,7 +845,7 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulateEncParam(
             {
                 m_osInterface->pfnUnlockResource(
                     m_osInterface,
-                    &resVdencSFDImageStateReadBuffer);
+                    &m_resVdencSfdImageStateReadBuffer);
             }
         }
     }
@@ -891,28 +881,28 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulatePakParam(
     }
     else
     {
-        data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
+        data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
     }
 
     CODECHAL_DEBUG_CHK_NULL(data);
- 
+
     mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD mfxCmd;
     mfxCmd = *(mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD *)(data);
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->TrellisQuantizationEnable         = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
-        avcPar->EnableAdaptiveTrellisQuantization = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
-        avcPar->TrellisQuantizationRounding       = mfxCmd.DW5.TrellisQuantizationRoundingTqr;
-        avcPar->TrellisQuantizationChromaDisable  = mfxCmd.DW5.TrellisQuantizationChromaDisableTqchromadisable;
-        avcPar->ExtendedRhoDomainEn               = mfxCmd.DW17.ExtendedRhodomainStatisticsEnable;
+        m_avcPar->TrellisQuantizationEnable         = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
+        m_avcPar->EnableAdaptiveTrellisQuantization = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
+        m_avcPar->TrellisQuantizationRounding       = mfxCmd.DW5.TrellisQuantizationRoundingTqr;
+        m_avcPar->TrellisQuantizationChromaDisable  = mfxCmd.DW5.TrellisQuantizationChromaDisableTqchromadisable;
+        m_avcPar->ExtendedRhoDomainEn               = mfxCmd.DW17.ExtendedRhodomainStatisticsEnable;
     }
 
     if (data && (cmdBuffer == nullptr) && (secondLevelBatchBuffer == nullptr))
     {
         m_osInterface->pfnUnlockResource(
             m_osInterface,
-            &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
+            &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
     }
 
     return MOS_STATUS_SUCCESS;

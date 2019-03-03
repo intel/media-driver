@@ -26,7 +26,7 @@
 #ifndef __MEDIA_SKUWA_H__
 #define __MEDIA_SKUWA_H__
 
-#include <stdint.h> 
+#include <stdint.h>
 
 #include "linux_media_skuwa.h"
 #include "linux_shadow_skuwa.h"
@@ -39,6 +39,5 @@ using MEDIA_SYSTEM_INFO   = MEDIA_GT_SYSTEM_INFO;
 using GMM_SKU_FEATURE_TABLE   = SHADOW_MEDIA_FEATURE_TABLE;
 using GMM_WA_TABLE            = SHADOW_MEDIA_WA_TABLE;
 using GMM_GT_SYSTEM_INFO      = MEDIA_GT_SYSTEM_INFO;
-
 
 #endif // __MEDIA_SKUWA_H__

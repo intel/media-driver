@@ -35,24 +35,6 @@
 
 class CodechalDecodeNV12ToP010;
 
-const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_4x4[16] = { 0, 4, 1, 8, 5, 2, 12, 9, 6, 3, 13, 10, 7, 14, 11, 15 };
-const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_8x8[64] =
-{ 0, 8, 1, 16, 9, 2, 24, 17, 10, 3, 32, 25, 18, 11, 4, 40,
-33, 26, 19, 12, 5, 48, 41, 34, 27, 20, 13, 6, 56, 49, 42, 35,
-28, 21, 14, 7, 57, 50, 43, 36, 29, 22, 15, 58, 51, 44, 37, 30,
-23, 59, 52, 45, 38, 31, 60, 53, 46, 39, 61, 54, 47, 62, 55, 63 };
-const uint8_t CODECHAL_DECODE_HEVC_Default_4x4[16] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 };
-const uint8_t CODECHAL_DECODE_HEVC_Default_8x8_Intra[64] =
-{ 16, 16, 16, 16, 17, 18, 21, 24, 16, 16, 16, 16, 17, 19, 22, 25,
-16, 16, 17, 18, 20, 22, 25, 29, 16, 16, 18, 21, 24, 27, 31, 36,
-17, 17, 20, 24, 30, 35, 41, 47, 18, 19, 22, 27, 35, 44, 54, 65,
-21, 22, 25, 31, 41, 54, 70, 88, 24, 25, 29, 36, 47, 65, 88, 115 };
-const uint8_t CODECHAL_DECODE_HEVC_Default_8x8_Inter[64] =
-{ 16, 16, 16, 16, 17, 18, 20, 24, 16, 16, 16, 17, 18, 20, 24, 25,
-16, 16, 17, 18, 20, 24, 25, 28, 16, 17, 18, 20, 24, 25, 28, 33,
-17, 18, 20, 24, 25, 28, 33, 41, 18, 20, 24, 25, 28, 33, 41, 54,
-20, 24, 25, 28, 33, 41, 54, 71, 24, 25, 28, 33, 41, 54, 71, 91 };
-
 typedef class CodechalDecodeHevc *PCODECHAL_DECODE_HEVC_STATE;
 
 typedef struct _CODECHAL_DECODE_HEVC_MV_LIST
@@ -146,6 +128,9 @@ typedef struct {
     uint32_t                    ProductFamily;
     uint16_t                    RevId;
 
+    // Flag to indicate if create dummy HCP_REF_IDX_STATE or not
+    uint32_t                    DummyRefIdxState;
+
     // Picture level DMEM data
     HUC_HEVC_S2L_PIC_BSS        PictureBss;
 
@@ -154,6 +139,10 @@ typedef struct {
 
 } HUC_HEVC_S2L_BSS, *PHUC_HEVC_S2L_BSS;
 
+//!
+//! \class    CodechalDecodeHevc
+//! \brief    Codechal decode HEVC
+//!
 class CodechalDecodeHevc : public CodechalDecode
 {
 public:
@@ -170,7 +159,7 @@ public:
     } PIC_LONG_FORMAT_MHW_PARAMS;
 
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -184,6 +173,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalDecodeHevc(const CodechalDecodeHevc&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalDecodeHevc& operator=(const CodechalDecodeHevc&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     ~CodechalDecodeHevc ();
@@ -191,12 +190,12 @@ public:
     //!
     //! \brief    Allocate and initialize HEVC decoder standard
     //! \param    [in] settings
-    //!           Pointer to CODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS  AllocateStandard (
-        PCODECHAL_SETTINGS          settings) override;
+        CodechalSetting *settings) override;
 
     //!
     //! \brief  Set states for each frame to prepare for HEVC decode
@@ -446,7 +445,19 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_VariableSizes();
+    MOS_STATUS          AllocateResourcesVariableSizes();
+
+    //!
+    //! \brief    Allocate the MV Temporal buffer
+    //!
+    //! \param    [in] hevcMvBuffIndex
+    //!           buff index for unused mv buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS          AllocateMvTemporalBuffer(
+        uint8_t                       hevcMvBuffIndex);
 
     //!
     //! \brief    Allocate fixed sized resources
@@ -454,7 +465,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_FixedSizes();
+    MOS_STATUS          AllocateResourcesFixedSizes();
 
     //!
     //! \brief    Get mv buffer index
@@ -472,11 +483,11 @@ public:
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpPicParams(
         PCODEC_HEVC_PIC_PARAMS     picParams,
-        PCODEC_HEVC_EXT_PIC_PARAMS extPicParams);
+        void*                      extPicParams);
 
     MOS_STATUS DumpSliceParams(
         PCODEC_HEVC_SLICE_PARAMS     sliceParams,
-        PCODEC_HEVC_EXT_SLICE_PARAMS extSliceParams,
+        void*                        extSliceParams,
         uint32_t                     numSlices,
         bool                         shortFormatInUse);
 
@@ -488,83 +499,86 @@ public:
     static const uint32_t  m_hucS2lKernelId = 1;             //!< VDBox Huc decode S2L kernel descriptoer
 
     // Parameters passed by application
-    uint32_t                        u32MinCtbSize;                              //!< Min Luma Coding Block Size
-    bool                            bIs10bitHEVC;                               //!< Indicate it is 10 bit HEVC
-    uint8_t                         u8ChromaFormatinProfile;                    //!< Chrama format in profile
-    bool                            bShortFormatInUse;                          //!< Indicate short format is inuse
-    uint32_t                        u32DataSize;                                //!< Size of bitstream
-    uint32_t                        u32DataOffset;                              //!< Offset of bitstream
-    uint32_t                        u32NumSlices;                               //!< Num of slices
-    PCODEC_HEVC_PIC_PARAMS          pHevcPicParams;                             //!< Pointer to HEVC picture parameter
-    PCODEC_HEVC_SLICE_PARAMS        pHevcSliceParams;                           //!< Pointer to HEVC slice parameter
-    PCODECHAL_HEVC_IQ_MATRIX_PARAMS pHevcIqMatrixParams;                        //!< Pointer to HEVC IQ matrix parameter
-    MOS_SURFACE                     sDestSurface;                               //!< Handle of render surface
-    PMOS_RESOURCE                   presReferences[CODEC_MAX_NUM_REF_FRAME_HEVC]; //!< Pointer to Handle of Reference Frames
-    MOS_RESOURCE                    resDataBuffer;                              //!< Handle of bitstream data surface
+    uint32_t                        m_minCtbSize;                                    //!< Min Luma Coding Block Size
+    bool                            m_is10BitHevc;                                   //!< Indicate it is 10 bit HEVC
+    uint8_t                         m_chromaFormatinProfile;                         //!< Chrama format in profile
+    bool                            m_shortFormatInUse;                              //!< Indicate short format is inuse
+    uint32_t                        m_dataSize;                                      //!< Size of bitstream
+    uint32_t                        m_dataOffset;                                    //!< Offset of bitstream
+    uint32_t                        m_numSlices;                                     //!< Num of slices
+    PCODEC_HEVC_PIC_PARAMS          m_hevcPicParams;                                 //!< Pointer to HEVC picture parameter
+    PCODEC_HEVC_SLICE_PARAMS        m_hevcSliceParams;                               //!< Pointer to HEVC slice parameter
+    PCODECHAL_HEVC_IQ_MATRIX_PARAMS m_hevcIqMatrixParams;                            //!< Pointer to HEVC IQ matrix parameter
+    MOS_SURFACE                     m_destSurface;                                   //!< Handle of render surface
+    PMOS_RESOURCE                   m_presReferences[CODEC_MAX_NUM_REF_FRAME_HEVC];  //!< Pointer to Handle of Reference Frames
+    MOS_RESOURCE                    m_resDataBuffer;                                 //!< Handle of bitstream data surface
 
-    bool                            bIs8bitFrameIn10bitHevc;                    //!< Indicate 8bit frame in 10bit HEVC stream
-    MOS_SURFACE                     sInternalNV12RTSurfaces[CODECHAL_NUM_INTERNAL_NV12_RT_HEVC]; //!< Handles of internal NV12 render target
-    uint32_t                        u32InternalNV12RTIndexMap[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC]; //!< Index map for internal NV12 render targets
-    bool                            bInternalNV12RTIndexMapInitilized;          //!< Indicate the index map of internal NV12 render targets is intialized
+    bool        m_is8BitFrameIn10BitHevc;                                          //!< Indicate 8bit frame in 10bit HEVC stream
+    MOS_SURFACE m_internalNv12RtSurfaces[CODECHAL_NUM_INTERNAL_NV12_RT_HEVC];      //!< Handles of internal NV12 render target
+    uint32_t    m_internalNv12RtIndexMap[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];  //!< Index map for internal NV12 render targets
+    bool        m_internalNv12RtIndexMapInitilized;                                //!< Indicate the index map of internal NV12 render targets is intialized
     //! \brief Context for NV12ToP010 Kernel
     CodechalDecodeNV12ToP010        *m_decodeNV12ToP010 = nullptr;
 
     //Track for several row store buffer's max picture width in MB used for buffer allocation in past frames
-    uint32_t                        u32MfdDeblockingFilterRowStoreScratchBufferPicWidth;    //!< max picture width for deblocking filter row store scratch buffer
-    uint32_t                        u32MetadataLineBufferPicWidth;                          //!< max picture width for meta data line buffer
-    uint32_t                        u32SaoLineBufferPicWidth;                               //!< max picture width for SAO line buffer
+    uint32_t m_mfdDeblockingFilterRowStoreScratchBufferPicWidth;  //!< max picture width for deblocking filter row store scratch buffer
+    uint32_t m_metadataLineBufferPicWidth;                        //!< max picture width for meta data line buffer
+    uint32_t m_saoLineBufferPicWidth;                             //!< max picture width for SAO line buffer
 
     // Internally maintained
-    MOS_RESOURCE                    resMfdDeblockingFilterRowStoreScratchBuffer;            //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
-    MOS_RESOURCE                    resDeblockingFilterTileRowStoreScratchBuffer;           //!< Handle of Deblocking Filter Tile Row Store Scratch data surface
-    MOS_RESOURCE                    resDeblockingFilterColumnRowStoreScratchBuffer;         //!< Handle of Deblocking Filter Column Row Store Scratch data surface
-    MOS_RESOURCE                    resMetadataLineBuffer;                                  //!< Handle of Metadata Line data buffer
-    MOS_RESOURCE                    resMetadataTileLineBuffer;                              //!< Handle of Metadata Tile Line data buffer
-    MOS_RESOURCE                    resMetadataTileColumnBuffer;                            //!< Handle of Metadata Tile Column data buffer
-    MOS_RESOURCE                    resSaoLineBuffer;                                       //!< Handle of SAO Line data buffer
-    MOS_RESOURCE                    resSaoTileLineBuffer;                                   //!< Handle of SAO Tile Line data buffer
-    MOS_RESOURCE                    resSaoTileColumnBuffer;                                 //!< Handle of SAO Tile Column data buffer
-    MOS_RESOURCE                    resMvTemporalBuffer[CODEC_NUM_HEVC_MV_BUFFERS];         //!< Handles of MV Temporal data buffer
-    MHW_BATCH_BUFFER                secondLevelBatchBuffer;                                 //!< Handle of second level batch buffer
-    uint32_t                        u32DmemBufferIdx;                                       //!< Indicate current idx of DMEM buffer to program
-    MOS_RESOURCE                    resDmemBuffer[CODECHAL_HEVC_NUM_DMEM_BUFFERS];          //!< Handles of DMEM buffer
-    uint32_t                        u32DmemBufferSize;                                      //!< Size of DMEM buffer
-    uint32_t                        u32DmemTransferSize;                                    //!< Transfer size of DMEM data
-    bool                            bDmemBufferProgrammed;                                  //!< Indicate DMEM buffer is programmed
-    MOS_RESOURCE                    resCopyDataBuffer;                                      //!< Handle of copied bitstream buffer
-    uint32_t                        u32CopyDataBufferSize;                                  //!< Size of copied bitstream buffer
-    uint32_t                        u32CopyDataOffset;                                      //!< Offset of copied bitstream
-    bool                            bCopyDataBufferInUse;                                   //!< Indicate copied bistream is inuse
-    uint32_t                        u32EstiBytesInBitstream;                                //!< Estimated size of bitstream
+    MOS_RESOURCE     m_resMfdDeblockingFilterRowStoreScratchBuffer;     //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
+    MOS_RESOURCE     m_resDeblockingFilterTileRowStoreScratchBuffer;    //!< Handle of Deblocking Filter Tile Row Store Scratch data surface
+    MOS_RESOURCE     m_resDeblockingFilterColumnRowStoreScratchBuffer;  //!< Handle of Deblocking Filter Column Row Store Scratch data surface
+    MOS_RESOURCE     m_resMetadataLineBuffer;                           //!< Handle of Metadata Line data buffer
+    MOS_RESOURCE     m_resMetadataTileLineBuffer;                       //!< Handle of Metadata Tile Line data buffer
+    MOS_RESOURCE     m_resMetadataTileColumnBuffer;                     //!< Handle of Metadata Tile Column data buffer
+    MOS_RESOURCE     m_resSaoLineBuffer;                                //!< Handle of SAO Line data buffer
+    MOS_RESOURCE     m_resSaoTileLineBuffer;                            //!< Handle of SAO Tile Line data buffer
+    MOS_RESOURCE     m_resSaoTileColumnBuffer;                          //!< Handle of SAO Tile Column data buffer
+    bool             m_mvBufferProgrammed;                              //!< Indicate mv buffer is programmed
+    MOS_RESOURCE     m_resMvTemporalBuffer[CODEC_NUM_HEVC_MV_BUFFERS];  //!< Handles of MV Temporal data buffer
+    MHW_BATCH_BUFFER m_secondLevelBatchBuffer;                          //!< Handle of second level batch buffer
+    uint32_t         m_dmemBufferIdx;                                   //!< Indicate current idx of DMEM buffer to program
+    MOS_RESOURCE     m_resDmemBuffer[CODECHAL_HEVC_NUM_DMEM_BUFFERS];   //!< Handles of DMEM buffer
+    uint32_t         m_dmemBufferSize;                                  //!< Size of DMEM buffer
+    uint32_t         m_dmemTransferSize;                                //!< Transfer size of DMEM data
+    bool             m_dmemBufferProgrammed;                            //!< Indicate DMEM buffer is programmed
+    MOS_RESOURCE     m_resCopyDataBuffer;                               //!< Handle of copied bitstream buffer
+    uint32_t         m_copyDataBufferSize;                              //!< Size of copied bitstream buffer
+    uint32_t         m_copyDataOffset;                                  //!< Offset of copied bitstream
+    bool             m_copyDataBufferInUse;                             //!< Indicate copied bistream is inuse
+    uint32_t         m_estiBytesInBitstream;                            //!< Estimated size of bitstream
 
-    MOS_RESOURCE                    resSyncObjectWaContextInUse;                            //!< signals on the video WA context
+    MOS_RESOURCE m_resSyncObjectWaContextInUse;  //!< signals on the video WA context
 
-    bool                            bCurPicIntra;                                           //!< Indicate current picture is intra
-    uint32_t                        u32MVBufferSize;                                        //!< Size of MV buffer
+    bool     m_curPicIntra;   //!< Indicate current picture is intra
+    uint32_t m_mvBufferSize;  //!< Size of MV buffer
 
-    CODEC_PICTURE                   CurrPic;                                                //!< Current Picture Struct
-    PCODEC_REF_LIST                 pHevcRefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];   //!< Pointer to reference list
-    uint8_t                         hevcMvBufferIndex;                                      //!< Index of MV buffer for current picture
-    CODECHAL_DECODE_HEVC_MV_LIST    hevcMvList[CODEC_NUM_HEVC_MV_BUFFERS];                  //!< Status table of MV buffers
-    bool                            bFrameUsedAsCurRef[CODEC_MAX_NUM_REF_FRAME_HEVC];       //!< Indicate frames used as reference of current picture
-    int8_t                          RefIdxMapping[CODEC_MAX_NUM_REF_FRAME_HEVC];            //!< Map table of indices of references
-    uint32_t                        u32FrameIdx;                                            //!< Decode order index of current frame
-    bool                            bEnableSF2DMASubmits;                                   //!< Indicate two DMA submits is enabled on short format
+    CODEC_PICTURE                m_currPic;                                              //!< Current Picture Struct
+    PCODEC_REF_LIST              m_hevcRefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];  //!< Pointer to reference list
+    uint8_t                      m_hevcMvBufferIndex;                                    //!< Index of MV buffer for current picture
+    CODECHAL_DECODE_HEVC_MV_LIST m_hevcMvList[CODEC_NUM_HEVC_MV_BUFFERS];                //!< Status table of MV buffers
+    bool                         m_frameUsedAsCurRef[CODEC_MAX_NUM_REF_FRAME_HEVC];      //!< Indicate frames used as reference of current picture
+    int8_t                       m_refIdxMapping[CODEC_MAX_NUM_REF_FRAME_HEVC];          //!< Map table of indices of references
+    uint32_t                     m_frameIdx;                                             //!< Decode order index of current frame
+    bool                         m_enableSf2DmaSubmits;                                  //!< Indicate two DMA submits is enabled on short format
 
-    uint16_t                        u16TileColWidth[HEVC_NUM_MAX_TILE_COLUMN];              //!< Table of tile column width
-    uint16_t                        u16TileRowHeight[HEVC_NUM_MAX_TILE_ROW];                //!< Table of tile row height
+    uint16_t m_tileColWidth[HEVC_NUM_MAX_TILE_COLUMN];  //!< Table of tile column width
+    uint16_t m_tileRowHeight[HEVC_NUM_MAX_TILE_ROW];    //!< Table of tile row height
 
-    uint32_t                        u32WidthLastMaxAlloced;                                 //!< Max Picture Width used for buffer allocation in past frames
-    uint32_t                        u32HeightLastMaxAlloced;                                //!< Max Picture Height used for buffer allocation in past frames
-    uint32_t                        u32CtbLog2SizeYMax;                                     //!< Max CtbLog2 size used for buffer allocation in past frames
+    uint32_t m_widthLastMaxAlloced;   //!< Max Picture Width used for buffer allocation in past frames
+    uint32_t m_heightLastMaxAlloced;  //!< Max Picture Height used for buffer allocation in past frames
+    uint32_t m_ctbLog2SizeYMax;       //!< Max CtbLog2 size used for buffer allocation in past frames
 
-    uint32_t                        HcpDecPhase;                                            //!< HCP decode phase
+    uint32_t m_hcpDecPhase;  //!< HCP decode phase
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // SFC
-    CODECHAL_HEVC_SFC_STATE         *m_sfcState;                                            //!< HEVC SFC State
+    CodechalHevcSfcState         *m_sfcState;                                            //!< HEVC SFC State
 #endif
     PIC_LONG_FORMAT_MHW_PARAMS      m_picMhwParams;                                         //!< picture parameters
+
+    bool                         m_dummyReferenceSlot[CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC];
 };
 
 #endif  // __CODECHAL_DECODER_HEVC_H__

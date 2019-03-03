@@ -59,9 +59,9 @@ public:
 
     MOS_STATUS CheckReferenceList(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams) override;
-    
+
     CodechalDecodeAvc           *m_avcState = nullptr; //!< Pinter to AVC decode state
-    
+
 };
 
 #endif  // __CODECHAL_MMC_DECODE_AVC_H__

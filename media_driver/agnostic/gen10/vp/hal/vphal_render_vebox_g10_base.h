@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,17 +34,11 @@
 #define VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_G10                      (VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
                                                                  VPHAL_NUM_RGB_CHANNEL                    * \
                                                                  VPHAL_VEBOX_MAX_SLICES_G10)
-//!
-//! \brief Noise Detection Definitions for CNL
-//!
-#define NOISE_HIGH_NOISE_LEVEL_G10                               450
 
 //!
 //! \brief Temporal Denoise Definitions for CNL
 //!
 #define NOISE_HISTORY_MAX_DEFAULT_G10                            208
-#define NOISE_NUMMOTIONPIXELS_THRESHOLD_LOW_G10                  0 
-#define NOISE_NUMMOTIONPIXELS_THRESHOLD_HIGH_G10                 2
 #define NOISE_NUMMOTIONPIXELS_THRESHOLD_DEFAULT_G10              2
 #define NOISE_CHROMA_LOWTEMPORALPIXELDIFF_THRESHOLD_LOW_G10      4
 #define NOISE_CHROMA_LOWTEMPORALPIXELDIFF_THRESHOLD_HIGH_G10     8
@@ -73,44 +67,6 @@
 #define NOISE_SUMABSTEMPORALDIFF_THRESHOLD_HIGH_G10              (144 << 4)
 
 //!
-//! \brief Improved Deinterlacing
-//!
-#define VPHAL_VEBOX_DI_CHROMA_TDM_WEIGHT_NATUAL                     0
-#define VPHAL_VEBOX_DI_LUMA_TDM_WEIGHT_NATUAL                       4
-#define VPHAL_VEBOX_DI_SHCM_DELTA_NATUAL                            5
-#define VPHAL_VEBOX_DI_SHCM_THRESHOLD_NATUAL                        255
-#define VPHAL_VEBOX_DI_SVCM_DELTA_NATUAL                            5
-#define VPHAL_VEBOX_DI_SVCM_THRESHOLD_NATUAL                        255
-#define VPHAL_VEBOX_DI_LUMA_TDM_CORING_THRESHOLD_NATUAL             0
-#define VPHAL_VEBOX_DI_CHROMA_TDM_CORING_THRESHOLD_NATUAL           0
-#define VPHAL_VEBOX_DI_DIRECTION_CHECK_THRESHOLD_NATUAL             3
-#define VPHAL_VEBOX_DI_TEARING_LOW_THRESHOLD_NATUAL                 20
-#define VPHAL_VEBOX_DI_TEARING_HIGH_THRESHOLD_NATUAL                100
-#define VPHAL_VEBOX_DI_DIFF_CHECK_SLACK_THRESHOLD_NATUAL            15
-#define VPHAL_VEBOX_DI_SAD_WT0_NATUAL                               0
-#define VPHAL_VEBOX_DI_SAD_WT1_NATUAL                               63
-#define VPHAL_VEBOX_DI_SAD_WT2_NATUAL                               76
-#define VPHAL_VEBOX_DI_SAD_WT3_NATUAL                               89
-#define VPHAL_VEBOX_DI_SAD_WT4_NATUAL                               114
-#define VPHAL_VEBOX_DI_SAD_WT6_NATUAL                               217
-#define VPHAL_VEBOX_DI_LPFWTLUT0_SD_NATUAL                          0
-#define VPHAL_VEBOX_DI_LPFWTLUT0_HD_NATUAL                          0
-#define VPHAL_VEBOX_DI_LPFWTLUT1_SD_NATUAL                          0
-#define VPHAL_VEBOX_DI_LPFWTLUT1_HD_NATUAL                          0
-#define VPHAL_VEBOX_DI_LPFWTLUT2_SD_NATUAL                          0
-#define VPHAL_VEBOX_DI_LPFWTLUT2_HD_NATUAL                          0
-#define VPHAL_VEBOX_DI_LPFWTLUT3_SD_NATUAL                          128
-#define VPHAL_VEBOX_DI_LPFWTLUT3_HD_NATUAL                          0
-#define VPHAL_VEBOX_DI_LPFWTLUT4_SD_NATUAL                          128
-#define VPHAL_VEBOX_DI_LPFWTLUT4_HD_NATUAL                          32
-#define VPHAL_VEBOX_DI_LPFWTLUT5_SD_NATUAL                          128
-#define VPHAL_VEBOX_DI_LPFWTLUT5_HD_NATUAL                          64
-#define VPHAL_VEBOX_DI_LPFWTLUT6_SD_NATUAL                          255
-#define VPHAL_VEBOX_DI_LPFWTLUT6_HD_NATUAL                          128
-#define VPHAL_VEBOX_DI_LPFWTLUT7_SD_NATUAL                          255
-#define VPHAL_VEBOX_DI_LPFWTLUT7_HD_NATUAL                          255
-
-//!
 //! \brief Vebox Statistics Surface definition for CNL
 //!
 #define VPHAL_VEBOX_STATISTICS_SIZE_G10                          (32 * 4)
@@ -127,55 +83,6 @@
 #define VPHAL_VEBOX_ACE_HISTOGRAM_PREVIOUS_SLICE0_OFFSET_G10     0x1800
 #define VPHAL_VEBOX_ACE_HISTOGRAM_PREVIOUS_SLICE1_OFFSET_G10     0x2000
 
-//!
-//! \brief Chroma Downsampling and Upsampling
-//!
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE0_HORZ_OFFSET     0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE1_HORZ_OFFSET     1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE2_HORZ_OFFSET     0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE3_HORZ_OFFSET     1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE4_HORZ_OFFSET     0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE5_HORZ_OFFSET     1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE0_VERT_OFFSET     2
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE1_VERT_OFFSET     2
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE2_VERT_OFFSET     0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE3_VERT_OFFSET     0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE4_VERT_OFFSET     4
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE5_VERT_OFFSET     4
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE0_HORZ_OFFSET  0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE1_HORZ_OFFSET  1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE2_HORZ_OFFSET  0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE3_HORZ_OFFSET  1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE4_HORZ_OFFSET  0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE5_HORZ_OFFSET  1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE0_VERT_OFFSET  1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE1_VERT_OFFSET  1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE2_VERT_OFFSET  0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE3_VERT_OFFSET  0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE4_VERT_OFFSET  2
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE5_VERT_OFFSET  2
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE2_HORZ_OFFSET             0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE3_HORZ_OFFSET             1
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE2_VERT_OFFSET             0
-#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE3_VERT_OFFSET             0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE0_HORZ_OFFSET           0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE1_HORZ_OFFSET           1
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE2_HORZ_OFFSET           0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE3_HORZ_OFFSET           1
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE4_HORZ_OFFSET           0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE5_HORZ_OFFSET           1
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE0_VERT_OFFSET           1
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE1_VERT_OFFSET           1
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE2_VERT_OFFSET           0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE3_VERT_OFFSET           0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE4_VERT_OFFSET           2
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE5_VERT_OFFSET           2
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE2_HORZ_OFFSET           0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_HORZ_OFFSET           1
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE2_VERT_OFFSET           0
-#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_VERT_OFFSET           0
-
-
 struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
 {
     // DWORD 0 - GRF R1.0
@@ -184,10 +91,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // DN State Update
         struct
         {
-            DWORD       OffsetToSlice0;
+            uint32_t       OffsetToSlice0;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW00;
 
     // DWORD 1 - GRF R1.1
@@ -196,10 +103,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // DN State Update
         struct
         {
-            DWORD       OffsetToSlice1;
+            uint32_t       OffsetToSlice1;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW01;
 
     // DWORD 2 - GRF R1.2
@@ -208,11 +115,11 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // DN State Update
         struct
         {
-            DWORD       FirstFrameFlag : 16;
-            DWORD       NoiseLevel : 16;
+            uint32_t       FirstFrameFlag : 16;
+            uint32_t       NoiseLevel : 16;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW02;
 
     // DWORD 3 - GRF R1.3
@@ -221,11 +128,11 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // RangeThr Adp2NLvl: 1 ifenabled, 0 otherwise
         struct
         {
-            DWORD       RangeThrAdp2NLvl : 16;
-            DWORD       reserved : 16;
+            uint32_t       RangeThrAdp2NLvl : 16;
+            uint32_t       reserved : 16;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW03;
 
     // DWORD 4 - GRF R1.4
@@ -234,10 +141,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // Vebox Statistics Surface
         struct
         {
-            DWORD       VeboxStatisticsSurface;
+            uint32_t       VeboxStatisticsSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW04;
 
     // DWORD 5 - GRF R1.5
@@ -246,10 +153,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // Vebox DnDi State Surface
         struct
         {
-            DWORD       VeboxDndiStateSurface;
+            uint32_t       VeboxDndiStateSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW05;
 
     // DWORD 6 - GRF R1.6
@@ -258,10 +165,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // Vebox GNE surface
         struct
         {
-            DWORD       VeboxTempSurface;
+            uint32_t       VeboxTempSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW06;
 
     // DWORD 7 - GRF R1.7
@@ -270,10 +177,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
         // Vebox Spatial Attributes Configuration Surface
         struct
         {
-            DWORD       VeboxSpatialAttributesConfigurationSurface;
+            uint32_t       VeboxSpatialAttributesConfigurationSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW07;
 };
 
@@ -317,7 +224,7 @@ public:
     virtual bool IsNeeded(
         PCVPHAL_RENDER_PARAMS       pcRenderParams,
         RenderpassData              *pRenderPassData);
-    
+
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     virtual MOS_STATUS LoadUpdateDenoiseKernelStaticData(
         int32_t*                        iCurbeOffsetOutDN);
@@ -450,7 +357,7 @@ protected:
 
     //!
     //! \brief    Check if 2 passes CSC are supported on the platform
-    //!               
+    //!
     virtual bool Is2PassesCscPlatformSupported()
     {
         return true;

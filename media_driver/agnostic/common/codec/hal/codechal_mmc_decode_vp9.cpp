@@ -27,7 +27,7 @@
 #include "codechal_mmc_decode_vp9.h"
 
 CodechalMmcDecodeVp9::CodechalMmcDecodeVp9(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -45,7 +45,7 @@ CodechalMmcDecodeVp9::CodechalMmcDecodeVp9(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -55,7 +55,7 @@ CodechalMmcDecodeVp9::CodechalMmcDecodeVp9(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_compressibleId  = __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSIBLE_ID;
@@ -68,15 +68,15 @@ MOS_STATUS CodechalMmcDecodeVp9::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    if (m_mmcEnabled && 
+    if (m_mmcEnabled &&
         m_hcpMmcEnabled &&
-        m_vp9State->sDestSurface.bCompressible)
+        m_vp9State->m_destSurface.bCompressible)
     {
-        if (( m_10bitMmcEnabled && m_vp9State->sDestSurface.Format == Format_P010) ||
-            (m_vp9State->sDestSurface.Format == Format_NV12))
+        if ((m_10bitMmcEnabled && m_vp9State->m_destSurface.Format == Format_P010) ||
+            (m_vp9State->m_destSurface.Format == Format_NV12))
         {
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
         }
@@ -87,8 +87,7 @@ MOS_STATUS CodechalMmcDecodeVp9::SetPipeBufAddr(
     }
 
     CODECHAL_DEBUG_TOOL(
-        m_vp9State->sDestSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;
-    )
+        m_vp9State->m_destSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;)
 
     return eStatus;
 }
@@ -98,7 +97,7 @@ MOS_STATUS CodechalMmcDecodeVp9::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Check if reference surface needs to be synchronized in MMC case
@@ -109,9 +108,9 @@ MOS_STATUS CodechalMmcDecodeVp9::SetRefrenceSync(
         syncParams.bDisableDecodeSyncLock = disableDecodeSyncLock;
         syncParams.bDisableLockForTranscode = disableLockForTranscode;
 
-        if (m_vp9State->presLastRefSurface)
+        if (m_vp9State->m_presLastRefSurface)
         {
-            syncParams.presSyncResource = m_vp9State->presLastRefSurface;
+            syncParams.presSyncResource = m_vp9State->m_presLastRefSurface;
             syncParams.bReadOnly = true;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(m_osInterface, &syncParams));
@@ -119,9 +118,9 @@ MOS_STATUS CodechalMmcDecodeVp9::SetRefrenceSync(
             m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
         }
 
-        if (m_vp9State->presGoldenRefSurface)
+        if (m_vp9State->m_presGoldenRefSurface)
         {
-            syncParams.presSyncResource = m_vp9State->presGoldenRefSurface;
+            syncParams.presSyncResource = m_vp9State->m_presGoldenRefSurface;
             syncParams.bReadOnly = true;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(m_osInterface, &syncParams));
@@ -129,9 +128,9 @@ MOS_STATUS CodechalMmcDecodeVp9::SetRefrenceSync(
             m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
         }
 
-        if (m_vp9State->presAltRefSurface)
+        if (m_vp9State->m_presAltRefSurface)
         {
-            syncParams.presSyncResource = m_vp9State->presAltRefSurface;
+            syncParams.presSyncResource = m_vp9State->m_presAltRefSurface;
             syncParams.bReadOnly = true;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(m_osInterface, &syncParams));
@@ -151,15 +150,15 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pipeBufAddrParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_vp9State->pVp9PicParams);
-    auto picParams = m_vp9State->pVp9PicParams;
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_vp9State->m_vp9PicParams);
+    auto picParams = m_vp9State->m_vp9PicParams;
 
     MOS_MEMCOMP_STATE mmcMode;
 
     // Disable MMC if self-reference is dectected for P/B frames (mainly for error concealment)
-    if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) || 
+    if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
         (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
-        (picParams->PicFlags.fields.frame_type != CODECHAL_VP9_KEY_FRAME && 
+        (picParams->PicFlags.fields.frame_type != CODEC_VP9_KEY_FRAME &&
         !picParams->PicFlags.fields.intra_only))
     {
         bool selfReference = false;
@@ -169,21 +168,21 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
         {
             selfReference = true;
         }
-    
+
         if (selfReference)
         {
             pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             pipeBufAddrParams->PreDeblockSurfMmcState  = MOS_MEMCOMP_DISABLED;
             CODECHAL_DECODE_ASSERTMESSAGE("Self-reference is detected for P/B frames!");
-    
+
             // Decompress current frame to avoid green corruptions in this error handling case
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface,
-                &m_vp9State->sDestSurface.OsResource,
+                &m_vp9State->m_destSurface.OsResource,
                 &mmcMode));
             if (mmcMode != MOS_MEMCOMP_DISABLED)
             {
-                m_osInterface->pfnDecompResource(m_osInterface, &m_vp9State->sDestSurface.OsResource);
+                m_osInterface->pfnDecompResource(m_osInterface, &m_vp9State->m_destSurface.OsResource);
             }
         }
     }
@@ -197,8 +196,8 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
         if (pipeBufAddrParams->presReferences[i])
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-                m_osInterface, 
-                pipeBufAddrParams->presReferences[i], 
+                m_osInterface,
+                pipeBufAddrParams->presReferences[i],
                 &mmcMode));
             if (firstRefPic)
             {
@@ -220,8 +219,8 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
             if (pipeBufAddrParams->presReferences[i])
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-                    m_osInterface, 
-                    pipeBufAddrParams->presReferences[i], 
+                    m_osInterface,
+                    pipeBufAddrParams->presReferences[i],
                     &mmcMode));
                 if(mmcMode != MOS_MEMCOMP_DISABLED)
                 {
@@ -232,6 +231,6 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
             }
         }
     }
-    
+
     return eStatus;
 }

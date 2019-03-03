@@ -28,7 +28,9 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_task_internal_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_task_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper_os.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_global_api_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_cm.c
+    ${CMAKE_CURRENT_LIST_DIR}/cm_debug_os.cpp
 )
 
 set(TMP_HEADERS_
@@ -37,7 +39,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_device.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_ftrace.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_func.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_innerdef_os.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d.h

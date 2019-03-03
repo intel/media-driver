@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      vphal_debug.h  
-//! \brief      
+//! \file      vphal_debug.h 
+//! \brief 
 //!
 //!
 //! \file     vphal_debug.h
@@ -39,8 +39,14 @@
 #include "mhw_vebox.h"
 #include "vphal_common.h"       // Common interfaces and structures
 
+#if !defined(LINUX) && !defined(ANDROID)
+#include "UmdStateSeparation.h"
+#endif
+
 //==<DEFINITIONS>===============================================================
 #define MAX_NAME_LEN            100
+
+#define VPHAL_DBG_DUMP_OUTPUT_FOLDER                "\\vphaldump\\"
 
 //------------------------------------------------------------------------------
 // Dump macro.  Simply calls the dump function.  defined as null in production
@@ -149,7 +155,7 @@
 //! Structure VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 //! \brief    Plane definition
 //! \details  Plane information including offset, height, width, pitch
-//! 
+//!
 struct VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 {
     uint32_t   dwOffset;                                                           //!< Offset from start of the plane
@@ -160,7 +166,7 @@ struct VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 
 //! 
 //! \brief Dump locations as enum
-//! 
+//!
 enum VPHAL_DBG_SURF_DUMP_LOCATION
 {
     VPHAL_DBG_DUMP_TYPE_PRE_ALL,
@@ -194,6 +200,7 @@ struct VPHAL_DBG_SURF_DUMP_SPEC
     uint32_t                      uiStartFrame;                                 //!< Frame to start dumping at
     uint32_t                      uiEndFrame;                                   //!< Frame to stop dumping at
     int32_t                       iNumDumpLocs;                                 //!< Number of pipe stage dump locations
+    bool                          enableAuxDump;                                //!< Enable aux data dump for compressed surface
 };
 
 //!
@@ -204,8 +211,8 @@ struct VPHAL_DBG_SURF_DUMP_SPEC
 struct VPHAL_DBG_FIELD_LAYOUT
 {
     char                     pcName[MAX_NAME_LEN];
-    uint32_t                 dwOffset; 
-    uint32_t                 dwSize; 
+    uint32_t                 dwOffset;
+    uint32_t                 dwSize;
     uint32_t                 uiNumber;
     char                     pcStructName[MAX_NAME_LEN];
     VPHAL_DBG_FIELD_LAYOUT   *pChildLayout;
@@ -215,7 +222,7 @@ struct VPHAL_DBG_FIELD_LAYOUT
 
 //! 
 //! \brief Render stage in VPHAL
-//! 
+//!
 enum  VPHAL_DEBUG_STAGE
 {
     VPHAL_DBG_STAGE_NULL,
@@ -226,7 +233,7 @@ enum  VPHAL_DEBUG_STAGE
 
 //! 
 //! \brief HW state buffer in VPHAL
-//! 
+//!
 enum VPHAL_DBG_DUMP_TYPE
 {
     VPHAL_DBG_DUMP_TYPE_GSH,
@@ -418,7 +425,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS DumpSurfaceToFile(
+    MOS_STATUS DumpSurfaceToFile(
         PMOS_INTERFACE              pOsInterface,
         PVPHAL_SURFACE              pSurface,
         const char                  *psPathPrefix,
@@ -455,7 +462,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS DumpSurface(
+    virtual MOS_STATUS DumpSurface(
         PVPHAL_SURFACE                  pSurf,
         uint32_t                        uiFrameNumber,
         uint32_t                        uiCounter,
@@ -519,8 +526,9 @@ protected:
         uint32_t                        Location,
         char*                           pcLocString);
 
-private:
     PMOS_INTERFACE              m_osInterface;
+
+private:
 
     //!
     //! \brief    Get plane information of a surface
@@ -537,11 +545,12 @@ private:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS GetPlaneDefs(
+    MOS_STATUS GetPlaneDefs(
         PVPHAL_SURFACE                      pSurface,
         VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
         uint32_t*                           pdwNumPlanes,
-        uint32_t*                           pdwSize);
+        uint32_t*                           pdwSize,
+        bool                                paddingNeeded);
 
     //!
     //! \brief    Parse dump location

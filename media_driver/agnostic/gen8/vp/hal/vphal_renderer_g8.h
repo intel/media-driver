@@ -32,7 +32,7 @@
 const VphalSseuSetting VpHalDefaultSSEUTableG8[baseKernelMaxNumID] =
 {
     // Slice    Sub-Slice   EU      Rsvd(freq)
-    {    1,        3,        8,         0},     // COMBINED_FC_KERNEL Default  
+    {    1,        3,        8,         0},     // COMBINED_FC_KERNEL Default
 
     // 2 VEBOX KERNELS
     {    1,        3,        8,         0},     // VEBOX_SECUREBLOCKCOPY_KERNEL,
@@ -60,12 +60,12 @@ public:
         PRENDERHAL_INTERFACE                pRenderHal,
         MOS_STATUS                          *pStatus) :
         VphalRenderer(pRenderHal, pStatus)
-    {        
+    {
         // Set SSEUTable
         pRenderHal->sseuTable           = VpHalDefaultSSEUTableG8;
-
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         m_modifyKdllFunctionPointers    = KernelDll_ModifyFunctionPointers_g8;
-
+#endif
     }
 
     //!

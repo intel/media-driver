@@ -20,12 +20,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_array.h  
-//! \brief     Contains CM array function definitions  
+//! \file      cm_array.h 
+//! \brief     Contains CM array function definitions 
 //!
-#pragma once
 
-#include "cm_mem.h"
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMARRAY_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMARRAY_H_
+
+#include "cm_def.h"
 
 namespace CMRT_UMD{
 class CmDynamicArray
@@ -48,7 +50,7 @@ public:
     bool    SetElementIntoFreeSlot(const void* element); //Set the element into the first available slot in the array
 
     CmDynamicArray& operator= ( const CmDynamicArray &array );
-   
+
 protected:
 
     void    CreateArray( const uint32_t size );
@@ -56,11 +58,11 @@ protected:
 
     bool    IsValidIndex( const uint32_t index ) ;
 
-    void**   m_pArrayBuffer;
+    void**   m_arrayBuffer;
 
-    uint32_t m_UsedSize;
-    uint32_t m_ActualSize;
-    
+    uint32_t m_usedSize;
+    uint32_t m_actualSize;
+
 private:
 
     CmDynamicArray (const CmDynamicArray& other);
@@ -68,3 +70,4 @@ private:
 };
 } //namespace
 
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMARRAY_H_

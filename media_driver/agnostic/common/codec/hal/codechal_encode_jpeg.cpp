@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 #include "codechal_debug.h"
 #endif
 
-MOS_STATUS CodechalEncodeJpegState::Initialize(CODECHAL_SETTINGS  *settings)
+MOS_STATUS CodechalEncodeJpegState::Initialize(CodechalSetting  *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -69,8 +69,7 @@ MOS_STATUS CodechalEncodeJpegState::AllocateResources()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
 
     // Allocate Ref Lists
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         m_refList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
 
@@ -84,7 +83,7 @@ void CodechalEncodeJpegState::FreeResources()
     CodechalEncoderState::FreeResources();
 
     // Release Ref Lists
-    CodecHal_FreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
+    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
 }
 
 MOS_STATUS CodechalEncodeJpegState::InitializePicture(const EncoderParams& params)
@@ -102,6 +101,7 @@ MOS_STATUS CodechalEncodeJpegState::InitializePicture(const EncoderParams& param
     m_applicationData       = params.pApplicationData;
     m_appDataSize           = params.dwAppDataSize;
     m_jpegQuantMatrixSent   = params.bJpegQuantMatrixSent;
+    m_fullHeaderInAppData   = params.fullHeaderInAppData;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_jpegPicParams);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_jpegScanParams);
@@ -148,6 +148,11 @@ MOS_STATUS CodechalEncodeJpegState::InitializePicture(const EncoderParams& param
     return eStatus;
 }
 
+MOS_STATUS CodechalEncodeJpegState::CheckResChangeAndCsc()
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 // Implemented based on table K.5 in JPEG spec
 uint8_t CodechalEncodeJpegState::MapHuffValIndex(uint8_t huffValIndex)
 {
@@ -167,14 +172,13 @@ uint8_t CodechalEncodeJpegState::MapHuffValIndex(uint8_t huffValIndex)
     return mappedIndex;
 }
 
-
 // Implemented based on Flowchart in figure C.1 in JPEG spec
 MOS_STATUS CodechalEncodeJpegState::GenerateSizeTable(
     uint8_t     bits[],
     uint8_t     huffSize[],
     uint8_t&    lastK)
 {
-    CODECHAL_ENCODE_FUNCTION_ENTER; 
+    CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -263,7 +267,7 @@ MOS_STATUS CodechalEncodeJpegState::OrderCodes(
         k++;
     } while (k < lastK);
 
-    // copy over the first 162 values of reordered arrays to Huffman Code and size arrays 
+    // copy over the first 162 values of reordered arrays to Huffman Code and size arrays
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(&huffCode[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint16_t), &eHuffCo[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint16_t)));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(&huffSize[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint8_t), &eHuffSi[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint8_t)));
 
@@ -275,7 +279,7 @@ MOS_STATUS CodechalEncodeJpegState::ConvertHuffDataToTable(
     CodechalEncodeJpegHuffTable         *huffmanTable)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     huffmanTable->m_tableClass = huffmanData.m_tableClass;
@@ -317,7 +321,7 @@ MOS_STATUS CodechalEncodeJpegState::PackSOI(BSBuffer *buffer)
 MOS_STATUS CodechalEncodeJpegState::PackApplicationData(
     BSBuffer                        *buffer,
     uint8_t                         *appDataChunk,
-    uint32_t   			            size)
+    uint32_t                           size)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -528,7 +532,7 @@ MOS_STATUS CodechalEncodeJpegState::PackScanHeader(
         scanHeader += 1;
 
         // For Y8 image format there is only one scan component, so scanComponent[1] and scanComponent[2] should not be added to the header
-        // scanHeader->scanComponent[j].Tdaj 
+        // scanHeader->scanComponent[j].Tdaj
         if (j == 0)
         {
             *scanHeader = (uint8_t)(((m_jpegHuffmanTable->m_huffmanData[0].m_tableID & 0x0F) << 4)
@@ -577,7 +581,6 @@ MOS_STATUS CodechalEncodeJpegState::ExecutePictureLevel()
 
     // set MFX_PIPE_MODE_SELECT
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode                   = m_mode;
     pipeModeSelectParams.bStreamOutEnabled      = false;
     pipeModeSelectParams.bShortFormatInUse      = false;
@@ -592,7 +595,6 @@ MOS_STATUS CodechalEncodeJpegState::ExecutePictureLevel()
 
     // set MFX_PIPE_BUF_ADDR_STATE
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode          = m_mode;
     pipeBufAddrParams.psRawSurface  = &m_rawSurface; // original picture to be encoded
 
@@ -829,7 +831,6 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
         scanObjectParams.pJpegEncodeScanParams  = m_jpegScanParams;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfcJpegScanObjCmd(&cmdBuffer, &scanObjectParams));
-
         // set MFC_JPEG_PAK_INSERT_OBJECT
         MHW_VDBOX_PAK_INSERT_PARAMS pakInsertObjectParams;
         MOS_ZeroMemory(&pakInsertObjectParams, sizeof(pakInsertObjectParams));
@@ -837,24 +838,25 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
         // The largest component written through the MFC_JPEG_PAK_INSERT_OBJECT command is Huffman table
         pakInsertObjectParams.pBsBuffer = (BSBuffer *)MOS_AllocAndZeroMemory(sizeof(CodechalEncodeJpegFrameHeader));
         CODECHAL_ENCODE_CHK_NULL_RETURN(pakInsertObjectParams.pBsBuffer);
-
-        // Add SOI (0xFFD8) (only if it was sent by the application)
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(PackSOI(pakInsertObjectParams.pBsBuffer));
-        pakInsertObjectParams.dwOffset                      = 0;
-        pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
-        pakInsertObjectParams.bLastHeader                   = false;
-        pakInsertObjectParams.bEndOfSlice                   = false;
-        pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr, &pakInsertObjectParams));
-        MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
-
+        if(!m_fullHeaderInAppData)
+        {
+            // Add SOI (0xFFD8) (only if it was sent by the application)
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(PackSOI(pakInsertObjectParams.pBsBuffer));
+            pakInsertObjectParams.dwOffset                      = 0;
+            pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
+            pakInsertObjectParams.bLastHeader                   = false;
+            pakInsertObjectParams.bEndOfSlice                   = false;
+            pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr, &pakInsertObjectParams));
+            MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+        }
         // Add Application data if it was sent by application
         if (m_applicationData != nullptr)
         {
             uint8_t* appDataChunk = nullptr;
             uint32_t appDataChunkSize = m_appDataSize;
 
-            // We can write a maximum of 1020 words per command, so if the size of the app data is 
+            // We can write a maximum of 1020 words per command, so if the size of the app data is
             // more than 1020 we need to send multiple commands for writing out app data
             uint32_t numAppDataCmdsNeeded = 1;
             uint32_t appDataCmdSizeResidue = 0;
@@ -879,8 +881,17 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(PackApplicationData(pakInsertObjectParams.pBsBuffer, appDataChunk, appDataChunkSize));
                 pakInsertObjectParams.dwOffset                      = 0;
                 pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
-                pakInsertObjectParams.bLastHeader                   = false;
-                pakInsertObjectParams.bEndOfSlice                   = false;
+                //if full header is included in application data, it will be the last insert headers
+                if((appDataCmdSizeResidue == 0) && m_fullHeaderInAppData)
+                {
+                    pakInsertObjectParams.bLastHeader                   = true;
+                    pakInsertObjectParams.bEndOfSlice                   = true;
+                }
+                else
+                {
+                    pakInsertObjectParams.bLastHeader                   = false;
+                    pakInsertObjectParams.bEndOfSlice                   = false;
+                }
                 pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
                     &pakInsertObjectParams));
@@ -898,8 +909,17 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(PackApplicationData(pakInsertObjectParams.pBsBuffer, appDataChunk, appDataCmdSizeResidue));
                 pakInsertObjectParams.dwOffset                      = 0;
                 pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
-                pakInsertObjectParams.bLastHeader                   = false;
-                pakInsertObjectParams.bEndOfSlice                   = false;
+                //if full header is included in application data, it will be the last insert headers
+                if(m_fullHeaderInAppData)
+                {
+                    pakInsertObjectParams.bLastHeader                   = true;
+                    pakInsertObjectParams.bEndOfSlice                   = true;
+                }
+                else
+                {
+                    pakInsertObjectParams.bLastHeader                   = false;
+                    pakInsertObjectParams.bEndOfSlice                   = false;
+                }
                 pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
                     &pakInsertObjectParams));
@@ -907,8 +927,9 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
 
             MOS_FreeMemory(appDataChunk);
         }
-
-        // Add Quant Table for Y 
+        if(!m_fullHeaderInAppData)
+        {
+        // Add Quant Table for Y
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentY));
 
         pakInsertObjectParams.dwOffset                      = 0;
@@ -988,7 +1009,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
         }
 
-        // Add scan header 
+        // Add scan header
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PackScanHeader(pakInsertObjectParams.pBsBuffer));
         pakInsertObjectParams.dwOffset                      = 0;
         pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
@@ -998,7 +1019,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
             &pakInsertObjectParams));
         MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
-
+        }
         MOS_FreeMemory(pakInsertObjectParams.pBsBuffer);
     }
 
@@ -1022,7 +1043,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, m_renderContextUsesNullHw));
 
     if (tempJpegQuantMatrix != nullptr)
     {

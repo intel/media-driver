@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -111,22 +111,11 @@ protected:
         MHW_MI_CHK_NULL(params->psSurface);
 
         typename THcpCmds::HCP_SURFACE_STATE_CMD cmd;
-        uint32_t uvPlaneAlignment = m_uvPlaneAlignmentLegacy;
 
         cmd.DW1.SurfaceId = params->ucSurfaceStateId;
         cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch - 1;
 
-        if (params->ucSurfaceStateId == CODECHAL_HCP_SRC_SURFACE_ID)
-        {
-            uvPlaneAlignment = params->dwUVPlaneAlignment ? params->dwUVPlaneAlignment : m_rawUVPlaneAlignment;
-        }
-        else
-        {
-            uvPlaneAlignment = params->dwUVPlaneAlignment ? params->dwUVPlaneAlignment : m_reconUVPlaneAlignment;
-        }
-
-        cmd.DW2.YOffsetForUCbInPixel =
-            MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, uvPlaneAlignment);
+        cmd.DW2.YOffsetForUCbInPixel = params->psSurface->UPlaneOffset.iYOffset;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
@@ -155,12 +144,12 @@ protected:
         {
             MHW_MI_CHK_NULL(params->presDataBuffer);
 
-            cmd.DW3.MemoryObjectControlState =
+            cmd.HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |=
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE].Value;
 
             resourceParams.presResource = params->presDataBuffer;
             resourceParams.dwOffset = params->dwDataOffset;
-            resourceParams.pdwCmd = cmd.DW1_2.Value;
+            resourceParams.pdwCmd = cmd.HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value;
             resourceParams.dwLocationInCmd = 1;
             resourceParams.dwSize = params->dwDataSize;
             resourceParams.bIsWritable = false;
@@ -213,7 +202,7 @@ protected:
                         cmd.DW1.ColorComponent = color;
                         switch (sizeId)
                         {
-                        case cmd.SIZEID_4X_4:
+                        case cmd.SIZEID_4X4:
                         case cmd.SIZEID_8X8:
                         default:
                             cmd.DW1.DcCoefficient = 0;
@@ -226,7 +215,7 @@ protected:
                             break;
                         }
 
-                        if (sizeId == cmd.SIZEID_4X_4)
+                        if (sizeId == cmd.SIZEID_4X4)
                         {
                             for (uint8_t i = 0; i < 4; i++)
                             {
@@ -373,7 +362,7 @@ protected:
         MHW_FUNCTION_ENTER;
 
         typename THcpCmds::HCP_TILE_STATE_CMD cmd;
-       
+
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pTileColWidth);
         MHW_MI_CHK_NULL(params->pTileRowHeight);
@@ -390,28 +379,28 @@ protected:
 
         for (uint8_t i = 0; i < 5; i++)
         {
-            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposll = colCumulativeValue;
+            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I = colCumulativeValue;
             if ((4 * i) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
             }
 
             colCumulativeValue += params->pTileColWidth[4 * i];
-            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposlh = colCumulativeValue;
+            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos1I = colCumulativeValue;
             if ((4 * i + 1) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
             }
 
             colCumulativeValue += params->pTileColWidth[4 * i + 1];
-            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposhl = colCumulativeValue;
+            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos2I = colCumulativeValue;
             if ((4 * i + 2) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
             }
 
             colCumulativeValue += params->pTileColWidth[4 * i + 2];
-            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposhh = colCumulativeValue;
+            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos3I = colCumulativeValue;
             if ((4 * i + 3) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
@@ -422,28 +411,28 @@ protected:
 
         for (uint8_t i = 0; i < 5; i++)
         {
-            cmd.RowPositionInCtb[i].DW0.Ctbrowposll = rowCumulativeValue;
+            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos0I = rowCumulativeValue;
             if ((4 * i) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
             }
 
             rowCumulativeValue += params->pTileRowHeight[4 * i];
-            cmd.RowPositionInCtb[i].DW0.Ctbrowposlh = rowCumulativeValue;
+            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos1I = rowCumulativeValue;
             if ((4 * i + 1) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
             }
 
             rowCumulativeValue += params->pTileRowHeight[4 * i + 1];
-            cmd.RowPositionInCtb[i].DW0.Ctbrowposhl = rowCumulativeValue;
+            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos2I = rowCumulativeValue;
             if ((4 * i + 2) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
             }
 
             rowCumulativeValue += params->pTileRowHeight[4 * i + 2];
-            cmd.RowPositionInCtb[i].DW0.Ctbrowposhh = rowCumulativeValue;
+            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos3I = rowCumulativeValue;
             if ((4 * i + 3) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
@@ -454,14 +443,14 @@ protected:
 
         if (hevcPicParams->num_tile_rows_minus1 == 20)
         {
-            cmd.DW12.CtbRowPositionOfTileRow20 = rowCumulativeValue;
+            cmd.CtbRowPositionOfTileRow[5].DW0.Ctbpos0I = rowCumulativeValue;
         }
 
         if (hevcPicParams->num_tile_rows_minus1 == 21)
         {
-            cmd.DW12.CtbRowPositionOfTileRow20 = rowCumulativeValue;
+            cmd.CtbRowPositionOfTileRow[5].DW0.Ctbpos0I = rowCumulativeValue;
             rowCumulativeValue += params->pTileRowHeight[20];
-            cmd.DW12.CtbRowPositionOfTileRow21 = rowCumulativeValue;
+            cmd.CtbRowPositionOfTileRow[5].DW0.Ctbpos1I = rowCumulativeValue;
         }
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -480,45 +469,52 @@ protected:
 
         MHW_MI_CHK_NULL(params);
 
-        MHW_ASSERT(params->CurrPic.FrameIdx != 0x7F);
-
         typename THcpCmds::HCP_REF_IDX_STATE_CMD cmd;
 
-        cmd.DW1.Refpiclistnum = params->ucList;
-        cmd.DW1.NumRefIdxLRefpiclistnumActiveMinus1 = params->ucNumRefForList - 1;
-
-        for (uint8_t i = 0; i < params->ucNumRefForList; i++)
+        // Need to add an empty HCP_REF_IDX_STATE_CMD for dummy reference on I-Frame
+        // ucNumRefForList could be 0 for encode
+        if (!params->bDummyReference)
         {
-            uint8_t refFrameIDx = params->RefPicList[params->ucList][i].FrameIdx;
-            if (refFrameIDx < CODEC_MAX_NUM_REF_FRAME_HEVC)
-            {
-                MHW_ASSERT(*(params->pRefIdxMapping + refFrameIDx) >= 0);
+            MHW_ASSERT(params->CurrPic.FrameIdx != 0x7F);
 
-                cmd.HcpRefValue[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = *(params->pRefIdxMapping + refFrameIDx);
-                int32_t pocDiff = params->poc_curr_pic - params->poc_list[refFrameIDx];
-                cmd.HcpRefValue[i].DW0.ReferencePictureTbValue = CodecHal_Clip3(-128, 127, pocDiff);
-                cmd.HcpRefValue[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(params->ppHevcRefList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
-                cmd.HcpRefValue[i].DW0.FieldPicFlag = (params->RefFieldPicFlag >> refFrameIDx) & 0x01;
-                cmd.HcpRefValue[i].DW0.BottomFieldFlag = ((params->RefBottomFieldFlag >> refFrameIDx) & 0x01) ? 0 : 1;
-            }
-            else
-            {
-                cmd.HcpRefValue[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = 0;
-                cmd.HcpRefValue[i].DW0.ReferencePictureTbValue = 0;
-                cmd.HcpRefValue[i].DW0.Longtermreference = false;
-                cmd.HcpRefValue[i].DW0.FieldPicFlag = 0;
-                cmd.HcpRefValue[i].DW0.BottomFieldFlag = 0;
-            }
-        }
+            cmd.DW1.Refpiclistnum = params->ucList;
+            cmd.DW1.NumRefIdxLRefpiclistnumActiveMinus1 = params->ucNumRefForList - 1;
 
-        for (uint8_t i = (uint8_t)params->ucNumRefForList; i < 16; i++)
-        {
-            cmd.HcpRefValue[i].DW0.Value = 0x00;
+            for (uint8_t i = 0; i < params->ucNumRefForList; i++)
+            {
+                uint8_t refFrameIDx = params->RefPicList[params->ucList][i].FrameIdx;
+                if (refFrameIDx < CODEC_MAX_NUM_REF_FRAME_HEVC)
+                {
+                    MHW_ASSERT(*(params->pRefIdxMapping + refFrameIDx) >= 0);
+
+                    cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = *(params->pRefIdxMapping + refFrameIDx);
+                    int32_t pocDiff = params->poc_curr_pic - params->poc_list[refFrameIDx];
+                    cmd.Entries[i].DW0.ReferencePictureTbValue = CodecHal_Clip3(-128, 127, pocDiff);
+                    CODEC_REF_LIST** refList = (CODEC_REF_LIST**)params->hevcRefList;
+                    cmd.Entries[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(refList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
+                    cmd.Entries[i].DW0.FieldPicFlag = (params->RefFieldPicFlag >> refFrameIDx) & 0x01;
+                    cmd.Entries[i].DW0.BottomFieldFlag = ((params->RefBottomFieldFlag >> refFrameIDx) & 0x01) ? 0 : 1;
+                }
+                else
+                {
+                    cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = 0;
+                    cmd.Entries[i].DW0.ReferencePictureTbValue = 0;
+                    cmd.Entries[i].DW0.Longtermreference = false;
+                    cmd.Entries[i].DW0.FieldPicFlag = 0;
+                    cmd.Entries[i].DW0.BottomFieldFlag = 0;
+                }
+            }
+
+            for (uint8_t i = (uint8_t)params->ucNumRefForList; i < 16; i++)
+            {
+                cmd.Entries[i].DW0.Value = 0x00;
+            }
         }
 
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
@@ -545,17 +541,17 @@ protected:
         // Luma
         for (uint8_t refIdx = 0; refIdx < CODEC_MAX_NUM_REF_FRAME_HEVC; refIdx++)
         {
-            cmd.HevcLumaWeightOffsetWrite[refIdx].DW0.DeltaLumaWeightLxI = params->LumaWeights[i][refIdx];
-            cmd.HevcLumaWeightOffsetWrite[refIdx].DW0.LumaOffsetLxI = params->LumaOffsets[i][refIdx];
+            cmd.Lumaoffsets[refIdx].DW0.DeltaLumaWeightLxI = params->LumaWeights[i][refIdx];
+            cmd.Lumaoffsets[refIdx].DW0.LumaOffsetLxI = params->LumaOffsets[i][refIdx];
         }
 
         // Chroma
         for (uint8_t refIdx = 0; refIdx < CODEC_MAX_NUM_REF_FRAME_HEVC; refIdx++)
         {
-            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.DeltaChromaWeightLxI0 = params->ChromaWeights[i][refIdx][0];
-            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.ChromaoffsetlxI0 = params->ChromaOffsets[i][refIdx][0];
-            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.DeltaChromaWeightLxI1 = params->ChromaWeights[i][refIdx][1];
-            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.ChromaoffsetlxI1 = params->ChromaOffsets[i][refIdx][1];
+            cmd.Chromaoffsets[refIdx].DW0.DeltaChromaWeightLxI0 = params->ChromaWeights[i][refIdx][0];
+            cmd.Chromaoffsets[refIdx].DW0.ChromaoffsetlxI0 = params->ChromaOffsets[i][refIdx][0];
+            cmd.Chromaoffsets[refIdx].DW0.DeltaChromaWeightLxI1 = params->ChromaWeights[i][refIdx][1];
+            cmd.Chromaoffsets[refIdx].DW0.ChromaoffsetlxI1 = params->ChromaOffsets[i][refIdx][1];
         }
 
         //cmd.DW2[15] and cmd.DW18[15] not be used
@@ -563,6 +559,7 @@ protected:
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
@@ -630,52 +627,39 @@ protected:
         cmd.DW4.SliceSaoLumaFlag = hevcSliceParams->LongSliceFlags.fields.slice_sao_luma_flag;
         cmd.DW4.MvdL1ZeroFlag = hevcSliceParams->LongSliceFlags.fields.mvd_l1_zero_flag;
 
-        uint32_t  numNegativePic = 0;
-        uint32_t  numPositivePic = 0;
+        uint8_t isLowDelay = 1;
 
-        if (hevcSliceParams->LongSliceFlags.fields.slice_type != cmd.SLICE_TYPE_I_SLICE)
+        if (hevcSliceParams->LongSliceFlags.fields.slice_type == cmd.SLICE_TYPE_I_SLICE)
+        {
+            isLowDelay = 0;
+        }
+        else
         {
             for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l0_active_minus1 + 1; i++)
             {
                 uint8_t  refFrameID = hevcSliceParams->RefPicList[0][i].FrameIdx;
-                int32_t  pocDiff = hevcPicParams->CurrPicOrderCntVal - hevcPicParams->PicOrderCntValList[refFrameID];
-                if (pocDiff > 0)
+                if (hevcPicParams->PicOrderCntValList[refFrameID] > hevcPicParams->CurrPicOrderCntVal)
                 {
-                    numNegativePic++;
+                    isLowDelay = 0;
+                    break;
                 }
             }
-        }
-        else
-        {
-            numNegativePic = 0;
-        }
 
-        if (hevcSliceParams->LongSliceFlags.fields.slice_type == cmd.SLICE_TYPE_B_SLICE)
-        {
-            for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l1_active_minus1 + 1; i++)
+            if (hevcSliceParams->LongSliceFlags.fields.slice_type == cmd.SLICE_TYPE_B_SLICE)
             {
-                uint8_t  refFrameID = hevcSliceParams->RefPicList[1][i].FrameIdx;
-                int32_t  pocDiff = hevcPicParams->CurrPicOrderCntVal - hevcPicParams->PicOrderCntValList[refFrameID];
-                if (pocDiff < 0)
+                for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l1_active_minus1 + 1; i++)
                 {
-                    numPositivePic++;
+                    uint8_t  refFrameID = hevcSliceParams->RefPicList[1][i].FrameIdx;
+                    if (hevcPicParams->PicOrderCntValList[refFrameID] > hevcPicParams->CurrPicOrderCntVal)
+                    {
+                        isLowDelay = 0;
+                        break;
+                    }
                 }
             }
         }
-        else
-        {
-            numPositivePic = 0;
-        }
 
-        if ((numNegativePic == (hevcSliceParams->num_ref_idx_l0_active_minus1 + 1)) &&
-            (numPositivePic == 0))
-        {
-            cmd.DW4.Islowdelay = 1;
-        }
-        else
-        {
-            cmd.DW4.Islowdelay = 0;
-        }
+        cmd.DW4.Islowdelay = isLowDelay & 0x1;
 
         cmd.DW4.CollocatedFromL0Flag = hevcSliceParams->LongSliceFlags.fields.collocated_from_l0_flag;
         cmd.DW4.Chromalog2Weightdenom = hevcSliceParams->luma_log2_weight_denom + hevcSliceParams->delta_chroma_log2_weight_denom;
@@ -706,7 +690,7 @@ protected:
             }
             else
             {
-                MHW_ASSERT(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) >= 0);
+                MHW_CHK_COND(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) < 0, "Invalid parameter");
                 cmd.DW4.Collocatedrefidx = *(hevcSliceState->pRefIdxMapping + collocatedFrameIdx);
             }
         }
@@ -861,8 +845,10 @@ protected:
         }
 
         cmd.DW4.CollocatedFromL0Flag = hevcSliceParams->LongSliceFlags.fields.collocated_from_l0_flag;
-        cmd.DW4.Chromalog2Weightdenom = hevcSliceParams->luma_log2_weight_denom + hevcSliceParams->delta_chroma_log2_weight_denom;
-        cmd.DW4.LumaLog2WeightDenom = hevcSliceParams->luma_log2_weight_denom;
+        cmd.DW4.Chromalog2Weightdenom = (hevcPicParams->weighted_pred_flag || hevcPicParams->weighted_bipred_flag) ?
+            (hevcSliceParams->luma_log2_weight_denom + hevcSliceParams->delta_chroma_log2_weight_denom) : 0;
+        cmd.DW4.LumaLog2WeightDenom = (hevcPicParams->weighted_pred_flag || hevcPicParams->weighted_bipred_flag) ?
+            hevcSliceParams->luma_log2_weight_denom : 0;
         cmd.DW4.CabacInitFlag = hevcSliceParams->LongSliceFlags.fields.cabac_init_flag;
         cmd.DW4.Maxmergeidx = 5 - hevcSliceParams->five_minus_max_num_merge_cand - 1;
 
@@ -889,7 +875,7 @@ protected:
             }
             else
             {
-                MHW_ASSERT(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) >= 0);
+                MHW_CHK_COND(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) < 0, "Invalid parameter");
                 cmd.DW4.Collocatedrefidx = *(hevcSliceState->pRefIdxMapping + collocatedFrameIdx);
             }
         }

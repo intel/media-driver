@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,9 @@
 #define VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G8   0x42C
 #define VPHAL_VEBOX_STATISTICS_SURFACE_STD_OFFSET_G8   0x444
 
+#define NOISE_ABSSUMTEMPORALDIFF_THRESHOLD_DEFAULT      32
+#define NOISE_SPATIALCOMPLEXITYMATRIX_THRESHOLD_DEFAULT 32
+
 struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
 {
     // DWORD 0 - GRF R1.0
@@ -46,10 +49,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // DN State Update
         struct
         {
-            DWORD       OffsetToSlice0;            
+            uint32_t       OffsetToSlice0;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW00;
 
     // DWORD 1 - GRF R1.1
@@ -58,10 +61,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // DN State Update
         struct
         {
-            DWORD       OffsetToSlice1;            
+            uint32_t       OffsetToSlice1;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW01;
 
     // DWORD 2 - GRF R1.2
@@ -70,11 +73,11 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // DN State Update
         struct
         {
-            DWORD       FirstFrameFlag              : 16; 
-            DWORD       NoiseLevel                  : 16;            
+            uint32_t       FirstFrameFlag              : 16;
+            uint32_t       NoiseLevel                  : 16;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW02;
 
     // DWORD 3 - GRF R1.3
@@ -83,10 +86,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // Vebox Statistics Surface
         struct
         {
-            DWORD       VeboxStatisticsSurface;             
+            uint32_t       VeboxStatisticsSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW03;
 
     // DWORD 4 - GRF R1.4
@@ -95,10 +98,10 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // Vebox DnDi State Surface
         struct
         {
-            DWORD       VeboxDndiStateSurface;             
+            uint32_t       VeboxDndiStateSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW04;
 
     // DWORD 5 - GRF R1.5
@@ -107,12 +110,12 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // Vebox GNE surface
         struct
         {
-            DWORD       VeboxTempSurface;             
+            uint32_t       VeboxTempSurface;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW05;
-    DWORD dwPad[2];
+    uint32_t dwPad[2];
 };
 
 typedef class VPHAL_VEBOX_STATE_G8_BASE *PVPHAL_VEBOX_STATE_G8_BASE;

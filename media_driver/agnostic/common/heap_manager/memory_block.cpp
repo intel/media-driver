@@ -76,6 +76,41 @@ MOS_STATUS MemoryBlockInternal::AddData(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MemoryBlockInternal::ReadData(
+    void* data,
+    uint32_t dataOffset,
+    uint32_t dataSize)
+{
+    HEAP_FUNCTION_ENTER_VERBOSE;
+
+    if (data == nullptr)
+    {
+        HEAP_ASSERTMESSAGE("Pointer for data to be read back must be valid");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if (m_offset + dataOffset + dataSize > m_heap->GetSize() ||
+        dataOffset + dataSize > m_size)
+    {
+        HEAP_ASSERTMESSAGE("Data attempting to read is outside this memory block or state heap");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    uint8_t *lockedResource = m_heap->Lock();
+    HEAP_CHK_NULL(lockedResource);
+    lockedResource += m_offset + dataOffset;
+
+    MOS_SecureMemcpy(
+        data,
+        dataSize,
+        lockedResource,
+        dataSize);
+
+    m_heap->Unlock();
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MemoryBlockInternal::Dump(
     std::string filename,
     uint32_t offset,
@@ -243,7 +278,11 @@ MOS_STATUS MemoryBlockInternal::Combine(MemoryBlockInternal *block)
     {
         m_offset = block->m_offset;
         m_prev = block->m_prev;
-        currPrev->m_next = this;
+        currPrev = GetPrev();
+        if (currPrev)
+        {
+            currPrev->m_next = this;
+        }
     }
     else if (currNext == block)
     {
@@ -451,7 +490,7 @@ MOS_STATUS MemoryBlockInternal::Delete()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if (m_state != State::free)
+    if (m_state != State::free && m_state != State::deleted)
     {
         HEAP_CHK_STATUS(m_heap->AdjustFreeSpace(m_size));
     }

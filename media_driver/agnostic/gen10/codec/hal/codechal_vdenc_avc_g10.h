@@ -40,7 +40,7 @@ public:
         CodechalHwInterface *   hwInterface,
         CodechalDebugInterface *debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
-	
+
     //!
     //! \brief    Destructor
     //!
@@ -66,9 +66,9 @@ public:
     static MOS_STATUS GetKernelHeaderAndSize(
         void                           *binary,
         EncOperation                   operation,
-		uint32_t                       krnStateIdx,
+        uint32_t                       krnStateIdx,
         void                           *krnHeader,
-		uint32_t                       *krnSize);
+        uint32_t                       *krnSize);
 
     bool CheckSupportedFormat( PMOS_SURFACE surface) override;
 

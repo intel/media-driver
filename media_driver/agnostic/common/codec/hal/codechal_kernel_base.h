@@ -31,10 +31,13 @@
 
 #include "codechal.h"
 #include "codechal_hw.h"
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 #include <map>
 
+//!
+//! \class    CodechalKernelBase
+//! \brief    Codechal kernel base
+//!
 class CodechalKernelBase
 {
 public:
@@ -94,6 +97,15 @@ public:
     //!         Pointer to MOS_SURFACE
     //!
     PMOS_SURFACE GetSurface(uint32_t surfaceId);
+
+    //!
+    //! \brief  Get input/output surfaces allocated for HME kernel when using MDF RT
+    //!
+    //! \param  [in] surfaceId
+    //!         uint32_t, surface index id
+    //!         Pointer to CM 2D Surface
+    //!
+    virtual CmSurface2D* GetCmSurface(uint32_t surfaceId) { return nullptr; };
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpKernelOutput() { return MOS_STATUS_SUCCESS; }
@@ -206,7 +218,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success
     //!
-    virtual MOS_STATUS SetCurbe(MHW_KERNEL_STATE *kernelState) = 0;
+    virtual MOS_STATUS SetCurbe(MHW_KERNEL_STATE *kernelState) { return MOS_STATUS_UNIMPLEMENTED; };
 
     //!
     //! \brief  Send input and output surfaces for current kernel
@@ -300,7 +312,7 @@ protected:
     uint32_t& m_frameFieldHeight;
     uint32_t& m_standard;
     MHW_WALKER_MODE& m_walkerMode;
-    
+
 };
 
 #endif /* __CODECHAL_KERNEL_BASE_H__ */

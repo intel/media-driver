@@ -31,17 +31,21 @@
 
 #include "codechal_decode_sfc.h"
 
-class CODECHAL_JPEG_SFC_STATE : public CODECHAL_SFC_STATE
+//!
+//! \class    CodechalJpegSfcState
+//! \brief    Codechal JPEG SFC state
+//!
+class CodechalJpegSfcState : public CodechalSfcState
 {
 public:
     //!
     //! \brief    Constructor
     //!
-    CODECHAL_JPEG_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    CodechalJpegSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
     //!
     //! \brief    Destructor
     //!
-    ~CODECHAL_JPEG_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    ~CodechalJpegSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
 
     //!
     //! \brief    Check if SFC output is supported and Initialize SFC
@@ -52,7 +56,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CheckAndInitialize(
+    virtual MOS_STATUS CheckAndInitialize(
         PMOS_SURFACE            destSurface,
         CodecDecodeJpegPicParams*  picParams);
 
@@ -66,7 +70,7 @@ public:
     MOS_STATUS UpdateInputInfo(
         PMHW_SFC_STATE_PARAMS   sfcStateParams);
 
-    MOS_SURFACE             sSfcInSurface;          //!< SFC virtual input surface (as VDBox output surface)
+    MOS_SURFACE m_sfcInSurface;  //!< SFC virtual input surface (as VDBox output surface)
 };
 
 #endif

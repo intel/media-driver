@@ -24,8 +24,8 @@
 //! \brief    HEVC FEI MDF structure base class for GEN9 SKL.
 //!
 
-#ifndef _CMKERNELBASE_
-#define _CMKERNELBASE_
+#ifndef _CMRTKERNELBASE_
+#define _CMRTKERNELBASE_
 
 #include <stdio.h>
 
@@ -33,8 +33,7 @@
 #include "cm_rt.h"
 #include <cm/cm.h>
 #else
-#include "cm_def.h"
-#include "cm_wrapper.h"
+#include "cm_rt_umd.h"
 #endif
 
 #define CM_CHK_STATUS_RETURN(stmt)                                              \
@@ -69,16 +68,17 @@ public:
     uint32_t        m_cmVmeSurfCount;
     void            *m_curbe;
 
-    const char      *m_isaName;
+    const uint32_t  *m_isaName;
+    uint32_t         m_isaSize;
     const char      *m_kernelName;
 
-    MOS_CONTEXT     *m_osContext;
     CMRTKernelBase();
     virtual ~CMRTKernelBase();
 
-    CM_RETURN_CODE LoadProgramISA(const char* sFilename, CmProgram * &program);
+    CM_RETURN_CODE LoadProgramISA(const uint32_t *isaCode, uint32_t isaSize, CmProgram * &program);
     CM_RETURN_CODE AddKernel(CmEvent *&cmEvent, bool destroyEvent, bool isEnqueue);
     CM_RETURN_CODE WaitAndDestroyEvent(CmEvent *&cmEvent);
+    int32_t CreateThreadSpace(uint32_t threadSpaceWidth, uint32_t threadSpaceHeight);
     virtual CM_RETURN_CODE Init(void *osContext = nullptr, CmDevice *cmDev = nullptr, CmQueue *cmQueue = nullptr, CmTask *cmTask = nullptr, CmProgram *cmProgram = nullptr);
     virtual CM_RETURN_CODE SetupCurbe(void *curbe) = 0;
     virtual CM_RETURN_CODE AllocateSurfaces(void *params) = 0;

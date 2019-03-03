@@ -24,7 +24,6 @@
 //! \brief    Defines base class for CSC and Downscaling
 //!
 
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 #include "codechal_encode_csc_ds.h"
 
@@ -32,364 +31,12 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     if (!m_cscFlag)
     {
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
-    m_cscBufCurrIdx = LookUpBufSlot();
-
-    CODECHAL_ENCODE_CHK_COND_RETURN(m_cscBufCurrIdx >= CODEC_NUM_TRACKED_BUFFERS, "No CSC buffer is available!");
-
-    auto trackedBuffer = &m_trackedBuffer[m_cscBufCurrIdx];
-
-    if (!Mos_ResourceIsNull(&trackedBuffer->sCopiedSurface.OsResource))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters and lock flags
-    MOS_ALLOC_GFXRES_PARAMS allocParamsNV12;
-    MOS_ZeroMemory(&allocParamsNV12, sizeof(allocParamsNV12));
-    allocParamsNV12.Type = MOS_GFXRES_2D;
-    allocParamsNV12.TileType = MOS_TILE_Y;
-    allocParamsNV12.pBufName = "Y Tile Surface for DS+Copy Kernel";
-
-    uint32_t surfaceWidth, surfaceHeight;
-    if (m_mode == CODECHAL_ENCODE_MODE_HEVC)
-    {
-        // The raw input surface to HEVC Enc should be 32 aligned because of VME hardware restriction as mentioned in DDI.
-        surfaceWidth = MOS_ALIGN_CEIL(m_oriFrameWidth, 32);
-        surfaceHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, 32);
-    }
-    else
-    {
-        surfaceWidth = MOS_ALIGN_CEIL(m_oriFrameWidth, m_rawSurfAlignment);
-        surfaceHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, m_rawSurfAlignment);
-    }
-
-    if (cscColorY210 == m_colorRawSurface)
-    {
-        allocParamsNV12.Format = Format_YUY2;
-        allocParamsNV12.dwWidth = surfaceWidth;
-        allocParamsNV12.dwHeight = surfaceHeight << 1;
-    }
-    else
-    {
-        allocParamsNV12.Format = Format_NV12;
-        allocParamsNV12.dwWidth = surfaceWidth;
-        allocParamsNV12.dwHeight = surfaceHeight;
-    }
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsNV12,
-        &trackedBuffer->sCopiedSurface.OsResource),
-        "Failed to allocate Format converted Surface for Csc+Ds+Conversioin Kernel!");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sCopiedSurface));
-
-    if (Format_YUY2 == allocParamsNV12.Format)
-    {
-        if (cscColorYUY2 == m_colorRawSurface &&
-            (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
-        {
-            trackedBuffer->sCopiedSurface.Format = Format_YUY2V;
-        }
-        else if (cscColorY210 == m_colorRawSurface)
-        {
-            trackedBuffer->sCopiedSurface.Format = Format_Y216V;
-        }
-        trackedBuffer->sCopiedSurface.dwWidth = surfaceWidth;
-        trackedBuffer->sCopiedSurface.dwHeight = surfaceHeight;
-    }
-
-    return eStatus;
-}
-
-void CodechalEncodeCscDs::ReleaseSurfaceCsc(uint8_t index)
-{
-    // free CSC surface
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sCopiedSurface.OsResource);
-}
-
-MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceDS()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    auto trackedBuffer = &m_trackedBuffer[m_currScalingIdx];
-
-    if (!Mos_ResourceIsNull(&trackedBuffer->sScaled4xSurface.OsResource))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferNV12;
-    MOS_ZeroMemory(&allocParamsForBufferNV12, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferNV12.Type = MOS_GFXRES_2D;
-    allocParamsForBufferNV12.TileType = MOS_TILE_Y;
-    allocParamsForBufferNV12.Format = Format_NV12;
-
-    uint32_t downscaledSurfaceWidth4x, downscaledSurfaceHeight4x;
-    if (m_useCommonKernel)
-    {
-        downscaledSurfaceWidth4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_frameWidth);
-        downscaledSurfaceHeight4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_frameHeight);
-    }
-    else
-    {
-        // MB-alignment not required since dataport handles out-of-bound pixel replication, but IME requires this.
-        downscaledSurfaceWidth4x = m_downscaledWidth4x;
-        // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
-        // Width will be allocated tile Y aligned, so also tile align height.
-        downscaledSurfaceHeight4x = ((m_downscaledHeight4x/CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
-        downscaledSurfaceHeight4x = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
-    }
-
-    allocParamsForBufferNV12.dwWidth = downscaledSurfaceWidth4x;
-    allocParamsForBufferNV12.dwHeight = downscaledSurfaceHeight4x;
-    allocParamsForBufferNV12.pBufName = "4x Scaled Surface";
-
-    // allocate 4x DS surface
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferNV12,
-        &trackedBuffer->sScaled4xSurface.OsResource),
-        "Failed to allocate 4xScaled surface.");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sScaled4xSurface));
-
-    // allocate 16x DS surface
-    uint32_t downscaledSurfaceWidth16x, downscaledSurfaceHeight16x;
-    if (m_16xMeSupported)
-    {
-        if (m_useCommonKernel)
-        {
-            downscaledSurfaceWidth16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceWidth4x);
-            downscaledSurfaceHeight16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceHeight4x);
-        }
-        else
-        {
-            downscaledSurfaceWidth16x = m_downscaledWidth16x;
-            // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
-            // Width will be allocated tile Y aligned, so also tile align height.
-            downscaledSurfaceHeight16x = ((m_downscaledHeight16x/CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
-            downscaledSurfaceHeight16x = MOS_ALIGN_CEIL(downscaledSurfaceHeight16x, MOS_YTILE_H_ALIGNMENT) << 1;
-        }
-        allocParamsForBufferNV12.dwWidth = downscaledSurfaceWidth16x;
-        allocParamsForBufferNV12.dwHeight = downscaledSurfaceHeight16x;
-        allocParamsForBufferNV12.pBufName = "16x Scaled Surface";
-
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferNV12,
-            &trackedBuffer->sScaled16xSurface.OsResource),
-            "Failed to allocate 16xScaled surface.");
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
-            m_osInterface,
-            &trackedBuffer->sScaled16xSurface));
-    }
-
-    // allocate 32x DS surface
-    if (m_32xMeSupported)
-    {
-        uint32_t downscaledSurfaceWidth32x, downscaledSurfaceHeight32x;
-        if (m_useCommonKernel)
-        {
-            downscaledSurfaceWidth16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceWidth4x);
-            downscaledSurfaceHeight16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceHeight4x);
-            downscaledSurfaceWidth32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceWidth16x);
-            downscaledSurfaceHeight32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceHeight16x);
-        }
-        else
-        {
-            downscaledSurfaceWidth32x = m_downscaledWidth32x;
-            // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
-            // Width will be allocated tile Y aligned, so also tile align height.
-            downscaledSurfaceHeight32x = ((m_downscaledHeight32x/CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
-            downscaledSurfaceHeight32x = MOS_ALIGN_CEIL(downscaledSurfaceHeight32x, MOS_YTILE_H_ALIGNMENT) << 1;
-        }
-        allocParamsForBufferNV12.dwWidth = downscaledSurfaceWidth32x;
-        allocParamsForBufferNV12.dwHeight = downscaledSurfaceHeight32x;
-        allocParamsForBufferNV12.pBufName = "32x Scaled Surface";
-
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferNV12,
-            &trackedBuffer->sScaled32xSurface.OsResource),
-            "Failed to allocate 32xScaled surface.");
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
-            m_osInterface,
-            &trackedBuffer->sScaled32xSurface));
-    }
-
-    if (!m_fieldScalingOutputInterleaved)
-    {
-        // Separated scaled surfaces
-        // Height should be 4K aligned for DI surface state, assume always Y tiled
-        m_scaledBottomFieldOffset = MOS_ALIGN_CEIL(
-            (trackedBuffer->sScaled4xSurface.dwPitch *
-            (trackedBuffer->sScaled4xSurface.dwHeight / 2)), CODECHAL_PAGE_SIZE);
-
-        if (m_16xMeSupported)
-        {
-            // Height should be 4K aligned for DI surface state, assume always Y tiled
-            m_scaled16xBottomFieldOffset = MOS_ALIGN_CEIL(
-                (trackedBuffer->sScaled16xSurface.dwPitch *
-                (trackedBuffer->sScaled16xSurface.dwHeight / 2)), CODECHAL_PAGE_SIZE);
-        }
-
-        if (m_32xMeSupported)
-        {
-            // Height should be 4K aligned for DI surface state, assume always Y tiled
-            m_scaled32xBottomFieldOffset = MOS_ALIGN_CEIL(
-                (trackedBuffer->sScaled32xSurface.dwPitch *
-                (trackedBuffer->sScaled32xSurface.dwHeight / 2)), CODECHAL_PAGE_SIZE);
-        }
-
-    }
-    else
-    {
-        // Interleaved scaled surfaces
-        m_scaledBottomFieldOffset =
-        m_scaled16xBottomFieldOffset =
-        m_scaled32xBottomFieldOffset = 0;
-    }
-
-    return eStatus;
-}
-
-MOS_STATUS CodechalEncodeCscDs::AllocateSurface2xDS()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    auto trackedBuffer = &m_trackedBuffer[m_currScalingIdx];
-
-    if (!Mos_ResourceIsNull(&trackedBuffer->sScaled2xSurface.OsResource))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferNV12;
-    MOS_ZeroMemory(&allocParamsForBufferNV12, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferNV12.Type = MOS_GFXRES_2D;
-    allocParamsForBufferNV12.TileType = MOS_TILE_Y;
-    allocParamsForBufferNV12.Format = Format_NV12;
-
-    uint32_t surfaceWidth, surfaceHeight;
-    if (m_useCommonKernel)
-    {
-        surfaceWidth = CODECHAL_GET_2xDS_SIZE_32ALIGNED(m_frameWidth);
-        surfaceHeight = CODECHAL_GET_2xDS_SIZE_32ALIGNED(m_frameHeight);
-    }
-    else
-    {
-        surfaceWidth = MOS_ALIGN_CEIL(m_frameWidth, 64) >> 1;
-        surfaceHeight = MOS_ALIGN_CEIL(m_frameHeight, 64) >> 1;
-    }
-
-    if ((uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
-    {
-        allocParamsForBufferNV12.Format = Format_YUY2;
-        allocParamsForBufferNV12.dwWidth = surfaceWidth >> 1;
-        allocParamsForBufferNV12.dwHeight = surfaceHeight << 1;
-    }
-    else
-    {
-        allocParamsForBufferNV12.dwWidth = surfaceWidth;
-        allocParamsForBufferNV12.dwHeight = surfaceHeight;
-    }
-    allocParamsForBufferNV12.pBufName = "2x Scaled Surface";
-
-    // allocate 2x DS surface
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferNV12,
-        &trackedBuffer->sScaled2xSurface.OsResource),
-        "Failed to allocate 2xScaled surface.");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sScaled2xSurface));
-
-    if ((uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
-    {
-        trackedBuffer->sScaled2xSurface.Format = Format_YUY2V;
-        trackedBuffer->sScaled2xSurface.dwWidth = surfaceWidth;
-        trackedBuffer->sScaled2xSurface.dwHeight = surfaceHeight;
-    }
-
-    return eStatus;
-}
-
-void CodechalEncodeCscDs::ReleaseSurfaceDS(uint8_t index)
-{
-    // free DS surface
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled2xSurface.OsResource);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled4xSurface.OsResource);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled16xSurface.OsResource);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled32xSurface.OsResource);
-}
-
-uint8_t CodechalEncodeCscDs::LookUpBufSlot()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    if (m_cscBufCountResize)
-    {
-        m_cscBufCountResize--;
-
-        if (m_cscBufAnteIdx != m_cscBufPenuIdx && m_cscBufAnteIdx != m_cscBufLastIdx)
-        {
-            ReleaseSurfaceCsc(m_cscBufAnteIdx);
-            CODECHAL_ENCODE_NORMALMESSAGE("CSC buffer = %d re-allocated", m_cscBufAnteIdx);
-        }
-    }
-
-    uint8_t index = PICTURE_MAX_7BITS;
-    if (m_useRawForRef)
-    {
-        index = m_currScalingIdx;
-        m_waitCscSurf = false;
-    }
-    else
-    {
-        // if Raw won't be used as Ref, can use a ring buffer
-        if (!m_waitForPak)
-        {
-            m_cscBufCountNonRef += m_cscBufCountNonRef <= CODEC_NUM_NON_REF_BUFFERS;
-            CODECHAL_ENCODE_NORMALMESSAGE("CSC buffer count = %d", m_cscBufCountNonRef);
-        }
-        else
-        {
-            m_cscBufCountNonRef = 0;
-        }
-        m_waitCscSurf = m_cscBufCountNonRef > CODEC_NUM_NON_REF_BUFFERS;
-
-        m_cscBufRingIdx = (m_cscBufRingIdx + 1) % CODEC_NUM_NON_REF_BUFFERS;
-        index = CODEC_NUM_REF_BUFFERS + m_cscBufRingIdx;
-    }
-
-    // update the last 3 buffer index
-    m_cscBufAnteIdx = m_cscBufPenuIdx;
-    m_cscBufPenuIdx = m_cscBufLastIdx;
-    m_cscBufLastIdx = index;
-
-    return index;
+    return m_encoder->m_trackedBuf->AllocateSurfaceCsc();
 }
 
 MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format)
@@ -427,6 +74,12 @@ MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format)
     case Format_A8B8G8R8:
         m_colorRawSurface = cscColorABGR;
         m_cscRequireColor = 1;
+        m_cscUsingSfc = m_cscEnableSfc ? 1 : 0;
+        // Use EU for better performance in big resolution cases or TU1
+        if ((m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088) || m_16xMeSupported)
+        {
+            m_cscUsingSfc = 0;
+        }
         m_threadTraverseSizeX = 3;    // for ABGR, thread space is 8x4
         break;
     case Format_P010:
@@ -446,7 +99,17 @@ MOS_STATUS CodechalEncodeCscDs::InitSfcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    return CodecHalEncodeSfc_Initialize(m_hwInterface, m_osInterface);
+    if (!m_sfcState)
+    {
+        m_sfcState = (CodecHalEncodeSfc*)MOS_New(CodecHalEncodeSfc);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfcState);
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->Initialize(m_hwInterface, m_osInterface));
+
+        m_sfcState->SetInputColorSpace(MHW_CSpace_sRGB);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::SetParamsSfc(CODECHAL_ENCODE_SFC_PARAMS* sfcParams)
@@ -459,7 +122,7 @@ MOS_STATUS CodechalEncodeCscDs::SetParamsSfc(CODECHAL_ENCODE_SFC_PARAMS* sfcPara
 
     // color space parameters have been set to pSfcState already, no need set here
     sfcParams->pInputSurface = m_rawSurfaceToEnc;
-    sfcParams->pOutputSurface = &m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface;
+    sfcParams->pOutputSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
     sfcParams->rcInputSurfaceRegion.X = 0;
     sfcParams->rcInputSurfaceRegion.Y = 0;
     sfcParams->rcInputSurfaceRegion.Width = m_cscRawSurfWidth;
@@ -502,7 +165,7 @@ MOS_STATUS CodechalEncodeCscDs::InitKernelStateCsc()
         &m_cscKernelState->dwBindingTableSize));
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderInterface->m_stateHeapInterface);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_renderInterface->m_stateHeapInterface, m_cscKernelState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_renderInterface->m_stateHeapInterface, m_cscKernelState));
 
     return eStatus;
 }
@@ -547,14 +210,14 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
     m_curbeParams.bFlatnessCheckEnabled = m_flatnessCheckEnabled;
     m_curbeParams.bMBVarianceOutputEnabled = m_mbStatsEnabled;
     m_curbeParams.bMBPixelAverageOutputEnabled = m_mbStatsEnabled;
-    m_curbeParams.bCscOrCopyOnly = !m_scalingEnabled;
+    m_curbeParams.bCscOrCopyOnly = !m_scalingEnabled || params->cscOrCopyOnly;
     m_curbeParams.inputColorSpace = params->inputColorSpace;
 
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = m_rawSurfaceToEnc;
-    m_surfaceParamsCsc.psOutputCopiedSurface = &m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface;
+    m_surfaceParamsCsc.psOutputCopiedSurface = m_cscFlag ? m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
     m_surfaceParamsCsc.psOutput4xDsSurface =
-        m_scalingEnabled ? &m_trackedBuffer[m_currScalingIdx].sScaled4xSurface : nullptr;
+        !m_curbeParams.bCscOrCopyOnly ? m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
 
     if (m_mbStatsSupported)
     {
@@ -564,7 +227,7 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
     else
     {
         m_surfaceParamsCsc.bFlatnessCheckEnabled = m_flatnessCheckEnabled;
-        m_surfaceParamsCsc.psFlatnessCheckSurface = &m_flatnessCheckSurface;
+        m_surfaceParamsCsc.psFlatnessCheckSurface = &m_encoder->m_flatnessCheckSurface;
     }
 
     // setup walker param
@@ -659,7 +322,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
     surfaceParams.dwVerticalLineStride = m_verticalLineStride;
     surfaceParams.dwBindingTableOffset = cscSrcYPlane;
     surfaceParams.dwUVBindingTableOffset = cscSrcUVPlane;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceParams,
@@ -677,7 +340,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
             codechalLLC);
         surfaceParams.dwVerticalLineStride = m_verticalLineStride;
         surfaceParams.dwBindingTableOffset = cscDstDsYPlane;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -693,12 +356,12 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         surfaceParams.dwSize = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_surfaceParamsCsc.psInputSurface->dwWidth) *
             CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_surfaceParamsCsc.psInputSurface->dwHeight) * 16 * sizeof(uint32_t);
         surfaceParams.presBuffer = m_surfaceParamsCsc.presMBVProcStatsBuffer;
-		surfaceParams.dwCacheabilityControl =
-			m_hwInterface->ComposeSurfaceCacheabilityControl(
-				MOS_CODEC_RESOURCE_USAGE_MB_STATS_ENCODE,
-				codechalLLC | codechalL3);
+        surfaceParams.dwCacheabilityControl =
+            m_hwInterface->ComposeSurfaceCacheabilityControl(
+                MOS_CODEC_RESOURCE_USAGE_MB_STATS_ENCODE,
+                codechalLLC | codechalL3);
         surfaceParams.dwBindingTableOffset = cscDstFlatOrMbStats;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -715,7 +378,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
                 MOS_CODEC_RESOURCE_USAGE_SURFACE_FLATNESS_CHECK_ENCODE,
                 codechalLLC | codechalL3);
         surfaceParams.dwBindingTableOffset = cscDstFlatOrMbStats;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -736,7 +399,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
             codechalLLC);
         surfaceParams.dwBindingTableOffset = cscDstCopyYPlane;
         surfaceParams.dwUVBindingTableOffset = cscDstCopyUVPlane;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -750,44 +413,42 @@ MOS_STATUS CodechalEncodeCscDs::SetSurfacesToEncPak()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    auto cscSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
 
-    auto trackedBuffer = &m_trackedBuffer[m_cscBufCurrIdx];
-
-    // now we have the converted surface, do different things
-    if (m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar)
+    // assign CSC output surface according to different operation
+    if (RenderConsumesCscSurface())
     {
-        m_rawSurfaceToEnc = &trackedBuffer->sCopiedSurface;
+        m_rawSurfaceToEnc = cscSurface;
 
         // update the RawBuffer and RefBuffer (if Raw is used as Ref)
-        m_currRefList->sRefRawBuffer = trackedBuffer->sCopiedSurface;
+        m_currRefList->sRefRawBuffer = *cscSurface;
         if (m_useRawForRef)
         {
-            m_currRefList->sRefBuffer = trackedBuffer->sCopiedSurface;
+            m_currRefList->sRefBuffer = *cscSurface;
         }
-        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToEnc %d x %d, CSC buf index = %d",
-            m_rawSurfaceToEnc->dwWidth, m_rawSurfaceToEnc->dwHeight, m_cscBufCurrIdx);
+        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToEnc %d x %d",
+            m_rawSurfaceToEnc->dwWidth, m_rawSurfaceToEnc->dwHeight);
     }
 
-    if (m_cscRequireCopy || m_cscRequireColor || m_cscRequireMmc)
+    if (VdboxConsumesCscSurface())
     {
-        m_rawSurfaceToPak = &trackedBuffer->sCopiedSurface;
-        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToPak %d x %d, CSC buf index = %d",
-            m_rawSurfaceToPak->dwWidth, m_rawSurfaceToPak->dwHeight, m_cscBufCurrIdx);
+        m_rawSurfaceToPak = cscSurface;
+        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToPak %d x %d",
+            m_rawSurfaceToPak->dwWidth, m_rawSurfaceToPak->dwHeight);
     }
 
     // dump copied surface from Ds+Copy kernel
     if (m_cscFlag)
     {
-        CODECHAL_DEBUG_TOOL( 
+        CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                &trackedBuffer->sCopiedSurface,
+                cscSurface,
                 CodechalDbgAttr::attrEncodeRawInputSurface,
                 "Copied_SrcSurf")) // needs to consider YUV420
         )
     }
 
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::InitKernelStateDS()
@@ -798,7 +459,7 @@ MOS_STATUS CodechalEncodeCscDs::InitKernelStateDS()
 
     numKernelsToLoad = m_encoder->m_interlacedFieldDisabled ? 1 : CODEC_NUM_FIELDS_PER_FRAME;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
         m_encoder->m_kernelBase,
         m_encoder->m_kuid,
         &m_dsKernelBase,
@@ -835,7 +496,7 @@ MOS_STATUS CodechalEncodeCscDs::InitKernelStateDS()
             &m_dsKernelState->dwBindingTableSize));
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderInterface->m_stateHeapInterface);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_renderInterface->m_stateHeapInterface, m_dsKernelState));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_renderInterface->m_stateHeapInterface, m_dsKernelState));
 
         if (m_32xMeSupported)
         {
@@ -863,7 +524,7 @@ MOS_STATUS CodechalEncodeCscDs::InitKernelStateDS()
                 &m_dsKernelState->dwBindingTableSize));
 
             CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderInterface->m_stateHeapInterface);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_renderInterface->m_stateHeapInterface, m_dsKernelState));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_renderInterface->m_stateHeapInterface, m_dsKernelState));
         }
 
         if (m_encoder->m_interlacedFieldDisabled)
@@ -883,22 +544,22 @@ MOS_STATUS CodechalEncodeCscDs::InitKernelStateDS()
 MOS_STATUS CodechalEncodeCscDs::SetCurbeDS4x()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     Ds4xKernelCurbeData curbe;
-    
+
     curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
     curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
 
     curbe.DW1_InputYBTIFrame = ds4xSrcYPlane;
     curbe.DW2_OutputYBTIFrame = ds4xDstYPlane;
-    
+
     if (m_curbeParams.bFieldPicture)
     {
         curbe.DW3_InputYBTIBottomField = ds4xSrcYPlaneBtmField;
         curbe.DW4_OutputYBTIBottomField = ds4xDstYPlaneBtmField;
     }
 
-    if (curbe.DW6_EnableMBFlatnessCheck = m_curbeParams.bFlatnessCheckEnabled)
+    if ((curbe.DW6_EnableMBFlatnessCheck = m_curbeParams.bFlatnessCheckEnabled))
     {
         curbe.DW5_FlatnessThreshold = 128;
         curbe.DW8_FlatnessOutputBTIFrame = ds4xDstFlatness;
@@ -953,6 +614,143 @@ MOS_STATUS CodechalEncodeCscDs::SetCurbeDS2x()
         &curbe,
         m_dsKernelState->dwCurbeOffset,
         sizeof(curbe)));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeCscDs::SetSurfaceParamsDS(KernelParams* params)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    uint32_t scaleFactor, downscaledWidthInMb, downscaledHeightInMb;
+    uint32_t inputFrameWidth, inputFrameHeight, outputFrameWidth, outputFrameHeight;
+    uint32_t inputBottomFieldOffset, outputBottomFieldOffset;
+    PMOS_SURFACE inputSurface, outputSurface;
+    bool scaling4xInUse = !(params->b32xScalingInUse || params->b16xScalingInUse);
+    bool fieldPicture = CodecHal_PictureIsField(m_encoder->m_currOriginalPic);
+
+    if (params->b32xScalingInUse)
+    {
+        scaleFactor = SCALE_FACTOR_32x;
+        downscaledWidthInMb = m_downscaledWidth32x / CODECHAL_MACROBLOCK_WIDTH;
+        downscaledHeightInMb = m_downscaledHeight32x / CODECHAL_MACROBLOCK_HEIGHT;
+        if (fieldPicture)
+        {
+            downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
+        }
+
+        inputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
+        inputFrameWidth = m_downscaledWidth16x;
+        inputFrameHeight = m_downscaledHeight16x;
+        inputBottomFieldOffset = m_scaled16xBottomFieldOffset;
+
+        outputSurface = m_encoder->m_trackedBuf->Get32xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
+        outputFrameWidth = m_downscaledWidth32x;
+        outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
+        outputBottomFieldOffset = m_scaled32xBottomFieldOffset;
+        m_lastTaskInPhase = params->bLastTaskInPhase32xDS;
+        m_currRefList->b32xScalingUsed = true;
+    }
+    else if (params->b16xScalingInUse)
+    {
+        scaleFactor = SCALE_FACTOR_16x;
+        downscaledWidthInMb = m_downscaledWidth16x / CODECHAL_MACROBLOCK_WIDTH;
+        downscaledHeightInMb = m_downscaledHeight16x / CODECHAL_MACROBLOCK_HEIGHT;
+        if (fieldPicture)
+        {
+            downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
+        }
+
+        inputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
+        inputFrameWidth = m_downscaledWidth4x;
+        inputFrameHeight = m_downscaledHeight4x;
+        inputBottomFieldOffset = m_scaledBottomFieldOffset;
+
+        outputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
+        outputFrameWidth = m_downscaledWidth16x;
+        outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
+        outputBottomFieldOffset = m_scaled16xBottomFieldOffset;
+        m_lastTaskInPhase = params->bLastTaskInPhase16xDS;
+        m_currRefList->b16xScalingUsed = true;
+    }
+    else
+    {
+        scaleFactor = SCALE_FACTOR_4x;
+        downscaledWidthInMb = m_downscaledWidth4x / CODECHAL_MACROBLOCK_WIDTH;
+        downscaledHeightInMb = m_downscaledHeight4x / CODECHAL_MACROBLOCK_HEIGHT;
+        if (fieldPicture)
+        {
+            downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
+        }
+
+        inputSurface = (params->bRawInputProvided) ? &params->sInputRawSurface : m_rawSurfaceToEnc;
+        inputFrameWidth = m_encoder->m_oriFrameWidth;
+        inputFrameHeight = m_encoder->m_oriFrameHeight;
+        inputBottomFieldOffset = 0;
+
+        outputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
+        outputFrameWidth = m_downscaledWidth4x;
+        outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
+        outputBottomFieldOffset = m_scaledBottomFieldOffset;
+        m_lastTaskInPhase = params->bLastTaskInPhase4xDS;
+        m_currRefList->b4xScalingUsed = true;
+    }
+
+    CODEC_PICTURE originalPic = (params->bRawInputProvided) ? params->inputPicture : m_encoder->m_currOriginalPic;
+    FeiPreEncParams *preEncParams = nullptr;
+    if (m_encoder->m_codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
+    {
+        preEncParams = (FeiPreEncParams*)m_encoder->m_encodeParams.pPreEncParams;
+        CODECHAL_ENCODE_CHK_NULL_RETURN(preEncParams);
+    }
+
+    // setup surface states
+    m_surfaceParamsDS.bCurrPicIsFrame = !CodecHal_PictureIsField(originalPic);
+    m_surfaceParamsDS.psInputSurface = inputSurface;
+    m_surfaceParamsDS.dwInputFrameWidth = inputFrameWidth;
+    m_surfaceParamsDS.dwInputFrameHeight = inputFrameHeight;
+    m_surfaceParamsDS.psOutputSurface = outputSurface;
+    m_surfaceParamsDS.dwOutputFrameWidth = outputFrameWidth;
+    m_surfaceParamsDS.dwOutputFrameHeight = outputFrameHeight;
+    m_surfaceParamsDS.dwInputBottomFieldOffset = (uint32_t)inputBottomFieldOffset;
+    m_surfaceParamsDS.dwOutputBottomFieldOffset = (uint32_t)outputBottomFieldOffset;
+    m_surfaceParamsDS.bScalingOutUses16UnormSurfFmt = params->b32xScalingInUse;
+    m_surfaceParamsDS.bScalingOutUses32UnormSurfFmt = !params->b32xScalingInUse;
+
+    if (preEncParams)
+    {
+        m_surfaceParamsDS.bPreEncInUse = true;
+        m_surfaceParamsDS.bEnable8x8Statistics = preEncParams ? preEncParams->bEnable8x8Statistics : false;
+        if (params->bScalingforRef)
+        {
+            m_surfaceParamsDS.bMBVProcStatsEnabled = params->bStatsInputProvided;
+            m_surfaceParamsDS.presMBVProcStatsBuffer = (params->bStatsInputProvided) ? &(params->sInputStatsBuffer) : nullptr;
+            m_surfaceParamsDS.presMBVProcStatsBotFieldBuffer = (params->bStatsInputProvided) ? &(params->sInputStatsBotFieldBuffer) : nullptr;
+        }
+        else
+        {
+            m_surfaceParamsDS.bMBVProcStatsEnabled = !preEncParams->bDisableStatisticsOutput;
+            m_surfaceParamsDS.presMBVProcStatsBuffer = &(preEncParams->resStatsBuffer);
+            m_surfaceParamsDS.presMBVProcStatsBotFieldBuffer = &preEncParams->resStatsBotFieldBuffer;
+        }
+        m_surfaceParamsDS.dwMBVProcStatsBottomFieldOffset = m_mbVProcStatsBottomFieldOffset;
+    }
+    else if (m_mbStatsSupported)
+    {
+        //Currently Only Based on Flatness Check, later on Adaptive Transform Decision too
+        m_surfaceParamsDS.bMBVProcStatsEnabled = scaling4xInUse && (m_flatnessCheckEnabled || m_mbStatsEnabled);
+        m_surfaceParamsDS.presMBVProcStatsBuffer = &m_resMbStatsBuffer;
+        m_surfaceParamsDS.dwMBVProcStatsBottomFieldOffset = m_mbStatsBottomFieldOffset;
+
+        m_surfaceParamsDS.bFlatnessCheckEnabled = false; // Disabling flatness check as its encompassed in Mb stats
+    }
+    else
+    {
+        // Enable flatness check only for 4x scaling.
+        m_surfaceParamsDS.bFlatnessCheckEnabled = scaling4xInUse && m_flatnessCheckEnabled;
+        m_surfaceParamsDS.psFlatnessCheckSurface = &m_encoder->m_flatnessCheckSurface;
+        m_surfaceParamsDS.dwFlatnessCheckBottomFieldOffset = m_flatnessCheckBottomFieldOffset;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1017,7 +815,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
     {
         // Frame
         surfaceParams.dwBindingTableOffset = m_dsBTISrcY;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -1028,7 +826,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
         // Top field
         surfaceParams.dwVerticalLineStrideOffset = verticalLineOffsetTop;
         surfaceParams.dwBindingTableOffset = m_dsBTISrcYTopField;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -1038,7 +836,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
         surfaceParams.dwOffset = m_surfaceParamsDS.dwInputBottomFieldOffset;
         surfaceParams.dwVerticalLineStrideOffset = verticalLineOffsetBottom;
         surfaceParams.dwBindingTableOffset = m_dsBTISrcYBtmField;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -1074,7 +872,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
     {
         // Frame
         surfaceParams.dwBindingTableOffset = m_dsBTIDstY;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -1085,7 +883,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
         // Top field
         surfaceParams.dwVerticalLineStrideOffset = verticalLineOffsetTop;
         surfaceParams.dwBindingTableOffset = m_dsBTIDstYTopField;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -1095,7 +893,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
         surfaceParams.dwOffset = m_surfaceParamsDS.dwOutputBottomFieldOffset;
         surfaceParams.dwVerticalLineStrideOffset = verticalLineOffsetBottom;
         surfaceParams.dwBindingTableOffset = m_dsBTIDstYBtmField;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -1121,7 +919,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
         {
             // Frame
             surfaceParams.dwBindingTableOffset = m_dsBTIDstFlatness;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceParams,
@@ -1133,7 +931,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
             surfaceParams.bUseHalfHeight = true;
             surfaceParams.dwVerticalLineStrideOffset = 0;
             surfaceParams.dwBindingTableOffset = m_dsBTIDstFlatnessTopField;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceParams,
@@ -1143,7 +941,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
             surfaceParams.dwOffset = m_surfaceParamsDS.dwFlatnessCheckBottomFieldOffset;
             surfaceParams.dwVerticalLineStrideOffset = 0;
             surfaceParams.dwBindingTableOffset = m_dsBTIDstFlatnessBtmField;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceParams,
@@ -1176,7 +974,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
             }
             surfaceParams.dwSize = size;
             surfaceParams.dwBindingTableOffset = m_dsBTIDstMbVProc;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceParams,
@@ -1196,7 +994,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
 
             // Top field
             surfaceParams.dwBindingTableOffset = m_dsBTIDstMbVProcTopField;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceParams,
@@ -1209,7 +1007,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
             }
             surfaceParams.dwOffset = m_surfaceParamsDS.dwMBVProcStatsBottomFieldOffset;
             surfaceParams.dwBindingTableOffset = m_dsBTIDstMbVProcBtmField;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceParams,
@@ -1225,17 +1023,33 @@ const uint8_t CodechalEncodeCscDs::GetBTCount()
     return (uint8_t)cscNumSurfaces;
 }
 
-void CodechalEncodeCscDs::Resize()
+void CodechalEncodeCscDs::GetCscAllocation(uint32_t &width, uint32_t &height, MOS_FORMAT &format)
 {
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    m_cscBufCountResize = CODEC_NUM_NON_REF_BUFFERS;
-    for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
+    uint32_t surfaceWidth, surfaceHeight;
+    if (m_mode == CODECHAL_ENCODE_MODE_HEVC)
     {
-        if (m_cscBufAnteIdx != i && m_cscBufPenuIdx != i && m_cscBufLastIdx != i)
-        {
-            ReleaseSurfaceCsc(i);
-        }
+        // The raw input surface to HEVC Enc should be 32 aligned because of VME hardware restriction as mentioned in DDI.
+        surfaceWidth = MOS_ALIGN_CEIL(m_encoder->m_oriFrameWidth, 32);
+        surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_oriFrameHeight, 32);
+    }
+    else
+    {
+        surfaceWidth = MOS_ALIGN_CEIL(m_encoder->m_frameWidth, m_rawSurfAlignment);
+        surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_frameHeight, m_rawSurfAlignment);
+    }
+
+    if ( (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
+    {
+        //P208 is 422 8 bit planar with UV interleaved. It has the same memory layout as YUY2V
+        format = Format_P208;
+        width = surfaceWidth;
+        height = surfaceHeight;
+    }
+    else
+    {
+        format = Format_NV12;
+        width = surfaceWidth;
+        height = surfaceHeight;
     }
 }
 
@@ -1248,7 +1062,7 @@ MOS_STATUS CodechalEncodeCscDs::Initialize()
     if (m_cscKernelUID)
     {
         uint8_t* binary;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
             m_kernelBase,
             m_cscKernelUID,
             &binary,
@@ -1309,12 +1123,64 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     // CSC no longer required, free existing CSC surface
     if (cscFlagPrev && !m_cscFlag)
     {
-        Resize();
+        m_encoder->m_trackedBuf->ResizeCsc();
     }
     CODECHAL_ENCODE_NORMALMESSAGE("raw surf = %d x %d, tile = %d, color = %d, cscFlag = %d",
         details.dwWidth, details.dwHeight, details.TileType, m_colorRawSurface, m_cscFlag);
 
     return eStatus;
+}
+
+MOS_STATUS CodechalEncodeCscDs::CheckReconSurfaceAlignment(PMOS_SURFACE surface)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    uint8_t alignment;
+    if (m_standard == CODECHAL_HEVC ||
+        m_standard == CODECHAL_VP9)
+    {
+        alignment = m_hcpReconSurfAlignment;
+    }
+    else
+    {
+        alignment = m_mfxReconSurfAlignment;
+    }
+
+    MOS_SURFACE resDetails;
+    MOS_ZeroMemory(&resDetails, sizeof(resDetails));
+    resDetails.Format = Format_Invalid;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, &resDetails));
+
+    if (resDetails.dwHeight % alignment)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Recon surface alignment does not meet HW requirement!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeCscDs::CheckRawSurfaceAlignment(PMOS_SURFACE surface)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_SURFACE resDetails;
+    MOS_ZeroMemory(&resDetails, sizeof(resDetails));
+    resDetails.Format = Format_Invalid;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, &resDetails));
+
+    if (resDetails.dwHeight % m_rawSurfAlignment)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Raw surface alignment does not meet HW requirement!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+void CodechalEncodeCscDs::SetHcpReconAlignment(uint8_t alignment)
+{
+    m_hcpReconSurfAlignment = alignment;
 }
 
 MOS_STATUS CodechalEncodeCscDs::WaitCscSurface(MOS_GPU_CONTEXT gpuContext, bool readOnly)
@@ -1326,8 +1192,8 @@ MOS_STATUS CodechalEncodeCscDs::WaitCscSurface(MOS_GPU_CONTEXT gpuContext, bool 
     auto syncParams = g_cInitSyncParams;
     syncParams.GpuContext = gpuContext;
     syncParams.bReadOnly = readOnly;
-    syncParams.presSyncResource = &m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface.OsResource;
-    
+    syncParams.presSyncResource = &m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER)->OsResource;
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
     m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
 
@@ -1339,11 +1205,10 @@ MOS_STATUS CodechalEncodeCscDs::KernelFunctions(
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    bool useDsConvInCombinedKernel = m_useCommonKernel && !(CODECHAL_AVC == m_standard || CODECHAL_MPEG2 == m_standard);
+    bool useDsConvInCombinedKernel = m_useCommonKernel
+        && !(CODECHAL_AVC == m_standard || CODECHAL_MPEG2 == m_standard || CODECHAL_VP8 == m_standard);
 
     // call Ds+Copy
     if (m_cscFlag || useDsConvInCombinedKernel)
@@ -1391,7 +1256,7 @@ MOS_STATUS CodechalEncodeCscDs::KernelFunctions(
         }
     }
 
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
@@ -1401,15 +1266,7 @@ MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // init SFC state
-    if (!m_sfcState)
-    {
-        m_sfcState = (CODECHAL_ENCODE_SFC_STATE*)MOS_New(CODECHAL_ENCODE_SFC_STATE);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfcState);
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSfcState());
-
-        m_sfcState->InputSurfaceColorSpace = MHW_CSpace_sRGB;
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSfcState());
 
     // wait for raw surface on VEBox context
     auto syncParams = g_cInitSyncParams;
@@ -1422,9 +1279,12 @@ MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
     // allocate CSC surface (existing surfaces will be re-used when associated frame goes out of RefList)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceCsc());
 
-    // On-demand sync for CSC surface re-use
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(WaitCscSurface(MOS_GPU_CONTEXT_VEBOX, false));
-    
+    if (m_encoder->m_trackedBuf->GetWaitCsc())
+    {
+        // on-demand sync for CSC surface re-use
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(WaitCscSurface(MOS_GPU_CONTEXT_VEBOX, false));
+    }
+
     CODECHAL_ENCODE_SFC_PARAMS sfcParams;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetParamsSfc(&sfcParams));
 
@@ -1432,29 +1292,24 @@ MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
     switch (colorSpace)
     {
     case ECOLORSPACE_P601:
-        m_sfcState->OutputSurfaceColorSpace = MHW_CSpace_BT601;
+        m_sfcState->SetOutputColorSpace(MHW_CSpace_BT601);
         break;
     case ECOLORSPACE_P709:
-        m_sfcState->OutputSurfaceColorSpace = MHW_CSpace_BT709;
+        m_sfcState->SetOutputColorSpace(MHW_CSpace_BT709);
         break;
     case ECOLORSPACE_P2020:
-        m_sfcState->OutputSurfaceColorSpace = MHW_CSpace_BT2020;
+        m_sfcState->SetOutputColorSpace(MHW_CSpace_BT2020);
         break;
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Unknow input color space = %d!", colorSpace);
         eStatus = MOS_STATUS_INVALID_PARAMETER;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncodeSfc_SetParams(
-        m_osInterface,
-        m_sfcState,
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->SetParams(
         &sfcParams));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncodeSfc_RenderStart(
-        m_hwInterface,
-        m_osInterface,
-        m_encoder,
-        m_sfcState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->RenderStart(
+        m_encoder));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesToEncPak());
 
@@ -1477,22 +1332,30 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateCsc());
     }
 
-    // allocate CSC surface (existing surfaces will be re-used when associated frame goes out of RefList)
+    // allocate CSC surface (existing surfaces will be re-used when associated frame retires from RefList)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceCsc());
 
     if (m_scalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurfaceDS());
+        if (m_standard == CODECHAL_VP9)
+        {
+            auto seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encoder->m_encodeParams.pSeqParams);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(seqParams);
+            if (seqParams->SeqFlags.fields.EnableDynamicScaling) {
+                m_encoder->m_trackedBuf->ResizeSurfaceDS();
+            }
+        }
     }
 
     if (m_2xScalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface2xDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurface2xDS());
     }
 
-    if (m_waitCscSurf)
+    if (m_encoder->m_trackedBuf->GetWaitCsc())
     {
-        // in case PAK hasn't yet consumed a surface sent earlier, wait before we can re-use
+        // on-demand sync for CSC surface re-use
         CODECHAL_ENCODE_CHK_STATUS_RETURN(WaitCscSurface(m_renderContext, false));
     }
 
@@ -1503,7 +1366,7 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
     perfTag.Value = 0;
     perfTag.Mode = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
     perfTag.CallType = CODECHAL_ENCODE_PERFTAG_CALL_DS_CONVERSION_KERNEL;
-    perfTag.PictureCodingType = m_pictureCodingType;
+    perfTag.PictureCodingType = m_encoder->m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
     // Each scaling kernel buffer counts as a separate perf task
     m_osInterface->pfnResetPerfBufferID(m_osInterface);
@@ -1521,7 +1384,7 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
     // setup CscDsCopy DSH and Interface Descriptor
     auto stateHeapInterface = m_renderInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         stateHeapInterface,
         m_cscKernelState,
         false,
@@ -1651,19 +1514,27 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
     if (m_scalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurfaceDS());
+        if (m_standard == CODECHAL_VP9)
+        {
+            auto seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encoder->m_encodeParams.pSeqParams);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(seqParams);
+            if (seqParams->SeqFlags.fields.EnableDynamicScaling) {
+                m_encoder->m_trackedBuf->ResizeSurfaceDS();
+            }
+        }
     }
 
     if (m_2xScalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface2xDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurface2xDS());
     }
 
     PerfTagSetting perfTag;
     perfTag.Value = 0;
     perfTag.Mode = m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
     perfTag.CallType = CODECHAL_ENCODE_PERFTAG_CALL_SCALING_KERNEL;
-    perfTag.PictureCodingType = m_pictureCodingType;
+    perfTag.PictureCodingType = m_encoder->m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
     m_osInterface->pfnIncPerfBufferID(m_osInterface);
     // Each scaling kernel buffer counts as a separate perf task
@@ -1686,7 +1557,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
     //Setup Scaling DSH
     auto stateHeapInterface = m_renderInterface->m_stateHeapInterface;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         stateHeapInterface,
         m_dsKernelState,
         false,
@@ -1699,15 +1570,11 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     idParams.pKernelState = m_dsKernelState;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->SetInterfaceDescriptor(1, &idParams));
 
-    uint32_t scaleFactor, downscaledWidthInMb, downscaledHeightInMb; 
-    uint32_t inputFrameWidth, inputFrameHeight, outputFrameWidth, outputFrameHeight;
-    uint32_t inputBottomFieldOffset, outputBottomFieldOffset;
-    PMOS_SURFACE inputSurface, outputSurface;
-    auto trackedBuffer = &m_trackedBuffer[m_currScalingIdx];
+    uint32_t downscaledWidthInMb, downscaledHeightInMb;
+    uint32_t inputFrameWidth, inputFrameHeight;
 
     if (params->b32xScalingInUse)
     {
-        scaleFactor = SCALE_FACTOR_32x;
         downscaledWidthInMb = m_downscaledWidth32x / CODECHAL_MACROBLOCK_WIDTH;
         downscaledHeightInMb = m_downscaledHeight32x / CODECHAL_MACROBLOCK_HEIGHT;
         if (fieldPicture)
@@ -1715,43 +1582,29 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
             downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
         }
 
-        inputSurface = &trackedBuffer->sScaled16xSurface;
         inputFrameWidth = m_downscaledWidth16x;
         inputFrameHeight = m_downscaledHeight16x;
-        inputBottomFieldOffset = m_scaled16xBottomFieldOffset;
 
-        outputSurface = &trackedBuffer->sScaled32xSurface;
-        outputFrameWidth = m_downscaledWidth32x;
-        outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
-        outputBottomFieldOffset = m_scaled32xBottomFieldOffset;
         m_lastTaskInPhase = params->bLastTaskInPhase32xDS;
         m_currRefList->b32xScalingUsed = true;
     }
     else if (params->b16xScalingInUse)
     {
-        scaleFactor = SCALE_FACTOR_16x;
         downscaledWidthInMb = m_downscaledWidth16x / CODECHAL_MACROBLOCK_WIDTH;
-        downscaledHeightInMb = m_downscaledHeight16x / CODECHAL_MACROBLOCK_HEIGHT; 
+        downscaledHeightInMb = m_downscaledHeight16x / CODECHAL_MACROBLOCK_HEIGHT;
         if (fieldPicture)
         {
             downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
         }
 
-        inputSurface = &trackedBuffer->sScaled4xSurface;
         inputFrameWidth = m_downscaledWidth4x;
         inputFrameHeight = m_downscaledHeight4x;
-        inputBottomFieldOffset = m_scaledBottomFieldOffset;
 
-        outputSurface = &trackedBuffer->sScaled16xSurface;
-        outputFrameWidth = m_downscaledWidth16x;
-        outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
-        outputBottomFieldOffset = m_scaled16xBottomFieldOffset;
         m_lastTaskInPhase = params->bLastTaskInPhase16xDS;
         m_currRefList->b16xScalingUsed = true;
     }
     else
     {
-        scaleFactor = SCALE_FACTOR_4x;
         downscaledWidthInMb = m_downscaledWidth4x / CODECHAL_MACROBLOCK_WIDTH;
         downscaledHeightInMb = m_downscaledHeight4x / CODECHAL_MACROBLOCK_HEIGHT;
         if (fieldPicture)
@@ -1759,15 +1612,9 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
             downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
         }
 
-        inputSurface = (params->bRawInputProvided) ? &params->sInputRawSurface : m_rawSurfaceToEnc;
-        inputFrameWidth = m_oriFrameWidth;
-        inputFrameHeight = m_oriFrameHeight;
-        inputBottomFieldOffset = 0;
+        inputFrameWidth = m_encoder->m_oriFrameWidth;
+        inputFrameHeight = m_encoder->m_oriFrameHeight;
 
-        outputSurface = &trackedBuffer->sScaled4xSurface;
-        outputFrameWidth = m_downscaledWidth4x;
-        outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
-        outputBottomFieldOffset = m_scaledBottomFieldOffset;
         m_lastTaskInPhase = params->bLastTaskInPhase4xDS;
         m_currRefList->b4xScalingUsed = true;
     }
@@ -1828,54 +1675,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
     // Add binding table
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->SetBindingTable(m_dsKernelState));
-
-    // setup surface states
-    m_surfaceParamsDS.bCurrPicIsFrame = !CodecHal_PictureIsField(originalPic);
-    m_surfaceParamsDS.psInputSurface = inputSurface;
-    m_surfaceParamsDS.dwInputFrameWidth = inputFrameWidth;
-    m_surfaceParamsDS.dwInputFrameHeight = inputFrameHeight;
-    m_surfaceParamsDS.psOutputSurface = outputSurface;
-    m_surfaceParamsDS.dwOutputFrameWidth = outputFrameWidth;
-    m_surfaceParamsDS.dwOutputFrameHeight = outputFrameHeight;
-    m_surfaceParamsDS.dwInputBottomFieldOffset = (uint32_t)inputBottomFieldOffset;
-    m_surfaceParamsDS.dwOutputBottomFieldOffset = (uint32_t)outputBottomFieldOffset;
-    m_surfaceParamsDS.bScalingOutUses16UnormSurfFmt = params->b32xScalingInUse;
-    m_surfaceParamsDS.bScalingOutUses32UnormSurfFmt = !params->b32xScalingInUse;
-
-    if (preEncParams)
-    {
-        m_surfaceParamsDS.bPreEncInUse = true;
-        if (params->bScalingforRef)
-        {
-            m_surfaceParamsDS.bMBVProcStatsEnabled = params->bStatsInputProvided;
-            m_surfaceParamsDS.presMBVProcStatsBuffer = (params->bStatsInputProvided) ? &(params->sInputStatsBuffer) : nullptr;
-            m_surfaceParamsDS.presMBVProcStatsBotFieldBuffer = (params->bStatsInputProvided) ? &(params->sInputStatsBotFieldBuffer) : nullptr;
-        }
-        else
-        {
-            m_surfaceParamsDS.bMBVProcStatsEnabled = !preEncParams->bDisableStatisticsOutput;
-            m_surfaceParamsDS.presMBVProcStatsBuffer = &(preEncParams->resStatsBuffer);
-            m_surfaceParamsDS.presMBVProcStatsBotFieldBuffer = &preEncParams->resStatsBotFieldBuffer;
-        }
-        m_surfaceParamsDS.dwMBVProcStatsBottomFieldOffset = m_mbVProcStatsBottomFieldOffset;
-    }
-    else if (m_mbStatsSupported)
-    {
-        //Currently Only Based on Flatness Check, later on Adaptive Transform Decision too
-        m_surfaceParamsDS.bMBVProcStatsEnabled = scaling4xInUse && (m_flatnessCheckEnabled || m_mbStatsEnabled);
-        m_surfaceParamsDS.presMBVProcStatsBuffer = &m_resMbStatsBuffer;
-        m_surfaceParamsDS.dwMBVProcStatsBottomFieldOffset = m_mbStatsBottomFieldOffset;
-
-        m_surfaceParamsDS.bFlatnessCheckEnabled = false; // Disabling flatness check as its encompassed in Mb stats
-    }
-    else
-    {
-        // Enable flatness check only for 4x scaling.
-        m_surfaceParamsDS.bFlatnessCheckEnabled = scaling4xInUse && m_flatnessCheckEnabled;
-        m_surfaceParamsDS.psFlatnessCheckSurface = &m_flatnessCheckSurface;
-        m_surfaceParamsDS.dwFlatnessCheckBottomFieldOffset = m_flatnessCheckBottomFieldOffset;
-    }
-
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfaceParamsDS(params));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendSurfaceDS(&cmdBuffer));
 
     // Add dump for scaling surface state heap here
@@ -1955,131 +1755,50 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     return eStatus;
 }
 
-CodechalEncodeCscDs::CodechalEncodeCscDs(PCODECHAL_ENCODER encoder)
-    : m_useRawForRef(encoder->bUseRawForRef),
-    m_waitForPak(encoder->bWaitForPAK),
-    m_useCommonKernel(encoder->bUseCommonKernel),
-    m_useHwScoreboard(encoder->bUseHwScoreboard),
-    m_renderContextUsesNullHw(encoder->bRenderContextUsesNullHw),
-    m_groupIdSelectSupported(encoder->bGroupIdSelectSupported),
-    m_16xMeSupported(encoder->b16xMeSupported),
-    m_32xMeSupported(encoder->b32xMeSupported),
-    m_scalingEnabled(encoder->bScalingEnabled),
-    m_2xScalingEnabled(encoder->b2xScalingEnabled),
-    m_firstField(encoder->bFirstField),
-    m_fieldScalingOutputInterleaved(encoder->bFieldScalingOutputInterleaved),
-    m_flatnessCheckEnabled(encoder->bFlatnessCheckEnabled),
-    m_mbStatsEnabled(encoder->bMbStatsEnabled),
-    m_mbStatsSupported(encoder->bMbStatsSupported),
-    m_singleTaskPhaseSupported(encoder->bSingleTaskPhaseSupported),
-    m_firstTaskInPhase(encoder->bFirstTaskInPhase),
-    m_lastTaskInPhase(encoder->bLastTaskInPhase),
-    m_groupId(encoder->ucGroupId),
-    m_currScalingIdx(encoder->ucCurrScalingIdx),
-    m_outputChromaFormat(encoder->outputChromaFormat),
-    m_pictureCodingType(encoder->wPictureCodingType),
-    m_standard(encoder->Standard),
-    m_mode(encoder->Mode),
-    m_oriFrameWidth(encoder->dwOriFrameWidth),
-    m_oriFrameHeight(encoder->dwOriFrameHeight),
-    m_frameWidth(encoder->dwFrameWidth),
-    m_frameHeight(encoder->dwFrameHeight),
-    m_downscaledWidth4x(encoder->dwDownscaledWidth4x),
-    m_downscaledHeight4x(encoder->dwDownscaledHeight4x),
-    m_downscaledWidth16x(encoder->dwDownscaledWidth16x),
-    m_downscaledHeight16x(encoder->dwDownscaledHeight16x),
-    m_downscaledWidth32x(encoder->dwDownscaledWidth32x),
-    m_downscaledHeight32x(encoder->dwDownscaledHeight32x),
-    m_scaledBottomFieldOffset(encoder->ulScaledBottomFieldOffset),
-    m_scaled16xBottomFieldOffset(encoder->ulScaled16xBottomFieldOffset),
-    m_scaled32xBottomFieldOffset(encoder->ulScaled32xBottomFieldOffset),
-    m_mbVProcStatsBottomFieldOffset(encoder->dwMBVProcStatsBottomFieldOffset),
-    m_mbStatsBottomFieldOffset(encoder->dwMbStatsBottomFieldOffset),
-    m_flatnessCheckBottomFieldOffset(encoder->ulFlatnessCheckBottomFieldOffset),
-    m_verticalLineStride(encoder->dwVerticalLineStride),
-    m_maxBtCount(encoder->dwMaxBtCount),
-    m_vmeStatesSize(encoder->dwVMEStatesSize),
-    m_storeData(encoder->dwStoreData),
-    m_renderContext(encoder->RenderContext),
-    m_walkerMode(encoder->WalkerMode),
-    m_currRefList(encoder->pCurrRefList),
-    m_flatnessCheckSurface(encoder->sFlatnessCheckSurface),
-    m_resMbStatsBuffer(encoder->resMbStatsBuffer),
-    m_rawSurfaceToEnc(encoder->psRawSurfaceToENC),
-    m_rawSurfaceToPak(encoder->psRawSurfaceToPAK),
-    m_trackedBuffer(encoder->trackedBuffer)
-{
-    // Initilize interface pointers
-    m_osInterface = encoder->pOsInterface;
-    m_hwInterface = encoder->pHwInterface;
-    m_debugInterface = encoder->pDebugInterface;
-    m_miInterface = m_hwInterface->GetMiInterface();
-    m_renderInterface = m_hwInterface->GetRenderInterface();
-    m_stateHeapInterface = m_renderInterface->m_stateHeapInterface->pStateHeapInterface;
-
-    m_dsBTCount[0] = ds4xNumSurfaces;
-    m_dsBTCount[1] = ds2xNumSurfaces;
-    m_dsCurbeLength[0] = sizeof(Ds4xKernelCurbeData);
-    m_dsCurbeLength[1] = sizeof(Ds2xKernelCurbeData);
-    m_dsInlineDataLength = sizeof(DsKernelInlineData);
-
-    // for Gen9+ the surface alignment is relaxed to 4x instead of 16x
-    encoder->dwRawSurfAlignment = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
-}
-
-CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState* encoder)
+CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
     : m_useRawForRef(encoder->m_useRawForRef),
-    m_waitForPak(encoder->m_waitForPak),
-    m_useCommonKernel(encoder->m_useCommonKernel),
-    m_useHwScoreboard(encoder->m_useHwScoreboard),
-    m_renderContextUsesNullHw(encoder->m_renderContextUsesNullHw),
-    m_groupIdSelectSupported(encoder->m_groupIdSelectSupported),
-    m_16xMeSupported(encoder->m_16xMeSupported),
-    m_32xMeSupported(encoder->m_32xMeSupported),
-    m_scalingEnabled(encoder->m_scalingEnabled),
-    m_2xScalingEnabled(encoder->m_2xScalingEnabled),
-    m_firstField(encoder->m_firstField),
-    m_fieldScalingOutputInterleaved(encoder->m_fieldScalingOutputInterleaved),
-    m_flatnessCheckEnabled(encoder->m_flatnessCheckEnabled),
-    m_mbStatsEnabled(encoder->m_mbStatsEnabled),
-    m_mbStatsSupported(encoder->m_mbStatsSupported),
-    m_singleTaskPhaseSupported(encoder->m_singleTaskPhaseSupported),
-    m_firstTaskInPhase(encoder->m_firstTaskInPhase),
-    m_lastTaskInPhase(encoder->m_lastTaskInPhase),
-    m_groupId(encoder->m_groupId),
-    m_currScalingIdx(encoder->m_currScalingIdx),
-    m_outputChromaFormat(encoder->m_outputChromaFormat),
-    m_pictureCodingType(encoder->m_pictureCodingType),
-    m_standard(encoder->m_standard),
-    m_mode(encoder->m_mode),
-    m_oriFrameWidth(encoder->m_oriFrameWidth),
-    m_oriFrameHeight(encoder->m_oriFrameHeight),
-    m_frameWidth(encoder->m_frameWidth),
-    m_frameHeight(encoder->m_frameHeight),
-    m_downscaledWidth4x(encoder->m_downscaledWidth4x),
-    m_downscaledHeight4x(encoder->m_downscaledHeight4x),
-    m_downscaledWidth16x(encoder->m_downscaledWidth16x),
-    m_downscaledHeight16x(encoder->m_downscaledHeight16x),
-    m_downscaledWidth32x(encoder->m_downscaledWidth32x),
-    m_downscaledHeight32x(encoder->m_downscaledHeight32x),
-    m_scaledBottomFieldOffset(encoder->m_scaledBottomFieldOffset),
-    m_scaled16xBottomFieldOffset(encoder->m_scaled16xBottomFieldOffset),
-    m_scaled32xBottomFieldOffset(encoder->m_scaled32xBottomFieldOffset),
-    m_mbVProcStatsBottomFieldOffset(encoder->dwMBVProcStatsBottomFieldOffset),
-    m_mbStatsBottomFieldOffset(encoder->m_mbStatsBottomFieldOffset),
-    m_flatnessCheckBottomFieldOffset(encoder->m_flatnessCheckBottomFieldOffset),
-    m_verticalLineStride(encoder->m_verticalLineStride),
-    m_maxBtCount(encoder->m_maxBtCount),
-    m_vmeStatesSize(encoder->m_vmeStatesSize),
-    m_storeData(encoder->m_storeData),
-    m_renderContext(encoder->m_renderContext),
-    m_walkerMode(encoder->m_walkerMode),
-    m_currRefList(encoder->m_currRefList),
-    m_flatnessCheckSurface(encoder->m_flatnessCheckSurface),
-    m_resMbStatsBuffer(encoder->m_resMbStatsBuffer),
-    m_rawSurfaceToEnc(encoder->m_rawSurfaceToEnc),
-    m_rawSurfaceToPak(encoder->m_rawSurfaceToPak),
-    m_trackedBuffer(encoder->m_trackedBuffer)
+      m_useCommonKernel(encoder->m_useCommonKernel),
+      m_useHwScoreboard(encoder->m_useHwScoreboard),
+      m_renderContextUsesNullHw(encoder->m_renderContextUsesNullHw),
+      m_groupIdSelectSupported(encoder->m_groupIdSelectSupported),
+      m_16xMeSupported(encoder->m_16xMeSupported),
+      m_32xMeSupported(encoder->m_32xMeSupported),
+      m_scalingEnabled(encoder->m_scalingEnabled),
+      m_2xScalingEnabled(encoder->m_2xScalingEnabled),
+      m_firstField(encoder->m_firstField),
+      m_fieldScalingOutputInterleaved(encoder->m_fieldScalingOutputInterleaved),
+      m_flatnessCheckEnabled(encoder->m_flatnessCheckEnabled),
+      m_mbStatsEnabled(encoder->m_mbStatsEnabled),
+      m_mbStatsSupported(encoder->m_mbStatsSupported),
+      m_singleTaskPhaseSupported(encoder->m_singleTaskPhaseSupported),
+      m_firstTaskInPhase(encoder->m_firstTaskInPhase),
+      m_lastTaskInPhase(encoder->m_lastTaskInPhase),
+      m_groupId(encoder->m_groupId),
+      m_outputChromaFormat(encoder->m_outputChromaFormat),
+      m_standard(encoder->m_standard),
+      m_mode(encoder->m_mode),
+      m_downscaledWidth4x(encoder->m_downscaledWidth4x),
+      m_downscaledHeight4x(encoder->m_downscaledHeight4x),
+      m_downscaledWidth16x(encoder->m_downscaledWidth16x),
+      m_downscaledHeight16x(encoder->m_downscaledHeight16x),
+      m_downscaledWidth32x(encoder->m_downscaledWidth32x),
+      m_downscaledHeight32x(encoder->m_downscaledHeight32x),
+      m_scaledBottomFieldOffset(encoder->m_scaledBottomFieldOffset),
+      m_scaled16xBottomFieldOffset(encoder->m_scaled16xBottomFieldOffset),
+      m_scaled32xBottomFieldOffset(encoder->m_scaled32xBottomFieldOffset),
+      m_mbVProcStatsBottomFieldOffset(encoder->m_mbvProcStatsBottomFieldOffset),
+      m_mbStatsBottomFieldOffset(encoder->m_mbStatsBottomFieldOffset),
+      m_flatnessCheckBottomFieldOffset(encoder->m_flatnessCheckBottomFieldOffset),
+      m_verticalLineStride(encoder->m_verticalLineStride),
+      m_maxBtCount(encoder->m_maxBtCount),
+      m_vmeStatesSize(encoder->m_vmeStatesSize),
+      m_storeData(encoder->m_storeData),
+      m_renderContext(encoder->m_renderContext),
+      m_walkerMode(encoder->m_walkerMode),
+      m_currRefList(encoder->m_currRefList),
+      m_resMbStatsBuffer(encoder->m_resMbStatsBuffer),
+      m_rawSurfaceToEnc(encoder->m_rawSurfaceToEnc),
+      m_rawSurfaceToPak(encoder->m_rawSurfaceToPak)
 {
     // Initilize interface pointers
     m_encoder = encoder;
@@ -2090,14 +1809,13 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState* encoder)
     m_renderInterface = m_hwInterface->GetRenderInterface();
     m_stateHeapInterface = m_renderInterface->m_stateHeapInterface->pStateHeapInterface;
 
+    m_cscFlag = m_cscDsConvEnable = 0;
+
     m_dsBTCount[0] = ds4xNumSurfaces;
     m_dsBTCount[1] = ds2xNumSurfaces;
     m_dsCurbeLength[0] = sizeof(Ds4xKernelCurbeData);
     m_dsCurbeLength[1] = sizeof(Ds2xKernelCurbeData);
     m_dsInlineDataLength = sizeof(DsKernelInlineData);
-
-    // for Gen9+ the surface alignment is relaxed to 4x instead of 16x
-    m_encoder->m_rawSurfAlignment = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
 }
 
 CodechalEncodeCscDs::~CodechalEncodeCscDs()
@@ -2105,16 +1823,9 @@ CodechalEncodeCscDs::~CodechalEncodeCscDs()
     MOS_Delete(m_cscKernelState);
     m_cscKernelState = nullptr;
 
-    // free Csc/Ds surface
-    for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {
-        ReleaseSurfaceCsc(i);
-        ReleaseSurfaceDS(i);
-    }
-
     if (m_sfcState)
     {
-        CodecHalEncodeSfc_Destroy(m_hwInterface, m_osInterface, m_sfcState);
+        MOS_Delete(m_sfcState);
         m_sfcState = nullptr;
     }
 }

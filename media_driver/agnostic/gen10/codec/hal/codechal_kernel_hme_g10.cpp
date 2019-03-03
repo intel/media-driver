@@ -44,7 +44,6 @@ CodechalKernelHmeG10::CodechalKernelHmeG10(
 {
 }
 
-
 MOS_STATUS CodechalKernelHmeG10::SetCurbe(MHW_KERNEL_STATE *kernelState)
 {
     CODECHAL_ENCODE_CHK_NULL_RETURN(kernelState);
@@ -168,7 +167,7 @@ MOS_STATUS CodechalKernelHmeG10::SetCurbe(MHW_KERNEL_STATE *kernelState)
     }
 
     uint8_t tableIndex = (m_pictureCodingType == B_TYPE) ? 1 : 0;
-    memcpy(&curbe.m_data.SpDelta, codechalEncodeSearchPath[tableIndex][methodIndex], 14 * sizeof(uint32_t));
+    MOS_SecureMemcpy(&curbe.m_data.SpDelta, 14 * sizeof(uint32_t), codechalEncodeSearchPath[tableIndex][methodIndex], 14 * sizeof(uint32_t));
 
     if (m_4xMeInUse && m_vdencEnabled &&
         (m_standard == CODECHAL_HEVC ||
@@ -230,7 +229,7 @@ MOS_STATUS CodechalKernelHmeG10::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNE
         surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE].Value;
         surfaceParams.bIsWritable           = true;
         surfaceParams.bRenderTarget         = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmd,
             &surfaceParams,

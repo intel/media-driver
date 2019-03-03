@@ -31,8 +31,7 @@
 
 class CMRTKernelDownScaling : public CMRTKernelBase
 {
-public: 
-    MOS_RESOURCE m_mosResourceWA;
+public:
     CMRTKernelDownScaling();
     ~CMRTKernelDownScaling();
     CM_RETURN_CODE SetupCurbe(void *curbe);
@@ -47,6 +46,4 @@ public:
 };
 
 #endif
-
-
 

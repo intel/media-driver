@@ -30,7 +30,8 @@
 CMRTKernelI8x8Mode::CMRTKernelI8x8Mode()
 {
 
-    m_isaName          = HEVC_I_ISA_FILE_NAME_G9;
+    m_isaName          = HEVCENCFEI_I_GEN9;
+    m_isaSize          = HEVCENCFEI_I_GEN9_SIZE;
     m_kernelName       = HEVCENCKERNELNAME_I_8x8MODE;
 
     m_cmSurface2DCount  = 7;
@@ -105,14 +106,14 @@ CM_RETURN_CODE CMRTKernelI8x8Mode::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
     CM_RETURN_CODE r = CM_SUCCESS;
     int32_t result;
     uint8_t i, idx = 0;
-    uint32_t width, height, width_padded, height_padded, threadSpaceWidth, threadSpaceHeight; 
+    uint32_t width, height, width_padded, height_padded, threadSpaceWidth, threadSpaceHeight;
     uint32_t *curbe=(uint32_t *)m_curbe;
 
     width = curbe[0] & 0x0FFFF;
     height = (curbe[0] >> 16) & 0x0FFFF;
     width_padded = ((width + 16) >> 5) << 5;
     height_padded = ((height + 16) >> 5) << 5;
-    
+
     if (*((uint32_t *)m_curbe + 1) & 0x40)
     {
         threadSpaceWidth = width_padded >> 5;
@@ -133,7 +134,7 @@ CM_RETURN_CODE CMRTKernelI8x8Mode::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
 
     CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(threadSpaceWidth * threadSpaceHeight));
     //create Thread Space
-    result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
+    result = CreateThreadSpace(threadSpaceWidth, threadSpaceHeight);
     if (result != CM_SUCCESS)
     {
         printf("CM Create ThreadSpace error : %d", result);
@@ -147,7 +148,7 @@ CM_RETURN_CODE CMRTKernelI8x8Mode::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
 CM_RETURN_CODE CMRTKernelI8x8ModeUMD::AllocateSurfaces(void *params)
 {
     IFrameKernelParams *I8x8ModeParams = (IFrameKernelParams *)params;
- 
+
     CM_BUFFER_STATE_PARAM bufParams;
     memset(&bufParams, 0, sizeof(CM_BUFFER_STATE_PARAM));
     bufParams.uiSize = I8x8ModeParams->m_bufSize;
@@ -173,12 +174,9 @@ CM_RETURN_CODE CMRTKernelI8x8ModeUMD::AllocateSurfaces(void *params)
     CM_CHK_STATUS_RETURN(m_cmSurface2D[2]->GetIndex(m_surfIndex[8]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I8x8ModeParams->m_cmBRCConstSurf, m_cmSurface2D[3]));
     CM_CHK_STATUS_RETURN(m_cmSurface2D[3]->GetIndex(m_surfIndex[9]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I8x8ModeParams->m_cmSurfHaarDist, m_cmSurface2D[4]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[4]->GetIndex(m_surfIndex[10]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I8x8ModeParams->m_cmSurfStats, m_cmSurface2D[5]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[5]->GetIndex(m_surfIndex[11]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)I8x8ModeParams->m_cmSurfFrameStats, m_cmBuffer[5]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[5]->GetIndex(m_surfIndex[12]));
+    m_surfIndex[10] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[11] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[12] = (SurfaceIndex *)CM_NULL_SURFACE;
     m_surfIndex[13] = (SurfaceIndex *)CM_NULL_SURFACE;
     m_surfIndex[14] = (SurfaceIndex *)CM_NULL_SURFACE;
 

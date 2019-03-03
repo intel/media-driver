@@ -32,17 +32,22 @@
 #include "codechal_encoder_base.h"
 
 //!
-//! Weighted prediction kernel base class
+//! \class    CodechalEncodeWP
+//! \brief    Weighted prediction kernel base class
 //! \details  Entry point to create weighted prediction class instance 
-//!          
-//! This class defines the base class for weighted prediction feature, it includes
-//! common member fields, functions, interfaces etc shared by all Gens.
+//! 
+//!         This class defines the base class for weighted prediction feature, it includes
+//!         common member fields, functions, interfaces etc shared by all Gens.
 //!
-//! To create an instance, client needs to call #CodechalEncodeWP::CreateWPState()
-//!  
+//!         To create an instance, client needs to call #CodechalEncodeWP::CreateWPState()
+//!
 class CodechalEncodeWP
 {
 public:
+    //!
+    //! \struct      SliceParams
+    //! \brief       Slice parameters
+    //!
     struct SliceParams
     {
         /*! \brief Specifies the weights and offsets used for explicit mode weighted prediction.
@@ -54,11 +59,12 @@ public:
         *        \n - m: the weight or offset used in the weighted prediction process (0 = weight, 1 = offset)
         */
         uint16_t        weights[2][32][3][2] = {};
-        uint8_t         luma_log2_weight_denom = 0; //!< Same as AVC syntax element.    
+        uint8_t         luma_log2_weight_denom = 0; //!< Same as AVC syntax element.
     };
 
     //!
-    //! \brief    Curbe params for WP kernel
+    //! \struct      CurbeParams
+    //! \brief     Curbe params for WP kernel
     //!
     struct CurbeParams
     {
@@ -68,7 +74,8 @@ public:
     };
 
     //!
-    //! \brief    Surface params for WP kernel
+    //! \struct      SurfaceParams
+    //! \brief       Surface params for WP kernel
     //!
     struct SurfaceParams
     {
@@ -79,9 +86,10 @@ public:
     };
 
     //!
-    //! \brief    Kernel params for WP kernel
+    //! \struct      KernelParams
+    //! \brief       Kernel params for WP kernel
     //!
-	struct KernelParams
+    struct KernelParams
     {
         bool                             useRefPicList1 = false;
         uint32_t                         wpIndex = 0;
@@ -93,7 +101,8 @@ public:
     };
 
     //!
-    //! \brief    Weighted prediction kernel binding table
+    //! \enum      KernelBTI
+    //! \brief     Weighted prediction kernel binding table
     //!
     enum KernelBTI
     {
@@ -102,8 +111,34 @@ public:
         wpNumSurfaces = 2,
     };
 
+    //!
+    //! \brief    Set kernel base
+    //!
+    //! \param    [in] kernelBase
+    //!           Kernel base
+    //!
     void SetKernelBase(uint8_t *kernelBase) { m_kernelBase = kernelBase; }
+
+    //!
+    //! \brief    Get WP output picture list
+    //!
+    //! \param    [in] index
+    //!           Index
+    //!
+    //! \return   PMOS_SURFACE
+    //!           Pointer to MOS surface
+    //!
     PMOS_SURFACE GetWPOutputPicList(uint8_t index) { return &m_surfaceParams.weightedPredOutputPicList[index]; }
+
+    //!
+    //! \brief    Copy constructor
+    //!
+    CodechalEncodeWP(const CodechalEncodeWP&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalEncodeWP& operator=(const CodechalEncodeWP&) = delete;
 
     //!
     //! \brief    Destructor
@@ -134,7 +169,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Execute(KernelParams *params);
+    virtual MOS_STATUS Execute(KernelParams *params);
 
     //!
     //! \brief    Allocate weighted prediction surface
@@ -895,9 +930,7 @@ protected:
 
     //!
     //! \brief    Constructor
-    //!            
-    CodechalEncodeWP(PCODECHAL_ENCODER encoder); // to remove after transition to encode base class
-
+    //!
     CodechalEncodeWP(CodechalEncoderState* encoder);
 
     CodechalEncoderState*       m_encoder = nullptr;                         //!< Pointer to ENCODER base class
@@ -918,7 +951,7 @@ protected:
 
     //!
     //! Reference to data members in Encoder class
-    //! 
+    //!
     bool&                       m_useHwScoreboard;
     bool&                       m_renderContextUsesNullHw;
     bool&                       m_groupIdSelectSupported;

@@ -20,495 +20,476 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_vebox.cpp  
-//! \brief     HAL CM Vebox functions  
+//! \file      cm_hal_vebox.cpp
+//! \brief     HAL CM Vebox functions
 //!
 
 #include "cm_hal.h"
 #include "cm_hal_vebox.h"
 
 //!
-//! \brief      build up vebox command sequence 
-//! \details     based on passed vebox param to build command sequence and 
-//!             put it into command buffer  
-//! \param       [in] pState --- CM_HAL_STATE
-//! \param       [in] pExecVeboxParam -- vebox setup params
+//! \brief      build up vebox command sequence
+//! \details     based on passed vebox param to build command sequence and
+//!             put it into command buffer
+//! \param       [in] state --- CM_HAL_STATE
+//! \param       [in] veboxTaskParam -- vebox setup params
 //!
 MOS_STATUS HalCm_ExecuteVeboxTask(
-	PCM_HAL_STATE                   pState,           // [in] Pointer to CM State
-	PCM_HAL_EXEC_VEBOX_TASK_PARAM   pExecVeboxParam)  // [in] Pointer to Vebox Task Param
+    PCM_HAL_STATE                   state,           // [in] Pointer to CM State
+    PCM_HAL_EXEC_VEBOX_TASK_PARAM   veboxTaskParam)  // [in] Pointer to Vebox Task Param
 {
-    CM_VEBOX_STATE                      CmVeboxState;
-    PMOS_INTERFACE                      pOsInterface;
-    MOS_COMMAND_BUFFER                  CmdBuffer;
-    MhwVeboxInterface                   *pVeboxInterface;
-    PMHW_VEBOX_HEAP                     pVeboxHeap;
+    CM_VEBOX_STATE                      cmVeboxState;
+    PMOS_INTERFACE                      osInterface;
+    MOS_COMMAND_BUFFER                  cmdBuffer;
+    MhwVeboxInterface                   *veboxInterface;
+    PMHW_VEBOX_HEAP                     veboxHeap;
     MHW_VEBOX_STATE_CMD_PARAMS          veboxStateCmdParams;
     MHW_VEBOX_SURFACE_STATE_CMD_PARAMS  veboxSurfaceStateCmdParams;
     MHW_VEBOX_DI_IECP_CMD_PARAMS        veboxDiIecpCmdParams;
     MHW_MI_FLUSH_DW_PARAMS              miFlushDwParams;
-    MOS_STATUS                          hr;
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
     uint32_t                            index;
-    int32_t                             iTaskId, i, iRemaining, iSyncOffset;
-    int64_t                             *pTaskSyncLocation;
-    RENDERHAL_GENERIC_PROLOG_PARAMS     genericPrologParams;
-    MOS_RESOURCE                        OsResource;
-    CM_VEBOX_SURFACE_DATA               CmVeboxSurfaceData;
-    PRENDERHAL_INTERFACE                pRenderHal = pState->pRenderHal;
+    int32_t                             taskId, i, remaining, syncOffset;
+    int64_t                             *taskSyncLocation;
+    uint32_t                            tag;
 
-	//-----------------------------------
-	CM_PUBLIC_ASSERT(pState);
-	CM_PUBLIC_ASSERT(pExecVeboxParam);
-	//-----------------------------------
+    RENDERHAL_GENERIC_PROLOG_PARAMS     genericPrologParams = {};
+    MOS_RESOURCE                        osResource;
+    CM_VEBOX_SURFACE_DATA               cmVeboxSurfaceData;
+    PRENDERHAL_INTERFACE                renderHal = state->renderHal;
 
-	hr = MOS_STATUS_SUCCESS;
+    //-----------------------------------
+    CM_CHK_NULL_RETURN_MOSERROR(state);
+    CM_CHK_NULL_RETURN_MOSERROR(state->osInterface);
+    CM_CHK_NULL_RETURN_MOSERROR(veboxTaskParam);
+    //-----------------------------------
 
-	// initialize
-	MOS_ZeroMemory(&CmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-	MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
+    // initialize
+    MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
-	pVeboxInterface = pState->pVeboxInterface;
-	pVeboxHeap = pVeboxInterface->m_veboxHeap;
-	pOsInterface = pState->pOsInterface;
-	iRemaining = 0;
+    veboxInterface = state->veboxInterface;
+    veboxHeap = veboxInterface->m_veboxHeap;
+    osInterface = state->osInterface;
+    remaining = 0;
 
-	// update Cm state settings
+    // update Cm state settings
 
-	pState->cmVeboxSettings.bCmDnDiFirstFrame = pExecVeboxParam->cmVeboxState.DNDIFirstFrame;
-	pState->cmVeboxSettings.bCmIECPEnable = pExecVeboxParam->cmVeboxState.GlobalIECPEnable;
-	pState->cmVeboxSettings.bCmDIEnable = pExecVeboxParam->cmVeboxState.DIEnable;
-	pState->cmVeboxSettings.bCmDNEnable = pExecVeboxParam->cmVeboxState.DNEnable;
-	pState->cmVeboxSettings.bDemosaicEnable = pExecVeboxParam->cmVeboxState.DemosaicEnable;
-	pState->cmVeboxSettings.bVignetteEnable = pExecVeboxParam->cmVeboxState.VignetteEnable;
-	pState->cmVeboxSettings.bHotPixelFilterEnable = pExecVeboxParam->cmVeboxState.HotPixelFilteringEnable;
-	pState->cmVeboxSettings.DIOutputFrames = pExecVeboxParam->cmVeboxState.DIOutputFrames;
+    state->cmVeboxSettings.dndiFirstFrame = veboxTaskParam->cmVeboxState.DNDIFirstFrame;
+    state->cmVeboxSettings.iecpEnabled = veboxTaskParam->cmVeboxState.GlobalIECPEnable;
+    state->cmVeboxSettings.diEnabled = veboxTaskParam->cmVeboxState.DIEnable;
+    state->cmVeboxSettings.dnEnabled = veboxTaskParam->cmVeboxState.DNEnable;
+    state->cmVeboxSettings.demosaicEnabled = veboxTaskParam->cmVeboxState.DemosaicEnable;
+    state->cmVeboxSettings.vignetteEnabled = veboxTaskParam->cmVeboxState.VignetteEnable;
+    state->cmVeboxSettings.hotPixelFilterEnabled = veboxTaskParam->cmVeboxState.HotPixelFilteringEnable;
+    state->cmVeboxSettings.diOutputFrames = veboxTaskParam->cmVeboxState.DIOutputFrames;
 
+    cmVeboxSurfaceData = veboxTaskParam->veboxSurfaceData;
+    // switch GPU context to VEBOX
+    osInterface->pfnSetGpuContext(osInterface, MOS_GPU_CONTEXT_VEBOX);
 
-	CmVeboxSurfaceData = pExecVeboxParam->CmVeboxSurfaceData;
-	// switch GPU context to VEBOX
-	pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
+    // reset states before execute
+    // (clear allocations, get GSH allocation index + any additional housekeeping)
+    osInterface->pfnResetOsStates(osInterface);
 
-	// reset states before execute 
-	// (clear allocations, get GSH allocation index + any additional housekeeping)
-	pOsInterface->pfnResetOsStates(pOsInterface);
+    // reset HW
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->renderHal->pfnReset(state->renderHal));
 
-	// reset HW
-	CM_CHK_MOSSTATUS(pState->pRenderHal->pfnReset(pState->pRenderHal));
+    // get the Task Id
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetNewTaskId(state, &taskId));
 
-	// get the Task Id
-	CM_CHK_MOSSTATUS(HalCm_GetNewTaskId(pState, &iTaskId));
+    // get the task sync offset
+    syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
 
-	// get the task sync offset
-	iSyncOffset = pState->pfnGetTaskSyncLocation(iTaskId);
+    // set Perf Tag
+    osInterface->pfnResetPerfBufferID(osInterface);
+    if (!(osInterface->pfnIsPerfTagSet(osInterface)))
+    {
+        osInterface->pfnSetPerfTag(osInterface, VPHAL_NONE);
+    }
 
-	// set Perf Tag
-	pOsInterface->pfnResetPerfBufferID(pOsInterface);
-	if (!(pOsInterface->pfnIsPerfTagSet(pOsInterface)))
-	{
-		pOsInterface->pfnSetPerfTag(pOsInterface, VPHAL_NONE);
-	}
+    // initialize the location
+    taskSyncLocation = (int64_t*)(state->veboxTimeStampResource.data + syncOffset);
+    *taskSyncLocation = CM_INVALID_INDEX;
+    *(taskSyncLocation + 1) = CM_INVALID_INDEX;
+    if (state->cbbEnabled)
+    {
+        *(taskSyncLocation + 2) = state->renderHal->veBoxTrackerRes.currentTrackerId;
+    }
 
-	// initialize the location
-	pTaskSyncLocation = (int64_t*)(pState->TsResource.pData + iSyncOffset);
-	*pTaskSyncLocation = CM_INVALID_INDEX;
-	*(pTaskSyncLocation + 1) = CM_INVALID_INDEX;
-	if (pState->bCBBEnabled)
-	{
-		*(pTaskSyncLocation + 2) = CM_INVALID_TAG;
-	}
+    // register Timestamp Buffer
+    CM_CHK_MOSSTATUS_GOTOFINISH(osInterface->pfnRegisterResource(
+        osInterface,
+        &state->veboxTimeStampResource.osResource,
+        true,
+        true));
 
-	// register Timestamp Buffer
-	CM_CHK_MOSSTATUS(pOsInterface->pfnRegisterResource(
-		pOsInterface,
-		&pState->TsResource.OsResource,
-		true,
-		true));
+    // get details of the surfaces on VPHAL Surface
+    for (index = 0; index < VEBOX_SURFACE_NUMBER; index++)
+    {
+        if (veboxTaskParam->veboxSurfaceData.surfaceEntry[index].surfaceIndex == 0xffff)
+        {
+            continue;
+        }
 
-	// get details of the surfaces on VPHAL Surface 
-	for (index = 0; index < VEBOX_SURFACE_NUMBER; index++)
-	{
-		if (pExecVeboxParam->CmVeboxSurfaceData.surfaceEntry[index].wSurfaceIndex == 0xffff)
-		{
-			continue;
-		}
+        CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurfaceAndRegister(
+            state,
+            &state->cmVeboxSurfaces[index],
+            CM_ARGUMENT_SURFACE2D,
+            veboxTaskParam->veboxSurfaceData.surfaceEntry[index].surfaceIndex,
+            0));
+        state->cmVeboxSurfaces[index].rcMaxSrc = state->cmVeboxSurfaces[index].rcSrc;
+    }
 
-		CM_CHK_MOSSTATUS(HalCm_GetSurfaceAndRegister(
-			pState,
-			&pState->cmVeboxSurfaces[index],
-			CM_ARGUMENT_SURFACE2D,
-			pExecVeboxParam->CmVeboxSurfaceData.surfaceEntry[index].wSurfaceIndex,
-			0));
-		pState->cmVeboxSurfaces[index].rcMaxSrc = pState->cmVeboxSurfaces[index].rcSrc;
-	}
+    //----------------------------------
+    // initialize STMM input surface
+    //----------------------------------
+    if ((veboxTaskParam->cmVeboxState.DNDIFirstFrame) && ((veboxTaskParam->cmVeboxState.DIEnable) || (veboxTaskParam->cmVeboxState.DNEnable)))
+    {
+        CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_VeboxInitSTMMHistory(
+            osInterface,
+            &state->cmVeboxSurfaces[VEBOX_STMM_INPUT_SURF]));
+    }
 
-	//----------------------------------
-	// initialize STMM input surface 
-	//----------------------------------
-	if ((pExecVeboxParam->cmVeboxState.DNDIFirstFrame) && ((pExecVeboxParam->cmVeboxState.DIEnable) || (pExecVeboxParam->cmVeboxState.DNEnable)))
-	{
-		CM_CHK_MOSSTATUS(HalCm_VeboxInitSTMMHistory(
-			pOsInterface,
-			&pState->cmVeboxSurfaces[VEBOX_STMM_INPUT_SURF]));
-	}
+    //----------------------------------
+    // Allocate and reset VEBOX state
+    //----------------------------------
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AssignVeboxState());
 
-	//----------------------------------
-	// Allocate and reset VEBOX state
-	//----------------------------------
-	CM_CHK_MOSSTATUS(pVeboxInterface->AssignVeboxState());
+    //----------------------------------
+    // set vebox state heap and vebox cmd parameters
+    //----------------------------------
+    MOS_ZeroMemory(&veboxStateCmdParams, sizeof(MHW_VEBOX_STATE_CMD_PARAMS));
 
-	//----------------------------------
-	// set vebox state heap and vebox cmd parameters
-	//----------------------------------
-	MOS_ZeroMemory(&veboxStateCmdParams, sizeof(MHW_VEBOX_STATE_CMD_PARAMS));
+    //set vebox param buffer
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurfaceAndRegister(
+        state,
+        &state->cmVebeboxParamSurf,
+        CM_ARGUMENT_SURFACEBUFFER,
+        veboxTaskParam->veboxParamIndex,
+        0));
 
-	//set vebox param buffer 
-	CM_CHK_MOSSTATUS(HalCm_GetSurfaceAndRegister(
-		pState,
-		&pState->cmVebeboxParamSurf,
-		CM_ARGUMENT_SURFACEBUFFER,
-		pExecVeboxParam->veboxParamIndex,
-		0));
+    veboxStateCmdParams.VeboxMode.AlphaPlaneEnable = veboxTaskParam->cmVeboxState.AlphaPlaneEnable;
+    veboxStateCmdParams.VeboxMode.ColorGamutCompressionEnable = veboxTaskParam->cmVeboxState.ColorGamutCompressionEnable;
+    veboxStateCmdParams.VeboxMode.ColorGamutExpansionEnable = veboxTaskParam->cmVeboxState.ColorGamutExpansionEnable;
+    veboxStateCmdParams.VeboxMode.DemosaicEnable = veboxTaskParam->cmVeboxState.DemosaicEnable;
+    veboxStateCmdParams.VeboxMode.DIEnable = veboxTaskParam->cmVeboxState.DIEnable;
+    veboxStateCmdParams.VeboxMode.DIOutputFrames = veboxTaskParam->cmVeboxState.DIOutputFrames;
+    veboxStateCmdParams.VeboxMode.DisableEncoderStatistics = veboxTaskParam->cmVeboxState.DisableEncoderStatistics;
+    veboxStateCmdParams.VeboxMode.DisableTemporalDenoiseFilter = veboxTaskParam->cmVeboxState.DisableTemporalDenoiseFilter;
+    veboxStateCmdParams.VeboxMode.DNDIFirstFrame = veboxTaskParam->cmVeboxState.DNDIFirstFrame;
+    veboxStateCmdParams.VeboxMode.DNEnable = veboxTaskParam->cmVeboxState.DNEnable;
+    veboxStateCmdParams.VeboxMode.ForwardGammaCorrectionEnable = veboxTaskParam->cmVeboxState.ForwardGammaCorrectionEnable;
+    veboxStateCmdParams.VeboxMode.GlobalIECPEnable = veboxTaskParam->cmVeboxState.GlobalIECPEnable;
+    veboxStateCmdParams.VeboxMode.HotPixelFilteringEnable = veboxTaskParam->cmVeboxState.HotPixelFilteringEnable;
+    veboxStateCmdParams.VeboxMode.SingleSliceVeboxEnable = veboxTaskParam->cmVeboxState.SingleSliceVeboxEnable;
+    veboxStateCmdParams.VeboxMode.VignetteEnable = veboxTaskParam->cmVeboxState.VignetteEnable;
+    veboxStateCmdParams.pVeboxParamSurf = (PMOS_RESOURCE)&((state->cmVebeboxParamSurf).OsSurface);
+    //----------------------------------
+    // get vebox command buffer
+    //----------------------------------
+    CM_CHK_MOSSTATUS_GOTOFINISH(osInterface->pfnGetCommandBuffer(osInterface, &cmdBuffer, 0));
+    remaining = cmdBuffer.iRemaining;
 
+    //---------------------------------
+    // Get the OS resource
+    //---------------------------------
+    osResource = state->renderHal->veBoxTrackerRes.osResource;
+    tag = state->renderHal->veBoxTrackerRes.currentTrackerId;
+    state->renderHal->pfnSetupPrologParams(state->renderHal, &genericPrologParams, &osResource, tag);
 
-	veboxStateCmdParams.VeboxMode.AlphaPlaneEnable = pExecVeboxParam->cmVeboxState.AlphaPlaneEnable;
-	veboxStateCmdParams.VeboxMode.ColorGamutCompressionEnable = pExecVeboxParam->cmVeboxState.ColorGamutCompressionEnable;
-	veboxStateCmdParams.VeboxMode.ColorGamutExpansionEnable = pExecVeboxParam->cmVeboxState.ColorGamutExpansionEnable;
-	veboxStateCmdParams.VeboxMode.DemosaicEnable = pExecVeboxParam->cmVeboxState.DemosaicEnable;
-	veboxStateCmdParams.VeboxMode.DIEnable = pExecVeboxParam->cmVeboxState.DIEnable;
-	veboxStateCmdParams.VeboxMode.DIOutputFrames = pExecVeboxParam->cmVeboxState.DIOutputFrames;
-	veboxStateCmdParams.VeboxMode.DisableEncoderStatistics = pExecVeboxParam->cmVeboxState.DisableEncoderStatistics;
-	veboxStateCmdParams.VeboxMode.DisableTemporalDenoiseFilter = pExecVeboxParam->cmVeboxState.DisableTemporalDenoiseFilter;
-	veboxStateCmdParams.VeboxMode.DNDIFirstFrame = pExecVeboxParam->cmVeboxState.DNDIFirstFrame;
-	veboxStateCmdParams.VeboxMode.DNEnable = pExecVeboxParam->cmVeboxState.DNEnable;
-	veboxStateCmdParams.VeboxMode.ForwardGammaCorrectionEnable = pExecVeboxParam->cmVeboxState.ForwardGammaCorrectionEnable;
-	veboxStateCmdParams.VeboxMode.GlobalIECPEnable = pExecVeboxParam->cmVeboxState.GlobalIECPEnable;
-	veboxStateCmdParams.VeboxMode.HotPixelFilteringEnable = pExecVeboxParam->cmVeboxState.HotPixelFilteringEnable;
-	veboxStateCmdParams.VeboxMode.SingleSliceVeboxEnable = pExecVeboxParam->cmVeboxState.SingleSliceVeboxEnable;
-	veboxStateCmdParams.VeboxMode.VignetteEnable = pExecVeboxParam->cmVeboxState.VignetteEnable;
-	veboxStateCmdParams.pVeboxParamSurf = (PMOS_RESOURCE)&((pState->cmVebeboxParamSurf).OsSurface);
-	//----------------------------------
-	// get vebox command buffer
-	//----------------------------------
-	CM_CHK_MOSSTATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
-	iRemaining = CmdBuffer.iRemaining;
+    //---------------------------------
+    // send command buffer header at the beginning (OS dependent)
+    //---------------------------------
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->renderHal->pfnInitCommandBuffer(
+        state->renderHal,
+        &cmdBuffer,
+        &genericPrologParams));
 
-	//---------------------------------
-	// Get the OS resource
-	//---------------------------------
-	pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &OsResource);
-
-	//---------------------------------
-	// register the buffer
-	//---------------------------------
-	pOsInterface->pfnRegisterResource(pOsInterface, &OsResource, true, true);
-
-	genericPrologParams.presMediaFrameTrackingSurface = &OsResource;
-	genericPrologParams.dwMediaFrameTrackingAddrOffset = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
-	genericPrologParams.dwMediaFrameTrackingTag = pOsInterface->pfnGetGpuStatusTag(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
-	genericPrologParams.bEnableMediaFrameTracking = true;
-
-	//---------------------------------
-	// send command buffer header at the beginning (OS dependent)
-	//---------------------------------
-	CM_CHK_MOSSTATUS(pState->pRenderHal->pfnInitCommandBuffer(
-		pState->pRenderHal,
-		&CmdBuffer,
-		&genericPrologParams));
-
-	//---------------------------------
-	// the beginning of execution
-	// issue MI_FLUSH_DW cmd to write timestamp
-	//---------------------------------
-	MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
-	miFlushDwParams.pOsResource          = &pState->TsResource.OsResource;
-    miFlushDwParams.dwResourceOffset     = iSyncOffset;
+    //---------------------------------
+    // the beginning of execution
+    // issue MI_FLUSH_DW cmd to write timestamp
+    //---------------------------------
+    MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
+    miFlushDwParams.pOsResource          = &state->veboxTimeStampResource.osResource;
+    miFlushDwParams.dwResourceOffset     = syncOffset;
     miFlushDwParams.postSyncOperation    = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable         = 1;
 
-	CM_CHK_MOSSTATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(
-		&CmdBuffer,
-		&miFlushDwParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
+        &cmdBuffer,
+        &miFlushDwParams));
 
-	//---------------------------------
-	// issue MI_FLUSH_DW cmd to write GPU status tag to CM resource
-	//---------------------------------
-	CM_CHK_MOSSTATUS(pState->pfnWriteGPUStatusTagToCMTSResource(pState, &CmdBuffer, iTaskId, true));
+    //---------------------------------
+    // update tracker tag
+    //---------------------------------
+    state->renderHal->pfnIncTrackerId(state->renderHal);
 
-	//---------------------------------
-	// update GPU sync tag
-	//---------------------------------
-	pOsInterface->pfnIncrementGpuStatusTag(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
+    //---------------------------------
+    // send vebox state commands
+    //---------------------------------
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AddVeboxState(
+        &cmdBuffer,
+        &veboxStateCmdParams, 1));
 
-	//---------------------------------
-	// send vebox state commands
-	//---------------------------------
-	CM_CHK_MOSSTATUS(pVeboxInterface->AddVeboxState(
-		&CmdBuffer,
-		&veboxStateCmdParams, 1));
+    //---------------------------------
+    // send Vebox_Surface_State cmd
+    //---------------------------------
+    MOS_ZeroMemory(&veboxSurfaceStateCmdParams, sizeof(MHW_VEBOX_SURFACE_STATE_CMD_PARAMS));
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_SetVeboxSurfaceStateCmdParams(state, &veboxSurfaceStateCmdParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AddVeboxSurfaces(
+        &cmdBuffer,
+        &veboxSurfaceStateCmdParams));
+    //---------------------------------
+    // send Vebox_DI_IECP cmd
+    //---------------------------------
+    MOS_ZeroMemory(&veboxDiIecpCmdParams, sizeof(MHW_VEBOX_DI_IECP_CMD_PARAMS));
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_SetVeboxDiIecpCmdParams(state, &veboxDiIecpCmdParams, (PCM_VEBOX_SURFACE_DATA)&cmVeboxSurfaceData));
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AddVeboxDiIecp(
+        &cmdBuffer,
+        &veboxDiIecpCmdParams));
 
-	//---------------------------------
-	// send Vebox_Surface_State cmd
-	//---------------------------------
-	MOS_ZeroMemory(&veboxSurfaceStateCmdParams, sizeof(MHW_VEBOX_SURFACE_STATE_CMD_PARAMS));
-	CM_CHK_MOSSTATUS(HalCm_SetVeboxSurfaceStateCmdParams(pState, &veboxSurfaceStateCmdParams));
-	CM_CHK_MOSSTATUS(pVeboxInterface->AddVeboxSurfaces(
-		&CmdBuffer,
-		&veboxSurfaceStateCmdParams));
-	//---------------------------------
-	// send Vebox_DI_IECP cmd
-	//---------------------------------
-	MOS_ZeroMemory(&veboxDiIecpCmdParams, sizeof(MHW_VEBOX_DI_IECP_CMD_PARAMS));
-	CM_CHK_MOSSTATUS(HalCm_SetVeboxDiIecpCmdParams(pState, &veboxDiIecpCmdParams, (PCM_VEBOX_SURFACE_DATA)&CmVeboxSurfaceData));
-	CM_CHK_MOSSTATUS(pVeboxInterface->AddVeboxDiIecp(
-		&CmdBuffer,
-		&veboxDiIecpCmdParams));
-
-
-	//---------------------------------
-	// issue MI_FLUSH_DW cmd to write timestamp, end of execution
-	//---------------------------------
-	MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
-    miFlushDwParams.pOsResource        = &pState->TsResource.OsResource;
-    miFlushDwParams.dwResourceOffset   = iSyncOffset + sizeof(uint64_t);
+    //---------------------------------
+    // issue MI_FLUSH_DW cmd to write timestamp, end of execution
+    //---------------------------------
+    MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
+    miFlushDwParams.pOsResource        = &state->veboxTimeStampResource.osResource;
+    miFlushDwParams.dwResourceOffset   = syncOffset + sizeof(uint64_t);
     miFlushDwParams.postSyncOperation  = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable       = 1;
 
-    CM_CHK_MOSSTATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(
-        &CmdBuffer,
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
+        &cmdBuffer,
         &miFlushDwParams));
-	
-	//---------------------------------
-	// Write Sync tag for Vebox Heap Synchronization
-	//---------------------------------
-	MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
-    miFlushDwParams.pOsResource       = &pVeboxHeap->DriverResource;
-    miFlushDwParams.dwResourceOffset  = pVeboxHeap->uiOffsetSync;
-    miFlushDwParams.dwDataDW1         = pVeboxHeap->dwNextTag;
+
+    //---------------------------------
+    // Write Sync tag for Vebox Heap Synchronization
+    //---------------------------------
+    MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
+    miFlushDwParams.pOsResource       = &veboxHeap->DriverResource;
+    miFlushDwParams.dwResourceOffset  = veboxHeap->uiOffsetSync;
+    miFlushDwParams.dwDataDW1         = veboxHeap->dwNextTag;
     miFlushDwParams.bQWordEnable      = 1;
-    CM_CHK_MOSSTATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(
-        &CmdBuffer,
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
+        &cmdBuffer,
         &miFlushDwParams));
 
-	//---------------------------------
-	// Make sure copy kernel and update kernels are finished before submitting
-	// VEBOX commands
-	//---------------------------------
-	pOsInterface->pfnSyncGpuContext(
-		pOsInterface,
-		MOS_GPU_CONTEXT_RENDER3,
-		MOS_GPU_CONTEXT_VEBOX);
+    // Update tracker resource
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &cmdBuffer, tag));
 
-    pOsInterface->pfnResetPerfBufferID(pOsInterface);
-    if (!(pOsInterface->pfnIsPerfTagSet(pOsInterface)))
+    //---------------------------------
+    // Make sure copy kernel and update kernels are finished before submitting
+    // VEBOX commands
+    //---------------------------------
+    osInterface->pfnSyncGpuContext(
+        osInterface,
+        (MOS_GPU_CONTEXT)veboxTaskParam->queueOption.GPUContext,
+        MOS_GPU_CONTEXT_VEBOX);
+
+    osInterface->pfnResetPerfBufferID(osInterface);
+    if (!(osInterface->pfnIsPerfTagSet(osInterface)))
     {
-        pOsInterface->pfnIncPerfFrameID(pOsInterface);
-        pOsInterface->pfnSetPerfTag(pOsInterface, VEBOX_TASK_PERFTAG_INDEX);
+        osInterface->pfnIncPerfFrameID(osInterface);
+        osInterface->pfnSetPerfTag(osInterface, VEBOX_TASK_PERFTAG_INDEX);
     }
 
     // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
-    MHW_PIPE_CONTROL_PARAMS PipeControlParams;
+    MHW_PIPE_CONTROL_PARAMS pipeControlParams;
 
-    MOS_ZeroMemory(&PipeControlParams, sizeof(PipeControlParams));
-    PipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-    PipeControlParams.bGenericMediaStateClear = true;
-    PipeControlParams.bIndirectStatePointersDisable = true;
-    PipeControlParams.bDisableCSStall = false;
-    CM_CHK_MOSSTATUS(pRenderHal->pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeControlParams));
+    MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+    pipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
+    pipeControlParams.bGenericMediaStateClear = true;
+    pipeControlParams.bIndirectStatePointersDisable = true;
+    pipeControlParams.bDisableCSStall = false;
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
 
-    if (MEDIA_IS_WA(pRenderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
+    if (MEDIA_IS_WA(renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
     {
-        MHW_VFE_PARAMS VfeStateParams;
-
-        MOS_ZeroMemory(&VfeStateParams, sizeof(VfeStateParams));
-        VfeStateParams.dwNumberofURBEntries = 1;
-        CM_CHK_MOSSTATUS(pRenderHal->pMhwRenderInterface->AddMediaVfeCmd(&CmdBuffer, &VfeStateParams));
+        MHW_VFE_PARAMS vfeStateParams = {};
+        vfeStateParams.dwNumberofURBEntries = 1;
+        CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwRenderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
     }
 
-	//Couple to the BB_START , otherwise GPU Hang without it in KMD.
-	CM_CHK_MOSSTATUS(pRenderHal->pMhwMiInterface->AddMiBatchBufferEnd(&CmdBuffer, nullptr));
+    //Couple to the BB_START , otherwise GPU Hang without it in KMD.
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
-	//---------------------------------
-	// Return unused command buffer space to OS
-	//---------------------------------
-	pOsInterface->pfnReturnCommandBuffer(
-		pOsInterface,
-		&CmdBuffer, 0);
+    //---------------------------------
+    // Return unused command buffer space to OS
+    //---------------------------------
+    osInterface->pfnReturnCommandBuffer(
+        osInterface,
+        &cmdBuffer, 0);
 
-	//---------------------------------
-	// submit the command buffer
-	//---------------------------------
-	CM_CHK_MOSSTATUS(pOsInterface->pfnSubmitCommandBuffer(
-		pOsInterface,
-		&CmdBuffer,
-		pState->bNullHwRenderCm));
+    //---------------------------------
+    // submit the command buffer
+    //---------------------------------
+    CM_CHK_MOSSTATUS_GOTOFINISH(osInterface->pfnSubmitCommandBuffer(
+        osInterface,
+        &cmdBuffer,
+        state->nullHwRenderCm));
 
-	// Set the Task ID
-	pExecVeboxParam->iTaskIdOut = iTaskId;
+    // Set the Task ID
+    veboxTaskParam->taskIdOut = taskId;
 
-	// pass back the Command Buffer
-	pState->pfnReferenceCommandBuffer(&CmdBuffer.OsResource, &pExecVeboxParam->OsData);
+    // pass back the Command Buffer
+    state->pfnReferenceCommandBuffer(&cmdBuffer.OsResource, &veboxTaskParam->osData);
 
-	// Update the task ID table
-	pState->pTaskStatusTable[iTaskId] = (char)iTaskId;
+    // Update the task ID table
+    state->taskStatusTable[taskId] = (char)taskId;
 
-	if (!(pState->bNullHwRenderCm))
-	{
-		// Update Vebox Sync tag info
-		pVeboxHeap->pStates[pVeboxHeap->uiCurState].dwSyncTag = pVeboxHeap->dwNextTag++;
-		pVeboxHeap->pStates[pVeboxHeap->uiCurState].bBusy = true;
-	}
+    if (!(state->nullHwRenderCm))
+    {
+        // Update Vebox Sync tag info
+        veboxHeap->pStates[veboxHeap->uiCurState].dwSyncTag = veboxHeap->dwNextTag++;
+        veboxHeap->pStates[veboxHeap->uiCurState].bBusy = true;
+    }
 
-	hr = MOS_STATUS_SUCCESS;
+    eStatus = MOS_STATUS_SUCCESS;
 
 finish:
 
-	// Failed -> discard all changes in Command Buffer
-	if (hr != MOS_STATUS_SUCCESS)
-	{
-		// Buffer overflow - display overflow size
-		if (CmdBuffer.iRemaining < 0)
-		{
-			CM_PUBLIC_ASSERTMESSAGE("Command Buffer overflow by %d bytes", CmdBuffer.iRemaining);
-		}
+    // Failed -> discard all changes in Command Buffer
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        // Buffer overflow - display overflow size
+        if (cmdBuffer.iRemaining < 0)
+        {
+            CM_ASSERTMESSAGE("Command Buffer overflow by %d bytes", cmdBuffer.iRemaining);
+        }
 
-		// Move command buffer back to beginning
-		i = iRemaining - CmdBuffer.iRemaining;
-		CmdBuffer.iRemaining = iRemaining;
-		CmdBuffer.iOffset -= i;
-		CmdBuffer.pCmdPtr = CmdBuffer.pCmdBase + CmdBuffer.iOffset / sizeof(uint32_t);
+        // Move command buffer back to beginning
+        i = remaining - cmdBuffer.iRemaining;
+        cmdBuffer.iRemaining = remaining;
+        cmdBuffer.iOffset -= i;
+        cmdBuffer.pCmdPtr = cmdBuffer.pCmdBase + cmdBuffer.iOffset / sizeof(uint32_t);
 
-		// Return unused command buffer space to OS
-		pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
-	}
+        // Return unused command buffer space to OS
+        osInterface->pfnReturnCommandBuffer(osInterface, &cmdBuffer, 0);
+    }
 
-	return hr;
+    return eStatus;
 }
-
 
 //!
 //! \brief      Set up vebox surface Param
 //! \details    set up vebox surface state based on parameter based from application
 //!
-//! \param     [in]pState  -- CM_HAL_STATE
-//! \param     [in]pVeboxSurfaceStateCmdParams  -- surface state param struct
+//! \param     [in]state  -- CM_HAL_STATE
+//! \param     [in]veboxSurfaceStateCmdParams  -- surface state param struct
 //!
 MOS_STATUS HalCm_SetVeboxSurfaceStateCmdParams(
-	PCM_HAL_STATE                           pState,
-	PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
+    PCM_HAL_STATE                           state,
+    PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS   veboxSurfaceStateCmdParams)
 {
-	if ((pState->cmVeboxSettings.bCmIECPEnable) && !((pState->cmVeboxSettings.bCmDIEnable) || (pState->cmVeboxSettings.bCmDNEnable)))
-	{
-		// IECP only
-		HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&pState->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &pVeboxSurfaceStateCmdParams->SurfInput);
-		HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&pState->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_OUTPUT_SURF], &pVeboxSurfaceStateCmdParams->SurfOutput);
-		pVeboxSurfaceStateCmdParams->bDIEnable = false;
-		pVeboxSurfaceStateCmdParams->bOutputValid = true;
-	}
-	else
-	{
-		// DN only, will add other support later
+    if ((state->cmVeboxSettings.iecpEnabled) && !((state->cmVeboxSettings.diEnabled) || (state->cmVeboxSettings.dnEnabled)))
+    {
+        // IECP only
+        HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &veboxSurfaceStateCmdParams->SurfInput);
+        HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_OUTPUT_SURF], &veboxSurfaceStateCmdParams->SurfOutput);
+        veboxSurfaceStateCmdParams->bDIEnable = false;
+        veboxSurfaceStateCmdParams->bOutputValid = true;
+    }
+    else
+    {
+        // DN only, will add other support later
 
-		HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&pState->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &pVeboxSurfaceStateCmdParams->SurfInput);
-		HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&pState->cmVeboxSurfaces[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF], &pVeboxSurfaceStateCmdParams->SurfOutput);
-		HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&pState->cmVeboxSurfaces[VEBOX_STMM_INPUT_SURF], &pVeboxSurfaceStateCmdParams->SurfSTMM);
-		HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&pState->cmVeboxSurfaces[VEBOX_STMM_OUTPUT_SURF], &pVeboxSurfaceStateCmdParams->SurfDNOutput);
+        HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &veboxSurfaceStateCmdParams->SurfInput);
+        HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF], &veboxSurfaceStateCmdParams->SurfOutput);
+        HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_STMM_INPUT_SURF], &veboxSurfaceStateCmdParams->SurfSTMM);
+        HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_STMM_OUTPUT_SURF], &veboxSurfaceStateCmdParams->SurfDNOutput);
 
-		pVeboxSurfaceStateCmdParams->bDIEnable = false;
-		pVeboxSurfaceStateCmdParams->bOutputValid = true;
-	}
+        veboxSurfaceStateCmdParams->bDIEnable = false;
+        veboxSurfaceStateCmdParams->bOutputValid = true;
+    }
 
-	return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 }
-
 
 //!
 //! \brief    set vebox DiIecp Command
 //! \details  build up command to start processing the frames specified by
 //!           VEB_SURFACE_STATE using the parameters specified by VEB_DI_STATE
 //!           and VEB_IECP_STATE.
-//!  \param   [in] pState -- HAL_CM_STATE
-//!  \param   [in] pVeboxDiIecpCmdParams  -- DIECP command parameter
-//!  \param   [in] pCmVeboxSurfaceDataInput  -- surface data such as index and control bits
+//!  \param   [in] state -- HAL_CM_STATE
+//!  \param   [in] veboxDiIecpCmdParams  -- DIECP command parameter
+//!  \param   [in] cmVeboxSurfaceDataInput  -- surface data such as index and control bits
 //!
 MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
-	PCM_HAL_STATE                   pState,
-	PMHW_VEBOX_DI_IECP_CMD_PARAMS   pVeboxDiIecpCmdParams,
-	PCM_VEBOX_SURFACE_DATA       pCmVeboxSurfaceDataInput)
+    PCM_HAL_STATE                   state,
+    PMHW_VEBOX_DI_IECP_CMD_PARAMS   veboxDiIecpCmdParams,
+    PCM_VEBOX_SURFACE_DATA       cmVeboxSurfaceDataInput)
 {
-	uint32_t                 dwWidth;
-    uint32_t                 dwHeight;
-	bool                     bDIEnable;
-	MHW_VEBOX_SURFACE_PARAMS SurfInput;
+    uint32_t                 width;
+    uint32_t                 height;
+    bool                     dienable;
+    MHW_VEBOX_SURFACE_PARAMS surfInput;
 
-	// DN only, will add other support later
-	bDIEnable = false;
+    // DN only, will add other support later
+    dienable = false;
 
-	// Align dwEndingX with surface state
-	HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&pState->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &SurfInput);
-	pState->pVeboxInterface->VeboxAdjustBoundary(
-		&SurfInput,
-		&dwWidth, 
-        &dwHeight,
-		bDIEnable);
+    // Align dwEndingX with surface state
+    HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &surfInput);
+    state->veboxInterface->VeboxAdjustBoundary(
+        &surfInput,
+        &width,
+        &height,
+        dienable);
 
-	pVeboxDiIecpCmdParams->dwStartingX = 0;
-	pVeboxDiIecpCmdParams->dwEndingX = dwWidth - 1;
+    veboxDiIecpCmdParams->dwStartingX = 0;
+    veboxDiIecpCmdParams->dwEndingX = width - 1;
 
-	if (!pState->cmVeboxSettings.bCmDnDiFirstFrame)
-	{
-		pVeboxDiIecpCmdParams->pOsResPrevInput = &pState->cmVeboxSurfaces[VEBOX_PREVIOUS_FRAME_INPUT_SURF].OsSurface.OsResource;
-		pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_PREVIOUS_FRAME_INPUT_SURF].wSurfaceCtrlBits;
-	}
+    if (!state->cmVeboxSettings.dndiFirstFrame)
+    {
+        veboxDiIecpCmdParams->pOsResPrevInput = &state->cmVeboxSurfaces[VEBOX_PREVIOUS_FRAME_INPUT_SURF].OsSurface.OsResource;
+        veboxDiIecpCmdParams->PrevInputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_PREVIOUS_FRAME_INPUT_SURF].surfaceCtrlBits;
+    }
 
-	pVeboxDiIecpCmdParams->pOsResCurrInput = &pState->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF].OsSurface.OsResource;
-	pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_CURRENT_FRAME_INPUT_SURF].wSurfaceCtrlBits;
+    veboxDiIecpCmdParams->pOsResCurrInput = &state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF].OsSurface.OsResource;
+    veboxDiIecpCmdParams->CurrInputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_CURRENT_FRAME_INPUT_SURF].surfaceCtrlBits;
 
+    if ((state->cmVeboxSettings.diEnabled) || (state->cmVeboxSettings.dnEnabled))
+    {
+        veboxDiIecpCmdParams->pOsResStmmInput = &state->cmVeboxSurfaces[VEBOX_STMM_INPUT_SURF].OsSurface.OsResource;
+        veboxDiIecpCmdParams->StmmInputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_STMM_INPUT_SURF].surfaceCtrlBits;
 
-	if ((pState->cmVeboxSettings.bCmDIEnable) || (pState->cmVeboxSettings.bCmDNEnable))
-	{
-		pVeboxDiIecpCmdParams->pOsResStmmInput = &pState->cmVeboxSurfaces[VEBOX_STMM_INPUT_SURF].OsSurface.OsResource;
-		pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_STMM_INPUT_SURF].wSurfaceCtrlBits;
+        veboxDiIecpCmdParams->pOsResStmmOutput = &state->cmVeboxSurfaces[VEBOX_STMM_OUTPUT_SURF].OsSurface.OsResource;
+        veboxDiIecpCmdParams->StmmOutputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_STMM_OUTPUT_SURF].surfaceCtrlBits;
+    }
 
-		pVeboxDiIecpCmdParams->pOsResStmmOutput = &pState->cmVeboxSurfaces[VEBOX_STMM_OUTPUT_SURF].OsSurface.OsResource;
-		pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_STMM_OUTPUT_SURF].wSurfaceCtrlBits;
-	}
+    if ((state->cmVeboxSettings.iecpEnabled) && !((state->cmVeboxSettings.diEnabled) || (state->cmVeboxSettings.dnEnabled)))
+    {
+        veboxDiIecpCmdParams->pOsResCurrOutput = &state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_OUTPUT_SURF].OsSurface.OsResource;
+        veboxDiIecpCmdParams->CurrOutputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_CURRENT_FRAME_OUTPUT_SURF].surfaceCtrlBits;
+        veboxDiIecpCmdParams->pOsResLaceOrAceOrRgbHistogram = &state->cmVeboxSurfaces[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF].OsSurface.OsResource;
+        veboxDiIecpCmdParams->LaceOrAceOrRgbHistogramSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF].surfaceCtrlBits;
+    }
 
-	if ((pState->cmVeboxSettings.bCmIECPEnable) && !((pState->cmVeboxSettings.bCmDIEnable) || (pState->cmVeboxSettings.bCmDNEnable)))
-	{
-		pVeboxDiIecpCmdParams->pOsResCurrOutput = &pState->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_OUTPUT_SURF].OsSurface.OsResource;
-		pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_CURRENT_FRAME_OUTPUT_SURF].wSurfaceCtrlBits;
-        pVeboxDiIecpCmdParams->pOsResLaceOrAceOrRgbHistogram = &pState->cmVeboxSurfaces[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF].OsSurface.OsResource;
-        pVeboxDiIecpCmdParams->LaceOrAceOrRgbHistogramSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF].wSurfaceCtrlBits;
-	}
+    if (state->cmVeboxSettings.dnEnabled)
+    {
+        veboxDiIecpCmdParams->pOsResDenoisedCurrOutput = &state->cmVeboxSurfaces[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF].OsSurface.OsResource;
+        veboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF].surfaceCtrlBits;
+    }
 
-	if (pState->cmVeboxSettings.bCmDNEnable)
-	{
-		pVeboxDiIecpCmdParams->pOsResDenoisedCurrOutput = &pState->cmVeboxSurfaces[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF].OsSurface.OsResource;
-		pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF].wSurfaceCtrlBits;
-	}
+    if (state->cmVeboxSettings.vignetteEnabled)
+    {
+        veboxDiIecpCmdParams->pOsResAlphaOrVignette = &state->cmVeboxSurfaces[VEBOX_ALPHA_VIGNETTE_CORRECTION_SURF].OsSurface.OsResource;
+        veboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF].surfaceCtrlBits;
+    }
 
-	if (pState->cmVeboxSettings.bVignetteEnable)
-	{
-		pVeboxDiIecpCmdParams->pOsResAlphaOrVignette = &pState->cmVeboxSurfaces[VEBOX_ALPHA_VIGNETTE_CORRECTION_SURF].OsSurface.OsResource;
-		pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF].wSurfaceCtrlBits;
-	}
+    veboxDiIecpCmdParams->pOsResStatisticsOutput = &state->cmVeboxSurfaces[VEBOX_STATISTICS_OUTPUT_SURF].OsSurface.OsResource;
+    veboxDiIecpCmdParams->StatisticsOutputSurfCtrl.Value = cmVeboxSurfaceDataInput->surfaceEntry[VEBOX_STATISTICS_OUTPUT_SURF].surfaceCtrlBits;
 
-	pVeboxDiIecpCmdParams->pOsResStatisticsOutput = &pState->cmVeboxSurfaces[VEBOX_STATISTICS_OUTPUT_SURF].OsSurface.OsResource;
-	pVeboxDiIecpCmdParams->StatisticsOutputSurfCtrl.Value = pCmVeboxSurfaceDataInput->surfaceEntry[VEBOX_STATISTICS_OUTPUT_SURF].wSurfaceCtrlBits;
-
-	return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 }
 
-
 //| Name   : HalCm_VeboxInitSTMMHistory()
-//| Purpose: Resets the portion of the Vebox STMM surface associated with 
+//| Purpose: Resets the portion of the Vebox STMM surface associated with
 //|              motion history for temporal filtering.
 //|
 //| Description:
 //|   This function is used by VEBox for initializing
-//|   the STMM surface.  The STMM / Denoise history is a custom surface used 
-//|   for both input and output. Each cache line contains data for 4 4x4s. 
-//|   The STMM for each 4x4 is 8 bytes, while the denoise history is 1 byte 
+//|   the STMM surface.  The STMM / Denoise history is a custom surface used
+//|   for both input and output. Each cache line contains data for 4 4x4s.
+//|   The STMM for each 4x4 is 8 bytes, while the denoise history is 1 byte
 //|   and the chroma denoise history is 1 byte for each U and V.
 //|   Byte    Data
 //|   0       STMM for 2 luma values at luma Y=0, X=0 to 1
@@ -537,50 +518,49 @@ MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
 //| Returns: MOS_STATUS_SUCCESS if success. Error code otherwise;
 //!
 MOS_STATUS HalCm_VeboxInitSTMMHistory(
-	PMOS_INTERFACE          pOsInterface,
-	PRENDERHAL_SURFACE      pRenderHalSTMMSurface)
+    PMOS_INTERFACE          osInterface,
+    PRENDERHAL_SURFACE      renderHalSTMMSurface)
 {
-	MOS_STATUS          hr;
-	uint32_t            dwSize;
-	int32_t             x, y;
-	uint8_t             *pByte;
-	MOS_LOCK_PARAMS     LockFlags;
+    MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
+    uint32_t            size;
+    int32_t             x, y;
+    uint8_t             *bytes;
+    MOS_LOCK_PARAMS     lockFlags;
 
-	hr = MOS_STATUS_SUCCESS;
-	PMOS_SURFACE pSTMMSurface = &pRenderHalSTMMSurface->OsSurface;
+    PMOS_SURFACE stmmSurface = &renderHalSTMMSurface->OsSurface;
 
-	MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
 
-	LockFlags.WriteOnly = 1;
+    lockFlags.WriteOnly = 1;
 
-	// Lock the surface for writing
-	pByte = (uint8_t*)pOsInterface->pfnLockResource(
-		pOsInterface,
-		&pSTMMSurface->OsResource,
-		&LockFlags);
+    // Lock the surface for writing
+    bytes = (uint8_t*)osInterface->pfnLockResource(
+        osInterface,
+        &stmmSurface->OsResource,
+        &lockFlags);
 
-	CM_CHK_NULL_RETURN_MOSSTATUS(pByte);
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(bytes);
 
-	dwSize = pSTMMSurface->dwWidth >> 2;
+    size = stmmSurface->dwWidth >> 2;
 
-	// Fill STMM surface with DN history init values.
-	for (y = 0; y < (int32_t)pSTMMSurface->dwHeight; y++)
-	{
-		for (x = 0; x < (int32_t)dwSize; x++)
-		{
-			MOS_FillMemory(pByte, 2, DNDI_HISTORY_INITVALUE);
-			// skip denoise history init.
-			pByte += 4;
-		}
+    // Fill STMM surface with DN history init values.
+    for (y = 0; y < (int32_t)stmmSurface->dwHeight; y++)
+    {
+        for (x = 0; x < (int32_t)size; x++)
+        {
+            MOS_FillMemory(bytes, 2, DNDI_HISTORY_INITVALUE);
+            // skip denoise history init.
+            bytes += 4;
+        }
 
-		pByte += pSTMMSurface->dwPitch - pSTMMSurface->dwWidth;
-	}
+        bytes += stmmSurface->dwPitch - stmmSurface->dwWidth;
+    }
 
-	// Unlock the surface
-	CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnUnlockResource(
-		pOsInterface,
-		&pSTMMSurface->OsResource));
+    // Unlock the surface
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnUnlockResource(
+        osInterface,
+        &stmmSurface->OsResource));
 
 finish:
-	return hr;
+    return eStatus;
 }

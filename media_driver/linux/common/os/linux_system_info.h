@@ -26,6 +26,13 @@
 #include <stdbool.h>
 #include "linux_shadow_skuwa.h"
 
+#ifndef ENABLE_KERNELS
+#define SET_STATUS_BY_FULL_OPEN_SOURCE(sts_not_full_open_source, sts_if_full_open_source)   0
+#elif defined(_FULL_OPEN_SOURCE)
+#define SET_STATUS_BY_FULL_OPEN_SOURCE(sts_not_full_open_source, sts_if_full_open_source)   (sts_if_full_open_source)
+#else
+#define SET_STATUS_BY_FULL_OPEN_SOURCE(sts_not_full_open_source, sts_if_full_open_source)   (sts_not_full_open_source)
+#endif
 
 struct LinuxDriverInfo
 {
@@ -60,11 +67,12 @@ struct LinuxCodecInfo
     uint32_t hevc10Decoding : 1;
     uint32_t vp9b10Decoding : 1;
     uint32_t hevc10Encoding : 1;
+    uint32_t hevc12Encoding : 1;
     uint32_t vp8Encoding   : 1;
     uint32_t hevcVdenc     : 1;
     uint32_t vp9Vdenc      : 1;
+    uint32_t advDecoding   : 1;
 };
-
 
 struct GfxDeviceInfo
 {

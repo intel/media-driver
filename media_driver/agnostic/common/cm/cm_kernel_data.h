@@ -20,12 +20,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_kernel_data.h  
-//! \brief     Contains Class CmKernelData definitions  
+//! \file      cm_kernel_data.h 
+//! \brief     Contains Class CmKernelData definitions 
 //!
-#pragma once
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELDATA_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELDATA_H_
 
 #include "cm_array.h"
+#include "cm_hal.h"
 
 namespace CMRT_UMD
 {
@@ -35,10 +38,10 @@ class CmKernelData : public CmDynamicArray
 {
 public:
 
-    static int32_t Create( CmKernelRT* pCmKernel, CmKernelData*& pKernelData );
-    static int32_t Destroy( CmKernelData* &pKernelData );
+    static int32_t Create( CmKernelRT* kernel, CmKernelData*& kernelData );
+    static int32_t Destroy( CmKernelData* &kernelData );
 
-    int32_t GetCmKernel( CmKernelRT*& pCmKernel );
+    int32_t GetCmKernel( CmKernelRT*& kernel );
     int32_t SetKernelDataSize(int32_t value);
     int32_t GetKernelDataSize();
     uint32_t Acquire(void);
@@ -51,22 +54,23 @@ public:
 
 protected:
 
-    CmKernelData( CmKernelRT* pCmKernel );
+    CmKernelData( CmKernelRT* kernel );
     ~CmKernelData( void );
 
     int32_t Initialize( void );
 
     uint32_t     m_kerneldatasize;
-    CmKernelRT*    m_pCmKernel;
-    uint32_t     m_RefCount;
-    CM_HAL_KERNEL_PARAM m_HalKernelParam;
-    
+    CmKernelRT*  m_kernel;
+    uint32_t     m_refCount;
+    CM_HAL_KERNEL_PARAM m_halKernelParam;
 
     // if it is Ture, it means the task with this kernel is not flushed yet
-    bool        m_IsInUse;
-        
+    bool         m_isInUse;
+
 private:
     CmKernelData (const CmKernelData& other);
     CmKernelData& operator= (const CmKernelData& other);
 };
 };//namespace
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELDATA_H_

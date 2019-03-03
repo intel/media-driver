@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,17 @@ class MhwCpInterface;
 
 #include "mos_os.h"
 #include "mhw_utilities.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
+#include "mhw_mmio.h"
+
+#define MHW_MI_WATCHDOG_ENABLE_COUNTER                 0x0
+#define MHW_MI_WATCHDOG_DISABLE_COUNTER                0x1
+#define MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS        60
+#define MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS            2000
+#define MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS             500
+#define MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS             100
+#define MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS            50
+#define MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND         (19200123 / 1000)   // Time stamp counts per millisecond
 
 typedef enum _MHW_COMMON_MI_ADDRESS_SHIFT
 {
@@ -255,7 +265,7 @@ typedef struct _MHW_MI_SEMAPHORE_WAIT_PARAMS
     bool                        bPollingWaitMode;
     uint32_t                    dwCompareOperation;
     uint32_t                    dwSemaphoreData;
-    MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION       CompareOperation;   
+    MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION       CompareOperation;
 }MHW_MI_SEMAPHORE_WAIT_PARAMS, *PMHW_MI_SEMAPHORE_WAIT_PARAMS;
 
 typedef struct _MHW_MEDIA_STATE_FLUSH_PARAM
@@ -286,11 +296,12 @@ typedef struct _MHW_MI_FORCE_WAKEUP_PARAMS
     uint32_t               Reserved31_26                   : 6; //!< Reserved Mask
 } MHW_MI_FORCE_WAKEUP_PARAMS, *PMHW_MI_FORCE_WAKEUP_PARAMS;
 
+
 class MhwMiInterface
 {
 public:
     virtual ~MhwMiInterface() { MHW_FUNCTION_ENTER; }
-    
+
     //!
     //! \brief    Adds MI_NOOP_CMD to the buffer provided
     //! \details  Either the command or batch buffer must be valid
@@ -618,6 +629,17 @@ public:
     MOS_STATUS AddProtectedProlog(MOS_COMMAND_BUFFER *cmdBuffer);
 
     //!
+    //! \brief    Get mmio registers address
+    //! \details  Get mmio registers address
+    //! \return   [out] PMHW_MI_MMIOREGISTERS*
+    //!           mmio registers got.
+    //!
+    inline PMHW_MI_MMIOREGISTERS GetMmioRegisters()
+    {
+        return &m_mmioRegisters;
+    }
+
+    //!
     //! \brief    get the size of hw command
     //! \details  Internal function to get the size of MI_FLUSH_DW_CMD
     //! \return   commandSize
@@ -640,6 +662,38 @@ public:
     //!           The command size
     //!
     virtual uint32_t GetMiBatchBufferEndCmdSize() = 0;
+
+    //!
+    //! \brief    Set Watchdog Timer Threshold
+    //! \details  Set Watchdog Timer Threshold
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight) = 0;
+
+    //!
+    //! \brief    Set Watchdog Timer Register Offset
+    //! \details  Set Watchdog Timer Register Offset
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetWatchdogTimerRegisterOffset(MOS_GPU_CONTEXT gpuContext) = 0;
+
+    //!
+    //! \brief    Add Watchdog Timer Start Cmd
+    //! \details  Add Watchdog Timer Start Cmd
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddWatchdogTimerStartCmd(PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
+    //!
+    //! \brief    Add Watchdog Timer Stop Cmd
+    //! \details  Add Watchdog Timer Stop Cmd
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddWatchdogTimerStopCmd(PMOS_COMMAND_BUFFER cmdBuffer) = 0;
 
 protected:
     //!
@@ -693,6 +747,18 @@ protected:
         uint8_t m_vcs : 1;   //!< GGTT in use for VDBOX.
         uint8_t m_vecs : 1;  //!< GGTT in use for VEBOX.
     } UseGlobalGtt;
+
+    //! \brief Indicates the MediaReset Parameter.
+    struct
+    {
+        uint32_t watchdogCountThreshold;
+        uint32_t watchdogCountCtrlOffset;
+        uint32_t watchdogCountThresholdOffset;
+    } MediaResetParam;
+
+    //! \brief Mmio registers address
+    MHW_MI_MMIOREGISTERS       m_mmioRegisters;  //!< mfx mmio registers
+
 };
 
 #endif // __MHW_MI_H__

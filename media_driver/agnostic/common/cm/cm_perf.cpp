@@ -20,21 +20,22 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_perf.cpp  
-//! \brief     Contains functions which recode time and calculate performance  
+//! \file      cm_perf.cpp 
+//! \brief     Contains functions which recode time and calculate performance 
 //!
 
 #include <iostream>
+#include <cm_debug.h>
 #include "cm_log.h"
 
 #if CM_LOG_ON
 
-CmTimer::CmTimer(std::string FunctionName)
+CmTimer::CmTimer(const std::string FunctionName)
 {
     uint32_t success = MOS_QueryPerformanceFrequency((uint64_t*)&m_freq.QuadPart);
     CM_ASSERT(success);
 
-    m_func_name         = FunctionName;
+    m_funcName          = FunctionName;
     m_cycles            = 0;
     m_start.QuadPart    = 0;
     m_end.QuadPart      = 0;
@@ -79,7 +80,7 @@ float CmTimer::TotalMilliSecond()
 std::string CmTimer::ToString()
 {
     std::ostringstream  oss;
-    oss << m_func_name << " Duration " << TotalMilliSecond() << std::endl;
+    oss << m_funcName << " Duration " << TotalMilliSecond() << std::endl;
     return oss.str();
 }
 

@@ -26,4 +26,5 @@ set(CMRT_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/cm_timer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_queue.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_perf_statistics.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_debugger.cpp
     )

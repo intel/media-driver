@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_g9.h  
-//! \brief      
+//! \file      renderhal_g9.h 
+//! \brief 
 //!
 //!
 //! \file       renderhal_g9.h
@@ -32,8 +32,13 @@
 #define __RENDERHAL_G9_H__
 
 #include "renderhal_platform_interface.h"
-#include "mhw_render_hwcmd_g9_X.h" 
+#include "mhw_render_hwcmd_g9_X.h"
 #include "mhw_state_heap_hwcmd_g9_X.h"
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+#include "mhw_mi_hwcmd_g9_X.h"
+#endif
+#endif
 
 //! \brief      for SKL GT2 VP and MDF
 //!              SLM     URB     DC      RO      Rest
@@ -80,12 +85,21 @@ typedef struct _RENDERHAL_L3_CONTROL_REGISTER_G9
 
 #define CM_L3_CACHE_CONFIG_CNTLREG_VALUE_G9        0x60000121
 
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined (CM_DIRECT_GUC_SUPPORT)
+typedef struct _WORK_QUEUE_CMD_GUC
+{
+    UK_SCHED_WORK_QUEUE_ITEM_HEADER            WorkQueueItemHeader;
+    mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD     BatchBufferStartCmd;
+} WORK_QUEUE_CMD_GUC, *PWORK_QUEUE_CMD_GUC;
+#endif
+#endif
 class XRenderHal_Interface_g9 : public XRenderHal_Platform_Interface
 {
 public:
     XRenderHal_Interface_g9() {}
     virtual ~XRenderHal_Interface_g9() {}
-    
+
     //!
     //! \brief    Setup Surface State
     //! \details  Setup Surface States for Gen9
@@ -192,8 +206,8 @@ public:
     //! \return   true of false
     //!
     inline bool IsEnableYV12SinglePass(
-        PRENDERHAL_INTERFACE    pRenderHal) 
-    { 
+        PRENDERHAL_INTERFACE    pRenderHal)
+    {
         return MEDIA_IS_WA(pRenderHal->pWaTable, WaEnableYV12BugFixInHalfSliceChicken7);
     }
 
@@ -307,6 +321,16 @@ public:
     //! \return     size_t
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() {return mhw_state_heap_g9_X::BINDING_TABLE_STATE_CMD::byteSize;}
+
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   true of false
+    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal)
+    {
+        MOS_UNUSED(pRenderHal);
+        return false;
+    }
 protected:
     MHW_VFE_PARAMS               m_vfeStateParams;
     mhw_render_g9_X::PALETTE_ENTRY_CMD

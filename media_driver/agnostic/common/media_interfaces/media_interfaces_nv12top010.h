@@ -30,6 +30,10 @@
 // forward declaration
 class CodechalDecodeNV12ToP010;
 
+//!
+//! \class    Nv12ToP010Device
+//! \brief    Nv12 to P010 device
+//!
 class Nv12ToP010Device
 {
 public:

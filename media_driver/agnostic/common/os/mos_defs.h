@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_defs.h  
-//! \brief      
+//! \file        mos_defs.h 
+//! \brief 
 //!
 //!
 //! \file     mos_defs.h
@@ -63,6 +63,9 @@
 
 //! Command buffer dumps are a debug feature so should not be enabled in release builds
 #define MOS_COMMAND_BUFFER_DUMP_SUPPORTED   (_DEBUG || _RELEASE_INTERNAL)
+
+//! Command res info dumps are a debug feature so should not be enabled in release builds
+#define MOS_COMMAND_RESINFO_DUMP_SUPPORTED (_DEBUG || _RELEASE_INTERNAL)
 
 typedef FILE*                   PFILE;                      //!< Pointer to a File
 typedef FILE**                  PPFILE;                     //!< Pointer to a PFILE
@@ -198,7 +201,7 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 #define MOS_UF_ROUND(a)          ((uint32_t) ((a) + 0.5F))
 
 //!
-//! \def MOS_F_ROUND(a)  
+//! \def MOS_F_ROUND(a) 
 //!  Rounds float \a a to a int32_t
 //!
 #define MOS_F_ROUND(a)           ((int32_t) ((a) + ((a) < 0 ? -0.5F : 0.5F)))
@@ -209,7 +212,7 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 //!
 #define MOS_MASK(_low, _high)    ((((uint32_t)1) << (_high)) |    \
                                  ((((uint32_t)1) << (_high)) -    \
-                                  (((uint32_t)1) << (_low))))  
+                                  (((uint32_t)1) << (_low))))
 //!
 //! \def MOS_MASKBITS32(_low, _high)
 //!  Returns a mask of bits set in the range from \a _low to \a _high
@@ -268,7 +271,7 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 //! \def MOS_WITHIN_RANGE(_x, _min, _max)
 //! Check that value within provided (_min, _max) range
 //!
-#define MOS_WITHIN_RANGE(_x, _min, _max)  (((_x >= _min) && (_x <= _max)) ? (TRUE) : (FALSE))
+#define MOS_WITHIN_RANGE(_x, _min, _max)  (((_x >= _min) && (_x <= _max)) ? (true) : (false))
 
 //!
 //! \def MOS_ALIGNED(_alignment)
@@ -329,7 +332,8 @@ typedef enum _MOS_STATUS
     MOS_STATUS_PLATFORM_NOT_SUPPORTED            = 27,
     MOS_STATUS_CLIENT_AR_NO_SPACE                = 28,
     MOS_STATUS_HUC_KERNEL_FAILED                 = 29,
-    MOS_STATUS_UNKNOWN                           = 30
+    MOS_STATUS_NOT_ENOUGH_BUFFER                 = 30,
+    MOS_STATUS_UNKNOWN                           = 31
 } MOS_STATUS;
 
 //!
@@ -408,9 +412,27 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_VEBOX2          = 13, // Vebox2
     MOS_GPU_CONTEXT_COMPUTE         = 14, //Compute Context
     MOS_GPU_CONTEXT_CM_COMPUTE      = 15, // MDF Compute
-    MOS_GPU_CONTEXT_MAX,
-    MOS_GPU_CONTEXT_INVALID_HANDLE  = MOS_GPU_CONTEXT_MAX
+    MOS_GPU_CONTEXT_RENDER_RA       = 16, // render context for RA mode
+    MOS_GPU_CONTEXT_COMPUTE_RA      = 17, // compute context for RA mode
+    MOS_GPU_CONTEXT_VIDEO5          = 18, // Decode Node 0 Split 2
+    MOS_GPU_CONTEXT_VIDEO6          = 19, // Encode Node 0 Split 2
+    MOS_GPU_CONTEXT_VIDEO7          = 20, // Decode Node 0 Split 3
+    MOS_GPU_CONTEXT_MAX             = 21,
+    MOS_GPU_CONTEXT_INVALID_HANDLE  = 0xFFFFA
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
+
+/*****************************************************************************\
+ENUM: MOS_GPU_COMPONENT_ID
+\*****************************************************************************/
+typedef enum _MOS_GPU_COMPONENT_ID
+{
+    MOS_GPU_COMPONENT_VP,
+    MOS_GPU_COMPONENT_CM,
+    MOS_GPU_COMPONENT_DECODE,
+    MOS_GPU_COMPONENT_ENCODE,
+    MOS_GPU_COMPONENT_DEFAULT,
+    MOS_GPU_COMPONENT_ID_MAX
+} MOS_GPU_COMPONENT_ID;
 
 //!
 //! \brief Enum for Stereoscopic 3D channel
@@ -456,5 +478,8 @@ enum MOS_MEMCOMP_STATE
     MOS_MEMCOMP_RC
 };
 typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
+typedef uint32_t               GPU_CONTEXT_HANDLE;
+
+#define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   4
 
 #endif // __MOS_DEFS_H__

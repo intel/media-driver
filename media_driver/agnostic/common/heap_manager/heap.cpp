@@ -47,8 +47,11 @@ Heap::~Heap()
         {
             m_osInterface->pfnUnlockResource(m_osInterface, m_resource);
         }
-        m_osInterface->pfnFreeResource(m_osInterface, m_resource);
-        MOS_FreeMemory(m_resource);
+        if (!Mos_ResourceIsNull(m_resource))
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, m_resource);
+            MOS_FreeMemory(m_resource);
+        }
     }
 }
 
@@ -78,6 +81,7 @@ MOS_STATUS Heap::Allocate(uint32_t heapSize, bool keepLocked)
 
     m_resource = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
     HEAP_CHK_NULL(m_resource);
+    HEAP_CHK_NULL(m_osInterface);
 
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     memset(&allocParams, 0, sizeof(allocParams));
@@ -111,6 +115,13 @@ uint8_t* Heap::Lock()
     {
         return m_lockedHeap;
     }
+
+    if (m_osInterface == nullptr)
+    {
+        HEAP_ASSERTMESSAGE("Invalid m_osInterface(nullptr)");
+        return nullptr;
+    }
+
     MOS_LOCK_PARAMS lockParams;
     memset(&lockParams, 0, sizeof(lockParams));
     lockParams.WriteOnly = 1;

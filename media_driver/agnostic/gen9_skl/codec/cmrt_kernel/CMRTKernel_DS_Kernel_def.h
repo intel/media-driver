@@ -27,13 +27,12 @@
 #ifndef _CMRTKERNEL_DS_KERNEL_DEF_
 #define _CMRTKERNEL_DS_KERNEL_DEF_
 
-#define  HEVC_DS_ISA_FILE_NAME_G9          "/opt/intel/mediasdk/lib64/hme_downscale_genx.isa"
+#include "Hme_Downscale_gen9.h"
+
 #define  HEVCENCKERNELNAME_2xDS_FRAME      "hme_frame_downscale2"
 
 typedef struct
 {
-    uint32_t  m_width;
-    bool      m_resetPic;
     void     *m_cmSurfDS_TopIn;
     void     *m_cmSurfDS_TopOut;
     void     *m_cmSurfTopVProc;

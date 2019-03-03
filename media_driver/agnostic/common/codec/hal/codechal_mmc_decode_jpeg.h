@@ -48,11 +48,11 @@ public:
     //! \brief    Destructor
     //!
     ~CodechalMmcDecodeJpeg() {};
-    
+
     MOS_STATUS SetPipeBufAddr(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
         PMOS_COMMAND_BUFFER cmdBuffer = nullptr) override;
-    
+
     CodechalDecodeJpeg *m_jpegState = nullptr; //!< Pinter to JPEG decode state
 };
 

@@ -20,26 +20,30 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_mov_inst.h  
-//! \brief     Contains Class MovInst_RT definitions  
+//! \file      cm_mov_inst.h 
+//! \brief     Contains Class MovInst_RT definitions 
 //!
-#pragma once
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMMOVINST_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMMOVINST_H_
+
 #include "cm_array.h"
+#include "cm_mem.h"
+
 // A simple implementation that encodes a mov instruction in align1 mode.
 // Both operands must be direct GRF with no modifiers.
 // predication is disabled, and all instruction control fields have default value.
 // The format of the mov instruction should be identical for SNB/IVB/HSW
-
-class MovInst_RT 
+class MovInst_RT
 {
 
 #define GENX_GRF_BYTE_SIZE   32
 
-    uint32_t instDW[4];  //4 DWORDS per inst
-    bool isBDW;
+    uint32_t m_instructions[4];  //4 DWORDS per inst
+    bool m_isBdw;
 public:
 
-    void* GetBinary() { return instDW; }
+    void* GetBinary() { return m_instructions; }
     void EnableDebug(){SetBits( 30, 30, 0x1);}    // DbgCtrl;
     void ClearDebug(){SetBits( 30, 30, 0x0);}    // DbgCtrl;
 
@@ -96,19 +100,19 @@ public:
         HS_4 = 0x3
     } Genx_HStride;
 
-    MovInst_RT(bool is_BDW, bool is_hwdebug) {
+    MovInst_RT(bool isBdw, bool isHwDebug) {
         // initialize the instruction to
         // mov (8) r0.0<1>:ud r0.0<8;8,1>:ud {Align1}
         for( int i = 0; i < 4; i++ ) {
-            instDW[i] = 0;
+            m_instructions[i] = 0;
         }
-        isBDW = is_BDW;
+        m_isBdw = isBdw;
         SetBits( 0, 6, 0x1);    //opcode = move
-        if(is_hwdebug) {
+        if(isHwDebug) {
             EnableDebug();
         }    // DbgCtrl
         SetBits( 8, 8, 0);      //align mode = align1
-        SetExecSize( EXEC_SIZE_8 );     //exec size = 8 
+        SetExecSize( EXEC_SIZE_8 );     //exec size = 8
         SetDstRegFile( REG_GRF );  //dst reg file = GRF
         SetDstType( REG_TYPE_UD );        //dst type = UD
         SetSrcRegFile( REG_GRF );  //src0 reg file = GRF
@@ -142,10 +146,10 @@ public:
 
     // Create a sequence of Gen move instructions to copy <size> byte data
     // from srcOffset to dstOffset.  The move instructions are appended
-    // to the <movInsts> vector starting at the given <index>.  The 
-    // function returns the total number of move instructions created 
-    static uint32_t CreateMoves( uint32_t dstOffset, uint32_t srcOffset, uint32_t size, 
-        CmDynamicArray &movInsts, uint32_t index, bool is_BDW, bool is_hwdebug ) { 
+    // to the <movInsts> vector starting at the given <index>.  The
+    // function returns the total number of move instructions created
+    static uint32_t CreateMoves( uint32_t dstOffset, uint32_t srcOffset, uint32_t size,
+        CMRT_UMD::CmDynamicArray &movInsts, uint32_t index, bool isBdw, bool isHwDebug ) {
 
             uint32_t dstEnd = dstOffset + size;
             uint32_t moveSize = GENX_GRF_BYTE_SIZE;
@@ -153,16 +157,16 @@ public:
             uint32_t numMoves = 0;
 
             if( remainder != 0 ) {
-                // dst address is not GRF-aligned, handle this portion first 
+                // dst address is not GRF-aligned, handle this portion first
                 // until we get a GRF-aligned dst address
                 uint32_t dstGRFEnd = dstOffset + GENX_GRF_BYTE_SIZE - remainder;
                 if( dstGRFEnd > dstEnd ) {
                     dstGRFEnd = dstEnd;
                 }
                 while( dstGRFEnd != dstOffset ) {
-                    while( (dstGRFEnd - dstOffset) >= moveSize ) { 
-                        MovInst_RT* inst = MovInst_RT::CreateSingleMove( 
-                            dstOffset, srcOffset, moveSize, is_BDW, is_hwdebug); 
+                    while( (dstGRFEnd - dstOffset) >= moveSize ) {
+                        MovInst_RT* inst = MovInst_RT::CreateSingleMove(
+                            dstOffset, srcOffset, moveSize, isBdw, isHwDebug);
                         if( !movInsts.SetElement( index + numMoves, inst )) {
                             CmSafeDelete(inst);
                             CM_ASSERTMESSAGE("Error: SetElement failure.");
@@ -176,7 +180,7 @@ public:
                             uint32_t compSrcStart = srcEndGRFNum * GENX_GRF_BYTE_SIZE;
                             uint32_t compSize = srcOffset + moveSize - compSrcStart;
                             uint32_t compDstStart = dstOffset + (moveSize - compSize);
-                            numMoves += CreateMoves( compDstStart, compSrcStart, compSize, movInsts, index + numMoves, is_BDW, is_hwdebug);
+                            numMoves += CreateMoves( compDstStart, compSrcStart, compSize, movInsts, index + numMoves, isBdw, isHwDebug);
                         }
                         dstOffset += moveSize;
                         srcOffset += moveSize;
@@ -187,9 +191,9 @@ public:
 
             moveSize = GENX_GRF_BYTE_SIZE;
             while( dstEnd != dstOffset ) {
-                while( (dstEnd - dstOffset) >= moveSize ) { 
-                    MovInst_RT* inst = MovInst_RT::CreateSingleMove( 
-                        dstOffset, srcOffset, moveSize, is_BDW, is_hwdebug); 
+                while( (dstEnd - dstOffset) >= moveSize ) {
+                    MovInst_RT* inst = MovInst_RT::CreateSingleMove(
+                        dstOffset, srcOffset, moveSize, isBdw, isHwDebug);
                     if( !movInsts.SetElement( index + numMoves, inst )) {
                         CM_ASSERTMESSAGE("Error: SetElement failure.");
                         CmSafeDelete(inst);
@@ -204,7 +208,7 @@ public:
                         uint32_t compSrcStart = srcEndGRFNum * GENX_GRF_BYTE_SIZE;
                         uint32_t compSize = srcOffset + moveSize - compSrcStart;
                         uint32_t compDstStart = dstOffset + (moveSize - compSize);
-                        numMoves += CreateMoves( compDstStart, compSrcStart, compSize, movInsts, index + numMoves, is_BDW, is_hwdebug);
+                        numMoves += CreateMoves( compDstStart, compSrcStart, compSize, movInsts, index + numMoves, isBdw, isHwDebug);
                     }
 
                     dstOffset += moveSize;
@@ -218,74 +222,74 @@ public:
     // Create a single move instruction for the given dst/src offset and size,
     // all in unit of bytes.  The size must be a legal Gen execution size,
     // i.e., power-of-twos from 1 to 32.
-    static MovInst_RT *CreateSingleMove( uint32_t dstOffset, uint32_t srcOffset, uint32_t size, bool is_BDW, bool is_hwdebug ) 
+    static MovInst_RT *CreateSingleMove( uint32_t dstOffset, uint32_t srcOffset, uint32_t size, bool isBdw, bool isHwDebug )
     {
-        Genx_Exec_Size eSize;
+        Genx_Exec_Size exeSize;
         Genx_Reg_Type type;
-        Genx_VStride VStride;
+        Genx_VStride vStride;
         Genx_Width width;
-        Genx_HStride HStride;
+        Genx_HStride hStride;
 
         switch( size ) {
             case 32:
                 //type = UD, esize = 8
-                eSize = MovInst_RT::EXEC_SIZE_8;
+                exeSize = MovInst_RT::EXEC_SIZE_8;
                 type = MovInst_RT::REG_TYPE_UD;
-                VStride = MovInst_RT::VS_8;
+                vStride = MovInst_RT::VS_8;
                 width = MovInst_RT::W_8;
-                HStride = MovInst_RT::HS_1;
+                hStride = MovInst_RT::HS_1;
                 break;
             case 16:
                 //type = UD, esize = 4
-                eSize = MovInst_RT::EXEC_SIZE_4;
+                exeSize = MovInst_RT::EXEC_SIZE_4;
                 type = MovInst_RT::REG_TYPE_UD;
-                VStride = MovInst_RT::VS_4;
+                vStride = MovInst_RT::VS_4;
                 width = MovInst_RT::W_4;
-                HStride = MovInst_RT::HS_1;
+                hStride = MovInst_RT::HS_1;
                 break;
             case 8:
                 //type = UD, esize = 2;
-                eSize = MovInst_RT::EXEC_SIZE_2;
+                exeSize = MovInst_RT::EXEC_SIZE_2;
                 type = MovInst_RT::REG_TYPE_UD;
-                VStride = MovInst_RT::VS_2;
+                vStride = MovInst_RT::VS_2;
                 width = MovInst_RT::W_2;
-                HStride = MovInst_RT::HS_1;
+                hStride = MovInst_RT::HS_1;
                 break;
             case 4:
                 //type = UD, esize = 1;
-                eSize = MovInst_RT::EXEC_SIZE_1;
+                exeSize = MovInst_RT::EXEC_SIZE_1;
                 type = MovInst_RT::REG_TYPE_UD;
-                VStride = MovInst_RT::VS_0;
+                vStride = MovInst_RT::VS_0;
                 width = MovInst_RT::W_1;
-                HStride = MovInst_RT::HS_0;
+                hStride = MovInst_RT::HS_0;
                 break;
             case 2:
                 //type = UW, esize = 1;
-                eSize = MovInst_RT::EXEC_SIZE_1;
+                exeSize = MovInst_RT::EXEC_SIZE_1;
                 type = MovInst_RT::REG_TYPE_UW;
-                VStride = MovInst_RT::VS_0;
+                vStride = MovInst_RT::VS_0;
                 width = MovInst_RT::W_1;
-                HStride = MovInst_RT::HS_0;
+                hStride = MovInst_RT::HS_0;
                 break;
             case 1:
                 //type = UB, esize = 1;
-                eSize = MovInst_RT::EXEC_SIZE_1;
+                exeSize = MovInst_RT::EXEC_SIZE_1;
                 type = MovInst_RT::REG_TYPE_UB;
-                VStride = MovInst_RT::VS_0;
+                vStride = MovInst_RT::VS_0;
                 width = MovInst_RT::W_1;
-                HStride = MovInst_RT::HS_0;
+                hStride = MovInst_RT::HS_0;
                 break;
             default:
-                // below assignment is to avoid variables being used uninitialized in this function 
-                eSize = MovInst_RT::EXEC_SIZE_1;
+                // below assignment is to avoid variables being used uninitialized in this function
+                exeSize = MovInst_RT::EXEC_SIZE_1;
                 type = MovInst_RT::REG_TYPE_UD;
-                VStride = MovInst_RT::VS_0;
+                vStride = MovInst_RT::VS_0;
                 width = MovInst_RT::W_1;
-                HStride = MovInst_RT::HS_0;
+                hStride = MovInst_RT::HS_0;
                 CM_ASSERTMESSAGE("Error: Invalid Gen execution size.");
         }
 
-        MovInst_RT *inst = new (std::nothrow) MovInst_RT(is_BDW, is_hwdebug);
+        MovInst_RT *inst = new (std::nothrow) MovInst_RT(isBdw, isHwDebug);
         if(!inst)
         {
             CM_ASSERTMESSAGE("Error: Out of system memory.");
@@ -299,43 +303,43 @@ public:
         inst->SetDstSubregNum( dstSubRegNum );
         inst->SetSrcRegNum( srcOffset / GENX_GRF_BYTE_SIZE );
         inst->SetSrcSubregNum( srcSubRegNum );
-        inst->SetExecSize( eSize );
+        inst->SetExecSize( exeSize );
         inst->SetDstType( type );
         inst->SetSrcType( type );
         inst->SetDstRegion( MovInst_RT::HS_1 );
-        inst->SetSrcRegion( VStride, width, HStride );
+        inst->SetSrcRegion( vStride, width, hStride );
         return inst;
     }
 
-    void SetBits(const unsigned char LowBit, const unsigned char HighBit, const uint32_t value) {
-    CM_ASSERT(HighBit <= 127);
-    CM_ASSERT((HighBit - LowBit) <= 31);
-    CM_ASSERT(HighBit >= LowBit);
-    CM_ASSERT((HighBit/32) == (LowBit/32));
-    uint32_t maxvalue = ((1 << (HighBit - LowBit)) - 1) | (1 << (HighBit - LowBit));
+    void SetBits(const unsigned char lowBit, const unsigned char highBit, const uint32_t value) {
+    CM_ASSERT(highBit <= 127);
+    CM_ASSERT((highBit - lowBit) <= 31);
+    CM_ASSERT(highBit >= lowBit);
+    CM_ASSERT((highBit/32) == (lowBit/32));
+    uint32_t maxvalue = ((1 << (highBit - lowBit)) - 1) | (1 << (highBit - lowBit));
     uint32_t newvalue = value;
     newvalue &= maxvalue;
-    uint32_t Dword = HighBit/32;
+    uint32_t dword = highBit/32;
 
-    uint32_t mask = (unsigned long)(0xffffffff >> (32 - (HighBit - LowBit + 1)));
-    uint32_t shift = LowBit - (Dword*32);
+    uint32_t mask = (unsigned long)(0xffffffff >> (32 - (highBit - lowBit + 1)));
+    uint32_t shift = lowBit - (dword*32);
     mask <<= shift;
-    instDW[Dword] &= ~mask;
-    instDW[Dword] |= (newvalue << shift);
+    m_instructions[dword] &= ~mask;
+    m_instructions[dword] |= (newvalue << shift);
   }
 
-    uint32_t GetBits(const int LowBit, const int HighBit) {
-    CM_ASSERT(HighBit <= 127);
-    CM_ASSERT((HighBit - LowBit) <= 31);
-    CM_ASSERT(HighBit >= LowBit);
-    CM_ASSERT((HighBit/32) == (LowBit/32));
+    uint32_t GetBits(const int lowBit, const int highBit) {
+    CM_ASSERT(highBit <= 127);
+    CM_ASSERT((highBit - lowBit) <= 31);
+    CM_ASSERT(highBit >= lowBit);
+    CM_ASSERT((highBit/32) == (lowBit/32));
 
     uint32_t retValue;
-    uint32_t Dword = HighBit/32;
-    uint32_t mask = (uint32_t)(0xffffffff >> (32 - (HighBit - LowBit + 1)));
-    uint32_t shift = LowBit - (Dword*32);
+    uint32_t dword = highBit/32;
+    uint32_t mask = (uint32_t)(0xffffffff >> (32 - (highBit - lowBit + 1)));
+    uint32_t shift = lowBit - (dword*32);
 
-    retValue = instDW[Dword] & (mask << shift);
+    retValue = m_instructions[dword] & (mask << shift);
     retValue >>= shift;
     retValue &= mask;
 
@@ -351,7 +355,7 @@ public:
     }
 
     void SetDstType( const Genx_Reg_Type type ) {
-        if( isBDW )
+        if( m_isBdw )
         {
             SetBits( 37, 40, type );
         }
@@ -362,7 +366,7 @@ public:
     }
 
     Genx_Reg_Type GetDstType( void ) {
-        if( isBDW )
+        if( m_isBdw )
         {
             return (Genx_Reg_Type) GetBits( 37, 40 );
         }
@@ -373,7 +377,7 @@ public:
     }
 
     void SetDstRegFile( Genx_Reg_File regFile ) {
-        if( isBDW )
+        if( m_isBdw )
         {
             SetBits( 35, 36, regFile );
         }
@@ -384,7 +388,7 @@ public:
     }
 
     void SetSrcType( const Genx_Reg_Type type ) {
-        if( isBDW )
+        if( m_isBdw )
         {
             SetBits( 43, 46, type );
         }
@@ -395,7 +399,7 @@ public:
     }
 
     Genx_Reg_Type GetSrcType( void ) {
-        if( isBDW )
+        if( m_isBdw )
         {
             return (Genx_Reg_Type) GetBits( 43, 46 );
         }
@@ -406,7 +410,7 @@ public:
     }
 
     void SetSrcRegFile( Genx_Reg_File regFile ) {
-        if( isBDW )
+        if( m_isBdw )
         {
             SetBits( 41, 42, regFile );
         }
@@ -592,7 +596,9 @@ public:
         srcSubregNum = GetSrcSubregNum() / GetTypeSize( GetSrcType() );
 
         CM_NORMALMESSAGE("mov (%d) r%d.%d<%d>:%s r%d.%d<%d;%d,%d>:%s.",
-            execSize, GetDstRegNum(), dstSubregNum, dstHStride, dstType, 
-            GetSrcRegNum(), srcSubregNum, srcVStride, srcWidth, srcHStride, srcType ); 
+            execSize, GetDstRegNum(), dstSubregNum, dstHStride, dstType,
+            GetSrcRegNum(), srcSubregNum, srcVStride, srcWidth, srcHStride, srcType );
     }
 };
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMMOVINST_H_

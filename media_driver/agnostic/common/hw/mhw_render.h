@@ -33,6 +33,7 @@
 #include "mhw_state_heap.h"
 #include "mhw_mi.h"
 
+
 #define MHW_RENDER_ENGINE_SSH_SURFACES_PER_BT_MAX           256
 #define MHW_RENDER_ENGINE_SAMPLERS_MAX                      16
 #define MHW_RENDER_ENGINE_SAMPLERS_AVS_MAX                  8
@@ -45,12 +46,6 @@
 
 #define MHW_MAX_DEPENDENCY_COUNT                    8
 
-#define MHW_RENDER_ENGINE_CS_CHICKEN1_PREEMPTION_CONTROL_OFFSET     0x2580
-#define MHW_RENDER_ENGINE_FF_SLICE_CS_CHICKEN2                      0x20E4
-#define MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE                  0x00060000
-#define MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE                0x00060002
-#define MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE                   0x00060004
-
 typedef struct _MHW_RENDER_ENGINE_L3_CACHE_SETTINGS
 {
     uint32_t   dwCntlReg  = 0;
@@ -59,6 +54,7 @@ typedef struct _MHW_RENDER_ENGINE_L3_CACHE_SETTINGS
     uint32_t   dwSqcReg1  = 0;
     uint32_t   dwSqcReg4  = 0;
     uint32_t   dwLra1Reg  = 0;
+    virtual ~_MHW_RENDER_ENGINE_L3_CACHE_SETTINGS() {}
 } MHW_RENDER_ENGINE_L3_CACHE_SETTINGS, *PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS;
 
 typedef struct _MHW_RENDER_ENGINE_L3_CACHE_CONFIG
@@ -130,12 +126,15 @@ typedef struct _MHW_STATE_BASE_ADDR_PARAMS
     uint32_t                dwGeneralStateSize;
     PMOS_RESOURCE           presDynamicState;
     uint32_t                dwDynamicStateSize;
-    uint32_t                dwDynamicStateMemObjCtrlState;
     bool                    bDynamicStateRenderTarget;
     PMOS_RESOURCE           presIndirectObjectBuffer;
     uint32_t                dwIndirectObjectBufferSize;
     PMOS_RESOURCE           presInstructionBuffer;
     uint32_t                dwInstructionBufferSize;
+    uint32_t                mocs4InstructionCache;
+    uint32_t                mocs4GeneralState;
+    uint32_t                mocs4DynamicState;
+    uint32_t                mocs4SurfaceState;
 } MHW_STATE_BASE_ADDR_PARAMS, *PMHW_STATE_BASE_ADDR_PARAMS;
 
 typedef struct _MHW_VFE_SCOREBOARD_DELTA
@@ -167,17 +166,17 @@ typedef struct _MHW_VFE_SCOREBOARD
 
 struct MHW_VFE_PARAMS
 {
-    uint32_t                        dwDebugCounterControl;      // Debug Counter Control
-    uint32_t                        dwMaximumNumberofThreads;
-    uint32_t                        dwNumberofURBEntries;
-    uint32_t                        dwCURBEAllocationSize;
-    uint32_t                        dwURBEntryAllocationSize;
-    uint32_t                        dwPerThreadScratchSpace;
-    uint32_t                        dwScratchSpaceBasePointer;
-    MHW_VFE_SLICE_DISABLE           eVfeSliceDisable;
-    MHW_VFE_SCOREBOARD              Scoreboard;
-    PMHW_KERNEL_STATE               pKernelState;
-    bool                            bGpGpuWalkerMode;
+    uint32_t                        dwDebugCounterControl = 0;      // Debug Counter Control
+    uint32_t                        dwMaximumNumberofThreads = 0;
+    uint32_t                        dwNumberofURBEntries = 0;
+    uint32_t                        dwCURBEAllocationSize = 0;
+    uint32_t                        dwURBEntryAllocationSize = 0;
+    uint32_t                        dwPerThreadScratchSpace = 0;
+    uint32_t                        dwScratchSpaceBasePointer = 0;
+    MHW_VFE_SLICE_DISABLE           eVfeSliceDisable = MHW_VFE_SLICE_ALL;
+    MHW_VFE_SCOREBOARD              Scoreboard = {};
+    PMHW_KERNEL_STATE               pKernelState = nullptr;
+    virtual ~MHW_VFE_PARAMS() {}
 };
 typedef MHW_VFE_PARAMS *PMHW_VFE_PARAMS;
 
@@ -264,8 +263,11 @@ typedef struct _MHW_WALKER_PARAMS
     MHW_WALKER_XY           GlobalInnerLoopUnit;
 
     bool                    bAddMediaFlush;
-    bool                    bRequestSingleSlice; 
+    bool                    bRequestSingleSlice;
     bool                    bForceNoneCpWorkload;
+
+    uint32_t                IndirectDataLength;
+    uint32_t                IndirectDataStartAddress;
 } MHW_WALKER_PARAMS, *PMHW_WALKER_PARAMS;
 
 typedef struct _MHW_GPGPU_WALKER_PARAMS
@@ -275,11 +277,18 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     uint32_t                                               : 26;
     uint32_t                   ThreadWidth;
     uint32_t                   ThreadHeight;
-	uint32_t                   ThreadDepth;
+    uint32_t                   ThreadDepth;
     uint32_t                   GroupWidth;
     uint32_t                   GroupHeight;
-	uint32_t                   GroupDepth;   
+    uint32_t                   GroupDepth;
+    uint32_t                   GroupStartingX;
+    uint32_t                   GroupStartingY;
+    uint32_t                   GroupStartingZ;
     uint32_t                   SLMSize;
+
+    uint32_t                   IndirectDataLength;
+    uint32_t                   IndirectDataStartAddress;
+    uint32_t                   BindingTableID;
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
 typedef struct _MHW_MEDIA_OBJECT_PARAMS
@@ -358,6 +367,28 @@ public:
     virtual MOS_STATUS AddMediaVfeCmd (
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_VFE_PARAMS                 params) = 0;
+
+    //!
+    //! \brief    Adds CFE_STATE to the command buffer
+    //! \param    cmdBuffer
+    //!           [in] Command buffer to which HW command is added
+    //! \param    params
+    //!           [in] Params structure used to populate the HW command
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddCfeStateCmd(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_VFE_PARAMS                 params)
+    {
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(params);
+
+        // CFE_STATE will replace the MEDIA_VFE_STATE on some platform; Just keep the
+        // platform which really uses CFE to implement it on inheriting class .
+        MHW_ASSERTMESSAGE("Don't support it on this platform");
+        return MOS_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief    Adds MEDIA_CURBE_LOAD to the command buffer
@@ -547,7 +578,7 @@ public:
     //! \return   void
     //!
     void SetOsInterface(PMOS_INTERFACE osInterface) { m_osInterface = osInterface;}
-    
+
 protected:
     //!
     //! \brief    Initializes the Render interface
@@ -593,7 +624,6 @@ protected:
         m_miInterface = miInterface;
         m_stateHeapInterface = nullptr;
 
-        memset(&m_l3CacheConfig, 0, sizeof(m_l3CacheConfig));
         memset(&m_hwCaps, 0, sizeof(m_hwCaps));
 
         if (m_osInterface->bUsesGfxAddress)
@@ -630,8 +660,8 @@ protected:
     uint32_t    m_preemptionCntlRegisterOffset = 0;
     uint32_t    m_preemptionCntlRegisterValue = 0;
 
-    uint32_t    m_l3CacheCntlRegisterOffset = 0x7034;
-    uint32_t    m_l3CacheCntlRegisterValueDefault = 0;
+    uint32_t    m_l3CacheCntlRegisterOffset = M_L3_CACHE_CNTL_REG_OFFSET;
+    uint32_t    m_l3CacheCntlRegisterValueDefault = M_L3_CACHE_CNTL_REG_VALUE_DEFAULT;
 
     //!
     //! \brief    Adds a resource to the command buffer or indirect state (SSH)

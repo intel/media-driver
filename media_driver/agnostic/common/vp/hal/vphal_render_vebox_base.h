@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include "vphal_render_common.h"
 #include "vphal_render_vebox_iecp.h"
 #include "vphal_render_sfc_base.h"
+#include "vphal_render_vebox_denoise.h"
 
 #define VPHAL_MAX_NUM_FFDI_SURFACES     4                                       //!< 2 for ADI plus additional 2 for parallel execution on HSW+
 #define VPHAL_NUM_FFDN_SURFACES         2                                       //!< Number of FFDN surfaces
@@ -45,8 +46,6 @@
 #ifndef VEBOX_AUTO_DENOISE_SUPPORTED
 #define VEBOX_AUTO_DENOISE_SUPPORTED    1
 #endif
-
-#define VPHAL_VEBOX_STATISTICS_SIZE_MAX (288 * 4)                               //!< Max Statistics size
 
 //!
 //! \brief Denoise Range
@@ -60,8 +59,6 @@
 //!
 #define NOISE_HISTORY_DELTA_DEFAULT                     8
 #define NOISE_HISTORY_MAX_DEFAULT                       192
-#define NOISE_ABSSUMTEMPORALDIFF_THRESHOLD_DEFAULT      32
-#define NOISE_SPATIALCOMPLEXITYMATRIX_THRESHOLD_DEFAULT 32
 #define NOISE_NUMMOTIONPIXELS_THRESHOLD_DEFAULT         0
 #define NOISE_LOWTEMPORALPIXELDIFF_THRESHOLD_DEFAULT    6
 #define NOISE_TEMPORALPIXELDIFF_THRESHOLD_DEFAULT       12
@@ -148,6 +145,91 @@
 #define NOISE_BLF_DISTANCE_WGTS21_DEFAULT           10
 #define NOISE_BLF_DISTANCE_WGTS22_DEFAULT           8
 
+//!
+//! \brief Improved Deinterlacing for CNL+
+//!
+#define VPHAL_VEBOX_DI_CHROMA_TDM_WEIGHT_NATUAL                     0
+#define VPHAL_VEBOX_DI_LUMA_TDM_WEIGHT_NATUAL                       4
+#define VPHAL_VEBOX_DI_SHCM_DELTA_NATUAL                            5
+#define VPHAL_VEBOX_DI_SHCM_THRESHOLD_NATUAL                        255
+#define VPHAL_VEBOX_DI_SVCM_DELTA_NATUAL                            5
+#define VPHAL_VEBOX_DI_SVCM_THRESHOLD_NATUAL                        255
+#define VPHAL_VEBOX_DI_LUMA_TDM_CORING_THRESHOLD_NATUAL             0
+#define VPHAL_VEBOX_DI_CHROMA_TDM_CORING_THRESHOLD_NATUAL           0
+#define VPHAL_VEBOX_DI_DIRECTION_CHECK_THRESHOLD_NATUAL             3
+#define VPHAL_VEBOX_DI_TEARING_LOW_THRESHOLD_NATUAL                 20
+#define VPHAL_VEBOX_DI_TEARING_HIGH_THRESHOLD_NATUAL                100
+#define VPHAL_VEBOX_DI_DIFF_CHECK_SLACK_THRESHOLD_NATUAL            15
+#define VPHAL_VEBOX_DI_SAD_WT0_NATUAL                               0
+#define VPHAL_VEBOX_DI_SAD_WT1_NATUAL                               63
+#define VPHAL_VEBOX_DI_SAD_WT2_NATUAL                               76
+#define VPHAL_VEBOX_DI_SAD_WT3_NATUAL                               89
+#define VPHAL_VEBOX_DI_SAD_WT4_NATUAL                               114
+#define VPHAL_VEBOX_DI_SAD_WT6_NATUAL                               217
+#define VPHAL_VEBOX_DI_LPFWTLUT0_SD_NATUAL                          0
+#define VPHAL_VEBOX_DI_LPFWTLUT0_HD_NATUAL                          0
+#define VPHAL_VEBOX_DI_LPFWTLUT1_SD_NATUAL                          0
+#define VPHAL_VEBOX_DI_LPFWTLUT1_HD_NATUAL                          0
+#define VPHAL_VEBOX_DI_LPFWTLUT2_SD_NATUAL                          0
+#define VPHAL_VEBOX_DI_LPFWTLUT2_HD_NATUAL                          0
+#define VPHAL_VEBOX_DI_LPFWTLUT3_SD_NATUAL                          128
+#define VPHAL_VEBOX_DI_LPFWTLUT3_HD_NATUAL                          0
+#define VPHAL_VEBOX_DI_LPFWTLUT4_SD_NATUAL                          128
+#define VPHAL_VEBOX_DI_LPFWTLUT4_HD_NATUAL                          32
+#define VPHAL_VEBOX_DI_LPFWTLUT5_SD_NATUAL                          128
+#define VPHAL_VEBOX_DI_LPFWTLUT5_HD_NATUAL                          64
+#define VPHAL_VEBOX_DI_LPFWTLUT6_SD_NATUAL                          255
+#define VPHAL_VEBOX_DI_LPFWTLUT6_HD_NATUAL                          128
+#define VPHAL_VEBOX_DI_LPFWTLUT7_SD_NATUAL                          255
+#define VPHAL_VEBOX_DI_LPFWTLUT7_HD_NATUAL                          255
+
+//!
+//! \brief Chroma Downsampling and Upsampling for CNL+
+//!
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE0_HORZ_OFFSET     0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE1_HORZ_OFFSET     1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE2_HORZ_OFFSET     0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE3_HORZ_OFFSET     1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE4_HORZ_OFFSET     0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE5_HORZ_OFFSET     1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE0_VERT_OFFSET     2
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE1_VERT_OFFSET     2
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE2_VERT_OFFSET     0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE3_VERT_OFFSET     0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE4_VERT_OFFSET     4
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITH_DI_TYPE5_VERT_OFFSET     4
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE0_HORZ_OFFSET  0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE1_HORZ_OFFSET  1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE2_HORZ_OFFSET  0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE3_HORZ_OFFSET  1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE4_HORZ_OFFSET  0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE5_HORZ_OFFSET  1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE0_VERT_OFFSET  1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE1_VERT_OFFSET  1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE2_VERT_OFFSET  0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE3_VERT_OFFSET  0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE4_VERT_OFFSET  2
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_420_WITHOUT_DI_TYPE5_VERT_OFFSET  2
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE2_HORZ_OFFSET             0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE3_HORZ_OFFSET             1
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE2_VERT_OFFSET             0
+#define VPHAL_VEBOX_CHROMA_UPSAMPLING_422_TYPE3_VERT_OFFSET             0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE0_HORZ_OFFSET           0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE1_HORZ_OFFSET           1
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE2_HORZ_OFFSET           0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE3_HORZ_OFFSET           1
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE4_HORZ_OFFSET           0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE5_HORZ_OFFSET           1
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE0_VERT_OFFSET           1
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE1_VERT_OFFSET           1
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE2_VERT_OFFSET           0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE3_VERT_OFFSET           0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE4_VERT_OFFSET           2
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_420_TYPE5_VERT_OFFSET           2
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE2_HORZ_OFFSET           0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_HORZ_OFFSET           1
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE2_VERT_OFFSET           0
+#define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_VERT_OFFSET           0
 enum GFX_MEDIA_VEBOX_DI_OUTPUT_MODE
 {
     MEDIA_VEBOX_DI_OUTPUT_BOTH            = 0,
@@ -170,10 +252,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart0
         struct
         {
-            DWORD       RangeThrStart0;
+            uint32_t       RangeThrStart0;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW00;
 
     // DWORD 1
@@ -182,10 +264,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart1
         struct
         {
-            DWORD       RangeThrStart1;
+            uint32_t       RangeThrStart1;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW01;
 
     // DWORD 2
@@ -194,10 +276,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart2
         struct
         {
-            DWORD       RangeThrStart2;
+            uint32_t       RangeThrStart2;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW02;
 
     // DWORD 3
@@ -206,10 +288,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart3
         struct
         {
-            DWORD       RangeThrStart3;
+            uint32_t       RangeThrStart3;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW03;
 
     // DWORD 4
@@ -218,10 +300,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart4
         struct
         {
-            DWORD       RangeThrStart4;
+            uint32_t       RangeThrStart4;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW04;
 
     // DWORD 5
@@ -230,10 +312,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart5
         struct
         {
-            DWORD       RangeThrStart5;
+            uint32_t       RangeThrStart5;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW05;
 
     // DWORD 6
@@ -242,10 +324,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW06;
 
     // DWORD 7
@@ -254,10 +336,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW07;
 
     // DWORD 8
@@ -266,10 +348,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt0
         struct
         {
-            DWORD       RangeWgt0;
+            uint32_t       RangeWgt0;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW08;
 
     // DWORD 9
@@ -278,10 +360,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt1
         struct
         {
-            DWORD       RangeWgt1;
+            uint32_t       RangeWgt1;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW09;
 
     // DWORD 10
@@ -290,10 +372,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt2
         struct
         {
-            DWORD       RangeWgt2;
+            uint32_t       RangeWgt2;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW10;
 
     // DWORD 11
@@ -302,10 +384,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt3
         struct
         {
-            DWORD       RangeWgt3;
+            uint32_t       RangeWgt3;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW11;
 
     // DWORD 12
@@ -314,10 +396,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt4
         struct
         {
-            DWORD       RangeWgt4;
+            uint32_t       RangeWgt4;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW12;
 
     // DWORD 13
@@ -326,10 +408,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt5
         struct
         {
-            DWORD       RangeWgt5;
+            uint32_t       RangeWgt5;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW13;
 
     // DWORD 14
@@ -338,10 +420,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW14;
 
     // DWORD 15
@@ -350,17 +432,17 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW15;
 
     // DWORD 16 - 41: DistWgt[5][5]
-    DWORD DistWgt[5][5];
+    uint32_t DistWgt[5][5];
 
-    // Padding for 32-byte alignment, VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION_G9 is 7 DWORDs
-    DWORD dwPad[7];
+    // Padding for 32-byte alignment, VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION_G9 is 7 uint32_ts
+    uint32_t dwPad[7];
 };
 
 //!
@@ -498,21 +580,21 @@ typedef struct VPHAL_VEBOX_STATE_PARAMS *PVPHAL_VEBOX_STATE_PARAMS;
 typedef struct VPHAL_VEBOX_STATE_PARAMS_EXT *PVPHAL_VEBOX_STATE_PARAMS_EXT;
 struct VPHAL_VEBOX_STATE_PARAMS
 {
-                                    VPHAL_VEBOX_STATE_PARAMS() 
-									{ 
-										pVphalVeboxIecpParams = nullptr;
-										pVphalVeboxDndiParams = nullptr;
-									}
-    virtual                         ~VPHAL_VEBOX_STATE_PARAMS() 
-									{ 
-										pVphalVeboxIecpParams = nullptr;
-										pVphalVeboxDndiParams = nullptr; 
-									}
-    virtual void                    Init() 
-									{ 
-										pVphalVeboxIecpParams = nullptr;
-										pVphalVeboxDndiParams = nullptr; 
-									}
+                                    VPHAL_VEBOX_STATE_PARAMS()
+                                    {
+                                        pVphalVeboxIecpParams = nullptr;
+                                        pVphalVeboxDndiParams = nullptr;
+                                    }
+    virtual                         ~VPHAL_VEBOX_STATE_PARAMS()
+                                    {
+                                        pVphalVeboxIecpParams = nullptr;
+                                        pVphalVeboxDndiParams = nullptr;
+                                    }
+    virtual void                    Init()
+                                    {
+                                        pVphalVeboxIecpParams = nullptr;
+                                        pVphalVeboxDndiParams = nullptr;
+                                    }
     virtual PVPHAL_VEBOX_STATE_PARAMS_EXT   GetExtParams()  {return nullptr;}
 
     PMHW_VEBOX_DNDI_PARAMS          pVphalVeboxDndiParams;
@@ -575,12 +657,14 @@ typedef struct VPHAL_VEBOX_RENDER_DATA_EXT *PVPHAL_VEBOX_RENDER_DATA_EXT;
 struct VPHAL_VEBOX_RENDER_DATA
 {
 public:
-                                        VPHAL_VEBOX_RENDER_DATA()  
-                                        { 
+                                        VPHAL_VEBOX_RENDER_DATA()
+                                        {
                                             m_pVeboxStateParams = nullptr;
                                             m_pVeboxIecpParams  = nullptr;
                                         }
-    virtual                             ~VPHAL_VEBOX_RENDER_DATA(); 
+                                        VPHAL_VEBOX_RENDER_DATA(const VPHAL_VEBOX_RENDER_DATA&) = delete;
+                                        VPHAL_VEBOX_RENDER_DATA& operator=(const VPHAL_VEBOX_RENDER_DATA&) = delete;
+    virtual                             ~VPHAL_VEBOX_RENDER_DATA();
     virtual MOS_STATUS                  Init();
     PVPHAL_VEBOX_STATE_PARAMS           GetVeboxStateParams()   { return m_pVeboxStateParams;}
     PVPHAL_VEBOX_IECP_PARAMS            GetVeboxIECPParams()    { return m_pVeboxIecpParams; }
@@ -609,7 +693,8 @@ public:
     bool                                bTopField;
     bool                                bBeCsc;
     bool                                bVeboxBypass;
-	bool                                b60fpsDi;
+    bool                                b60fpsDi;
+    bool                                bQueryVariance;
 
     // Surface Information
     int32_t                             iFrame0;
@@ -633,9 +718,9 @@ public:
     PRENDERHAL_MEDIA_STATE              pMediaState;
     PMHW_VEBOX_HEAP_STATE               pVeboxState;
     PVPHAL_SURFACE                      pRenderTarget;
-    
+
     MHW_SAMPLER_STATE_PARAM             SamplerStateParams;
-    
+
     MHW_VEBOX_DNDI_PARAMS               VeboxDNDIParams;
 
     PVPHAL_ALPHA_PARAMS                 pAlphaParams;
@@ -666,6 +751,11 @@ public:
     // Scaling ratio is needed to determine if SFC or VEBOX is used
     float                               fScaleX;                                //!< X Scaling ratio
     float                               fScaleY;                                //!< Y Scaling ratio
+    
+    bool                                bHdr3DLut             = false;          //!< Enable 3DLut to process HDR
+    uint32_t                            uiMaxDisplayLum       = 4000;           //!< Maximum Display Luminance
+    uint32_t                            uiMaxContentLevelLum  = 1000;           //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE                      hdrMode               = VPHAL_HDR_MODE_NONE;
 
 protected:
     // Vebox State Parameters
@@ -690,7 +780,8 @@ public:
                                             PVPHAL_RNDR_PERF_DATA           pPerfData,
                                             const VPHAL_DNDI_CACHE_CNTL     &dndiCacheCntl,
                                             MOS_STATUS                      *peStatus);
-
+                                        VPHAL_VEBOX_STATE(const VPHAL_VEBOX_STATE&) = delete;
+                                        VPHAL_VEBOX_STATE& operator=(const VPHAL_VEBOX_STATE&) = delete;
     virtual                             ~VPHAL_VEBOX_STATE();
 
     virtual MOS_STATUS                  AllocateExecRenderData()
@@ -711,7 +802,7 @@ public:
     //!
     //! \brief    copy Report data
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
     //!
     void CopyReporting(VphalFeatureReport *pReporting);
@@ -719,7 +810,7 @@ public:
     //!
     //! \brief    copy Report data about features
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
     //!
     void CopyFeatureReporting(VphalFeatureReport *pReporting);
@@ -727,9 +818,9 @@ public:
     //!
     //! \brief    copy Report data about resources
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
-    //! 
+    //!
     void CopyResourceReporting(VphalFeatureReport *pReporting);
 
     // External components
@@ -766,11 +857,12 @@ public:
     union
     {
         //  DNDI/VEBOX
-        struct 
+        struct
         {
             VPHAL_SURFACE           *FFDISurfaces[VPHAL_MAX_NUM_FFDI_SURFACES];  //!< FFDI output surface structure
         };
     };
+    VPHAL_SURFACE                   VeboxRGBHistogram = {};            //!< VEBOX RGB Histogram surface for Vebox Gen9+
     VPHAL_SURFACE                   VeboxStatisticsSurface;                     //!< Statistics Surface for VEBOX
     RENDERHAL_SURFACE               RenderHalVeboxStatisticsSurface;            //!< Statistics Surface for VEBOX for MHW
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -795,7 +887,7 @@ public:
     // BNE system memory pointer
     uint8_t*                        pBNEData;                                   //!< System memory for GNE calculating
     uint32_t                        dwBNESize;                                  //!< System memory size for BNE surface
-    
+
     // Statistics
     uint32_t                        dwVeboxPerBlockStatisticsWidth;             //!< Per block statistics width
     uint32_t                        dwVeboxPerBlockStatisticsHeight;            //!< Per block statistics height
@@ -840,7 +932,7 @@ public:
 
     // Platform dependent states
     PRENDERHAL_KERNEL_PARAM         pKernelParamTable;                          //!< Kernel Parameter table
-  
+
     // HW Params
     uint32_t                        dwKernelUpdate;                             //!< Enable/Disable kernel update
 
@@ -848,7 +940,7 @@ public:
 
     // Debug parameters
     char*                           pKernelName;                                //!< Kernel Used for current rendering
-    bool                            bNullHwRenderDnDi;                          //!< Null rendering for DnDi function 
+    bool                            bNullHwRenderDnDi;                          //!< Null rendering for DnDi function
 
     bool                            bEnableMMC;                                 //!< Memory compression enbale flag - read from User feature keys
     bool                            bDisableTemporalDenoiseFilter;              //!< Temporal denoise filter disable flag - read from User feature keys
@@ -858,7 +950,13 @@ public:
     uint32_t                         uiCurrentChannel;                           //!< 0=StereoLeft or nonStereo, 1=StereoRight. N/A in nonStereo
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
-    
+
+    VPHAL_SURFACE                    Vebox3DLookUpTables = {};
+
+    VphalHVSDenoiser                 *m_hvsDenoiser        = nullptr;            //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
+    uint8_t                          *m_hvsKernelBinary    = nullptr;            //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
+    uint32_t                         m_hvsKernelBinarySize = 0;                  //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
+
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
 
@@ -892,23 +990,23 @@ public:
         PCVPHAL_RENDER_PARAMS  pcRenderParams,
         RenderpassData         *pRenderPassData);
 
-	//!
-	//! \brief    Set DI output frame
-	//! \details  Choose 2nd Field of Previous frame or 1st Field of Current frame
-	//!           or both frames
-	//! \param    [in] pRenderData
-	//!           Pointer to Render data
-	//! \param    [in] pVeboxState
-	//!           Pointer to Vebox State
-	//! \param    [in] pVeboxMode
-	//!           Pointer to Vebox Mode
-	//! \return   GFX_MEDIA_VEBOX_DI_OUTPUT_MODE
-	//!           Return Previous/Current/Both frames
-	//!
-	virtual GFX_MEDIA_VEBOX_DI_OUTPUT_MODE SetDIOutputFrame(
-		PVPHAL_VEBOX_RENDER_DATA pRenderData,
-		PVPHAL_VEBOX_STATE       pVeboxState,
-		PMHW_VEBOX_MODE          pVeboxMode);
+    //!
+    //! \brief    Set DI output frame
+    //! \details  Choose 2nd Field of Previous frame or 1st Field of Current frame
+    //!           or both frames
+    //! \param    [in] pRenderData
+    //!           Pointer to Render data
+    //! \param    [in] pVeboxState
+    //!           Pointer to Vebox State
+    //! \param    [in] pVeboxMode
+    //!           Pointer to Vebox Mode
+    //! \return   GFX_MEDIA_VEBOX_DI_OUTPUT_MODE
+    //!           Return Previous/Current/Both frames
+    //!
+    virtual GFX_MEDIA_VEBOX_DI_OUTPUT_MODE SetDIOutputFrame(
+        PVPHAL_VEBOX_RENDER_DATA pRenderData,
+        PVPHAL_VEBOX_STATE       pVeboxState,
+        PMHW_VEBOX_MODE          pVeboxMode);
 
     //!
     //! \brief    Judge if render is needed
@@ -937,7 +1035,7 @@ public:
     }
 
     virtual MOS_STATUS AllocateResources() = 0;
-    
+
     virtual void FreeResources() = 0;
 
     //!
@@ -958,12 +1056,21 @@ public:
 
     virtual void SetupSurfaceStates(
         bool                        bDiVarianceEnable,
-        PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   
+        PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS
                                     pVeboxSurfaceStateCmdParams) = 0;
 
     virtual MOS_STATUS VeboxQueryStatLayout(
         VEBOX_STAT_QUERY_TYPE           QueryType,
         uint32_t*                       pQuery) = 0;
+    //!
+    //! \brief    Update RenderGpuContext
+    //! \details  Update RenderGpuContext
+    //! \param    [in] renderGpuContext
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateRenderGpuContext(
+        MOS_GPU_CONTEXT renderGpuContext);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     //!
@@ -1004,7 +1111,7 @@ public:
         PVPHAL_SURFACE              pSrcSurface) = 0;
 
     virtual bool UseKernelResource()=0;
-    
+
     virtual void VeboxGetBeCSCMatrix(
         PVPHAL_SURFACE                  pSrcSurface,
         PVPHAL_SURFACE                  pOutSurface) = 0;
@@ -1160,6 +1267,19 @@ protected:
         int32_t                                 &iRemaining);
 
     //!
+    //! \brief    Check whether the Vebox command parameters are correct
+    //! \param    [in] VeboxStateCmdParams
+    //!           MHW vebox state cmd params
+    //! \param    [in] VeboxDiIecpCmdParams
+    //!           DiIecpCmd params struct
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS VeboxIsCmdParamsValid(
+        const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
+        const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams);
+
+    //!
     //! \brief    Render the Vebox Cmd buffer for VeboxSendVeboxCmd
     //!           Parameters might remain unchanged in case
     //! \param    [in,out] CmdBuffer
@@ -1196,8 +1316,8 @@ protected:
     //!           [in] Pointers to Vebox Interface
     //! \param    pMhwMiInterface
     //!           [in] Pointers to MI HW Interface
-    //! \param    pInputSurfaceParams
-    //!           [in] Pointers to Vebox Input Interface
+    //! \param    pVeboxSurfaceParams
+    //!           [in] Pointers to Vebox Surface Params Interface
     //! \param    pVeboxDiIecpCmdParams
     //!           [in] Pointers to DI/IECP CMD Params Interface
     //! \param    pCmdBuffer
@@ -1206,11 +1326,11 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS VeboxRenderMMCPipeCmd(
-        PMHW_VEBOX_INTERFACE          pVeboxInterface,
-        MhwMiInterface *              pMhwMiInterface,
-        PMHW_VEBOX_SURFACE_PARAMS     pInputSurfaceParams,
-        PMHW_VEBOX_DI_IECP_CMD_PARAMS pVeboxDiIecpCmdParams,
-        PMOS_COMMAND_BUFFER           pCmdBuffer)
+        PMHW_VEBOX_INTERFACE                pVeboxInterface,
+        MhwMiInterface *                    pMhwMiInterface,
+        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceParams,
+        PMHW_VEBOX_DI_IECP_CMD_PARAMS       pVeboxDiIecpCmdParams,
+        PMOS_COMMAND_BUFFER                 pCmdBuffer)
     {
         MOS_UNUSED(*pCmdBuffer);
         return MOS_STATUS_SUCCESS;
@@ -1477,7 +1597,7 @@ protected:
     virtual MOS_STATUS VeboxFlushUpdateStateAddExtraKernels(
         MOS_COMMAND_BUFFER&                 CmdBuffer,
         MHW_MEDIA_OBJECT_PARAMS&            MediaObjectParams)
-    {  
+    {
         MOS_UNUSED(CmdBuffer);
         MOS_UNUSED(MediaObjectParams);
         return MOS_STATUS_SUCCESS;
@@ -1575,7 +1695,7 @@ protected:
 
     //!
     //! \brief    Check if 2 passes CSC are supported on the platform
-    //!               
+    //!
     virtual bool Is2PassesCscPlatformSupported()
     {
         return false;
@@ -1655,6 +1775,17 @@ protected:
     //!           Return created VphalSfcState pointer
     //!
     virtual VphalSfcState* CreateSfcState() = 0;
+
+    //!
+    //! \brief    Vebox Set Human Vision System based Denoise parameter
+    //! \details  Vebox Set Human Vision System based Denoise parameter
+    //! \param    [in] pSrcSurface
+    //!           Pointer to input surface of Vebox
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS VeboxSetHVSDNParams(
+        PVPHAL_SURFACE pSrcSurface);
 
 };
 

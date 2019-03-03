@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface.cpp  
-//! \brief     Contains Class CmSurface  definitions  
+//! \file      cm_surface.cpp 
+//! \brief     Contains Class CmSurface  definitions 
 //!
 
 #include "cm_surface.h"
@@ -29,16 +29,19 @@
 #include "cm_device_rt.h"
 #include "cm_event_rt.h"
 #include "cm_hal.h"
+#include "cm_mem.h"
 #include "cm_queue_rt.h"
 #include "cm_surface_manager.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destory CmSurface
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurface::Destroy( CmSurface* &pSurface )
+int32_t CmSurface::Destroy( CmSurface* &surface )
 {
-    CmSafeDelete( pSurface );
+    CmSafeDelete( surface );
 
     return CM_SUCCESS;
 }
@@ -48,11 +51,17 @@ int32_t CmSurface::Destroy( CmSurface* &pSurface )
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
-    m_pIndex( nullptr ), 
-    m_SurfaceMgr( surfMgr ), 
-    m_IsCmCreated (isCmCreated)
+    m_index( nullptr ),
+    m_surfaceMgr( surfMgr ),
+    m_isCmCreated (isCmCreated),
+    m_lastRenderTracker(0),
+    m_lastFastTracker(0),
+    m_lastVeboxTracker(0),
+    m_released(false),
+    m_delayDestroyPrev(nullptr),
+    m_delayDestroyNext(nullptr)
 {
-
+    MOS_ZeroMemory(&m_memObjCtrl, sizeof(m_memObjCtrl));
 }
 
 //*-----------------------------------------------------------------------------
@@ -61,7 +70,7 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
 //*-----------------------------------------------------------------------------
 CmSurface::~CmSurface( void )
 {
-    MosSafeDelete(m_pIndex);
+    MosSafeDelete(m_index);
 }
 
 //*-----------------------------------------------------------------------------
@@ -71,8 +80,8 @@ CmSurface::~CmSurface( void )
 int32_t CmSurface::Initialize( uint32_t index )
 {
     // using CM compiler data structure
-    m_pIndex = MOS_New(SurfaceIndex, index);
-    if( m_pIndex )
+    m_index = MOS_New(SurfaceIndex, index);
+    if( m_index )
     {
         return CM_SUCCESS;
     }
@@ -83,40 +92,37 @@ int32_t CmSurface::Initialize( uint32_t index )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Flush the task, once flushed, lock will untill the task finishes 
+//| Purpose:    Flush the task, once flushed, lock will untill the task finishes
 //|             the execution of kernels upon the surface
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
+int32_t CmSurface::FlushDeviceQueue( CmEventRT* event )
 {
-    if( pEvent == nullptr )
+    if( event == nullptr )
     {
         CM_ASSERTMESSAGE("Error: Pointer to CM event is null.")
         return CM_FAILURE;
     }
 
-    CmDeviceRT* pCmDev = nullptr;
-    m_SurfaceMgr->GetCmDevice( pCmDev );
-    CM_ASSERT( pCmDev );
+    CmDeviceRT* device = nullptr;
+    m_surfaceMgr->GetCmDevice( device );
+    CM_ASSERT( device );
 
     //Used for timeout detection
-    CmQueueRT* pCmQueue = nullptr;
-    pEvent->GetQueue(pCmQueue);
-    uint32_t num_tasks; 
-    pCmQueue->GetTaskCount(num_tasks);
-    LARGE_INTEGER freq; 
+    CmQueueRT* cmQueue = nullptr;
+    event->GetQueue(cmQueue);
+    uint32_t numTasks;
+    cmQueue->GetTaskCount(numTasks);
+    LARGE_INTEGER freq;
     MOS_QueryPerformanceFrequency((uint64_t*)&freq.QuadPart);
     LARGE_INTEGER start;
     MOS_QueryPerformanceCounter((uint64_t*)&start.QuadPart);
-    int64_t timeout = start.QuadPart + (CM_MAX_TIMEOUT * freq.QuadPart * num_tasks); //Count to timeout at
+    int64_t timeout = start.QuadPart + (CM_MAX_TIMEOUT * freq.QuadPart * numTasks); //Count to timeout at
 
     CM_STATUS status;
-    pEvent->GetStatusNoFlush( status );
-    // Not necessary CM_STATUS_FINISHED, once flushed, lock will waiti
+    event->GetStatusNoFlush( status );
+    // Not necessary CM_STATUS_FINISHED, once flushed, lock will wait
     // untill the task finishes the execution of kernels upon the surface
-    //while( ( status != CM_STATUS_FLUSHED ) && 
-    //       ( status != CM_STATUS_FINISHED ) &&
-    //       ( status != CM_STATUS_STARTED ) ) 
     while( status == CM_STATUS_QUEUED )
     {
         LARGE_INTEGER current;
@@ -125,7 +131,7 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
         if( current.QuadPart > timeout )
             return CM_EXCEED_MAX_TIMEOUT;
 
-        pEvent->GetStatusNoFlush( status );
+        event->GetStatusNoFlush( status );
     }
 
     return CM_SUCCESS;
@@ -133,15 +139,15 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
 
 int32_t CmSurface::TouchDeviceQueue()
 {
-    CmDeviceRT* pCmDev = nullptr;
+    CmDeviceRT* device = nullptr;
 
-    m_SurfaceMgr->GetCmDevice(pCmDev);
-    CM_ASSERT(pCmDev);
+    m_surfaceMgr->GetCmDevice(device);
+    CM_ASSERT(device);
 
-    std::vector<CmQueueRT *> &pCmQueue = pCmDev->GetQueue();
-    CSync *lock = pCmDev->GetQueueLock();
+    std::vector<CmQueueRT *> &cmQueue = device->GetQueue();
+    CSync *lock = device->GetQueueLock();
     lock->Acquire();
-    for (auto iter = pCmQueue.begin(); iter != pCmQueue.end(); iter++)
+    for (auto iter = cmQueue.begin(); iter != cmQueue.end(); iter++)
     {
         int32_t result = (*iter)->TouchFlushedTasks();
         if (FAILED(result))
@@ -158,14 +164,12 @@ int32_t CmSurface::TouchDeviceQueue()
 int32_t CmSurface::WaitForReferenceFree()
 {
     // Make sure the surface is not referenced any more
-    int32_t * pSurfState = nullptr;
-    m_SurfaceMgr->GetSurfaceState(pSurfState);
-    while (pSurfState[m_pIndex->get_data()])
+    while (!AllReferenceCompleted())
     {
         if (FAILED(TouchDeviceQueue()))
         {
             CM_ASSERTMESSAGE("Error: Failed to touch device queue.")
-             return CM_FAILURE;
+            return CM_FAILURE;
         };
     };
 
@@ -179,37 +183,36 @@ bool CmSurface::MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl)
         return true;
     }
 
-    CmDeviceRT* pCmDevice =  nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    if(pCmDevice == nullptr)
-    {
-        return false;
-    }
-    
-    PCM_HAL_STATE  pCmHalState = ((PCM_CONTEXT_DATA)pCmDevice->GetAccelData())->pCmHalState;
-    if (pCmHalState == nullptr)
+    CmDeviceRT* cmDevice =  nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    if(cmDevice == nullptr)
     {
         return false;
     }
 
-    return pCmHalState->pCmHalInterface->MemoryObjectCtrlPolicyCheck(memCtrl);
+    PCM_HAL_STATE  cmHalState = ((PCM_CONTEXT_DATA)cmDevice->GetAccelData())->cmHalState;
+    if (cmHalState == nullptr)
+    {
+        return false;
+    }
+
+    return cmHalState->cmHalInterface->MemoryObjectCtrlPolicyCheck(memCtrl);
 
 }
 
-int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY_TYPE mem_type, uint32_t age)
+int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age)
 {
-    if (!MemoryObjectCtrlPolicyCheck(mem_ctrl))
+    if (!MemoryObjectCtrlPolicyCheck(memCtrl))
     {
         return CM_FAILURE;
     }
 
-    m_MemObjCtrl.mem_ctrl = mem_ctrl;
-    m_MemObjCtrl.mem_type = mem_type;  
-    m_MemObjCtrl.age= age;
+    m_memObjCtrl.mem_ctrl = memCtrl;
+    m_memObjCtrl.mem_type = memType;
+    m_memObjCtrl.age= age;
 
     return CM_SUCCESS;
 }
-
 
 std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
 {
@@ -224,6 +227,7 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         case CM_SURFACE_FORMAT_NV12:               return "nv12";
         case CM_SURFACE_FORMAT_P016:               return "p016";
         case CM_SURFACE_FORMAT_P010:               return "p010";
+        case CM_SURFACE_FORMAT_P208:               return "p208";
         case CM_SURFACE_FORMAT_V8U8:               return "v8u8";
         case CM_SURFACE_FORMAT_A8L8:               return "a8l8";
         case CM_SURFACE_FORMAT_D16:                return "d16";
@@ -272,6 +276,17 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         case CM_SURFACE_FORMAT_Y16_UNORM:          return "y16un";
         case CM_SURFACE_FORMAT_Y8_UNORM:           return "y8un";
         case CM_SURFACE_FORMAT_BUFFER_2D:          return "buffer2d";
+        case CM_SURFACE_FORMAT_D32F:               return "d32f";
+        case CM_SURFACE_FORMAT_D24_UNORM_S8_UINT:  return "d24uns8ui";
+        case CM_SURFACE_FORMAT_D32F_S8X24_UINT:    return "d32fs8x24ui";
+        case CM_SURFACE_FORMAT_R16G16_SINT:        return "r16g16si";
+        case CM_SURFACE_FORMAT_R16_TYPELESS:       return "r16";
+        case CM_SURFACE_FORMAT_R24G8_TYPELESS:     return "r24g8";
+        case CM_SURFACE_FORMAT_R32_TYPELESS:       return "r32";
+        case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:  return "r32g8x24";
+        case CM_SURFACE_FORMAT_R8_UNORM:           return "r8un";
+        case CM_SURFACE_FORMAT_R32G32B32A32F:      return "rgba32f";
         default:                                   return "Invalid";
     }
+}
 }

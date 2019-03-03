@@ -41,14 +41,13 @@ public:
         CodechalDebugInterface *debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo) : CodechalEncodeAvcEncFeiG9(hwInterface, debugInterface, standardInfo){};
 
-
     //!
     //! \brief    Destructor
     //!
     ~CodechalEncodeAvcEncFeiG9Skl() {};
 
     //!
-    //! \brief    Update the slice count according to the DSS policy
+    //! \brief    Update the slice count according to the DymanicSliceShutdown policy
     //!
     void UpdateSSDSliceCount();
 };

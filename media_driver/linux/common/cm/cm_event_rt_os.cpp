@@ -27,6 +27,8 @@
 #include "cm_event_rt.h"
 #include "cm_queue_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //! Wait for the task completed with event-driven mechanism
 //! When the task finished, CM will be notified and waken up by KMD.
@@ -38,24 +40,24 @@
 //!     CM_FEATURE_NOT_SUPPORTED_IN_DRIVER: if driver out-of-sync.
 //!     CM_EVENT_DRIVEN_FAILURE : if synchronization system call returns WAIT_FAILED.
 //*----------------------------------------------------------------------------------
-CM_RT_API int32_t CmEventRT::WaitForTaskFinished(uint32_t dwTimeOutMs)
+CM_RT_API int32_t CmEventRT::WaitForTaskFinished(uint32_t timeOutMs)
 {
     int32_t result    = CM_SUCCESS;
 
-    if( m_Status == CM_STATUS_FINISHED )
+    if( m_status == CM_STATUS_FINISHED )
         goto finish;
 
     //Make sure task flushed
-    while ( m_Status == CM_STATUS_QUEUED )
+    while ( m_status == CM_STATUS_QUEUED )
     {
-        m_pQueue->FlushTaskWithoutSync();  //Flush none if 1st task NOT finished yet
+        m_queue->FlushTaskWithoutSync();  //Flush none if 1st task NOT finished yet
     }
 
-    CM_ASSERT(m_OsData != nullptr);
+    CM_ASSERT(m_osData != nullptr);
 
     //Wait bo finished
-    result = mos_gem_bo_wait((MOS_LINUX_BO*)m_OsData, 1000000LL*dwTimeOutMs);
-    mos_gem_bo_clear_relocs((MOS_LINUX_BO*)m_OsData, 0);
+    result = mos_gem_bo_wait((MOS_LINUX_BO*)m_osData, 1000000LL*timeOutMs);
+    mos_gem_bo_clear_relocs((MOS_LINUX_BO*)m_osData, 0);
     if (result) {
         result = CM_EXCEED_MAX_TIMEOUT;   //translate the drm ecode (-ETIME or potentional variants) to CM ecode.
         goto finish;
@@ -63,7 +65,7 @@ CM_RT_API int32_t CmEventRT::WaitForTaskFinished(uint32_t dwTimeOutMs)
 
     //Query status
     Query();
-    if(m_Status != CM_STATUS_FINISHED)
+    if(m_status != CM_STATUS_FINISHED)
     {
         // if bo_wai() returns success but status is not finished in time stamp
         // it indicates something wrong in KMD, such as gpu reset happens.
@@ -73,7 +75,7 @@ CM_RT_API int32_t CmEventRT::WaitForTaskFinished(uint32_t dwTimeOutMs)
     }
 
     //Call flush to pop/destroy finished task and flush task in EnqueueedQueue.
-    m_pQueue->FlushTaskWithoutSync();
+    m_queue->FlushTaskWithoutSync();
 
 finish:
     return result;
@@ -93,3 +95,4 @@ void CmEventRT::UnreferenceIfNeeded(void  *pdata)
         mos_bo_unreference((MOS_LINUX_BO*)pdata);
     }
 }
+}  // namespace

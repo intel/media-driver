@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      media_fourcc.h  
+//! \file      media_fourcc.h 
 //! \brief     FourCC color format definitions.
 //!
 #ifndef _MEDIA_FOURCC_H
@@ -33,7 +33,7 @@
 #endif // MAKEFOURCC
 
 // Use the above Equation to get the Fourcc Values
-   
+
 #define FOURCC_YUY2   0x32595559   // Normal YUV 4:2:2 format YUYV..
 #define FOURCC_UYVY   0x59565955   // YUV 4:2:2 format Y Swapped UYVY..
 #define FOURCC_VBID   0x44494256
@@ -49,9 +49,9 @@
 #define FOURCC_2YUY   0x59555932   // Swizzle format of YUY2
 #define FOURCC_Y41P   0x50313459   // YUV 4:1:1 format packed
 #define FOURCC_IMC1   0x31434D49   // as YV12, except the same UV stride as Y
-#define FOURCC_IMC2   0x32434D49   // as IMC1, except UV lines are interleaved at half-stride boundaries 
+#define FOURCC_IMC2   0x32434D49   // as IMC1, except UV lines are interleaved at half-stride boundaries
 #define FOURCC_IMC3   0x33434D49   // as IMC1, except the UV are swaped
-#define FOURCC_IMC4   0x34434D49   // as IMC2, except UV are swaped 
+#define FOURCC_IMC4   0x34434D49   // as IMC2, except UV are swaped
 #define FOURCC_422P   0x50323234   // YUV 4:2:2 planar, internal use only.
 #define FOURCC_NV12   0x3231564e   // YUV 4:2:0 planar, for media
 #define FOURCC_NV11   0x3131564e   // YUV 4:1:1 planar, for media
@@ -61,8 +61,8 @@
 #define FOURCC_P208   0x38303250   // YUV 4:2:2 planar, for media
 #define FOURCC_AYUV   0x56555941   // Format packed for HD media
 #define FOURCC_VXUY   0x59555856   // Swizzle format of AYUV
-#define FOURCC_Y210   0x30313259   // YUV 4:2:2 packed, similar to Y216 but with 10 bits per channel 
-#define FOURCC_Y216   0x36313259   // YUV 4:2:2 packed, similar to YUYV but with 16 bits per channel 
+#define FOURCC_Y210   0x30313259   // YUV 4:2:2 packed, similar to Y216 but with 10 bits per channel
+#define FOURCC_Y216   0x36313259   // YUV 4:2:2 packed, similar to YUYV but with 16 bits per channel
 #define FOURCC_Y410   0x30313459   // YUV 4:4:4 packed, simple UYVA with 10 bits per channel and 2 for alpha
 #define FOURCC_Y416   0x36313459   // YUV 4:4:4 packed, simple UYVA with 16 bits for all channels
 

@@ -20,10 +20,6 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_decode_avc.h
-//! \brief     This modules implements Render interface layer for AVC decoding to be used on all operating systems/DDIs, across CODECHAL components.
-//!
-//!
 //! \file     codechal_decode_avc.h
 //! \brief    Defines the decode interface extension for AVC.
 //! \details  Defines all types, macros, and functions required by CodecHal for AVC decoding.
@@ -36,7 +32,6 @@
 #include "codechal.h"
 #include "codechal_decoder.h"
 #include "codechal_decode_sfc_avc.h"
-#include "codechal_common_avc.h"
 
 //!
 //! \def CODECHAL_DECODE_AVC_MONOPIC_CHROMA_DEFAULT
@@ -55,24 +50,6 @@
 //! invalid value for invalid ref frame index
 //!
 #define CODECHAL_DECODE_AVC_INVALID_REFPIC_VALUE          0x80
-
-//!
-//! \def CODECHAL_DECODE_MAX_SLICE_HDR_SET_SIZE
-//! max slice header set size
-//!
-#define CODECHAL_DECODE_MAX_SLICE_HDR_SET_SIZE            256
-
-//!
-//! \def CODECHAL_DECODE_MAX_SLICE_HDR_LEN_SIZE
-//! max slice header length size
-//!
-#define CODECHAL_DECODE_MAX_SLICE_HDR_LEN_SIZE            2
-
-//!
-//! \def CODECHAL_DECODE_MAX_SLICE_HDR_SET_BUF_SIZE
-//! max slice header buf size
-//!
-#define CODECHAL_DECODE_MAX_SLICE_HDR_SET_BUF_SIZE        CODECHAL_DECODE_MAX_SLICE_HDR_SET_SIZE - CODECHAL_DECODE_MAX_SLICE_HDR_LEN_SIZE
 
 //!
 //! \def CODECHAL_DECODE_AVC_MAX_NUM_MVC_VIEWS
@@ -107,7 +84,7 @@ public:
     } PIC_MHW_PARAMS;
 
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -121,6 +98,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalDecodeAvc(const CodechalDecodeAvc&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalDecodeAvc& operator=(const CodechalDecodeAvc&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     ~CodechalDecodeAvc();
@@ -128,12 +115,12 @@ public:
     //!
     //! \brief    Allocate and initialize AVC decoder standard
     //! \param    [in] settings
-    //!           Pointer to CODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS  AllocateStandard(
-        PCODECHAL_SETTINGS          settings) override;
+        CodechalSetting *          settings) override;
 
     //!
     //! \brief  Set states for each frame to prepare for AVC decode
@@ -180,7 +167,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_FixedSizes();
+    MOS_STATUS          AllocateResourcesFixedSizes();
 
     //!
     //! \brief    Allocate variable sized resources
@@ -188,7 +175,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_VariableSizes();
+    MOS_STATUS          AllocateResourcesVariableSizes();
 
     //!
     //! \brief    Allocate invalid ref buffer
@@ -319,7 +306,25 @@ public:
     //!
     MOS_STATUS          FormatAvcMonoPicture();
 
+    //!
+    //! \brief    Set frame store Id for avc codec.
+    //! \details
+    //! \param    [in] frameIdx
+    //!           frame index
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetFrameStoreIds(uint8_t frameIdx);
+
     MOS_STATUS InitMmcState() override;
+
+    //!
+    //! \brief  Initialize Sfc state for AVC decode
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitSfcState();
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpMvcExtPicParams(
@@ -333,71 +338,72 @@ public:
         uint32_t                numSlices);
 
     MOS_STATUS DumpIQParams(
-        PCODECHAL_AVC_IQ_MATRIX_PARAMS matrixData);
+        PCODEC_AVC_IQ_MATRIX_PARAMS matrixData);
 #endif
 
-private:
+protected:
     //!
     //! \brief  Indicates whether or not the SFC is inuse
     //! \return If SFC is inuse
     //!
-    bool IsSfcInUse(PCODECHAL_SETTINGS codecHalSettings) override
+    bool IsSfcInUse(CodechalSetting * codecHalSettings) override
     {
-        return (codecHalSettings->bDownsamplingHinted && MEDIA_IS_SKU(m_skuTable, FtrSFCPipe));
+        return (codecHalSettings->downsamplingHinted && (MEDIA_IS_SKU(m_skuTable, FtrSFCPipe) && !MEDIA_IS_SKU(m_skuTable, FtrDisableVDBox2SFC)));
     }
 
 public:
                                                                                         // Parameters passed by application
-    uint16_t                        u16PicWidthInMb;                                    //!< Picture Width in MB
-    uint16_t                        u16PicHeightInMb;                                   //!< Picture Height in MB
-    uint16_t                        u16PicWidthInMbLastMaxAlloced;                      //!< Max Picture Width in MB  used for buffer allocation in past frames
-    uint16_t                        u16PicHeightInMbLastMaxAlloced;                     //!< Max Picture Height in MB used for buffer allocation in past frames
-    uint32_t                        u32DataSize;                                        //!< Data size
-    uint32_t                        u32DataOffset;                                      //!< Date offset
-    uint32_t                        u32NumSlices;                                       //!< Num of slices
-    uint32_t                        u32AvcDmvBufferSize;                                //!< DMV Buffer Size
-    uint8_t                         u8AvcMvBufferIndex;                                 //!< MV Buffer Index
-    uint16_t                        u16BsdMpcRowStoreScratchBufferPicWidthInMb;         //!< Bsd Mpc RowStore Scratch Buffer Pic Width in MB
-    uint16_t                        u16MfdIntraRowStoreScratchBufferPicWidthInMb;       //!< Mfd Intra RowStore Scratch Buffer Pic Width in MB
-    uint16_t                        u16MprRowStoreScratchBufferPicWidthInMb;            //!< Mpr RowStore Scratch Buffer Pic Width in MB
-    uint8_t                         u8FirstFieldIdxList[CODECHAL_DECODE_AVC_MAX_NUM_MVC_VIEWS]; //!< First Field Index List
-    uint32_t                        u32RefSurfaceNum;                                   //!< Number of reference frame surface
+    uint16_t m_picWidthInMb;                                              //!< Picture Width in MB
+    uint16_t m_picHeightInMb;                                             //!< Picture Height in MB
+    uint16_t m_picWidthInMbLastMaxAlloced;                                //!< Max Picture Width in MB  used for buffer allocation in past frames
+    uint16_t m_picHeightInMbLastMaxAlloced;                               //!< Max Picture Height in MB used for buffer allocation in past frames
+    uint32_t m_dataSize;                                                  //!< Data size
+    uint32_t m_dataOffset;                                                //!< Date offset
+    uint32_t m_numSlices;                                                 //!< Num of slices
+    uint32_t m_avcDmvBufferSize;                                          //!< DMV Buffer Size
+    uint8_t  m_avcMvBufferIndex;                                          //!< MV Buffer Index
+    uint16_t m_bsdMpcRowStoreScratchBufferPicWidthInMb;                   //!< Bsd Mpc RowStore Scratch Buffer Pic Width in MB
+    uint16_t m_mfdIntraRowStoreScratchBufferPicWidthInMb;                 //!< Mfd Intra RowStore Scratch Buffer Pic Width in MB
+    uint16_t m_mprRowStoreScratchBufferPicWidthInMb;                      //!< Mpr RowStore Scratch Buffer Pic Width in MB
+    uint8_t  m_firstFieldIdxList[CODECHAL_DECODE_AVC_MAX_NUM_MVC_VIEWS];  //!< First Field Index List
+    uint32_t m_refSurfaceNum;                                             //!< Number of reference frame surface
 
-    bool                            bSecondField;                                       //!< Indicate it is second field
-    bool                            bIntelProprietaryFormatInUse;                       //!< Indicate it is Intel Proprietary Format
-    bool                            bShortFormatInUse;                                  //!< Indicate it is Short Format
-    bool                            bPicIdRemappingInUse;                               //!< Indicate PicId Remapping are in use
-    bool                            bDeblockingEnabled;                                 //!< Indicate Deblocking is enabled
+    bool                            m_isSecondField;                                    //!< Indicate it is second field
+    bool                            m_intelEntrypointInUse;                             //!< Indicate it is Intel-specific Format
+    bool                            m_shortFormatInUse;                                 //!< Indicate it is Short Format
+    bool                            m_picIdRemappingInUse;                              //!< Indicate PicId Remapping are in use
+    bool                            m_deblockingEnabled;                                //!< Indicate Deblocking is enabled
+    bool                            m_fullFrameData;                                    //!< Indicate it is a full frame
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_AVC_SFC_STATE          SfcState;                                           //!< Avc Sfc State
+    CodechalAvcSfcState *m_sfcState = nullptr;  //!< Avc Sfc State
 #endif
 
-    CODEC_PICTURE                   CurrPic;                                            //!< Current Picture Struct
-    CODECHAL_AVC_FRAME_STORE_ID     avcFrameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];       //!< Avc Frame Store ID
-    CODEC_AVC_DMV_LIST              avcDmvList[CODEC_AVC_NUM_DMV_BUFFERS];              //!< Avc Dmv List
-    CODEC_PIC_ID                    avcPicIdx[CODEC_AVC_MAX_NUM_REF_FRAME];             //!< Avc Pic Index
+    CODEC_PICTURE            m_currPic;                                       //!< Current Picture Struct
+    CODEC_AVC_FRAME_STORE_ID m_avcFrameStoreId[CODEC_AVC_MAX_NUM_REF_FRAME];  //!< Avc Frame Store ID
+    CODEC_AVC_DMV_LIST       m_avcDmvList[CODEC_AVC_NUM_DMV_BUFFERS];         //!< Avc Dmv List
+    CODEC_PIC_ID             m_avcPicIdx[CODEC_AVC_MAX_NUM_REF_FRAME];        //!< Avc Pic Index
 
-    PCODEC_REF_LIST                 pAvcRefList[CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE]; //!< Pointer to AVC Ref List
-    PCODEC_AVC_PIC_PARAMS           pAvcPicParams;                                      //!< Pointer to AVC picture parameter
-    PCODEC_MVC_EXT_PIC_PARAMS       pMvcExtPicParams;                                   //!< Pointer to MVC ext picture parameter
-    PCODEC_AVC_SLICE_PARAMS         pAvcSliceParams;                                    //!< Pointer to AVC slice parameter
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS  pAvcIQMatrixParams;                                 //!< Pointer to AVC IQ matrix parameter
-    PCODECHAL_VLD_SLICE_RECORD      pVldSliceRecord;
+    PCODEC_REF_LIST             m_avcRefList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];  //!< Pointer to AVC Ref List
+    PCODEC_AVC_PIC_PARAMS       m_avcPicParams;                                    //!< Pointer to AVC picture parameter
+    PCODEC_MVC_EXT_PIC_PARAMS   m_mvcExtPicParams;                                 //!< Pointer to MVC ext picture parameter
+    PCODEC_AVC_SLICE_PARAMS     m_avcSliceParams;                                  //!< Pointer to AVC slice parameter
+    PCODEC_AVC_IQ_MATRIX_PARAMS m_avcIqMatrixParams;                               //!< Pointer to AVC IQ matrix parameter
+    PCODECHAL_VLD_SLICE_RECORD  m_vldSliceRecord;
 
-    MOS_RESOURCE                    resDataBuffer;                                      //!< Handle of Data Buffer
-    MOS_RESOURCE                    resMonoPictureChromaBuffer;                         //!< Handle of MonoPicture's default Chroma data surface
-    MOS_RESOURCE                    resMfdIntraRowStoreScratchBuffer;                   //!< Handle of MFD Intra Row Store Scratch data surface
-    MOS_RESOURCE                    resMfdDeblockingFilterRowStoreScratchBuffer;        //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
-    MOS_RESOURCE                    resBsdMpcRowStoreScratchBuffer;                     //!< Handle of BSD/MPC Row Store Scratch data surface
-    MOS_RESOURCE                    resMprRowStoreScratchBuffer;                        //!< Handle of MPR Row Store Scratch data surface
-    MOS_RESOURCE                    resAvcDmvBuffers[CODEC_AVC_NUM_DMV_BUFFERS];        //!< Handle of Dmv Buffers
-    MOS_RESOURCE                    resInvalidRefBuffer;                                //!< Handle of Invalid Ref Buffer
-    MOS_RESOURCE                    resMvcDummyDmvBuffer[2];                            //!< Handle of Mvc Dummy Dmv Buffer
-    MOS_SURFACE                     sDestSurface;                                       //!< Handle of Dest data surface
-    PMOS_SURFACE                    pRefFrameSurface;                                   //!< Handle of reference frame surface
-    PMOS_RESOURCE                   presReferences[CODEC_AVC_MAX_NUM_REF_FRAME];        //!< Pointer to Handle of Reference Frames
-    MOS_RESOURCE                    resSyncObjectWaContextInUse;                        //!< signals on the video WA context
-    MOS_RESOURCE                    resSyncObjectVideoContextInUse;                     //!< signals on the video context
+    MOS_RESOURCE  m_resDataBuffer;                                //!< Handle of Data Buffer
+    MOS_RESOURCE  m_resMonoPictureChromaBuffer;                   //!< Handle of MonoPicture's default Chroma data surface
+    MOS_RESOURCE  m_resMfdIntraRowStoreScratchBuffer;             //!< Handle of MFD Intra Row Store Scratch data surface
+    MOS_RESOURCE  m_resMfdDeblockingFilterRowStoreScratchBuffer;  //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
+    MOS_RESOURCE  m_resBsdMpcRowStoreScratchBuffer;               //!< Handle of BSD/MPC Row Store Scratch data surface
+    MOS_RESOURCE  m_resMprRowStoreScratchBuffer;                  //!< Handle of MPR Row Store Scratch data surface
+    MOS_RESOURCE  m_resAvcDmvBuffers[CODEC_AVC_NUM_DMV_BUFFERS];  //!< Handle of Dmv Buffers
+    MOS_RESOURCE  m_resInvalidRefBuffer;                          //!< Handle of Invalid Ref Buffer
+    MOS_RESOURCE  m_resMvcDummyDmvBuffer[2];                      //!< Handle of Mvc Dummy Dmv Buffer
+    MOS_SURFACE   m_destSurface;                                  //!< Handle of Dest data surface
+    PMOS_SURFACE  m_refFrameSurface;                              //!< Handle of reference frame surface
+    PMOS_RESOURCE m_presReferences[CODEC_AVC_MAX_NUM_REF_FRAME];  //!< Pointer to Handle of Reference Frames
+    MOS_RESOURCE  m_resSyncObjectWaContextInUse;                  //!< signals on the video WA context
+    MOS_RESOURCE  m_resSyncObjectVideoContextInUse;               //!< signals on the video context
 };
 #endif  // __CODECHAL_DECODER_AVC_H__

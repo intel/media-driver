@@ -21,7 +21,7 @@
 */
 //!
 //! \file     codechal_encode_avc_g10.h
-//! \brief    This file defines the C++ class/interface for Gen10 platform's AVC 
+//! \brief    This file defines the C++ class/interface for Gen10 platform's AVC
 //!           DualPipe encoding to be used across CODECHAL components.
 //!
 
@@ -37,15 +37,15 @@ public:
     //!
     //! \brief    Get encoder kernel header and kernel size
     //!
-    //! \param    [in] pvBinary
+    //! \param    [in] binary
     //!           Pointer to kernel binary
     //! \param    [in] operation
     //!           Enc kernel operation
-    //! \param    [in] dwKrnStateIdx
+    //! \param    [in] krnStateIdx
     //!           Kernel state index
-    //! \param    [out] pvKrnHeader
+    //! \param    [out] krnHeader
     //!           Pointer to kernel header
-    //! \param    [out] pdwKrnSize
+    //! \param    [out] krnSize
     //!           Pointer to kernel size
     //!
     //! \return   MOS_STATUS
@@ -54,9 +54,9 @@ public:
     static MOS_STATUS GetKernelHeaderAndSize(
         void                         *binary,
         EncOperation                 operation,
-		uint32_t                     krnStateIdx,
+        uint32_t                     krnStateIdx,
         void                         *krnHeader,
-		uint32_t                     *krnSize);
+        uint32_t                     *krnSize);
 
     //!
     //! \brief    Constructor
@@ -70,7 +70,6 @@ public:
     //! \brief    Destructor
     //!
     ~CodechalEncodeAvcEncG10();
-
 
     MOS_STATUS ExecuteKernelFunctions();
 
@@ -110,6 +109,10 @@ public:
 
     MOS_STATUS SetCurbeAvcWP(PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params);
 
+    virtual MOS_STATUS SceneChangeReport(
+        PMOS_COMMAND_BUFFER       cmdBuffer,
+        PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params);
+
     MOS_STATUS SendAvcWPSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS params);
@@ -119,7 +122,7 @@ public:
         PCODECHAL_ENCODE_AVC_TQ_PARAMS          trellisQuantParams);
 
     MOS_STATUS GetMbEncKernelStateIdx(
-        PCODECHAL_ENCODE_ID_OFFSET_PARAMS params,
+        CodechalEncodeIdOffsetParams     *params,
         uint32_t                         *kernelOffset);
 
     MOS_STATUS SetupROISurface();
@@ -152,7 +155,7 @@ protected:
     class BrcBlockCopyCurbe;
 
 protected:
-    static constexpr uint32_t m_initBrcHistoryBufferSize = 864;
+    static constexpr uint32_t m_initBrcHistoryBufferSize = 880;
     static constexpr uint32_t m_mbEncrcHistoryBufferSize = 128;
     static constexpr uint32_t m_brcConstSurfaceWidth = 64;
     static constexpr uint32_t m_brcConstSurfaceHeight = 53;
@@ -173,6 +176,7 @@ protected:
     static constexpr uint32_t m_defaultTrellisQuantIntraRounding = 5;
     static constexpr uint32_t m_sfdCostTableBufferSize = 52;
     static constexpr uint32_t m_sfdOutputBufferSize = 128;
+    static constexpr uint32_t m_brcHistoryBufferOffsetSceneChanged = 0x2FC;
 
     static const uint8_t  m_ftq25[64];
     static const uint16_t m_lambdData[256];

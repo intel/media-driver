@@ -20,14 +20,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_dsh.h  
-//! \brief         This module defines render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap.  
+//! \file      renderhal_dsh.h 
+//! \brief         This module defines render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap. 
 //!
 #ifndef __RENDERHAL_DSH_H__
 #define __RENDERHAL_DSH_H__
 
 #include "mhw_state_heap.h"
-#include "renderhal_hashtable.h"
+#include "heap.h"
 
 // Absolute max number of interface descriptors
 #define RENDERHAL_DSH_MAX_MEDIA_IDs 16
@@ -55,8 +55,7 @@ typedef struct _RENDERHAL_DYNAMIC_STATE *PRENDERHAL_DYNAMIC_STATE;
 typedef struct _RENDERHAL_DYNAMIC_STATE
 {
     // Memory block associated with the media state
-    PMHW_STATE_HEAP_MEMORY_BLOCK pMemoryBlock;                                  // block associated with the Media State
-    PMHW_STATE_HEAP_MEMORY_BLOCK pScratchSpace;                                 // block associated with the Scratch Space (must be in same DSH)
+    MemoryBlock                 memoryBlock;                                  // block associated with the Media State
 
     // Dynamic media state regions
     uint32_t                    dwSizeSamplers;                                 // Total samplers size per MediaID
@@ -73,6 +72,7 @@ typedef struct _RENDERHAL_DYNAMIC_STATE
     // State allocations
     int32_t                     iMaxScratchSpacePerThread;                      // Max per thread scratch space reported by JITTER
     uint32_t                    dwScratchSpace;                                 // Size of scratch space needed
+    uint32_t                    scratchSpaceOffset;                             // Offset to scratch space which is relative to General State Base Address
     int32_t                     iCurrentBindingTable;                           // Current binding table
     int32_t                     iCurrentSurfaceState;                           // Current surface state
     PRENDERHAL_KRN_ALLOCATION   pKrnAllocations[RENDERHAL_DSH_MAX_MEDIA_IDs];   // Media Kernel Allocations (1:1 mapping with Media IDs)

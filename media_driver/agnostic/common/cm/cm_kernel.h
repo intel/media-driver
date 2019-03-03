@@ -91,18 +91,18 @@ public:
     //!             global for per kernel arguments and per thread arguments.
     //! \param      [in] size
     //!             Size of the argument.
-    //! \param      [in] pValue
+    //! \param      [in] value
     //!             Pointer to argument value, could be CM_NULL_SURFACE if the
     //!             arg is not used in kernel.
     //! \retval     CM_SUCCESS if the per-kernel argument is set successfully.
     //! \retval     CM_KERNELPAYLOAD_PERKERNELARG_MUTEX_FAIL if the indirect data set
     //! \retval     CM_INVALID_ARG_INDEX if the argument 'index' is incorrect
-    //! \retval     CM_INVALID_ARG_VALUE if the argument 'pValue' is incorrect
+    //! \retval     CM_INVALID_ARG_VALUE if the argument 'value' is incorrect
     //! \retval     CM_INVALID_ARG_SIZE if the argument 'size' is incorrect
     //! \retval     CM_FAILURE otherwise
     CM_RT_API virtual int32_t SetKernelArg(uint32_t index,
                                            size_t size,
-                                           const void *pValue) = 0;
+                                           const void *value) = 0;
 
     //! \brief      Set a per thread argument.
     //! \details    The total size in bytes of all
@@ -119,7 +119,7 @@ public:
     //!             global for per kernel arguments and per thread arguments.
     //! \param      [in] size
     //!             Size of the argument.
-    //! \param      [in] pValue
+    //! \param      [in] value
     //!             Pointer to argument. Setting a value more than once for the
     //!             same threadId and index is allowed, but the sizes must be
     //!             the same.
@@ -127,7 +127,7 @@ public:
     //! \retval     CM_KERNELPAYLOAD_PERKERNELARG_MUTEX_FAIL if the indirect data set
     //! \retval     CM_INVALID_THREAD_INDEX if the argument 'threadId' is incorrect
     //! \retval     CM_INVALID_ARG_INDEX if the argument 'index' is incorrect
-    //! \retval     CM_INVALID_ARG_VALUE if the argument 'pValue' is incorrect
+    //! \retval     CM_INVALID_ARG_VALUE if the argument 'value' is incorrect
     //! \retval     CM_INVALID_ARG_SIZE if the argument 'size' is incorrect
     //! \retval     CM_FAILURE otherwise
     //! \note       This API is not recommended to be used. Using threadspace to indicate
@@ -135,10 +135,10 @@ public:
     CM_RT_API virtual int32_t SetThreadArg(uint32_t threadId,
                                            uint32_t index,
                                            size_t size,
-                                           const void *pValue) = 0;
+                                           const void *value) = 0;
 
     //! \brief      Set a buffer to be a static buffer.
-    //! \details    pValue points to the buffer's surface index. In CM host
+    //! \details    value points to the buffer's surface index. In CM host
     //!             program, currently we can have at most 4 static buffers
     //!             which are indexed as 0~3. These static buffers can be
     //!             accessed by all functions in the kernel. For SKL and newer
@@ -147,90 +147,90 @@ public:
     //!             these static buffers are binded at index 0xf3~0xf6.
     //! \param      [in] index
     //!             Index of the global buffer, valid in 0~3.
-    //! \param      [in] pValue
+    //! \param      [in] value
     //!             Pointer to the CmBuffer's SurfaceIndex.
     //! \retval     CM_SUCCESS is the static buffer is set successfully.
     //! \retval     CM_INVALID_GLOBAL_BUFFER_INDEX if the index is not in 0~3
-    //! \retval     CM_INVALID_BUFFER_HANDLER if pValue is invalid
-    //! \retval     CM_INVALID_ARG_INDEX if the surfaceIndex pointed by pValue is invalid
+    //! \retval     CM_INVALID_BUFFER_HANDLER if value is invalid
+    //! \retval     CM_INVALID_ARG_INDEX if the surfaceIndex pointed by value is invalid
     //! \retval     CM_FAILURE otherwise
     //! \note       The print buffer occupies static buffer index one. If
     //!             CmDevice::InitPrintBuffer is called, static buffer 1 can't be used.
     CM_RT_API virtual int32_t SetStaticBuffer(uint32_t index,
-                                              const void *pValue) = 0;
+                                              const void *value) = 0;
 
     //! \brief      Set the binding table index directly for a surface.
     //! \details    The assigned binding table index should be a valid value
     //!             for buffer, surface 2D, surface2D UP, sampler surface ,
     //!             or sampler 8x8 surface, otherwise, this call will return failure.
     //!             By calling this fucntion, the surfce can be accessed by
-    //!             kernel using the BTIndex directly. No need to pass surface
+    //!             kernel using the btIndex directly. No need to pass surface
     //!             from host to kernel via kernel argument.
-    //! \param      [in] pSurface
+    //! \param      [in] surface
     //!             The surface whose binding table index will be set.
-    //! \param      [in] BTIndex
+    //! \param      [in] bti
     //!             The binding table index. 1~242 on Gen8 and 8~239 on Gen9+ platforms.
     //! \retval     CM_SUCCESS if the binding table index is set successfully.
-    //! \retval     CM_KERNELPAYLOAD_SURFACE_INVALID_BTIINDEX if BTIndex is invalid
+    //! \retval     CM_KERNELPAYLOAD_SURFACE_INVALID_BTIINDEX if btIndex is invalid
     //! \retval     CM_FAILURE otherwise
-    CM_RT_API virtual int32_t SetSurfaceBTI(SurfaceIndex* pSurface,
-                                            uint32_t BTIndex) = 0;
+    CM_RT_API virtual int32_t SetSurfaceBTI(SurfaceIndex* surface,
+                                            uint32_t bti) = 0;
 
     //! \brief      Associate a thread space to this kernel.
     //! \details    This is per kernel thread space.
-    //! \param      [in] pTS
+    //! \param      [in] threadSpace
     //!             the pointer to the CmThreadSpace.
     //! \retval     CM_SUCCESS if the association is successful.
-    //! \retval     CM_INVALID_ARG_VALUE if pTS is invalid
+    //! \retval     CM_INVALID_ARG_VALUE if threadSpace is invalid
     //! \retval     CM_INVALID_KERNEL_THREADSPACE if thread group space is set
     //! \note       It is exclusive with AssociateThreadGroupSpace().
-    CM_RT_API virtual int32_t AssociateThreadSpace(CmThreadSpace* &pTS) = 0;
+    CM_RT_API virtual int32_t AssociateThreadSpace(CmThreadSpace* &threadSpace) = 0;
 
     //! \brief      Associates a thread group space with this kernel.
     //! \details    This is per kernel thread group space. Each kernel will
     //!             tri gger a gpgpu walker command.
-    //! \param      [in] pTGS
+    //! \param      [in] threadGroupSpace
     //!             A pointer ot the CmThreadGroupSpace.
     //! \retval     CM_SUCCESS if the association is successful.
-    //! \retval     CM_INVALID_ARG_VALUE if pTS is invalid
+    //! \retval     CM_INVALID_ARG_VALUE if threadSpace is invalid
     //! \retval     CM_INVALID_KERNEL_THREADSPACE if thread space is set
     //! \note       It is exclusive with AssociateThreadSpace().
     CM_RT_API virtual int32_t
-    AssociateThreadGroupSpace(CmThreadGroupSpace* &pTGS) = 0;
+    AssociateThreadGroupSpace(CmThreadGroupSpace* &threadGroupSpace) = 0;
 
     //! \brief      Set sampler heap position by user.
     //! \details    Unlike surface state, each type of sampler state occupies
     //!             different size of space in the sampler heap. The offset in
     //!             the heap is the BTI index times the size of the sampler.
-    //! \param      [in] pSampler
+    //! \param      [in] sampler
     //!             The SamplerIndex whose binding table index will be set.
     //! \param      [in] nIndex
     //!             The binding table index.
     //! \retval     CM_SUCCESS if the setting is successful.
-    //! \retval     CM_NULL_POINTER if pSampler is nullptr
+    //! \retval     CM_NULL_POINTER if sampler is nullptr
     //! \retval     CM_KERNELPAYLOAD_SAMPLER_INVALID_BTINDEX if nIndex is invalid
     //! \retval     CM_FAILURE otherwise
     CM_RT_API virtual int32_t
-    SetSamplerBTI(SamplerIndex *pSampler, uint32_t nIndex) = 0;
+    SetSamplerBTI(SamplerIndex *sampler, uint32_t nIndex) = 0;
 
     //! \brief      De-associate the thread space from the kernel.
     //! \details    Coupled with AssociateThreadSpace().
-    //! \param      [in] pTS
+    //! \param      [in] threadSpace
     //!             The pointer to CmThreadSpace.
     //! \retval     CM_SUCCESS if the de-associate operation is successful.
-    //! \retval     CM_NULL_POINTER if pTS is nullptr
-    //! \retval     CM_INVALID_ARG_VALUE if pTS has not been set before
-    CM_RT_API virtual int32_t DeAssociateThreadSpace(CmThreadSpace* &pTS) = 0;
+    //! \retval     CM_NULL_POINTER if threadSpace is nullptr
+    //! \retval     CM_INVALID_ARG_VALUE if threadSpace has not been set before
+    CM_RT_API virtual int32_t DeAssociateThreadSpace(CmThreadSpace* &threadSpace) = 0;
 
     //! \brief      De-associate the thread group space from the kernel.
     //! \details    Coupled with AssociateThreadGroupSpace().
-    //! \param      [in] pTGS
+    //! \param      [in] threadGroupSpace
     //!             the pointer to CmThreadGroupSpace.
     //! \retval     CM_SUCCESS if the de-associate operation is successful.
-    //! \retval     CM_NULL_POINTER if pTGS is nullptr
-    //! \retval     CM_INVALID_ARG_VALUE if pTGS has not been set before
+    //! \retval     CM_NULL_POINTER if threadGroupSpace is nullptr
+    //! \retval     CM_INVALID_ARG_VALUE if threadGroupSpace has not been set before
     CM_RT_API virtual int32_t
-    DeAssociateThreadGroupSpace(CmThreadGroupSpace* &pTGS) = 0;
+    DeAssociateThreadGroupSpace(CmThreadGroupSpace* &threadGroupSpace) = 0;
 
     //! \brief      Query the kernel spill memory size.
     //! \details    During Just-In-Time compilation of kernel, if compiler
@@ -249,15 +249,15 @@ public:
     //!             this kernel, a SurfaceIndex is needed for the curbe data.
     //!             This fucntion is to get the surface index of the curbe
     //!             memory for this kernel.
-    //! \param      [in] curbe_data_size
+    //! \param      [in] curbeDataSize
     //!             The size of curbe data.
-    //! \param      [out] surface_index
+    //! \param      [out] surfaceIndex
     //!             The surface index of the curbe data memory.
     //! \retval     CM_SUCCESS if the surface index is get successfully.
     //! \retval     CM_FAILED_TO_CREATE_CURBE_SURFACE if the curbe surface creation failed
     CM_RT_API virtual CM_RETURN_CODE
-    GetIndexForCurbeData(uint32_t curbe_data_size,
-                         SurfaceIndex *surface_index) = 0;
+    GetIndexForCurbeData(uint32_t curbeDataSize,
+                         SurfaceIndex *surfaceIndex) = 0;
 
 public:
     //! \brief      Get the kernel binary of this kernel.

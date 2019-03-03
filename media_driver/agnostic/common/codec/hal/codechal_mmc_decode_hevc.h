@@ -59,8 +59,8 @@ public:
 
     MOS_STATUS CheckReferenceList(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams) override;
-    
-    CodechalDecodeHevc  *m_hevcState = nullptr;     //!< Pinter to HEVC decode state   
+
+    CodechalDecodeHevc  *m_hevcState = nullptr;     //!< Pinter to HEVC decode state
 };
 
 #endif  // __CODECHAL_MMC_DECODE_HEVC

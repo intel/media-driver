@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -211,6 +211,7 @@ public:
        MHW_RESOURCE_PARAMS         ResourceParams;
        MEDIA_WA_TABLE              *pWaTable = nullptr;
        typename TSfcCmds::SFC_STATE_CMD cmd;
+       MHW_MEMORY_OBJECT_CONTROL_PARAMS outputSurfCtrl;
 
        MHW_CHK_NULL_RETURN(pCmdBuffer);
        MHW_CHK_NULL_RETURN(pSfcStateParams);
@@ -228,6 +229,14 @@ public:
        wUYOffset           = 0;
        wVXOffset           = 0;
        wVYOffset           = 0;
+
+       outputSurfCtrl.Value = m_outputSurfCtrl.Value;
+       if (pOsInterface->osCpInterface && pOsInterface->osCpInterface->IsHMEnabled())
+       {
+           outputSurfCtrl.Value = pOsInterface->pfnCachePolicyGetMemoryObject(
+               MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,
+               pOsInterface->pfnGetGmmClientContext(pOsInterface)).DwordValue;
+       }
 
        // Check input/output size
        MHW_ASSERT(pSfcStateParams->dwInputFrameWidth   >= MHW_SFC_MIN_WIDTH);
@@ -301,12 +310,12 @@ public:
        cmd.DW5.SourceRegionHeight           = pSfcStateParams->dwSourceRegionHeight - 1;
        cmd.DW6.SourceRegionHorizontalOffset = pSfcStateParams->dwSourceRegionHorizontalOffset;
        cmd.DW6.SourceRegionVerticalOffset   = pSfcStateParams->dwSourceRegionVerticalOffset;
-       cmd.DW7.OutputFrameWidth             = pSfcStateParams->dwOutputFrameWidth - 1;
-       cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight - 1;
+       cmd.DW7.OutputFrameWidth             = pSfcStateParams->dwOutputFrameWidth + pOutSurface->dwSurfaceXOffset - 1;
+       cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight + pOutSurface->dwSurfaceYOffset - 1;
        cmd.DW8.ScaledRegionSizeWidth        = pSfcStateParams->dwScaledRegionWidth - 1;
        cmd.DW8.ScaledRegionSizeHeight       = pSfcStateParams->dwScaledRegionHeight - 1;
-       cmd.DW9.ScaledRegionHorizontalOffset = pSfcStateParams->dwScaledRegionHorizontalOffset;
-       cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset;
+       cmd.DW9.ScaledRegionHorizontalOffset = pSfcStateParams->dwScaledRegionHorizontalOffset + pOutSurface->dwSurfaceXOffset;
+       cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset + pOutSurface->dwSurfaceYOffset;
 
        // Vertical line issue for SFC 270 degree rotation & NV12 output
        // HW requires Scaled Region Size Width < Output Frame Width && Scaled Region Size Height < Output Frame Height.
@@ -351,7 +360,7 @@ public:
 
        // Set DW19
        cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionEnable                   = pSfcStateParams->bMMCEnable;
-       cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = m_outputSurfCtrl.Gen9.Index;
+       cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = outputSurfCtrl.Gen9.Index;
 
        if (pSfcStateParams->MMCMode == MOS_MMC_VERTICAL)
        {
@@ -366,14 +375,14 @@ public:
                                                       = m_iefLineBufferCtrl.Gen9.Index;
 
        // Set DW29
-       cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ? 
+       cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ?
                                                          true : false;
        cmd.DW29.OutputSurfaceTiled          = (pOutSurface->TileType != MOS_TILE_LINEAR) ?
                                                          true : false;
-       cmd.DW29.OutputSurfaceHalfPitchForChroma 
+       cmd.DW29.OutputSurfaceHalfPitchForChroma
                                                       = bHalfPitchForChroma;
        cmd.DW29.OutputSurfacePitch          = pOutSurface->dwPitch - 1;
-       cmd.DW29.OutputSurfaceInterleaveChromaEnable 
+       cmd.DW29.OutputSurfaceInterleaveChromaEnable
                                                       = bInterleaveChroma;
        cmd.DW29.OutputSurfaceFormat         = cmd.DW3.OutputSurfaceFormatType;
 

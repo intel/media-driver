@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,10 +25,9 @@
 //!
 
 #include "media_interfaces_g8_bdw.h"
-
-#include "codechal_cenc_decode.h"
-#include "codechal_encoder.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g8.h"
+#endif
 
 #ifdef _HYBRID_HEVC_DECODE_SUPPORTED
 #include "codechal_decode_hybrid_hevc.h"
@@ -96,7 +95,7 @@ MOS_STATUS MhwInterfacesG8Bdw::Initialize(
 
     // MHW_CP and MHW_MI must always be created
     MOS_STATUS status;
-    Mhw_Cp_InitInterface(&m_cpInterface, osInterface);
+    m_cpInterface = Create_MhwCpInterface(osInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
 
     if (params.Flags.m_render)
@@ -145,8 +144,18 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
 
     CodechalHwInterface *hwInterface = MOS_New(Hw, osInterface, CodecFunction, mhwInterfaces);
 
+    if (hwInterface == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterface is not valid!");
+        return MOS_STATUS_NO_SPACE;
+    }
 #if USE_CODECHAL_DEBUG_TOOL
     CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterface);
+    if (debugInterface == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("debugInterface is not valid!");
+        return MOS_STATUS_NO_SPACE;
+    }
     if (debugInterface->Initialize(hwInterface, CodecFunction) != MOS_STATUS_SUCCESS)
     {
         CODECHAL_PUBLIC_ASSERTMESSAGE("Debug interface creation failed!");
@@ -201,7 +210,7 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     #ifdef _HYBRID_HEVC_DECODE_SUPPORTED
             if (info->bIsHybridCodec)
             {
-                m_codechalDevice = MOS_New(CODECHAL_DECODE_HYBRID_HEVC_STATE, hwInterface, debugInterface, info);
+                m_codechalDevice = MOS_New(CodechalDecodeHybridHevcState, hwInterface, debugInterface, info);
             }
             else
     #endif
@@ -217,7 +226,7 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     #ifdef _HYBRID_VP9_DECODE_SUPPORTED
             if (info->bIsHybridCodec)
             {
-                m_codechalDevice = MOS_New(CODECHAL_DECODE_HYBRID_VP9_STATE, hwInterface, debugInterface, info);
+                m_codechalDevice = MOS_New(CodechalDecodeHybridVp9State, hwInterface, debugInterface, info);
             }
             else
     #endif
@@ -241,12 +250,12 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
-#ifdef _MPEG2_ENCODE_SUPPORTED
+        CodechalEncoderState *encoder = nullptr;
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
             // Setup encode interface functions
-            CodechalEncoderState* encoder =
-                MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed!");
@@ -258,21 +267,13 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
             }
 
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G8;
-
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-
         }
         else
 #endif
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
-            CodechalEncoderState* encoder = 
-                MOS_New(Encode::Jpeg, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Jpeg, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -286,10 +287,9 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
         }
         else
 #endif
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
-            CodechalEncoderState *encoder = nullptr;
             if (CodecHalIsFeiEncode(info->CodecFunction))
             {
                 encoder = MOS_New(Encode::AvcFei, hwInterface, debugInterface, info);
@@ -307,12 +307,6 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
         }
         else
 #endif
@@ -320,6 +314,16 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+        if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
+        {
+            // Create CSC and Downscaling interface
+            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+#endif
     }
     else
     {
@@ -330,31 +334,18 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-CodechalHwInterface *CodechalInterfacesG8Bdw::CreateCodechalHwInterface(
-    CODECHAL_FUNCTION CodecFunction,
-    MhwInterfaces *mhwInterfaces,
-    PMOS_INTERFACE osInterface)
-{
-    if (mhwInterfaces == nullptr)
-    {
-        CODECHAL_PUBLIC_ASSERTMESSAGE("Create Codechal hardware interfaces failed.");
-        return nullptr;
-    }
-
-    CodechalHwInterface *codechalHwInterface = MOS_New(Hw,
-        osInterface,
-        CodecFunction,
-        mhwInterfaces);
-
-    return codechalHwInterface;
-}
-
 static bool bdwRegisteredCMHal =
     MediaInterfacesFactory<CMHalDevice>::
     RegisterHal<CMHalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 MOS_STATUS CMHalInterfacesG8Bdw::Initialize(CM_HAL_STATE *pCmState)
 {
+    if (pCmState == nullptr)
+    {
+        MHW_ASSERTMESSAGE("pCmState is nullptr.")
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     m_cmhalDevice = MOS_New(CMHal, pCmState);
     if (m_cmhalDevice == nullptr)
     {
@@ -363,23 +354,23 @@ MOS_STATUS CMHalInterfacesG8Bdw::Initialize(CM_HAL_STATE *pCmState)
     }
     uint32_t gengt = PLATFORM_INTEL_GT2;
 
-    if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT1 ))
+    if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT1 ))
     {
         gengt = PLATFORM_INTEL_GT1;
     }
-    else if (MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT1_5))
+    else if (MEDIA_IS_SKU(pCmState->skuTable, FtrGT1_5))
     {
         gengt = PLATFORM_INTEL_GT1_5;
     }
-    else if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT2 ))
+    else if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT2 ))
     {
         gengt = PLATFORM_INTEL_GT2;
     }
-    else if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT3 ))
+    else if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT3 ))
     {
         gengt = PLATFORM_INTEL_GT3;
     }
-    else if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT4 ))
+    else if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT4 ))
     {
         gengt = PLATFORM_INTEL_GT4;
     }
@@ -407,7 +398,7 @@ MOS_STATUS MosUtilDeviceG8Bdw::Initialize()
     MosUtil *device = nullptr;
 
     device = MOS_New(MosUtil);
-	
+    
     if (device == nullptr)
     {
         MOSUTIL_FAILURE();

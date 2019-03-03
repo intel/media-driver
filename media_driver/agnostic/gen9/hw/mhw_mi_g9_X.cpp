@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 
 #include "mhw_mi_g9_X.h"
 #include "mhw_mi_hwcmd_g9_X.h"
+#include "mhw_mmio_g9.h"
 
 MOS_STATUS MhwMiInterfaceG9::AddMiSemaphoreWaitCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
@@ -37,6 +38,7 @@ MOS_STATUS MhwMiInterfaceG9::AddMiSemaphoreWaitCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g9_X::MI_SEMAPHORE_WAIT_CMD *cmd =
         (mhw_mi_g9_X::MI_SEMAPHORE_WAIT_CMD*)cmdBuffer->pCmdPtr;
@@ -56,7 +58,7 @@ MOS_STATUS MhwMiInterfaceG9::AddMiBatchBufferStartCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(batchBuffer);
-    
+
     bool vcsEngineUsed =
         MOS_VCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface));
 
@@ -95,18 +97,17 @@ MOS_STATUS MhwMiInterfaceG9::AddMiConditionalBatchBufferEndCmd(
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->presSemaphoreBuffer);
-    
-    // Force Protected Memory Disabling for Gen8+
-    // Case 1 - Batch buffer condition matches - If this is not present then conditional 
+
+    // Case 1 - Batch buffer condition matches - If this is not present then conditional
     //          batch buffer will  exit to ring with terminating CP.
-    // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP 
+    // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP
     //          but after end of conditional batch buffer CP will be re-enabled.
     MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(m_osInterface, cmdBuffer));
 
     mhw_mi_g9_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD cmd;
     cmd.DW0.UseGlobalGtt        = IsGlobalGttInUse();
     cmd.DW0.CompareSemaphore    = 1; // CompareDataDword is always assumed to be set
-    cmd.DW0.CompareMaskMode     = !params->bDisableCompareMask; 
+    cmd.DW0.CompareMaskMode     = !params->bDisableCompareMask;
     cmd.DW1.CompareDataDword    = params->dwValue;
 
     MHW_RESOURCE_PARAMS resourceParams;
@@ -169,4 +170,14 @@ MOS_STATUS MhwMiInterfaceG9::AddMediaStateFlush(
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+void MhwMiInterfaceG9::InitMmioRegisters()
+{
+    MHW_MI_MMIOREGISTERS *mmioRegisters = &m_mmioRegisters;
+
+    mmioRegisters->generalPurposeRegister0LoOffset            = GP_REGISTER0_LO_OFFSET_G9;
+    mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G9;
+    mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G9;
+    mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G9;
 }

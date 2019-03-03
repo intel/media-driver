@@ -43,7 +43,7 @@ CMRTKernelBase::CMRTKernelBase()
     m_isaName            = nullptr;
     m_kernelName         = nullptr;
     m_curbe              = nullptr;
-    m_osContext          = nullptr;
+    m_isaSize            = 0;
     m_cmSurface2DCount   = 0;
     m_cmSurfaceRef0Count = 0;
     m_cmSurfaceRef1Count = 0;
@@ -55,58 +55,16 @@ CMRTKernelBase::~CMRTKernelBase()
 {
 }
 
-CM_RETURN_CODE CMRTKernelBase::LoadProgramISA(const char* sFilename, CmProgram * &program)
+CM_RETURN_CODE CMRTKernelBase::LoadProgramISA(const uint32_t *isaCode, uint32_t isaSize, CmProgram * &program)
 {
-    int32_t err          = 0;
-    uint32_t codeSize     = 0; 
-    FILE     *fp          = nullptr;
-    void     *codeBuf     = nullptr;
-    int32_t  result; 
-
-    if (sFilename == nullptr)
-    {
-        return CM_FAILURE;
-    }
-
-    // Read in ISA file
-    err = MOS_SecureFileOpen(&fp, sFilename, "rb");
-    if (err != 0)
-    {
-        printf("Error in loading ISA file.");
-        return CM_INVALID_COMMON_ISA;
-    }
-
-    fseek(fp, 0, SEEK_END);
-    codeSize = ftell(fp);
-    rewind(fp);
-    if (codeSize == 0)
-    {
-        printf("Code size is 0.");
-        return CM_FAILURE;
-    }
-
-    codeBuf = malloc(codeSize);
-    if (codeBuf == nullptr)
-    {
-        printf("Malloc for CommonISA Code failed");
-        return CM_FAILURE;
-    }
-
-    if (fread(codeBuf, 1, codeSize, fp) != codeSize) 
-    {
-        printf("Error reading in ISA.");
-        free(codeBuf);
-        return CM_FAILURE;
-    }
-    fclose(fp);
+    int32_t result;
 
     // Load Program
-    result = m_cmDev->LoadProgram(codeBuf, codeSize, program, "-nojitter");
+    result = m_cmDev->LoadProgram((void *)isaCode, isaSize, program, "-nojitter");
     if (result != CM_SUCCESS)
     {
         printf("MDF LoadProgram error: %d\n", result);
     }
-    free(codeBuf);
 
     return CM_SUCCESS;
 
@@ -126,8 +84,7 @@ CM_RETURN_CODE CMRTKernelBase::Init(void *osContext, CmDevice *cmDev, CmQueue *c
         uint32_t version = 0;
         result = CreateCmDevice(m_cmDev, version);
 #else
-        m_osContext = (PMOS_CONTEXT)osContext;
-        result = CreateCmDevice(m_osContext, m_cmDev, CM_DEVICE_CREATE_OPTION_FOR_HEVC);
+        result = CreateCmDevice((PMOS_CONTEXT)osContext, m_cmDev, CM_DEVICE_CREATE_OPTION_FOR_HEVC);
 #endif
         if (result != CM_SUCCESS)
         {
@@ -178,7 +135,7 @@ CM_RETURN_CODE CMRTKernelBase::Init(void *osContext, CmDevice *cmDev, CmQueue *c
     }
     else
     {
-        result = LoadProgramISA(m_isaName, m_cmProgram);
+        result = LoadProgramISA(m_isaName, m_isaSize, m_cmProgram);
         if (result != CM_SUCCESS)
         {
             printf("CmDevice LoadProgramISA error\n");
@@ -196,6 +153,29 @@ CM_RETURN_CODE CMRTKernelBase::Init(void *osContext, CmDevice *cmDev, CmQueue *c
     return CM_SUCCESS;
 }
 
+int32_t CMRTKernelBase::CreateThreadSpace(uint32_t threadSpaceWidth, uint32_t threadSpaceHeight)
+{
+    int32_t result = CM_SUCCESS;
+
+    if (!m_cmThreadSpace)
+    {
+        result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
+    }
+    else
+    {
+        //Destory thread space used before
+        result = m_cmDev->DestroyThreadSpace(m_cmThreadSpace);
+        if (result != CM_SUCCESS)
+        {
+            printf("CM Destroy ThreadSpace error : %d", result);
+            return (CM_RETURN_CODE)result;
+        }
+        result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
+    }
+
+    return result;
+}
+
 CM_RETURN_CODE CMRTKernelBase::AddKernel(CmEvent *&cmEvent, bool destroyEvent, bool isEnqueue)
 {
     if (m_cmTask == nullptr)
@@ -204,10 +184,10 @@ CM_RETURN_CODE CMRTKernelBase::AddKernel(CmEvent *&cmEvent, bool destroyEvent, b
     }
 
     if (m_cmQueue == nullptr)
-    {   
+    {
         CM_CHK_STATUS_RETURN(m_cmDev->CreateQueue(m_cmQueue));//CreateQueue is just get queue of CmDev, so just need call once.
     }
-    
+
     CM_CHK_STATUS_RETURN(m_cmKernel->AssociateThreadSpace(m_cmThreadSpace));
     CM_CHK_STATUS_RETURN(m_cmTask->AddKernel(m_cmKernel));
 
@@ -219,7 +199,7 @@ CM_RETURN_CODE CMRTKernelBase::AddKernel(CmEvent *&cmEvent, bool destroyEvent, b
         {
            CM_CHK_STATUS_RETURN(m_cmQueue->DestroyEvent(cmEvent));
         }
-    } 
+    }
     else
     {
         CM_CHK_STATUS_RETURN(m_cmTask->AddSync());
@@ -328,12 +308,7 @@ void CMRTKernelBase::Destroy()
 
     if(m_cmDev)
     {
-#ifdef ENABLE_CMRT_KERNEL_ULT
         DestroyCmDevice(m_cmDev);
-#else
-        DestroyCmDevice(m_osContext);
-        m_osContext = nullptr;
-#endif
         m_cmDev = nullptr;
     }
 }

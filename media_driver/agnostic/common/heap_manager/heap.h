@@ -69,6 +69,16 @@ public:
     Heap();
 
     //!
+    //! \brief    Copy constructor
+    //!
+    Heap(const Heap&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    Heap& operator=(const Heap&) = delete;
+
+    //!
     //! \brief  Constructor
     //! \param  [in] id
     //!         Identifier for the heap
@@ -171,6 +181,12 @@ protected:
         HEAP_FUNCTION_ENTER_VERBOSE;
         if (!m_keepLocked)
         {
+            if (m_osInterface == nullptr)
+            {
+                HEAP_ASSERTMESSAGE("Invalid m_osInterface(nullptr)");
+                return;
+            }
+
             m_osInterface->pfnUnlockResource(m_osInterface, m_resource);
         }
     }

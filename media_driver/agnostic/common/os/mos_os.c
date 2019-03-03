@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mos_os.c  
-//! \brief      
+//! \file      mos_os.c 
+//! \brief 
 //!
 //!
 //! \file     mos_os.c
@@ -31,6 +31,7 @@
 
 #include "mos_os.h"
 #include "mos_util_debug.h"
+#include "mos_util_user_interface.h"
 
 //!
 //! \brief GLOBAL INITIALIZERS
@@ -42,6 +43,11 @@ const MOS_USER_FEATURE g_MosUserFeatureInit =
     nullptr,                                                                       // pSettingsValues
     0                                                                           // uiNumSettingValues
 };
+
+#if MOS_MEDIASOLO_SUPPORTED
+void *   _MOS_INTERFACE::pvSoloContext = nullptr; 
+uint32_t _MOS_INTERFACE::soloRefCnt = 0;
+#endif  // MOS_MEDIASOLO_SUPPORTED
 
 //! \brief    Unified OS add command to command buffer
 //! \details  Offset returned is dword aligned but size requested can be byte aligned
@@ -59,12 +65,18 @@ MOS_STATUS Mos_AddCommand(
     const void              *pCmd,
     uint32_t                dwCmdSize)
 {
-    uint32_t dwCmdSizeDwAligned;
+    uint32_t dwCmdSizeDwAligned = 0;
 
     //---------------------------------------------
-    MOS_OS_ASSERT(pCmdBuffer);
-    MOS_OS_ASSERT(pCmd);
+    MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
+    MOS_OS_CHK_NULL_RETURN(pCmd);
     //---------------------------------------------
+
+    if (dwCmdSize == 0)
+    {
+        MOS_OS_ASSERTMESSAGE("Incorrect command size to add to command buffer.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
 
     dwCmdSizeDwAligned = MOS_ALIGN_CEIL(dwCmdSize, sizeof(uint32_t));
 
@@ -73,6 +85,8 @@ MOS_STATUS Mos_AddCommand(
 
     if (pCmdBuffer->iRemaining < 0)
     {
+        pCmdBuffer->iOffset    -= dwCmdSizeDwAligned;
+        pCmdBuffer->iRemaining += dwCmdSizeDwAligned;
         MOS_OS_ASSERTMESSAGE("Unable to add command (no space).");
         return MOS_STATUS_UNKNOWN;
     }
@@ -103,23 +117,19 @@ MOS_STATUS Mos_OsFillResource(
     uint32_t          dwSize,
     uint8_t           iValue)
 {
-    MOS_STATUS      eStatus;
-    uint8_t         *pByte;
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsResource);
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    uint8_t *       pByte = nullptr;
     MOS_LOCK_PARAMS LockFlags;
-
-    eStatus = MOS_STATUS_SUCCESS;
-
-    if (dwSize == 0)
-    {
-        goto finish;
-    }
 
     // Lock the surface for writing
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
 
     LockFlags.WriteOnly = 1;
     pByte = (uint8_t*)pOsInterface->pfnLockResource(
-                        pOsInterface, 
+                        pOsInterface,
                         pOsResource,
                         &LockFlags);
 
@@ -152,9 +162,9 @@ MOS_STATUS Mos_OsWaitOnResource(
     MOS_LOCK_PARAMS LockFlags;
 
     //--------------------------
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pOsResource);
-    MOS_OS_ASSERT(pOsInterface->pOsContext);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsResource);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->pOsContext);
     //--------------------------
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -192,7 +202,7 @@ MOS_STATUS Mos_OsGetBitsPerPixel(
 {
     MOS_STATUS eStatus;
     MOS_UNUSED(pOsInterface);
-    
+
     eStatus = MOS_STATUS_SUCCESS;
 
     switch(Format)
@@ -368,8 +378,8 @@ MOS_STATUS Mos_DumpCommandBuffer(
     // Maximum length of engine name is 6
     char            sEngName[6];
 
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pCmdBuffer);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
 
     // Set the name of the engine that is going to be used.
     MOS_GPU_CONTEXT sGpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
@@ -382,13 +392,19 @@ MOS_STATUS Mos_DumpCommandBuffer(
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
             MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
             break;
         case MOS_GPU_CONTEXT_RENDER:
         case MOS_GPU_CONTEXT_RENDER2:
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
-		case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_RENDER_RA:
+        case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
+        case MOS_GPU_CONTEXT_CM_COMPUTE:
             MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
             break;
         case MOS_GPU_CONTEXT_VEBOX:
@@ -407,12 +423,13 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     // Alloc output buffer.
     pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
+    MOS_OS_CHK_NULL(pOutputBuffer);
 
     dwBytesWritten = MOS_SecureStringPrint(
-                         pOutputBuffer, 
+                         pOutputBuffer,
                          SIZE_OF_ONE_WORD * 3,
                          SIZE_OF_ONE_WORD * 3,
-                         "Eng=%s Plat=%s ", 
+                         "Eng=%s Plat=%s ",
                          sEngName, pOsInterface->sPlatformName);
 
     if (pOsInterface->bDumpCommandBufferToFile)
@@ -449,10 +466,10 @@ MOS_STATUS Mos_DumpCommandBuffer(
     for (uint32_t dwIndex = 0; dwIndex < dwNumberOfDwords; dwIndex++)
     {
         dwBytesWritten += MOS_SecureStringPrint(
-            pOutputBuffer + dwBytesWritten, 
-            SIZE_OF_ONE_WORD + 1, 
-            SIZE_OF_ONE_WORD + 1, 
-            "%.8x ", 
+            pOutputBuffer + dwBytesWritten,
+            SIZE_OF_ONE_WORD + 1,
+            SIZE_OF_ONE_WORD + 1,
+            "%.8x ",
             pCmdBuffer->pCmdBase[dwIndex]);
 
         if (dwBytesWritten % (SIZE_OF_ONE_WORD + 1) == 0)
@@ -509,7 +526,7 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 
-    MOS_OS_ASSERT(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
     // Setup member function and variable.
     pOsInterface->pfnDumpCommandBuffer  = Mos_DumpCommandBuffer;
@@ -533,10 +550,10 @@ MOS_STATUS Mos_DumpCommandBufferInit(
         }
 
         MOS_SecureStringPrint(
-            sFileName, 
-            sizeof(sFileName), 
-            sizeof(sFileName), 
-            "%s%c%s", 
+            sFileName,
+            sizeof(sFileName),
+            sizeof(sFileName),
+            "%s%c%s",
             sFileName, MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR);
 
         eStatus = MOS_CreateDirectory(sFileName);
@@ -556,6 +573,127 @@ finish:
 }
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
+std::shared_ptr<GpuCmdResInfoDump> GpuCmdResInfoDump::m_instance = nullptr;
+
+const GpuCmdResInfoDump *GpuCmdResInfoDump::GetInstance()
+{
+    if (m_instance == nullptr)
+    {
+        m_instance = std::make_shared<GpuCmdResInfoDump>();
+    }
+    return m_instance.get();
+}
+
+GpuCmdResInfoDump::GpuCmdResInfoDump()
+{
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
+        &userFeatureData);
+    m_dumpEnabled = userFeatureData.bData;
+
+    if (!m_dumpEnabled)
+    {
+        return;
+    }
+
+    char path[MOS_MAX_PATH_LENGTH + 1];
+    MOS_ZeroMemory(path, sizeof(path));
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.StringData.pStringData = path;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
+        &userFeatureData);
+    if (userFeatureData.StringData.uSize > MOS_MAX_PATH_LENGTH)
+    {
+        userFeatureData.StringData.uSize = 0;
+    }
+    if (userFeatureData.StringData.uSize > 0)
+    {
+        userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
+        userFeatureData.StringData.uSize++;
+    }
+
+    auto tmpPath = std::string(path);
+    if (tmpPath.back() != '/' && tmpPath.back() != '\\')
+    {
+        tmpPath += '/';
+    }
+    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MOS_GetPid()) + ".txt";
+}
+
+void GpuCmdResInfoDump::Dump(PMOS_INTERFACE pOsInterface) const
+{
+    if (!m_dumpEnabled)
+    {
+        return;
+    }
+
+    using std::endl;
+
+    std::ofstream outputFile;
+    outputFile.open(m_path, std::ios_base::app);
+    MOS_OS_ASSERT(outputFile.is_open());
+
+    auto &cmdResInfoPtrs = GetCmdResPtrs(pOsInterface);
+
+    outputFile << "--PerfTag: " << std::to_string(pOsInterface->pfnGetPerfTag(pOsInterface)) << " --Cmd Num: "
+        << cmdResInfoPtrs.size() << " --Dump Count: " << ++m_cnt << endl;
+
+    outputFile << "********************************CMD Paket Begin********************************" << endl;
+    for (auto e : cmdResInfoPtrs)
+    {
+        Dump(e, outputFile);
+    }
+    outputFile << "********************************CMD Paket End**********************************" << endl << endl;
+
+    outputFile.close();
+}
+
+const char *GpuCmdResInfoDump::GetResType(MOS_GFXRES_TYPE resType) const
+{
+    switch (resType)
+    {
+    case MOS_GFXRES_INVALID:
+        return "MOS_GFXRES_INVALID";
+    case MOS_GFXRES_BUFFER:
+        return "MOS_GFXRES_BUFFER";
+    case MOS_GFXRES_2D:
+        return "MOS_GFXRES_2D";
+    case MOS_GFXRES_VOLUME:
+        return "MOS_GFXRES_VOLUME";
+    default:
+        return "";
+    }
+}
+
+const char *GpuCmdResInfoDump::GetTileType(MOS_TILE_TYPE tileType) const
+{
+    switch (tileType)
+    {
+    case MOS_TILE_X:
+        return "MOS_TILE_X";
+    case MOS_TILE_Y:
+        return "MOS_TILE_Y";
+    case MOS_TILE_YF:
+        return "MOS_TILE_YF";
+    case MOS_TILE_YS:
+        return "MOS_TILE_YS";
+    case MOS_TILE_LINEAR:
+        return "MOS_TILE_LINEAR";
+    case MOS_TILE_INVALID:
+        return "MOS_TILE_INVALID";
+    default:
+        return "";
+    }
+}
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
 //! \brief    Unified OS Initializes OS Interface
 //! \details  OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -570,11 +708,16 @@ MOS_STATUS Mos_InitInterface(
     PMOS_CONTEXT   pOsDriverContext,
     MOS_COMPONENT  component)
 {
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+#if !EMUL
+    MOS_OS_CHK_NULL_RETURN(pOsDriverContext);
+#endif
     MOS_STATUS                  eStatus = MOS_STATUS_UNKNOWN;
-    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface;
+    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface = nullptr;
     MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
 
     pOsUserFeatureInterface = &pOsInterface->UserFeatureInterface;
+    MOS_OS_CHK_NULL_RETURN(pOsUserFeatureInterface);
 
     // Setup Member variables
     pOsUserFeatureInterface->pUserFeatureInit = &g_MosUserFeatureInit;
@@ -584,8 +727,11 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->pfnWaitOnResource     = Mos_OsWaitOnResource;
     pOsInterface->pfnGetBitsPerPixel    = Mos_OsGetBitsPerPixel;
     pOsInterface->Component             = component;
-    pOsInterface->bModsEnabled          = true;
+    pOsInterface->modulizedMosEnabled   = true;
     pOsInterface->osContextPtr          = nullptr;
+    pOsInterface->veDefaultEnable       = true;
+
+    pOsInterface->streamIndex = 0;
 
     eStatus = Mos_Specific_InitInterface(pOsInterface, pOsDriverContext);
 
@@ -606,7 +752,8 @@ MOS_STATUS Mos_InitInterface(
 
 #if !EMUL
 MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
-    MOS_HW_RESOURCE_DEF         MosUsage)
+    MOS_HW_RESOURCE_DEF MosUsage,
+    GMM_CLIENT_CONTEXT  *pGmmClientContext)
 {
     GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
     {
@@ -631,7 +778,6 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         GMM_RESOURCE_USAGE_BSDMPC_ROWSTORE_SCRATCH_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_MPR_ROWSTORE_SCRATCH_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_BITPLANE_READ_CODEC,
-        GMM_RESOURCE_USAGE_AACSBIT_VECTOR_CODEC,
         GMM_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_SURFACE_CURR_ENCODE,
         GMM_RESOURCE_USAGE_SURFACE_REF_ENCODE,
@@ -667,49 +813,49 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         GMM_RESOURCE_USAGE_SLICE_STATE_STREAM_OUT_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_CABAC_SYNTAX_STREAM_OUT_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_PRED_COL_STORE_BUFFER_CODEC,
-		GMM_RESOURCE_USAGE_SURFACE_PAK_IMAGESTATE_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_MBENC_BRC_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_MB_BRC_CONST_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_BRC_MB_QP_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_BRC_ROI_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_SLICE_MAP_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_WP_DOWNSAMPLED_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_VDENC_IMAGESTATE_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_PAK_IMAGESTATE_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_MBENC_BRC_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_MB_BRC_CONST_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_BRC_MB_QP_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_BRC_ROI_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_SLICE_MAP_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_WP_DOWNSAMPLED_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_VDENC_IMAGESTATE_ENCODE,
         GMM_RESOURCE_USAGE_SURFACE_UNCACHED,
         GMM_RESOURCE_USAGE_SURFACE_ELLC_ONLY,
         GMM_RESOURCE_USAGE_SURFACE_ELLC_LLC_ONLY,
         GMM_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3,
-		GMM_RESOURCE_USAGE_SURFACE_BRC_HISTORY_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_SOFTWARE_SCOREBOARD_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ME_MV_DATA_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_MV_DISTORTION_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_4XME_DISTORTION_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_INTRA_DISTORTION_ENCODE,
-		GMM_RESOURCE_USAGE_MB_STATS_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_PAK_STATS_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_READ_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_WRITE_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_COMBINED_ENC_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_BRC_CONSTANT_DATA_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_INTERMEDIATE_CU_RECORD_SURFACE_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_SCRATCH_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_LCU_LEVEL_DATA_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_INPUT_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_OUTPUT_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_DEBUG_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_CONSTANT_TABLE_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_CU_RECORD_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_MV_TEMPORAL_BUFFER_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_CU_PACKET_FOR_PAK_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED1_ENCODE,
-		GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED2_ENCODE,
-		GMM_RESOURCE_USAGE_FRAME_STATS_STREAMOUT_DATA_CODEC,
-		GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_LINE_BUFFER_CODEC,
-		GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_COLUMN_BUFFER_CODEC,
-		GMM_RESOURCE_USAGE_HCP_MD_TILE_LINE_CODEC,
-		GMM_RESOURCE_USAGE_HCP_MD_TILE_COLUMN_CODEC,
-		GMM_RESOURCE_USAGE_HCP_SAO_TILE_LINE_CODEC,
-		GMM_RESOURCE_USAGE_HCP_SAO_TILE_COLUMN_CODEC,
+        GMM_RESOURCE_USAGE_SURFACE_BRC_HISTORY_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_SOFTWARE_SCOREBOARD_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ME_MV_DATA_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_MV_DISTORTION_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_4XME_DISTORTION_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_INTRA_DISTORTION_ENCODE,
+        GMM_RESOURCE_USAGE_MB_STATS_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_PAK_STATS_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_READ_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_WRITE_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_COMBINED_ENC_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_BRC_CONSTANT_DATA_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_INTERMEDIATE_CU_RECORD_SURFACE_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_SCRATCH_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_LCU_LEVEL_DATA_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_INPUT_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_OUTPUT_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_DEBUG_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_CONSTANT_TABLE_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_CU_RECORD_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_MV_TEMPORAL_BUFFER_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_CU_PACKET_FOR_PAK_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED1_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED2_ENCODE,
+        GMM_RESOURCE_USAGE_FRAME_STATS_STREAMOUT_DATA_CODEC,
+        GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_LINE_BUFFER_CODEC,
+        GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_COLUMN_BUFFER_CODEC,
+        GMM_RESOURCE_USAGE_HCP_MD_TILE_LINE_CODEC,
+        GMM_RESOURCE_USAGE_HCP_MD_TILE_COLUMN_CODEC,
+        GMM_RESOURCE_USAGE_HCP_SAO_TILE_LINE_CODEC,
+        GMM_RESOURCE_USAGE_HCP_SAO_TILE_COLUMN_CODEC,
         GMM_RESOURCE_USAGE_VP9_PROBABILITY_COUNTER_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_HUC_VIRTUAL_ADDR_REGION_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_SIZE_STREAMOUT_CODEC,
@@ -721,6 +867,7 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         // CM USAGES
         //
         CM_RESOURCE_USAGE_SurfaceState,
+        CM_RESOURCE_USAGE_StateHeap,
         CM_RESOURCE_USAGE_NO_L3_SurfaceState,
         CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
         CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
@@ -728,6 +875,7 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
         CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
         CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
+        CM_RESOURCE_USAGE_L1_Enabled_SurfaceState,
 
         //
         // MP USAGES
@@ -747,14 +895,114 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
 
         // MHW - SFC
         MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,                                //!< SFC output surface
-        MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,              //!< SFC output surface for partial encrypted surfaces
+        MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,              //!< SFC output surface for partial secure surfaces
         MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                                //!< SFC AVS Line buffer Surface
         MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                                //!< SFC IEF Line buffer Surface
 
     };
 
-	MOS_OS_ASSERT(pGmmGlobalContext);
-	MOS_OS_ASSERT(pGmmGlobalContext->GetCachePolicyObj());
-    return pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject(nullptr, GmmResourceUsage[MosUsage]);
+    MOS_OS_ASSERT(pGmmClientContext);
+
+    GMM_RESOURCE_USAGE_TYPE usage = GmmResourceUsage[MosUsage];
+    if (pGmmClientContext->GetCachePolicyElement(usage).Initialized)
+    {
+        return pGmmClientContext->CachePolicyGetMemoryObject(nullptr, usage);
+    }
+    else
+    {
+        return pGmmClientContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
+    }
 }
 #endif
+
+#ifndef SKIP_VE_DEFINE
+MOS_STATUS Mos_CheckVirtualEngineSupported(
+    PMOS_INTERFACE      osInterface,
+    bool                isDecode,
+    bool                veDefaultEnable)
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    PLATFORM                    platform;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
+    MOS_OS_ASSERT(osInterface);
+    MOS_ZeroMemory(&platform, sizeof(PLATFORM));
+
+    osInterface->pfnGetPlatform(osInterface, &platform);
+
+    if (isDecode)
+    {
+        //UMD Decode Virtual Engine Override
+        // 0: disable. can set to 1 only when KMD VE is enabled.
+        // Default value is 1 if not set this key
+        memset(&userFeatureData, 0, sizeof(userFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE_ID,
+            &userFeatureData);
+        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
+
+        // force bSupportVirtualEngine to false when virtual engine not enabled by default
+        if ((!veDefaultEnable || !osInterface->veDefaultEnable) && 
+            (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+        {
+            osInterface->bSupportVirtualEngine = false;
+        }
+
+        auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+        MOS_OS_CHK_NULL_RETURN(skuTable);
+        if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+        {
+            osInterface->ctxBasedScheduling = true;
+        }
+        else
+        {
+            osInterface->ctxBasedScheduling = false;
+        }
+        osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_USER_FEATURE_VALUE_WRITE_DATA  userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+        userFeatureWriteData.Value.i32Data = osInterface->ctxBasedScheduling ? true : false;
+        userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID;
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+#endif
+    }
+    else
+    {
+        //UMD Encode Virtual Engine Override
+        memset(&userFeatureData, 0, sizeof(userFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
+            &userFeatureData);
+        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
+
+        // force bSupportVirtualEngine to false when virtual engine not enabled by default
+        if (!osInterface->veDefaultEnable && (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+        {
+            osInterface->bSupportVirtualEngine = false;
+        }
+
+        auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+        MOS_OS_CHK_NULL_RETURN(skuTable);
+        if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+        {
+            osInterface->ctxBasedScheduling = true;
+        }
+        else
+        {
+            osInterface->ctxBasedScheduling = false;
+        }
+        osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
+    }
+
+    MOS_OS_VERBOSEMESSAGE("Virtual Engine Context based SCheduling enabled:%d.\n", osInterface->ctxBasedScheduling);
+    MOS_OS_VERBOSEMESSAGE("Virtual Engine Multi-node Scaling enabled:%d.\n", osInterface->multiNodeScaling);
+
+    return eStatus;
+}
+#endif // !SKIP_VE_DEFINE
+
+
+

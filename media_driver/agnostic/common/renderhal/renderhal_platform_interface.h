@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_platform_interface.h  
-//! \brief     abstract the platfrom specific APIs into one class  
+//! \file      renderhal_platform_interface.h 
+//! \brief     abstract the platfrom specific APIs into one class 
 //!
 //!
 //! \file     renderhal.h
@@ -39,7 +39,7 @@ class XRenderHal_Platform_Interface
 public:
     XRenderHal_Platform_Interface() {}
     virtual ~XRenderHal_Platform_Interface() {}
-    
+
     //!
     //! \brief    Setup Surface State
     //! \details  Setup Surface States
@@ -75,14 +75,24 @@ public:
     //!
     //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
     //! \details    For BDW GT1/2/3 A0 steppings, per thread scratch space size in VFE state
-    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k … 10=2M
-    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k … 11=2M
+    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k ... 10=2M
+    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k ... 11=2M
     //! \param      PRENDERHAL_INTERFACE pRenderHal
     //!             [in]    Pointer to RenderHal interface
     //! \return     true if BDW A0 stepping, false otherwise
     //!
     virtual bool PerThreadScratchSpaceStart2K(
         PRENDERHAL_INTERFACE pRenderHal) = 0;
+
+    //!
+    //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
+    //! \details    On some new platforms, per thread scratch space size can be 2^n (n >= 6) bytes.
+    //!             If this is supported, total scratch space size can be reduced.
+    //! \return     64-byte base size is supported on specific platforms, so false is returned in
+    //!             base class implementation.
+    //!
+    virtual bool PerThreadScratchSpaceStart64Byte(
+        RENDERHAL_INTERFACE *renderHal) { return false; }
 
     //!
     //! \brief    Encode SLM Size for Interface Descriptor
@@ -204,7 +214,6 @@ public:
     virtual void InitDynamicHeapSettings(
         PRENDERHAL_INTERFACE  pRenderHal) = 0;
 
-
     //!
     //! \brief      Get the depth bit mask for buffer 
     //! \details    Get the depth bit mask for buffer 
@@ -232,7 +241,7 @@ public:
     //! \brief    Set Power Option Status
     //! \param    [in] pRenderHal
     //!           Pointer to Hardware Interface
-    //! \param    [in/out] pCmdBuffer
+    //! \param    [in,out] pCmdBuffer
     //!           Pointer to Command Buffer
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -240,6 +249,37 @@ public:
     virtual MOS_STATUS SetPowerOptionStatus(
         PRENDERHAL_INTERFACE         pRenderHal,
         PMOS_COMMAND_BUFFER          pCmdBuffer) = 0;
+
+    //!
+    //! \brief    Set Composite Prolog CMD
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \param    [in,out] pCmdBuffer
+    //!           Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetCompositePrologCmd(
+        PRENDERHAL_INTERFACE         pRenderHal,
+        PMOS_COMMAND_BUFFER          pCmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief    Get Render Hal MMC Enable/Disable Flag
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS IsRenderHalMMCEnabled(
+        PRENDERHAL_INTERFACE         pRenderHal)
+    {
+        MOS_UNUSED(pRenderHal);
+
+        return MOS_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief    Check if Override is needed or not
@@ -278,14 +318,18 @@ public:
     //!           Pointer to Hardware Interface
     //! \param    [in,out] PlaneDefinition
     //!           Pointer to PlaneDefinition
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual void GetPlaneDefForFormatY216(
+    virtual MOS_STATUS GetPlaneDefForFormatY216(
         bool                       isRenderTarget,
         PRENDERHAL_INTERFACE       pRenderHal,
         RENDERHAL_PLANE_DEFINITION &PlaneDefinition)
     {
-        PlaneDefinition = isRenderTarget ? RENDERHAL_PLANES_Y210_RT : RENDERHAL_PLANES_Y210;
+        PlaneDefinition = isRenderTarget ? RENDERHAL_PLANES_Y210_RT : (pRenderHal->bIsAVS ? RENDERHAL_PLANES_Y210_ADV : RENDERHAL_PLANES_Y210);
+        return MOS_STATUS_SUCCESS;
     };
+
     //! \brief      Set L3 cache override config parameters
     //! \param      [in] pRenderHal
     //!             Pointer to RenderHal Interface Structure
@@ -317,6 +361,61 @@ public:
     //! \return     size_t
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() = 0;
+
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to RenderHal Interface
+    //! \return   true or false
+    virtual bool IsComputeContextInUse(
+        PRENDERHAL_INTERFACE    pRenderHal) = 0;
+
+    //! \brief    Send Compute Walker
+    //! \details  Send Compute Walker
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \param    PRENDERHAL_GPGPU_WALKER_PARAMS pGpGpuWalkerParams
+    //!           [in]    Pointer to GPGPU walker parameters
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SendComputeWalker(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer,
+        PMHW_GPGPU_WALKER_PARAMS    pGpGpuWalkerParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+    //! \brief    Send To 3DState Binding Table Pool Alloc
+    //! \details  Send To 3DState Binding Table Pool Alloc
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SendTo3DStateBindingTablePoolAlloc(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+    //! \brief    Allocates scratch space buffer.
+    //! \details  On some new pltforms, a single scratch space buffer may be allocated and used for
+    //!           all threads.
+    //! \return   Single scratch space buffer is supported on specific platforms, so
+    //!           MOS_STATUS_UNIMPLEMENTED is returned in base class implementation.
+    virtual MOS_STATUS AllocateScratchSpaceBuffer(
+        uint32_t perThreadScratchSpace,
+        RENDERHAL_INTERFACE *renderHal) { return MOS_STATUS_UNIMPLEMENTED; }
+
+    //! \brief    Frees scratch space buffer.
+    //! \details  On some new pltforms, a single scratch space buffer may be allocated and used for
+    //!           all threads.
+    //! \return   Single scratch space buffer is supported on specific platforms, so
+    //!           MOS_STATUS_UNIMPLEMENTED is returned in base class implementation.
+    virtual MOS_STATUS FreeScratchSpaceBuffer(
+        RENDERHAL_INTERFACE *renderHal) { return MOS_STATUS_UNIMPLEMENTED; }
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__

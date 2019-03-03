@@ -219,7 +219,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Skl::AddVdencImgStateCmd(
         {
             int8_t dQpRoi = avcPicParams->ROI[i].PriorityLevelOrDQp;
 
-            // clip delta qp roi to VDEnc supported range 
+            // clip delta qp roi to VDEnc supported range
             priorityLevelOrDQp[i] = (char)CodecHal_Clip3(ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, dQpRoi);
         }
 
@@ -231,7 +231,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Skl::AddVdencImgStateCmd(
         cmd.DW30.RoiQpAdjustmentForZone3 = priorityLevelOrDQp[2];
     }
 
-    if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI)
+    if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI && params->bVdencStreamInEnabled)
     {
         cmd.DW34.RoiEnable = true;
     }

@@ -25,7 +25,7 @@
 #include <cstdio>
 #include "cm_def_os.h"
 
-inline void CmPrintMessage( char *str, ... )
+inline void CmPrintMessage( const char *str, ... )
 {
 #ifdef _DEBUG
     //iSTD::PrintMessage( str );
@@ -43,7 +43,6 @@ inline void CmAssertMessage(const char *message) {
 #else
 #define CmDebugMessage(arg)
 #endif // _DEBUG
-
 
 #define CmReleaseMessage(arg) CmPrintMessage arg
 
@@ -88,7 +87,6 @@ inline void CmAssertMessage(const char *message) {
 }
 #endif
 
-
 #ifndef CHK_FAILURE_RETURN
 #define CHK_FAILURE_RETURN(ret)                                                           \
 {                                                                               \
@@ -99,14 +97,5 @@ inline void CmAssertMessage(const char *message) {
     }                                                                           \
 }
 #endif
-
-typedef void* Handle;
-typedef Handle CmDeviceHandle;
-typedef Handle CmUmdDeviceHandle;
-typedef unsigned int UINT;
-
-
-int NotifyNewDevice(CmDeviceHandle dh, CmUmdDeviceHandle dxh_, uint32_t driverStoreEnabled);
-int NotifyDeviceDestruction(CmDeviceHandle dh, uint32_t driverStoreEnabled);
 
 #endif  // #ifndef CMRTLIB_AGNOSTIC_SHARE_CMDEBUG_H_

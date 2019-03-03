@@ -37,12 +37,12 @@ class OsContext* OsContext::GetOsContextObject()
     return osContextPtr;
 }
 
-void OsContext::CleanUp() 
+void OsContext::CleanUp()
 {
     MOS_OS_FUNCTION_ENTER;
 
     Destroy();
-} 
+}
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 MOS_STATUS OsContext::CommandBufferDumpInit()

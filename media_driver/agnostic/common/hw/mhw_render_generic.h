@@ -80,6 +80,7 @@ public:
         {
             cmd.DW1_2.GeneralStateBaseAddressModifyEnable    = true;
             cmd.DW12.GeneralStateBufferSizeModifyEnable      = true;
+            cmd.DW1_2.GeneralStateMemoryObjectControlState   = params->mocs4GeneralState;
             resourceParams.presResource                      = params->presGeneralState;
             resourceParams.dwOffset                          = 0;
             resourceParams.pdwCmd                            = cmd.DW1_2.Value;
@@ -101,13 +102,14 @@ public:
             uint32_t indirectStateOffset, indirectStateSize;
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetIndirectState(m_osInterface, &indirectStateOffset, &indirectStateSize));
 
-            // When KMD parsing assistance is not used, 
-            // UMD is required to set up the SSH 
-            // in the STATE_BASE_ADDRESS command. 
-            // All addresses used in the STATE_BASE_ADDRESS 
-            // command need to have the modify 
+            // When KMD parsing assistance is not used,
+            // UMD is required to set up the SSH
+            // in the STATE_BASE_ADDRESS command.
+            // All addresses used in the STATE_BASE_ADDRESS
+            // command need to have the modify
             // bit associated with it set to 1.
             cmd.DW4_5.SurfaceStateBaseAddressModifyEnable    = true;
+            cmd.DW4_5.SurfaceStateMemoryObjectControlState   = params->mocs4SurfaceState;
             resourceParams.presResource                      = &cmdBuffer->OsResource;
             resourceParams.dwOffset                          = indirectStateOffset;
             resourceParams.pdwCmd                            = cmd.DW4_5.Value;
@@ -125,6 +127,7 @@ public:
         if (params->presDynamicState)
         {
             cmd.DW6_7.DynamicStateBaseAddressModifyEnable    = true;
+            cmd.DW6_7.DynamicStateMemoryObjectControlState   = params->mocs4DynamicState;
             cmd.DW13.DynamicStateBufferSizeModifyEnable      = true;
             resourceParams.presResource                      = params->presDynamicState;
             resourceParams.dwOffset                          = 0;
@@ -170,6 +173,7 @@ public:
         {
             cmd.DW10_11.InstructionBaseAddressModifyEnable   = true;
             cmd.DW15.InstructionBufferSizeModifyEnable       = true;
+            cmd.DW10_11.InstructionMemoryObjectControlState  = params->mocs4InstructionCache;
             resourceParams.presResource                      = params->presInstructionBuffer;
             resourceParams.dwOffset                          = 0;
             resourceParams.pdwCmd                            = cmd.DW10_11.Value;
@@ -364,7 +368,7 @@ public:
             MHW_ASSERTMESSAGE("No valid buffer to add the command to!");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-        
+
         typename TRenderCmds::MEDIA_OBJECT_CMD cmd;
 
         if (params->dwInlineDataSize > 0)

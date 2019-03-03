@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 #define __MHW_MI_GENERIC_H__
 
 #include "mhw_mi.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 template <class TMiCmds>
 class MhwMiInterfaceGeneric : public MhwMiInterface
@@ -119,11 +119,51 @@ private:
         return formattedOpCode;
     }
 
+    MOS_STATUS SendMarkerCommand(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool isRender)
+    {
+        MOS_STATUS    eStatus    = MOS_STATUS_SUCCESS;
+        PMOS_RESOURCE pResMarker = NULL;
+
+        MHW_FUNCTION_ENTER;
+
+        pResMarker = m_osInterface->pfnGetMarkerResource(m_osInterface);
+
+        if (isRender)
+        {
+            // Send pipe_control to get the timestamp
+            MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
+            MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+            pipeControlParams.presDest          = pResMarker;
+            pipeControlParams.dwResourceOffset  = sizeof(uint64_t);
+            pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+            pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
+
+            MHW_MI_CHK_STATUS(AddPipeControl(cmdBuffer, NULL, &pipeControlParams));
+        }
+        else
+        {
+            // Send flush_dw to get the timestamp
+            MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+            MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+            flushDwParams.pOsResource           = pResMarker;
+            flushDwParams.dwResourceOffset      = sizeof(uint64_t);
+            flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+            flushDwParams.bQWordEnable          = 1;
+
+            MHW_MI_CHK_STATUS(AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+        }
+
+        MOS_SafeFreeMemory(pResMarker);
+        return eStatus;
+    }
+
 protected:
     MhwMiInterfaceGeneric(
         MhwCpInterface      *cpInterface,
         PMOS_INTERFACE      osInterface) : MhwMiInterface(cpInterface, osInterface) {}
-    
+
 public:
     virtual ~MhwMiInterfaceGeneric() { MHW_FUNCTION_ENTER; }
 
@@ -175,9 +215,9 @@ public:
             MHW_MI_CHK_STATUS(AddMediaStateFlush(cmdBuffer, batchBuffer));
         }
 
-        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level 
+        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level
         // and 2nd level BB.  It inserts MI_BATCH_BUFFER_END in both cases.
-        // However, since the 2nd level BB always returens to the 1st level BB and 
+        // However, since the 2nd level BB always returens to the 1st level BB and
         // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
         // Therefre, here only the 1st level BB case needs an Epilog inserted.
         if (cmdBuffer)
@@ -199,9 +239,16 @@ public:
     #endif
         }
 
+        // Send End Marker command
+        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface))
+        {
+            MHW_MI_CHK_STATUS(SendMarkerCommand(
+                cmdBuffer, MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface))));
+        }
+
         return MOS_STATUS_SUCCESS;
     }
-    
+
     MOS_STATUS AddMiBatchBufferEndOnly(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_BATCH_BUFFER               batchBuffer)
@@ -214,9 +261,9 @@ public:
             return MOS_STATUS_NULL_POINTER;
         }
 
-        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level 
+        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level
         // and 2nd level BB.  It inserts MI_BATCH_BUFFER_END in both cases.
-        // However, since the 2nd level BB always returens to the 1st level BB and 
+        // However, since the 2nd level BB always returens to the 1st level BB and
         // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
         // Therefre, here only the 1st level BB case needs an Epilog inserted.
         if (cmdBuffer)
@@ -236,6 +283,13 @@ public:
     #if (_DEBUG || _RELEASE_INTERNAL)
             batchBuffer->iLastCurrent = batchBuffer->iCurrent;
     #endif
+        }
+
+        // Send End Marker command
+        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface))
+        {
+            MHW_MI_CHK_STATUS(SendMarkerCommand(
+                cmdBuffer, MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface))));
         }
 
         return MOS_STATUS_SUCCESS;
@@ -366,7 +420,7 @@ public:
             m_osInterface,
             cmdBuffer,
             &resourceParams));
-    
+
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
         resourceParams.presResource     = params->presSrc;
         resourceParams.dwOffset         = params->dwSrcOffset;
@@ -385,7 +439,7 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
-    
+
     MOS_STATUS AddMiStoreRegisterMemCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
         PMHW_MI_STORE_REGISTER_MEM_PARAMS   params)
@@ -621,7 +675,7 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
-    
+
     MOS_STATUS AddMiSemaphoreWaitCmd(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_MI_SEMAPHORE_WAIT_PARAMS   params)
@@ -649,10 +703,10 @@ public:
 
         cmd.DW0.MemoryType          = IsGlobalGttInUse();
         cmd.DW0.WaitMode            = params->bPollingWaitMode;
-    
+
         cmd.DW0.CompareOperation    = params->CompareOperation;
         cmd.DW1.SemaphoreDataDword  = params->dwSemaphoreData;
-        
+
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
@@ -677,7 +731,7 @@ public:
         PMHW_PIPE_CONTROL_PARAMS        params)
     {
         MHW_FUNCTION_ENTER;
-    
+
         MHW_MI_CHK_NULL(params);
 
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
@@ -751,7 +805,7 @@ public:
                 cmd.DW1.TlbInvalidate                     = params->bTlbInvalidate;
                 cmd.DW1.TextureCacheInvalidationEnable    = params->bInvalidateTextureCache;
                 break;
-                
+
             // No-flush operation requested
             case MHW_FLUSH_NONE:
             default:
@@ -763,7 +817,7 @@ public:
         if (cmd.DW1.CommandStreamerStallEnable &&
             (cmd.DW1.DcFlushEnable == 0 && cmd.DW1.NotifyEnable == 0 && cmd.DW1.PostSyncOperation == 0 &&
              cmd.DW1.DepthStallEnable == 0 && cmd.DW1.StallAtPixelScoreboard == 0 && cmd.DW1.DepthCacheFlushEnable == 0  &&
-             cmd.DW1.RenderTargetCacheFlushEnable == 0)) 
+             cmd.DW1.RenderTargetCacheFlushEnable == 0))
         {
             cmd.DW1.CommandStreamerStallEnable = 0;
         }
@@ -883,7 +937,7 @@ public:
         return TMiCmds::MI_BATCH_BUFFER_START_CMD::byteSize;
     }
 
-    inline uint32_t GetMiBatchBufferEndCmdSize()        
+    inline uint32_t GetMiBatchBufferEndCmdSize()
     {
         return TMiCmds::MI_BATCH_BUFFER_END_CMD::byteSize;
     }
@@ -897,6 +951,39 @@ public:
 
         MHW_CHK_NULL_RETURN(constructedCmdBuf.pCmdPtr);
         *((typename TMiCmds::MI_BATCH_BUFFER_END_CMD *)(constructedCmdBuf.pCmdPtr)) = cmd;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS SetWatchdogTimerThreshold(
+        uint32_t frameWidth,
+        uint32_t frameHeight)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS SetWatchdogTimerRegisterOffset(
+        MOS_GPU_CONTEXT gpuContext)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AddWatchdogTimerStartCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AddWatchdogTimerStopCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        MHW_FUNCTION_ENTER;
 
         return MOS_STATUS_SUCCESS;
     }

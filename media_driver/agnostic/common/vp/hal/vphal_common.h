@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #endif  // EMUL || VPHAL_LIB
 
 #include "mos_os.h"
+#include "vphal_common_hdr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -132,11 +133,83 @@ extern "C" {
 #define VPHAL_SET_SURF_MEMOBJCTL(VpField, GmmUsageEnum)                                                         \
     {                                                                                                           \
         Usage = GmmUsageEnum;                                                                                   \
-        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage);                                        \
+        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage, pOsInterface->pfnGetGmmClientContext(pOsInterface));                                        \
         VpField = MemObjCtrl.DwordValue;                                                                        \
     }
 
 #define VPHAL_MEMORY_OBJECT_CONTROL     uint32_t
+
+// ProcAmp Default Values
+#define PROCAMP_BRIGHTNESS_MIN     -100.0F
+#define PROCAMP_BRIGHTNESS_MAX      100.0F
+#define PROCAMP_BRIGHTNESS_DEFAULT    0.0F
+#define PROCAMP_BRIGHTNESS_STEP       0.1F
+#define PROCAMP_CONTRAST_MIN          0.0F
+#define PROCAMP_CONTRAST_MAX         10.0F
+#define PROCAMP_CONTRAST_DEFAULT      1.0F
+#define PROCAMP_CONTRAST_STEP         0.01F
+#define PROCAMP_HUE_MIN            -180.0F
+#define PROCAMP_HUE_MAX             180.0F
+#define PROCAMP_HUE_DEFAULT           0.0F
+#define PROCAMP_HUE_STEP              0.1F
+#define PROCAMP_SATURATION_MIN        0.0F
+#define PROCAMP_SATURATION_MAX       10.0F
+#define PROCAMP_SATURATION_DEFAULT    1.0F
+#define PROCAMP_SATURATION_STEP       0.01F
+
+// Denoise Default Values
+#define NOISEREDUCTION_MIN            0.0F
+#define NOISEREDUCTION_MAX           64.0F
+#define NOISEREDUCTION_DEFAULT        0.0F
+#define NOISEREDUCTION_STEP           1.0F
+
+// Sharpness Values
+#define EDGEENHANCEMENT_MIN           0.0F
+#define EDGEENHANCEMENT_MAX          64.0F
+#define EDGEENHANCEMENT_DEFAULT      44.0F
+#define EDGEENHANCEMENT_STEP          1.0F
+#define IEF_STRONG_EDGE_WEIGHT          7
+#define IEF_REGULAR_WEIGHT              2
+#define IEF_STRONG_EDGE_THRESHOLD       8
+
+// Skin Tone Detection/Enhancement  values
+#define STE_MIN                       0.0F
+#define STE_MAX                       9.0F
+#define STE_DEFAULT                   3.0F
+#define STE_STEP                      1.0F
+
+// Total Color Correction values
+#define TCC_MIN                       0.0F
+#define TCC_MAX                     255.0F
+#define TCC_DEFAULT                 160.0F
+#define TCC_STEP                      1.0F
+
+// Adaptive Contrast Enhancement values
+#define ACE_LEVEL_DEFAULT               5
+#define ACE_STRENGTH_DEFAULT            1
+
+// Compositing Block size
+#define VPHAL_COMP_BLOCK_WIDTH  16
+#define VPHAL_COMP_BLOCK_HEIGHT 16
+
+// NLAS Default Values
+#define NLAS_VERTICALCROP_MIN         0.0F
+#define NLAS_VERTICALCROP_MAX         1.0F
+#define NLAS_VERTICALCROP_DEFAULT     0.0F
+#define NLAS_VERTICALCROP_STEP        0.001F
+#define NLAS_HLINEARREGION_MIN        0.0F
+#define NLAS_HLINEARREGION_MAX        1.0F
+#define NLAS_HLINEARREGION_DEFAULT    1.0F
+#define NLAS_HLINEARREGION_STEP       0.001F
+#define NLAS_NONLINEARCROP_MIN        0.0F
+#define NLAS_NONLINEARCROP_MAX        1.0F
+#define NLAS_NONLINEARCROP_DEFAULT    0.0F
+#define NLAS_NONLINEARCROP_STEP       0.001F
+
+#define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
+#define VPHAL_MAX_CHANNELS              2
+#define VPHAL_MAX_TARGETS               8        //!< multi output support
+#define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
 {
@@ -160,6 +233,7 @@ typedef struct _VPHAL_DNDI_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL     AlphaOrVignetteSurfMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL     SkinScoreSurfMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL     LaceLookUpTablesSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL     Vebox3DLookUpTablesSurfMemObjCtl;
 } VPHAL_DNDI_CACHE_CNTL, *PVPHAL_DNDI_CACHE_CNTL;
 
 typedef struct _VPHAL_LACE_CACHE_CNTL
@@ -173,6 +247,25 @@ typedef struct _VPHAL_LACE_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL    WeitCoefSurfaceMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL    GlobalToneMappingCurveLUTSurfaceMemObjCtl;
 } VPHAL_LACE_CACHE_CNTL, *PVPHAL_LACE_CACHE_CNTL;
+
+typedef struct _VPHAL_16_ALIGN_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
+}VPHAL_16_ALIGN_CACHE_CNTL, *PVPHAL_16_ALIGN_CACHE_CNTL;
+
+typedef struct _VPHAL_FAST1TON_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
+}VPHAL_FAST1TON_CACHE_CNTL, *PVPHAL_FAST1TON_CACHE_CNTL;
+
 
 //!
 //! \brief  Feature specific cache control settings
@@ -199,7 +292,7 @@ typedef enum _VPHAL_ROTATION
     VPHAL_ROTATION_90                        ,   //!< Rotation 90 degrees
     VPHAL_ROTATION_180                       ,   //!< Rotation 180 degrees
     VPHAL_ROTATION_270                       ,   //!< Rotation 270 degrees
-    VPHAL_MIRROR_HORIZONTAL                  ,   //!< Horizontal Mirror 
+    VPHAL_MIRROR_HORIZONTAL                  ,   //!< Horizontal Mirror
     VPHAL_MIRROR_VERTICAL                    ,   //!< Vertical Mirror
     VPHAL_ROTATE_90_MIRROR_VERTICAL          ,   //!< 90 + V Mirror
     VPHAL_ROTATE_90_MIRROR_HORIZONTAL            //!< 90 + H Mirror
@@ -303,12 +396,27 @@ typedef enum _VPHAL_CSPACE
     CSpace_BT601Gray            ,   //!< BT.601 Y[16,235]
     CSpace_BT601Gray_FullRange  ,   //!< BT.601 Y[0,255]
     CSpace_BT2020               ,   //!< BT.2020 YUV Limited Range 10bit Y[64, 940] UV[64, 960]
-    CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023] 
-    CSpace_BT2020_RGB           ,   //!< BT.2020 RGB Full Range 10bit [0, 1023]  
+    CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023]
+    CSpace_BT2020_RGB           ,   //!< BT.2020 RGB Full Range 10bit [0, 1023]
     CSpace_BT2020_stRGB         ,   //!< BT.2020 RGB Studio Range 10bit [64, 940]
     CSpace_Count                    //!< Keep this at the end
 } VPHAL_CSPACE;
 C_ASSERT(CSpace_Count == 15);       //!< When adding, update assert & vphal_solo_scenario.cpp
+
+//!
+//! Structure VPHAL_GAMMA_TYPE
+//! \brief GAMMA Function type
+//!
+typedef enum _VPHAL_GAMMA_TYPE
+{
+    VPHAL_GAMMA_NONE = 0,
+    VPHAL_GAMMA_TRADITIONAL_GAMMA,
+    VPHAL_GAMMA_SMPTE_ST2084,
+    VPHAL_GAMMA_BT1886,
+    VPHAL_GAMMA_SRGB,
+    VPHAL_GAMMA_Count
+} VPHAL_GAMMA_TYPE;
+C_ASSERT(VPHAL_GAMMA_Count == 5);       //!< When adding, update assert
 
 //!
 //! \def IS_COLOR_SPACE_BT2020_YUV(_a)
@@ -408,11 +516,12 @@ C_ASSERT(BLEND_CONSTANT == 3);      //!< When adding, update assert & vphal_solo
 //!
 typedef enum _VPHAL_SCALING_MODE
 {
-    VPHAL_SCALING_NEAREST,
+    VPHAL_SCALING_NEAREST = 0,
     VPHAL_SCALING_BILINEAR,
-    VPHAL_SCALING_AVS
+    VPHAL_SCALING_AVS,
+    VPHAL_SCALING_ADV_QUALITY        // !< Advance Perf mode
 } VPHAL_SCALING_MODE;
-C_ASSERT(VPHAL_SCALING_AVS == 2);   //!< When adding, update assert & vphal_solo_scenario.cpp
+C_ASSERT(VPHAL_SCALING_ADV_QUALITY == 3);   //!< When adding, update assert & vphal_solo_scenario.cpp
 
 typedef enum _VPHAL_SCALING_PREFERENCE
 {
@@ -459,7 +568,7 @@ typedef enum _VPHAL_DI_REPORT_MODE
 //!
 typedef enum _VPHAL_COLORPACK
 {
-    VPHAL_COLORPACK_420,
+    VPHAL_COLORPACK_420 = 0,
     VPHAL_COLORPACK_422,
     VPHAL_COLORPACK_444,
     VPHAL_COLORPACK_UNKNOWN
@@ -518,6 +627,17 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
 //! Set the Component
 //!
 #define SET_VPHAL_MMC_STATE(_a, _bEnableMMC)          (_a->bEnableMMC =  _bEnableMMC)                    // Set the Component
+
+//-----------------------------------------------------------------------------
+// Forward declaration -
+// IMPORTANT - DDI interfaces are NOT to access internal VPHAL states
+//-----------------------------------------------------------------------------
+typedef struct _RENDERHAL_INTERFACE     *PRENDERHAL_INTERFACE;
+typedef class MhwVeboxInterface         *PMHW_VEBOX_INTERFACE;
+typedef class MhwSfcInterface           *PMHW_SFC_INTERFACE;
+class VphalRenderer;
+
+class MhwCpInterface;
 
 //!
 //! Union   VPHAL_COLOR_SAMPLE_8
@@ -642,6 +762,413 @@ typedef union _VPHAL_HALF_PRECISION_FLOAT
 } VPHAL_HALF_PRECISION_FLOAT, PVPHAL_HALF_PRECISION_FLOAT;
 
 //!
+//! Structure VPHAL_BLENDING_PARAMS
+//! \brief Layer Blending parameters
+//!
+typedef struct _VPHAL_BLENDING_PARAMS
+{
+    VPHAL_BLEND_TYPE        BlendType;
+    float                   fAlpha;
+} VPHAL_BLENDING_PARAMS, *PVPHAL_BLENDING_PARAMS;
+
+//!
+//! Structure VPHAL_LUMAKEY_PARAMS
+//! \brief Luma Keying parameters
+//!
+typedef struct _VPHAL_LUMAKEY_PARAMS
+{
+    int16_t               LumaLow;
+    int16_t               LumaHigh;
+} VPHAL_LUMAKEY_PARAMS, *PVPHAL_LUMAKEY_PARAMS;
+
+//!
+//! Structure VPHAL_PROCAMP_PARAMS
+//! \brief Procamp parameters
+//!
+typedef struct _VPHAL_PROCAMP_PARAMS
+{
+    bool                bEnabled;
+    float               fBrightness;
+    float               fContrast;
+    float               fHue;
+    float               fSaturation;
+} VPHAL_PROCAMP_PARAMS, *PVPHAL_PROCAMP_PARAMS;
+
+//!
+//! Structure VPHAL_IEF_PARAMS
+//! \brief IEF parameters - Image Enhancement (Detail) Filter
+//!
+typedef struct _VPHAL_IEF_PARAMS
+{
+    bool                bEnabled;
+    bool                bSmoothMode;
+    bool                bSkintoneTuned;
+    bool                bEmphasizeSkinDetail;
+    float               fIEFFactor;
+    uint16_t            StrongEdgeWeight;
+    uint16_t            RegularWeight;
+    uint16_t            StrongEdgeThreshold;
+    void*               pExtParam;
+} VPHAL_IEF_PARAMS, *PVPHAL_IEF_PARAMS;
+
+//!
+//! Structure VPHAL_DI_PARAMS
+//! \brief Deinterlacing parameters
+//!
+typedef struct _VPHAL_DI_PARAMS
+{
+    VPHAL_DI_MODE       DIMode;            //!< DeInterlacing mode
+    bool                bEnableFMD;        //!< FMD
+    bool                bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
+    bool                bSCDEnable;        //!< Scene change detection
+} VPHAL_DI_PARAMS, *PVPHAL_DI_PARAMS;
+
+//!
+//! \brief Noise Level Enumeration
+//!
+typedef enum _VPHAL_NOISELEVEL
+{
+    NOISELEVEL_DEFAULT,
+    NOISELEVEL_VC1_HD
+} VPHAL_NOISELEVEL;
+C_ASSERT(NOISELEVEL_VC1_HD == 1); //!< When adding, update assert & vphal_solo_scenario.cpp
+
+//!
+//! Structure VPHAL_HVSDENOISE_PARAMS
+//! \brief HVS Denoise Parameters - Human Vision System Based Denoise
+//!
+typedef struct _VPHAL_HVSDENOISE_PARAMS
+{
+    uint16_t            QP;
+    uint16_t            Strength;
+    void*               pHVSDenoiseParam;
+    uint32_t            dwDenoiseParamSize;
+} VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
+
+//!
+//! Structure VPHAL_DENOISE_PARAMS
+//! \brief Denoise parameters
+//!
+typedef struct _VPHAL_DENOISE_PARAMS
+{
+    bool                            bEnableChroma;
+    bool                            bEnableLuma;
+    bool                            bAutoDetect;
+    float                           fDenoiseFactor;
+    VPHAL_NOISELEVEL                NoiseLevel;
+    bool                            bEnableHVSDenoise;
+    VPHAL_HVSDENOISE_PARAMS         HVSDenoise;
+} VPHAL_DENOISE_PARAMS, *PVPHAL_DENOISE_PARAMS;
+
+//!
+//! Structure VPHAL_STE_PARAMS
+//! \brief STE parameters - Skin Tone Enhancement
+//!
+typedef struct _VPHAL_STE_PARAMS
+{
+    uint32_t            dwSTEFactor;
+} VPHAL_STE_PARAMS, *PVPHAL_STE_PARAMS;
+
+//!
+//! Structure VPHAL_TCC_PARAMS
+//! \brief TCC parameters - Total Color Control
+//!
+typedef struct _VPHAL_TCC_PARAMS
+{
+    uint8_t             Red;
+    uint8_t             Green;
+    uint8_t             Blue;
+    uint8_t             Cyan;
+    uint8_t             Magenta;
+    uint8_t             Yellow;
+} VPHAL_TCC_PARAMS, *PVPHAL_TCC_PARAMS;
+
+//!
+//! Structure VPHAL_COLORPIPE_PARAMS
+//! \brief IECP Parameters - Color Pipe
+//!
+typedef struct _VPHAL_COLORPIPE_PARAMS
+{
+    bool                bEnableACE;
+    bool                bEnableSTE;
+    bool                bEnableTCC;
+    bool                bAceLevelChanged;
+    uint32_t            dwAceLevel;
+    uint32_t            dwAceStrength;
+    VPHAL_STE_PARAMS    SteParams;
+    VPHAL_TCC_PARAMS    TccParams;
+} VPHAL_COLORPIPE_PARAMS, *PVPHAL_COLORPIPE_PARAMS;
+
+//!
+//! Structure VPHAL_SURFACE
+//! \brief DDI-VPHAL surface definition
+//!
+typedef struct VPHAL_SURFACE           *PVPHAL_SURFACE;
+struct VPHAL_SURFACE
+{
+    // Color Information
+    VPHAL_CSPACE                ColorSpace;         //!<Color Space
+    bool                        ExtendedGamut;      //!<Extended Gamut Flag
+    int32_t                     iPalette;           //!<Palette Allocation
+    VPHAL_PALETTE               Palette;            //!<Palette data
+
+    // Rendering parameters
+    RECT                        rcSrc;              //!< Source rectangle
+    RECT                        rcDst;              //!< Destination rectangle
+    RECT                        rcMaxSrc;           //!< Max source rectangle
+    PVPHAL_BLENDING_PARAMS      pBlendingParams;    //!< Blending parameters
+    PVPHAL_LUMAKEY_PARAMS       pLumaKeyParams;     //!< Luma keying parameters
+    PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
+    PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
+    bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
+    bool                        bInterlacedScaling; //!< Interlaced scaling
+    bool                        bFieldWeaving;      //!< Field Weaving
+    bool                        bQueryVariance;     //!< enable variance query
+    bool                        bDirectionalScalar; //!< Vebox Directional Scalar
+    bool                        bFastColorFill;     //!< enable fast color fill without copy surface
+    bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
+
+    // Advanced Processing
+    PVPHAL_DI_PARAMS            pDeinterlaceParams;
+    PVPHAL_DENOISE_PARAMS       pDenoiseParams;     //!< Denoise
+    PVPHAL_COLORPIPE_PARAMS     pColorPipeParams;   //!< ColorPipe
+
+    // Frame ID and reference samples -> for advanced processing
+    int32_t                     FrameID;
+    uint32_t                    uFwdRefCount;
+    uint32_t                    uBwdRefCount;
+    PVPHAL_SURFACE              pFwdRef;
+    PVPHAL_SURFACE              pBwdRef;
+
+    // VPHAL_SURFACE Linked list
+    PVPHAL_SURFACE              pNext;
+
+    //--------------------------------------
+    // FIELDS TO BE SETUP BY VPHAL int32_tERNALLY
+    //--------------------------------------
+    uint32_t                    dwWidth;            //!<  Surface width
+    uint32_t                    dwHeight;           //!<  Surface height
+    uint32_t                    dwPitch;            //!<  Surface pitch
+    MOS_TILE_TYPE               TileType;           //!<  Tile Type
+    bool                        bOverlay;           //!<  Overlay Surface
+    bool                        bFlipChain;         //!<  FlipChain Surface
+    VPHAL_PLANE_OFFSET          YPlaneOffset;       //!<  Y surface plane offset
+    VPHAL_PLANE_OFFSET          UPlaneOffset;       //!<  U surface plane offset
+    VPHAL_PLANE_OFFSET          VPlaneOffset;       //!<  V surface plane offset
+    int32_t                     iLayerID;           //!<  Layer index (0-based index)
+    VPHAL_SCALING_MODE          ScalingMode;        //!<  Scaling Mode
+    VPHAL_SCALING_PREFERENCE    ScalingPreference;  //!<  Scaling preference
+    bool                        bIEF;               //!<  IEF flag
+    uint32_t                    dwSlicePitch;       //!<  SlicePitch of a 3D surface(GT-PIN support)
+
+    //--------------------------------------
+    // FIELDS TO BE PROVIDED BY DDI
+    //--------------------------------------
+    // Sample information
+    MOS_FORMAT                  Format;             //!<  Surface format
+    VPHAL_SURFACE_TYPE          SurfType;           //!<  Surface type (context)
+    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type
+    uint32_t                    dwDepth;            //!<  Surface depth
+    MOS_S3D_CHANNEL             Channel;            //!<  Channel
+    uint32_t                    dwOffset;           //!<  Surface Offset (Y/Base)
+    MOS_RESOURCE                OsResource;         //!<  Surface resource
+    VPHAL_ROTATION              Rotation;           //!<  0: 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degreee
+
+    // Chroma siting
+    uint32_t                    ChromaSiting;
+    bool                        bChromaSiting;      //!<  Chromasiting flag
+
+    // Surface compression mode, enable flags
+    bool                        bCompressible;      // The surface is compressible, means there are additional 128 bit for MMC no matter it is compressed or not
+                                                    // The bIsCompressed in surface allocation structure should use this flag to initialize to allocate a compressible surface
+    bool                        bIsCompressed;      // The surface is compressed, VEBox output can only support horizontal mode, but input can be horizontal / vertical
+    MOS_RESOURCE_MMC_MODE       CompressionMode;
+
+    bool                        bUseSampleUnorm;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
+    bool                        bUseSamplerLumakey; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
+
+    //------------------------------------------
+    // HDR related parameters, provided by DDI
+    //------------------------------------------
+    PVPHAL_HDR_PARAMS           pHDRParams = nullptr;
+    VPHAL_GAMMA_TYPE            GammaType;          //!<Gamma Type
+};
+
+//!
+//! Structure VPHAL_GAMUT_PARAMS
+//! \brief IECP Gamut Mapping Parameters
+//!
+typedef struct _VPHAL_GAMUT_PARAMS
+{
+    VPHAL_GAMUT_MODE    GCompMode;
+    VPHAL_GAMUT_MODE    GExpMode;
+    VPHAL_GAMMA_VALUE   GammaValue;
+    uint32_t            dwAttenuation;       //!< U2.10 [0, 1024] 0 = No down scaling, 1024 = Full down scaling
+    float               displayRGBW_x[4];
+    float               displayRGBW_y[4];
+} VPHAL_GAMUT_PARAMS, *PVPHAL_GAMUT_PARAMS;
+
+//!
+//! Structure VPHAL_NLAS_PARAMS
+//! \brief NLAS parameters - Non-Anamorphic Scaling
+//!
+typedef struct _VPHAL_NLAS_PARAMS
+{
+    float               fVerticalCrop;
+    float               fHLinearRegion;
+    float               fNonLinearCrop;
+} VPHAL_NLAS_PARAMS, *PVPHAL_NLAS_PARAMS;
+
+//!
+//! Structure VPHAL_COLORFILL_PARAMS
+//! \brief ColorFill parameters
+//!
+typedef struct _VPHAL_COLORFILL_PARAMS
+{
+    bool                bYCbCr;
+    uint32_t            Color;
+    VPHAL_CSPACE        CSpace;
+} VPHAL_COLORFILL_PARAMS, *PVPHAL_COLORFILL_PARAMS;
+
+//!
+//! Structure VPHAL_ALPHA_FILL_MODE
+//! \brief Alpha mode
+//!
+typedef enum _VPHAL_ALPHA_FILL_MODE
+{
+    VPHAL_ALPHA_FILL_MODE_NONE = 0,
+    VPHAL_ALPHA_FILL_MODE_OPAQUE,
+    VPHAL_ALPHA_FILL_MODE_BACKGROUND,
+    VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM,
+} VPHAL_ALPHA_FILL_MODE;
+
+//!
+//! Structure VPHAL_ALPHA_PARAMS
+//! \brief Alpha parameters
+//!
+typedef struct _VPHAL_ALPHA_PARAMS
+{
+    float                     fAlpha;
+    VPHAL_ALPHA_FILL_MODE     AlphaMode;
+} VPHAL_ALPHA_PARAMS, *PVPHAL_ALPHA_PARAMS;
+
+//!
+//! Structure VPHAL_CONSTRICTION_PARAMS
+//! \brief Constriction parameters
+//!
+typedef struct _VPHAL_CONSTRICTION_PARAMS
+{
+    RECT                rcConstriction;
+} VPHAL_CONSTRICTION_PARAMS, *PVPHAL_CONSTRICTION_PARAMS;
+
+//!
+//! Structure VPHAL_SPLIT_SCREEN_DEMO_POSITION
+//! \brief Split-Screen Demo Mode Position
+//!
+typedef enum _VPHAL_SPLIT_SCREEN_DEMO_POSITION
+{
+    SPLIT_SCREEN_DEMO_DISABLED = 0,
+    SPLIT_SCREEN_DEMO_LEFT,
+    SPLIT_SCREEN_DEMO_RIGHT,
+    SPLIT_SCREEN_DEMO_TOP,
+    SPLIT_SCREEN_DEMO_BOTTOM,
+    SPLIT_SCREEN_DEMO_END_POS_LIST
+} VPHAL_SPLIT_SCREEN_DEMO_POSITION;
+
+//!
+//! Structure VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
+//! \brief Split-Screen Demo Mode Parameters
+//!
+typedef struct _VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
+{
+    VPHAL_SPLIT_SCREEN_DEMO_POSITION        Position;            //!< Position of split mode area (disable features)
+    bool                                    bDisableACE : 1; //!< Disable ACE
+    bool                                    bDisableAVS : 1; //!< Disable AVS
+    bool                                    bDisableDN : 1; //!< Disable DN
+    bool                                    bDisableFMD : 1; //!< Disable FMD
+    bool                                    bDisableIEF : 1; //!< Disable IEF
+    bool                                    bDisableProcamp : 1; //!< Disable Procamp
+    bool                                    bDisableSTE : 1; //!< Disable STE
+    bool                                    bDisableTCC : 1; //!< Disable TCC
+    bool                                    bDisableIS : 1; //!< Disable IS
+    bool                                    bDisableDrDb : 1; //!< Disable DRDB
+    bool                                    bDisableDNUV : 1; //!< Disable DNUV
+    bool                                    bDisableFRC : 1; //!< Disable FRC
+    bool                                    bDisableLACE : 1; //!< Disable LACE
+} VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS, *PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS;
+
+//!
+//! Structure VPHAL_RENDER_PARAMS
+//! \brief VPHAL Rendering Parameters
+//!
+struct VPHAL_RENDER_PARAMS
+{
+    // Input/output surfaces
+    uint32_t                                uSrcCount;                  //!< Num sources
+    VPHAL_SURFACE                           *pSrc[VPHAL_MAX_SOURCES];   //!< Source Samples
+    uint32_t                                uDstCount;                  //!< Num Targets
+    VPHAL_SURFACE                           *pTarget[VPHAL_MAX_TARGETS];//!< Render Target
+
+                                                                        // Additional parameters not included in PVPHAL_SURFACE
+    PRECT                                   pConstriction;              //!< Constriction rectangle
+    PVPHAL_COLORFILL_PARAMS                 pColorFillParams;           //!< ColorFill - BG only
+    bool                                    bTurboMode;                 //!< Enable Media Turbo Mode
+    bool                                    bStereoMode;                //!< Stereo BLT mode
+    PVPHAL_ALPHA_PARAMS                     pCompAlpha;                 //!< Alpha for composited surfaces
+    bool                                    bDisableDemoMode;           //!< Enable/Disable demo mode function calls
+    PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS    pSplitScreenDemoModeParams; //!< Split-screen demo mode for VP features
+    bool                                    bIsDefaultStream;           //!< Identifier to differentiate default stream
+
+                                                                        // Debugging parameters
+    MOS_COMPONENT                           Component;                  //!< DDI component (for DEBUGGING only)
+
+                                                                        // Status Report
+    bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
+    bool                                    bUserPrt_16Align[VPHAL_MAX_TARGETS];           //!< is system memory 16 bytes alignment requirement.
+    uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
+#endif
+
+    bool                                    bCalculatingAlpha;          //!< Alpha calculation parameters
+
+                                                                        // extension parameters
+    void                                    *pExtensionData;            //!< Extension data
+
+    VPHAL_RENDER_PARAMS() :
+        uSrcCount(0),
+        pSrc(),
+        uDstCount(0),
+        pTarget(),
+        pConstriction(nullptr),
+        pColorFillParams(nullptr),
+        bTurboMode(false),
+        bStereoMode(false),
+        pCompAlpha(nullptr),
+        bDisableDemoMode(false),
+        pSplitScreenDemoModeParams(nullptr),
+        bIsDefaultStream(false),
+        Component(),
+        bReportStatus(false),
+        StatusFeedBackID(0),
+#if (_DEBUG || _RELEASE_INTERNAL)
+        bTriggerGPUHang(false),
+#endif
+        bCalculatingAlpha(false),
+        pExtensionData(nullptr)
+    {
+        for (int i=0; i<VPHAL_MAX_TARGETS; i++)
+        {
+            bUserPrt_16Align[i] = false;
+        }
+    }
+
+};
+
+typedef VPHAL_RENDER_PARAMS *PVPHAL_RENDER_PARAMS;
+typedef const VPHAL_RENDER_PARAMS  *PCVPHAL_RENDER_PARAMS;
+
+//!
 //! \brief    Performs Color Space Convert for Sample 8 bit
 //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
 //! \param    [out] pOutput
@@ -702,17 +1229,27 @@ float VpHal_Sinc(float x);
 //! \param    [in] dwNumEntries
 //!           dword
 //! \param    [in] fLanczosT
-//!            
+//! 
 //! \return   float
 //!           lanczos(x)
 //!
 float VpHal_Lanczos(
-    float		x, 
-    uint32_t	dwNumEntries, 
-    float		fLanczosT);
+    float        x,
+    uint32_t    dwNumEntries,
+    float        fLanczosT);
 
-typedef struct VPHAL_SURFACE           *PVPHAL_SURFACE;
+//!
+//! Structure VPHAL_GET_SURFACE_INFO
+//! \brief VPHAL Get Surface Infomation Parameters
+//!
+
 typedef struct VPHAL_GET_SURFACE_INFO  *PVPHAL_GET_SURFACE_INFO;
+struct VPHAL_GET_SURFACE_INFO
+{
+  uint32_t          ArraySlice;
+  uint32_t          MipSlice;
+  MOS_S3D_CHANNEL   S3dChannel;
+};
 
 //!
 //! \brief    Get Surface Info from OsResource
@@ -726,7 +1263,7 @@ typedef struct VPHAL_GET_SURFACE_INFO  *PVPHAL_GET_SURFACE_INFO;
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpHal_GetSurfaceInfo( 
+MOS_STATUS VpHal_GetSurfaceInfo(
     PMOS_INTERFACE           pOsInterface,
     PVPHAL_GET_SURFACE_INFO  pInfo,
     PVPHAL_SURFACE           pSurface);
@@ -765,7 +1302,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     PMOS_INTERFACE          pOsInterface,                                       // [in]    Pointer to OS Interface
     PVPHAL_SURFACE          pSurface,                                           // [in/out]Pointer to surface
     PCCHAR                  pSurfaceName,                                       // [in]    Pointer to surface name
-    MOS_FORMAT              Format,                                             // [in]    Surface Format 
+    MOS_FORMAT              Format,                                             // [in]    Surface Format
     MOS_GFXRES_TYPE         DefaultResType,                                     // [in]    Default Resource Type to use if resource has not be allocated yet
     MOS_TILE_TYPE           DefaultTileType,                                    // [in]    Default Resource Tile Type to use if resource has not be allocated yet
     uint32_t                dwWidth,                                            // [in]    Resource Width

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -318,7 +318,7 @@ protected:
                 }
             }
             MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
-           
+
             cmd.DW1.Obj0.Avc = avcQmIntra8x8;
             for (auto i = 0; i < 64; i++)
             {
@@ -384,12 +384,10 @@ protected:
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_AVC_REF_IDX_PARAMS params)
     {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(params);
-       
+
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("No valid buffer to add the command to!");
@@ -398,54 +396,65 @@ protected:
 
         typename TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD cmd;
 
-        auto avcRefList = params->ppAvcRefList;
-        AvcRefListWrite *cmdAvcRefListWrite = (AvcRefListWrite *)&(cmd.ReferenceListEntry);
-
-        cmd.DW1.RefpiclistSelect = params->uiList;
-
-        uint8_t picIDOneOnOneMapping = 0;
-        for (uint32_t i = 0; i < params->uiNumRefForList; i++)
+        // Need to add an empty MFX_AVC_REF_IDX_STATE_CMD for dummy reference on I-Frame
+        if (!params->bDummyReference)
         {
-            uint8_t idx = params->RefPicList[params->uiList][i].FrameIdx;
+            auto uiList = params->uiList;
 
-            if (!params->bIntelProprietaryFormatInUse)
+            cmd.DW1.RefpiclistSelect = uiList;
+
+            CODEC_REF_LIST  **avcRefList        = (CODEC_REF_LIST **)params->avcRefList;
+            AvcRefListWrite *cmdAvcRefListWrite = (AvcRefListWrite *)&(cmd.ReferenceListEntry);
+
+            uint8_t picIDOneOnOneMapping = 0;
+            if (params->bVdencInUse && uiList == LIST_1)
             {
-                if (idx >= CODEC_MAX_NUM_REF_FRAME)
+                picIDOneOnOneMapping += params->uiNumRefForList[LIST_0] << 1;
+            }
+
+            for (uint32_t i = 0; i < params->uiNumRefForList[uiList]; i++)
+            {
+                uint8_t idx = params->RefPicList[uiList][i].FrameIdx;
+
+                if (!params->bIntelEntrypointInUse)
                 {
-                    MHW_ASSERT(false); // Idx must be within 0 to 15
-                    idx = 0;
+                    if (idx >= CODEC_MAX_NUM_REF_FRAME)
+                    {
+                        MHW_ASSERT(false); // Idx must be within 0 to 15
+                        idx = 0;
+                    }
+
+                    idx = params->pAvcPicIdx[idx].ucPicIdx;
                 }
 
-                idx = params->pAvcPicIdx[idx].ucPicIdx;
+                uint8_t picID = params->bPicIdRemappingInUse ?
+                    params->RefPicList[uiList][i].FrameIdx : avcRefList[idx]->ucFrameId;
+
+                // When one on one ref idx mapping is enabled, program picID count from 0, 2 ...
+                if (params->oneOnOneMapping)
+                {
+                    picID = picIDOneOnOneMapping;
+                    picIDOneOnOneMapping += 2;
+                }
+                cmdAvcRefListWrite->UC[i].frameStoreID = picID;
+                cmdAvcRefListWrite->UC[i].bottomField =
+                    CodecHal_PictureIsBottomField(params->RefPicList[uiList][i]);
+                cmdAvcRefListWrite->UC[i].fieldPicFlag =
+                    CodecHal_PictureIsField(params->RefPicList[uiList][i]);
+                cmdAvcRefListWrite->UC[i].longTermFlag =
+                    CodecHal_PictureIsLongTermRef(avcRefList[idx]->RefPic);
+                cmdAvcRefListWrite->UC[i].nonExisting = 0;
             }
 
-            uint8_t picID = params->bPicIdRemappingInUse ?
-                params->RefPicList[params->uiList][i].FrameIdx : avcRefList[idx]->ucFrameId;
-
-            // When one on one ref idx mapping is enabled, program picID count from 0, 2 ...
-            if (params->oneOnOneMapping)
+            for (auto i = params->uiNumRefForList[uiList]; i < 32; i++)
             {
-                picID = picIDOneOnOneMapping;
-                picIDOneOnOneMapping += 2;
+                cmdAvcRefListWrite->UC[i].value = 0x80;
             }
-            cmdAvcRefListWrite->UC[i].frameStoreID = picID;
-            cmdAvcRefListWrite->UC[i].bottomField =
-                CodecHal_PictureIsBottomField(params->RefPicList[params->uiList][i]);
-            cmdAvcRefListWrite->UC[i].fieldPicFlag =
-                CodecHal_PictureIsField(params->RefPicList[params->uiList][i]);
-            cmdAvcRefListWrite->UC[i].longTermFlag =
-                CodecHal_PictureIsLongTermRef(avcRefList[idx]->RefPic);
-            cmdAvcRefListWrite->UC[i].nonExisting = 0;
-        }
-
-        for (auto i = params->uiNumRefForList; i < 32; i++)
-        {
-            cmdAvcRefListWrite->UC[i].value = 0x80;
         }
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddMfxDecodeAvcWeightOffset(
@@ -667,7 +676,7 @@ protected:
         auto seqParams = avcSliceState->pEncodeAvcSeqParams;
         auto sliceParams = avcSliceState->pEncodeAvcSliceParams;
         auto picParams = avcSliceState->pEncodeAvcPicParams;
-        
+
         uint16_t widthInMb = seqParams->pic_width_in_mbs_minus1 + 1;
         uint16_t frameFieldHeightInMb = avcSliceState->wFrameFieldHeightInMB;
         bool mbaffFrameFlag = seqParams->mb_adaptive_frame_field_flag ? true : false;
@@ -700,11 +709,11 @@ protected:
         //DW6
         cmd.DW6.StreamId10 = 0;
         cmd.DW6.SliceId30 = sliceParams->slice_id;
-        cmd.DW6.Cabaczerowordinsertionenable = (seqParams->RateControlMethod == RATECONTROL_CQP) ? 0 : 1;;
+        cmd.DW6.Cabaczerowordinsertionenable = 1;
         cmd.DW6.Emulationbytesliceinsertenable = 1;
         cmd.DW6.IsLastSlice =
             (startMbNum + sliceParams->NumMbsForSlice) >= (uint32_t)(widthInMb * frameFieldHeightInMb);
-        // Driver only programs 1st slice state, VDENC will detect the last slice 
+        // Driver only programs 1st slice state, VDENC will detect the last slice
         if (avcSliceState->bVdencInUse)
         {
             cmd.DW6.TailInsertionPresentInBitstream = avcSliceState->bVdencNoTailInsertion ?
@@ -765,7 +774,8 @@ protected:
 
         cmd.DW9.Roundintra = avcSliceState->dwRoundingIntraValue;
         cmd.DW9.Roundintraenable = 1;
-   
+
+        OVERRIDE_CMD_DATA("MFX_AVC_SLICE_STATE", TMfxCmds::MFX_AVC_SLICE_STATE_CMD::dwSize, (uint32_t *)(&cmd));
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
@@ -783,11 +793,11 @@ protected:
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pAvcPicParams);
 
-        auto avcPicParams = params->pAvcPicParams;       
+        auto avcPicParams = params->pAvcPicParams;
         auto currFrameIdx = avcPicParams->CurrPic.FrameIdx;
         auto currAvcRefList = params->ppAvcRefList[currFrameIdx];
 
-        int16_t refFrameOrder[CODEC_MAX_NUM_REF_FRAME] = { 0 };  
+        int16_t refFrameOrder[CODEC_MAX_NUM_REF_FRAME] = { 0 };
         uint32_t usedForRef = 0;
         uint16_t nonExistingFrameFlags = 0;
         uint16_t longTermFrame = 0;
@@ -935,7 +945,7 @@ protected:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pMpeg2PicParams);
-       
+
         typename TMfxCmds::MFX_MPEG2_PIC_STATE_CMD cmd;
         auto picParams = params->pMpeg2PicParams;
 
@@ -1113,17 +1123,21 @@ protected:
         sliceInfoParam.presDataBuffer = params->presDataBuffer;
         sliceInfoParam.dwDataStartOffset[0] = sliceParams->m_sliceDataOffset + offset;
 
-        m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(m_cpInterface->SetMfxProtectionState(
             m_decodeInUse,
             cmdBuffer,
             batchBuffer,
-            &sliceInfoParam);
-      
+            &sliceInfoParam));
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
 
+    //!
+    //! \struct   MFD_MPEG2_IT_OBJECT_CMD
+    //! \brief    MFD MPEG2 it object command
+    //!
     struct MFD_MPEG2_IT_OBJECT_CMD
     {
         typename TMfxCmds::MFD_IT_OBJECT_CMD m_header;
@@ -1191,7 +1205,7 @@ protected:
                 inlineDataMpeg2->DW5.Value = *point++;
             }
         }
-      
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
@@ -1349,7 +1363,7 @@ protected:
         MHW_MI_CHK_NULL(brcImgBuffer);
         MHW_MI_CHK_NULL(params);
 
-        MOS_LOCK_PARAMS lockFlags;     
+        MOS_LOCK_PARAMS lockFlags;
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
         uint8_t *data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, brcImgBuffer, &lockFlags);
@@ -1564,7 +1578,7 @@ protected:
                     fwdDoubleIcEnable = TOP_FIELD;
                     cmd.DW3.Lumscale1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCScale1;
                     cmd.DW3.Lumshift1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCShiftL1;
-                    // IC values for the bottom out of bound pixels (replicated lines of the last 
+                    // IC values for the bottom out of bound pixels (replicated lines of the last
                     // line of top field)
                     cmd.DW3.Lumscale2DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCScale1;
                     cmd.DW3.Lumshift2DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCShiftL1;
@@ -1572,7 +1586,7 @@ protected:
                 if (MOS_IS_BIT_SET(fwdRefParams->dwRefSurfaceFlags, CODECHAL_VC1_BOT_FIELD_COMP_2))
                 {
                     fwdDoubleIcEnable |= BOTTOM_FIELD;
-                    // IC values for the top out of bound pixels (replicated lines of the first 
+                    // IC values for the top out of bound pixels (replicated lines of the first
                     // line of bottom field)
                     cmd.DW3.Lumscale1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCScale2;
                     cmd.DW3.Lumshift1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCShiftL2;
@@ -1679,9 +1693,9 @@ protected:
                     if (vc1PicParams->picture_fields.intensity_compensation)
                     {
                         bwdDoubleIcEnable = TOP_FIELD;
-                        // If the reference picture is not interlaced field and current picture is bottom field 
-                        // and second field, double backwards values are identical to the the single forward 
-                        // values used by the p interlaced field top field  
+                        // If the reference picture is not interlaced field and current picture is bottom field
+                        // and second field, double backwards values are identical to the the single forward
+                        // values used by the p interlaced field top field
                         if (!CodecHal_PictureIsField((params->ppVc1RefList[vc1PicParams->ForwardRefIdx])->RefPic) &&
                             (CodecHal_PictureIsBottomField(vc1PicParams->CurrPic) && isSecondField))
                         {
@@ -1755,9 +1769,9 @@ protected:
                     if (vc1PicParams->picture_fields.intensity_compensation)
                     {
                         bwdDoubleIcEnable |= BOTTOM_FIELD;
-                        // If the reference picture is not interlaced field and current picture is top field and 
-                        // second field, double backwards values are identical to the the single forward values 
-                        // used by the p interlaced field bottom field   
+                        // If the reference picture is not interlaced field and current picture is top field and
+                        // second field, double backwards values are identical to the the single forward values
+                        // used by the p interlaced field bottom field
                         if (!CodecHal_PictureIsField((params->ppVc1RefList[vc1PicParams->ForwardRefIdx])->RefPic) &&
                             (CodecHal_PictureIsTopField(vc1PicParams->CurrPic) && isSecondField))
                         {
@@ -2235,7 +2249,7 @@ protected:
 
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
- 
+
         typename TMfxCmds::MFX_VC1_DIRECTMODE_STATE_CMD cmd;
 
         MHW_RESOURCE_PARAMS resourceParams;
@@ -2287,7 +2301,7 @@ protected:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(vc1SliceState);
         MHW_MI_CHK_NULL(vc1SliceState->pSlc);
-     
+
         typename TMfxCmds::MFD_VC1_BSD_OBJECT_CMD cmd;
         auto slcParams = vc1SliceState->pSlc;
 
@@ -2305,47 +2319,82 @@ protected:
         sliceInfoParam.presDataBuffer = vc1SliceState->presDataBuffer;
         sliceInfoParam.dwDataStartOffset[0] = cmd.DW2.IndirectDataStartAddress;
 
-        m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(m_cpInterface->SetMfxProtectionState(
             m_decodeInUse,
             cmdBuffer,
             nullptr,
-            &sliceInfoParam);
+            &sliceInfoParam));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
 
+    //!
+    //! \struct   MFD_VC1_IT_OBJECT_CMD
+    //! \brief    MFD VC1 it object command
+    //!
     struct MFD_VC1_IT_OBJECT_CMD
     {
         typename TMfxCmds::MFD_IT_OBJECT_CMD m_header;
         typename TMfxCmds::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD m_inlineData;
     };
 
+    //!
+    //! \brief    Get VC1 intra flag
+    //! 
+    //! \param    [in] mbState
+    //!           Pointer to MHW vdbox VC1 mb state 
+    //! \param    [in] mbParams
+    //!           Pointer to codec VC1 mb parameters
+    //!
+    //! \return   uint8_t
+    //!           VC1 intra flag
+    //!
     uint8_t GetVc1IntraFlag(PMHW_VDBOX_VC1_MB_STATE mbState, PCODEC_VC1_MB_PARAMS mbParams)
-    {             
+    {
         const uint8_t PATTERN_CODE_INTRA_MB = 0xF;
         uint8_t intra8x8Flag = 0;
 
-        if (mbParams->mb_type.intra_mb)                                                      
-        {                                                                                   
-            intra8x8Flag = PATTERN_CODE_INTRA_MB;                                          
-        }                                                                                   
-        else if (mbParams->mb_type.motion_4mv && (mbState->PicFlags == PICTURE_FRAME))   
-        {                                                                                   
-            intra8x8Flag = mbParams->pattern_code.block_luma_intra;                         
-        }                                                                                   
-        else                                                                                
-        {                                                                                   
-            intra8x8Flag = 0;                                                              
-        }      
-    
+        if(mbState == nullptr || mbParams == nullptr)
+        {
+            MHW_ASSERTMESSAGE("mbState or mbParams is nullptr!");
+            return 0;
+        }
+        
+        if (mbParams->mb_type.intra_mb)
+        {
+            intra8x8Flag = PATTERN_CODE_INTRA_MB;
+        }
+        else if (mbParams->mb_type.motion_4mv && (mbState->PicFlags == PICTURE_FRAME))
+        {
+            intra8x8Flag = mbParams->pattern_code.block_luma_intra;
+        }
+        else
+        {
+            intra8x8Flag = 0;
+        }
+
         return intra8x8Flag;
     }
 
     #define GET_VC1_BLOCK(mb, i) ((mb >> (3 - i)) & 1)
 
-    void Vc1ItObjectSetOverlapSmoothingFilter(
+    //!
+    //! \brief    VC1 it object set overlap smoothing filter
+    //!
+    //! \param    [in] inlineDataVc1
+    //!           MFD it object VC1 inline data command
+    //! \param    [in] mbState
+    //!           Pointer to MHW vdbox VC1 mb state 
+    //! \param    [in] mbParams
+    //!           Pointer to codec VC1 mb parameters
+    //! \param    [in] mbHorizOrigin
+    //!           Mb horizontal origin
+    //! \param    [in] mbVertOrigin
+    //!           Mb vertical origin
+    //!
+    MOS_STATUS Vc1ItObjectSetOverlapSmoothingFilter(
         typename TMfxCmds::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD *inlineDataVc1,
         PMHW_VDBOX_VC1_MB_STATE mbState,
         PCODEC_VC1_MB_PARAMS mbParams,
@@ -2356,9 +2405,12 @@ protected:
         {
             0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1
         };
-
+        MHW_CHK_NULL_RETURN(inlineDataVc1);
+        MHW_CHK_NULL_RETURN(mbState);
+        MHW_CHK_NULL_RETURN(mbParams);
 
         auto vc1PicParams = mbState->pVc1PicParams;
+        MHW_CHK_NULL_RETURN(vc1PicParams);
 
         //------------------------------------
         // Overlap smoothing enabled for this mb?
@@ -2373,7 +2425,7 @@ protected:
 
         if (mbOverlapSmoothing)
         {
-            uint8_t intra8x8 = GetVc1IntraFlag(mbState, mbParams); 
+            uint8_t intra8x8 = GetVc1IntraFlag(mbState, mbParams);
 
             if ((vc1PicParams->picture_fields.picture_type == vc1BBField) || !intra8x8)
             {
@@ -2382,7 +2434,7 @@ protected:
                 inlineDataVc1->DW1.Osedgemaskluma = 0;
                 inlineDataVc1->DW1.Osedgemaskchroma = 0;
 
-                return;
+                return MOS_STATUS_SUCCESS;
             }
 
             //------------------------------------
@@ -2471,7 +2523,7 @@ protected:
             inlineDataVc1->DW1.Osedgemaskchroma = 0;
         }
 
-        return;
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddMfdVc1ItObjectCmd(
@@ -2565,7 +2617,7 @@ protected:
         }
         else if (vc1PicParams->entrypoint_fields.loopfilter)
         {
-            //driver generates the edge control value for I and B frames in VC1 Simple and Main profile 
+            //driver generates the edge control value for I and B frames in VC1 Simple and Main profile
             if (mbState->bMbHorizOrigin == 0 && mbState->bMbVertOrigin == 0)
             {
                 inlineDataVc1->DW9.Value = MHW_VDBOX_DECODE_VC1_IT_ILDB_EDGE_CONTROL_LUMA_X0Y0;
@@ -2598,12 +2650,12 @@ protected:
             // Intra MB
             inlineDataVc1->DW0.CodedBlockPattern = 63;
 
-            Vc1ItObjectSetOverlapSmoothingFilter(
+            MHW_MI_CHK_STATUS(Vc1ItObjectSetOverlapSmoothingFilter(
                 inlineDataVc1,
                 mbState,
                 mbParams,
                 mbState->bMbHorizOrigin,
-                mbState->bMbVertOrigin); 
+                mbState->bMbVertOrigin));
 
             MHW_MI_CHK_STATUS(Mhw_AddCommandBB(batchBuffer, &cmd, sizeof(cmd)));
         }
@@ -2652,12 +2704,12 @@ protected:
 
             if (!mbParams->mb_skips_following)
             {
-                Vc1ItObjectSetOverlapSmoothingFilter(
+                MHW_MI_CHK_STATUS(Vc1ItObjectSetOverlapSmoothingFilter(
                     inlineDataVc1,
                     mbState,
                     mbParams,
                     mbState->bMbHorizOrigin,
-                    mbState->bMbVertOrigin); 
+                    mbState->bMbVertOrigin));
 
                 MHW_MI_CHK_STATUS(Mhw_AddCommandBB(batchBuffer, &cmd, sizeof(cmd)));
             }
@@ -2698,15 +2750,35 @@ protected:
         MHW_MI_CHK_NULL(params);
 
         typename TMfxCmds::MFX_JPEG_HUFF_TABLE_STATE_CMD cmd;
-       
+
         cmd.DW1.Hufftableid1Bit = params->HuffTableID;
 
-        MOS_SecureMemcpy(cmd.DcBits128BitArray, sizeof(cmd.DcBits128BitArray), params->pDCBits, sizeof(cmd.DcBits128BitArray));
-        MOS_SecureMemcpy(cmd.DcHuffval128BitArray, sizeof(cmd.DcHuffval128BitArray), params->pDCValues, sizeof(cmd.DcHuffval128BitArray));
-        MOS_SecureMemcpy(cmd.AcBits168BitArray, sizeof(cmd.AcBits168BitArray), params->pACBits, sizeof(cmd.AcBits168BitArray));
-        MOS_SecureMemcpy(cmd.AcHuffval1608BitArray, sizeof(cmd.AcHuffval1608BitArray), params->pACValues, sizeof(cmd.AcHuffval1608BitArray));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.DcBits128BitArray, 
+            sizeof(cmd.DcBits128BitArray), 
+            params->pDCBits, 
+            sizeof(cmd.DcBits128BitArray)));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.DcHuffval128BitArray, 
+            sizeof(cmd.DcHuffval128BitArray), 
+            params->pDCValues, 
+            sizeof(cmd.DcHuffval128BitArray)));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.AcBits168BitArray, 
+            sizeof(cmd.AcBits168BitArray), 
+            params->pACBits, 
+            sizeof(cmd.AcBits168BitArray)));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.AcHuffval1608BitArray, 
+            sizeof(cmd.AcHuffval1608BitArray), 
+            params->pACValues, 
+            sizeof(cmd.AcHuffval1608BitArray)));
 
-        MOS_SecureMemcpy(&cmd.DW52.Value, sizeof(uint16_t), (uint8_t*)params->pACValues + sizeof(cmd.AcHuffval1608BitArray), sizeof(uint16_t));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            &cmd.DW52.Value, 
+            sizeof(uint16_t), 
+            (uint8_t*)params->pACValues + sizeof(cmd.AcHuffval1608BitArray), 
+            sizeof(uint16_t)));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -2725,7 +2797,7 @@ protected:
         MHW_MI_CHK_NULL(params);
 
         typename TMfxCmds::MFD_JPEG_BSD_OBJECT_CMD cmd;
-    
+
         cmd.DW1.IndirectDataLength = params->dwIndirectDataLength;
         cmd.DW2.IndirectDataStartAddress = params->dwDataStartAddress;
         cmd.DW3.ScanVerticalPosition = params->dwScanVerticalPosition;

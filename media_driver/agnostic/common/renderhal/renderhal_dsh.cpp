@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_dsh.cpp  
-//! \brief         This module implements render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap.     It allows dynamic allocation and expansion of general state heap (media states)     and instraction state heaps (media kernels) based on demand. It also allows     dynamic configuration of media states based on specific workload requirements,     as well as dynamic allocation of kernel scratch space (spill area).  
+//! \file      renderhal_dsh.cpp 
+//! \brief         This module implements render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap.     It allows dynamic allocation and expansion of general state heap (media states)     and instraction state heaps (media kernels) based on demand. It also allows     dynamic configuration of media states based on specific workload requirements,     as well as dynamic allocation of kernel scratch space (spill area). 
 //!
 #include "renderhal.h"
 #include "renderhal_platform_interface.h"
@@ -49,7 +49,8 @@ MOS_STATUS RenderHal_DSH_ExtendMediaStatePool(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->pMediaStatesMemPool);
     //---------------------------------------
 
     int32_t iCount = RENDERHAL_DSH_DYN_STATE_INC;
@@ -112,12 +113,16 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_GetMediaStateFromPool(
     PRENDERHAL_MEDIA_STATE pMediaState = nullptr;
 
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
+    if (pStateHeap == nullptr)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Null pointer detected!");
+        return nullptr;
+    }
     //---------------------------------------
 
     PRENDERHAL_MEDIA_STATE_LIST pList = &pStateHeap->FreeStates;
 
-    // If pool is empty, extend pool of free media states 
+    // If pool is empty, extend pool of free media states
     if (pList->iCount == 0)
     {
         MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendMediaStatePool(pStateHeap));
@@ -162,8 +167,8 @@ void RenderHal_DSH_ReturnMediaStateToPool(
     PRENDERHAL_MEDIA_STATE  pMediaState)
 {
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
-    MHW_RENDERHAL_ASSERT(pMediaState);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pMediaState);
     //---------------------------------------
 
     PRENDERHAL_MEDIA_STATE_LIST pList = &pStateHeap->FreeStates;
@@ -200,7 +205,8 @@ MOS_STATUS RenderHal_DSH_ExtendKernelAllocPool(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->pKernelAllocMemPool);
     //---------------------------------------
 
     int32_t iCount = RENDERHAL_DSH_KRN_ALLOC_INC;
@@ -361,7 +367,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_GetKernelAllocationFromPool(PRENDERHAL_S
 
     if (pStateHeap->KernelAllocationPool.iCount == 0)
     {
-        RenderHal_DSH_ExtendKernelAllocPool(pStateHeap);
+        MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendKernelAllocPool(pStateHeap));
     }
 
     pKernelAllocation = pStateHeap->KernelAllocationPool.pHead;
@@ -400,7 +406,7 @@ void RenderHal_DSH_TouchDynamicKernel(
 
     // Set sync tag, for deallocation control
     pKernelAllocation->dwFlags = RENDERHAL_KERNEL_ALLOCATION_LOCKED;
-    pKernelAllocation->dwSync  = pRenderHal->pfnGetNextFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
+    pKernelAllocation->dwSync  = pRenderHal->pfnGetNextTrackerId(pRenderHal);
 
     // Move kernel to the tail of the submitted list (list is sorted with the most recently used at the end)
     RenderHal_DSH_KernelAttach(&pStateHeap->KernelsSubmitted, pKernelAllocation, false);
@@ -435,7 +441,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_SearchDynamicKernel(PRENDERHAL_INTERFACE
     if (pStateHeap)
     {
         uint16_t wSearchIndex = 0;
-        pKernelAllocation = (PRENDERHAL_KRN_ALLOCATION) RenderHal_HashTable_Search(&pStateHeap->KernelHashTable, iUniqID, iCacheID, wSearchIndex);
+        pKernelAllocation = (PRENDERHAL_KRN_ALLOCATION) pStateHeap->kernelHashTable.Search(iUniqID, iCacheID, wSearchIndex);
     }
 
     return pKernelAllocation;
@@ -468,7 +474,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_AllocateDynamicKernel(PRENDERHAL_INTERFA
         goto finish;
     }
 
-    pKernelAllocation = (PRENDERHAL_KRN_ALLOCATION) RenderHal_HashTable_Search(&pStateHeap->KernelHashTable, iUniqID, iCacheID, wSearchIndex);
+    pKernelAllocation = (PRENDERHAL_KRN_ALLOCATION)pStateHeap->kernelHashTable.Search(iUniqID, iCacheID, wSearchIndex);
 
     if (!pKernelAllocation)
     {
@@ -477,7 +483,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_AllocateDynamicKernel(PRENDERHAL_INTERFA
         MHW_RENDERHAL_CHK_NULL(pKernelAllocation);
 
         // Clear kernel allocation entry, setup kernel uniq id
-        uint32_t Reserved = pKernelAllocation->Reserved; // Preserve before 
+        uint32_t Reserved = pKernelAllocation->Reserved; // Preserve before
         MOS_ZeroMemory(pKernelAllocation, sizeof(RENDERHAL_KRN_ALLOCATION));
         pKernelAllocation->dwFlags  = RENDERHAL_KERNEL_ALLOCATION_FREE;    // Krn allocation does not point to a kernel
         pKernelAllocation->Reserved = Reserved;
@@ -485,7 +491,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_AllocateDynamicKernel(PRENDERHAL_INTERFA
         pKernelAllocation->iKCID    = iCacheID;
 
         // Register kernel in hash table to speed up future search
-        RenderHal_HashTable_Register(&pStateHeap->KernelHashTable, iUniqID, iCacheID, pKernelAllocation);
+        pStateHeap->kernelHashTable.Register(iUniqID, iCacheID, pKernelAllocation);
 
         // Insert kernel in allocated list
         RenderHal_DSH_KernelAttach(&pStateHeap->KernelsAllocated, pKernelAllocation, false);
@@ -519,7 +525,7 @@ MOS_STATUS RenderHal_DSH_UnregisterKernel(PRENDERHAL_INTERFACE pRenderHal, PREND
     }
 
     // Free kernel before releasing
-    dwFrameId = pRenderHal->pfnGetCurrentFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
+    dwFrameId = pRenderHal->pfnGetCurrentTrackerId(pRenderHal);
     if (pKernelAllocation->pMemoryBlock)
     {
         // Get new kernel allocation entry
@@ -527,7 +533,7 @@ MOS_STATUS RenderHal_DSH_UnregisterKernel(PRENDERHAL_INTERFACE pRenderHal, PREND
         pKernelAllocation->pMemoryBlock = nullptr;
     }
 
-    RenderHal_HashTable_Unregister(&pStateHeap->KernelHashTable, pKernelAllocation->iKUID, pKernelAllocation->iKCID);
+    pStateHeap->kernelHashTable.Unregister(pKernelAllocation->iKUID, pKernelAllocation->iKCID);
 
     // Return the kernel allocation to pool
     RenderHal_DSH_KernelAttach(&pStateHeap->KernelAllocationPool, pKernelAllocation, false);
@@ -535,7 +541,6 @@ MOS_STATUS RenderHal_DSH_UnregisterKernel(PRENDERHAL_INTERFACE pRenderHal, PREND
 finish:
     return eStatus;
 }
-
 
 //!
 //! \brief    Allocate GSH, SSH, ISH control structures and heaps
@@ -604,7 +609,7 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
 
     pStateHeap->pMediaStatesMemPool = MOS_New(MHW_MEMORY_POOL, iSize, sizeof(void *));
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pMediaStatesMemPool);
-    
+
     MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendMediaStatePool(pStateHeap));
 
     //-------------------------------------------------------------------------
@@ -639,12 +644,9 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
 
     // Calculate memory size to store all binding tables and surface states
     pStateHeap->dwSizeSSH = pSettings->iBindingTables * pStateHeap->iBindingTableSize +
-                            pSettings->iSurfaceStates * 
+                            pSettings->iSurfaceStates *
                             pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize();
     pRenderHal->dwIndirectHeapSize = MOS_ALIGN_CEIL(pStateHeap->dwSizeSSH, MHW_PAGE_SIZE);
-
-    // Set indirect heap size - limits the size of the command buffer available for rendering
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnSetIndirectStateSize(pRenderHal->pOsInterface, pRenderHal->dwIndirectHeapSize));
 
     // Allocate local copy of SSH
     pStateHeap->pSshBuffer = (uint8_t*)MOS_AllocAndZeroMemory(pStateHeap->dwSizeSSH);
@@ -661,17 +663,13 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pSurfaceEntry);
 
     //----------------------------------
-    // Allocate State Heap in MHW
+    // Allocate Instruction State Heap in MHW
     //----------------------------------
     MhwStateHeapSettings.dwIshSize         = pRenderHal->DynamicHeapSettings.dwIshInitialSize;
     MhwStateHeapSettings.m_keepIshLocked   = true;
-    MhwStateHeapSettings.dwDshSize         = pRenderHal->DynamicHeapSettings.dwDshInitialSize;
-    MhwStateHeapSettings.m_keepDshLocked   = true;
     MhwStateHeapSettings.dwNumSyncTags     = pSettings->iSyncSize;
     MhwStateHeapSettings.dwIshIncrement    = pRenderHal->DynamicHeapSettings.dwIshSizeIncrement;
-    MhwStateHeapSettings.dwDshIncrement    = pRenderHal->DynamicHeapSettings.dwDshSizeIncrement;
     MhwStateHeapSettings.dwIshMaxSize      = pRenderHal->DynamicHeapSettings.dwIshMaximumSize;
-    MhwStateHeapSettings.dwDshMaxSize      = pRenderHal->DynamicHeapSettings.dwDshMaximumSize;
 
     MHW_RENDERHAL_CHK_STATUS(pMhwRender->AllocateHeaps(MhwStateHeapSettings));
     MHW_RENDERHAL_CHK_NULL(pMhwRender->m_stateHeapInterface);
@@ -690,7 +688,7 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
     pStateHeap->bIshLocked = false;
 
     // Setup pointer to sync tags
-    pStateHeap->pSync = (uint32_t *)pRenderHal->pMhwStateHeap->GetCmdBufIdGlobalPointer(); 
+    pStateHeap->pSync = (uint32_t *)pRenderHal->pMhwStateHeap->GetCmdBufIdGlobalPointer();
 
     // Reset pool of Kernel allocations objects
     pStateHeap->pKernelAllocMemPool = MOS_New(MHW_MEMORY_POOL, sizeof(RENDERHAL_KRN_ALLOCATION), sizeof(void *));
@@ -748,6 +746,13 @@ MOS_STATUS RenderHal_DSH_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
     // Free Surface State Entries
     if (pStateHeap->pSurfaceEntry)
     {
+        // Free MOS surface in surface state entry
+        for (int32_t index = 0; index < pRenderHal->StateHeapSettings.iSurfaceStates; ++index) {
+            PRENDERHAL_SURFACE_STATE_ENTRY entry = pStateHeap->pSurfaceEntry + index;
+            MOS_SafeFreeMemory(entry->pSurface);
+            entry->pSurface = nullptr;
+        }
+
         MOS_FreeMemory(pStateHeap->pSurfaceEntry);
         pStateHeap->pSurfaceEntry = nullptr;
     }
@@ -772,11 +777,13 @@ MOS_STATUS RenderHal_DSH_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
     }
 
     // Free kernel hash table
-    RenderHal_HashTable_Free(&pStateHeap->KernelHashTable);
+    pRenderHal->pStateHeap->kernelHashTable.Free();
 
     // Free State Heap Control structure
     MOS_AlignedFreeMemory(pStateHeap);
     pRenderHal->pStateHeap = nullptr;
+
+    pRenderHal->pRenderHalPltInterface->FreeScratchSpaceBuffer(pRenderHal);
 
     eStatus = MOS_STATUS_SUCCESS;
 
@@ -784,6 +791,67 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Assign memory block in state heap
+//! \param    RENDERHAL_TR_RESOURCE trackerInfo
+//!           [in] Pointer to tracker resource
+//! \param    HeapManager heapManager
+//!           [in] Pointer to heap manager
+//! \param    MemoryBlock block
+//!           [out] Pointer to memory block
+//! \param    uint32_t size
+//!           [in] size of requested memory block
+//! \return   MOS_STATUS
+//!
+MOS_STATUS RenderHal_DSH_AssignSpaceInStateHeap(
+    RENDERHAL_TR_RESOURCE *trackerInfo,
+    HeapManager *heapManager,
+    MemoryBlock *block,
+    uint32_t size)
+{
+    MOS_STATUS eStatus     = MOS_STATUS_SUCCESS;
+    uint32_t   spaceNeeded = 0;
+    std::vector<MemoryBlock> blocks;
+    std::vector<uint32_t> blockSizes;
+
+    MemoryBlockManager::AcquireParams acquireParams = 
+        MemoryBlockManager::AcquireParams(trackerInfo->currentTrackerId,
+                                          blockSizes);
+
+    MHW_RENDERHAL_CHK_NULL(heapManager);    
+    MHW_RENDERHAL_CHK_NULL(block);
+    MHW_RENDERHAL_CHK_NULL(trackerInfo);
+
+    if (blockSizes.empty())
+    {
+        blockSizes.emplace_back(size);
+    }
+    else
+    {
+        blockSizes[0] = size;
+    }
+
+    MHW_RENDERHAL_CHK_STATUS(heapManager->AcquireSpace(acquireParams, blocks, spaceNeeded));
+
+    if (blocks.empty())
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("No blocks were acquired");
+        return MOS_STATUS_UNKNOWN;
+    }
+    if (!(blocks[0].IsValid()))
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("No blocks were acquired");
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    *block = blocks[0];
+
+    // zero memory block
+    block->AddData(nullptr, 0, 0, true);
+
+finish:
+    return eStatus;
+}
 
 //!
 //! \brief    Refresh Sync
@@ -828,7 +896,7 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
 
     // Most recent tags
     pStateHeap->dwSyncTag = dwCurrentTag     = pStateHeap->pSync[0];
-    pStateHeap->dwFrameId = dwCurrentFrameId = pRenderHal->pfnGetCurrentFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
+    pStateHeap->dwFrameId = dwCurrentFrameId = pRenderHal->pfnGetCurrentTrackerId(pRenderHal);
 
     // Refresh batch buffers
     iBuffersInUse = 0;
@@ -879,9 +947,16 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
                 uint64_t uiDiff;
                 double  TimeMS;
                 uint32_t uiComponent;
-
+                uint32_t performanceSize = sizeof(uint64_t) * 2 + sizeof(RENDERHAL_COMPONENT);
+                uint8_t *data = (uint8_t*)MOS_AllocAndZeroMemory(performanceSize);
+                if (data == nullptr)
+                {
+                    eStatus = MOS_STATUS_NO_SPACE;
+                    goto finish;
+                }
                 // Dump Kernel execution time when media state is being freed
-                pCurrentPtr = pDynamicState->pMemoryBlock->pDataPtr + pDynamicState->Performance.dwOffset;
+                pDynamicState->memoryBlock.ReadData(data, pDynamicState->Performance.dwOffset, performanceSize);
+                pCurrentPtr = data;
                 uiStartTime = *((uint64_t *)pCurrentPtr);
                 pCurrentPtr += sizeof(uint64_t);
                 uiEndTime = *((uint64_t *)pCurrentPtr);
@@ -898,6 +973,8 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
 
                     pRenderHal->kernelTime[uiComponent] += TimeMS;
                 }
+
+                MOS_SafeFreeMemory(data);
             }
 
             // Detach from submitted states, return to pool
@@ -905,9 +982,6 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
             *((pCurMediaState->pPrev) ? &(pCurMediaState->pPrev->pNext) : &(pList->pHead)) = pCurMediaState->pNext;
             pCurMediaState->pPrev = pCurMediaState->pNext = nullptr;
             pList->iCount--;
-
-            // Free memory block associated with state heap
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_DSH_TYPE, pDynamicState->pMemoryBlock, dwCurrentFrameId);
 
             // Return media state object back to pool
             RenderHal_DSH_ReturnMediaStateToPool(pStateHeap, pCurMediaState);
@@ -949,7 +1023,6 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
     }
 
     // Refresh blocks
-    pMhwStateHeap->RefreshDynamicHeapDyn(MHW_DSH_TYPE, dwCurrentFrameId);
     pMhwStateHeap->RefreshDynamicHeapDyn(MHW_ISH_TYPE, dwCurrentFrameId);
 
     // Save number of states/buffers in use
@@ -994,10 +1067,10 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
 
     pMhwStateHeap = pRenderHal->pMhwStateHeap;
     pStateHeap    = pRenderHal->pStateHeap;
-    dwFrameId     = pRenderHal->pfnGetCurrentFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE); 
+    dwFrameId     = pRenderHal->pfnGetCurrentTrackerId(pRenderHal); 
 
     // Increase size of the ISH (up to max size)
-    dwNewSize = MOS_ALIGN_CEIL(pMhwStateHeap->GetISHPointer()->dwSize + dwAdditionalKernelSpaceNeeded, 
+    dwNewSize = MOS_ALIGN_CEIL(pMhwStateHeap->GetISHPointer()->dwSize + dwAdditionalKernelSpaceNeeded,
                                pRenderHal->DynamicHeapSettings.dwIshSizeIncrement);
     if (dwNewSize > pRenderHal->DynamicHeapSettings.dwIshMaximumSize)
     {
@@ -1011,7 +1084,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
         if (pKrnAllocation->pMemoryBlock)
         {
             pKrnAllocation->pMemoryBlock->bStatic = false;
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId);
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId));
             pKrnAllocation->pMemoryBlock = nullptr;
         }
     }
@@ -1022,7 +1095,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
         pKrnAllocation->dwFlags = RENDERHAL_KERNEL_ALLOCATION_STALE;
         if (pKrnAllocation->pMemoryBlock)
         {
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId);
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId));
             pKrnAllocation->pMemoryBlock = nullptr;
         }
     }
@@ -1038,7 +1111,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
     // Copy SIP kernel into the newly loaded ISH, mark old SIP block to be released when no longer in use
     if (pOldSipKernelBlock)
     {
-        pRenderHal->pfnLoadSipKernel(pRenderHal, pOldSipKernelBlock->pDataPtr, pOldSipKernelBlock->dwDataSize);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnLoadSipKernel(pRenderHal, pOldSipKernelBlock->pDataPtr, pOldSipKernelBlock->dwDataSize));
         pOldSipKernelBlock->bStatic = false;
         pOldInstructionHeap->pDebugKernel = nullptr;
     }
@@ -1076,7 +1149,7 @@ MOS_STATUS RenderHal_DSH_RefreshDynamicKernels(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
-    
+
     pStateHeap    = pRenderHal->pStateHeap;
     pMhwStateHeap = pRenderHal->pMhwStateHeap;
 
@@ -1111,7 +1184,7 @@ MOS_STATUS RenderHal_DSH_RefreshDynamicKernels(
     // (older kernels remain at the head of the list)
     //
     // The caching algorithm tries to find a balance between amount of times
-    // the kernels was used, and how recently it was used - so kernels that are 
+    // the kernels was used, and how recently it was used - so kernels that are
     // heavily used but at the beginning of the list are less likely to be removed
     // compared with a kernel that was barely used (dwCount)
     //
@@ -1131,7 +1204,7 @@ MOS_STATUS RenderHal_DSH_RefreshDynamicKernels(
                 dwSpaceNeeded -= MOS_MIN(dwSpaceNeeded, pKrnAllocation->pMemoryBlock->dwBlockSize);
             }
 
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, pStateHeap->dwFrameId);
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, pStateHeap->dwFrameId));
             pKrnAllocation->pMemoryBlock = nullptr;
             pKrnAllocation->dwOffset     = 0;
             pKrnAllocation->dwFlags      = RENDERHAL_KERNEL_ALLOCATION_REMOVED;
@@ -1210,7 +1283,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_LoadDynamicKernel(
     iKernelUniqueID = pKernel->iKUID;
     iKernelCacheID  = pKernel->iKCID;
 
-    pKernelAllocation = (PRENDERHAL_KRN_ALLOCATION) RenderHal_HashTable_Search(&pStateHeap->KernelHashTable, iKernelUniqueID, iKernelCacheID, wSearchIndex);
+    pKernelAllocation = (PRENDERHAL_KRN_ALLOCATION)pStateHeap->kernelHashTable.Search(iKernelUniqueID, iKernelCacheID, wSearchIndex);
 
     // Kernel already loaded
     if (pKernelAllocation)
@@ -1377,7 +1450,7 @@ MOS_STATUS RenderHal_DSH_LoadSipKernel(
     uint32_t                dwSipSize)
 {
     PXMHW_STATE_HEAP_INTERFACE   pMhwStateHeap;
-    PMHW_STATE_HEAP              pInstructionStateHeap;
+    PMHW_STATE_HEAP              pInstructionStateHeap = nullptr;
     PMHW_STATE_HEAP_MEMORY_BLOCK pIshMemoryBlock;
     MHW_STATE_HEAP_DYNAMIC_ALLOC_PARAMS Params;
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
@@ -1389,6 +1462,7 @@ MOS_STATUS RenderHal_DSH_LoadSipKernel(
 
     // Mark previous SIP kernel for auto-release so it can be replaced
     pInstructionStateHeap = pMhwStateHeap->GetISHPointer();
+    MHW_RENDERHAL_CHK_NULL(pInstructionStateHeap);
     if (pInstructionStateHeap->pDebugKernel)
     {
         pInstructionStateHeap->pDebugKernel->bStatic = false;
@@ -1424,9 +1498,9 @@ MOS_STATUS RenderHal_DSH_LoadSipKernel(
         goto finish;
     }
 
-    // Copy SIP Debug kernel into SIP location in ISH (Instruction State Heap) 
+    // Copy SIP Debug kernel into SIP location in ISH (Instruction State Heap)
     MOS_SecureMemcpy(pIshMemoryBlock->pDataPtr, dwSipSize, pSipKernel, dwSipSize);
-   
+
 finish:
     return eStatus;
 }
@@ -1450,7 +1524,7 @@ MOS_STATUS RenderHal_DSH_SendSipStateCmd(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
-    
+
     pSipMemoryBlock = pRenderHal->pMhwStateHeap->GetISHPointer()->pDebugKernel;
 
     if ((pRenderHal->bSIPKernel || pRenderHal->bCSRKernel) && pSipMemoryBlock != nullptr)
@@ -1620,11 +1694,16 @@ int32_t RenderHal_DSH_AllocateDynamicMediaID(
     }
 
     // Setup Media ID entry - this call could be HW dependent
-    pRenderHal->pfnSetupInterfaceDescriptor(
-        pRenderHal,
-        pMediaState,
-        pKernelAllocation,
-        &InterfaceDescriptorParams);
+    if (MOS_STATUS_SUCCESS != pRenderHal->pfnSetupInterfaceDescriptor(
+                                             pRenderHal,
+                                             pMediaState,
+                                             pKernelAllocation,
+                                             &InterfaceDescriptorParams))
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Failed to setup Interface Descriptor.");
+        iInterfaceDescriptor = -1;
+        goto finish;
+    }
 
     // Set kernel allocation for the current Media ID
     pKrnAllocationTable[iInterfaceDescriptor] = pKernelAllocation;
@@ -1747,7 +1826,10 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     uint32_t                            dwMediaStateAlign;
     uint32_t                            dwSamplerStateAlign;
     uint8_t                             *pCurrentPtr;
+    uint8_t                             *performanceMemory = nullptr;
+    uint32_t                            performanceSize;
     uint32_t                            dwFrameId;
+    uint32_t                            currentExtendSize = 0;
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
@@ -1821,7 +1903,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
         pDynamicState->dwSizeSamplers = dwSamplerSize = MOS_ALIGN_CEIL(dwSamplerSize, dwSamplerStateAlign);
         dwSamplerSize *= pParams->iMaxMediaIDs;     // Move tables to end of all sampler states
-         
+
         // 8x8 tables
         if (pParams->iMax8x8Tables > 0)
         {
@@ -1835,7 +1917,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         dwSizeMediaState += dwSamplerSize;
     }
     else
-    {        
+    {
         uint32_t dwSamplerSize = 0;
 
         // common base for all sampler types
@@ -1913,76 +1995,84 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
     // Kernel Spill Area
     if (pParams->iMaxSpillSize > 0)
-    {   // per thread scratch space must be 1K*(2^n) per B-spec (2K*(2^n) for BDW A0), alignment is 1kB
-        int iPerThreadScratchSpace;
+    {
+        // per thread scratch space must be 1K*(2^n), (2K*(2^n) for BDW A0), alignment is 1kB
+        int iPerThreadScratchSpace = 0;
         if (pRenderHal->pfnPerThreadScratchSpaceStart2K(pRenderHal))
+        {
             iPerThreadScratchSpace = 2048;
+        }
+        else if (pRenderHal->pRenderHalPltInterface
+                 ->PerThreadScratchSpaceStart64Byte(pRenderHal))
+        {
+            iPerThreadScratchSpace = 64;
+        }
         else
+        {
             iPerThreadScratchSpace = 1024;
+        }
 
         for (iPerThreadScratchSpace; iPerThreadScratchSpace < pParams->iMaxSpillSize; iPerThreadScratchSpace <<= 1);
+        pDynamicState->iMaxScratchSpacePerThread = pParams->iMaxSpillSize
+                = iPerThreadScratchSpace;
 
-        pDynamicState->iMaxScratchSpacePerThread = pParams->iMaxSpillSize = iPerThreadScratchSpace;
-        pDynamicState->dwScratchSpace = pRenderHal->pfnGetScratchSpaceSize(pRenderHal, iPerThreadScratchSpace);
-    }
-
-    // Prepare Media State Allocation in DSH
-    Params.piSizes          = (int32_t *) &dwSizeMediaState;
-    Params.iCount           = 1;
-    Params.dwAlignment      = dwMediaStateAlign;
-    Params.bHeapAffinity    = 0;
-    Params.pHeapAffinity    = 0;
-    Params.dwScratchSpace   = pDynamicState->dwScratchSpace;
-    Params.pScratchSpace    = nullptr;
-    Params.bZeroAssignedMem = 0;
-    Params.bStatic          = 0;
-    Params.bGrow            = 1;
-#ifdef MHW_DYNAMIC_STATE_HEAP_DEBUGGING
-    Params.dwBlockType      = MHW_BLOCK_DATA_MEDIA_STATE;
-    Params.pClientObject    = pMediaState;
-#endif
-
-    // Allocate block in state heap; expand state heap if allocation failed; allocate scratch space if needed
-    pDynamicState->pMemoryBlock = pMhwStateHeap->AllocateDynamicBlockDyn(MHW_DSH_TYPE, &Params);
-    if (!pDynamicState->pMemoryBlock)
-    {
-        RenderHal_DSH_ReturnMediaStateToPool(pRenderHal->pStateHeap, pMediaState);
-        pMediaState = nullptr;
-        goto finish;
-    }
-
-    // If the scratch space allocation is not valid : Release media state block, return media state to pool, fail
-    dwFrameId = pRenderHal->pfnGetCurrentFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
-    if (pParams->iMaxSpillSize > 0)
-    {
-        if (Params.pScratchSpace == nullptr ||
-            Params.pScratchSpace->dwBlockSize < pDynamicState->dwScratchSpace ||
-            Params.pScratchSpace->pStateHeap != pDynamicState->pMemoryBlock->pStateHeap)
+        MOS_STATUS result = pRenderHal->pRenderHalPltInterface
+            ->AllocateScratchSpaceBuffer(iPerThreadScratchSpace, pRenderHal);
+        if (MOS_STATUS_UNIMPLEMENTED == result)  // Scratch space buffer is not supported
         {
-            MHW_RENDERHAL_ASSERT("Failed to allocate scratch space");
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_DSH_TYPE, pDynamicState->pMemoryBlock, dwFrameId);
+            pDynamicState->dwScratchSpace
+                    = pRenderHal->pfnGetScratchSpaceSize(pRenderHal,
+                                                         iPerThreadScratchSpace);
+            pDynamicState->scratchSpaceOffset = dwSizeMediaState;
 
-            RenderHal_DSH_ReturnMediaStateToPool(pRenderHal->pStateHeap, pMediaState);
-            pMediaState = nullptr;
-            goto finish;
+            // Allocate more 1k space in state heap, which is used to make scratch space offset 1k-aligned.
+            dwSizeMediaState += pDynamicState->dwScratchSpace + MHW_SCRATCH_SPACE_ALIGN;
+            currentExtendSize = pRenderHal->dgsheapManager->GetExtendSize();
+            if (currentExtendSize < pDynamicState->dwScratchSpace)
+            {
+                // update extend size for scratch space
+                MHW_RENDERHAL_CHK_STATUS(
+                    pRenderHal->dgsheapManager->SetExtendHeapSize(
+                        pDynamicState->dwScratchSpace));
+            }
         }
         else
         {
-            pDynamicState->pScratchSpace  = Params.pScratchSpace;
-            pDynamicState->dwScratchSpace = Params.pScratchSpace->dwDataSize;
+            MHW_RENDERHAL_CHK_STATUS(result);
         }
     }
 
-    // Register the DSH block
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnRegisterResource(
-                                    pRenderHal->pOsInterface,
-                                    &pDynamicState->pMemoryBlock->pStateHeap->resHeap,
-                                    true,
-                                    true));
+    // Use generic heap manager to allocate memory block for dynamic general state heap
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnAssignSpaceInStateHeap(
+        &pRenderHal->trackerResource,
+        pRenderHal->dgsheapManager,
+        &pDynamicState->memoryBlock,
+        dwSizeMediaState)); 
 
-    // Set sync tags for media state and memory block
-    pDynamicState->pMemoryBlock->dwSyncTagId = pMediaState->dwSyncTag = 
-        pRenderHal->pfnGetNextFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
+    // Register the DGSH block
+     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnRegisterResource(
+        pRenderHal->pOsInterface,
+        pDynamicState->memoryBlock.GetResource(),
+        true,
+        true));
+
+    if (pParams->iMaxSpillSize > 0 && currentExtendSize > 0)
+    {
+        // Restore original extend heap size
+        MHW_RENDERHAL_CHK_STATUS(
+            pRenderHal->dgsheapManager->SetExtendHeapSize(
+                currentExtendSize));
+
+        // Specifies the 1k-byte aligned address offset to scratch space for
+        // use by the kernel.  This pointer is relative to the
+        // General State Base Address (1k aligned)
+        // Format = GeneralStateOffset[31:10]
+        pDynamicState->scratchSpaceOffset += pDynamicState->memoryBlock.GetOffset();
+        pDynamicState->scratchSpaceOffset = MOS_ALIGN_CEIL(pDynamicState->scratchSpaceOffset, MHW_SCRATCH_SPACE_ALIGN);
+    }
+ 
+    // set the sync tag for the media state
+    pMediaState->dwSyncTag = pRenderHal->pfnGetNextTrackerId(pRenderHal);
 
     // Reset HW allocations
     pRenderHal->iChromaKeyCount = 0;
@@ -1992,30 +2082,37 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     }
 
     // Zero Memory start time and end time
-    pCurrentPtr = pDynamicState->pMemoryBlock->pDataPtr +  // Media state base
-                  pDynamicState->Performance.dwOffset;
-
-    // Start time
-    *((uint64_t*)pCurrentPtr) = 0;
-
-    // End time
-    pCurrentPtr += sizeof(uint64_t);
-    *((uint64_t*)pCurrentPtr) = 0;
-   
-    // Component ID
-    pCurrentPtr += sizeof(uint64_t);
-    *((RENDERHAL_COMPONENT *)pCurrentPtr) = componentID; 
+    performanceSize = (sizeof(uint64_t) * 2) + sizeof(RENDERHAL_COMPONENT);
+    performanceMemory = (uint8_t*)MOS_AllocAndZeroMemory(performanceSize);
+    pCurrentPtr = performanceMemory;
+    pCurrentPtr += (sizeof(uint64_t) * 2);
+    *((RENDERHAL_COMPONENT *)pCurrentPtr) = componentID;
+    pDynamicState->memoryBlock.AddData(
+        performanceMemory, 
+        pDynamicState->Performance.dwOffset, 
+        performanceSize);
 
 finish:
-    if (pRenderHal && pRenderHal->pStateHeap)
-    {
-        pRenderHal->pStateHeap->pCurMediaState = pMediaState;
-    }
 
-    if (pRenderHal)
+    MOS_SafeFreeMemory(performanceMemory);
+
+    if (eStatus == MOS_STATUS_SUCCESS)
     {
-        // Refresh sync tag for all media states in submitted queue
-        pRenderHal->pfnRefreshSync(pRenderHal);
+        if (pRenderHal && pRenderHal->pStateHeap)
+        {
+            pRenderHal->pStateHeap->pCurMediaState = pMediaState;
+        }
+
+        if (pRenderHal)
+        {
+            // Refresh sync tag for all media states in submitted queue
+            pRenderHal->pfnRefreshSync(pRenderHal);
+        }
+    }
+    else
+    {
+        RenderHal_DSH_ReturnMediaStateToPool(pRenderHal->pStateHeap, pMediaState);
+        pMediaState = nullptr;
     }
 
     return pMediaState;
@@ -2071,6 +2168,7 @@ MOS_STATUS RenderHal_DSH_SubmitDynamicState(
 {
     PRENDERHAL_MEDIA_STATE_LIST pList;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    std::vector<MemoryBlock> blocks;
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
@@ -2089,18 +2187,8 @@ MOS_STATUS RenderHal_DSH_SubmitDynamicState(
     // Flag as busy (should be already)
     pMediaState->bBusy = true;
 
-    // Move memory block to sumitted queue (media states memory block in use by GPU)
-    pRenderHal->pMhwStateHeap->SubmitDynamicBlockDyn(MHW_DSH_TYPE, 
-                                    pMediaState->pDynamicState->pMemoryBlock, 
-                                    pMediaState->dwSyncTag);
-
-    // Update scratch space sync tag (in case we need to reallocate it)
-    if (pMediaState->pDynamicState->pScratchSpace)
-    {
-        pRenderHal->pMhwStateHeap->SubmitDynamicBlockDyn(MHW_DSH_TYPE, 
-                                    pMediaState->pDynamicState->pScratchSpace, 
-                                    pMediaState->dwSyncTag);
-    }
+    blocks.push_back(pMediaState->pDynamicState->memoryBlock);
+    pRenderHal->dgsheapManager->SubmitBlocks(blocks);
 
     // Attached to end of submitted queue (media state in execution queue)
     pList = &pRenderHal->pStateHeap->SubmittedStates;
@@ -2143,17 +2231,24 @@ int32_t RenderHal_DSH_LoadCurbeData(
     void                    *pData,
     int32_t                 iSize)
 {
+    MOS_STATUS               eStatus = MOS_STATUS_SUCCESS;
     int32_t                  iOffset;
     int32_t                  iCurbeSize;
-    uint8_t                  *pPtrCurbe;
     PRENDERHAL_DYNAMIC_STATE pDynamicState;
     iOffset    = -1;
+
+    if (pRenderHal == nullptr || pMediaState == nullptr || pData == nullptr)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Null pointer found.");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        goto finish;
+    }
 
     if (pMediaState && pMediaState->pDynamicState)
     {
         // Check if dynamic state is valid
         pDynamicState = pMediaState->pDynamicState;
-        if (!pDynamicState->pMemoryBlock)
+        if (!pDynamicState->memoryBlock.IsValid())
         {
             goto finish;
         }
@@ -2166,24 +2261,31 @@ int32_t RenderHal_DSH_LoadCurbeData(
 
             if (pData)
             {
-                pPtrCurbe = pDynamicState->pMemoryBlock->pDataPtr + // Media state base
-                            pDynamicState->Curbe.dwOffset +             // Offset to curbe area
-                            iOffset;                                    // Current curbe offset
-
-                // Copy data to CURBE
-                MOS_SecureMemcpy(pPtrCurbe, iSize, pData, iSize);
+                MHW_RENDERHAL_CHK_STATUS(pDynamicState->memoryBlock.AddData(
+                    pData, 
+                    pDynamicState->Curbe.dwOffset + iOffset,
+                    iSize));
 
                 // Zero remaining CURBE (for buffer alignment)
                 iCurbeSize -= iSize;
                 if (iCurbeSize > 0)
                 {
-                    MOS_ZeroMemory(pPtrCurbe + iSize, iCurbeSize);
+                    uint8_t* remainingCurbe = (uint8_t*)MOS_AllocAndZeroMemory(sizeof(uint8_t)*iCurbeSize);
+                    MHW_RENDERHAL_CHK_STATUS(pDynamicState->memoryBlock.AddData(
+                        remainingCurbe,
+                        pDynamicState->Curbe.dwOffset + iOffset + iSize,
+                        iCurbeSize));
+                    MOS_SafeFreeMemory(remainingCurbe);
                 }
             }
         }
     }
 
 finish:
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        iOffset = -1;
+    }
     return iOffset;
 }
 
@@ -2216,7 +2318,6 @@ MOS_STATUS RenderHal_DSH_SendCurbeLoad(
 
     pMediaState = pRenderHal->pStateHeap->pCurMediaState;
     MHW_RENDERHAL_CHK_NULL(pMediaState->pDynamicState);
-    MHW_RENDERHAL_CHK_NULL(pMediaState->pDynamicState->pMemoryBlock);
 
     eStatus       = MOS_STATUS_SUCCESS;
     pStateHeap    = pRenderHal->pStateHeap;
@@ -2228,7 +2329,7 @@ MOS_STATUS RenderHal_DSH_SendCurbeLoad(
         CurbeLoadParams.pKernelState            = nullptr;
         CurbeLoadParams.bOldInterface           = false;
         CurbeLoadParams.dwCURBETotalDataLength  = pDynamicState->Curbe.iCurrent;
-        CurbeLoadParams.dwCURBEDataStartAddress = pDynamicState->pMemoryBlock->dwDataOffset +   // media state offset from GSH base
+        CurbeLoadParams.dwCURBEDataStartAddress = pDynamicState->memoryBlock.GetOffset() +   // media state offset from GSH base
                                                   pDynamicState->Curbe.dwOffset;                // curbe data offset in media state
 
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwRenderInterface->AddMediaCurbeLoadCmd(pCmdBuffer, &CurbeLoadParams));
@@ -2256,7 +2357,6 @@ MOS_STATUS RenderHal_DSH_SendStateBaseAddress(PRENDERHAL_INTERFACE pRenderHal, P
     PMOS_RESOURCE               pIshResource;
     uint32_t                    dwIshSize;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    MHW_STATE_BASE_ADDR_PARAMS  StateBaseAddressParams;
     //----------------------------------------
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -2270,27 +2370,24 @@ MOS_STATUS RenderHal_DSH_SendStateBaseAddress(PRENDERHAL_INTERFACE pRenderHal, P
     pDynamicState = pStateHeap->pCurMediaState->pDynamicState;
 
     MHW_RENDERHAL_CHK_NULL(pDynamicState);
-    MHW_RENDERHAL_CHK_NULL(pDynamicState->pMemoryBlock);
-    MHW_RENDERHAL_CHK_NULL(pDynamicState->pMemoryBlock->pStateHeap);
 
-    pGshResource  = &(pDynamicState->pMemoryBlock->pStateHeap->resHeap);
-    dwGshSize     = pDynamicState->pMemoryBlock->pStateHeap->dwSize;
+    pGshResource  = pDynamicState->memoryBlock.GetResource();
+    dwGshSize     = pDynamicState->memoryBlock.GetHeapSize();
     pIshResource  = &(pRenderHal->pMhwStateHeap->GetISHPointer()->resHeap);
     dwIshSize     = pRenderHal->pMhwStateHeap->GetISHPointer()->dwSize;
 
-    StateBaseAddressParams.presGeneralState              = pGshResource;
-    StateBaseAddressParams.dwGeneralStateSize            = dwGshSize;
-    StateBaseAddressParams.presDynamicState              = pGshResource;
-    StateBaseAddressParams.dwDynamicStateSize            = dwGshSize;
-    StateBaseAddressParams.dwDynamicStateMemObjCtrlState = 0;
-    StateBaseAddressParams.bDynamicStateRenderTarget     = false;
-    StateBaseAddressParams.presIndirectObjectBuffer      = pGshResource;
-    StateBaseAddressParams.dwIndirectObjectBufferSize    = dwGshSize;
-    StateBaseAddressParams.presInstructionBuffer         = pIshResource;
-    StateBaseAddressParams.dwInstructionBufferSize       = dwIshSize;
+    pRenderHal->StateBaseAddressParams.presGeneralState              = pGshResource;
+    pRenderHal->StateBaseAddressParams.dwGeneralStateSize            = dwGshSize;
+    pRenderHal->StateBaseAddressParams.presDynamicState              = pGshResource;
+    pRenderHal->StateBaseAddressParams.dwDynamicStateSize            = dwGshSize;
+    pRenderHal->StateBaseAddressParams.bDynamicStateRenderTarget     = false;
+    pRenderHal->StateBaseAddressParams.presIndirectObjectBuffer      = pGshResource;
+    pRenderHal->StateBaseAddressParams.dwIndirectObjectBufferSize    = dwGshSize;
+    pRenderHal->StateBaseAddressParams.presInstructionBuffer         = pIshResource;
+    pRenderHal->StateBaseAddressParams.dwInstructionBufferSize       = dwIshSize;
 
     eStatus = pRenderHal->pMhwRenderInterface->AddStateBaseAddrCmd(pCmdBuffer,
-                                                                   &StateBaseAddressParams);
+                                                                   &pRenderHal->StateBaseAddressParams);
 finish:
     return eStatus;
 }
@@ -2405,110 +2502,8 @@ MOS_STATUS RenderHal_DSH_SetSamplerStates(
     PMHW_SAMPLER_STATE_PARAM    pSamplerParams,
     int32_t                     iSamplers)
 {
-    MOS_STATUS                eStatus;
-    PRENDERHAL_STATE_HEAP     pStateHeap;
-    PXMHW_STATE_HEAP_INTERFACE pMhwStateHeap;
-    PMHW_SAMPLER_STATE_PARAM  pSamplerStateParams;
-    PRENDERHAL_DYNAMIC_STATE  pDynamicState;
-    int32_t                   iOffsetSampler;
-    uint32_t                  dwSamplerIndirect;
-    uint8_t                   *pSamplerIndirect;
-    uint8_t                   *pPtrSampler;
-    uint8_t                   *pPtrSamplerAvs;
-    int32_t                   i;
-
-    eStatus = MOS_STATUS_UNKNOWN;
-
-    //-----------------------------------------------
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pSamplerParams);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
-    //-----------------------------------------------
-
-    pStateHeap = pRenderHal->pStateHeap;
-    pMhwStateHeap = pRenderHal->pMhwStateHeap;
-    pDynamicState = pRenderHal->pStateHeap->pCurMediaState->pDynamicState;
-
-    MHW_RENDERHAL_CHK_NULL(pDynamicState);
-    MHW_RENDERHAL_CHK_NULL(pDynamicState->pMemoryBlock);
-
-    MHW_RENDERHAL_ASSERT(iSamplers <= pDynamicState->Sampler3D.iCount);
-    MHW_RENDERHAL_ASSERT((iMediaID >= 0) && (iMediaID < pDynamicState->MediaID.iCount));
-
-    // Offset/Pointer to Samplers
-    iOffsetSampler = pDynamicState->Sampler3D.dwOffset +            // Offset to sampler area
-        iMediaID * pDynamicState->dwSizeSamplers;      // Samplers for media ID
-    pPtrSampler = pDynamicState->pMemoryBlock->pDataPtr +        // Base address of media state
-        iOffsetSampler;                                // offset to samplers
-
-    dwSamplerIndirect = pDynamicState->SamplerInd.dwOffset +           // offset to indirect sampler area
-        iMediaID * pDynamicState->dwSizeSamplers;      // Samplers for media ID
-    pSamplerIndirect = pDynamicState->pMemoryBlock->pDataPtr +        // Ptr to Indirect state
-        dwSamplerIndirect;
-    dwSamplerIndirect += pDynamicState->pMemoryBlock->dwDataOffset;    // Indirect offset is GSH based
-
-    iOffsetSampler = pDynamicState->SamplerAVS.dwOffset +           // Offset to AVS sampler area
-        iMediaID * pDynamicState->dwSizeSamplers;      // Samplers for media ID
-    pPtrSamplerAvs = pDynamicState->pMemoryBlock->pDataPtr +        // Base address of media state
-        iOffsetSampler;                                // Offset to AVS samplers
-
-    // Setup sampler states
-    pSamplerStateParams = pSamplerParams; // Pointer to First Sampler State in array
-    for (i = 0; i < iSamplers; i++, pSamplerStateParams++,
-        pPtrSampler += pRenderHal->pHwSizes->dwSizeSamplerState,
-        pSamplerIndirect += pRenderHal->pHwSizes->dwSizeSamplerIndirectState,
-        dwSamplerIndirect += pRenderHal->pHwSizes->dwSizeSamplerIndirectState)
-    {
-        if (pSamplerStateParams->bInUse)
-        {
-            pRenderHal->pOsInterface->pfnSetCmdBufferDebugInfo(
-                pRenderHal->pOsInterface,
-                true  /*bSamplerState*/,
-                false /*bSurfaceState*/,
-                i,
-                pSamplerStateParams->SamplerType);
-
-            switch (pSamplerStateParams->SamplerType)
-            {
-            case MHW_SAMPLER_TYPE_3D:
-                pSamplerStateParams->Unorm.pIndirectState = pSamplerIndirect;
-                pSamplerStateParams->Unorm.IndirectStateOffset = dwSamplerIndirect;
-                eStatus = pMhwStateHeap->SetSamplerState(pPtrSampler, pSamplerStateParams);
-                pDynamicState->Sampler3D.iCurrent++;
-                break;
-
-            case MHW_SAMPLER_TYPE_AVS:
-                eStatus = pMhwStateHeap->SetSamplerState(pPtrSamplerAvs, pSamplerStateParams);
-                pPtrSamplerAvs += pRenderHal->dwSamplerAvsIncrement;
-                pDynamicState->SamplerAVS.iCurrent++;
-
-                if (pSamplerStateParams->Avs.pMhwSamplerAvsTableParam)
-                {
-                    pDynamicState->Table8x8.iCurrent++;
-                }
-                break;
-
-            default:
-                eStatus = MOS_STATUS_INVALID_PARAMETER;
-                MHW_RENDERHAL_ASSERTMESSAGE("Unknown Sampler Type.");
-                break;
-            }
-
-            if (MOS_FAILED(eStatus))
-            {
-                MHW_RENDERHAL_ASSERTMESSAGE("Failed to setup Sampler");
-                goto finish;
-            }
-        }
-    }
-
-    eStatus = MOS_STATUS_SUCCESS;
-
-finish:
-    MHW_RENDERHAL_ASSERT(eStatus == MOS_STATUS_SUCCESS);
-    return eStatus;
+    MHW_RENDERHAL_ASSERT(true);
+    return MOS_STATUS_UNIMPLEMENTED;
 }
 
 //!
@@ -2543,7 +2538,6 @@ MOS_STATUS RenderHal_DSH_SetupInterfaceDescriptor(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
     MHW_RENDERHAL_CHK_NULL(pMediaState);
     MHW_RENDERHAL_CHK_NULL(pMediaState->pDynamicState);
-    MHW_RENDERHAL_CHK_NULL(pMediaState->pDynamicState->pMemoryBlock);
     MHW_RENDERHAL_CHK_NULL(pKernelAllocation);
     MHW_RENDERHAL_CHK_NULL(pKernelAllocation->pMemoryBlock);
     MHW_RENDERHAL_CHK_NULL(pInterfaceDescriptorParams);
@@ -2552,7 +2546,7 @@ MOS_STATUS RenderHal_DSH_SetupInterfaceDescriptor(
     // Get states, params
     pStateHeap = pRenderHal->pStateHeap;
     pDynamicState = pMediaState->pDynamicState;
-    dwMediaStateOffset = pDynamicState->pMemoryBlock->dwDataOffset;
+    dwMediaStateOffset = pDynamicState->memoryBlock.GetOffset();
 
     Params.dwMediaIdOffset = dwMediaStateOffset + pDynamicState->MediaID.dwOffset;
     Params.iMediaId = pInterfaceDescriptorParams->iMediaID;
@@ -2569,9 +2563,9 @@ MOS_STATUS RenderHal_DSH_SetupInterfaceDescriptor(
     Params.dwNumberofThreadsInGPGPUGroup = pInterfaceDescriptorParams->iNumberThreadsInGroup;
     Params.dwSharedLocalMemorySize = pRenderHal->pfnEncodeSLMSize(pRenderHal, pInterfaceDescriptorParams->iSLMSize);
     Params.iCrsThdConDataRdLn = pInterfaceDescriptorParams->iCrsThrdConstDataLn;
-    Params.pGeneralStateHeap = pDynamicState->pMemoryBlock->pStateHeap;
+    Params.memoryBlock = &pDynamicState->memoryBlock;
 
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetInterfaceDescriptorEntry(&Params));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->AddInterfaceDescriptorData(&Params));
     pDynamicState->MediaID.iCurrent++;
 
 finish:
@@ -2595,8 +2589,6 @@ finish:
 //!           [in] URB Entry Allocation Size
 //! \param    PRENDERHAL_SCOREBOARD_PARAMS pScoreboardParams
 //!           [in] Pointer to Scoreboard Params
-//! \param    bool bGpGpuWalkerMode
-//!           [in] true if using GpGpu Walker, false otherwise
 //! \return   MOS_STATUS
 //!
 MOS_STATUS RenderHal_DSH_SetVfeStateParams(
@@ -2605,8 +2597,7 @@ MOS_STATUS RenderHal_DSH_SetVfeStateParams(
     uint32_t                dwMaximumNumberofThreads,
     uint32_t                dwCURBEAllocationSize,
     uint32_t                dwURBEntryAllocationSize,
-    PMHW_VFE_SCOREBOARD     pScoreboardParams,
-    bool                    bGpGpuWalkerMode)
+    PMHW_VFE_SCOREBOARD     pScoreboardParams)
 {
     PMHW_VFE_PARAMS                 pVfeParams;
     PRENDERHAL_STATE_HEAP           pStateHeap;
@@ -2637,7 +2628,6 @@ MOS_STATUS RenderHal_DSH_SetVfeStateParams(
 
     pVfeParams->pKernelState = nullptr;
     pVfeParams->eVfeSliceDisable = MHW_VFE_SLICE_ALL;
-    pVfeParams->bGpGpuWalkerMode = bGpGpuWalkerMode;
 
     // Get pointer to current dynamic state
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pCurMediaState);
@@ -2728,8 +2718,8 @@ MOS_STATUS RenderHal_DSH_SetVfeStateParams(
         MHW_RENDERHAL_ASSERT(!iRemain && iPerThreadScratchSize);
         MHW_RENDERHAL_ASSERT(iSize < 12);
 
-        pVfeParams->dwPerThreadScratchSpace = (uint32_t)iSize;
-        pVfeParams->dwScratchSpaceBasePointer = pDynamicState->pScratchSpace->dwDataOffset;
+        pVfeParams->dwPerThreadScratchSpace   = (uint32_t)iSize;
+        pVfeParams->dwScratchSpaceBasePointer = pDynamicState->scratchSpaceOffset;
     }
     else
     {
@@ -2806,7 +2796,8 @@ MOS_STATUS RenderHal_DSH_Initialize(
     pRenderHal->dwStateHeapSize = sizeof(RENDERHAL_STATE_HEAP);
     MHW_RENDERHAL_CHK_NULL(pStateHeap);
 
-    RenderHal_HashTable_Init(&pRenderHal->pStateHeap->KernelHashTable);
+    pRenderHal->pStateHeap->kernelHashTable = CmHashTable();
+    pRenderHal->pStateHeap->kernelHashTable.Init();
 
     // Apply state heap settings (iMediaStates not actually used in DSH)
     if (pSettings)
@@ -2821,7 +2812,7 @@ MOS_STATUS RenderHal_DSH_Initialize(
     }
 
     // Apply SSH settings for the current platform
-    pRenderHal->StateHeapSettings.iSurfaceStateHeaps = 
+    pRenderHal->StateHeapSettings.iSurfaceStateHeaps =
                                 pRenderHal->StateHeapSettings.iMediaStateHeaps;
 
     // Allocate and initialize state heaps (GSH, SSH, ISH)
@@ -2829,7 +2820,7 @@ MOS_STATUS RenderHal_DSH_Initialize(
 
     // If ASM debug is enabled, allocate debug resource
     MHW_RENDERHAL_CHK_STATUS(RenderHal_AllocateDebugSurface(pRenderHal));
-    
+
 finish:
     return eStatus;
 }
@@ -2947,6 +2938,8 @@ MOS_STATUS RenderHal_InitInterface_Dynamic(
     pRenderHal->pfnAllocateStateHeaps         = RenderHal_DSH_AllocateStateHeaps;
     pRenderHal->pfnFreeStateHeaps             = RenderHal_DSH_FreeStateHeaps;
 
+    pRenderHal->pfnAssignSpaceInStateHeap     = RenderHal_DSH_AssignSpaceInStateHeap;
+
     // Media states management functions
     pRenderHal->pfnAssignMediaState           = RenderHal_DSH_AssignMediaState;
     pRenderHal->pfnAllocateMediaID            = RenderHal_DSH_AllocateMediaID;
@@ -2963,6 +2956,7 @@ MOS_STATUS RenderHal_InitInterface_Dynamic(
     pRenderHal->pfnResetKernels               = RenderHal_DSH_ResetKernels;
     pRenderHal->pfnTouchKernel                = RenderHal_DSH_TouchKernel;
     pRenderHal->pfnGetKernelOffset            = RenderHal_DSH_GetKernelOffset;
+    pRenderHal->pfnUnregisterKernel           = RenderHal_DSH_UnregisterKernel;
 
     // Dynamic Kernel management functions (not implemented here)
     pRenderHal->pfnLoadDynamicKernel          = RenderHal_DSH_LoadDynamicKernel;

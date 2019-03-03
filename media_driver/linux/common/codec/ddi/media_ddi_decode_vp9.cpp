@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -112,7 +112,7 @@ VAStatus DdiDecodeVP9::ParsePicParams(
 
     int32_t frameIdx;
     frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, m_ddiDecodeCtx->RTtbl.pCurrentRT);
-    if (frameIdx == DDI_CODEC_INVALID_FRAME_INDEX)
+    if (frameIdx == (int32_t)DDI_CODEC_INVALID_FRAME_INDEX)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -129,7 +129,23 @@ VAStatus DdiDecodeVP9::ParsePicParams(
         }
         else
         {
-            picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+            PDDI_MEDIA_SURFACE refSurface          = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reference_frames[i]);
+            if (refSurface != nullptr)
+            {
+                frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, refSurface);
+                if (frameIdx != DDI_CODEC_INVALID_FRAME_INDEX)
+                {
+                    picVp9Params->RefFrameList[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9) ? (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1) : frameIdx;
+                }
+                else
+                {
+                    picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+                }
+            }
+            else
+            {
+                picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+            }
         }
     }
 
@@ -141,12 +157,12 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     picVp9Params->FirstPartitionSize              = picParam->first_partition_size;
     picVp9Params->profile                         = picParam->profile;
 
-    /* Only 8bit depth is supported on VAProfileVP9Profile0.
-     * If it is VAProfileVP9Profile2/3, it is possible to support the 10/12 bit-depth.
+    /* Only 8bit depth is supported on picParam->profile=0.
+     * If picParam->profile=2,3, it is possible to support the 10/12 bit-depth.
      * otherwise the bit_depth is 8.
      */
-    if (((picParam->profile == VAProfileVP9Profile2) ||
-            (picParam->profile == VAProfileVP9Profile3)) &&
+    if (((picParam->profile == CODEC_PROFILE_VP9_PROFILE2) ||
+            (picParam->profile == CODEC_PROFILE_VP9_PROFILE3)) &&
         (picParam->bit_depth >= 8))
     {
         picVp9Params->BitDepthMinus8 = picParam->bit_depth - 8;
@@ -159,10 +175,30 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     picVp9Params->subsampling_x = picParam->pic_fields.bits.subsampling_x;
     picVp9Params->subsampling_y = picParam->pic_fields.bits.subsampling_y;
 
-    memcpy(picVp9Params->SegTreeProbs, picParam->mb_segment_tree_probs, 7);
-    memcpy(picVp9Params->SegPredProbs, picParam->segment_pred_probs, 3);
+    MOS_SecureMemcpy(picVp9Params->SegTreeProbs, 7, picParam->mb_segment_tree_probs, 7);
+    MOS_SecureMemcpy(picVp9Params->SegPredProbs, 3, picParam->segment_pred_probs, 3);
 
     return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeVP9::SetDecodeParams()
+{
+     DDI_CHK_RET(DdiMediaDecode::SetDecodeParams(),"SetDecodeParams failed!");
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    // Bridge the SFC input with vdbox output
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        auto procParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
+        procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
+        // codechal_decode_sfc.c expects Input Width/Height information.
+        procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
+        procParams->pInputSurface->dwHeight = procParams->pInputSurface->OsResource.iHeight;
+        procParams->pInputSurface->dwPitch    = procParams->pInputSurface->OsResource.iPitch;
+        procParams->pInputSurface->Format    = procParams->pInputSurface->OsResource.Format;
+    }
+#endif
+     return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiDecodeVP9::RenderPicture(
@@ -171,28 +207,25 @@ VAStatus DdiDecodeVP9::RenderPicture(
     VABufferID       *buffers,
     int32_t          numBuffers)
 {
-    VAStatus           vaStatus = VA_STATUS_SUCCESS;
+    VAStatus           va = VA_STATUS_SUCCESS;
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
 
     DDI_FUNCTION_ENTER();
 
-    int32_t           i, j;
-    DDI_MEDIA_BUFFER *buf  = nullptr;
     void             *data = nullptr;
-    uint32_t          dataSize;
-    for (i = 0; i < numBuffers; i++)
+    for (int32_t i = 0; i < numBuffers; i++)
     {
         if (!buffers || (buffers[i] == VA_INVALID_ID))
         {
             return VA_STATUS_ERROR_INVALID_BUFFER;
         }
-        buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, buffers[i]);
+        DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, buffers[i]);
         if (nullptr == buf)
         {
             return VA_STATUS_ERROR_INVALID_BUFFER;
         }
 
-        dataSize = buf->iSize;
+        uint32_t dataSize = buf->iSize;
         DdiMedia_MapBuffer(ctx, buffers[i], &data);
 
         if (data == nullptr)
@@ -211,7 +244,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
                 DDI_NORMALMESSAGE("Slice data is already rendered\n");
                 break;
             }
-            int32_t index = DdiDecode_GetBitstreamBufIndexFromBuffer(&m_ddiDecodeCtx->BufMgr, buf);
+            int32_t index = GetBitstreamBufIndexFromBuffer(&m_ddiDecodeCtx->BufMgr, buf);
             if (index == DDI_CODEC_INVALID_BUFFER_INDEX)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -231,20 +264,15 @@ VAStatus DdiDecodeVP9::RenderPicture(
                 DDI_NORMALMESSAGE("SliceParamBufferVP9 is already rendered\n");
                 break;
             }
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
 
             VASliceParameterBufferVP9 *slcInfoVP9 = (VASliceParameterBufferVP9 *)data;
-
-            vaStatus = ParseSliceParams(mediaCtx, slcInfoVP9);
-            if (vaStatus != VA_STATUS_SUCCESS)
-            {
-                return VA_STATUS_ERROR_INVALID_BUFFER;
-            }
+            DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoVP9),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices++;
-            m_ddiDecodeCtx->m_groupIndex++;
+            m_groupIndex++;
             break;
         }
         case VAPictureParameterBufferType:
@@ -252,35 +280,31 @@ VAStatus DdiDecodeVP9::RenderPicture(
             VADecPictureParameterBufferVP9 *picParam;
 
             picParam = (VADecPictureParameterBufferVP9 *)data;
-
-            if (ParsePicParams(mediaCtx, picParam) != VA_STATUS_SUCCESS)
-            {
-                return VA_STATUS_ERROR_INVALID_BUFFER;
-            }
+            DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
             break;
         }
 
         case VAProcPipelineParameterBufferType:
         {
-            DDI_NORMALMESSAGE("ProcPipeline is not supported for VP9 decoding\n");
+            DDI_CHK_RET(ParseProcessingBuffer(mediaCtx, data),"ParseProcessingBuffer failed!");
             break;
         }
         case VADecodeStreamoutBufferType:
         {
             DdiMedia_MediaBufferToMosResource(buf, &m_ddiDecodeCtx->BufMgr.resExternalStreamOutBuffer);
-            m_ddiDecodeCtx->bStreamOutEnabled = true;
+            m_streamOutEnabled = true;
             break;
         }
 
         default:
-            vaStatus = m_ddiDecodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
+            va = m_ddiDecodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
             break;
         }
         DdiMedia_UnmapBuffer(ctx, buffers[i]);
     }
 
-    DDI_FUNCTION_EXIT(vaStatus);
-    return vaStatus;
+    DDI_FUNCTION_EXIT(va);
+    return va;
 }
 
 VAStatus DdiDecodeVP9::InitResourceBuffer()
@@ -291,8 +315,8 @@ VAStatus DdiDecodeVP9::InitResourceBuffer()
     bufMgr->pSliceData = nullptr;
 
     bufMgr->ui64BitstreamOrder = 0;
-    bufMgr->dwMaxBsSize        = m_ddiDecodeCtx->dwWidth *
-                          m_ddiDecodeCtx->dwHeight * 3 / 2;
+    bufMgr->dwMaxBsSize        = m_width *
+                          m_height * 3 / 2;
     // minimal 10k bytes for some special case. Will refractor this later
     if (bufMgr->dwMaxBsSize < DDI_CODEC_MIN_VALUE_OF_MAX_BS_SIZE)
     {
@@ -376,6 +400,30 @@ void DdiDecodeVP9::FreeResourceBuffer()
     bufMgr->pSliceData = nullptr;
 }
 
+uint8_t* DdiDecodeVP9::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+{
+    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_VP9.PicParamVP9));
+}
+
+VAStatus DdiDecodeVP9::AllocSliceControlBuffer(
+    DDI_MEDIA_BUFFER       *buf)
+{
+    DDI_CODEC_COM_BUFFER_MGR   *bufMgr;
+
+    bufMgr     = &(m_ddiDecodeCtx->BufMgr);
+    if(bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9 == nullptr)
+    {
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+    buf->pData    = (uint8_t*)bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9;
+    buf->uiOffset = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferVP9);
+
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
+
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus DdiDecodeVP9::CodecHalInit(
     DDI_MEDIA_CONTEXT *mediaCtx,
     void              *ptr)
@@ -384,34 +432,38 @@ VAStatus DdiDecodeVP9::CodecHalInit(
     MOS_CONTEXT *mosCtx   = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
+    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
-    CODECHAL_SETTINGS      codecHalSettings;
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
-    memset(&codecHalSettings, 0, sizeof(codecHalSettings));
 
     standardInfo.CodecFunction = codecFunction;
     standardInfo.Mode          = (CODECHAL_MODE)m_ddiDecodeCtx->wMode;
 
-    codecHalSettings.CodecFunction = codecFunction;
-    codecHalSettings.dwWidth       = m_ddiDecodeCtx->dwWidth;
-    codecHalSettings.dwHeight      = m_ddiDecodeCtx->dwHeight;
-    codecHalSettings.bIntelProprietaryFormatInUse = false;
+    m_codechalSettings->codecFunction = codecFunction;
+    m_codechalSettings->width       = m_width;
+    m_codechalSettings->height      = m_height;
+    m_codechalSettings->intelEntrypointInUse = false;
 
-    codecHalSettings.ucLumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
     if ((m_ddiDecodeAttr->profile == VAProfileVP9Profile2) ||
         (m_ddiDecodeAttr->profile == VAProfileVP9Profile3))
     {
-        codecHalSettings.ucLumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+        m_codechalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
     }
 
-    codecHalSettings.bShortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
+    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
-    codecHalSettings.Mode           = CODECHAL_DECODE_MODE_VP9VLD;
-    codecHalSettings.Standard       = CODECHAL_VP9;
-    codecHalSettings.ucChromaFormat = HCP_CHROMA_FORMAT_YUV420;
+    m_codechalSettings->mode           = CODECHAL_DECODE_MODE_VP9VLD;
+    m_codechalSettings->standard       = CODECHAL_VP9;
+    m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV420;
 
+    if(m_ddiDecodeAttr->profile == VAProfileVP9Profile1 ||
+       m_ddiDecodeAttr->profile == VAProfileVP9Profile3)
+    {
+        m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
+    }
+    
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = MOS_AllocAndZeroMemory(sizeof(CODEC_VP9_SEGMENT_PARAMS));
     if (m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer == nullptr)
     {
@@ -424,10 +476,31 @@ VAStatus DdiDecodeVP9::CodecHalInit(
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto CleanUpandReturn;
     }
-
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
+        
+        m_codechalSettings->downsamplingHinted = true;
+        
+        procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_DECODE_PROCESSING_PARAMS));
+        if (procParams == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+        
+        m_ddiDecodeCtx->DecodeParams.m_procParams = procParams;
+        procParams->pOutputSurface = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+        if (procParams->pOutputSurface == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+    }
+#endif
     vaStatus = CreateCodecHal(mediaCtx,
         ptr,
-        &codecHalSettings,
         &standardInfo);
 
     if (vaStatus != VA_STATUS_SUCCESS)
@@ -446,12 +519,6 @@ VAStatus DdiDecodeVP9::CodecHalInit(
 CleanUpandReturn:
     FreeResourceBuffer();
 
-    if (m_ddiDecodeCtx->pDecodeStatusReport)
-    {
-        MOS_DeleteArray(m_ddiDecodeCtx->pDecodeStatusReport);
-        m_ddiDecodeCtx->pDecodeStatusReport = nullptr;
-    }
-
     if (m_ddiDecodeCtx->pCodecHal)
     {
         m_ddiDecodeCtx->pCodecHal->Destroy();
@@ -465,132 +532,87 @@ CleanUpandReturn:
     m_ddiDecodeCtx->DecodeParams.m_picParams = nullptr;
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
     m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        if (m_ddiDecodeCtx->DecodeParams.m_procParams)
+        {
+            auto procParams =
+                (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
+            MOS_FreeMemory(procParams->pOutputSurface);
+            
+            MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);
+            m_ddiDecodeCtx->DecodeParams.m_procParams = nullptr;
+        }
+#endif
 
     return vaStatus;
 }
 
-VAStatus DdiDecodeVP9::EndPicture(
+VAStatus DdiDecodeVP9::InitDecodeParams(
     VADriverContextP ctx,
     VAContextID      context)
 {
-    DDI_FUNCTION_ENTER();
-
-    /* the default CtxType is DECODER */
-    m_ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;
-
     slcFlag = false;
-    if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_CENC)
-    {
-        m_ctxType = DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER;
-    }
     /* skip the mediaCtx check as it is checked in caller */
-    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);    
-
-    VAStatus vaStatus = DecodeCombineBitstream(mediaCtx);
-
-    if (vaStatus != VA_STATUS_SUCCESS)
-        return vaStatus;
-
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
     bufMgr->dwNumSliceData    = 0;
     bufMgr->dwNumSliceControl = 0;
-    
-    if (m_ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
-    {
-        vaStatus = m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context);
-    
-        return vaStatus;
-    }
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
-    
+
     if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
+    return VA_STATUS_SUCCESS;
+}
 
+MOS_FORMAT DdiDecodeVP9::GetFormat()
+{
+    slcFlag = false;
+    MOS_FORMAT Format = Format_NV12;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
 
-    if (decodeParams->m_numSlices == 0)
-    {
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
-
-    MOS_SURFACE destSurface;
-    memset(&destSurface, 0, sizeof(MOS_SURFACE));
-    destSurface.dwOffset       = 0;
-    MOS_FORMAT expectedFormat = Format_NV12;
-
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;
-    if (((picParams->profile == VAProfileVP9Profile2) ||
-            (picParams->profile == VAProfileVP9Profile3)) &&
+    if((picParams->profile == CODEC_PROFILE_VP9_PROFILE1) &&
+        (picParams->BitDepthMinus8 == 0))
+    {
+        Format = Format_AYUV;
+    }
+    if (((picParams->profile == CODEC_PROFILE_VP9_PROFILE2) ||
+        (picParams->profile == CODEC_PROFILE_VP9_PROFILE3)) &&
         (picParams->BitDepthMinus8 > 0))
     {
-        expectedFormat = Format_P010;
-        if ((picParams->subsampling_x == 0) ||
-            (picParams->subsampling_y == 0))
+        Format = Format_P010;
+        if((picParams->BitDepthMinus8 > 2) || (rtTbl->pCurrentRT->format == Media_Format_P016))
         {
-            expectedFormat = Format_Y210;
+            Format = Format_P016;
+        }
+        if ((picParams->subsampling_x == 1) && (picParams->subsampling_y == 0))
+        {
+            Format = Format_Y210;
+        }
+        else if ((picParams->subsampling_x == 0) && (picParams->subsampling_y == 0))
+        {
+            if(picParams->BitDepthMinus8 == 2)
+            {
+                Format = Format_Y410;
+
+                //10bit decode in 12bit
+                if(rtTbl->pCurrentRT->format == Media_Format_Y416)
+                {
+                    Format = Format_Y416;
+                }
+            }
+            else if(picParams->BitDepthMinus8 > 2)
+            {
+                Format = Format_Y416;
+            }
         }
     }
-
-    destSurface.Format = expectedFormat;
-
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(destSurface.OsResource));
-
-    if (destSurface.OsResource.Format != expectedFormat)
-    {
-        DDI_NORMALMESSAGE("Surface fomrat of decoded surface is inconsistent with VP9 bitstream\n");
-        vaStatus = VA_STATUS_ERROR_INVALID_PARAMETER;
-        return vaStatus;
-    }
-
-    decodeParams->m_destSurface = &destSurface;
-
-    decodeParams->m_deblockSurface = nullptr;
-
-    decodeParams->m_dataBuffer       = &bufMgr->resBitstreamBuffer;
-    decodeParams->m_bitStreamBufData = bufMgr->pBitstreamBuffer;
-    Mos_Solo_OverrideBufferSize(decodeParams->m_dataSize, decodeParams->m_dataBuffer);
-
-    decodeParams->m_bitplaneBuffer = nullptr;
-
-    if (m_ddiDecodeCtx->bStreamOutEnabled)
-    {
-        decodeParams->m_streamOutEnabled        = true;
-        decodeParams->m_externalStreamOutBuffer = &bufMgr->resExternalStreamOutBuffer;
-    }
-    else
-    {
-        decodeParams->m_streamOutEnabled        = false;
-        decodeParams->m_externalStreamOutBuffer = nullptr;
-    }
-
-    DDI_CHK_RET(ClearRefList(rtTbl, true), "ClearRefList failed!");
-
-    if (m_ddiDecodeCtx->pCodecHal == nullptr)
-    {
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-
-    MOS_STATUS eStatus = m_ddiDecodeCtx->pCodecHal->Execute((void*)(decodeParams));
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("DDI:DdiDecode_DecodeInCodecHal return failure.");
-        return VA_STATUS_ERROR_DECODING_ERROR;
-    }
-
-    rtTbl->pCurrentRT = nullptr;
-
-    eStatus = m_ddiDecodeCtx->pCodecHal->EndFrame();
-
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        return VA_STATUS_ERROR_DECODING_ERROR;
-    }
-
-    DDI_FUNCTION_EXIT(VA_STATUS_SUCCESS);
-    return VA_STATUS_SUCCESS;
+    return Format;
 }
 
 void DdiDecodeVP9::DestroyContext(
@@ -609,7 +631,6 @@ void DdiDecodeVP9::ContextInit(
     DdiMediaDecode::ContextInit(picWidth, picHeight);
 
     m_ddiDecodeCtx->wMode    = CODECHAL_DECODE_MODE_VP9VLD;
-    m_ddiDecodeCtx->Standard = CODECHAL_VP9;
 }
 
 extern template class MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR>;

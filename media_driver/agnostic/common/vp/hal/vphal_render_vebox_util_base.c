@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -113,10 +113,10 @@ MOS_STATUS VpHal_InitVeboxSurfaceParams(
     pMhwVeboxSurface->rcMaxSrc               = pVpHalVeboxSurface->rcMaxSrc;
     pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->OsResource;
     pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->bIsCompressed;
-    
+
     if (pVpHalVeboxSurface->dwPitch > 0)
     {
-        pMhwVeboxSurface->dwUYoffset = pVpHalVeboxSurface->UPlaneOffset.iLockSurfaceOffset / pVpHalVeboxSurface->dwPitch;
+        pMhwVeboxSurface->dwUYoffset = ((pVpHalVeboxSurface->UPlaneOffset.iSurfaceOffset - pVpHalVeboxSurface->YPlaneOffset.iSurfaceOffset) / pVpHalVeboxSurface->dwPitch) + pVpHalVeboxSurface->UPlaneOffset.iYOffset;
     }
 
 finish:
@@ -141,6 +141,7 @@ MOS_STATUS VpHal_InitVeboxSurfaceStateCmdParams(
         VPHAL_RENDER_CHK_STATUS(VpHal_InitVeboxSurfaceParams(
                                 pVpHalVeboxSurfaceStateCmdParams->pSurfInput,
                                 &pMhwVeboxSurfaceStateCmdParams->SurfInput));
+        pMhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset = pVpHalVeboxSurfaceStateCmdParams->pSurfInput->YPlaneOffset.iYOffset;
     }
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfOutput)
     {
@@ -148,6 +149,7 @@ MOS_STATUS VpHal_InitVeboxSurfaceStateCmdParams(
         VPHAL_RENDER_CHK_STATUS(VpHal_InitVeboxSurfaceParams(
                                 pVpHalVeboxSurfaceStateCmdParams->pSurfOutput,
                                 &pMhwVeboxSurfaceStateCmdParams->SurfOutput));
+        pMhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset = pVpHalVeboxSurfaceStateCmdParams->pSurfOutput->YPlaneOffset.iYOffset;
     }
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfSTMM)
     {

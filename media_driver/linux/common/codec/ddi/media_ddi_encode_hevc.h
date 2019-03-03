@@ -36,6 +36,10 @@ static const uint8_t sliceTypeI = 2;
 static const uint8_t numMaxRefFrame    = 15;
 static const uint8_t vdencRoiBlockSize = 32;
 
+//!
+//! \class  DdiEncodeHevc
+//! \brief  DDi encode HEVC
+//!
 class DdiEncodeHevc : public DdiEncodeBase
 {
 public:
@@ -53,12 +57,12 @@ public:
     //! \brief    Initialize Encode Context and CodecHal Setting for Hevc
     //!
     //! \param    [out] codecHalSettings
-    //!           Pointer to PCODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    VAStatus ContextInitialize(CODECHAL_SETTINGS *codecHalSettings) override;
+    VAStatus ContextInitialize(CodechalSetting *codecHalSettings) override;
 
     //!
     //! \brief    Send required buffers to for process
@@ -151,6 +155,29 @@ protected:
     VAStatus ParseSlcParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr, uint32_t numSlices);
 
     //!
+    //! \brief    Find the NAL Unit Start Codes
+    //!
+    //! \param    [in] buf
+    //!           Pointer to packed header NAL unit data
+    //! \param    [in] size
+    //!           byte size of packed header NAL unit data
+    //! \param    [in] startCodesOffset
+    //!           Pointer to NAL unit start codes offset from the packed header
+    //!           NAL unit data buf
+    //! \param    [in] startCodesLength
+    //!           Pointer to NAL unit start codes length
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success,
+    //!           else VA_STATUS_ERROR_INVALID_BUFFER if start codes doesn't exit
+    //!
+    VAStatus FindNalUnitStartCodes(
+        uint8_t * buf,
+        uint32_t size,
+        uint32_t * startCodesOffset,
+        uint32_t * startCodesLength);
+
+    //!
     //! \brief    Parse Packed Header Parameter buffer to Encode Context
     //!
     //! \param    [in] ptr
@@ -182,6 +209,8 @@ protected:
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus ParseMiscParams(void *ptr);
+
+    uint16_t m_previousFRvalue = 0; //!< For saving FR value to be used in case of dynamic BRC reset.
 
 private:
     //!
@@ -232,9 +261,6 @@ private:
         VAPictureHEVC                 vaPicHEVC,
         bool                          picReference,
         bool                          sliceReference);
-
-protected:
-    bool m_is10Bit = false;  //!< 10 bit flag.
 
 };
 #endif  //__MEDIA_LIBVA_ENCODER_HEVC_H__

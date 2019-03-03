@@ -105,11 +105,10 @@ void VPHAL_VEBOX_IECP_RENDERER::VeboxSetAlphaParams(
             }
             break;
 
-
             // VEBOX does not support Background Color
         case VPHAL_ALPHA_FILL_MODE_BACKGROUND:
 
-            // VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM case is hit when the 
+            // VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM case is hit when the
             // input does not have alpha
             // So we set Opaque alpha channel.
         case VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM:

@@ -20,26 +20,157 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_program.h  
-//! \brief     Contains Class CmProgram definitions  
+//! \file      cm_program.h 
+//! \brief     Contains Class CmProgram definitions 
 //!
-#pragma once
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMPROGRAM_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMPROGRAM_H_
 
 #include "cm_def.h"
 #include "cm_array.h"
+#include "cm_jitter_info.h"
 #include "cm_visa.h"
+
+struct attribute_info_t
+{
+    unsigned short nameIndex;
+    unsigned char size;
+    unsigned char* values;
+    char *name;
+};
+
+struct gen_var_info_t
+{
+    unsigned short nameIndex;
+    unsigned char bitProperties;
+    unsigned short numElements;
+    unsigned short aliasIndex;
+    unsigned short aliasOffset;
+    unsigned char attributeCount;
+    attribute_info_t* attributes;
+} ;
+
+struct spec_var_info_t
+{
+    unsigned short nameIndex;
+    unsigned short numElements;
+    unsigned char attributeCount;
+    attribute_info_t* attributes;
+};
+
+struct label_info_t
+{
+    unsigned short nameIndex;
+    unsigned char kind;
+    unsigned char attributeCount;
+    attribute_info_t* attributes;
+};
+
+struct CM_KERNEL_INFO
+{
+    char kernelName[ CM_MAX_KERNEL_NAME_SIZE_IN_BYTE ];
+    uint32_t inputCountOffset;
+
+    //Used to store the input for the jitter from CISA
+    uint32_t kernelIsaOffset;
+    uint32_t kernelIsaSize;
+
+    //Binary Size
+    union
+    {
+        uint32_t jitBinarySize;
+        uint32_t genxBinarySize;
+    };
+
+    union
+    {
+        void* jitBinaryCode;   //pointer to code created by jitter
+        uint32_t genxBinaryOffset; //pointer to binary offset in CISA (use when jit is not enabled)
+    };
+
+    //Just a copy for original binary pointer and size (GTPin using only)
+    void* origBinary;
+    uint32_t origBinarySize;
+
+    uint32_t globalStringCount;
+    const char** globalStrings;
+    char kernelASMName[CM_MAX_KERNEL_NAME_SIZE_IN_BYTE + 1];        //The name of the Gen assembly file for this kernel (no extension)
+    uint8_t kernelSLMSize;     //Size of the SLM used by each thread group
+    bool blNoBarrier;       //Indicate if the barrier is used in kernel: true means no barrier used, false means barrier is used.
+
+    FINALIZER_INFO *jitInfo;
+
+    uint32_t variableCount;
+    gen_var_info_t *variables;
+    uint32_t addressCount;
+    spec_var_info_t *address;
+    uint32_t predicateCount;
+    spec_var_info_t *predicates;
+    uint32_t labelCount;
+    label_info_t *label;
+    uint32_t samplerCount;
+    spec_var_info_t *sampler;
+    uint32_t surfaceCount;
+    spec_var_info_t *surface;
+    uint32_t vmeCount;
+    spec_var_info_t *vme;
+
+    uint32_t kernelInfoRefCount;    //reference counter for kernel info to reuse kernel info and jitbinary
+};
+
+//Function pointer definition for jitter compilation functions.
+typedef int (__cdecl *pJITCompile)(const char *kernelName,
+                                   const void *kernelIsa,
+                                   uint32_t kernelIsaSize,
+                                   void* &genBinary,
+                                   uint32_t &genBinarySize,
+                                   const char *platform,
+                                   int majorVersion,
+                                   int minorVersion,
+                                   int numArgs,
+                                   const char *args[],
+                                   char *errorMsg,
+                                   FINALIZER_INFO *jitInfo);
+
+typedef int (__cdecl *pJITCompile_v2)(const char *kernelName,
+                                   const void *kernelIsa,
+                                   uint32_t kernelIsaSize,
+                                   void* &genBinary,
+                                   uint32_t &genBinarySize,
+                                   const char *platform,
+                                   int majorVersion,
+                                   int minorVersion,
+                                   int numArgs,
+                                   const char *args[],
+                                   char *errorMsg,
+                                   FINALIZER_INFO *jitInfo,
+                                   void *extra_info);
+
+typedef void (__cdecl *pFreeBlock)(void*);
+
+typedef void (__cdecl *pJITVersion)(unsigned int &majorV,
+                                    unsigned int &minorV);
+
+#define CM_JIT_FLAG_SIZE           256
+#define CM_JIT_ERROR_MESSAGE_SIZE  512
+#define CM_JIT_PROF_INFO_SIZE      4096
+#define CM_RT_JITTER_MAX_NUM_FLAGS 30
+
+#define JITCOMPILE_FUNCTION_STR "JITCompile"
+#define JITCOMPILEV2_FUNCTION_STR "JITCompile_v2"
+#define FREEBLOCK_FUNCTION_STR  "freeBlock"
+#define JITVERSION_FUNCTION_STR "getJITVersion"
 
 namespace CMRT_UMD
 {
-
 class CmDeviceRT;
 
 class CmProgram
 {
 public:
-    virtual int32_t GetCommonISACode(void* & pCommonISACode, uint32_t & size) = 0;
+    virtual int32_t GetCommonISACode(void* & commonISACode, uint32_t & size) = 0;
 };
-
 
 //*-----------------------------------------------------------------------------
 //! CM Program
@@ -47,20 +178,20 @@ public:
 class CmProgramRT : public CmProgram
 {
 public:
-    static int32_t Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t uiCISACodeSize, void* pGenCode, const uint32_t uiGenCodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId );
-    static int32_t Destroy( CmProgramRT* &pProgram );
+    static int32_t Create( CmDeviceRT* device, void* cisaCode, const uint32_t cisaCodeSize, CmProgramRT*& program,  const char* options, const uint32_t programId );
+    static int32_t Destroy( CmProgramRT* &program );
 
-    int32_t GetCommonISACode( void* & pCommonISACode, uint32_t & size ) ;
+    int32_t GetCommonISACode( void* & commonISACode, uint32_t & size ) ;
     int32_t GetKernelCount( uint32_t& kernelCount );
-    int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& pKernelInfo );
+    int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& kernelInfo );
     int32_t GetIsaFileName( char* & kernelName );
     int32_t GetKernelOptions( char* & kernelOptions );
 
     uint32_t GetSurfaceCount(void);
     int32_t SetSurfaceCount(uint32_t count);
 
-    bool IsJitterEnabled( void ){ return m_IsJitterEnabled; }
-    bool IsHwDebugEnabled (void ){ return m_IsHwDebugEnabled;}
+    bool IsJitterEnabled( void ){ return m_isJitterEnabled; }
+    bool IsHwDebugEnabled (void ){ return m_isHwDebugEnabled;}
 
     uint32_t AcquireKernelInfo(uint32_t index);
     uint32_t ReleaseKernelInfo(uint32_t index);
@@ -70,40 +201,40 @@ public:
 
     int32_t Acquire( void);
     int32_t SafeRelease( void);
-    
+
     uint32_t GetProgramIndex();
 
 #if (_RELEASE_INTERNAL)
     int32_t ReadUserFeatureValue(const char *pcMessageKey, uint32_t &value);
 #endif
 
-    //! \brief    get ISAfile object
-    //! \detail   ISAfile object provides methods to read, parse and write ISA files.
-    //! \return   Pointer to ISAfile object
+    //! \brief    get m_isaFile object
+    //! \detail   m_isaFile object provides methods to read, parse and write ISA files.
+    //! \return   Pointer to m_isaFile object
     vISA::ISAfile *getISAfile();
 
 protected:
-    CmProgramRT( CmDeviceRT* pCmDev, uint32_t programId );
+    CmProgramRT( CmDeviceRT* device, uint32_t programId );
     ~CmProgramRT( void );
 
-    int32_t Initialize( void* pCISACode, const uint32_t uiCISACodeSize, void* pGenCode, const uint32_t uiGenCodeSize, const char* options );
+    int32_t Initialize( void* cisaCode, const uint32_t cisaCodeSize, const char* options );
 #if USE_EXTENSION_CODE
     int InitForGTPin(const char *jitFlags[CM_RT_JITTER_MAX_NUM_FLAGS], int &numJitFlags);
 #endif
-    CmDeviceRT* m_pCmDev;
+    CmDeviceRT* m_device;
 
-    uint32_t m_ProgramCodeSize;
-    uint8_t *m_pProgramCode;
-    vISA::ISAfile* m_ISAfile;
-    char* m_Options;
-    char m_IsaFileName[ CM_MAX_ISA_FILE_NAME_SIZE_IN_BYTE ];
-    uint32_t m_SurfaceCount;
+    uint32_t m_programCodeSize;
+    uint8_t *m_programCode;
+    vISA::ISAfile* m_isaFile;
+    char* m_options;
+    char m_isaFileName[ CM_MAX_ISA_FILE_NAME_SIZE_IN_BYTE ];
+    uint32_t m_surfaceCount;
 
-    uint32_t m_KernelCount;
-    CmDynamicArray m_pKernelInfo;
+    uint32_t m_kernelCount;
+    CmDynamicArray m_kernelInfo;
 
-    bool m_IsJitterEnabled;
-    bool m_IsHwDebugEnabled;
+    bool m_isJitterEnabled;
+    bool m_isHwDebugEnabled;
 
     uint32_t m_refCount;
 
@@ -113,14 +244,17 @@ protected:
     pJITCompile     m_fJITCompile;
     pFreeBlock      m_fFreeBlock;
     pJITVersion     m_fJITVersion;
+    pJITCompile_v2  m_fJITCompile_v2;
 
 public:
-    uint32_t m_CISA_magicNumber;
-    uint8_t m_CISA_majorVersion;
-    uint8_t m_CISA_minorVersion;   
+    uint32_t m_cisaMagicNumber;
+    uint8_t m_cisaMajorVersion;
+    uint8_t m_cisaMinorVersion;
 
 private:
     CmProgramRT (const CmProgramRT& other);
     CmProgramRT& operator= (const CmProgramRT& other);
 };
 }; //namespace
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMPROGRAM_H_

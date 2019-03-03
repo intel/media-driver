@@ -31,6 +31,8 @@
 
 #define CODEC_MAX_NUM_REF_FRAME_HEVC        15
 #define CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC 8
+#define CODEC_HEVC_VDENC_LCU_WIDTH          64
+#define CODEC_HEVC_VDENC_LCU_HEIGHT         64
 
 /*! \brief Quantization matrix data, which is sent on a per-picture basis.
  *
@@ -38,7 +40,7 @@
  */
 typedef struct _CODECHAL_HEVC_IQ_MATRIX_PARAMS
 {
-    /*! \brief Scaling lists for the 4x4 scaling process.  
+    /*! \brief Scaling lists for the 4x4 scaling process.
      *
      *  Corresponding to ScalingList[ 0 ][ MatrixID ][ i ] in HEVC specification, where MatrixID is in the range of 0 to 5, inclusive, and i is in the range of 0 to 15, inclusive.
      */
@@ -52,7 +54,7 @@ typedef struct _CODECHAL_HEVC_IQ_MATRIX_PARAMS
 
     /*! \brief Scaling lists for the 8x8 scaling process.
     *
-    *  Corresponding to ScalingList[ 2 ][ MatrixID ][ i ] in HEVC specification, where MatrixID is in the range of 0 to 5, inclusive, and i is in the range of 0 to 63, inclusive. 
+    *  Corresponding to ScalingList[ 2 ][ MatrixID ][ i ] in HEVC specification, where MatrixID is in the range of 0 to 5, inclusive, and i is in the range of 0 to 63, inclusive.
     */
     uint8_t               ucScalingLists2[6][64];
 

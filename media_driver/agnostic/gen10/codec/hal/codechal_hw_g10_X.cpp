@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_hw_g10_X.cpp  
-//! \brief         This modules implements HW interface layer for CNL+ to be used on on all operating systems/DDIs, across CODECHAL components.  
+//! \file      codechal_hw_g10_X.cpp 
+//! \brief         This modules implements HW interface layer for CNL+ to be used on on all operating systems/DDIs, across CODECHAL components. 
 //!
 #include "codechal_hw_g10_X.h"
 #include "mhw_state_heap_g10.h"
@@ -30,6 +30,7 @@
 #include "mhw_mi_hwcmd_g10_X.h"
 #include "mhw_vdbox_hcp_hwcmd_g10_X.h"  // temporary include for calculating size of various hardware commands
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"  // temporary include for calculating size of various hardware commands
+#include "mhw_vdbox_huc_hwcmd_g10_X.h"
 
 // Currently initialized with dummy values, just as an example. Will be updated later.
 const CODECHAL_SSEU_SETTING CodechalHwInterfaceG10::m_defaultSsEuLutG10[CODECHAL_NUM_MEDIA_STATES] =
@@ -106,12 +107,20 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
     m_checkBankCount = true;
     InitCacheabilityControlSettings(codecFunction);
 
-    m_isVdencSuperSliceEnabled = TRUE;
+    m_isVdencSuperSliceEnabled = true;
+
+    if (osInterface->bEnableVdboxBalancing)
+    {
+       bEnableVdboxBalancingbyUMD = true;
+       // Enabled VDbox Balancing, the HuC will be disabled.
+       m_noHuC = true;
+    }
 
     m_ssEuTable = m_defaultSsEuLutG10;
 
     // Set platform dependent parameters
     m_sizeOfCmdBatchBufferEnd = mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
+    m_sizeOfCmdMediaReset = mhw_mi_g10_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 8;
     m_vdencBrcImgStateBufferSize = mhw_vdbox_vdenc_g10_X::VDENC_IMG_STATE_CMD::byteSize + mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD::byteSize
         + mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
     m_vdencBatchBuffer1stGroupSize = mhw_vdbox_hcp_g10_X::HCP_PIPE_MODE_SELECT_CMD::byteSize
@@ -134,6 +143,21 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
     m_vdencBatchBufferPerSliceConstSize = mhw_vdbox_hcp_g10_X::HCP_SLICE_STATE_CMD::byteSize
         + mhw_vdbox_hcp_g10_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize         // 1st PakInsertObject cmd is not always inserted for each slice, 2nd PakInsertObject cmd is always inserted for each slice
         + mhw_vdbox_vdenc_g10_X::VDENC_WEIGHTSOFFSETS_STATE_CMD::byteSize
+        + mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
+
+    // Set to size of the BRC update command buffer, since it is larger than BRC Init/ PAK integration commands
+    m_hucCommandBufferSize = mhw_vdbox_huc_g10_X::HUC_IMEM_STATE_CMD::byteSize
+        + mhw_vdbox_huc_g10_X::HUC_PIPE_MODE_SELECT_CMD::byteSize
+        + mhw_vdbox_huc_g10_X::HUC_DMEM_STATE_CMD::byteSize
+        + mhw_vdbox_huc_g10_X::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize
+        + mhw_vdbox_huc_g10_X::HUC_STREAM_OBJECT_CMD::byteSize
+        + mhw_mi_g10_X::MI_STORE_DATA_IMM_CMD::byteSize
+        + mhw_mi_g10_X::MI_STORE_REGISTER_MEM_CMD::byteSize
+        + mhw_vdbox_huc_g10_X::HUC_START_CMD::byteSize
+        + mhw_vdbox_vdenc_g10_X::VD_PIPELINE_FLUSH_CMD::byteSize
+        + mhw_mi_g10_X::MI_FLUSH_DW_CMD::byteSize
+        + mhw_mi_g10_X::MI_STORE_DATA_IMM_CMD::byteSize * 2
+        + mhw_mi_g10_X::MI_STORE_REGISTER_MEM_CMD::byteSize * 2
         + mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
     m_maxKernelLoadCmdSize =

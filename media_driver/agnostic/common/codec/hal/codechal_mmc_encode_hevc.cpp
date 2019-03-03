@@ -27,17 +27,17 @@
 #include "codechal_mmc_encode_hevc.h"
 
 CodechalMmcEncodeHevc::CodechalMmcEncodeHevc(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     m_hevcState = (CodechalEncodeHevcBase *)standardState;
-    CODECHAL_HW_ASSERT(m_hevcState);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hevcState);
 
-    CODECHAL_HW_ASSERT(hwInterface);
-    CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface->GetSkuTable());
     if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrMemoryCompression))
     {
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -45,7 +45,7 @@ CodechalMmcEncodeHevc::CodechalMmcEncodeHevc(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -55,9 +55,9 @@ CodechalMmcEncodeHevc::CodechalMmcEncodeHevc(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
-    
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_compressibleId  = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;
     m_compressModeId  = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;
@@ -69,10 +69,10 @@ MOS_STATUS CodechalMmcEncodeHevc::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcState->pHevcSeqParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcState->m_hevcSeqParams);
 
     if (m_mmcEnabled &&
         m_hevcState->m_reconSurface.bCompressible &&
@@ -83,9 +83,9 @@ MOS_STATUS CodechalMmcEncodeHevc::SetPipeBufAddr(
 
         // SAO 1st pass can always be executed as 1st pass even with 3 pass SAO
         // memory compression of reconstructed pixels should be disabled during SAO First Pass
-        if (m_hevcState->pHevcSeqParams->SAO_enabled_flag && 
-            m_hevcState->IsFirstPass() && 
-            m_hevcState->b2ndSAOPassNeeded)
+        if (m_hevcState->m_hevcSeqParams->SAO_enabled_flag &&
+            m_hevcState->IsFirstPass() &&
+            m_hevcState->m_b2NdSaoPassNeeded)
         {
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
         }

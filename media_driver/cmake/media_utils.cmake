@@ -20,6 +20,7 @@
 
 # Only can include subdirectory which has a media_srcs.cmake
 # the effect is like include(${CMAKE_CURRENT_LIST_DIR}/<subd>/media_srcs.cmake)
+
 macro(media_include_subdirectory subd)
     if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${subd}/media_srcs.cmake)
         include(${CMAKE_CURRENT_LIST_DIR}/${subd}/media_srcs.cmake)
@@ -36,7 +37,7 @@ endmacro()
 # MediaSetLinkerFlags: apply linker flags for given configuration
 # linkerFlags: linker specific options
 # linkerTarget: optional parameter - apply linker flags for specfied target
-macro (MediaSetLinkerFlags linkerFlags linkerTarget) 
+macro (MediaSetLinkerFlags linkerFlags linkerTarget)
     foreach (opt ${linkerFlags})
         if ("${linkerTarget}" STREQUAL "")
             set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${opt}")
@@ -59,5 +60,4 @@ macro (MediaAddCommonTargetDefines target)
     endif()
 endmacro()
 
-
-include( ${MEDIA_DRIVER_CMAKE}/ext/media_utils_ext.cmake OPTIONAL)
+include( ${MEDIA_EXT_CMAKE}/ext/media_utils_ext.cmake OPTIONAL)

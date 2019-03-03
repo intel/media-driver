@@ -46,13 +46,13 @@ function(custom_build_add configName copyConfigName)
 endfunction()
 
 function( setup_configurations )
-	set(CMAKE_CONFIGURATION_TYPES
-		"Debug"
-		"Release Internal"
-		"Release"
-	  )
-	custom_build_add("Release Internal"       "Release")
-	set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} CACHE STRING "Available build configurations." FORCE)
+    set(CMAKE_CONFIGURATION_TYPES
+        "Debug"
+        "ReleaseInternal"
+        "Release"
+      )
+    custom_build_add("ReleaseInternal"       "Release")
+    set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} CACHE STRING "Available build configurations." FORCE)
 endfunction( setup_configurations )
 
 # If you update this function - make sure you also update the copy of this for the IGC build that is
@@ -64,6 +64,20 @@ function ( setup_library target src_list shared actual_name)
     add_library(${target} ${src_list})
   endif ( ${shared} )
 endfunction( setup_library )
+
+# get the major and minor versions from the cm_rt header file
+macro ( get_cmrt_versions cmrt_major_version cmrt_minor_version cmrt_patch_version)
+  file(STRINGS ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt.h version_line REGEX "#define __INTEL_CM" LIMIT_COUNT 1)
+  string(REGEX MATCH "CM_([0-9]+)_([0-9]+)" version_line ${version_line})
+  string(REPLACE "CM_" "" version_line ${version_line})
+  string(REPLACE "_" ";" version_list ${version_line})
+  list(GET version_list 0 major)
+  list(GET version_list 1 minor)
+  
+  set(${cmrt_major_version} ${major})
+  set(${cmrt_minor_version} ${minor})
+  set(${cmrt_patch_version} 0)
+endmacro()
 
 # Only can include subdirectory which has a cmrt_srcs.cmake
 # the effect is like include(${CMAKE_CURRENT_LIST_DIR}/<subd>/cmrt_srcs.cmake)

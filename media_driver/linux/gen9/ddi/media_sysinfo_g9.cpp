@@ -43,12 +43,18 @@ static bool InitGen9MediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_
         return false;
     }
 
-    if (!sysInfo->SliceCount ||
-        !sysInfo->SubSliceCount ||
-        !sysInfo->EUCount)
+    if (!sysInfo->SliceCount)
     {
         sysInfo->SliceCount    = devInfo->SliceCount;
+    }
+
+    if (!sysInfo->SubSliceCount)
+    {
         sysInfo->SubSliceCount = devInfo->SubSliceCount;
+    }
+
+    if (!sysInfo->EUCount)
+    {
         sysInfo->EUCount       = devInfo->EUCount;
     }
 
@@ -177,12 +183,18 @@ static bool InitLCIAMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_
         return false;
     }
 
-    if (!sysInfo->SliceCount ||
-        !sysInfo->SubSliceCount ||
-        !sysInfo->EUCount)
+    if (!sysInfo->SliceCount)
     {
         sysInfo->SliceCount    = devInfo->SliceCount;
+    }
+
+    if (!sysInfo->SubSliceCount)
+    {
         sysInfo->SubSliceCount = devInfo->SubSliceCount;
+    }
+
+    if (!sysInfo->EUCount)
+    {
         sysInfo->EUCount       = devInfo->EUCount;
     }
 
@@ -232,6 +244,8 @@ static bool InitLCIAShadowSku(struct GfxDeviceInfo *devInfo,
     skuTable->FtrDisplayYTiling = 1;
     skuTable->FtrEDram = 0;
     skuTable->FtrLCIA  = 1;
+
+    skuTable->FtrTileY = 1;
 
     return true;
 }
@@ -400,7 +414,6 @@ static struct GfxDeviceInfo sklGt4eInfo = {
     .InitShadowSku    = InitGen9ShadowSku,
     .InitShadowWa     = InitGen9ShadowWa,
 };
-
 
 static struct GfxDeviceInfo bxtGt1Info = {
     .platformType  = PLATFORM_MOBILE,
@@ -622,7 +635,6 @@ static struct GfxDeviceInfo cflGt3eInfo = {
     .InitShadowWa     = InitGen9ShadowWa,
 };
 
-
 static bool sklDevice1902 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1902, &sklGt1Info);
 
@@ -668,7 +680,6 @@ static bool sklDevice191e = DeviceInfoFactory<GfxDeviceInfo>::
 static bool sklDevice1921 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1921, &sklGt2Info);
 
-
 static bool sklDevice1923 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1923, &sklGt3Info);
 
@@ -700,7 +711,6 @@ static bool sklDevice193b = DeviceInfoFactory<GfxDeviceInfo>::
 static bool sklDevice193d = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x193d, &sklGt4eInfo);
 
-
 static bool bxtDevice1a84 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1a84, &bxtGt1Info);
 
@@ -714,10 +724,10 @@ static bool bxtDevice5a85 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x5a85, &bxtGt1Info);
 
 static bool glkDevice3a84 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3a84, &glkGt1Info);
+    RegisterDevice(0x3184, &glkGt1Info);
 
 static bool glkDevice3a85 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3a85, &glkGt1Info);
+    RegisterDevice(0x3185, &glkGt1Info);
 
 static bool kblDevice5906 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x5906, &kblGt1Info);
@@ -791,6 +801,9 @@ static bool kblDevice592a = DeviceInfoFactory<GfxDeviceInfo>::
 static bool cflDevice3e93 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e93, &cflGt1Info);
 
+static bool cflDevice3e99 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3e99, &cflGt1Info);
+
 static bool cflDevice3e90 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e90, &cflGt1Info);
 
@@ -801,14 +814,22 @@ static bool cflDevice3e94 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e94, &cflGt2Info);
 
 static bool cflDevice3e91 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3e91, &cflGt1Info);
+    RegisterDevice(0x3e91, &cflGt2Info);
 
 static bool cflDevice3e96 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e96, &cflGt2Info);
 
+static bool cflDevice3e98 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3e98, &cflGt2Info);
+
+static bool cflDevice3e9a = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3e9a, &cflGt2Info);
+
 static bool cflDevice3e9b = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e9b, &cflGt2Info);
 
+static bool cflDevice3e9c = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3e9c, &cflGt1Info);
 
 static bool cflDevice3ea5 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3ea5, &cflGt3eInfo);
@@ -822,5 +843,21 @@ static bool cflDevice3ea7 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool cflDevice3ea8 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3ea8, &cflGt3eInfo);
 
+static bool cflDevice3ea9 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3ea9, &cflGt2Info);
 
+static bool cflDevice3ea1 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3ea1, &cflGt1Info);
+
+static bool cflDevice3ea4 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3ea4, &cflGt1Info);
+
+static bool cflDevice3ea0 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3ea0, &cflGt2Info);
+
+static bool cflDevice3ea3 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3ea3, &cflGt2Info);
+
+static bool cflDevice3ea2 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x3ea2, &cflGt3eInfo);
 

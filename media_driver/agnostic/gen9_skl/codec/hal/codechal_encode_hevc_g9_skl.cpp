@@ -56,7 +56,7 @@ struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_SKL
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_P_Adv;                               //!< P frame Adv kernel
 };
 
-//! \brief  typedef of struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_SKL 
+//! \brief  typedef of struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_SKL
 using PCODECHAL_ENC_HEVC_KERNEL_HEADER_G9_SKL = struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_SKL*;
 
 MOS_STATUS CodechalEncHevcStateG9Skl::GetKernelHeaderAndSize(
@@ -148,9 +148,10 @@ MOS_STATUS CodechalEncHevcStateG9Skl::GetKernelHeaderAndSize(
             break;
 
         case CODECHAL_HEVC_MBENC_DS_COMBINED:
-            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_DS_Combined;
-            break;
-            
+            // Ignore this kernel on SKL.
+            *krnSize = 0;
+            return eStatus;
+
         case CODECHAL_HEVC_MBENC_PENC:
             currKrnHeader = &kernelHeaderTable->HEVC_LCUEnc_P_MB;
             break;
@@ -207,13 +208,13 @@ void CodechalEncHevcStateG9Skl::UpdateSSDSliceCount()
     }
 }
 
-MOS_STATUS CodechalEncHevcStateG9Skl::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncHevcStateG9Skl::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // common initilization 
+    // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcStateG9::Initialize(settings));
 
     m_cscDsState->EnableMmc();
@@ -230,5 +231,11 @@ CodechalEncHevcStateG9Skl::CodechalEncHevcStateG9Skl(
     m_kernelBase = (uint8_t *)IGCODECKRN_G9;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_noMeKernelForPFrame = false;
+
+    MOS_STATUS eStatus = InitMhw();
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("HEVC encoder MHW initialization failed.");
+    }
 }
 

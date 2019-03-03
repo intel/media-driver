@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -75,7 +75,7 @@ public:
 
     virtual MOS_STATUS AllocateTempOutputSurfaces()
     {
-        for (int32_t i = 0 ; i < TempSurfaceAmount; i++ )
+        for (uint32_t i = 0 ; i < TempSurfaceAmount; i++ )
         {
             // only allocate if it is null
             if (TempOutputSurfaces[i] == nullptr)
@@ -85,14 +85,10 @@ public:
                 // if allocation failed
                 if(TempOutputSurfaces[i] == nullptr)
                 {
-                    // get tail index of allocated surfaces
-                    i--;
-
                     // free all allocated surfaces
-                    while (i >= 0)
+                    while (i > 0)
                     {
-                        MOS_FreeMemAndSetNull(TempOutputSurfaces[i]);
-                        i--;
+                        MOS_FreeMemAndSetNull(TempOutputSurfaces[--i]);
                     }
                     return MOS_STATUS_NO_SPACE;
                 }
@@ -142,6 +138,16 @@ public:
         PRENDERHAL_INTERFACE        pRenderHal,
         PVPHAL_RNDR_PERF_DATA       pPerfData,
         MOS_STATUS                  *peStatus);
+
+    //!
+    //! \brief    Copy constructor
+    //!
+    RenderState(const RenderState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    RenderState& operator=(const RenderState&) = delete;
 
     //!
     //! \brief    RenderState Destructor
@@ -234,7 +240,7 @@ public:
     //!
     //! \brief    copy Report data
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
     //!
     virtual void CopyReporting(VphalFeatureReport* pReporting)
@@ -307,11 +313,11 @@ public:
         m_bDisableRender = bDisable;
     };
 
-protected:
     // External components
     PMOS_INTERFACE              m_pOsInterface;
     PRENDERHAL_INTERFACE        m_pRenderHal;
 
+protected:
     // External tables
     MEDIA_FEATURE_TABLE         *m_pSkuTable;
     MEDIA_WA_TABLE              *m_pWaTable;
@@ -329,7 +335,7 @@ protected:
     VphalFeatureReport          *m_reporting;
 
     // Status Buffer, Video Pre-Processing Only
-    STATUS_TABLE_UPDATE_PARAMS  m_StatusTableUpdateParams;
+    STATUS_TABLE_UPDATE_PARAMS  m_StatusTableUpdateParams = { 0 };
 
 };
 

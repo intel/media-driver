@@ -90,7 +90,7 @@ static uint32_t codechalEncodeSearchPath[2][8][16] =
             0x1F11F10F, 0x2E22E2FE, 0x20E220DF, 0x2EDD06FC, 0x11D33FF1, 0xEB1FF33D, 0x02F1F1F1, 0x1F201111,
             0xF1EFFF0C, 0xF01104F1, 0x10FF0A50, 0x000FF1C0, 0x00000000, 0x00000000, 0x00000000, 0x00000000
         }
-            
+
     },
     // B-Frame
     {
@@ -108,7 +108,7 @@ static uint32_t codechalEncodeSearchPath[2][8][16] =
         {
             0x0101F00F, 0x0F0F1010, 0xF0F0F00F, 0x01010101, 0x10101010, 0x0F0F0F0F, 0xF0F0F00F, 0x0101F0F0,
             0x01010101, 0x10101010, 0x0F0F1010, 0x0F0F0F0F, 0xF0F0F00F, 0xF0F0F0F0, 0x00000000, 0x00000000
-                    
+
         },
         // MEMethod: 3
         {
@@ -138,9 +138,17 @@ static uint32_t codechalEncodeSearchPath[2][8][16] =
     }
 };
 // clang-format on
+//!
+//! \class    CodechalKernelHme
+//! \brief    Codechal kernel hme
+//!
 class CodechalKernelHme : public CodechalKernelBase
 {
 public:
+    //!
+    //! \enum     HmeLevel
+    //! \brief    Hme level
+    //!
     enum HmeLevel
     {
         hmeLevelNone = 0,
@@ -149,12 +157,20 @@ public:
         hmeLevel32x  = 1 << 2
     };
 
+    //!
+    //! \enum     KernelIndex
+    //! \brief    Kernel index
+    //!
     enum KernelIndex
     {
         hmeP = 0,
         hmeB = 1
     };
 
+    //!
+    //! \enum     SurfaceId
+    //! \brief    SurfaceI id
+    //!
     enum SurfaceId
     {
         me4xMvDataBuffer = 0,
@@ -163,6 +179,10 @@ public:
         me4xDistortionBuffer = 3
     };
 
+    //!
+    //! \enum     BindingTableOffset
+    //! \brief    Binding table offset
+    //!
     enum BindingTableOffset
     {
         meOutputMvDataSurface = 0,
@@ -184,9 +204,15 @@ public:
         meSurfaceNum          = 27
     };
 
+    //!
+    //! \struct    CurbeParam
+    //! \brief     Curbe parameter
+    //!
     struct CurbeParam
     {
+        bool          brcEnable = false;
         uint8_t       subPelMode = 3;
+        uint8_t       sumMVThreshold = 0;
         CODEC_PICTURE currOriginalPic;
         uint32_t      qpPrimeY;
         uint32_t      targetUsage;
@@ -208,6 +234,10 @@ public:
         uint32_t list1RefID1FieldParity : MOS_BITFIELD_BIT(9);
     };
 
+    //!
+    //! \struct    SurfaceParams
+    //! \brief     Surface parameters
+    //!
     struct SurfaceParams
     {
         bool                  mbaffEnabled;
@@ -224,17 +254,19 @@ public:
         PCODEC_REF_LIST *     refList;
         PCODEC_PIC_ID         picIdx;
         PCODEC_PICTURE        currOriginalPic;
-        PCODEC_PICTURE        currReconstructedPic;
         PCODEC_PICTURE        refL0List;
         PCODEC_PICTURE        refL1List;
         PMOS_SURFACE          meBrcDistortionBuffer;
         PMOS_RESOURCE         meVdencStreamInBuffer;
-        PCODEC_TRACKED_BUFFER trackedBuffer;
+        CODECHAL_ENCODE_BUFFER meSumMvandDistortionBuffer;
+        CmSurface2D          *meBrcDistortionSurface;
     };
 
     //!
-    //! \brief Constructor
+    //! \brief  Constructor
     //!
+    //! \param  [in] encoder
+    //!         Codechal encoder state
     //! \param  [in] me4xDistBufferSupported
     //!         flag to support 4x Distortion buffer
     //!
@@ -257,9 +289,13 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success
     //!
-    MOS_STATUS Execute(CurbeParam &curbeParam, SurfaceParams &surfaceParam, HmeLevel hmeLevel);
+    virtual MOS_STATUS Execute(CurbeParam &curbeParam, SurfaceParams &surfaceParam, HmeLevel hmeLevel);
 
-    MOS_STATUS AllocateResources() override;
+    virtual MOS_STATUS AllocateResources() override;
+
+    virtual MOS_STATUS ReleaseResources() override;
+
+
 
     uint32_t GetBTCount() override { return BindingTableOffset::meSurfaceNum; }
 
@@ -313,13 +349,16 @@ public:
     {
         m_32xMeMvBottomFieldOffset = offset;
     }
+    inline void setnoMEKernelForPFrame(bool flag)
+    {
+        m_noMEKernelForPFrame = flag;
+    }
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpKernelOutput() override;
 #endif
 
 protected:
-    MOS_STATUS ReleaseResources() override;
     MOS_STATUS AddPerfTag() override;
     MHW_KERNEL_STATE * GetActiveKernelState() override;
     CODECHAL_MEDIA_STATE_TYPE GetMediaStateType() override;

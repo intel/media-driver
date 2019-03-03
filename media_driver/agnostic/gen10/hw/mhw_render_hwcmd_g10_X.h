@@ -1,3 +1,4 @@
+
 /*
 * Copyright (c) 2017, Intel Corporation
 *
@@ -25,6 +26,9 @@
 //! \details  This file may not be included outside of g10_X as other components
 //!           should use MHW interface to interact with MHW commands and states.
 //!
+
+// DO NOT EDIT
+
 #ifndef __MHW_RENDER_HWCMD_G10_X_H__
 #define __MHW_RENDER_HWCMD_G10_X_H__
 
@@ -48,8 +52,8 @@ public:
     //!
     //! \brief MEDIA_OBJECT
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MEDIA_OBJECT_CMD
     {
         union
@@ -211,13 +215,13 @@ public:
     //!     be considered the 'current'  active pipeline. Issuing
     //!     3D-pipeline-specific commands when the Media pipeline is selected, or
     //!     vice versa, is UNDEFINED.
-    //!     
+    //! 
     //!     Issuing 3D-pipeline-specific commands when the GPGPU pipeline is
     //!     selected, or vice versa, is UNDEFINED.
-    //!     
+    //! 
     //!     Programming common non pipeline commands (e.g., STATE_BASE_ADDRESS) is
     //!     allowed in all pipeline modes.
-    //!     
+    //! 
     //!     Software must ensure all the write caches are flushed through a stalling
     //!     PIPE_CONTROL command followed by another PIPE_CONTROL command to
     //!     invalidate read only caches prior to programming MI_PIPELINE_SELECT
@@ -226,9 +230,7 @@ public:
     //!     Flush Enable, DC Flush Enable) PIPE_CONTROL  (Constant Cache Invalidate,
     //!     Texture Cache Invalidate, Instruction Cache Invalidate, State Cache
     //!     invalidate) PIPELINE_SELECT ( GPGPU)
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
+    //!
     struct PIPELINE_SELECT_CMD
     {
         union
@@ -299,23 +301,23 @@ public:
         //! \details
         //!     Mask bit [13] has to be set for HW to look at this field when
         //!     PIPELINE_SELECT command is parsed.
-        //!     					
-        //!     					Example for usage model:
-        //!     					
-        //!     					<b>RCS Ring Buffer</b>:
-        //!     					<b>PIPELINE_SELECT (Force Media Awake set to '1')</b>
-        //!     					MI_SEMPAHORE_SINGAL (Signal context id 0xABC to Render Command
+        //! 
+        //!                         Example for usage model:
+        //! 
+        //!                         <b>RCS Ring Buffer</b>:
+        //!                         <b>PIPELINE_SELECT (Force Media Awake set to '1')</b>
+        //!                         MI_SEMPAHORE_SINGAL (Signal context id 0xABC to Render Command
         //!     Streamer)
-        //!     					<b>PIPELINE_SELECT (Force Media Awake set to '0')</b>
-        //!     					<b>MI_BATCH_BUFFER_START</b>
-        //!     					STATE Commands ..
-        //!     					…………
-        //!     					<b>PIPELINE_SELECT (Force Media Awake set to '1')</b>
-        //!     					MI_LOAD_REGISTER_IMM (Load register 0x23XX in render command
+        //!                         <b>PIPELINE_SELECT (Force Media Awake set to '0')</b>
+        //!                         <b>MI_BATCH_BUFFER_START</b>
+        //!                         STATE Commands ..
+        //!                         …………
+        //!                         <b>PIPELINE_SELECT (Force Media Awake set to '1')</b>
+        //!                         MI_LOAD_REGISTER_IMM (Load register 0x23XX in render command
         //!     streamer with data 0xFFF)
-        //!     					<b>PIPELINE_SELECT (Force Media Awake set to '0')</b>
-        //!     					…………
-        //!     					<b>MI_BATCH_BUFFER_END</b>
+        //!                         <b>PIPELINE_SELECT (Force Media Awake set to '0')</b>
+        //!                         …………
+        //!                         <b>MI_BATCH_BUFFER_END</b>
         enum FORCE_MEDIA_AWAKE
         {
             FORCE_MEDIA_AWAKE_DISABLED                                       = 0, //!< Command streamer sends message to PM to disable force awake of media engine (next instructions do not require the media engine to be awake). Command streamer waits for acknowledge from PM before parsing the next command.
@@ -358,7 +360,7 @@ public:
     //!     state, instruction, and media indirect object accesses by the GPE.
     //!     For more information see the Base Address Utilization table in the
     //!     Memory Access Indirection narrative topic.
-    //!     
+    //! 
     //!     The following commands must be reissued following any change to the base
     //!     addresses:  3DSTATE_CC_POINTERS
     //!      3DSTATE_BINDING_TABLE_POINTERS
@@ -367,7 +369,7 @@ public:
     //!      MEDIA_STATE_POINTERS
     //!        Execution of this command causes a full pipeline flush, thus its use
     //!     should be minimized for higher performance.
-    //!     
+    //! 
     //!     SW must always program PIPE_CONTROL with "CS Stall" and "Render Target
     //!     Cache Flush Enable" set before programming STATE_BASE_ADDRESS command
     //!     for GPGPU workloads i.e when pipeline select is GPGPU via
@@ -376,10 +378,7 @@ public:
     //!     programming PIPE_CONTROL has performance implications then preemption
     //!     latencies can be traded off against performance by not implementing this
     //!     programming note.
-    //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
+    //!
     struct STATE_BASE_ADDRESS_CMD
     {
         union
@@ -706,13 +705,13 @@ public:
     //!     only bits that are changed are scoreboard related: Scoreboard Enable,
     //!     Scoreboard Type, Scoreboard Mask, Scoreboard * Delta. For these
     //!     scoreboard related states, a MEDIA_STATE_FLUSH is sufficient.
-    //!     
+    //! 
     //!     MEDIA_STATE_FLUSH (optional, only if barrier dependency is needed)
-    //!     
+    //! 
     //!     MEDIA_INTERFACE_DESCRIPTOR_LOAD (optional)
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //!
     struct MEDIA_VFE_STATE_CMD
     {
         union
@@ -929,7 +928,9 @@ public:
 
     //!
     //! \brief MEDIA_CURBE_LOAD
-    //!     
+    //! \details
+    //! 
+    //!
     struct MEDIA_CURBE_LOAD_CMD
     {
         union
@@ -1010,7 +1011,7 @@ public:
     //! \details
     //!     A Media_State_Flush should be used before this command to ensure that
     //!     the temporary Interface Descriptor storage is cleared.
-    //!     
+    //!
     struct MEDIA_INTERFACE_DESCRIPTOR_LOAD_CMD
     {
         union
@@ -1089,8 +1090,8 @@ public:
     //!
     //! \brief MEDIA_OBJECT_WALKER
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MEDIA_OBJECT_WALKER_CMD
     {
         union
@@ -1332,7 +1333,7 @@ public:
         //! \details
         //!     Enable the masking of the dispatch of individual threads based on a
         //!     bitmask read from CURBE, and specifies the pitch of the CURBE surface.
-        //!     					If enabled, CURBE will not be used for thread payload.
+        //!                         If enabled, CURBE will not be used for thread payload.
         enum MASKED_DISPATCH
         {
             MASKED_DISPATCH_UNNAMED0                                         = 0, //!< Masked Dispatch Disabled
@@ -1385,7 +1386,7 @@ public:
     //!     writes performed by threads spawned from a previous command, software
     //!     must precede this command with a command that performs a memory flush
     //!     (e.g., MI_FLUSH).
-    //!     
+    //!
     struct GPGPU_WALKER_CMD
     {
         union
@@ -1594,10 +1595,7 @@ public:
     //!     functions are enabled and controlled via use of the ChromaKey Enable
     //!     texture sampler state variable.Texture Color Key (keying on a paletted
     //!     texture index) is not supported.
-    //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
+    //!
     struct _3DSTATE_CHROMA_KEY_CMD
     {
         union
@@ -1681,14 +1679,11 @@ public:
     //!     values into the first texture palette. The texture palette is used
     //!     whenever a texture with a paletted format (containing "Px [palette0]")
     //!     is referenced by the sampler.
-    //!     
+    //! 
     //!     This instruction is used to load all or a subset of the 256 entries of
     //!     the first palette. Partial loads always start from the first (index 0)
     //!     entry.
-    //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
+    //!
     struct _3DSTATE_SAMPLER_PALETTE_LOAD0_CMD
     {
         union
@@ -1696,7 +1691,7 @@ public:
             //!< DWORD 0
             struct
             {
-                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWord Length
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
                 uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
                 uint32_t                 Command3DSubOpcode                               : __CODEGEN_BITFIELD(16, 23)    ; //!< _3D_COMMAND_SUB_OPCODE
                 uint32_t                 Command3DOpcode                                  : __CODEGEN_BITFIELD(24, 26)    ; //!< _3D_COMMAND_OPCODE
@@ -1746,10 +1741,7 @@ public:
     //!     "Px...[palette1]") is referenced by the sampler.This instruction is used
     //!     to load all or a subset of the 256 entries of the second palette.
     //!     Partial loads always start from the first (index 0) entry.
-    //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
+    //!
     struct _3DSTATE_SAMPLER_PALETTE_LOAD1_CMD
     {
         union
@@ -1801,8 +1793,8 @@ public:
     //!
     //! \brief PALETTE_ENTRY
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct PALETTE_ENTRY_CMD
     {
         union
@@ -1834,10 +1826,7 @@ public:
     //! \details
     //!     The STATE_SIP command specifies the starting instruction location of the
     //!     System Routine that is shared by all threads in execution.
-    //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
+    //!
     struct STATE_SIP_CMD
     {
         union
@@ -1891,6 +1880,75 @@ public:
 
         //! \brief Explicit member initialization function
         STATE_SIP_CMD();
+
+        static const size_t dwSize = 3;
+        static const size_t byteSize = 12;
+    };
+
+    //!
+    //! \brief STATE_CSR_BASE_ADDRESS
+    //! \details
+    //!     The STATE_CSR_BASE_ADDRESS command sets the base pointers for EU and L3
+    //!     to Context Save and Restore EU State and SLM for GPGPU mid-thread
+    //!     preemption and URB for high priority preemption.
+    //! 
+    //!     This command must be programmed with allocated memory to the support the
+    //!     size of the context to be saved and restored during a GPGPU mid-thread
+    //!     preemption or a high priority suspend of a 3D context.
+    //!
+    struct STATE_CSR_BASE_ADDRESS_CMD
+    {
+        union
+        {
+            //!< DWORD 0
+            struct
+            {
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
+                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
+                uint32_t                 Command3DSubOpcode                               : __CODEGEN_BITFIELD(16, 23)    ; //!< _3D_COMMAND_SUB_OPCODE
+                uint32_t                 Command3DOpcode                                  : __CODEGEN_BITFIELD(24, 26)    ; //!< _3D_COMMAND_OPCODE
+                uint32_t                 CommandSubtype                                   : __CODEGEN_BITFIELD(27, 28)    ; //!< COMMAND_SUBTYPE
+                uint32_t                 CommandType                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< COMMAND_TYPE
+            };
+            uint32_t                     Value;
+        } DW0;
+        union
+        {
+            //!< DWORD 1..2
+            struct
+            {
+                uint64_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved
+                uint64_t                 CsrBaseAddress                                   : __CODEGEN_BITFIELD(12, 63)    ; //!< CSR Base Address
+            };
+            uint32_t                     Value[2];
+        } DW1_2;
+
+        //! \name Local enumerations
+
+        enum _3D_COMMAND_SUB_OPCODE
+        {
+            _3D_COMMAND_SUB_OPCODE_STATECSRBASEADDRESS                       = 4, //!< No additional details
+        };
+
+        enum _3D_COMMAND_OPCODE
+        {
+            _3D_COMMAND_OPCODE_GFXPIPENONPIPELINED                           = 1, //!< No additional details
+        };
+
+        enum COMMAND_SUBTYPE
+        {
+            COMMAND_SUBTYPE_GFXPIPECOMMON                                    = 0, //!< No additional details
+        };
+
+        enum COMMAND_TYPE
+        {
+            COMMAND_TYPE_GFXPIPE                                             = 3, //!< No additional details
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        STATE_CSR_BASE_ADDRESS_CMD();
 
         static const size_t dwSize = 3;
         static const size_t byteSize = 12;

@@ -35,8 +35,8 @@ static const uint8_t maxTimeCodeMin = 59;
 static const uint8_t maxTimeCodeHr  = 23;
 
 //!
-//! \struct DDI_ENCODE_MPEG2_FRAME_RATE
-//! \brief Define Mpeg2 encode frame rate
+//! \struct _DDI_ENCODE_MPEG2_FRAME_RATE
+//! \brief  Define Mpeg2 encode frame rate
 //!
 static struct _DDI_ENCODE_MPEG2_FRAME_RATE
 {
@@ -52,6 +52,10 @@ static struct _DDI_ENCODE_MPEG2_FRAME_RATE
     {7, 59.94},
     {8, 60}};
 
+//!
+//! \class  DdiEncodeMpeg2
+//! \brief  Ddi encode MPEG2
+//!
 class DdiEncodeMpeg2 : public DdiEncodeBase
 {
 public:
@@ -69,13 +73,13 @@ public:
     //! \brief    Initialize Encode Context and CodecHal Setting for Mpeg2
     //!
     //! \param    [out] codecHalSettings
-    //!           Pointer to PCODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus ContextInitialize(
-        CODECHAL_SETTINGS *codecHalSettings) override;
+        CodechalSetting *codecHalSettings) override;
 
     //!
     //! \brief    Parse buffer to the server.
@@ -335,8 +339,6 @@ private:
     void ParseMiscParamSkipFrame(
         void *data);
 
-    uint8_t  m_scalingLists4x4[6][16];      //!< Scaling list 4x4.
-    uint8_t  m_scalingLists8x8[2][64];      //!< Scaling list 8x8.
     bool     m_newTimeCode       = false;   //!< New time code flag.
     uint32_t m_timeCode          = 0;       //!< New time code.
     void     *m_userDataListHead = nullptr; //!< User data list head.

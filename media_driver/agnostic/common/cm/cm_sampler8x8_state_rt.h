@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_sampler8x8_state_rt.h  
-//! \brief     Contains CmSampler8x8State_RT declarations.  
+//! \file      cm_sampler8x8_state_rt.h 
+//! \brief     Contains CmSampler8x8State_RT declarations. 
 //!
 
 #ifndef MEDIARIVER_AGNOSTIC_COMMON_CM_CMSAMPLER8X8STATERT_H_
@@ -34,23 +34,23 @@ namespace CMRT_UMD
 class SamplerIndex;
 
 //*-----------------------------------------------------------------------------
-//! CM Sampler8x8State 
+//! CM Sampler8x8State
 //*-----------------------------------------------------------------------------
 class CmSampler8x8State_RT: public CmSampler8x8
 {
 public:
-    CM_RT_API int32_t GetIndex(SamplerIndex* &pIndex);
+    CM_RT_API int32_t GetIndex(SamplerIndex* &index);
 
     static int32_t Create(const CM_SAMPLER_8X8_DESCR &sampleState,
                           unsigned int index,
-                          CmSampler8x8State_RT* &pSampler);
+                          CmSampler8x8State_RT* &sampler);
 
-    static int32_t Destroy(CmSampler8x8State_RT* &pSampler);
+    static int32_t Destroy(CmSampler8x8State_RT* &sampler);
 
     //NOT depend on RTTI::dynamic_cast
     CM_ENUM_CLASS_TYPE Type() const
     { return CM_ENUM_CLASS_TYPE_CMSAMPLER8X8STATE_RT; }
-  
+
     CM_SAMPLER_STATE_TYPE GetStateType() { return m_stateType; }
 
 private:
@@ -62,11 +62,11 @@ private:
 
     int32_t Initialize(unsigned int index);
 
-    SamplerIndex *m_pIndex;
-    
-    CM_AVS_STATE_MSG m_avs_state;
-    CM_CONVOLVE_STATE_MSG m_convolve_state; //BWL+
-    CM_MISC_STATE_MSG m_misc_state; //BWL+
+    SamplerIndex *m_index;
+
+    CM_AVS_STATE_MSG m_avsState;
+    CM_CONVOLVE_STATE_MSG m_convolveState;
+    CM_MISC_STATE_MSG m_miscState;
 
     CM_SAMPLER_STATE_TYPE m_stateType;
 };

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -180,7 +180,8 @@ void VpHal_DdiReportFeatureMode(
 
     // Report Scaling mode
     pConfigValues->dwCurrentScalingMode =
-        (pReport->ScalingMode == VPHAL_SCALING_AVS) ? VPDDI_ADVANCEDSCALING : VPDDI_SCALING;
+        (pReport->ScalingMode == VPHAL_SCALING_AVS) ? VPDDI_ADVANCEDSCALING :
+            (pReport->ScalingMode > VPHAL_SCALING_AVS) ? VPDDI_SUPERRESOLUTIONSCALING : VPDDI_SCALING;
 
     // Report Output Pipe
     pConfigValues->dwCurrentOutputPipeMode = pReport->OutputPipeMode;
@@ -205,6 +206,7 @@ void VpHal_DdiReportFeatureMode(
 
     // Report In Place Compositon status
     pConfigValues->dwCurrentCompositionMode = pReport->CompositionMode;
+    pConfigValues->dwCurrentScdMode         = pReport->DiScdMode;
 }
 
 //!

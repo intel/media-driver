@@ -35,7 +35,7 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
         VAConfigAttribType type,
         uint32_t *value)
 {
-    DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     VAStatus status = VA_STATUS_SUCCESS;
     switch ((int)type)
     {
@@ -78,6 +78,8 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribEncROI:
         {
+            VAConfigAttribValEncROI roi_attr = { .value = 0 };
+
             if (entrypoint == VAEntrypointEncSliceLP)
             {
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -85,20 +87,18 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
             else if (IsAvcProfile(profile))
             {
                 // the capacity is differnt for CQP and BRC mode, set it as larger one here
-                uint32_t roiBRCPriorityLevelSupport = 1;
-                uint32_t roiBRCQpDeltaSupport = 1;
-                *value = (roiBRCPriorityLevelSupport << 9)
-                    | (roiBRCQpDeltaSupport << 8)
-                    | ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                roi_attr.bits.num_roi_regions = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                roi_attr.bits.roi_rc_priority_support = 0;
+                roi_attr.bits.roi_rc_qp_delta_support = 1;
             }
             else if (IsHevcProfile(profile))
             {
-                *value = ENCODE_DP_HEVC_MAX_NUM_ROI;
+                roi_attr.bits.num_roi_regions = ENCODE_DP_HEVC_MAX_NUM_ROI;
+                roi_attr.bits.roi_rc_priority_support = 0;
+                roi_attr.bits.roi_rc_qp_delta_support = 1;
             }
-            else
-            {
-                *value = 0;
-            }
+
+            *value = roi_attr.value;
             break;
         }
         case VAConfigAttribCustomRoundingControl:
@@ -110,6 +110,19 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
             else
             {
                 *value = 0;
+            }
+            break;
+        }
+        case VAConfigAttribEncMaxSlices:
+        {
+            if (entrypoint == VAEntrypointEncSlice && IsHevcProfile(profile))
+            {
+                *value = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5;
+            }
+            else
+            {
+                *value =0;
+                status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
             break;
         }
@@ -151,39 +164,35 @@ VAStatus MediaLibvaCapsG9::LoadProfileEntrypoints()
     DDI_CHK_RET(status, "Failed to initialize Caps!");
     status = LoadVp9EncProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
+#if !defined(_FULL_OPEN_SOURCE) && defined(ENABLE_KERNELS)
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
-
+#endif
     return status;
 }
 
-VAStatus MediaLibvaCapsG9::QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, bool *isRoiInDeltaQP) 
+VAStatus MediaLibvaCapsG9::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP)
 {
     DDI_CHK_NULL(maxNum, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(isRoiInDeltaQP, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    switch (rcMode)
+    if(isVdenc)
     {
-        case VA_RC_CQP:
-            *maxNum = ENCODE_DP_AVC_MAX_ROI_NUMBER;
-            break;
-        default:
-            *maxNum = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
-            break;
+        *maxNum = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
     }
+    else
+    {
+        switch (rcMode)
+        {
+            case VA_RC_CQP:
+                *maxNum = ENCODE_DP_AVC_MAX_ROI_NUMBER;
+                break;
+            default:
+                *maxNum = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                break;
+        }
+    }
+
     *isRoiInDeltaQP = true;
     return VA_STATUS_SUCCESS;
 }
-
-extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
-
-static bool sklRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_SKYLAKE); 
-static bool bxtRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_BROXTON); 
-static bool kblRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_KABYLAKE); 
-static bool gmlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_GEMINILAKE); 
-static bool cflRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_COFFEELAKE); 

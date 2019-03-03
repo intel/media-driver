@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,13 +31,17 @@
 #include <va/va.h>
 #include "media_ddi_decode_base.h"
 
+//!
+//! \class  DdiDecodeMPEG2
+//! \brief  Ddi decode MPEG2
+//!
 class DdiDecodeMPEG2 : public DdiMediaDecode
 {
 public:
     //!
     //! \brief Constructor
     //!
-    DdiDecodeMPEG2(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr){};
+    DdiDecodeMPEG2(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr){m_withDpb = false;};
 
     //!
     //! \brief Destructor
@@ -54,9 +58,7 @@ public:
         VABufferID       *buffers,
         int32_t          num_buffers) override;
 
-    virtual VAStatus EndPicture(
-        VADriverContextP ctx,
-        VAContextID      context) override;
+    virtual VAStatus SetDecodeParams() override;
 
     virtual void ContextInit(
         int32_t picWidth,
@@ -65,6 +67,12 @@ public:
     virtual VAStatus CodecHalInit(
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *ptr) override;
+
+    virtual VAStatus AllocSliceControlBuffer(
+        DDI_MEDIA_BUFFER       *buf) override;
+
+    virtual uint8_t* GetPicParamBuf(
+        DDI_CODEC_COM_BUFFER_MGR     *bufMgr) override;
 
 private:
     //!
@@ -77,14 +85,14 @@ private:
     //! \param   [in] *slcParam
     //!          VASliceParameterBufferMPEG2
     //! \param   [in] numSlices
-    //!             int32_t
+    //!             uint32_t
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus ParseSliceParams(
         DDI_MEDIA_CONTEXT            *mediaCtx,
         VASliceParameterBufferMPEG2  *slcParam,
-        int32_t                      numSlices);
+        uint32_t                      numSlices);
 
     //!
     //! \brief   ParseIQMatrixParam for MPEG2
@@ -119,12 +127,12 @@ private:
     //! \details Alloc/resize SlicePram content for MPEG2 decoding
     //!
     //! \param   [in] numSlices
-    //!          int32_t the required number of slices
+    //!          uint32_t the required number of slices
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus AllocSliceParamContext(
-        int32_t numSlices);
+        uint32_t numSlices);
 
     //!
     //! \brief   Parse and Refine the number of MBs for MPEG2

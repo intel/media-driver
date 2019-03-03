@@ -30,27 +30,50 @@
 #include <va/va.h>
 #include "media_ddi_base.h"
 #include "media_libva_encoder.h"
+#include "codechal_setting.h"
 
+//!
+//! \class  DdiEncodeBase
+//! \brief  Ddi encode base
+//!
 class DdiEncodeBase : public DdiMediaBase
 {
 public:
+    //! \brief chroma format
+    enum ChromaFormat
+    {
+        monochrome  = 0,
+        yuv420      = 1,
+        yuv422      = 2,
+        yuv444      = 3
+    };
+
+    //!
+    //! \brief Constructor
+    //!
+    DdiEncodeBase();
+
     //!
     //! \brief    Initialize the encode context and do codechal setting
     //! \details  Allocate memory for pointer members of encode context, set codechal
     //!           which used by Codechal::Allocate
     //!
     //! \param    [out] codecHalSettings
-    //!           PCODECHAL_SETTINGS
+    //!           CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus ContextInitialize(PCODECHAL_SETTINGS codecHalSettings) = 0;
+    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings) = 0;
 
     //!
     //! \brief Destructor
     //!
-    virtual ~DdiEncodeBase(){};
+    virtual ~DdiEncodeBase()
+    {
+        MOS_Delete(m_codechalSettings);
+        m_codechalSettings = nullptr;
+    };
 
     virtual VAStatus BeginPicture(
         VADriverContextP ctx,
@@ -239,9 +262,10 @@ public:
     //!
     virtual void FreeCompBuffer();
 
-    //! \brief    The referred DDI_ENCODE_CONTEXT object
-    DDI_ENCODE_CONTEXT *m_encodeCtx = nullptr;
-
+    DDI_ENCODE_CONTEXT *m_encodeCtx = nullptr; //!< The referred DDI_ENCODE_CONTEXT object.
+    bool m_is10Bit                  = false;   //!< 10 bit flag.
+    ChromaFormat m_chromaFormat     = yuv420;  //!< HCP chroma format.
+    CodechalSetting    *m_codechalSettings = nullptr;    //!< Codechal Settings
 protected:
     //!
     //! \brief    Do Encode in codechal
@@ -452,6 +476,24 @@ protected:
         int32_t                        *index);
 
     //!
+    //! \brief    Report extra encode status for completed coded buffer.
+    //!
+    //! \param    [in] encodeStatusReport
+    //!           Pointer to encode status reported by Codechal
+    //! \param    [out] codedBufferSegment
+    //!           Pointer to coded buffer segment
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual VAStatus ReportExtraStatus(
+        EncodeStatusReport   *encodeStatusReport,
+        VACodedBufferSegment *codedBufferSegment)
+    {
+        return VA_STATUS_SUCCESS;
+    }
+
+    //!
     //! \brief    Clean Up Buffer and Return
     //!
     //! \param    [in] buf
@@ -459,5 +501,11 @@ protected:
     //!
     //! \return   void
     void CleanUpBufferandReturn(DDI_MEDIA_BUFFER *buf);
+
+    bool    m_newSeqHeader           = false;    //!< Flag for new Sequence Header.
+    bool    m_newPpsHeader           = false;    //!< Flag for new Pps Header.
+    bool    m_arbitraryNumMbsInSlice = false;    //!< Flag to indicate if the sliceMapSurface needs to be programmed or not.
+    uint8_t m_scalingLists4x4[6][16]{};          //!< Inverse quantization scale lists 4x4.
+    uint8_t m_scalingLists8x8[2][64]{};          //!< Inverse quantization scale lists 8x8.
 };
 #endif /* __MEDIA_DDI_ENCODE_BASE_H__ */

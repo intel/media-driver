@@ -24,24 +24,12 @@
 //! \brief    This file implements the Csc+Ds feature for all codecs on Gen8 platform
 //!
 
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 #include "codechal_encode_csc_ds_g8.h"
 #include "codeckrnheader.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g8.h"
-
-CodechalEncodeCscDsG8::CodechalEncodeCscDsG8(PCODECHAL_ENCODER pEncoder)
-    : CodechalEncodeCscDs(pEncoder)
-{
-    m_rawSurfAlignment = 16;  // on Gen8 raw surface has to be 16-aligned
-    m_cscKernelUID = IDR_CODEC_Downscale_Copy;
-    m_cscCurbeLength = sizeof(CscKernelCurbeData);
-    m_kernelBase = (uint8_t*)IGCODECKRN_G8;
-    Initialize();
-    // Gen8 use 16x raw surface alignment
-    pEncoder->dwRawSurfAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;
-    Initialize();
-}
+#endif
 
 CodechalEncodeCscDsG8::CodechalEncodeCscDsG8(CodechalEncoderState* encoder)
     : CodechalEncodeCscDs(encoder)
@@ -49,8 +37,7 @@ CodechalEncodeCscDsG8::CodechalEncodeCscDsG8(CodechalEncoderState* encoder)
     m_rawSurfAlignment = 16;  // on Gen8 raw surface has to be 16-aligned
     m_cscKernelUID = IDR_CODEC_Downscale_Copy;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G8;
-    // Gen8 use 16x raw surface alignment
-    m_encoder->m_rawSurfAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;
-    Initialize();
+#endif
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ typedef struct _VPHAL_STATUS_TABLE
 {
     VPHAL_STATUS_ENTRY  aTableEntries[VPHAL_STATUS_TABLE_MAX_SIZE];
     uint32_t            uiHead;
-    uint32_t            uiCurrent;  
+    uint32_t            uiCurrent;
 } VPHAL_STATUS_TABLE, *PVPHAL_STATUS_TABLE;
 
 //!
@@ -127,27 +127,33 @@ typedef struct _VP_CONFIG
     uint32_t   dwFFDNCompressible;         // FFDN Compressible flag
     uint32_t   dwFFDNCompressMode;         // FFDN Compression mode
     uint32_t   dwSTMMCompressible;         // STMM Compressible flag
-    uint32_t   dwSTMMCompressMode;         // STMM Compression mode  
+    uint32_t   dwSTMMCompressMode;         // STMM Compression mode
     uint32_t   dwScalerCompressible;       // Scaler Compressible flag for Gen10
     uint32_t   dwScalerCompressMode;       // Scaler Compression mode for Gen10
     uint32_t   dwPrimaryCompressible;      // Input Primary Surface Compressible flag
-    uint32_t   dwPrimaryCompressMode;      // Input Primary Surface Compression mode  
+    uint32_t   dwPrimaryCompressMode;      // Input Primary Surface Compression mode
     uint32_t   dwFFDICompressibleReported; // FFDI Reported Compressible flag
     uint32_t   dwFFDICompressModeReported; // FFDI Reported Compression mode
     uint32_t   dwFFDNCompressibleReported; // FFDN Reported Compressible flag
     uint32_t   dwFFDNCompressModeReported; // FFDN Reported Compression mode
     uint32_t   dwSTMMCompressibleReported; // STMM Reported Compressible flag
-    uint32_t   dwSTMMCompressModeReported; // STMM Reported Compression mode  
+    uint32_t   dwSTMMCompressModeReported; // STMM Reported Compression mode
     uint32_t   dwScalerCompressibleReported;   // Scaler Reported Compressible flag for Gen10
     uint32_t   dwScalerCompressModeReported;   // Scaler Reported Compression mode for Gen10
     uint32_t   dwPrimaryCompressibleReported;  // Input Primary Surface Reported Compressible flag
-    uint32_t   dwPrimaryCompressModeReported;  // Input Primary Surface Reported Compression mode  
+    uint32_t   dwPrimaryCompressModeReported;  // Input Primary Surface Reported Compression mode
     uint32_t   dwCapturePipeInUse;         // Capture pipe
     uint32_t   dwCapturePipeInUseReported; // Reported Capture pipe
     uint32_t   dwCurrentCompositionMode;   // In Place or Legacy Composition
     uint32_t   dwReportedCompositionMode;  // Reported Composition Mode
     uint32_t   dwCurrentHdrMode;           // Current Hdr Mode
     uint32_t   dwReportedHdrMode;          // Reported Hdr Mode
+    uint32_t   dwCurrentScdMode;           // Current Scd Mode
+    uint32_t   dwReportedScdMode;          // Reported Scd Mode
+    uint32_t   dwTCCPreprocessInUse;                // Vebox TCC Pre-process for HDR
+    uint32_t   dwTCCPreprocessInUseReported;        // Reported Vebox TCC Pre-process for HDR
+    uint32_t   dwIEFPreprocessInUse;                // Vebox IEF Pre-process for HDR
+    uint32_t   dwIEFPreprocessInUseReported;        // Reported Vebox IEF Pre-process for HDR
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;
@@ -167,7 +173,7 @@ typedef struct _VP_CONFIG
 //!
 //! \brief status query param
 //!
-typedef struct _VPHAL_STATUS_PARAM 
+typedef struct _VPHAL_STATUS_PARAM
 {
     uint32_t            FrameId;
     VPREP_STATUS        BltStatus;
@@ -193,40 +199,5 @@ typedef struct _VPHAL_BATCHQUERYVARIANCE_PARAMS
     void                *pBuffer;
 } VPHAL_BATCHQUERYVARIANCE_PARAMS, *PVPHAL_BATCHQUERYVARIANCE_PARAMS;
 
-//!
-//! Structure VPHAL_SPLIT_SCREEN_DEMO_POSITION
-//! \brief Split-Screen Demo Mode Position
-//!
-typedef enum _VPHAL_SPLIT_SCREEN_DEMO_POSITION
-{
-    SPLIT_SCREEN_DEMO_DISABLED  = 0,
-    SPLIT_SCREEN_DEMO_LEFT,
-    SPLIT_SCREEN_DEMO_RIGHT,
-    SPLIT_SCREEN_DEMO_TOP,
-    SPLIT_SCREEN_DEMO_BOTTOM,
-    SPLIT_SCREEN_DEMO_END_POS_LIST
-} VPHAL_SPLIT_SCREEN_DEMO_POSITION;
-
-//!
-//! Structure VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
-//! \brief Split-Screen Demo Mode Parameters
-//!
-typedef struct _VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
-{
-    VPHAL_SPLIT_SCREEN_DEMO_POSITION        Position;            //!< Position of split mode area (disable features)
-    bool                                    bDisableACE     : 1; //!< Disable ACE
-    bool                                    bDisableAVS     : 1; //!< Disable AVS
-    bool                                    bDisableDN      : 1; //!< Disable DN
-    bool                                    bDisableFMD     : 1; //!< Disable FMD
-    bool                                    bDisableIEF     : 1; //!< Disable IEF
-    bool                                    bDisableProcamp : 1; //!< Disable Procamp
-    bool                                    bDisableSTE     : 1; //!< Disable STE
-    bool                                    bDisableTCC     : 1; //!< Disable TCC
-    bool                                    bDisableIS      : 1; //!< Disable IS
-    bool                                    bDisableDrDb    : 1; //!< Disable DRDB
-    bool                                    bDisableDNUV    : 1; //!< Disable DNUV
-    bool                                    bDisableFRC     : 1; //!< Disable FRC
-    bool                                    bDisableLACE    : 1; //!< Disable LACE
-} VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS, *PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS;
 
 #endif  // __VPHAL_COMMON_TOOLS_H__

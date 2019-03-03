@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_memory_pool.c  
-//! \brief         This modules implements simple memory pool infrastructure for MHW  
+//! \file      mhw_memory_pool.c 
+//! \brief         This modules implements simple memory pool infrastructure for MHW 
 //!
 #include "mhw_memory_pool.h"
 
@@ -45,9 +45,8 @@ MHW_MEMORY_POOL::MHW_MEMORY_POOL(uint32_t dwObjSize, uint32_t dwObjAlignment):
     m_dwObjAlignment(dwObjAlignment),
     m_dwObjCount(0)
 {
-    
-}
 
+}
 
 MHW_MEMORY_POOL::~MHW_MEMORY_POOL()
 {
@@ -68,7 +67,7 @@ MHW_MEMORY_POOL::~MHW_MEMORY_POOL()
 
 // Allocate an array of objects to be added to the pool
 void  *MHW_MEMORY_POOL::Allocate(uint32_t dwObjCount)
-{   
+{
     uint8_t                *pObjects  = nullptr;
     uint32_t               dwSize;
     PMHW_MEMORY_POOL_ENTRY pEntry = nullptr;
@@ -103,9 +102,9 @@ void  *MHW_MEMORY_POOL::Allocate(uint32_t dwObjCount)
     pEntry->pNext = nullptr;
     pEntry->pPrev = m_pLast;
     m_pLast = pEntry;
-    
+
     if (pEntry->pPrev) pEntry->pPrev->pNext = pEntry;
-    
+
     if (!m_pFirst) m_pFirst = pEntry;
 
     // Setup pool entry

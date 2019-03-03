@@ -27,7 +27,7 @@
 #include "codechal_mmc_decode_hevc.h"
 
 CodechalMmcDecodeHevc::CodechalMmcDecodeHevc(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -45,7 +45,7 @@ CodechalMmcDecodeHevc::CodechalMmcDecodeHevc(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -55,7 +55,7 @@ CodechalMmcDecodeHevc::CodechalMmcDecodeHevc(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -69,28 +69,25 @@ MOS_STATUS CodechalMmcDecodeHevc::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    if (m_mmcEnabled && 
+    pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+
+    if (m_mmcEnabled &&
         m_hcpMmcEnabled &&
-        m_hevcState->sDestSurface.bCompressible)
+        m_hevcState->m_destSurface.bCompressible)
     {
-        if (( m_10bitMmcEnabled && m_hevcState->sDestSurface.Format == Format_P010) ||
-            (m_hevcState->sDestSurface.Format == Format_NV12) ||
-            (m_hevcState->sDestSurface.Format == Format_YUY2))
+        if ((m_10bitMmcEnabled && m_hevcState->m_destSurface.Format == Format_P010) ||
+            (m_hevcState->m_destSurface.Format == Format_NV12) ||
+            (m_hevcState->m_destSurface.Format == Format_YUY2))
         {
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
         }
     }
-    else
-    {
-        pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
-    }
 
     CODECHAL_DEBUG_TOOL(
-        m_hevcState->sDestSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;
-    )
+        m_hevcState->m_destSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;)
 
     return eStatus;
 }
@@ -100,25 +97,25 @@ MOS_STATUS CodechalMmcDecodeHevc::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_hevcState->pHevcPicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_hevcState->m_hevcPicParams);
 
     // Check if reference surface needs to be synchronized in MMC case
     if (m_mmcEnabled &&
-        !CodecHal_PictureIsField(m_hevcState->pHevcPicParams->CurrPic))
+        !CodecHal_PictureIsField(m_hevcState->m_hevcPicParams->CurrPic))
     {
         MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_hevcState->GetVideoContext();
         syncParams.bDisableDecodeSyncLock = disableDecodeSyncLock;
         syncParams.bDisableLockForTranscode = disableLockForTranscode;
-        
+
         for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {
-            if (m_hevcState->presReferences[i])
+            if (m_hevcState->m_presReferences[i])
             {
-                syncParams.presSyncResource = m_hevcState->presReferences[i];
+                syncParams.presSyncResource = m_hevcState->m_presReferences[i];
                 syncParams.bReadOnly        = true;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(
@@ -147,19 +144,19 @@ MOS_STATUS CodechalMmcDecodeHevc::CheckReferenceList(
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pipeBufAddrParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_hevcState->pHevcPicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_hevcState->m_hevcPicParams);
 
     MOS_MEMCOMP_STATE mmcMode;
     bool selfReference = false;
 
     // Disable MMC if self-reference is dectected (mainly for error concealment)
     if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
-        (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
-        !m_hevcState->bCurPicIntra)
+            (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
+        !m_hevcState->m_curPicIntra)
     {
         for (int i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
         {
-            if ((m_hevcState->pHevcPicParams->CurrPic.FrameIdx == m_hevcState->pHevcPicParams->RefFrameList[i].FrameIdx))
+            if (m_hevcState->m_hevcPicParams->CurrPic.FrameIdx == m_hevcState->m_hevcPicParams->RefFrameList[i].FrameIdx)
             {
                 selfReference = true;
                 break;
@@ -175,13 +172,13 @@ MOS_STATUS CodechalMmcDecodeHevc::CheckReferenceList(
             // Decompress current frame to avoid green corruptions in this error handling case
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface,
-                &m_hevcState->sDestSurface.OsResource,
+                &m_hevcState->m_destSurface.OsResource,
                 &mmcMode));
             if (mmcMode != MOS_MEMCOMP_DISABLED)
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(
                     m_osInterface,
-                    &m_hevcState->sDestSurface.OsResource));
+                    &m_hevcState->m_destSurface.OsResource));
             }
         }
     }
@@ -192,11 +189,11 @@ MOS_STATUS CodechalMmcDecodeHevc::CheckReferenceList(
     bool firstRefPic = true;
     for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
     {
-        if (m_hevcState->presReferences[i])
+        if (m_hevcState->m_presReferences[i])
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-                m_osInterface, 
-                m_hevcState->presReferences[i], 
+                m_osInterface,
+                m_hevcState->m_presReferences[i],
                 &mmcMode));
             if (firstRefPic)
             {
@@ -215,17 +212,17 @@ MOS_STATUS CodechalMmcDecodeHevc::CheckReferenceList(
     {
         for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {
-            if (m_hevcState->presReferences[i])
+            if (m_hevcState->m_presReferences[i])
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-                    m_osInterface, 
-                    m_hevcState->presReferences[i], 
+                    m_osInterface,
+                    m_hevcState->m_presReferences[i],
                     &mmcMode));
                 if(mmcMode != MOS_MEMCOMP_DISABLED)
                 {
                     m_osInterface->pfnDecompResource(
                         m_osInterface,
-                        m_hevcState->presReferences[i]);
+                        m_hevcState->m_presReferences[i]);
                 }
             }
         }

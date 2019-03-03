@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@ const MHW_VEBOX_SETTINGS g_Vebox_Settings_g10 =
     MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
     MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
     MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
-    MHW_PAGE_SIZE * 67                                                        //!< ui3DLUTSize Max: 65 * 65 *128 * 8
+    0                                                                         //!< ui3DLUTSize
 };
 
 // H2S Manual Mode Coef
@@ -221,8 +221,8 @@ void MhwVeboxInterfaceG10::SetVeboxIecpStateBecsc(
     PMHW_CAPPIPE_PARAMS pCapPipeParams;
     MOS_FORMAT          dstFormat;
 
-    MHW_ASSERT(pVeboxIecpState);
-    MHW_ASSERT(pVeboxIecpParams);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
 
     pCapPipeParams = &pVeboxIecpParams->CapPipeParams;
     dstFormat      = pVeboxIecpParams->dstFormat;
@@ -376,10 +376,13 @@ void MhwVeboxInterfaceG10::SetVeboxSurfaces(
     uint8_t  bBayerStride;
 
     mhw_vebox_g10_X::VEBOX_SURFACE_STATE_CMD VeboxSurfaceState;
-    MHW_ASSERT(pSurfaceParam);
-    MHW_ASSERT(pVeboxSurfaceState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pSurfaceParam);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceState);
 
     // Initialize
+    dwSurfaceWidth      = 0;
+    dwSurfaceHeight     = 0;
+    dwSurfacePitch      = 0;
     bHalfPitchForChroma = false;
     bInterleaveChroma   = false;
     wUXOffset           = 0;
@@ -538,7 +541,7 @@ void MhwVeboxInterfaceG10::SetVeboxSurfaces(
         bDIEnable);
 
     dwSurfacePitch = (pSurfaceParam->TileType == MOS_TILE_LINEAR) ?
-	    MOS_ALIGN_CEIL(pSurfaceParam->dwPitch, MHW_VEBOX_LINEAR_PITCH) : pSurfaceParam->dwPitch;
+        MOS_ALIGN_CEIL(pSurfaceParam->dwPitch, MHW_VEBOX_LINEAR_PITCH) : pSurfaceParam->dwPitch;
 
     pVeboxSurfaceState->DW1.SurfaceIdentification = bIsOutputSurface;
     pVeboxSurfaceState->DW2.Width                 = dwSurfaceWidth - 1;
@@ -559,7 +562,7 @@ void MhwVeboxInterfaceG10::SetVeboxSurfaces(
     pVeboxSurfaceState->DW5.YOffsetForV           = wVYOffset;
 
     // May fix this for stereo surfaces
-    pVeboxSurfaceState->DW6.YOffsetForFrame = 0;
+    pVeboxSurfaceState->DW6.YOffsetForFrame = pSurfaceParam->dwYoffset;
     pVeboxSurfaceState->DW6.XOffsetForFrame = 0;
 
     pVeboxSurfaceState->DW7.DerivedSurfacePitch                    = pDerivedSurfaceParam->dwPitch - 1;
@@ -601,6 +604,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxState(
     PMHW_VEBOX_3D_LUT          pLUT3D;
     uint32_t                   uiInstanceBaseAddr = 0;
     MHW_RESOURCE_PARAMS        ResourceParams;
+    MOS_ALLOC_GFXRES_PARAMS    AllocParamsForBufferLinear;
 
     mhw_vebox_g10_X::VEBOX_STATE_CMD cmd;
 
@@ -773,20 +777,47 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
+        if (pVeboxStateCmdParams->pVebox3DLookUpTables)
+        {
+            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+            ResourceParams.presResource         = pVeboxStateCmdParams->pVebox3DLookUpTables;
+            ResourceParams.dwOffset             = 0;
+            ResourceParams.pdwCmd               = &(cmd.DW16.Value);
+            ResourceParams.dwLocationInCmd      = 16;
+            ResourceParams.HwCommandType        = MOS_VEBOX_STATE;
+            ResourceParams.dwSharedMocsOffset   = 1 - ResourceParams.dwLocationInCmd;
+
+            MHW_CHK_STATUS(pfnAddResourceToCmd(
+                pOsInterface,
+                pCmdBuffer,
+                &ResourceParams));
+        }
+    }
+    else
+    {
+        // Allocate Resource to avoid Page Fault issue since HW will access it
+        if (Mos_ResourceIsNull(&pVeboxStateCmdParams->DummyIecpResource))
+        {
+            MOS_ZeroMemory(&AllocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+
+            AllocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+            AllocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+            AllocParamsForBufferLinear.Format = Format_Buffer;
+            AllocParamsForBufferLinear.dwBytes = m_veboxSettings.uiIecpStateSize;
+            AllocParamsForBufferLinear.pBufName = "DummyIecpResource";
+
+            MHW_CHK_STATUS(pOsInterface->pfnAllocateResource(
+                pOsInterface,
+                &AllocParamsForBufferLinear,
+                &pVeboxStateCmdParams->DummyIecpResource));
+        }
+
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-        if (bCmBuffer)
-        {
-            ResourceParams.presResource = pVeboxParamResource;
-            ResourceParams.dwOffset     = pVeboxHeap->ui3DLUTStateOffset;
-        }
-        else
-        {
-            ResourceParams.presResource = pVeboxHeapResource;
-            ResourceParams.dwOffset     = pVeboxHeap->ui3DLUTStateOffset + uiInstanceBaseAddr;
-        }
-        ResourceParams.pdwCmd             = & (cmd.DW16.Value);
-        ResourceParams.dwLocationInCmd    = 16;
-        ResourceParams.HwCommandType      = MOS_VEBOX_STATE;
+        ResourceParams.presResource = &pVeboxStateCmdParams->DummyIecpResource;
+        ResourceParams.dwOffset = 0;
+        ResourceParams.pdwCmd = &(cmd.DW4.Value);
+        ResourceParams.dwLocationInCmd = 4;
+        ResourceParams.HwCommandType = MOS_VEBOX_STATE;
         ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
 
         MHW_CHK_STATUS(pfnAddResourceToCmd(
@@ -945,7 +976,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxDiIecp(
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         ResourceParams.presResource    = pVeboxDiIecpCmdParams->pOsResCurrOutput;
-        ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value;
+        ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value + pVeboxDiIecpCmdParams->dwCurrOutputSurfOffset;
         ResourceParams.pdwCmd          =  & (cmd.DW12.Value);
         ResourceParams.dwLocationInCmd = 12;
         ResourceParams.bIsWritable     = true;
@@ -1077,8 +1108,8 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
                                                                   pVeboxHeap->uiGamutStateOffset +
                                                                   uiOffset);
 
-    MHW_ASSERT(pIecpState);
-    MHW_ASSERT(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL(pIecpState);
+    MHW_CHK_NULL(pVeboxGEGammaCorrection);
 
     // Must initialize VeboxIecpState even if it is not used because GCE
     // requires GlobalIECP enable bit to be turned on
@@ -1108,6 +1139,10 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
             pGamutState->DW15.DOutDefault            = pVeboxGamutParams->iDoutDefault;
             pGamutState->DW15.DInDefault             = pVeboxGamutParams->iDinDefault;
             pGamutState->DW16.D1In                   = pVeboxGamutParams->iDin;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown GAMUT Mode");
         }
 
         // Set Vertex Table if Gamut Compression is enabled
@@ -1298,6 +1333,10 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
         {
             dInverseGamma = 2.6;
         }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown InputGammaValue");
+        }
 
         if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0)
         {
@@ -1310,6 +1349,10 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
         else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P6)
         {
             dForwardGamma = 2.6;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown GOutputGammaValue");
         }
 
         for (i = 0; i < 255; i++)
@@ -1415,7 +1458,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxScalarState(
         (mhw_vebox_g10_X::VEBOX_Scalar_State_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                     pVeboxHeap->uiDndiStateOffset +
                                                     uiOffset);
-    MHW_ASSERT(pVeboxScalarState);
+    MHW_CHK_NULL(pVeboxScalarState);
     *pVeboxScalarState = ScalarState;
 
     // Initialize the values to default for media driver.
@@ -1526,7 +1569,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxDndiState(
         (mhw_vebox_g10_X::VEBOX_DNDI_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                   pVeboxHeap->uiDndiStateOffset +
                                                   uiOffset);
-    MHW_ASSERT(pVeboxDndiState);
+    MHW_CHK_NULL(pVeboxDndiState);
     *pVeboxDndiState = VeboxDndiState;
 
     pVeboxDndiState->DW0.DenoiseMovingPixelThreshold =
@@ -1732,7 +1775,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxIecpState(
     pVeboxIecpState = (mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                 pVeboxHeap->uiIecpStateOffset +
                                                                 uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
     IecpStateInitialization(pVeboxIecpState);
 
     if (pVeboxIecpParams->ColorPipeParams.bActive)
@@ -1832,26 +1875,13 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxIecpState(
                                      pVeboxHeap->uiGammaCorrectionStateOffset +
                                      uiOffset);
 
+        MHW_CHK_NULL(pFwdGammaSeg);
+
         MOS_SecureMemcpy(
             pFwdGammaSeg,
             sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT,
             &pVeboxIecpParams->CapPipeParams.FwdGammaParams.Segment[0],
             sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT);
-    }
-
-    if (pVeboxIecpParams &&
-        pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.bActive)
-    {
-        p3DLUT =
-            (uint8_t*)(pVeboxHeap->pLockedDriverResourceMem +
-                    pVeboxHeap->ui3DLUTStateOffset +
-                    uiOffset);
-
-        MOS_SecureMemcpy(
-            p3DLUT,
-            pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.LUTLength,
-            pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.pLUT,
-            pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.LUTLength);
     }
 
 finish:
@@ -1878,7 +1908,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxIecpAceState(
     pVeboxIecpState = (mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                 pVeboxHeap->uiIecpStateOffset +
                                                                 uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
 
     MhwVeboxInterfaceGeneric<mhw_vebox_g10_X>::SetVeboxAceLaceState(pVeboxIecpParams, pVeboxIecpState);
 
@@ -2005,8 +2035,8 @@ MOS_STATUS MhwVeboxInterfaceG10::VeboxInterface_H2SManualMode(
         + pVeboxHeap->uiGamutStateOffset + uiOffset);
     fMaxCLL = (65535 * (float)pVeboxGamutParams->uiMaxCLL) / 10000;
 
-    MHW_ASSERT(pIecpState);
-    MHW_ASSERT(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL(pIecpState);
+    MHW_CHK_NULL(pVeboxGEGammaCorrection);
 
     // Must initialize VeboxIecpState even if it is not used because GCE
     // requires GlobalIECP enable bit to be turned on
@@ -2101,7 +2131,7 @@ finish:
 
 void MhwVeboxInterfaceG10::IecpStateInitialization(mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD    *pVeboxIecpState)
 {
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
 
     mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD IecpState;
     *pVeboxIecpState = IecpState;
@@ -2204,7 +2234,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxSurfaceControlBits(
     PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams,
     uint32_t                       *pSurfCtrlBits)
 {
-    PLATFORM   Platform;
+    PLATFORM   Platform = {};
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     mhw_vebox_g10_X::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD *pVeboxSurfCtrlBits;

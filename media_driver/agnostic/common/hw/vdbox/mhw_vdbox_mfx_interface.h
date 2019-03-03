@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -73,36 +73,7 @@ typedef enum _MHW_VDBOX_DECODE_JPEG_FORMAT_CODE
     MHW_VDBOX_DECODE_JPEG_FORMAT_YUY2 = 3
 } MHW_VDBOX_DECODE_JPEG_FORMAT_CODE;
 
-struct MmioRegistersMfx
-{
-    uint32_t            generalPurposeRegister0LoOffset = 0;
-    uint32_t            generalPurposeRegister0HiOffset = 0;
-    uint32_t            generalPurposeRegister4LoOffset = 0;
-    uint32_t            generalPurposeRegister4HiOffset = 0;
-    uint32_t            mfcImageStatusMaskRegOffset = 0;
-    uint32_t            mfcImageStatusCtrlRegOffset = 0;
-    uint32_t            mfcAvcNumSlicesRegOffset = 0;
-    uint32_t            mfcQPStatusCountOffset = 0;
-    uint32_t            mfxErrorFlagsRegOffset = 0;
-    uint32_t            mfxFrameCrcRegOffset = 0;
-    uint32_t            mfxMBCountRegOffset = 0;
-    uint32_t            mfcBitstreamBytecountFrameRegOffset = 0;
-    uint32_t            mfcBitstreamSeBitcountFrameRegOffset = 0;
-    uint32_t            mfcBitstreamBytecountSliceRegOffset = 0;
-    uint32_t            mfcVP8BitstreamBytecountFrameRegOffset = 0;
-    uint32_t            mfcVP8ImageStatusMaskRegOffset = 0;
-    uint32_t            mfcVP8ImageStatusCtrlRegOffset = 0;
-    uint32_t            mfxVP8BrcDQIndexRegOffset = 0;
-    uint32_t            mfxVP8BrcDLoopFilterRegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDQIndex01RegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDQIndex23RegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDLoopFilter01RegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDLoopFilter23RegOffset = 0;
-    uint32_t            mfxVP8BrcConvergenceStatusRegOffset = 0;
-    uint32_t            mfxLra0RegOffset = 0;
-    uint32_t            mfxLra1RegOffset = 0;
-    uint32_t            mfxLra2RegOffset = 0;
-};
+
 
 typedef struct _MHW_VDBOX_MPEG2_SLICE_STATE
 {
@@ -244,12 +215,20 @@ typedef struct _MHW_VDBOX_JPEG_PIC_STATE
     uint32_t                   dwOutputFormat;
 } MHW_VDBOX_JPEG_DECODE_PIC_STATE, *PMHW_VDBOX_JPEG_PIC_STATE;
 
+//!
+//! \struct    MhwVdboxJpegEncodePicState
+//! \brief     MHW vdbox JPEG encode picture state
+//!
 struct MhwVdboxJpegEncodePicState
 {
     CodecEncodeJpegPictureParams           *pJpegEncodePicParams;
     uint32_t                                mode;
 };
 
+//!
+//! \struct    MhwVdboxJpegScanParams
+//! \brief     MHW vdbox JPEG scan parameters
+//!
 struct MhwVdboxJpegScanParams
 {
     CodecEncodeJpegScanHeader              *pJpegEncodeScanParams;
@@ -345,7 +324,6 @@ typedef struct _MHW_VDBOX_MPEG2_PIC_STATE
 typedef struct _MHW_VDBOX_AVC_SLICE_STATE
 {
     PCODEC_PIC_ID                           pAvcPicIdx;
-    PCODEC_REF_LIST                        *ppAvcRefList;
     PMOS_RESOURCE                           presDataBuffer;
     uint32_t                                dwDataBufferOffset;
     uint32_t                                dwOffset;
@@ -360,7 +338,7 @@ typedef struct _MHW_VDBOX_AVC_SLICE_STATE
     PCODEC_AVC_SLICE_PARAMS                 pAvcSliceParams;
     uint32_t                                dwNextOffset;
     uint32_t                                dwNextLength;
-    bool                                    bIntelProprietaryFormatInUse;
+    bool                                    bIntelEntrypointInUse;
     bool                                    bPicIdRemappingInUse;
     bool                                    bShortFormatInUse;
     bool                                    bPhantomSlice;
@@ -391,6 +369,7 @@ typedef struct _MHW_VDBOX_AVC_SLICE_STATE
     bool                                    bVdencInUse;
     bool                                    bVdencNoTailInsertion;
     bool                                    oneOnOneMapping = false;
+    bool                                    bFullFrameData;
 } MHW_VDBOX_AVC_SLICE_STATE, *PMHW_VDBOX_AVC_SLICE_STATE;
 
 typedef struct _MHW_VDBOX_AVC_DPB_PARAMS
@@ -405,12 +384,13 @@ typedef struct _MHW_VDBOX_AVC_DPB_PARAMS
 typedef struct _MHW_VDBOX_AVC_DIRECTMODE_PARAMS
 {
     CODEC_PICTURE                   CurrPic;
+    bool                            isEncode;
     uint32_t                        uiUsedForReferenceFlags;
     PMOS_RESOURCE                   presAvcDmvBuffers;
     uint8_t                         ucAvcDmvIdx;
     PCODEC_AVC_DMV_LIST             pAvcDmvList;
     PCODEC_PIC_ID                   pAvcPicIdx;
-    PCODEC_REF_LIST                *ppAvcRefList;
+    void                            **avcRefList;
     bool                            bPicIdRemappingInUse;
     int32_t                         CurrFieldOrderCnt[2];
     bool                            bDisableDmvBuffers;
@@ -419,15 +399,18 @@ typedef struct _MHW_VDBOX_AVC_DIRECTMODE_PARAMS
 
 typedef struct _MHW_VDBOX_AVC_REF_IDX_PARAMS
 {
-    CODEC_PICTURE                   CurrPic;
-    uint32_t                        uiList;
-    uint32_t                        uiNumRefForList;
-    CODEC_PICTURE                   RefPicList[2][32];
-    PCODEC_PIC_ID                   pAvcPicIdx;
-    PCODEC_REF_LIST                *ppAvcRefList;
-    bool                            bIntelProprietaryFormatInUse;
-    bool                            bPicIdRemappingInUse;
-    bool                            oneOnOneMapping = false;
+    CODEC_PICTURE                   CurrPic               = {};
+    uint32_t                        uiNumRefForList[2]    = {};
+    CODEC_PICTURE                   RefPicList[2][32]     = {};
+    PCODEC_PIC_ID                   pAvcPicIdx            = {};
+    uint32_t                        uiList                = 0;
+    void                            **avcRefList          = nullptr;
+    bool                            isEncode              = false;
+    bool                            bVdencInUse           = false;
+    bool                            bIntelEntrypointInUse = false;
+    bool                            bPicIdRemappingInUse  = false;
+    bool                            oneOnOneMapping       = false;
+    bool                            bDummyReference       = false;
 } MHW_VDBOX_AVC_REF_IDX_PARAMS, *PMHW_VDBOX_AVC_REF_IDX_PARAMS;
 
 typedef struct _MHW_VDBOX_PIC_ID_PARAMS
@@ -465,7 +448,10 @@ typedef struct _MHW_VDBOX_AVC_IMG_BITRATE_PARAMS
     uint32_t   : 1;
 } MHW_VDBOX_AVC_IMG_BITRATE_PARAMS, *PMHW_VDBOX_AVC_IMG_BITRATE_PARAMS;
 
-//!  MHW Vdbox Mfx interface
+//!
+//! \class    MhwVdboxMfxInterface
+//! \brief    MHW Vdbox Mfx interface
+//!
 /*!
 This class defines the interfaces for constructing Vdbox Mfx commands across all platforms
 */
@@ -474,6 +460,10 @@ class MhwVdboxMfxInterface
 protected:
     static const uint8_t  m_mpeg2QuantMatrixScan[64]; //!< MPEG2 quantization table scan order
 
+    //!
+    //! \enum     AvcSliceType
+    //! \brief    Average slice type
+    //!
     enum AvcSliceType
     {
         avcSliceP = 0,
@@ -481,12 +471,20 @@ protected:
         avcSliceI = 2
     };
 
+    //!
+    //! \enum     Mpeg2Vc1MacroblockIntratype
+    //! \brief    MPEG2 VC1 macro block intra type
+    //!
     enum Mpeg2Vc1MacroblockIntratype
     {
         mpeg2Vc1MacroblockNonintra  = 0,
         mpeg2Vc1MacroblockIntra     = 1
     };
 
+    //!
+    //! \enum     Mpeg2Vc1PictureStructure
+    //! \brief    MPEG2 VC1 picture structure
+    //!
     enum Mpeg2Vc1PictureStructure
     {
         mpeg2Vc1TopField = 1,
@@ -494,6 +492,10 @@ protected:
         mpeg2Vc1Frame
     };
 
+    //!
+    //! \enum     Vc1FrameCodingMode
+    //! \brief    VC1 frame coding mode
+    //!
     enum Vc1FrameCodingMode
     {
         vc1ProgressiveFrame = 0,
@@ -502,12 +504,20 @@ protected:
         vc1BffFrame
     };
 
+    //!
+    //! \enum     Vc1CodedMode
+    //! \brief    VC1 coded mode
+    //!
     enum Vc1CodedMode
     {
         vc1NonrawMode = 0,
         vc1RawMode = 1
     };
 
+    //!
+    //! \struct   RefBoundaryReplicationMode
+    //! \brief    Reference boundary replication mode
+    //!
     struct RefBoundaryReplicationMode
     {
         union
@@ -526,12 +536,20 @@ protected:
         } BY0;
     };
 
+    //!
+    //! \enum     Vc1FrameBoundaryType
+    //! \brief    VC1 frame boundary type
+    //!
     enum Vc1FrameBoundaryType
     {
         vc1ProgressiveBoundary = 0,
         vc1InterlacedBoundary  = 1
     };
 
+    //!
+    //! \struct   AvcRefListWrite
+    //! \brief    Average reference list write
+    //!
     struct AvcRefListWrite
     {
         union
@@ -551,6 +569,10 @@ protected:
         } UC[32];
     };
 
+    //!
+    //! \enum     AvcQmTypes
+    //! \brief    Average qm types
+    //!
     enum AvcQmTypes
     {
         avcQmIntra4x4 = 0,
@@ -559,18 +581,30 @@ protected:
         avcQmInter8x8 = 3
     };
 
+    //!
+    //! \enum     Mpeg2QmTypes
+    //! \brief    MPEG2 qm types
+    //!
     enum Mpeg2QmTypes
     {
         mpeg2QmIntra = 0,
         mpeg2QmNonIntra,
     };
 
+    //!
+    //! \enum     AvcPicid
+    //! \brief    Average picid
+    //!
     enum AvcPicid
     {
         avcPicidDisabled = 0,
         avcPicidDefault = 0xFFFFFFFF
     };
 
+    //!
+    //! \enum     AvcImgStructure
+    //! \brief    Average image structure
+    //!
     enum AvcImgStructure
     {
         avcFrame        = 0,
@@ -578,18 +612,30 @@ protected:
         avcBottomField  = 3
     };
 
+    //!
+    //! \enum     CodecSelect
+    //! \brief    Code select
+    //!
     enum CodecSelect
     {
         decoderCodec    = 0,
         encoderCodec    = 1
     };
 
+    //!
+    //! \enum     MfxDecoderModeSelect
+    //! \brief    MFX decoder mode select
+    //!
     enum MfxDecoderModeSelect
     {
         mfxDecoderModeVld   = 0,
         mfxDecoderModeIt    = 1
     };
 
+    //!
+    //! \struct   VDEncFrameDeltaTable
+    //! \brief    VD encode frame delta table
+    //!
     struct VDEncFrameDeltaTable
     {
         uint32_t PFrameDelta;
@@ -625,25 +671,25 @@ protected:
     MEDIA_WA_TABLE              *m_waTable = nullptr; //!< Pointer to WA table
     bool                        m_decodeInUse = false; //!< Flag to indicate if the interface is for decoder or encoder use
 
-    PLATFORM                    m_platform; //!< Gen platform
+    PLATFORM                    m_platform = {}; //!< Gen platform
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]; //!< Cacheability settings
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {}; //!< Cacheability settings
 
     uint32_t                    m_numBrcPakPasses = 4; //!< Number of BRC PAK passes
     bool                        m_rhoDomainStatsEnabled = false; //!< Flag to indicate if Rho domain stats is enabled
     bool                        m_rowstoreCachingSupported = false; //!< Flag to indicate if row store cache is supported
 
-    MHW_VDBOX_ROWSTORE_CACHE    m_intraRowstoreCache; //!< Intra rowstore cache
-    MHW_VDBOX_ROWSTORE_CACHE    m_deblockingFilterRowstoreCache; //!< Deblocking filter row store cache
-    MHW_VDBOX_ROWSTORE_CACHE    m_bsdMpcRowstoreCache; //!< BSD/MPC row store cache
-    MHW_VDBOX_ROWSTORE_CACHE    m_mprRowstoreCache; //!< MPR row store cache
-    MHW_VDBOX_NODE_IND          m_maxVdboxIndex; //!< max vdbox index
+    MHW_VDBOX_ROWSTORE_CACHE    m_intraRowstoreCache = {}; //!< Intra rowstore cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_deblockingFilterRowstoreCache = {}; //!< Deblocking filter row store cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_bsdMpcRowstoreCache = {}; //!< BSD/MPC row store cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_mprRowstoreCache = {}; //!< MPR row store cache
+    MHW_VDBOX_NODE_IND          m_maxVdboxIndex = MHW_VDBOX_NODE_1; //!< max vdbox index
 
     uint32_t                    m_avcImgStateSize = 0;  //!< size of avcImgState
     uint8_t                     m_numVdbox = 1; //!< vdbox num
     uint32_t                    m_brcNumPakPasses = 4; //!< Number of brc pak passes
 
-    MmioRegistersMfx            m_mmioRegisters[MHW_VDBOX_NODE_MAX];  //!< mfx mmio registers
+    MmioRegistersMfx            m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< mfx mmio registers
 
     //!
     //! \brief    Constructor
@@ -657,8 +703,8 @@ protected:
     //!
     //! \brief    Get Jpeg decode output surface format
     //! \details  VDBOX protected function to get jpeg decode output format
-    //! \param    MOS_FORMAT  Format
-    //!           [in] MOS type format
+    //! \param    [in] format 
+    //!           MOS type format
     //! \return   MHW_VDBOX_DECODE_JPEG_FORMAT_CODE
     //!           output surface format
     //!
@@ -907,7 +953,6 @@ public:
         return m_numVdbox;
     }
 
-
     //!
     //! \brief    set the flag of decode in use
     //!
@@ -977,7 +1022,7 @@ public:
     }
 
     //!
-    //! \brief    get max vdbox index
+    //! \brief    Get max vdbox index
     //!
     //! \return   MHW_VDBOX_NODE_IND
     //!           max vdbox index got
@@ -998,7 +1043,15 @@ public:
     //!
     inline MmioRegistersMfx* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
     {
-        return &m_mmioRegisters[index];
+        if (index < MHW_VDBOX_NODE_MAX)
+        {
+            return &m_mmioRegisters[index];
+        }
+        else
+        {
+            MHW_ASSERT("index is out of range!");
+            return &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        }
     }
 
     //!
@@ -1038,8 +1091,8 @@ public:
     //!
     //! \brief    Decide Which GPU Node to use for Decode
     //! \details  Client facing function to create gpu context used by decoder
-    //! \param    PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit
-    //!           [in] GpuNode Limitation
+    //! \param    [in] gpuNodeLimit
+    //!           GpuNode Limitation
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -1049,7 +1102,7 @@ public:
     //!
     //! \brief    Set cacheability settings
     //!
-    //! \param    [in]cacheabilitySettings
+    //! \param    [in] cacheabilitySettings
     //!           Cacheability settings
     //!
     //! \return   MOS_STATUS
@@ -1067,6 +1120,15 @@ public:
         return eStatus;
     }
 
+    //!
+    //! \brief    Get average bsd slice type
+    //!
+    //! \param    [in] index
+    //!           Index number
+    //!
+    //! \return   int32_t
+    //!           Avc bsd slice type
+    //!
     int32_t GetAvcBsdSliceType(uint32_t index)
     {
         return m_AvcBsdSliceType[index];
@@ -1209,7 +1271,7 @@ public:
     //! \brief    Programs base address of rowstore scratch buffers
     //! \details  Internal function to get base address of rowstore scratch buffers
     //!
-    //! \param    [in]rowstoreParams
+    //! \param    [in] rowstoreParams
     //!           Rowstore parameters
     //!
     //! \return   MOS_STATUS
@@ -1343,6 +1405,8 @@ public:
     //!
     //! \param    [in] cmdBuffer
     //!           Command buffer to which HW command is added
+    //! \param    [in] batchBuffer
+    //!           Pointer to MHW batch buffer
     //! \param    [in] params
     //!           Params structure used to populate the HW command
     //!
@@ -1641,7 +1705,7 @@ public:
     //! \brief    Adds mpeg2 Pak insert brc buffer command in command buffer
     //! \details  Client facing function to add mpeg2 Pak insert brc buffer command in command buffer
     //!
-    //! \param    [in] resBrcPicHeaderInputBuffer
+    //! \param    [in] brcPicHeaderInputBuffer
     //!           Picture header input buffer to which HW command is added
     //! \param    [in] params
     //!           Params structure used to populate the HW command

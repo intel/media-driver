@@ -35,8 +35,9 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
+#include "media_interfaces_decode_histogram.h"
 
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 #include "mhw_mi_g9_X.h"
 #include "mhw_render_g9_X.h"
 #include "mhw_sfc_g9_X.h"
@@ -79,27 +80,26 @@
 
 #include "codechal_decode_nv12top010_g9.h"
 
-#ifdef _COMMON_ENCODE_SUPPORTED
-#include "codechal_encoder.h"
-#endif
-
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg.h"
 #endif
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_hevc_g9_skl.h"
 #include "codechal_fei_hevc_g9_skl.h"
 #endif
 
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
 #include "codechal_encode_mpeg2_g9_skl.h"
 #endif
 
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_avc_g9_skl.h"
-#include "codechal_vdenc_avc_g9_skl.h"
+#include "codechal_fei_avc_g9_skl.h"
 #include "codechal_fei_avc_g9.h"
+#endif
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
+#include "codechal_vdenc_avc_g9_skl.h"
 #endif
 #include "codechal_encode_csc_ds_g9.h"
 
@@ -109,6 +109,8 @@
 #include "vphal_g9.h"
 
 #include "renderhal_g9.h"
+
+#include "codechal_decode_histogram_vebox_g9.h"
 
 class MhwInterfacesG9Skl : public MhwInterfaces
 {
@@ -184,19 +186,22 @@ public:
 #ifdef _JPEG_ENCODE_SUPPORTED
     using Jpeg = CodechalEncodeJpegState;
 #endif
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
     using Mpeg2 = CodechalEncodeMpeg2G9Skl;
 #endif
     using CscDs = CodechalEncodeCscDsG9;
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
     using HevcEnc = CodechalEncHevcStateG9Skl;
     using HevcFei = CodechalFeiHevcStateG9Skl;
 #endif
-#ifdef _AVC_ENCODE_SUPPORTED
+
+#ifdef _AVC_ENCODE_VME_SUPPORTED
     using AvcEnc   = CodechalEncodeAvcEncG9Skl;
+    using AvcFei   = CodechalEncodeAvcEncFeiG9Skl;
+#endif
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateG9Skl;
-    using AvcFei   = CodechalEncodeAvcEncFeiG9;
 #endif
 };
 
@@ -210,11 +215,6 @@ public:
     MOS_STATUS Initialize(
         void *standardInfo,
         void *settings,
-        MhwInterfaces *mhwInterfaces,
-        PMOS_INTERFACE osInterface) override;
-
-    CodechalHwInterface *CreateCodechalHwInterface(
-        CODECHAL_FUNCTION CodecFunction,
         MhwInterfaces *mhwInterfaces,
         PMOS_INTERFACE osInterface) override;
 };
@@ -251,6 +251,16 @@ class RenderHalInterfacesG9Skl : public RenderHalDevice
 protected:
     using XRenderHal = XRenderHal_Interface_g9;
     MOS_STATUS Initialize();
+};
+
+class DecodeHistogramDeviceG9Skl : public DecodeHistogramDevice
+{
+public:
+    using DecodeHistogramVebox = CodechalDecodeHistogramVeboxG9;
+
+    MOS_STATUS Initialize(
+        CodechalHwInterface *hwInterface,
+        PMOS_INTERFACE osInterface);
 };
 
 #endif // __MEDIA_INTERFACES_G9_SKL_H__

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,7 +61,7 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_g10 
     RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
 };
 
-const uint32_t g_cLookup_RotationMode_g10[8] = 
+const uint32_t g_cLookup_RotationMode_g10[8] =
 {
     ROTATION_IDENTITY,  // 0 - MHW_ROTATION_IDENTITY
     ROTATION_90,        // 1 - MHW_ROTATION_90
@@ -136,7 +136,6 @@ MOS_STATUS XRenderHal_Interface_g10::SetupSurfaceState (
     MHW_RENDERHAL_ASSERT(pRenderHalSurface->Rotation >= 0 && pRenderHalSurface->Rotation < 8);
     //-----------------------------------------
 
-    pSurface      = &pRenderHalSurface->OsSurface;
     dwSurfaceSize = pRenderHal->pHwSizes->dwSizeSurfaceState;
 
     MOS_ZeroMemory(&SurfStateParams, sizeof(SurfStateParams));
@@ -153,6 +152,8 @@ MOS_STATUS XRenderHal_Interface_g10::SetupSurfaceState (
     {
         // Pointer to surface state entry for current plane
         pSurfaceEntry = ppSurfaceEntries[i];
+
+        pSurface = pSurfaceEntry->pSurface;
 
         // Set the Surface State Offset from base of SSH
         pSurfaceEntry->dwSurfStateOffset = pRenderHal->pStateHeap->iSurfaceStateOffset +                // Offset to Base Of Current Surface State Area
@@ -213,7 +214,7 @@ MOS_STATUS XRenderHal_Interface_g10::SetupSurfaceState (
                 SurfStateParams.dwXOffsetForV = pSurfaceEntry->wVXOffset;
                 SurfStateParams.dwYOffsetForV = pSurfaceEntry->wVYOffset;
                 SurfStateParams.iXOffset      = 0;
-                SurfStateParams.iYOffset      = 0;
+                SurfStateParams.iYOffset      = pSurface->YPlaneOffset.iYOffset;
             }
             if (pRenderHalSurface->bInterlacedScaling)
             {
@@ -291,10 +292,10 @@ MOS_STATUS XRenderHal_Interface_g10::SetupSurfaceState (
         }
 
         // Call MHW to setup the Surface State Heap entry
-        pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStateOs(pRenderHal, pRenderHalSurface, pParams, pSurfaceEntry));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStatesOs(pRenderHal, pParams, pSurfaceEntry));
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -302,7 +303,6 @@ MOS_STATUS XRenderHal_Interface_g10::SetupSurfaceState (
 finish:
     return eStatus;
 }
-
 
 //!
 //! \brief    Encode SLM Size for Interface Descriptor
@@ -318,7 +318,7 @@ uint32_t XRenderHal_Interface_g10::EncodeSLMSize(uint32_t SLMSize)
     {
         EncodedValue = SLMSize;
     }
-    else 
+    else
     {
         EncodedValue = 0;
         do
@@ -329,7 +329,6 @@ uint32_t XRenderHal_Interface_g10::EncodeSLMSize(uint32_t SLMSize)
     }
     return EncodedValue;
 }
-
 
 //!
 //! \brief    Convert To Nano Seconds
@@ -349,8 +348,8 @@ void XRenderHal_Interface_g10::ConvertToNanoSeconds(
 {
     //-----------------------------
     MHW_RENDERHAL_UNUSED(pRenderHal);
-    MHW_RENDERHAL_ASSERT(pRenderHal);
-    MHW_RENDERHAL_ASSERT(piNs);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(piNs);
     //-----------------------------
 
     *piNs = (uint64_t)(iTicks * RENDERHAL_NS_PER_TICK_RENDER_G10);
@@ -372,7 +371,7 @@ uint8_t XRenderHal_Interface_g10::SetChromaDirection(
 {
     uint8_t Direction;
     MHW_RENDERHAL_UNUSED(pRenderHal);
-    
+
     MHW_RENDERHAL_ASSERT(pRenderHal);
     MHW_RENDERHAL_ASSERT(pRenderHalSurface);
 
@@ -453,7 +452,7 @@ uint8_t XRenderHal_Interface_g10::SetChromaDirection(
 void XRenderHal_Interface_g10::InitStateHeapSettings(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set State Heap settings for g10
     pRenderHal->StateHeapSettings = g_cRenderHal_State_Heap_Settings_g10;
 }
@@ -487,7 +486,7 @@ MOS_STATUS XRenderHal_Interface_g10::EnableL3Caching(
     PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
 {
     MOS_STATUS                           eStatus;
-    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig;
+    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
 
@@ -503,13 +502,11 @@ MOS_STATUS XRenderHal_Interface_g10::EnableL3Caching(
 
     // customize the cache config for renderhal and let mhw_render overwrite it
     pCacheConfig = &mHwL3CacheConfig;
-    MOS_ZeroMemory(pCacheConfig, sizeof(MHW_RENDER_ENGINE_L3_CACHE_SETTINGS));
 
-	if (pCacheSettings->bEnableSLM)
-		pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_SLM_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
-	else
-		pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
-
+    if (pCacheSettings->bEnableSLM)
+        pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_SLM_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
+    else
+        pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
 
     // Override L3 cache configuration
     if (pCacheSettings->bOverride)
@@ -522,7 +519,7 @@ MOS_STATUS XRenderHal_Interface_g10::EnableL3Caching(
     MHW_RENDERHAL_CHK_STATUS(pMhwRender->EnableL3Caching(pCacheConfig));
 
 finish:
-    return eStatus;   
+    return eStatus;
 }
 
 //!
@@ -564,12 +561,10 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
     pDynamicState = pStateHeap->pCurMediaState->pDynamicState;
 
     MHW_RENDERHAL_CHK_NULL(pDynamicState);
-    MHW_RENDERHAL_CHK_NULL(pDynamicState->pMemoryBlock);
 
     MHW_RENDERHAL_ASSERT(iMediaID   < pDynamicState->MediaID.iCount);
 
-    dwOffset = pDynamicState->pMemoryBlock->dwDataOffset  +              // Offset to current media state base
-               iMediaID * pDynamicState->dwSizeSamplers;                 // Go to Media ID sampler offset
+    dwOffset    = iMediaID * pDynamicState->dwSizeSamplers;                 // Go to Media ID sampler offset
 
     SamplerType = (pSamplerParams) ? pSamplerParams->SamplerType : MHW_SAMPLER_TYPE_3D;
 
@@ -614,10 +609,9 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
 
             if (pSamplerParams)
             {
-                dwSamplerIndirect += pDynamicState->SamplerInd.dwOffset +            				  // offset to indirect sampler area
+                dwSamplerIndirect += pDynamicState->SamplerInd.dwOffset +                              // offset to indirect sampler area
                                      iSamplerID * pRenderHal->pHwSizes->dwSizeSamplerIndirectState;   // Goto to "samplerID" indirect state
                 pSamplerParams->Unorm.IndirectStateOffset = dwSamplerIndirect;
-                pSamplerParams->Unorm.pIndirectState      = (void *)((uint8_t*)pDynamicState->pMemoryBlock->pStateHeap->pvLockedHeap + dwSamplerIndirect);
             }
 
             break;
@@ -626,11 +620,6 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
     if (pdwSamplerOffset)
     {
         *pdwSamplerOffset = dwOffset;
-    }
-
-    if (ppSampler)
-    {
-        *ppSampler = (void *)((uint8_t*)pDynamicState->pMemoryBlock->pStateHeap->pvLockedHeap + dwOffset);
     }
 
 finish:
@@ -647,7 +636,7 @@ finish:
 void XRenderHal_Interface_g10::InitDynamicHeapSettings(
     PRENDERHAL_INTERFACE  pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
 
     // Additional Dynamic State Heap settings for g10
     pRenderHal->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_g10;

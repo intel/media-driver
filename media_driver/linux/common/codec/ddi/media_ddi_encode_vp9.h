@@ -27,6 +27,10 @@
 
 #include "media_ddi_encode_base.h"
 
+//!
+//! \class  DdiEncodeVp9
+//! \brief  Ddi encode VP9
+//!
 class DdiEncodeVp9 : public DdiEncodeBase
 {
 public:
@@ -44,13 +48,13 @@ public:
     //! \brief    Initialize Encode Context and CodecHal Setting for Vp9
     //!
     //! \param    [out] codecHalSettings
-    //!           Pointer to PCODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus ContextInitialize(
-        CODECHAL_SETTINGS *codecHalSettings) override;
+        CodechalSetting *codecHalSettings) override;
 
     //!
     //! \brief    Parse buffer to the server.
@@ -187,6 +191,21 @@ protected:
     VAStatus ParseSegMapParams(
         DDI_MEDIA_BUFFER *buf);
 
+    //!
+    //! \brief    Report extra encode status for completed coded buffer.
+    //!
+    //! \param    [in] encodeStatusReport
+    //!           Pointer to encode status reported by Codechal
+    //! \param    [out] codedBufferSegment
+    //!           Pointer to coded buffer segment
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus ReportExtraStatus(
+        EncodeStatusReport   *encodeStatusReport,
+        VACodedBufferSegment *codedBufferSegment) override;
+
 private:
     //!
     //! \brief    Setup Codec Picture for Vp9
@@ -217,9 +236,10 @@ private:
     //! \param    [in] data
     //!           Pointer to Misc Param Buffer Quality Level
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseBufferQualityLevel(
+    VAStatus ParseMiscParamQualityLevel(
         void *data);
 
     //!
@@ -228,42 +248,46 @@ private:
     //! \param    [in] data
     //!           Pointer to Misc Param VBV Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamVBV(
+    VAStatus ParseMiscParamVBV(
         void *data);
 
     //!
-    //! \brief    Parse Misc Param FR Data buffer to Encode Context
+    //! \brief    Parse Misc Param FrameRate Data buffer to Encode Context
     //!
     //! \param    [in] data
     //!           Pointer to Misc Param FR Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamFR(
+    VAStatus ParseMiscParamFR(
         void *data);
 
     //!
-    //! \brief    Parse Misc Param RC Data buffer to Encode Context
+    //! \brief    Parse Misc Param RateControl Data buffer to Encode Context
     //!
     //! \param    [in] data
     //!           Pointer to Misc Param RC Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamRC(
+    VAStatus ParseMiscParamRC(
         void *data);
 
     //!
-    //! \brief    Parse Misc Param Private Data buffer to Encode Context
+    //! \brief    Parse Misc Param Enc Quality to Encode Context
     //!
     //! \param    [in] data
     //!           Pointer to Misc Param Private Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamEncQuality(
+    VAStatus ParseMiscParamEncQuality(
         void *data);
 
     //!
@@ -272,20 +296,31 @@ private:
     //! \param    [in] data
     //!           Pointer to Misc Parameter Temporal Layer Params buffer
     //!
-    //! return    void
-    //!
-    void ParseMiscParameterTemporalLayerParams(
-        void *data);
-
-    //!
-    //! \brief    Parse Frame Rate
-    //!
-    //! \param    [in] ptr
-    //!           Pointer to void
-    //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    VAStatus ParseFrameRate(
-        void *ptr);
+    VAStatus ParseMiscParameterTemporalLayerParams(
+        void *data);
+
+    CODEC_VP9_ENCODE_SEGMENT_PARAMS *m_segParams = nullptr; //!< Segment parameters.
+
+    VACodedBufferVP9Status *m_codedBufStatus = nullptr; //!< .Coded buffer status
+
+private:
+    uint32_t savedTargetBit[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
+    uint32_t savedMaxBitRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
+
+    uint32_t savedFrameRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
+
+    uint32_t savedGopSize = 0;
+
+    uint32_t savedHrdSize = 0;
+
+    uint32_t savedHrdBufFullness = 0;
+
+    bool headerInsertFlag = 0;
+
+    uint32_t lastPackedHeaderType = 0;
+
+    uint8_t vp9TargetUsage;
 };

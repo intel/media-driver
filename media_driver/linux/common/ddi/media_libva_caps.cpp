@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 */
 //!
 //! \file     media_libva_caps.cpp
-//! \brief    This file implements the base C++ class/interface for media capbilities. 
+//! \brief    This file implements the base C++ class/interface for media capbilities.
 //!
 
 #include "hwinfo_linux.h"
@@ -29,7 +29,7 @@
 #include "media_libva_vp.h"
 #include "media_libva_common.h"
 #include "media_libva_caps.h"
-#include "media_libva_caps_cp.h"
+#include "media_libva_caps_cp_interface.h"
 #include "media_ddi_decode_const.h"
 #include "media_ddi_encode_const.h"
 #include "media_libva_caps_factory.h"
@@ -42,9 +42,10 @@ typedef MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT> CapsFactory;
 
 #include "set"
 
-#ifndef VA_CENC_TYPE_NONE
-#define VA_CENC_TYPE_NONE                     0x00000000
+#ifndef VA_ENCRYPTION_TYPE_NONE
+#define VA_ENCRYPTION_TYPE_NONE 0x00000000
 #endif
+
 
 const uint32_t MediaLibvaCaps::m_decSliceMode[2] =
 {
@@ -58,13 +59,13 @@ const uint32_t MediaLibvaCaps::m_decProcessMode[2] =
     VA_DEC_PROCESSING
 };
 
-const uint32_t MediaLibvaCaps::m_encRcMode[7] =
-{ 
-    VA_RC_CQP, VA_RC_CBR, VA_RC_VBR, 
+const uint32_t MediaLibvaCaps::m_encRcMode[9] =
+{
+    VA_RC_CQP, VA_RC_CBR, VA_RC_VBR,
     VA_RC_CBR | VA_RC_MB, VA_RC_VBR | VA_RC_MB,
-    VA_RC_ICQ, VA_RC_VCM
+    VA_RC_ICQ, VA_RC_VCM, VA_RC_QVBR, VA_RC_AVBR
 };
- 
+
 const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
 {
     VA_FOURCC('I', '4', '2', '0'),
@@ -74,6 +75,7 @@ const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
     VA_FOURCC('4', '2', '2', 'V'),
     VA_FOURCC('R', 'G', 'B', 'A'),
     VA_FOURCC('B', 'G', 'R', 'A'),
+    VA_FOURCC('R', 'G', 'B', 'P'),
     VA_FOURCC('R', 'G', 'B', 'X'),
     VA_FOURCC('P', '0', '1', '0'),
     VA_FOURCC('R','G','2', '4')
@@ -88,6 +90,14 @@ const uint32_t MediaLibvaCaps::m_jpegSurfaceAttr[m_numJpegSurfaceAttr] =
     VA_FOURCC_422H,
     VA_FOURCC_422V,
     VA_FOURCC_444P
+};
+
+const uint32_t MediaLibvaCaps::m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr] =
+{
+    VA_FOURCC_NV12,
+    VA_FOURCC_YUY2,
+    VA_FOURCC_UYVY,
+    VA_FOURCC_Y800
 };
 
 const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
@@ -106,6 +116,8 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_UYVY, VA_LSB_FIRST, 16, 0,0,0,0,0},
     {VA_FOURCC_YV12, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC_IYUV, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_Y210, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_Y216, VA_LSB_FIRST, 16, 0,0,0,0,0},
     {VA_FOURCC_422H, VA_LSB_FIRST, 16, 0,0,0,0,0},
     {VA_FOURCC_422V, VA_LSB_FIRST, 16, 0,0,0,0,0},
     {VA_FOURCC_Y800, VA_LSB_FIRST, 8, 0,0,0,0,0},
@@ -115,19 +127,44 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_RGBP, VA_LSB_FIRST, 24, 24, 0xff0000, 0x00ff00, 0x0000ff, 0},
     {VA_FOURCC_BGRP, VA_LSB_FIRST, 24, 24, 0x0000ff, 0x00ff00, 0xff0000, 0},
     {VA_FOURCC_P208, VA_LSB_FIRST, 8, 0,0,0,0,0},
+    {VA_FOURCC_P016, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
 };
 
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
 {
     m_mediaCtx = mediaCtx;
-
-    m_isEntryptSupported = MediaLibvaCapsCp::IsDecEncryptionSupported(m_mediaCtx);
-};
+    m_CapsCp = Create_MediaLibvaCapsCpInterface();
+    m_isEntryptSupported = m_CapsCp->IsDecEncryptionSupported(m_mediaCtx);
+}
 
 MediaLibvaCaps::~MediaLibvaCaps()
 {
     FreeAttributeList();
+    Delete_MediaLibvaCapsCpInterface(m_CapsCp);
+    m_CapsCp = nullptr;
+}
+
+VAStatus MediaLibvaCaps::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+{
+    uint32_t maxNum = GetImageFormatsMaxNum();
+
+    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    for (int32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (m_supportedImageformats[idx].fourcc == vaImgFmt->fourcc)
+        {
+            vaImgFmt->red_mask = m_supportedImageformats[idx].red_mask;
+            vaImgFmt->green_mask = m_supportedImageformats[idx].green_mask;
+            vaImgFmt->blue_mask = m_supportedImageformats[idx].blue_mask;
+            vaImgFmt->alpha_mask = m_supportedImageformats[idx].alpha_mask;
+
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
 }
 
 bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType codecType)
@@ -139,7 +176,7 @@ bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType
                     || (entrypoint == VAEntrypointEncSliceLP)
                     || (entrypoint == VAEntrypointEncPicture)
                     || (entrypoint == VAEntrypointFEI)
-                    || (entrypoint == (VAEntrypoint)VAEntrypointStats))
+                    || (entrypoint == VAEntrypointStats))
             {
                 return true;
             }
@@ -192,12 +229,12 @@ VAStatus MediaLibvaCaps::GetProfileEntrypointFromConfigId(
         VAEntrypoint *entrypoint,
         int32_t *profileTableIdx)
 {
-    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(profileTableIdx, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(profileTableIdx, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     CodecType codecType;
 
-    int32_t configOffset;
+    int32_t configOffset = 0;
     if((configId < (DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE + m_decConfigs.size())) )
     {
         configOffset = configId - DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE;
@@ -263,44 +300,52 @@ VAStatus MediaLibvaCaps::AddProfileEntry(
     m_profileEntryTbl[m_profileEntryCount].m_configStartIdx = configStartIdx;
     m_profileEntryTbl[m_profileEntryCount].m_configNum = configNum;
     m_profileEntryCount++;
-    
+
     return VA_STATUS_SUCCESS;
 }
 
 int32_t MediaLibvaCaps::GetProfileTableIdx(VAProfile profile, VAEntrypoint entrypoint)
 {
+    // initialize ret value to "invalid profile"
+    int32_t ret = -1;
     for (int32_t i = 0; i < m_profileEntryCount; i++)
     {
-        if (m_profileEntryTbl[i].m_profile == profile && m_profileEntryTbl[i].m_entrypoint == entrypoint)
+        if (m_profileEntryTbl[i].m_profile == profile)
         {
-            return i;
+            //there are such profile , but no such entrypoint
+            ret = -2;
+            if(m_profileEntryTbl[i].m_entrypoint == entrypoint)
+            {
+                return i;
+            }
         }
     }
 
-    return -1;
+    return ret;
 }
 
 VAStatus MediaLibvaCaps::CreateAttributeList(AttribMap **attributeList)
 {
-    DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     *attributeList = MOS_New(AttribMap);
-    DDI_CHK_NULL(*attributeList, "Null pointer", VA_STATUS_ERROR_ALLOCATION_FAILED); 
-    m_attributeLists.push_back(*attributeList); 
+    DDI_CHK_NULL(*attributeList, "Null pointer", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_attributeLists.push_back(*attributeList);
 
     return VA_STATUS_SUCCESS;
 }
 
 int32_t MediaLibvaCaps::GetAttributeIndex(std::vector<VAConfigAttrib> *attribList, VAConfigAttribType type)
 {
-    uint32_t attribSize = attribList->size(); 
-    for (int32_t i = 0; i < attribSize; i++)
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    uint32_t attribSize = attribList->size();
+    for (uint32_t i = 0; i < attribSize; i++)
     {
         if ((*attribList)[i].type == type)
         {
             return i;
         }
-    } 
+    }
     return -1;
 
 }
@@ -336,6 +381,77 @@ VAStatus MediaLibvaCaps::FreeAttributeList()
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus MediaLibvaCaps::CheckEncRTFormat(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        VAConfigAttrib* attrib)
+{
+    DDI_CHK_NULL(attrib, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    attrib->type = VAConfigAttribRTFormat;
+    if (profile == VAProfileJPEGBaseline)
+    {
+        attrib->value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
+    }
+    else if(profile == VAProfileHEVCMain10)
+    {
+        attrib->value = VA_RT_FORMAT_YUV420_10;
+    }
+    else if(profile == VAProfileHEVCMain12)
+    {
+        attrib->value = VA_RT_FORMAT_YUV420_12;
+    }
+    else if(profile == VAProfileHEVCMain422_10)
+    {
+        attrib->value = VA_RT_FORMAT_YUV422_10;
+    }
+    else if(profile == VAProfileHEVCMain422_12)
+    {
+        attrib->value = VA_RT_FORMAT_YUV422_12;
+    }
+    else if(profile == VAProfileHEVCMain444)
+    {
+        attrib->value = VA_RT_FORMAT_YUV444;
+    }
+    else if(profile == VAProfileHEVCMain444_10)
+    {
+        attrib->value = VA_RT_FORMAT_YUV444_10;
+    }
+    else
+    {
+        attrib->value = VA_RT_FORMAT_YUV420;
+    }
+
+    EncodeFormat format = Others;
+    EncodeType type = entrypoint == VAEntrypointEncSliceLP ? Vdenc : DualPipe;
+    struct EncodeFormatTable* encodeFormatTable = m_encodeFormatTable;
+
+    if(IsAvcProfile(profile))
+    {
+        format = AVC;
+    }
+    else if(IsHevcProfile(profile))
+    {
+        format = HEVC;
+    }
+    else if(IsVp9Profile(profile))
+    {
+        format = VP9;
+    }
+
+    for(uint32_t i = 0; i < m_encodeFormatCount && encodeFormatTable != nullptr; encodeFormatTable++, i++)
+    {
+        if(encodeFormatTable->encodeFormat == format
+        && encodeFormatTable->encodeType == type)
+        {
+            attrib->value = encodeFormatTable->colorFormat;
+            break;
+        }
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus MediaLibvaCaps::CreateEncAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,
@@ -351,147 +467,39 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
     VAConfigAttrib attrib;
     attrib.type = VAConfigAttribRTFormat;
-    if (profile == VAProfileJPEGBaseline)
-    {
-        // at present, latest libva have not support RGB24.
-        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
-    }
-    else
-    {
-        attrib.value = VA_RT_FORMAT_YUV420;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribRateControl;
-    attrib.value = VA_RC_CQP;
-    if (entrypoint != VAEntrypointEncSliceLP ||
-            (entrypoint == VAEntrypointEncSliceLP && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
-    {
-        attrib.value |= VA_RC_CBR | VA_RC_VBR | VA_RC_MB;
-
-        if (IsHevcProfile(profile))
-        {
-            attrib.value |= VA_RC_ICQ | VA_RC_VCM;
-        }
-    }
-    if (IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
-    {
-        attrib.value |= VA_RC_ICQ | VA_RC_VCM;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncPackedHeaders;
-    attrib.value = VA_ATTRIB_NOT_SUPPORTED;
-    if (IsAvcProfile(profile))
-    {
-        attrib.value = VA_ENC_PACKED_HEADER_PICTURE    |
-            VA_ENC_PACKED_HEADER_SEQUENCE   |
-            VA_ENC_PACKED_HEADER_SLICE      |
-            VA_ENC_PACKED_HEADER_MISC;
-    }
-    else if (IsMpeg2Profile(profile))
-    {
-        attrib.value = VA_ENC_PACKED_HEADER_NONE;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncInterlaced;
-    attrib.value = VA_ENC_INTERLACED_NONE;
-#ifndef ANDROID
-    if(IsAvcProfile(profile))
-    {
-        attrib.value = VA_ENC_INTERLACED_FIELD;
-    }
-    if(IsMpeg2Profile(profile))
-    {
-        attrib.value = VA_ENC_INTERLACED_FRAME;
-    }
-#endif
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncMaxRefFrames;
-    if (entrypoint == VAEntrypointEncSliceLP)
-    {
-        attrib.value = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
-    }
-    else
-    {
-        // Currently only support 1 frame for each reference list
-        attrib.value = 1 | (1 << 16);
-        if(IsAvcProfile(profile))
-        {
-            attrib.value = CODECHAL_ENCODE_NUM_MAX_VME_L0_REF | (CODECHAL_ENCODE_NUM_MAX_VME_L1_REF << 16);
-        }
-        if(IsVp8Profile(profile))
-        {
-            attrib.value = ENCODE_VP8_NUM_MAX_L0_REF ;
-        }
-        if (IsHevcProfile(profile))
-        {
-            GetPlatformSpecificAttrib(profile, entrypoint,
-                    VAConfigAttribEncMaxRefFrames, &attrib.value);
-        }
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncMaxSlices;
-    if (entrypoint == VAEntrypointEncSliceLP)
-    {
-        if (IsAvcProfile(profile))
-        {
-            attrib.value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
-        }
-        else if (IsHevcProfile(profile))
-        {
-            attrib.value = ENCODE_VDENC_HEVC_MAX_SLICE_NUM;
-        }
-    }
-    else
-    {
-        attrib.value = 0;
-        if (IsAvcProfile(profile))
-        {
-            attrib.value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
-        }
-        else if (IsHevcProfile(profile))
-        {
-            attrib.value = 256; // There is no macro, it is because we use the slice map strcture whose entry is 8 bit int32_t
-        }
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncSliceStructure;
-    if (entrypoint == VAEntrypointEncSliceLP)
-    {
-        attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
-    }
-    else
-    {
-        attrib.value = VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS;
-    }
+    status = CheckEncRTFormat(profile, entrypoint, &attrib);
+    DDI_CHK_RET(status, "Failed to Check Encode RT Format!");
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = ENCODE_MAX_PIC_WIDTH;
+    attrib.value = CODEC_MAX_PIC_WIDTH;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    if(IsHevcProfile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_WIDTH;
+        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
+    }
+    if(IsAvcProfile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = ENCODE_MAX_PIC_HEIGHT;
+    attrib.value = CODEC_MAX_PIC_HEIGHT;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    if(IsHevcProfile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
+    }
+    if(IsAvcProfile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
     (*attribList)[attrib.type] = attrib.value;
 
@@ -519,6 +527,139 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     }
     (*attribList)[attrib.type] = attrib.value;
 
+    attrib.type = VAConfigAttribEncPackedHeaders;
+    attrib.value = VA_ATTRIB_NOT_SUPPORTED;
+    if ((IsAvcProfile(profile))||(IsHevcProfile(profile)))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_PICTURE    |
+            VA_ENC_PACKED_HEADER_SEQUENCE   |
+            VA_ENC_PACKED_HEADER_SLICE      |
+            VA_ENC_PACKED_HEADER_RAW_DATA   |
+            VA_ENC_PACKED_HEADER_MISC;
+    }
+    else if (IsMpeg2Profile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
+    }
+    else if(IsJpegProfile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
+    }
+
+    (*attribList)[attrib.type] = attrib.value;
+    if(IsJpegProfile(profile))
+    {
+        return status;
+    }
+
+    attrib.type = VAConfigAttribRateControl;
+    attrib.value = VA_RC_CQP;
+    if (entrypoint != VAEntrypointEncSliceLP ||
+            (entrypoint == VAEntrypointEncSliceLP && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
+    {
+        attrib.value |= VA_RC_CBR | VA_RC_VBR | VA_RC_MB;
+
+        if (IsHevcProfile(profile))
+        {
+            attrib.value |= VA_RC_ICQ | VA_RC_VCM;
+        }
+    }
+    if (IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
+    {
+        attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR | VA_RC_AVBR;
+    }
+    if (IsAvcProfile(profile) &&
+            ((entrypoint == VAEntrypointEncSliceLP) && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
+    {
+        attrib.value |= VA_RC_QVBR;
+    }
+    if(entrypoint == VAEntrypointFEI)
+    {
+        attrib.value = VA_RC_CQP;
+    }
+    else if(entrypoint == VAEntrypointStats)
+    {
+        attrib.value = VA_RC_NONE;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncInterlaced;
+    attrib.value = VA_ENC_INTERLACED_NONE;
+#ifndef ANDROID
+    if(IsAvcProfile(profile))
+    {
+        attrib.value = VA_ENC_INTERLACED_FIELD;
+    }
+    if(IsMpeg2Profile(profile))
+    {
+        attrib.value = VA_ENC_INTERLACED_FRAME;
+    }
+#endif
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncMaxRefFrames;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        attrib.value = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
+    }
+    else
+    {
+        // default value: 1 frame for each reference list
+        attrib.value = 1 | (1 << 16);
+        if(IsAvcProfile(profile))
+        {
+            attrib.value = CODECHAL_ENCODE_NUM_MAX_VME_L0_REF | (CODECHAL_ENCODE_NUM_MAX_VME_L1_REF << 16);
+        }
+        if(IsVp8Profile(profile))
+        {
+            attrib.value = ENCODE_VP8_NUM_MAX_L0_REF ;
+        }
+        if (IsHevcProfile(profile))
+        {
+            GetPlatformSpecificAttrib(profile, entrypoint,
+                    VAConfigAttribEncMaxRefFrames, &attrib.value);
+        }
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncMaxSlices;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        if (IsAvcProfile(profile))
+        {
+            attrib.value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
+        }
+        else if (IsHevcProfile(profile))
+        {
+            attrib.value = ENCODE_HEVC_VDENC_NUM_MAX_SLICES;
+        }
+    }
+    else
+    {
+        attrib.value = 0;
+        if (IsAvcProfile(profile))
+        {
+            attrib.value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
+        }
+        else if (IsHevcProfile(profile))
+        {
+            GetPlatformSpecificAttrib(profile, entrypoint,
+                    VAConfigAttribEncMaxSlices, &attrib.value);
+        }
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncSliceStructure;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
+    }
+    else
+    {
+        attrib.value = VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
     attrib.type = VAConfigAttribEncQuantization;
     if(IsAvcProfile(profile))
     {
@@ -532,17 +673,21 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
     attrib.type = VAConfigAttribEncIntraRefresh;
     attrib.value = VA_ENC_INTRA_REFRESH_NONE;
-    if(IsAvcProfile(profile))
-    {
-        GetPlatformSpecificAttrib(profile, entrypoint,
-                VAConfigAttribEncIntraRefresh, &attrib.value);
-    }
+    GetPlatformSpecificAttrib(profile, entrypoint,
+        VAConfigAttribEncIntraRefresh, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncSkipFrame;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
-        attrib.value = 0;
+        if (IsAvcProfile(profile))
+        {
+            attrib.value = 1;
+        }
+        else
+        {
+            attrib.value = 0;
+        }
     }
     else
     {
@@ -554,8 +699,9 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.value = VA_ATTRIB_NOT_SUPPORTED;
     if (m_isEntryptSupported)
     {
+        attrib.value = 0;
         uint32_t encryptTypes[3] = {0};
-        int32_t  numTypes =  MediaLibvaCapsCp::GetEncryptionTypes(profile,
+        int32_t  numTypes =  m_CapsCp->GetEncryptionTypes(profile,
                  encryptTypes, 3);
         if (numTypes > 0)
         {
@@ -570,14 +716,20 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribEncROI;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
+        VAConfigAttribValEncROI roi_attrib = {0};
         if (IsAvcProfile(profile))
         {
-            attrib.value = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
+            roi_attrib.bits.num_roi_regions = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
         }
         else if (IsHevcProfile(profile))
         {
-            attrib.value = 8;
+            roi_attrib.bits.num_roi_regions = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
         }
+
+        roi_attrib.bits.roi_rc_priority_support = 0;
+        roi_attrib.bits.roi_rc_qp_delta_support = 1;
+
+        attrib.value = roi_attrib.value;
     }
     else
     {
@@ -604,7 +756,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         attrib.value = (VA_FEI_FUNCTION_ENC | VA_FEI_FUNCTION_PAK | VA_FEI_FUNCTION_ENC_PAK);
         (*attribList)[attrib.type] = attrib.value;
     }
-    
+
     attrib.type = (VAConfigAttribType)VAConfigAttribFEIMVPredictors;
     attrib.value = 0;
     if(IsAvcProfile(profile) || IsHevcProfile(profile))
@@ -654,6 +806,14 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
         // at present, latest libva have not support RGB24.
         attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
     }
+    else if(profile == VAProfileHEVCMain10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10;
+    }
+    else if(profile == VAProfileHEVCMain422_10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10;
+    }
     else
     {
         attrib.value = VA_RT_FORMAT_YUV420;
@@ -667,42 +827,64 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     else if (IsHevcProfile(profile))
     {
-        bool  bHEVCMainProfileSupported = false;
+        bool  hevcmainProfileSupported = false;
         attrib.value = 0;
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMainDecoding)
-                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10Decoding))
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10Decoding)
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain12bit420Decoding)
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLD42210bitDecoding)
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain12bit422Decoding)
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLD4448bitDecoding)
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLD44410bitDecoding)
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain12bit444Decoding))
         {
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
-            bHEVCMainProfileSupported = true;
+            hevcmainProfileSupported = true;
         }
         if ((MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrHEVCVLDMainShortDecoding) ||
                     MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrHEVCVLDMain10ShortDecoding))
                 && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
         {
             attrib.value |= VA_DEC_SLICE_MODE_BASE;
-            bHEVCMainProfileSupported = true;
+            hevcmainProfileSupported = true;
         }
-        if (!bHEVCMainProfileSupported)
+        if (!hevcmainProfileSupported)
         {
             attrib.value = VA_ATTRIB_NOT_SUPPORTED;
         }
     }
-    else if (profile == VAProfileVP9Profile0 || profile == VAProfileVP9Profile2)
+    else if (profile == VAProfileVP9Profile0
+          || profile == VAProfileVP9Profile2
+          || profile == VAProfileVP9Profile1
+          || profile == VAProfileVP9Profile3)
     {
-        bool    vp9Profile0Supported = false;
-		bool    vp9Profile2Supported = false;
+        bool    vp9ProfileSupported = false;
         attrib.value = 0;
-        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile0Decoding8bit420))
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile0Decoding8bit420)
+             || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile1Decoding8bit444))
         {
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE;
-            vp9Profile0Supported = true;
+            vp9ProfileSupported = true;
         }
-	if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding))
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding10bit444))
         {
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
-            vp9Profile2Supported = true;
+            vp9ProfileSupported = true;
         }
-        if (!vp9Profile0Supported || !vp9Profile2Supported)
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding10bit420))
+        {
+            (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV420_10;
+            attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
+            vp9ProfileSupported = true;
+        }
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding12bit420)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding12bit444))
+        {
+            attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
+            vp9ProfileSupported = true;
+        }
+        if (!vp9ProfileSupported)
         {
             attrib.value = VA_ATTRIB_NOT_SUPPORTED;
         }
@@ -720,36 +902,52 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = ENCODE_MAX_PIC_WIDTH;
+    attrib.value = CODEC_MAX_PIC_WIDTH;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    if(IsVc1Profile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_WIDTH;
+        attrib.value = CODEC_2K_MAX_PIC_WIDTH;
+    }
+    if(IsVp8Profile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
+    }
+    if(IsAvcProfile(profile)||IsHevcProfile(profile)|| IsVp9Profile(profile))
+    {
+        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
     }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = ENCODE_MAX_PIC_HEIGHT;
+    attrib.value = CODEC_MAX_PIC_HEIGHT;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    if(IsVc1Profile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_2K_MAX_PIC_HEIGHT;
+    }
+    if(IsVp8Profile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
+    }
+    if(IsAvcProfile(profile)||IsHevcProfile(profile) || IsVp9Profile(profile))
+    {
+        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
     }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncryption;
-
     attrib.value = VA_ATTRIB_NOT_SUPPORTED;
     if (m_isEntryptSupported)
     {
+        attrib.value = 0;
         uint32_t encryptTypes[3] = {0};
-        int32_t numTypes =  MediaLibvaCapsCp::GetEncryptionTypes(profile,
+        int32_t numTypes =  m_CapsCp->GetEncryptionTypes(profile,
                 encryptTypes, 3);
         if (numTypes > 0)
         {
@@ -798,7 +996,7 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _AVC_DECODE_SUPPORTED
-    AttribMap *attributeList;
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrAVCVLDLongDecoding)
             || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrAVCVLDShortDecoding))
     {
@@ -809,7 +1007,7 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
             VAProfileH264Main,
             VAProfileH264High,
             VAProfileH264ConstrainedBaseline};
-        
+
         uint32_t configStartIdx, configNum;
         for (int32_t i = 0; i < 3; i++)
         {
@@ -818,12 +1016,12 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
             {
                 for (int32_t k = 0; k < 2; k++)
                 {
-                    AddDecConfig(m_decSliceMode[j], VA_CENC_TYPE_NONE, m_decProcessMode[k]); 
+                    AddDecConfig(m_decSliceMode[j], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                     if (m_isEntryptSupported)
                     {
                         uint32_t encrytTypes[3];
 
-                        int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(profile[i],
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(profile[i],
                                 encrytTypes, 3);
 
                         if (numTypes > 0)
@@ -831,7 +1029,7 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
                             for (int32_t l = 0; l < numTypes; l++)
                             {
                                 AddDecConfig(m_decSliceMode[j], encrytTypes[l],
-                                        m_decProcessMode[k]); 
+                                        m_decProcessMode[k]);
                             }
                         }
                     }
@@ -850,8 +1048,8 @@ VAStatus MediaLibvaCaps::LoadAvcEncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _AVC_ENCODE_SUPPORTED
-    AttribMap *attributeList;
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAVC))
     {
         status = CreateEncAttributes(VAProfileH264Main, VAEntrypointEncSlice, &attributeList);
@@ -861,26 +1059,24 @@ VAStatus MediaLibvaCaps::LoadAvcEncProfileEntrypoints()
             VAProfileH264Main,
             VAProfileH264High,
             VAProfileH264ConstrainedBaseline};
-        
-        VAEntrypoint entrypoint[2] = {VAEntrypointEncSlice, (VAEntrypoint)VAEntrypointFEI};
+
+        VAEntrypoint entrypoint[2] = {VAEntrypointEncSlice, VAEntrypointFEI};
         uint32_t configStartIdx;
 
         for (int32_t e = 0; e < 2; e++)
         {
-            status = CreateEncAttributes(VAProfileH264ConstrainedBaseline,
-                    (VAEntrypoint)entrypoint[e],
-                    &attributeList);
+            status = CreateEncAttributes(VAProfileH264ConstrainedBaseline, entrypoint[e], &attributeList);
             DDI_CHK_RET(status, "Failed to initialize Caps!");
 
             for (int32_t i = 0; i < 3; i++)
             {
                 configStartIdx = m_encConfigs.size();
-                int32_t maxRcMode = (entrypoint[e] == VAEntrypointEncSlice ? 7 : 1);
+                int32_t maxRcMode = (entrypoint[e] == VAEntrypointEncSlice ? 9 : 1);
                 for (int32_t j = 0; j < maxRcMode; j++)
                 {
                     AddEncConfig(m_encRcMode[j]);
                 }
-                AddProfileEntry(profile[i], (VAEntrypoint)entrypoint[e], attributeList,
+                AddProfileEntry(profile[i], entrypoint[e], attributeList,
                         configStartIdx, m_encConfigs.size() - configStartIdx);
             }
         }
@@ -893,8 +1089,8 @@ VAStatus MediaLibvaCaps::LoadAvcEncLpProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _AVC_ENCODE_SUPPORTED
-    AttribMap *attributeList;
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAVCVdenc))
     {
         status = CreateEncAttributes(VAProfileH264Main, VAEntrypointEncSliceLP, &attributeList);
@@ -904,13 +1100,20 @@ VAStatus MediaLibvaCaps::LoadAvcEncLpProfileEntrypoints()
             VAProfileH264Main,
             VAProfileH264High,
             VAProfileH264ConstrainedBaseline};
-        
+
         for (int32_t i = 0; i < 3; i++)
         {
             uint32_t configStartIdx = m_encConfigs.size();
-            for (int32_t j = 0; j < 5; j++)
+            AddEncConfig(VA_RC_CQP);
+
+            if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
             {
-                AddEncConfig(m_encRcMode[j]);
+                /* m_encRcMode[0] is VA_RC_CQP and it is already added */
+                for (int32_t j = 1; j < 5; j++)
+                {
+                    AddEncConfig(m_encRcMode[j]);
+                }
+                AddEncConfig(VA_RC_QVBR);
             }
             AddProfileEntry(profile[i], VAEntrypointEncSliceLP, attributeList,
                     configStartIdx, m_encConfigs.size() - configStartIdx);
@@ -926,7 +1129,7 @@ VAStatus MediaLibvaCaps::LoadMpeg2DecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _MPEG2_DECODE_SUPPORTED
-    AttribMap *attributeList;
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrMPEG2VLDDecoding))
     {
         status = CreateDecAttributes(VAProfileMPEG2Simple, VAEntrypointVLD, &attributeList);
@@ -937,7 +1140,7 @@ VAStatus MediaLibvaCaps::LoadMpeg2DecProfileEntrypoints()
         for (int32_t i = 0; i < 2; i++)
         {
             uint32_t configStartIdx = m_decConfigs.size();
-            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
             AddProfileEntry(profile[i], VAEntrypointVLD, attributeList, configStartIdx, 1);
         }
     }
@@ -950,8 +1153,8 @@ VAStatus MediaLibvaCaps::LoadMpeg2EncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _MPEG2_ENCODE_SUPPORTED
-    AttribMap *attributeList;
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeMPEG2))
     {
         status = CreateEncAttributes(VAProfileMPEG2Simple, VAEntrypointEncSlice, &attributeList);
@@ -978,14 +1181,14 @@ VAStatus MediaLibvaCaps::LoadJpegDecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _JPEG_DECODE_SUPPORTED
-    AttribMap *attributeList;
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelJPEGDecoding))
     {
         status = CreateDecAttributes(VAProfileJPEGBaseline, VAEntrypointVLD, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
-    
+
         uint32_t configStartIdx = m_decConfigs.size();
-        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
         AddProfileEntry(VAProfileJPEGBaseline, VAEntrypointVLD, attributeList, configStartIdx, 1);
     }
 #endif
@@ -998,7 +1201,7 @@ VAStatus MediaLibvaCaps::LoadJpegEncProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _JPEG_ENCODE_SUPPORTED
-    AttribMap *attributeList;
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeJPEG))
     {
         status = CreateEncAttributes(VAProfileJPEGBaseline, VAEntrypointEncPicture, &attributeList);
@@ -1017,7 +1220,7 @@ VAStatus MediaLibvaCaps::LoadVc1DecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _VC1_DECODE_SUPPORTED
-    AttribMap *attributeList;
+    AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVC1VLDDecoding))
     {
         status = CreateDecAttributes(VAProfileVC1Main, VAEntrypointVLD, &attributeList);
@@ -1027,7 +1230,7 @@ VAStatus MediaLibvaCaps::LoadVc1DecProfileEntrypoints()
         for (int32_t i = 0; i < 3; i++)
         {
             uint32_t configStartIdx = m_decConfigs.size();
-            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
             AddProfileEntry(profile[i], VAEntrypointVLD, attributeList, configStartIdx, 1);
         }
     }
@@ -1046,9 +1249,9 @@ VAStatus MediaLibvaCaps::LoadVp8DecProfileEntrypoints()
     {
         status = CreateDecAttributes(VAProfileVP8Version0_3, VAEntrypointVLD, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
-    
+
         uint32_t configStartIdx = m_decConfigs.size();
-        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+        AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE);
         AddProfileEntry(VAProfileVP8Version0_3, VAEntrypointVLD, attributeList, configStartIdx, 1);
     }
 #endif
@@ -1079,6 +1282,13 @@ VAStatus MediaLibvaCaps::LoadVp8EncProfileEntrypoints()
     return status;
 }
 
+VAStatus MediaLibvaCaps::LoadAdvancedDecProfileEntrypoints()
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+    return status;
+}
+
 VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
@@ -1093,59 +1303,133 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
         uint32_t configStartIdx = m_decConfigs.size();
         for (int32_t i = 0; i < 2; i++)
         {
-            AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE); 
-        }
-
-        if (m_isEntryptSupported)
-        {
-            uint32_t encrytTypes[3];
-
-            int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileVP9Profile0,
-                    encrytTypes, 3);
-
-            if (numTypes > 0)
+            for (int32_t k = 0; k < 2; k++)
             {
-                for (int32_t l = 0; l < numTypes; l++)
+                AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
+                if (m_isEntryptSupported)
                 {
-                    AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, encrytTypes[l],
-                            VA_DEC_PROCESSING_NONE); 
+                    uint32_t encrytTypes[3];
+
+                    int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile0,
+                            encrytTypes, 3);
+
+                    if (numTypes > 0)
+                    {
+                        for (int32_t l = 0; l < numTypes; l++)
+                        {
+                            AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, encrytTypes[l],
+                                    m_decProcessMode[k]);
+                        }
+                    }
                 }
             }
         }
+        
         AddProfileEntry(VAProfileVP9Profile0, VAEntrypointVLD, attributeList,
                 configStartIdx, m_decConfigs.size() - configStartIdx);
     }
 
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding))
-		{
-			status = CreateDecAttributes(VAProfileVP9Profile2, VAEntrypointVLD, &attributeList);
-			DDI_CHK_RET(status, "Failed to initialize Caps!");
-	
-			uint32_t configStartIdx = m_decConfigs.size();
-			for (int32_t i = 0; i < 2; i++)
-			{
-				AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE); 
-			}
-	
-			if (m_isEntryptSupported)
-			{
-				uint32_t encrytTypes[3];
-	
-				int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileVP9Profile2,
-						encrytTypes, 3);
-	
-				if (numTypes > 0)
-				{
-					for (int32_t l = 0; l < numTypes; l++)
-					{
-						AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, encrytTypes[l],
-								VA_DEC_PROCESSING_NONE); 
-					}
-				}
-			}
-			AddProfileEntry(VAProfileVP9Profile2, VAEntrypointVLD, attributeList,
-					configStartIdx, m_decConfigs.size() - configStartIdx);
-		}
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding12bit420))
+        {
+            status = CreateDecAttributes(VAProfileVP9Profile2, VAEntrypointVLD, &attributeList);
+            DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+            uint32_t configStartIdx = m_decConfigs.size();
+            for (int32_t i = 0; i < 2; i++)
+            {
+                for (int32_t k = 0; k < 2; k++)
+                {
+                    AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
+                    if (m_isEntryptSupported)
+                    {
+
+                        uint32_t encrytTypes[3];
+
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile2,
+                                encrytTypes, 3);
+
+                        if (numTypes > 0)
+                        {
+                            for (int32_t l = 0; l < numTypes; l++)
+                            {
+                                AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, encrytTypes[l],
+                                        m_decProcessMode[k]);
+                            }
+                        }
+                    }
+                }
+            }
+            AddProfileEntry(VAProfileVP9Profile2, VAEntrypointVLD, attributeList,
+                    configStartIdx, m_decConfigs.size() - configStartIdx);
+        }
+
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile1Decoding8bit444))
+        {
+            status = CreateDecAttributes(VAProfileVP9Profile1, VAEntrypointVLD, &attributeList);
+            DDI_CHK_RET(status, "Failed to initialize Caps!");
+    
+            uint32_t configStartIdx = m_decConfigs.size();
+            for (int32_t i = 0; i < 2; i++)
+            {   
+                for (int32_t k = 0; k < 2; k++)
+                {
+                    AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]); 
+                    if (m_isEntryptSupported)
+                    {
+                        uint32_t encrytTypes[3];
+            
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile1,
+                                encrytTypes, 3);
+            
+                        if (numTypes > 0)
+                        {
+                            for (int32_t l = 0; l < numTypes; l++)
+                            {
+                                AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, encrytTypes[l],
+                                        m_decProcessMode[k]); 
+                            }
+                        }
+                    }
+                }
+            }
+            AddProfileEntry(VAProfileVP9Profile1, VAEntrypointVLD, attributeList,
+                    configStartIdx, m_decConfigs.size() - configStartIdx);
+        }
+
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding10bit444)
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding12bit444))
+        {
+            status = CreateDecAttributes(VAProfileVP9Profile3, VAEntrypointVLD, &attributeList);
+            DDI_CHK_RET(status, "Failed to initialize Caps!");
+    
+            uint32_t configStartIdx = m_decConfigs.size();
+            for (int32_t i = 0; i < 2; i++)
+            {
+                for (int32_t k = 0; k < 2; k++)
+                {
+                    AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]); 
+                    if (m_isEntryptSupported)
+                    {
+                        uint32_t encrytTypes[3];
+            
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile3,
+                                encrytTypes, 3);
+            
+                        if (numTypes > 0)
+                        {
+                            for (int32_t l = 0; l < numTypes; l++)
+                            {
+                                AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, encrytTypes[l],
+                                        m_decProcessMode[k]); 
+                            }
+                        }
+                    }
+                }
+            }
+            AddProfileEntry(VAProfileVP9Profile3, VAEntrypointVLD, attributeList,
+                    configStartIdx, m_decConfigs.size() - configStartIdx);
+        }
 #endif
     return status;
 }
@@ -1162,54 +1446,69 @@ VAStatus MediaLibvaCaps::LoadHevcDecProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _HEVC_DECODE_SUPPORTED
-    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMainDecoding)
             || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrHEVCVLDMainShortDecoding))
     {
-        status = CreateDecAttributes(VAProfileHEVCMain, VAEntrypointVLD, &attributeList);
-        DDI_CHK_RET(status, "Failed to initialize Caps!");
-
-        uint32_t configStartIdx = m_decConfigs.size();
-        for (int32_t j = 0; j < 2; j++)
-        {
-            AddDecConfig(m_decSliceMode[j], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE); 
-            if (m_isEntryptSupported)
-            {
-                uint32_t encryptTypes[3] = {0};
-
-                int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileHEVCMain,
-                        encryptTypes, 3);
-
-                if (numTypes > 0)
-                {
-                    for (int32_t l = 0; l < numTypes; l++)
-                    {
-                        AddDecConfig(m_decSliceMode[j], encryptTypes[l],
-                                VA_DEC_PROCESSING_NONE); 
-                    }
-                }
-            }
-        }
-
-        AddProfileEntry(VAProfileHEVCMain, VAEntrypointVLD, attributeList,
-                configStartIdx, m_decConfigs.size() - configStartIdx);
+        LoadDecProfileEntrypoints(VAProfileHEVCMain);
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10Decoding)
             || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrHEVCVLDMain10ShortDecoding))
     {
-        status = CreateDecAttributes(VAProfileHEVCMain10, VAEntrypointVLD, &attributeList);
-        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        LoadDecProfileEntrypoints(VAProfileHEVCMain10);
+    }
 
-        uint32_t configStartIdx = m_decConfigs.size();
-        for (int32_t j = 0; j < 2; j++)
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain12bit420Decoding))
+    {
+        LoadDecProfileEntrypoints(VAProfileHEVCMain12);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLD42210bitDecoding))
+    {
+        LoadDecProfileEntrypoints(VAProfileHEVCMain422_10);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain12bit422Decoding))
+    {
+        LoadDecProfileEntrypoints(VAProfileHEVCMain422_12);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLD4448bitDecoding))
+    {
+        LoadDecProfileEntrypoints(VAProfileHEVCMain444);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLD44410bitDecoding))
+    {
+        LoadDecProfileEntrypoints(VAProfileHEVCMain444_10);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain12bit444Decoding))
+    {
+        LoadDecProfileEntrypoints(VAProfileHEVCMain444_12);
+    }
+    
+#endif
+    return status;
+}
+
+VAStatus MediaLibvaCaps::LoadDecProfileEntrypoints(VAProfile profile)
+{
+    AttribMap *attributeList = nullptr;
+    VAStatus status = CreateDecAttributes(profile, VAEntrypointVLD, &attributeList);
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    uint32_t configStartIdx = m_decConfigs.size();
+    for (int32_t j = 0; j < 2; j++)
+    {
+        for (int32_t k = 0; k < 2; k++)
         {
-            AddDecConfig(m_decSliceMode[j], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE); 
+            AddDecConfig(m_decSliceMode[j], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]); 
             if (m_isEntryptSupported)
             {
                 uint32_t encrytTypes[3];
 
-                int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileHEVCMain10,
+                int32_t numTypes = m_CapsCp->GetEncryptionTypes(profile,
                         encrytTypes, 3);
 
                 if (numTypes > 0)
@@ -1217,15 +1516,14 @@ VAStatus MediaLibvaCaps::LoadHevcDecProfileEntrypoints()
                     for (int32_t l = 0; l < numTypes; l++)
                     {
                         AddDecConfig(m_decSliceMode[j], encrytTypes[l],
-                                VA_DEC_PROCESSING_NONE); 
+                                m_decProcessMode[k]); 
                     }
                 }
             }
         }
-        AddProfileEntry(VAProfileHEVCMain10, VAEntrypointVLD, attributeList,
-                configStartIdx, m_decConfigs.size() - configStartIdx);
     }
-#endif
+    AddProfileEntry(profile, VAEntrypointVLD, attributeList,
+                configStartIdx, m_decConfigs.size() - configStartIdx);
     return status;
 }
 
@@ -1233,52 +1531,102 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
     AttribMap *attributeList = nullptr;
-
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC)
-            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
-    {
-        status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSlice, &attributeList);
-        DDI_CHK_RET(status, "Failed to initialize Caps!");
-        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC))
     {
+        status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 3; j < 7; j++)
+        for (int32_t j = 1; j < 7; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
         }
-     
+
         AddProfileEntry(VAProfileHEVCMain, VAEntrypointEncSlice, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
 
-
-        status = CreateEncAttributes(VAProfileHEVCMain, (VAEntrypoint)VAEntrypointFEI, &attributeList);
+        status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointFEI, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
-        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
         configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
 
-        AddProfileEntry(VAProfileHEVCMain, (VAEntrypoint)VAEntrypointFEI, attributeList,
+        AddProfileEntry(VAProfileHEVCMain, VAEntrypointFEI, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
     {
+        status = CreateEncAttributes(VAProfileHEVCMain10, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 3; j < 7; j++)
+        for (int32_t j = 1; j < 7; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
         }
         AddProfileEntry(VAProfileHEVCMain10, VAEntrypointEncSlice, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+    
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC12bit))
+    {
+        status = CreateEncAttributes(VAProfileHEVCMain12, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        for (int32_t j = 1; j < 7; j++)
+        {
+            AddEncConfig(m_encRcMode[j]);
+            AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+        }
+        AddProfileEntry(VAProfileHEVCMain12, VAEntrypointEncSlice, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+    
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit422))
+    {
+        status = CreateEncAttributes(VAProfileHEVCMain422_10, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        for (int32_t j = 1; j < 7; j++)
+        {
+            AddEncConfig(m_encRcMode[j]);
+            AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+        }
+        AddProfileEntry(VAProfileHEVCMain422_10, VAEntrypointEncSlice, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+    
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC12bit422))
+    {
+        status = CreateEncAttributes(VAProfileHEVCMain422_12, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        for (int32_t j = 1; j < 7; j++)
+        {
+            AddEncConfig(m_encRcMode[j]);
+            AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+        }
+        AddProfileEntry(VAProfileHEVCMain422_12, VAEntrypointEncSlice, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 
@@ -1290,7 +1638,7 @@ VAStatus MediaLibvaCaps::LoadNoneProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
 
-    AttribMap *attributeList;
+    AttribMap *attributeList = nullptr;
 
     status = CreateDecAttributes(VAProfileNone, VAEntrypointVideoProc, &attributeList);
     DDI_CHK_RET(status, "Failed to initialize Caps!");
@@ -1301,7 +1649,7 @@ VAStatus MediaLibvaCaps::LoadNoneProfileEntrypoints()
 
     configStartIdx = m_encConfigs.size();
     AddEncConfig(VA_RC_NONE);
-    AddProfileEntry(VAProfileNone, (VAEntrypoint)VAEntrypointStats, attributeList,
+    AddProfileEntry(VAProfileNone, VAEntrypointStats, attributeList,
             configStartIdx, 1);
     return status;
 }
@@ -1311,7 +1659,7 @@ VAStatus MediaLibvaCaps::GetConfigAttributes(VAProfile profile,
         VAConfigAttrib *attribList,
         int32_t numAttribs)
 {
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t i = GetProfileTableIdx(profile, entrypoint);
 
     if (i < 0)
@@ -1319,11 +1667,11 @@ VAStatus MediaLibvaCaps::GetConfigAttributes(VAProfile profile,
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    DDI_CHK_NULL(m_profileEntryTbl[i].m_attributes, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(m_profileEntryTbl[i].m_attributes, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     for (int32_t j = 0; j < numAttribs; j++)
     {
         if (m_profileEntryTbl[i].m_attributes->find(attribList[j].type) !=
-                m_profileEntryTbl[i].m_attributes->end()) 
+                m_profileEntryTbl[i].m_attributes->end())
         {
             attribList[j].value = (*m_profileEntryTbl[i].m_attributes)[attribList[j].type];
         }
@@ -1343,12 +1691,19 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
+    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (numAttribs)
+    {
+        DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    }
+
     VAConfigAttrib decAttributes[3];
 
     decAttributes[0].type = VAConfigAttribDecSliceMode;
     decAttributes[0].value = VA_DEC_SLICE_MODE_NORMAL;
     decAttributes[1].type = VAConfigAttribEncryption;
-    decAttributes[1].value = VA_CENC_TYPE_NONE;
+    decAttributes[1].value = VA_ENCRYPTION_TYPE_NONE;
     decAttributes[2].type = VAConfigAttribDecProcessing;
     decAttributes[2].value = VA_DEC_PROCESSING_NONE;
 
@@ -1369,7 +1724,7 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
     int32_t configNum = m_profileEntryTbl[profileTableIdx].m_configNum;
     for (i = startIdx; i < (startIdx + configNum); i++)
     {
-        if (decAttributes[0].value == m_decConfigs[i].m_sliceMode 
+        if (decAttributes[0].value == m_decConfigs[i].m_sliceMode
                 && decAttributes[1].value == m_decConfigs[i].m_encryptType
                 && decAttributes[2].value == m_decConfigs[i].m_processType)
         {
@@ -1392,11 +1747,23 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
 
 VAStatus MediaLibvaCaps::CreateEncConfig(
         int32_t profileTableIdx,
+        VAEntrypoint entrypoint,
         VAConfigAttrib *attribList,
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    uint32_t rcMode = VA_RC_NONE;
+    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (numAttribs)
+    {
+        DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    }
+
+    uint32_t rcMode = VA_RC_CQP;
+    if((entrypoint == VAEntrypointStats) || (entrypoint == VAEntrypointEncPicture))
+    {
+        rcMode = VA_RC_NONE;
+    }
     m_mediaCtx->FeiFunction = 0;
 
     int32_t j;
@@ -1404,11 +1771,25 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
     {
         if (VAConfigAttribRateControl == attribList[j].type)
         {
-            rcMode = attribList[j].value;
+            //do not set VA_RC_MB without other BRC mode
+            //if it happend, just set it to default RC mode
+            if(attribList[j].value != VA_RC_MB)
+            {
+                rcMode = attribList[j].value;
+            }
         }
         if(VAConfigAttribFEIFunctionType == attribList[j].type)
         {
             m_mediaCtx->FeiFunction = attribList[j].value;
+        }
+        if(VAConfigAttribRTFormat == attribList[j].type)
+        {
+            VAConfigAttrib attribRT;
+            CheckEncRTFormat(m_profileEntryTbl[profileTableIdx].m_profile, entrypoint, &attribRT);
+            if((attribList[j].value | attribRT.value) == 0)
+            {
+                return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+            }
         }
     }
 
@@ -1440,7 +1821,13 @@ VAStatus MediaLibvaCaps::CreateVpConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    *configId = m_profileEntryTbl[profileTableIdx].m_configStartIdx 
+    // attribList and numAttribs are for future usage.
+    DDI_UNUSED(attribList);
+    DDI_UNUSED(numAttribs);
+
+    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    *configId = m_profileEntryTbl[profileTableIdx].m_configStartIdx
         + DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE;
 
     return VA_STATUS_SUCCESS;
@@ -1453,32 +1840,33 @@ VAStatus MediaLibvaCaps::CheckDecodeResolution(
         uint32_t height)
 {
 
-    uint32_t maxWidth, maxHeight;
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
     switch (codecMode)
     {
         case CODECHAL_DECODE_MODE_MPEG2VLD:
-            maxWidth = m_decMpeg2MaxWidth; 
-            maxHeight = m_decMpeg2MaxHeight; 
+            maxWidth = m_decMpeg2MaxWidth;
+            maxHeight = m_decMpeg2MaxHeight;
             break;
         case CODECHAL_DECODE_MODE_VC1VLD:
-            maxWidth = m_decVc1MaxWidth; 
-            maxHeight = m_decVc1MaxHeight; 
+            maxWidth = m_decVc1MaxWidth;
+            maxHeight = m_decVc1MaxHeight;
             break;
         case CODECHAL_DECODE_MODE_JPEG:
-            maxWidth = m_decJpegMaxWidth; 
-            maxHeight = m_decJpegMaxHeight; 
+            maxWidth = m_decJpegMaxWidth;
+            maxHeight = m_decJpegMaxHeight;
             break;
         case CODECHAL_DECODE_MODE_HEVCVLD:
-            maxWidth = m_decHevcMaxWidth; 
-            maxHeight = m_decHevcMaxHeight; 
+            maxWidth = m_decHevcMaxWidth;
+            maxHeight = m_decHevcMaxHeight;
             break;
         default:
-            maxWidth = m_decDefaultMaxWidth; 
-            maxHeight = m_decDefaultMaxHeight; 
+            maxWidth = m_decDefaultMaxWidth;
+            maxHeight = m_decDefaultMaxHeight;
             break;
     }
 
-    uint32_t alignedHeight;
+    uint32_t alignedHeight = 0;
     if (profile == VAProfileVC1Advanced)
     {
         alignedHeight = MOS_ALIGN_CEIL(height,32);
@@ -1503,31 +1891,65 @@ VAStatus MediaLibvaCaps::CheckEncodeResolution(
         uint32_t width,
         uint32_t height)
 {
-    uint32_t maxWidth, maxHeight;
     switch (profile)
     {
         case VAProfileJPEGBaseline:
-            if (width > m_encJpegMaxWidth 
+            if (width > m_encJpegMaxWidth
                     || width < m_encJpegMinWidth
-                    || height > m_encJpegMaxHeight 
+                    || height > m_encJpegMaxHeight
                     || height <  m_encJpegMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
             break;
-        default:
-            if (width > m_encMax4kWidth 
+        case VAProfileMPEG2Simple:
+        case VAProfileMPEG2Main:
+            if( width > CODEC_MAX_PIC_WIDTH
                     || width < m_encMinWidth
-                    || height > m_encMax4kHeight 
-                    || height < m_encMinHeight
-                    || (width % CODECHAL_MACROBLOCK_WIDTH)
-                    || (height % CODECHAL_MACROBLOCK_HEIGHT))
+                    || height > CODEC_MAX_PIC_HEIGHT
+                    || height < m_encMinHeight)
+            {
+                return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
+            }
+            break; 
+        default:
+            if (width > m_encMax4kWidth
+                    || width < m_encMinWidth
+                    || height > m_encMax4kHeight
+                    || height < m_encMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
             break;
     }
     return VA_STATUS_SUCCESS;
+}
+
+VAStatus MediaLibvaCaps::CheckProfile(VAProfile profile)
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+    if (IsVc1Profile(profile))
+    {
+        MOS_USER_FEATURE       userFeature;
+        MOS_USER_FEATURE_VALUE userFeatureValue;
+        MOS_ZeroMemory(&userFeatureValue, sizeof(userFeatureValue));
+        userFeatureValue.u32Data    = true;
+        userFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
+        userFeature.pValues         = &userFeatureValue;
+        userFeature.uiNumValues     = 1;
+        MOS_UserFeature_ReadValue(
+            nullptr,
+            &userFeature,
+            "VC1Enabled",
+            MOS_USER_FEATURE_VALUE_TYPE_INT32);
+
+        if (!userFeatureValue.u32Data)
+        {
+            status = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        }
+
+    }
+    return status;
 }
 
 VAStatus MediaLibvaCaps::CreateConfig(
@@ -1538,17 +1960,22 @@ VAStatus MediaLibvaCaps::CreateConfig(
         VAConfigID *configId)
 {
 
-    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    if( !m_mediaCtx->bVC1Enabled && IsVc1Profile(profile))
-    {
-        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
-    }
+    DDI_CHK_RET(CheckProfile(profile),"Failed to check config!");
+
     int32_t i = GetProfileTableIdx(profile, entrypoint);
 
     if (i < 0)
     {
-        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        if(i == -2)
+        {
+            return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+        }
+        else
+        {
+            return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        }
     }
 
     if (CheckEntrypointCodecType(entrypoint, videoDecode))
@@ -1561,7 +1988,7 @@ VAStatus MediaLibvaCaps::CreateConfig(
     }
     else if(CheckEntrypointCodecType(entrypoint, videoEncode))
     {
-        return CreateEncConfig(i, attribList, numAttribs, configId);
+        return CreateEncConfig(i,entrypoint,attribList, numAttribs, configId);
     }
     else
     {
@@ -1574,13 +2001,13 @@ VAStatus MediaLibvaCaps::QueryConfigProfiles(
         VAProfile *profileList,
         int32_t *numProfiles)
 {
-    DDI_CHK_NULL(profileList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(numProfiles, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(profileList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numProfiles, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     std::set<int32_t> profiles;
     int32_t i;
     for (i = 0; i < m_profileEntryCount; i++)
     {
-        profiles.insert((int32_t)m_profileEntryTbl[i].m_profile); 
+        profiles.insert((int32_t)m_profileEntryTbl[i].m_profile);
     }
 
     std::set<int32_t>::iterator it;
@@ -1601,19 +2028,19 @@ VAStatus MediaLibvaCaps::QueryConfigEntrypoints(
         VAEntrypoint *entrypointList,
         int32_t *numEntrypoints)
 {
-    DDI_CHK_NULL(entrypointList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(numEntrypoints, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(entrypointList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numEntrypoints, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t j = 0;
     for (int32_t i = 0; i < m_profileEntryCount; i++)
     {
-        if (m_profileEntryTbl[i].m_profile == profile) 
+        if (m_profileEntryTbl[i].m_profile == profile)
         {
             entrypointList[j] = m_profileEntryTbl[i].m_entrypoint;
             j++;
         }
     }
     *numEntrypoints = j;
-
+    DDI_CHK_CONDITION((j == 0), "cant find the profile!", VA_STATUS_ERROR_UNSUPPORTED_PROFILE);    
     /* If the assert fails then GEN_MAX_ENTRYPOINTS needs to be bigger */
     DDI_CHK_CONDITION((j > DDI_CODEC_GEN_MAX_ENTRYPOINTS),
             "Execeed maximum number of profiles!", VA_STATUS_ERROR_MAX_NUM_EXCEEDED);
@@ -1628,10 +2055,10 @@ VAStatus MediaLibvaCaps::QueryConfigAttributes(
         VAConfigAttrib *attribList,
         int32_t *numAttribs)
 {
-    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(numAttribs, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numAttribs, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t profileTableIdx = -1;
     VAStatus status = GetProfileEntrypointFromConfigId(configId, profile, entrypoint, &profileTableIdx);
     DDI_CHK_RET(status, "Invalide config_id!");
@@ -1665,9 +2092,9 @@ VAStatus MediaLibvaCaps::GetEncConfigAttr(
         VAEntrypoint *entrypoint,
         uint32_t *rcMode)
 {
-    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(rcMode, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(rcMode, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t profileTableIdx = -1;
     int32_t configOffset = configId - DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE;
     VAStatus status = GetProfileEntrypointFromConfigId(configId, profile, entrypoint, &profileTableIdx);
@@ -1697,8 +2124,12 @@ VAStatus MediaLibvaCaps::GetDecConfigAttr(
         uint32_t *encryptType,
         uint32_t *processMode)
 {
-    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(sliceMode, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encryptType, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(processMode, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
     int32_t profileTableIdx = -1;
     int32_t configOffset = configId - DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE;
     VAStatus status = GetProfileEntrypointFromConfigId(configId, profile, entrypoint, &profileTableIdx);
@@ -1739,8 +2170,8 @@ VAStatus MediaLibvaCaps::GetVpConfigAttr(
         VAProfile *profile,
         VAEntrypoint *entrypoint)
 {
-    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t profileTableIdx = -1;
     int32_t configOffset = configId - DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE;
     VAStatus status = GetProfileEntrypointFromConfigId(configId, profile, entrypoint, &profileTableIdx);
@@ -1765,7 +2196,7 @@ VAStatus MediaLibvaCaps::GetVpConfigAttr(
 VAStatus MediaLibvaCaps::QueryProcessingRate(
         VAConfigID configId,
         VAProcessingRateParameter *procBuf,
-        uint32_t *processingRate) 
+        uint32_t *processingRate)
 {
     DDI_CHK_NULL(procBuf, "Null procBuf",        VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(processingRate, "Null processingRate", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -1784,9 +2215,7 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
     MEDIA_FEATURE_TABLE skuTable;
     MEDIA_WA_TABLE waTable;
     memset(&platform, 0, sizeof(platform));
-    memset(&skuTable, 0, sizeof(skuTable));
-    memset(&waTable, 0, sizeof(waTable));
-    
+
     if (MOS_STATUS_SUCCESS != HWInfo_GetGfxInfo(m_mediaCtx->fd, &platform, &skuTable, &waTable, m_mediaCtx->pGtSystemInfo))
     {
         DDI_ASSERTMESSAGE("Fatal error - Cannot get Sku/Wa Tables/GtSystemInfo and Platform information");
@@ -1838,9 +2267,8 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
             encodeMode = CODECHAL_ENCODE_MODE_VP9;
         }
 
-        res = GetMbProcessingRateEnc(platform,
+        res = GetMbProcessingRateEnc(
                 &skuTable,
-                m_mediaCtx->pGtSystemInfo,
                 tuIdx,
                 encodeMode,
                 (entrypoint == VAEntrypointEncSliceLP),
@@ -1851,7 +2279,7 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
         // Get VAProcessingBufferEnc
         processingRateBuffDec = & procBuf->proc_buf_dec;
 
-        res = GetMbProcessingRateDec(platform,
+        res = GetMbProcessingRateDec(
                 &skuTable,
                 processingRate);
     }
@@ -1871,10 +2299,10 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
     DDI_CHK_NULL(numAttribs, "Null num_attribs", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     if (attribList == nullptr)
-	{
-		*numAttribs = DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES;
-		return VA_STATUS_SUCCESS;
-	}
+    {
+        *numAttribs = DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES;
+        return VA_STATUS_SUCCESS;
+    }
 
     int32_t profileTableIdx = -1;
     VAEntrypoint entrypoint;
@@ -1892,7 +2320,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    int32_t i = 0;
+    uint32_t i = 0;
 
     if (entrypoint == VAEntrypointVideoProc)   /* vpp */
     {
@@ -1926,7 +2354,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         attribs[i].value.value.i = VP_MIN_PIC_HEIGHT;
         i++;
 
-        for (int32_t j = 0; j < m_numVpSurfaceAttr; j++)
+        for (uint32_t j = 0; j < m_numVpSurfaceAttr; j++)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1965,12 +2393,85 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
-            attribs[i].value.value.i = VA_FOURCC('P', '0', '1', '0');
+            attribs[i].value.value.i = VA_FOURCC_P010;
+            i++;
+
+            if(profile == VAProfileVP9Profile2)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = VA_FOURCC_P016;
+                i++;
+            }
+        }
+        else if(profile == VAProfileHEVCMain12)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_P016;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain422_10)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_YUY2;
+            i++;
+            
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y210;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain422_12)
+        {
+            //hevc  rext: Y216 12/16bit 422
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y216;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain444 || profile == VAProfileVP9Profile1)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_AYUV;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain444_10 || profile == VAProfileVP9Profile3)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y410;
+            i++;
+
+            if(profile == VAProfileVP9Profile3)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = VA_FOURCC_Y416;
+                i++;
+            }
+        }
+        else if(profile == VAProfileHEVCMain444_12)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y416;
             i++;
         }
         else if (profile == VAProfileJPEGBaseline)
         {
-            for (int32_t j = 0; j < m_numJpegSurfaceAttr; j++)
+            for (uint32_t j = 0; j < m_numJpegSurfaceAttr; j++)
             {
                 attribs[i].type = VASurfaceAttribPixelFormat;
                 attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1987,6 +2488,150 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
             i++;
         }
+
+        auto maxWidth = m_decDefaultMaxWidth;
+        auto maxHeight = m_decDefaultMaxHeight;
+        if(IsMpeg2Profile(profile))
+        {
+            maxWidth = m_decMpeg2MaxWidth;
+            maxHeight = m_decMpeg2MaxHeight;
+        }
+        else if(IsHevcProfile(profile))
+        {
+            maxWidth = m_decHevcMaxWidth;
+            maxHeight = m_decHevcMaxHeight;
+        }
+        else if(IsVc1Profile(profile))
+        {
+            maxWidth = m_decVc1MaxWidth;
+            maxHeight = m_decVc1MaxHeight;
+        }
+        else if(IsJpegProfile(profile))
+        {
+            maxWidth = m_decJpegMaxWidth;
+            maxHeight = m_decJpegMaxHeight;
+        }
+
+        attribs[i].type = VASurfaceAttribMaxWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = maxWidth;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = maxHeight;
+        i++;
+    }
+    else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
+    {
+        if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('P', '0', '1', '0');
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain12)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_P016;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain422_10)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_YUY2;
+            i++;
+
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y210;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain422_12)
+        {
+            //hevc  rext: Y216 12/16bit 422
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y216;
+            i++;
+        }      
+        else if (profile == VAProfileJPEGBaseline)
+        {
+            for (uint32_t j = 0; j < m_numJpegEncSurfaceAttr; j++)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = m_jpegEncSurfaceAttr[j];
+                i++;
+            }
+        }
+        else
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
+            i++;
+        }
+        attribs[i].type = VASurfaceAttribMaxWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = CODEC_MAX_PIC_WIDTH;
+
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_WIDTH;
+        }
+        if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = CODEC_MAX_PIC_HEIGHT;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_HEIGHT;
+        }
+        if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinWidth;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinWidth;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinHeight;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinHeight;
+        }
+        i++;
     }
     else
     {
@@ -1994,18 +2639,18 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
 
-    if (i <= *numAttribs)
+    if (i > *numAttribs)
     {
-        MOS_SecureMemcpy(attribList, i * sizeof(*attribs), attribs, i * sizeof(*attribs));
         *numAttribs = i;
         MOS_FreeMemory(attribs);
-        return status;
-
-    }
-    else
-    {
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
+
+    *numAttribs = i;
+    MOS_SecureMemcpy(attribList, i * sizeof(*attribs), attribs, i * sizeof(*attribs));
+
+    MOS_FreeMemory(attribs);
+    return status;
 }
 
 bool MediaLibvaCaps::IsVc1Profile(VAProfile profile)
@@ -2039,20 +2684,27 @@ bool MediaLibvaCaps::IsVp8Profile(VAProfile profile)
     return (profile == VAProfileVP8Version0_3);
 }
 
-
 bool MediaLibvaCaps::IsVp9Profile(VAProfile profile)
 {
     return (
             (profile == VAProfileVP9Profile0) ||
-            (profile == VAProfileVP9Profile2)
+            (profile == VAProfileVP9Profile2) ||
+            (profile == VAProfileVP9Profile1) ||
+            (profile == VAProfileVP9Profile3)
             );
 }
 
 bool MediaLibvaCaps::IsHevcProfile(VAProfile profile)
 {
     return (
-            (profile == VAProfileHEVCMain) ||
-            (profile == VAProfileHEVCMain10)
+            (profile == VAProfileHEVCMain)       ||
+            (profile == VAProfileHEVCMain10)     ||
+            (profile == VAProfileHEVCMain12)     ||
+            (profile == VAProfileHEVCMain422_10) ||
+            (profile == VAProfileHEVCMain422_12) ||
+            (profile == VAProfileHEVCMain444)    ||
+            (profile == VAProfileHEVCMain444_10) ||
+            (profile == VAProfileHEVCMain444_12)
            );
 }
 
@@ -2067,7 +2719,7 @@ bool MediaLibvaCaps::IsEncFei(VAEntrypoint entrypoint)
             (m_mediaCtx->FeiFunction == VA_FEI_FUNCTION_ENC) ||
             (m_mediaCtx->FeiFunction == VA_FEI_FUNCTION_PAK) ||
             (m_mediaCtx->FeiFunction == (VA_FEI_FUNCTION_ENC | VA_FEI_FUNCTION_PAK)) ||
-            (entrypoint == (VAEntrypoint)VAEntrypointStats))
+            (entrypoint == VAEntrypointStats))
     {
         return true;
     }
@@ -2090,14 +2742,14 @@ CODECHAL_FUNCTION MediaLibvaCaps::GetEncodeCodecFunction(VAProfile profile, VAEn
         codecFunction = CODECHAL_FUNCTION_ENC_PAK;
         /*
         //  FeiFunction bit 0: FEI_ENC_INTEL
-        //                  1: FEI_PAK_INTEL        
-        //                  2: FEI_ENC_PAK_INTEL        
+        //                  1: FEI_PAK_INTEL
+        //                  2: FEI_ENC_PAK_INTEL
         //
         //  +---+---+---+
         //  | 2 | 1 | 0 |  FeiFunction [2:0]
         //  +---+---+---+
-        //            
-        //  b000 means ENC_PAK           
+        //
+        //  b000 means ENC_PAK
         */
         if (m_mediaCtx->FeiFunction & VA_FEI_FUNCTION_ENC_PAK)
         {
@@ -2116,7 +2768,7 @@ CODECHAL_FUNCTION MediaLibvaCaps::GetEncodeCodecFunction(VAProfile profile, VAEn
             // codecFunction in context keeps FEI_ENC_PAK if input is ENC|PAK
             codecFunction = CODECHAL_FUNCTION_FEI_ENC_PAK;
         }
-        else if (entrypoint == (VAEntrypoint)VAEntrypointStats)
+        else if (entrypoint == VAEntrypointStats)
         {
             codecFunction = CODECHAL_FUNCTION_FEI_PRE_ENC;
         }
@@ -2126,7 +2778,7 @@ CODECHAL_FUNCTION MediaLibvaCaps::GetEncodeCodecFunction(VAProfile profile, VAEn
 
 CODECHAL_MODE MediaLibvaCaps::GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint)
 {
-    if (entrypoint == (VAEntrypoint)VAEntrypointStats)
+    if (entrypoint == VAEntrypointStats)
     {
         return  CODECHAL_ENCODE_MODE_AVC;
     }
@@ -2148,6 +2800,9 @@ CODECHAL_MODE MediaLibvaCaps::GetEncodeCodecMode(VAProfile profile, VAEntrypoint
             return CODECHAL_ENCODE_MODE_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain12:    
+        case VAProfileHEVCMain422_10:
+        case VAProfileHEVCMain422_12:
             return CODECHAL_ENCODE_MODE_HEVC;
         default:
             DDI_ASSERTMESSAGE("Invalid Encode Mode");
@@ -2171,10 +2826,18 @@ CODECHAL_MODE MediaLibvaCaps::GetDecodeCodecMode(VAProfile profile)
         case VAProfileVP8Version0_3:
             return CODECHAL_DECODE_MODE_VP8VLD;
         case VAProfileVP9Profile0:
+        case VAProfileVP9Profile1:
         case VAProfileVP9Profile2:
+        case VAProfileVP9Profile3:
             return CODECHAL_DECODE_MODE_VP9VLD;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain12:     
+        case VAProfileHEVCMain422_10:
+        case VAProfileHEVCMain422_12:
+        case VAProfileHEVCMain444:
+        case VAProfileHEVCMain444_10:
+        case VAProfileHEVCMain444_12:
             return CODECHAL_DECODE_MODE_HEVCVLD;
         case VAProfileVC1Simple:
         case VAProfileVC1Main:
@@ -2202,7 +2865,9 @@ std::string MediaLibvaCaps::GetDecodeCodecKey(VAProfile profile)
         case VAProfileVP8Version0_3:
             return DECODE_ID_VP8;
         case VAProfileVP9Profile0:
+        case VAProfileVP9Profile1:
         case VAProfileVP9Profile2:
+        case VAProfileVP9Profile3:
             return DECODE_ID_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
@@ -2243,6 +2908,9 @@ std::string MediaLibvaCaps::GetEncodeCodecKey(VAProfile profile, VAEntrypoint en
             return ENCODE_ID_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain12:
+        case VAProfileHEVCMain422_10:
+        case VAProfileHEVCMain422_12:
             if (IsEncFei(entrypoint))
             {
                 return ENCODE_ID_HEVCFEI;
@@ -2271,10 +2939,10 @@ VAStatus MediaLibvaCaps::QueryImageFormats(VAImageFormat *formatList, int32_t *n
     DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t num = 0;
     bool supportP010 = IsP010Supported();
-    uint32_t maxNum = GetImageFormatsMaxNum();
+    uint32_t maxNum = MediaLibvaCaps::GetImageFormatsMaxNum();
 
     memset(formatList, 0,  sizeof(m_supportedImageformats));
-    for (int32_t idx = 0; idx < maxNum; idx++)
+    for (uint32_t idx = 0; idx < maxNum; idx++)
     {
         if (!supportP010 && m_supportedImageformats[idx].fourcc == VA_FOURCC('P','0','1','0') )
         {
@@ -2319,6 +2987,29 @@ bool MediaLibvaCaps::IsVpConfigId(VAConfigID configId)
             (configId < (DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE + m_vpConfigs.size())));
 }
 
+bool MediaLibvaCaps::IsMfeSupportedEntrypoint(VAEntrypoint entrypoint)
+{
+    if (entrypoint != VAEntrypointEncSlice &&           //MFE only support Encode slice
+        entrypoint != VAEntrypointFEI )                 //and FEI yet
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool MediaLibvaCaps::IsMfeSupportedProfile(VAProfile profile)
+{
+    if (profile != VAProfileH264Main &&                  // MFE only support AVC now
+        profile != VAProfileH264High &&
+        profile != VAProfileH264ConstrainedBaseline)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 VAStatus MediaLibvaCaps::DestroyConfig(VAConfigID configId)
 {
     if( IsDecConfigId(configId) || IsEncConfigId(configId) || IsVpConfigId(configId))
@@ -2327,6 +3018,164 @@ VAStatus MediaLibvaCaps::DestroyConfig(VAConfigID configId)
     }
 
     return VA_STATUS_ERROR_INVALID_CONFIG;
+}
+
+GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
+    DDI_MEDIA_FORMAT format)
+{
+    switch (format)
+    {
+        case Media_Format_X8R8G8B8   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
+        case Media_Format_A8R8G8B8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
+        case Media_Format_X8B8G8R8   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
+        case Media_Format_A8B8G8R8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+        case Media_Format_R8G8B8A8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+        case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
+        case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
+        case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
+        case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
+        case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
+        case Media_Format_YUY2       : return GMM_FORMAT_YUY2;
+        case Media_Format_UYVY       : return GMM_FORMAT_UYVY;
+        case Media_Format_YV12       : return GMM_FORMAT_YV12_TYPE;
+        case Media_Format_IYUV       : return GMM_FORMAT_IYUV_TYPE;
+        case Media_Format_I420       : return GMM_FORMAT_I420_TYPE;
+        case Media_Format_444P       : return GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
+        case Media_Format_422H       : return GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
+        case Media_Format_411P       : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
+        case Media_Format_422V       : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
+        case Media_Format_IMC3       : return GMM_FORMAT_IMC3_TYPE;
+        case Media_Format_400P       : return GMM_FORMAT_GENERIC_8BIT;
+        case Media_Format_Buffer     : return GMM_FORMAT_RENDER_8BIT;
+        case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
+        case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
+        case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;   
+        default                      : return GMM_FORMAT_INVALID;
+    }
+}
+
+VAStatus MediaLibvaCaps::GetMbProcessingRateDec(
+        MEDIA_FEATURE_TABLE *skuTable,
+        uint32_t *mbProcessingRatePerSec)
+{
+    uint32_t idx = 0;
+
+    DDI_CHK_NULL(skuTable, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mbProcessingRatePerSec, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    const uint32_t mb_rate[2] =
+    {
+        // non-ULX, ULX/Atom
+        4800000, 3600000
+    };
+
+    if (MEDIA_IS_SKU(skuTable, FtrLCIA) || //Atom
+            MEDIA_IS_SKU(skuTable, FtrULX)) // ULX
+    {
+        idx = 1;
+    }
+    else
+    {
+        // Default is non-ULX
+        idx = 0;
+    }
+
+    *mbProcessingRatePerSec = mb_rate[idx];
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus MediaLibvaCaps::GetMbProcessingRateEnc(
+        MEDIA_FEATURE_TABLE *skuTable,
+        uint32_t tuIdx,
+        uint32_t codecMode,
+        bool vdencActive,
+        uint32_t *mbProcessingRatePerSec)
+{
+    DDI_CHK_NULL(skuTable, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mbProcessingRatePerSec, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    uint32_t gtIdx = 0;
+
+    // Calculate the GT index based on GT type
+    if (MEDIA_IS_SKU(skuTable, FtrGT1))
+    {
+        gtIdx = 4;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT1_5))
+    {
+        gtIdx = 3;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT2))
+    {
+        gtIdx = 2;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT3))
+    {
+        gtIdx = 1;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT4))
+    {
+        gtIdx = 0;
+    }
+    else
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    if (MEDIA_IS_SKU(skuTable, FtrULX))
+    {
+        static const uint32_t mbRate[7][5] =
+        {
+            // GT4 | GT3 |  GT2   | GT1.5  |  GT1
+            { 0, 0, 1029393, 1029393, 676280 },
+            { 0, 0, 975027, 975027, 661800 },
+            { 0, 0, 776921, 776921, 640000 },
+            { 0, 0, 776921, 776921, 640000 },
+            { 0, 0, 776921, 776921, 640000 },
+            { 0, 0, 416051, 416051, 317980 },
+            { 0, 0, 214438, 214438, 180655 }
+        };
+
+        if (gtIdx == 0 || gtIdx == 1)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        *mbProcessingRatePerSec = mbRate[tuIdx][gtIdx];
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrULT))
+    {
+        static const uint32_t defaultult_mb_rate[7][5] =
+        {
+            // GT4    | GT3   |  GT2   | GT1.5   |  GT1
+            { 1544090, 1544090, 1544090, 1029393, 676280 },
+            { 1462540, 1462540, 1462540, 975027, 661800 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 624076, 624076, 624076, 416051, 317980 },
+            { 321657, 321657, 321657, 214438, 180655 }
+        };
+
+        *mbProcessingRatePerSec = defaultult_mb_rate[tuIdx][gtIdx];
+    }
+    else
+    {
+        // regular
+        const uint32_t default_mb_rate[7][5] =
+        {
+            // GT4    | GT3   |   GT2  | GT1.5  |  GT1
+            { 1544090, 1544090, 1544090, 1029393, 676280 },
+            { 1462540, 1462540, 1462540, 975027, 661800 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 624076, 624076, 624076, 416051, 317980 },
+            { 321657, 321657, 321657, 214438, 180655 }
+        };
+
+        *mbProcessingRatePerSec = default_mb_rate[tuIdx][gtIdx];
+    }
+    return VA_STATUS_SUCCESS;
 }
 
 MediaLibvaCaps * MediaLibvaCaps::CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)

@@ -20,35 +20,40 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_kernel_data.cpp  
-//! \brief     Contains Class CmKernelData definitions  
+//! \file      cm_kernel_data.cpp 
+//! \brief     Contains Class CmKernelData definitions 
 //!
+
 #include "cm_kernel_data.h"
+
 #include "cm_device.h"
+#include "cm_mem.h"
 
 #define minimum(a,b) (((a)<(b))?(a):(b))
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Kernel Data 
+//| Purpose:    Create Kernel Data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelData::Create( CmKernelRT* pCmKernel, CmKernelData*& pKernelData )
+int32_t CmKernelData::Create( CmKernelRT* kernel, CmKernelData*& kernelData )
 {
-    if(!pCmKernel)
+    if(!kernel)
     {
         CM_ASSERTMESSAGE("Error: Invalid CmKernel.");
         return CM_NULL_POINTER;
     }
 
     int32_t result = CM_SUCCESS;
-    pKernelData = new (std::nothrow) CmKernelData( pCmKernel );
-    if( pKernelData )
+    kernelData = new (std::nothrow) CmKernelData( kernel );
+    if( kernelData )
     {
-        pKernelData->Acquire();
-        result = pKernelData->Initialize();
+        kernelData->Acquire();
+        result = kernelData->Initialize();
         if( result != CM_SUCCESS )
         {
-            CmKernelData::Destroy( pKernelData );
+            CmKernelData::Destroy( kernelData );
         }
     }
     else
@@ -63,15 +68,15 @@ int32_t CmKernelData::Create( CmKernelRT* pCmKernel, CmKernelData*& pKernelData 
 //| Purpose:    Destroy CM Kernel Data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelData::Destroy( CmKernelData* &pKernelData )
+int32_t CmKernelData::Destroy( CmKernelData* &kernelData )
 {
-    if(pKernelData)
+    if(kernelData)
     {
         uint32_t refCount;
-        refCount = pKernelData->SafeRelease();
+        refCount = kernelData->SafeRelease();
         if (refCount == 0)
         {
-            pKernelData = nullptr;
+            kernelData = nullptr;
         }
     }
 
@@ -82,14 +87,14 @@ int32_t CmKernelData::Destroy( CmKernelData* &pKernelData )
 //| Purpose:    CM Kernel Data constructor
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmKernelData::CmKernelData(  CmKernelRT* pCmKernel ):
+CmKernelData::CmKernelData(  CmKernelRT* kernel ):
     m_kerneldatasize( 0 ),
-    m_RefCount(0),
-    m_pCmKernel(pCmKernel),
-    m_IsInUse(true)
+    m_refCount(0),
+    m_kernel(kernel),
+    m_isInUse(true)
 {
-   CmSafeMemSet(&m_HalKernelParam, 0, sizeof(CM_HAL_KERNEL_PARAM));
-   m_HalKernelParam.sampler_heap = MOS_New( std::list<SamplerParam> );
+   CmSafeMemSet(&m_halKernelParam, 0, sizeof(CM_HAL_KERNEL_PARAM));
+   m_halKernelParam.samplerHeap = MOS_New( std::list<SamplerParam> );
 }
 
 //*-----------------------------------------------------------------------------
@@ -99,28 +104,28 @@ CmKernelData::CmKernelData(  CmKernelRT* pCmKernel ):
 CmKernelData::~CmKernelData( void )
 {
     //Free memory space for kernel arguments
-    for(uint32_t i = 0; i< m_HalKernelParam.iNumArgs; i++)
+    for(uint32_t i = 0; i< m_halKernelParam.numArgs; i++)
     {
-        MosSafeDeleteArray(m_HalKernelParam.CmArgParams[i].pFirstValue);
+        MosSafeDeleteArray(m_halKernelParam.argParams[i].firstValue);
     }
-    for(uint32_t i = m_HalKernelParam.iNumArgs; i< minimum(m_HalKernelParam.iNumArgs+6, CM_MAX_ARGS_PER_KERNEL); i++)
+    for(uint32_t i = m_halKernelParam.numArgs; i< minimum(m_halKernelParam.numArgs+6, CM_MAX_ARGS_PER_KERNEL); i++)
     {
-        MosSafeDeleteArray(m_HalKernelParam.CmArgParams[i].pFirstValue);
+        MosSafeDeleteArray(m_halKernelParam.argParams[i].firstValue);
     }
 
     //Free memory for indirect data
-    MosSafeDeleteArray(m_HalKernelParam.IndirectDataParam.pIndirectData);
-    MosSafeDeleteArray(m_HalKernelParam.IndirectDataParam.pSurfaceInfo);
+    MosSafeDeleteArray(m_halKernelParam.indirectDataParam.indirectData);
+    MosSafeDeleteArray(m_halKernelParam.indirectDataParam.surfaceInfo);
 
     //Free memory for thread space param
-    MosSafeDeleteArray(m_HalKernelParam.KernelThreadSpaceParam.dispatchInfo.pNumThreadsInWave);
-    MosSafeDeleteArray(m_HalKernelParam.KernelThreadSpaceParam.pThreadCoordinates);
- 
+    MosSafeDeleteArray(m_halKernelParam.kernelThreadSpaceParam.dispatchInfo.numThreadsInWave);
+    MosSafeDeleteArray(m_halKernelParam.kernelThreadSpaceParam.threadCoordinates);
+
     // Free memory for move instructions
-    MosSafeDeleteArray(m_HalKernelParam.pMovInsData);
+    MosSafeDeleteArray(m_halKernelParam.movInsData);
 
     //Frees memory for sampler heap
-    MosSafeDelete(m_HalKernelParam.sampler_heap);
+    MosSafeDelete(m_halKernelParam.samplerHeap);
 }
 
 //*-----------------------------------------------------------------------------
@@ -137,9 +142,9 @@ int32_t CmKernelData::Initialize( void )
 //| Purpose:    Get Kernel Data pointer
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelData::GetCmKernel( CmKernelRT*& pCmKernel )
+int32_t CmKernelData::GetCmKernel( CmKernelRT*& kernel )
 {
-    pCmKernel = m_pCmKernel;
+    kernel = m_kernel;
     return CM_SUCCESS;
 }
 
@@ -163,16 +168,16 @@ int32_t CmKernelData::GetKernelDataSize()
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Increase Reference count 
+//| Purpose:    Increase Reference count
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelData::Acquire( void )
 {
-    ++m_RefCount;
+    ++m_refCount;
 
-    m_IsInUse  = true; // reused or created
+    m_isInUse  = true; // reused or created
 
-    return m_RefCount;
+    return m_refCount;
 }
 
 //*-----------------------------------------------------------------------------
@@ -182,15 +187,15 @@ uint32_t CmKernelData::Acquire( void )
 uint32_t CmKernelData::SafeRelease( )
 {
 
-    --m_RefCount;
-    if( m_RefCount == 0 )
+    --m_refCount;
+    if( m_refCount == 0 )
     {
         delete this;
         return 0;
     }
     else
     {
-        return m_RefCount;
+        return m_refCount;
     }
 }
 
@@ -200,25 +205,25 @@ uint32_t CmKernelData::SafeRelease( )
 //*-----------------------------------------------------------------------------
 PCM_HAL_KERNEL_PARAM CmKernelData::GetHalCmKernelData( )
 {
-    return &m_HalKernelParam;
+    return &m_halKernelParam;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Whether the kernel data is in use 
+//| Purpose:    Whether the kernel data is in use
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 bool CmKernelData::IsInUse()
 {
-    return m_IsInUse;
+    return m_isInUse;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get Curbe Size from kernel data 
+//| Purpose:    Get Curbe Size from kernel data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelData::GetKernelCurbeSize( void )
 {
-    return m_HalKernelParam.iKrnCurbeSize;
+    return m_halKernelParam.totalCurbeSize;
 }
 
 //*-----------------------------------------------------------------------------
@@ -227,8 +232,8 @@ uint32_t CmKernelData::GetKernelCurbeSize( void )
 //*-----------------------------------------------------------------------------
 int32_t CmKernelData::ResetStatus( void )
 {
-    m_IsInUse = false;
+    m_isInUse = false;
 
     return CM_SUCCESS;
 }
-
+}  // namespace

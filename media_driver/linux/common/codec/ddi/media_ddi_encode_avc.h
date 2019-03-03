@@ -29,6 +29,10 @@
 
 #include "media_ddi_encode_base.h"
 
+//!
+//! \class  DdiEncodeAvc
+//! \brief  Ddi encode AVC
+//!
 class DdiEncodeAvc : public DdiEncodeBase
 {
 public:
@@ -42,7 +46,7 @@ public:
     //!
     virtual ~DdiEncodeAvc();
 
-    virtual VAStatus ContextInitialize(PCODECHAL_SETTINGS codecHalSettings);
+    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings);
 
     virtual VAStatus RenderPicture(
         VADriverContextP ctx,
@@ -78,8 +82,14 @@ public:
     //! \brief    Parse slice parameters
     //! \details  Parse slice parameters which called by RenderPicture
     //!
+    //! \param    [in] mediaCtx
+    //!           Ddi media context
+    //!
     //! \param    [in] ptr
     //!           Pointer to buffer VAEncSliceParameterBufferH264
+    //!
+    //! \param    [in] numSlices
+    //!           Number of slices
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if successful, else fail reason
@@ -88,6 +98,31 @@ public:
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *ptr,
         uint32_t          numSlices);
+
+    //!
+    //! \brief    Find the NAL Unit Start Codes
+    //! \details  Find the NAL unit start codes offset and NAL Unit start codes 
+    //!           length in packed header NAL unit data buffer
+    //!
+    //! \param    [in] buf
+    //!           Pointer to packed header NAL unit data
+    //! \param    [in] size
+    //!           byte size of packed header NAL unit data
+    //! \param    [in] startCodesOffset
+    //!           Pointer to NAL unit start codes offset from the packed header
+    //!           NAL unit data buf
+    //! \param    [in] startCodesLength
+    //!           Pointer to NAL unit start codes length
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, 
+    //!           else VA_STATUS_ERROR_INVALID_BUFFER if start codes doesn't exit
+    //!
+    VAStatus FindNalUnitStartCodes(
+        uint8_t * buf,
+        uint32_t size,
+        uint32_t * startCodesOffset,
+        uint32_t * startCodesLength);
 
     //!
     //! \brief    Parse packedHeader paramters
@@ -177,12 +212,12 @@ protected:
     //! \brief    Get profile from va profile
     //! \details  Get profile from va profile
     //!
-    //! \return   CODECHAL_AVC_PROFILE_IDC
-    //!           CODECHAL_AVC_BASE_PROFILE, CODECHAL_AVC_MAIN_PROFILE
-    //!           or CODECHAL_AVC_HIGH_PROFILE, default is
-    //!           CODECHAL_AVC_MAIN_PROFILE
+    //! \return   CODEC_AVC_PROFILE_IDC
+    //!           CODEC_AVC_BASE_PROFILE, CODEC_AVC_MAIN_PROFILE
+    //!           or CODEC_AVC_HIGH_PROFILE, default is
+    //!           CODEC_AVC_MAIN_PROFILE
     //!
-    CODECHAL_AVC_PROFILE_IDC GetAVCProfileFromVAProfile();
+    CODEC_AVC_PROFILE_IDC GetAVCProfileFromVAProfile();
 
     //!
     //! \brief    Parse DirtyROI params
@@ -234,6 +269,19 @@ protected:
     //!           VA_STATUS_SUCCESS if successful, else fail reason
     //!
     VAStatus ParseMiscParamMaxFrameSize(void *data);
+
+    //!
+    //! \brief    Parse max frame size setting for multiple pass
+    //! \details  Parse VAEncMiscParameterBufferMultiPassFrameSize
+    //!           to PCODEC_AVC_ENCODE_PIC_PARAMS
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterBufferMultiPassFrameSize
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamMultiPassFrameSize(void *data);
 
     //!
     //! \brief    Parse sliceSizeInBytes for enabling VDENC dynamic slice
@@ -401,9 +449,21 @@ protected:
         bool                                picReference,
         bool                                sliceReference);
 
+    CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS *m_qcParams = nullptr;       //!< Quality control parameters.
+    CODECHAL_ENCODE_AVC_ROUNDING_PARAMS     *m_roundingParams = nullptr; //!< Rounding parameters.
+    uint8_t                                 m_weightScale4x4[6][16];     //!< Inverse quantization weight scale 4x4.
+    uint8_t                                 m_weightScale8x8[2][64];     //!< Inverse quantization weight scale 8x8.
+    uint16_t                                m_previousFRper100sec = 0;   //!< For saving FR value to be used in case of dynamic BRC reset.
+
 private:
+    //! \brief H.264 current picture parameter set id
+    uint8_t current_pic_parameter_set_id = 0;
+
+    //! \brief H.264 current sequence parameter set id
+    uint8_t current_seq_parameter_set_id = 0;
+
     //! \brief H.264 Inverse Quantization Matrix Buffer.
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
+    PCODEC_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
 
     //! \brief H.264 Inverse Quantization Weight Scale.
     PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS iqWeightScaleLists = nullptr;

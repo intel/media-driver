@@ -54,7 +54,6 @@ public:
 
     int32_t DestroySurface(CmSurface2D* &surface);
 
-
     int32_t CreateBuffer(uint32_t size, CmBuffer* &buffer);
 
     int32_t CreateBufferUP(uint32_t size,
@@ -116,8 +115,6 @@ protected:
                              VASurfaceID vaSurface,
                              CmSurface2D* &surface);
 
-    int32_t GetBytesPerPixel(CM_SURFACE_FORMAT format);
-
     int32_t Surface2DSanityCheck(uint32_t width,
                              uint32_t height,
                              CM_SURFACE_FORMAT format);
@@ -126,6 +123,11 @@ protected:
 
 private:
     CmDevice_RT *m_device;
+
+private:
+    CmSurfaceManager(const CmSurfaceManager &other);
+    CmSurfaceManager &operator=(const CmSurfaceManager &other);
+
 };
 
 #endif  // #ifndef CMRTLIB_LINUX_HARDWARE_CM_SURFACE_MANAGER_H_

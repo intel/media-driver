@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal.h  
-//! \brief      
+//! \file      renderhal.h 
+//! \brief 
 //!
 //!
 //! \file     renderhal.h
@@ -37,6 +37,9 @@
 
 #include "renderhal_dsh.h"
 #include "mhw_memory_pool.h"
+#include "cm_hal_hashtable.h"
+#include "media_perf_profiler.h"
+
 
 class XRenderHal_Platform_Interface;
 
@@ -72,6 +75,13 @@ class XRenderHal_Platform_Interface;
 
 #define MHW_RENDERHAL_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
+#define MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(_ptr)                                            \
+    MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
+#define MHW_RENDERHAL_CHK_NULL_RETURN(_ptr)                                            \
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
 
 #define MHW_RENDERHAL_UNUSED(x)                                                         \
     MOS_UNUSED(x)
@@ -260,20 +270,8 @@ class XRenderHal_Platform_Interface;
 //*-----------------------------------------------------------------------------
 //| MMIO register offsets used for the EU debug support
 //*-----------------------------------------------------------------------------
-#define INSTPM                          0x20c0
-#define INSTPM_GLOBAL_DEBUG_ENABLE      (1 << 4)
-#define INSTPM_SET_BITS_G8              (0x3 << 13)
 
-#define CS_DEBUG_MODE1                  0x20ec
-#define CS_DEBUG_MODE1_GLOBAL_DEBUG     (1 << 6)
 
-#define CS_DEBUG_MODE2                  0x20d8
-#define CS_DEBUG_MODE2_GLOBAL_DEBUG     (1 << 5)
-
-#define TD_CTL                          0xe400
-
-#define TD_CTL_FORCE_THREAD_BKPT_ENABLE             (1 << 4)
-#define TD_CTL_FORCE_EXT_EXCEPTION_ENABLE           (1 << 7)
 
 #define MEDIASTATE_AVS_MAX_DERIVATIVE_4_PIXELS  7
 #define MEDIASTATE_AVS_MAX_DERIVATIVE_8_PIXELS  20
@@ -470,8 +468,10 @@ typedef enum _RENDERHAL_COMPONENT
     RENDERHAL_COMPONENT_DNDI,
     RENDERHAL_COMPONENT_VEBOX,
     RENDERHAL_COMPONENT_CM,
+    RENDERHAL_COMPONENT_16ALIGN,
+    RENDERHAL_COMPONENT_FAST1TON,
     RENDERHAL_COMPONENT_COUNT_BASE,
-    RENDERHAL_COMPONENT_RESERVED_NUM = 13,
+    RENDERHAL_COMPONENT_RESERVED_NUM = 15,
     RENDERHAL_COMPONENT_COUNT
 } RENDERHAL_COMPONENT;
 
@@ -542,7 +542,7 @@ typedef struct _RENDERHAL_GET_SURFACE_INFO
 typedef struct _RENDERHAL_POWEROPTION
 {
     uint16_t nSlice;                      //!< Number of slices to use: 0 (default), 1, 2...
-    uint16_t nSubSlice;                   //!< Number of subslices to use: 0 (default), 1, 2... 
+    uint16_t nSubSlice;                   //!< Number of subslices to use: 0 (default), 1, 2...
     uint16_t nEU;                         //!< Number of EUs to use: 0 (default), 1, 2...
 } RENDERHAL_POWEROPTION, *PRENDERHAL_POWEROPTION;
 
@@ -568,7 +568,7 @@ typedef struct _RENDERHAL_SURFACE
     // Auxiliary VP parameters provided by client
     bool                        bDeinterlaceEnable; //!< Active Deinterlace messages
     bool                        bQueryVariance;     //!< enable variance query
-    bool                        bInterlacedScaling; //!< Interlaced scaling 
+    bool                        bInterlacedScaling; //!< Interlaced scaling
     void                        *pDeinterlaceParams; //!< Pointer to Deinterlacing parameters
     RENDERHAL_SAMPLE_TYPE       SampleType;         //!< Interlaced/Progressive sample type
     int32_t                     iPaletteID;         //!<Palette ID
@@ -652,7 +652,7 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_VYUY_ADV          ,
     RENDERHAL_PLANES_ARGB_ADV          ,
     RENDERHAL_PLANES_ABGR_ADV          ,
-	RENDERHAL_PLANES_AYUV_ADV	       ,
+    RENDERHAL_PLANES_AYUV_ADV           ,
     RENDERHAL_PLANES_STMM_ADV          ,
     RENDERHAL_PLANES_L8_ADV            ,
     RENDERHAL_PLANES_A8_ADV            ,
@@ -675,7 +675,7 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_A16B16G16R16      ,
     RENDERHAL_PLANES_A16B16G16R16_ADV  ,
     RENDERHAL_PLANES_R10G10B10A2       ,
-    RENDERHAL_PLANES_R10G10B10A2_ADV   , 
+    RENDERHAL_PLANES_R10G10B10A2_ADV   ,
     RENDERHAL_PLANES_B10G10R10A2       ,
     RENDERHAL_PLANES_L16               ,
     RENDERHAL_PLANES_NV21              ,
@@ -689,8 +689,8 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_IRW1              ,
     RENDERHAL_PLANES_IRW2              ,
     RENDERHAL_PLANES_IRW3              ,
-    RENDERHAL_PLANES_A16B16G16R16F     , 
-    RENDERHAL_PLANES_R16G16_UNORM      ,  
+    RENDERHAL_PLANES_A16B16G16R16F     ,
+    RENDERHAL_PLANES_R16G16_UNORM      ,
     RENDERHAL_PLANES_R16_FLOAT         ,
     RENDERHAL_PLANES_A16R16G16B16F     ,
     RENDERHAL_PLANES_YUY2_2PLANES      ,
@@ -698,11 +698,18 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_Y210_RT           ,
     RENDERHAL_PLANES_Y210              ,
     RENDERHAL_PLANES_Y210_1PLANE_ADV   ,
+    RENDERHAL_PLANES_R16G16_SINT       ,
+    RENDERHAL_PLANES_R24_UNORM_X8_TYPELESS,
+    RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS,
+    RENDERHAL_PLANES_P208,
+    RENDERHAL_PLANES_P208_1PLANE_ADV,
+    RENDERHAL_PLANES_Y416_RT,
+    RENDERHAL_PLANES_R32G32B32A32F,
 
     RENDERHAL_PLANES_DEFINITION_COUNT
 } RENDERHAL_PLANE_DEFINITION, *PRENDERHAL_PLANE_DEFINITION;
-                                                 
-typedef enum _RENDERHAL_SS_BOUNDARY                  
+
+typedef enum _RENDERHAL_SS_BOUNDARY
 {
     RENDERHAL_SS_BOUNDARY_SRCRECT = 0,                                                    // use for sources read via sampler
     RENDERHAL_SS_BOUNDARY_DSTRECT ,                                                       // use for RT by default
@@ -765,10 +772,9 @@ typedef struct _RENDERHAL_KRN_ALLOCATION
     PRENDERHAL_KRN_ALLOCATION    pPrev;                                         // Prev kernel in list
     PRENDERHAL_KRN_ALLOC_LIST    pList;                                         // Points to current list, regardless of flag
     uint32_t                     Reserved    : 16;                              // Reserved    - used for debugging
-    uint32_t                                 : 16;                              // 
+    uint32_t                                 : 16;                              //
     char                         *szKernelName;                                  // Kernel name - used for debugging
 } RENDERHAL_KRN_ALLOCATION, *PRENDERHAL_KRN_ALLOCATION;
-
 
 typedef struct _RENDERHAL_KRN_ALLOC_LIST
 {
@@ -806,6 +812,13 @@ typedef struct _RENDERHAL_MEDIA_STATE_LIST
     PRENDERHAL_MEDIA_STATE  pTail;                                              // Tail of the list
     int32_t                 iCount;                                             // Number of objects
 } RENDERHAL_MEDIA_STATE_LIST, *PRENDERHAL_MEDIA_STATE_LIST;
+
+struct RENDERHAL_TR_RESOURCE {
+    MOS_RESOURCE    osResource;
+    bool            locked;
+    uint32_t        *data;
+    uint32_t        currentTrackerId;
+};
 
 typedef struct _RENDERHAL_STATE_HEAP_SETTINGS
 {
@@ -878,7 +891,7 @@ typedef struct _RENDERHAL_STATE_HEAP
 
     uint32_t                dwOffsetSampler;                                    // Offset to Media Samplers from Media State Base
     uint32_t                dwSizeSampler;                                      // Size of Samplers
-    
+
     uint32_t                dwOffsetSamplerIndirect;                            // Offset to Media Samplers Indirect State from Media State Base
     uint32_t                dwSizeSamplerIndirect;                              // Size of Samplers Indirect State
 
@@ -950,8 +963,8 @@ typedef struct _RENDERHAL_STATE_HEAP
     PMHW_MEMORY_POOL               pKernelAllocMemPool;                         // Kernel states memory pool (mallocs)
     RENDERHAL_KRN_ALLOC_LIST       KernelAllocationPool;                        // Pool of kernel allocation objects
     RENDERHAL_KRN_ALLOC_LIST       KernelsSubmitted;                            // Kernel submission list
-    RENDERHAL_KRN_ALLOC_LIST       KernelsAllocated;                            // kernel allocation list (kernels in ISH not currently being executed)
-    RENDERHAL_COALESCED_HASH_TABLE KernelHashTable;                             // Kernel hash table for faster kernel search
+    RENDERHAL_KRN_ALLOC_LIST       KernelsAllocated;                            // kernel allocation list (kernels in ISH not currently being executed)                         
+    CmHashTable                    kernelHashTable;                             // Kernel hash table for faster kernel search
 
 } RENDERHAL_STATE_HEAP, *PRENDERHAL_STATE_HEAP;
 
@@ -993,7 +1006,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        bVertStride               : 1;              // VL Stride
     uint32_t                        bVertStrideOffs           : 1;              // VL Stride Offset
     uint32_t                        bWidthInDword_Y           : 1;              // Width in dwords
-    uint32_t                        bWidthInDword_UV          : 1;              
+    uint32_t                        bWidthInDword_UV          : 1;
     uint32_t                        bAVS                      : 1;              // AVS scaling
     RENDERHAL_SS_BOUNDARY           Boundary                  : 3;              // boundary to be aligned to rcSrc/rcDst/actual wd/ht
     uint32_t                        bWidth16Align             : 1;              // When VDI Walker is enabled, input surface width must be 16 aligned
@@ -1007,7 +1020,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        bForce3DLUTR16G16         : 1;              // Flag for 3D LUT source and targetsurface
     uint32_t                        bChromasiting             : 1;              // Flag for chromasiting use
     uint32_t                        bVmeUse                   : 1;              // Flag for VME use
-    uint32_t                                                  : 5;              
+    uint32_t                                                  : 5;
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
 } RENDERHAL_SURFACE_STATE_PARAMS, *PRENDERHAL_SURFACE_STATE_PARAMS;
 
@@ -1049,11 +1062,12 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
 //!
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS
 {
-    bool                            bMmcEnabled;
-    bool                            bEnableMediaFrameTracking;
-    uint32_t                        dwMediaFrameTrackingTag;
-    uint32_t                        dwMediaFrameTrackingAddrOffset;
-    PMOS_RESOURCE                   presMediaFrameTrackingSurface;
+    bool                            bMmcEnabled = 0;
+    bool                            bEnableMediaFrameTracking = 0;
+    uint32_t                        dwMediaFrameTrackingTag = 0;
+    uint32_t                        dwMediaFrameTrackingAddrOffset = 0;
+    PMOS_RESOURCE                   presMediaFrameTrackingSurface = nullptr;
+    virtual ~_RENDERHAL_GENERIC_PROLOG_PARAMS() {}
 } RENDERHAL_GENERIC_PROLOG_PARAMS, *PRENDERHAL_GENERIC_PROLOG_PARAMS;
 
 //!
@@ -1081,6 +1095,28 @@ typedef struct _RENDERHAL_L3_CACHE_SETTINGS
     uint32_t dwSqcReg4;
     uint32_t dwLra1Reg;
 } RENDERHAL_L3_CACHE_SETTINGS, *PRENDERHAL_L3_CACHE_SETTINGS;
+
+//!
+// \brief   Settings of Predication
+//!
+typedef struct _RENDERHAL_PREDICATION_SETTINGS
+{
+    MOS_RESOURCE            *pPredicationResource;    // Resource for predication
+    MOS_RESOURCE            *ptempPredicationBuffer;  // Additional temp buffer for Predication due to the limitation of Cond_BB_End
+    uint64_t                predicationResOffset;     // Offset for Predication resource
+    bool                    predicationNotEqualZero;  // Predication mode
+    bool                    predicationEnabled;       // Indicates whether or not Predication is enabled
+} RENDERHAL_PREDICATION_SETTINGS;
+
+//!
+// \brief   Settings of SetMarker
+//!
+typedef struct _RENDERHAL_SETMARKER_SETTINGS
+{
+    MOS_RESOURCE            *pSetMarkerResource;      // Resource for SetMarker
+    bool                    setMarkerEnabled;         // Indicates whether or not SetMarker is enabled
+    uint32_t                setMarkerNumTs;           // Number Timestamp for SetMarker
+} RENDERHAL_SETMARKER_SETTINGS;
 
 typedef MhwMiInterface *PMHW_MI_INTERFACE;
 //!
@@ -1119,7 +1155,7 @@ typedef struct _RENDERHAL_INTERFACE
     PMHW_RENDER_ENGINE_CAPS       pHwCaps;                                      // HW Capabilities
     PMHW_RENDER_STATE_SIZES       pHwSizes;                                     // Sizes of HW commands/states
     RENDERHAL_STATE_HEAP_SETTINGS StateHeapSettings;                            // State Heap Settings
-    RENDERHAL_DYN_HEAP_SETTINGS   DynamicHeapSettings;                          // Dynamic State Heap Settings                                   
+    RENDERHAL_DYN_HEAP_SETTINGS   DynamicHeapSettings;                          // Dynamic State Heap Settings
 
     // MHW parameters
     MHW_STATE_BASE_ADDR_PARAMS   StateBaseAddressParams;
@@ -1134,16 +1170,17 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bEnableYV12SinglePass;                          // Enabled YV12 single pass in 3D sampler
     bool                        bEnableP010SinglePass;                          // Enabled P010 single pass in sampler
     bool                        bSIPKernel;                                     // SIP loaded
-	bool                        bCSRKernel;                                     // CSR loaded
+    bool                        bCSRKernel;                                     // CSR loaded
     bool                        bTurboMode;                                     // Turbo mode info to pass in cmdBuf
     bool                        bVDIWalker;                                     // VDI Walker info from Regkey
     bool                        bRequestSingleSlice;                            // Single Slice Request flag
     bool                        bEUSaturationNoSSD;                             // No slice shutdown, must request 2 slices [CM EU saturation on]
     bool                        bEnableGpgpuMidBatchPreEmption;                 // Middle Batch Buffer Preemption
     bool                        bEnableGpgpuMidThreadPreEmption;                // Middle Thread Preemption
+    bool                        bComputeContextInUse;                           // Compute Context use for media
 
     uint32_t                    dwMaskCrsThdConDataRdLn;                        // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
-    uint32_t                    dwMinNumberThreadsInGroup;                      // Unifies pfnSetupInterfaceDescriptor for g75,g8,...   
+    uint32_t                    dwMinNumberThreadsInGroup;                      // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
     uint32_t                    dwCurbeBlockAlign;                              // Unifies pfnLoadCurbeData - Curbe Block Alignment
     uint32_t                    dwScratchSpaceMaxThreads;                       // Unifies pfnGetScratchSpaceSize - Threads used for scratch space calculation
     uint32_t                    dwSamplerAvsIncrement;                          // Unifies pfnSetSamplerStates
@@ -1182,12 +1219,37 @@ typedef struct _RENDERHAL_INTERFACE
     // Indicates whether it's MDF load or not
     bool                        IsMDFLoad;
 
-    bool                        bDynamicStateHeap;		//!< Indicates that DSH is in use
+    bool                        bDynamicStateHeap;        //!< Indicates that DSH is in use
+
+
+    RENDERHAL_TR_RESOURCE       trackerResource;        // Resource to mark command buffer completion
+    RENDERHAL_TR_RESOURCE       veBoxTrackerRes;        // Resource to mark command buffer completion
+
+    HeapManager                 *dgsheapManager;        // Dynamic general state heap manager
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Dump state for VP debugging
     void                        *pStateDumper;
 #endif
+
+    // Predication
+    RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
+    MOS_RESOURCE                   PredicationBuffer;   //!< Predication buffer
+
+    // CSC Coefficient
+    bool                           bCmfcCoeffUpdate;    //!< CMFC CSC Coefficient Surface update flag
+    int32_t                        iKernelAllocationID; //!< CMFC CSC Kernel Allocation ID
+    PMOS_RESOURCE                  pCmfcCoeffSurface;   //!< CMFC CSC Coefficient Surface
+
+    // SetMarker
+    RENDERHAL_SETMARKER_SETTINGS SetMarkerParams;   //!< SetMarker
+
+    // Indicates whether it's AVS or not
+    bool                        bIsAVS;
+
+    bool                        isMMCEnabled;
+
+    MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
 
     //---------------------------
     // HW interface functions
@@ -1262,7 +1324,11 @@ typedef struct _RENDERHAL_INTERFACE
     uint32_t (* pfnSetSurfacesPerBT) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 uint32_t                        dwSurfacesPerBT);
- 
+
+    uint16_t (* pfnCalculateYOffset) (
+                PMOS_INTERFACE                  pOsInterface, 
+                PMOS_RESOURCE                   pOsResource);
+
     MOS_STATUS (* pfnAssignBindingTable) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 int32_t                         *piBindingTable);
@@ -1280,9 +1346,8 @@ typedef struct _RENDERHAL_INTERFACE
     //---------------------------
     // State Setup - HW + OS Specific
     //---------------------------
-    MOS_STATUS (* pfnSetupSurfaceStateOs) (
+    MOS_STATUS (* pfnSetupSurfaceStatesOs) (
                 PRENDERHAL_INTERFACE            pRenderHal,
-                PRENDERHAL_SURFACE              pRenderHalSurface,
                 PRENDERHAL_SURFACE_STATE_PARAMS pParams,
                 PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceStateEntry);
 
@@ -1399,9 +1464,19 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE        pRenderHal,
                 int32_t                     iKernelAllocationIndex);
 
+    MOS_STATUS (* pfnUnregisterKernel) (
+                PRENDERHAL_INTERFACE        pRenderHal,
+                PRENDERHAL_KRN_ALLOCATION   pKernelAllocation);
+
     //---------------------------
     // New Dynamic State Heap interfaces
     //---------------------------
+    MOS_STATUS(*pfnAssignSpaceInStateHeap)(
+        RENDERHAL_TR_RESOURCE *trackerInfo,
+        HeapManager           *heapManager,
+        MemoryBlock           *block,
+        uint32_t               size);
+
     PRENDERHAL_MEDIA_STATE (* pfnAssignDynamicState) (
                 PRENDERHAL_INTERFACE                  pRenderHal,
                 PRENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS pParams,
@@ -1486,13 +1561,9 @@ typedef struct _RENDERHAL_INTERFACE
                 uint32_t                    dwMaximumNumberofThreads,
                 uint32_t                    dwCURBEAllocationSize,
                 uint32_t                    dwURBEntryAllocationSize,
-                PMHW_VFE_SCOREBOARD         pScoreboardParams,
-                bool                        bGpGpuWalkerMode);
+                PMHW_VFE_SCOREBOARD         pScoreboardParams);
 
     bool (* pfnGetMediaWalkerStatus) (
-                PRENDERHAL_INTERFACE        pRenderHal);
-
-    MHW_WALKER_MODE (* pfnSelectWalkerStateMode)(
                 PRENDERHAL_INTERFACE        pRenderHal);
 
     //---------------------------
@@ -1521,29 +1592,26 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE        pRenderHal,
                 PMOS_COMMAND_BUFFER         pCmdBuffer);
 
-    // Frame tracking
-    uint32_t   (* pfnGetNextFrameId) (
+    MOS_STATUS (*pfnSendCscCoeffSurface) (
                 PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext);
+                PMOS_COMMAND_BUFFER         pCmdBuffer,
+                PMOS_RESOURCE               presCscCoeff,
+                Kdll_CacheEntry             *pKernelEntry);
 
-    void       (* pfnIncNextFrameId) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext);
+    void       (* pfnIncTrackerId) (
+                PRENDERHAL_INTERFACE        renderHal);
 
-    uint32_t   (* pfnGetCurrentFrameId) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext);
+    uint32_t   (* pfnGetNextTrackerId) (
+                PRENDERHAL_INTERFACE        renderHal);
 
-    bool       (* pfnWaitFrameId) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext,
-                uint32_t                    dwFrameId);
+    uint32_t   (* pfnGetCurrentTrackerId) (
+                PRENDERHAL_INTERFACE        renderHal);
 
-    uint32_t   (* pfnEnableFrameTracking) (
-                PRENDERHAL_INTERFACE             pRenderHal,
-                MOS_GPU_CONTEXT                  GpuContext,
-                RENDERHAL_GENERIC_PROLOG_PARAMS  *pPrologParams,
-                PMOS_RESOURCE                    pOsResource);
+    void       (* pfnSetupPrologParams) (
+                PRENDERHAL_INTERFACE             renderHal,
+                RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
+                PMOS_RESOURCE                    osResource,
+                uint32_t                         tag);
 
     // Samplers and other states
     MOS_STATUS (*pfnGetSamplerOffsetAndPtr) (
@@ -1628,9 +1696,6 @@ typedef struct _RENDERHAL_INTERFACE
                 PMOS_COMMAND_BUFFER         pCmdBuffer,                                             // [in] Command Buffer
                 bool                        bStartTime);                                            // [in] Start Timestamp flag
 
-    //---------------------------
-    // Work Around Function
-    //---------------------------
     uint32_t (* pfnGetScratchSpaceSize)(
                PRENDERHAL_INTERFACE         pRenderHal,                                             // [in] Hardware interface
                uint32_t                     iPerThreadScratchSpaceSize);                            // [in] Per thread scrach space size

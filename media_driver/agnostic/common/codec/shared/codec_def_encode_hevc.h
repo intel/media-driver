@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@
 #define HEVC_NUM_MAX_TILE_ROW               22
 #define HEVC_NUM_MAX_TILE_COLUMN            20
 #define CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6  600
+#define CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5  200
 #define CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC 8
 #define CODECHAL_NUM_INTERNAL_NV12_RT_HEVC  16
 #define CODECHAL_ENCODE_HEVC_MAX_NUM_ROI    16
@@ -45,16 +46,31 @@
 #define ENCODE_VDENC_HEVC_MAX_STREAMINROI_G10   3
 #define ENCODE_VDENC_HEVC_MAX_ROI_NUMBER_G10    8
 #define ENCODE_VDENC_HEVC_MAX_DIRTYRECT_G10     256
-#define ENCODE_VDENC_HEVC_ROI_BLOCKSIZE_G10     2        // 0:8x8, 1:16x16, 2:32x32, 3:64x64 
-#define ENCODE_VDENC_HEVC_MIN_ROI_DELTA_QP_G10  -8 
+#define ENCODE_VDENC_HEVC_ROI_BLOCKSIZE_G10     2        // 0:8x8, 1:16x16, 2:32x32, 3:64x64
+#define ENCODE_VDENC_HEVC_MIN_ROI_DELTA_QP_G10  -8
 #define ENCODE_VDENC_HEVC_MAX_ROI_DELTA_QP_G10  7        // Max delta QP for VDEnc ROI
-#define ENCODE_VDENC_HEVC_MAX_SLICE_NUM         201
+#define ENCODE_VDENC_HEVC_PADDING_DW_SIZE       8
 
 // HEVC DP
 #define ENCODE_DP_HEVC_NUM_MAX_VME_L0_REF_G9  3
 #define ENCODE_DP_HEVC_NUM_MAX_VME_L1_REF_G9  1
 #define ENCODE_DP_HEVC_MAX_NUM_ROI            16
+#define ENCODE_DP_HEVC_ROI_BLOCK_SIZE         1     //From DDI, 0:8x8, 1:16x16, 2:32x32, 3:64x64
+#define ENCODE_DP_HEVC_ROI_BLOCK_Width        16    
+#define ENCODE_DP_HEVC_ROI_BLOCK_HEIGHT       16
 
+typedef enum
+{
+    ENCODE_HEVC_BIT_DEPTH_8     = 0,
+    ENCODE_HEVC_BIT_DEPTH_10    = 1,
+    ENCODE_HEVC_BIT_DEPTH_12    = 2,
+    ENCODE_HEVC_BIT_DEPTH_16    = 3,
+} ENCODE_HEVC_BIT_DEPTH;
+
+//!
+//! \enum HEVC_NAL_UNIT_TYPE
+//! \brief HEVC NAL unit type
+//!
 typedef enum
 {
     HEVC_NAL_UT_TRAIL_N           = 0x00, //!< Coded slice segment of a non-TSA, non-STSA trailing picture - slice_segment_layer_rbsp, VLC
@@ -105,7 +121,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
 {
     /*! \brief Plus 1 specifies the width of each encoded picture in units of minimum coding block size.
     *
-    *   The encoded picture width in units of luma samples equals (wFrameWidthInMinCbMinus1 + 1) * (1 << (log2_min_coding_block_size_minus3 + 3)) 
+    *   The encoded picture width in units of luma samples equals (wFrameWidthInMinCbMinus1 + 1) * (1 << (log2_min_coding_block_size_minus3 + 3))
     *   Programming Note: HW requres surface allocation Y offset of chroma plain to be multiple of 32 pixels. And HEVC spec requires frame resolution to be multiple of minimal CU (could be 8 pixels) horizontally and vertically. Framework needs to pad accordingly. If source resolution is different from what is actually encoded (padding happens), cropping information should be provided in the SPS header accordingly.
     */
     uint16_t      wFrameWidthInMinCbMinus1;
@@ -172,21 +188,21 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *   This setting is only valid if RateControlMethod is AVBR or VBR and the current picture is an I picture. If the frame resolution is changed, it should be set with IDR picture. It should not be set when RateControlMethod is CBR or CQP. The following table indicates which BRC parameters can be changed via a BRC reset.
             *
             *  \n BRC Parameters       Changes allowed via reset
-            *  \n Profile & Level    	        Yes
-            *  \n UserMaxFrameSize    	        Yes
-            *  \n InitVBVBufferFullnessInBit	No
-            *  \n TargetBitRate                 Yes 
+            *  \n Profile & Level               Yes
+            *  \n UserMaxFrameSize              Yes
+            *  \n InitVBVBufferFullnessInBit    No
+            *  \n TargetBitRate                 Yes
             *  \n VBVBufferSizeInBit            No
-            *  \n MaxBitRate                    Yes 
-            *  \n FramesPer100Sec *  	        No
+            *  \n MaxBitRate                    Yes
+            *  \n FramesPer100Sec *             No
             *  \n RateControlMethod             No
-            *  \n GopPicSize	                No
-            *  \n GopRefDist                	No
-            *  \n GopOptFlag	                Yes
+            *  \n GopPicSize                    No
+            *  \n GopRefDist                    No
+            *  \n GopOptFlag                    Yes
             *  \n FrameWidth                    No
-            *  \n FrameHeight         	        No
-            *  \n AVBRAccuracy      	        No
-            *  \n AVBRConvergence     	        No
+            *  \n FrameHeight                   No
+            *  \n AVBRAccuracy                  No
+            *  \n AVBRConvergence               No
             *  \n Note: when resolution (FrameWidth and/or FrameHeight) changes, framework should re-start a new bit stream and not using BRC reset.
             */
             uint32_t        bResetBRC           : 1;
@@ -245,10 +261,10 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             uint32_t        SliceSizeControl    : 1;
             /*! \brief Specifies input source format
             *
-            *    \n 0:	YUV420
-            *    \n 1:	YUV422
-            *    \n 2:	YUV444
-            *    \n 3:	RGB
+            *    \n 0:    YUV420
+            *    \n 1:    YUV422
+            *    \n 2:    YUV444
+            *    \n 3:    RGB
             *    \n Note1: Encoder cannot do up-sampling. For example, if source format is YUV422, the encoder can generates bit stream of 420 or 422 only. It cannot generate YUV444 format. But it may generates RGB format.
             *    Note2: For RGB, the actual input source format is also determined by flag DisplayFormatSwizzle (formats below is in MSB->LSB order).
             *        \n - If DisplayFromatSwizzle is 0, and 8b intut is specified the format is A8B8G8R8, if 10 bit is specified the format is A2B10G10R10
@@ -257,10 +273,10 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             uint32_t        SourceFormat        : 2;
             /*! \brief Specifies input source bit depth.
             *
-            *    \n 0:	8b
-            *    \n 1:	10b
-            *    \n 2:	12b
-            *    \n 3:	16b
+            *    \n 0:    8b
+            *    \n 1:    10b
+            *    \n 2:    12b
+            *    \n 3:    16b
             *    \n Note: Encoder cannot do up-sampling. For example, if source bit depth is 10b, the encoder can generates bit stream of 8b or 10b only, and that it cannot generate 12b format. It is subjected to the limit set by MaxEncodedBitDepth.
             */
             uint32_t        SourceBitDepth      : 2;
@@ -278,27 +294,52 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1 : ROI[] value is in delta QP.
             *        \n Note: ROIValueInDeltaQP must be set to 1 for CQP. Currently only ROIValueInDeltaQP equal 1 is validated.
             */
-            uint32_t        ROIValueInDeltaQP   : 1;
-            uint32_t                            : 11;
+            uint32_t        ROIValueInDeltaQP        : 1;
+            /*! \brief Indicates block level absolute QP value is provided.
+            *
+            *        \n - 0 : block level absolute QP value is not provided.
+            *        \n - 1 : block level absolute QP value is provided.
+            */
+            uint32_t        BlockQPforNonRectROI     : 1;
+            /*! \brief Enables tile based encoding.
+            *
+            *        \n - 0 : tile based encoding disabled.
+            *        \n - 1 : tile based encoding enabled.
+            */
+            uint32_t        EnableTileBasedEncode    : 1;
+            /*! \brief Indicates if BRC can use larger P/B frame size than UserMaxPBFrameSize 
+            *
+            *        \n - 0 : BRC can not use larger P/B frame size  than UserMaxPBFrameSize.
+            *        \n - 1 : BRC can use larger P/B frame size  than UserMaxPBFrameSize.
+            */
+            uint32_t        bAutoMaxPBFrameSizeForSceneChange : 1;
+            /*! \brief Enables streaming buffer in LLC
+            *
+            *        \n - 0 : streaming buffer by LLC is disabled.
+            *        \n - 1 : streaming buffer by LLC is enabled.
+            */
+            uint32_t        EnableStreamingBufferLLC : 1;
+            /*! \brief Enables streaming buffer in DDR
+            *
+            *        \n - 0 : streaming buffer by DDR is disabled.
+            *        \n - 1 : streaming buffer by DDR is enabled.
+            */
+            uint32_t        EnableStreamingBufferDDR : 1;
+            uint32_t        ReservedBits             : 6;
         };
         uint32_t    SeqFlags;
     };
 
-    /*! \brief Host defines the maximum frame size in bytes.
+    /*! \brief Framework defined maximum frame size in bytes for I frames.
     *
-    *    UserMaxFrameSize is applicable for all RateControlMethod values except CQP. It guarantees that the compressed frame size will be less than this value. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxFrameSize is set to 0.
+    *    Applicable for all RateControlMethod values except CQP; guarantees that the compressed frame size will be less than this value. If UserMaxPBFrameSize equals 0, UserMaxIFrameSize will be used for all frame types. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxIFrameSize and UserMaxPBFrameSize are both set to 0.
     */
-    uint32_t  UserMaxFrameSize;
-    /*! \brief Percentage of the required accuracy for AVBR.
+    uint32_t            UserMaxIFrameSize;
+    /*! \brief Framework defined maximum frame size in bytes for P & B frames.
     *
-    *    It is the target percentage multiplied by 10, e.g. 88 means 8.8%. The minimum value is 5 (0.5%).
+    *    Applicable for all RateControlMethod values except CQP; guarantees that the compressed frame size will be less than this value. If UserMaxPBFrameSize equals 0, UserMaxIFrameSize will be used for all frame types. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxIFrameSize and UserMaxPBFrameSize are both set to 0.
     */
-    uint16_t  AVBRAccuracy;
-    /*! \brief Number of frames for AVBR to converge.
-    *
-    *    Value is multiple of 100. The minimum value is 100. Default value is 200 frames.
-    */
-    uint16_t  AVBRConvergence;
+    uint32_t            UserMaxPBFrameSize;
     /*! \brief For Constant Rate Factor BRC method, it indicates the measure of quality.
     *
     *    The range is from 1 – 51, with 1 being the best quality.
@@ -328,7 +369,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             */
             uint32_t    pcm_enabled_flag                    : 1;
             uint32_t    pcm_loop_filter_disable_flag        : 1;    //!< Same as HEVC syntax element
-            uint32_t    tiles_fixed_structure_flag          : 1;    //!< Same as HEVC syntax element
+            uint32_t    reserved                            : 1;
             uint32_t    chroma_format_idc                   : 2;    //!< Same as HEVC syntax element
             uint32_t    separate_colour_plane_flag          : 1;    //!< Same as HEVC syntax element
             uint32_t                                        : 21;
@@ -412,12 +453,12 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     *   It affects the BRC algorithm used, but may or may not have an effect based on the combination of other BRC parameters.  Only valid when the driver reports support for FrameSizeToleranceSupport.
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
-	
+
     uint32_t palette_mode_enabled_flag;
     uint32_t motion_vector_resolution_control_idc;
     uint32_t intra_boundary_filtering_disabled_flag;
-    uint8_t	 palette_max_size;
-    uint8_t	 delta_palette_max_predictor_size;
+    uint8_t     palette_max_size;
+    uint8_t     delta_palette_max_predictor_size;
 } CODEC_HEVC_ENCODE_SEQUENCE_PARAMS, *PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS;
 
 /*! \brief Provides the picture-level parameters of a compressed picture for HEVC decoding.
@@ -432,9 +473,9 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     /*! \brief Specifies the uncompressed surface of the reconstructed frame for the current encoded picture.
     *
     *    The PicFlags regarding reference usage are expected to be valid at this time.
-    *    The recon surface may be of different format and different bit depth from that of source. 
-    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8 
-    *    and bit_depth_chroma_minus8 in SPS data structure. 
+    *    The recon surface may be of different format and different bit depth from that of source.
+    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8
+    *    and bit_depth_chroma_minus8 in SPS data structure.
     */
     CODEC_PICTURE           CurrReconstructedPic;
     /*! \brief Specifies the collocated reference picture’s index into the RefFrameList[].
@@ -465,6 +506,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    \n For B1 and B2 explanation refer to NumOfBInGop[]
     */
     uint8_t                 CodingType;
+    uint8_t                 FrameLevel;
     uint16_t                NumSlices;
 
     union
@@ -574,7 +616,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *
     *    If the value is set 0, no bit size limit is checked.
     */
-    uint16_t                LcuMaxBitsizeAllowed;
+    uint32_t                LcuMaxBitsizeAllowed;
     /*! \brief Indicates the column or row location in block unit which is dictated by IntraRefreshBlockUnitSize from encoding capability.
     *
     *    Ignored if bEnableRollingIntraRefresh is 0.
@@ -627,9 +669,10 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     CODEC_ROI               ROI[16];
     /*! \brief Distinct delta QP values assigned to the ROI
     *
-    *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp]. 
+    *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp].
     */
     int8_t                  ROIDistinctDeltaQp[8];
+    uint32_t                RollingIntraReferenceLocation[16];
     /*! \brief Dictates the value of delta QP for any ROI should be within [MinDeltaQp..MaxDeltaQp]
     *
     *    Applies only to BRC case.
@@ -640,6 +683,20 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    Applies only to BRC case.
     */
     char                    MinDeltaQp;
+    
+    union
+    {
+        struct
+        {
+            uint32_t        EnableCustomRoudingIntra : 1;
+            uint32_t        RoundingOffsetIntra : 7;
+            uint32_t        EnableCustomRoudingInter : 1;
+            uint32_t        RoundingOffsetInter : 7;
+            uint32_t        reservedbits : 16;
+        } fields;
+        
+        uint32_t            value;
+    } CustomRoundingOffsetsParams;
 
     /*! \brief Specifies skip frames.
     *
@@ -712,17 +769,17 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     */
     uint32_t                bScreenContent;
 
-	/*! \brief Picture parameter, Same as syntax element.
+    /*! \brief Picture parameter, Same as syntax element.
     *
     */
-    uint32_t		        pps_curr_pic_ref_enabled_flag;
-	uint32_t		        residual_adaptive_colour_transform_enabled_flag;
-	uint32_t		        pps_slice_act_qp_offsets_present_flag;
-	uint8_t	                PredictorPaletteSize;
-	uint16_t		        PredictorPaletteEntries[3][128];
-	char		            pps_act_y_qp_offset_plus5;
-	char		            pps_act_cb_qp_offset_plus5;
-	char		            pps_act_cr_qp_offset_plus3;
+    uint32_t                pps_curr_pic_ref_enabled_flag;
+    uint32_t                residual_adaptive_colour_transform_enabled_flag;
+    uint32_t                pps_slice_act_qp_offsets_present_flag;
+    uint8_t                 PredictorPaletteSize;
+    uint16_t                PredictorPaletteEntries[3][128];
+    char                    pps_act_y_qp_offset_plus5;
+    char                    pps_act_cb_qp_offset_plus5;
+    char                    pps_act_cr_qp_offset_plus3;
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.
@@ -883,6 +940,10 @@ typedef struct _CODEC_HEVC_ENCODE_SLICE_PARAMS
     uint32_t            SliceSAOFlagBitOffset;
 } CODEC_HEVC_ENCODE_SLICE_PARAMS, *PCODEC_HEVC_ENCODE_SLICE_PARAMS;
 
+//!
+//! \struct    CodecEncodeHevcFeiPicParams
+//! \brief     Codec encode HEVC FEI pic params
+//!
 struct CodecEncodeHevcFeiPicParams
 {
     MOS_RESOURCE                resCTBCtrl;              // input CTB control buffer
@@ -890,7 +951,7 @@ struct CodecEncodeHevcFeiPicParams
     MOS_RESOURCE                resCURecord;             // ENC CU record output buffer or PAK CU record input buffer
     MOS_RESOURCE                resMVPredictor;          // input external MV predictor surface
     MOS_RESOURCE                resCTBQp;                // input QP per CTB surface
-    MOS_RESOURCE                resDistortion;           // ENC or ENC_PAK Distortion output surface 
+    MOS_RESOURCE                resDistortion;           // ENC or ENC_PAK Distortion output surface
 
     uint32_t                    NumMVPredictorsL0;
     uint32_t                    NumMVPredictorsL1;
@@ -919,6 +980,7 @@ struct CodecEncodeHevcFeiPicParams
     uint32_t                    RefHeight;
     uint32_t                    SearchWindow;
     uint32_t                    MaxNumIMESearchCenter;
+    uint32_t                    FastIntraMode;
     uint32_t                    NumConcurrentEncFramePartition;
 
     /** \brief add for mutlple pass pak */

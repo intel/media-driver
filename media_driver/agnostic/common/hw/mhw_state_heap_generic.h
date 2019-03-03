@@ -39,7 +39,7 @@ public:
     MHW_STATE_HEAP_INTERFACE_GENERIC(
         PMOS_INTERFACE      pInputOsInterface,
         int8_t              bDynamicMode) : XMHW_STATE_HEAP_INTERFACE(pInputOsInterface, bDynamicMode) {}
-    
+
     virtual ~MHW_STATE_HEAP_INTERFACE_GENERIC() { MHW_FUNCTION_ENTER; }
 
     MOS_STATUS SetBindingTable(PMHW_KERNEL_STATE  pKernelState)
@@ -49,9 +49,10 @@ public:
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(pKernelState);
+        MHW_MI_CHK_NULL(m_pOsInterface);
 
-        uint8_t             *pIndirectState;
-        uint32_t            uiIndirectStateSize, uiIndirectStateOffset;
+        uint8_t             *pIndirectState = nullptr;
+        uint32_t            uiIndirectStateSize = 0, uiIndirectStateOffset = 0;
         MHW_MI_CHK_STATUS(m_pOsInterface->pfnGetIndirectStatePointer(m_pOsInterface, &pIndirectState));
         MHW_MI_CHK_STATUS(m_pOsInterface->pfnGetIndirectState(m_pOsInterface, &uiIndirectStateOffset, &uiIndirectStateSize));
 
@@ -63,11 +64,16 @@ public:
 
         uint32_t ui32BindingTableSize = pKernelState->dwSshSize;
         uint8_t *pBindingTablePtr     = (uint8_t*)(pIndirectState + pKernelState->dwSshOffset);
-        MOS_ZeroMemory(pBindingTablePtr, ui32BindingTableSize);
+        if (pBindingTablePtr != nullptr)
+        {
+            MOS_ZeroMemory(pBindingTablePtr, ui32BindingTableSize);
+        }
 
         typename            TCmds::BINDING_TABLE_STATE_CMD Cmd;
         for (uint32_t i = 0; i < (uint32_t)pKernelState->KernelParams.iBTCount; i++)
         {
+            MHW_MI_CHK_NULL(pBindingTablePtr);
+
             Cmd.DW0.SurfaceStatePointer =
                 ((pKernelState->dwSshOffset + pKernelState->dwBindingTableSize) +
                 (i * m_dwMaxSurfaceStateSize)) >>
@@ -83,12 +89,15 @@ public:
     MOS_STATUS SetBindingTableEntry(PMHW_BINDING_TABLE_PARAMS pParams)
     {
         MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
+        MHW_MI_CHK_NULL(pParams);
+
         uint8_t*     pBindingTablePtr = pParams->pBindingTableEntry;
-        
+        MHW_MI_CHK_NULL(pBindingTablePtr);
+
         //Init Cmds
         typename     TCmds::BINDING_TABLE_STATE_CMD Cmd;
         Cmd.DW0.SurfaceStatePointer = pParams->dwSurfaceStateOffset >> m_mhwBindingTableSurfaceShift;
-        
+
         //Copy to binding table Entry
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(pBindingTablePtr, Cmd.byteSize, &Cmd, Cmd.byteSize));
 
@@ -109,14 +118,16 @@ public:
             return MOS_STATUS_SUCCESS;
         }
 
-        typename TCmds::BINDING_TABLE_STATE_CMD *pBtSrc =  
+        typename TCmds::BINDING_TABLE_STATE_CMD *pBtSrc =
             (typename TCmds::BINDING_TABLE_STATE_CMD *)pParams->pBindingTableSource ;
-        
-        typename TCmds::BINDING_TABLE_STATE_CMD *pBtDst =  
+        MHW_MI_CHK_NULL(pBtSrc);
+
+        typename TCmds::BINDING_TABLE_STATE_CMD *pBtDst =
             (typename TCmds::BINDING_TABLE_STATE_CMD *)pParams->pBindingTableTarget;
+        MHW_MI_CHK_NULL(pBtDst);
         
         uint32_t CmdByteSize = TCmds::BINDING_TABLE_STATE_CMD::byteSize;
-        
+
         // Setup and increment BT pointers
         pParams->pBindingTableSource += CmdByteSize;
         pParams->pBindingTableTarget += CmdByteSize;
@@ -124,7 +135,7 @@ public:
         if (pBtSrc->DW0.SurfaceStatePointer != 0)
         {
             // Set binding table entry in indirect state
-            *pBtDst = *pBtSrc; 
+            *pBtDst = *pBtSrc;
 
             // Return surface state parameters associated with BT entry
             pParams->iSurfaceStateOffset = pBtSrc->DW0.Value;
@@ -136,7 +147,7 @@ public:
             *pBtDst = typename TCmds::BINDING_TABLE_STATE_CMD();
             pParams->iSurfaceState       = -1;
         }
-    
+
         return eStatus;
     }
 
@@ -153,6 +164,7 @@ public:
         for (uint32_t dwCurrId = 0; dwCurrId < dwNumIdsToSet; dwCurrId++)
         {
             PMHW_KERNEL_STATE pKernelState = pParams[dwCurrId].pKernelState;
+            MHW_MI_CHK_NULL(pKernelState);
 
             typename TCmds::INTERFACE_DESCRIPTOR_DATA_CMD cmd;
 

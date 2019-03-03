@@ -34,8 +34,7 @@ class CodechalEncodeWPG10 : public CodechalEncodeWP
 public:
     //!
     //! \brief    Constructor
-    //!            
-    CodechalEncodeWPG10(PCODECHAL_ENCODER encoder);
+    //!
     CodechalEncodeWPG10(CodechalEncoderState* encoder);
 
     //!

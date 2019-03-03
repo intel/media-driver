@@ -45,6 +45,8 @@ public:
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
     CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0; 
     CM_RT_API virtual INT SetSurfaceStateParam( SurfaceIndex *pSurfIndex, const CM_SURFACE2D_STATE_PARAM *pSSParam ) = 0;
+protected:
+    ~CmSurface2D(){}
 };
 
 class CmDevice
@@ -91,7 +93,7 @@ public:
     CM_RT_API virtual INT DestroyVmeSurfaceG7_5( SurfaceIndex* & pVmeIndex ) = 0;
     CM_RT_API virtual INT CreateSampler8x8(const CM_SAMPLER_8X8_DESCR  & smplDescr, CmSampler8x8*& psmplrState)=0;
     CM_RT_API virtual INT DestroySampler8x8( CmSampler8x8*& pSampler )=0;
-    CM_RT_API virtual INT CreateSampler8x8Surface(CmSurface2D* p2DSurface, SurfaceIndex* & pDIIndex, CM_SAMPLER8x8_SURFACE surf_type = CM_VA_SURFACE, CM_SURFACE_ADDRESS_CONTROL_MODE = CM_SURFACE_CLAMP )=0;
+    CM_RT_API virtual INT CreateSampler8x8Surface(CmSurface2D* p2DSurface, SurfaceIndex* & pDIIndex, CM_SAMPLER8x8_SURFACE surf_type = CM_VA_SURFACE, CM_SURFACE_ADDRESS_CONTROL_MODE address_mode = CM_SURFACE_CLAMP )=0;
     CM_RT_API virtual INT DestroySampler8x8Surface(SurfaceIndex* & pDIIndex)=0;
 
     CM_RT_API virtual INT CreateThreadGroupSpace( UINT thrdSpaceWidth, UINT thrdSpaceHeight, UINT grpSpaceWidth, UINT grpSpaceHeight, CmThreadGroupSpace*& pTGS ) = 0;
@@ -128,7 +130,7 @@ public:
     CM_RT_API virtual INT FlushPrintBufferIntoFile(const char *filename) = 0;
     CM_RT_API virtual INT CreateThreadGroupSpaceEx(UINT thrdSpaceWidth, UINT thrdSpaceHeight, UINT thrdSpaceDepth, UINT grpSpaceWidth, UINT grpSpaceHeight, UINT grpSpaceDepth, CmThreadGroupSpace*& pTGS) = 0;
 
-    CM_RT_API virtual INT CreateSampler8x8SurfaceEx(CmSurface2D* p2DSurface, SurfaceIndex* & pDIIndex, CM_SAMPLER8x8_SURFACE surf_type = CM_VA_SURFACE, CM_SURFACE_ADDRESS_CONTROL_MODE = CM_SURFACE_CLAMP, CM_FLAG* pFlag = nullptr) = 0;
+    CM_RT_API virtual INT CreateSampler8x8SurfaceEx(CmSurface2D* p2DSurface, SurfaceIndex* & pDIIndex, CM_SAMPLER8x8_SURFACE surf_type = CM_VA_SURFACE, CM_SURFACE_ADDRESS_CONTROL_MODE address_mode = CM_SURFACE_CLAMP, CM_FLAG* pFlag = nullptr) = 0;
     CM_RT_API virtual INT CreateSamplerSurface2DEx(CmSurface2D* p2DSurface, SurfaceIndex* & pSamplerSurfaceIndex, CM_FLAG* pFlag = nullptr) = 0;
     CM_RT_API virtual INT CreateBufferAlias(CmBuffer *pBuffer, SurfaceIndex* &pAliasIndex) = 0;
 
@@ -138,18 +140,21 @@ public:
     CM_RT_API virtual int32_t CreateQueueEx(CmQueue *&pQueue, CM_QUEUE_CREATE_OPTION QueueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
 
     //adding new functions in the bottom is a must 
+protected:
+    ~CmDevice(){}
 };
 
 class SurfaceIndex
 {
 public:
     CM_NOINLINE SurfaceIndex() { index = 0; };
-	CM_NOINLINE SurfaceIndex(const SurfaceIndex& _src) { index = _src.index; };
+    CM_NOINLINE SurfaceIndex(const SurfaceIndex& _src) { index = _src.index; };
     CM_NOINLINE SurfaceIndex(const unsigned int& _n) { index = _n; };
     CM_NOINLINE SurfaceIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
     CM_NOINLINE SurfaceIndex& operator + (const unsigned int& _n) { this->index += _n; return *this; };
     virtual unsigned int get_data(void) { return index; };
 
+    virtual ~SurfaceIndex(){};
 private:
     unsigned int index;
     unsigned char extra_byte; // an extra byte to align the object size among OSes
@@ -164,6 +169,7 @@ public:
     CM_NOINLINE SamplerIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
     virtual unsigned int get_data(void) { return index; };
 
+    virtual ~SamplerIndex(){};
 private:
     unsigned int index;
     unsigned char extra_byte; // an extra byte to align the object size among OSes

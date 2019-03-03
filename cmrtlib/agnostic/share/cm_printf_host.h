@@ -45,14 +45,13 @@
 /// [7]: Scalar upper 32bits: Upper 32bits of double and [u]*int64_t.
 
 typedef struct _CM_PRINT_HEADER{
-    unsigned int object_type; 
-    unsigned int  data_type;
+    unsigned int objectType;
+    unsigned int  dataType;
     unsigned int  width;
     unsigned int  height;
     unsigned int  tid;
     unsigned int  reserved3;
-    unsigned int  scalar_low32;
-    unsigned int  scalar_uper32;
+    unsigned long long  scalar64;
 }CM_PRINT_HEADER, *PCM_PRINT_HEADER;
 
 enum  PRINT_FMT_STATUS
@@ -71,11 +70,11 @@ enum  PRINT_FMT_STATUS
 // Here's the grammar for printf format strings (using EBNF). Only one format directive is to be
 // returned from the input at a time:
 //
-// format: 
-//       { STRING } directive 
+// format:
+//       { STRING } directive
 //
 //
-// directive: 
+// directive:
 //       PERCENT flags { width } { PERIOD precision } { length_modifier } conversion
 //
 // flags:
@@ -153,16 +152,16 @@ enum  PRINT_FMT_STATUS
 class PFParser
 {
 public:
-    PFParser(FILE* streamout) : mInSpec(false), mInputStart(nullptr), mCurrLoc(nullptr), mArgsExpected(0), 
-                 mNumMultArg(0), mUnsupported(false), mError(false), mStreamOut(streamout) {};
-    void setStart(char *iStart) 
+    PFParser(FILE* streamout) : m_inSpec(false), m_inputStart(nullptr), m_currLoc(nullptr), m_argsExpected(0),
+                 m_numMultArg(0), m_unsupported(false), m_error(false), m_streamOut(streamout) {};
+    void SetStart(char *start)
     {
-        mInputStart= mCurrLoc = iStart;
+        m_inputStart= m_currLoc = start;
         // Prime the system with the first token
         getToken();
     }
     void DumpMemory(unsigned char * memory);
-    void flush(void);
+    void Flush(void);
 
 protected:
 private:
@@ -171,60 +170,60 @@ private:
     public:
         enum TokenType { _None_, Error,
                          String, Percent, Minus, Plus, Space, Zero, Integer, Period, Hash, Star,
-                         hh_Mod, h_Mod, l_Mod, ll_Mod, j_Mod, z_Mod, t_Mod, L_Mod, 
-                         c_Conv, s_Conv, d_Conv, i_Conv, o_Conv, x_Conv, X_Conv, u_Conv, f_Conv, 
+                         hh_Mod, h_Mod, l_Mod, ll_Mod, j_Mod, z_Mod, t_Mod, L_Mod,
+                         c_Conv, s_Conv, d_Conv, i_Conv, o_Conv, x_Conv, X_Conv, u_Conv, f_Conv,
                          F_Conv, e_Conv, E_Conv, a_Conv, A_Conv, g_Conv, G_Conv, n_Conv, p_Conv,
                          End
         };
-        
-        Token() : mTokenType(_None_), mTokenInt(0) {};
+
+        Token() : tokenType(_None_), tokenInt(0) {};
         bool operator==(const Token &other) const {
-            return mTokenType == other.mTokenType;
+            return tokenType == other.tokenType;
         }
         bool operator==(const TokenType &other) const {
-            return mTokenType == other;
+            return tokenType == other;
         }
         bool operator!=(const Token &other) const {
-            return mTokenType != other.mTokenType;
+            return tokenType != other.tokenType;
         }
         bool operator!=(const TokenType &other) const {
-            return mTokenType != other;
+            return tokenType != other;
         }
 
-        TokenType mTokenType;
-        std::string mTokenString;
-        int mTokenInt;
+        TokenType tokenType;
+        std::string tokenString;
+        int tokenInt;
     };
 
-    bool     mInSpec;      // Mode for lexer - in spec mode or not
-    Token    mCurrToken;   // The currently lexed token
-    Token    mPrevToken;   // The previously lexed token
-    char     *mInputStart; // The start of the input string
-    char     *mCurrLoc;    // The current point of processing
-    int      mArgsExpected; // For multi-arg format directives - how many still to process
-    int      mNumMultArg;   // Total number of multi-arg format directives in total
-    int      mArgs[2];      // Up to 2 int args can be used in multi-arg format directives
-    bool     mUnsupported;  // Has the latest parsed format directive contained unsupported
+    bool     m_inSpec;      // Mode for lexer - in spec mode or not
+    Token    m_currToken;   // The currently lexed token
+    Token    m_prevToken;   // The previously lexed token
+    char     *m_inputStart; // The start of the input string
+    char     *m_currLoc;    // The current point of processing
+    int      m_argsExpected; // For multi-arg format directives - how many still to process
+    int      m_numMultArg;   // Total number of multi-arg format directives in total
+    int      m_args[2];      // Up to 2 int args can be used in multi-arg format directives
+    bool     m_unsupported;  // Has the latest parsed format directive contained unsupported
                             // directives (VS doesn't support them all so we can't print them)
-    bool     mError;        // Error in latest parsed format directive
-    FILE     *mStreamOut;   // Output stream for kernel print
+    bool     m_error;        // Error in latest parsed format directive
+    FILE     *m_streamOut;   // Output stream for kernel print
 
     PRINT_FMT_STATUS GetNextFmtToken(char * tkn, size_t size);
     bool outputToken(const char *tkn, PCM_PRINT_HEADER header);
     void getToken(void);
     void reset(void)
     {
-        mInputStart = mCurrLoc;
-        mUnsupported = false;
-        mError = false;
-        mNumMultArg = mArgsExpected = 0;
+        m_inputStart = m_currLoc;
+        m_unsupported = false;
+        m_error = false;
+        m_numMultArg = m_argsExpected = 0;
     }
 
     void error()
     {
         // We don't throw an error in this case
         // Just set the error flag
-        mError = true;
+        m_error = true;
     }
 
     bool accept(Token::TokenType s);
@@ -238,4 +237,4 @@ private:
     int  conversion(void);
 };
 
-void DumpAllThreadOutput( FILE *streamout, unsigned char * DumpMem, size_t buffersize);
+void DumpAllThreadOutput( FILE *streamOut, unsigned char * dumpMem, size_t buffersize);

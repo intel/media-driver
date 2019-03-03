@@ -105,6 +105,17 @@ if(${VP8_Decode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${VP8_Encode_Supported} STREQUAL "yes")
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp8.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp8.h
+    )
+endif()
+
 if(${VP9_Decode_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
         ${TMP_2_SOURCES_}
@@ -121,33 +132,51 @@ set(TMP_3_SOURCES_ "")
 
 set(TMP_3_HEADERS_ "")
 
-if(${AVC_Encode_Supported} STREQUAL "yes")
-    set(TMP_3_SOURCES_
+if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+    set (TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_avc.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_avc.cpp
     )
-    set(TMP_3_HEADERS_
+    set (TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_avc.h
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_avc.h
     )
-endif()
 
-if(${HEVC_Encode_Supported} STREQUAL "yes")
-    set(TMP_3_SOURCES_
+    if ("${AVC_Encode_VME_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_avc.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_avc.h
+        )
+    endif ()
+endif ()
+
+if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+    set (TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_hevc.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_hevc.cpp
     )
-    set(TMP_3_HEADERS_
+    set (TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_hevc.h
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_hevc.h
     )
-endif()
 
-if(${MPEG2_Encode_Supported} STREQUAL "yes")
+    if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_hevc.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_fei_hevc.h
+        )
+    endif ()
+endif ()
+
+if(${MPEG2_Encode_VME_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_mpeg2.cpp
@@ -169,14 +198,15 @@ if(${JPEG_Encode_Supported} STREQUAL "yes")
     )
 endif()
 
-if(${VP9_Encode_Supported} STREQUAL "yes")
+if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp9.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/media_libvpx_vp9.cpp
     )
     set(TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp9.h
+        ${CMAKE_CURRENT_LIST_DIR}/media_libvpx_vp9.h
     )
 endif()
 

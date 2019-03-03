@@ -47,12 +47,15 @@ public:
     static PMOS_USER_FEATURE_VALUE GetValue(uint32_t keyId);
 
     virtual MOS_STATUS Initialize() {return MOS_STATUS_SUCCESS;}
+    static bool  IsDefaultValueChanged() { return m_defaultValueChanged; }
 
 private:
-    static MosUtilUserInterface* m_inst;                
+    static MosUtilUserInterface* m_inst;
     static uint32_t              m_refCount;    // UMD entry could be multi-threaded, need reference count to keep only do initialization once.
     static std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  m_userFeatureKeyMap;
 
+protected:
+    static bool  m_defaultValueChanged;
 };
 
 //!
@@ -74,6 +77,5 @@ MOS_STATUS MosUtilUserInterfaceInit(PRODUCT_FAMILY productFamily = IGFX_MAX_PROD
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MosUtilUserInterfaceClose();
-
 
 #endif // __MOS_UTIL_USER_INTERFACE_H__

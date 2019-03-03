@@ -28,7 +28,6 @@
 #ifndef __CODECHAL_ENCODER_JPEG_H__
 #define __CODECHAL_ENCODER_JPEG_H__
 
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 
 //!
@@ -153,13 +152,15 @@ public:
     virtual ~CodechalEncodeJpegState() {};
 
     //derived from base class
-    MOS_STATUS Initialize(CODECHAL_SETTINGS *settings);
+    MOS_STATUS Initialize(CodechalSetting *settings);
 
     MOS_STATUS AllocateResources();
 
     void FreeResources();
 
     MOS_STATUS InitializePicture(const EncoderParams& params);
+
+    virtual MOS_STATUS CheckResChangeAndCsc() override;
 
     MOS_STATUS ExecutePictureLevel();
 
@@ -171,7 +172,7 @@ public:
             EncodeStatus*       encodeStatus,
             EncodeStatusReport* encodeStatusReport) { return MOS_STATUS_SUCCESS;};
 
-    MOS_STATUS ExecuteKernelFunctions() { return MOS_STATUS_SUCCESS;}; 
+    MOS_STATUS ExecuteKernelFunctions() { return MOS_STATUS_SUCCESS;};
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpQuantTables(
@@ -202,6 +203,7 @@ public:
     // Other
     uint32_t                                    m_appDataSize         = 0;                                     //!< Pointer to Application data size
     bool                                        m_jpegQuantMatrixSent  = false;                                //!< JPEG: bool to tell if quant matrix was sent by the app or not
+    bool                                        m_fullHeaderInAppData  = false;
 
 protected:
     //!
@@ -228,8 +230,8 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GenerateSizeTable(
-        uint8_t     bits[], 
-        uint8_t     huffSize[], 
+        uint8_t     bits[],
+        uint8_t     huffSize[],
         uint8_t&    lastK);
 
     //!
@@ -244,7 +246,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GenerateCodeTable(
-        uint8_t     huffSize[], 
+        uint8_t     huffSize[],
         uint16_t    huffCode[]);
 
     //!
@@ -280,7 +282,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ConvertHuffDataToTable(
-        CodecEncodeJpegHuffData             huffmanData, 
+        CodecEncodeJpegHuffData             huffmanData,
         CodechalEncodeJpegHuffTable         *huffmanTable);
 
     //!
@@ -382,4 +384,4 @@ protected:
         BSBuffer                        *buffer);
 };
 
-#endif __CODECHAL_ENCODER_JPEG_H__
+#endif //__CODECHAL_ENCODER_JPEG_H__

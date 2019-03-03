@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      vphal_ddi.h  
-//! \brief      
+//! \file      vphal_ddi.h 
+//! \brief 
 //!
 //!
 //! \file     vphal_ddi.h
@@ -40,7 +40,7 @@
 //!        smaller values increase probability of switching between 30 and
 //!        60fps, and may cause instability if frame drops are detected
 //!
-#define FPS_60_TO_30_THRESHOLD 10 
+#define FPS_60_TO_30_THRESHOLD 10
 
 //!
 //! \brief 30 to 60fps detection threshold,
@@ -82,8 +82,9 @@ typedef enum
 //!
 typedef enum
 {
-    VPDDI_SCALING = 0,         //!< Bilinear scaling
-    VPDDI_ADVANCEDSCALING = 1  //!< AVS scaling
+    VPDDI_SCALING = 0,                //!< Bilinear scaling
+    VPDDI_ADVANCEDSCALING = 1,        //!< AVS scaling
+    VPDDI_SUPERRESOLUTIONSCALING = 2  //!< Super scaling
 } SCALING_MODE;
 
 //!

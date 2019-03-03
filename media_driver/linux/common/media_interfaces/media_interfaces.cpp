@@ -32,8 +32,9 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
+#include "media_interfaces_decode_histogram.h"
 
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 #include "mhw_mi.h"
 #include "mhw_render.h"
 #include "mhw_sfc.h"
@@ -52,6 +53,7 @@ template class MediaInterfacesFactory<CMHalDevice>;
 template class MediaInterfacesFactory<VphalDevice>;
 template class MediaInterfacesFactory<RenderHalDevice>;
 template class MediaInterfacesFactory<Nv12ToP010Device>;
+template class MediaInterfacesFactory<DecodeHistogramDevice>;
 
 typedef MediaInterfacesFactory<MhwInterfaces> MhwFactory;
 typedef MediaInterfacesFactory<MmdDevice> MmdFactory;
@@ -61,6 +63,7 @@ typedef MediaInterfacesFactory<CMHalDevice> CMHalFactory;
 typedef MediaInterfacesFactory<VphalDevice> VphalFactory;
 typedef MediaInterfacesFactory<RenderHalDevice> RenderHalFactory;
 typedef MediaInterfacesFactory<Nv12ToP010Device> Nv12ToP010Factory;
+typedef MediaInterfacesFactory<DecodeHistogramDevice> DecodeHistogramFactory;
 
 VphalState* VphalDevice::CreateFactory(
     PMOS_INTERFACE  osInterface,
@@ -139,33 +142,6 @@ VphalState* VphalDevice::CreateFactory(
     vphalState = vphalDevice->m_vphalState;
     MOS_Delete(vphalDevice);
 
-    if (MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrVERing) || 
-        MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrSFCPipe))
-    {
-        MhwInterfaces *mhwInterfaces = nullptr;
-        MhwInterfaces::CreateParams params;
-        MOS_ZeroMemory(&params, sizeof(params));
-        params.Flags.m_sfc   = MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrSFCPipe);
-        params.Flags.m_vebox = MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrVERing);
-
-        mhwInterfaces = MhwInterfaces::CreateFactory(params, osInterface);
-        if (mhwInterfaces)
-        {
-            vphalState->SetMhwVeboxInterface(mhwInterfaces->m_veboxInterface);
-            vphalState->SetMhwSfcInterface(mhwInterfaces->m_sfcInterface);
-
-            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need. 
-            MOS_Delete(mhwInterfaces->m_miInterface);
-            MOS_Delete(mhwInterfaces->m_cpInterface);
-            MOS_Delete(mhwInterfaces);
-        }
-        else
-        {
-            VPHAL_DEBUG_ASSERTMESSAGE("Allocate MhwInterfaces failed");
-            *eStatus = MOS_STATUS_NO_SPACE;
-        }
-    }
-
     return vphalState;
 }
 
@@ -199,7 +175,8 @@ MhwInterfaces* MhwInterfaces::CreateFactory(
 
 void MhwInterfaces::Destroy()
 {
-    MOS_Delete(m_cpInterface);
+    Delete_MhwCpInterface(m_cpInterface);
+    m_cpInterface = nullptr;
     MOS_Delete(m_miInterface);
     MOS_Delete(m_renderInterface);
     MOS_Delete(m_sfcInterface);
@@ -356,6 +333,10 @@ void* MmdDevice::CreateFactory(
     }
 
     mhwInterfaces = device->CreateMhwInterface(osInterface);
+    if (mhwInterfaces == nullptr)
+    {
+        MMD_FAILURE();
+    }
     device->Initialize(osInterface, mhwInterfaces);
     if (device->m_mmdDevice == nullptr)
     {
@@ -365,7 +346,7 @@ void* MmdDevice::CreateFactory(
     void *mmdDevice = device->m_mmdDevice;
     MOS_Delete(mhwInterfaces);
     MOS_Delete(device);
-    
+
     return mmdDevice;
 }
 
@@ -399,9 +380,9 @@ CodechalDecodeNV12ToP010* Nv12ToP010Device::CreateFactory(
         device->Initialize(osInterface);
         nv12ToP01Device = device->m_nv12ToP010device;
     }
-    
+
     MOS_Delete(device);
-    
+
     return nv12ToP01Device;
 }
 
@@ -409,7 +390,7 @@ CM_HAL_GENERIC* CMHalDevice::CreateFactory(
         CM_HAL_STATE *pCmState)
 {
     CMHalDevice *device = nullptr;
-    device = CMHalFactory::CreateHal(pCmState->Platform.eProductFamily);
+    device = CMHalFactory::CreateHal(pCmState->platform.eProductFamily);
     if (device == nullptr)
     {
         return nullptr;
@@ -472,4 +453,30 @@ XRenderHal_Platform_Interface* RenderHalDevice::CreateFactory(
     XRenderHal_Platform_Interface *pRet = device->m_renderhalDevice;
     MOS_Delete(device);
     return pRet;
+}
+
+CodechalDecodeHistogram* DecodeHistogramDevice::CreateFactory(
+    CodechalHwInterface *hwInterface,
+    PMOS_INTERFACE osInterface)
+{
+    if (hwInterface == nullptr || osInterface == nullptr)
+    {
+        MHW_ASSERTMESSAGE("Invalid(nullptr) hwInterface or osInterface!");
+        return nullptr;
+    }
+
+    PLATFORM platform = {};
+    osInterface->pfnGetPlatform(osInterface, &platform);
+    DecodeHistogramDevice *device = nullptr;
+    CodechalDecodeHistogram *decodeHistogramDevice = nullptr;
+    device = DecodeHistogramFactory::CreateHal(platform.eProductFamily);
+    if (device != nullptr)
+    {
+        device->Initialize(hwInterface, osInterface);
+        decodeHistogramDevice = device->m_decodeHistogramDevice;
+    }
+
+    MOS_Delete(device);
+
+    return decodeHistogramDevice;
 }

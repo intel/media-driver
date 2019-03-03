@@ -57,6 +57,10 @@ static const uint32_t defaultChromaQuant[64] =  //!< Default Quantization Matrix
     99, 99, 99, 99, 99, 99, 99, 99
 };
 
+//!
+//! \enum   DDI_ENCODE_JPEG_INPUTSURFACEFORMATS
+//! \brief  Ddi encode JPEG input surface formats
+//!
 enum DDI_ENCODE_JPEG_INPUTSURFACEFORMATS  //!< Jpeg input surface formats.
 {
     DDI_ENCODE_JPEG_INPUTFORMAT_RESERVED = 0,
@@ -67,6 +71,10 @@ enum DDI_ENCODE_JPEG_INPUTSURFACEFORMATS  //!< Jpeg input surface formats.
     DDI_ENCODE_JPEG_INPUTFORMAT_RGB      = 5
 };
 
+//!
+//! \class  DdiEncodeJpeg
+//! \brief  Ddi encode JPEG
+//!
 class DdiEncodeJpeg : public DdiEncodeBase
 {
 public:
@@ -84,13 +92,13 @@ public:
     //! \brief    Initialize Encode Context and CodecHal Setting for Jpeg
     //!
     //! \param    [out] codecHalSettings
-    //!           Pointer to PCODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus ContextInitialize(
-        CODECHAL_SETTINGS *codecHalSettings) override;
+        CodechalSetting *codecHalSettings) override;
 
     //!
     //! \brief    Parse buffer to the server.
@@ -220,7 +228,14 @@ private:
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus DefaultQmatrix();
-
+    //!
+    //! \brief    scale Qmatrix buffer to Encode Context,
+    //!           if qmatrix and full jpeg headers are supplied by application
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus QualityScaleQmatrix();
     //!
     //! \brief    Convert Media Format To Input Surface Format
     //!
@@ -231,5 +246,12 @@ private:
     //!           Input surface format
     //!
     uint32_t ConvertMediaFormatToInputSurfaceFormat(DDI_MEDIA_FORMAT format);
+
+    CodecEncodeJpegHuffmanDataArray    *m_huffmanTable = nullptr;    //!< Huffman table.
+    void                               *m_appData      = nullptr;    //!< Application data.
+    bool                               m_quantSupplied = false;      //!< whether Quant table is supplied by the app for JPEG encoder.
+    uint32_t                           m_appDataTotalSize   = 0;          //!< Total size of application data.
+    uint32_t                           m_appDataSize   = 0;          //!< Size of application data.
+    uint32_t                           m_appDataWholeHeader = false; //!< whether the app data include whole headers , such as SOI, DQT ...
 };
 #endif /* __MEDIA_LIBVA_ENCODER_JPEG_H__ */

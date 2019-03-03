@@ -30,6 +30,10 @@
 #include "media_interfaces.h"
 #include "renderhal_platform_interface.h"
 
+//!
+//! \class    RenderHalDevice
+//! \brief    Render hal device
+//!
 class RenderHalDevice
 {
 public:

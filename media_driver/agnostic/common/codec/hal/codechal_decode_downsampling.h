@@ -30,6 +30,7 @@
 
 #include "mos_os.h"
 #include "mhw_state_heap.h"
+#include "codechal_mmc.h"
 
 using CODECHAL_DECODE_PROCESSING_PARAMS = struct _CODECHAL_DECODE_PROCESSING_PARAMS;
 
@@ -41,9 +42,19 @@ class FieldScalingInterface
 {
 public:
     //!
+    //! \brief    Copy constructor
+    //!
+    FieldScalingInterface(const FieldScalingInterface&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    FieldScalingInterface& operator=(const FieldScalingInterface&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
-    ~FieldScalingInterface();
+    virtual ~FieldScalingInterface();
 
     //!
     //! \brief    Check Field Scaling Supported
@@ -74,12 +85,38 @@ public:
         PMOS_INTERFACE                      osInterface);
 
     //!
+    //! \brief    Send Media VFE cmds
+    //! \details  Send Media VFE cmds to setup VFE for media kernel
+    //! \param    [in] cmdBuffer
+    //!           Pointer to command buffer
+    //! \param    [in] kernelState
+    //!           Pointer to MHW kernel state
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetupMediaVfe(
+        PMOS_COMMAND_BUFFER  cmdBuffer,
+        MHW_KERNEL_STATE     *kernelState);
+
+    //!
+    //! \brief  Initialize MMC state for specified downsampling device
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitMmcState();
+
+    //!
     //! \brief    Perform Field Scaling
     //! \details  Configure kernel regions to do field scaling
     //! \param    [in] procParams
     //!           Pointer to decode processing paramters #CODECHAL_DECODE_PROCESSING_PARAMS
     //! \param    [in] renderContext
     //!           The render context using for decode
+    //! \param    [in] disableDecodeSyncLock
+    //!           Disable decode sync lock
+    //! \param    [in] disableLockForTranscode
+    //!           Disable lock for transcode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -92,9 +129,13 @@ public:
 protected:
     //!
     //! \brief    Constructor
-    //!    
+    //!
     FieldScalingInterface(CodechalHwInterface *hwInterface);
 
+    //!
+    //! \enum     FieldScalingKernelStateIdx
+    //! \brief    Field scaling kernel state index
+    //!
     enum FieldScalingKernelStateIdx
     {
         stateNv12     = 0,                                                                              //!< Field scaling kernel index for NV12
@@ -131,13 +172,14 @@ protected:
     MHW_STATE_HEAP_INTERFACE        *m_stateHeapInterface       = nullptr;                              //!< Pointer to State Heap Interface
     MhwMiInterface                  *m_miInterface              = nullptr;                              //!< Pointer to MI interface.
     uint8_t                         *m_kernelBase               = nullptr;                              //!< Pointer to kernel base address
+    CodecHalMmcState                *m_mmcState                 = nullptr;                              //!< Pointer to MMC state
     uint8_t                         *m_kernelBinary[stateMax];                                          //!< Kernel binary
     uint32_t                        m_kernelUID[stateMax];                                              //!< Kernel unique ID
     uint32_t                        m_kernelSize[stateMax];                                             //!< Kernel size
     MHW_KERNEL_STATE                m_kernelStates[stateMax];                                           //!< Kernel state
     uint32_t                        m_dshSize[stateMax];                                                //!< DSH size
     MOS_RESOURCE                    m_syncObject;                                                       //!< Sync Object
-    
+
     //!
     //! \brief    Initialize state heap settings and kernel params
     //! \details  Initialize Field Scaling Kernel State heap settings & params

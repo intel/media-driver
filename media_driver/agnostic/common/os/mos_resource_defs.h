@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_resource_defs.h  
-//! \brief          
+//! \file        mos_resource_defs.h 
+//! \brief 
 //!
 //!
 //! \file     mos_resource_defs.h
@@ -41,7 +41,7 @@ typedef enum _MOS_FORMAT
     Format_Source             = -13,     //!< Current source format
 
     // Generic Formats
-    Format_420O               = -12,     //!< Generic Render Target Format (NV12, IMC3, 422H, 422V, 411P, 444P, RGBP, BGRP, 400P) 
+    Format_420O               = -12,     //!< Generic Render Target Format (NV12, IMC3, 422H, 422V, 411P, 444P, RGBP, BGRP, 400P)
     Format_RGB_Swap           = -11,     //!< RGB Formats need HW Channel swap (A8R8G8B8, X8R8G8B8)
     Format_RGB_No_Swap        = -10,     //!< RGB Formats don't need HW Channel swap (A8B8G8R8)
     Format_RGB                = -9,      //!< Generic RGB input (A8R8G8B, X8R8G8B8, R5G6B5)
@@ -60,9 +60,9 @@ typedef enum _MOS_FORMAT
     // RGB formats
     Format_A8R8G8B8    ,          //!< ARGB 32bpp (A = 255)
     Format_X8R8G8B8    ,          //!< XRGB 32bpp (X = 0)
-    Format_A8B8G8R8    ,          //!< ABGR 32bpp 
-    Format_X8B8G8R8    ,          //!< XBGR 32bpp 
-    Format_A16B16G16R16,          //!< ABGR 64bpp 
+    Format_A8B8G8R8    ,          //!< ABGR 32bpp
+    Format_X8B8G8R8    ,          //!< XBGR 32bpp
+    Format_A16B16G16R16,          //!< ABGR 64bpp
     Format_A16R16G16B16,          //!< ARGB 64bpp
     Format_R5G6B5      ,          //!< RGB 16bpp
     Format_R32U        ,          //!< R32U 32bpp
@@ -119,7 +119,7 @@ typedef enum _MOS_FORMAT
     Format_IA44        ,
     Format_P8          ,
     Format_A8P8        ,
-    
+
     // Alpha + Intensity
     Format_A8          ,
     Format_L8          ,
@@ -167,17 +167,28 @@ typedef enum _MOS_FORMAT
     Format_P010        ,
     Format_YV12_Planar ,
     Format_A16B16G16R16F,          //!< ABGR 64bpp
-    Format_R16G16UN     ,      
-    Format_R16F		,
+    Format_R16G16UN     ,
+    Format_R16F         ,
     Format_P210         ,
     Format_P216         ,
     Format_A16R16G16B16F,          //!< ARGB 64bpp
     Format_YUY2V        ,
     Format_Y216V        ,
+    Format_D32F         ,
+    Format_D24S8UN      ,
+    Format_D32S8X24_FLOAT ,
+
+    Format_R16          ,
+    Format_R16G16S      ,
+    Format_R24G8        ,
+    Format_R32          ,
+    Format_R32G8X24     ,
+    Format_R8UN         ,           //!< R8 UNORM
+    Format_R32G32B32A32F,           //ARGB 128bpp
     // Last Format
     Format_Count
 } MOS_FORMAT, *PMOS_FORMAT;
-C_ASSERT(Format_Count == 93); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat().
+C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
 
 //!
 //! \brief Macros for format checking
@@ -205,7 +216,7 @@ C_ASSERT(Format_Count == 93); //!< When adding, update assert & vphal_solo_scena
               (format == Format_NV11) || \
               (format == Format_P208) || \
               (format == Format_P010) || \
-              (format == Format_P016) ) 
+              (format == Format_P016) )
 
 #define IS_PL2_FORMAT_UnAligned(format)    \
             ( (format == Format_PL2_UnAligned)  || \
@@ -330,11 +341,16 @@ C_ASSERT(Format_Count == 93); //!< When adding, update assert & vphal_solo_scena
             ( (format == Format_A8B8G8R8)      || \
               (format == Format_X8B8G8R8)      || \
               (format == Format_A16B16G16R16)  || \
+              (format == Format_A16B16G16R16F) || \
+              (format == Format_R32G32B32A32F) || \
               (format == Format_R10G10B10A2) )
 
 #define IS_RGB_SWAP(format)                  \
             ( IS_RGB_FORMAT(format)       && \
               !(IS_RGB_NO_SWAP(format)) )
+
+#define IS_RGB128_FORMAT(format)             \
+              (format == Format_R32G32B32A32F)
 
 #define CASE_RGB32_FORMAT    \
     case Format_A8R8G8B8:    \
@@ -475,9 +491,10 @@ C_ASSERT(MOS_TILE_LINEAR == 4); //!< When adding, update assert
 typedef enum _MOS_GFXRES_TYPE
 {
     MOS_GFXRES_INVALID = -1,
-    MOS_GFXRES_BUFFER,                               //!< Think malloc. This resource is a series of bytes. Is not 2 dimensional.
-    MOS_GFXRES_2D,                                   //!< 2 dimensional resource w/ width and height. 1D is a subset of 2D.
-    MOS_GFXRES_VOLUME,                               //!< 3 dimensional resource w/ depth.
+    MOS_GFXRES_BUFFER,  //!< Think malloc. This resource is a series of bytes. Is not 2 dimensional.
+    MOS_GFXRES_2D,      //!< 2 dimensional resource w/ width and height. 1D is a subset of 2D.
+    MOS_GFXRES_VOLUME,  //!< 3 dimensional resource w/ depth.
+    MOS_GFXRES_SCRATCH, //!< scratch space buffer.
 } MOS_GFXRES_TYPE;
 
 //!
@@ -491,7 +508,5 @@ typedef enum _MOS_RESOURCE_MMC_MODE
     MOS_MMC_MC,
     MOS_MMC_RC
 } MOS_RESOURCE_MMC_MODE;
-
-
 
 #endif //__MOS_RESOURCE_DEFS_H__

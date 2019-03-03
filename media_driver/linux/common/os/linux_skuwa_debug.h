@@ -20,15 +20,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        linux_skuwa_debug.h  
-//! \brief          
+//! \file        linux_skuwa_debug.h 
+//! \brief 
 //!
 
 #ifndef __LINUX_SKUWA_DEBUG_H__
 #define __LINUX_SKUWA_DEBUG_H__
 
 #if defined(ANDROID)
-#include <cutils/log.h>
+#include <log/log.h>
 
 #define DEVINFO_ASSERT(expr) ALOG_ASSERT(expr)
 
@@ -49,6 +49,5 @@
 #define DEVINFO_WARNING(msg)
 #define DEVINFO_ERROR(msg)
 #endif
-
 
 #endif //__LINUX_SKUWA_DEBUG_H__

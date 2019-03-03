@@ -47,6 +47,8 @@
 #define ENCODE_DP_AVC_MAX_ROI_NUMBER               4
 #define ENCODE_DP_AVC_MAX_ROI_NUM_BRC              8
 
+#define ENCODE_VDENC_AVC_MAX_ROI_NUMBER            3
+
 #define ENCODE_AVC_MAX_SLICES_SUPPORTED      256 // Limted to 256 due to memory constraints.
 
 //AVC
@@ -70,16 +72,16 @@ typedef struct _CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS
     {
         struct
         {
-            // Disables skip check for ENC. 
+            // Disables skip check for ENC.
             unsigned int skipCheckDisable : 1;
             // Indicates app will override default driver FTQ settings using FTQEnable.
             unsigned int FTQOverride : 1;
             // Enables/disables FTQ.
             unsigned int FTQEnable : 1;
-            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is 
+            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is
             // enabled (FTQSkipThresholdLUT), else default driver thresholds will be used.
             unsigned int FTQSkipThresholdLUTInput : 1;
-            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is 
+            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is
             // disabled (NonFTQSkipThresholdLUT), else default driver thresholds will be used.
             unsigned int NonFTQSkipThresholdLUTInput : 1;
             // Control to enable the ENC mode decision algorithm to bias to fewer B Direct/Skip types.
@@ -87,7 +89,7 @@ typedef struct _CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS
             unsigned int directBiasAdjustmentEnable : 1;
             // Enables global motion bias.
             unsigned int globalMotionBiasAdjustmentEnable : 1;
-            // MV cost scaling ratio for HME predictors.  It is used when 
+            // MV cost scaling ratio for HME predictors.  It is used when
             // globalMotionBiasAdjustmentEnable == 1, else it is ignored.  Values are:
             //      0: set MV cost to be 0 for HME predictor.
             //      1: scale MV cost to be ? of the default value for HME predictor.
@@ -99,7 +101,7 @@ typedef struct _CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS
             //disable Super HME
             unsigned int SuperHMEDisable                    : 1;
             //disable Ultra HME
-            unsigned int UltraHMEDisable                    : 1;            
+            unsigned int UltraHMEDisable                    : 1;
             // Force RepartitionCheck
             unsigned int ForceRepartitionCheck              : 2;
 
@@ -205,7 +207,6 @@ enum
 
 const uint8_t Slice_Type[10] = { SLICE_P, SLICE_B, SLICE_I, SLICE_SP, SLICE_SI, SLICE_P, SLICE_B, SLICE_I, SLICE_SP, SLICE_SI };
 
-
 typedef struct _CODEC_ROI_MAP
 {
     char                PriorityLevelOrDQp; // [-3..3] or [-51..51]
@@ -301,7 +302,7 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *
     *   Should not be greater than max SPS set reported by driver.
     */
-    uint8_t           seq_parameter_set_id; 
+    uint8_t           seq_parameter_set_id;
     uint8_t           chroma_format_idc;                      //!< Same as AVC syntax element.
     uint8_t           bit_depth_luma_minus8;                  //!< Same as AVC syntax element.
     uint8_t           bit_depth_chroma_minus8;                //!< Same as AVC syntax element.
@@ -340,19 +341,19 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
             *   This setting is only valid if RateControlMethod is AVBR, VBR, CBR, VCM, ICQ, CQL or QVBR and the current picture is an I picture. If the frame resolution is changed, it should be set with IDR picture. It should not be set when RateControlMethod is CBR or CQP. The following table indicates which BRC parameters can be changed via a BRC reset.
             *
             *  \n BRC Parameters       Changes allowed via reset
-            *  \n Profile & Level    	        Yes
-            *  \n UserMaxFrameSize    	        Yes
-            *  \n InitVBVBufferFullnessInBit	No
+            *  \n Profile & Level               Yes
+            *  \n UserMaxFrameSize              Yes
+            *  \n InitVBVBufferFullnessInBit    No
             *  \n TargetBitRate                 Yes
             *  \n VBVBufferSizeInBit            No
             *  \n MaxBitRate                    Yes
-            *  \n FramesPer100Sec *  	        No
+            *  \n FramesPer100Sec *             No
             *  \n RateControlMethod             No
-            *  \n GopPicSize	                No
-            *  \n GopRefDist                	No
-            *  \n GopOptFlag	                Yes
+            *  \n GopPicSize                    No
+            *  \n GopRefDist                    No
+            *  \n GopOptFlag                    Yes
             *  \n FrameWidth                    No
-            *  \n FrameHeight         	        No
+            *  \n FrameHeight                   No
             *  \n Note: when resolution (FrameWidth and/or FrameHeight) changes, framework should re-start a new bit stream and not using BRC reset.
             */
             uint32_t           bResetBRC                    : 1;
@@ -434,10 +435,23 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1: BRC may decide larger P/B frame size.
             */
             uint32_t           bAutoMaxPBFrameSizeForSceneChange : 1;
-            /* Control the force panic mode through DDI other than user feature key */ 
+            /* Control the force panic mode through DDI other than user feature key */
             uint32_t           bForcePanicModeControl       : 1;
             uint32_t           bPanicModeDisable            : 1;
-            uint32_t           Reserved1                    : 7;
+
+            /*! \brief Enables streaming buffer in LLC
+            *
+            *        \n - 0 : streaming buffer by LLC is disabled.
+            *        \n - 1 : streaming buffer by LLC is enabled.
+            */
+            uint32_t           EnableStreamingBufferLLC     : 1;
+            /*! \brief Enables streaming buffer in DDR
+            *
+            *        \n - 0 : streaming buffer by DDR is disabled.
+            *        \n - 1 : streaming buffer by DDR is enabled.
+            */
+            uint32_t           EnableStreamingBufferDDR     : 1;
+            uint32_t           Reserved1                    : 5;
         };
         uint32_t            sFlags;
     };
@@ -456,6 +470,16 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *    The range is from 1 – 51, with 1 being the best quality.
     */
     uint16_t           ICQQualityFactor;
+    /*! \brief Indicates the bitrate accuracy for AVBR
+    *
+    *    The range is [1, 100], 1 means one percent, and so on.
+    */
+    uint32_t           AVBRAccuracy;
+    /*! \brief Indicates the bitrate convergence period for AVBR
+    *
+    *    The unit is frame.
+    */
+    uint32_t          AVBRConvergence;
 
     /*! \brief Indicates the uncompressed input color space
     *
@@ -474,6 +498,24 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *   It affects the BRC algorithm used, but may or may not have an effect based on the combination of other BRC parameters.  Only valid when the driver reports support for FrameSizeToleranceSupport.
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
+
+    /*! \brief Indicates BRC Sliding window size in terms of number of frames.
+    *
+    *   Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
+    */
+    uint16_t  SlidingWindowSize;
+
+    /*! \brief Indicates maximun bit rate Kbit per second within the sliding window during. 
+    *
+    *  Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
+    */
+    uint32_t  MaxBitRatePerSlidingWindow;
+
+    /*! \brief Indicates minimun bit rate Kbit per second within the sliding window during. 
+    *
+    *  Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
+    */
+    uint32_t  MinBitRatePerSlidingWindow;
 
     uint8_t            constraint_set0_flag               : 1;    //!< Same as AVC syntax element.
     uint8_t            constraint_set1_flag               : 1;    //!< Same as AVC syntax element.
@@ -523,7 +565,39 @@ typedef struct _CODEC_AVC_ENCODE_USER_FLAGS
             *        \n - 3 : enabled in region
             */
             uint32_t    bEnableRollingIntraRefresh              : 2;
-            uint32_t                                            : 21;
+
+            /*! \brief Specifies if Slice Level Reporitng may be requested for this frame
+            *
+            *    If this flag is set, then slice level parameter reporting will be set up for this frame.  Only valid if SliceLevelReportSupport is reported in ENCODE_CAPS, else this flag is ignored.  
+            *
+            */
+            uint32_t    bEnableSliceLevelReport                 : 1;
+
+            /*! \brief Specifies if integer mode searching is performed
+            *
+            *    when set to 1, integer mode searching is performed
+            *
+            */
+            uint32_t    bDisableSubpixel                        : 1;
+
+            /*! \brief Specifies if the overlapped operation of intra refresh is disabled
+            *
+            *    It is valid only when bEnableRollingIntraRefresh is on.
+            *    \n - 0 : default, overlapped Intra refresh is applied
+            *    \n - 1 : intra refresh without overlap operation
+            *
+            */
+            uint32_t    bDisableRollingIntraRefreshOverlap      : 1;
+
+            /*! \brief Specifies whether extra partition decision refinement is done after the initial partition decision candidate is determined.  
+            *
+            *    It has performance tradeoff for better quality.  
+            *    \n - 0 : DEFAULT - Follow driver default settings.
+            *    \n - 1 : FORCE_ENABLE - Enable this feature totally for all cases.
+            *    \n - 2 : FORCE_DISABLE - Disable this feature totally for all cases.
+            */
+            uint32_t    ForceRepartitionCheck                   : 2;
+            uint32_t    bReserved                               : 16;
         };
         uint32_t        Value;
     };
@@ -541,9 +615,9 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     /*! \brief Specifies the uncompressed surface of the reconstructed frame for the current encoded picture.
     *
     *    The PicFlags regarding reference usage are expected to be valid at this time.
-    *    The recon surface may be of different format and different bit depth from that of source. 
-    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8 and 
-    *    bit_depth_chroma_minus8 in SPS data structure. 
+    *    The recon surface may be of different format and different bit depth from that of source.
+    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8 and
+    *    bit_depth_chroma_minus8 in SPS data structure.
     */
     CODEC_PICTURE   CurrReconstructedPic;
     /*! \brief Specifies picture coding type.
@@ -743,7 +817,7 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     uint8_t         ucMinimumQP;
     uint8_t         ucMaximumQP;    //!< Specifies the maximum Qp to be used for BRC.
-    
+
     uint32_t        dwZMvThreshold; //!< Used for static frame detection.
 
     /*! \brief Indicates that an HMEOffset will be sent by the application in HMEOffset for each reference.
@@ -766,7 +840,7 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    SubMbPartMask is only valid when bEnableSubMbPartMask is true. Bit0~6 indicate inter 16x16, 16x8, 8x16, 8x8, 8x4, 4x8, 4x4.
     */
     bool            bEnableSubMbPartMask;
-    uint8_t         SubMbPartMask;               
+    uint8_t         SubMbPartMask;
 
     /*! \brief Specifies motion search modes that will be used.
     *
@@ -778,6 +852,47 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     bool            bEnableSubPelMode;
     uint8_t         SubPelMode;
+
+    /*! \brief Specifies whether extra partition decision refinement is done after the initial partition decision candidate is determined.
+    *
+    *    It has performance tradeoff for better quality.
+    *    \n - 0 : DEFAULT - Follow driver default settings.
+    *    \n - 1 : FORCE_ENABLE - Enable this feature totally for all cases.
+    *    \n - 2 : FORCE_DISABLE - Disable this feature totally for all cases.
+    */
+    uint32_t        ForceRepartitionCheck;
+
+    /*! \brief Specifies force-to-skip for HRD compliance in BRC kernel that will be disabled.
+    *
+    *    bDisableFrameSkip is only valid for P/B frames
+    *    0: force-to-skip will be enabled as required in BRC kernel. Default value.
+    *    1: force-to-skip will be disabled in BRC kernel.
+    */
+    bool            bDisableFrameSkip;
+
+    /*! \brief Maximum frame size for all frame types in bytes.
+    *
+    *    Applicable for CQP and multi PAK. If dwMaxFrameSize > 0, driver will do multiple PAK and adjust QP 
+    *    (frame level QP + slice_qp_delta) to make the compressed frame size to be less than this value. 
+    *    If dwMaxFrameSize equals 0, driver will not do multiple PAK and do not adjust QP.
+    */
+    uint32_t        dwMaxFrameSize;
+
+    /*! \brief Total pass number for multiple PAK.
+    *
+    *    Valid range is 0 - 4. If dwNumPasses is set to 0, driver will not do multiple PAK and do not adjust 
+    *    QP (frame level QP + slice_qp_delta), otherwise, driver will do multiple times PAK and in each time 
+    *    the QP will be adjust according deltaQp parameters.
+    */
+    uint32_t        dwNumPasses;
+
+    /*! \brief Delta QP array for each PAK pass.
+    *
+    *    This pointer points to an array of deltaQp, the max array size for AVC encoder is 4. The valid range 
+    *    for each deltaQp is 0 - 51. If the value is out of this valid range, driver will return error. 
+    *    Otherwise, driver will adjust QP (frame level QP + slice_qp_delta) by adding this value in each PAK pass.
+    */
+    uint8_t        *pDeltaQp;
 
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 
@@ -875,6 +990,10 @@ typedef enum _CODEC_AVC_PIC_CODING_TYPE_VALUE
     CODEC_AVC_PIC_CODING_TYPE_BFF_FIELD = 0x3
 } CODEC_AVC_PIC_CODING_TYPE_VALUE;
 
+//!
+//! \struct    CodecEncodeAvcFeiPicParams
+//! \brief     Codec encode AVC FEI pic params
+//!
 struct CodecEncodeAvcFeiPicParams
 {
     MOS_RESOURCE                resMBCtrl;              // input MB control buffer

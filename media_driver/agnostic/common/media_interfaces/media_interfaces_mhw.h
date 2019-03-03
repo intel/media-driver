@@ -45,6 +45,10 @@ class MhwVdboxHcpInterface;
 class MhwVdboxHucInterface;
 class MhwVdboxVdencInterface;
 
+//!
+//! \class    MhwInterfaces
+//! \brief    MHW interfaces
+//!
 class MhwInterfaces
 {
 public:
@@ -53,6 +57,11 @@ public:
     //! \brief Determines which interfaces are created
     struct CreateParams
     {
+        CreateParams()
+        {
+            Flags.m_value = 0;
+        }
+
         union
         {
             struct
@@ -68,7 +77,7 @@ public:
                 uint32_t m_vdenc : 1;
                 uint32_t m_reserved : 23;
             };
-            uint32_t m_value = 0;
+            uint32_t m_value;
         } Flags;
 
         uint8_t m_heapMode = 0; //!< To be deprecated when heap management unified

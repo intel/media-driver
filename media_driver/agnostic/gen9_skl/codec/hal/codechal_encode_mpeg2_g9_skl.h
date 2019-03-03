@@ -39,7 +39,7 @@ class CodechalEncodeMpeg2G9Skl : public CodechalEncodeMpeg2G9
 public:
     //!
     //! \brief    Constructor
-    //!                                                                                         
+    //!
     CodechalEncodeMpeg2G9Skl(
         CodechalHwInterface*    hwInterface,
         CodechalDebugInterface* debugInterface,
@@ -52,7 +52,7 @@ public:
     ~CodechalEncodeMpeg2G9Skl() {};
 
     //!
-    //! \brief    Update the slice count according to the DSS policy
+    //! \brief    Update the slice count according to the DymanicSliceShutdown policy
     //!
     void UpdateSSDSliceCount();
 };

@@ -28,15 +28,22 @@
 
 #include "cm_hal.h"
 #include "cm_surface_manager.h"
-#include "cm_def.h"
+#include "cm_mem.h"
 #include "cm_surface_2d_rt.h"
 
+extern int32_t CmFillMosResource(VASurfaceID, VADriverContext*, PMOS_RESOURCE);
+
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destructor of CmDevice
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
 CmDeviceRT::~CmDeviceRT()
 {
+    m_mosContext->SkuTable.reset();
+    m_mosContext->WaTable.reset();
+
     DestructCommon();
 
     DestroyAuxDevice();
@@ -46,9 +53,9 @@ CmDeviceRT::~CmDeviceRT()
 //| Purpose:    Initialize the OS-Specific part in the Initialize() function
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::InitializeOSSpecific(MOS_CONTEXT *pUmdContext)
+int32_t CmDeviceRT::InitializeOSSpecific(MOS_CONTEXT *mosContext)
 {
-    return CreateAuxDevice( pUmdContext);
+    return CreateAuxDevice( mosContext);
 }
 
 void CmDeviceRT::ConstructOSSpecific(uint32_t devCreateOption)
@@ -56,50 +63,49 @@ void CmDeviceRT::ConstructOSSpecific(uint32_t devCreateOption)
     m_pfnReleaseVaSurface = nullptr;
 
     // If use dynamic states.
-    m_DevCreateOption.bDynamicStateHeap = (devCreateOption & CM_DEVICE_CONFIG_DSH_DISABLE_MASK) ? false : true;
-    if (m_DevCreateOption.bDynamicStateHeap)
+    m_cmHalCreateOption.dynamicStateHeap = (devCreateOption & CM_DEVICE_CONFIG_DSH_DISABLE_MASK) ? false : true;
+    if (m_cmHalCreateOption.dynamicStateHeap)
     {
-        m_DevCreateOption.MaxTaskNumber = 64;
+        m_cmHalCreateOption.maxTaskNumber = 64;
     }
     return;
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Intel CM Device and Get MaxValues and version of CM device
+//| Purpose:    Create Intel CM Device and Get maxValues and version of CM device
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::CreateAuxDevice(MOS_CONTEXT *pUmdContext)  //VADriverContextP
+int32_t CmDeviceRT::CreateAuxDevice(MOS_CONTEXT *mosContext)  //VADriverContextP
 {
     int32_t                     hr = CM_SUCCESS;
-    PDDI_MEDIA_CONTEXT          pMediaCtx = nullptr;
+    PDDI_MEDIA_CONTEXT          mediaContext = nullptr;
     VAContextID                 vaCtxID;
-    PCM_HAL_STATE               pCmHalState;
-    PCM_CONTEXT                 pCmCtx;
+    PCM_HAL_STATE               cmHalState;
+    PCM_CONTEXT                 cmContext;
 
-    m_pUmdContext = pUmdContext;
+    m_mosContext = mosContext;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(HalCm_Create(pUmdContext, &m_DevCreateOption, &pCmHalState ));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(HalCm_Create(mosContext, &m_cmHalCreateOption, &cmHalState ));
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmHalState->pfnCmAllocate(pCmHalState));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
 
-    // allocate pCmCtx
-    pCmCtx = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
-    CMCHK_NULL(pCmCtx);
-    pCmCtx->VphalDrvCtx = *pUmdContext; // mos context
-    pCmCtx->pCmHalState = pCmHalState;
+    // allocate cmContext
+    cmContext = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmContext);
+    cmContext->mosCtx     = *mosContext; // mos context
+    cmContext->cmHalState = cmHalState;
 
-    m_pAccelData =  (void *)pCmCtx;
+    m_accelData =  (void *)cmContext;
 
-    CMCHK_HR_MESSAGE(GetMaxValueFromCaps(m_HalMaxValues, m_HalMaxValuesEx), "Failed to get Max values.");
-    CMCHK_HR_MESSAGE(GetGenPlatform(m_Platform), "Failed to get GPU type.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetMaxValueFromCaps(m_halMaxValues, m_halMaxValuesEx), "Failed to get Max values.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetGenPlatform(m_platform), "Failed to get GPU type.");
 
     //  Get version from Driver
-    m_DDIVersion = CM_VERSION;
+    m_ddiVersion = CM_VERSION;
 
 finish:
     return hr;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destory Intel Aux Device : CM device
@@ -107,16 +113,16 @@ finish:
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRT::DestroyAuxDevice()
 {
-    PCM_CONTEXT_DATA  pCmData = (PCM_CONTEXT_DATA)m_pAccelData;
+    PCM_CONTEXT_DATA  cmData = (PCM_CONTEXT_DATA)m_accelData;
 
     // Delete VPHAL State
-    if (pCmData && pCmData->pCmHalState)
+    if (cmData && cmData->cmHalState)
     {
-        pCmData->VphalDrvCtx.SkuTable.reset();
-        pCmData->VphalDrvCtx.WaTable.reset();
-        HalCm_Destroy(pCmData->pCmHalState);
+        cmData->mosCtx.SkuTable.reset();
+        cmData->mosCtx.WaTable.reset();
+        HalCm_Destroy(cmData->cmHalState);
         // Delete CM Data itself
-        MOS_FreeMemory(pCmData);
+        MOS_FreeMemory(cmData);
 
     }
 
@@ -127,65 +133,39 @@ int32_t CmDeviceRT::DestroyAuxDevice()
 //| Purpose:    Create Surface 2D
 //| Arguments :
 //|               VASurfaceID :     [in]     index to MEDIASURFACE[], same as LIBVA SurfaceID
-//|               pUMDCtx           [in]     Va driver context
-//|               pSurface          [out]    Reference to Pointer to CmSurface2D
+//|               umdContext           [in]     Va driver context
+//|               surface          [out]    Reference to Pointer to CmSurface2D
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-extern int32_t CmFillMosResource(VASurfaceID, VADriverContext*, PMOS_RESOURCE);
-CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID iVASurface,
-                                              VADriverContext *pUMDCtx,
-                                              CmSurface2D* & pSurface)
+CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID vaSurface,
+                                              VADriverContext *vaDriverCtx,
+                                              CmSurface2D* & surface)
 {
     INSERT_API_CALL_LOG();
 
-    MOS_RESOURCE MosResource;
-    int32_t hr = CmFillMosResource( iVASurface, pUMDCtx, &MosResource);
+    MOS_RESOURCE mosResource;
+    int32_t hr = CmFillMosResource( vaSurface, vaDriverCtx, &mosResource);
     if( hr != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Error: Failed to fill MOS resource.");
         return hr;
     }
 
-    CmSurface2DRT *pSurfaceRT = nullptr;
-    hr = m_pSurfaceMgr->CreateSurface2D(&MosResource, false, pSurfaceRT);
-    pSurface = pSurfaceRT;
+    CmSurface2DRT *surfaceRT = nullptr;
+    hr = m_surfaceMgr->CreateSurface2D(&mosResource, false, surfaceRT);
+    surface = surfaceRT;
     return hr;
 }
-
-CM_RT_API int32_t CmDeviceRT::DestroySurface(CmSurface2D* & pSurface)
-{
-    INSERT_API_CALL_LOG();
-
-    CLock locker(m_CriticalSection_Surface);
-
-    int32_t status = CM_SUCCESS;
-
-    CmSurface2DRT *pSurfaceRT = static_cast<CmSurface2DRT *>(pSurface);
-    status = m_pSurfaceMgr->DestroySurface( pSurfaceRT, APP_DESTROY);
-
-    if (status != CM_FAILURE) //CM_SURFACE_IN_USE, or  CM_SURFACE_CACHED may be returned, which should be treated as SUCCESS.
-    {
-        pSurface = nullptr;
-        return CM_SUCCESS;
-    }
-    else
-    {
-        return CM_FAILURE;
-    }
-
-    return status;
-}
-
 
 //*----------------------------------------------------------------------------
 //| Purpose:    Get JIT Compiler function from igfxcmjit64/32.dll
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::GetJITCompileFnt(pJITCompile &fJITCompile)
+int32_t CmDeviceRT::GetJITCompileFnt(pJITCompile &jitCompile)
 {
     if (m_fJITCompile)
     {
-        fJITCompile = m_fJITCompile;
+        jitCompile = m_fJITCompile;
     }
     else
     {
@@ -194,20 +174,39 @@ int32_t CmDeviceRT::GetJITCompileFnt(pJITCompile &fJITCompile)
         {
             return ret;
         }
-        fJITCompile = m_fJITCompile;
+        jitCompile = m_fJITCompile;
     }
     return CM_SUCCESS;
 }
+
+int32_t CmDeviceRT::GetJITCompileFntV2(pJITCompile_v2 &jitCompile_v2)
+{
+    if (m_fJITCompile_v2)
+    {
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    else
+    {
+        int ret = LoadJITDll();
+        if (ret != CM_SUCCESS)
+        {
+            return ret;
+        }
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    return CM_SUCCESS;
+}
+
 
 //*----------------------------------------------------------------------------
 //| Purpose:    Get JIT Free Block function from igfxcmjit64/32.dll
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::GetFreeBlockFnt(pFreeBlock &fFreeBlock)
+int32_t CmDeviceRT::GetFreeBlockFnt(pFreeBlock &freeBlock)
 {
     if (m_fFreeBlock)
     {
-        fFreeBlock = m_fFreeBlock;
+        freeBlock = m_fFreeBlock;
     }
     else
     {
@@ -216,7 +215,7 @@ int32_t CmDeviceRT::GetFreeBlockFnt(pFreeBlock &fFreeBlock)
         {
             return ret;
         }
-        fFreeBlock = m_fFreeBlock;
+        freeBlock = m_fFreeBlock;
     }
     return CM_SUCCESS;
 }
@@ -226,11 +225,11 @@ int32_t CmDeviceRT::GetFreeBlockFnt(pFreeBlock &fFreeBlock)
 //|             version from common isa
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::GetJITVersionFnt(pJITVersion &fJITVersion)
+int32_t CmDeviceRT::GetJITVersionFnt(pJITVersion &jitVersion)
 {
     if (m_fJITVersion)
     {
-        fJITVersion = m_fJITVersion;
+        jitVersion = m_fJITVersion;
     }
     else
     {
@@ -239,7 +238,7 @@ int32_t CmDeviceRT::GetJITVersionFnt(pJITVersion &fJITVersion)
         {
             return ret;
         }
-        fJITVersion = m_fJITVersion;
+        jitVersion = m_fJITVersion;
     }
     return CM_SUCCESS;
 }
@@ -258,6 +257,7 @@ int32_t CmDeviceRT::LoadJITDll()
         m_hJITDll = dlopen( "libigc.so", RTLD_LAZY );
         if (nullptr == m_hJITDll)
         {
+            CM_NORMALMESSAGE("Warning: Failed to load IGC library, will try JIT library.");
             if (sizeof(void *) == 4)  //32-bit
             {
                 m_hJITDll = dlopen( "igfxcmjit32.so", RTLD_LAZY );
@@ -270,20 +270,21 @@ int32_t CmDeviceRT::LoadJITDll()
         if (nullptr == m_hJITDll)
         {
             result = CM_JITDLL_LOAD_FAILURE;
-            CM_ASSERTMESSAGE("Error: Failed to get JIT version function due to loading JIT dll failure.");
+            CM_ASSERTMESSAGE("Error: Failed to load either IGC or JIT library.");
             return result;
         }
-        if (nullptr == m_fJITCompile || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
         {
             m_fJITCompile = (pJITCompile)MOS_GetProcAddress(m_hJITDll, JITCOMPILE_FUNCTION_STR);
+            m_fJITCompile_v2 = (pJITCompile_v2)MOS_GetProcAddress(m_hJITDll, JITCOMPILEV2_FUNCTION_STR);
             m_fFreeBlock = (pFreeBlock)MOS_GetProcAddress(m_hJITDll, FREEBLOCK_FUNCTION_STR);
             m_fJITVersion = (pJITVersion)MOS_GetProcAddress(m_hJITDll, JITVERSION_FUNCTION_STR);
         }
 
-        if ((NULL==m_fJITCompile) || (NULL==m_fFreeBlock) || (NULL==m_fJITVersion))
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || (nullptr == m_fFreeBlock) || (nullptr == m_fJITVersion))
         {
             result = CM_JITDLL_LOAD_FAILURE;
-            CM_ASSERTMESSAGE("Error: Failed to get JIT version function due to loading JIT dll failure.");
+            CM_ASSERTMESSAGE("Error: Failed to get JIT functions.");
             return result;
         }
     }
@@ -295,42 +296,42 @@ int32_t CmDeviceRT::LoadJITDll()
 //| Purpose:    Get the GPU Infomations from Internal
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS pQueryCaps)
+CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS queryCaps)
 {
-    PCM_CONTEXT_DATA        pCmData;
-    PCM_HAL_STATE           pCmHalState;
+    PCM_CONTEXT_DATA        cmData;
+    PCM_HAL_STATE           cmHalState;
     CM_RETURN_CODE          hr = CM_SUCCESS;
 
-    pCmData = (PCM_CONTEXT_DATA)GetAccelData();
-    CMCHK_NULL(pCmData);
+    cmData = (PCM_CONTEXT_DATA)GetAccelData();
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmData);
 
-    pCmHalState = pCmData->pCmHalState;
-    CMCHK_NULL(pCmHalState);
+    cmHalState = cmData->cmHalState;
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmHalState);
 
-    switch(pQueryCaps->Type)
+    switch(queryCaps->type)
     {
         case CM_QUERY_GPU:
-            pQueryCaps->genCore = pCmHalState->Platform.eRenderCoreFamily;
+            queryCaps->genCore = cmHalState->platform.eRenderCoreFamily;
             break;
 
         case CM_QUERY_GT:
-            pCmHalState->pCmHalInterface->GetGenPlatformInfo(nullptr, &pQueryCaps->genGT, nullptr);
+            cmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, &queryCaps->genGT, nullptr);
             break;
 
         case CM_QUERY_MIN_RENDER_FREQ:
-            pQueryCaps->MinRenderFreq = 0;
+            queryCaps->minRenderFreq = 0;
             break;
 
         case CM_QUERY_MAX_RENDER_FREQ:
-            pQueryCaps->MaxRenderFreq = 0;
+            queryCaps->maxRenderFreq = 0;
             break;
 
         case CM_QUERY_STEP:
-            pQueryCaps->genStepId = pCmHalState->Platform.usRevId;
+            queryCaps->genStepId = cmHalState->platform.usRevId;
             break;
 
         case CM_QUERY_GPU_FREQ:
-            CHK_MOSSTATUS_RETURN_CMERROR(pCmHalState->pfnGetGPUCurrentFrequency(pCmHalState, &pQueryCaps->GPUCurrentFreq));
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetGPUCurrentFrequency(cmHalState, &queryCaps->gpuCurrentFreq));
             break;
 
         default:
@@ -341,15 +342,14 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get the supported formats in Surface2D from Internal
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CM_RETURN_CODE
-CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS pQueryCaps)
+CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS queryCaps)
 {
-    if (pQueryCaps->pSurface2DFormats)
+    if (queryCaps->surface2DFormats)
     {
         CM_SURFACE_FORMAT formats[ CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL ] =
         {
@@ -363,14 +363,21 @@ CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS pQueryCaps)
             CM_SURFACE_FORMAT_A8,
             CM_SURFACE_FORMAT_NV12,
             CM_SURFACE_FORMAT_P010,
+            CM_SURFACE_FORMAT_P016,
+            CM_SURFACE_FORMAT_Y216,
+            CM_SURFACE_FORMAT_Y416,
             CM_SURFACE_FORMAT_UYVY,
             CM_SURFACE_FORMAT_V8U8,
             CM_SURFACE_FORMAT_Y8_UNORM,
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
-        CmSafeMemCopy( pQueryCaps->pSurface2DFormats, formats, CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL  * sizeof( GMM_RESOURCE_FORMAT ) );
+        CmSafeMemCopy( queryCaps->surface2DFormats, formats, CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL  * sizeof( GMM_RESOURCE_FORMAT ) );
     }
     else
         return CM_FAILURE;
@@ -378,12 +385,11 @@ CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS pQueryCaps)
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:   Report all the supported formats for surface2D
 //| Returns:    No
 //*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::QuerySurface2DFormats(void *pCapValue,
+int32_t CmDeviceRT::QuerySurface2DFormats(void *capValue,
                                           uint32_t & capValueSize)
 {
     if( capValueSize >= CM_MAX_SURFACE2D_FORMAT_COUNT  * sizeof( GMM_RESOURCE_FORMAT ) )
@@ -401,17 +407,27 @@ int32_t CmDeviceRT::QuerySurface2DFormats(void *pCapValue,
             CM_SURFACE_FORMAT_A8,
             CM_SURFACE_FORMAT_NV12,
             CM_SURFACE_FORMAT_P010,
+            CM_SURFACE_FORMAT_P016,
+            CM_SURFACE_FORMAT_Y216,
+            CM_SURFACE_FORMAT_Y416,
             CM_SURFACE_FORMAT_UYVY,
             CM_SURFACE_FORMAT_IMC3,
             CM_SURFACE_FORMAT_411P,
+            CM_SURFACE_FORMAT_411R,
             CM_SURFACE_FORMAT_422H,
             CM_SURFACE_FORMAT_422V,
             CM_SURFACE_FORMAT_444P,
+            CM_SURFACE_FORMAT_RGBP,
+            CM_SURFACE_FORMAT_BGRP,
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
-        CmSafeMemCopy( pCapValue, formats, capValueSize );
+        CmSafeMemCopy( capValue, formats, capValueSize );
         return CM_SUCCESS;
     }
     else
@@ -420,7 +436,6 @@ int32_t CmDeviceRT::QuerySurface2DFormats(void *pCapValue,
     }
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Set CM Context ID in MediaContext
 //| Arguments : Context ID
@@ -428,7 +443,7 @@ int32_t CmDeviceRT::QuerySurface2DFormats(void *pCapValue,
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRT::SetVaCtxID(uint32_t vaCtxID)
 {
-    m_VaCtxID = vaCtxID;
+    m_vaCtxID = vaCtxID;
     return CM_SUCCESS;
 }
 
@@ -439,22 +454,21 @@ int32_t CmDeviceRT::SetVaCtxID(uint32_t vaCtxID)
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRT::GetVaCtxID(uint32_t &vaCtxID)
 {
-    vaCtxID = m_VaCtxID;
+    vaCtxID = m_vaCtxID;
     return CM_SUCCESS;
 }
 
-
-int32_t CmDeviceRT::RegisterCallBack(pCallBackReleaseVaSurface pCallBack)
+int32_t CmDeviceRT::RegisterCallBack(pCallBackReleaseVaSurface callBack)
 {
-    m_pfnReleaseVaSurface = pCallBack;
+    m_pfnReleaseVaSurface = callBack;
     return CM_SUCCESS;
 }
 
-int32_t CmDeviceRT::ReleaseVASurface(void *pVaDpy, void *pVaSurID)
+int32_t CmDeviceRT::ReleaseVASurface(void *vaDisplay, void *vaSurfaceID)
 {
     if(m_pfnReleaseVaSurface)
     {
-        m_pfnReleaseVaSurface( pVaDpy, pVaSurID);
+        m_pfnReleaseVaSurface( vaDisplay, vaSurfaceID);
     }
 
     return CM_SUCCESS;
@@ -466,37 +480,38 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
     //if .mdf_trace does not exist, vtune log is off
     //if .mdf_trace exists, read string "Output=<hexmask>"
     //hexmask = 1 : enable; hexmask = 0: disable
-    m_bVtuneOn = false;
+    m_vtuneOn = false;
 
-    char *home_str = getenv("HOME");
-    if (home_str == nullptr)
+    char *homeStr = getenv("HOME");
+    if (homeStr == nullptr)
     {
-       //Even home_str is not found, this function returns success.
-       //m_bVtuneOn is still false.
+       //Even homeStr is not found, this function returns success.
+       //m_vtuneOn is still false.
        return CM_SUCCESS;
     }
 
-    char trace_file[256];
-    int offset = snprintf(trace_file, 256, "%s", home_str);
-    snprintf(trace_file+offset, 256-offset, "%s", "/.mdf_trace");
+    char traceFile[256];
+    int offset = snprintf(traceFile, 256, "%s", homeStr);
+    snprintf(traceFile+offset, 256-offset, "%s", "/.mdf_trace");
 
-    FILE *trace_fd = fopen(trace_file, "r");
+    FILE *traceFd = fopen(traceFile, "r");
     uint flag = 0;
-    if(trace_fd )
+    if(traceFd )
     {
       //read data from file
-      int ret = fscanf(trace_fd, "Output=%d", &flag);
+      int ret = fscanf(traceFd, "Output=%d", &flag);
       if(ret >=0 && flag == 1)
       {
-         m_bVtuneOn = true;
+         m_vtuneOn = true;
       }
-      fclose(trace_fd);
+      fclose(traceFd);
     }
 
     //Set flag in cm hal layer
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)this->GetAccelData();
-    PCM_HAL_STATE pCmHalState = pCmData->pCmHalState;
-    pCmHalState->pfnSetVtuneProfilingFlag(pCmHalState, m_bVtuneOn);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)this->GetAccelData();
+    PCM_HAL_STATE cmHalState = cmData->cmHalState;
+    cmHalState->pfnSetVtuneProfilingFlag(cmHalState, m_vtuneOn);
 
     return CM_SUCCESS;
 }
+}  // namespace

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include "mos_os.h"
 #include "mhw_utilities.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 #include <math.h>
 
@@ -112,7 +112,7 @@ typedef enum _MHW_CSPACE
     MHW_CSpace_BT601Gray            ,   //!< BT.601 Y[16,235]
     MHW_CSpace_BT601Gray_FullRange  ,   //!< BT.601 Y[0,255]
     MHW_CSpace_BT2020               ,   //!< BT.2020 YUV Limited Range 10bit Y[64, 940] UV[64, 960]
-    MHW_CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023] 
+    MHW_CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023]
     MHW_CSpace_BT2020_RGB           ,   //!< BT.2020 RGB Full Range 10bit [0, 1023]
     MHW_CSpace_BT2020_stRGB         ,   //!< BT.2020 RGB Studio Range 10bit [64, 940]
     MHW_CSpace_Count                    //!< Keep this at the end
@@ -166,7 +166,9 @@ typedef struct _MHW_VEBOX_MODE
     uint32_t    SFCParallelWriteEnable              : 1;  // Gen9+
     uint32_t    ScalarMode                          : 1;  // Gen10+
     uint32_t    ForwardGammaCorrectionEnable        : 1;  // Gen9+
-    uint32_t                                        : 10; // Reserved
+    uint32_t    Hdr1DLutEnable                      : 1;
+    uint32_t    Fp16ModeEnable                      : 1;
+    uint32_t                                        : 8; // Reserved
 } MHW_VEBOX_MODE, *PMHW_VEBOX_MODE;
 
 typedef enum _MHW_VEBOX_ADDRESS_SHIFT
@@ -207,8 +209,11 @@ typedef struct _MHW_VEBOX_STATE_CMD_PARAMS
     bool                                bUseVeboxHeapKernelResource;
     PMOS_RESOURCE                       pLaceLookUpTables;
     PMOS_RESOURCE                       pVeboxParamSurf;
+    PMOS_RESOURCE                       pVebox3DLookUpTables;
+    PMOS_RESOURCE                       pVebox1DLookUpTables;
     MOS_RESOURCE                        DummyIecpResource;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS    LaceLookUpTablesSurfCtrl;
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS    Vebox3DLookUpTablesSurfCtrl;
     bool                                bNoUseVeboxHeap;
 } MHW_VEBOX_STATE_CMD_PARAMS, *PMHW_VEBOX_STATE_CMD_PARAMS;
 
@@ -264,6 +269,7 @@ typedef struct _MHW_VEBOX_DNDI_PARAMS
     bool      bLocalCheck;
     bool      bSyntheticContentCheck;
     bool      bSyntheticFrame;
+    bool      bSCDEnable;
     uint32_t  dwDirectionCheckThreshold;
     uint32_t  dwTearingLowThreshold;
     uint32_t  dwTearingHighThreshold;
@@ -512,8 +518,8 @@ typedef struct _MHW_ICC_COLOR_CONVERSION_PARAMS
 
 typedef struct _MHW_DEBAYER_PARAMS
 {
-	uint32_t BayerInput;                  //!< 0 – MSB (default); 1 – LSB    
-	uint32_t LSBBayerBitDepth;            //!< 10, 12 or 14 for varies bayer input
+    uint32_t BayerInput;                  //!< 0 – MSB (default); 1 – LSB
+    uint32_t LSBBayerBitDepth;            //!< 10, 12 or 14 for varies bayer input
 } MHW_DEBAYER_PARAMS, *PMHW_DEBAYER_PARAMS;
 
 //!
@@ -542,11 +548,23 @@ typedef struct _MHW_CAPPIPE_PARAMS
 //!
 typedef struct _MHW_3DLUT_PARAMS
 {
-	uint32_t bActive;                    //!< Active or not
-	uint32_t LUTSize;                    //!< Size (one dimensions) of the LUT
-	uint32_t LUTLength;                  //!< Length of the LUT, in unit of bit
-	uint8_t *pLUT;                       //!< Pointer to the LUT value
+    uint32_t bActive;                    //!< Active or not
+    uint32_t LUTSize;                    //!< Size (one dimensions) of the LUT
+    uint32_t LUTLength;                  //!< Length of the LUT, in unit of bit
+    uint8_t *pLUT;                       //!< Pointer to the LUT value
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
+
+//! 
+//! \brief  VEBOX HDR PARAMS
+//! \details For CCM settings, move 1DLut to here later
+typedef struct _MHW_1DLUT_PARAMS
+{
+    uint32_t bActive;
+    uint32_t *p1DLUT;
+    uint32_t *LUTSize;
+    int32_t *pCCM;
+    uint32_t *CCMSize;
+} MHW_1DLUT_PARAMS, *PMHW_1DLUT_PARAMS;
 
 //!
 //! \brief  VEBOX IECP parameters
@@ -571,7 +589,8 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
 
     bool                            bAce;
 
-	MHW_3DLUT_PARAMS                s3DLutParams;
+    MHW_3DLUT_PARAMS                s3DLutParams;
+    MHW_1DLUT_PARAMS                s1DLutParams;
 } MHW_VEBOX_IECP_PARAMS, *PMHW_VEBOX_IECP_PARAMS;
 
 //!
@@ -650,7 +669,9 @@ typedef struct _MHW_VEBOX_DI_IECP_CMD_PARAMS
     uint32_t                            dwStartingX;
     uint32_t                            dwCurrInputSurfOffset;
     uint32_t                            dwPrevInputSurfOffset;
-    uint32_t                            dwStreamID;
+    uint32_t                            dwCurrOutputSurfOffset;
+    uint32_t                            dwStreamID;                         // Stream ID for input surface
+    uint32_t                            dwStreamIDOutput;                   // Stream ID for output surface
 
     PMOS_RESOURCE                       pOsResCurrInput;
     PMOS_RESOURCE                       pOsResPrevInput;
@@ -692,6 +713,7 @@ typedef struct _MHW_VEBOX_SURFACE_PARAMS
     uint32_t                    dwPitch;            //!<  Surface pitch
     uint32_t                    dwBitDepth;         //!<  Surface bitdepth
     uint32_t                    dwStreamID;         //!<  Surface StreamID
+    uint32_t                    dwYoffset;          //!<  Surface Yoffset in Vertical
     uint32_t                    dwUYoffset;         //!<  Surface Uoffset in Vertical
     MOS_TILE_TYPE               TileType;           //!<  Tile Type
     RECT                        rcMaxSrc;           //!< Max source rectangle
@@ -745,6 +767,7 @@ typedef struct _MHW_VEBOX_HEAP
     uint32_t                uiCapturePipeStateOffset;                           // Capture Pipe state offset
     uint32_t                uiGammaCorrectionStateOffset;                       // Gamma Correction state offset
     uint32_t                ui3DLUTStateOffset;                                 // 3D LUT state offset
+    uint32_t                ui1DLUTStateOffset;                                 // Hdr State offset
     uint32_t                uiInstanceSize;                                     // Size of single instance of VEBOX states
     uint32_t                uiStateHeapSize;                                    // Total size of VEBOX States heap
     PMHW_VEBOX_HEAP_STATE   pStates;                                            // Array of VEBOX Heap States
@@ -772,6 +795,7 @@ typedef struct
     uint32_t            uiCapturePipeStateSize;                                 // Capture Pipe State Size (Gen8+)
     uint32_t            uiGammaCorrectionStateSize;                             // Gamma Correction State Size (Gen9+)
     uint32_t            ui3DLUTStateSize;                                       // 3D LUT State Size (Gen10+)
+    uint32_t            ui1DLUTStateSize;                                       // VEBOX Hdr 1DLUT State Size
 } MHW_VEBOX_SETTINGS, *PMHW_VEBOX_SETTINGS;
 typedef const MHW_VEBOX_SETTINGS CMHW_VEBOX_SETTINGS, *PCMHW_VEBOX_SETTINGS;
 
@@ -781,18 +805,10 @@ typedef const MHW_VEBOX_SETTINGS CMHW_VEBOX_SETTINGS, *PCMHW_VEBOX_SETTINGS;
 typedef struct _MHW_VEBOX_GPUNODE_LIMIT
 {
     bool    bSfcInUse;
-    bool    bCpEnabled;  
+    bool    bCpEnabled;
     uint32_t dwGpuNodeToUse;
 } MHW_VEBOX_GPUNODE_LIMIT, *PMHW_VEBOX_GPUNODE_LIMIT;
 
-//!
-//! \brief  MHW VEBOX MMIO Structure
-//!
-typedef struct _MHW_VEBOX_MMIO
-{
-    uint32_t dwWatchdogCountCtrlOffset;
-    uint32_t dwWatchdogCountThresholdOffset;
-} MHW_VEBOX_MMIO, *PMHW_VEBOX_MMIO;
 
 
 class MhwVeboxInterface
@@ -826,7 +842,7 @@ public:
         PMOS_COMMAND_BUFFER                     pCmdBuffer,
         PMHW_VEBOX_STATE_CMD_PARAMS             pVeboxStateCmdParams,
         bool                                    bUseCmBuffer) = 0;
-    
+
     //!
     //! \brief      Send Vebox Surface State commands
     //! \details    Set surface state for input and output surfaces
@@ -962,6 +978,38 @@ public:
     finish:
         return eStatus;
    }
+
+    //!
+    //! \brief    Create Gpu Context for Vebox
+    //! \details  Create Gpu Context for Vebox
+    //! \param    [in] pOsInterface
+    //!           OS interface
+    //! \param    [in] VeboxGpuContext
+    //!           Vebox Gpu Context
+    //! \param    [in] VeboxGpuNode
+    //!           Vebox Gpu Node
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateGpuContext(
+        PMOS_INTERFACE  pOsInterface,
+        MOS_GPU_CONTEXT VeboxGpuContext,
+        MOS_GPU_NODE    VeboxGpuNode)
+    {
+        MOS_GPUCTX_CREATOPTIONS createOption;
+        MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+
+        MHW_CHK_NULL(pOsInterface);
+
+        MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
+            pOsInterface,
+            VeboxGpuContext,
+            VeboxGpuNode,
+            &createOption));
+
+    finish:
+        return eStatus;
+    }
 
 protected:
     MhwVeboxInterface(PMOS_INTERFACE pOsInterface);

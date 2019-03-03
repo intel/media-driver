@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_manager_os.cpp  
-//! \brief     Contains Class CmSurfaceManager  definitions  
+//! \file      cm_surface_manager_os.cpp 
+//! \brief     Contains Class CmSurfaceManager  definitions 
 //!
 #include "cm_surface_manager.h"
 
@@ -29,9 +29,12 @@
 
 #include "cm_surface_2d_rt.h"
 #include "cm_device_rt.h"
+#include "cm_mem.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create surface 2d 
+//| Purpose:    Create surface 2d
 //| Arguments :
 //|               mosResource        [in]       pointer to mos resource
 //|               createdByCm        [in]       if this surface created by thin layer
@@ -39,7 +42,7 @@
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
- int32_t CmSurfaceManager::CreateSurface2D(MOS_RESOURCE * mosResource, bool createdByCm, CmSurface2DRT* & surface) 
+ int32_t CmSurfaceManager::CreateSurface2D(MOS_RESOURCE * mosResource, bool createdByCm, CmSurface2DRT* & surface)
  {
     uint32_t handle         = 0;
     uint32_t index          = ValidSurfaceIndexStart();
@@ -57,7 +60,7 @@
     {
         CM_ASSERTMESSAGE("Error: Failed to get surface info from mosResource.");
         return result;
-    } 
+    }
 
     //Sanity check
     result = Surface2DSanityCheck(width, height, format);
@@ -65,7 +68,7 @@
     {
         CM_ASSERTMESSAGE("Error: Sanity check for surface 2D failure.");
         return result;
-    } 
+    }
 
     // For 2D surface, since the real memory buffer is not allocated in CMRT@UMD, no reuse/manager can be done
     // Real reuse is controlled by the CMRT library.
@@ -81,7 +84,7 @@
         return CM_EXCEED_SURFACE_AMOUNT;
     }
 
-    result = AllocateSurface2D( width, height, format, mosResource, handle); 
+    result = AllocateSurface2D( width, height, format, mosResource, handle);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Failed to allocate surface.");
@@ -97,11 +100,10 @@
     }
 
     m_surfaceArray[ index ] = surface;
-    UpdateProfileFor2DSurface(index, width, height, format, false);
-    
+    UpdateProfileFor2DSurface(index, width, height, format);
+
     return CM_SUCCESS;
  }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Check the legality of surface's width,height and format
@@ -140,9 +142,16 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_L8:
         case CM_SURFACE_FORMAT_R32_SINT:
+        case CM_SURFACE_FORMAT_R32_UINT:
         case CM_SURFACE_FORMAT_BUFFER_2D:
+        case CM_SURFACE_FORMAT_Y216:
+        case CM_SURFACE_FORMAT_Y416:
+        case CM_SURFACE_FORMAT_AYUV:
+        case CM_SURFACE_FORMAT_Y210:
+        case CM_SURFACE_FORMAT_Y410:
+        case CM_SURFACE_FORMAT_R32G32B32A32F:
             break;
-            
+
         case CM_SURFACE_FORMAT_R8_UINT:
         case CM_SURFACE_FORMAT_R16_UINT:
         case CM_SURFACE_FORMAT_L16:
@@ -166,6 +175,7 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
             break;
 
         case CM_SURFACE_FORMAT_P010:
+        case CM_SURFACE_FORMAT_P016:
         case CM_SURFACE_FORMAT_YV12:
             if( width & 0x1 )
             {
@@ -180,10 +190,14 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
             break;
 
         case CM_SURFACE_FORMAT_411P:
+        case CM_SURFACE_FORMAT_411R:
         case CM_SURFACE_FORMAT_IMC3:
         case CM_SURFACE_FORMAT_422H:
         case CM_SURFACE_FORMAT_422V:
         case CM_SURFACE_FORMAT_444P:
+        case CM_SURFACE_FORMAT_RGBP:
+        case CM_SURFACE_FORMAT_BGRP:
+        case CM_SURFACE_FORMAT_P208:
             if( width & 0x1 )
             {
                 CM_ASSERTMESSAGE("Error: Invalid surface width.");
@@ -195,7 +209,7 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
                 return CM_INVALID_HEIGHT;
             }
             break;
-            
+
         default:
             CM_ASSERTMESSAGE("Error: Unsupported surface format.");
             return CM_SURFACE_FORMAT_NOT_SUPPORTED;
@@ -204,36 +218,72 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
     return CM_SUCCESS;
 }
 
-
 //!
 //! \brief    Get mos surface's information (width, height, pitch and format)
 //! \details  This function calls mos interface pfnGetResourceInfo to get details of surface.
 //! \param    [in] mosResource
 //!           pointer to mos resource
-//! \param    [in/out] width
+//! \param    [in,out] width
 //!           reference to surface's width
-//! \param    [in/out] height
+//! \param    [in,out] height
 //!           reference to surface's height
-//! \param    [in/out] pitch
+//! \param    [in,out] pitch
 //!           reference to surface's lock pitch
-//! \param    [in/out] format
+//! \param    [in,out] format
 //!           reference to surface's format
 //! \return   MOS_STATUS
 //!
 int32_t CmSurfaceManager::GetSurfaceInfo( MOS_RESOURCE * mosResource, uint32_t &width, uint32_t &height, uint32_t &pitch, CM_SURFACE_FORMAT &format)
 {
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState  = pCmData->pCmHalState;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state  = cmData->cmHalState;
 
     MOS_SURFACE          surfaceDetails;
     MOS_ZeroMemory(&surfaceDetails, sizeof(surfaceDetails));
     surfaceDetails.Format = CM_SURFACE_FORMAT_INVALID;
-    pState->pOsInterface->pfnGetResourceInfo(pState->pOsInterface, mosResource, &surfaceDetails);
+    state->osInterface->pfnGetResourceInfo(state->osInterface, mosResource, &surfaceDetails);
 
     width    = surfaceDetails.dwWidth;
     height   = surfaceDetails.dwHeight;
     format   = surfaceDetails.Format;
     pitch    = surfaceDetails.dwLockPitch;
-    
+
     return CM_SUCCESS;
 }
+
+int32_t CmSurfaceManager::UpdateSurface2D(MOS_RESOURCE * mosResource, int index, uint32_t handle)
+{
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
+
+    CM_SURFACE_FORMAT format;
+    uint32_t width          = 0;
+    uint32_t height         = 0;
+    uint32_t pitch          = 0;
+    int result = GetSurfaceInfo(mosResource, width, height, pitch, format);
+    if( result != CM_SUCCESS )
+    {
+        CM_ASSERTMESSAGE("Error: Failed to get surface info from pMosResource.");
+        return result;
+    }
+
+    CM_HAL_SURFACE2D_PARAM inParam;
+    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_PARAM ) );
+    inParam.width                  = width;
+    inParam.height                 = height;
+    inParam.format                 = format;
+    inParam.mosResource            = mosResource;
+    inParam.isAllocatedbyCmrtUmd   = false;
+    inParam.handle                 = handle;
+
+    state->pfnUpdateSurface2D(state, &inParam);
+
+    CmSurface2DRT *surface = static_cast<CmSurface2DRT *>(m_surfaceArray[index]);
+
+    int ret = surface->UpdateSurfaceProperty(width, height, pitch, format);
+
+    return ret;
+
+}
+
+}  // namespace

@@ -52,7 +52,7 @@ void CompositeStateG10::SubmitStatesFillGenSpecificStaticData(
         }
     }
 
-    // Set ChromaSitting 
+    // Set ChromaSitting
     pStatic->DW10.ObjKa2Gen9.ChromaSitingLocation = GetOutputChromaSitting(pTarget);
 
     if (pRenderingData->iLayers > 0)

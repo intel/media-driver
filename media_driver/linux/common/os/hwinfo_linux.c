@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        hwinfo_linux.c  
-//! \brief     The purpose of the file is to get the sku/wa table according to platform information.     
+//! \file        hwinfo_linux.c 
+//! \brief     The purpose of the file is to get the sku/wa table according to platform information. 
 //!
 
 #include "hwinfo_linux.h"
@@ -30,6 +30,8 @@
 #include "skuwa_factory.h"
 #include "linux_system_info.h"
 #include "linux_shadow_skuwa.h"
+#include "mos_solo_generic.h"
+
 
 typedef DeviceInfoFactory<struct GfxDeviceInfo> DeviceInfoFact;
 typedef DeviceInfoFactory<struct LinuxDeviceInit> DeviceInitFact;
@@ -62,14 +64,16 @@ static bool MediaGetParam(int fd, int32_t param, uint32_t *retValue)
 
 /*****************************************************************************\
 Description:
-    Get Sku/Wa tables and platform information according to input device ID
+    Get Sku/Wa tables and platform information according to input device FD
 
 Input:
-    fd         - file descriptor to the /dev/dri/card0
+    fd         - file descriptor to the /dev/dri/cardX
 Output:
-    pGfxPlatform - structure describing current GFX device.
-    pSkuInitParam - Sku/Wa structure
-    pPlatformType - is it mobile, desk, server? Sku/Wa must know.
+    gfxPlatform  - describing current platform. is it mobile, desk,
+                   server? Sku/Wa must know.
+    skuTable     - describing SKU
+    waTable      - the constraints list
+    gtSystemInfo - describing current system information
 \*****************************************************************************/
 MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
                           PLATFORM             *gfxPlatform,
@@ -77,7 +81,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
                           MEDIA_WA_TABLE       *waTable,
                           MEDIA_SYSTEM_INFO    *gtSystemInfo)
 {
-    if ((fd == 0) ||
+    if ((fd < 0) ||
         (gfxPlatform == nullptr) ||
         (skuTable == nullptr) ||
         (waTable == nullptr) ||
@@ -91,9 +95,8 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 #endif
 
-    LinuxDriverInfo drvInfo;
-    memset(&drvInfo, 0, sizeof(drvInfo));
-    if (HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
+    if (!Mos_Solo_IsEnabled() && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;
@@ -213,7 +216,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 
 MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
 {
-    if ((fd == 0) || (drvInfo == nullptr))
+    if ((fd < 0) || (drvInfo == nullptr))
     {
         return MOS_STATUS_INVALID_HANDLE;
     }
@@ -293,7 +296,7 @@ Description:
     Get the required Sku/Wa tables for GMM and platform information  based on device Fd
 
 Input:
-    fd         - file descriptor to the /dev/dri/card0
+    fd         - file descriptor to the /dev/dri/cardX
 Output:
      SHADOW_MEDIA_FEATURE_TABLE  *shadowSkuTable
      SHADOW_MEDIA_WA_TABLE      *shadowWaTable,
@@ -304,7 +307,7 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
                           SHADOW_MEDIA_WA_TABLE      *shadowWaTable,
                           MEDIA_SYSTEM_INFO          *systemInfo)
 {
-    if ((fd == 0) ||
+    if ((fd < 0) ||
         (shadowSkuTable == nullptr) ||
         (shadowWaTable == nullptr) ||
         (systemInfo == nullptr))
@@ -313,13 +316,12 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    LinuxDriverInfo drvInfo;
+    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 #endif
 
-    memset(&drvInfo, 0, sizeof(drvInfo));
-    if (HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    if (!Mos_Solo_IsEnabled() && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;
@@ -350,90 +352,3 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
     return MOS_STATUS_SUCCESS;
 }
 
-/*****************************************************************************\
-Description:
-    Get Sku/Wa tables and systemInfo based on device Id and DrvInfo
-
-Input:
-    deviceId         - the PCI device id
-    DrvInfo          = the LinuxDriverInfo
-Output:
-    gfxPlatform - structure describing current GFX device.
-    skuTable    - structure MEDIA_FEATURE_TABLE
-    waTable     - structure MEDIA_WA_TABLE
-    systemInfo  - structure MEDIA_SYSTEM_INFO
-\*****************************************************************************/
-MOS_STATUS HWInfo_GetGfxInfo(unsigned int            devId,
-                          LinuxDriverInfo      *drvInfo,
-                          PLATFORM             *gfxPlatform,
-                          MEDIA_FEATURE_TABLE  *skuTable,
-                          MEDIA_WA_TABLE       *waTable,
-                          MEDIA_SYSTEM_INFO    *systemInfo)
-{
-    if ((devId == 0) ||
-        (skuTable == nullptr) ||
-        (waTable == nullptr) ||
-        (systemInfo == nullptr))
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid parameter \n");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    GfxDeviceInfo *devInfo = getDeviceInfo(devId);
-    if (devInfo == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("Failed to get the device info for Device id: %x\n", devId);
-        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-    }
-    /* Initialize Platform Info */
-    gfxPlatform->ePlatformType      = (PLATFORM_TYPE)devInfo->platformType;
-    gfxPlatform->eProductFamily     = (PRODUCT_FAMILY)devInfo->productFamily;
-    gfxPlatform->ePCHProductFamily  = PCH_UNKNOWN;
-    gfxPlatform->eDisplayCoreFamily = (GFXCORE_FAMILY)devInfo->displayFamily;
-    gfxPlatform->eRenderCoreFamily  = (GFXCORE_FAMILY)devInfo->renderFamily;
-    gfxPlatform->eGTType            = (GTTYPE)devInfo->eGTType;
-    gfxPlatform->usDeviceID         = drvInfo->devId;
-    gfxPlatform->usRevId            = drvInfo->devRev;
-
-    if (devInfo->InitMediaSysInfo &&
-        devInfo->InitMediaSysInfo(devInfo, systemInfo))
-    {
-        MOS_OS_NORMALMESSAGE("Init Media SystemInfo\n");
-    }
-    else
-    {
-        MOS_OS_ASSERTMESSAGE("Failed to Init Gt System Info\n");
-        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-    }
-
-    uint32_t platformKey = devInfo->productFamily;
-    LinuxDeviceInit *devInit = getDeviceInit(platformKey);
-
-    /* Later change the nullptr to SkuTable/WaTable */
-    if (devInit && devInit->InitMediaFeature &&
-        devInit->InitMediaWa &&
-        devInit->InitMediaFeature(devInfo, skuTable, drvInfo) &&
-        devInit->InitMediaWa(devInfo, waTable, drvInfo))
-    {
-        MOS_OS_NORMALMESSAGE("Init Media SKU/WA info successfully\n");
-    }
-    else
-    {
-        MOS_OS_ASSERTMESSAGE("Failed to Init SKU/WA Info\n");
-        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-    }
-
-    uint32_t devExtKey = platformKey + MEDIA_EXT_FLAG;
-    LinuxDeviceInit *devExtInit = getDeviceInit(devExtKey);
-
-    /* The initializationof Ext SKU/WA is optional. So skip the check of return value */
-    if (devExtInit && devExtInit->InitMediaFeature &&
-        devExtInit->InitMediaWa &&
-        devExtInit->InitMediaFeature(devInfo, skuTable, drvInfo) &&
-        devExtInit->InitMediaWa(devInfo, waTable, drvInfo))
-    {
-        MOS_OS_NORMALMESSAGE("Init Media SystemInfo successfully\n");
-    }
-
-    return MOS_STATUS_SUCCESS;
-}

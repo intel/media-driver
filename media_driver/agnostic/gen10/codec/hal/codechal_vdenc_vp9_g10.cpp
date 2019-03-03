@@ -37,7 +37,9 @@
 
 #include "codechal_vdenc_vp9_g10.h"
 #include "codeckrnheader.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
+#endif
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"
 
 CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
@@ -49,7 +51,10 @@ CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_VP9_NUM_SYNC_TAGS;
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_ENCODE_VP9_INIT_DSH_SIZE;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#endif
+
     m_kuid = IDR_CODEC_VDENC_HME;
 
     pfnGetKernelHeaderAndSize = GetCommonKernelHeaderAndSize;
@@ -60,7 +65,7 @@ CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
     uint8_t* binary = nullptr;
     uint32_t combinedKernelSize = 0;
 
-    MOS_STATUS eStatus = CodecHal_GetKernelBinaryAndSize(
+    MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
         IDR_CODEC_VDENC_HME,
         &binary,
@@ -69,7 +74,7 @@ CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
 
     uint32_t totalSize = combinedKernelSize;
 
-    eStatus = CodecHal_GetKernelBinaryAndSize(
+    eStatus = CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
         IDR_CODEC_AllVP9Enc,
         &binary,
@@ -100,7 +105,7 @@ CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
 //!
 MOS_STATUS CodechalVdencVp9StateG10::GetCommonKernelHeaderAndSize(
     void*        binary,
-    EncOperation operation, //change it back to this EncOperation operation, 
+    EncOperation operation, //change it back to this EncOperation operation,
     uint32_t     krnStateIdx,
     void*        krnHeader,
     uint32_t*    krnSize)
@@ -195,12 +200,12 @@ MOS_STATUS CodechalVdencVp9StateG10::GetKernelHeaderAndSize(
 
     PCODECHAL_KERNEL_HEADER nextKrnHeader = (currKrnHeader + 1);
     PCODECHAL_KERNEL_HEADER invalidEntry = &(kernelHeaderTable->VP9_DYS) + 1;
-    uint32_t dwNextKrnOffset = *krnSize;
+    uint32_t nextKrnOffset = *krnSize;
     if (nextKrnHeader < invalidEntry)
     {
-        dwNextKrnOffset = nextKrnHeader->KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT;
+        nextKrnOffset = nextKrnHeader->KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT;
     }
-    *krnSize = dwNextKrnOffset - (currKrnHeader->KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT);
+    *krnSize = nextKrnOffset - (currKrnHeader->KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT);
 
     return eStatus;
 }
@@ -278,7 +283,7 @@ MOS_STATUS CodechalVdencVp9StateG10::SetKernelParams(
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    uint32_t wCurbeAlignment = m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment();
+    uint32_t curbeAlignment = m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment();
 
     kernelParams->iThreadCount = m_renderEngineInterface->GetHwCaps()->dwMaxThreads;
     kernelParams->iIdCount = 1;
@@ -287,25 +292,25 @@ MOS_STATUS CodechalVdencVp9StateG10::SetKernelParams(
     {
     case VDENC_ME_P:
         kernelParams->iBTCount = HmeEnd - HmeBegin;
-        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)wCurbeAlignment);
+        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)curbeAlignment);
         kernelParams->iBlockWidth = 32;
         kernelParams->iBlockHeight = 32;
         break;
     case VDENC_ME_B:
         kernelParams->iBTCount = HmeEnd - HmeBegin;
-        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)wCurbeAlignment);
+        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)curbeAlignment);
         kernelParams->iBlockWidth = 32;
         kernelParams->iBlockHeight = 32;
         break;
     case VDENC_STREAMIN:
         kernelParams->iBTCount = HmeEnd - HmeBegin;
-        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)wCurbeAlignment);
+        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)curbeAlignment);
         kernelParams->iBlockWidth = 32;
         kernelParams->iBlockHeight = 32;
         break;
     case VDENC_STREAMIN_HEVC:
         kernelParams->iBTCount = HmeEnd - HmeBegin;
-        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)wCurbeAlignment);
+        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(VdencMeCurbe), (size_t)curbeAlignment);
         kernelParams->iBlockWidth = 32;
         kernelParams->iBlockHeight = 32;
         break;
@@ -329,7 +334,7 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStateDys()
 
     uint8_t* binary = nullptr;
     uint32_t combinedKernelSize = 0;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
         m_kuid,
         &binary,
@@ -369,7 +374,7 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStateDys()
     m_dysDshSize = kernelState->dwSamplerOffset +
         MOS_ALIGN_CEIL(kernelState->KernelParams.iSamplerLength * kernelState->KernelParams.iSamplerCount, MHW_SAMPLER_STATE_AVS_ALIGN);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelState));
 
     // Reset KUID back to generic VDEnc kernel if VDEnc is enabled
     m_kuid = IDR_CODEC_VDENC_HME;
@@ -392,7 +397,7 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStateStreamin()
 
     uint32_t kernelSize = 0;
     uint8_t* binary;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
         m_kuid,
         &binary,
@@ -425,7 +430,7 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStateStreamin()
         &kernelState->dwSshSize,
         &kernelState->dwBindingTableSize));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelState));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -445,7 +450,7 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStateMe()
 
     uint8_t* binary;
     uint32_t kernelSize = 0;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
         m_kuid,
         &binary,
@@ -478,7 +483,7 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStateMe()
         &kernelState->dwSshSize,
         &kernelState->dwBindingTableSize));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelState));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -487,12 +492,14 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStates()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     // DYS
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateDys());
     // VDEnc SHME (16x)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
     //Streamin Kernel initialization (streamin & 4x HME)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateStreamin());
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -503,9 +510,10 @@ uint32_t CodechalVdencVp9StateG10::GetMaxBtCount()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    uint16_t btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
-
     m_maxBtCount = 0;
+
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    uint16_t btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
 
     if (m_hmeSupported)
     {
@@ -525,6 +533,7 @@ uint32_t CodechalVdencVp9StateG10::GetMaxBtCount()
         }
         m_maxBtCount = scalingBtCount + meBtCount;
     }
+#endif
 
     return m_maxBtCount;
 }
@@ -566,56 +575,66 @@ bool CodechalVdencVp9StateG10::CheckSupportedFormat(
     return isColorFormatSupported;
 }
 
-MOS_STATUS CodechalVdencVp9StateG10::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    CODECHAL_ENCODE_FUNCTION_ENTER;                                
+    CODECHAL_ENCODE_FUNCTION_ENTER;
     //Create and register huc Cmd Initializer
-    m_hucCmdInitializer = MOS_New(CodechalCmdInitializer);
-    
+    m_hucCmdInitializer = MOS_New(CodechalCmdInitializer, this);
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencVp9State::Initialize(settings));
 
     m_dysVdencMultiPassEnabled = true;
+
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     if (m_cscDsState)
     {
         m_cscDsState->EnableColor();
     }
+#endif
+
     m_vdencBrcStatsBufferSize    = m_brcStatsBufSize;
     m_vdencBrcPakStatsBufferSize = m_brcPakStatsBufSize;
     m_brcHistoryBufferSize       = m_brcHistoryBufSize;
 
+    /*
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     userFeatureData.i32Data = 1;
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_HUC_ENABLE_ID,
         &userFeatureData);
     m_hucEnabled = (userFeatureData.i32Data) ? true : false;
+    */
 
+    /* use the skuTable to check whether the Huc is enabled */
+    m_hucEnabled = MEDIA_IS_SKU(m_skuTable, FtrEnableMediaKernels);
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     userFeatureData.i32Data = 1;
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
         &userFeatureData);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
-    // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored 
+    // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored
     // to the original value after encoding of the frame. So need to restore to the original state
     m_storeSingleTaskPhaseSupported = m_singleTaskPhaseSupported; //Save the SingleTaskPhase state here
 
     // HME enabled by default for VP9
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ME_ENABLE_ID,
         &userFeatureData);
     m_hmeSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_16xME_ENABLE_ID,
         &userFeatureData);
@@ -629,7 +648,7 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(PCODECHAL_SETTINGS settings)
 
     // Multi-Pass BRC: currently disabled by default
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_MULTIPASS_BRC_ENABLE_ID,
         &userFeatureData);
@@ -637,7 +656,7 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(PCODECHAL_SETTINGS settings)
 
     // Adaptive Repak: currently disabled by default
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
         &userFeatureData);
@@ -714,8 +733,8 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
     CODECHAL_ENCODE_CHK_NULL_RETURN(streamIn);
 
     // align to cache line size is OK since streamin state is padded to cacheline size - HW uses cacheline size to read, not command size
-    uint32_t blockWidth   = MOS_ALIGN_CEIL(m_frameWidth, CODECHAL_VP9_SUPER_BLOCK_WIDTH) / 32;
-    uint32_t blockHeight  = MOS_ALIGN_CEIL(m_frameHeight, CODECHAL_VP9_SUPER_BLOCK_HEIGHT) / 32;
+    uint32_t blockWidth   = MOS_ALIGN_CEIL(m_frameWidth, CODEC_VP9_SUPER_BLOCK_WIDTH) / 32;
+    uint32_t blockHeight  = MOS_ALIGN_CEIL(m_frameHeight, CODEC_VP9_SUPER_BLOCK_HEIGHT) / 32;
     uint32_t streamInSize = blockHeight * blockWidth * CODECHAL_CACHELINE_SIZE;
     MOS_ZeroMemory(streamIn, streamInSize);
 
@@ -731,9 +750,9 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
         return eStatus;
     }
 
-    char* data = (char*)m_osInterface->pfnLockResource(
+    char *data = (char *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &sMbSegmentMapSurface.OsResource,
+        &m_mbSegmentMapSurface.OsResource,
         &lockFlagsReadOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -746,8 +765,8 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
         uint32_t addrOffset = CalculateBufferOffset(
             m_mapBuffer[i],
             m_frameWidth,
-            pVp9PicParams->PicFlags.fields.seg_id_block_size,
-            sMbSegmentMapSurface.dwPitch);
+            m_vp9PicParams->PicFlags.fields.seg_id_block_size,
+            m_mbSegmentMapSurface.dwPitch);
         uint32_t segId  = *(data + addrOffset);
         streamIn[i].DW7.SegidEnable = 1;
         streamIn[i].DW7.Segid32X32016X1603Vp9Only = segId | (segId << 4) | (segId << 8) | (segId << 12);
@@ -769,7 +788,7 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
 
         streamIn[i].DW0.Numimepredictors = CODECHAL_VDENC_NUMIMEPREDICTORS;
 
-        switch (pVp9SeqParams->TargetUsage)
+        switch (m_vp9SeqParams->TargetUsage)
         {
         case 1:     // Quality mode
         case 4:     // Normal mode
@@ -793,7 +812,7 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &sMbSegmentMapSurface.OsResource));
+        &m_mbSegmentMapSurface.OsResource));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
         m_osInterface,
@@ -820,8 +839,8 @@ MOS_STATUS CodechalVdencVp9StateG10::InitZigZagToRasterLUT(uint32_t height, uint
         MOS_FreeMemory(m_mapBuffer);
     }
 
-    uint32_t align64Width32  = MOS_ALIGN_CEIL(width, CODECHAL_VP9_SUPER_BLOCK_WIDTH) / 32;
-    uint32_t align64Height32 = MOS_ALIGN_CEIL(height, CODECHAL_VP9_SUPER_BLOCK_HEIGHT) / 32;
+    uint32_t align64Width32  = MOS_ALIGN_CEIL(width, CODEC_VP9_SUPER_BLOCK_WIDTH) / 32;
+    uint32_t align64Height32 = MOS_ALIGN_CEIL(height, CODEC_VP9_SUPER_BLOCK_HEIGHT) / 32;
     m_mapBuffer = (uint32_t*)MOS_AllocAndZeroMemory(align64Width32 * align64Height32 * sizeof(int32_t));
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mapBuffer);
     m_segStreamInHeight = height;
@@ -873,6 +892,7 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     uint32_t dumpFormat = 0;
     CODECHAL_DEBUG_TOOL(
     //    CodecHal_DbgMapSurfaceFormatToDumpFormat(m_rawSurfaceToEnc->Format, &dumpFormat);
@@ -908,12 +928,6 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
     }
     );
 
-    // Check if we need to dynamic scale the source
-    if (pVp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(DysSrcFrame());
-    }
-
     m_setRequestedEUSlices = ((m_frameHeight * m_frameWidth) >= m_ssdResolutionThreshold &&
         m_targetUsage <= m_ssdTargetUsageThreshold) ? true : false;
 
@@ -944,20 +958,18 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
 
         if (m_16xMeSupported)
         {
-            if (m_hmeEnabled)
-            {
-                // P_HME kernel (16x HME)
-                vdencMeState.b16xMeInUse = true;
-                vdencMeState.b4xMeInUse = false;
-                m_lastTaskInPhase = false;
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(VdencHmeKernel(&vdencMeState));
-            }
+            // P_HME kernel (16x HME)
+            vdencMeState.b16xMeInUse = true;
+            vdencMeState.b4xMeInUse = false;
+            m_lastTaskInPhase = false;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(VdencHmeKernel(&vdencMeState));
         }
 
         //StreamIn kernel, 4xME
         vdencMeState.b16xMeInUse = false;
         vdencMeState.b4xMeInUse = true;
-        m_lastTaskInPhase = true;       
+        vdencMeState.segmapProvided = m_segmentMapProvided;
+        m_lastTaskInPhase = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(VdencHmeKernel(&vdencMeState));
     }
 
@@ -970,6 +982,7 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
         m_waitForEnc = true;
     }
+#endif
 
     return eStatus;
 }

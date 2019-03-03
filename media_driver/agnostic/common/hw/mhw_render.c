@@ -42,8 +42,10 @@ MOS_STATUS MhwRenderInterface::AllocateHeaps(
 
     MHW_FUNCTION_ENTER;
 
-    if (stateHeapSettings.dwIshSize > 0 &&
-        stateHeapSettings.dwDshSize > 0 &&
+    MHW_MI_CHK_NULL(m_stateHeapInterface);
+
+    if ((stateHeapSettings.dwIshSize > 0 ||
+        stateHeapSettings.dwDshSize > 0 ) &&
         stateHeapSettings.dwNumSyncTags > 0)
     {
         MHW_MI_CHK_STATUS(m_stateHeapInterface->pfnCreate(
@@ -64,7 +66,7 @@ void MhwRenderInterface::InitPlatformCaps(
     }
 
     MOS_ZeroMemory(&m_hwCaps, sizeof(MHW_RENDER_ENGINE_CAPS));
-    
+
     m_hwCaps.dwMaxUnormSamplers       = MHW_RENDER_ENGINE_SAMPLERS_MAX;
     m_hwCaps.dwMaxAVSSamplers         = MHW_RENDER_ENGINE_SAMPLERS_AVS_MAX;
     m_hwCaps.dwMaxBTIndex             = MHW_RENDER_ENGINE_SSH_SURFACES_PER_BT_MAX - 1;
@@ -113,7 +115,7 @@ void MhwRenderInterface::InitPreemption()
 
     if (MEDIA_IS_SKU(m_skuTable, FtrPerCtxtPreemptionGranularityControl))
     {
-        m_preemptionCntlRegisterOffset = MHW_RENDER_ENGINE_CS_CHICKEN1_PREEMPTION_CONTROL_OFFSET;
+        m_preemptionCntlRegisterOffset = MHW_RENDER_ENGINE_PREEMPTION_CONTROL_OFFSET;
 
         if (MEDIA_IS_SKU(m_skuTable, FtrMediaMidThreadLevelPreempt))
         {
@@ -129,7 +131,7 @@ void MhwRenderInterface::InitPreemption()
         }
 
         // Set it to Mid Batch Pre-emption level (command level) to avoid render engine hang after preemption is turned on in ring buffer
-        if (MEDIA_IS_WA(waTable, WaChickenBitsMidBatchPreemption))
+        if (MEDIA_IS_WA(waTable, WaMidBatchPreemption))
         {
             m_preemptionCntlRegisterValue = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
         }
@@ -142,6 +144,8 @@ MOS_STATUS MhwRenderInterface::EnablePreemption(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MHW_MI_CHK_NULL(cmdBuffer);
+    MHW_MI_CHK_NULL(m_osInterface);
+    MHW_MI_CHK_NULL(m_miInterface);
 
     MEDIA_FEATURE_TABLE *m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
     MHW_MI_CHK_NULL(m_skuTable);

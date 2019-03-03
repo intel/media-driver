@@ -41,19 +41,20 @@ static struct LinuxCodecInfo cnlCodecInfo =
     .vp8Decoding        = 1,
     .vc1Decoding        = 1,
     .jpegDecoding       = 1,
-    .avcEncoding        = 1,
+    .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 1,
     .hevcDecoding       = 1,
-    .hevcEncoding       = 1,
+    .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
-    .avcVdenc           = 0,
+    .avcVdenc           = 1,
     .vp9Decoding        = 1,
     .hevc10Decoding     = 1,
     .vp9b10Decoding     = 1,
-    .hevc10Encoding     = 0,
-    .vp8Encoding        = 0,
-    .hevcVdenc          = 0,
-    .vp9Vdenc           = 0,
+    .hevc10Encoding     = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .hevc12Encoding     = 0,
+    .vp8Encoding        = 1,
+    .hevcVdenc          = 1,
+    .vp9Vdenc           = 1,
 };
 
 static bool InitCnlMediaSku(struct GfxDeviceInfo *devInfo,
@@ -147,6 +148,8 @@ static bool InitCnlMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrTileY, 1);
+
     return true;
 }
 
@@ -162,7 +165,7 @@ static bool InitCnlMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, WaForceGlobalGTT, !drvInfo->hasPpgtt);
 
-    MEDIA_WR_WA(waTable, WaChickenBitsMidBatchPreemption, 0);
+    MEDIA_WR_WA(waTable, WaMidBatchPreemption, 0);
     MEDIA_WR_WA(waTable, WaArbitraryNumMbsInSlice, 1);
     MEDIA_WR_WA(waTable, WaSuperSliceHeaderPacking, 1);
 
@@ -172,9 +175,11 @@ static bool InitCnlMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, WaSFC270DegreeRotation, 1);
 
-    MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
+    MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 0);
 
     MEDIA_WR_WA(waTable, WaDisablePreemptForMediaWalkerWithGroups, 1);
+
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     return true;
 }
 
@@ -187,4 +192,3 @@ static struct LinuxDeviceInit cnlDeviceInit =
 
 static bool cnlDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
     RegisterDevice(IGFX_CANNONLAKE, &cnlDeviceInit);
-

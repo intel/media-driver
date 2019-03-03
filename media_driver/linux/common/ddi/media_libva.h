@@ -40,29 +40,30 @@
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>
 #ifdef ANDROID
+#if VA_MAJOR_VERSION < 1
 #include "va_internal_android.h"
 #endif
+#endif // ANDROID
 #include <va/va_dec_hevc.h>
-#include "codec_ddi.h"
 #include "codechal.h"
 #include "codechal_decoder.h"
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
-#include "codechal_common.h"
-#include "codechal_common_avc.h"
-
 #include "media_libva_common.h"
 
-#define DDI_CODEC_GEN_MAX_PROFILES                 17   //  the number of va profiles, some profiles in va_private.h
+#define DDI_CODEC_GEN_MAX_PROFILES                 31   //  the number of va profiles, some profiles in va_private.h
 #define DDI_CODEC_GEN_MAX_ENTRYPOINTS              7    // VAEntrypointVLD, VAEntrypointEncSlice, VAEntrypointEncSliceLP, VAEntrypointVideoProc
 
 #define DDI_CODEC_GEN_MAX_IMAGE_FORMATS            2    // NV12 and P010
 #define DDI_CODEC_GEN_MAX_SUBPIC_FORMATS           4    // no sub-pic blending support, still set to 4 for further implementation
-#define DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES       4    // Use the same value as I965
+#if VA_MAJOR_VERSION < 1
+#define DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES       4
+#else
+#define DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES       0    // set it to zero, unsupported.
+#endif
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
-#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       17   // Use the same value as I965  
-#define DDI_CODEC_GEN_STR_VENDOR                   UFO_VERSION
+#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       18   // Use the same value as I965
+#define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver - " UFO_VERSION
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
 #define DDI_CODEC_GET_VTABLE_VPP(ctx)              (ctx->vtable_vpp)
@@ -72,9 +73,9 @@
 #define DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1          16
 
 /* Number of supported input color formats */
-#define DDI_VP_NUM_INPUT_COLOR_STD    4
+#define DDI_VP_NUM_INPUT_COLOR_STD    5
 /* Number of supported output color formats */
-#define DDI_VP_NUM_OUT_COLOR_STD      4
+#define DDI_VP_NUM_OUT_COLOR_STD      5
 /* Number of forward references */
 #define DDI_CODEC_NUM_FWD_REF         0
 /* Number of backward references */
@@ -106,7 +107,7 @@
 #define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE   1024 // Enc config_id starts at this value
 
 /* Some filters in va_private.h */
-#define DDI_VP_MAX_NUM_FILTERS  6
+#define DDI_VP_MAX_NUM_FILTERS  8
 
 #define DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE    2048 // VP config_id starts at this value
 
@@ -122,7 +123,7 @@ typedef struct _DDI_CODEC_VC1BITPLANE_OBJECT
 typedef struct _DDI_CODEC_BITSTREAM_BUFFER_INFO
 {
     uint8_t            *pBaseAddress; // For JPEG it is a memory address when allocate slice data from CPU.
-    uint32_t            uiOffset; 
+    uint32_t            uiOffset;
     uint32_t            uiLength;
     VABufferID          vaBufferId;
     bool                bRendered; // whether this slice data will be rendered.
@@ -133,37 +134,37 @@ typedef struct _DDI_CODEC_BITSTREAM_BUFFER_INFO
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_H264
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferH264                  *pVASliceParaBufH264;
     VASliceParameterBufferBase                  *pVASliceParaBufH264Base;
-    
+
     // one picture buffer
     VAPictureParameterBufferH264                 PicParam264;
-        
+
     // one IQ buffer
     VAIQMatrixBufferH264                         IQm264;
 } DDI_CODEC_BUFFER_PARAM_H264;
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_MPEG2
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferMPEG2                  *pVASliceParaBufMPEG2;
-    
+
     // one picture buffer
     VAPictureParameterBufferMPEG2                 PicParamMPEG2;
-        
+
     // one IQ buffer
     VAIQMatrixBufferMPEG2                         IQmMPEG2;
 } DDI_CODEC_BUFFER_PARAM_MPEG2;
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_VC1
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferVC1                     *pVASliceParaBufVC1;
-    
+
     // one picture buffer
-    VAPictureParameterBufferVC1                   PicParamVC1; 
-    uint8_t                                      *pBitPlaneBuffer; 
+    VAPictureParameterBufferVC1                   PicParamVC1;
+    uint8_t                                      *pBitPlaneBuffer;
     DDI_MEDIA_BUFFER                             *pVC1BitPlaneBuffObject[DDI_CODEC_MAX_BITSTREAM_BUFFER];
     DDI_CODEC_VC1BITPLANE_OBJECT                  VC1BitPlane[DDI_CODEC_MAX_BITSTREAM_BUFFER];
     uint32_t                                      dwVC1BitPlaneIndex;
@@ -172,9 +173,9 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_VC1
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_JPEG
 {
-    // slice parameter buffer 
+    // slice parameter buffer
     VASliceParameterBufferJPEGBaseline                    *pVASliceParaBufJPEG;
-    
+
     // picture parameter buffer
     VAPictureParameterBufferJPEGBaseline                  PicParamJPEG;
 
@@ -182,18 +183,17 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_JPEG
     VAIQMatrixBufferJPEGBaseline                          IQmJPEG;
 } DDI_CODEC_BUFFER_PARAM_JPEG;
 
-
 typedef struct _DDI_CODEC_BUFFER_PARAM_VP8
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferVP8                   *pVASliceParaBufVP8;
-    
+
     // one picture buffer
     VAPictureParameterBufferVP8                  PicParamVP8;
-        
+
     // one IQ buffer
     VAIQMatrixBufferVP8                          IQmVP8;
-    
+
     // Probability data
     DDI_MEDIA_BUFFER                            *pVP8ProbabilityDataBuffObject;
     MOS_RESOURCE                                 resProbabilityDataBuffer;
@@ -206,13 +206,18 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_VP8
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_HEVC
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferHEVC                  *pVASliceParaBufHEVC;
     VASliceParameterBufferBase                  *pVASliceParaBufBaseHEVC;
+    //slice control buffe for range extension
+    VASliceParameterBufferHEVCExtension          *pVASliceParaBufHEVCRext;
 
     // one picture buffer
     VAPictureParameterBufferHEVC                 PicParamHEVC;
-        
+
+    //one picture buffer for range extension
+    VAPictureParameterBufferHEVCExtension        PicParamHEVCRext;
+
     // one IQ buffer
     VAIQMatrixBufferHEVC                         IQmHEVC;
 } DDI_CODEC_BUFFER_PARAM_HEVC;
@@ -223,7 +228,7 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_VP9
     VADecPictureParameterBufferVP9               PicParamVP9;
 
     // slice control buffer: 8 * sizeof(VASegmentParameterVP9)
-    VASliceParameterBufferVP9                   *pVASliceParaBufVP9;    
+    VASliceParameterBufferVP9                   *pVASliceParaBufVP9;
 } DDI_CODEC_BUFFER_PARAM_VP9;
 
 typedef struct _DDI_CODEC_COM_BUFFER_MGR
@@ -266,7 +271,9 @@ typedef struct _DDI_CODEC_COM_BUFFER_MGR
     VACodedBufferSegment                        *pCodedBufferSegment; // For bitstream output
     VAProcPipelineParameterBuffer                ProcPipelineParamBuffer;
     VAProcFilterParameterBuffer                  ProcFilterParamBuffer;
-    VACodedBufferSegment                        *pCodedBufferSegmentForStatusReport; // for extended Status report such as long-term reference for VP8-F encode 
+    VACodedBufferSegment                        *pCodedBufferSegmentForStatusReport; // for extended Status report such as long-term reference for VP8-F encode
+    void                                        *pCodecParamReserved;
+    void                                        *pCodecSlcParamReserved;
 
     // for External decode StreamOut Buffer
     MOS_RESOURCE                                 resExternalStreamOutBuffer;
@@ -287,12 +294,34 @@ typedef struct _DDI_CODEC_RENDER_TARGET_TABLE
 #define DDI_CODEC_NUM_MACROBLOCKS_WIDTH(dwWidth)     ((dwWidth + (CODECHAL_MACROBLOCK_WIDTH - 1)) / CODECHAL_MACROBLOCK_WIDTH)
 #define DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(dwHeight)   ((dwHeight + (CODECHAL_MACROBLOCK_HEIGHT - 1)) / CODECHAL_MACROBLOCK_HEIGHT)
 
+//! \brief  Map buffer
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] buf_id
+//!     VA buffer ID
+//! \param  [out] pbuf
+//!     Pointer to buffer
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMedia_MapBuffer (
     VADriverContextP    ctx,
     VABufferID          buf_id,
     void                **pbuf
 );
 
+//! \brief  Unmap buffer
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] buf_id
+//!     VA buffer ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMedia_UnmapBuffer (
     VADriverContextP    ctx,
     VABufferID          buf_id
@@ -302,14 +331,41 @@ VAStatus DdiMedia_UnmapBuffer (
 extern "C" {
 #endif
 
-MEDIAAPI_EXPORT
-VAStatus DdiMedia_HybridQueryBufferAttributes(
+//! \brief  Hybrid query buffer attributes
+//!
+//! \param  [in] dpy
+//!     VA display
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] bufferType
+//!     VA buffer type
+//! \param  [out] outputData
+//!     Output data
+//! \param  [out] outputDataLen
+//!     Length of output data
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+MEDIAAPI_EXPORT VAStatus DdiMedia_HybridQueryBufferAttributes(
     VADisplay    dpy,
     VAContextID  context,
     VABufferType bufferType,
     void        *outputData,
     uint32_t    *outputDataLen);
 
+//! \brief  Set frame ID
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] surface
+//!     VA surface ID
+//! \param  [in] frame_id
+//!     Frame ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMedia_SetFrameID(
     VADriverContextP    ctx,
     VASurfaceID         surface,

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,6 @@ MOS_STATUS MhwSfcInterfaceG9::AddSfcState(
     return MOS_STATUS_SUCCESS;
 }
 
-
 MhwSfcInterfaceG9::MhwSfcInterfaceG9(PMOS_INTERFACE pOsInterface)
    : MhwSfcInterfaceGeneric(pOsInterface)
 {
@@ -58,30 +57,20 @@ MhwSfcInterfaceG9::MhwSfcInterfaceG9(PMOS_INTERFACE pOsInterface)
     // If any override is needed, something like pfnOverrideMemoryObjectCtrl() / pfnComposeSurfaceCacheabilityControl()
     // will need to be implemented.
     // Caching policy if any of below modes are true
-
-    if (m_osInterface->osCpInterface != nullptr)
+    if (m_osInterface == nullptr)
     {
-        if (m_osInterface->osCpInterface->IsHMEnabled() ||
-            m_osInterface->osCpInterface->IsIDMEnabled() ||
-            m_osInterface->osCpInterface->IsSMEnabled())
-        {
-            m_outputSurfCtrl.Value =
-                m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface).DwordValue;
-        }
-        else
-        {
-            m_outputSurfCtrl.Value =
-                m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface).DwordValue;
-        }
-    }
-    else
-    {
-        m_outputSurfCtrl.Value =
-            m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface).DwordValue;
+        MHW_ASSERTMESSAGE("Invalid Input Parameter: m_osInterface is nullptr");
+        return;
     }
 
-    m_avsLineBufferCtrl.Value =
-        m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface).DwordValue;
-    m_iefLineBufferCtrl.Value =
-        m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface).DwordValue;
+    m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+
+    m_avsLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+    m_iefLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
 }

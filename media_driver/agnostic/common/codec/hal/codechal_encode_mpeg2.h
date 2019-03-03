@@ -44,6 +44,17 @@ class CodechalEncodeMpeg2 : public CodechalEncoderState
 public:
 
     //!
+    //! \brief    Copy construtor
+    //!
+    CodechalEncodeMpeg2(const CodechalEncodeMpeg2&) = delete;
+
+
+    //!
+    //! \brief    Copy assignment construtor
+    //!
+    CodechalEncodeMpeg2& operator=(const CodechalEncodeMpeg2&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalEncodeMpeg2();
@@ -60,19 +71,11 @@ public:
     //!
     //! \brief    Free encoder resources
     //! \details  It is invoked when destorying encoder instance and it would call #FreeEncResources(), #FreeBrcResources()
-    //!           and #FreePakResources()
+    //!           and FreePakResources()
     //!
     //! \return   void
     //!
     void FreeResources();
-
-    //!
-    //! \brief    Resize buffers due to resoluton change.
-    //! \details  Resize buffers due to resoluton change.
-    //!
-    //! \return   void
-    //!
-    virtual void ResizeBuffer();
 
     //!
     //! \brief    Initialize encoder at picture level
@@ -121,12 +124,12 @@ public:
     //! \brief    Initialize encoder instance
     //! \details  When GEN specific derived class implements this function to do its own initialization,
     //            it is required that the derived class calls #CodechalEncodeMpeg2::Initialize() first
-    //            which would do common initialization for all GENs         
+    //            which would do common initialization for all GENs
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS codecHalSettings);
+    virtual MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
 
     //!
     //! \brief  Inserts the generic prologue command for a command buffer
@@ -162,10 +165,10 @@ public:
         SendKernelCmdsParams *params) override;
 
 protected:
-            
+
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalEncodeMpeg2(
         CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
@@ -456,21 +459,6 @@ protected:
     MOS_STATUS EncodeBrcInitResetKernel();
 
     //!
-    //! \brief    Send media objets to batch buffer
-    //!
-    //! \param    [in]  batchBuffer
-    //!           Pointer to batch buffer
-    //! \param    [in]  mbEncIFrameDistEnabled
-    //!           Indicate if MbEnc I-Frame distortion is enabled
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SendMediaObjectsBB(
-        PMHW_BATCH_BUFFER  batchBuffer,
-        bool mbEncIFrameDistEnabled);
-
-    //!
     //! \brief    Top level function for invoking MBenc kernel
     //!
     //! \param    [in]  mbEncIFrameDistEnabled
@@ -570,7 +558,7 @@ protected:
     virtual MOS_STATUS SetCurbeMe()
     {
         // No operations when m_hmeKernel exists
-        return MOS_STATUS_SUCCESS; 
+        return MOS_STATUS_SUCCESS;
     }
 
     //!
@@ -612,7 +600,7 @@ protected:
     virtual MOS_STATUS InitKernelStateBrc();
 
     //!
-    //! \brief    Update the slice count according to the DSS policy
+    //! \brief    Update the slice count according to the DymanicSliceShutdown policy
     //!
     virtual void UpdateSSDSliceCount();
 
@@ -632,7 +620,7 @@ protected:
     //!
     //! \enum  MbEncKernelStateIdx
     //! \brief MbEnc kernel index
-    //!     
+    //!
     enum MbEncKernelStateIdx
     {
         mbEncKernelIdxI = 0,
@@ -687,15 +675,6 @@ protected:
     static const uint32_t                  m_vmeSPathB0[16];                                    //!< vme search path table 0 for B frame
     static const uint32_t                  m_vmeSPathB1[16];                                    //!< vme search path table 1 for B frame
 
-    PMOS_INTERFACE                         m_osInterface = nullptr;                             //!< Pointer to OS interface
-    CodechalHwInterface                   *m_hwInterface = nullptr;                             //!< Pointer to HW interface
-    MhwVdboxMfxInterface                   *m_mfxInterface = nullptr;                           //!< Pointer to Mfx Interface
-    MhwVdboxHcpInterface                   *m_hcpInterface = nullptr;                           //!< Pointer to Hcp Interface
-    MhwVdboxHucInterface                   *m_hucInterface = nullptr;                           //!< Pointer to Huc Interface
-    MhwVdboxVdencInterface                 *m_vdencInterface = nullptr;                         //!< Pointer to Vdenc Interface
-    MhwMiInterface                         *m_miInterface = nullptr;                            //!< Pointer to common mi interface
-    PMHW_STATE_HEAP_INTERFACE              m_stateHeapInterface = nullptr;                      //!< Pointer to state heap interface
-
     CodecEncodeMpeg2SequenceParams         *m_seqParams = nullptr;                              //!< Pointer to sequence parameter
     CodecEncodeMpeg2VuiParams              *m_vuiParams = nullptr;                              //!< Pointer to vui parameter
     CodecEncodeMpeg2SliceParmas            *m_sliceParams = nullptr;                            //!< Pointer to slice parameter
@@ -730,7 +709,7 @@ protected:
     // MbEnc
     bool                                   m_mbQpDataEnabled = false;                           //!< Mb Qp data flag
     MOS_SURFACE                            m_mbQpDataSurface;                                   //!< MOS_SURFACE of Mb Qp data surface
-    uint32_t                               m_bFrameNum = 0;                                     //!< The num of the successive B frames
+    uint32_t                               m_frameNumB     = 0;                                 //!< The num of the successive B frames
     uint32_t                               m_prevMBCodeIdx = 0;                                 //!< Previous MB Code index                                                                                    // MbEnc
     MHW_KERNEL_STATE                       m_mbEncKernelStates[mbEncKernelIdxNum];              //!< MbEnc kernel state
     BindingTableMbEnc                      m_mbEncBindingTable;                                 //!< MbEnc binding table
@@ -743,6 +722,16 @@ protected:
     uint32_t                               m_memvBottomFieldOffset = 0;                         //!< MEMV bottom filed offset
     MOS_SURFACE                            m_4xMEDistortionBuffer;                              //!< MOS_SURFACE of ME distortion surface
     uint32_t                               m_meDistortionBottomFieldOffset = 0;                 //!< ME distortion bottom filed offset
+
+private:
+    //!
+    //! \brief    Walker function
+    //!
+    void MBWalker(uint16_t, uint16_t, uint16_t*);
+    void MBWalker45Degree(uint16_t, uint16_t, uint16_t*);
+    void MBWalkerMBAFF(uint16_t, uint16_t, uint16_t*);
+    void MBWalkerRasterScan(uint16_t, uint16_t, uint16_t*);
+    void MBWalkerVerticalScan(uint16_t, uint16_t, uint16_t*);
 };
 
 #endif  // __CODECHAL_ENCODE_MPEG2_H__

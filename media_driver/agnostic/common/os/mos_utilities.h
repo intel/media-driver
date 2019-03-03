@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,8 +34,67 @@
 #include "mos_os_trace_event.h"
 
 #ifdef __cplusplus
+#include <fstream>
 #include <memory>
-#endif
+#include <string>
+#include <vector>
+#include <stdint.h>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+
+class PerfUtility
+{
+public:
+    struct Tick
+    {
+        double freq;
+        int64_t start;
+        int64_t stop;
+        double time;
+    };
+    struct PerfInfo
+    {
+        uint32_t count;
+        double avg;
+        double max;
+        double min;
+    };
+
+public:
+    static PerfUtility *getInstance();
+    ~PerfUtility();
+
+    void startTick(std::string tag);
+    void stopTick(std::string tag);
+    void savePerfData();
+
+private:
+    PerfUtility();
+    void printPerfSummary();
+    void printPerfDetails();
+    void printHeader(std::ofstream& fout);
+    void printBody(std::ofstream& fout);
+    void printFooter(std::ofstream& fout);
+    std::string formatPerfData(std::string tag, std::vector<Tick>& record);
+    void getPerfInfo(std::vector<Tick>& record, PerfInfo* info);
+    std::string getDashString(uint32_t num);
+
+private:
+    static PerfUtility *instance;
+    std::map<std::string, std::vector<Tick>*> records;
+};
+
+#endif // __cplusplus
+
+//!
+//! \brief    Get current run time
+//! \details  Get current run time in us
+//! \return   double
+//!           Returns time in us
+//!
+double MOS_GetTime();
 
 #ifndef __MOS_USER_FEATURE_WA_
 #define  __MOS_USER_FEATURE_WA_
@@ -57,7 +116,6 @@
         MOS_OS_ASSERT(false);                                    \
     }                                                            \
 
-
 //!
 //! \brief User Feature Type maximum and minimum data size
 //!
@@ -73,7 +131,7 @@
 #define  __NULL_USER_FEATURE_VALUE__ { __MOS_USER_FEATURE_KEY_INVALID_ID, nullptr, nullptr, nullptr, nullptr, MOS_USER_FEATURE_TYPE_INVALID, MOS_USER_FEATURE_VALUE_TYPE_INVALID, nullptr, nullptr, false, 0, nullptr, nullptr, MOS_USER_FEATURE_EFFECT_ALWAYS, {0} , {{0},0}}
 #define  MOS_DECLARE_UF_KEY(Id,ValueName,Readpath,Writepath,Group,Type,ValueType,DefaultValue,Description)  { Id, ValueName, Group, Readpath, Writepath, Type, ValueType , DefaultValue, Description, false, 1, nullptr, nullptr, MOS_USER_FEATURE_EFFECT_ALWAYS, {0}, {{0},0}}
 // The MOS_DECLARE_UF_KEY_DBGONLY macro will make the user feature key read only return default value in release build without accessing user setting
-// it is an alternative way for removing the key defintion entirely in release driver, and still provide an unified place for default values of the 
+// it is an alternative way for removing the key defintion entirely in release driver, and still provide an unified place for default values of the
 // user feature key read request that is needed for release driver
 #define  MOS_DECLARE_UF_KEY_DBGONLY(Id,ValueName,Readpath,Writepath,Group,Type,ValueType,DefaultValue,Description)  { Id, ValueName, Group, Readpath, Writepath, Type, ValueType , DefaultValue, Description, false, 1, nullptr, nullptr, MOS_USER_FEATURE_EFFECT_DEBUGONLY, {0}, {{0},0}}
 #define  MOS_DECLARE_UF_KEY_SETFN(Id,ValueName,Readpath,Writepath,Group,Type,ValueType,pfn,Description)  { Id, ValueName, Group, Readpath, Writepath, Type, ValueType, "0", Description, false, 1, nullptr, pfn, MOS_USER_FEATURE_EFFECT_ALWAYS, {0}, {{0}}}
@@ -87,19 +145,31 @@
 #endif
 
 extern int32_t MosMemAllocCounter;
+extern int32_t MosMemAllocFakeCounter;
 extern int32_t MosMemAllocCounterGfx;
+extern uint8_t MosUltFlag;
 
 //! Helper Macros for MEMNINJA debug messages
-#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                   \
-   MOS_OS_VERBOSEMESSAGE(                                                                     \
-       "<MemNinjaSysAllocPtr memPtr = \"%d\" size = \"%d\" memType = \"Sys\"/>.", ptr, size); \
-   MOS_OS_VERBOSEMESSAGE(                                                                     \
-       "<MemNinjaSysLastFuncCall memPtr = \"%d\" functionName = \"%s\" filename = \"%s\" "    \
-       "memType = \"Sys\" line = \"%d\"/>.", ptr, functionName, filename, line);
+#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                                                \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+        "MemNinjaSysAlloc: Time = %f, MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "               \
+        "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounter, ptr, size, functionName, filename, line)
 
-#define MOS_MEMNINJA_FREE_MESSAGE(ptr)                                                        \
-   MOS_OS_VERBOSEMESSAGE("MosMemAllocCounter = %d, Addr = 0x%x.", MosMemAllocCounter, ptr);   \
-   MOS_OS_VERBOSEMESSAGE("<MemNinjaSysFreePtr memPtr = \"%d\" memType = \"Sys\"/>.", ptr);
+#define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                                       \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+       "MemNinjaSysFree: Time = %f, MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                            \
+       "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounter, ptr, functionName, filename, line)
+
+#define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line)             \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+        "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "     \
+        "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounterGfx, ptr, \
+        bufName, component, size, arraySize, functionName, filename, line)
+
+#define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                                   \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+        "MemNinjaGfxFree: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                        \
+        "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounterGfx, ptr, functionName, filename, line)
 
 //!
 //! \brief User Feature Value IDs
@@ -108,10 +178,24 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
 {
     __MOS_USER_FEATURE_KEY_INVALID_ID = 0,
     __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
     __MEDIA_USER_FEATURE_VALUE_SOFT_RESET_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
     __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_FE_BE_TIMING,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TIMER_REG,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_1,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_2,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_3,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_4,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_5,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_6,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_7,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_8,
     __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
     __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MFE_MBENC_ENABLE_ID,
@@ -130,6 +214,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_FRAME_TRACKING_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_USED_VDBOX_NUM_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_ENABLE_COMPUTE_CONTEXT_ID,
     __MEDIA_USER_FEATURE_VALUE_AVC_ENCODE_ME_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_AVC_ENCODE_16xME_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_AVC_ENCODE_32xME_ENABLE_ID,
@@ -158,6 +243,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_PREFETCH_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_ALLOCATION_WA_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_SINGLE_PASS_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VDENC_BRC_MOTION_ADAPTIVE_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_0_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_1_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_2_OVERRIDE_ID,
@@ -184,6 +270,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_MULTIPASS_BRC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_SINGLE_PASS_DYS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_CMD_INIT_HUC_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_ID,
@@ -192,6 +279,8 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ME_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_16xME_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_32xME_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_16xME_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_32xME_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_NUM_B_KERNEL_SPLIT,
@@ -206,10 +295,10 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_PATH_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_VQI_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ROUNDING_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_PAKOBJCMD_STREAMOUT_ENABLE_ID,
-    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_TILEREPLAY_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_LBCONLY_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_PARTIAL_FRAME_UPDATE_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_NUM_THREADS_PER_LCU_ID,
@@ -219,7 +308,10 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_FROM_VEBOX_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_EXTENDED_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENCODE_EXTENDED_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSIBLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSMODE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID,
@@ -229,7 +321,9 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_REQUEST_STATE_ID,
     __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_RESOLUTION_THRESHOLD_ID,
     __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_TARGET_USAGE_THRESHOLD_ID,
+    __MEDIA_USER_FEATURE_VALUE_SLICE_COUNT_SET_SUPPORT_ID,
     __MEDIA_USER_FEATURE_VALUE_DYNAMIC_SLICE_SHUTDOWN_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_BALANCING_ID,
     __MEDIA_USER_FEATURE_VALUE_MPEG2_SLICE_STATE_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MPEG2_ENCODE_BRC_DISTORTION_BUFFER_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_NUMBER_OF_CODEC_DEVICES_ON_VDBOX1_ID,
@@ -237,13 +331,22 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VDI_MODE_ID,
     __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE_ID,
     __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_HW_SCOREBOARD_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ME_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_16xME_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_REPAK_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_MULTIPASS_BRC_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+    __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 #if (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_GROUP_ID_ID,
     __MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE_ID,
-    __MEDIA_USER_FEATURE_VALUE_ENCODE_HALF_SLICE_SELECT_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_SCALING_ID,
     __MEDIA_USER_FEATURE_VALUE_AVC_FTQ_IN_USE_ID,
@@ -257,8 +360,6 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_LRA_1_REG1_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED,
-    __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_RT_FRAME_COUNT_ID,
-    __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_VT_FRAME_COUNT_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_CSC_METHOD_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_TILE_ID,
@@ -276,7 +377,15 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_STREAM_OUT_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY_ID,
-
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_DUMP_OUTPUT_DIRECTORY_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_CFG_GENERATION_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_OVERRIDE_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_DISABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_THRESHOLD_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_FAKE_HEADER_SIZE_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
+    __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION_ID,
@@ -312,6 +421,12 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MOS_USER_FEATURE_KEY_MESSAGE_CM_TAG_ID,
     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CM_ID,
     __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG_ID,
+    __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID,
+    __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID,
 #endif // MOS_MESSAGES_ENABLED
     __MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVCDATROWSTORECACHE_DISABLE_ID,
@@ -327,6 +442,16 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MDF_UMD_ULT_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_DEFAULT_CM_QUEUE_TYPE_ID,
+    __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
+    __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,
+    __VPHAL_VEBOX_FEATURE_INUSE_ID,
     __VPHAL_RNDR_SSD_CONTROL_ID,
     __VPHAL_RNDR_SCOREBOARD_CONTROL_ID,
     __VPHAL_RNDR_CMFC_CONTROL_ID,
@@ -335,21 +460,25 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME_ID,
     __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME_ID,
+    __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP_ID,
     __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK_ID,
     __VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME_ID,
     __VPHAL_DBG_STATE_DUMP_LOCATION_KEY_NAME_ID,
     __VPHAL_DBG_STATE_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_STATE_DUMP_END_FRAME_KEY_NAME_ID,
-    __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID, 
+    __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID,
     __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME_ID,
+    __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID,
 #endif
     __VPHAL_SET_SINGLE_SLICE_VEBOX_ID,
     __VPHAL_BYPASS_COMPOSITION_ID,
     __VPHAL_VEBOX_DISABLE_SFC_ID,
     __VPHAL_ENABLE_MMC_ID,
+    __VPHAL_ENABLE_MMC_IN_USE_ID,
     __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS_ID,
     __VPHAL_VEBOX_DISABLE_TEMPORAL_DENOISE_FILTER_ID,
+    __VPHAL_ENABLE_SUPERRES_ID,
 #if (_DEBUG || _RELEASE_INTERNAL)
     __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE_ID,
 #endif
@@ -366,6 +495,39 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MOS_USER_FEATURE_KEY_XML_AUTOGEN_ID,
     __MOS_USER_FEATURE_KEY_XML_FILEPATH_ID,
     __MOS_USER_FEATURE_KEY_XML_DUMP_GROUPS_ID,
+    __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO_ID,
+    __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD1_ID,
+    __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD2_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_SEMAPHORE,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VDBOX_HW_SEMAPHORE,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_STITCH,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_PAK_ONLY_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VME_ENCODE_SSE_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_PERF_DISABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_WATCHDOG_TIMER_THRESHOLD,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_ALWAYS_FRAME_SPLIT_ID,
+    __MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB,
+    __MEDIA_USER_FEATURE_VALUE_SCALABILITY_FE_SEPARATE_SUBMISSION_ENABLED_ID,
+    __MEDIA_USER_FEATURE_VALUE_SCALABILITY_FE_SEPARATE_SUBMISSION_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_DISABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_INTERVAL_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VME_FORCE_SCALABILITY_ID,
+    __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_SEMA_RESET_DELAY_ID,
+    __MEDIA_USER_FEATURE_VALUE_SET_CMD_DEFAULT_PARS_FROM_FILES_ID,
+    __MEDIA_USER_FEATURE_VALUE_CMD_PARS_FILES_DIRECORY_ID,
+    __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 
@@ -415,7 +577,6 @@ typedef enum
     MOS_USER_FEATURE_VALUE_DATA_FLAG_NONE_CUSTOM_DEFAULT_VALUE_TYPE = 0,
     MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE,
 } MOS_USER_FEATURE_VALUE_DATA_FLAG_TYPE, *PMOS_USER_FEATURE_VALUE_DATA_FLAG_TYPE;
-
 
 //!
 //! \brief User Feature Key Effective Range type
@@ -613,17 +774,21 @@ typedef struct
 } MOS_USER_FEATURE_NOTIFY_DATA_COMMON, *PMOS_USER_FEATURE_NOTIFY_DATA_COMMON;
 
 #ifdef __cplusplus
+
+extern "C" int32_t MOS_AtomicIncrement(int32_t *pValue);   // forward declaration
+extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaration
+
 //template<class _Ty, class... _Types> inline
 //std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
 //{
-//	try
-//	{
-//		return std::make_shared<_Ty>(std::forward<_Types>(_Args)...);
-//	}
-//	catch (const std::bad_alloc&)
-//	{
-//		return nullptr;
-//	}
+//    try
+//    {
+//        return std::make_shared<_Ty>(std::forward<_Types>(_Args)...);
+//    }
+//    catch (const std::bad_alloc&)
+//    {
+//        return nullptr;
+//    }
 //}
 
 #if MOS_MESSAGES_ENABLED
@@ -639,8 +804,12 @@ _Ty* MOS_NewUtil(_Types&&... _Args)
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
-            MosMemAllocCounter++;
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Fail to create class.");
         }
         return ptr;
 }
@@ -656,9 +825,12 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
 #endif
 {
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
-        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
-        MosMemAllocCounter++;
-        return ptr; 
+        if (ptr != nullptr)
+        {
+            MOS_AtomicIncrement(&MosMemAllocCounter);
+            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
+        }
+        return ptr;
 }
 
 #if MOS_MESSAGES_ENABLED
@@ -669,32 +841,57 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
 #define MOS_New(classType, ...) MOS_NewUtil<classType>(__VA_ARGS__)
 #endif
 
-
-template <class _Ty> inline
-void MOS_Delete(_Ty& ptr)
+#if MOS_MESSAGES_ENABLED
+template<class _Ty> inline
+void MOS_DeleteUtil(
+    const char *functionName,
+    const char *filename,
+    int32_t     line,
+    _Ty&        ptr)
+#else
+template<class _Ty> inline
+void MOS_DeleteUtil(_Ty& ptr)
+#endif
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
-        MOS_MEMNINJA_FREE_MESSAGE(ptr);
+        MOS_AtomicDecrement(&MosMemAllocCounter);
+        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
         delete(ptr);
         ptr = nullptr;
     }
 }
 
+#if MOS_MESSAGES_ENABLED
+template<class _Ty> inline
+void MOS_DeleteArrayUtil(
+    const char *functionName,
+    const char *filename,
+    int32_t     line,
+    _Ty&        ptr)
+#else
 template <class _Ty> inline
-void MOS_DeleteArray(_Ty& ptr)
+void MOS_DeleteArrayUtil(_Ty& ptr)
+#endif
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
-
-        MOS_MEMNINJA_FREE_MESSAGE(ptr);
+        MOS_AtomicDecrement(&MosMemAllocCounter);
+        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         delete[](ptr);
         ptr = nullptr;
     }
 }
+
+#if MOS_MESSAGES_ENABLED
+#define MOS_DeleteArray(ptr) MOS_DeleteArrayUtil(__FUNCTION__, __FILE__, __LINE__, ptr)
+#define MOS_Delete(ptr) MOS_DeleteUtil(__FUNCTION__, __FILE__, __LINE__, ptr)
+#else
+#define MOS_DeleteArray(ptr) MOS_DeleteArrayUtil(ptr)
+#define MOS_Delete(ptr) MOS_DeleteUtil(ptr)
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -781,8 +978,21 @@ void  *MOS_AlignedAllocMemory(
 //!           Pointer to the memory to be freed
 //! \return   void
 //!
+#if MOS_MESSAGES_ENABLED
+void MOS_AlignedFreeMemoryUtils(
+    void        *ptr,
+    const char  *functionName,
+    const char  *filename,
+    int32_t     line);
+
+#define MOS_AlignedFreeMemory(ptr) \
+    MOS_AlignedFreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
+
 void MOS_AlignedFreeMemory(void  *ptr);
 
+#endif // MOS_MESSAGES_ENABLED
 //!
 //! \brief    Allocates memory and performs error checking
 //! \details  Wrapper for malloc(). Performs error checking.
@@ -837,6 +1047,35 @@ void  *MOS_AllocAndZeroMemory(
 #endif // MOS_MESSAGES_ENABLED
 
 //!
+//! \brief    Reallocate memory
+//! \details  Wrapper for realloc(). Performs error checking.
+//!           It modifies memory allocation counter variable
+//!           MosMemAllocCounter for checking memory leaks.
+//! \param    [in] ptr
+//!           Pointer to be reallocated
+//! \param    [in] new_size
+//!           Size of memory to be allocated
+//! \return   void *
+//!           Pointer to allocated memory
+//!
+#if MOS_MESSAGES_ENABLED
+void *MOS_ReallocMemoryUtils(
+    void       *ptr,
+    size_t     newSize,
+    const char *functionName,
+    const char *filename,
+    int32_t    line);
+
+#define MOS_ReallocMemory(ptr, newSize) \
+    MOS_ReallocMemoryUtils(ptr, newSize, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
+void *MOS_ReallocMemory(
+    void       *ptr,
+    size_t     newSize);
+#endif // MOS_MESSAGES_ENABLED
+
+//!
 //! \brief    Wrapper for free(). Performs error checking.
 //! \details  Wrapper for free(). Performs error checking.
 //!           It decreases memory allocation counter variable
@@ -845,8 +1084,20 @@ void  *MOS_AllocAndZeroMemory(
 //!           Pointer to the memory to be freed
 //! \return   void
 //!
+#if MOS_MESSAGES_ENABLED
+void MOS_FreeMemoryUtils(
+    void       *ptr,
+    const char *functionName,
+    const char *filename,
+    int32_t    line);
+
+#define MOS_FreeMemory(ptr) \
+    MOS_FreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
 void MOS_FreeMemory(
     void            *ptr);
+#endif // MOS_MESSAGES_ENABLED
 
 //!
 //! \brief    Wrapper for MOS_FreeMemory().
@@ -1176,7 +1427,7 @@ MOS_STATUS MOS_GenerateUserFeatureKeyXML();
 //!
 //! \brief    Get the User Feature Value from Table
 //! \details  Get the related User Feature Value item according to Filter rules , and pass the item
-//! 		   into return callback function
+//!            into return callback function
 //! \param    [in] descTable
 //!           The user feature key description table
 //! \param    [in] numOfItems
@@ -1215,7 +1466,7 @@ MOS_STATUS MOS_GetItemFromMOSUserFeatureDescField(
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_UserFeature_SetDefaultValues(
-    PMOS_USER_FEATURE_INTERFACE	            pOsUserFeatureInterface,
+    PMOS_USER_FEATURE_INTERFACE             pOsUserFeatureInterface,
     PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
     uint32_t                                uiNumOfValues);
 
@@ -1299,9 +1550,9 @@ MOS_STATUS MOS_DestroyUserFeatureKeysForAllDescFields();
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_CopyUserFeatureValueData(
-	PMOS_USER_FEATURE_VALUE_DATA pSrcData,
-	PMOS_USER_FEATURE_VALUE_DATA pDstData,
-	MOS_USER_FEATURE_VALUE_TYPE ValueType
+    PMOS_USER_FEATURE_VALUE_DATA pSrcData,
+    PMOS_USER_FEATURE_VALUE_DATA pDstData,
+    MOS_USER_FEATURE_VALUE_TYPE ValueType
 );
 
 //!
@@ -1316,8 +1567,8 @@ MOS_STATUS MOS_CopyUserFeatureValueData(
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_DestroyUserFeatureData(
-	PMOS_USER_FEATURE_VALUE_DATA pData,
-	MOS_USER_FEATURE_VALUE_TYPE  ValueType);
+    PMOS_USER_FEATURE_VALUE_DATA pData,
+    MOS_USER_FEATURE_VALUE_TYPE  ValueType);
 
 #ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue (
@@ -1382,7 +1633,7 @@ MOS_STATUS MOS_UserFeature_ReadValue (
 //!                 MOS_STATUS_USER_FEATURE_KEY_READ_FAILED: pValueData is from default value
 //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table, 
 //!                                          No default value or User Feature Key value return
-//!                 
+//! 
 //!
 #ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue_ID(
@@ -1416,6 +1667,33 @@ MOS_STATUS MOS_UserFeature_WriteValues(
     PMOS_USER_FEATURE_INTERFACE              pOsUserFeatureInterface,
     PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
     uint32_t                                 uiNumOfValues);
+
+
+// User Feature Report Writeout
+#define WriteUserFeature64(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i64Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeature(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i32Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeatureString(key, value, len)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.StringData.pStringData = (value);\
+    UserFeatureWriteData.Value.StringData.uSize = (len);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
 
 //!
 //! \brief    Lookup the user feature value name associated with the ID
@@ -2162,6 +2440,26 @@ uint32_t MOS_WaitForMultipleObjects(
     uint32_t                    uiMilliseconds);
 
 //!
+//! \brief    Increments (increases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be incremented.
+//! \return   int32_t
+//!           The function returns the resulting incremented value.
+//!
+int32_t MOS_AtomicIncrement(
+    int32_t *pValue);
+
+//!
+//! \brief    Decrements (decreases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be decremented.
+//! \return   int32_t
+//!           The function returns the resulting decremented value.
+//!
+int32_t MOS_AtomicDecrement(
+    int32_t *pValue);
+
+//!
 //! \brief      Convert MOS_STATUS to OS dependent RESULT/Status
 //! \param      [in] eStatus
 //!             MOS_STATUS that will be converted
@@ -2201,7 +2499,7 @@ float MOS_Sinc(
 //! \param    [in] dwNumEntries
 //!           dword
 //! \param    [in] fLanczosT
-//!           
+//! 
 //! \return   float
 //!           lanczos(x)
 //!
@@ -2219,7 +2517,7 @@ float MOS_Lanczos(
 //! \param    [in] dwNumEntries
 //!           dword
 //! \param    [in]fLanczosT
-//!           
+//! 
 //! \return   float
 //!           lanczos(x)
 //!
@@ -2253,6 +2551,34 @@ MOS_STATUS MOS_GetLocalTime(
     struct tm* tm);
 
 //!
+//! \brief    Swizzles the given linear offset via the specified tiling params.
+//! \details  Swizzles the given linear offset via the specified tiling parameters. 
+//!           Used to provide linear access to raw, tiled data.
+//! \param    [in] OffsetX
+//!           Horizontal byte offset from left edge of tiled surface.
+//! \param    [in] OffsetY
+//!           Vertical offset from top of tiled surface.
+//! \param    [in] Pitch
+//!           Row-to-row byte stride.
+//! \param    [in] TileFormat
+//!           Either 'x' or 'y'--for X-Major or Y-Major tiling, respectively.
+//! \param    [in] CsxSwizzle
+//!           (Boolean) Additionally perform Channel Select XOR swizzling.
+//! \param    [in] flags
+//!           More flags to indicate different tileY.
+//! \return   int32_t
+//!           Return SwizzleOffset
+//!    
+int32_t __Mos_SwizzleOffset(
+    int32_t         OffsetX,
+    int32_t         OffsetY,
+    int32_t         Pitch,
+    MOS_TILE_TYPE   TileFormat,
+    int32_t         CsxSwizzle,
+    int32_t         flags);
+#define Mos_SwizzleOffset __Mos_SwizzleOffset
+
+//!
 //! \brief    Wrapper function for SwizzleOffset
 //! \details  Wrapper function for SwizzleOffset in Mos 
 //! \param    [in] pSrc
@@ -2267,6 +2593,8 @@ MOS_STATUS MOS_GetLocalTime(
 //!           Height
 //! \param    [in] iPitch
 //!           Pitch
+//! \param    [in] extended flags
+//!           Pitch
 //! \return   void
 //!
 void Mos_SwizzleData(
@@ -2275,7 +2603,8 @@ void Mos_SwizzleData(
     MOS_TILE_TYPE   SrcTiling,
     MOS_TILE_TYPE   DstTiling,
     int32_t         iHeight,
-    int32_t         iPitch);
+    int32_t         iPitch,
+    int32_t         extFlags);
 
 //!
 //! \brief    MOS trace event initialize
@@ -2318,6 +2647,76 @@ void MOS_TraceEvent(
     uint32_t         dwSize1,
     void * const     pArg2,
     uint32_t         dwSize2);
+
+//!
+//! \brief    MOS gfx info initialize
+//! \details  Load igdinfoXX.dll library and get gfx info function pointer
+//! \param    void
+//! \return   MOS_STATUS
+//!           Returns one of the MOS_STATUS error codes if failed,
+//!           else MOS_STATUS_SUCCESS
+//!
+MOS_STATUS MOS_GfxInfoInit();
+
+//!
+//! \brief    MOS gfx info close
+//! \details  Release igdinfoXX.dll library
+//! \param    void
+//! \return   void
+//!
+void MOS_GfxInfoClose();
+
+//!
+//! \brief    MOS_GfxInfo_RTErr
+//! \details  Custom gfx info trace to report runtime errors detected by each component.
+//! \param    [in] ver
+//!           Version
+//! \param    [in] compId
+//!           Component ID defined in GFXINFO_COMP_ID
+//! \param    [in] FtrId
+//!           Feature ID, an unique identifier for each component.
+//! \param    [in] ErrorCode
+//!           Error code that will be recorded.
+//! \param    [in] num_of_triples
+//!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+//! \param    [in] ...
+//!           Triples (name, type, value), for example
+//!             int8_t i = 3;
+//!             "Name1", GFXINFO_PTYPE_UINT8, &i
+//!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
+//! \return   void
+//!
+void MOS_GfxInfo_RTErr(uint8_t ver,
+    uint16_t    compId,
+    uint16_t    FtrId,
+    uint32_t    ErrorCode,
+    uint8_t     num_of_triples,
+    ...);
+
+//!
+//! \brief    MOS_GfxInfo
+//! \details  A helper function to help to compose gfx info xml string
+//! \param    [in] ver
+//!           Version
+//! \param    [in] compId
+//!           Component ID defined in GFXINFO_COMP_ID
+//! \param    [in] tmtryID
+//!           Gfx info ID, an unique identifier for each component.
+//! \param    [in] num_of_triples
+//!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+//! \param    [in] ...
+//!           Triples (name, type, value), for example
+//!             int8_t i = 3;
+//!             "Name1", GFXINFO_PTYPE_UINT8, &i
+//!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
+//! \return   void
+//!
+void MOS_GfxInfo(
+    uint8_t         ver,
+    uint16_t        compId,
+    uint32_t        tmtryID,
+    uint8_t         num_of_triples,
+    ...);
 
 #ifdef __cplusplus
 }

@@ -45,7 +45,7 @@ public:
         {
             uint32_t value;
         };
-    } DW0;
+    } m_dw0;
 
     // DW 1
     union
@@ -58,7 +58,7 @@ public:
         {
             uint32_t value;
         };
-    } DW1;
+    } m_dw1;
 
     // DW 2
     union
@@ -71,7 +71,7 @@ public:
         {
             uint32_t value;
         };
-    } DW2;
+    } m_dw2;
 
     // DW 3
     union
@@ -84,7 +84,7 @@ public:
         {
             uint32_t value;
         };
-    } DW3;
+    } m_dw3;
 
     // DW 4
     union
@@ -97,7 +97,7 @@ public:
         {
             uint32_t value;
         };
-    } DW4;
+    } m_dw4;
 
     // DW 5
     union
@@ -110,7 +110,7 @@ public:
         {
             uint32_t value;
         };
-    } DW5;
+    } m_dw5;
 
     // DW 6
     union
@@ -123,7 +123,7 @@ public:
         {
             uint32_t value;
         };
-    } DW6;
+    } m_dw6;
 
     //!
     //! \brief    Constructor
@@ -134,7 +134,7 @@ public:
     //! \brief    Destructor
     //!
     ~MediaObjectCopyCurbe(){};
-    
+
     static const size_t m_byteSize = 28; //!< Byte size of cube data DW0-6.
 } ;
 
@@ -147,7 +147,7 @@ MediaMemDecompState::~MediaMemDecompState()
 {
     MHW_FUNCTION_ENTER;
 
-    MOS_Delete(m_cpInterface);
+    Delete_MhwCpInterface(m_cpInterface); 
     m_cpInterface = nullptr;
 
     if (m_cmdBufIdGlobal)
@@ -302,6 +302,38 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
 
     auto kernelState = &m_kernelStates[kernelStateIdx];
     kernelState->m_currTrackerId = m_currCmdBufId;
+
+    // preprocess in cp first
+    m_osInterface->osCpInterface->PrepareResources((void **)&targetResource, 1, nullptr, 0);
+
+    if (kernelStateIdx == decompKernelStatePl2)
+    {
+        if (m_osInterface->osCpInterface->IsSMEnabled())
+        {
+            uint32_t *kernelBase = nullptr;
+            uint32_t  kernelSize = 0;
+            m_osInterface->osCpInterface->GetTK(
+                &kernelBase,
+                &kernelSize,
+                nullptr);
+            if (nullptr == kernelBase || 0 == kernelSize)
+            {
+                MHW_ASSERT("Could not get TK kernels for MMC!");
+                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                return eStatus;
+            }
+
+            kernelState->KernelParams.pBinary = (uint8_t *)kernelBase;
+        }
+        else
+        {
+            kernelState->KernelParams.pBinary = m_kernelBinary[kernelStateIdx];
+        }
+        MHW_CHK_STATUS_RETURN(kernelState->m_ishRegion.AddData(
+            kernelState->KernelParams.pBinary,
+            0,
+            kernelState->KernelParams.iSize));
+    }
 
     MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         m_stateHeapInterface,
@@ -460,8 +492,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
         &cmdBuffer,
         &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState = kernelState;
     auto waTable          = m_osInterface->pfnGetWaTable(m_osInterface);
 
@@ -587,16 +618,14 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
 
         MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
         pipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-        pipeControlParams.bGenericMediaStateClear = TRUE;
-        pipeControlParams.bIndirectStatePointersDisable = TRUE;
-        pipeControlParams.bDisableCSStall = FALSE;
+        pipeControlParams.bGenericMediaStateClear = true;
+        pipeControlParams.bIndirectStatePointersDisable = true;
+        pipeControlParams.bDisableCSStall = false;
         MHW_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(&cmdBuffer, NULL, &pipeControlParams));
 
         if (MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS vfeStateParams;
-
-            MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+            MHW_VFE_PARAMS vfeStateParams = {};
             vfeStateParams.dwNumberofURBEntries = 1;
             MHW_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
         }
@@ -616,7 +645,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     // Update the compression mode
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnSetMemoryCompressionMode(
         m_osInterface,
-        targetResource, 
+        targetResource,
         MOS_MEMCOMP_DISABLED));
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnSetMemoryCompressionHint(
         m_osInterface,
@@ -641,7 +670,6 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     return eStatus;
 }
 
-
 MOS_STATUS MediaMemDecompState::GetResourceInfo(
     PMOS_SURFACE   surface)
 {
@@ -656,7 +684,7 @@ MOS_STATUS MediaMemDecompState::GetResourceInfo(
 
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
         m_osInterface,
-        &surface->OsResource, 
+        &surface->OsResource,
         &details));
 
     surface->Format                      = details.Format;
@@ -775,13 +803,13 @@ MOS_STATUS MediaMemDecompState::SetMediaObjectCopyCurbe(
 
     MediaObjectCopyCurbe cmd;
 
-    cmd.DW0.srcSurface0Index = copySurfaceSrcY;
-    cmd.DW3.dstSurface0Index = copySurfaceDstY;
+    cmd.m_dw0.srcSurface0Index = copySurfaceSrcY;
+    cmd.m_dw3.dstSurface0Index = copySurfaceDstY;
 
     if (kernelStateIdx == decompKernelStatePl2)
     {
-        cmd.DW1.srcSurface1Index = copySurfaceSrcU;
-        cmd.DW4.dstSurface1Index = copySurfaceDstU;
+        cmd.m_dw1.srcSurface1Index = copySurfaceSrcU;
+        cmd.m_dw4.dstSurface1Index = copySurfaceDstU;
     }
 
     MHW_CHK_STATUS_RETURN(m_kernelStates[kernelStateIdx].m_dshRegion.AddData(
@@ -814,7 +842,7 @@ MOS_STATUS MediaMemDecompState::SetKernelStateParams()
         kernelState->KernelParams.iBlockHeight = 16;
         kernelState->KernelParams.iIdCount     = 1;
 
-        kernelState->dwCurbeOffset = 
+        kernelState->dwCurbeOffset =
             m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
 
         MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnCalculateSshAndBtSizesRequested(
@@ -894,11 +922,12 @@ MOS_STATUS MediaMemDecompState::Initialize(
     }
     else
     {
+        MOS_GPUCTX_CREATOPTIONS createOption;
         MHW_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
             m_osInterface,
             MOS_GPU_CONTEXT_RENDER,
             MOS_GPU_NODE_3D,
-            MOS_GPU_CONTEXT_CREATE_DEFAULT));
+            &createOption));
 
         m_renderContext = MOS_GPU_CONTEXT_RENDER;
     }
@@ -931,7 +960,7 @@ MOS_STATUS MediaMemDecompState::Initialize(
     m_renderContextUsesNullHw =
         ((m_renderContext == MOS_GPU_CONTEXT_RENDER) ? nullHWAccelerationEnable.CtxRender : nullHWAccelerationEnable.CtxRender2) ||
         nullHWAccelerationEnable.Mmc;
-    
+
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_ZeroMemory(&allocParams, sizeof(allocParams));
     allocParams.Type = MOS_GFXRES_BUFFER;
@@ -956,8 +985,8 @@ MOS_STATUS MediaMemDecompState::Initialize(
     MOS_ZeroMemory(m_cmdBufIdGlobal, allocParams.dwBytes);
 
     MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSetCmdBufStatusPtr(
-        m_stateHeapInterface, 
+        m_stateHeapInterface,
         m_cmdBufIdGlobal));
-    
+
     return eStatus;
 }

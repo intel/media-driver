@@ -29,19 +29,19 @@
 
 mhw_vdbox_vdenc_g9_skl::VDENC_64B_Aligned_Lower_Address_CMD::VDENC_64B_Aligned_Lower_Address_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_64B_Aligned_Upper_Address_CMD::VDENC_64B_Aligned_Upper_Address_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_Surface_Control_Bits_CMD::VDENC_Surface_Control_Bits_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.ArbitrationPriorityControl                   = ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
     DW0.MemoryCompressionEnable                      = MEMORY_COMPRESSION_ENABLE_DISABLE;
     DW0.MemoryCompressionMode                        = MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE;
@@ -52,31 +52,31 @@ mhw_vdbox_vdenc_g9_skl::VDENC_Surface_Control_Bits_CMD::VDENC_Surface_Control_Bi
 
 mhw_vdbox_vdenc_g9_skl::VDENC_Sub_Mb_Pred_Mode_CMD::VDENC_Sub_Mb_Pred_Mode_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_Block_8x8_4_CMD::VDENC_Block_8x8_4_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_Delta_MV_XY_CMD::VDENC_Delta_MV_XY_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.X0                                           = X0_UNNAMED0;
     DW0.Y0                                           = Y0_UNNAMED0;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.X1                                           = X1_UNNAMED0;
     DW1.Y1                                           = Y1_UNNAMED0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.X2                                           = X2_UNNAMED0;
     DW2.Y2                                           = Y2_UNNAMED0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.X3                                           = X3_UNNAMED0;
     DW3.Y3                                           = Y3_UNNAMED0;
 
@@ -92,46 +92,46 @@ mhw_vdbox_vdenc_g9_skl::VDENC_Down_Scaled_Reference_Picture_CMD::VDENC_Down_Scal
 
 mhw_vdbox_vdenc_g9_skl::VDENC_FRAME_BASED_STATISTICS_STREAMOUT_CMD::VDENC_FRAME_BASED_STATISTICS_STREAMOUT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    MOS_ZeroMemory(&Reserved160, sizeof(Reserved160));        
-    DW17.Value                                       = 0;        
+    MOS_ZeroMemory(&Reserved160, sizeof(Reserved160));
+    DW17.Value                                       = 0;
 
-    DW18.Value                                       = 0;        
+    DW18.Value                                       = 0;
 
-    DW19.Value                                       = 0;        
+    DW19.Value                                       = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_Mode_StreamOut_Data_CMD::VDENC_Mode_StreamOut_Data_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.IntermbmodeChromaPredictionMode              = INTERMBMODECHROMA_PREDICTION_MODE_UNNAMED0;
     DW2.Intrambmode                                  = INTRAMBMODE_UNNAMED0;
     DW2.Intrambflag                                  = INTRAMBFLAG_INTER;
     DW2.Lastmbflag                                   = LASTMBFLAG_NOTLAST;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW13.Value                                       = 0;        
+    DW13.Value                                       = 0;
 
-    DW14.Value                                       = 0;        
+    DW14.Value                                       = 0;
 
-    DW15.Value                                       = 0;        
+    DW15.Value                                       = 0;
 
 }
 
@@ -157,42 +157,42 @@ mhw_vdbox_vdenc_g9_skl::VDENC_Streamin_Data_Picture_CMD::VDENC_Streamin_Data_Pic
 
 mhw_vdbox_vdenc_g9_skl::VDENC_STREAMIN_STATE_CMD::VDENC_STREAMIN_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.Forceintra                                   = FORCEINTRA_DISABLE;
     DW0.Forceskip                                    = FORCESKIP_DISABLE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.Qpprimey                                     = QPPRIMEY_UNNAMED0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    MOS_ZeroMemory(&Reserved160, sizeof(Reserved160));        
+    MOS_ZeroMemory(&Reserved160, sizeof(Reserved160));
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_Surface_State_Fields_CMD::VDENC_Surface_State_Fields_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.TileWalk                                     = TILE_WALK_YMAJOR;
     DW1.TiledSurface                                 = TILED_SURFACE_TRUE;
     DW1.HalfPitchForChroma                           = HALF_PITCH_FOR_CHROMA_DISABLE;
     DW1.InterleaveChroma                             = INTERLEAVE_CHROMA_DISABLE;
     DW1.SurfaceFormat                                = SURFACE_FORMAT_YUV422;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VD_PIPELINE_FLUSH_CMD::VD_PIPELINE_FLUSH_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordCountN                                  = GetOpLength(dwSize);
     DW0.Subopcodeb                                   = SUBOPCODEB_UNNAMED0;
     DW0.Subopcodea                                   = SUBOPCODEA_UNNAMED0;
@@ -200,13 +200,13 @@ mhw_vdbox_vdenc_g9_skl::VD_PIPELINE_FLUSH_CMD::VD_PIPELINE_FLUSH_CMD()
     DW0.Pipeline                                     = PIPELINE_MEDIA;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_CONST_QPT_STATE_CMD::VDENC_CONST_QPT_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCCONSTQPTSTATE;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -230,7 +230,7 @@ mhw_vdbox_vdenc_g9_skl::VDENC_CONST_QPT_STATE_CMD::VDENC_CONST_QPT_STATE_CMD()
 
 mhw_vdbox_vdenc_g9_skl::VDENC_DS_REF_SURFACE_STATE_CMD::VDENC_DS_REF_SURFACE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCDSREFSURFACESTATE;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -238,13 +238,13 @@ mhw_vdbox_vdenc_g9_skl::VDENC_DS_REF_SURFACE_STATE_CMD::VDENC_DS_REF_SURFACE_STA
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_IMG_STATE_CMD::VDENC_IMG_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCIMGSTATE;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -252,7 +252,7 @@ mhw_vdbox_vdenc_g9_skl::VDENC_IMG_STATE_CMD::VDENC_IMG_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.BidirectionalMixDisable                      = BIDIRECTIONAL_MIX_DISABLE_SUBBLOCKENABLED;
     DW1.VdencPerfmode                                = VDENC_PERFMODE_NORMAL;
     DW1.TimeBudgetOverflowCheck                      = TIME_BUDGET_OVERFLOW_CHECK_DISABLED;
@@ -260,12 +260,12 @@ mhw_vdbox_vdenc_g9_skl::VDENC_IMG_STATE_CMD::VDENC_IMG_STATE_CMD()
     DW1.Transform8X8Flag                             = TRANSFORM_8X8_FLAG_DISABLED;
     DW1.VdencL1CachePriority                         = VDENC_L1_CACHE_PRIORITY_UNNAMED0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.BidirectionalWeight                          = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.SubPelMode                                   = SUB_PEL_MODE_UNNAMED0;
     DW4.ForwardTransformSkipCheckEnable              = FORWARD_TRANSFORM_SKIP_CHECK_ENABLE_FTDISABLED;
     DW4.BmeDisableForFbrMessage                      = BME_DISABLE_FOR_FBR_MESSAGE_BMEENABLED;
@@ -275,78 +275,78 @@ mhw_vdbox_vdenc_g9_skl::VDENC_IMG_STATE_CMD::VDENC_IMG_STATE_CMD()
     DW4.SubMacroblockSubPartitionMask                = 0;
     DW4.BlockBasedSkipType                           = BLOCK_BASED_SKIP_TYPE_UNNAMED0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
     DW5.CrePrefetchEnable                            = CRE_PREFETCH_ENABLE_UNNAMED0;
     DW5.HmeRef1Disable                               = HME_REF1_DISABLE_UNNAMED0;
     DW5.ConstrainedIntraPredictionFlag               = CONSTRAINED_INTRA_PREDICTION_FLAG_UNNAMED0;
     DW5.PictureType                                  = PICTURE_TYPE_I;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
     DW8.LumaIntraPartitionMask                       = 0;
     DW8.MvCostScalingFactor                          = MV_COST_SCALING_FACTOR_QPEL;
     DW8.RefidCostModeSelect                          = REFID_COST_MODE_SELECT_MODE0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
 
-    DW11.Value                                       = 0;        
+    DW11.Value                                       = 0;
 
-    DW12.Value                                       = 0;  
+    DW12.Value                                       = 0;
 
-    DW13.Value                                       = 0;  
+    DW13.Value                                       = 0;
 
-    DW14.Value                                       = 0;        
+    DW14.Value                                       = 0;
 
-    DW15.Value                                       = 0;        
+    DW15.Value                                       = 0;
 
-    DW16.Value                                       = 0;        
+    DW16.Value                                       = 0;
 
-    DW17.Value                                       = 0;        
+    DW17.Value                                       = 0;
 
-    DW18.Value                                       = 0;        
+    DW18.Value                                       = 0;
     DW18.AvcIntra16X16ModeMask                       = 0;
     DW18.AvcIntraChromaModeMask                      = 0;
     DW18.IntraComputeTypeIntracomputetype            = INTRA_COMPUTE_TYPE_INTRACOMPUTETYPE_UNNAMED0;
 
-    DW19.Value                                       = 0;        
+    DW19.Value                                       = 0;
 
-    DW20.Value                                       = 0;        
+    DW20.Value                                       = 0;
 
-    DW21.Value                                       = 0;        
+    DW21.Value                                       = 0;
     DW21.IntraRefreshEnableRollingIEnable            = INTRAREFRESHENABLE_ROLLING_I_ENABLE_DISABLE;
     DW21.IntraRefreshMode                            = INTRAREFRESHMODE_ROWBASED;
 
-    DW22.Value                                       = 0;        
+    DW22.Value                                       = 0;
 
-    DW23.Value                                       = 0;        
+    DW23.Value                                       = 0;
 
-    DW24.Value                                       = 0;        
+    DW24.Value                                       = 0;
 
-    DW25.Value                                       = 0;        
+    DW25.Value                                       = 0;
 
-    DW26.Value                                       = 0;        
+    DW26.Value                                       = 0;
     DW26.HmeRefWindowsCombiningThreshold             = HME_REF_WINDOWS_COMBINING_THRESHOLD_UNNAMED0;
 
-    DW27.Value                                       = 0;        
+    DW27.Value                                       = 0;
 
-    DW28.Value                                       = 0; 
+    DW28.Value                                       = 0;
 
-    DW29.Value                                       = 0; 
+    DW29.Value                                       = 0;
 
-    DW30.Value                                       = 0;        
+    DW30.Value                                       = 0;
 
-    DW31.Value                                       = 0;        
+    DW31.Value                                       = 0;
 
-    DW32.Value                                       = 0;        
+    DW32.Value                                       = 0;
 
-    DW33.Value                                       = 0;        
+    DW33.Value                                       = 0;
 
-    DW34.Value                                       = 0;        
+    DW34.Value                                       = 0;
     DW34.PpmvDisable                                 = PPMV_DISABLE_UNNAMED0;
     DW34.LongtermReferenceFrameBwdRef0Indicator      = LONGTERM_REFERENCE_FRAME_BWD_REF0_INDICATOR_SHORT_TERMREFERENCE;
     DW34.LongtermReferenceFrameFwdRef2Indicator      = LONGTERM_REFERENCE_FRAME_FWD_REF2_INDICATOR_SHORT_TERMREFERENCE;
@@ -357,7 +357,7 @@ mhw_vdbox_vdenc_g9_skl::VDENC_IMG_STATE_CMD::VDENC_IMG_STATE_CMD()
 
 mhw_vdbox_vdenc_g9_skl::VDENC_PIPE_BUF_ADDR_STATE_CMD::VDENC_PIPE_BUF_ADDR_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCPIPEBUFADDRSTATE;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -369,7 +369,7 @@ mhw_vdbox_vdenc_g9_skl::VDENC_PIPE_BUF_ADDR_STATE_CMD::VDENC_PIPE_BUF_ADDR_STATE
 
 mhw_vdbox_vdenc_g9_skl::VDENC_PIPE_MODE_SELECT_CMD::VDENC_PIPE_MODE_SELECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCPIPEMODESELECT;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -377,7 +377,7 @@ mhw_vdbox_vdenc_g9_skl::VDENC_PIPE_MODE_SELECT_CMD::VDENC_PIPE_MODE_SELECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.StandardSelect                               = 0;
     DW1.FrameStatisticsStreamOutEnable               = FRAME_STATISTICS_STREAM_OUT_ENABLE_DISABLE;
     DW1.TlbPrefetchEnable                            = TLB_PREFETCH_ENABLE_ENABLE;
@@ -389,7 +389,7 @@ mhw_vdbox_vdenc_g9_skl::VDENC_PIPE_MODE_SELECT_CMD::VDENC_PIPE_MODE_SELECT_CMD()
 
 mhw_vdbox_vdenc_g9_skl::VDENC_REF_SURFACE_STATE_CMD::VDENC_REF_SURFACE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCREFSURFACESTATE;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -397,13 +397,13 @@ mhw_vdbox_vdenc_g9_skl::VDENC_REF_SURFACE_STATE_CMD::VDENC_REF_SURFACE_STATE_CMD
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_SRC_SURFACE_STATE_CMD::VDENC_SRC_SURFACE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCSRCSURFACESTATE;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -411,13 +411,13 @@ mhw_vdbox_vdenc_g9_skl::VDENC_SRC_SURFACE_STATE_CMD::VDENC_SRC_SURFACE_STATE_CMD
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
 }
 
 mhw_vdbox_vdenc_g9_skl::VDENC_WALKER_STATE_CMD::VDENC_WALKER_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_VDENCWALKERSTATE;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -425,7 +425,7 @@ mhw_vdbox_vdenc_g9_skl::VDENC_WALKER_STATE_CMD::VDENC_WALKER_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
 }
 

@@ -30,6 +30,10 @@
 #include <va/va.h>
 #include "media_ddi_decode_base.h"
 
+//!
+//! \class  DdiDecodeAVC
+//! \brief  Ddi decode AVC
+//!
 class DdiDecodeAVC : public DdiMediaDecode
 {
 public:
@@ -53,9 +57,7 @@ public:
         VABufferID       *buffers,
         int32_t          numBuffers) override;
 
-    virtual VAStatus EndPicture(
-        VADriverContextP ctx,
-        VAContextID      context) override;
+    virtual VAStatus SetDecodeParams() override;
 
     virtual void ContextInit(
         int32_t picWidth,
@@ -64,6 +66,12 @@ public:
     virtual VAStatus CodecHalInit(
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *ptr) override;
+
+    virtual VAStatus AllocSliceControlBuffer(
+        DDI_MEDIA_BUFFER       *buf) override;
+
+    virtual uint8_t* GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) override;
 
 private:
     //!
@@ -76,14 +84,14 @@ private:
     //! \param   [in] *slcParam
     //!          VASliceParameterBufferH264
     //! \param   [in] numSlices
-    //!             int32_t
+    //!             uint32_t
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus ParseSliceParams(
         DDI_MEDIA_CONTEXT           *mediaCtx,
         VASliceParameterBufferH264  *slcParam,
-        int32_t                     numSlices);
+        uint32_t                     numSlices);
 
     //!
     //! \brief   ParaQMatrixParam for Avc
@@ -94,7 +102,7 @@ private:
     //! \param   [in] *matrix
     //!          VAIQMatrixBufferH264
     //!
-    //! \param   [in] dwNumSlices
+    //! \param   [in] numSlices
     //!          int32_t
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
@@ -111,7 +119,7 @@ private:
     //! \param   [in] picParam
     //!          VAPictureParameterBufferH264
     //!
-    //! \param   [in] dwNumSlices
+    //! \param   [in] numSlices
     //!          int32_t
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
@@ -122,13 +130,13 @@ private:
     //! \brief   Alloc SliceParam content for Avc
     //! \details Alloc/resize SlicePram content for AVC decoding
     //!
-    //! \param   [in] dwNumSlices
-    //!          int32_t the required number of slices
+    //! \param   [in] numSlices
+    //!          uint32_t the required number of slices
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus AllocSliceParamContext(
-        int32_t numSlices);
+        uint32_t numSlices);
 
     //! \brief   Init resource buffer for AVC
     //! \details Initialize and allocate the resource buffer for AVC

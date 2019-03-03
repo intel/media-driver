@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      vphal_renderhal_common.h  
-//! \brief         Shared common utilities between VPHAL and RenderHal  
+//! \file      vphal_renderhal_common.h 
+//! \brief         Shared common utilities between VPHAL and RenderHal 
 //!
 //!
 //! \file     vphal_renderhal_common.h

@@ -25,7 +25,9 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_g10.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_g10.h"
+#endif
 #include "vphal_render_vebox_g10_base.h"
 #include "vphal_render_composite_g10.h"
 
@@ -63,6 +65,7 @@ void VphalRendererG10::GetCacheCntl(
         VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.LaceOrAceOrRgbHistogramSurfCtrl,  MOS_MP_RESOURCE_USAGE_AGE3_SurfaceState);
         VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.SkinScoreSurfMemObjCtl,           MOS_MP_RESOURCE_USAGE_AGE3_SurfaceState);
         VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.LaceLookUpTablesSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_AGE3_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.Vebox3DLookUpTablesSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_AGE3_SurfaceState);
     }
     if (pSettings->bLace)
     {
@@ -75,7 +78,7 @@ void VphalRendererG10::GetCacheCntl(
     }
 }
 
-MOS_STATUS VphalRendererG10::AllocateRenderComponents(   
+MOS_STATUS VphalRendererG10::AllocateRenderComponents(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     PMHW_SFC_INTERFACE                  pSfcInterface)
 {
@@ -168,10 +171,11 @@ MOS_STATUS VphalRendererG10::InitKdllParam()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // Set KDLL parameters (Platform dependent)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     pKernelDllRules         = g_KdllRuleTable_g10;
     pcKernelBin             = (const void*)IGVPKRN_G10;
     dwKernelBinSize         = IGVPKRN_G10_SIZE;
-
+#endif
     return eStatus;
 }
 

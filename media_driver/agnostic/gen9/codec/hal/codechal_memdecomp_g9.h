@@ -21,7 +21,7 @@
 */
 //! \file     codechal_memdecomp_g9.h
 //! \brief    Defines data structures and interfaces for Gen9 media memory decompression.
-//! \details  
+//! \details 
 //!
 
 #ifndef __CODECHAL_MEDIAMEMCOMP_G9_H__

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,23 +29,17 @@
 #define __VPHAL_H__
 
 #include "vphal_common.h"
-
-#include "vphal_common_composite.h"
-#include "vphal_common_vebox.h"
 #include "vphal_common_tools.h"
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
+#include "mhw_vebox.h"
+#include "mhw_sfc.h"
 
 //*-----------------------------------------------------------------------------
 //| DEFINITIONS
 //*-----------------------------------------------------------------------------
 // Incremental size for allocating/reallocating resource
 #define VPHAL_BUFFER_SIZE_INCREMENT     128
-
-#define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
-#define VPHAL_MAX_CHANNELS              2
-#define VPHAL_MAX_TARGETS               2        //!< dual output support for Android
-#define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
 
 // YUV input ranges
 #define YUV_RANGE_16_235                1
@@ -241,12 +235,17 @@
 //!
 enum VpKernelID
 {
-    // FC     
+    // FC
     kernelCombinedFc = 0,
 
     // 2 VEBOX KERNELS
     kernelVeboxSecureBlockCopy,
     kernelVeboxUpdateDnState,
+
+    // User Ptr
+    kernelUserPtr,
+    // Fast 1toN
+    kernelFast1toN,
 
     baseKernelMaxNumID
 };
@@ -261,17 +260,6 @@ struct VphalSseuSetting
     uint8_t   numEUs;
     uint8_t   reserved;       // Place holder for frequency setting
 };
-
-//-----------------------------------------------------------------------------
-// Forward declaration - 
-// IMPORTANT - DDI interfaces are NOT to access internal VPHAL states
-//-----------------------------------------------------------------------------
-typedef struct _RENDERHAL_INTERFACE     *PRENDERHAL_INTERFACE;
-typedef class MhwVeboxInterface         *PMHW_VEBOX_INTERFACE;
-typedef class MhwSfcInterface           *PMHW_SFC_INTERFACE;
-class VphalRenderer;
-
-class MhwCpInterface;
 
 //-----------------------------------------------------------------------------
 // VPHAL-DDI RENDERING INTERFACE
@@ -344,177 +332,15 @@ struct VphalFeatureReport
     bool                            FFDNCompressible;   //!< FFDN MMC Compressible flag
     uint8_t                         FFDNCompressMode;   //!< FFDN MMC Compression mode
     bool                            STMMCompressible;   //!< STMM MMC Compressible flag
-    uint8_t                         STMMCompressMode;   //!< STMM MMC Compression mode  
+    uint8_t                         STMMCompressMode;   //!< STMM MMC Compression mode
     bool                            ScalerCompressible; //!< Scaler MMC Compressible flag for Gen10
     uint8_t                         ScalerCompressMode; //!< Scaler MMC Compression mode for Gen10
     bool                            PrimaryCompressible;//!< Input Primary Surface Compressible flag
-    uint8_t                         PrimaryCompressMode;//!< Input Primary Surface Compression mode  
+    uint8_t                         PrimaryCompressMode;//!< Input Primary Surface Compression mode
     VPHAL_COMPOSITION_REPORT_MODE   CompositionMode;    //!< Inplace/Legacy Compostion flag
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
+    bool                            DiScdMode;          //!< Scene change detection
 };
-
-//!
-//! Structure VPHAL_SURFACE
-//! \brief DDI-VPHAL surface definition
-//!
-struct VPHAL_SURFACE
-{
-    // Color Information
-    VPHAL_CSPACE                ColorSpace;         //!<Color Space
-    bool                        ExtendedGamut;      //!<Extended Gamut Flag
-    int32_t                     iPalette;           //!<Palette Allocation
-    VPHAL_PALETTE               Palette;            //!<Palette data
-
-    // Rendering parameters
-    RECT                        rcSrc;              //!< Source rectangle
-    RECT                        rcDst;              //!< Destination rectangle
-    RECT                        rcMaxSrc;           //!< Max source rectangle
-    PVPHAL_BLENDING_PARAMS      pBlendingParams;    //!< Blending parameters
-    PVPHAL_LUMAKEY_PARAMS       pLumaKeyParams;     //!< Luma keying parameters
-    PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
-    PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
-    bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
-    bool                        bInterlacedScaling; //!< Interlaced scaling 
-    bool                        bFieldWeaving;      //!< Field Weaving
-    bool                        bQueryVariance;     //!< enable variance query
-    bool                        bDirectionalScalar; //!< Vebox Directional Scalar
-    bool                        bFastColorFill;     //!< enable fast color fill without copy surface
-    bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
-
-    // Advanced Processing
-    PVPHAL_DI_PARAMS            pDeinterlaceParams;
-    PVPHAL_DENOISE_PARAMS       pDenoiseParams;     //!< Denoise
-    PVPHAL_COLORPIPE_PARAMS     pColorPipeParams;   //!< ColorPipe
-
-    // Frame ID and reference samples -> for advanced processing
-    int32_t                     FrameID;
-    uint32_t                    uFwdRefCount;
-    uint32_t                    uBwdRefCount;
-    PVPHAL_SURFACE              pFwdRef;
-    PVPHAL_SURFACE              pBwdRef;
-
-    // VPHAL_SURFACE Linked list
-    PVPHAL_SURFACE              pNext;
-
-    //--------------------------------------
-    // FIELDS TO BE SETUP BY VPHAL int32_tERNALLY
-    //--------------------------------------
-    uint32_t                    dwWidth;            //!<  Surface width
-    uint32_t                    dwHeight;           //!<  Surface height
-    uint32_t                    dwPitch;            //!<  Surface pitch
-    MOS_TILE_TYPE               TileType;           //!<  Tile Type
-    bool                        bOverlay;           //!<  Overlay Surface
-    bool                        bFlipChain;         //!<  FlipChain Surface
-    VPHAL_PLANE_OFFSET          YPlaneOffset;       //!<  Y surface plane offset
-    VPHAL_PLANE_OFFSET          UPlaneOffset;       //!<  U surface plane offset
-    VPHAL_PLANE_OFFSET          VPlaneOffset;       //!<  V surface plane offset
-    int32_t                     iLayerID;           //!<  Layer index (0-based index)
-    VPHAL_SCALING_MODE          ScalingMode;        //!<  Scaling Mode
-    VPHAL_SCALING_PREFERENCE    ScalingPreference;  //!<  Scaling preference
-    bool                        bIEF;               //!<  IEF flag
-    uint32_t                    dwSlicePitch;       //!<  SlicePitch of a 3D surface(GT-PIN support) 
-
-    //--------------------------------------
-    // FIELDS TO BE PROVIDED BY DDI
-    //--------------------------------------
-    // Sample information
-    MOS_FORMAT                  Format;             //!<  Surface format
-    VPHAL_SURFACE_TYPE          SurfType;           //!<  Surface type (context)
-    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type
-    uint32_t                    dwDepth;            //!<  Surface depth
-    MOS_S3D_CHANNEL             Channel;            //!<  Channel
-    uint32_t                    dwOffset;           //!<  Surface Offset (Y/Base)
-    MOS_RESOURCE                OsResource;         //!<  Surface resource
-    VPHAL_ROTATION              Rotation;           //!<  0: 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degreee
-
-    // Chroma siting
-    uint32_t                    ChromaSiting;
-    bool                        bChromaSiting;      //!<  Chromasiting flag
-
-    // Surface compression mode, enable flags
-    bool                        bCompressible;      // The surface is compressible, means there are additional 128 bit for MMC no matter it is compressed or not
-                                                    // The bIsCompressed in surface allocation structure should use this flag to initialize to allocate a compressible surface
-    bool                        bIsCompressed;      // The surface is compressed, VEBox output can only support horizontal mode, but input can be horizontal / vertical
-    MOS_RESOURCE_MMC_MODE       CompressionMode;
-};
-
-//!
-//! Structure VPHAL_RENDER_PARAMS
-//! \brief VPHAL Rendering Parameters
-//!
-struct VPHAL_RENDER_PARAMS
-{
-    // Input/output surfaces
-    uint32_t                                uSrcCount;                  //!< Num sources
-    VPHAL_SURFACE                           *pSrc[VPHAL_MAX_SOURCES];   //!< Source Samples
-    uint32_t                                uDstCount;                  //!< Num Targets
-    VPHAL_SURFACE                           *pTarget[VPHAL_MAX_TARGETS];//!< Render Target
-
-    // Additional parameters not included in PVPHAL_SURFACE
-    PRECT                                   pConstriction;              //!< Constriction rectangle
-    PVPHAL_COLORFILL_PARAMS                 pColorFillParams;           //!< ColorFill - BG only
-    bool                                    bTurboMode;                 //!< Enable Media Turbo Mode
-    bool                                    bStereoMode;                //!< Stereo BLT mode
-    PVPHAL_ALPHA_PARAMS                     pCompAlpha;                 //!< Alpha for composited surfaces
-    bool                                    bDisableDemoMode;           //!< Enable/Disable demo mode function calls
-    PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS    pSplitScreenDemoModeParams; //!< Split-screen demo mode for VP features
-    bool                                    bIsDefaultStream;           //!< Identifier to differentiate default stream
-
-    // Debugging parameters
-    MOS_COMPONENT                           Component;                  //!< DDI component (for DEBUGGING only)
-
-    // Status Report
-    bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
-    uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
-#endif
-    
-    bool                                    bCalculatingAlpha;          //!< Alpha calculation parameters
-
-    // extension parameters
-    void                                    *pExtensionData;            //!< Extension data
-
-    VPHAL_RENDER_PARAMS():
-        uSrcCount(0),
-        pSrc(),
-        uDstCount(0),
-        pTarget(),
-        pConstriction(nullptr),
-        pColorFillParams(nullptr),
-        bTurboMode(false),
-        bStereoMode(false),
-        pCompAlpha(nullptr),
-        bDisableDemoMode(false),
-        pSplitScreenDemoModeParams(nullptr),
-        bIsDefaultStream(false),
-        Component(),
-        bReportStatus(false),
-        StatusFeedBackID(0),
-#if (_DEBUG || _RELEASE_INTERNAL)
-        bTriggerGPUHang(false),
-#endif
-        bCalculatingAlpha(false),
-        pExtensionData(nullptr)
-    {
-    }
-
-};
-
-typedef VPHAL_RENDER_PARAMS *PVPHAL_RENDER_PARAMS;
-
-//!
-//! Structure VPHAL_GET_SURFACE_INFO
-//! \brief VPHAL Get Surface Infomation Parameters
-//!
-struct VPHAL_GET_SURFACE_INFO
-{
-    uint32_t          ArraySlice;
-    uint32_t          MipSlice;
-    MOS_S3D_CHANNEL   S3dChannel;
-};
-
-typedef const VPHAL_RENDER_PARAMS  *PCVPHAL_RENDER_PARAMS;
 
 //!
 //! Class VphalState
@@ -547,6 +373,16 @@ public:
         MOS_STATUS              *peStatus);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    VphalState(const VphalState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    VphalState& operator=(const VphalState&) = delete;
+
+    //!
     //! \brief    VphalState Destuctor
     //! \details  Destroys VPHAL and all internal states and objects
     //!
@@ -562,7 +398,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS Allocate(
+    virtual MOS_STATUS Allocate(
         const VphalSettings     *pVpHalSettings);
 
     //!
@@ -583,7 +419,7 @@ public:
     //! \return   VphalFeatureReport*
     //!           Pointer to VPHAL_FEATURE_REPOR: rendering features reported
     //!
-    VphalFeatureReport*       GetRenderFeatureReport();
+    virtual VphalFeatureReport*       GetRenderFeatureReport();
 
     //!
     //! \brief    Get Status Report
@@ -626,13 +462,43 @@ public:
 
     void SetMhwVeboxInterface(MhwVeboxInterface* veboxInterface)
     {
+        if (veboxInterface == nullptr)
+        {
+            return;
+        }
+
+        if (m_veboxInterface != nullptr)
+        {
+            MOS_STATUS eStatus = m_veboxInterface->DestroyHeap();
+            MOS_Delete(m_veboxInterface);
+            m_veboxInterface = nullptr;
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+            }
+        }
+
         m_veboxInterface = veboxInterface;
     }
 
     void SetMhwSfcInterface(MhwSfcInterface* sfcInterface)
     {
+        if (sfcInterface == nullptr)
+        {
+            return;
+        }
+
+        if (m_sfcInterface != nullptr)
+        {
+            MOS_Delete(m_sfcInterface);
+            m_sfcInterface = nullptr;
+        }
+
         m_sfcInterface = sfcInterface;
     }
+
+    HANDLE                      m_gpuAppTaskEvent;
+
 protected:
     // Internals
     PLATFORM                    m_platform;

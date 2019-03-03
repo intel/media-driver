@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #define __MHW_VDBOX_HCP_G9_X_H__
 
 #include "mhw_vdbox_hcp_generic.h"
+#include "mhw_mmio_g9.h"
 
 // CU Record structure
 struct EncodeHevcCuDataG9
@@ -140,23 +141,23 @@ protected:
     void InitMmioRegisters()
     {
         MmioRegistersHcp *mmioRegisters = &this->m_mmioRegisters[MHW_VDBOX_NODE_1];
-    
-        mmioRegisters->hcpEncImageStatusMaskRegOffset                    = 0x1E9B8;
-        mmioRegisters->hcpEncImageStatusCtrlRegOffset                    = 0x1E9BC;
-        mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset            = 0x1E9A0;
-        mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset           = 0x1E9A8;
-        mmioRegisters->hcpEncBitstreamBytecountFrameNoHeaderRegOffset    = 0x1E9A4;
-        mmioRegisters->hcpEncQpStatusCountRegOffset                      = 0x1E9C0;
-        mmioRegisters->hcpEncSliceCountRegOffset                         = 0;
-        mmioRegisters->hcpEncVdencModeTimerRegOffset                     = 0;
-        mmioRegisters->hcpVp9EncBitstreamBytecountFrameRegOffset         = 0x1E9E0;
-        mmioRegisters->hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset = 0x1E9E4;
-        mmioRegisters->hcpVp9EncImageStatusMaskRegOffset                 = 0x1E9F0;
-        mmioRegisters->hcpVp9EncImageStatusCtrlRegOffset                 = 0x1E9F4;
-        mmioRegisters->csEngineIdOffset                                  = 0;
-        mmioRegisters->hcpDecStatusRegOffset                             = 0x1E900;
-        mmioRegisters->hcpCabacStatusRegOffset                           = 0x1E904;
-    
+
+        mmioRegisters->hcpEncImageStatusMaskRegOffset                    = HCP_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncImageStatusCtrlRegOffset                    = HCP_ENC_IMAGE_STATUS_CTRL_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset            = HCP_ENC_BIT_STREAM_BYTE_COUNT_FRAME_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset           = HCP_ENC_BIT_STREAM_SE_BIT_COUNT_FRAME_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncBitstreamBytecountFrameNoHeaderRegOffset    = HCP_ENC_BIT_STREAM_BYTE_COUNT_FRAME_NO_HEADER_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncQpStatusCountRegOffset                      = HCP_ENC_QP_STATUS_COUNT_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncSliceCountRegOffset                         = HCP_ENC_SLICE_COUNT_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpEncVdencModeTimerRegOffset                     = HCP_ENC_VDENC_MODE_TIMER_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncBitstreamBytecountFrameRegOffset         = HCP_VP9_ENC_BITSTREAM_BYTE_COUNT_FRAME_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset = HCP_VP9_ENC_BITSTREAM_BYTE_COUNT_FRAME_NO_HEADER_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncImageStatusMaskRegOffset                 = HCP_VP9_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpVp9EncImageStatusCtrlRegOffset                 = HCP_VP9_ENC_IMAGE_STATUS_CTRL_REG_OFFSET_INIT_G9;
+        mmioRegisters->csEngineIdOffset                                  = CS_ENGINE_ID_OFFSET_INIT_G9;
+        mmioRegisters->hcpDecStatusRegOffset                             = HCP_DEC_STATUS_REG_OFFSET_INIT_G9;
+        mmioRegisters->hcpCabacStatusRegOffset                           = HCP_CABAC_STATUS_REG_OFFSET_INIT_G9;
+
     }
 
     void InitRowstoreUserFeatureSettings()
@@ -442,7 +443,7 @@ protected:
     }
 
     MOS_STATUS IsHevcBufferReallocNeeded(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
         PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -457,7 +458,7 @@ protected:
         uint32_t picWidthAlloced = reallocParam->dwPicWidthAlloced;
         uint32_t picHeightAlloced = reallocParam->dwPicHeightAlloced;
 
-        switch (BufferType)
+        switch (bufferType)
         {
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_LINE:
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_TILE_LINE:
@@ -485,7 +486,7 @@ protected:
     }
 
     MOS_STATUS IsVp9BufferReallocNeeded(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
         PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -500,7 +501,7 @@ protected:
         uint32_t picWidthInSbAlloced = reallocParam->dwPicWidthAlloced;
         uint32_t picHeightInSbAlloced = reallocParam->dwPicHeightAlloced;
 
-        switch (BufferType)
+        switch (bufferType)
         {
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_META_LINE:
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_META_TILE_LINE:
@@ -565,7 +566,6 @@ protected:
         typename THcpCmds::HCP_PIPE_MODE_SELECT_CMD  cmd;
 
         cmd.DW1.CodecStandardSelect = CodecHal_GetStandardFromMode(params->Mode) - CODECHAL_HCP_BASE;
-        cmd.DW1.PakPipelineStreamoutEnable = params->bStreamOutEnabled;
         cmd.DW1.DeblockerStreamoutEnable = params->bDeblockerStreamOutEnable;
 
         if (this->m_decodeInUse)
@@ -604,16 +604,16 @@ protected:
 
             for (uint8_t sizeId = 0; sizeId < 4; sizeId++)            // 4x4, 8x8, 16x16, 32x32
             {
-                for (uint8_t ucPredType = 0; ucPredType < 2; ucPredType++)  // Intra, Inter
+                for (uint8_t predType = 0; predType < 2; predType++)  // Intra, Inter
                 {
-                    for (uint8_t ucColor = 0; ucColor < 3; ucColor++)       // Y, Cb, Cr
+                    for (uint8_t color = 0; color < 3; color++)       // Y, Cb, Cr
                     {
-                        if ((sizeId == 3) && (ucColor != 0))
+                        if ((sizeId == 3) && (color != 0))
                             break;
 
                         cmd.DW1.Sizeid = sizeId;
-                        cmd.DW1.PredictionType = ucPredType;
-                        cmd.DW1.ColorComponent = ucColor;
+                        cmd.DW1.PredictionType = predType;
+                        cmd.DW1.ColorComponent = color;
                         switch (sizeId)
                         {
                         case HEVC_QM_4x4:
@@ -622,15 +622,12 @@ protected:
                             cmd.DW1.DcCoefficient = 0;
                             break;
                         case HEVC_QM_16x16:
-                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC16x16[3 * ucPredType + ucColor];
+                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC16x16[3 * predType + color];
                             break;
                         case HEVC_QM_32x32:
-                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC32x32[ucPredType];
+                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC32x32[predType];
                             break;
                         }
-
-                        // Enable the transquant clampping for Allegro RND clips for SKL only.
-                        cmd.DW1.ChickenBitTransquantBypassClampDisable = 0;
 
                         if (sizeId == HEVC_QM_4x4)
                         {
@@ -638,7 +635,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 4; ii++)
                                 {
-                                    qMatrix[4 * i + ii] = params->pHevcIqMatrix->List4x4[3 * ucPredType + ucColor][4 * i + ii];
+                                    qMatrix[4 * i + ii] = params->pHevcIqMatrix->List4x4[3 * predType + color][4 * i + ii];
                                 }
                             }
                         }
@@ -648,7 +645,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 8; ii++)
                                 {
-                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List8x8[3 * ucPredType + ucColor][8 * i + ii];
+                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List8x8[3 * predType + color][8 * i + ii];
                                 }
                             }
                         }
@@ -658,7 +655,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 8; ii++)
                                 {
-                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List16x16[3 * ucPredType + ucColor][8 * i + ii];
+                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List16x16[3 * predType + color][8 * i + ii];
                                 }
                             }
                         }
@@ -668,7 +665,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 8; ii++)
                                 {
-                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List32x32[ucPredType][8 * i + ii];
+                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List32x32[predType][8 * i + ii];
                                 }
                             }
                         }
@@ -707,39 +704,50 @@ protected:
 
         // Decoded Picture
         // Caching policy change if any of below modes are true
-        // Note for future dev: probably a good idea to add a macro for the below check 
+        // Note for future dev: probably a good idea to add a macro for the below check
         if (this->m_osInterface->osCpInterface->IsHMEnabled() ||
             this->m_osInterface->osCpInterface->IsIDMEnabled() ||
             this->m_osInterface->osCpInterface->IsSMEnabled())
         {
-            cmd.DW3.MemoryObjectControlState = this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC_PARTIALENCSURFACE].Value;
+            cmd.DecodedPictureMemoryAddressAttributes.DW0.Value |= this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC_PARTIALENCSURFACE].Value;
         }
         else
         {
-            cmd.DW3.MemoryObjectControlState =
+            cmd.DecodedPictureMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC].Value;
         }
 
-        cmd.DW3.Tiledresourcemode = Mhw_ConvertToTRMode(params->psPreDeblockSurface->TileType);
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(params->psPreDeblockSurface->TileType);
 
         // For HEVC 8bit/10bit mixed case, register App's RenderTarget for specific use case
         if (params->presP010RTSurface != nullptr)
         {
             resourceParams.presResource = &(params->presP010RTSurface->OsResource);
             resourceParams.dwOffset = params->presP010RTSurface->dwOffset;
-            resourceParams.pdwCmd = (cmd.DecodedPicture[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.DecodedPicture.DW0_1.Value);
             resourceParams.dwLocationInCmd = 1;
             resourceParams.bIsWritable = true;
-
-            MHW_MI_CHK_STATUS(this->pfnAddResourceToCmd(
-                this->m_osInterface,
-                cmdBuffer,
-                &resourceParams));
+            
+            if (this->m_osInterface->bAllowExtraPatchToSameLoc)
+            {
+                MHW_MI_CHK_STATUS(this->pfnAddResourceToCmd(
+                    this->m_osInterface,
+                    cmdBuffer,
+                    &resourceParams));
+            }
+            else //if not allowed to patch another OsResource to same location in cmd, just register resource here
+            {
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnRegisterResource(
+                    this->m_osInterface,
+                    resourceParams.presResource,
+                    resourceParams.bIsWritable,
+                    resourceParams.bIsWritable));
+            }
         }
 
         resourceParams.presResource = &(params->psPreDeblockSurface->OsResource);
         resourceParams.dwOffset = params->psPreDeblockSurface->dwOffset;
-        resourceParams.pdwCmd = (cmd.DecodedPicture[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.DecodedPicture.DW0_1.Value);
         resourceParams.dwLocationInCmd = 1;
         resourceParams.bIsWritable = true;
 
@@ -753,22 +761,22 @@ protected:
         // Deblocking Filter Line Buffer
         if (this->m_hevcDfRowStoreCache.bEnabled)
         {
-            cmd.DW6.Rowstorescratchbuffercacheselect = BUFFER_TO_INTERNALMEDIASTORAGE;
-            cmd.DeblockingFilterLineBuffer[0].DW0_1.Graphicsaddress476 = this->m_hevcDfRowStoreCache.dwAddress;
+            cmd.DeblockingFilterLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = BUFFER_TO_INTERNALMEDIASTORAGE;
+            cmd.DeblockingFilterLineBuffer.DW0_1.Graphicsaddress476 = this->m_hevcDfRowStoreCache.dwAddress;
         }
         else if (this->m_vp9DfRowStoreCache.bEnabled)
         {
-            cmd.DW6.Rowstorescratchbuffercacheselect = BUFFER_TO_INTERNALMEDIASTORAGE;
-            cmd.DeblockingFilterLineBuffer[0].DW0_1.Graphicsaddress476 = this->m_vp9DfRowStoreCache.dwAddress;
+            cmd.DeblockingFilterLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = BUFFER_TO_INTERNALMEDIASTORAGE;
+            cmd.DeblockingFilterLineBuffer.DW0_1.Graphicsaddress476 = this->m_vp9DfRowStoreCache.dwAddress;
         }
         else if (params->presMfdDeblockingFilterRowStoreScratchBuffer != nullptr)
         {
-            cmd.DW6.MemoryObjectControlState =
+            cmd.DeblockingFilterLineBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
 
             resourceParams.presResource = params->presMfdDeblockingFilterRowStoreScratchBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DeblockingFilterLineBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.DeblockingFilterLineBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 4;
             resourceParams.bIsWritable = true;
 
@@ -781,12 +789,12 @@ protected:
         // Deblocking Filter Tile Line Buffer
         if (params->presDeblockingFilterTileRowStoreScratchBuffer != nullptr)
         {
-            cmd.DW9.MemoryObjectControlState =
+            cmd.DeblockingFilterTileLineBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
 
             resourceParams.presResource = params->presDeblockingFilterTileRowStoreScratchBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DeblockingFilterTileLineBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.DeblockingFilterTileLineBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 7;
             resourceParams.bIsWritable = true;
 
@@ -799,12 +807,12 @@ protected:
         // Deblocking Filter Tile Column Buffer
         if (params->presDeblockingFilterColumnRowStoreScratchBuffer != nullptr)
         {
-            cmd.DW12.MemoryObjectControlState =
+            cmd.DeblockingFilterTileColumnBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
 
             resourceParams.presResource = params->presDeblockingFilterColumnRowStoreScratchBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DeblockingFilterTileColumnBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.DeblockingFilterTileColumnBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 10;
             resourceParams.bIsWritable = true;
 
@@ -817,17 +825,17 @@ protected:
         // Metadata Line Buffer
         if (this->m_hevcDatRowStoreCache.bEnabled)
         {
-            cmd.DW15.Rowstorescratchbuffercacheselect = BUFFER_TO_INTERNALMEDIASTORAGE;
-            cmd.MetadataLineBuffer[0].DW0_1.Graphicsaddress476 = this->m_hevcDatRowStoreCache.dwAddress;
+            cmd.MetadataLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = BUFFER_TO_INTERNALMEDIASTORAGE;
+            cmd.MetadataLineBuffer.DW0_1.Graphicsaddress476 = this->m_hevcDatRowStoreCache.dwAddress;
         }
         else if (params->presMetadataLineBuffer != nullptr)
         {
-            cmd.DW15.MemoryObjectControlState =
+            cmd.MetadataLineBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MD_CODEC].Value;
 
             resourceParams.presResource = params->presMetadataLineBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = cmd.MetadataLineBuffer[0].DW0_1.Value;
+            resourceParams.pdwCmd = cmd.MetadataLineBuffer.DW0_1.Value;
             resourceParams.dwLocationInCmd = 13;
             resourceParams.bIsWritable = true;
 
@@ -840,12 +848,12 @@ protected:
         // Metadata Tile Line Buffer
         if (params->presMetadataTileLineBuffer != nullptr)
         {
-            cmd.DW18.MemoryObjectControlState =
+            cmd.MetadataTileLineBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MD_CODEC].Value;
 
             resourceParams.presResource = params->presMetadataTileLineBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.MetadataTileLineBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.MetadataTileLineBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 16;
             resourceParams.bIsWritable = true;
 
@@ -858,12 +866,12 @@ protected:
         // Metadata Tile Column Buffer
         if (params->presMetadataTileColumnBuffer != nullptr)
         {
-            cmd.DW21.MemoryObjectControlState =
+            cmd.MetadataTileColumnBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MD_CODEC].Value;
 
             resourceParams.presResource = params->presMetadataTileColumnBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.MetadataTileColumnBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.MetadataTileColumnBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 19;
             resourceParams.bIsWritable = true;
 
@@ -876,17 +884,17 @@ protected:
         // SAO Line Buffer
         if (this->m_hevcSaoRowStoreCache.bEnabled)
         {
-            cmd.DW24.Rowstorescratchbuffercacheselect = BUFFER_TO_INTERNALMEDIASTORAGE;
-            cmd.SaoLineBuffer[0].DW0_1.Graphicsaddress476 = this->m_hevcSaoRowStoreCache.dwAddress;
+            cmd.SaoLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = BUFFER_TO_INTERNALMEDIASTORAGE;
+            cmd.SaoLineBuffer.DW0_1.Graphicsaddress476 = this->m_hevcSaoRowStoreCache.dwAddress;
         }
         else if (params->presSaoLineBuffer != nullptr)
         {
-            cmd.DW24.MemoryObjectControlState =
+            cmd.SaoLineBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_SAO_CODEC].Value;
 
             resourceParams.presResource = params->presSaoLineBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.SaoLineBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.SaoLineBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 22;
             resourceParams.bIsWritable = true;
 
@@ -899,12 +907,12 @@ protected:
         // SAO Tile Line Buffer
         if (params->presSaoTileLineBuffer != nullptr)
         {
-            cmd.DW27.MemoryObjectControlState =
+            cmd.SaoTileLineBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_SAO_CODEC].Value;
 
             resourceParams.presResource = params->presSaoTileLineBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.SaoTileLineBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.SaoTileLineBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 25;
             resourceParams.bIsWritable = true;
 
@@ -917,12 +925,12 @@ protected:
         // SAO Tile Column Buffer
         if (params->presSaoTileColumnBuffer != nullptr)
         {
-            cmd.DW30.MemoryObjectControlState =
+            cmd.SaoTileColumnBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_SAO_CODEC].Value;
 
             resourceParams.presResource = params->presSaoTileColumnBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.SaoTileColumnBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.SaoTileColumnBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 28;
             resourceParams.bIsWritable = true;
 
@@ -935,12 +943,12 @@ protected:
         // Current Motion Vector Temporal Buffer
         if (params->presCurMvTempBuffer != nullptr)
         {
-            cmd.DW33.MemoryObjectControlState =
+            cmd.CurrentMotionVectorTemporalBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MV_CODEC].Value;
 
             resourceParams.presResource = params->presCurMvTempBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.CurrentMotionVectorTemporalBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.CurrentMotionVectorTemporalBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 31;
             resourceParams.bIsWritable = true;
 
@@ -951,7 +959,7 @@ protected:
         }
 
         // Reference Picture Buffer
-        cmd.DW53.MemoryObjectControlState =
+        cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.Value |=
             this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
 
         // NOTE: for both HEVC and VP9, set all the 8 ref pic addresses in HCP_PIPE_BUF_ADDR_STATE command to valid addresses for error concealment purpose
@@ -959,20 +967,20 @@ protected:
         {
             if (params->presReferences[i] != nullptr)
             {
-                MOS_SURFACE  resDetails;
-                MOS_ZeroMemory(&resDetails, sizeof(resDetails));
-                resDetails.Format = Format_Invalid;
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presReferences[i], &resDetails));
+                MOS_SURFACE  details;
+                MOS_ZeroMemory(&details, sizeof(details));
+                details.Format = Format_Invalid;
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presReferences[i], &details));
 
                 if (firstRefPic)
                 {
-                    cmd.DW53.Tiledresourcemode = Mhw_ConvertToTRMode(resDetails.TileType);
+                    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     firstRefPic = false;
                 }
 
                 resourceParams.presResource = params->presReferences[i];
                 resourceParams.pdwCmd = (cmd.ReferencePictureBaseAddressRefaddr07[i].DW0_1.Value);
-                resourceParams.dwOffset = resDetails.RenderOffset.YUV.Y.BaseOffset;
+                resourceParams.dwOffset = details.RenderOffset.YUV.Y.BaseOffset;
                 resourceParams.dwLocationInCmd = (i * 2) + 37; // * 2 to account for QW rather than DW
                 resourceParams.bIsWritable = false;
 
@@ -991,14 +999,14 @@ protected:
         // Original Uncompressed Picture Source, Encoder only
         if (params->psRawSurface != nullptr)
         {
-            cmd.DW56.MemoryObjectControlState =
+            cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE].Value;
 
-            cmd.DW56.Tiledresourcemode = Mhw_ConvertToTRMode(params->psRawSurface->TileType);
+            cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(params->psRawSurface->TileType);
 
             resourceParams.presResource = &params->psRawSurface->OsResource;
             resourceParams.dwOffset = params->psRawSurface->dwOffset;
-            resourceParams.pdwCmd = (cmd.OriginalUncompressedPictureSource[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.OriginalUncompressedPictureSource.DW0_1.Value);
             resourceParams.dwLocationInCmd = 54;
             resourceParams.bIsWritable = false;
 
@@ -1011,12 +1019,12 @@ protected:
         // StreamOut Data Destination, Decoder only
         if (params->presStreamOutBuffer != nullptr)
         {
-            cmd.DW59.MemoryObjectControlState =
+            cmd.StreamoutDataDestinationMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_STREAMOUT_DATA_CODEC].Value;
 
             resourceParams.presResource = params->presStreamOutBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.StreamoutDataDestination[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.StreamoutDataDestination.DW0_1.Value);
             resourceParams.dwLocationInCmd = 57;
             resourceParams.bIsWritable = true;
 
@@ -1029,12 +1037,12 @@ protected:
         // Decoded Picture Status / Error Buffer Base Address
         if (params->presLcuBaseAddressBuffer != nullptr)
         {
-            cmd.DW62.MemoryObjectControlState =
+            cmd.DecodedPictureStatusErrorBufferBaseAddressMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_STATUS_ERROR_CODEC].Value;
 
             resourceParams.presResource = params->presLcuBaseAddressBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DecodedPictureStatusErrorBufferBaseAddressOrEncodedSliceSizeStreamoutBaseAddress[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.DecodedPictureStatusErrorBufferBaseAddressOrEncodedSliceSizeStreamoutBaseAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = 60;
             resourceParams.bIsWritable = true;
 
@@ -1047,12 +1055,12 @@ protected:
         // LCU ILDB StreamOut Buffer
         if (params->presLcuILDBStreamOutBuffer != nullptr)
         {
-            cmd.DW65.MemoryObjectControlState =
+            cmd.LcuIldbStreamoutBufferMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_LCU_ILDB_STREAMOUT_CODEC].Value;
 
             resourceParams.presResource = params->presLcuILDBStreamOutBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.LcuIldbStreamoutBuffer[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.LcuIldbStreamoutBuffer.DW0_1.Value);
             resourceParams.dwLocationInCmd = 63;
             resourceParams.bIsWritable = true;
 
@@ -1063,7 +1071,7 @@ protected:
         }
 
         // Collocated Motion vector Temporal Buffer
-        cmd.DW82.MemoryObjectControlState =
+        cmd.CollocatedMotionVectorTemporalBuffer07MemoryAddressAttributes.DW0.Value |= 
             this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MV_CODEC].Value;
 
         for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
@@ -1091,12 +1099,12 @@ protected:
         // VP9 Probability Buffer
         if (params->presVp9ProbBuffer != nullptr)
         {
-            cmd.DW85.MemoryObjectControlState =
+            cmd.Vp9ProbabilityBufferReadWriteMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_PROBABILITY_BUFFER_CODEC].Value;
 
             resourceParams.presResource = params->presVp9ProbBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.Vp9ProbabilityBufferReadWrite[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.Vp9ProbabilityBufferReadWrite.DW0_1.Value);
             resourceParams.dwLocationInCmd = 83;
             resourceParams.bIsWritable = true;
 
@@ -1114,7 +1122,7 @@ protected:
         // VP9 Segment Id Buffer
         if (params->presVp9SegmentIdBuffer != nullptr)
         {
-            cmd.DW88.MemoryObjectControlState =
+            cmd.Vp9SegmentIdBufferReadWriteMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_SEGMENT_ID_BUFFER_CODEC].Value;
 
             resourceParams.presResource = params->presVp9SegmentIdBuffer;
@@ -1137,17 +1145,17 @@ protected:
         // HVD Line Row Store Buffer
         if (this->m_vp9HvdRowStoreCache.bEnabled)
         {
-            cmd.DW91.Rowstorescratchbuffercacheselect = BUFFER_TO_INTERNALMEDIASTORAGE;
-            cmd.Vp9HvdLineRowstoreBufferReadWrite[0].DW0_1.Graphicsaddress476 = this->m_vp9HvdRowStoreCache.dwAddress;
+            cmd.Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = BUFFER_TO_INTERNALMEDIASTORAGE;
+            cmd.Vp9HvdLineRowstoreBufferReadWrite.DW0_1.Graphicsaddress476 = this->m_vp9HvdRowStoreCache.dwAddress;
         }
         else if (params->presHvdLineRowStoreBuffer != nullptr)
         {
-            cmd.DW91.MemoryObjectControlState =
+            cmd.Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_HVD_ROWSTORE_BUFFER_CODEC].Value;
 
             resourceParams.presResource = params->presHvdLineRowStoreBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.Vp9HvdLineRowstoreBufferReadWrite[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.Vp9HvdLineRowstoreBufferReadWrite.DW0_1.Value);
             resourceParams.dwLocationInCmd = 89;
             resourceParams.bIsWritable = true;
 
@@ -1160,12 +1168,12 @@ protected:
         // HVD Tile Row Store Buffer
         if (params->presHvdTileRowStoreBuffer != nullptr)
         {
-            cmd.DW94.MemoryObjectControlState =
+            cmd.Vp9HvdTileRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_HVD_ROWSTORE_BUFFER_CODEC].Value;
 
             resourceParams.presResource = params->presHvdTileRowStoreBuffer;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.Vp9HvdTileRowstoreBufferReadWrite[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.Vp9HvdTileRowstoreBufferReadWrite.DW0_1.Value);
             resourceParams.dwLocationInCmd = 92;
             resourceParams.bIsWritable = true;
 
@@ -1202,12 +1210,12 @@ protected:
         {
             MHW_MI_CHK_NULL(params->presDataBuffer);
 
-            cmd.DW3.MemoryObjectControlState =
+            cmd.HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |=
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE].Value;
 
             resourceParams.presResource = params->presDataBuffer;
             resourceParams.dwOffset = params->dwDataOffset;
-            resourceParams.pdwCmd = (cmd.DW1_2.Value);
+            resourceParams.pdwCmd = (cmd.HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = 1;
             resourceParams.dwSize = params->dwDataSize;
             resourceParams.bIsWritable = false;
@@ -1228,7 +1236,7 @@ protected:
         {
             if (params->presMvObjectBuffer)
             {
-                cmd.DW8.MemoryObjectControlState =
+                cmd.HcpIndirectCuObjectObjectMemoryAddressAttributes.DW0.Value |=
                     this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC].Value;
 
                 resourceParams.presResource = params->presMvObjectBuffer;
@@ -1238,7 +1246,7 @@ protected:
                 resourceParams.dwSize = MOS_ALIGN_CEIL(params->dwMvObjectSize, 0x1000);
                 resourceParams.bIsWritable = false;
 
-                // no upper bound for indirect CU object 
+                // no upper bound for indirect CU object
                 resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
                 MHW_MI_CHK_STATUS(this->pfnAddResourceToCmd(
@@ -1249,7 +1257,7 @@ protected:
 
             if (params->presPakBaseObjectBuffer)
             {
-                cmd.DW11.MemoryObjectControlState =
+                cmd.HcpPakBseObjectAddressMemoryAddressAttributes.DW0.Value |=
                     this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC].Value;
 
                 resourceParams.presResource = params->presPakBaseObjectBuffer;
@@ -1299,16 +1307,16 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 0;
                 cmd.DW1.ColorComponent = 0;
 
                 for (uint8_t i = 0; i < 16; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List4x4[3 * ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List4x4[3 * intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1319,16 +1327,16 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 1;
                 cmd.DW1.ColorComponent = 0;
 
                 for (uint8_t i = 0; i < 64; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List8x8[3 * ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List8x8[3 * intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1339,17 +1347,17 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 2;
                 cmd.DW1.ColorComponent = 0;
-                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC16x16[3 * ucIntraInter]);
+                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC16x16[3 * intraInter]);
 
                 for (uint8_t i = 0; i < 64; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List16x16[3 * ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List16x16[3 * intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1360,17 +1368,17 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 3;
                 cmd.DW1.ColorComponent = 0;
-                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC32x32[ucIntraInter]);
+                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC32x32[intraInter]);
 
                 for (uint8_t i = 0; i < 64; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List32x32[ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List32x32[intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1389,31 +1397,31 @@ protected:
         PMHW_VDBOX_HEVC_PIC_STATE        params)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
         MHW_FUNCTION_ENTER;
-    
+
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pHevcEncSeqParams);
         MHW_MI_CHK_NULL(params->pHevcEncPicParams);
 
         typename THcpCmds::HCP_PIC_STATE_CMD  cmd;
-    
+
         auto hevcSeqParams  = params->pHevcEncSeqParams;
         auto hevcPicParams  = params->pHevcEncPicParams;
-    
+
         cmd.DW1.Framewidthinmincbminus1         = hevcSeqParams->wFrameWidthInMinCbMinus1;
         cmd.DW1.Frameheightinmincbminus1        = hevcSeqParams->wFrameHeightInMinCbMinus1;
-    
+
         cmd.DW2.Mincusize                       = hevcSeqParams->log2_min_coding_block_size_minus3;
         cmd.DW2.CtbsizeLcusize                  = hevcSeqParams->log2_max_coding_block_size_minus3;
         cmd.DW2.Maxtusize                       = hevcSeqParams->log2_max_transform_block_size_minus2;
         cmd.DW2.Mintusize                       = hevcSeqParams->log2_min_transform_block_size_minus2;
         cmd.DW2.Minpcmsize                      = 0;
         cmd.DW2.Maxpcmsize                      = 0;
-    
+
         cmd.DW3.Colpicisi                       = 0; // MBZ
         cmd.DW3.Curpicisi                       = 0; // MBZ
-    
+
         cmd.DW4.SampleAdaptiveOffsetEnabledFlag         = 0;
         cmd.DW4.PcmEnabledFlag                          = 0;
         cmd.DW4.CuQpDeltaEnabledFlag                    = hevcPicParams->cu_qp_delta_enabled_flag;
@@ -1422,30 +1430,95 @@ protected:
         cmd.DW4.ConstrainedIntraPredFlag                = 0;
         cmd.DW4.Log2ParallelMergeLevelMinus2            = 0;
         cmd.DW4.SignDataHidingFlag                      = 0;
-        cmd.DW4.LoopFilterAcrossTilesEnabledFlag        = 0;
-        cmd.DW4.EntropyCodingSyncEnabledFlag            = 0;
         cmd.DW4.TilesEnabledFlag                        = 0;
         cmd.DW4.WeightedPredFlag                        = hevcPicParams->weighted_pred_flag;
         cmd.DW4.WeightedBipredFlag                      = hevcPicParams->weighted_bipred_flag;
-    	cmd.DW4.Fieldpic = 0;
-    	cmd.DW4.Bottomfield = 0;
+        cmd.DW4.Fieldpic = 0;
+        cmd.DW4.Bottomfield = 0;
         cmd.DW4.TransformSkipEnabledFlag                = hevcPicParams->transform_skip_enabled_flag;
         cmd.DW4.AmpEnabledFlag                          = hevcSeqParams->amp_enabled_flag;
         cmd.DW4.Reserved152                             = hevcPicParams->LcuMaxBitsizeAllowed > 0;
         cmd.DW4.TransquantBypassEnableFlag              = hevcPicParams->transquant_bypass_enabled_flag;
         cmd.DW4.StrongIntraSmoothingEnableFlag          = hevcSeqParams->strong_intra_smoothing_enable_flag;
-    
+
         cmd.DW5.PicCbQpOffset                                           = hevcPicParams->pps_cb_qp_offset & 0x1f;
         cmd.DW5.PicCrQpOffset                                           = hevcPicParams->pps_cr_qp_offset & 0x1f;
-        cmd.DW5.MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra = 2;
-        cmd.DW5.MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter = 2;
+        cmd.DW5.MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra = hevcSeqParams->max_transform_hierarchy_depth_intra;
+        cmd.DW5.MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter = hevcSeqParams->max_transform_hierarchy_depth_inter;
         cmd.DW5.PcmSampleBitDepthChromaMinus1   = 7;
         cmd.DW5.PcmSampleBitDepthLumaMinus1     = 7;
     
-        cmd.DW6.LcuMaxBitsizeAllowed            = hevcPicParams->LcuMaxBitsizeAllowed;
+        cmd.DW6.LcumaxbitstatusenLcumaxsizereportmask         = 1;
+        cmd.DW6.FrameszoverstatusenFramebitratemaxreportmask  = 1;
+        cmd.DW6.FrameszunderstatusenFramebitrateminreportmask = 1;
+
+        cmd.DW6.LcuMaxBitsizeAllowed = hevcPicParams->LcuMaxBitsizeAllowed;
+        if (params->maxFrameSize && params->currPass)
+        {
+            cmd.DW6.Nonfirstpassflag = 1;
+        }
+        else
+        {
+            cmd.DW6.Nonfirstpassflag = 0;
+        }
+
+        // Set this to max value
+        cmd.DW7.Framebitratemax                               = (1 << 14) - 1;
+
+        // Set this to Kilo Byte (=1) - Framebitratemax is in units of 4KBytes
+        cmd.DW7.Framebitratemaxunit                           = 1;
+
+        // Set this to min available value
+        cmd.DW8.Framebitratemin                               = 0;
+
+        // Set this to Kilo Byte (=1) - Framebitratemin is in units of 4KBytes
+        cmd.DW8.Framebitrateminunit                           = 1;
+
+        // Set frame bitrate max and min delta to 0
+        cmd.DW9.Framebitratemindelta                          = 0;
+        cmd.DW9.Framebitratemaxdelta                          = 0;
+
+        cmd.DW10_11.Framedeltaqpmax                           = 0;
+        cmd.DW12_13.Framedeltaqpmin                           = 0;
+
+        // Set frame delta QP max and min range array as [0, 1, 2, 4, 8, 16, 32, 255]
+        // Delta QP range = [Framebitratemaxdelta*(FramedeltaQpmaxrange[n]>>5), Framebitratemaxdelta*(FramedeltaQpmaxrange[n]>>5)]
+        cmd.DW14_15.Value[0]                                  =
+            cmd.DW16_17.Value[0]                              = (4 << 24) | (2 << 16) | (1 << 8);
+        cmd.DW14_15.Value[1]                                  =
+            cmd.DW16_17.Value[1]                              = (255 << 24) | (32 << 16) | (16 << 8) | 8;
+
+        // Add for multiple pass
+        if (params->maxFrameSize > 0 && params->deltaQp)
+        {
+            uint8_t hevcMaxPassNum = 8;
+
+            // When current pass is less than the max number of pass, set the delta QP.
+            if (params->currPass < hevcMaxPassNum)
+            {
+                cmd.DW10_11.Value[0] = (params->deltaQp[params->currPass] << 24) | (params->deltaQp[params->currPass] << 16) |
+                    (params->deltaQp[params->currPass] << 8) | params->deltaQp[params->currPass];
+                cmd.DW10_11.Value[1] = (params->deltaQp[params->currPass] << 24) | (params->deltaQp[params->currPass] << 16) |
+                    (params->deltaQp[params->currPass] << 8) | params->deltaQp[params->currPass];
+            }
+
+            // If the calculated value of max frame size exceeded 14 bits, need set the unit as 4K byte. Else, set the unit as 32 byte.
+            if (params->maxFrameSize >= (0x1 << 14) * 32)
+            {
+                cmd.DW7.Framebitratemaxunit = 1;
+                cmd.DW7.Framebitratemax = params->maxFrameSize >> 12;
+                cmd.DW9.Framebitratemaxdelta = params->maxFrameSize >> 13;
+            }
+            else
+            {
+                cmd.DW7.Framebitratemaxunit = 0;
+                cmd.DW7.Framebitratemax = params->maxFrameSize >> 5;
+                cmd.DW9.Framebitratemaxdelta = params->maxFrameSize >> 6;
+            }
+        }
     
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
-    
+
         return eStatus;
     }
 
@@ -1454,32 +1527,32 @@ protected:
         PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
         MHW_FUNCTION_ENTER;
-    
+
         MHW_MI_CHK_NULL(hevcSliceState);
 
         typename THcpCmds::HCP_SLICE_STATE_CMD cmd;
-    
+
         auto hevcSliceParams = hevcSliceState->pEncodeHevcSliceParams;
         auto hevcPicParams   = hevcSliceState->pEncodeHevcPicParams;
         auto hevcSeqParams   = hevcSliceState->pEncodeHevcSeqParams;
-    
+
         uint32_t ctbSize    = 1 << (hevcSeqParams->log2_max_coding_block_size_minus3 + 3);
         uint32_t widthInPix = (1 << (hevcSeqParams->log2_min_coding_block_size_minus3 + 3)) *
                               (hevcSeqParams->wFrameWidthInMinCbMinus1 + 1);
         uint32_t widthInCtb = (widthInPix / ctbSize) +
                               ((widthInPix % ctbSize) ? 1 : 0);  // round up
-    
+
         uint32_t ctbAddr    = hevcSliceParams->slice_segment_address;
 
         cmd.DW1.SlicestartctbxOrSliceStartLcuXEncoder   = ctbAddr % widthInCtb;
         cmd.DW1.SlicestartctbyOrSliceStartLcuYEncoder   = ctbAddr / widthInCtb;
-    
+
         ctbAddr = hevcSliceParams->slice_segment_address + hevcSliceParams->NumLCUsInSlice;
         cmd.DW2.NextslicestartctbxOrNextSliceStartLcuXEncoder = ctbAddr % widthInCtb;
         cmd.DW2.NextslicestartctbyOrNextSliceStartLcuYEncoder = ctbAddr / widthInCtb;
-    
+
         cmd.DW3.SliceType                               = hevcSliceParams->slice_type;
         cmd.DW3.Lastsliceofpic                          = hevcSliceState->bLastSlice;
         cmd.DW3.DependentSliceFlag                      = hevcSliceParams->dependent_slice_segment_flag;
@@ -1487,7 +1560,7 @@ protected:
         cmd.DW3.Sliceqp                                 = hevcSliceParams->slice_qp_delta + hevcPicParams->QpY;
         cmd.DW3.SliceCbQpOffset                         = hevcSliceParams->slice_cb_qp_offset;
         cmd.DW3.SliceCrQpOffset                         = hevcSliceParams->slice_cr_qp_offset;
-    
+
         cmd.DW4.SliceHeaderDisableDeblockingFilterFlag          = hevcSliceParams->slice_deblocking_filter_disable_flag;
         cmd.DW4.SliceTcOffsetDiv2OrFinalTcOffsetDiv2Encoder     = hevcSliceParams->tc_offset_div2;
         cmd.DW4.SliceBetaOffsetDiv2OrFinalBetaOffsetDiv2Encoder = hevcSliceParams->beta_offset_div2;
@@ -1501,7 +1574,7 @@ protected:
         cmd.DW4.LumaLog2WeightDenom                     = hevcSliceParams->luma_log2_weight_denom;
         cmd.DW4.CabacInitFlag                           = hevcSliceParams->cabac_init_flag;
         cmd.DW4.Maxmergeidx                             = hevcSliceParams->MaxNumMergeCand - 1;
-    
+
         if (cmd.DW3.SliceTemporalMvpEnableFlag)
         {
             if (cmd.DW3.SliceType == MhwVdboxHcpInterface::hevcSliceI)
@@ -1512,13 +1585,13 @@ protected:
             {
                 // need to check with Ce for DDI issues
                 uint8_t collocatedFromL0Flag = cmd.DW4.CollocatedFromL0Flag;
-    
+
                 uint8_t collocatedRefIndex   = hevcPicParams->CollocatedRefPicIndex;
                 MHW_ASSERT(collocatedRefIndex < CODEC_MAX_NUM_REF_FRAME_HEVC);
-    
+
                 uint8_t collocatedFrameIdx = hevcSliceState->pRefIdxMapping[collocatedRefIndex];
                 MHW_ASSERT(collocatedRefIndex < CODEC_MAX_NUM_REF_FRAME_HEVC);
-    
+
                 cmd.DW4.Collocatedrefidx = collocatedFrameIdx;
             }
         }
@@ -1526,9 +1599,9 @@ protected:
         {
              cmd.DW4.Collocatedrefidx   = 0;
         }
-    
+
         cmd.DW5.Sliceheaderlength       = 0;
-    
+
         if(!hevcPicParams->bUsedAsRef && hevcPicParams->CodingType != I_TYPE)
         {
             // non reference B frame
@@ -1541,18 +1614,18 @@ protected:
             cmd.DW6.Roundinter = 5;
             cmd.DW6.Roundintra = 11;
         }
-    
+
         cmd.DW7.Cabaczerowordinsertionenable            = 1;
         cmd.DW7.Emulationbytesliceinsertenable          = 1;
         cmd.DW7.HeaderInsertionEnable                   = 1;
-        cmd.DW7.TailInsertionEnable                     = 
+        cmd.DW7.TailInsertionEnable                     =
                 (hevcPicParams->bLastPicInSeq || hevcPicParams->bLastPicInStream) && hevcSliceState->bLastSlice;
         cmd.DW7.SlicedataEnable                         = 1;
-    
+
         cmd.DW8.IndirectPakBseDataStartOffsetWrite      = hevcSliceState->dwHeaderBytesInserted;
-    
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, hevcSliceState->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
-    
+
         return eStatus;
     }
 
@@ -1663,102 +1736,37 @@ protected:
         return eStatus;
     }
 
-    MOS_STATUS AddHcpVp9SegmentStateCmd(
-        PMOS_COMMAND_BUFFER              cmdBuffer,
-        PMHW_BATCH_BUFFER                batchBuffer,
-        PMHW_VDBOX_VP9_SEGMENT_STATE     params)
-    {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
-        MHW_MI_CHK_NULL(params);
-
-        typename THcpCmds::HCP_VP9_SEGMENT_STATE_CMD  cmd;
-        void*  pSegData = nullptr;
-    
-        cmd.DW1.SegmentId = params->ucCurrentSegmentId;
-    
-        if (!this->m_decodeInUse)
-        {
-            CODEC_VP9_ENCODE_SEG_PARAMS             vp9SegData;
-    
-            vp9SegData = params->pVp9EncodeSegmentParams->SegData[params->ucCurrentSegmentId];
-    
-            if (params->pbSegStateBufferPtr)   // Use the seg data from this buffer (output of BRC)
-            {
-                pSegData = params->pbSegStateBufferPtr;
-            }
-            else    // Prepare the seg data
-            {
-                cmd.DW2.SegmentSkipped          = vp9SegData.SegmentFlags.fields.SegmentSkipped;
-                cmd.DW2.SegmentReference        = vp9SegData.SegmentFlags.fields.SegmentReference;
-                cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
-    
-                pSegData = &cmd;
-            }
-        }
-        else
-        {
-            CODEC_VP9_SEG_PARAMS            vp9SegData;
-            vp9SegData = params->pVp9SegmentParams->SegData[params->ucCurrentSegmentId];
-    
-            cmd.DW2.SegmentSkipped          = vp9SegData.SegmentFlags.fields.SegmentReferenceSkipped;
-            cmd.DW2.SegmentReference        = vp9SegData.SegmentFlags.fields.SegmentReference;
-            cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
-    
-            cmd.DW3.Filterlevelref0Mode0    = vp9SegData.FilterLevel[0][0];
-            cmd.DW3.Filterlevelref0Mode1    = vp9SegData.FilterLevel[0][1];
-            cmd.DW3.Filterlevelref1Mode0    = vp9SegData.FilterLevel[1][0];
-            cmd.DW3.Filterlevelref1Mode1    = vp9SegData.FilterLevel[1][1];
-    
-            cmd.DW4.Filterlevelref2Mode0    = vp9SegData.FilterLevel[2][0];
-            cmd.DW4.Filterlevelref2Mode1    = vp9SegData.FilterLevel[2][1];
-            cmd.DW4.Filterlevelref3Mode0    = vp9SegData.FilterLevel[3][0];
-            cmd.DW4.Filterlevelref3Mode1    = vp9SegData.FilterLevel[3][1];
-    
-            cmd.DW5.LumaDcQuantScaleDecodeModeOnly  = vp9SegData.LumaDCQuantScale;
-            cmd.DW5.LumaAcQuantScaleDecodeModeOnly  = vp9SegData.LumaACQuantScale;
-    
-            cmd.DW6.ChromaDcQuantScaleDecodeModeOnly = vp9SegData.ChromaDCQuantScale;
-            cmd.DW6.ChromaAcQuantScaleDecodeModeOnly = vp9SegData.ChromaACQuantScale;
-    
-            pSegData = &cmd;
-        }
-    
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, pSegData, cmd.byteSize));
-    
-        return eStatus;
-    }
 
     MOS_STATUS AddHcpHevcPicBrcBuffer(
-        PMOS_RESOURCE                   presHcpImgStates,
-        MHW_VDBOX_HEVC_PIC_STATE        HevcPicState)
+        PMOS_RESOURCE                   hcpImgStates,
+        PMHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
         MHW_FUNCTION_ENTER;
-    
-        MHW_MI_CHK_NULL(presHcpImgStates);
+
+        MHW_MI_CHK_NULL(hcpImgStates);
 
         MOS_COMMAND_BUFFER constructedCmdBuf;
         typename THcpCmds::HCP_PIC_STATE_CMD  cmd;
         uint32_t* insertion = nullptr;
         MOS_LOCK_PARAMS lockFlags;
-        this->m_brcNumPakPasses = HevcPicState.brcNumPakPasses;
-    
+        this->m_brcNumPakPasses = hevcPicState->brcNumPakPasses;
+
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
-        uint8_t *data = (uint8_t*)this->m_osInterface->pfnLockResource(this->m_osInterface, presHcpImgStates, &lockFlags);
+        uint8_t *data = (uint8_t*)this->m_osInterface->pfnLockResource(this->m_osInterface, hcpImgStates, &lockFlags);
         MHW_MI_CHK_NULL(data);
-    
+
         constructedCmdBuf.pCmdBase      = (uint32_t *)data;
         constructedCmdBuf.pCmdPtr       = (uint32_t *)data;
         constructedCmdBuf.iOffset       = 0;
         constructedCmdBuf.iRemaining    = BRC_IMG_STATE_SIZE_PER_PASS * (this->m_brcNumPakPasses);
-    
-        MHW_MI_CHK_STATUS(this->AddHcpPicStateCmd(&constructedCmdBuf, &HevcPicState));
-    
+
+        MHW_MI_CHK_STATUS(this->AddHcpPicStateCmd(&constructedCmdBuf, hevcPicState));
+
         cmd = *(typename THcpCmds::HCP_PIC_STATE_CMD *)data;
-    
+
         for (uint32_t i = 0; i < this->m_brcNumPakPasses; i++)
         {
             if (i == 0)
@@ -1769,58 +1777,57 @@ protected:
             {
                 cmd.DW6.Nonfirstpassflag = true;
             }
-    
+
             cmd.DW6.FrameszoverstatusenFramebitratemaxreportmask  = true;
             cmd.DW6.FrameszunderstatusenFramebitrateminreportmask = true;
             cmd.DW6.LcumaxbitstatusenLcumaxsizereportmask         = false; // BRC update kernel does not consider if there is any LCU whose size is too big
-            cmd.DW6.Lcustatisticoutputenableflag                  = false;
-    
+
             *(typename THcpCmds::HCP_PIC_STATE_CMD *)data = cmd;
-    
+
             /* add batch buffer end insertion flag */
             insertion = (uint32_t*)(data + THcpCmds::HCP_PIC_STATE_CMD::byteSize);
             *insertion = 0x05000000;
-    
+
             data += BRC_IMG_STATE_SIZE_PER_PASS;
         }
-    
-        this->m_osInterface->pfnUnlockResource(this->m_osInterface, presHcpImgStates);
-    
+
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnUnlockResource(this->m_osInterface, hcpImgStates));
+
         return eStatus;
     }
 
     MOS_STATUS GetOsResLaceOrAceOrRgbHistogramBufferSize(
-        uint32_t                        dwWidth,
-        uint32_t                        dwHeight,
-        uint32_t                       *pSize)
+        uint32_t                        width,
+        uint32_t                        height,
+        uint32_t                       *size)
     {
         MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
 
-        *pSize = this->m_veboxRgbHistogramSize;
+        *size = this->m_veboxRgbHistogramSize;
 
-        uint32_t dwSizeLace = MOS_ROUNDUP_DIVIDE(dwHeight, 64) *
-            MOS_ROUNDUP_DIVIDE(dwWidth, 64)  *
+        uint32_t sizeLace = MOS_ROUNDUP_DIVIDE(height, 64) *
+            MOS_ROUNDUP_DIVIDE(width, 64)  *
             this->m_veboxLaceHistogram256BinPerBlock;
 
-        uint32_t dwSizeNoLace = m_veboxAceHistogramSizePerFramePerSlice *
+        uint32_t sizeNoLace = m_veboxAceHistogramSizePerFramePerSlice *
             this->m_veboxNumFramePreviousCurrent                   *
             this->m_veboxMaxSlices;
 
-        *pSize += MOS_MAX(dwSizeLace, dwSizeNoLace);
+        *size += MOS_MAX(sizeLace, sizeNoLace);
 
         return eStatus;
     }
 
     MOS_STATUS GetOsResStatisticsOutputBufferSize(
-        uint32_t                        dwWidth,
-        uint32_t                        dwHeight,
-        uint32_t                       *pSize)
+        uint32_t                        width,
+        uint32_t                        height,
+        uint32_t                       *size)
     {
         MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
 
-        dwWidth  = MOS_ALIGN_CEIL(dwWidth, 64);
-        dwHeight = MOS_ROUNDUP_DIVIDE(dwHeight, 4) + MOS_ROUNDUP_DIVIDE(this->m_veboxStatisticsSize * sizeof(uint32_t), dwWidth);
-        *pSize   = dwWidth * dwHeight;
+        width  = MOS_ALIGN_CEIL(width, 64);
+        height = MOS_ROUNDUP_DIVIDE(height, 4) + MOS_ROUNDUP_DIVIDE(this->m_veboxStatisticsSize * sizeof(uint32_t), width);
+        *size   = width * height;
 
         return eStatus;
     }
@@ -1829,11 +1836,6 @@ public:
     inline uint32_t GetHcpHevcVp9RdoqStateCommandSize()
     {
         return THcpCmds::HEVC_VP9_RDOQ_STATE_CMD::byteSize;
-    }
-
-    inline uint32_t GetHcpVp9SegmentStateCommandSize()
-    {
-        return THcpCmds::HCP_VP9_SEGMENT_STATE_CMD::byteSize;
     }
 };
 

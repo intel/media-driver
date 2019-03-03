@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_utilities.c  
-//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface.  
+//! \file      mhw_utilities.c 
+//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface. 
 //!
 #include "mhw_utilities.h"
 #include "mhw_render.h"
@@ -56,6 +56,7 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     uint8_t                 *pbCmdBufBase = nullptr;
 
     MHW_CHK_NULL(pOsInterface);
+    MHW_CHK_NULL(pParams);
     MHW_CHK_NULL(pParams->presResource);
     MHW_CHK_NULL(pCmdBuffer);
     MHW_CHK_NULL(pCmdBuffer->pCmdBase);
@@ -76,7 +77,6 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
         pOsInterface->pfnGetResourceGfxAddress(pOsInterface, pParams->presResource) + pParams->dwOffset;
     dwGfxAddrBottom = (uint32_t)(ui64GfxAddress & 0x00000000FFFFFFFF);
     dwGfxAddrTop = (uint32_t)((ui64GfxAddress & 0xFFFFFFFF00000000) >> 32);
-
 
     *pParams->pdwCmd = (*pParams->pdwCmd & ~dwMask) | (dwGfxAddrBottom & dwMask);
     // this is next DW for top part of the address
@@ -173,7 +173,9 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     MHW_CHK_NULL(pOsInterface);
+    MHW_CHK_NULL(pParams);
     MHW_CHK_NULL(pParams->presResource);
+    MHW_CHK_NULL(pCmdBuffer);
 
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
@@ -195,20 +197,32 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     }
     else
     {
-        MHW_CHK_NULL(pCmdBuffer);
         // Calculate the patch offset to command buffer
         uiPatchOffset = pCmdBuffer->iOffset + (pParams->dwLocationInCmd * sizeof(uint32_t));
     }
 
     MOS_ZeroMemory(&PatchEntryParams, sizeof(PatchEntryParams));
     PatchEntryParams.uiAllocationIndex = iAllocationIndex;
-    PatchEntryParams.uiResourceOffset = dwOffset;
+    if(pParams->patchType == MOS_PATCH_TYPE_UV_Y_OFFSET ||
+       pParams->patchType == MOS_PATCH_TYPE_PITCH ||
+       pParams->patchType == MOS_PATCH_TYPE_V_Y_OFFSET)
+    {
+        PatchEntryParams.uiResourceOffset = *pParams->pdwCmd;
+    }
+    else
+    {
+        PatchEntryParams.uiResourceOffset = dwOffset;
+    }
     PatchEntryParams.uiPatchOffset    = uiPatchOffset;
     PatchEntryParams.bWrite           = pParams->bIsWritable;
     PatchEntryParams.HwCommandType    = pParams->HwCommandType;
     PatchEntryParams.forceDwordOffset = pParams->dwSharedMocsOffset;
     PatchEntryParams.cmdBufBase       = (uint8_t*)pCmdBuffer->pCmdBase;
     PatchEntryParams.presResource     = pParams->presResource;
+    PatchEntryParams.patchType        = pParams->patchType;
+    PatchEntryParams.shiftAmount      = pParams->shiftAmount;
+    PatchEntryParams.shiftDirection   = pParams->shiftDirection;
+    PatchEntryParams.offsetInSSH      = pParams->dwOffsetInSSH;
 
     // Add patch entry to patch the address field for this command
     MHW_CHK_STATUS(pOsInterface->pfnSetPatchEntry(
@@ -233,6 +247,16 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
         PatchEntryParams.uiPatchOffset    = uiPatchOffset;
         PatchEntryParams.bUpperBoundPatch = true;
         PatchEntryParams.presResource     = pParams->presResource;
+        PatchEntryParams.patchType        = pParams->patchType;
+        PatchEntryParams.shiftAmount      = pParams->shiftAmount;
+        PatchEntryParams.shiftDirection   = pParams->shiftDirection;
+        PatchEntryParams.offsetInSSH      = pParams->dwOffsetInSSH;
+
+        if(dwLsbNum)
+        {
+            PatchEntryParams.shiftAmount = dwLsbNum;
+            PatchEntryParams.shiftDirection = 0;
+        }
 
         // Add patch entry to patch the address field for this command
         MHW_CHK_STATUS(pOsInterface->pfnSetPatchEntry(
@@ -262,10 +286,11 @@ MOS_STATUS Mhw_SurfaceFormatToType(
     uint32_t                       *pdwSurfaceType)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
-    
+
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(psSurface);
+    MHW_CHK_NULL(pdwSurfaceType);
 
     switch ( dwForceSurfaceFormat )
     {
@@ -275,13 +300,13 @@ MOS_STATUS Mhw_SurfaceFormatToType(
         case MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM:
             *pdwSurfaceType = GFX3DSTATE_SURFACETYPE_BUFFER;
             break;
-        
+
         // 2D Surface for Codec: GFX3DSTATE_SURFACEFORMAT_YCRCB_NORMAL, GFX3DSTATE_SURFACEFORMAT_YCRCB_SWAPY
         // GFX3DSTATE_SURFACEFORMAT_R32_UNORM, GFX3DSTATE_SURFACEFORMAT_R16_UNORM, GFX3DSTATE_SURFACEFORMAT_R8_UNORM
 
         // 2D & 3D Surface
-        default:    
-            (psSurface->dwDepth > 1) ? 
+        default:
+            (psSurface->dwDepth > 1) ?
                 *pdwSurfaceType = GFX3DSTATE_SURFACETYPE_3D:
                 *pdwSurfaceType = GFX3DSTATE_SURFACETYPE_2D;
     }
@@ -327,6 +352,7 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
 
     MHW_CHK_NULL(pParams->pvMiInterface);
     pMiInterface = (MhwMiInterface *)pParams->pvMiInterface;
+    MHW_CHK_NULL(pMiInterface);
 
     pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
     MHW_CHK_NULL(pSkuTable);
@@ -334,6 +360,29 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
     MHW_CHK_NULL(pWaTable);
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
+
+    if ( pOsInterface->Component != COMPONENT_CM )
+    {
+        if (    GpuContext == MOS_GPU_CONTEXT_RENDER        ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER2       ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER3       ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER4       ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO         ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO2        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO3        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO4        ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO  ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO2 ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO3 ||
+                GpuContext == MOS_GPU_CONTEXT_VEBOX         ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO5        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO6        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO7        )
+        {
+            MHW_CHK_STATUS(pMiInterface->AddWatchdogTimerStartCmd(pCmdBuffer));
+        }
+    }
+
     bRcsEngineUsed = MOS_RCS_ENGINE_USED(GpuContext);
 
     if (bRcsEngineUsed)
@@ -523,7 +572,8 @@ MOS_STATUS Mhw_CalcPolyphaseTablesY(
         dwPlane != MHW_U_PLANE    &&
         dwPlane != MHW_V_PLANE)   ||
         ((IS_RGB32_FORMAT(srcFmt) ||
-        srcFmt == Format_Y410)    &&
+        srcFmt == Format_Y410     ||
+        srcFmt == Format_AYUV)    &&
         dwPlane == MHW_Y_PLANE))
     {
         if (fScaleFactor < 1.0F)
@@ -840,7 +890,7 @@ MOS_STATUS Mhw_AllocateBb(
     AllocParams.Format   = Format_Buffer;
     AllocParams.dwBytes  = allocSize;
     AllocParams.pBufName = "BatchBuffer";
-    
+
     MHW_CHK_STATUS(pOsInterface->pfnAllocateResource(
         pOsInterface,
         &AllocParams,

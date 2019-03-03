@@ -83,21 +83,13 @@ public:
     //!
     void InsertPerfStatistic(ApiCallRecord *records);
 
-    //!
-    //! \brief    Check if this profiler on or not
-    //! \details  Check if this profiler on or not. 
-    //!           So far, it is turned on at Debug and Release-Internal configuration.
-    //! \retval   true if profiler is on; false, otherwise
-    //!
-    bool IsProfilerOn();
-
 private:
 
     //!
     //! \brief    Check the profiler level
     //! \details  So far, this function turns the profiler on.
     //!
-    void GetProfilerLevel(); 
+    void GetProfilerLevel();
 
     //!
     //! \brief    Dump API call records into file
@@ -121,11 +113,16 @@ private:
     FILE           *m_perfStatisticFile;
     uint32_t        m_perfStatisticCount;
 
-    std::vector<ApiCallRecord*>      m_apiCallRecords;  // array to store api call records 
+    std::vector<ApiCallRecord*>      m_apiCallRecords;  // array to store api call records
     std::vector<ApiPerfStatistic*>   m_perfStatisticRecords; // array to store perf statistic information
 
     PerfLogLevel m_profilerLevel; // profiler level
     bool m_profilerOn;   // profiler on or off
+
+private:
+    CmPerfStatistics(const CmPerfStatistics &other);
+    CmPerfStatistics &operator=(const CmPerfStatistics &other);
+
 };
 
 #endif

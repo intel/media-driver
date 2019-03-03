@@ -20,25 +20,24 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_kernel_data.h  
-//! \brief     Contains Class Cm Logger definitions  
+//! \file      cm_log.h 
+//! \brief     Contains Class CmLogger declarations. 
 //!
 
-#pragma once
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_
 
 #include <fstream>
 #include <ostream>
 #include <string>
 #include <sstream>
-#include "cm_common.h"
-#include "cm_csync.h"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define CM_LOG_ON                   1
 #endif
 
-#if !(CM_LOG_ON) 
-#define INSERT_API_CALL_LOG() 
+#if !(CM_LOG_ON)
+#define INSERT_API_CALL_LOG()
 #define TASK_LOG(_pTask)
 #define DEVICE_LOG(_pDev)
 
@@ -54,7 +53,6 @@ typedef enum _CM_LOG_LEVEL{
     CM_LOG_LEVEL_INFO    = 4
 }CM_LOG_LEVEL;
 
-
 #define _CM_LOG(priority, msg) { \
     std::ostringstream __debug_stream__; \
     __debug_stream__ << msg; \
@@ -67,34 +65,33 @@ typedef enum _CM_LOG_LEVEL{
 #define CM_DEBUG(msg)     _CM_LOG(CM_LOG_LEVEL_DEBUG, msg)
 #define CM_INFO(msg)      _CM_LOG(CM_LOG_LEVEL_INFO, msg)
 
-
 #define INSERT_API_CALL_LOG() CmLogTimer _LogTimer(__FUNCTION__)
 #define TASK_LOG(_pTask)      CM_DEBUG(_pTask->Log());
 #define DEVICE_LOG(_pDev)     CM_DEBUG(_pDev->Log());
- 
+
 class CmLogger
 {
 
     /**
      * \brief Pointer to the unique Logger (i.e., Singleton)
      */
-    static CmLogger* GlobalCmLogger;
+    static CmLogger* m_globalCmLogger;
 
     /**
      * \brief Initial part of the name of the file used for Logging.
      * Date and time are automatically appended.
      */
-    std::string mLogFile;
+    std::string m_logFile;
 
     /**
      * \brief Stream used when logging on a file or screen
      */
-    std::ofstream mStreamOut;
-    
+    std::ofstream m_streamOut;
+
     /**
      * \brief Verbosity threshold
      */
-    unsigned int  mVerbosityLevel;
+    unsigned int  m_verbosityLevel;
 
     CmLogger();
     ~CmLogger();
@@ -127,7 +124,6 @@ public:
 
 };
 
-
 class  CmLogTimer
 {
 
@@ -136,12 +132,12 @@ public:
     ~CmLogTimer();
 
     void Stop();
-    
-private:
-    std::string mString;
-    CmTimer     mTimer;
-};
 
+private:
+    std::string m_string;
+    CmTimer     m_timer;
+};
 
 #endif
 
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_

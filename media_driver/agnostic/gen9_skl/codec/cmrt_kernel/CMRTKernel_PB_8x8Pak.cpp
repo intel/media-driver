@@ -30,7 +30,8 @@
 CMRTKernelPB8x8Pak::CMRTKernelPB8x8Pak()
 {
 
-    m_isaName         = HEVC_PB_ISA_FILE_NAME_G9;
+    m_isaName         = HEVCENCFEI_PB_GEN9;
+    m_isaSize         = HEVCENCFEI_PB_GEN9_SIZE;
     m_kernelName      = HEVCENCKERNELNAME_PB_PAK;
 
     m_cmSurface2DCount = 7;
@@ -107,7 +108,7 @@ CM_RETURN_CODE CMRTKernelPB8x8Pak::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
     height = (curbe[0] >> 16) & 0x0FFFF;
     width_padded = ((width + 16) >> 5) << 5;
     height_padded = ((height + 16) >> 5) << 5;
-    
+
     threadSpaceWidth = width_padded >> 5;
     threadSpaceHeight = height_padded >> 5;
 
@@ -120,7 +121,7 @@ CM_RETURN_CODE CMRTKernelPB8x8Pak::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
 
     CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(threadSpaceWidth * threadSpaceHeight));
     //create Thread Space
-    result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
+    result = CreateThreadSpace(threadSpaceWidth, threadSpaceHeight);
     if (result != CM_SUCCESS)
     {
         printf("CM Create ThreadSpace error : %d", result);

@@ -73,11 +73,7 @@ public:
 
     MOS_STATUS AddGpgpuCsrBaseAddrCmd(
         PMOS_COMMAND_BUFFER             cmdBuffer,
-        PMOS_RESOURCE                   csrResource)
-    {
-        MHW_ASSERTMESSAGE("GPGPU_CSR_BASE_ADDRESS not supported!");
-        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-    }
+        PMOS_RESOURCE                   csrResource);
 
     MOS_STATUS EnableL3Caching(
         PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS    cacheSettings);
@@ -87,6 +83,5 @@ public:
 
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() { return &m_l3CacheConfig; }
 };
-
 
 #endif

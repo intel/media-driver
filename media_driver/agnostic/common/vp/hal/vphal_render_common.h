@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      vphal_render_common.h  
-//! \brief         Unified VP HAL shared rendering definitions  
+//! \file      vphal_render_common.h 
+//! \brief         Unified VP HAL shared rendering definitions 
 //!
 //!
 //! \file     vphal_render_common.h
@@ -440,7 +440,7 @@ struct MEDIA_WALKER_KA2_STATIC_DATA
             uint32_t       LumakeyLowThreshold         : 8;
             uint32_t       LumakeyHighThreshold        : 8;
             uint32_t       NLASEnable                  : 8;
-            uint32_t       Reserved                    : 8;            
+            uint32_t       Reserved                    : 8;
         };
 
         uint32_t       Value;
@@ -452,10 +452,10 @@ struct MEDIA_WALKER_KA2_STATIC_DATA
         // Save
         struct
         {
-            BYTE        DestinationPackedYOffset;
-            BYTE        DestinationPackedUOffset;
-            BYTE        DestinationPackedVOffset;
-            BYTE        DestinationRGBFormat;
+            uint8_t     DestinationPackedYOffset;
+            uint8_t     DestinationPackedUOffset;
+            uint8_t     DestinationPackedVOffset;
+            uint8_t     DestinationRGBFormat;
         };
 
         uint32_t       Value;
@@ -569,10 +569,10 @@ struct MEDIA_WALKER_KA2_STATIC_DATA
         // Dataport Load
         struct
         {
-            BYTE        SourcePackedYOffset;
-            BYTE        SourcePackedUOffset;
-            BYTE        SourcePackedVOffset;
-            BYTE        Reserved;
+            uint8_t        SourcePackedYOffset;
+            uint8_t        SourcePackedUOffset;
+            uint8_t        SourcePackedVOffset;
+            uint8_t        Reserved;
         };
 
         uint32_t       Value;
@@ -1263,7 +1263,6 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
             uint32_t       StatisticsSurfaceHeight    : 16;  // Statistics surface height divided by 4
         };
 
-
         uint32_t       Value;
     } DW06;
 
@@ -1317,11 +1316,11 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
         };
 
         // Bit field(s) for gen8+ only
-        struct  
+        struct
         {
             uint32_t                                   : 8;    // Dual output
             uint32_t                                   : 8;    // Reserved
-            uint32_t       ChannelSwap                 : 1;    
+            uint32_t       ChannelSwap                 : 1;
             uint32_t       AlphaChannelCalculation     : 1;
             uint32_t                                   : 9;
             uint32_t       IEFByPassEnable             : 1;
@@ -1407,7 +1406,7 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
 
         struct
         {
-            float       ChromasitingVOffset;                // Param for 3D Sampler use case
+            float       ChromasitingVOffset;                // Param only for 3D Sampler use case
         };
 
         uint32_t       Value;
@@ -1446,7 +1445,7 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
             uint32_t       LumakeyLowThreshold         : 8;
             uint32_t       LumakeyHighThreshold        : 8;
             uint32_t       NLASEnable                  : 8;
-            uint32_t       Reserved                    : 8;            
+            uint32_t       Reserved                    : 8;
         };
 
         uint32_t       Value;
@@ -1458,10 +1457,10 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
         // Save
         struct
         {
-            BYTE        DestinationPackedYOffset;
-            BYTE        DestinationPackedUOffset;
-            BYTE        DestinationPackedVOffset;
-            BYTE        DestinationRGBFormat;
+            uint8_t        DestinationPackedYOffset;
+            uint8_t        DestinationPackedUOffset;
+            uint8_t        DestinationPackedVOffset;
+            uint8_t        DestinationRGBFormat;
         };
 
         uint32_t       Value;
@@ -1575,10 +1574,10 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
         // Dataport Load
         struct
         {
-            BYTE        SourcePackedYOffset;
-            BYTE        SourcePackedUOffset;
-            BYTE        SourcePackedVOffset;
-            BYTE        Reserved;
+            uint8_t     SourcePackedYOffset;
+            uint8_t     SourcePackedUOffset;
+            uint8_t     SourcePackedVOffset;
+            uint8_t     Reserved;
         };
 
         uint32_t       Value;
@@ -1881,7 +1880,7 @@ struct MEDIA_OBJECT_KA2_INLINE_DATA
         };
 
         // Secure Block Copy
-        struct  
+        struct
         {
             uint32_t       BlockHeight                     : 16;
             uint32_t       BufferOffset                    : 16;
@@ -2102,7 +2101,7 @@ struct MEDIA_OBJECT_KA2_INLINE_DATA
     } DW15;
 };
 
-extern CONST MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA;
+extern const MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA;
 
 //!
 //! \brief Vebox mode of operation
@@ -2122,7 +2121,7 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
 {
     bool                    bEnable;                                            //!< false, legacy serial execution. true, capable of parallel vebox/render execution
     VEBOX_EXECUTION_MODE    Mode;                                               //!< Current mode of operation.
-    bool                    bDIOutputPair01;                                    //!< Used to alternate between ADI output pairs. 
+    bool                    bDIOutputPair01;                                    //!< Used to alternate between ADI output pairs.
     bool                    bSpeculativeCopy;                                   //!< true, update VEBOX state for frame N+1 using frame N state
     bool                    bFrcActive;                                         //!< When FRC is active, stay in VEBOX_EXEC_MODE_0
     bool                    bPostponedFMDCalc;                                  //!< When in mode2, need to calc fmd variance after composition
@@ -2173,7 +2172,7 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
 #define VPHAL_BB_ALIGN_SIZE         32768
 
 //!
-//! \brief      SLM: shared local memory. DC: data cache. 
+//! \brief      SLM: sharedlocalmemory. DC: data cache. 
 //!             I/S: instruction/state cache 
 //!             C: constant cache. T: texture cache
 //!             Default for GT1/GT2
@@ -2184,7 +2183,7 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
 #define VPHAL_L3_CACHE_CONFIG_SQCREG1_VALUE_G75     0x00610000
 #define VPHAL_L3_CACHE_CONFIG_CNTLREG2_VALUE_G75    0x00880040
 #define VPHAL_L3_CACHE_CONFIG_CNTLREG3_VALUE_G75    0x00000000
-#define VPHAL_L3_CACHE_CONFIG_L3LRA1REG_VALUE_G75   0x27FD007F 
+#define VPHAL_L3_CACHE_CONFIG_L3LRA1REG_VALUE_G75   0x27FD007F
 
 //!
 //! \brief Initialize MHW Kernel Param struct for loading Kernel
@@ -2233,7 +2232,7 @@ typedef struct _VPHAL_BB_COMP_ARGS
 //!
 //! \brief Generic BB Args
 //!
-typedef struct 
+typedef struct
 {
     int32_t     iMediaID;                                                           //!< Media ID
     uint32_t    uiKuid;                                                             //!< Unique Kernel ID
@@ -2277,7 +2276,7 @@ typedef enum _VPHAL_BB_TYPE
 //!
 typedef struct _VPHAL_BB_CM_ARGS
 {
-    uint64_t  uiKernelIds[CM_MAX_KERNELS_PER_TASK];  
+    uint64_t  uiKernelIds[CM_MAX_KERNELS_PER_TASK];
     uint64_t  uiRefCount;
     bool      bLatest;
 } VPHAL_BB_CM_ARGS, *PVPHAL_BB_CM_ARGS;
@@ -2297,7 +2296,7 @@ typedef struct _VPHAL_BATCH_BUFFER_PARAMS
         VPHAL_ADVPROC_BB_ARGS   AdvProcBB;
         VPHAL_BB_GENERIC_ARGS   BbGenericArgs;
         VPHAL_BB_CM_ARGS        BbCmArgs;
-    } BbArgs;  
+    } BbArgs;
 } VPHAL_BATCH_BUFFER_PARAMS, *PVPHAL_BATCH_BUFFER_PARAMS;
 
 typedef struct _VPHAL_BATCH_BUFFER
@@ -2332,7 +2331,7 @@ typedef struct _VPHAL_BATCH_BUFFER_TABLE
 //!
 //! \brief Performance data value
 //!
-typedef struct 
+typedef struct
 {
     uint32_t    uiVal;
     bool        bEnabled;
@@ -2434,7 +2433,7 @@ MOS_STATUS VpHal_RndrCommonGetBackVpSurfaceParams(
 
 //!
 //! \brief    Set Surface for HW Access
-//! \details  Common Function for setting up surface state, if render would  
+//! \details  Common Function for setting up surface state, if render would 
 //!           use CP HM, need use VpHal_CommonSetSurfaceForHwAccess instead
 //! \param    [in] pRenderHal
 //!           Pointer to RenderHal Interface Structure
@@ -2461,7 +2460,7 @@ MOS_STATUS VpHal_RndrCommonSetSurfaceForHwAccess(
 
 //!
 //! \brief    Set Buffer Surface for HW Access
-//! \details  Common Function for setting up buffer surface state, if render would  
+//! \details  Common Function for setting up buffer surface state, if render would 
 //!           use CP HM, need use VpHal_CommonSetBufferSurfaceForHwAccess instead
 //! \param    [in] pRenderHal
 //!           Pointer to RenderHal Interface Structure
@@ -2516,7 +2515,6 @@ MOS_STATUS VpHal_CommonSetSurfaceForHwAccess(
     int32_t                             iBTEntry,
     bool                                bWrite);
 
-
 //!
 //! \brief    Set Buffer Surface for HW Access for CP HM
 //! \details  Common Function for setting up buffer surface state, need to use this function
@@ -2561,6 +2559,8 @@ MOS_STATUS VpHal_CommonSetBufferSurfaceForHwAccess(
 //!             Pointer to GPGPU walker parameters
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSubmission
+//!             whether it is the last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrCommonSubmitCommands(
@@ -2569,7 +2569,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     bool                                bNullRendering,
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
-    VpKernelID                          KernelID);
+    VpKernelID                          KernelID,
+    bool                                bLastSubmission);
 
 //!
 //! \brief      Submit commands for rendering
@@ -2588,6 +2589,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSubmission
+//!             whether it is the last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrSubmitCommands(
@@ -2596,8 +2599,9 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     bool                                bNullRendering,
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
-    PSTATUS_TABLE_UPDATE_PARAMS		    pStatusTableUpdateParams,
-    VpKernelID                          KernelID);
+    PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
+    VpKernelID                          KernelID,
+    bool                                bLastSubmission);
 
 //!
 //! \brief      Is Alignment WA needed
@@ -2614,7 +2618,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 //! \param      [in] GpuContext
 //!             GpuContext to indicate Render/Vebox
 //! \return     bool
-//!             true - Work around is needed; false - Work around is not needed
+//!             true - Solution is needed; false - Solution is not needed
 //!
 bool VpHal_RndrCommonIsAlignmentWANeeded(
     PVPHAL_SURFACE             pSurface,

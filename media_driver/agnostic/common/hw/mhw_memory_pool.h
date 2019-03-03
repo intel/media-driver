@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_memory_pool.h  
-//! \brief         This modules implements simple memory pool infrastructure for MHW  
+//! \file      mhw_memory_pool.h 
+//! \brief         This modules implements simple memory pool infrastructure for MHW 
 //!
 #ifndef __MHW_MEMORY_POOL_H__
 #define __MHW_MEMORY_POOL_H__

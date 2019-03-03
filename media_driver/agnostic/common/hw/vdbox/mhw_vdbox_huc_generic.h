@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,14 +39,17 @@ class MhwVdboxHucInterfaceGeneric : public MhwVdboxHucInterface
 {
 protected:
     #define PATCH_LIST_COMMAND(x)  (x##_NUMBER_OF_ADDRESSES)
-
+    //!
+    //! \enum     CommandsNumberOfAddresses
+    //! \brief    Commands number of addresses
+    //!
     enum CommandsNumberOfAddresses
     {
         MI_STORE_DATA_IMM_CMD_NUMBER_OF_ADDRESSES                  =  1, //  2 DW for  1 address field
         MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES                        =  1, //  2 DW for  1 address field
         MI_CONDITIONAL_BATCH_BUFFER_END_CMD_NUMBER_OF_ADDRESSES    =  1, //  2 DW for  1 address field
         MI_STORE_REGISTER_MEM_CMD_NUMBER_OF_ADDRESSES              =  1, //  2 DW for  1 address field
-    
+
         VD_PIPELINE_FLUSH_CMD_NUMBER_OF_ADDRESSES                  =  0,  //  0 DW for  0 address fields
 
         HUC_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES               =  0, //  0 DW for    address fields
@@ -82,127 +85,85 @@ protected:
         uint32_t                        *patchListSize,
         PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
     {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
         MHW_FUNCTION_ENTER;
 
-        uint32_t            maxSize = 0;
-        uint32_t            patchListMaxSize = 0;
-        uint32_t            standard = CodecHal_GetStandardFromMode(mode);
+        uint32_t maxSize = 0;
+        uint32_t patchListMaxSize = 0;
+        uint32_t standard = CodecHal_GetStandardFromMode(mode);
+        uint32_t numSlices = 1;
+        uint32_t numStoreDataImm = 1;
+        uint32_t numStoreReg = 1;
 
-        if (standard == CODECHAL_HEVC)
+        if (mode == CODECHAL_DECODE_MODE_HEVCVLD && params->bShortFormat)
         {
-            if (mode != CODECHAL_ENCODE_MODE_HEVC && params->bShortFormat)
-            {
-                maxSize +=
-                    THucCmds::HUC_PIPE_MODE_SELECT_CMD::byteSize +
-                    THucCmds::HUC_IMEM_STATE_CMD::byteSize +
-                    THucCmds::HUC_DMEM_STATE_CMD::byteSize +
-                    THucCmds::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize +
-                    THucCmds::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
-                    CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * THucCmds::HUC_STREAM_OBJECT_CMD::byteSize +
-                    CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * THucCmds::HUC_START_CMD::byteSize +
-                    2 * TMiCmds::MI_STORE_DATA_IMM_CMD::byteSize +
-                    2 * TMiCmds::MI_STORE_REGISTER_MEM_CMD::byteSize +
-                    2 * TMiCmds::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize;
+            numSlices       = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6;
+            numStoreDataImm = 2;
+            numStoreReg     = 2;
 
-                patchListMaxSize +=
-                    PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
-                    PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_DMEM_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                    CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
-                    CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * PATCH_LIST_COMMAND(HUC_START_CMD) +
-                    2 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +
-                    2 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) +
-                    2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
-            }
+            maxSize +=
+                2 * TMiCmds::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize;
+
+            patchListMaxSize +=
+                2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
         }
         else if (standard == CODECHAL_CENC)
         {
-            // size of Huc commands
-            maxSize =
+            numStoreDataImm = 3;
+            numStoreReg     = 3;
+
+            maxSize +=
                 TMiCmds::MI_FLUSH_DW_CMD::byteSize * 2 +
-                THucCmds::HUC_PIPE_MODE_SELECT_CMD::byteSize +
-                THucCmds::HUC_IMEM_STATE_CMD::byteSize +
-                THucCmds::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize +
-                THucCmds::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
-                THucCmds::HUC_STREAM_OBJECT_CMD::byteSize +
-                THucCmds::HUC_START_CMD::byteSize +
-                3 * TMiCmds::MI_STORE_REGISTER_MEM_CMD::byteSize +
-                3 * TMiCmds::MI_STORE_DATA_IMM_CMD::byteSize +
                 TMiCmds::MI_BATCH_BUFFER_END_CMD::byteSize;
 
-            patchListMaxSize =
-                PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) * 2 +
-                PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
-                PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
-                PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
-                PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
-                PATCH_LIST_COMMAND(HUC_START_CMD) +
-                3 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) +
-                3 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD);
+            patchListMaxSize +=
+                PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) * 2;
+
         }
-        else if (standard == CODECHAL_VP9)
+        else if (mode == CODECHAL_ENCODE_MODE_VP9)
         {
-            if (mode == CODECHAL_ENCODE_MODE_VP9)
-            {
-                maxSize +=
-                    THucCmds::HUC_PIPE_MODE_SELECT_CMD::byteSize +
-                    THucCmds::HUC_IMEM_STATE_CMD::byteSize +
-                    THucCmds::HUC_DMEM_STATE_CMD::byteSize +
-                    THucCmds::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize +
-                    TMiCmds::MI_STORE_DATA_IMM_CMD::byteSize * 3 +   // for huc status 2 register and semaphore signal and reset
-                    TMiCmds::MI_STORE_REGISTER_MEM_CMD::byteSize +
-                    THucCmds::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
-                    THucCmds::HUC_STREAM_OBJECT_CMD::byteSize +
-                    THucCmds::HUC_START_CMD::byteSize +
-                    TMiCmds::MI_BATCH_BUFFER_END_CMD::byteSize +
-                    TMiCmds::MI_FLUSH_DW_CMD::byteSize;
+            // for huc status 2 register and semaphore signal and reset
+            numStoreDataImm = 3;
 
-                patchListMaxSize +=
-                    PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
-                    PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_DMEM_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) * 2 +
-                    PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) +
-                    PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
-                    PATCH_LIST_COMMAND(HUC_START_CMD) +
-                    PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
+            maxSize +=
+                TMiCmds::MI_BATCH_BUFFER_END_CMD::byteSize +
+                TMiCmds::MI_FLUSH_DW_CMD::byteSize;
 
-                if (params->bHucDummyStream)
-                {
-                    maxSize +=
-                        THucCmds::HUC_IMEM_STATE_CMD::byteSize +
-                        THucCmds::HUC_DMEM_STATE_CMD::byteSize +
-                        THucCmds::HUC_PIPE_MODE_SELECT_CMD::byteSize +
-                        THucCmds::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize +
-                        THucCmds::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
-                        THucCmds::HUC_STREAM_OBJECT_CMD::byteSize +
-                        THucCmds::HUC_START_CMD::byteSize +
-                        TMiCmds::MI_FLUSH_DW_CMD::byteSize;
-
-                    patchListMaxSize +=
-                        PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
-                        PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
-                        PATCH_LIST_COMMAND(HUC_DMEM_STATE_CMD) +
-                        PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
-                        PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                        PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
-                        PATCH_LIST_COMMAND(HUC_START_CMD) +
-                        PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
-                }
-            }
+            patchListMaxSize +=
+                PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
         }
-        else
+        else if (mode == CODECHAL_ENCODE_MODE_AVC)
         {
-            MHW_ASSERTMESSAGE("Unsupported standard.");
-            eStatus = MOS_STATUS_UNKNOWN;
+            numStoreDataImm = 2;
+            numStoreReg     = 2;
+
+            maxSize +=
+                2 * TMiCmds::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize;
+
+            patchListMaxSize +=
+                2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
         }
+
+        maxSize +=
+            THucCmds::HUC_PIPE_MODE_SELECT_CMD::byteSize +
+            THucCmds::HUC_IMEM_STATE_CMD::byteSize +
+            THucCmds::HUC_DMEM_STATE_CMD::byteSize +
+            THucCmds::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize +
+            THucCmds::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
+            numSlices       * THucCmds::HUC_STREAM_OBJECT_CMD::byteSize +
+            numSlices       * THucCmds::HUC_START_CMD::byteSize +
+            numStoreDataImm * TMiCmds::MI_STORE_DATA_IMM_CMD::byteSize +
+            numStoreReg     * TMiCmds::MI_STORE_REGISTER_MEM_CMD::byteSize;
+
+        patchListMaxSize +=
+            PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
+            PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
+            PATCH_LIST_COMMAND(HUC_DMEM_STATE_CMD) +
+            PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
+            PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
+            numSlices       * PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
+            numSlices       * PATCH_LIST_COMMAND(HUC_START_CMD) +
+            numStoreDataImm * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +
+            numStoreReg     * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD);
 
         if (params->bHucDummyStream)
         {
@@ -227,10 +188,10 @@ protected:
                 PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
         }
 
-        *commandsSize = maxSize;
+        *commandsSize  = maxSize;
         *patchListSize = patchListMaxSize;
 
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS GetHucPrimitiveCommandSize(
@@ -264,7 +225,7 @@ protected:
 
         if (!params->disableProtectionSetting)
         {
-            m_cpInterface->SetProtectionSettingsForHucPipeModeSelect((uint32_t*)&cmd);
+            MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForHucPipeModeSelect((uint32_t*)&cmd));
         }
 
         cmd.DW1.IndirectStreamOutEnable = params->bStreamOutEnabled;
@@ -310,9 +271,9 @@ protected:
         {
             resourceParams.presResource = params->presHucDataSource;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.HucDataSourceBaseAddress[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.HucDataSourceBaseAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = 1;
-            resourceParams.bIsWritable = FALSE;
+            resourceParams.bIsWritable = false;
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 m_osInterface,
@@ -351,12 +312,12 @@ protected:
         {
             if (params->regionParams[i].presRegion)
             {
-                cmd.HucVirtualAddressRegion[i].DW2.MemoryObjectControlState = 
+                cmd.HucVirtualAddressRegion[i].HucSurfaceVirtualaddrregion015.DW0.Value |=
                     m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HUC_VIRTUAL_ADDR_REGION_BUFFER_CODEC].Value;
                 resourceParams.presResource = params->regionParams[i].presRegion;
                 resourceParams.dwOffset = params->regionParams[i].dwOffset;
                 resourceParams.bIsWritable = params->regionParams[i].isWritable;
-                resourceParams.pdwCmd = cmd.HucVirtualAddressRegion[i].HucSurfaceBaseAddressVirtualaddrregion015[0].DW0_1.Value;
+                resourceParams.pdwCmd = cmd.HucVirtualAddressRegion[i].HucSurfaceBaseAddressVirtualaddrregion015.DW0_1.Value;
                 resourceParams.dwLocationInCmd = 1 + (i * 3);
 
                 MHW_MI_CHK_STATUS(AddResourceToCmd(
@@ -391,9 +352,9 @@ protected:
         {
             resourceParams.presResource = params->presDataBuffer;
             resourceParams.dwOffset = params->dwDataOffset;
-            resourceParams.pdwCmd = (cmd.DW1_2.Value);
+            resourceParams.pdwCmd = cmd.HucIndirectStreamInObjectbaseAddress.DW0_1.Value;
             resourceParams.dwLocationInCmd = 1;
-            resourceParams.bIsWritable = FALSE;
+            resourceParams.bIsWritable = false;
             resourceParams.dwSize = params->dwDataSize;
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(
@@ -407,9 +368,9 @@ protected:
             // base address of the stream out buffer
             resourceParams.presResource = params->presStreamOutObjectBuffer;
             resourceParams.dwOffset = params->dwStreamOutObjectOffset;
-            resourceParams.pdwCmd = (cmd.DW6_7.Value);
+            resourceParams.pdwCmd = cmd.HucIndirectStreamOutObjectbaseAddress.DW0_1.Value;
             resourceParams.dwLocationInCmd = 6;
-            resourceParams.bIsWritable = TRUE;
+            resourceParams.bIsWritable = true;
             resourceParams.dwSize = params->dwStreamOutObjectSize;
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(
@@ -466,7 +427,5 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 };
-
-
 
 #endif

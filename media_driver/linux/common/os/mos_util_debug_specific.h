@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_util_debug_specific.h  
-//! \brief      
+//! \file        mos_util_debug_specific.h 
+//! \brief 
 //!
 //!
 
@@ -69,6 +69,9 @@ typedef enum
     MOS_COMPONENT_CP,
     MOS_COMPONENT_DDI,
     MOS_COMPONENT_CM,
+    MOS_COMPONENT_CPLIB,
+    MOS_COMPONENT_SCALABILITY,
+    MOS_COMPONENT_MMC,
     MOS_COMPONENT_COUNT
 } MOS_COMPONENT_ID;
 

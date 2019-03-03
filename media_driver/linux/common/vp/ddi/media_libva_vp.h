@@ -28,7 +28,7 @@
 #define _MEDIA_LIBVA_VP_H_
 
 #include "media_libva_common.h"
-#include "media_libva_cp.h"
+#include "media_libva_cp_interface.h"
 #include <va/va.h>
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>
@@ -36,18 +36,23 @@
 #include "mos_os.h"
 
 // Maximum primary surface number in VP
-#define VP_MAX_PRIMARY_SURFS 1
+#define VP_MAX_PRIMARY_SURFS     1
 
-#define VP_MAX_PIC_WIDTH    16384
-#define VP_MAX_PIC_HEIGHT   16384
-#define VP_MIN_PIC_WIDTH    16
-#define VP_MIN_PIC_HEIGHT   16
+//For Gen8, only support max 16k-32
+#define VP_MAX_PIC_WIDTH_Gen8    16352
+#define VP_MAX_PIC_HEIGHT_Gen8   16352
+//For Gen9+ platform, supprot 16k
+#define VP_MAX_PIC_WIDTH         16384
+#define VP_MAX_PIC_HEIGHT        16384
 
-// surface flag : 1 encrypted;  0 clear
-#ifdef ANDROID
-#define VPHAL_IS_SURFACE_ENCRYPTED_FLAG 0x80000000
+#define VP_MIN_PIC_WIDTH         16
+#define VP_MIN_PIC_HEIGHT        16
+
+// surface flag : 1 secure;  0 clear
+#if (VA_MAJOR_VERSION < 1)
+#define VPHAL_SURFACE_ENCRYPTION_FLAG 0x80000000
 #else
-#define VPHAL_IS_SURFACE_ENCRYPTED_FLAG 0x00000001
+#define VPHAL_SURFACE_ENCRYPTION_FLAG 0x00000001
 #endif
 #define NUM_SURFS 1
 
@@ -104,10 +109,10 @@ typedef struct _DDI_VP_STATE
     bool      bProcampEnable;
     bool      bDeinterlaceEnable;
     bool      bDenoiseEnable;
-	bool      bIEFEnable;
+    bool      bIEFEnable;
 } DDI_VP_STATE;
 
-// public APIs 
+// public APIs
 
 VAStatus DdiVp_CreateContext(
     VADriverContextP    pVaDrvCtx,
@@ -166,6 +171,15 @@ VAStatus DdiVp_RenderPicture(
     int32_t             num_buffers
 );
 
+VAStatus DdiVp_VideoProcessPipeline(
+    VADriverContextP    pVaDrvCtx,
+    VAContextID         vpCtxID,
+    VASurfaceID         srcSurface,
+    VARectangle         *srcRect,
+    VASurfaceID         dstSurface,
+    VARectangle         *dstRect
+);
+
 VAStatus DdiVp_QueryVideoProcFilterCaps(
     VADriverContextP    ctx,
     VAContextID         context,
@@ -174,10 +188,15 @@ VAStatus DdiVp_QueryVideoProcFilterCaps(
     uint32_t            *num_filter_caps
 );
 
+VAStatus DdiVp_SetProcPipelineParams(
+    VADriverContextP                pVaDrvCtx,
+    PDDI_VP_CONTEXT                 pVpCtx,
+    VAProcPipelineParameterBuffer*  pPipelineParam
+);
+
 PVPHAL_RENDER_PARAMS VpGetRenderParams(PDDI_VP_CONTEXT pVpCtx);
 
 PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextID vaCtxID);
 
 #endif //_MEDIA_LIBVA_VP_H_
-
 

@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_csync.h  
-//! \brief     Contains CSync and CLock definitions  
+//! \file      cm_csync.h 
+//! \brief     Contains CSync and CLock definitions 
 //!
 
-#ifndef __CM_SYNC_H__
-#define __CM_SYNC_H__
+#ifndef MEDIADRIVER_LINUX_COMMON_CM_CMCSYNC_H_
+#define MEDIADRIVER_LINUX_COMMON_CM_CMCSYNC_H_
 
 #include "cm_debug.h"
 
@@ -34,57 +34,55 @@ namespace CMRT_UMD
 class CSync
 {
 public:
-    CSync() 
-    { 
-        int32_t ret = 0; 
-        ret = pthread_mutex_init(&m_CriticalSection, nullptr); 
-        if (ret != 0) 
+    CSync()
+    {
+        int32_t ret = 0;
+        ret = pthread_mutex_init(&m_criticalSection, nullptr);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_init.");
         }
     }
 
     ~CSync()
-    { 
+    {
         int32_t ret = 0 ;
-        ret = pthread_mutex_destroy(&m_CriticalSection); 
-        if (ret != 0) 
+        ret = pthread_mutex_destroy(&m_criticalSection);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_destroy.");
         }
     }
 
-    void Acquire() 
-    { 
+    void Acquire()
+    {
         int32_t ret = 0;
-        ret = pthread_mutex_lock(&m_CriticalSection); 
-        if (ret != 0) 
+        ret = pthread_mutex_lock(&m_criticalSection);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_lock.");
         }
     }
 
-    void Release() 
+    void Release()
     {
         int32_t ret = 0;
-        ret = pthread_mutex_unlock(&m_CriticalSection); 
-        if (ret != 0) 
+        ret = pthread_mutex_unlock(&m_criticalSection);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_unlock.");
         }
     }
 
 private:
-    pthread_mutex_t m_CriticalSection;
+    pthread_mutex_t m_criticalSection;
 };
-
 
 class CLock
 {
 public:
     CLock(CSync &refSync) : m_refSync(refSync) { Lock(); }
     ~CLock() { Unlock(); }
-
 
 private:
     CSync &m_refSync;                     // Synchronization object
@@ -96,6 +94,4 @@ private:
 };
 }; //namespace CMRT_UMD
 
-using namespace CMRT_UMD;
-
-#endif // __CM_SYNC_H__
+#endif // #ifndef MEDIADRIVER_LINUX_COMMON_CM_CMCSYNC_H_

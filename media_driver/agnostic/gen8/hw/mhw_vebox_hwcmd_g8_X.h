@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for ACE
     //!     state.
-    //!     
+    //!
     struct VEBOX_ACE_LACE_STATE_CMD
     {
         union
@@ -505,7 +505,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for Fixed
     //!     Alpha and Area of Interest state.
-    //!     
+    //!
     struct VEBOX_ALPHA_AOI_STATE_CMD
     {
         union
@@ -571,7 +571,7 @@ public:
         //!     Area of Interest Minimum X - The ACE histogram and Skin Tone Detection
         //!     statistic gathering will occur within the MinX/MinY to MaxX/MaxY area
         //!     (inclusive).
-        //!     					This value must be a multiple of 4 minus 1.
+        //!                         This value must be a multiple of 4 minus 1.
         enum AOI_MAX_X
         {
             AOI_MAX_X_UNNAMED3                                               = 3, //!< No additional details
@@ -607,7 +607,7 @@ public:
     //! \details
     //!     This command  contains variables for controlling Demosaic and the White
     //!     Balance Statistics.
-    //!     
+    //!
     struct VEBOX_CAPTURE_PIPE_STATE_CMD
     {
         union
@@ -736,7 +736,7 @@ public:
         //!     can have to be considered a gray point.
         enum UV_THRESHOLD_VALUE
         {
-            UV_THRESHOLD_VALUE_UNNAMED64                                     = 64, //!< 0.25 * 255 = 64 
+            UV_THRESHOLD_VALUE_UNNAMED64                                     = 64, //!< 0.25 * 255 = 64
         };
 
         //! \brief Y_OUTLIER_VALUE
@@ -775,7 +775,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for Color
     //!     Correction Matrix State.
-    //!     
+    //!
     struct VEBOX_CCM_STATE_CMD
     {
         union
@@ -941,7 +941,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for CSC
     //!     state.
-    //!     
+    //!
     struct VEBOX_CSC_STATE_CMD
     {
         union
@@ -1042,33 +1042,33 @@ public:
         //!     This bit should only be used with RGB output formats.  When this bit is
         //!     set, the YUV channels are swapped into the output RGB channels as shown
         //!     in the following table:
-        //!     					
-        //!     					<table style="border: black solid 1px;">
-        //!     						<tr>
-        //!     							<td>†</td>
-        //!     							<td colspan="2">YUV_Channel_Swap</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>†</td>
-        //!     							<td style="border: black solid 1px;">0</td>
-        //!     							<td style="border: black solid 1px;">1</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td style="border: black solid 1px;">Y</td>
-        //!     							<td style="border: black solid 1px;">R</td>
-        //!     							<td style="border: black solid 1px;">G</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td style="border: black solid 1px;">U</td>
-        //!     							<td style="border: black solid 1px;">G</td>
-        //!     							<td style="border: black solid 1px;">B</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td style="border: black solid 1px;">V</td>
-        //!     							<td style="border: black solid 1px;">B</td>
-        //!     							<td style="border: black solid 1px;">R</td>
-        //!     						</tr>
-        //!     					</table>
+        //! 
+        //!                         <table style="border: black solid 1px;">
+        //!                             <tr>
+        //!                                 <td>†</td>
+        //!                                 <td colspan="2">YUV_Channel_Swap</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>†</td>
+        //!                                 <td style="border: black solid 1px;">0</td>
+        //!                                 <td style="border: black solid 1px;">1</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td style="border: black solid 1px;">Y</td>
+        //!                                 <td style="border: black solid 1px;">R</td>
+        //!                                 <td style="border: black solid 1px;">G</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td style="border: black solid 1px;">U</td>
+        //!                                 <td style="border: black solid 1px;">G</td>
+        //!                                 <td style="border: black solid 1px;">B</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td style="border: black solid 1px;">V</td>
+        //!                                 <td style="border: black solid 1px;">B</td>
+        //!                                 <td style="border: black solid 1px;">R</td>
+        //!                             </tr>
+        //!                         </table>
         enum YUV_CHANNEL_SWAP
         {
             YUV_CHANNEL_SWAP_UNNAMED0                                        = 0, //!< No additional details
@@ -1210,7 +1210,7 @@ public:
     //!     When DN is used in 12-bit mode with the Capture Pipe all the DN pixel
     //!     thresholds (temporal_diff_th, temp_diff_low, good_neighbor_th) are
     //!     compared with the 8 MSBs of the 12-bit pixels.
-    //!     
+    //!
     struct VEBOX_DNDI_STATE_CMD
     {
         union
@@ -1524,7 +1524,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for
     //!     Front-end CSC state.
-    //!     
+    //!
     struct VEBOX_FRONT_END_CSC_STATE_CMD
     {
         union
@@ -1706,8 +1706,8 @@ public:
     //!
     //! \brief VEBOX_GAMUT_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEBOX_GAMUT_STATE_CMD
     {
         union
@@ -2651,12 +2651,11 @@ public:
     //! \brief VEBOX_STD_STE_STATE
     //! \details
     //!     This state structure contains the state used by the STD/STE function.
-    //!     
+    //!
     struct VEBOX_STD_STE_STATE_CMD
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 StdEnable                                        : __CODEGEN_BITFIELD( 0,  0)    ; //!< STD Enable
@@ -2672,12 +2671,11 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
-                uint32_t                 Sin                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< SIN?
+                uint32_t                 Sin                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< SIN
                 uint32_t                 Reserved40                                       : __CODEGEN_BITFIELD( 8,  9)    ; //!< Reserved
-                uint32_t                 Cos                                              : __CODEGEN_BITFIELD(10, 17)    ; //!< COS?
+                uint32_t                 Cos                                              : __CODEGEN_BITFIELD(10, 17)    ; //!< COS
                 uint32_t                 HsMargin                                         : __CODEGEN_BITFIELD(18, 20)    ; //!< HS_MARGIN
                 uint32_t                 DiamondDu                                        : __CODEGEN_BITFIELD(21, 27)    ; //!< DIAMOND_DU
                 uint32_t                 DiamondMargin                                    : __CODEGEN_BITFIELD(28, 30)    ; //!< DIAMOND_MARGIN
@@ -2687,7 +2685,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 DiamondDv                                        : __CODEGEN_BITFIELD( 0,  6)    ; //!< DIAMOND_DV
@@ -2699,7 +2696,6 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 Reserved96                                       : __CODEGEN_BITFIELD( 0,  6)    ; //!< Reserved
@@ -2712,7 +2708,6 @@ public:
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 YPoint4                                          : __CODEGEN_BITFIELD( 0,  7)    ; //!< Y_POINT_4
@@ -2724,7 +2719,6 @@ public:
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 InvMarginVyl                                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< INV_Margin_VYL
@@ -2734,7 +2728,6 @@ public:
         } DW5;
         union
         {
-            //!< DWORD 6
             struct
             {
                 uint32_t                 InvMarginVyu                                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< INV_MARGIN_VYU
@@ -2745,7 +2738,6 @@ public:
         } DW6;
         union
         {
-            //!< DWORD 7
             struct
             {
                 uint32_t                 P2L                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< P2L
@@ -2757,7 +2749,6 @@ public:
         } DW7;
         union
         {
-            //!< DWORD 8
             struct
             {
                 uint32_t                 B2L                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< B2L
@@ -2769,7 +2760,6 @@ public:
         } DW8;
         union
         {
-            //!< DWORD 9
             struct
             {
                 uint32_t                 S1L                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S1L
@@ -2780,7 +2770,6 @@ public:
         } DW9;
         union
         {
-            //!< DWORD 10
             struct
             {
                 uint32_t                 S3L                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S3L
@@ -2792,7 +2781,6 @@ public:
         } DW10;
         union
         {
-            //!< DWORD 11
             struct
             {
                 uint32_t                 P2U                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< P2U
@@ -2804,7 +2792,6 @@ public:
         } DW11;
         union
         {
-            //!< DWORD 12
             struct
             {
                 uint32_t                 B2U                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< B2U
@@ -2816,7 +2803,6 @@ public:
         } DW12;
         union
         {
-            //!< DWORD 13
             struct
             {
                 uint32_t                 S1U                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S1U
@@ -2827,7 +2813,6 @@ public:
         } DW13;
         union
         {
-            //!< DWORD 14
             struct
             {
                 uint32_t                 S3U                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S3U
@@ -2840,7 +2825,6 @@ public:
         } DW14;
         union
         {
-            //!< DWORD 15
             struct
             {
                 uint32_t                 Satp1                                            : __CODEGEN_BITFIELD( 0,  6)    ; //!< SATP1
@@ -2853,7 +2837,6 @@ public:
         } DW15;
         union
         {
-            //!< DWORD 16
             struct
             {
                 uint32_t                 Satb2                                            : __CODEGEN_BITFIELD( 0,  9)    ; //!< SATB2
@@ -2865,7 +2848,6 @@ public:
         } DW16;
         union
         {
-            //!< DWORD 17
             struct
             {
                 uint32_t                 Sats1                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS1
@@ -2876,7 +2858,6 @@ public:
         } DW17;
         union
         {
-            //!< DWORD 18
             struct
             {
                 uint32_t                 Sats3                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS3
@@ -2888,7 +2869,6 @@ public:
         } DW18;
         union
         {
-            //!< DWORD 19
             struct
             {
                 uint32_t                 Hueb1                                            : __CODEGEN_BITFIELD( 0,  9)    ; //!< HUEB1
@@ -2900,7 +2880,6 @@ public:
         } DW19;
         union
         {
-            //!< DWORD 20
             struct
             {
                 uint32_t                 Hues0                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES0
@@ -2911,7 +2890,6 @@ public:
         } DW20;
         union
         {
-            //!< DWORD 21
             struct
             {
                 uint32_t                 Hues2                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES2
@@ -2922,7 +2900,6 @@ public:
         } DW21;
         union
         {
-            //!< DWORD 22
             struct
             {
                 uint32_t                 Satp1Dark                                        : __CODEGEN_BITFIELD( 0,  6)    ; //!< SATP1_DARK
@@ -2935,7 +2912,6 @@ public:
         } DW22;
         union
         {
-            //!< DWORD 23
             struct
             {
                 uint32_t                 Satb2Dark                                        : __CODEGEN_BITFIELD( 0,  9)    ; //!< SATB2_DARK
@@ -2947,7 +2923,6 @@ public:
         } DW23;
         union
         {
-            //!< DWORD 24
             struct
             {
                 uint32_t                 Sats1Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS1_DARK
@@ -2958,7 +2933,6 @@ public:
         } DW24;
         union
         {
-            //!< DWORD 25
             struct
             {
                 uint32_t                 Sats3Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS3_DARK
@@ -2970,7 +2944,6 @@ public:
         } DW25;
         union
         {
-            //!< DWORD 26
             struct
             {
                 uint32_t                 Hueb1Dark                                        : __CODEGEN_BITFIELD( 0,  9)    ; //!< HUEB1_DARK
@@ -2982,7 +2955,6 @@ public:
         } DW26;
         union
         {
-            //!< DWORD 27
             struct
             {
                 uint32_t                 Hues0Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES0_DARK
@@ -2993,7 +2965,6 @@ public:
         } DW27;
         union
         {
-            //!< DWORD 28
             struct
             {
                 uint32_t                 Hues2Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES2_DARK
@@ -3043,16 +3014,20 @@ public:
             V_MID_UNNAMED154                                                 = 154, //!< No additional details
         };
 
-        //! \brief SIN?
+        //! \brief SIN
         //! \details
         //!     The default is 101/128
         enum SIN
         {
-            SIN_UNNAMED101                                                  = 101, ///< 
+            SIN_UNNAMED101                                                   = 101, //!< No additional details
         };
+
+        //! \brief COS
+        //! \details
+        //!     The default is 79/128
         enum COS
         {
-            COS_UNNAMED79                                                   = 79, ///< 
+            COS_UNNAMED79                                                    = 79, //!< No additional details
         };
 
         //! \brief HS_MARGIN
@@ -3097,7 +3072,7 @@ public:
         //! \brief DIAMOND_ALPHA
         //! \details
         //!     1/tan(ﬂ)
-        //!     					The default is 100/64
+        //!     The default is 100/64
         enum DIAMOND_ALPHA
         {
             DIAMOND_ALPHA_UNNAMED100                                         = 100, //!< No additional details
@@ -3236,7 +3211,7 @@ public:
         //!     Slope 0 of the lower part of the detection PWLF.
         enum S0L
         {
-            S0L_UNNAMED4091                                                  = 4091, //!< No additional details
+            S0L_UNNAMED2043                                                  = 2043, //!< No additional details
         };
 
         //! \brief S1L
@@ -3348,7 +3323,7 @@ public:
         //!     Slope 2 of the upper part of the detection PWLF.
         enum S2U
         {
-            S2U_UNNAMED3917                                                  = 3917, //!< No additional details
+            S2U_UNNAMED1869                                                  = 1869, //!< No additional details
         };
 
         //! \brief S3U
@@ -3370,8 +3345,8 @@ public:
         //! \brief SKIN_TYPES_THRESH
         //! \details
         //!     Skin types Y margin
-        //!     					Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
-        //!     					Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
+        //!     Restrict Skin_types_thresh >= Skin_types_margin > 0
+        //!     Restrict (Skin_types_thresh + Skin_types_margin) <= 255
         enum SKIN_TYPES_THRESH
         {
             SKIN_TYPES_THRESH_UNNAMED120                                     = 120, //!< No additional details
@@ -3380,8 +3355,8 @@ public:
         //! \brief SKIN_TYPES_MARGIN
         //! \details
         //!     Skin types Y margin
-        //!     						Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
-        //!     						Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
+        //!     Restrict Skin_types_thresh >= Skin_types_margin > 0
+        //!     Restrict (Skin_types_thresh + Skin_types_margin) <= 255
         enum SKIN_TYPES_MARGIN
         {
             SKIN_TYPES_MARGIN_UNNAMED20                                      = 20, //!< No additional details
@@ -3549,11 +3524,10 @@ public:
 
         //! \brief SATP1_DARK
         //! \details
-        //!     First point for the saturation PWLF (dark skin)
-        //!     					Default Value: -11
+        //!     First point for the saturation PWLF (dark skin) Default Value: -5
         enum SATP1_DARK
         {
-            SATP1_DARK_UNNAMED4085                                           = 4085, //!< No additional details
+            SATP1_DARK_UNNAMED123                                            = 123, //!< No additional details
         };
 
         //! \brief SATP2_DARK
@@ -3722,7 +3696,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for TCC
     //!     state.
-    //!     
+    //!
     struct VEBOX_TCC_STATE_CMD
     {
         union
@@ -4113,7 +4087,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for ProcAmp
     //!     state.
-    //!     
+    //!
     struct VEBOX_PROCAMP_STATE_CMD
     {
         union
@@ -4193,7 +4167,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for the
     //!     Black Point State.
-    //!     
+    //!
     struct BLACKLEVELCORRECTIONSTATE_DW75_76_CMD
     {
         union
@@ -4222,15 +4196,15 @@ public:
 
         enum BLACK_POINT_OFFSET_R
         {
-            BLACK_POINT_OFFSET_R_UNNAMED0                                    = 0, ///< 
+            BLACK_POINT_OFFSET_R_UNNAMED0                                    = 0, ///<
         };
         enum BLACK_POINT_OFFSET_B
         {
-            BLACK_POINT_OFFSET_B_UNNAMED0                                    = 0, ///< 
+            BLACK_POINT_OFFSET_B_UNNAMED0                                    = 0, ///<
         };
         enum BLACK_POINT_OFFSET_G
         {
-            BLACK_POINT_OFFSET_G_UNNAMED0                                    = 0, ///< 
+            BLACK_POINT_OFFSET_G_UNNAMED0                                    = 0, ///<
         };
 
         //! \name Initializations
@@ -4246,7 +4220,7 @@ public:
     //! \brief VEBOX_FORWARD_GAMMA_CORRECTION_STATE
     //! \details
     //!     This state structure contains the Forward Gamma Correction state.
-    //!     
+    //!
     struct VEBOX_FORWARD_GAMMA_CORRECTION_STATE_CMD
     {
         union
@@ -4399,139 +4373,139 @@ public:
 
         enum PWL_FWD_GAMMA_POINT_1
         {
-            PWL_FWD_GAMMA_POINT_1_UNNAMED30                                  = 30, ///< 
+            PWL_FWD_GAMMA_POINT_1_UNNAMED30                                  = 30, ///<
         };
         enum PWL_FWD_GAMMA_POINT_2
         {
-            PWL_FWD_GAMMA_POINT_2_UNNAMED55                                  = 55, ///< 
+            PWL_FWD_GAMMA_POINT_2_UNNAMED55                                  = 55, ///<
         };
         enum PWL_FWD_GAMMA_POINT_3
         {
-            PWL_FWD_GAMMA_POINT_3_UNNAMED79                                  = 79, ///< 
+            PWL_FWD_GAMMA_POINT_3_UNNAMED79                                  = 79, ///<
         };
         enum PWL_FWD_GAMMA_POINT_4
         {
-            PWL_FWD_GAMMA_POINT_4_UNNAMED101                                 = 101, ///< 
+            PWL_FWD_GAMMA_POINT_4_UNNAMED101                                 = 101, ///<
         };
         enum PWL_FWD_GAMMA_POINT_5
         {
-            PWL_FWD_GAMMA_POINT_5_UNNAMED122                                 = 122, ///< 
+            PWL_FWD_GAMMA_POINT_5_UNNAMED122                                 = 122, ///<
         };
         enum PWL_FWD_GAMMA_POINT_6
         {
-            PWL_FWD_GAMMA_POINT_6_UNNAMED141                                 = 141, ///< 
+            PWL_FWD_GAMMA_POINT_6_UNNAMED141                                 = 141, ///<
         };
         enum PWL_FWD_GAMMA_POINT_7
         {
-            PWL_FWD_GAMMA_POINT_7_UNNAMED162                                 = 162, ///< 
+            PWL_FWD_GAMMA_POINT_7_UNNAMED162                                 = 162, ///<
         };
         enum PWL_FWD_GAMMA_POINT_8
         {
-            PWL_FWD_GAMMA_POINT_8_UNNAMED181                                 = 181, ///< 
+            PWL_FWD_GAMMA_POINT_8_UNNAMED181                                 = 181, ///<
         };
         enum PWL_FWD_GAMMA_POINT_9
         {
-            PWL_FWD_GAMMA_POINT_9_UNNAMED200                                 = 200, ///< 
+            PWL_FWD_GAMMA_POINT_9_UNNAMED200                                 = 200, ///<
         };
         enum PWL_FWD_GAMMA_POINT_10
         {
-            PWL_FWD_GAMMA_POINT_10_UNNAMED219                                = 219, ///< 
+            PWL_FWD_GAMMA_POINT_10_UNNAMED219                                = 219, ///<
         };
         enum PWL_FWD_GAMMA_POINT_11
         {
-            PWL_FWD_GAMMA_POINT_11_UNNAMED237                                = 237, ///< 
+            PWL_FWD_GAMMA_POINT_11_UNNAMED237                                = 237, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_1
         {
-            PWL_FWD_GAMMA_BIAS_1_UNNAMED3                                    = 3, ///< 
+            PWL_FWD_GAMMA_BIAS_1_UNNAMED3                                    = 3, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_2
         {
-            PWL_FWD_GAMMA_BIAS_2_UNNAMED10                                   = 10, ///< 
+            PWL_FWD_GAMMA_BIAS_2_UNNAMED10                                   = 10, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_3
         {
-            PWL_FWD_GAMMA_BIAS_3_UNNAMED20                                   = 20, ///< 
+            PWL_FWD_GAMMA_BIAS_3_UNNAMED20                                   = 20, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_4
         {
-            PWL_FWD_GAMMA_BIAS_4_UNNAMED33                                   = 33, ///< 
+            PWL_FWD_GAMMA_BIAS_4_UNNAMED33                                   = 33, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_5
         {
-            PWL_FWD_GAMMA_BIAS_5_UNNAMED49                                   = 49, ///< 
+            PWL_FWD_GAMMA_BIAS_5_UNNAMED49                                   = 49, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_6
         {
-            PWL_FWD_GAMMA_BIAS_6_UNNAMED67                                   = 67, ///< 
+            PWL_FWD_GAMMA_BIAS_6_UNNAMED67                                   = 67, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_7
         {
-            PWL_FWD_GAMMA_BIAS_7_UNNAMED92                                   = 92, ///< 
+            PWL_FWD_GAMMA_BIAS_7_UNNAMED92                                   = 92, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_8
         {
-            PWL_FWD_GAMMA_BIAS_8_UNNAMED117                                  = 117, ///< 
+            PWL_FWD_GAMMA_BIAS_8_UNNAMED117                                  = 117, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_9
         {
-            PWL_FWD_GAMMA_BIAS_9_UNNAMED147                                  = 147, ///< 
+            PWL_FWD_GAMMA_BIAS_9_UNNAMED147                                  = 147, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_10
         {
-            PWL_FWD_GAMMA_BIAS_10_UNNAMED180                                 = 180, ///< 
+            PWL_FWD_GAMMA_BIAS_10_UNNAMED180                                 = 180, ///<
         };
         enum PWL_FWD_GAMMA_BIAS_11
         {
-            PWL_FWD_GAMMA_BIAS_11_UNNAMED215                                 = 215, ///< 
+            PWL_FWD_GAMMA_BIAS_11_UNNAMED215                                 = 215, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_0
         {
-            PWL_FWD_GAMMA_SLOPE_0_26256                                      = 26, ///< 
+            PWL_FWD_GAMMA_SLOPE_0_26256                                      = 26, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_1
         {
-            PWL_FWD_GAMMA_SLOPE_1_72256                                      = 72, ///< 
+            PWL_FWD_GAMMA_SLOPE_1_72256                                      = 72, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_2
         {
-            PWL_FWD_GAMMA_SLOPE_2_107256                                     = 107, ///< 
+            PWL_FWD_GAMMA_SLOPE_2_107256                                     = 107, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_3
         {
-            PWL_FWD_GAMMA_SLOPE_3_151256                                     = 151, ///< 
+            PWL_FWD_GAMMA_SLOPE_3_151256                                     = 151, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_4
         {
-            PWL_FWD_GAMMA_SLOPE_4_195256                                     = 195, ///< 
+            PWL_FWD_GAMMA_SLOPE_4_195256                                     = 195, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_5
         {
-            PWL_FWD_GAMMA_SLOPE_5_243256                                     = 243, ///< 
+            PWL_FWD_GAMMA_SLOPE_5_243256                                     = 243, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_6
         {
-            PWL_FWD_GAMMA_SLOPE_6_305256                                     = 305, ///< 
+            PWL_FWD_GAMMA_SLOPE_6_305256                                     = 305, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_7
         {
-            PWL_FWD_GAMMA_SLOPE_7_337256                                     = 337, ///< 
+            PWL_FWD_GAMMA_SLOPE_7_337256                                     = 337, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_8
         {
-            PWL_FWD_GAMMA_SLOPE_8_404256                                     = 404, ///< 
+            PWL_FWD_GAMMA_SLOPE_8_404256                                     = 404, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_9
         {
-            PWL_FWD_GAMMA_SLOPE_9_445256                                     = 445, ///< 
+            PWL_FWD_GAMMA_SLOPE_9_445256                                     = 445, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_10
         {
-            PWL_FWD_GAMMA_SLOPE_10_498256                                    = 498, ///< 
+            PWL_FWD_GAMMA_SLOPE_10_498256                                    = 498, ///<
         };
         enum PWL_FWD_GAMMA_SLOPE_11
         {
-            PWL_FWD_GAMMA_SLOPE_11_555256                                    = 555, ///< 
+            PWL_FWD_GAMMA_SLOPE_11_555256                                    = 555, ///<
         };
 
         //! \name Initializations
@@ -4546,8 +4520,8 @@ public:
     //!
     //! \brief VEBOX_IECP_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEBOX_IECP_STATE_CMD
     {
         VEBOX_STD_STE_STATE_CMD      StdSteState                                                                      ; ///< VEBOX_STD_STE_STATE
@@ -4562,7 +4536,6 @@ public:
         VEBOX_FRONT_END_CSC_STATE_CMD FrontEndCsc                                                                     ; ///< VEBOX_FRONT_END_CSC_STATE
 
         //! \name Local enumerations
-
 
         //! \name Initializations
 
@@ -4582,8 +4555,8 @@ public:
     //!      IECP Gamut Expansion/Compression state
     //!      IECP Gamut Vertex Table state
     //!      Capture Pipe state
-    //!      
-    //!     
+    //! 
+    //!
     struct VEBOX_STATE_CMD
     {
         union
@@ -4617,7 +4590,7 @@ public:
                 uint32_t                 DiOutputFrames                                   : __CODEGEN_BITFIELD( 8,  9)    ; //!< DI_OUTPUT_FRAMES
                 uint32_t                 DemosaicEnable                                   : __CODEGEN_BITFIELD(10, 10)    ; //!< Demosaic Enable
                 uint32_t                 VignetteEnable                                   : __CODEGEN_BITFIELD(11, 11)    ; //!< Vignette Enable
-                uint32_t                 AlphaPlaneEnable                                 : __CODEGEN_BITFIELD(12, 12)    ; //!< Alpha Plane Enable 
+                uint32_t                 AlphaPlaneEnable                                 : __CODEGEN_BITFIELD(12, 12)    ; //!< Alpha Plane Enable
                 uint32_t                 HotPixelFilteringEnable                          : __CODEGEN_BITFIELD(13, 13)    ; //!< Hot Pixel Filtering Enable
                 uint32_t                 SingleSliceVeboxEnable                           : __CODEGEN_BITFIELD(14, 14)    ; //!< Single Slice VEBOX Enable
                 uint32_t                 Reserved47                                       : __CODEGEN_BITFIELD(15, 24)    ; //!< Reserved
@@ -4768,7 +4741,7 @@ public:
         //! \details
         //!     Deinterlacer is bypassed if this is disabled:  the output is the same as
         //!     the input (same as a 2:2 cadence). 
-        //!     					FMD and STMM are not calculated and the values in the response
+        //!                         FMD and STMM are not calculated and the values in the response
         //!     message are 0.
         enum DI_ENABLE
         {
@@ -4799,32 +4772,32 @@ public:
         //! \brief _444__422_DOWNSAMPLE_METHOD
         //! \details
         //!     <table border="1">
-        //!     						<tr>
-        //!     							<td>444-&gt;422</td>
-        //!     							<td>422-&gt;420</td>
-        //!     							<td>Description</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>0</td>
-        //!     							<td>0</td>
-        //!     							<td>No averaging, only down sampling</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>0</td>
-        //!     							<td>1</td>
-        //!     							<td>Not Supported</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>1</td>
-        //!     							<td>0</td>
-        //!     							<td>Only Horizontal averaging</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>1</td>
-        //!     							<td>1</td>
-        //!     							<td>Horizontal and Vertical averaging</td>
-        //!     						</tr>
-        //!     					</table>
+        //!                             <tr>
+        //!                                 <td>444-&gt;422</td>
+        //!                                 <td>422-&gt;420</td>
+        //!                                 <td>Description</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>0</td>
+        //!                                 <td>0</td>
+        //!                                 <td>No averaging, only down sampling</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>0</td>
+        //!                                 <td>1</td>
+        //!                                 <td>Not Supported</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>1</td>
+        //!                                 <td>0</td>
+        //!                                 <td>Only Horizontal averaging</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>1</td>
+        //!                                 <td>1</td>
+        //!                                 <td>Horizontal and Vertical averaging</td>
+        //!                             </tr>
+        //!                         </table>
         enum _444__422_DOWNSAMPLE_METHOD
         {
             _444_422_DOWNSAMPLE_METHOD_DROPRIGHTCHROMAOFTHEPAIR              = 0, //!< No additional details
@@ -4861,39 +4834,39 @@ public:
     //!     Despite having multiple input and output surfaces, we limit the number
     //!     of surface states to one for input surfaces and one for output surfaces.
     //!     The other surfaces are derived from the input/output surface states.
-    //!     
+    //! 
     //!     The Current Frame Input surface uses the Input SURFACE_STATE
-    //!     
+    //! 
     //!     The Previous Denoised Input surface uses the Input SURFACE_STATE. (For
     //!     12-bit Bayer pattern inputs this will be 8-bit.)
-    //!     
+    //! 
     //!     The Current Denoised Output surface uses the Input SURFACE_STATE. (For
     //!     12-bit Bayer pattern inputs this will be 8-bit.)
-    //!     
+    //! 
     //!     The STMM/Noise History Input surface uses the Input SURFACE_STATE with
     //!     Tile-Y and Width/Height a multiple of 4.
-    //!     
+    //! 
     //!     The STMM/Noise History Output surface uses the Input SURFACE_STATE with
     //!     Tile-Y and Width/Height a multiple of 4.
-    //!     
+    //! 
     //!     The Current Deinterlaced/IECP Frame Output surface uses the Output
     //!     SURFACE_STATE.
-    //!     
+    //! 
     //!     The Previous Deinterlaced/IECP Frame Output surface uses the Output
     //!     SURFACE_STATE.
-    //!     
+    //! 
     //!     The FMD per block output / per Frame Output surface uses the Linear
     //!     SURFACE_STATE (see note below).
-    //!     
+    //! 
     //!     The Alpha surface uses the Linear A8 SURFACE_STATE with Width/Height
     //!     equal to Input Surface. Pitch is width rounded to next 64.
-    //!     
+    //! 
     //!     The Vignette Correction surface uses the Linear 16-bit SURFACE_STATE
     //!     with:
     //!     Width = 4 * ((Input Width 3)/4)
     //!     Height = ((Input Height 3)/4)
     //!     Pitch in bytes is (vignette width*2) rounded to next 64.
-    //!     
+    //! 
     //!     The STMM height is the same as the Input Surface height except when the
     //!     input Surface Format is Bayer Pattern and the Bayer Pattern Offset is 10
     //!     or 11, in  which case the height is the input height + 4. For Bayer
@@ -4901,7 +4874,7 @@ public:
     //!     Denoised Output/Previous Denoised Input will also have a height which is
     //!     the input height + 4. For Bayer pattern inputs only the Current Denoised
     //!     Output/Previous Denoised Input are in Tile-Y.
-    //!     
+    //! 
     //!     The linear surface for FMD statistics is linear (not tiled). The height
     //!     of the per block statistics is (Input Height +3)/4 - the Input Surface
     //!     height in pixels is rounded up to the next even 4 and divided by 4. The
@@ -4909,7 +4882,7 @@ public:
     //!     Input Surface in pixels rounded up to the next 16 bytes. The pitch of
     //!     the per block section in bytes is equal to the width of the Input
     //!     Surface in pixels rounded up to the next 64 bytes.
-    //!     
+    //! 
     //!     The STMM surfaces must be identical to the Input surface except for the
     //!     tiling mode must be Tile-Y and the pitch must be legal for Tile-Y
     //!     (increased to the next larger legal pitch). If the input surface is
@@ -4917,13 +4890,13 @@ public:
     //!     then the pitch for the STMM surface is 1/2 the pitch of the input
     //!     surface (rounded up to the next larger legal Tile-Y pitch). The width
     //!     and height must be a multiple of 4 rounded up from the input height.
-    //!     
+    //! 
     //!     VEBOX may write to memory between the surface width and the surface
     //!     pitch for output surfaces.
-    //!     
+    //! 
     //!     For 8bit Alpha input, when converting to 16bit output it is padded with
     //!     8bit zeros in the LSB.
-    //!     
+    //!
     struct VEBOX_SURFACE_STATE_CMD
     {
         union
@@ -5054,7 +5027,7 @@ public:
         //!     This field specifies the type of memory tiling (XMajor or YMajor)
         //!     employed to tile this surface. See <em>Memory Interface Functions</em>
         //!     for details on memory tiling and restrictions.
-        //!     					This field is ignored when the surface is linear.
+        //!                         This field is ignored when the surface is linear.
         enum TILE_WALK
         {
             TILE_WALK_TILEWALKXMAJOR                                         = 0, //!< No additional details
@@ -5134,7 +5107,7 @@ public:
     //!     sections.
     //!     Each VEB_DI_IECP command should be preceded by a VEB_STATE command and
     //!     the input/output VEB_SURFACE_STATE commands.
-    //!     
+    //!
     struct VEB_DI_IECP_CMD
     {
         union
@@ -5429,8 +5402,8 @@ public:
     //!
     //! \brief VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD
     {
         union
@@ -5452,7 +5425,7 @@ public:
         //! \details
         //!     <p style="margin-left:3.0pt;">This field allows the selection of AGE
         //!     parameter for a given surface in LLC or eLLC. If a particular allocation
-        //!     is done at youngest age (ì0,1,2î) it tends to stay longer in the cache.
+        //!     is done at youngest age ((ì0,1,2îù) it tends to stay longer in the cache.
         //!     This option is given to GFX software to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.</p>
@@ -5485,7 +5458,7 @@ public:
         //!     <p style="margin-left:3.0pt;"></p>
         //!     <p style="margin-left:3.0pt;">For all system that does NOT use SVM (i.e.
         //!     coherent L3$ surfaces), back snoops from LLC has to be disabled
-        //!     (<b>Dis_GtCvUpdtOnRd = ì1î</b>). Than target Cache settings can be
+        //!     (<b>Dis_GtCvUpdtOnRd =  ì1îù</b>). Than target Cache settings can be
         //!     programmed as POR requirements of L3/LLC/eDRAM caching.</p>
         //!     <p style="margin-left:3.0pt;"></p>
         //!     <p style="margin-left:3.0pt;">For all systems that does use SVM (i.e.
@@ -5529,8 +5502,8 @@ public:
     //!
     //! \brief VEBOX_VERTEX_TABLE_ENTRY
     //! \details
-    //!     
-    //!  
+    //! 
+    //!
     struct VEBOX_VERTEX_TABLE_ENTRY
     {
         union
@@ -5554,8 +5527,8 @@ public:
     //!
     //! \brief VEBOX_VERTEX_TABLE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEBOX_VERTEX_TABLE_CMD
     {
         VEBOX_VERTEX_TABLE_ENTRY        VertexTableEntry[512];

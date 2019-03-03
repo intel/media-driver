@@ -31,17 +31,21 @@
 
 #include "codechal_decode_sfc.h"
 
-class CODECHAL_HEVC_SFC_STATE : public CODECHAL_SFC_STATE
+//!
+//! \class    CodechalHevcSfcState
+//! \brief    Codechal HEVC SFC state
+//!
+class CodechalHevcSfcState : public CodechalSfcState
 {
 public:
     //!
     //! \brief    Constructor
     //!
-    CODECHAL_HEVC_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    CodechalHevcSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
     //!
     //! \brief    Destructor
     //!
-    ~CODECHAL_HEVC_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    ~CodechalHevcSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
 
     //!
     //! \brief    Check if SFC output is supported and Initialize SFC

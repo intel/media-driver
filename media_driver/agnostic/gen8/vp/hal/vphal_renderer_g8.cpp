@@ -25,13 +25,14 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_g8.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_g8.h"
+#endif
 #include "vphal_render_vebox_g8_base.h"
 #include "vphal_render_composite_g8.h"
 #include "renderhal_g8.h"
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_g8[];
-
 
 // Platform restriction on BDW: Check if the BDW SKU doesn't have EDRAM
 // Currently on BDW, if the surface is to be cached in eLLC and
@@ -42,7 +43,7 @@ extern const Kdll_RuleEntry         g_KdllRuleTable_g8[];
 #define VPHAL_SET_SURF_MEMOBJCTL_GEN8(VpField, GmmUsageEnum)                                                    \
     {                                                                                                           \
         Usage = GmmUsageEnum;                                                                                   \
-        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage);                                        \
+        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage, pOsInterface->pfnGetGmmClientContext(pOsInterface));                                        \
         do                                                                                                      \
         {                                                                                                       \
             if (MemObjCtrl.Gen8.TargetCache == RENDERHAL_MO_TARGET_CACHE_ELLC_G8)                               \
@@ -94,7 +95,7 @@ void VphalRendererG8::GetCacheCntl(
     }
 }
 
-MOS_STATUS VphalRendererG8::AllocateRenderComponents(   
+MOS_STATUS VphalRendererG8::AllocateRenderComponents(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     PMHW_SFC_INTERFACE                  pSfcInterface)
 {
@@ -176,9 +177,11 @@ MOS_STATUS VphalRendererG8::InitKdllParam()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // Set KDLL parameters (Platform dependent)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     pKernelDllRules         = g_KdllRuleTable_g8;
     pcKernelBin             = (const void*)IGVPKRN_G8;
     dwKernelBinSize         = IGVPKRN_G8_SIZE;
+#endif
 
     return eStatus;
 }

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_g8.h  
-//! \brief      
+//! \file      renderhal_g8.h 
+//! \brief 
 //!
 //!
 //! \file       renderhal_g8.h
@@ -32,18 +32,16 @@
 #define __RENDERHAL_G8_H__
 
 #include "renderhal_platform_interface.h"
-#include "mhw_render_hwcmd_g8_X.h" 
+#include "mhw_render_hwcmd_g8_X.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
-
-//#define RENDERHAL_MEMORY_OBJECT_CONTROL_ENCRYPTDATA_BIT_POS_G8   0x2
+#include "mhw_mmio_g8.h"
 
 //!
 //! \brief      L3$ registers and configuration Gen8
 //!
-#define RENDERHAL_L3_CACHE_SQC_REG1_G8                      0xB100
-#define RENDERHAL_L3_CACHE_SQC_REG1_VALUE_G8                (0x00610000)
 
-#define RENDERHAL_L3_CACHE_CNTL_REG_G8                      0x7034
+
+
 
 #define RENDERHAL_SAMPLERS_AVS_G8           3   // 1 layer - One each for Y, U and V
 
@@ -200,10 +198,10 @@ public:
     //! \return   true of false
     //!
     inline bool IsEnableYV12SinglePass(
-        PRENDERHAL_INTERFACE    pRenderHal) 
-    { 
+        PRENDERHAL_INTERFACE    pRenderHal)
+    {
         MOS_UNUSED(pRenderHal);
-        return false; 
+        return false;
     }
 
     //!
@@ -315,7 +313,7 @@ public:
         PRENDERHAL_INTERFACE            pRenderHal,
         PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
         bool                            bEnableSLM);
-    
+
     //! \brief      Get the size of Render Surface State Command
     //! \return     size_t
     //!             the size of render surface state command
@@ -332,7 +330,17 @@ public:
     //! \return     size_t
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() {return mhw_state_heap_g8_X::BINDING_TABLE_STATE_CMD::byteSize;}
-    
+
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   true of false
+    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal)
+    {
+        MOS_UNUSED(pRenderHal);
+        return false;
+    }
+
 protected:
     //!
     //! \brief    Get L3 control register value with SLM enabled

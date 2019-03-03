@@ -33,6 +33,10 @@
 #include <utility>
 #include <cstdarg>
 
+//!
+//! \class  MediaDdiFactory
+//! \brief  Media ddi factory class
+//!
 template <class T, class Arg>
 class MediaDdiFactory
 {
@@ -45,15 +49,15 @@ public:
     typedef typename Creators::iterator iterator;
 
     //!
-    //! \brief    register one Class C with key.
+    //! \brief    Register one Class C with key.
     //! \details  Use the member template to register class C with key and C is the
     //!           derived class of base class T.
     //!
     //! \param    [in] key
     //!           KeyType, the type alias of std::string.
     //!
-    //! \return   true is returned if class C is successfully registerted with key
-    //!           false is returned if key is already registered and doesn't register
+    //! \return   True is returned if class C is successfully registerted with key
+    //!           False is returned if key is already registered and doesn't register
     //!           class C with key.
     //!
     template <class C>
@@ -66,8 +70,8 @@ public:
     }
 
     //!
-    //! \brief    create a new object that is registered with key.
-    //! \details  create and return one new object that is registered with key. And Args is passed to create
+    //! \brief    Create a new object that is registered with key.
+    //! \details  Create and return one new object that is registered with key. And Args is passed to create
     //!           the new object.
     //!
     //! \param    [in] key
@@ -75,8 +79,8 @@ public:
     //!
     //! \param    [in] arg
     //!           ArgType, the type alias of Arg template parameter
-
-    //! \return   the derived object of T is returned if key is found and the object is created.
+    //!
+    //! \return   The derived object of T is returned if key is found and the object is created.
     //!           nullptr is returned if key is not found
     //!
     static Type CreateCodec(
@@ -93,13 +97,13 @@ public:
 
 private:
     //!
-    //! \brief    the callback function with key.
+    //! \brief    The callback function with key.
     //! \details  The member template to create the derived object
     //!
     //! \param    [in] arg
     //!           ArgType, the type alias of class template parameter.
     //!
-    //! \return   the created object with arg input for C constructor.
+    //! \return   The created object with arg input for C constructor.
     //!
     template <class C>
     static Type create(ArgType arg)
@@ -108,11 +112,11 @@ private:
     }
 
     //!
-    //! \brief    obtain the static pair table of key and callback function
-    //! \details  obtain the static pair table that is registerted with key and callback function
+    //! \brief    Obtain the static pair table of key and callback function
+    //! \details  Obtain the static pair table that is registerted with key and callback function
     //!
-
-    //! \return   return the static pair table about the param @key and callback function
+    //! \return   Return the static pair table about the param @key and callback function
+    //!
     static Creators &GetCreators()
     {
         static Creators creators;
@@ -121,6 +125,10 @@ private:
     }
 };
 
+//!
+//! \class  MediaDdiFactoryNoArg 
+//! \brief  Media ddi factory no argument class
+//!
 template <class T>
 class MediaDdiFactoryNoArg
 {
@@ -132,15 +140,15 @@ public:
     typedef typename Creators::iterator iterator;
 
     //!
-    //! \brief    register one Class C with key.
+    //! \brief    Register one Class C with key.
     //! \details  Use the member template to register class C with key and C is the
     //!           derived class of base class T.
     //!
     //! \param    [in] key
     //!           KeyType, the type alias of std::string.
     //!
-    //! \return   true is returned if class C is successfully registerted with key
-    //!           false is returned if key is already registered and doesn't register
+    //! \return   True is returned if class C is successfully registerted with key
+    //!           False is returned if key is already registered and doesn't register
     //!           class C with key.
     //!
     template <class C>
@@ -153,14 +161,14 @@ public:
     }
 
     //!
-    //! \brief    create a new object that is registered with key.
-    //! \details  create and return one new object that is registered with key. And Args is passed to create
+    //! \brief    Create a new object that is registered with key.
+    //! \details  Create and return one new object that is registered with key. And Args is passed to create
     //!           the new object.
     //!
     //! \param    [in] key
     //!           KeyType, the type alias of std::string.
     //!
-    //! \return   the derived object of T is returned if key is found and the object is created.
+    //! \return   The derived object of T is returned if key is found and the object is created.
     //!           nullptr is returned if key is not found
     //!
     static Type CreateCodec(const KeyType &key)
@@ -175,11 +183,10 @@ public:
 
 private:
     //!
-    //! \brief    the callback function with key.
+    //! \brief    The callback function with key.
     //! \details  The member template to create the derived object
     //!
-    //!
-    //! \return   the created object.
+    //! \return   The created object.
     //!
     template <class C>
     static Type create()
@@ -188,11 +195,11 @@ private:
     }
 
     //!
-    //! \brief    obtain the static pair table of key and callback function
-    //! \details  obtain the static pair table that is registerted with param@key and callback function
+    //! \brief    Obtain the static pair table of key and callback function
+    //! \details  Obtain the static pair table that is registerted with param@key and callback function
     //!
-
-    //! \return   return the static pair table about the param @key and callback function
+    //! \return   Return the static pair table about the param @key and callback function
+    //!
     static Creators &GetCreators()
     {
         static Creators creators;

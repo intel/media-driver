@@ -27,12 +27,12 @@
 #include "codechal_mmc_decode_vc1.h"
 
 CodechalMmcDecodeVc1::CodechalMmcDecodeVc1(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
-    
+
     m_vc1State = (CodechalDecodeVc1 *)standardState;
     CODECHAL_HW_ASSERT(m_vc1State);
 
@@ -48,7 +48,7 @@ CodechalMmcDecodeVc1::CodechalMmcDecodeVc1(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -58,7 +58,7 @@ CodechalMmcDecodeVc1::CodechalMmcDecodeVc1(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_compressibleId  = __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSIBLE_ID;
@@ -71,24 +71,22 @@ MOS_STATUS CodechalMmcDecodeVc1::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->pVc1PicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->m_vc1PicParams);
 
     if (m_mmcEnabled &&
-        !m_vc1State->bDeblockingEnabled &&
-        m_vc1State->sDestSurface.bCompressible &&
-        m_vc1State->pVc1PicParams->CurrPic.PicFlags == PICTURE_FRAME &&
-        !m_vc1State->pVc1PicParams->sequence_fields.overlap)    
+        !m_vc1State->m_deblockingEnabled &&
+        m_vc1State->m_destSurface.bCompressible &&
+        m_vc1State->m_vc1PicParams->CurrPic.PicFlags == PICTURE_FRAME &&
+        !m_vc1State->m_vc1PicParams->sequence_fields.overlap)
     {
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_VERTICAL;
     }
 
     CODECHAL_DEBUG_TOOL(
-        m_vc1State->sDestSurface.MmcState = m_vc1State->bDeblockingEnabled ? 
-            pipeBufAddrParams->PostDeblockSurfMmcState : pipeBufAddrParams->PreDeblockSurfMmcState;
-    )
+        m_vc1State->m_destSurface.MmcState = m_vc1State->m_deblockingEnabled ? pipeBufAddrParams->PostDeblockSurfMmcState : pipeBufAddrParams->PreDeblockSurfMmcState;)
 
     return eStatus;
 }
@@ -98,16 +96,16 @@ MOS_STATUS CodechalMmcDecodeVc1::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->pVc1PicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->m_vc1PicParams);
 
     // Check if reference surface needs to be synchronized in MMC case
     if (m_mmcEnabled &&
-        (!m_vc1State->bUnequalFieldWaInUse ||
-        !CodecHal_PictureIsField(m_vc1State->pVc1PicParams->CurrPic) ||
-        m_vc1State->pVc1PicParams->picture_fields.is_first_field))
+        (!m_vc1State->m_unequalFieldWaInUse ||
+            !CodecHal_PictureIsField(m_vc1State->m_vc1PicParams->CurrPic) ||
+            m_vc1State->m_vc1PicParams->picture_fields.is_first_field))
     {
         MOS_SYNC_PARAMS syncParams          = g_cInitSyncParams;
         syncParams.GpuContext               = m_vc1State->GetVideoContext();
@@ -116,9 +114,9 @@ MOS_STATUS CodechalMmcDecodeVc1::SetRefrenceSync(
 
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
         {
-            if (m_vc1State->presReferences[i])
+            if (m_vc1State->m_presReferences[i])
             {
-                syncParams.presSyncResource = m_vc1State->presReferences[i];
+                syncParams.presSyncResource = m_vc1State->m_presReferences[i];
                 syncParams.bReadOnly = true;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(
@@ -143,19 +141,19 @@ MOS_STATUS CodechalMmcDecodeVc1::CheckReferenceList(
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pipeBufAddrParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->pVc1PicParams);
-    
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->m_vc1PicParams);
+
     // Disable MMC if self-reference is dectected for P/B frames (mainly for error concealment)
     if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
-        (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
+            (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
         (!m_mfxInterface->IsVc1IPicture(
-              m_vc1State->pVc1PicParams->CurrPic,
-              m_vc1State->pVc1PicParams->picture_fields.is_first_field,
-              m_vc1State->pVc1PicParams->picture_fields.picture_type)))
+            m_vc1State->m_vc1PicParams->CurrPic,
+            m_vc1State->m_vc1PicParams->picture_fields.is_first_field,
+            m_vc1State->m_vc1PicParams->picture_fields.picture_type)))
     {
         bool selfReference = false;
-        if ((m_vc1State->pVc1PicParams->CurrPic.FrameIdx == m_vc1State->pVc1PicParams->ForwardRefIdx) || 
-            (m_vc1State->pVc1PicParams->CurrPic.FrameIdx == m_vc1State->pVc1PicParams->BackwardRefIdx))
+        if ((m_vc1State->m_vc1PicParams->CurrPic.FrameIdx == m_vc1State->m_vc1PicParams->ForwardRefIdx) ||
+            (m_vc1State->m_vc1PicParams->CurrPic.FrameIdx == m_vc1State->m_vc1PicParams->BackwardRefIdx))
         {
             selfReference = true;
         }
@@ -165,18 +163,18 @@ MOS_STATUS CodechalMmcDecodeVc1::CheckReferenceList(
             pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             CODECHAL_DECODE_ASSERTMESSAGE("Self-reference is detected for P/B frames!");
-    
+
             // Decompress current frame to avoid green corruptions in this error handling case
             MOS_MEMCOMP_STATE mmcMode;
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface,
-                &m_vc1State->sDestSurface.OsResource,
+                &m_vc1State->m_destSurface.OsResource,
                 &mmcMode));
             if (mmcMode != MOS_MEMCOMP_DISABLED)
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(
                     m_osInterface,
-                    &m_vc1State->sDestSurface.OsResource));
+                    &m_vc1State->m_destSurface.OsResource));
             }
         }
     }

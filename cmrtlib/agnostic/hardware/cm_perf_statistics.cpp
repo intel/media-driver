@@ -33,10 +33,9 @@ CmPerfStatistics::CmPerfStatistics()
 
     m_perfStatisticFile   = nullptr;
     m_perfStatisticCount = 0;
-    
+
     m_profilerOn      = false;
     m_profilerLevel    = CM_RT_PERF_LOG_LEVEL_DEFAULT;
-
 
     GetProfilerLevel(); // get profiler level from env variable "CM_RT_PERF_LOG"
 
@@ -66,38 +65,38 @@ void CmPerfStatistics::InsertApiCallRecord(char *functionName, float time, LARGE
 {
     CLock locker(m_criticalSectionOnApiCallRecords);
 
-    ApiCallRecord *pRecords = new ApiCallRecord ;
+    ApiCallRecord *records = new ApiCallRecord ;
 
-    pRecords->startTime = start;
-    pRecords->endTime   = end;
-    pRecords->duration   = time;
+    records->startTime = start;
+    records->endTime   = end;
+    records->duration   = time;
 
-    CM_STRCPY(pRecords->functionName, MSG_STRING_SIZE, functionName);
+    CM_STRCPY(records->functionName, MSG_STRING_SIZE, functionName);
 
-    m_apiCallRecords.push_back(pRecords);
-    m_apiCallRecordCount++; 
+    m_apiCallRecords.push_back(records);
+    m_apiCallRecordCount++;
 
-    InsertPerfStatistic(pRecords);
+    InsertPerfStatistic(records);
 
 }
 
-//Update Perf Statistic Array 
+//Update Perf Statistic Array
 void CmPerfStatistics::InsertPerfStatistic(ApiCallRecord *record)
 {
     uint32_t index = 0;
-    
+
     for( index = 0 ; index < m_perfStatisticCount ; index ++)
     {
-        ApiPerfStatistic *pPerfStatisticRecords = m_perfStatisticRecords[index];
-        if(pPerfStatisticRecords != nullptr)
+        ApiPerfStatistic *perfStatisticRecords = m_perfStatisticRecords[index];
+        if(perfStatisticRecords != nullptr)
         {
-            if(!strcmp(record->functionName, pPerfStatisticRecords->functionName))
+            if(!strcmp(record->functionName, perfStatisticRecords->functionName))
             { // existing
-               pPerfStatisticRecords->callTimes ++ ;
-               pPerfStatisticRecords->time += record->duration;
+               perfStatisticRecords->callTimes ++ ;
+               perfStatisticRecords->time += record->duration;
 
                //Update statistic records
-               m_perfStatisticRecords[index] = pPerfStatisticRecords;
+               m_perfStatisticRecords[index] = perfStatisticRecords;
 
                break;
             }
@@ -106,13 +105,13 @@ void CmPerfStatistics::InsertPerfStatistic(ApiCallRecord *record)
 
     if(index == m_perfStatisticCount)
     { // record does not exist, create new entry
-        ApiPerfStatistic *pPerfStatisticRecords = new ApiPerfStatistic;
-        CM_STRCPY(pPerfStatisticRecords->functionName, MSG_STRING_SIZE, record->functionName);
+        ApiPerfStatistic *perfStatisticRecords = new ApiPerfStatistic;
+        CM_STRCPY(perfStatisticRecords->functionName, MSG_STRING_SIZE, record->functionName);
 
-        pPerfStatisticRecords->callTimes = 1;
-        pPerfStatisticRecords->time       = record->duration;
+        perfStatisticRecords->callTimes = 1;
+        perfStatisticRecords->time       = record->duration;
 
-        m_perfStatisticRecords.push_back(pPerfStatisticRecords);
+        m_perfStatisticRecords.push_back(perfStatisticRecords);
         m_perfStatisticCount ++;
     }
 
@@ -126,7 +125,7 @@ void CmPerfStatistics::DumpApiCallRecords()
     {
         return ;
     }
-    
+
     CM_FOPEN(m_apiCallFile, "CmPerfLog.csv", "wb");
     if(! m_apiCallFile )
     {
@@ -137,18 +136,18 @@ void CmPerfStatistics::DumpApiCallRecords()
 
     for(uint32_t i=0 ; i< m_apiCallRecordCount ; i++)
     {
-        ApiCallRecord *pRecords = m_apiCallRecords[i];
+        ApiCallRecord *records = m_apiCallRecords[i];
 
-        fprintf(m_apiCallFile,  "%-40s  %lld \t %lld \t %fms \n", pRecords->functionName, 
-           pRecords->startTime.QuadPart, pRecords->endTime.QuadPart, pRecords->duration);
+        fprintf(m_apiCallFile,  "%-40s  %lld \t %lld \t %fms \n", records->functionName,
+           records->startTime.QuadPart, records->endTime.QuadPart, records->duration);
 
-        CmSafeRelease(pRecords);
+        CmSafeRelease(records);
     }
-    
+
     m_apiCallRecords.clear();
 
     fclose(m_apiCallFile);
-    
+
 }
 
 //Dump Perf Statistic Records and Release m_perfStatisticRecords Array
@@ -158,7 +157,7 @@ void CmPerfStatistics::DumpPerfStatisticRecords()
     {
         return ;
     }
-    
+
     CM_FOPEN(m_perfStatisticFile, "CmPerfStatistics.txt","wb");
     if(!m_perfStatisticFile )
     {
@@ -169,23 +168,18 @@ void CmPerfStatistics::DumpPerfStatisticRecords()
 
     for(uint32_t i=0 ; i< m_perfStatisticCount; i++)
     {
-        ApiPerfStatistic *pPerfStatisticRecords = m_perfStatisticRecords[i];
+        ApiPerfStatistic *perfStatisticRecords = m_perfStatisticRecords[i];
 
-        fprintf(m_perfStatisticFile,  "%-40s %fms \t %d \n", pPerfStatisticRecords->functionName, 
-           pPerfStatisticRecords->time, pPerfStatisticRecords->callTimes);
+        fprintf(m_perfStatisticFile,  "%-40s %fms \t %d \n", perfStatisticRecords->functionName,
+           perfStatisticRecords->time, perfStatisticRecords->callTimes);
 
-        CmSafeRelease(pPerfStatisticRecords);
+        CmSafeRelease(perfStatisticRecords);
     }
-    
+
     m_perfStatisticRecords.clear();
 
     fclose(m_perfStatisticFile);
-    
-}
 
-bool CmPerfStatistics::IsProfilerOn()
-{
-    return m_profilerOn;
 }
 
 #endif

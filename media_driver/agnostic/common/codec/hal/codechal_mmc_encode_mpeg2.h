@@ -41,7 +41,7 @@ public:
     //! \brief    Constructor
     //!
     CodechalMmcEncodeMpeg2(
-        CodechalHwInterface    *hwInterface, 
+        CodechalHwInterface    *hwInterface,
         void *standardState);
 
     //!
@@ -52,9 +52,9 @@ public:
     MOS_STATUS SetPipeBufAddr(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
         PMOS_COMMAND_BUFFER cmdBuffer = nullptr) override;
-    
+
     CodechalEncodeMpeg2           *m_mpeg2State = nullptr; //!< Pinter to MPEG2 encode state
-    
+
 };
 
 #endif  // __CODECHAL_MMC_ENCODE_AVC_H__

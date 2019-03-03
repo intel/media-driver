@@ -30,6 +30,9 @@
 #include "codechal_encode_hevc_base.h"
 #include "codechal_kernel_hme.h"
 
+#define  HUC_CMD_LIST_MODE 1
+#define  HUC_BATCH_BUFFER_END 0x05000000
+
 //! QP type
 enum {
     QP_TYPE_CONSTANT = 0,
@@ -37,14 +40,28 @@ enum {
     QP_TYPE_CU_LEVEL
 };
 
-//!  HEVC dual-pipe encoder base class
-/*!
-This class defines the base class for HEVC dual-pipe encoder, it includes
-common member fields, functions, interfaces etc shared by all GENs.
-Gen specific definitions, features should be put into their corresponding classes.
+//!
+//! \struct HucCommandData
+//! \brief  The struct of Huc commands data
+//!
+struct HucCommandData
+{
+    uint32_t        TotalCommands;       //!< Total Commands in the Data buffer
+    struct
+    {
+        uint16_t    ID;              //!< Command ID, defined and order must be same as that in DMEM
+        uint16_t    SizeOfData;      //!< data size in uint32_t
+        uint32_t    data[40];
+    } InputCOM[10];
+};
 
-To create a HEVC dual-pipe encoder instance, client needs to call #CodechalEncHevcState::CreateHevcState()
-*/
+//! \class    CodechalEncHevcState
+//! \brief    HEVC dual-pipe encoder base class
+//! \details  This class defines the base class for HEVC dual-pipe encoder, it includes
+//!        common member fields, functions, interfaces etc shared by all GENs.
+//!        Gen specific definitions, features should be put into their corresponding classes.
+//!        To create a HEVC dual-pipe encoder instance, client needs to call CodechalEncHevcState::CreateHevcState()
+//!
 class CodechalEncHevcState : public CodechalEncodeHevcBase
 {
 public:
@@ -56,6 +73,7 @@ public:
     };
 
     enum {
+        BRCINIT_USEHUCBRC                  = 0x0001,
         BRCINIT_ISCBR                      = 0x0010,
         BRCINIT_ISVBR                      = 0x0020,
         BRCINIT_ISAVBR                     = 0x0040,
@@ -97,6 +115,9 @@ public:
         PMOS_SURFACE            pMbStatisticsSurface;
         PCODECHAL_ENCODE_BUFFER pMvAndDistortionSumSurface;
         PMHW_KERNEL_STATE       pMbEncKernelStateInUse;
+        CmSurface2D*            brcIntraDistortionSurface = nullptr;
+        CmSurface2D*            meBrcDistortionSurface    = nullptr;
+        CmBuffer*               mvAndDistortionSumSurface = nullptr;
     };
 
     //!
@@ -116,41 +137,46 @@ public:
     static const uint32_t                       m_mbEncFrameStatsSize = 32;
     static constexpr uint32_t                   NUM_FORMAT_CONV_FRAMES = (CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC + 1);  //!< Number of format conversion frames
 
-    uint32_t                                    dwWidthAlignedLcu32 = 0;                        //!< Picture width aligned to LCU32
-    uint32_t                                    dwHeightAlignedLcu32 = 0;                       //!< Picture height aligned to LCU32
+    uint32_t m_widthAlignedLcu32  = 0;  //!< Picture width aligned to LCU32
+    uint32_t m_heightAlignedLcu32 = 0;  //!< Picture height aligned to LCU32
 
-    uint32_t                                    dwNumRegionsInSlice = 1;                        //!< Number of Regions
+    uint32_t m_numRegionsInSlice = 1;  //!< Number of Regions
 
     // Resources for the render engine
-    MOS_SURFACE                                 sFormatConvertedSurface[NUM_FORMAT_CONV_FRAMES];//!< // Handle of the format converted surface
+    MOS_SURFACE m_formatConvertedSurface[NUM_FORMAT_CONV_FRAMES];  //!< // Handle of the format converted surface
 
     // ME
     CodechalKernelHme                           *m_hmeKernel = nullptr;                         //!< ME kernel object
-    PMHW_KERNEL_STATE                           pMeKernelState = nullptr;                       //!< ME kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pMeKernelBindingTable = nullptr;                //!< ME kernel binding table
+    PMHW_KERNEL_STATE                            m_meKernelState        = nullptr;                         //!< ME kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC       m_meKernelBindingTable = nullptr;                         //!< ME kernel binding table
 
     // BRC
-    PMHW_KERNEL_STATE                           pBrcKernelStates = nullptr;                     //!< Pointer to BRC kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pBrcKernelBindingTable = nullptr;               //!< BRC kernel binding table
-    PMOS_SURFACE                                psBrcDistortion = nullptr;                      //!< Pointer to BRC distortion surface
-    HevcEncBrcBuffers                           BrcBuffers;                                     //!< BRC buffers
-    uint32_t                                    dwNumBrcKrnStates;                              //!< Number of BRC kernel states
+    PMHW_KERNEL_STATE                           m_brcKernelStates       = nullptr;              //!< Pointer to BRC kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_brcKernelBindingTable = nullptr;              //!< BRC kernel binding table
+    PMOS_SURFACE                                m_brcDistortion         = nullptr;              //!< Pointer to BRC distortion surface
+    HevcEncBrcBuffers                           m_brcBuffers;                                   //!< BRC buffers
+    uint32_t                                    m_numBrcKrnStates;                              //!< Number of BRC kernel states
     uint8_t                                     m_slidingWindowSize = 0;                        //!< Sliding window size in number of frames
+    bool                                        m_roiRegionSmoothEnabled = false;               //!< ROI region smooth transition enable flag
+    HEVC_BRC_FRAME_TYPE                         m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;    //!< frame brc level
 
     // MBENC
-    PMHW_KERNEL_STATE                           pMbEncKernelStates = nullptr;                   //!< Pointer to MbEnc kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pMbEncKernelBindingTable = nullptr;             //!< MbEnc kernel binding table
-    CODECHAL_ENCODE_BUFFER                      BrcInputForEncKernelBuffer;                     //!< BRC input buffer for ENC kernel
-    uint32_t                                    dwNumMbEncEncKrnStates = 0;                     //!< Number of MbEnc kernel states
+    PMHW_KERNEL_STATE                           m_mbEncKernelStates       = nullptr;  //!< Pointer to MbEnc kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_mbEncKernelBindingTable = nullptr;  //!< MbEnc kernel binding table
+    uint32_t                                    m_numMbEncEncKrnStates    = 0;        //!< Number of MbEnc kernel states
     EncStatsBuffers                             m_encStatsBuffers;
+    uint8_t                                     m_mbCodeIdxForTempMVP     = 0xFF;     //!< buf index for current frame temporal mvp 
+    uint8_t                                     m_roundingIntraInUse = 0;             //!< rounding intra actually used
+    uint8_t                                     m_roundingInterInUse = 0;             //!< rounding inter actually used
 
     // ScalingAndConversion
-    PMHW_KERNEL_STATE                           pScalingAndConversionKernelState = nullptr;         //!< Pointer to ScalingAndConversion kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pScalingAndConversionKernelBindingTable = nullptr;  //!< ScalingAndConversion kernel binding table
+    PMHW_KERNEL_STATE                      m_scalingAndConversionKernelState        = nullptr;  //!< Pointer to ScalingAndConversion kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC m_scalingAndConversionKernelBindingTable = nullptr;  //!< ScalingAndConversion kernel binding table
 
-    bool                                        bPakOnlyTest = false;                           //!< PAK only test enable flag
-    char                                        cPakOnlyDataFolder[MOS_USER_CONTROL_MAX_DATA_SIZE] = { 0 }; //!< Pak only test data folder name
-    bool                                        m_CqpEnabled = false;                        //!< CQP Rate Control
+    bool m_pakOnlyTest                                       = false;  //!< PAK only test enable flag
+    char m_pakOnlyDataFolder[MOS_USER_CONTROL_MAX_DATA_SIZE] = {0};    //!< Pak only test data folder name
+    bool m_cqpEnabled                                        = false;  //!< CQP Rate Control
+    bool m_sseSupported                                      = false;  //!< PAK SSE support flag
 
 protected:
     //!
@@ -161,6 +187,16 @@ protected:
         PCODECHAL_STANDARD_INFO standardInfo);
 
 public:
+    //!
+    //! \brief    Copy constructor
+    //!
+    CodechalEncHevcState(const CodechalEncHevcState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalEncHevcState& operator=(const CodechalEncHevcState&) = delete;
+
     //!
     //! \brief    Destructor
     //!
@@ -245,6 +281,13 @@ public:
         uint32_t bindingTableOffset);
 
     //!
+    //! \brief    Help function to calcuate ROI Ratio need by BRC Kernel
+    //!
+    //! \return   ROI ratio
+    //!
+    uint8_t CalculateROIRatio();
+
+    //!
     //! \brief    Help function to calcuate the temporal difference between current and reference picture
     //!
     //! \param    [in] refPic
@@ -305,7 +348,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddHcpWeightOffsetStateCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_COMMAND_BUFFER             cmdBuffer,      
+        PMHW_BATCH_BUFFER               batchBuffer,
         PCODEC_HEVC_ENCODE_SLICE_PARAMS hevcSlcParams);
 
     //!
@@ -319,16 +363,37 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SendHwSliceEncodeCommand(
+    virtual MOS_STATUS SendHwSliceEncodeCommand(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE     params);
 
+    //!
+    //! \brief    Allocate encoder states resources
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     MOS_STATUS AllocateEncStatsResources();
+
+    //!
+    //! \brief    Free encoder states resources
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     MOS_STATUS FreeEncStatsResources();
+    
+    //!
+    //! \brief    Get Current Frame BRC Level 
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetFrameBrcLevel();
 
     //! Inherited virtual functions
     virtual bool CheckSupportedFormat(PMOS_SURFACE surface);
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    virtual MOS_STATUS Initialize(CodechalSetting * settings);
     virtual MOS_STATUS AllocateBrcResources();
     virtual MOS_STATUS FreeBrcResources();
     virtual MOS_STATUS InitializePicture(const EncoderParams& params);
@@ -400,14 +465,14 @@ public:
     //!
     //! \brief    Get max supported number of reference frames
     //!
-    //! \param    [out] MaxNumRef0
+    //! \param    [out] maxNumRef0
     //!           Max suppoted number of referenace frame 0
-    //! \param    [out] MaxNumRef1
+    //! \param    [out] maxNumRef1
     //!           Max suppoted number of referenace frame 1
     //!
     //! \return   void
     //!
-    virtual void GetMaxRefFrames(uint8_t& MaxNumRef0, uint8_t& MaxNumRef1) = 0;
+    virtual void GetMaxRefFrames(uint8_t& maxNumRef0, uint8_t& maxNumRef1) = 0;
 
     //!
     //! \brief    Prepare and add Hcp Pipe Mode Select Cmd
@@ -441,9 +506,27 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddHcpPictureStateCmd(MOS_COMMAND_BUFFER* cmdBuffer);
+
+    //!
+    //! \brief    Create ROI surfaces for BRC LCU Update kernel
+    //!           
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetupROISurface();
+    //!
+    //! \brief    Generate codechal dumps for HME kernel
+    //!           
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DumpHMESurfaces();
+    //!
+    //! \brief    Get rounding inter/intra for current frame to use
+    //!           
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetRoundingIntraInterToUse();
 };
-
-//! typedef of class CodechalEncHevcState*
-using PCODECHAL_ENC_HEVC_STATE = class CodechalEncHevcState*;
-
 #endif  // __CODECHAL_ENCODE_HEVC_H__

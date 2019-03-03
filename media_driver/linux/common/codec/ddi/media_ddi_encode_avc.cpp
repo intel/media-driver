@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,7 @@ static const uint16_t vuiKbps = 1024;
 static const uint8_t sliceTypeP = 0;
 static const uint8_t sliceTypeB = 1;
 static const uint8_t sliceTypeI = 2;
+static const uint8_t maxPassesNum = 4;
 
 //Inter MB partition 16x16 can't be disabled.
 static const uint8_t disMbPartMask      = 0x7E;
@@ -104,11 +105,11 @@ DdiEncodeAvc::~DdiEncodeAvc()
         m_encodeCtx->pbsBuffer = nullptr;
     }
 
-    MOS_FreeMemory(m_encodeCtx->pAvcQCParams);
-    m_encodeCtx->pAvcQCParams = nullptr;
+    MOS_FreeMemory(m_qcParams);
+    m_qcParams = nullptr;
 
-    MOS_FreeMemory(m_encodeCtx->pAvcRoundingParams);
-    m_encodeCtx->pAvcRoundingParams = nullptr;
+    MOS_FreeMemory(m_roundingParams);
+    m_roundingParams = nullptr;
 
     MOS_FreeMemory(iqMatrixParams);
     iqMatrixParams = nullptr;
@@ -134,19 +135,18 @@ uint8_t DdiEncodeAvc::ConvertSliceStruct(uint32_t vaSliceStruct)
     }
 }
 
-CODECHAL_AVC_PROFILE_IDC DdiEncodeAvc::GetAVCProfileFromVAProfile()
+CODEC_AVC_PROFILE_IDC DdiEncodeAvc::GetAVCProfileFromVAProfile()
 {
     switch (m_encodeCtx->vaProfile)
     {
-    case VAProfileH264Baseline:
     case VAProfileH264ConstrainedBaseline:
-        return CODECHAL_AVC_BASE_PROFILE;
+        return CODEC_AVC_BASE_PROFILE;
     case VAProfileH264Main:
-        return CODECHAL_AVC_MAIN_PROFILE;
+        return CODEC_AVC_MAIN_PROFILE;
     case VAProfileH264High:
-        return CODECHAL_AVC_HIGH_PROFILE;
+        return CODEC_AVC_HIGH_PROFILE;
     default:
-        return CODECHAL_AVC_MAIN_PROFILE;
+        return CODEC_AVC_MAIN_PROFILE;
     }
 }
 
@@ -182,7 +182,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamHRD(void *data)
     vuiParam->cbr_flag                    = 0x1;
     seqParams->VBVBufferSizeInBit         = vaEncMiscParamHRD->buffer_size;
     seqParams->InitVBVBufferFullnessInBit = vaEncMiscParamHRD->initial_buffer_fullness;
-    vuiParam->cpb_size_value_minus1[0]    = CONVERT_TO_K(seqParams->VBVBufferSizeInBit, vuiKbps) - 1;
+    vuiParam->cpb_size_value_minus1[0]    = MOS_ROUNDUP_DIVIDE(seqParams->VBVBufferSizeInBit, vuiKbps) - 1;
 
     return VA_STATUS_SUCCESS;
 }
@@ -198,10 +198,23 @@ VAStatus DdiEncodeAvc::ParseMiscParamFR(void *data)
 
     uint32_t numerator = (encMiscParamFR->framerate & 0xffff) * 100; /** 100*/;
     auto denominator = (encMiscParamFR->framerate >> 16)&0xfff;
-    if(denominator)
+    if(denominator == 0)
     {
-        seqParams->FramesPer100Sec = (uint16_t)(numerator/denominator);
+       denominator = 1;
     }
+
+    // Pass frame rate value to seqParams and set BRC reset flag and bNewSeq to true while dynamic BRC occures
+    seqParams->FramesPer100Sec = (uint16_t)(numerator / denominator);
+    if(m_previousFRper100sec != 0)
+    {
+        if(m_previousFRper100sec != seqParams->FramesPer100Sec)
+        {
+            seqParams->bResetBRC = 0x1;
+            m_encodeCtx->bNewSeq = true;
+        }
+    }
+    m_previousFRper100sec = seqParams->FramesPer100Sec;
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -212,8 +225,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     CODECHAL_ENCODE_AVC_VUI_PARAMS *vuiParam = (CODECHAL_ENCODE_AVC_VUI_PARAMS *)m_encodeCtx->pVuiParams;
 
     // Assume only one SPS here, modify when enable multiple SPS support
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams      = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams      = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams      = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams      = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
     VAEncMiscParameterRateControl    *encMiscParamRC = (VAEncMiscParameterRateControl *)data;
     DDI_CHK_NULL(vuiParam, "nullptr vuiParam", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -237,6 +250,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
             if (m_encodeCtx->uiTargetBitRate)
             {
                 seqParams->bResetBRC = 0x1;
+                m_encodeCtx->bNewSeq = true;
             }
             m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate;
             m_encodeCtx->uiMaxBitRate    = seqParams->TargetBitRate;
@@ -246,18 +260,30 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     {
         seqParams->ICQQualityFactor = encMiscParamRC->ICQ_quality_factor;
     }
+    else if (VA_RC_AVBR == m_encodeCtx->uiRCMethod)
+    {
+        seqParams->AVBRAccuracy = encMiscParamRC->target_percentage;
+        seqParams->AVBRConvergence = encMiscParamRC->window_size;
+    }
     else
     {
         seqParams->MaxBitRate    = seqParams->TargetBitRate;
         seqParams->MinBitRate    = (uint32_t)((uint64_t)seqParams->TargetBitRate * (2 * encMiscParamRC->target_percentage - 100) / 100);
         seqParams->TargetBitRate = (uint32_t)((uint64_t)seqParams->TargetBitRate * encMiscParamRC->target_percentage / 100);
         vuiParam->cbr_flag       = 0x0;
+
+        if (VA_RC_QVBR == m_encodeCtx->uiRCMethod)
+        {
+            seqParams->ICQQualityFactor = encMiscParamRC->quality_factor;
+        }
+
         if ((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate) ||
             (m_encodeCtx->uiMaxBitRate != seqParams->MaxBitRate))
         {
             if ((m_encodeCtx->uiTargetBitRate != 0) && (m_encodeCtx->uiMaxBitRate != 0))
             {
                 seqParams->bResetBRC = 0x1;
+                m_encodeCtx->bNewSeq = true;
             }
             m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate;
             m_encodeCtx->uiMaxBitRate    = seqParams->MaxBitRate;
@@ -266,9 +292,13 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     //if RateControl method is VBR/CBR, we can set MBBRC to enable or disable
     if (VA_RC_CQP != m_encodeCtx->uiRCMethod)
     {
-        if (encMiscParamRC->rc_flags.bits.mb_rate_control <= CODECHAL_ENCODE_MBBRC_DISABLED)
+        if (encMiscParamRC->rc_flags.bits.mb_rate_control <= mbBrcDisabled)
             seqParams->MBBRC = encMiscParamRC->rc_flags.bits.mb_rate_control;
     }
+
+#ifndef ANDROID
+    seqParams->FrameSizeTolerance = static_cast<ENCODE_FRAMESIZE_TOLERANCE>(encMiscParamRC->rc_flags.bits.frame_tolerance_mode);
+#endif
 
     return VA_STATUS_SUCCESS;
 }
@@ -278,7 +308,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamSkipFrame(void *data)
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // Assume only one PPS here, modify when enable multiple PPS support
-    PCODEC_AVC_ENCODE_PIC_PARAMS picParams               = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS picParams               = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
     VAEncMiscParameterSkipFrame *vaEncMiscParamSkipFrame = (VAEncMiscParameterSkipFrame *)data;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -310,51 +340,86 @@ VAStatus DdiEncodeAvc::ParseMiscParamMaxFrameSize(void *data)
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus DdiEncodeAvc::ParseMiscParamMultiPassFrameSize(void *data)
+{
+    DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PCODEC_AVC_ENCODE_PIC_PARAMS picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    VAEncMiscParameterBufferMultiPassFrameSize *vaEncMiscParamMultiPassFrameSize = (VAEncMiscParameterBufferMultiPassFrameSize *)data;
+    DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    //add for multiple pass pak
+    picParams->dwMaxFrameSize = vaEncMiscParamMultiPassFrameSize->max_frame_size;
+    if (picParams->dwMaxFrameSize)
+    {
+        picParams->dwNumPasses = vaEncMiscParamMultiPassFrameSize->num_passes;
+        if ((picParams->dwNumPasses == 0) || (picParams->dwNumPasses > maxPassesNum))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        if (picParams->pDeltaQp != nullptr)
+        {
+            MOS_FreeMemory(picParams->pDeltaQp);
+        }
+        picParams->pDeltaQp = (uint8_t *)MOS_AllocAndZeroMemory(sizeof(uint8_t) * picParams->dwNumPasses);
+        if (!picParams->pDeltaQp)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        if (MOS_STATUS_SUCCESS != MOS_SecureMemcpy(picParams->pDeltaQp, picParams->dwNumPasses, vaEncMiscParamMultiPassFrameSize->delta_qp, picParams->dwNumPasses))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus DdiEncodeAvc::ParseMiscParamEncQuality(void *data)
 {
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // Assume only one SPS here, modify when enable multiple SPS support
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS        seqParams             = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams                = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
 
-    VAEncMiscParameterEncQuality *              vaEncMiscParamEncQuality = (VAEncMiscParameterEncQuality *)data;
-    PCODEC_AVC_ENCODE_PIC_PARAMS             picParams             = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS qcParams              = (PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS)(m_encodeCtx->pAvcQCParams);
+    VAEncMiscParameterEncQuality     *vaEncMiscParamEncQuality = (VAEncMiscParameterEncQuality *)data;
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams                = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
 
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     seqParams->bForcePanicModeControl = 1;
     seqParams->bPanicModeDisable = (uint8_t)vaEncMiscParamEncQuality->PanicModeDisable;
     picParams->UserFlags.bUseRawPicForRef = vaEncMiscParamEncQuality->useRawPicForRef;
-    qcParams->skipCheckDisable            = vaEncMiscParamEncQuality->skipCheckDisable;
-    qcParams->FTQOverride                 = vaEncMiscParamEncQuality->FTQOverride;
-    if (qcParams->FTQOverride)
+    m_qcParams->skipCheckDisable            = vaEncMiscParamEncQuality->skipCheckDisable;
+    m_qcParams->FTQOverride                 = vaEncMiscParamEncQuality->FTQOverride;
+    if (m_qcParams->FTQOverride)
     {
-        qcParams->FTQEnable = vaEncMiscParamEncQuality->FTQEnable;
+        m_qcParams->FTQEnable = vaEncMiscParamEncQuality->FTQEnable;
     }
-    qcParams->FTQSkipThresholdLUTInput = vaEncMiscParamEncQuality->FTQSkipThresholdLUTInput;
-    if (qcParams->FTQSkipThresholdLUTInput)
+    m_qcParams->FTQSkipThresholdLUTInput = vaEncMiscParamEncQuality->FTQSkipThresholdLUTInput;
+    if (m_qcParams->FTQSkipThresholdLUTInput)
     {
-        MOS_SecureMemcpy(qcParams->FTQSkipThresholdLUT, 52, vaEncMiscParamEncQuality->FTQSkipThresholdLUT, 52);
+        MOS_SecureMemcpy(m_qcParams->FTQSkipThresholdLUT, 52, vaEncMiscParamEncQuality->FTQSkipThresholdLUT, 52);
     }
-    qcParams->NonFTQSkipThresholdLUTInput = vaEncMiscParamEncQuality->NonFTQSkipThresholdLUTInput;
-    if (qcParams->NonFTQSkipThresholdLUTInput)
+    m_qcParams->NonFTQSkipThresholdLUTInput = vaEncMiscParamEncQuality->NonFTQSkipThresholdLUTInput;
+    if (m_qcParams->NonFTQSkipThresholdLUTInput)
     {
-        MOS_SecureMemcpy(qcParams->NonFTQSkipThresholdLUT, 52, vaEncMiscParamEncQuality->NonFTQSkipThresholdLUT, 52);
+        MOS_SecureMemcpy(m_qcParams->NonFTQSkipThresholdLUT, 52, vaEncMiscParamEncQuality->NonFTQSkipThresholdLUT, 52);
     }
 
-    qcParams->directBiasAdjustmentEnable       = vaEncMiscParamEncQuality->directBiasAdjustmentEnable;
-    qcParams->globalMotionBiasAdjustmentEnable = vaEncMiscParamEncQuality->globalMotionBiasAdjustmentEnable;
-    qcParams->HMEMVCostScalingFactor           = vaEncMiscParamEncQuality->HMEMVCostScalingFactor;
+    m_qcParams->directBiasAdjustmentEnable       = vaEncMiscParamEncQuality->directBiasAdjustmentEnable;
+    m_qcParams->globalMotionBiasAdjustmentEnable = vaEncMiscParamEncQuality->globalMotionBiasAdjustmentEnable;
+    m_qcParams->HMEMVCostScalingFactor           = vaEncMiscParamEncQuality->HMEMVCostScalingFactor;
     //disable HME
-    qcParams->HMEDisable = vaEncMiscParamEncQuality->HMEDisable;
+    m_qcParams->HMEDisable = vaEncMiscParamEncQuality->HMEDisable;
     //disable Super HME
-    qcParams->SuperHMEDisable = vaEncMiscParamEncQuality->SuperHMEDisable;
+    m_qcParams->SuperHMEDisable = vaEncMiscParamEncQuality->SuperHMEDisable;
     //disable Ultra HME
-    qcParams->UltraHMEDisable = vaEncMiscParamEncQuality->UltraHMEDisable;
+    m_qcParams->UltraHMEDisable = vaEncMiscParamEncQuality->UltraHMEDisable;
 
     // Force RepartitionCheck
-    qcParams->ForceRepartitionCheck = vaEncMiscParamEncQuality->ForceRepartitionCheck;
+    m_qcParams->ForceRepartitionCheck = vaEncMiscParamEncQuality->ForceRepartitionCheck;
 
     return VA_STATUS_SUCCESS;
 }
@@ -367,29 +432,29 @@ VAStatus DdiEncodeAvc::ParseMiscParamQuantization(void *data)
     VAEncMiscParameterQuantization   *vaEncMiscParamQuantization = (VAEncMiscParameterQuantization *)data;
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    seqParams->Trellis = CODECHAL_ENCODE_TRELLIS_INTERNAL;
+    seqParams->Trellis = trellisInternal;
 
     if (vaEncMiscParamQuantization->quantization_flags.bits.disable_trellis)
     {
-        seqParams->Trellis = CODECHAL_ENCODE_TRELLIS_DISABLED;
+        seqParams->Trellis = trellisDisabled;
     }
     else
     {
         if (vaEncMiscParamQuantization->quantization_flags.bits.enable_trellis_I)
         {
-            seqParams->Trellis |= CODECHAL_ENCODE_TRELLIS_ENABLED_I;
+            seqParams->Trellis |= trellisEnabledI;
         }
         if (vaEncMiscParamQuantization->quantization_flags.bits.enable_trellis_P)
         {
-            seqParams->Trellis |= CODECHAL_ENCODE_TRELLIS_ENABLED_P;
+            seqParams->Trellis |= trellisEnabledP;
         }
         if (vaEncMiscParamQuantization->quantization_flags.bits.enable_trellis_B)
         {
-            seqParams->Trellis |= CODECHAL_ENCODE_TRELLIS_ENABLED_B;
+            seqParams->Trellis |= trellisEnabledB;
         }
         else
         {
-            CODEC_DDI_ASSERTMESSAGE("trellis enabled, but the input parameters is invalided");
+            DDI_ASSERTMESSAGE("trellis enabled, but the input parameters is invalided");
         }
     }
 
@@ -400,8 +465,8 @@ VAStatus DdiEncodeAvc::ParseMiscParameterRIR(void *data)
 {
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams         = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams         = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams         = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams         = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     VAEncMiscParameterRIR            *vaEncMiscParamRIR = (VAEncMiscParameterRIR *)data;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -480,27 +545,44 @@ VAStatus DdiEncodeAvc::ParseMiscParameterRIR(void *data)
 VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
 {
     // Assume only one SPS here, modify when enable multiple SPS support
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS     seqParams                  = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
     VAEncMiscParameterBufferQualityLevel *vaEncMiscParamQualityLevel = (VAEncMiscParameterBufferQualityLevel *)data;
 
-    DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    seqParams->TargetUsage = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
-
+    m_encodeCtx->targetUsage = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
+    uint8_t qualityUpperBoundary = TARGETUSAGE_BEST_SPEED;
+#ifdef _FULL_OPEN_SOURCE
+    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP))
+        qualityUpperBoundary = 5;
+#endif
     // check if TU setting is valid, otherwise change to default
-    if ((seqParams->TargetUsage > TARGETUSAGE_BEST_SPEED) || (0 == seqParams->TargetUsage))
+    if ((m_encodeCtx->targetUsage > qualityUpperBoundary) || (0 == m_encodeCtx->targetUsage))
     {
-        seqParams->TargetUsage = TARGETUSAGE_RT_SPEED;
-        CODEC_DDI_ASSERTMESSAGE("Quality Level setting from application is not correct, should be in (0,7].");
+        m_encodeCtx->targetUsage = TARGETUSAGE_RT_SPEED;
+        DDI_ASSERTMESSAGE("Quality Level setting from application is not correct, should be in (0,%d].", qualityUpperBoundary);
+        return VA_STATUS_SUCCESS;
     }
+
+#ifdef _FULL_OPEN_SOURCE
+    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP))
+    {
+        if(m_encodeCtx->targetUsage >= 1 && m_encodeCtx->targetUsage <= 2)
+        {
+            m_encodeCtx->targetUsage = 4;
+        }
+        else if(m_encodeCtx->targetUsage >= 3 &&m_encodeCtx->targetUsage <= 5)
+        {
+            m_encodeCtx->targetUsage = 7;
+        }
+    }
+
+#endif
 
     return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiEncodeAvc::ParseMiscParamDirtyROI(void *data)
 {
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     VAEncMiscParameterBufferDirtyRect *dirtyRect = (VAEncMiscParameterBufferDirtyRect *)data;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -562,8 +644,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -573,9 +655,9 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    int32_t maxROIsupported = 0;
-    bool isROIValueInDeltaQP = false; 
-    m_encodeCtx->pMediaCtx->m_caps->QueryAVCROIMaxNum(m_encodeCtx->uiRCMethod, &maxROIsupported, &isROIValueInDeltaQP);
+    uint32_t maxROIsupported = 0;
+    bool isROIValueInDeltaQP = false;
+    m_encodeCtx->pMediaCtx->m_caps->QueryAVCROIMaxNum(m_encodeCtx->uiRCMethod, m_encodeCtx->bVdencActive, &maxROIsupported, &isROIValueInDeltaQP);
     if (maxROIsupported == 0)
     {
         return MOS_STATUS_INVALID_PARAMETER;
@@ -615,6 +697,11 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     }
 #ifndef ANDROID
     seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
+    if(picParams->NumROI != 0 && seqParams->ROIValueInDeltaQP == 0)
+    {
+        DDI_ASSERTMESSAGE("ROI does not support priority level now.");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
 #endif
     return VA_STATUS_SUCCESS;
 }
@@ -626,8 +713,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamMaxSliceSize(void *data)
 
     m_encodeCtx->EnableSliceLevelRateCtrl = true;
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -645,17 +732,16 @@ VAStatus DdiEncodeAvc::ParseMiscParamRounding(void *data)
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAEncMiscParameterCustomRoundingControl *vaEncMiscParamRounding = (VAEncMiscParameterCustomRoundingControl *)data;
-    PCODECHAL_ENCODE_AVC_ROUNDING_PARAMS     roundingParams         = (PCODECHAL_ENCODE_AVC_ROUNDING_PARAMS)(m_encodeCtx->pAvcRoundingParams);
 
     if (vaEncMiscParamRounding->rounding_offset_setting.bits.enable_custom_rouding_intra)
     {
-        roundingParams->bEnableCustomRoudingIntra = vaEncMiscParamRounding->rounding_offset_setting.bits.enable_custom_rouding_intra;
-        roundingParams->dwRoundingIntra           = vaEncMiscParamRounding->rounding_offset_setting.bits.rounding_offset_intra;
+        m_roundingParams->bEnableCustomRoudingIntra = vaEncMiscParamRounding->rounding_offset_setting.bits.enable_custom_rouding_intra;
+        m_roundingParams->dwRoundingIntra           = vaEncMiscParamRounding->rounding_offset_setting.bits.rounding_offset_intra;
     }
     if (vaEncMiscParamRounding->rounding_offset_setting.bits.enable_custom_rounding_inter)
     {
-        roundingParams->bEnableCustomRoudingInter = vaEncMiscParamRounding->rounding_offset_setting.bits.enable_custom_rounding_inter;
-        roundingParams->dwRoundingInter           = vaEncMiscParamRounding->rounding_offset_setting.bits.rounding_offset_inter;
+        m_roundingParams->bEnableCustomRoudingInter = vaEncMiscParamRounding->rounding_offset_setting.bits.enable_custom_rounding_inter;
+        m_roundingParams->dwRoundingInter           = vaEncMiscParamRounding->rounding_offset_setting.bits.rounding_offset_inter;
     }
 
     return VA_STATUS_SUCCESS;
@@ -666,10 +752,10 @@ VAStatus DdiEncodeAvc::ParseMiscParamSubMbPartPel(void *data)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    VAEncMiscParameterSubMbPartPelH264 *vaEncMiscParamSubMbPartPel = (VAEncMiscParameterSubMbPartPelH264 *)data;
+    VAEncMiscParameterSubMbPartPelH264 *vaEncMiscParamSubMbPartPel = (VAEncMiscParameterSubMbPartPelH264*)data;
     if (vaEncMiscParamSubMbPartPel->disable_inter_sub_mb_partition)
     {
         picParams->bEnableSubMbPartMask = true;
@@ -691,30 +777,30 @@ VAStatus DdiEncodeAvc::ParseMiscParamSubMbPartPel(void *data)
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
+VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
 {
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(codecHalSettings, "Null codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     if (m_encodeCtx->bVdencActive == true)
     {
-        codecHalSettings->CodecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
+        codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
     }
     else
     {
-        codecHalSettings->CodecFunction = m_encodeCtx->codecFunction;
+        codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
     }
 
-    codecHalSettings->dwWidth  = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->dwHeight = m_encodeCtx->dwFrameHeight;
-    codecHalSettings->Mode     = m_encodeCtx->wModeType;
-    codecHalSettings->Standard = CODECHAL_AVC;
+    codecHalSettings->width  = m_encodeCtx->dworiFrameWidth;
+    codecHalSettings->height = m_encodeCtx->dworiFrameHeight;
+    codecHalSettings->mode     = m_encodeCtx->wModeType;
+    codecHalSettings->standard = CODECHAL_AVC;
 
-    m_encodeCtx->pSeqParams = (void *)MOS_AllocAndZeroMemory(CODECHAL_AVC_MAX_SPS_NUM * sizeof(CODEC_AVC_ENCODE_SEQUENCE_PARAMS));
+    m_encodeCtx->pSeqParams = (void *)MOS_AllocAndZeroMemory(CODEC_AVC_MAX_SPS_NUM * sizeof(CODEC_AVC_ENCODE_SEQUENCE_PARAMS));
     DDI_CHK_NULL(m_encodeCtx->pSeqParams, "nullptr m_encodeCtx->pSeqParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(CODECHAL_AVC_MAX_PPS_NUM * sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
+    m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(CODEC_AVC_MAX_PPS_NUM * sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
     DDI_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate NAL unit params
@@ -728,8 +814,6 @@ VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
     {
         m_encodeCtx->ppNALUnitParams[i] = &(nalUnitParams[i]);
     }
-
-    codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     VAStatus status = m_encodeCtx->pCpDdiInterface->ParseCpParamsForEncode();
     if (VA_STATUS_SUCCESS != status)
@@ -746,11 +830,11 @@ VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
     DDI_CHK_NULL(m_encodeCtx->pSliceParams, "nullptr m_encodeCtx->pSliceParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate Encode Status Report
-    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(CODECHAL_ENCODE_STATUS_REPORT));
+    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReport));
     DDI_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "nullptr m_encodeCtx->pEncodeStatusReport", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate SEI structure
-    m_encodeCtx->pSEIFromApp = (PCODECHAL_ENCODE_SEI_DATA)MOS_AllocAndZeroMemory(sizeof(CODECHAL_ENCODE_SEI_DATA));
+    m_encodeCtx->pSEIFromApp = (CodechalEncodeSeiData*)MOS_AllocAndZeroMemory(sizeof(CodechalEncodeSeiData));
     DDI_CHK_NULL(m_encodeCtx->pSEIFromApp, "nullptr m_encodeCtx->pSEIFromApp", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // for slice header from application
@@ -762,18 +846,18 @@ VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
     m_encodeCtx->pbsBuffer = (PBSBuffer)MOS_AllocAndZeroMemory(sizeof(BSBuffer));
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "nullptr m_encodeCtx->pbsBuffer", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    m_encodeCtx->pbsBuffer->pBase = (BYTE *)MOS_AllocAndZeroMemory(ENCODE_AVC_MAX_SLICES_SUPPORTED * PACKED_HEADER_SIZE_PER_ROW);
+    m_encodeCtx->pbsBuffer->pBase = (uint8_t *)MOS_AllocAndZeroMemory(ENCODE_AVC_MAX_SLICES_SUPPORTED * PACKED_HEADER_SIZE_PER_ROW);
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer->pBase, "nullptr m_encodeCtx->pbsBuffer->pBase", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     m_encodeCtx->pbsBuffer->BufferSize = ENCODE_AVC_MAX_SLICES_SUPPORTED * PACKED_HEADER_SIZE_PER_ROW;
 
-    m_encodeCtx->pAvcQCParams = (void *)MOS_AllocAndZeroMemory(sizeof(CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS));
-    DDI_CHK_NULL(m_encodeCtx->pAvcQCParams, "nullptr m_encodeCtx->pAvcQCParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_qcParams = (CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS *)MOS_AllocAndZeroMemory(sizeof(CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS));
+    DDI_CHK_NULL(m_qcParams, "nullptr m_qcParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    m_encodeCtx->pAvcRoundingParams = (void *)MOS_AllocAndZeroMemory(sizeof(CODECHAL_ENCODE_AVC_ROUNDING_PARAMS));
-    DDI_CHK_NULL(m_encodeCtx->pAvcRoundingParams, "nullptr m_encodeCtx->pAvcRoundingParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_roundingParams = (CODECHAL_ENCODE_AVC_ROUNDING_PARAMS *)MOS_AllocAndZeroMemory(sizeof(CODECHAL_ENCODE_AVC_ROUNDING_PARAMS));
+    DDI_CHK_NULL(m_roundingParams, "nullptr m_roundingParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    iqMatrixParams = (PCODECHAL_AVC_IQ_MATRIX_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_AVC_IQ_MATRIX_PARAMS));
+    iqMatrixParams = (PCODEC_AVC_IQ_MATRIX_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_IQ_MATRIX_PARAMS));
     DDI_CHK_NULL(iqMatrixParams, "nullptr iqMatrixParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     iqWeightScaleLists = (PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS));
@@ -792,11 +876,10 @@ VAStatus DdiEncodeAvc::RenderPicture(
 
     DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     // assume the VAContextID is encoder ID
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "Null m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     uint32_t numSlices = 0;
     VAStatus vaStatus  = VA_STATUS_SUCCESS;
@@ -841,7 +924,7 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         case VAEncSliceParameterBufferType:
-            numSlices = buf->iNumElements;
+            numSlices = buf->uiNumElements;
             DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
             break;
 
@@ -876,14 +959,21 @@ VAStatus DdiEncodeAvc::RenderPicture(
 
 VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 {
+    uint8_t   ppsIdx, spsIdx;
+    PCODEC_AVC_ENCODE_PIC_PARAMS  picParams;
+
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl     = &(m_encodeCtx->RTtbl);
-    PCODEC_AVC_ENCODE_PIC_PARAMS   picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)((uint8_t *)m_encodeCtx->pPicParams + m_encodeCtx->PicParamId * sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
 
     EncoderParams *encodeParams = &m_encodeCtx->EncodeParams;
     MOS_ZeroMemory(encodeParams, sizeof(EncoderParams));
+
+    encodeParams->newSeqHeader           = m_newSeqHeader;
+    encodeParams->newPpsHeader           = m_newPpsHeader;
+    encodeParams->arbitraryNumMbsInSlice = m_arbitraryNumMbsInSlice;
 
     if (m_encodeCtx->bVdencActive == true)
     {
@@ -901,6 +991,9 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface->OsResource));
 
+    PMOS_INTERFACE osInterface = m_encodeCtx->pCodecHal->GetOsInterface();
+    m_encodeCtx->pCpDdiInterface->SetInputResourceEncryption(osInterface, &(rawSurface->OsResource));
+
     // Recon Surface
     PMOS_SURFACE reconSurface = &encodeParams->reconSurface;
     reconSurface->Format   = Format_NV12;
@@ -908,10 +1001,13 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface->OsResource));
 
+    //clear registered recon/ref surface flags
+    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, false), "ClearRefList failed!");
+
     // Bitstream surface
-    PMOS_RESOURCE resBitstreamSurface = &encodeParams->resBitstreamBuffer;
-    *resBitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
-    resBitstreamSurface->Format = Format_Buffer;
+    PMOS_RESOURCE bitstreamSurface = &encodeParams->resBitstreamBuffer;
+    *bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
+    bitstreamSurface->Format = Format_Buffer;
 
     encodeParams->psRawSurface = &encodeParams->rawSurface;
     encodeParams->psReconSurface = &encodeParams->reconSurface;
@@ -943,7 +1039,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     vuiParam  = (CODECHAL_ENCODE_AVC_VUI_PARAMS *)m_encodeCtx->pVuiParams;
     seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
-
+    seqParams->TargetUsage = m_encodeCtx->targetUsage;
     if (VA_RC_CQP == m_encodeCtx->uiRCMethod)
     {
         vuiParam->bit_rate_value_minus1[0]    = 0;
@@ -957,12 +1053,16 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     encodeParams->uiSlcStructCaps = CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE;
 
-    encodeParams->pSeqParams         = m_encodeCtx->pSeqParams;
+    ppsIdx                           = ((PCODEC_AVC_ENCODE_SLICE_PARAMS)(m_encodeCtx->pSliceParams))->pic_parameter_set_id;
+    picParams                        = (PCODEC_AVC_ENCODE_PIC_PARAMS)m_encodeCtx->pPicParams + ppsIdx;
+    spsIdx                           = picParams->seq_parameter_set_id;
+    encodeParams->pSeqParams         = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)m_encodeCtx->pSeqParams + spsIdx;
+    encodeParams->pPicParams         = picParams;
+
     encodeParams->pVuiParams         = m_encodeCtx->pVuiParams;
-    encodeParams->pPicParams         = m_encodeCtx->pPicParams;
     encodeParams->pSliceParams       = m_encodeCtx->pSliceParams;
-    encodeParams->pAVCQCParams       = m_encodeCtx->pAvcQCParams;
-    encodeParams->pAVCRoundingParams = m_encodeCtx->pAvcRoundingParams;
+    encodeParams->pAVCQCParams       = m_qcParams;
+    encodeParams->pAVCRoundingParams = m_roundingParams;
 
     // Sequence data
     encodeParams->bNewSeq = m_encodeCtx->bNewSeq;
@@ -982,42 +1082,42 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     MOS_STATUS status = MOS_SecureMemcpy(&iqMatrixParams->ScalingList4x4,
         6 * 16 * sizeof(uint8_t),
-        &m_encodeCtx->bScalingLists4x4,
+        &m_scalingLists4x4,
         6 * 16 * sizeof(uint8_t));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 4x4!");
+        DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 4x4!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     status = MOS_SecureMemcpy(&iqMatrixParams->ScalingList8x8,
         2 * 64 * sizeof(uint8_t),
-        &m_encodeCtx->bScalingLists8x8,
+        &m_scalingLists8x8,
         2 * 64 * sizeof(uint8_t));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 8x8!");
+        DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 8x8!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     encodeParams->pIQMatrixBuffer = iqMatrixParams;
 
     status = MOS_SecureMemcpy(&iqWeightScaleLists->WeightScale4x4,
         (CODEC_AVC_WEIGHT_SCALE_4x4 * sizeof(uint32_t)),
-        &m_encodeCtx->WeightScale4x4,
+        &m_weightScale4x4,
         (CODEC_AVC_WEIGHT_SCALE_4x4 * sizeof(uint32_t)));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 4x4!");
+        DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 4x4!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     status = MOS_SecureMemcpy(&iqWeightScaleLists->WeightScale8x8,
         (CODEC_AVC_WEIGHT_SCALE_8x8 * sizeof(uint32_t)),
-        &m_encodeCtx->WeightScale8x8,
+        &m_weightScale8x8,
         (CODEC_AVC_WEIGHT_SCALE_8x8 * sizeof(uint32_t)));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 8x8!");
+        DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 8x8!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     encodeParams->pIQWeightScaleLists = iqWeightScaleLists;
@@ -1043,7 +1143,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
         status = m_encodeCtx->pCodecHal->Execute(encodeParams);
         if (MOS_STATUS_SUCCESS != status)
         {
-            CODEC_DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
+            DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
             return VA_STATUS_ERROR_ENCODING_ERROR;
         }
     }
@@ -1081,9 +1181,9 @@ VAStatus DdiEncodeAvc::ResetAtFrameLevel()
     m_encodeCtx->bMbDisableSkipMapEnabled = false;
     m_encodeCtx->bMBQpEnable              = false;
 
-    if (nullptr != m_encodeCtx->pAvcRoundingParams)
+    if (nullptr != m_roundingParams)
     {
-        MOS_ZeroMemory(m_encodeCtx->pAvcRoundingParams, sizeof(CODECHAL_ENCODE_AVC_ROUNDING_PARAMS));
+        MOS_ZeroMemory(m_roundingParams, sizeof(CODECHAL_ENCODE_AVC_ROUNDING_PARAMS));
     }
 
     return VA_STATUS_SUCCESS;
@@ -1096,23 +1196,23 @@ VAStatus DdiEncodeAvc::Qmatrix(void *ptr)
 
     VAIQMatrixBufferH264 *qm = (VAIQMatrixBufferH264 *)ptr;
 
-    MOS_STATUS status = MOS_SecureMemcpy((void *)&m_encodeCtx->bScalingLists4x4,
+    MOS_STATUS status = MOS_SecureMemcpy((void *)&m_scalingLists4x4,
         6 * 16 * sizeof(uint8_t),
         (void *)&qm->ScalingList4x4,
         6 * 16 * sizeof(uint8_t));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("Failed to copy QM scaling list 4x4.");
+        DDI_ASSERTMESSAGE("Failed to copy QM scaling list 4x4.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    MOS_SecureMemcpy((void *)&m_encodeCtx->bScalingLists8x8,
+    MOS_SecureMemcpy((void *)&m_scalingLists8x8,
         2 * 64 * sizeof(uint8_t),
         (void *)&qm->ScalingList8x8,
         2 * 64 * sizeof(uint8_t));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("Failed to copy QM scaling list 8x8.");
+        DDI_ASSERTMESSAGE("Failed to copy QM scaling list 8x8.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -1122,7 +1222,7 @@ VAStatus DdiEncodeAvc::Qmatrix(void *ptr)
     {
         for (idx1 = 0; idx1 < 16; idx1++)
         {
-            m_encodeCtx->WeightScale4x4[idx2][CODECHAL_AVC_Qmatrix_scan_4x4[idx1]] = qm->ScalingList4x4[idx2][idx1];
+            m_weightScale4x4[idx2][CODEC_AVC_Qmatrix_scan_4x4[idx1]] = qm->ScalingList4x4[idx2][idx1];
         }
     }
     // 8x8 block
@@ -1130,7 +1230,7 @@ VAStatus DdiEncodeAvc::Qmatrix(void *ptr)
     {
         for (idx1 = 0; idx1 < 64; idx1++)
         {
-            m_encodeCtx->WeightScale8x8[idx2][CODECHAL_AVC_Qmatrix_scan_8x8[idx1]] = qm->ScalingList8x8[idx2][idx1];
+            m_weightScale8x8[idx2][CODEC_AVC_Qmatrix_scan_8x8[idx1]] = qm->ScalingList8x8[idx2][idx1];
         }
     }
 
@@ -1145,7 +1245,7 @@ VAStatus DdiEncodeAvc::ParseSeqParams(void *ptr)
     VAEncSequenceParameterBufferH264 *seq       = (VAEncSequenceParameterBufferH264 *)ptr;
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams + seq->seq_parameter_set_id * sizeof(CODEC_AVC_ENCODE_SEQUENCE_PARAMS));
 
-    if (seq->seq_parameter_set_id >= CODECHAL_AVC_MAX_SPS_NUM)
+    if (seq->seq_parameter_set_id >= CODEC_AVC_MAX_SPS_NUM)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -1175,14 +1275,17 @@ VAStatus DdiEncodeAvc::ParseSeqParams(void *ptr)
 
     seqParams->GopPicSize = seq->intra_period;
     seqParams->GopRefDist = seq->ip_period;
-    seqParams->TargetUsage       = TARGETUSAGE_BEST_QUALITY;
     seqParams->RateControlMethod = VARC2HalRC(m_encodeCtx->uiRCMethod);
 
     seqParams->TargetBitRate = seq->bits_per_second;
     seqParams->MaxBitRate    = seq->bits_per_second;
     seqParams->MinBitRate    = seq->bits_per_second;
     // fps it set to 30 by default, can be overwritten by misc paramter
-    seqParams->FramesPer100Sec = 3000;
+    if(!seqParams->FramesPer100Sec)
+    {
+        seqParams->FramesPer100Sec = 3000;
+    }
+
 
     // set default same as MSDK, can be overwritten by HRD params
     seqParams->InitVBVBufferFullnessInBit = seq->bits_per_second;
@@ -1222,7 +1325,7 @@ VAStatus DdiEncodeAvc::ParseSeqParams(void *ptr)
         vuiParam->bit_rate_scale                          = 0;
         vuiParam->cpb_size_scale                          = 6;
         vuiParam->bit_rate_value_minus1[0]                = MOS_ROUNDUP_SHIFT(seq->bits_per_second, 6 + vuiParam->bit_rate_scale) - 1;
-        vuiParam->cpb_size_value_minus1[0]                = CONVERT_TO_K(seqParams->VBVBufferSizeInBit, vuiKbps) - 1;
+        vuiParam->cpb_size_value_minus1[0]                = MOS_ROUNDUP_DIVIDE(seqParams->VBVBufferSizeInBit, vuiKbps) - 1;
         vuiParam->cbr_flag                                = 0x0;
         vuiParam->initial_cpb_removal_delay_length_minus1 = 23;
         vuiParam->cpb_removal_delay_length_minus1         = 23;
@@ -1259,11 +1362,13 @@ VAStatus DdiEncodeAvc::ParsePicParams(
     PCODEC_AVC_ENCODE_PIC_PARAMS     picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)((uint8_t *)m_encodeCtx->pPicParams + pic->pic_parameter_set_id * sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
+    current_pic_parameter_set_id = pic->pic_parameter_set_id;
+    current_seq_parameter_set_id = pic->seq_parameter_set_id;
     MOS_ZeroMemory(picParams, sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
 
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams + pic->seq_parameter_set_id * sizeof(CODEC_AVC_ENCODE_SEQUENCE_PARAMS));
-    if ((pic->seq_parameter_set_id >= CODECHAL_AVC_MAX_SPS_NUM) ||
-        (pic->pic_parameter_set_id >= CODECHAL_AVC_MAX_PPS_NUM))
+    if ((pic->seq_parameter_set_id >= CODEC_AVC_MAX_SPS_NUM) ||
+        (pic->pic_parameter_set_id >= CODEC_AVC_MAX_PPS_NUM))
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -1274,16 +1379,22 @@ VAStatus DdiEncodeAvc::ParsePicParams(
         picParams->FieldCodingFlag = 1;
     }
 
+    if (pic->CurrPic.picture_id != VA_INVALID_SURFACE)
+    {
+        RegisterRTSurfaces(&(m_encodeCtx->RTtbl),
+            DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx,
+                pic->CurrPic.picture_id));
+    }
+
     // Curr Recon Pic
     SetupCodecPicture(mediaCtx, &(m_encodeCtx->RTtbl), &picParams->CurrReconstructedPic,pic->CurrPic, picParams->FieldCodingFlag, false, false);
-
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     rtTbl->pCurrentReconTarget = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, pic->CurrPic.picture_id);
     // The surface for reconstructed frame is not registered, return error to app
     if (nullptr == rtTbl->pCurrentReconTarget)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalid surface for reconstructed frame");
+        DDI_ASSERTMESSAGE("invalid surface for reconstructed frame");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -1295,13 +1406,19 @@ VAStatus DdiEncodeAvc::ParsePicParams(
     // The surface for reconstructed frame is not registered, return error to app
     if (picParams->CurrOriginalPic.FrameIdx == 0xFF)
     {
-        CODEC_DDI_ASSERTMESSAGE("unregistered surface for reconstructed frame");
+        DDI_ASSERTMESSAGE("unregistered surface for reconstructed frame");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     // RefFrame List
     for (uint32_t i = 0; i < DDI_CODEC_NUM_MAX_REF_FRAME; i++)
     {
+        if(pic->ReferenceFrames[i].picture_id!= VA_INVALID_SURFACE)
+        {
+            UpdateRegisteredRTSurfaceFlag(&(m_encodeCtx->RTtbl),
+                DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx,
+                    pic->ReferenceFrames[i].picture_id));
+        }
         SetupCodecPicture(mediaCtx, &(m_encodeCtx->RTtbl), &(picParams->RefFrameList[i]), pic->ReferenceFrames[i], picParams->FieldCodingFlag, true, false);
     }
 
@@ -1392,7 +1509,7 @@ VAStatus DdiEncodeAvc::ParseSlcParams(
     uint32_t sliceHeightInMB  = 1;
     uint32_t sliceActualMBs   = 0;
 
-    if (slc->pic_parameter_set_id >= CODECHAL_AVC_MAX_PPS_NUM)
+    if (slc->pic_parameter_set_id >= CODEC_AVC_MAX_PPS_NUM)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -1439,7 +1556,7 @@ VAStatus DdiEncodeAvc::ParseSlcParams(
         sliceActualMBs = slc->num_macroblocks;
         if (sliceActualMBs % m_encodeCtx->wPicWidthInMB)  // If any slice is a partial row of macroblocks, then set flag to indicate sliceMapSurface is required.
         {
-            encoder->m_arbitraryNumMbsInSlice = 1;
+            m_arbitraryNumMbsInSlice = 1;
         }
 
         if (sliceActualMBs + usedMBs > totalMBs)
@@ -1559,11 +1676,54 @@ VAStatus DdiEncodeAvc::ParseSlcParams(
     picParams->NumSlice += slcCount;
     if (picParams->NumSlice > ENCODE_AVC_MAX_SLICES_SUPPORTED)
     {
-        CODEC_DDI_ASSERTMESSAGE("Number of slices exceeds max supported");
+        DDI_ASSERTMESSAGE("Number of slices exceeds max supported");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     m_encodeCtx->dwNumSlices = picParams->NumSlice;
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeAvc::FindNalUnitStartCodes(
+    uint8_t * buf,
+    uint32_t size,
+    uint32_t * startCodesOffset,
+    uint32_t * startCodesLength)
+{
+    uint8_t i = 0;
+
+    while (((i + 3) < size) &&
+           (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01) &&
+           (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0 || buf[i+3] != 0x01))
+    {
+        i++;
+    }
+
+    if ((i + 3) == size)
+    {
+        if (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01)
+        {
+            return VA_STATUS_ERROR_INVALID_BUFFER; //NALU start codes doesn't exit
+        }
+        else
+        {
+            *startCodesOffset = size - 3;
+            *startCodesLength = 3;
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    if (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01)
+    {
+        *startCodesOffset = i;
+        *startCodesLength = 4;
+    }
+    else
+    {
+        *startCodesOffset = i;
+        *startCodesLength = 3;
+    }
 
     return VA_STATUS_SUCCESS;
 }
@@ -1578,17 +1738,13 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
     CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE nalUnitType;
     if (encPackedHeaderParamBuf->type == VAEncPackedHeaderH264_SPS)
     {
-        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
-        DDI_CHK_NULL(encoder, "Null codechal encoder.", VA_STATUS_ERROR_INVALID_CONTEXT);
-        nalUnitType             = CODECHAL_ENCODE_AVC_NAL_UT_SPS;
-        encoder->m_newSeqHeader = 1;
+        nalUnitType    = CODECHAL_ENCODE_AVC_NAL_UT_SPS;
+        m_newSeqHeader = 1;
     }
     else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderH264_PPS)
     {
-        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
-        DDI_CHK_NULL(encoder, "Null codechal encoder.", VA_STATUS_ERROR_INVALID_CONTEXT);
-        nalUnitType             = CODECHAL_ENCODE_AVC_NAL_UT_PPS;
-        encoder->m_newPpsHeader = 1;
+        nalUnitType    = CODECHAL_ENCODE_AVC_NAL_UT_PPS;
+        m_newPpsHeader = 1;
     }
     else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderH264_Slice)
     {
@@ -1599,28 +1755,19 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
         // check the slice header number. Max supported is AVC_ENCODE_MAX_SLICES_SUPPORTED
         if (m_encodeCtx->uiSliceHeaderCnt >= ENCODE_AVC_MAX_SLICES_SUPPORTED)
         {
-            CODEC_DDI_ASSERTMESSAGE("Number of slices exceeds max supported");
+            DDI_ASSERTMESSAGE("Number of slices exceeds max supported");
             return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
         }
 
         // get the packed header size
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize                = encPackedHeaderParamBuf->bit_length;
+        //don't know NALU start codes now, assign to 4 here when has_emulation_bytes is 0 and later will correct it
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
-    }
-    else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderH264_SEI)
-    {
-        nalUnitType = CODECHAL_ENCODE_AVC_NAL_UT_SEI;
-        if (m_encodeCtx->pSEIFromApp->pSEIBuffer)
-            MOS_FreeMemory(m_encodeCtx->pSEIFromApp->pSEIBuffer);
-        uint32_t size                           = (encPackedHeaderParamBuf->bit_length + 7) / 8;
-        m_encodeCtx->pSEIFromApp->pSEIBuffer    = (uint8_t *)MOS_AllocAndZeroMemory(size);
-        m_encodeCtx->pSEIFromApp->dwSEIBufSize  = size;
-        m_encodeCtx->pSEIFromApp->dwSEIDataSize = 0;
-        m_encodeCtx->pSEIFromApp->bNewSEIData   = true;
     }
     else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderRawData)
     {
-        // currently RawData is only for AUD, although it can be other types in VAAPI
+        // currently RawData is packed nal unit beside SPS,PPS,SLICE HEADER etc.
+        // use AUD just because we need a Type to distinguish with Slice header
         nalUnitType = CODECHAL_ENCODE_AVC_NAL_UT_AUD;
     }
     else
@@ -1632,7 +1779,8 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
     {
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiNalUnitType             = nalUnitType;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->bInsertEmulationBytes     = (encPackedHeaderParamBuf->has_emulation_bytes) ? false : true;
-        m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = 4;
+        //don't know NALU start codes now, assign to 4 here when has_emulation_bytes is 0 and later will correct it
+        m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSize                    = (encPackedHeaderParamBuf->bit_length + 7) / 8;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiOffset                  = 0;
     }
@@ -1657,9 +1805,7 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
         bsBuffer->BitSize     = 0;
     }
 
-    uint32_t hdrDataSize, scFound, scanCount;
-    uint8_t *header;
-    uint8_t  sc0, sc1, sc2;
+    uint32_t hdrDataSize;
     if (true == m_encodeCtx->bLastPackedHdrIsSlice)
     {
         hdrDataSize = (m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize + 7) / 8;
@@ -1670,33 +1816,27 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
             hdrDataSize);
         if (MOS_STATUS_SUCCESS != status)
         {
-            CODEC_DDI_ASSERTMESSAGE("DDI:packed slice header size is too large to be supported!");
+            DDI_ASSERTMESSAGE("DDI:packed slice header size is too large to be supported!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SliceOffset = bsBuffer->pCurrent - bsBuffer->pBase;
 
-        // if header contains 2 Start Code, the first is the prefix NAL, the second is slice header.
-        // in this case we need to skip the prefix NAL for emul byte removal purpose
-        header    = (uint8_t *)ptr;
-        sc0       = *header++;
-        sc1       = *header++;
-        sc2       = *header++;
-        scFound   = 0;
-        scanCount = 3;  // get the first 3 bytes
-
-        while (scanCount <= hdrDataSize)
+        // correct SkipEmulationByteCount
+        // according to LibVA principle, one packed header buffer should only contain one NALU,
+        // so when has_emulation_bytes is 0, SkipEmulationByteCount only needs to skip the NALU start codes
+        if (m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount != hdrDataSize)
         {
-            scFound += (sc0 == 0 && sc1 == 0 && sc2 == 1);
-            if (2 == scFound)
+            uint32_t startCodesOffset = 0;
+            uint32_t startCodesLength = 0;
+            VAStatus vaSts = VA_STATUS_SUCCESS;
+            vaSts = FindNalUnitStartCodes((uint8_t *)ptr, hdrDataSize, &startCodesOffset, &startCodesLength);
+            if (VA_STATUS_SUCCESS != vaSts)
             {
-                m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, (scanCount - 3));  // HW can only skip up to 15 bytes
-                break;
+                DDI_ASSERTMESSAGE("DDI: packed slice header doesn't include NAL unit start codes!");
+                return vaSts;
             }
-            sc0 = sc1;
-            sc1 = sc2;
-            sc2 = *header++;
-            scanCount++;
+            m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, (startCodesOffset + startCodesLength));
         }
 
         m_encodeCtx->uiSliceHeaderCnt++;
@@ -1712,8 +1852,25 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
             hdrDataSize);
         if (MOS_STATUS_SUCCESS != status)
         {
-            CODEC_DDI_ASSERTMESSAGE("DDI:packed slice header size is too large to be supported!");
+            DDI_ASSERTMESSAGE("DDI:packed header size is too large to be supported!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        // correct uiSkipEmulationCheckCount
+        // according to LibVA principle, one packed header buffer should only contain one NALU,
+        // so when has_emulation_bytes is 0, uiSkipEmulationCheckCount only needs to skip the NALU start codes
+        if (m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount != hdrDataSize)
+        {
+            uint32_t startCodesOffset = 0;
+            uint32_t startCodesLength = 0;
+            VAStatus vaSts = VA_STATUS_SUCCESS;
+            vaSts = FindNalUnitStartCodes((uint8_t *)ptr, hdrDataSize, &startCodesOffset, &startCodesLength);
+            if (VA_STATUS_SUCCESS != vaSts)
+            {
+                DDI_ASSERTMESSAGE("DDI: packed header doesn't include NAL unit start codes!");
+                return vaSts;
+            }
+            m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = MOS_MIN(15, (startCodesOffset + startCodesLength));
         }
 
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiOffset = bsBuffer->pCurrent - bsBuffer->pBase;
@@ -1769,6 +1926,10 @@ VAStatus DdiEncodeAvc::ParseMiscParams(void *ptr)
         status = ParseMiscParamMaxFrameSize((void *)miscParamBuf->data);
         break;
 
+    case VAEncMiscParameterTypeMultiPassFrameSize:
+        status = ParseMiscParamMultiPassFrameSize((void *)miscParamBuf->data);
+        break;
+
     case VAEncMiscParameterTypeQualityLevel:
         status = ParseMiscParamQualityLevel((void *)miscParamBuf->data);
         break;
@@ -1794,7 +1955,7 @@ VAStatus DdiEncodeAvc::ParseMiscParams(void *ptr)
         break;
 
     default:
-        CODEC_DDI_ASSERTMESSAGE("unsupported misc parameter type.");
+        DDI_ASSERTMESSAGE("unsupported misc parameter type.");
         status = VA_STATUS_ERROR_INVALID_PARAMETER;
         break;
     }
@@ -1808,7 +1969,7 @@ void DdiEncodeAvc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slcR
     {return;}
 
     int32_t i = 0;
-    if (slcReference->FrameIdx != CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE)
+    if (slcReference->FrameIdx != CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
     {
         for (i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
         {
@@ -1820,7 +1981,7 @@ void DdiEncodeAvc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slcR
         }
         if (i == CODEC_MAX_NUM_REF_FRAME)
         {
-            slcReference->FrameIdx = CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE;
+            slcReference->FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
         }
     }
 }
@@ -1843,7 +2004,7 @@ void DdiEncodeAvc::SetupCodecPicture(
     else
     {
         vaPic.frame_idx    = DDI_CODEC_INVALID_FRAME_INDEX;
-        codecHalPic->FrameIdx = CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE - 1;
+        codecHalPic->FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE - 1;
     }
 
     if (picReference)

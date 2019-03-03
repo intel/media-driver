@@ -74,7 +74,7 @@ public:
     //!         Parameters to do the synchronization
     //! \return MOS_SUCCESS on success case
     //!
-    MOS_STATUS SetSyncTag(OsContext* osContextPtr, SyncParams& params);
+    MOS_STATUS SetSyncTag(OsContext* osContextPtr, SyncParams& params, uint32_t streamIndex);
 
     //!
     //! \brief  Check whether the resource is nullptr
@@ -142,6 +142,8 @@ public:
     //!
     MOS_STATUS ConvertToMosResource(MOS_RESOURCE* mosResourcePtr);
 
+    MOS_LINUX_BO*  GetBufferObject(){return m_bo;};
+
 protected:
     //!
     //! \brief  Converts MOS format infot GMM format.
@@ -150,7 +152,7 @@ protected:
     GMM_RESOURCE_FORMAT ConvertMosFmtToGmmFmt(MOS_FORMAT format);
 
 private:
-    
+
     //!
     //! \brief  Pointer to the GMM info structure
     //!
@@ -176,6 +178,7 @@ private:
     //!
     HybridSem m_hybridSem = {};
 
+    uint8_t*  m_systemShadow = nullptr;     //!< System shadow surface for s/w untiling
 };
 #endif // #ifndef __GRAPHICS_RESOURCE_SPECIFIC_H__
 
