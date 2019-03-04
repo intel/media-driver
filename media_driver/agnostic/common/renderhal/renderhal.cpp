@@ -3327,9 +3327,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 // Y_Uoffset(Height*2 + Height/2) of RENDERHAL_PLANES_YV12 define Bitfield_Range(0, 13) on gen9+.
                 // The max value is 16383. So use PL3 kernel to avoid out of range when Y_Uoffset is larger than 16383.
                 // Use PL3 plane to avoid YV12 bleeding issue with DI enabled
-                // The height of one single pass needs 4-aligned to avoid U channel shift issue on Gen9+
                 PlaneDefinition = (pRenderHal->bEnableYV12SinglePass                              &&
-                                   MOS_IS_ALIGNED(pSurface->dwHeight, 4)                          &&
                                    !pRenderHalSurface->pDeinterlaceParams                         &&
                                    !pRenderHalSurface->bInterlacedScaling                         &&
                                    pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET &&
