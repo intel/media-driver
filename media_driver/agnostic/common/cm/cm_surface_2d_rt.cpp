@@ -546,18 +546,16 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface(const unsigned char* sysMem, CmEve
     planeHeight = inParam.height;
 
     // convert gmmlib plane offset to linear offset
+    // recent gmm surface info change makes  iLockSurfaceOffset == iSurfaceOffset + iYOffset * pitch
     offset0 = inParam.YSurfaceOffset.iSurfaceOffset + (inParam.YSurfaceOffset.iXOffset * sizePerPixel) + (inParam.YSurfaceOffset.iYOffset * pitch);
     offset1 = inParam.USurfaceOffset.iSurfaceOffset + (inParam.USurfaceOffset.iXOffset * sizePerPixel) + (inParam.USurfaceOffset.iYOffset * pitch);
     offset2 = inParam.VSurfaceOffset.iSurfaceOffset + (inParam.VSurfaceOffset.iXOffset * sizePerPixel) + (inParam.VSurfaceOffset.iYOffset * pitch);
-    tmp = offset1;
 
+    tmp = offset1;
     if (offset1 > offset2)
     {
         offset1 = offset2;
         offset2 = tmp;
-        // some VSurfaceOffset.iSurfaceOffset could be 0 from gmm resource info for 2-Plane format
-        if (offset1 == 0)
-            offset1 = offset2;
     }
 
     // write copy Y plane or single plane format
@@ -589,7 +587,6 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface(const unsigned char* sysMem, CmEve
             {
                 offsetn = (planeHeight * pitch);
             }
-
             dst = (uint8_t *)(inParam.data) + offsetn;
             src = (uint8_t *)sysMem + (widthInByte * m_height);
             for (row = 0; row < UVHeight; row++)
@@ -609,7 +606,6 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface(const unsigned char* sysMem, CmEve
             {
                 offsetn = (planeHeight * pitch) + (UVHeight * UVpitch);
             }
-
             dst = (uint8_t *)(inParam.data) + offsetn;
             src = (uint8_t *)sysMem + (widthInByte * m_height) + (UVwidth * sizePerPixel * UVHeight);
             for (row = 0; row < UVHeight; row++)
@@ -627,6 +623,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface(const unsigned char* sysMem, CmEve
 finish:
     return hr;
 }
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Hybrid memory copy from  Surface 2D to system memory with stride
@@ -784,18 +781,16 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface(unsigned char* sysMem, CmEvent* eve
     planeHeight = inParam.height;
 
     // convert gmmlib plane offset to linear offset
+    // recent gmm surface info change makes  iLockSurfaceOffset == iSurfaceOffset + iYOffset * pitch
     offset0 = inParam.YSurfaceOffset.iSurfaceOffset + (inParam.YSurfaceOffset.iXOffset * sizePerPixel) + (inParam.YSurfaceOffset.iYOffset * pitch);
     offset1 = inParam.USurfaceOffset.iSurfaceOffset + (inParam.USurfaceOffset.iXOffset * sizePerPixel) + (inParam.USurfaceOffset.iYOffset * pitch);
     offset2 = inParam.VSurfaceOffset.iSurfaceOffset + (inParam.VSurfaceOffset.iXOffset * sizePerPixel) + (inParam.VSurfaceOffset.iYOffset * pitch);
-    tmp = offset1;
 
+    tmp = offset1;
     if (offset1 > offset2)
     {
         offset1 = offset2;
         offset2 = tmp;
-        // some VSurfaceOffset.iSurfaceOffset could be 0 from gmm resource info for 2-Plane format
-        if (offset1 == 0)
-            offset1 = offset2;
     }
 
     dst = (uint8_t *)sysMem;
@@ -816,7 +811,6 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface(unsigned char* sysMem, CmEvent* eve
         CmFastMemCopyFromWC(dst, src, pitch * planeHeight, GetCpuInstructionLevel());
     }
 
-    // Read copy 2nd plane
     if (UVHeight > 0)
     {
         if (offset1 > offset0)
@@ -827,7 +821,6 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface(unsigned char* sysMem, CmEvent* eve
             {
                 offsetn = planeHeight * pitch;
             }
-
             src = (uint8_t *)(inParam.data) + offsetn;
             dst = (uint8_t *)sysMem + (widthInByte * m_height);
             for (row = 0; row < UVHeight; row++)
@@ -847,7 +840,6 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface(unsigned char* sysMem, CmEvent* eve
             {
                 offsetn = (planeHeight * pitch) + (UVHeight * UVpitch);
             }
-
             src = (uint8_t *)(inParam.data) + offsetn;
             dst = (uint8_t *)sysMem + (widthInByte * m_height) + (UVwidth * sizePerPixel * UVHeight);
             for (row = 0; row < UVHeight; row++)
@@ -866,6 +858,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface(unsigned char* sysMem, CmEvent* eve
 finish:
     return hr;
 }
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get the index of CmSurface2D
