@@ -2060,7 +2060,6 @@ MOS_STATUS CodechalEncodeHevcBase::UserFeatureKeyReport()
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_32xME_ENABLE_ID, m_32xMeSupported);
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID, (!m_enable26WalkingPattern));
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_RATECONTROL_METHOD_ID, m_hevcSeqParams->RateControlMethod);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_USED_VDBOX_NUM_ID, 1);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_CODEC_SIM_ENABLE_ID, m_osInterface->bSimIsActive);
