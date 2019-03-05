@@ -352,9 +352,12 @@ MOS_STATUS CodechalVdencHevcStateG11::DecideEncodingPipeNumber()
     uint8_t numTileColumns = m_hevcPicParams->num_tile_columns_minus1 + 1;
     uint8_t numTileRows    = m_hevcPicParams->num_tile_rows_minus1 + 1;
 
+    CODECHAL_ENCODE_VERBOSEMESSAGE("Tile Columns = %d, Tile Rows = %d.", numTileColumns, numTileRows);
+
     // Only support 1 colomn or 1 row when only have 1 VDBOX
     if (m_numVdbox <= 1 && numTileRows > 1 && numTileColumns > 1)
     {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Only 1 VDBOX detected, and Gen11 only support 1xN or Nx1 tiles for single pipe!");
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
@@ -385,6 +388,8 @@ MOS_STATUS CodechalVdencHevcStateG11::DecideEncodingPipeNumber()
         // Create/ re-use a GPU context with 2 pipes
         m_scalabilityState->ucScalablePipeNum = m_numPipe;
     }
+
+    CODECHAL_ENCODE_VERBOSEMESSAGE("System VDBOX number = %d, decided pipe num = %d.", m_numVdbox, m_numPipe);
 
     return eStatus;
 }
@@ -4428,6 +4433,8 @@ MOS_STATUS CodechalVdencHevcStateG11::GetSystemPipeNumberCommon()
     {
         m_numVdbox = 1;
     }
+
+    CODECHAL_ENCODE_VERBOSEMESSAGE("System VDBOX number = %d.", m_numVdbox);
 
     return eStatus;
 }
