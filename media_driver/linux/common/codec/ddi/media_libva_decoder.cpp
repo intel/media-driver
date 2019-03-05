@@ -41,7 +41,7 @@
 #include "media_interfaces.h"
 #include "media_ddi_decode_const.h"
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
 #include <X11/Xutil.h>
 #endif
 
