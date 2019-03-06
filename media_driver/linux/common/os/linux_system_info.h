@@ -52,26 +52,27 @@ struct LinuxDriverInfo
 
 struct LinuxCodecInfo
 {
-    uint32_t avcDecoding   : 1;
-    uint32_t mpeg2Decoding : 1;
-    uint32_t vp8Decoding   : 1;
-    uint32_t vc1Decoding   : 1;
-    uint32_t jpegDecoding  : 1;
-    uint32_t avcEncoding   : 1;
-    uint32_t mpeg2Encoding : 1;
-    uint32_t hevcDecoding  : 1;
-    uint32_t hevcEncoding  : 1;
-    uint32_t jpegEncoding  : 1;
-    uint32_t avcVdenc      : 1;
-    uint32_t vp9Decoding   : 1;
+    uint32_t avcDecoding    : 1;
+    uint32_t mpeg2Decoding  : 1;
+    uint32_t vp8Decoding    : 1;
+    uint32_t vc1Decoding    : 1;
+    uint32_t jpegDecoding   : 1;
+    uint32_t avcEncoding    : 1;
+    uint32_t mpeg2Encoding  : 1;
+    uint32_t hevcDecoding   : 1;
+    uint32_t hevcEncoding   : 1;
+    uint32_t jpegEncoding   : 1;
+    uint32_t avcVdenc       : 1;
+    uint32_t vp9Decoding    : 1;
     uint32_t hevc10Decoding : 1;
     uint32_t vp9b10Decoding : 1;
     uint32_t hevc10Encoding : 1;
     uint32_t hevc12Encoding : 1;
-    uint32_t vp8Encoding   : 1;
-    uint32_t hevcVdenc     : 1;
-    uint32_t vp9Vdenc      : 1;
-    uint32_t advDecoding   : 1;
+    uint32_t vp8Encoding    : 1;
+    uint32_t hevcVdenc      : 1;
+    uint32_t vp9Vdenc       : 1;
+    uint32_t adv0Decoding   : 1;
+    uint32_t adv1Decoding   : 1;
 };
 
 struct GfxDeviceInfo
