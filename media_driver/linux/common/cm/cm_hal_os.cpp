@@ -1225,6 +1225,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
 
     if (!conditionalParams->bDisableCompareMask)
     {
+        loadRegMemParams.presStoreBuffer = conditionalParams->presSemaphoreBuffer;
         loadRegMemParams.dwOffset = conditionalParams->dwOffset + 4;
         loadRegMemParams.dwRegister = offsets->gprOffset + 8 * 2;
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &loadRegMemParams)); //r1, r2: compared value and its mask
