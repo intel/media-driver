@@ -2531,26 +2531,24 @@ MOS_STATUS CodechalDecodeHevc::CalcDownsamplingParams(
 
     PCODEC_HEVC_PIC_PARAMS hevcPicParams = (PCODEC_HEVC_PIC_PARAMS)picParams;
 
-    *refSurfWidth   = 0;
-    *refSurfHeight  = 0;
-    *format   = Format_NV12;
-    *frameIdx        = hevcPicParams->CurrPic.FrameIdx;
+    *refSurfWidth = 0;
+    *refSurfHeight = 0;
+    *format = Format_NV12;
+    *frameIdx = hevcPicParams->CurrPic.FrameIdx;
 
-    if (m_refSurfaces == nullptr)
+    uint32_t                         widthInPix, heightInPix;
+
+    widthInPix = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicWidthInMinCbsY);
+    heightInPix = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicHeightInMinCbsY);
+
+    *refSurfWidth = MOS_ALIGN_CEIL(widthInPix, 64);
+    *refSurfHeight = MOS_ALIGN_CEIL(heightInPix, 64);
+
+    if (m_is10BitHevc)
     {
-        uint32_t                         widthInPix, heightInPix;
-
-        widthInPix      = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicWidthInMinCbsY);
-        heightInPix     = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicHeightInMinCbsY);
-
-        *refSurfWidth  = MOS_ALIGN_CEIL(widthInPix, 64);
-        *refSurfHeight = MOS_ALIGN_CEIL(heightInPix, 64);
-
-        if (m_is10BitHevc)
-        {
-            *format = Format_P010;
-        }
+        *format = Format_P010;
     }
+
 
     return eStatus;
 }
