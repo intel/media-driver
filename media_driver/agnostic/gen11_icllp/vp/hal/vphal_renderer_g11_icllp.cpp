@@ -35,6 +35,8 @@ MOS_STATUS VphalRendererG11Icllp::InitKdllParam()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    m_pRenderHal->bEnableP010SinglePass = true;
+
     // Set KDLL parameters (Platform dependent)
 #if defined(ENABLE_KERNELS)
     pKernelDllRules     = g_KdllRuleTable_g11;
