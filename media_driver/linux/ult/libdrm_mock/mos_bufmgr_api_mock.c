@@ -330,7 +330,8 @@ mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable)
 void
 mos_bo_set_exec_object_async(struct mos_linux_bo *bo)
 {
-    bo->bufmgr->set_exec_object_async(bo);
+    if( bo->bufmgr->set_exec_object_async)
+        bo->bufmgr->set_exec_object_async(bo);
 }
 
 int
