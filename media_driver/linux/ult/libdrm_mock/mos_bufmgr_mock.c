@@ -279,6 +279,11 @@ struct mos_bo_gem {
      */
     bool is_softpin;
 
+    /*
+    * Whether to remove the dependency of this bo in exebuf.
+    */
+    bool exec_async;
+
     /**
      * Size in bytes of this buffer and its relocation descendents.
      *
@@ -537,6 +542,8 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
         flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
     if (bo_gem->is_softpin)
         flags |= EXEC_OBJECT_PINNED;
+    if (bo_gem->exec_async)
+        flags |= EXEC_OBJECT_ASYNC;
 
     if (bo_gem->validate_index != -1) {
         bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= flags;
@@ -2344,6 +2351,13 @@ mos_gem_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable)
     bo_gem->use_48b_address_range = enable;
 }
 
+static void
+mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo)
+{
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
+    bo_gem->exec_async = true;
+}
+
 static int
 mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)
 {
@@ -3840,6 +3854,11 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     if (ret == 0 && *gp.value > 0)
         bufmgr_gem->bufmgr.bo_set_softpin_offset = mos_gem_bo_set_softpin_offset;
+
+    gp.param = I915_PARAM_HAS_EXEC_ASYNC;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if (ret == 0 && *gp.value > 0)
+        bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
 
     gp.param = I915_PARAM_HAS_ALIASING_PPGTT;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
