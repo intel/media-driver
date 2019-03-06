@@ -4583,12 +4583,15 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     if (ret == 0 && *gp.value > 0)
         bufmgr_gem->bufmgr.bo_set_softpin_offset = mos_gem_bo_set_softpin_offset;
 
+    gp.param = I915_PARAM_HAS_EXEC_ASYNC;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if (ret == 0 && *gp.value > 0)
+        bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
+
     gp.param = I915_PARAM_HAS_ALIASING_PPGTT;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     if (ret == 0 && *gp.value == 3)
         bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
-
-    bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
 
     /* Let's go with one relocation per every 2 dwords (but round down a bit
      * since a power of two will mean an extra page allocation for the reloc
