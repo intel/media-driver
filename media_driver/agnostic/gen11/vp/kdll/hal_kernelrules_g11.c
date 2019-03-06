@@ -524,7 +524,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
 
     // Sample_Unorm progressive scaling
-    // Sample (RGB | AYUV | Packed YUV | YV12 | NV12 | 400P) -> Src0
+    // Sample (RGB | AYUV | Packed YUV | YV12 | NV12 | P010 | 400P) -> Src0
 
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
@@ -534,6 +534,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_90                  , Kdll_None },
@@ -551,6 +552,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_180                 , Kdll_None },
@@ -568,6 +570,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_270                 , Kdll_None },
@@ -585,6 +588,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_MIRROR_HORIZONTAL            , Kdll_None },
@@ -606,6 +610,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_MIRROR_VERTICAL              , Kdll_None },
@@ -627,6 +632,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATE_90_MIRROR_VERTICAL    , Kdll_None },
@@ -648,6 +654,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATE_90_MIRROR_HORIZONTAL  , Kdll_None },
@@ -669,6 +676,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_SetKernel        , IDR_VP_PA_444Scale16_Buf_0         , Kdll_None },
@@ -1122,7 +1130,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetParserState   , Parser_SampleLayer0Done          , Kdll_None },
 
     // Sample_8x8 progressive scaling
-    // AVS Sample (RGB | AYUV | Packed YUV | YV12 |NV12 | 400P) -> Src0
+    // AVS Sample (RGB | AYUV | Packed YUV | YV12 |NV12 | P010 | 400P) -> Src0
 
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
@@ -1132,6 +1140,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_90                  , Kdll_None },
@@ -1149,6 +1158,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_180                 , Kdll_None },
@@ -1166,6 +1176,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_270                 , Kdll_None },
@@ -1183,6 +1194,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_MIRROR_HORIZONTAL            , Kdll_None },
@@ -1204,6 +1216,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_MIRROR_VERTICAL              , Kdll_None },
@@ -1225,6 +1238,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATE_90_MIRROR_VERTICAL    , Kdll_None },
@@ -1246,6 +1260,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATE_90_MIRROR_HORIZONTAL  , Kdll_None },
@@ -1267,6 +1282,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_SetKernel        , IDR_VP_PA_444AVS16_Buf_0           , Kdll_None },
@@ -1530,13 +1546,14 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetKernel        , IDR_VP_PA_444iScale16_Buf_3        , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0SelectCSC       , Kdll_None },
 
-    // Sample (AYUV | Packed YUV | NV12 | 400P) -> Src0
+    // Sample (AYUV | Packed YUV | NV12 | 400P | P010) -> Src0
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                , Kdll_None },
     { RID_IsSrc0Format     , Format_AYUV                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_400P                        , Kdll_Or   },
+    { RID_IsSrc0Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12_Planar                 , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_iScaling                    , Kdll_None },
     { RID_SetKernel        , IDR_VP_PA_444iScale16_Buf_0        , Kdll_None },
@@ -2055,7 +2072,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_5            , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                        , Kdll_None },
 
-    // Sample (RGB | AYUV | Packed YUV | YV12 | NV12 | 400P) -> Src1
+    // Sample (RGB | AYUV | Packed YUV | YV12 | NV12 | P010 | 400P) -> Src1
 
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
@@ -2065,6 +2082,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_90                  , Kdll_None },
@@ -2080,6 +2098,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_180                 , Kdll_None },
@@ -2095,6 +2114,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_270                 , Kdll_None },
@@ -2110,6 +2130,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_MIRROR_HORIZONTAL            , Kdll_None },
@@ -2127,6 +2148,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_MIRROR_VERTICAL              , Kdll_None },
@@ -2144,6 +2166,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_VERTICAL    , Kdll_None },
@@ -2161,6 +2184,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_HORIZONTAL  , Kdll_None },
@@ -2178,6 +2202,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling                     , Kdll_None },
     { RID_SetKernel        , IDR_VP_PA_444Scale16_Buf_4         , Kdll_None },
@@ -2618,7 +2643,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetSrc1Internal  , Internal_PL3                       , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer1Done            , Kdll_None },
 
-    // AVS Sample (RGB | AYUV | Packed YUV | YV12 | NV12 | 400P) -> Src1
+    // AVS Sample (RGB | AYUV | Packed YUV | YV12 | NV12 | P010 | 400P) -> Src1
 
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
@@ -2628,6 +2653,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_90                  , Kdll_None },
@@ -2643,6 +2669,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_180                 , Kdll_None },
@@ -2658,6 +2685,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATION_270                 , Kdll_None },
@@ -2673,6 +2701,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_MIRROR_HORIZONTAL            , Kdll_None },
@@ -2690,6 +2719,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_MIRROR_VERTICAL              , Kdll_None },
@@ -2707,6 +2737,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_VERTICAL    , Kdll_None },
@@ -2724,6 +2755,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_HORIZONTAL  , Kdll_None },
@@ -2741,6 +2773,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Format     , Format_PA                          , Kdll_Or   },
     { RID_IsSrc1Format     , Format_YV12_Planar                 , Kdll_Or   },
     { RID_IsSrc1Format     , Format_NV12                        , Kdll_Or   },
+    { RID_IsSrc1Format     , Format_P010                        , Kdll_Or   },
     { RID_IsSrc1Format     , Format_400P                        , Kdll_None },
     { RID_IsSrc1Sampling   , Sample_Scaling_AVS                 , Kdll_None },
     { RID_SetKernel        , IDR_VP_PA_444AVS16_Buf_4           , Kdll_None },
