@@ -3155,6 +3155,16 @@ int32_t CompositeState::SetLayer(
             SurfaceParams.bChromasiting      = true;
             pSource->bChromaSiting           = true;
         }
+        else
+        {
+            SurfaceParams.bChromasiting = false;
+            pSource->bChromaSiting      = false;
+        }
+    }
+    else
+    {
+            SurfaceParams.bChromasiting      = false;
+            pSource->bChromaSiting           = false;
     }
 
     if (pSource->bInterlacedScaling)
