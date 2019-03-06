@@ -1932,11 +1932,9 @@ MOS_STATUS CodechalDecodeAvc::CalcDownsamplingParams(
     *format = Format_NV12;
     *frameIdx = avcPicParams->CurrPic.FrameIdx;
 
-    if (m_refSurfaces == nullptr)
-    {
-        *refSurfWidth = (avcPicParams->pic_width_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_WIDTH;
-        *refSurfHeight = (avcPicParams->pic_height_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_HEIGHT;
-    }
+    *refSurfWidth = (avcPicParams->pic_width_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_WIDTH;
+    *refSurfHeight = (avcPicParams->pic_height_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_HEIGHT;
+
 
     return eStatus;
 }

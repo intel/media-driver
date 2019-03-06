@@ -601,6 +601,56 @@ MOS_STATUS CodechalDecode::AllocateRefSurfaces(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalDecode::RefSurfacesResize(
+    uint32_t     frameIdx,
+    uint32_t     width,
+    uint32_t     height,
+    MOS_FORMAT   format)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    CODECHAL_DECODE_FUNCTION_ENTER;
+  
+    if (m_refSurfaces[frameIdx].dwWidth == 0 || m_refSurfaces[frameIdx].dwHeight == 0)
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("Invalid Downsampling Reference Frame Width or Height !");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+  
+    DeallocateSpecificRefSurfaces(frameIdx);
+  
+    eStatus = AllocateSurface(
+        &m_refSurfaces[frameIdx],
+        width,
+        height,
+        "DownsamplingRefSurface",
+        format,
+        CodecHalMmcState::IsMmcEnabled());
+  
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("Failed to allocate decode downsampling reference surface.");
+        DeallocateRefSurfaces();
+        return eStatus;
+    }
+  
+    return MOS_STATUS_SUCCESS;
+}
+
+void CodechalDecode::DeallocateSpecificRefSurfaces(uint32_t frameIdx)
+{
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    if (m_refSurfaces != nullptr && frameIdx != 0)
+    {
+        if (!Mos_ResourceIsNull(&m_refSurfaces[frameIdx].OsResource))
+        {
+            m_osInterface->pfnFreeResource(
+                m_osInterface,
+                &m_refSurfaces[frameIdx].OsResource);
+        }
+    }
+}
+
 void CodechalDecode::DeallocateRefSurfaces()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
@@ -1073,12 +1123,21 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             {
                 m_refFrmCnt = decodeParams->m_refFrameCnt;
                 CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateRefSurfaces(allocWidth, allocHeight, format));
-
-                procParams->rcInputSurfaceRegion.X      = 0;
-                procParams->rcInputSurfaceRegion.Y      = 0;
-                procParams->rcInputSurfaceRegion.Width  = allocWidth;
-                procParams->rcInputSurfaceRegion.Height = allocHeight;
             }
+            else
+            {
+                PMOS_SURFACE currSurface = &m_refSurfaces[frameIdx];
+                if (currSurface->dwHeight < allocHeight || currSurface->dwWidth < allocWidth)
+                {
+                    CODECHAL_DECODE_CHK_STATUS_RETURN(RefSurfacesResize(frameIdx, allocWidth, allocHeight, format));
+                }
+            }
+
+            procParams->rcInputSurfaceRegion.X = 0;
+            procParams->rcInputSurfaceRegion.Y = 0;
+            procParams->rcInputSurfaceRegion.Width = allocWidth;
+            procParams->rcInputSurfaceRegion.Height = allocHeight;
+          
             procParams->pInputSurface = &m_refSurfaces[frameIdx];
         }
         decodeParams->m_destSurface = &m_refSurfaces[frameIdx];
