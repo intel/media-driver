@@ -1035,7 +1035,10 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
                 // if the CurKey didn't be added in pKeyList, free it.
                 for (uint32_t i = 0; i < iCount; i++)
                 {
-                    MOS_FreeMemory(CurValue[i].ulValueBuf);
+                    if (CurValue)
+                    {
+                        MOS_FreeMemory(CurValue[i].ulValueBuf);
+                    }
                 }
                 MOS_FreeMemory(CurKey);
             }
@@ -1044,7 +1047,10 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
         {
             for (uint32_t i = 0; i < iCount; i++)
             {
-                MOS_FreeMemory(CurValue[i].ulValueBuf);
+                if (CurValue)
+                {
+                    MOS_FreeMemory(CurValue[i].ulValueBuf);
+                }
             }
             MOS_FreeMemory(CurKey);
         }
@@ -1053,7 +1059,10 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
     {
         for (uint32_t i = 0; i < iCount; i++)
         {
-            MOS_FreeMemory(CurValue[i].ulValueBuf);
+            if (CurValue)
+            {
+                MOS_FreeMemory(CurValue[i].ulValueBuf);
+            }
         }
         MOS_FreeMemory(CurKey);
     }
