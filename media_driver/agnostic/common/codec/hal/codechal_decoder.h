@@ -901,7 +901,33 @@ private:
         uint32_t allocWidth,
         uint32_t allocHeight,
         MOS_FORMAT format);
-
+    //!
+    //! \brief    Resize specific reference surfaces 
+    //! \details  Resize specific reference surfaces for decode downsampling for all codec types
+    //! \param    frameIdx
+    //!           [in] index of surfaces array 
+    //! \param    width
+    //!           [in] Width of the surfaces to be allocated
+    //! \param    height
+    //!           [in] Height of the surfaces to be allocated
+    //! \param    format
+    //!           [in] Flag to indicate the format of the surfaces to be allocated
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+   MOS_STATUS RefSurfacesResize(
+        uint32_t     frameIdx,
+        uint32_t     width,
+        uint32_t     height,
+        MOS_FORMAT   format);
+    //!
+    //! \brief    Deallocate specific reference surfaces 
+    //! \details  Deallocate specific reference surfaces for decode downsampling for all codec types
+    //! \param    frameIdx
+    //!           [in] index of surfaces array
+    //! \return   N/A
+    //!
+    void DeallocateSpecificRefSurfaces(uint32_t frameIdx);
     //!
     //! \brief    Deallocate reference surfaces
     //! \details  Deallocate reference surfaces for decode downsampling for all codec types
