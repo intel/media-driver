@@ -217,8 +217,8 @@ protected:
     //!
     bool IsSfcInUse(CodechalSetting * codecHalSettings) override
     {
-        MOS_UNUSED(codecHalSettings);
-        return MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
+        return (codecHalSettings->sfcEnablingHinted && MEDIA_IS_SKU(m_skuTable, FtrSFCPipe));
+
     }
 
 protected:
