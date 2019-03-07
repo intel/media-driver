@@ -821,6 +821,16 @@ MOS_STATUS VphalRenderer::RenderSingleStream(
             pRenderParams,
             pRenderPassData));
 
+        if (pRenderPassData->bSFCScalingOnly)
+        {
+            // set the output surface which from the Vebox+SFC as input surface, and let comp to do composite.
+            VPHAL_RENDER_CHK_NULL(pRenderPassData->pOutSurface);
+            pRenderPassData->bCompNeeded = true;
+            pRenderPassData->bSFCScalingOnly = false;
+            pRenderPassData->pSrcSurface = pRenderPassData->pOutSurface;
+            pRenderPassData->pSrcSurface->SurfType = SURF_IN_PRIMARY;
+        }
+
         if (pRenderPassData->bOutputGenerated)
         {
             pRenderPassData->pSrcSurface = pRenderPassData->pOutSurface;
