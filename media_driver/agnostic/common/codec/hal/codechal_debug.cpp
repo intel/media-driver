@@ -639,6 +639,7 @@ uint8_t *vPlaneData = surfBaseAddr;
     if (surfBaseAddr)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
+        MOS_FreeMemory(surfBaseAddr);
     }
 
     return MOS_STATUS_SUCCESS;
