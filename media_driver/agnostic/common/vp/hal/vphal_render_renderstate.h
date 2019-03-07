@@ -50,6 +50,7 @@ public:
     PVPHAL_SURFACE          pPrimarySurface;                                    // Null of no primary passed by app.
 
     static const uint32_t   TempSurfaceAmount = 2;
+    bool                    bSFCScalingOnly = false;                            // whehter use SFC replace AVS do scaling.
 
     RenderpassData() :
         bCompNeeded(false),
