@@ -109,15 +109,13 @@ bool CPLibUtils::LoadCPLib(VADriverContextP ctx)
 
 void CPLibUtils::UnloadCPLib(VADriverContextP ctx)
 {
+    using FuncType = void (*)(VADriverContextP ctx);
+    InvokeCpFunc<FuncType>(FUNC_RELEASE_CPLIB, ctx);
+
     if(nullptr != m_phandle)
     {
         m_symbols.clear();
         if(0 != dlclose(m_phandle)) // dlclose will return 0 if execution sucecceed
             CPLIB_ASSERTMESSAGE("Failed to close CPLIB %s", dlerror());
     }
-
-    using FuncType = void (*)(VADriverContextP ctx);
-    InvokeCpFunc<FuncType>(FUNC_RELEASE_CPLIB, ctx);
-
-
 }
