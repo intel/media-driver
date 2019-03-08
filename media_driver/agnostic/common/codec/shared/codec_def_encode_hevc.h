@@ -59,13 +59,6 @@
 #define ENCODE_DP_HEVC_ROI_BLOCK_Width        16    
 #define ENCODE_DP_HEVC_ROI_BLOCK_HEIGHT       16
 
-// Enc HEVC DDI CodingType
-#define ENCODE_HEVC_INTRA_TYPE          1
-#define ENCODE_HEVC_P_OR_LDB_TYPE       2
-#define ENCODE_HEVC_P_B_LDB_L1_TYPE     3
-#define ENCODE_HEVC_P_B_LDB_L2_TYPE     4
-#define ENCODE_HEVC_P_B_L3_TYPE         5
-
 typedef enum
 {
     ENCODE_HEVC_BIT_DEPTH_8     = 0,
@@ -332,8 +325,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1 : streaming buffer by DDR is enabled.
             */
             uint32_t        EnableStreamingBufferDDR : 1;
-            uint32_t        LowDelayMode             : 1;
-            uint32_t        ReservedBits             : 5;
+            uint32_t        ReservedBits             : 6;
         };
         uint32_t    SeqFlags;
     };
@@ -514,7 +506,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    \n For B1 and B2 explanation refer to NumOfBInGop[]
     */
     uint8_t                 CodingType;
-    uint8_t                 FrameLevel; // [0] deprecated
+    uint8_t                 FrameLevel;
     uint16_t                NumSlices;
 
     union
