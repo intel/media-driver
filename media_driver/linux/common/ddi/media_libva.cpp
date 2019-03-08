@@ -4311,7 +4311,13 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
         break;
-    default:
+    case Media_Format_AYUV:
+        vaimg->format.bits_per_pixel    = 32;
+        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
+        vaimg->num_planes               = 1;
+        vaimg->pitches[0]               = mediaSurface->iPitch;
+        break;
+     default:
         vaimg->format.bits_per_pixel    = 12;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3 / 2;
         vaimg->num_planes               = 2;
