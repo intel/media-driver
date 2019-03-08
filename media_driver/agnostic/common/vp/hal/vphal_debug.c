@@ -2057,7 +2057,7 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
 
     // Get enableAuxDump
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP_ID,
         &UserFeatureData));
