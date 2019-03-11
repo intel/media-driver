@@ -5783,7 +5783,7 @@ MOS_STATUS CompositeState::RenderPhase(
                                                     &pCompParams->Target[0]);
             }
             else if (m_need3DSampler                                       &&
-                     pSource->ScalingMode == VPHAL_SCALING_BILINEAR        &&
+                     pSource->ScalingMode != VPHAL_SCALING_AVS             &&
                      pSource->SurfType == SURF_IN_PRIMARY                  &&
                      (IS_PL2_FORMAT(pSource->Format)                       ||
                      pSource->Format == Format_YUY2))
