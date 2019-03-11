@@ -1234,6 +1234,11 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             "Primitive level decoding failed.");
     }
 
+    if (m_secureDecoder != nullptr)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->UpdateHuCStreamoutBufferIndex());
+    }
+
     *decodeParams = m_decodeParams;
 
     if (m_decodeHistogram != nullptr)
