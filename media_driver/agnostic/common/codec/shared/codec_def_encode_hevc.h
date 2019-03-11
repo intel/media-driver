@@ -325,7 +325,15 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1 : streaming buffer by DDR is enabled.
             */
             uint32_t        EnableStreamingBufferDDR : 1;
-            uint32_t        ReservedBits             : 6;
+
+            uint32_t        ReservedBit              : 1;
+            /*! \brief Disable HRD conformance
+            *
+            *        \n - 0 : HRD conformance is enabled.
+            *        \n - 1 : HRD conformance is disabled (aka no panic mode).
+            */
+            uint32_t        DisableHRDConformance    : 1;
+            uint32_t        ReservedBits             : 4;
         };
         uint32_t    SeqFlags;
     };
