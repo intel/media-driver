@@ -234,6 +234,19 @@
 //!
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG        "MMC Sub Components Tags"
 
+//!
+//! \brief User feature keys for component BLT:
+//!
+#define __MOS_USER_FEATURE_KEY_MESSAGE_BLT_TAG              "BLT Message Tags"
+#define __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_BLT         "BLT Tags By Sub Component"
+//!
+//! \brief 63____________________________________________________________________________3__________0
+//!         |                                                                            |   Self   |
+//!         |                    Reserved (can create BLT subcomponents)                 |Asrt|level|
+//!         |____________________________________________________________________________|__________|
+//!
+#define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_BLT_TAG        "BLT Sub Components Tags"
+
 #endif // MOS_MESSAGES_ENABLED
 
 //User feature key for MDF

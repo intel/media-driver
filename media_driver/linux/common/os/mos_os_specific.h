@@ -175,7 +175,8 @@ typedef enum _MOS_GPU_NODE
     MOS_GPU_NODE_VE      = I915_EXEC_VEBOX,
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,
-    MOS_GPU_NODE_MAX     = 6,//GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2) + 1
+    MOS_GPU_NODE_BLT     = I915_EXEC_BLT,
+    MOS_GPU_NODE_MAX     = 7,//GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2, I915_EXEC_BLT) + 1
 } MOS_GPU_NODE, *PMOS_GPU_NODE;
 
 //!
@@ -192,23 +193,22 @@ static inline MOS_GPU_NODE OSKMGetGpuNode(MOS_GPU_CONTEXT uiGpuContext)
         case MOS_GPU_CONTEXT_COMPUTE: //change this context mapping to Compute Node instead of 3D node after the node name is defined in linux.
             return  MOS_GPU_NODE_3D;
             break;
-
         case MOS_GPU_CONTEXT_VEBOX:
             return  MOS_GPU_NODE_VE;
             break;
-
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
         case MOS_GPU_CONTEXT_VIDEO3:
             return MOS_GPU_NODE_VIDEO;
             break;
-
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
             return MOS_GPU_NODE_VIDEO2;
             break;
-
+        case MOS_GPU_CONTEXT_BLT:
+            return MOS_GPU_NODE_BLT;
+            break;  
         default:
             return MOS_GPU_NODE_MAX ;
             break;
