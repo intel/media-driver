@@ -417,7 +417,8 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_VIDEO5          = 18, // Decode Node 0 Split 2
     MOS_GPU_CONTEXT_VIDEO6          = 19, // Encode Node 0 Split 2
     MOS_GPU_CONTEXT_VIDEO7          = 20, // Decode Node 0 Split 3
-    MOS_GPU_CONTEXT_MAX             = 21,
+    MOS_GPU_CONTEXT_BLT             = 21,
+    MOS_GPU_CONTEXT_MAX             = 22,
     MOS_GPU_CONTEXT_INVALID_HANDLE  = 0xFFFFA
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
 

@@ -44,6 +44,7 @@ class MhwVdboxMfxInterface;
 class MhwVdboxHcpInterface;
 class MhwVdboxHucInterface;
 class MhwVdboxVdencInterface;
+class MhwBltInterface;
 
 //!
 //! \class    MhwInterfaces
@@ -75,7 +76,8 @@ public:
                 uint32_t m_hcp : 1;
                 uint32_t m_huc : 1;
                 uint32_t m_vdenc : 1;
-                uint32_t m_reserved : 23;
+                uint32_t m_blt : 1;
+                uint32_t m_reserved : 22;
             };
             uint32_t m_value;
         } Flags;
@@ -97,6 +99,7 @@ public:
     MhwVdboxHcpInterface *m_hcpInterface = nullptr;
     MhwVdboxHucInterface *m_hucInterface = nullptr;
     MhwVdboxVdencInterface *m_vdencInterface = nullptr;
+    MhwBltInterface *m_bltInterface = nullptr;
 
     //!
     //! \brief    Calls the factory function to initialize all requested interfaces.
