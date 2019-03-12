@@ -1,0 +1,77 @@
+From 17dba8fe96ab3ee1cc98b37cce7081cd7b5b61ae Mon Sep 17 00:00:00 2001
+From: Tony Ye <tony.ye@intel.com>
+Date: Fri, 22 Feb 2019 03:43:45 +0800
+Subject: [PATCH] Fix HEVC VME and MPEG2 encode segfault issue.
+
+---
+ .../codec/hal/codechal_encode_singlepipe_virtualengine.h |  5 ++++-
+ .../gen11/codec/hal/codechal_encode_hevc_g11.cpp         |  2 +-
+ .../gen11/codec/hal/codechal_encode_mpeg2_g11.cpp        | 16 +++++++++++-----
+ 3 files changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/media_driver/agnostic/common/codec/hal/codechal_encode_singlepipe_virtualengine.h b/media_driver/agnostic/common/codec/hal/codechal_encode_singlepipe_virtualengine.h
+index 70dfe14..8b1be03 100644
+--- a/media_driver/agnostic/common/codec/hal/codechal_encode_singlepipe_virtualengine.h
++++ b/media_driver/agnostic/common/codec/hal/codechal_encode_singlepipe_virtualengine.h
+@@ -61,7 +61,10 @@ static __inline MOS_STATUS CodecHalEncodeSinglePipeVE_SetHintParams(
+ 
+     if(!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pVEInterface->pOsInterface))
+     {
+-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, pVESetParams));
++        if(pVEInterface->pfnVESetHintParams)
++        {
++            CODECHAL_ENCODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, pVESetParams));
++        }
+     }
+ 
+     return eStatus;
+diff --git a/media_driver/agnostic/gen11/codec/hal/codechal_encode_hevc_g11.cpp b/media_driver/agnostic/gen11/codec/hal/codechal_encode_hevc_g11.cpp
+index 8e49b6d..5078e3a 100644
+--- a/media_driver/agnostic/gen11/codec/hal/codechal_encode_hevc_g11.cpp
++++ b/media_driver/agnostic/gen11/codec/hal/codechal_encode_hevc_g11.cpp
+@@ -8962,7 +8962,7 @@ MOS_STATUS CodechalEncHevcStateG11::UpdateCmdBufAttribute(
+ 
+     // should not be there. Will remove it in the next change
+     CODECHAL_ENCODE_FUNCTION_ENTER;
+-    if (MOS_VE_SUPPORTED(m_osInterface))
++    if (MOS_VE_SUPPORTED(m_osInterface) && cmdBuffer->Attributes.pAttriVe)
+     {
+         PMOS_CMD_BUF_ATTRI_VE attriExt =
+             (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);
+diff --git a/media_driver/agnostic/gen11/codec/hal/codechal_encode_mpeg2_g11.cpp b/media_driver/agnostic/gen11/codec/hal/codechal_encode_mpeg2_g11.cpp
+index fa383fe..f68bf07 100644
+--- a/media_driver/agnostic/gen11/codec/hal/codechal_encode_mpeg2_g11.cpp
++++ b/media_driver/agnostic/gen11/codec/hal/codechal_encode_mpeg2_g11.cpp
+@@ -1887,8 +1887,11 @@ MOS_STATUS CodechalEncodeMpeg2G11::SendPrologWithFrameTracking(
+     {
+         PMOS_CMD_BUF_ATTRI_VE attriExt =
+                 (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);
+-        attriExt->bUseVirtualEngineHint = true;
+-        attriExt->VEngineHintParams.NeedSyncWithPrevious = 1;
++        if (attriExt)
++        {
++            attriExt->bUseVirtualEngineHint = true;
++            attriExt->VEngineHintParams.NeedSyncWithPrevious = 1;
++        }
+     }
+ 
+     return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+@@ -2163,9 +2166,12 @@ MOS_STATUS CodechalEncodeMpeg2G11::UpdateCmdBufAttribute(
+         PMOS_CMD_BUF_ATTRI_VE attriExt =
+             (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);
+ 
+-        memset(attriExt, 0, sizeof(MOS_CMD_BUF_ATTRI_VE));
+-        attriExt->bUseVirtualEngineHint =
+-            attriExt->VEngineHintParams.NeedSyncWithPrevious = !renderEngineInUse;
++        if (attriExt)
++        {
++            memset(attriExt, 0, sizeof(MOS_CMD_BUF_ATTRI_VE));
++            attriExt->bUseVirtualEngineHint =
++                attriExt->VEngineHintParams.NeedSyncWithPrevious = !renderEngineInUse;
++        }
+     }
+ 
+     return eStatus;
+-- 
+2.7.4
+

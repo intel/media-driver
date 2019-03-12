@@ -1,0 +1,503 @@
+From f4e91c889a95694766d6debdd4d463dbd5865c00 Mon Sep 17 00:00:00 2001
+From: Tony Ye <tony.ye@intel.com>
+Date: Tue, 19 Feb 2019 18:32:46 +0800
+Subject: [PATCH] Add Virtual Engine uAPI in the header.
+
+---
+ .../linux/common/os/i915/include/uapi/i915_drm.h   | 358 ++++++++++++++++-----
+ 1 file changed, 285 insertions(+), 73 deletions(-)
+
+diff --git a/media_driver/linux/common/os/i915/include/uapi/i915_drm.h b/media_driver/linux/common/os/i915/include/uapi/i915_drm.h
+index d2792ab..06e741e 100644
+--- a/media_driver/linux/common/os/i915/include/uapi/i915_drm.h
++++ b/media_driver/linux/common/os/i915/include/uapi/i915_drm.h
+@@ -63,6 +63,26 @@ extern "C" {
+ #define I915_RESET_UEVENT		"RESET"
+ 
+ /*
++ * i915_user_extension: Base class for defining a chain of extensions
++ *
++ * Many interfaces need to grow over time. In most cases we can simply
++ * extend the struct and have userspace pass in more data. Another option,
++ * as demonstrated by Vulkan's approach to providing extensions for forward
++ * and backward compatibility, is to use a list of optional structs to
++ * provide those extra details.
++ *
++ * The key advantage to using an extension chain is that it allows us to
++ * redefine the interface more easily than an ever growing struct of
++ * increasing complexity, and for large parts of that interface to be
++ * entirely optional. The downside is more pointer chasing; chasing across
++ * the boundary with pointers encapsulated inside u64.
++ */
++struct i915_user_extension {
++	__u64 next_extension;
++	__u64 name;
++};
++
++/*
+  * MOCS indexes used for GPU surfaces, defining the cacheability of the
+  * surface data and the coherency for this data wrt. CPU vs. GPU accesses.
+  */
+@@ -102,6 +122,9 @@ enum drm_i915_gem_engine_class {
+ 	I915_ENGINE_CLASS_INVALID	= -1
+ };
+ 
++#define I915_ENGINE_CLASS_INVALID_NONE -1
++#define I915_ENGINE_CLASS_INVALID_VIRTUAL 0
++
+ /**
+  * DOC: perf_events exposed by i915 through /sys/bus/event_sources/drivers/i915
+  *
+@@ -319,6 +342,8 @@ typedef struct _drm_i915_sarea {
+ #define DRM_I915_PERF_ADD_CONFIG	0x37
+ #define DRM_I915_PERF_REMOVE_CONFIG	0x38
+ #define DRM_I915_QUERY			0x39
++#define DRM_I915_GEM_VM_CREATE		0x3a
++#define DRM_I915_GEM_VM_DESTROY		0x3b
+ 
+ #define DRM_IOCTL_I915_INIT		DRM_IOW( DRM_COMMAND_BASE + DRM_I915_INIT, drm_i915_init_t)
+ #define DRM_IOCTL_I915_FLUSH		DRM_IO ( DRM_COMMAND_BASE + DRM_I915_FLUSH)
+@@ -367,6 +392,7 @@ typedef struct _drm_i915_sarea {
+ #define DRM_IOCTL_I915_GET_SPRITE_COLORKEY DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GET_SPRITE_COLORKEY, struct drm_intel_sprite_colorkey)
+ #define DRM_IOCTL_I915_GEM_WAIT		DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_WAIT, struct drm_i915_gem_wait)
+ #define DRM_IOCTL_I915_GEM_CONTEXT_CREATE	DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_CREATE, struct drm_i915_gem_context_create)
++#define DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT	DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_CREATE, struct drm_i915_gem_context_create_ext)
+ #define DRM_IOCTL_I915_GEM_CONTEXT_DESTROY	DRM_IOW (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_DESTROY, struct drm_i915_gem_context_destroy)
+ #define DRM_IOCTL_I915_REG_READ			DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_REG_READ, struct drm_i915_reg_read)
+ #define DRM_IOCTL_I915_GET_RESET_STATS		DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GET_RESET_STATS, struct drm_i915_reset_stats)
+@@ -377,6 +403,8 @@ typedef struct _drm_i915_sarea {
+ #define DRM_IOCTL_I915_PERF_ADD_CONFIG	DRM_IOW(DRM_COMMAND_BASE + DRM_I915_PERF_ADD_CONFIG, struct drm_i915_perf_oa_config)
+ #define DRM_IOCTL_I915_PERF_REMOVE_CONFIG	DRM_IOW(DRM_COMMAND_BASE + DRM_I915_PERF_REMOVE_CONFIG, __u64)
+ #define DRM_IOCTL_I915_QUERY			DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_QUERY, struct drm_i915_query)
++#define DRM_IOCTL_I915_GEM_VM_CREATE	DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_VM_CREATE, struct drm_i915_gem_vm_control)
++#define DRM_IOCTL_I915_GEM_VM_DESTROY	DRM_IOW (DRM_COMMAND_BASE + DRM_I915_GEM_VM_DESTROY, struct drm_i915_gem_vm_control)
+ 
+ /* Allow drivers to submit batchbuffers directly to hardware, relying
+  * on the security mechanisms provided by hardware.
+@@ -476,6 +504,8 @@ typedef struct drm_i915_irq_wait {
+ #define   I915_SCHEDULER_CAP_ENABLED	(1ul << 0)
+ #define   I915_SCHEDULER_CAP_PRIORITY	(1ul << 1)
+ #define   I915_SCHEDULER_CAP_PREEMPTION	(1ul << 2)
++#define   I915_SCHEDULER_CAP_SEMAPHORES	(1ul << 3)
++#define   I915_SCHEDULER_CAP_PMU	(1ul << 4)
+ 
+ #define I915_PARAM_HUC_STATUS		 42
+ 
+@@ -559,6 +589,13 @@ typedef struct drm_i915_irq_wait {
+  */
+ #define I915_PARAM_MMAP_GTT_COHERENT	52
+ 
++/*
++ * Query whether DRM_I915_GEM_EXECBUFFER2 supports coordination of parallel
++ * execution through use of explicit fence support.
++ * See I915_EXEC_FENCE_OUT and I915_EXEC_FENCE_SUBMIT.
++ */
++#define I915_PARAM_HAS_EXEC_SUBMIT_FENCE 53
++
+ typedef struct drm_i915_getparam {
+ 	__s32 param;
+ 	/*
+@@ -972,7 +1009,7 @@ struct drm_i915_gem_execbuffer2 {
+ 	 * struct drm_i915_gem_exec_fence *fences.
+ 	 */
+ 	__u64 cliprects_ptr;
+-#define I915_EXEC_RING_MASK              (7<<0)
++#define I915_EXEC_RING_MASK              (0x3f)
+ #define I915_EXEC_DEFAULT                (0<<0)
+ #define I915_EXEC_RENDER                 (1<<0)
+ #define I915_EXEC_BSD                    (2<<0)
+@@ -1078,7 +1115,16 @@ struct drm_i915_gem_execbuffer2 {
+  */
+ #define I915_EXEC_FENCE_ARRAY   (1<<19)
+ 
+-#define __I915_EXEC_UNKNOWN_FLAGS (-(I915_EXEC_FENCE_ARRAY<<1))
++/*
++ * Setting I915_EXEC_FENCE_SUBMIT implies that lower_32_bits(rsvd2) represent
++ * a sync_file fd to wait upon (in a nonblocking manner) prior to executing
++ * the batch.
++ *
++ * Returns -EINVAL if the sync_file fd cannot be found.
++ */
++#define I915_EXEC_FENCE_SUBMIT		(1<<20)
++
++#define __I915_EXEC_UNKNOWN_FLAGS (-(I915_EXEC_FENCE_SUBMIT<<1))
+ 
+ #define I915_EXEC_CONTEXT_ID_MASK	(0xffffffff)
+ #define i915_execbuffer2_set_context_id(eb2, context) \
+@@ -1120,32 +1166,34 @@ struct drm_i915_gem_busy {
+ 	 * as busy may become idle before the ioctl is completed.
+ 	 *
+ 	 * Furthermore, if the object is busy, which engine is busy is only
+-	 * provided as a guide. There are race conditions which prevent the
+-	 * report of which engines are busy from being always accurate.
+-	 * However, the converse is not true. If the object is idle, the
+-	 * result of the ioctl, that all engines are idle, is accurate.
++	 * provided as a guide and only indirectly by reporting its class
++	 * (there may be more than one engine in each class). There are race
++	 * conditions which prevent the report of which engines are busy from
++	 * being always accurate.  However, the converse is not true. If the
++	 * object is idle, the result of the ioctl, that all engines are idle,
++	 * is accurate.
+ 	 *
+ 	 * The returned dword is split into two fields to indicate both
+-	 * the engines on which the object is being read, and the
+-	 * engine on which it is currently being written (if any).
++	 * the engine classess on which the object is being read, and the
++	 * engine class on which it is currently being written (if any).
+ 	 *
+ 	 * The low word (bits 0:15) indicate if the object is being written
+ 	 * to by any engine (there can only be one, as the GEM implicit
+ 	 * synchronisation rules force writes to be serialised). Only the
+-	 * engine for the last write is reported.
++	 * engine class (offset by 1, I915_ENGINE_CLASS_RENDER is reported as
++	 * 1 not 0 etc) for the last write is reported.
+ 	 *
+-	 * The high word (bits 16:31) are a bitmask of which engines are
+-	 * currently reading from the object. Multiple engines may be
++	 * The high word (bits 16:31) are a bitmask of which engines classes
++	 * are currently reading from the object. Multiple engines may be
+ 	 * reading from the object simultaneously.
+ 	 *
+-	 * The value of each engine is the same as specified in the
+-	 * EXECBUFFER2 ioctl, i.e. I915_EXEC_RENDER, I915_EXEC_BSD etc.
+-	 * Note I915_EXEC_DEFAULT is a symbolic value and is mapped to
+-	 * the I915_EXEC_RENDER engine for execution, and so it is never
++	 * The value of each engine class is the same as specified in the
++	 * I915_CONTEXT_SET_ENGINES parameter and via perf, i.e.
++	 * I915_ENGINE_CLASS_RENDER, I915_ENGINE_CLASS_COPY, etc.
+ 	 * reported as active itself. Some hardware may have parallel
+ 	 * execution engines, e.g. multiple media engines, which are
+-	 * mapped to the same identifier in the EXECBUFFER2 ioctl and
+-	 * so are not separately reported for busyness.
++	 * mapped to the same class identifier and so are not separately
++	 * reported for busyness.
+ 	 *
+ 	 * Caveat emptor:
+ 	 * Only the boolean result of this query is reliable; that is whether
+@@ -1412,65 +1460,15 @@ struct drm_i915_gem_wait {
+ };
+ 
+ struct drm_i915_gem_context_create {
+-	/*  output: id of new context*/
+-	__u32 ctx_id;
+-	__u32 pad;
+-};
+-
+-struct drm_i915_gem_context_destroy {
+-	__u32 ctx_id;
+-	__u32 pad;
+-};
+-
+-struct drm_i915_reg_read {
+-	/*
+-	 * Register offset.
+-	 * For 64bit wide registers where the upper 32bits don't immediately
+-	 * follow the lower 32bits, the offset of the lower 32bits must
+-	 * be specified
+-	 */
+-	__u64 offset;
+-#define I915_REG_READ_8B_WA (1ul << 0)
+-
+-	__u64 val; /* Return value */
+-};
+-/* Known registers:
+- *
+- * Render engine timestamp - 0x2358 + 64bit - gen7+
+- * - Note this register returns an invalid value if using the default
+- *   single instruction 8byte read, in order to workaround that pass
+- *   flag I915_REG_READ_8B_WA in offset field.
+- *
+- */
+-
+-struct drm_i915_reset_stats {
+-	__u32 ctx_id;
+-	__u32 flags;
+-
+-	/* All resets since boot/module reload, for all contexts */
+-	__u32 reset_count;
+-
+-	/* Number of batches lost when active in GPU, for this context */
+-	__u32 batch_active;
+-
+-	/* Number of batches lost pending for execution, for this context */
+-	__u32 batch_pending;
+-
++	__u32 ctx_id; /* output: id of new context*/
+ 	__u32 pad;
+ };
+ 
+-struct drm_i915_gem_userptr {
+-	__u64 user_ptr;
+-	__u64 user_size;
++struct drm_i915_gem_context_create_ext {
++	__u32 ctx_id; /* output: id of new context*/
+ 	__u32 flags;
+-#define I915_USERPTR_READ_ONLY 0x1
+-#define I915_USERPTR_UNSYNCHRONIZED 0x80000000
+-	/**
+-	 * Returned handle for the object.
+-	 *
+-	 * Object handles are nonzero.
+-	 */
+-	__u32 handle;
++#define I915_GEM_CONTEXT_SINGLE_TIMELINE	0x1
++	__u64 extensions;
+ };
+ 
+ struct drm_i915_gem_context_param {
+@@ -1491,6 +1489,42 @@ struct drm_i915_gem_context_param {
+ 	 * drm_i915_gem_context_param_sseu.
+ 	 */
+ #define I915_CONTEXT_PARAM_SSEU		0x7
++
++	/*
++	 * The id of the associated virtual memory address space (ppGTT) of
++	 * this context. Can be retrieved and passed to another context
++	 * (on the same fd) for both to use the same ppGTT and so share
++	 * address layouts, and avoid reloading the page tables on context
++	 * switches between themselves.
++	 *
++	 * See DRM_I915_GEM_VM_CREATE and DRM_I915_GEM_VM_DESTROY.
++	 */
++#define I915_CONTEXT_PARAM_VM		0x8
++
++/*
++ * I915_CONTEXT_PARAM_ENGINES:
++ *
++ * Bind this context to operate on this subset of available engines. Henceforth,
++ * the I915_EXEC_RING selector for DRM_IOCTL_I915_GEM_EXECBUFFER2 operates as
++ * an index into this array of engines; I915_EXEC_DEFAULT selecting engine[0]
++ * and upwards. Slots 0...N are filled in using the specified (class, instance).
++ * Use
++ *	engine_class: I915_ENGINE_CLASS_INVALID,
++ *	engine_instance: I915_ENGINE_CLASS_INVALID_NONE
++ * to specify a gap in the array that can be filled in later, e.g. by a
++ * virtual engine used for load balancing.
++ *
++ * Setting the number of engines bound to the context to 0, by passing a zero
++ * sized argument, will revert back to default settings.
++ *
++ * See struct i915_context_param_engines.
++ *
++ * Extensions:
++ *   i915_context_engines_load_balance (I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE)
++ *   i915_context_engines_bond (I915_CONTEXT_ENGINES_EXT_BOND)
++ */
++#define I915_CONTEXT_PARAM_ENGINES	0x9
++
+ 	__u64 value;
+ };
+ 
+@@ -1523,9 +1557,10 @@ struct drm_i915_gem_context_param_sseu {
+ 	__u16 engine_instance;
+ 
+ 	/*
+-	 * Unused for now. Must be cleared to zero.
++	 * Unknown flags must be cleared to zero.
+ 	 */
+ 	__u32 flags;
++#define I915_CONTEXT_SSEU_FLAG_ENGINE_INDEX (1u << 0)
+ 
+ 	/*
+ 	 * Mask of slices to enable for the context. Valid values are a subset
+@@ -1553,6 +1588,138 @@ struct drm_i915_gem_context_param_sseu {
+ 	__u32 rsvd;
+ };
+ 
++/*
++ * i915_context_engines_load_balance:
++ *
++ * Enable load balancing across this set of engines.
++ *
++ * Into the I915_EXEC_DEFAULT slot [0], a virtual engine is created that when
++ * used will proxy the execbuffer request onto one of the set of engines
++ * in such a way as to distribute the load evenly across the set.
++ *
++ * The set of engines must be compatible (e.g. the same HW class) as they
++ * will share the same logical GPU context and ring.
++ *
++ * To intermix rendering with the virtual engine and direct rendering onto
++ * the backing engines (bypassing the load balancing proxy), the context must
++ * be defined to use a single timeline for all engines.
++ */
++struct i915_context_engines_load_balance {
++	struct i915_user_extension base;
++
++	__u64 flags; /* all undefined flags must be zero */
++	__u64 engines_mask; /* selection mask of engines[] */
++
++	__u64 mbz[4]; /* reserved for future use; must be zero */
++};
++
++/*
++ * i915_context_engines_bond:
++ *
++ */
++struct i915_context_engines_bond {
++	struct i915_user_extension base;
++
++	__u16 master_class;
++	__u16 master_instance;
++	__u32 flags; /* all undefined flags must be zero */
++	__u64 sibling_mask;
++};
++
++struct i915_context_param_engines {
++	__u64 extensions; /* linked chain of extension blocks, 0 terminates */
++#define I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE 0
++#define I915_CONTEXT_ENGINES_EXT_BOND 1
++
++	struct {
++		__u16 engine_class; /* see enum drm_i915_gem_engine_class */
++		__u16 engine_instance;
++	} class_instance[0];
++};
++
++struct drm_i915_gem_context_create_ext_setparam {
++#define I915_CONTEXT_CREATE_EXT_SETPARAM 0
++	struct i915_user_extension base;
++	struct drm_i915_gem_context_param setparam;
++};
++
++struct drm_i915_gem_context_destroy {
++	__u32 ctx_id;
++	__u32 pad;
++};
++
++/*
++ * DRM_I915_GEM_VM_CREATE -
++ *
++ * Create a new virtual memory address space (ppGTT) for use within a context
++ * on the same file. Extensions can be provided to configure exactly how the
++ * address space is setup upon creation.
++ *
++ * The id of new VM (bound to the fd) for use with I915_CONTEXT_PARAM_VM is
++ * returned.
++ *
++ * DRM_I915_GEM_VM_DESTROY -
++ *
++ * Destroys a previously created VM id.
++ */
++struct drm_i915_gem_vm_control {
++	__u64 extensions;
++	__u32 flags;
++	__u32 id;
++};
++
++struct drm_i915_reg_read {
++	/*
++	 * Register offset.
++	 * For 64bit wide registers where the upper 32bits don't immediately
++	 * follow the lower 32bits, the offset of the lower 32bits must
++	 * be specified
++	 */
++	__u64 offset;
++#define I915_REG_READ_8B_WA (1ul << 0)
++
++	__u64 val; /* Return value */
++};
++
++/* Known registers:
++ *
++ * Render engine timestamp - 0x2358 + 64bit - gen7+
++ * - Note this register returns an invalid value if using the default
++ *   single instruction 8byte read, in order to workaround that pass
++ *   flag I915_REG_READ_8B_WA in offset field.
++ *
++ */
++
++struct drm_i915_reset_stats {
++	__u32 ctx_id;
++	__u32 flags;
++
++	/* All resets since boot/module reload, for all contexts */
++	__u32 reset_count;
++
++	/* Number of batches lost when active in GPU, for this context */
++	__u32 batch_active;
++
++	/* Number of batches lost pending for execution, for this context */
++	__u32 batch_pending;
++
++	__u32 pad;
++};
++
++struct drm_i915_gem_userptr {
++	__u64 user_ptr;
++	__u64 user_size;
++	__u32 flags;
++#define I915_USERPTR_READ_ONLY 0x1
++#define I915_USERPTR_UNSYNCHRONIZED 0x80000000
++	/**
++	 * Returned handle for the object.
++	 *
++	 * Object handles are nonzero.
++	 */
++	__u32 handle;
++};
++
+ enum drm_i915_oa_format {
+ 	I915_OA_FORMAT_A13 = 1,	    /* HSW only */
+ 	I915_OA_FORMAT_A29,	    /* HSW only */
+@@ -1714,6 +1881,7 @@ struct drm_i915_perf_oa_config {
+ struct drm_i915_query_item {
+ 	__u64 query_id;
+ #define DRM_I915_QUERY_TOPOLOGY_INFO    1
++#define DRM_I915_QUERY_ENGINE_INFO	2
+ 
+ 	/*
+ 	 * When set to zero by userspace, this is filled with the size of the
+@@ -1811,6 +1979,50 @@ struct drm_i915_query_topology_info {
+ 	__u8 data[];
+ };
+ 
++/**
++ * struct drm_i915_engine_info
++ *
++ * Describes one engine and it's capabilities as known to the driver.
++ */
++struct drm_i915_engine_info {
++	/** Engine class as in enum drm_i915_gem_engine_class. */
++	__u16 engine_class;
++
++	/** Engine instance number. */
++	__u16 engine_instance;
++
++	/** Reserved field. */
++	__u32 rsvd0;
++
++	/** Engine flags. */
++	__u64 flags;
++
++	/** Capabilities of this engine. */
++	__u64 capabilities;
++#define I915_VIDEO_CLASS_CAPABILITY_HEVC		(1 << 0)
++#define I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC	(1 << 1)
++
++	/** Reserved fields. */
++	__u64 rsvd1[4];
++};
++
++/**
++ * struct drm_i915_query_engine_info
++ *
++ * Engine info query enumerates all engines known to the driver by filling in
++ * an array of struct drm_i915_engine_info structures.
++ */
++struct drm_i915_query_engine_info {
++	/** Number of struct drm_i915_engine_info structs following. */
++	__u32 num_engines;
++
++	/** MBZ */
++	__u32 rsvd[3];
++
++	/** Marker for drm_i915_engine_info structures. */
++	struct drm_i915_engine_info engines[];
++};
++
+ #if defined(__cplusplus)
+ }
+ #endif
+-- 
+2.7.4
+
