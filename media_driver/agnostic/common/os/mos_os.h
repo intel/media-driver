@@ -80,6 +80,9 @@
     ((GpuContext) == MOS_GPU_CONTEXT_RENDER_RA)           \
 )
 
+#define MOS_BCS_ENGINE_USED(GpuContext) (             \
+    ((GpuContext) == MOS_GPU_CONTEXT_BLT))
+
 #if MOS_MEDIASOLO_SUPPORTED
 #define MOS_VECS_ENGINE_USED(GpuContext) (             \
     ((GpuContext) == MOS_GPU_CONTEXT_VEBOX)         || \
