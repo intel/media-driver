@@ -551,6 +551,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
             return Media_Format_Y410;
         case VA_FOURCC_Y416:
             return Media_Format_Y416;
+        case VA_FOURCC_ABGR2101010:
+            return Media_Format_R10G10B10A2;  
         default:
             return Media_Format_Count;
     }

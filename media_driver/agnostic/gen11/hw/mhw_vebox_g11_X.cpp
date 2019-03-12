@@ -2546,7 +2546,7 @@ MOS_STATUS MhwVeboxInterfaceG11::CreateGpuContext(
         MOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionenhanced;
 
         createOptionenhanced.LRCACount = 1;
-        createOptionenhanced.UsingSFC  = true;
+        createOptionenhanced.UsingSFC  = false;
 
         // Create VEBOX/VEBOX2 Context
         MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
