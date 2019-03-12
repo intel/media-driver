@@ -8172,17 +8172,14 @@ MOS_STATUS HalCm_ExecuteTask(
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_ParseTask(state, execParam));
 
     // Reset the SSH configuration according to the property of the task
-    btsizePower2 = (uint32_t)renderHal->StateHeapSettings.iBTAlignment/renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
-    while (btsizePower2 < taskParam->surfacePerBT)
-    {
-        btsizePower2 = btsizePower2 * 2;
-    }
-    taskParam->surfacePerBT = btsizePower2;
     renderHal->pStateHeap->iBindingTableSize = MOS_ALIGN_CEIL(taskParam->surfacePerBT *  // Reconfigure the binding table size
                                                  renderHal->pRenderHalPltInterface->GetBTStateCmdSize(), renderHal->StateHeapSettings.iBTAlignment);
-
+    
+    taskParam->surfacePerBT = renderHal->pStateHeap->iBindingTableSize/renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
+    
     renderHal->StateHeapSettings.iBindingTables = renderHal->StateHeapSettings.iBindingTables *             // Reconfigure the binding table number
                                                          renderHal->StateHeapSettings.iSurfacesPerBT / taskParam->surfacePerBT;
+    
     renderHal->StateHeapSettings.iSurfacesPerBT = taskParam->surfacePerBT;                            // Reconfigure the surface per BT
 
     if (execParam->numKernels > (uint32_t)renderHal->StateHeapSettings.iBindingTables)
@@ -8482,15 +8479,11 @@ MOS_STATUS HalCm_ExecuteGroupTask(
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_ParseGroupTask(state, execGroupParam));
 
     // Reset the SSH configuration according to the property of the task
-    btsizePower2 = (uint32_t)renderHal->StateHeapSettings.iBTAlignment/renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
-    while (btsizePower2 < taskParam->surfacePerBT)
-    {
-        btsizePower2 = btsizePower2 * 2;
-    }
-    taskParam->surfacePerBT = btsizePower2;
     renderHal->pStateHeap->iBindingTableSize = MOS_ALIGN_CEIL(taskParam->surfacePerBT *               // Reconfigure the binding table size
                                                          renderHal->pRenderHalPltInterface->GetBTStateCmdSize(),
                                                          renderHal->StateHeapSettings.iBTAlignment);
+
+    taskParam->surfacePerBT = renderHal->pStateHeap->iBindingTableSize / renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
 
     renderHal->StateHeapSettings.iBindingTables           = renderHal->StateHeapSettings.iBindingTables *          // Reconfigure the binding table number
                                                          renderHal->StateHeapSettings.iSurfacesPerBT / taskParam->surfacePerBT;
