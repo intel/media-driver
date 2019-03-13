@@ -261,6 +261,15 @@ int32_t CmQueueRT::Initialize()
         {
             ctxCreateOption.RAMode = m_queueOption.RAMode;
 
+            bool bVeUsedInCm = false; //need change to true once feature is done in future.
+#if (_DEBUG || _RELEASE_INTERNAL)
+            MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+            MOS_UserFeature_ReadValue_ID(nullptr,
+                __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_INTERFACE, &UserFeatureData);
+            bVeUsedInCm = (UserFeatureData.u32Data == 0x1)? true: false;
+#endif
+            Mos_SetVirtualEngineSupported(cmHalState->osInterface, bVeUsedInCm);
+
             if (cmHalState->osInterface->veDefaultEnable && cmHalState->osInterface->bSupportVirtualEngine) // check if VE enabled on OS
             {
                 // prepare virtual egine hint param on this cm queue.
