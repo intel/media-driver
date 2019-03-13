@@ -3245,6 +3245,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "0",
         "Eanble Apogeios path. 1: enable, 0: disable."),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL_ID,
+       __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL,
+       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+       "MOS",
+       MOS_USER_FEATURE_TYPE_USER,
+       MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+       "0",
+       "Enable MOS to simualte random memory allocate fail. "),
 };
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))
@@ -3288,17 +3297,18 @@ void MOS_InitSimulateRandomAllocMemoryFailFlag()
     {
         MosSimulateRandomAllocMemoryFailFreq = UserFeature.pValues[0].u32Data;
         MOS_OS_NORMALMESSAGE("Init MosSimulateRandomAllocMemoryFailFreq as %d \n ", MosSimulateRandomAllocMemoryFailFreq);
+        srand((unsigned int)time(nullptr));
     }
 }
 
 #define MOS_SimulateRandomAllocMemoryFail(size)                 \
     {                                                           \
-        srand((unsigned int)time(nullptr));                     \
-        if (rand() % MosSimulateRandomAllocMemoryFailFreq == 1) \
+        int32_t Rn = rand();                                    \
+        if (Rn % MosSimulateRandomAllocMemoryFailFreq == 1)     \
         {                                                       \
             MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_NORMAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
-                "Simulated Allocate Memory Fail for: functionName: %s, filename: %s, line: %d, size: %d \n", \
-                 functionName, filename, line, size);           \
+                "Simulated Allocate Memory Fail (Rn=%d) for: functionName: %s, filename: %s, line: %d, size: %d \n", \
+                 Rn, functionName, filename, line, size);       \
             return nullptr;                                     \
         }                                                       \
     }
