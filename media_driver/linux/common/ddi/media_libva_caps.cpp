@@ -821,7 +821,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     else
     {
-        attrib.value = VA_RT_FORMAT_YUV420;
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32;
     }
     (*attribList)[attrib.type] = attrib.value;
 
