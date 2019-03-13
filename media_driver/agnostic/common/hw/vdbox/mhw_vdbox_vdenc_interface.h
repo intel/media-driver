@@ -287,6 +287,14 @@ public:
     virtual uint32_t GetVdencAvcImgStateSize() = 0;
 
     //!
+    //! \brief    get Vdenc cost state size
+    //!
+    //! \return   uint32_t
+    //!           Vdenc cost state size got
+    //!
+    virtual uint32_t GetVdencAvcCostStateSize() = 0;
+
+    //!
     //! \brief    get cmd1
     //!
     //! \return   uint32_t
@@ -433,6 +441,7 @@ public:
         uint8_t                              numSurfaces) = 0;
 
     virtual MOS_STATUS AddVdencAvcCostStateCmd(
+        PMOS_COMMAND_BUFFER       cmdBuffer,
         PMHW_BATCH_BUFFER         batchBuffer,
         PMHW_VDBOX_AVC_IMG_PARAMS params)
     {

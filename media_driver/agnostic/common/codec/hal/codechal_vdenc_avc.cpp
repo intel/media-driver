@@ -2639,6 +2639,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     //Set MFX/VDENC image state command in VDENC BRC buffer
     PMHW_VDBOX_AVC_IMG_PARAMS imageStateParams = CreateMhwVdboxAvcImgParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(imageStateParams);
+    SetMfxAvcImgStateParams(*imageStateParams);
     imageStateParams->pEncodeAvcPicParams = avcPicParams;
     imageStateParams->pEncodeAvcSeqParams = avcSeqParams;
     imageStateParams->pEncodeAvcSliceParams = m_avcSliceParams;
@@ -2860,92 +2861,12 @@ MOS_STATUS CodechalVdencAvcState::SetConstDataHuCBrcUpdate()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    auto avcSeqParams = m_avcSeqParam;
-
     // Set VDENC BRC constant buffer, data remains the same till BRC Init is called
     if (m_brcInit)
     {
         MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        auto            hucConstData = (PAVCVdencBRCCostantData)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcConstDataBuffer, &lockFlagsWriteOnly);
-
-        MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t));
-        if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW) // Sliding Window BRC
-        {
-            MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_SlWinGlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t));
-        }
-        else
-        {
-            MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_GlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t));
-        }
-        MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabB_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_GlobalRateQPAdjTabB_U8, 64 * sizeof(uint8_t));
-
-        MOS_SecureMemcpy(hucConstData->UPD_DistThreshldI_U8, 10 * sizeof(uint8_t), (void*)BRC_UPD_DistThreshldI_U8, 10 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_DistThreshldP_U8, 10 * sizeof(uint8_t), (void*)BRC_UPD_DistThreshldP_U8, 10 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_DistThreshldB_U8, 10 * sizeof(uint8_t), (void*)BRC_UPD_DistThreshldP_U8, 10 * sizeof(uint8_t));
-
-        if (avcSeqParams->RateControlMethod == RATECONTROL_CBR)
-        {
-            MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabI_U8, 81 * sizeof(uint8_t), (void*)CBR_UPD_DistQPAdjTabI_U8, 81 * sizeof(int8_t));
-            MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabP_U8, 81 * sizeof(uint8_t), (void*)CBR_UPD_DistQPAdjTabP_U8, 81 * sizeof(int8_t));
-            MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabB_U8, 81 * sizeof(uint8_t), (void*)CBR_UPD_DistQPAdjTabB_U8, 81 * sizeof(int8_t));
-            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabI_S8, 72 * sizeof(uint8_t), (void*)CBR_UPD_FrmSzAdjTabI_S8, 72 * sizeof(int8_t));
-            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)CBR_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
-            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabB_S8, 72 * sizeof(uint8_t), (void*)CBR_UPD_FrmSzAdjTabB_S8, 72 * sizeof(int8_t));
-        }
-        else
-        {
-            MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabI_U8, 81 * sizeof(uint8_t), (void*)VBR_UPD_DistQPAdjTabI_U8, 81 * sizeof(int8_t));
-            MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabP_U8, 81 * sizeof(uint8_t), (void*)VBR_UPD_DistQPAdjTabP_U8, 81 * sizeof(int8_t));
-            MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabB_U8, 81 * sizeof(uint8_t), (void*)VBR_UPD_DistQPAdjTabB_U8, 81 * sizeof(int8_t));
-
-            if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW) // Low Delay Mode
-            {
-                MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabI_S8, 72 * sizeof(uint8_t), (void*)LOW_DELAY_UPD_FrmSzAdjTabI_S8, 72 * sizeof(int8_t));
-                MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)LOW_DELAY_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
-                MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabB_S8, 72 * sizeof(uint8_t), (void*)LOW_DELAY_UPD_FrmSzAdjTabB_S8, 72 * sizeof(int8_t));
-            }
-            else
-            {
-                MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabI_S8, 72 * sizeof(uint8_t), (void*)VBR_UPD_FrmSzAdjTabI_S8, 72 * sizeof(int8_t));
-
-                if (avcSeqParams->RateControlMethod == RATECONTROL_QVBR)
-                {
-                    MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)QVBR_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
-                }
-                else
-                {
-                    MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)VBR_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
-                }
-
-                MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabB_S8, 72 * sizeof(uint8_t), (void*)VBR_UPD_FrmSzAdjTabB_S8, 72 * sizeof(int8_t));
-            }
-        }
-
-        MOS_SecureMemcpy(hucConstData->UPD_FrmSzMinTabP_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMinTabP_U8, 9 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_FrmSzMinTabI_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMinTabI_U8, 9 * sizeof(uint8_t));
-
-        MOS_SecureMemcpy(hucConstData->UPD_FrmSzMaxTabP_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMaxTabP_U8, 9 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_FrmSzMaxTabI_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMaxTabI_U8, 9 * sizeof(uint8_t));
-
-        MOS_SecureMemcpy(hucConstData->UPD_FrmSzSCGTabP_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzSCGTabP_U8, 9 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_FrmSzSCGTabI_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzSCGTabI_U8, 9 * sizeof(uint8_t));
-
-        MOS_SecureMemcpy(hucConstData->UPD_I_IntraNonPred, 42 * sizeof(uint8_t), (void*)BRC_UPD_I_IntraNonPred, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_I_Intra8x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_I_Intra8x8, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_I_Intra4x4, 42 * sizeof(uint8_t), (void*)BRC_UPD_I_Intra4x4, 42 * sizeof(uint8_t));
-
-        MOS_SecureMemcpy(hucConstData->UPD_P_IntraNonPred, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_IntraNonPred, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_P_Intra16x16, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Intra16x16, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_P_Intra8x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Intra8x8, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_P_Intra4x4, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Intra4x4, 42 * sizeof(uint8_t));
-
-        MOS_SecureMemcpy(hucConstData->UPD_P_Inter16x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Inter16x8, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_P_Inter8x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Inter8x8, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_P_Inter16x16, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Inter16x16, 42 * sizeof(uint8_t));
-        MOS_SecureMemcpy(hucConstData->UPD_P_RefId, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_RefId, 42 * sizeof(uint8_t));
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadHmeMvCostTable(avcSeqParams, hucConstData->UPD_HMEMVCost));
-
+        auto            hucConstData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcConstDataBuffer, &lockFlagsWriteOnly);
+        FillHucConstData(hucConstData);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcConstDataBuffer);
     }
 
@@ -3618,7 +3539,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcImgCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcCostStateCmd(secondLevelBatchBufferUsed, imageStateParams));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcCostStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
@@ -4328,7 +4249,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     }
 
     // Const Data buffer
-    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(AVCVdencBRCCostantData), CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(GetBRCCostantDataSize(), CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC BRC Const Data Buffer";
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
@@ -5165,6 +5086,92 @@ PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CodechalVdencAvcState::CreateMhwVdboxVdencW
     return vdencWalkerStateParams;
 }
 
+MOS_STATUS CodechalVdencAvcState::FillHucConstData(uint8_t *data)
+{
+    auto hucConstData = (PAVCVdencBRCCostantData)data;
+    auto avcSeqParams = m_avcSeqParam;
+
+    MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t));
+    if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW) // Sliding Window BRC
+    {
+        MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_SlWinGlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t));
+    }
+    else
+    {
+        MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_GlobalRateQPAdjTabP_U8, 64 * sizeof(uint8_t));
+    }
+    MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabB_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_GlobalRateQPAdjTabB_U8, 64 * sizeof(uint8_t));
+
+    MOS_SecureMemcpy(hucConstData->UPD_DistThreshldI_U8, 10 * sizeof(uint8_t), (void*)BRC_UPD_DistThreshldI_U8, 10 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_DistThreshldP_U8, 10 * sizeof(uint8_t), (void*)BRC_UPD_DistThreshldP_U8, 10 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_DistThreshldB_U8, 10 * sizeof(uint8_t), (void*)BRC_UPD_DistThreshldP_U8, 10 * sizeof(uint8_t));
+
+    if (avcSeqParams->RateControlMethod == RATECONTROL_CBR)
+    {
+        MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabI_U8, 81 * sizeof(uint8_t), (void*)CBR_UPD_DistQPAdjTabI_U8, 81 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabP_U8, 81 * sizeof(uint8_t), (void*)CBR_UPD_DistQPAdjTabP_U8, 81 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabB_U8, 81 * sizeof(uint8_t), (void*)CBR_UPD_DistQPAdjTabB_U8, 81 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabI_S8, 72 * sizeof(uint8_t), (void*)CBR_UPD_FrmSzAdjTabI_S8, 72 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)CBR_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabB_S8, 72 * sizeof(uint8_t), (void*)CBR_UPD_FrmSzAdjTabB_S8, 72 * sizeof(int8_t));
+    }
+    else
+    {
+        MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabI_U8, 81 * sizeof(uint8_t), (void*)VBR_UPD_DistQPAdjTabI_U8, 81 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabP_U8, 81 * sizeof(uint8_t), (void*)VBR_UPD_DistQPAdjTabP_U8, 81 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucConstData->UPD_DistQPAdjTabB_U8, 81 * sizeof(uint8_t), (void*)VBR_UPD_DistQPAdjTabB_U8, 81 * sizeof(int8_t));
+
+        if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW) // Low Delay Mode
+        {
+            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabI_S8, 72 * sizeof(uint8_t), (void*)LOW_DELAY_UPD_FrmSzAdjTabI_S8, 72 * sizeof(int8_t));
+            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)LOW_DELAY_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
+            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabB_S8, 72 * sizeof(uint8_t), (void*)LOW_DELAY_UPD_FrmSzAdjTabB_S8, 72 * sizeof(int8_t));
+        }
+        else
+        {
+            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabI_S8, 72 * sizeof(uint8_t), (void*)VBR_UPD_FrmSzAdjTabI_S8, 72 * sizeof(int8_t));
+
+            if (avcSeqParams->RateControlMethod == RATECONTROL_QVBR)
+            {
+                MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)QVBR_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
+            }
+            else
+            {
+                MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabP_S8, 72 * sizeof(uint8_t), (void*)VBR_UPD_FrmSzAdjTabP_S8, 72 * sizeof(int8_t));
+            }
+
+            MOS_SecureMemcpy(hucConstData->UPD_BufRateAdjTabB_S8, 72 * sizeof(uint8_t), (void*)VBR_UPD_FrmSzAdjTabB_S8, 72 * sizeof(int8_t));
+        }
+    }
+
+    MOS_SecureMemcpy(hucConstData->UPD_FrmSzMinTabP_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMinTabP_U8, 9 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_FrmSzMinTabI_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMinTabI_U8, 9 * sizeof(uint8_t));
+
+    MOS_SecureMemcpy(hucConstData->UPD_FrmSzMaxTabP_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMaxTabP_U8, 9 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_FrmSzMaxTabI_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzMaxTabI_U8, 9 * sizeof(uint8_t));
+
+    MOS_SecureMemcpy(hucConstData->UPD_FrmSzSCGTabP_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzSCGTabP_U8, 9 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_FrmSzSCGTabI_U8, 9 * sizeof(uint8_t), (void*)BRC_UPD_FrmSzSCGTabI_U8, 9 * sizeof(uint8_t));
+
+    MOS_SecureMemcpy(hucConstData->UPD_I_IntraNonPred, 42 * sizeof(uint8_t), (void*)BRC_UPD_I_IntraNonPred, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_I_Intra8x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_I_Intra8x8, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_I_Intra4x4, 42 * sizeof(uint8_t), (void*)BRC_UPD_I_Intra4x4, 42 * sizeof(uint8_t));
+
+    MOS_SecureMemcpy(hucConstData->UPD_P_IntraNonPred, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_IntraNonPred, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_P_Intra16x16, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Intra16x16, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_P_Intra8x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Intra8x8, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_P_Intra4x4, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Intra4x4, 42 * sizeof(uint8_t));
+
+    MOS_SecureMemcpy(hucConstData->UPD_P_Inter16x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Inter16x8, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_P_Inter8x8, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Inter8x8, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_P_Inter16x16, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_Inter16x16, 42 * sizeof(uint8_t));
+    MOS_SecureMemcpy(hucConstData->UPD_P_RefId, 42 * sizeof(uint8_t), (void*)BRC_UPD_P_RefId, 42 * sizeof(uint8_t));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadHmeMvCostTable(avcSeqParams, hucConstData->UPD_HMEMVCost));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalVdencAvcState::ExecuteMeKernel()
 {
     if (m_hmeEnabled)
@@ -5240,7 +5247,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
             &m_resVdencBrcConstDataBuffer,
             0,
-            sizeof(AVCVdencBRCCostantData),
+            GetBRCCostantDataSize(),
             5,
             "_ConstData",
             isInput,
