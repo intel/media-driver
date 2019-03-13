@@ -832,6 +832,10 @@ protected:
     //!
     virtual PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CreateMhwVdboxVdencWalkerStateParams();
 
+    virtual uint32_t GetBRCCostantDataSize() { return sizeof(AVCVdencBRCCostantData); }
+
+    virtual MOS_STATUS FillHucConstData(uint8_t *data);
+
 protected:
     bool                                        m_vdencSinglePassEnable = false;   //!< Enable VDEnc single pass
 

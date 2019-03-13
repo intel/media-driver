@@ -298,6 +298,11 @@ public:
         return TVdencCmds::VDENC_IMG_STATE_CMD::byteSize;
     }
 
+    uint32_t GetVdencAvcCostStateSize()
+    {
+        return 0;
+    }
+
 };
 
 #endif
