@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -129,6 +129,7 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
     case Format_IRW6:
     case Format_IRW7:
     case Format_RAW:
+    case Format_Y8:
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
@@ -150,6 +151,8 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
     case Format_IRW3:
     case Format_V8U8:
     case Format_R16F:
+    case Format_Y16S:
+    case Format_Y16U:
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth * 2;
