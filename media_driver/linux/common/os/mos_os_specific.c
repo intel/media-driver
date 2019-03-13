@@ -1572,7 +1572,22 @@ GMM_CLIENT_CONTEXT *Mos_Specific_GetGmmClientContext(
         return nullptr;
     }
 
-    return pOsInterface->pOsContext->GetGmmClientContext(pOsInterface->pOsContext);
+    if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
+    {
+        OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+        if (pOsContextSpecific)
+        {
+            return pOsContextSpecific->GetGmmClientContext();
+        }
+    }
+    else
+    {
+        if (pOsInterface->pOsContext)
+        {
+            return pOsInterface->pOsContext->GetGmmClientContext(pOsInterface->pOsContext);
+        }
+    }
+    return nullptr;
 }
 
 //!
