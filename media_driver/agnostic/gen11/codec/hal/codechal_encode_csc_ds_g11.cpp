@@ -104,6 +104,12 @@ MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format)
     case Format_A8B8G8R8:
         m_colorRawSurface = cscColorABGR;
         m_cscRequireColor = 1;
+        m_cscUsingSfc     = IsSfcEnabled() ? 1 : 0;
+        // Use EU for better performance in big resolution cases or TU1
+        if (m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088)
+        {
+            m_cscUsingSfc = 0;
+        }
         break;
     case Format_P010:
         m_colorRawSurface = cscColorP010;
