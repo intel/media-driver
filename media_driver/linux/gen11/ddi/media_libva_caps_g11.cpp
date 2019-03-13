@@ -35,8 +35,8 @@
 #include "media_libva_vp.h"
 
 const VAImageFormat MediaLibvaCapsG11::m_G11ImageFormats[] =
-{    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
-     {VA_FOURCC_Y410, VA_LSB_FIRST, 24, 0,0,0,0,0},
+{    {VA_FOURCC_AYUV, VA_LSB_FIRST, 32, 0,0,0,0,0},
+     {VA_FOURCC_Y410, VA_LSB_FIRST, 32, 0,0,0,0,0},
      {VA_FOURCC_Y416, VA_LSB_FIRST, 64, 0,0,0,0,0}
 };
 
