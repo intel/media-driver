@@ -151,11 +151,6 @@ MOS_STATUS CodechalEncHevcStateG11::InitializePicture(const EncoderParams& param
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::InitializePicture(params));
 
-    if (m_resolutionChanged)
-    {
-        ResizeBufferOffset();
-    }
-
     m_sseEnabled = false;
     // only 420 format support SSE output 
     // see TDR in scalability case, disable SSE for now before HW confirm the capability.
@@ -5568,19 +5563,25 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
         CODECHAL_DEBUG_TOOL(
             CODEC_REF_LIST      currRefList;
 
-        m_currRefList = (m_refList[m_currReconstructedPic.FrameIdx]);
-        m_currRefList->RefPic = m_currOriginalPic;
+        currRefList = *(pRefList[m_currReconstructedPic.FrameIdx]);
+        currRefList.refPic = m_currOriginalPic;
 
-        m_debugInterface->m_currPic = m_currOriginalPic;
-        m_debugInterface->m_bufferDumpFrameNum = m_storeData;
-        m_debugInterface->m_frameType = m_pictureCodingType;
+        m_debugInterface->CurrPic = m_currOriginalPic;
+        m_debugInterface->dwBufferDumpFrameNum = m_storeData;
+        m_debugInterface->wFrameType = m_pictureCodingType;
 
+        //CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgDumpEncodeMbEncMbPakOutput(
+        //    m_debugInterface,
+        //    this,
+        //    &currRefList,
+        //    (m_codecFunction != CODECHAL_FUNCTION_HYBRIDPAK) ?
+        //    CODECHAL_MEDIA_STATE_ENC_NORMAL : CODECHAL_MEDIA_STATE_HYBRID_PAK_P2));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_currRefList->resRefMbCodeBuffer,
+            &currRefList.resRefMbCodeBuffer,
             CodechalDbgAttr::attrOutput,
             "MbCode",
-            m_picWidthInMb * m_frameFieldHeightInMb * 64,
-            CodecHal_PictureIsBottomField(m_currRefList->RefPic) ? m_frameFieldHeightInMb * m_picWidthInMb * 64 : 0,
+            m_picWidthInMb * m_frameFieldHeightInMb*64,
+            CodecHal_PictureIsBottomField(currRefList.RefPic) ? m_frameFieldHeightInMb * m_picWidthInMb * 64 : 0,
             (m_codecFunction != CODECHAL_FUNCTION_HYBRIDPAK) ?
             CODECHAL_MEDIA_STATE_ENC_NORMAL : CODECHAL_MEDIA_STATE_HYBRID_PAK_P2));
 
@@ -5595,7 +5596,6 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
                 (m_codecFunction != CODECHAL_FUNCTION_HYBRIDPAK) ?
                 CODECHAL_MEDIA_STATE_ENC_NORMAL : CODECHAL_MEDIA_STATE_HYBRID_PAK_P2));
         }
-
         if (CodecHalIsFeiEncode(m_codecFunction))
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
@@ -5610,7 +5610,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
 
         )
 
-       CODECHAL_DEBUG_TOOL(
+        CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgDumpEncodeCombineBuffer(
                 this,
                 &m_encBCombinedBuffer2[m_currRecycledBufIdx].sResource,
@@ -6232,7 +6232,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeKernelFunctions()
     }
 
     // Dump SW scoreboard surface - Output of SW scoreboard Init Kernel and Input to MBENC
-       CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
         m_swScoreboardState->GetCurSwScoreboardSurface(),
         CodechalDbgAttr::attrInput,
         "InitSWScoreboard_In",
@@ -7280,30 +7280,6 @@ MOS_STATUS CodechalEncHevcStateG11::LoadPakCommandAndCuRecordFromFile()
     m_osInterface->pfnUnlockResource(m_osInterface, &m_resMbCodeSurface);
 
     return eStatus;
-}
-
-void CodechalEncHevcStateG11::ResizeBufferOffset()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    m_widthAlignedMaxLcu = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
-    m_heightAlignedMaxLcu = MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE);
-
-    m_widthAlignedLcu32 = MOS_ALIGN_CEIL(m_frameWidth, 32);
-    m_heightAlignedLcu32 = MOS_ALIGN_CEIL(m_frameHeight, 32);
-
-    uint32_t size = 0;
-    const uint32_t numLcu64 = m_widthAlignedMaxLcu * m_heightAlignedMaxLcu / 64 / 64;
-    MBENC_COMBINED_BUFFER2 fixedBuf;
-
-    //Re-Calculate m_encBCombinedBuffer2 Size and Offsets
-    m_historyOutBufferSize = MOS_ALIGN_CEIL(32 * numLcu64, CODECHAL_CACHELINE_SIZE);
-    m_threadTaskBufferSize = MOS_ALIGN_CEIL(96 * numLcu64, CODECHAL_CACHELINE_SIZE);
-
-    size = MOS_ALIGN_CEIL(sizeof(fixedBuf), CODECHAL_CACHELINE_SIZE) + m_historyOutBufferSize + m_threadTaskBufferSize;
-
-    m_historyOutBufferOffset = MOS_ALIGN_CEIL(sizeof(fixedBuf), CODECHAL_CACHELINE_SIZE);
-    m_threadTaskBufferOffset = m_historyOutBufferOffset + m_historyOutBufferSize;
 }
 
 uint8_t CodechalEncHevcStateG11::PicCodingTypeToSliceType(uint16_t pictureCodingType)
