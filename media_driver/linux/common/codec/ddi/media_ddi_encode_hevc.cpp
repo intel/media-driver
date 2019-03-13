@@ -1060,6 +1060,12 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         {
             seqParams->RateControlMethod = RATECONTROL_VBR;
         }
+        else if (VA_RC_QVBR & m_encodeCtx->uiRCMethod)
+        {
+            seqParams->RateControlMethod = RATECONTROL_QVBR;
+            seqParams->ICQQualityFactor = vaEncMiscParamRC->ICQ_quality_factor;
+            seqParams->MBBRC = 1;
+        }
         else
         {
             DDI_ASSERTMESSAGE("invalid RC method.");
@@ -1067,7 +1073,8 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         }
         if((RATECONTROL_VCM == seqParams->RateControlMethod)
             || (RATECONTROL_VBR == seqParams->RateControlMethod)
-            || (RATECONTROL_CBR == seqParams->RateControlMethod))
+            || (RATECONTROL_CBR == seqParams->RateControlMethod)
+            || (RATECONTROL_QVBR == seqParams->RateControlMethod))
         {
             seqParams->MaxBitRate    = seqParams->TargetBitRate;
             seqParams->MinBitRate    = seqParams->TargetBitRate * (2 * vaEncMiscParamRC->target_percentage - 100) / 100;
