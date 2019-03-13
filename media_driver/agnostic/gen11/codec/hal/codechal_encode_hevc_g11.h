@@ -1791,13 +1791,6 @@ public:
     MOS_STATUS LoadPakCommandAndCuRecordFromFile();
 
     //!
-    //! \brief   Re-calculate buffer size and offets during resolution reset
-    //!
-    //! \return   void
-    //!
-    void ResizeBufferOffset();
-
-    //!
     //! \brief    Set HCP_SLICE_STATE parameters that are different at slice level
     //!
     //! \param    [in, out] sliceState
