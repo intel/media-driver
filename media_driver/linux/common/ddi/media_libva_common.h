@@ -81,7 +81,7 @@ static int32_t atrace_switch            = 0;
 
 #define DDI_UNUSED(param)                      MOS_UNUSED(param)
 
-#define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT   127
+#define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT   254
 #define DDI_MEDIA_MAX_INSTANCE_NUMBER          0x0FFFFFFF
 
 // heap
