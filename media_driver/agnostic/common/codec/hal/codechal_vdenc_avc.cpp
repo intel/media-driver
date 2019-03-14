@@ -2640,24 +2640,8 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     PMHW_VDBOX_AVC_IMG_PARAMS imageStateParams = CreateMhwVdboxAvcImgParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(imageStateParams);
     SetMfxAvcImgStateParams(*imageStateParams);
-    imageStateParams->pEncodeAvcPicParams = avcPicParams;
-    imageStateParams->pEncodeAvcSeqParams = avcSeqParams;
-    imageStateParams->pEncodeAvcSliceParams = m_avcSliceParams;
-    imageStateParams->wPicWidthInMb = m_picWidthInMb;
-    imageStateParams->wPicHeightInMb = m_picHeightInMb;
-    imageStateParams->ppRefList = &(m_refList[0]);
-    imageStateParams->wSlcHeightInMb = m_sliceHeight;
-    imageStateParams->dwMaxVmvR = CodecHalAvcEncode_GetMaxVmvR(avcSeqParams->Level);
-    imageStateParams->bVdencEnabled = 1;
     imageStateParams->bVdencBRCEnabled = 1;
-    imageStateParams->bVdencStreamInEnabled = m_vdencStreamInEnabled;
-    imageStateParams->bVDEncPerfModeEnabled =
-        m_vdencInterface->IsPerfModeSupported() && m_perfModeEnabled[m_avcSeqParam->TargetUsage];
     imageStateParams->bSliceSizeStreamOutEnabled = m_sliceSizeStreamoutSupported;
-    imageStateParams->bCrePrefetchEnable = m_crePrefetchEnable;
-    imageStateParams->pVDEncModeCost = m_vdencModeCostTbl;
-    imageStateParams->pVDEncHmeMvCost = m_vdencHmeMvCostTbl;
-    imageStateParams->pVDEncMvCost = m_vdencMvCostTbl;
 
     if (avcSeqParams->EnableSliceLevelRateCtrl)
     {
