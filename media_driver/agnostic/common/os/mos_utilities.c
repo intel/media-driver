@@ -2081,6 +2081,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "3",   // Default is 3 which is huc copy kernel
         "Id of demo huc kernel to load"),
+     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_RECON_SURFACE_SIZE_OVERWRITE_ID, // Used to indicate which huc kernel to load for the Huc Demo feature
+        "Recon Surface Size Overwrite",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Media",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Id of recon surface size overwrite"),
 #endif // (_DEBUG || _RELEASE_INTERNAL
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
         "Status Reporting",
