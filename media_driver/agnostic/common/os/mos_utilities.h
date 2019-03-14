@@ -2656,6 +2656,29 @@ void MOS_TraceEvent(
     uint32_t         dwSize2);
 
 //!
+//! \brief    MOS log trace event Msg
+//! \details  log trace event msg w/ level/compID/functionname/lineNum arguments
+//!           arguments are in raw data format, need match data structure in manifest.
+//! \param    [in] level
+//!           Indicates msg level
+//! \param    [in] compID
+//!           Indicates compID
+//! \param    [in] message
+//!           event msg
+//! \param    [in] functionName
+//!           func name
+//! \param    [in] lineNum
+//!           event line number
+//! \return   void
+//!
+void MOS_TraceEventMsg(
+    uint8_t          level,
+    uint8_t          compID,
+    void*            message,
+    void*            functionName,
+    uint32_t         lineNum);
+
+//!
 //! \brief    MOS gfx info initialize
 //! \details  Load igdinfoXX.dll library and get gfx info function pointer
 //! \param    void
