@@ -3115,7 +3115,6 @@ VAStatus DdiMedia_DestroyBuffer (
                 if(nullptr == encCtx)
                     return VA_STATUS_ERROR_INVALID_CONTEXT;
             }
-            DdiEncode_RemoveFromStatusReportQueue(encCtx,buf);
             DdiMediaUtil_FreeBuffer(buf);
             break;
 #endif
