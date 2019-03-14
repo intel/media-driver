@@ -730,6 +730,21 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
     uint32_t downscaledSurfaceHeight4x = ((m_encoder->m_downscaledHeightInMb4x + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
     downscaledSurfaceHeight4x = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_RECON_SURFACE_SIZE_OVERWRITE_ID,
+            &userFeatureData);
+    bool  overwrite = (uint32_t)userFeatureData.u32Data > 0 ? true : false;
+    if (overwrite)
+    {
+        downscaledSurfaceWidth4x *= 4;
+        downscaledSurfaceHeight4x *= 4;
+    }
+#endif
+
     // Allocating VDEnc 4x DsRecon surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurr4xDsRecon = (MOS_SURFACE*)m_allocator->AllocateResource(
         m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xRecon, "ds4xRecon", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
