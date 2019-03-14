@@ -845,6 +845,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
     m_picHeightInMb   = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
     m_frameWidth      = m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH;
     m_frameHeight     = m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
+    m_createWidth     = m_frameWidth;
+    m_createHeight    = m_frameHeight;
 
     // HME Scaling WxH
     m_downscaledWidthInMb4x               =
