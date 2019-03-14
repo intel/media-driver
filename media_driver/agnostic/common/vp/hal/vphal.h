@@ -295,6 +295,9 @@ struct VphalSettings
     uint32_t               veboxParallelExecution;                               //!< Control VEBox parallel execution with render engine
 };
 
+#pragma pack(push)
+#pragma pack(1)
+
 //!
 //! Structure VphalFeatureReport
 //! \brief    Vphal Feature Report Structure
@@ -341,6 +344,9 @@ struct VphalFeatureReport
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
     bool                            DiScdMode;          //!< Scene change detection
 };
+
+#pragma pack(pop)
+
 
 //!
 //! Class VphalState
