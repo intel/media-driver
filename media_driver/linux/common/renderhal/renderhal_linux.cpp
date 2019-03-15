@@ -128,6 +128,12 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
     pSurface->bIsCompressed   = ResDetails.bIsCompressed;
     pSurface->CompressionMode = ResDetails.CompressionMode;
 
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetMemoryCompressionMode(pOsInterface,
+        &pSurface->OsResource, &pSurface->MmcState));
+
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetMemoryCompressionFormat(pOsInterface,
+        &pSurface->OsResource, &pSurface->CompressionFormat));
+
     // Get planes
     pSurface->UPlaneOffset.iSurfaceOffset = 0;
     pSurface->UPlaneOffset.iYOffset       = 0;
