@@ -3574,6 +3574,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
             {
                 return state->advExecutor->SubmitComputeTask(this, task, event, threadSpaceRTConst->GetThreadGroupSpace(), (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
             }
+            else
+            {
+                
+                return state->advExecutor->SubmitComputeTask(this, task, event, nullptr, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+            }
         }
         return state->advExecutor->SubmitTask(this, task, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
     }
