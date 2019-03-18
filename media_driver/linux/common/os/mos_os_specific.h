@@ -342,6 +342,7 @@ struct MOS_SURFACE
     // Surface compression mode, enable flags
     int32_t                 bIsCompressed;                                       //!< [out] Memory compression flag
     MOS_RESOURCE_MMC_MODE   CompressionMode;                                     //!< [out] Memory compression mode
+    uint32_t                CompressionFormat;                                   //!< [out] Memory compression format
     // deprecated: not to use MmcState
     MOS_MEMCOMP_STATE       MmcState;                                            // Memory compression state
 };
