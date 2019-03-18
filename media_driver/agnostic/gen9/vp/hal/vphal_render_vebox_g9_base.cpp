@@ -1632,6 +1632,7 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
     pSrcSurface   = pRenderPassData->pSrcSurface;
 
     VPHAL_RENDER_CHK_NULL(pSrcSurface);
+    VPHAL_RENDER_CHK_NULL(pRenderTarget);
 
     // Check whether VEBOX is available
     // VTd doesn't support VEBOX
@@ -1642,7 +1643,7 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
     }
 
     // check if UserPtr enabling.
-    if (pcRenderParams->bUserPrt_16Align[0])
+    if (pSrcSurface->bUsrPtr || pRenderTarget->bUsrPtr)
     {
         pRenderPassData->bCompNeeded = true;
         goto finish;

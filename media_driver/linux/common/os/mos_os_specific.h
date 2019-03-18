@@ -250,7 +250,8 @@ struct _MOS_SPECIFIC_RESOURCE
     GMM_RESOURCE_INFO   *pGmmResInfo;        //!< GMM resource descriptor
     MOS_MMAP_OPERATION  MmapOperation;
     uint8_t             *pSystemShadow;
-    
+    bool                bUseGmmQuery;       //!< decided to use GMM to query res or not.
+
     //!< to sync render target for multi-threading decoding mode
     struct
     {

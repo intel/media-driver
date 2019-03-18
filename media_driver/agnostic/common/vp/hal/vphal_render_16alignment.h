@@ -47,8 +47,8 @@ typedef struct _MEDIA_WALKER_16ALIGN_STATIC_DATA
     // DWORD 1 - GRF R1.1
     union
     {
+        uint32_t       pSrcSurface;          // Input - YUY2/ARGB
         uint32_t       pSrcSurface_Y;        // Input - Y Channel for NV12/YV12
-        uint32_t       pSrcSurface_YUY2;     // Input - YUY2
     } DW1;
 
     // DWORD 2 - GRF R1.2
@@ -71,66 +71,161 @@ typedef struct _MEDIA_WALKER_16ALIGN_STATIC_DATA
         uint32_t        pOutSurface_Y;        // Output - Buffer NV12/YV12, size need to be 32 bytes alignment
     } DW4;
 
-    // DWORD 5 - GRF R1.4
+    // DWORD 5 - GRF R1.5
     union
     {
         uint32_t        pOutSurface_UV;       // Output - Buffer NV12, size need to be 16 bytes alignment.
         uint32_t        pOutSurface_U;        // Output - Buffer YV12, size need to be 16 bytes alignment.
     } DW5;
 
-    // DWORD 6 - GRF R1.4
+    // DWORD 6 - GRF R1.6
     union
     {
         uint32_t        pOutSurface_V;        // Output - Buffer YV12, size need to be 16 bytes alignment.
     } DW6;
 
-    // DWORD 7 - GRF R1.5
+    // DWORD 7 - GRF R1.7
     union
     {
         float           ScalingStep_H;       // Scaling ratio in Horizontal direction.
     } DW7;
 
-    // DWORD 8 - GRF R1.6
+    // DWORD 8 - GRF R2.0
     union
     {
         float           ScalingStep_V;       // Scaling ratio in Vertical direction.
     } DW8;
 
-    // DWORD 9 - GRF R1.7
+    // DWORD 9 - GRF R2.1
     union
     {
         struct {
-            uint32_t       Input_Format    : 16;  // 0 NV12, 1 YUY2, 2 YV12
+            uint32_t       Input_Format    : 16;  // 0 NV12, 1 YUY2, 2 YV12, 3 argb
             uint32_t       Output_Format   : 16;  // 0 NV12, 1 YUY2, 2 YV12
         };
     } DW9;
 
-    // DWORD 10 - GRF R2.0
+    // DWORD 10 - GRF R2.2
     union
     {
         struct {
             uint32_t       Output_Pitch    : 16;  // Pitch of Output surface (Map to 2D)
-            uint32_t       Output_UVOffset : 16;  // UV Offset (Lines) of output surface comparing to Y (Map to 2D).
+            uint32_t       Output_Height   : 16;  // the Height of output surface
         };
     } DW10;
 
-    // DWORD 11 - GRF R2.1
+    // DWORD 11 - GRF R2.3
     union
     {
-        uint32_t        ScalingMode;    // 0 for 3D(bilinear, Nearest), 1 for AVS
+        uint32_t        ScalingMode;              // 0 for 3D(bilinear, Nearest), 1 for AVS
     } DW11;
 
-    // DWORD 12 - GRF R2.1
+    // DWORD 12 - GRF R2.4
     union
     {
-        uint32_t        Original_X;
+        float           Original_X;
     } DW12;
 
-    // DWORD 13 - GRG R2.2
+    // DWORD 13 - GRG R2.5
     union
     {
-        uint32_t        Original_Y;
+        float           Original_Y;
     } DW13;
+
+    // DWORD 14 - GRG R2.6
+    union
+    {
+        uint32_t        reserved;
+    } DW14;
+
+    // DWORD 15 - GRG R2.7
+    union
+    {
+        uint32_t        reserved;
+    } DW15;
+
+    // DWORD 16 - GRG R3.0
+    union
+    {
+        struct {
+            uint32_t       CSC_COEFF_0    : 16;
+            uint32_t       CSC_COEFF_1    : 16;
+        };
+    } DW16;
+
+    // DWORD 17 - GRG R3.1
+    union
+    {
+        struct {
+            uint32_t       CSC_COEFF_2   : 16;
+            uint32_t       CSC_COEFF_3   : 16;
+        };
+    } DW17;
+
+    // DWORD 18 - GRG R3.2
+    union
+    {
+        struct {
+            uint32_t       CSC_COEFF_4   : 16;
+            uint32_t       CSC_COEFF_5   : 16;
+        };
+    } DW18;
+
+    // DWORD 19 - GRG R3.3
+    union
+    {
+        struct {
+            uint32_t       CSC_COEFF_6   : 16;
+            uint32_t       CSC_COEFF_7   : 16;
+        };
+    } DW19;
+
+    // DWORD 20 - GRG R3.4
+    union
+    {
+        struct {
+            uint32_t       CSC_COEFF_8   : 16;
+            uint32_t       CSC_COEFF_9   : 16;
+        };
+    } DW20;
+
+    // DWORD 21 - GRG R3.5
+    union
+    {
+        struct {
+            uint32_t       CSC_COEFF_10   : 16;
+            uint32_t       CSC_COEFF_11   : 16;
+        };
+    } DW21;
+
+    // DWORD 22 - GRG R3.6
+    union
+    {
+        struct {
+            uint32_t       OutputMode     :  1;   // 0 UsrPtr, 1: VA
+            uint32_t       reserved       : 15;
+            uint32_t       Output_Top     : 16;   // output cropping Top
+        };
+    } DW22;
+
+    // DWORD 23 - GRG R3.7
+    union
+    {
+        struct {
+            uint32_t       Output_Bottom  : 16;   // output cropping Bottom
+            uint32_t       Output_Left    : 16;   // output cropping left
+        };
+    } DW23;
+
+    // DWORD 24 - GRG R4.0
+    union
+    {
+        struct {
+            uint32_t       Output_Right   : 16;    // output cropping right
+            uint32_t       bClearFlag     : 1;     // 0 don't clear out of cropped area, 1 Clear unavaliable area
+            uint32_t       reserved       : 15;
+        };
+    } DW24;
 }MEDIA_WALKER_16ALIGN_STATIC_DATA, * PMEDIA_WALKER_16ALIGN_STATIC_DATA;
 
 //!
