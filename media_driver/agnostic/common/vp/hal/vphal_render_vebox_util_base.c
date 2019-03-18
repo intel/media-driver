@@ -113,7 +113,6 @@ MOS_STATUS VpHal_InitVeboxSurfaceParams(
     pMhwVeboxSurface->rcMaxSrc               = pVpHalVeboxSurface->rcMaxSrc;
     pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->OsResource;
     pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->bIsCompressed;
-    pMhwVeboxSurface->dwCompressionFormat    = pVpHalVeboxSurface->CompressionFormat;
 
     if (pVpHalVeboxSurface->dwPitch > 0)
     {
