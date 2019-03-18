@@ -62,7 +62,7 @@ public:
     //!
     virtual MOS_STATUS RegisterPatchForHM(
         uint32_t       *pPatchAddress,
-        bool           bWrite,
+        uint32_t       bWrite,
         MOS_HW_COMMAND HwCommandType,
         uint32_t       forceDwordOffset,
         void           *plResource,

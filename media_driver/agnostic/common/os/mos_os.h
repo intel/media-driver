@@ -319,7 +319,7 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
     uint32_t      uiAllocationIndex;
     uint32_t      uiResourceOffset;  //!< resource offset
     uint32_t      uiPatchOffset;     //!< patch offset
-    bool          bWrite;            //!< is write operation
+    uint32_t      bWrite;            //!< is write operation
     int32_t       bUpperBoundPatch;  //!< is upper bound patch
     MOS_HW_COMMAND              HwCommandType;     //!< hw cmd type
     uint32_t                    forceDwordOffset;  //!< force dword offset
