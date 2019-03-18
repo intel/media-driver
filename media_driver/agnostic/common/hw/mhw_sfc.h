@@ -288,6 +288,7 @@ typedef struct _MHW_SFC_OUT_SURFACE_PARAMS
     uint32_t                    dwUYoffset;         //!<  Surface Uoffset in Vertical
     PMOS_RESOURCE               pOsResource;        //!<  Surface resource
     bool                        bCompressible;      //!<  Surface can be compressed
+    uint32_t                    dwCompressionFormat;//!< Surface Compression format
 } MHW_SFC_OUT_SURFACE_PARAMS, *PMHW_SFC_OUT_SURFACE_PARAMS;
 
 //!
