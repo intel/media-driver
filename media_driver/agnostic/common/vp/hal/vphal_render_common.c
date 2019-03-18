@@ -908,6 +908,7 @@ MOS_STATUS VpHal_RndrCommonInitRenderHalSurface(
     pRenderHalSurface->OsSurface.dwDepth            = pVpSurface->dwDepth;
     pRenderHalSurface->OsSurface.dwQPitch           = pVpSurface->dwHeight;
     pRenderHalSurface->OsSurface.MmcState           = (MOS_MEMCOMP_STATE)pVpSurface->CompressionMode;
+    pRenderHalSurface->OsSurface.CompressionFormat  = pVpSurface->CompressionFormat;
 
     VpHal_RndrInitPlaneOffset(
         &pRenderHalSurface->OsSurface.YPlaneOffset,

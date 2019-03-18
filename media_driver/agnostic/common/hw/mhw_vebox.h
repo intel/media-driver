@@ -707,16 +707,17 @@ typedef struct _MHW_VEBOX_SURFACE_PARAMS
 {
     uint32_t                    bActive;
     bool                        bIsCompressed;
-    MOS_FORMAT                  Format;             //!<  Surface format
-    uint32_t                    dwWidth;            //!<  Surface width
-    uint32_t                    dwHeight;           //!<  Surface height
-    uint32_t                    dwPitch;            //!<  Surface pitch
-    uint32_t                    dwBitDepth;         //!<  Surface bitdepth
-    uint32_t                    dwStreamID;         //!<  Surface StreamID
-    uint32_t                    dwYoffset;          //!<  Surface Yoffset in Vertical
-    uint32_t                    dwUYoffset;         //!<  Surface Uoffset in Vertical
-    MOS_TILE_TYPE               TileType;           //!<  Tile Type
-    RECT                        rcMaxSrc;           //!< Max source rectangle
+    MOS_FORMAT                  Format;              //!<  Surface format
+    uint32_t                    dwCompressionFormat; //!<  Surface Compression Format
+    uint32_t                    dwWidth;             //!<  Surface width
+    uint32_t                    dwHeight;            //!<  Surface height
+    uint32_t                    dwPitch;             //!<  Surface pitch
+    uint32_t                    dwBitDepth;          //!<  Surface bitdepth
+    uint32_t                    dwStreamID;          //!<  Surface StreamID
+    uint32_t                    dwYoffset;           //!<  Surface Yoffset in Vertical
+    uint32_t                    dwUYoffset;          //!<  Surface Uoffset in Vertical
+    MOS_TILE_TYPE               TileType;            //!<  Tile Type
+    RECT                        rcMaxSrc;            //!< Max source rectangle
     PMOS_RESOURCE               pOsResource;         //!<  Surface resource
 } MHW_VEBOX_SURFACE_PARAMS, *PMHW_VEBOX_SURFACE_PARAMS;
 

@@ -984,6 +984,7 @@ struct VPHAL_SURFACE
                                                     // The bIsCompressed in surface allocation structure should use this flag to initialize to allocate a compressible surface
     bool                        bIsCompressed;      // The surface is compressed, VEBox output can only support horizontal mode, but input can be horizontal / vertical
     MOS_RESOURCE_MMC_MODE       CompressionMode;
+    uint32_t                    CompressionFormat;
 
     bool                        bUseSampleUnorm;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
     bool                        bUseSamplerLumakey; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.

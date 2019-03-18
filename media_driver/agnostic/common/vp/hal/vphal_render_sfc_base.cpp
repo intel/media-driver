@@ -67,6 +67,7 @@ MOS_STATUS VpHal_InitMhwOutSurfParams(
     pMhwOutSurfParams->pOsResource                 = &(pSfcPipeOutSurface->OsResource);
     pMhwOutSurfParams->Format                      = pSfcPipeOutSurface->Format;
     pMhwOutSurfParams->bCompressible               = pSfcPipeOutSurface->bCompressible;
+    pMhwOutSurfParams->dwCompressionFormat         = pSfcPipeOutSurface->CompressionFormat;
     pMhwOutSurfParams->dwSurfaceXOffset            = pSfcPipeOutSurface->YPlaneOffset.iXOffset;
     pMhwOutSurfParams->dwSurfaceYOffset            = pSfcPipeOutSurface->YPlaneOffset.iYOffset;
 
