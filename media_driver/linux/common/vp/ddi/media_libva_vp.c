@@ -1762,6 +1762,7 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
     uint32_t                        targetIndex)
 {
     PVPHAL_RENDER_PARAMS      pVpHalRenderParams;
+    PVPHAL_SURFACE            pVpHalSrcSurf;
     PVPHAL_SURFACE            pVpHalTgtSurf;
     VAStatus                  vaStatus;
     DDI_UNUSED(pVaDrvCtx);
@@ -1781,6 +1782,16 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
 #else
     vaStatus = DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_color_properties);
 #endif
+
+    pVpHalSrcSurf = pVpHalRenderParams->pSrc[0];
+    // Not support BT601/BT709 -> BT2020 colorspace conversion, if colorspace is not set, will keep it same with input.
+    if(pVpHalSrcSurf != nullptr &&
+       pPipelineParam->output_color_standard == 0 &&
+       IS_COLOR_SPACE_BT2020(pVpHalTgtSurf->ColorSpace) &&
+       !IS_COLOR_SPACE_BT2020(pVpHalSrcSurf->ColorSpace))
+    {
+        pVpHalTgtSurf->ColorSpace = pVpHalSrcSurf->ColorSpace;
+    }
 
     // extended gamut?
     pVpHalRenderParams->pTarget[0]->ExtendedGamut = false;
