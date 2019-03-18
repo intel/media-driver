@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -964,8 +964,6 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencImgStateCmd(
     cmd.DW22.Largembsizeinword                   = 0xff;
     cmd.DW27.MaxHmvR                             = 0x2000;
     cmd.DW27.MaxVmvR                             = 0x200;
-    cmd.DW33.MaxQp                               = 0x33;
-    cmd.DW33.MinQp                               = 0x0a;
     cmd.DW33.Maxdeltaqp                          = 0x0f;
 
     // initialize for P frame
@@ -1090,6 +1088,19 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencImgStateCmd(
         cmd.DW21.IntraRefreshMBPos                = avcPicParams->IntraRefreshMBNum;
         cmd.DW21.IntraRefreshMBSizeMinusOne       = avcPicParams->IntraRefreshUnitinMB;
         cmd.DW21.QpAdjustmentForRollingI          = avcPicParams->IntraRefreshQPDelta;
+    }
+
+    // Setting MinMaxQP values if they are presented
+    if (avcPicParams->ucMaximumQP && avcPicParams->ucMinimumQP)
+    {
+        cmd.DW33.MaxQp = avcPicParams->ucMaximumQP;
+        cmd.DW33.MinQp = avcPicParams->ucMinimumQP;
+    }
+    else
+    {
+        // Set default values
+        cmd.DW33.MaxQp = 0x33;
+        cmd.DW33.MinQp = 0x0a;
     }
 
     // VDEnc CQP case ROI settings, BRC ROI will be handled in HuC FW
