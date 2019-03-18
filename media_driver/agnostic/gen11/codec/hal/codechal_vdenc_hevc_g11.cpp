@@ -944,19 +944,6 @@ MOS_STATUS CodechalVdencHevcStateG11::AllocatePakResources()
                                                   &m_resHcpScalabilitySyncBuffer.sResource),
         "Failed to create GEN11 HCP scalability Sync Buffer");
 
-    allocParamsForBufferLinear.dwBytes = m_maxTileNumber * CODECHAL_CACHELINE_SIZE;
-    allocParamsForBufferLinear.pBufName = "GEN11 Huc Tile Size Streamout buffer ";
-
-    for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_resHucTileSizeStreamoutBuffer); i++)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-                                                      m_osInterface,
-                                                      &allocParamsForBufferLinear,
-                                                      &m_resHucTileSizeStreamoutBuffer[i].sResource),
-            "Failed to create GEN11 Huc Tile Size Streamout buffer");
-        m_resHucTileSizeStreamoutBuffer[i].dwSize = allocParamsForBufferLinear.dwBytes;
-    }
-
     // create the tile coding state parameters
     m_tileParams = (PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11)MOS_AllocAndZeroMemory(
         sizeof(MHW_VDBOX_HCP_TILE_CODING_PARAMS_G11)* m_maxTileNumber);
@@ -1207,9 +1194,9 @@ MOS_STATUS CodechalVdencHevcStateG11::FreePakResources()
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_resTileBasedStatisticsBuffer[i].sResource);
     }
-    for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_resHucTileSizeStreamoutBuffer); i++)
+    for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_tileRecordBuffer); i++)
     {
-        m_osInterface->pfnFreeResource(m_osInterface, &m_resHucTileSizeStreamoutBuffer[i].sResource);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_tileRecordBuffer[i].sResource);
     }
     m_osInterface->pfnFreeResource(m_osInterface, &m_resHuCPakAggregatedFrameStatsBuffer.sResource);
 
@@ -1450,7 +1437,7 @@ MOS_STATUS CodechalVdencHevcStateG11::GetStatusReport(
     }
 
     // In case of CQP, PAK integration kernel is not called, so used tile size record from HW
-    PCODECHAL_ENCODE_BUFFER tileSizeStatusReport = m_vdencHucUsed ? &m_resHucTileSizeStreamoutBuffer[encodeStatusReport->CurrOriginalPic.FrameIdx] : &m_resTileBasedStatisticsBuffer[encodeStatusReport->CurrOriginalPic.FrameIdx];
+    PCODECHAL_ENCODE_BUFFER tileSizeStatusReport = &m_tileRecordBuffer[encodeStatusReport->CurrOriginalPic.FrameIdx];
 
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -1820,7 +1807,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffe
             m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
         }
 
-        // Copy Slize size data buffer from PAK to be sent back to App
+        // Copy Slice size data buffer from PAK to be sent back to App
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CopyDataBlock(cmdBuffer,
             &m_resTileBasedStatisticsBuffer[m_virtualEngineBbIndex].sResource,
             m_hevcTileStatsOffset.uiHevcSliceStreamout,
@@ -2657,7 +2644,7 @@ MOS_STATUS CodechalVdencHevcStateG11::EncTileLevel()
             uint32_t index = m_virtualEngineBbIndex;
 
             copyParams.size = m_hwInterface->m_tileRecordSize;
-            copyParams.presSrc = m_vdencHucUsed ? &m_resHucTileSizeStreamoutBuffer[index].sResource : &m_resTileBasedStatisticsBuffer[index].sResource;
+            copyParams.presSrc = &m_tileRecordBuffer[index].sResource;
             copyParams.presDst = &m_resBitstreamBuffer;
             copyParams.lengthOfTable = (uint8_t)(m_numTiles);
 
@@ -4641,8 +4628,8 @@ CodechalVdencHevcStateG11::CodechalVdencHevcStateG11(
     MOS_ZeroMemory(&m_resPakcuLevelStreamoutData, sizeof(m_resPakcuLevelStreamoutData));
     MOS_ZeroMemory(&m_resPakSliceLevelStreamoutData, sizeof(m_resPakSliceLevelStreamoutData));
     MOS_ZeroMemory(m_resTileBasedStatisticsBuffer, sizeof(m_resTileBasedStatisticsBuffer));
+    MOS_ZeroMemory(m_tileRecordBuffer, sizeof(m_tileRecordBuffer));
     MOS_ZeroMemory(&m_resHuCPakAggregatedFrameStatsBuffer, sizeof(m_resHuCPakAggregatedFrameStatsBuffer));
-    MOS_ZeroMemory(m_resHucTileSizeStreamoutBuffer, sizeof(m_resHucTileSizeStreamoutBuffer));
     MOS_ZeroMemory(&m_kmdVeOveride, sizeof(m_kmdVeOveride));
     MOS_ZeroMemory(&m_resHcpScalabilitySyncBuffer, sizeof(m_resHcpScalabilitySyncBuffer));
 
@@ -4706,11 +4693,6 @@ MOS_STATUS CodechalVdencHevcStateG11::SetRegionsHuCPakIntegrate(
     virtualAddrParams->regionParams[0].dwOffset   = 0;
     virtualAddrParams->regionParams[1].presRegion = &m_resHuCPakAggregatedFrameStatsBuffer.sResource;  // Region 1 - HuC Frame statistics output
     virtualAddrParams->regionParams[1].isWritable = true;
-    virtualAddrParams->regionParams[2].presRegion = &m_resTileBasedStatisticsBuffer[m_virtualEngineBbIndex].sResource;           // Region 2 - Tile Record
-    virtualAddrParams->regionParams[2].dwOffset   = 0;                                                                           // Tile record is at offset 0 in combined statistics region
-    virtualAddrParams->regionParams[3].presRegion = &m_resHucTileSizeStreamoutBuffer[m_virtualEngineBbIndex].sResource;          // Region 3 - HuC updates last tile record length
-    virtualAddrParams->regionParams[3].dwOffset   = 0;                                                                           // Tile record is at offset 0 in combined statistics region
-    virtualAddrParams->regionParams[3].isWritable = true;
     virtualAddrParams->regionParams[4].presRegion = &m_resBitstreamBuffer;                         // Region 4 - Last Tile bitstream
     virtualAddrParams->regionParams[4].dwOffset   = MOS_ALIGN_FLOOR(m_tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
     virtualAddrParams->regionParams[5].presRegion = &m_resBitstreamBuffer;                         // Region 5 - HuC modifies the last tile bitstream before stitch command
@@ -4721,6 +4703,9 @@ MOS_STATUS CodechalVdencHevcStateG11::SetRegionsHuCPakIntegrate(
     virtualAddrParams->regionParams[7].presRegion = &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource;                // Region 7 - HCP PIC state command
     virtualAddrParams->regionParams[9].presRegion = &m_resBrcDataBuffer;                           // Region 9  HuC outputs BRC data
     virtualAddrParams->regionParams[9].isWritable = true;
+
+    virtualAddrParams->regionParams[15].presRegion = &m_tileRecordBuffer[m_virtualEngineBbIndex].sResource;          // Region 15 [In/Out] - Tile Record Buffer
+    virtualAddrParams->regionParams[15].dwOffset   = 0;                                                                 // Tile record is at offset 0 
 
     return eStatus;
 }
@@ -5561,8 +5546,8 @@ MOS_STATUS CodechalVdencHevcStateG11::AllocateTileStatistics()
 
     // Maintain the offsets to use for patching addresses in to the Tile Based Statistics Buffer
     // Each offset needs to be page aligned as the combined region is fed into different page aligned HuC regions
-    m_hevcTileStatsOffset.uiTileSizeRecord     = 0;
-    m_hevcTileStatsOffset.uiHevcPakStatistics  = MOS_ALIGN_CEIL(m_hevcTileStatsOffset.uiTileSizeRecord + (m_hevcStatsSize.uiTileSizeRecord * num_tiles), CODECHAL_PAGE_SIZE);
+    m_hevcTileStatsOffset.uiTileSizeRecord     = 0; // TileReord is in a separated resource
+    m_hevcTileStatsOffset.uiHevcPakStatistics  = 0; // PakStaticstics is head of m_resTileBasedStatisticsBuffer
     m_hevcTileStatsOffset.uiVdencStatistics    = MOS_ALIGN_CEIL(m_hevcTileStatsOffset.uiHevcPakStatistics + (m_hevcStatsSize.uiHevcPakStatistics * num_tiles), CODECHAL_PAGE_SIZE);
     m_hevcTileStatsOffset.uiHevcSliceStreamout = MOS_ALIGN_CEIL(m_hevcTileStatsOffset.uiVdencStatistics + (m_hevcStatsSize.uiVdencStatistics * num_tiles), CODECHAL_PAGE_SIZE);
     // Combined statistics size for all tiles
@@ -5599,6 +5584,36 @@ MOS_STATUS CodechalVdencHevcStateG11::AllocateTileStatistics()
 
         MOS_ZeroMemory(pData, allocParamsForBufferLinear.dwBytes);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resTileBasedStatisticsBuffer[m_virtualEngineBbIndex].sResource);
+    }
+
+    if (Mos_ResourceIsNull(&m_tileRecordBuffer[m_virtualEngineBbIndex].sResource) || m_tileRecordBuffer[m_virtualEngineBbIndex].dwSize < m_hwInterface->m_tileRecordSize)
+    {
+        if (!Mos_ResourceIsNull(&m_tileRecordBuffer[m_virtualEngineBbIndex].sResource))
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, &m_tileRecordBuffer[m_virtualEngineBbIndex].sResource);
+        }
+        MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+        allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+        allocParamsForBufferLinear.Format = Format_Buffer;
+        allocParamsForBufferLinear.dwBytes = m_hwInterface->m_tileRecordSize;
+        allocParamsForBufferLinear.pBufName = "Tile Record Buffer";
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_tileRecordBuffer[m_virtualEngineBbIndex].sResource));
+        m_tileRecordBuffer[m_virtualEngineBbIndex].dwSize = m_hwInterface->m_tileRecordSize;
+
+        uint8_t *pData = (uint8_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_tileRecordBuffer[m_virtualEngineBbIndex].sResource,
+            &lockFlagsWriteOnly);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
+
+        MOS_ZeroMemory(pData, allocParamsForBufferLinear.dwBytes);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_tileRecordBuffer[m_virtualEngineBbIndex].sResource);
     }
 
     return eStatus;
@@ -5643,8 +5658,8 @@ MOS_STATUS CodechalVdencHevcStateG11::ReadSseStatistics(PMOS_COMMAND_BUFFER cmdB
 
 void CodechalVdencHevcStateG11::SetHcpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS& indObjBaseAddrParams)
 {
-    PCODECHAL_ENCODE_BUFFER tileStatisticsBuffer    = &m_resTileBasedStatisticsBuffer[m_virtualEngineBbIndex];
-    bool useTileStatisticsBuffer = !Mos_ResourceIsNull(&tileStatisticsBuffer->sResource);
+    PCODECHAL_ENCODE_BUFFER tileRecordBuffer    = &m_tileRecordBuffer[m_virtualEngineBbIndex];
+    bool useTileRecordBuffer = !Mos_ResourceIsNull(&tileRecordBuffer->sResource);
 
     MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
     indObjBaseAddrParams.Mode = CODECHAL_ENCODE_MODE_HEVC;
@@ -5653,9 +5668,9 @@ void CodechalVdencHevcStateG11::SetHcpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BAS
     indObjBaseAddrParams.dwMvObjectSize = m_mbCodeSize - m_mvOffset;
     indObjBaseAddrParams.presPakBaseObjectBuffer = &m_resBitstreamBuffer;
     indObjBaseAddrParams.dwPakBaseObjectSize = m_bitstreamUpperBound;
-    indObjBaseAddrParams.presPakTileSizeStasBuffer = useTileStatisticsBuffer ? &tileStatisticsBuffer->sResource : nullptr;
-    indObjBaseAddrParams.dwPakTileSizeStasBufferSize = useTileStatisticsBuffer ? m_hwInterface->m_tileRecordSize : 0;
-    indObjBaseAddrParams.dwPakTileSizeRecordOffset   = useTileStatisticsBuffer ? m_hevcTileStatsOffset.uiTileSizeRecord : 0;
+    indObjBaseAddrParams.presPakTileSizeStasBuffer = useTileRecordBuffer ? &tileRecordBuffer->sResource : nullptr;
+    indObjBaseAddrParams.dwPakTileSizeStasBufferSize = useTileRecordBuffer ? m_hwInterface->m_tileRecordSize : 0;
+    indObjBaseAddrParams.dwPakTileSizeRecordOffset   = useTileRecordBuffer ? m_hevcTileStatsOffset.uiTileSizeRecord : 0;
 }
 
 MOS_STATUS CodechalVdencHevcStateG11::HuCBrcInitReset()
@@ -6034,6 +6049,16 @@ MOS_STATUS CodechalVdencHevcStateG11::DumpHucPakIntegrate()
         0,
         m_resHuCPakAggregatedFrameStatsBuffer.dwSize,
         1,
+        "",
+        true,
+        currentPass,
+        hucRegionDumpPakIntegrate));
+
+    CODECHAL_DEBUG_CHK_STATUS(m_debugInterface->DumpHucRegion(
+        &m_tileRecordBuffer[m_virtualEngineBbIndex].sResource,
+        0,
+        m_tileRecordBuffer[m_virtualEngineBbIndex].dwSize,
+        15,
         "",
         true,
         currentPass,

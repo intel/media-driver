@@ -2794,7 +2794,7 @@ MOS_STATUS Mos_Specific_SetPatchEntry(
     pPatchList[pOsGpuContext->uiCurrentNumPatchLocations].AllocationIndex     = pParams->uiAllocationIndex;
     pPatchList[pOsGpuContext->uiCurrentNumPatchLocations].AllocationOffset    = pParams->uiResourceOffset;
     pPatchList[pOsGpuContext->uiCurrentNumPatchLocations].PatchOffset         = pParams->uiPatchOffset;
-    pPatchList[pOsGpuContext->uiCurrentNumPatchLocations].uiWriteOperation    = pParams->bWrite;
+    pPatchList[pOsGpuContext->uiCurrentNumPatchLocations].uiWriteOperation    = pParams->bWrite ? true : false;
 
     if (pOsInterface->osCpInterface &&
         pOsInterface->osCpInterface->IsHMEnabled())

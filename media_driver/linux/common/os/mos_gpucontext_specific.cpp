@@ -226,7 +226,7 @@ MOS_STATUS GpuContextSpecific::SetPatchEntry(
     m_patchLocationList[m_currentNumPatchLocations].AllocationIndex  = params->uiAllocationIndex;
     m_patchLocationList[m_currentNumPatchLocations].AllocationOffset = params->uiResourceOffset;
     m_patchLocationList[m_currentNumPatchLocations].PatchOffset      = params->uiPatchOffset;
-    m_patchLocationList[m_currentNumPatchLocations].uiWriteOperation = params->bWrite;
+    m_patchLocationList[m_currentNumPatchLocations].uiWriteOperation = params->bWrite ? true: false;
 
     if (osInterface->osCpInterface &&
         osInterface->osCpInterface->IsHMEnabled())

@@ -953,7 +953,7 @@ public:
 
     // Stats Integration regions
     CODECHAL_ENCODE_BUFFER                      m_hcpScalabilitySyncBuffer;
-    CODECHAL_ENCODE_BUFFER                      m_hcpTileSizeStreamoutBuffer[m_numUncompressedSurface];
+    CODECHAL_ENCODE_BUFFER                      m_tileRecordBuffer[m_numUncompressedSurface];
     CODECHAL_ENCODE_BUFFER                      m_tileStatsPakIntegrationBuffer[m_numUncompressedSurface];
     uint32_t                                    m_tileStatsPakIntegrationBufferSize = 0;
     CODECHAL_ENCODE_BUFFER                      m_frameStatsPakIntegrationBuffer;

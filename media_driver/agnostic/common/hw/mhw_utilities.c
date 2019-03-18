@@ -66,8 +66,8 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
         pParams->presResource,
-        pParams->bIsWritable,
-        pParams->bIsWritable));
+        pParams->bIsWritable ? true : false,
+        pParams->bIsWritable ? true : false));
 
     dwAlign = ( 1 << pParams->dwLsbNum);
     dwMask  = (-1 << pParams->dwLsbNum);
@@ -180,8 +180,8 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
         pParams->presResource,
-        pParams->bIsWritable,
-        pParams->bIsWritable));
+        pParams->bIsWritable ? true : false,
+        pParams->bIsWritable ? true : false));
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
     iAllocationIndex = pOsInterface->pfnGetResourceAllocationIndex(pOsInterface, pParams->presResource);
