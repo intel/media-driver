@@ -35,9 +35,10 @@
 #include "vphal_render_ief.h"
 #include "vphal_renderer.h"
 
-#define AVS_SAMPLE_INDEX        1
-#define TD_SAMPLE_INDEX         1 // 3D sampler
+#define AVS_SAMPLER_INDEX       1
+#define THREED_SAMPLER_INDEX    1 // 3D sampler
 
+#define ALIGN16_SRC_INDEX       0
 #define ALIGN16_SRC_Y_INDEX     0
 #define ALIGN16_SRC_U_INDEX     1
 #define ALIGN16_SRC_UV_INDEX    1
@@ -63,8 +64,8 @@ static const RENDERHAL_KERNEL_PARAM g_16Align_MW_KernelParam[2] =
       |  |    |  |                             |   |   |    |   blocks_x
       |  |    |  |                             |   |   |    |   |   blocks_y
       |  |    |  |                             |   |   |    |   |   |*/
-    { 4, 34,  1, VPHAL_USE_MEDIA_THREADS_MAX,  0,  2,  16,  16,  1,  1 },    // NV12 and YUY2
-    { 4, 34,  1, VPHAL_USE_MEDIA_THREADS_MAX,  0,  2,  32,  8,  1,  1 },     // YV12 only
+    { 4, 34,  1, VPHAL_USE_MEDIA_THREADS_MAX,  0,  4,  16,  16,  1,  1 },    // NV12 and YUY2
+    { 4, 34,  1, VPHAL_USE_MEDIA_THREADS_MAX,  0,  4,  32,  8,  1,  1 },     // YV12 only
 };
 
 //!
@@ -80,7 +81,7 @@ static const RENDERHAL_KERNEL_PARAM g_16Align_MW_KernelParam[2] =
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_16AlignLoadStaticData(
-    PVPHAL_16_ALIGN_STATE           p16AlignState,    
+    PVPHAL_16_ALIGN_STATE           p16AlignState,
     PVPHAL_16_ALIGN_RENDER_DATA     pRenderData,
     int32_t*                        piCurbeOffset)
 {
@@ -88,6 +89,9 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
     MEDIA_WALKER_16ALIGN_STATIC_DATA        WalkerStatic;
     MOS_STATUS                              eStatus;
     int32_t                                 iCurbeLength;
+    float                                   fOffsetY, fOffsetX;
+    float                                   fShiftX, fShiftY;
+    float                                   fStepX, fStepY;
 
     VPHAL_RENDER_CHK_NULL(p16AlignState);
     VPHAL_RENDER_CHK_NULL(p16AlignState->pRenderHal);
@@ -96,19 +100,23 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
 
     // Set relevant static data
     MOS_ZeroMemory(&WalkerStatic, sizeof(MEDIA_WALKER_16ALIGN_STATIC_DATA));
-    if (pRenderData->ScalingRatio_H < 0.0625f || pRenderData->ScalingRatio_V < 0.0625f)
+    if (pRenderData->ScalingRatio_H < 0.0625f ||
+        pRenderData->ScalingRatio_V < 0.0625f)
     {
-        WalkerStatic.DW0.Sampler_Index = TD_SAMPLE_INDEX;
+        WalkerStatic.DW0.Sampler_Index = THREED_SAMPLER_INDEX;
         WalkerStatic.DW11.ScalingMode  = 0;
-        WalkerStatic.DW12.Original_X   = 0;
-        WalkerStatic.DW13.Original_Y   = 0;
+        fShiftX = VPHAL_HW_LINEAR_SHIFT;
+        fShiftY = VPHAL_HW_LINEAR_SHIFT;
     }
     else
     {
-        WalkerStatic.DW0.Sampler_Index = AVS_SAMPLE_INDEX;
+        WalkerStatic.DW0.Sampler_Index = AVS_SAMPLER_INDEX;
         WalkerStatic.DW11.ScalingMode  = 1;
+        fOffsetX = 0.0f;
+        fOffsetY = 0.0f;
+        fShiftX  = 0.0f;
+        fShiftY  = 0.0f;
     }
-
     switch (p16AlignState->pSource->Format)
     {
         case Format_NV12:
@@ -117,7 +125,7 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
             WalkerStatic.DW9.Input_Format     = 0;
             break;
         case Format_YUY2:
-            WalkerStatic.DW1.pSrcSurface_YUY2 = ALIGN16_SRC_Y_INDEX;
+            WalkerStatic.DW1.pSrcSurface      = ALIGN16_SRC_INDEX;
             WalkerStatic.DW9.Input_Format     = 1;
             break;
         case Format_YV12:
@@ -125,6 +133,22 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
             WalkerStatic.DW2.pSrcSurface_U    = ALIGN16_SRC_U_INDEX;
             WalkerStatic.DW3.pSrcSurface_V    = ALIGN16_SRC_V_INDEX;
             WalkerStatic.DW9.Input_Format     = 2;
+            break;
+        case Format_A8R8G8B8:
+            WalkerStatic.DW1.pSrcSurface      = ALIGN16_SRC_INDEX;
+            WalkerStatic.DW9.Input_Format     = 3;
+            WalkerStatic.DW16.CSC_COEFF_0     = 0;
+            WalkerStatic.DW16.CSC_COEFF_1     = 0;
+            WalkerStatic.DW17.CSC_COEFF_2     = 0;
+            WalkerStatic.DW17.CSC_COEFF_3     = 0;
+            WalkerStatic.DW18.CSC_COEFF_4     = 0;
+            WalkerStatic.DW18.CSC_COEFF_5     = 0;
+            WalkerStatic.DW19.CSC_COEFF_6     = 0;
+            WalkerStatic.DW19.CSC_COEFF_7     = 0;
+            WalkerStatic.DW20.CSC_COEFF_8     = 0;
+            WalkerStatic.DW20.CSC_COEFF_9     = 0;
+            WalkerStatic.DW21.CSC_COEFF_10    = 0;
+            WalkerStatic.DW21.CSC_COEFF_11    = 0;
             break;
         default:
             VPHAL_RENDER_ASSERTMESSAGE("16 align input format doesn't support.");
@@ -135,6 +159,7 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
     WalkerStatic.DW8.ScalingStep_V            = pRenderData->ScalingStep_V;
 #if defined(LINUX)
     WalkerStatic.DW10.Output_Pitch            = p16AlignState->pTarget->OsResource.iPitch;
+    WalkerStatic.DW10.Output_Height           = p16AlignState->pTarget->OsResource.iHeight;
 #endif
     switch (p16AlignState->pTarget->Format)
     {
@@ -142,9 +167,6 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
             WalkerStatic.DW4.pOutSurface_Y    = ALIGN16_TRG_Y_INDEX;
             WalkerStatic.DW5.pOutSurface_UV   = ALIGN16_TRG_UV_INDEX;
             WalkerStatic.DW9.Output_Format    = 0;
-#if defined(LINUX)
-            WalkerStatic.DW10.Output_UVOffset  = p16AlignState->pTarget->OsResource.iHeight;
-#endif
             break;
         case Format_YUY2:
             WalkerStatic.DW4.pOutSurface      = ALIGN16_TRG_INDEX;
@@ -155,15 +177,37 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
             WalkerStatic.DW5.pOutSurface_U    = ALIGN16_TRG_U_INDEX;
             WalkerStatic.DW6.pOutSurface_V    = ALIGN16_TRG_V_INDEX;
             WalkerStatic.DW9.Output_Format    = 2;
-#if defined(LINUX)
-            WalkerStatic.DW10.Output_UVOffset  = p16AlignState->pTarget->OsResource.iHeight;
-#endif
             break;
         default:
             VPHAL_RENDER_ASSERTMESSAGE("16 align output format doesn't support.");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             break;
     }
+    if (p16AlignState->pTarget->bUsrPtr)
+    {
+        WalkerStatic.DW22.OutputMode = 0;
+    }
+    else
+    {
+        WalkerStatic.DW22.OutputMode = 1;
+    }
+    fStepX    = ((p16AlignState->pSource->rcSrc.right - p16AlignState->pSource->rcSrc.left) * 1.0f) /
+                 ((p16AlignState->pSource->rcDst.right - p16AlignState->pSource->rcDst.left) > 0 ?
+                  (p16AlignState->pSource->rcDst.right - p16AlignState->pSource->rcDst.left) : 1);
+    fStepY    = ((p16AlignState->pSource->rcSrc.bottom - p16AlignState->pSource->rcSrc.top) * 1.0f) /
+                 ((p16AlignState->pSource->rcDst.bottom - p16AlignState->pSource->rcDst.top) > 0 ?
+                  (p16AlignState->pSource->rcDst.bottom - p16AlignState->pSource->rcDst.top) : 1);
+    fOffsetX  = (float)p16AlignState->pSource->rcSrc.left;
+    fOffsetY  = (float)p16AlignState->pSource->rcSrc.top;
+    fShiftX  -= p16AlignState->pSource->rcDst.left;
+    fShiftY  -= p16AlignState->pSource->rcDst.top;
+    WalkerStatic.DW12.Original_X     = (fOffsetX + fShiftX * fStepX) / p16AlignState->pSource->dwWidth;
+    WalkerStatic.DW13.Original_Y     = (fOffsetY + fShiftY * fStepY) / p16AlignState->pSource->dwHeight;
+    WalkerStatic.DW22.Output_Top     = p16AlignState->pSource->rcDst.top;
+    WalkerStatic.DW23.Output_Bottom  = p16AlignState->pSource->rcDst.bottom - 1;
+    WalkerStatic.DW23.Output_Left    = p16AlignState->pSource->rcDst.left;
+    WalkerStatic.DW24.Output_Right   = p16AlignState->pSource->rcDst.right - 1;
+    WalkerStatic.DW24.bClearFlag     = 0;
 
     iCurbeLength = sizeof(MEDIA_WALKER_16ALIGN_STATIC_DATA);
 
@@ -537,27 +581,42 @@ MOS_STATUS VpHal_16AlignSetSamplerStates(
     VPHAL_PUBLIC_CHK_NULL(pRenderHal);
     pSamplerStateParams                          = &pRenderData->SamplerStateParams;
     pSamplerStateParams->bInUse                  = true;
-    pSamplerStateParams->SamplerType             = MHW_SAMPLER_TYPE_AVS;
-    pSamplerStateParams->Avs.AvsType             = false;
-    pSamplerStateParams->Avs.bEnableIEF          = false;
-    pSamplerStateParams->Avs.b8TapAdaptiveEnable = false;
-    pSamplerStateParams->Avs.bHdcDwEnable        = true;
-    pSamplerStateParams->Avs.bEnableAVS          = true;
-    pSamplerStateParams->Avs.WeakEdgeThr         = DETAIL_WEAK_EDGE_THRESHOLD;
-    pSamplerStateParams->Avs.StrongEdgeThr       = DETAIL_STRONG_EDGE_THRESHOLD;
-    pSamplerStateParams->Avs.StrongEdgeWght      = DETAIL_STRONG_EDGE_WEIGHT;
-    pSamplerStateParams->Avs.RegularWght         = DETAIL_REGULAR_EDGE_WEIGHT;
-    pSamplerStateParams->Avs.NonEdgeWght         = DETAIL_NON_EDGE_WEIGHT;
-    pSamplerStateParams->Avs.pMhwSamplerAvsTableParam = &p16AlignState->mhwSamplerAvsTableParam;
 
-    VPHAL_RENDER_CHK_STATUS(VpHal_16AlignSetSamplerAvsTableParam(
-                    pRenderHal,
-                    pSamplerStateParams,
-                    pRenderData->pAVSParameters,
-                    p16AlignState->pSource->Format,
-                    pRenderData->ScalingRatio_H,
-                    pRenderData->ScalingRatio_V,
-                    MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_TOP));
+    if (pRenderData->ScalingRatio_H < 0.0625f ||
+        pRenderData->ScalingRatio_V < 0.0625f)
+    {
+        p16AlignState->pSource->bUseSampleUnorm      = true;
+        pSamplerStateParams->SamplerType             = MHW_SAMPLER_TYPE_3D;
+        pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
+        pSamplerStateParams->Unorm.AddressU          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+        pSamplerStateParams->Unorm.AddressV          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+        pSamplerStateParams->Unorm.AddressW          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+    }
+    else
+    {
+        pSamplerStateParams->SamplerType             = MHW_SAMPLER_TYPE_AVS;
+        pSamplerStateParams->Avs.AvsType             = false;
+        pSamplerStateParams->Avs.bEnableIEF          = false;
+        pSamplerStateParams->Avs.b8TapAdaptiveEnable = false;
+        pSamplerStateParams->Avs.bHdcDwEnable        = true;
+        pSamplerStateParams->Avs.bEnableAVS          = true;
+        pSamplerStateParams->Avs.WeakEdgeThr         = DETAIL_WEAK_EDGE_THRESHOLD;
+        pSamplerStateParams->Avs.StrongEdgeThr       = DETAIL_STRONG_EDGE_THRESHOLD;
+        pSamplerStateParams->Avs.StrongEdgeWght      = DETAIL_STRONG_EDGE_WEIGHT;
+        pSamplerStateParams->Avs.RegularWght         = DETAIL_REGULAR_EDGE_WEIGHT;
+        pSamplerStateParams->Avs.NonEdgeWght         = DETAIL_NON_EDGE_WEIGHT;
+        pSamplerStateParams->Avs.pMhwSamplerAvsTableParam = &p16AlignState->mhwSamplerAvsTableParam;
+
+        VPHAL_RENDER_CHK_STATUS(VpHal_16AlignSetSamplerAvsTableParam(
+                        pRenderHal,
+                        pSamplerStateParams,
+                        pRenderData->pAVSParameters,
+                        p16AlignState->pSource->Format,
+                        pRenderData->ScalingRatio_H,
+                        pRenderData->ScalingRatio_V,
+                        MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_TOP));
+    }
+
 
     eStatus = pRenderHal->pfnSetSamplerStates(
         pRenderHal,
@@ -896,7 +955,7 @@ MOS_STATUS VpHal_16AlignRender(
 finish:
     MOS_ZeroMemory(pCacheSettings, sizeof(*pCacheSettings));
     VPHAL_RENDER_ASSERT(eStatus == MOS_STATUS_SUCCESS);
-    VPHAL_RENDER_NORMALMESSAGE("finish 16alignment process!");
+    VPHAL_RENDER_NORMALMESSAGE("finished UsrPtr process!");
     return eStatus;
 }
 
@@ -959,6 +1018,141 @@ MOS_STATUS VpHal_16AlignInitialize(
 }
 
 //!
+//! \brief    Set Surface for HW Access
+//! \details  Common Function for setting up surface state, need to use this function
+//!           if render would use CP HM
+//! \param    [in] bSrc
+//!           indicate the surface is input source.
+//! \param    [in] pRenderHal
+//!           Pointer to RenderHal Interface Structure
+//! \param    [in] pSurface
+//!           Pointer to Surface
+//! \param    [in] pRenderSurface
+//!           Pointer to Render Surface
+//! \param    [in] pSurfaceParams
+//!           Pointer to RenderHal Surface Params
+//! \param    [in] iBindingTable
+//!           Binding Table to bind surface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success. Error code otherwise
+//!
+MOS_STATUS VpHal_16AlignSetupSurfaceStatesInt(
+    bool                                bSrc,
+    PRENDERHAL_INTERFACE                pRenderHal,
+    PVPHAL_SURFACE                      pSurface,
+    PRENDERHAL_SURFACE                  pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS     pSurfaceParams,
+    int32_t                             iBindingTable)
+{
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+    PRENDERHAL_SURFACE_STATE_ENTRY      pSurfaceEntry;
+    MOS_FORMAT                          format  = pSurface->Format;
+    uint32_t                            width   = pSurface->dwWidth;
+#if defined(LINUX)
+    uint32_t                            dwSize  = pSurface->dwHeight * pSurface->OsResource.iPitch;
+#else
+    uint32_t                            dwSize  = pSurface->dwHeight * pSurface->dwPitch;
+#endif
+
+    if (!bSrc && pSurface->bUsrPtr)
+    {
+        // system linear surface.
+        // reset the output surface format as Raw and calculate the surface size.
+        pSurface->Format      = Format_RAW;
+        switch (format)
+        {
+            case Format_NV12:
+                for (int i = 0; i < 2; i++)
+                {
+                    pSurface->dwWidth = (i==0)?dwSize:dwSize/2;
+                    VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
+                        pRenderHal,
+                        pSurface,
+                        pRenderSurface,
+                        pSurfaceParams,
+                        iBindingTable,
+                        bSrc?((i==0)?ALIGN16_SRC_Y_INDEX:ALIGN16_SRC_UV_INDEX):((i==0)?ALIGN16_TRG_Y_INDEX:ALIGN16_TRG_UV_INDEX),
+                        bSrc?false:true));
+                    // add UV offset which was missed in raw buffer common configuration.
+                    if (i > 0)
+                    {
+                        pSurfaceEntry   = &pRenderHal->pStateHeap->pSurfaceEntry[pRenderHal->pStateHeap->iCurrentSurfaceState-1]; // fetch the surface plane
+                        pSurfaceEntry->SurfaceToken.DW2.SurfaceOffset = dwSize;
+                    }
+                }
+                break;
+            case Format_YUY2:
+                pSurface->dwWidth = dwSize * 2;
+                VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
+                    pRenderHal,
+                    pSurface,
+                    pRenderSurface,
+                    pSurfaceParams,
+                    iBindingTable,
+                    bSrc?ALIGN16_SRC_INDEX:ALIGN16_TRG_INDEX,
+                    bSrc?false:true));
+                break;
+            case Format_YV12:
+                // YV12 should be allocated as 3 linear buffer for every Y U V output plane.
+                for (int i = 0; i < 3; i++)
+                {
+                    pSurface->dwWidth = (i == 0)?dwSize:dwSize/4;
+                    VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
+                        pRenderHal,
+                        pSurface,
+                        pRenderSurface,
+                        pSurfaceParams,
+                        iBindingTable,
+                        bSrc?((i==0)?ALIGN16_SRC_Y_INDEX:((i==1)?ALIGN16_SRC_U_INDEX:ALIGN16_SRC_V_INDEX)):
+                        ((i==0)?ALIGN16_TRG_Y_INDEX:((i==1)?ALIGN16_TRG_U_INDEX:ALIGN16_TRG_V_INDEX)),
+                        bSrc?false:true));
+                    // add U, V offset which was missed in raw buffer common configuration.
+                    // recalculate U, V offset based on 16aligned pitch.
+                    if (i > 0)
+                    {
+                        pSurfaceEntry   = &pRenderHal->pStateHeap->pSurfaceEntry[pRenderHal->pStateHeap->iCurrentSurfaceState-1]; // fetch the surface plane
+                        pSurfaceEntry->SurfaceToken.DW2.SurfaceOffset = (i == 1)?(dwSize*5/4):dwSize;
+                    }
+                }
+                break;
+            default:
+                VPHAL_RENDER_ASSERTMESSAGE("16 align output format doesn't support.");
+                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                break;
+        }
+        // resotre the target format and width for curbe data.
+        pSurface->Format      = format;
+        pSurface->dwWidth     = width;
+    }
+    else
+    {
+        // input source keep using 2D surface foramt. set tile mode as linear.
+        // VA 2D surface
+        VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
+            pRenderHal,
+            pSurface,
+            pRenderSurface,
+            pSurfaceParams,
+            iBindingTable,
+            bSrc?ALIGN16_SRC_INDEX:ALIGN16_TRG_INDEX,
+            bSrc?false:true));
+        // for 1 sampler access YV12 3plane input, Y plane should use the R8 sampler type, the same as U,V plane
+        // for 3 samplers access YV12 3plane input, Y plane should use Y8 sampler type
+        // 16-alignment kernel always uses 1-sampler, legacy FC kernel always uses 3-sampler
+        if (pSurface->Format == Format_YV12)
+        {
+            uint32_t * pSrcPlaneYSampler  = nullptr;
+            pSurfaceEntry       = &pRenderHal->pStateHeap->pSurfaceEntry[0];   // input Y plane
+            pSrcPlaneYSampler   = (uint32_t*)pSurfaceEntry->pSurfaceState + 2; // DW2
+            *pSrcPlaneYSampler  = (*pSrcPlaneYSampler & 0x07FFFFFF) | (0x0B<<27);
+        }
+    }
+finish:
+    VPHAL_RENDER_ASSERT(eStatus == MOS_STATUS_SUCCESS);
+    return eStatus;
+}
+
+//!
 //! \brief    16alignment setup surface states
 //! \details  Setup surface states for 16Align
 //! \param    PVPHAL_16_ALIGN_STATE p16AlignState
@@ -969,7 +1163,7 @@ MOS_STATUS VpHal_16AlignInitialize(
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_16AlignSetupSurfaceStates(
-    PVPHAL_16_ALIGN_STATE        p16AlignState,    
+    PVPHAL_16_ALIGN_STATE        p16AlignState,
     PVPHAL_16_ALIGN_RENDER_DATA  pRenderData)
 {
     PRENDERHAL_INTERFACE            pRenderHal;
@@ -979,44 +1173,34 @@ MOS_STATUS VpHal_16AlignSetupSurfaceStates(
 
     eStatus             = MOS_STATUS_SUCCESS;
     pRenderHal          = p16AlignState->pRenderHal;
-    uint32_t width      = p16AlignState->pTarget->dwWidth;
-#if defined(LINUX)
-    uint32_t dwSize     = p16AlignState->pTarget->dwHeight * p16AlignState->pTarget->OsResource.iPitch;
-#endif
-    MOS_FORMAT format   = p16AlignState->pTarget->Format;
 
     // Source surface
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
 
-    SurfaceParams.bAVS              = true;
+    if (pRenderData->ScalingRatio_H < 0.0625f ||
+        pRenderData->ScalingRatio_V < 0.0625f)
+    {
+        SurfaceParams.bAVS          = false;
+    }
+    else
+    {
+        SurfaceParams.bAVS          = true;
+    }
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_SRCRECT;
     SurfaceParams.bRenderTarget     = false;
-    SurfaceParams.MemObjCtl         = 
+    SurfaceParams.MemObjCtl         =
         p16AlignState->SurfMemObjCtl.SourceSurfMemObjCtl;
     SurfaceParams.Type              = RENDERHAL_SURFACE_TYPE_ADV_G9;
     SurfaceParams.bWidthInDword_Y   = false;
     SurfaceParams.bWidthInDword_UV  = false;
     SurfaceParams.bWidth16Align     = false;
 
-    VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
-                pRenderHal,
-                p16AlignState->pSource,
-                &p16AlignState->RenderHalSource,
-                &SurfaceParams,
-                pRenderData->iBindingTable,
-                ALIGN16_SRC_Y_INDEX,
-                false));
-
-    // for 1 sampler access YV12 3plane input, Y plane should use the R8 sampler type, the same as U,V plane
-    // for 3 samplers access YV12 3plane input, Y plane should use Y8 sampler type
-    // 16-alignment kernel always uses 1-sampler, legacy FC kernel always uses 3-sampler
-    if (p16AlignState->pSource->Format == Format_YV12)
-    {
-        uint32_t * pSrcPlaneYSampler  = nullptr;
-        pSurfaceEntry       = &pRenderHal->pStateHeap->pSurfaceEntry[0]; // input Y plane
-        pSrcPlaneYSampler   = (uint32_t*)pSurfaceEntry->pSurfaceState + 2; // DW2
-        *pSrcPlaneYSampler  = (*pSrcPlaneYSampler & 0x07FFFFFF) | (0x0B<<27);
-    }
+    VPHAL_RENDER_CHK_STATUS(VpHal_16AlignSetupSurfaceStatesInt(true,
+        pRenderHal,
+        p16AlignState->pSource,
+        &p16AlignState->RenderHalSource,
+        &SurfaceParams,
+        pRenderData->iBindingTable));
 
     // Target surface
     SurfaceParams.MemObjCtl         =
@@ -1026,81 +1210,12 @@ MOS_STATUS VpHal_16AlignSetupSurfaceStates(
     SurfaceParams.bAVS              = false;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_DSTRECT;
 
-    // reset the output surface format as Raw and calculate the surface size.
-    p16AlignState->pTarget->Format      = Format_RAW;
-#if defined(LINUX)
-    switch (format)
-    {
-        case Format_NV12:
-            for (int i = 0; i < 2; i++)
-            {
-                p16AlignState->pTarget->dwWidth = (i==0)?dwSize:dwSize/2;
-                p16AlignState->pTarget->dwWidth = MOS_ALIGN_CEIL(p16AlignState->pTarget->dwWidth, 128);
-                VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
-                    pRenderHal,
-                    p16AlignState->pTarget,
-                    &p16AlignState->RenderHalTarget,
-                    &SurfaceParams,
-                    pRenderData->iBindingTable,
-                    (i==0)?ALIGN16_TRG_Y_INDEX:ALIGN16_TRG_UV_INDEX,
-                    true));
-
-                // add UV offset which was missed in raw buffer common configuration.
-                if (i > 0)
-                {
-                    dwSize          = MOS_ALIGN_CEIL(dwSize, 128);
-                    pSurfaceEntry   = &pRenderHal->pStateHeap->pSurfaceEntry[pRenderHal->pStateHeap->iCurrentSurfaceState-1]; // fetch the surface plane
-                    pSurfaceEntry->SurfaceToken.DW2.SurfaceOffset = dwSize;
-                }
-            }
-            break;
-        case Format_YUY2:
-            p16AlignState->pTarget->dwWidth = dwSize * 2;
-            p16AlignState->pTarget->dwWidth = MOS_ALIGN_CEIL(p16AlignState->pTarget->dwWidth, 128);
-            VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
-                pRenderHal,
-                p16AlignState->pTarget,
-                &p16AlignState->RenderHalTarget,
-                &SurfaceParams,
-                pRenderData->iBindingTable,
-                ALIGN16_TRG_INDEX,
-                true));
-            break;
-        case Format_YV12:
-            // YV12 should be allocated as 3 linear buffer for every Y U V output plane.
-            for (int i = 0; i < 3; i++)
-            {
-                p16AlignState->pTarget->dwWidth = (i == 0)?dwSize:dwSize/4;
-                p16AlignState->pTarget->dwWidth = MOS_ALIGN_CEIL(p16AlignState->pTarget->dwWidth, 128);
-                VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
-                    pRenderHal,
-                    p16AlignState->pTarget,
-                    &p16AlignState->RenderHalTarget,
-                    &SurfaceParams,
-                    pRenderData->iBindingTable,
-                    (i==0)?ALIGN16_TRG_Y_INDEX:((i==1)?ALIGN16_TRG_U_INDEX:ALIGN16_TRG_V_INDEX),
-                    true));
-
-                // add U, V offset which was missed in raw buffer common configuration.
-                // recalculate U, V offset based on 16aligned pitch.
-                if (i > 0)
-                {
-                    dwSize          = MOS_ALIGN_CEIL(dwSize, 128);
-                    pSurfaceEntry   = &pRenderHal->pStateHeap->pSurfaceEntry[pRenderHal->pStateHeap->iCurrentSurfaceState-1]; // fetch the surface plane
-                    pSurfaceEntry->SurfaceToken.DW2.SurfaceOffset = (i == 1)?(dwSize*5/4):dwSize;
-                }
-            }
-            break;
-        default:
-            VPHAL_RENDER_ASSERTMESSAGE("16 align output format doesn't support.");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            break;
-    }
-
-    // resotre the target format and width for curbe data.
-    p16AlignState->pTarget->Format      = format;
-    p16AlignState->pTarget->dwWidth     = width;
-#endif
+    VPHAL_RENDER_CHK_STATUS(VpHal_16AlignSetupSurfaceStatesInt(false,
+        pRenderHal,
+        p16AlignState->pTarget,
+        &p16AlignState->RenderHalTarget,
+        &SurfaceParams,
+        pRenderData->iBindingTable));
 
 finish:
     VPHAL_RENDER_ASSERT(eStatus == MOS_STATUS_SUCCESS);
@@ -1185,16 +1300,22 @@ bool VpHal_RndrIs16Align(
     {
         b16alignment = ((pSource->Format == Format_NV12         ||
                          pSource->Format == Format_YUY2         ||
-                         pSource->Format == Format_YV12)        && 
-                       (pTarget->Format == Format_NV12          || 
-                        pTarget->Format == Format_YUY2          ||
-                        pTarget->Format == Format_YV12));
-        // for YV12 output, input should be YV12.
-        if (pTarget->Format == Format_YV12)
+                         pSource->Format == Format_YV12)        &&
+                        (pTarget->Format == Format_NV12         ||
+                         pTarget->Format == Format_YUY2         ||
+                         pTarget->Format == Format_YV12         ||
+                         pTarget->Format == Format_A8R8G8B8));
+        if (pSource->bUsrPtr && pSource->TileType != MOS_TILE_LINEAR)
         {
-            return (pSource->Format == Format_YV12);
+            b16alignment = false;
         }
+
     }
+    VPHAL_RENDER_NORMALMESSAGE("%s support(s) %s %s %s surface convert to %s %s surface",
+        b16alignment?"UsrPtr":"UsrPtr doesn't",
+        (pSource->TileType == MOS_TILE_LINEAR)?"":"non",
+        pSource->bUsrPtr?"linear":"2D", VphalDumperTool::GetFormatStr(pSource->Format),
+        pTarget->bUsrPtr?"linear":"2D", VphalDumperTool::GetFormatStr(pTarget->Format));
 
     return b16alignment;
 }

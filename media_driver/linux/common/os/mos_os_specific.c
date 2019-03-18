@@ -2164,9 +2164,19 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     GmmFlags = pGmmResourceInfo->GetResFlags();
 
     // Get resource information
-    pResDetails->dwWidth         = GFX_ULONG_CAST(pGmmResourceInfo->GetBaseWidth());
-    pResDetails->dwHeight        = pGmmResourceInfo->GetBaseHeight();
-    pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
+    if (pOsResource->bUseGmmQuery)
+    {
+        pResDetails->dwWidth         = GFX_ULONG_CAST(pGmmResourceInfo->GetBaseWidth());
+        pResDetails->dwHeight        = pGmmResourceInfo->GetBaseHeight();
+        pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
+    }
+    else
+    {
+        // if usrptr surface, do not query those values from gmm, app will configure them.
+        pResDetails->dwWidth         = pOsResource->iWidth;
+        pResDetails->dwHeight        = pOsResource->iHeight;
+        pResDetails->dwPitch         = pOsResource->iPitch;
+    }
     pResDetails->dwDepth         = MOS_MAX(1, pGmmResourceInfo->GetBaseDepth());
     pResDetails->dwLockPitch     = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
     if (GFX_GET_CURRENT_RENDERCORE(pOsInterface->pfnGetGmmClientContext(pOsInterface)->GetPlatformInfo().Platform) < IGFX_GEN8_CORE)

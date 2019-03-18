@@ -927,6 +927,7 @@ struct VPHAL_SURFACE
     bool                        bDirectionalScalar; //!< Vebox Directional Scalar
     bool                        bFastColorFill;     //!< enable fast color fill without copy surface
     bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
+    bool                        bUsrPtr;            //!< is system linear memory.
 
     // Advanced Processing
     PVPHAL_DI_PARAMS            pDeinterlaceParams;
@@ -1125,7 +1126,6 @@ struct VPHAL_RENDER_PARAMS
 
                                                                         // Status Report
     bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
-    bool                                    bUserPrt_16Align[VPHAL_MAX_TARGETS];           //!< is system memory 16 bytes alignment requirement.
     uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
@@ -1158,10 +1158,6 @@ struct VPHAL_RENDER_PARAMS
         bCalculatingAlpha(false),
         pExtensionData(nullptr)
     {
-        for (int i=0; i<VPHAL_MAX_TARGETS; i++)
-        {
-            bUserPrt_16Align[i] = false;
-        }
     }
 
 };
