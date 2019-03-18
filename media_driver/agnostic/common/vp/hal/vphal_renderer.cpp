@@ -728,7 +728,7 @@ MOS_STATUS VphalRenderer::RenderPass(
                 }
                 // update the first target point
                 pRenderParams->pTarget[0]                = StoreRenderParams.pTarget[uiIndex_out];
-                pRenderParams->bUserPrt_16Align[0]       = StoreRenderParams.bUserPrt_16Align[uiIndex_out];
+                pRenderParams->pTarget[0]->bUsrPtr       = StoreRenderParams.pTarget[uiIndex_out]->bUsrPtr;
                 if (StoreRenderParams.uDstCount > 1)
                 {
                     // for multi output, support different scaling ratio but doesn't support cropping.
@@ -761,7 +761,7 @@ MOS_STATUS VphalRenderer::RenderPass(
             }
             // restore render pointer and count.
             pRenderParams->pTarget[0]            = StoreRenderParams.pTarget[0];
-            pRenderParams->bUserPrt_16Align[0]   = StoreRenderParams.bUserPrt_16Align[0];
+            pRenderParams->pTarget[0]->bUsrPtr   = StoreRenderParams.pTarget[0]->bUsrPtr;
             pRenderParams->uDstCount             = StoreRenderParams.uDstCount;
         }
     }
@@ -913,7 +913,9 @@ MOS_STATUS VphalRenderer::RenderComposite(
         pRenderParams->uSrcCount, VPHAL_DBG_DUMP_TYPE_PRE_COMP);
     //------------------------------------------
 
-    if (pRenderParams->bUserPrt_16Align[0])
+    if (pRenderPassData->pSrcSurface && 
+        (pRenderPassData->pSrcSurface->bUsrPtr ||
+        pRenderParams->pTarget[0]->bUsrPtr))
     {
         if (VpHal_RndrIs16Align(pRenderParams))
         {

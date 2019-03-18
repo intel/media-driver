@@ -1237,13 +1237,54 @@ DdiVp_SetProcPipelineParams(
     vaStatus = VpUpdateProcHdrState(pVpHalTgtSurf, pPipelineParam->output_hdr_metadata);
     DDI_CHK_RET(vaStatus, "Failed to update vphal target surface HDR metadata!");
 
-    //Using additional_outputs processing as 1:N case.
+    // Using additional_outputs processing as 1:N case.
     for (i = 0; i < pPipelineParam->num_additional_outputs; i++)
     {
         vaStatus = DdiVp_BeginPictureInt(pVaDrvCtx, pVpCtx, pPipelineParam->additional_outputs[i]);
         DDI_CHK_RET(vaStatus, "Failed to update vphal target surface buffers!");
         vaStatus = DdiVp_UpdateVphalTargetSurfColorSpace(pVaDrvCtx, pVpCtx, pPipelineParam, i+1);
         DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
+    }
+
+    // add UsrPtr mode support
+    if (pMediaSrcSurf->pSurfDesc)
+    {
+        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+        if (pVpHalSrcSurf->bUsrPtr)
+        {
+            pVpHalSrcSurf->dwPitch                 = pMediaSrcSurf->iPitch;
+            pVpHalSrcSurf->OsResource.iPitch       = pMediaSrcSurf->iPitch;
+            pVpHalSrcSurf->OsResource.iWidth       = pMediaSrcSurf->iWidth;
+            pVpHalSrcSurf->OsResource.iHeight      = pMediaSrcSurf->iHeight;
+            pVpHalSrcSurf->OsResource.bUseGmmQuery = false;
+            switch (pMediaSrcSurf->format)
+            {
+                case Media_Format_NV12:
+                    pVpHalSrcSurf->YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
+                    pVpHalSrcSurf->UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    break;
+                case Media_Format_YV12:
+                    pVpHalSrcSurf->YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
+                    pVpHalSrcSurf->VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[2];
+                    break;
+                case Media_Format_A8R8G8B8:
+                    break;
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            pVpHalSrcSurf->bUsrPtr                 = false;
+            pVpHalSrcSurf->OsResource.bUseGmmQuery = true;
+        }
+    }
+    else
+    {
+        pVpHalSrcSurf->bUsrPtr                 = false;
+        pVpHalSrcSurf->OsResource.bUseGmmQuery = true;
     }
     return VA_STATUS_SUCCESS;
 }
@@ -2961,16 +3002,16 @@ VAStatus DdiVp_BeginPicture(
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
     if (pMediaTgtSurf->pSurfDesc)
     {
-        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] =
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
                 (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount])
+        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
         }
     }
     else
     {
-        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3058,16 +3099,16 @@ VAStatus DdiVp_BeginPictureInt(
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
     if (pMediaTgtSurf->pSurfDesc)
     {
-        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] =
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
                 (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount])
+        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
         }
     }
     else
     {
-        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
