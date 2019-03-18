@@ -79,6 +79,9 @@
 #define VP9HVDROWSTORE_BASEADDRESS                                            0
 #define VP9DFROWSTORE_BASEADDRESS_PICWIDTH_LESS_THAN_OR_EQU_TO_2K             32
 #define MHW_CACHELINE_SIZE                                                    64
+#define BYTES_PER_DWORD                                                       4
+#define NUM_PAK_DWS_PER_LCU                                                   5
+#define NUM_DWS_PER_CU                                                        8
 
 #define VP9DFROWSTORE_BASEADDRESS_8BIT_PICWIDTH_LESS_THAN_OR_EQU_TO_4K          384
 #define VP9DATROWSTORE_BASEADDRESS_8BIT_PICWIDTH_LESS_THAN_OR_EQU_TO_4K         64
