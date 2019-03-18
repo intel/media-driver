@@ -89,7 +89,6 @@ extern const MHW_SURFACE_STATE_PARAMS g_cInit_MhwSurfaceStateParams =
     0,        // dwYOffsetForU
     0,        // dwXOffsetForV
     0,        // dwYOffsetForV
-    0,        // Compression Format
 
     nullptr,     // [out] pdwCmd
     0         // [out] dwLocationInCmd

@@ -353,7 +353,6 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    dwYOffsetForU; // U or UV
     uint32_t    dwXOffsetForV;
     uint32_t    dwYOffsetForV;
-    uint32_t    dwCompressionFormat;    // Memory Compression Format
 
     uint32_t    *pdwCmd;                // [out] Pointer for patching
     uint32_t    dwLocationInCmd;       // [out] Offset in command for patching
