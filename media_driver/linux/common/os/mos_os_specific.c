@@ -1297,6 +1297,13 @@ MOS_STATUS Linux_InitContext(
        }
     }
 
+    //check if gem bo 48b address supported
+    if(mos_gem_bo_48b_address_supported(pContext->intel_context))
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to check gem bo 48b address flag.");
+        return MOS_STATUS_UNKNOWN;
+    }
+
     pContext->intel_context->pOsContext = pContext;
 #else
     pContext->intel_context = nullptr;

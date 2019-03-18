@@ -4359,6 +4359,32 @@ mos_set_context_param(struct mos_linux_context *ctx,
 }
 
 int
+mos_gem_bo_48b_address_supported(struct mos_linux_context *ctx)
+{
+    uint64_t gtt_size = 0;
+    uint64_t gtt_size_4g = (uint64_t)1 << 32;
+    struct mos_bufmgr_gem *bufmgr_gem;
+    int ret;
+
+    if (ctx == nullptr)
+        return -EINVAL;
+
+    ret = mos_get_context_param(ctx, sizeof(uint64_t),I915_CONTEXT_PARAM_GTT_SIZE,&gtt_size);
+    if(ret)
+        return -EINVAL;
+
+    if(gtt_size >= gtt_size_4g)
+    {
+        bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
+        if(bufmgr_gem)
+        {
+            bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
+        }
+    }
+    return ret;
+}
+
+int
 mos_reg_read(struct mos_bufmgr *bufmgr,
            uint32_t offset,
            uint64_t *result)
