@@ -2246,7 +2246,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpIndObjBaseAddrCmd(
             resourceParams.pdwCmd = (cmd.DW23_24.Value);
             resourceParams.dwLocationInCmd = 23;
             resourceParams.dwSize = params->dwPakTileSizeStasBufferSize;
-            resourceParams.bIsWritable = true;
+            resourceParams.bIsWritable = WRITE_WA;
 
             MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
                 m_osInterface,

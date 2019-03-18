@@ -582,6 +582,12 @@ typedef struct _MHW_BATCH_BUFFER_LIST
     uint32_t                dwSize;                         //!< Total BB memory in this list
 } MHW_BATCH_BUFFER_LIST,*PMHW_BATCH_BUFFER_LIST;
 
+enum WRITE_FLAG
+{
+    WRITE     = 0x1,
+    WRITE_WA  = 0x2,
+};
+
 typedef struct _MHW_RESOURCE_PARAMS
 {
     PMOS_RESOURCE                       presResource;
@@ -599,7 +605,7 @@ typedef struct _MHW_RESOURCE_PARAMS
 
     MOS_HW_COMMAND                      HwCommandType;
     uint32_t                            dwSharedMocsOffset;
-    bool                                bIsWritable;
+    uint32_t                            bIsWritable;
 
     // If the patching location does not start at bit 0 then the value to be patched needs to be shifted
     uint32_t                            shiftAmount;
