@@ -2651,6 +2651,21 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
             m_vdencSliceMinusI : m_vdencSliceMinusP;
     }
 
+    if (m_minMaxQpControlEnabled)
+    {
+        // Convert range [1,51] to [10,51] for VDEnc due to HW limitation
+        if (m_pictureCodingType == I_TYPE)
+        {
+            imageStateParams->pEncodeAvcPicParams->ucMaximumQP = MOS_MAX(m_iMaxQp, 10);
+            imageStateParams->pEncodeAvcPicParams->ucMinimumQP = MOS_MAX(m_iMinQp, 10);
+        }
+        else if (m_pictureCodingType == P_TYPE)
+        {
+            imageStateParams->pEncodeAvcPicParams->ucMaximumQP = MOS_MAX(m_pMaxQp, 10);
+            imageStateParams->pEncodeAvcPicParams->ucMinimumQP = MOS_MAX(m_pMinQp, 10);
+        }
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AddVdencBrcImgBuffer(
         &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
         imageStateParams));
