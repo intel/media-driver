@@ -841,6 +841,8 @@ VAStatus DdiMediaUtil_CreateBuffer(DDI_MEDIA_BUFFER *buffer, MOS_BUFMGR *bufmgr)
     return hr;
 }
 
+VAStatus SwizzleSurface(PDDI_MEDIA_CONTEXT mediaCtx, PGMM_RESOURCE_INFO pGmmResInfo, void *pLockedAddr, uint32_t TileType, uint8_t* pResourceBase, bool bUpload);
+
 // add thread protection for multiple thread?
 void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
 {
@@ -874,7 +876,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
             }
-            else if (surface->pMediaCtx->m_useSwSwizzling)
+            else if ((surface->pMediaCtx->m_useSwSwizzling) && !(flag & MOS_LOCKFLAG_NO_SWIZZLE))
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
                 if (surface->pSystemShadow == nullptr)
@@ -882,25 +884,27 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                     surface->pSystemShadow = (uint8_t*)MOS_AllocMemory(surface->bo->size);
                     DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
                 }
-                if (surface->pSystemShadow)
-                {
-                    int32_t flags = surface->pMediaCtx->m_tileYFlag ? 0 : 1;
-                    uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
-                    DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
-                    DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
 
-                    Mos_SwizzleData((uint8_t*)surface->bo->virt, (uint8_t*)surface->pSystemShadow,
-                                    MOS_TILE_Y, MOS_TILE_LINEAR,
-                                    static_cast<int32_t>(surfSize / surface->iPitch), surface->iPitch, flags);
-                }
-            }
-            else if (flag & MOS_LOCKFLAG_WRITEONLY)
-            {
-                mos_gem_bo_map_gtt(surface->bo);
+                uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
+                DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
+                DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
+
+                VAStatus vaStatus = SwizzleSurface(surface->pMediaCtx,
+                                                   surface->pGmmResourceInfo,
+                                                   surface->bo->virt,
+                                                   (MOS_TILE_TYPE)surface->TileType,
+                                                   (uint8_t *)surface->pSystemShadow,
+                                                   false);
+                DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
+
             }
             else if (flag & MOS_LOCKFLAG_NO_SWIZZLE)
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_READONLY);
+            }
+            else if (flag & MOS_LOCKFLAG_WRITEONLY)
+            {
+                mos_gem_bo_map_gtt(surface->bo);
             }
             else
             {
@@ -957,12 +961,13 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
             }
             else if (surface->pSystemShadow)
             {
-                int32_t flags = surface->pMediaCtx->m_tileYFlag ? 0 : 1;
-                uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
+                SwizzleSurface(surface->pMediaCtx,
+                               surface->pGmmResourceInfo,
+                               surface->bo->virt,
+                               (MOS_TILE_TYPE)surface->TileType,
+                               (uint8_t *)surface->pSystemShadow,
+                               true);
 
-                Mos_SwizzleData((uint8_t*)surface->pSystemShadow, (uint8_t*)surface->bo->virt,
-                                MOS_TILE_LINEAR, MOS_TILE_Y,
-                                static_cast<int32_t>(surfSize / surface->iPitch), surface->iPitch, flags);
                 MOS_FreeMemory(surface->pSystemShadow);
                 surface->pSystemShadow = nullptr;
 
