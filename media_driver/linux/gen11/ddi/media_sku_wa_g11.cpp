@@ -185,6 +185,8 @@ static bool InitIclMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrTileY, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
+
     return true;
 }
 
