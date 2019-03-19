@@ -59,7 +59,8 @@ struct MhwMiInterfaceG10 : public MhwMiInterfaceGeneric<mhw_mi_g10_X>
 
     MOS_STATUS SetWatchdogTimerThreshold(
         uint32_t frameWidth,
-        uint32_t frameHeight);
+        uint32_t frameHeight,
+        bool     isEncoder = true);
 
     MOS_STATUS SetWatchdogTimerRegisterOffset(
         MOS_GPU_CONTEXT gpuContext);
