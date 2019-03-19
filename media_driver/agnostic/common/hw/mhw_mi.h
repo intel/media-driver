@@ -35,13 +35,14 @@ class MhwCpInterface;
 #include "mhw_cp_interface.h"
 #include "mhw_mmio.h"
 
-#define MHW_MI_WATCHDOG_ENABLE_COUNTER                 0x0
-#define MHW_MI_WATCHDOG_DISABLE_COUNTER                0x1
-#define MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS        60
-#define MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS            2000
-#define MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS             500
-#define MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS             100
-#define MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS            50
+#define MHW_MI_WATCHDOG_ENABLE_COUNTER                  0x0
+#define MHW_MI_WATCHDOG_DISABLE_COUNTER                 0x1
+#define MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS         60
+#define MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS     2000
+#define MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS      500
+#define MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS      100
+#define MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS     50
+#define MHW_MI_DECODER_16K_WATCHDOG_THRESHOLD_IN_MS     180
 #define MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND         (19200123 / 1000)   // Time stamp counts per millisecond
 
 typedef enum _MHW_COMMON_MI_ADDRESS_SHIFT
@@ -669,7 +670,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight) = 0;
+    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder = true) = 0;
 
     //!
     //! \brief    Set Watchdog Timer Register Offset

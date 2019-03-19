@@ -1169,6 +1169,8 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetDummyReference());
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->SetWatchdogTimerThreshold(m_width, m_height, false));
+
     if ((!m_incompletePicture) && (!m_isHybridDecoder))
     {
         m_osInterface->pfnIncPerfFrameID(m_osInterface);
