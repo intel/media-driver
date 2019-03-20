@@ -4014,7 +4014,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
                 &allocParamsForBufferLinear,
                 &m_tileRecordBuffer[m_virtualEngineBBIndex].sResource));
             m_tileRecordBuffer[m_virtualEngineBBIndex].dwSize = size;
-            m_tileRecordBuffer[m_virtualEngineBBIndex].sResource.iSize = size;
 
             auto tileRecordData = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_tileRecordBuffer[m_virtualEngineBBIndex].sResource, &lockFlagsWriteOnly);
 
