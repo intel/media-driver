@@ -426,7 +426,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = CODEC_8K_MAX_PIC_WIDTH;
     }
-    if(IsAvcProfile(profile))
+    if(IsAvcProfile(profile) || IsVp8Profile(profile))
     {
         attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
@@ -442,7 +442,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
     }
-    if(IsAvcProfile(profile))
+    if(IsAvcProfile(profile) || IsVp8Profile(profile))
     {
         attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
@@ -2626,7 +2626,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_WIDTH;
         }
-        if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
         }
@@ -2640,7 +2640,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_HEIGHT;
         }
-        if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
         }
