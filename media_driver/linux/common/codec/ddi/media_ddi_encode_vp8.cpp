@@ -240,8 +240,7 @@ VAStatus DdiEncodeVp8::StatusReport(
             // if HDCP2 is enabled, the second segment for counter values is already there  So, move the connection as the third one
             if (m_encodeCtx->pCpDdiInterface->IsHdcp2Enabled())
                 pFindTheLastEntry = (VACodedBufferSegment *)pFindTheLastEntry->next;
-            // connect Status report here
-            pFindTheLastEntry->next = pVACodedBufferSegmentForStatusReport;
+            pFindTheLastEntry->next = NULL;
 
             break;
         }
