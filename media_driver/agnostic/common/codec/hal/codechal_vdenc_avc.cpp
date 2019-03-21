@@ -1232,7 +1232,10 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
     // common function for all codecs needed
     if (m_cscDsState && CodecHalUsesRenderEngine(m_codecFunction, m_standard))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
+        if (m_hmeSupported)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
+        }
 
         if (m_staticFrameDetectionEnable)
         {
