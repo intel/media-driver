@@ -1260,14 +1260,18 @@ DdiVp_SetProcPipelineParams(
             switch (pMediaSrcSurf->format)
             {
                 case Media_Format_NV12:
-                    pVpHalSrcSurf->YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
                     break;
                 case Media_Format_YV12:
-                    pVpHalSrcSurf->YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[2];
+                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[2];
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
                     break;
                 case Media_Format_A8R8G8B8:
                     break;
@@ -1277,7 +1281,6 @@ DdiVp_SetProcPipelineParams(
         }
         else
         {
-            pVpHalSrcSurf->bUsrPtr                 = false;
             pVpHalSrcSurf->OsResource.bUseGmmQuery = true;
         }
     }
@@ -3018,11 +3021,17 @@ VAStatus DdiVp_BeginPicture(
         if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUseGmmQuery = false;
+        }
+        else
+        {
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUseGmmQuery = true;
         }
     }
     else
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUseGmmQuery = true;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3115,11 +3124,17 @@ VAStatus DdiVp_BeginPictureInt(
         if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUseGmmQuery = false;
+        }
+        else
+        {
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUseGmmQuery = true;
         }
     }
     else
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUseGmmQuery = true;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
