@@ -183,7 +183,6 @@ CmDeviceRT::CmDeviceRT(uint32_t options):
     m_cmDeviceRefCount(0),
     m_gpuCopyKernelProgram(nullptr),
     m_surfInitKernelProgram(nullptr),
-    m_osSyncEvent (0),
 #if USE_EXTENSION_CODE
     m_gtpin(nullptr),
 #endif
@@ -1804,6 +1803,22 @@ CmDeviceRT::CreateQueueEx(CmQueue* & queue,
 
     m_criticalSectionQueue.Acquire();
     CmQueueRT *queueRT = nullptr;
+
+    for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)
+    {
+        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+        unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
+
+        if (queueType == CM_QUEUE_TYPE_RENDER
+            && queueType == queueCreateOption.QueueType
+            && gpuContext == queueCreateOption.GPUContext)
+        {
+            queue = (*iter);
+            m_criticalSectionQueue.Release();
+            return CM_SUCCESS;
+        }
+    }
+
     int32_t result = CmQueueRT::Create(this, queueRT, queueCreateOption);
     if (result != CM_SUCCESS)
     {
@@ -3081,38 +3096,6 @@ int32_t CmDeviceRT::SetCaps(CM_DEVICE_CAP_NAME capName,
 
 finish:
     return hr;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Register the Sync Event
-//| Returns:    CM_SUCCESS.
-//*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::RegisterSyncEvent(void *syncEventHandle)
-{
-    CM_RETURN_CODE  hr          = CM_SUCCESS;
-
-    CM_HAL_OSSYNC_PARAM syncParam;
-    syncParam.osSyncEvent = syncEventHandle;
-
-    PCM_CONTEXT_DATA  cmData = (PCM_CONTEXT_DATA)GetAccelData();
-    PCM_HAL_STATE  cmHalState = cmData->cmHalState;
-    // Call HAL layer to wait for Task finished with event-driven mechanism
-    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnRegisterUMDNotifyEventHandle(cmHalState, &syncParam));
-
-    m_osSyncEvent = syncParam.osSyncEvent;
-
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Get Sync Event
-//| Returns:    CM_SUCCESS.
-//*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::GetOSSyncEventHandle(void *& hOSSyncEvent)
-{
-    hOSSyncEvent = m_osSyncEvent;
-    return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
