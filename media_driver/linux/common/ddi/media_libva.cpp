@@ -3865,6 +3865,10 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Format = GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
             gmmParams.Flags.Info.Linear = true;
             break;
+        case VA_FOURCC_RGB565:
+            gmmParams.Format = GMM_FORMAT_B5G6R5_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
         case VA_FOURCC_I420:
             gmmParams.Format = GMM_FORMAT_I420_TYPE;
             gmmParams.Flags.Info.Linear = true;
@@ -3970,6 +3974,11 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_ABGR:
         case VA_FOURCC_XRGB:
             vaimg->format.bits_per_pixel = 32;
+            vaimg->num_planes = 1;
+            vaimg->pitches[0] = gmmPitch;
+            break;
+        case VA_FOURCC_RGB565:
+            vaimg->format.bits_per_pixel = 16;
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
             break;
