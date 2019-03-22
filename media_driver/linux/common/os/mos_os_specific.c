@@ -2235,40 +2235,54 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     pResDetails->Format   = pOsResource->Format;
 
     // Get planes
-    MOS_ZeroMemory(reqInfo, sizeof(reqInfo));
-    gmmChannel = GMM_DISPLAY_BASE;
-    // Get the base offset of the surface (plane Y)
-    reqInfo[2].ReqRender = true;
-    reqInfo[2].Plane     = GMM_PLANE_Y;
-    reqInfo[2].Frame     = gmmChannel;
-    reqInfo[2].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[2].ArrayIndex = 0;
-    pGmmResourceInfo->GetOffset(reqInfo[2]);
-    pResDetails->RenderOffset.YUV.Y.BaseOffset = reqInfo[2].Render.Offset;
+    if (pOsResource->bUseGmmQuery)
+    {
+        MOS_ZeroMemory(reqInfo, sizeof(reqInfo));
+        gmmChannel = GMM_DISPLAY_BASE;
+        // Get the base offset of the surface (plane Y)
+        reqInfo[2].ReqRender = true;
+        reqInfo[2].Plane     = GMM_PLANE_Y;
+        reqInfo[2].Frame     = gmmChannel;
+        reqInfo[2].CubeFace  = __GMM_NO_CUBE_MAP;
+        reqInfo[2].ArrayIndex = 0;
+        pGmmResourceInfo->GetOffset(reqInfo[2]);
+        pResDetails->RenderOffset.YUV.Y.BaseOffset = reqInfo[2].Render.Offset;
 
-    // Get U/UV plane information (plane offset, X/Y offset)
-    reqInfo[0].ReqRender = true;
-    reqInfo[0].Plane     = GMM_PLANE_U;
-    reqInfo[0].Frame     = gmmChannel;
-    reqInfo[0].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[0].ArrayIndex = 0;
-    pGmmResourceInfo->GetOffset(reqInfo[0]);
+        // Get U/UV plane information (plane offset, X/Y offset)
+        reqInfo[0].ReqRender = true;
+        reqInfo[0].Plane     = GMM_PLANE_U;
+        reqInfo[0].Frame     = gmmChannel;
+        reqInfo[0].CubeFace  = __GMM_NO_CUBE_MAP;
+        reqInfo[0].ArrayIndex = 0;
+        pGmmResourceInfo->GetOffset(reqInfo[0]);
 
-    pResDetails->RenderOffset.YUV.U.BaseOffset = reqInfo[0].Render.Offset;
-    pResDetails->RenderOffset.YUV.U.XOffset    = reqInfo[0].Render.XOffset;
-    pResDetails->RenderOffset.YUV.U.YOffset    = reqInfo[0].Render.YOffset;
+        pResDetails->RenderOffset.YUV.U.BaseOffset = reqInfo[0].Render.Offset;
+        pResDetails->RenderOffset.YUV.U.XOffset    = reqInfo[0].Render.XOffset;
+        pResDetails->RenderOffset.YUV.U.YOffset    = reqInfo[0].Render.YOffset;
 
-    // Get V plane information (plane offset, X/Y offset)
-    reqInfo[1].ReqRender = true;
-    reqInfo[1].Plane     = GMM_PLANE_V;
-    reqInfo[1].Frame     = gmmChannel;
-    reqInfo[1].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[1].ArrayIndex = 0;
-    pGmmResourceInfo->GetOffset(reqInfo[1]);
+        // Get V plane information (plane offset, X/Y offset)
+        reqInfo[1].ReqRender = true;
+        reqInfo[1].Plane     = GMM_PLANE_V;
+        reqInfo[1].Frame     = gmmChannel;
+        reqInfo[1].CubeFace  = __GMM_NO_CUBE_MAP;
+        reqInfo[1].ArrayIndex = 0;
+        pGmmResourceInfo->GetOffset(reqInfo[1]);
 
-    pResDetails->RenderOffset.YUV.V.BaseOffset = reqInfo[1].Render.Offset;
-    pResDetails->RenderOffset.YUV.V.XOffset    = reqInfo[1].Render.XOffset;
-    pResDetails->RenderOffset.YUV.V.YOffset    = reqInfo[1].Render.YOffset;
+        pResDetails->RenderOffset.YUV.V.BaseOffset = reqInfo[1].Render.Offset;
+        pResDetails->RenderOffset.YUV.V.XOffset    = reqInfo[1].Render.XOffset;
+        pResDetails->RenderOffset.YUV.V.YOffset    = reqInfo[1].Render.YOffset;
+    }
+    else
+    {
+        // if usrptr surface, do not query those values from gmm, app will configure them.
+        pResDetails->RenderOffset.YUV.Y.BaseOffset = pOsResource->YPlaneOffset.iSurfaceOffset;
+        pResDetails->RenderOffset.YUV.U.BaseOffset = pOsResource->UPlaneOffset.iSurfaceOffset;
+        pResDetails->RenderOffset.YUV.U.XOffset    = pOsResource->UPlaneOffset.iXOffset;
+        pResDetails->RenderOffset.YUV.U.YOffset    = pOsResource->UPlaneOffset.iYOffset;
+        pResDetails->RenderOffset.YUV.V.BaseOffset = pOsResource->VPlaneOffset.iSurfaceOffset;
+        pResDetails->RenderOffset.YUV.V.XOffset    = pOsResource->VPlaneOffset.iXOffset;
+        pResDetails->RenderOffset.YUV.V.YOffset    = pOsResource->VPlaneOffset.iYOffset;
+    }
 
 finish:
     return eStatus;

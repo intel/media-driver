@@ -251,6 +251,9 @@ struct _MOS_SPECIFIC_RESOURCE
     MOS_MMAP_OPERATION  MmapOperation;
     uint8_t             *pSystemShadow;
     bool                bUseGmmQuery;       //!< decided to use GMM to query res or not.
+    MOS_PLANE_OFFSET    YPlaneOffset;       //!<  Y surface plane offset
+    MOS_PLANE_OFFSET    UPlaneOffset;       //!<  U surface plane offset
+    MOS_PLANE_OFFSET    VPlaneOffset;       //!<  V surface plane offset
 
     //!< to sync render target for multi-threading decoding mode
     struct
