@@ -200,6 +200,7 @@ MOS_STATUS CodechalDecodeVp9G11 :: InitializeDecodeMode ()
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel  = m_usFrameWidthAlignedMinBlk;
         initParams.u32PicHeightInPixel = m_usFrameHeightAlignedMinBlk;
+        initParams.format = m_decodeParams.m_destSurface->Format;
         initParams.usingSFC            = false;
         initParams.gpuCtxInUse         = GetVideoContext();
 

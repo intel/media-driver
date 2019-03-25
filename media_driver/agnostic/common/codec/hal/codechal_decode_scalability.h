@@ -41,9 +41,30 @@
 #define CODEC_SCALABILITY_FIRST_TILE_WIDTH_8K 4096
 
 #define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH            3840
-#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH            7680
-#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT           2160
-#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT           4320
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH            3996
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_WIDTH            5120
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH            7680
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT           1440
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT           1716
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_HEIGHT           2160
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT           4320
+
+inline static bool CodechalDecodeResolutionEqualLargerThan4k(uint32_t width, uint32_t height)
+{
+    return (((width * height) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_HEIGHT))
+        || ((width >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH) && (height >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT)));
+}
+
+inline static bool CodechalDecodeResolutionEqualLargerThan5k(uint32_t width, uint32_t height)
+{
+    return (((width * height) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_HEIGHT))
+        || ((width >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_WIDTH) && (height >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)));
+}
+
+inline static bool CodechalDecodeNonRextFormat(MOS_FORMAT format)
+{
+    return ((format == Format_NV12) || (format == Format_P010));
+}
 
 //!
 //! \enum   CODECHAL_HCP_DECODE_SCALABLE_PHASE
@@ -83,6 +104,7 @@ typedef struct _CODECHAL_DECODE_SCALABILITY_INIT_PARAMS
 {
     uint32_t         u32PicWidthInPixel;             //!< Picture width in pixel align to minimal coding block
     uint32_t         u32PicHeightInPixel;            //!< Picture height in pixel align to minimal coding block
+    MOS_FORMAT       format;                         //!< Surface format
     bool             usingSFC;
     uint8_t          u8NumTileColumns;               //!< Number of tile columns for this picture
     uint8_t          u8NumTileRows;                  //!< Number of tile rows for this picture
@@ -726,7 +748,7 @@ MOS_STATUS CodecHalDecodeScalability_CalculateHcpTileCodingParams(
         if (ucPipeIdx == 0)
         {
             usVTileColPos = 0;
-            if (uiWidthInPixel * uiHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT)
+            if ((uiWidthInPixel * uiHeightInPixel) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT))
             {
                 // need to align first Tile Column to 4096
                 pScalabilityState->uiFirstTileColWidth = CODEC_SCALABILITY_FIRST_TILE_WIDTH_8K;

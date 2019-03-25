@@ -466,6 +466,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = m_width;
         initParams.u32PicHeightInPixel  = m_height;
+        initParams.format = m_decodeParams.m_destSurface->Format;
         initParams.usingSFC             = false;
         initParams.gpuCtxInUse          = GetVideoContext();
 
