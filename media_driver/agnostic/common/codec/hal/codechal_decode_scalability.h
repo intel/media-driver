@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -154,7 +154,7 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
     bool                            bAlwaysFrameSplit;
     uint32_t                        dbgOvrdWidthInMinCb;
 #endif
-    
+
     //For SFC Scalability
     uint32_t                        fistValidTileIndex;
     uint32_t                        lastValidTileIndex;
@@ -411,7 +411,7 @@ MOS_STATUS CodecHalDecodeScalability_AllocateCABACStreamOutBuffer(
     PMOS_RESOURCE                        presCABACStreamOutBuffer);
 
 //!
-//! \brief    Destroy resources for scalability decoder 
+//! \brief    Destroy resources for scalability decoder
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \return   MOS_STATUS
@@ -421,8 +421,8 @@ void CodecHalDecodeScalability_Destroy (
     PCODECHAL_DECODE_SCALABILITY_STATE  pScalabilityState);
 
 //!
-//! \brief    get command buffer to use 
-//! \details  decide and get command buffer to add cmds. it is for decoder which can support both scalability and single pipe 
+//! \brief    get command buffer to use
+//! \details  decide and get command buffer to add cmds. it is for decoder which can support both scalability and single pipe
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in]  pScdryCmdBuf
@@ -438,7 +438,7 @@ MOS_STATUS CodecHalDecodeScalability_GetCmdBufferToUse(
     PMOS_COMMAND_BUFFER                 *ppCmdBufToUse);
 
 //!
-//! \brief    return secondary cmd buffer 
+//! \brief    return secondary cmd buffer
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in]  pScdryCmdBuf
@@ -452,7 +452,7 @@ MOS_STATUS CodecHalDecodeScalability_ReturnSdryCmdBuffer(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 //!
-//! \brief    dump command buffer in scalability mode 
+//! \brief    dump command buffer in scalability mode
 //! \param    [in]  pDecoder
 //!                Decoder device
 //! \param    [in]  pScalabilityState
@@ -495,7 +495,7 @@ MOS_STATUS CodecHalDecodeScalablity_GetFEReportedCabacStreamoutBufferSize(
 
 //!
 //! \brief    Determine decode phase
-//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode 
+//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode
 //! \param    [in] pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pHcpDecPhase
@@ -509,7 +509,7 @@ MOS_STATUS CodecHalDecodeScalability_DetermineDecodePhase(
 
 //!
 //! \brief    Determine if sending watch dog timer start cmd
-//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode 
+//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode
 //! \param    [in] pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pbSend
@@ -559,14 +559,14 @@ MOS_STATUS CodecHalDecodeScalability_InitSemaMemResources(
 MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalabilityState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams,
-    uint8_t                                   *pucDecPassNum);
+    uint16_t                                   *pucDecPassNum);
 
 //!
 //! \brief     Set virtual engine hint parameters for scalable decode
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pSetHintParms
-//!                pointer to set hint parameter 
+//!                pointer to set hint parameter
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
@@ -580,7 +580,7 @@ MOS_STATUS CodecHalDecodeScalability_SetHintParams(
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pPrimCmdBuf
-//!                pointer to primary cmd buffer 
+//!                pointer to primary cmd buffer
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
@@ -603,7 +603,7 @@ MOS_STATUS CodecHalDecodeScalability_SignalFE2BESemaphore(
     PMOS_COMMAND_BUFFER                 pCmdBufferInUse);
 
 //!
-//! \brief    Sync between FE and BE 
+//! \brief    Sync between FE and BE
 //! \details  This function does 3 major things
 //!              1) send hw or sw semaphore wait at start of BE0 cmd.
 //!              2) use HW semaphore wait and MI ATOMIC cmd to make all BEs start running at the same time
@@ -625,7 +625,7 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
 //!                Scalability decode state
 //! \return   bool
 //!           True means to submit command buffer, False means not to submit.
-//!    
+//!
 bool CodecHalDecodeScalabilityIsToSubmitCmdBuffer(
     PCODECHAL_DECODE_SCALABILITY_STATE pScalabilityState);
 
@@ -819,7 +819,7 @@ MOS_STATUS CodecHalDecodeScalability_ReadCSEngineIDReg(
     PMOS_COMMAND_BUFFER                pCmdBufferInUse);
 
 //!
-//! \brief    State initialization for virtual engine decode supporting scalable and single pipe mode 
+//! \brief    State initialization for virtual engine decode supporting scalable and single pipe mode
 //! \param    [in]  pDecoder
 //!                Decoder device
 //! \param    [in]  pScalabilityState
@@ -863,4 +863,3 @@ MOS_STATUS CodechalDecodeScalability_ChkGpuCtxReCreation(
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED          CurgpuCtxCreatOpts);
 
 #endif //__CODECHAL_DECODER_SCALABILITY_H__
-

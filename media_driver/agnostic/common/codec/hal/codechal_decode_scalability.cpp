@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,8 @@
 
 
 //!
-//! \brief    calculate secondary cmd buffer index 
-//! \details  calculate secondary cmd buffer index to get or return secondary cmd buffer 
+//! \brief    calculate secondary cmd buffer index
+//! \details  calculate secondary cmd buffer index to get or return secondary cmd buffer
 //! \param    [in]  pScalabilityState
 //!                pointer to scalability decode state
 //! \param    [in]  pdwBufIdxPlus1
@@ -1396,7 +1396,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
 MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalabilityState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams,
-    uint8_t                                   *pucDecPassNum)
+    uint16_t                                   *pucDecPassNum)
 {
     PMOS_INTERFACE                  pOsInterface;
     PMOS_VIRTUALENGINE_INTERFACE    pVEInterface;
@@ -1439,13 +1439,13 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
         // Decide pipe number
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pfnDecidePipeNum(pScalabilityState, pInitParams));
     }
-    
+
     // Decide scalable mode or single pipe mode
     if (pScalabilityState->ucScalablePipeNum > 1)
     {
         pScalabilityState->bScalableDecodeMode = true;
     }
-    
+
     CODECHAL_DECODE_CHK_NULL_RETURN(pucDecPassNum);
     // Decide Decode pass number - pucDecPassNum
     if (pScalabilityState->bScalableDecodeMode)
@@ -1456,7 +1456,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     {
         *pucDecPassNum = 1;
     }
-    
+
     // Add one pass for S2L conversion in short format.
     if (pScalabilityState->bShortFormatInUse)
     {
@@ -2066,7 +2066,7 @@ bool CodecHalDecodeScalabilityIsToSubmitCmdBuffer(
         return false;
     }
     else
-    { 
+    {
         return (CodecHalDecodeScalabilityIsFinalBEPhase(pScalabilityState) ||
             (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_FE && pScalabilityState->bFESeparateSubmission));
     }
