@@ -299,7 +299,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetKernel        , IDR_VP_Y210_444Scale16_Buf_3        , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
 
-    // Sample Y210 -> Src0
+    // Sample AVS
+    // Y210 -> Src0
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                                   , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                            , Kdll_None },
@@ -1984,6 +1985,95 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsSrc1Sampling   , Sample_None                        , Kdll_None },
     { RID_SetParserState   , Parser_SetupCSC1                   , Kdll_None },
 
+    // Sample AVS
+    // Y210 -> Src1
+    // Rotate 90 degrees
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_IsLayerRotation  , VPHAL_ROTATION_90                                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_90  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_90  , Kdll_None },
+    { RID_SetParserState   , Parser_SetupCSC1                                 , Kdll_None },
+
+    // Rotate 180 degrees
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_IsLayerRotation  , VPHAL_ROTATION_180                               , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_180 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_180 , Kdll_None },
+    { RID_SetParserState   , Parser_SetupCSC1                                 , Kdll_None },
+
+    // Rotate 270 degrees
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_IsLayerRotation  , VPHAL_ROTATION_270                               , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_270 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_270 , Kdll_None },
+    { RID_SetParserState   , Parser_SetupCSC1                                 , Kdll_None },
+
+    // Mirror Horizontal
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_IsLayerRotation  , VPHAL_MIRROR_HORIZONTAL                          , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetParserState   , Parser_SetupCSC1                                 , Kdll_None },
+
+    // Mirror Vertical
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_IsLayerRotation  , VPHAL_MIRROR_VERTICAL                            , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_180 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_180 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetParserState   , Parser_SampleLayer0Done                          , Kdll_None },
+
+    // Rotate 90 Mirror Vertical
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_VERTICAL                  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_270 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_270 , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetParserState   , Parser_SetupCSC1                                 , Kdll_None },
+
+    // Rotate 90 Mirror Horizontal
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_HORIZONTAL                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_90  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_90  , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV                         , Kdll_None },
+    { RID_SetParserState   , Parser_SetupCSC1                                 , Kdll_None },
+
+    // No Rotation
+    { RID_Op_NewEntry      , RULE_DEFAULT                                     , Kdll_None },
+    { RID_IsParserState    , Parser_SampleLayer1                              , Kdll_None },
+    { RID_IsSrc1Format     , Format_Y210                                      , Kdll_None },
+    { RID_IsSrc1Sampling   , Sample_Scaling_AVS                               , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5         , Kdll_None },
+    { RID_SetParserState   , Parser_SetupCSC1                                 , Kdll_None },
+
     // Sample Y210 -> Src1
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                                   , Kdll_None },
@@ -2404,7 +2494,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetParserState   , Parser_SetupCSC1                   , Kdll_None },
 
     // Sample AVS
-    // Y410 -> Src0
+    // Y410 -> Src1
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                     , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer1              , Kdll_None },
