@@ -64,10 +64,21 @@ struct _MOS_SPECIFIC_VE_HINT_PARAMS
     uint8_t        EngineInstance[MOS_MAX_ENGINE_INSTANCE_PER_CLASS];
 };
 
+typedef struct _MOS_GSC_INPUT_OUTPUT_BUFFER_PARAMS
+{
+    uint32_t                            inputlength;
+    uint32_t                            outputlength;
+    uint64_t                            inputaddress;
+    uint64_t                            outputaddress;
+    uint8_t                             MEAddress;
+}MOS_GSC_INPUT_OUTPUT_BUFFER_PARAMS;
+
 struct _MOS_CMD_BUF_ATTRI_VE
 {
-    int32_t                         bUseVirtualEngineHint;
-    MOS_VIRTUALENGINE_HINT_PARAMS   VEngineHintParams;
+    int32_t                             bUseVirtualEngineHint;
+    MOS_VIRTUALENGINE_HINT_PARAMS       VEngineHintParams;
+    int32_t                             bGSCparamspresent;
+    MOS_GSC_INPUT_OUTPUT_BUFFER_PARAMS  GSCInputOutPutParams;
 };
 
 #endif //__MOS_OS_VIRTUALENGINE_SPECIFIC_H__

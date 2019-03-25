@@ -176,7 +176,8 @@ typedef enum _MOS_GPU_NODE
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,
     MOS_GPU_NODE_BLT     = I915_EXEC_BLT,
-    MOS_GPU_NODE_MAX     = 7,//GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2, I915_EXEC_BLT) + 1
+    MOS_GPU_NODE_GSC     = I915_EXEC_GSC,
+    MOS_GPU_NODE_MAX     = 8,//GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2, I915_EXEC_BLT, I915_EXEC_GSC) + 1
 } MOS_GPU_NODE, *PMOS_GPU_NODE;
 
 //!
@@ -208,7 +209,10 @@ static inline MOS_GPU_NODE OSKMGetGpuNode(MOS_GPU_CONTEXT uiGpuContext)
             break;
         case MOS_GPU_CONTEXT_BLT:
             return MOS_GPU_NODE_BLT;
-            break;  
+            break;
+        case MOS_GPU_CONTEXT_GSC:
+            return MOS_GPU_NODE_GSC;
+            break;
         default:
             return MOS_GPU_NODE_MAX ;
             break;
