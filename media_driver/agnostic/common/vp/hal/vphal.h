@@ -44,7 +44,11 @@
 // YUV input ranges
 #define YUV_RANGE_16_235                1
 #define YUV_RANGE_0_255                 2
-#define YUV_RANGE_FROM_DDI              4
+#define YUV_RANGE_FROM_DDI              3
+
+// RGB input ranges
+#define RGB_RANGE_16_235                1
+#define RGB_RANGE_0_255                 0
 
 // Media Features height
 #define VPHAL_RNDR_2K_HEIGHT  1080
