@@ -1120,7 +1120,10 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
                         pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                     }
                 }
-                else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+                else if ((!CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+                            || (CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel)))
                 {
                     pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                 }
@@ -1150,11 +1153,14 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
                 }
                 else
                 {
-                    if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT)
+                    if ((pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT))
                     {
                         pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
                     }
-                    else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+                    else if ((!CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+                            || (CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel)))
                     {
                         pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                     }
@@ -1365,6 +1371,15 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = MOS_ALIGN_CEIL(codecHalSetting->width, 8);
         initParams.u32PicHeightInPixel  = MOS_ALIGN_CEIL(codecHalSetting->height, 8);
+        if (((codecHalSetting->standard == CODECHAL_VP9) || (codecHalSetting->standard == CODECHAL_HEVC))
+                && (codecHalSetting->chromaFormat == HCP_CHROMA_FORMAT_YUV420))
+        {
+            initParams.format = Format_NV12;
+            if (codecHalSetting->lumaChromaDepth == CODECHAL_LUMA_CHROMA_DEPTH_10_BITS)
+            {
+                initParams.format = Format_P010;
+            }
+        }
         initParams.usingSFC             = false;
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
             pScalState,
