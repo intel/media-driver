@@ -1482,7 +1482,7 @@ public:
                     uint32_t numOfLCU                = widthInLCU*(frameHeightInLCU + 1);
                     uint32_t maxNumCUInLCU           = (64 / 8)*(64 / 8); //max LCU size is 64, min Cu size is 8
 
-                    uint32_t tileLCUStreamOutByteOffset = 2 * 4 * ((numOfLCU * 5) + (numOfLCU*maxNumCUInLCU * 8));
+                    uint32_t tileLCUStreamOutByteOffset = 2 * BYTES_PER_DWORD * numOfLCU * (NUM_PAK_DWS_PER_LCU + maxNumCUInLCU * NUM_DWS_PER_CU);
                     cmd.DW9.TileLcuStreamOutOffset      = MOS_ROUNDUP_DIVIDE(tileLCUStreamOutByteOffset, MHW_CACHELINE_SIZE);
                 }
             }
