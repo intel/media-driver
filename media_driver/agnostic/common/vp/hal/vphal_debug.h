@@ -542,6 +542,8 @@ private:
     //!           Number of planes of the surface
     //! \param    [out] pdwSize
     //!           The total size of the surface
+    //! \param    [in] auxEnable
+    //!           Whether aux dump is enabled
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
@@ -550,7 +552,7 @@ private:
         VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
         uint32_t*                           pdwNumPlanes,
         uint32_t*                           pdwSize,
-        bool                                paddingNeeded);
+        bool                                auxEnable);
 
     //!
     //! \brief    Parse dump location
