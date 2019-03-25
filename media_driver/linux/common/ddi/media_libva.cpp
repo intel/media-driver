@@ -475,6 +475,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
 {
     switch (fourcc)
     {
+        case VA_FOURCC_A2R10G10B10:
+            return Media_Format_B10G10R10A2;
         case VA_FOURCC_BGRA:
         case VA_FOURCC_ARGB:
 #ifdef VA_RT_FORMAT_RGB32_10BPP
