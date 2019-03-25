@@ -103,7 +103,7 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
     VPHAL_DBG_SURF_DUMP_SURFACE_DEF  *pPlanes,
     uint32_t                         *pdwNumPlanes,
     uint32_t                         *pdwSize,
-    bool                              paddingNeeded)
+    bool                              auxEnable)
 {
     MOS_STATUS      eStatus;
     uint32_t        i;
@@ -134,7 +134,7 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
         break;
 
     case Format_R5G6B5:
@@ -222,11 +222,11 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
-        pPlanes[1].dwPitch  = pPlanes[1].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
         break;
 
     case Format_YVU9:
@@ -234,57 +234,57 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 4;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight / 4;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
         pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 4;
         pPlanes[2].dwHeight = pPlanes[0].dwHeight / 4;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
         break;
 
-    case Format_I420:
-    case Format_IYUV:
     case Format_IMC1:
     case Format_IMC3:
         *pdwNumPlanes = 3;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 2;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
         pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 2;
         pPlanes[2].dwHeight = pPlanes[0].dwHeight / 2;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
         break;
 
+    case Format_I420:
+    case Format_IYUV:
     case Format_YV12:
         *pdwNumPlanes = 3;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-        pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
-        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 4;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch / 2;
 
-        pPlanes[2].dwWidth  = pPlanes[0].dwWidth;
-        pPlanes[2].dwHeight = pPlanes[0].dwHeight / 4;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch / 2;
         break;
     case Format_400P:
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
         break;
 
     case Format_411P:
@@ -292,15 +292,15 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 4;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
         pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 4;
         pPlanes[2].dwHeight = pPlanes[0].dwHeight;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
         break;
 
     case Format_411R:
@@ -308,15 +308,15 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight / 4;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
         pPlanes[2].dwWidth  = pPlanes[0].dwWidth;
         pPlanes[2].dwHeight = pPlanes[0].dwHeight / 4;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
         break;
 
     case Format_422H:
@@ -324,15 +324,15 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 2;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
         pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 2;
         pPlanes[2].dwHeight = pPlanes[0].dwHeight;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
         break;
 
     case Format_422V:
@@ -340,15 +340,15 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
         pPlanes[2].dwWidth  = pPlanes[0].dwWidth;
         pPlanes[2].dwHeight = pPlanes[0].dwHeight / 2;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
         break;
 
     case Format_444P:
@@ -358,15 +358,15 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
         pPlanes[0].dwWidth  = pSurface->dwWidth;
         pPlanes[0].dwHeight = pSurface->dwHeight;
-        pPlanes[0].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
         pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
         pPlanes[1].dwHeight = pPlanes[0].dwHeight;
-        pPlanes[1].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
         pPlanes[2].dwWidth  = pPlanes[0].dwWidth;
         pPlanes[2].dwHeight = pPlanes[0].dwHeight;
-        pPlanes[2].dwPitch  = pPlanes[0].dwWidth;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
         break;
 
     case Format_Y210:
@@ -441,18 +441,27 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
 
     PaddingEnable = ((pSurface->UPlaneOffset.iSurfaceOffset - pSurface->YPlaneOffset.iSurfaceOffset) / pSurface->dwPitch + pSurface->UPlaneOffset.iYOffset) > pSurface->dwHeight;
     // checking whether Padding needed
-    if (paddingNeeded && PaddingEnable)
+    if (auxEnable && PaddingEnable)
     {
         for (i = 0; i < *pdwNumPlanes; i++)
         {
             pPlanes[i].dwHeight = MOS_ALIGN_CEIL(pPlanes[i].dwHeight, 32);
         }
     }
-
-    // Total raw Size of the frame without row padding
-    *pdwSize = (pPlanes[0].dwPitch * pPlanes[0].dwHeight) +
-        (pPlanes[1].dwPitch * pPlanes[1].dwHeight) +
-        (pPlanes[2].dwPitch * pPlanes[2].dwHeight);
+    
+    // For uncompressed surface, padding data is not needed. For compressed surface, padding data is needed for offline check
+    if (auxEnable)
+    {
+        *pdwSize = (pPlanes[0].dwPitch * pPlanes[0].dwHeight) +
+                   (pPlanes[1].dwPitch * pPlanes[1].dwHeight) +
+                   (pPlanes[2].dwPitch * pPlanes[2].dwHeight);
+    }
+    else
+    {
+        *pdwSize = (pPlanes[0].dwWidth * pPlanes[0].dwHeight) +
+                   (pPlanes[1].dwWidth * pPlanes[1].dwHeight) +
+                   (pPlanes[2].dwWidth * pPlanes[2].dwHeight);
+    }
 
 finish:
     return eStatus;
@@ -511,7 +520,7 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         planes,
         &dwNumPlanes,
         &dwSize,
-        hasAuxSurf));
+        enableAuxDump));
 
     if (bLockSurface)
     {
@@ -569,14 +578,28 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         pTmpSrc = pData + planes[j].dwOffset;
         for (i = 0; i < planes[j].dwHeight; i++)
         {
-            MOS_SecureMemcpy(
-                pTmpDst,
-                planes[j].dwWidth,
-                pTmpSrc,
-                planes[j].dwWidth);
+            if (enableAuxDump)
+            {
+                MOS_SecureMemcpy(
+                    pTmpDst,
+                    planes[j].dwPitch,
+                    pTmpSrc,
+                    planes[j].dwPitch);
 
-            pTmpSrc += pSurface->dwPitch;
-            pTmpDst += planes[j].dwPitch;
+                pTmpSrc += planes[j].dwPitch;
+                pTmpDst += planes[j].dwPitch;
+            }
+            else
+            {
+                MOS_SecureMemcpy(
+                    pTmpDst,
+                    planes[j].dwWidth,
+                    pTmpSrc,
+                    planes[j].dwWidth);
+
+                pTmpSrc += planes[j].dwPitch;
+                pTmpDst += planes[j].dwWidth;
+            }
         }
     }
     VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDst, dwSize));
