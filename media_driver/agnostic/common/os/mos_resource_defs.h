@@ -184,11 +184,12 @@ typedef enum _MOS_FORMAT
     Format_R32          ,
     Format_R32G8X24     ,
     Format_R8UN         ,           //!< R8 UNORM
-    Format_R32G32B32A32F,           //ARGB 128bpp
+    Format_R32G32B32A32F,           //RGBA 128bpp
+    Format_R8G8B8A8_UINT,           //RGBA 32bit
     // Last Format
     Format_Count
 } MOS_FORMAT, *PMOS_FORMAT;
-C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
+C_ASSERT(Format_Count == 104); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
 
 //!
 //! \brief Macros for format checking
@@ -320,7 +321,8 @@ C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scen
               (format == Format_X8B8G8R8)     || \
               (format == Format_R10G10B10A2)  || \
               (format == Format_B10G10R10A2)  || \
-              (format == Format_RGB32) )
+              (format == Format_RGB32)        || \
+              (format == Format_R8G8B8A8_UINT))
 
 #define IS_RGB16_FORMAT(format)              \
             (format == Format_R5G6B5)
@@ -343,7 +345,8 @@ C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scen
               (format == Format_A16B16G16R16)  || \
               (format == Format_A16B16G16R16F) || \
               (format == Format_R32G32B32A32F) || \
-              (format == Format_R10G10B10A2) )
+              (format == Format_R10G10B10A2)   || \
+              (format == Format_R8G8B8A8_UINT))
 
 #define IS_RGB_SWAP(format)                  \
             ( IS_RGB_FORMAT(format)       && \
@@ -359,7 +362,8 @@ C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scen
     case Format_X8B8G8R8:    \
     case Format_R10G10B10A2: \
     case Format_B10G10R10A2: \
-    case Format_RGB32
+    case Format_RGB32:       \
+    case Format_R8G8B8A8_UINT
 
 #define CASE_RGB24_FORMAT \
         case Format_R8G8B8

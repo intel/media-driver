@@ -217,6 +217,7 @@ MOS_STATUS Mos_OsGetBitsPerPixel(
     case Format_R32F:
     case Format_R10G10B10A2:
     case Format_B10G10R10A2:
+    case Format_R8G8B8A8_UINT:
         *piBpp = 32;
         break;
 

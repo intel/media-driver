@@ -286,6 +286,7 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:  return "r32g8x24";
         case CM_SURFACE_FORMAT_R8_UNORM:           return "r8un";
         case CM_SURFACE_FORMAT_R32G32B32A32F:      return "rgba32f";
+        case CM_SURFACE_FORMAT_R8G8B8A8_UINT:      return "rgba8ui";
         default:                                   return "Invalid";
     }
 }
