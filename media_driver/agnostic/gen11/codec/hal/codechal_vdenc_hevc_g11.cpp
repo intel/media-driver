@@ -2674,6 +2674,13 @@ MOS_STATUS CodechalVdencHevcStateG11::EncTileLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
+    std::string pakPassName = "PAK_PASS[" + std::to_string(GetCurrentPass())+"]";
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN( m_debugInterface->DumpCmdBuffer(
+            &cmdBuffer,
+            CODECHAL_NUM_MEDIA_STATES,
+            pakPassName.data()));)
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
