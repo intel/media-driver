@@ -61,7 +61,10 @@ static __inline MOS_STATUS CodecHalEncodeSinglePipeVE_SetHintParams(
 
     if(!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pVEInterface->pOsInterface))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, pVESetParams));
+        if(pVEInterface->pfnVESetHintParams)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, pVESetParams));
+        }
     }
 
     return eStatus;
