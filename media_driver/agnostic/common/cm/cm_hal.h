@@ -370,6 +370,8 @@ struct CM_HAL_QUERY_TASK_PARAM
     CM_HAL_TASK_STATUS status;             // [out] Task Status
     uint64_t taskDurationNs;               // [out] Task Duration
     uint64_t taskDurationTicks;            // [out] Task Duration in Ticks
+    uint64_t taskHWStartTimeStampInTicks;  // [out] Task Start Time Stamp in Ticks
+    uint64_t taskHWEndTimeStampInTicks;    // [out] Task End Time Stamp in Ticks
     LARGE_INTEGER taskGlobalSubmitTimeCpu; // [out] The CM task submission time in CPU
     LARGE_INTEGER taskSubmitTimeGpu;       // [out] The CM task submission time in GPU
     LARGE_INTEGER taskHWStartTimeStamp;    // [out] The task start execution time in GPU

@@ -40,6 +40,7 @@
 #define INSERT_API_CALL_LOG()
 #define TASK_LOG(_pTask)
 #define DEVICE_LOG(_pDev)
+#define EVENT_LOG(_pEvt)
 
 #else
 
@@ -68,6 +69,7 @@ typedef enum _CM_LOG_LEVEL{
 #define INSERT_API_CALL_LOG() CmLogTimer _LogTimer(__FUNCTION__)
 #define TASK_LOG(_pTask)      CM_DEBUG(_pTask->Log());
 #define DEVICE_LOG(_pDev)     CM_DEBUG(_pDev->Log());
+#define EVENT_LOG(_pEvt)      CM_DEBUG(_pEvt->Log(__FUNCTION__));
 
 class CmLogger
 {
