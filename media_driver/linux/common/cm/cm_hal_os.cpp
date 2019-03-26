@@ -835,6 +835,10 @@ MOS_STATUS HalCm_QueryTask_Linux(
 
         ticks = *piSyncEnd - *piSyncStart;
 
+        queryParam->taskDurationTicks = ticks;
+        queryParam->taskHWStartTimeStampInTicks = *piSyncStart;
+        queryParam->taskHWEndTimeStampInTicks   = *piSyncEnd;
+
         // Convert ticks to Nanoseconds
         queryParam->taskDurationNs = HalCm_ConvertTicksToNanoSeconds(state, ticks);
 
