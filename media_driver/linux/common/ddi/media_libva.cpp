@@ -4694,8 +4694,7 @@ VAStatus DdiMedia_PutImage(
     DDI_CHK_NULL(imageData, "nullptr imageData.", VA_STATUS_ERROR_INVALID_IMAGE);
 
     // VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (mediaSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc,vaimg->format.alpha_mask) ||
-        mediaSurface->iWidth != vaimg->width || mediaSurface->iHeight != vaimg->height)
+    if (mediaSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc,vaimg->format.alpha_mask))
     {
         VAContextID context     = VA_INVALID_ID;
 
