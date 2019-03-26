@@ -187,14 +187,12 @@ int32_t CmQueueRT::Initialize()
     else
     {
         MOS_GPUCTX_CREATOPTIONS ctxCreateOption;
-        ctxCreateOption.CmdBufferNumScale = cmHalState->cmDeviceParam.maxTasks;
+        ctxCreateOption.CmdBufferNumScale
+          = HalCm_GetNumCmdBuffers(cmHalState->osInterface, cmHalState->cmDeviceParam.maxTasks);
 
         // Create MDF preset GPU context, update GPUContext in m_queueOption
         if (m_queueOption.QueueType == CM_QUEUE_TYPE_RENDER)
         {
-            // command buffer number
-            ctxCreateOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(cmHalState->osInterface, cmHalState->cmDeviceParam.maxTasks);
-
             MOS_GPU_CONTEXT tmpGpuCtx = cmHalState->requestCustomGpuContext? MOS_GPU_CONTEXT_RENDER4: MOS_GPU_CONTEXT_RENDER3;;
 
             // check if context handle was specified by user.
