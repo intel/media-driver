@@ -953,6 +953,13 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
     return DumpBuffer(region, nullptr, funcName.c_str(), regionSize, regionOffset);
 }
 
+MOS_STATUS CodechalDebugInterface::DumpBltOutput(
+    PMOS_SURFACE              surface,
+    const char *              attrName)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalDebugInterface::DeleteCfgLinkNode(uint32_t frameIdx)
 {
    return m_configMgr->DeleteCfgNode(frameIdx);
