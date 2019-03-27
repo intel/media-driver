@@ -104,7 +104,6 @@ bool CmSurface2DRT::IsUnalignedGPUCopy(uint32_t widthInBytes, uint32_t height)
     return (widthInBytes <= CM_MAX_THREADSPACE_WIDTH_FOR_MW*64) && (height <= CM_MAX_THREADSPACE_HEIGHT_FOR_MW*8);
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Hybrid memory copy from  system memory to Surface 2D to with stride
 //| Arguments :
