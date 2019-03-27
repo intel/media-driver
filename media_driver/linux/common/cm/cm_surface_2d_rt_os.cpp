@@ -52,10 +52,10 @@ CmSurface2DRT::CmSurface2DRT(
     m_handle( handle ),
     m_pitch(pitch),
     m_format(format),
+    m_umdResource( nullptr ),
     m_numAliases( 0 ),
     m_vaSurfaceID( 0 ),
     m_vaCreated ( false ),
-    m_umdResource( nullptr ),
     m_frameType(CM_FRAME)
 {
     CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_UNKNOW, CM_USE_PTE, 0);

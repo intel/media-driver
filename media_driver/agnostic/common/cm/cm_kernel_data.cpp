@@ -89,8 +89,8 @@ int32_t CmKernelData::Destroy( CmKernelData* &kernelData )
 //*-----------------------------------------------------------------------------
 CmKernelData::CmKernelData(  CmKernelRT* kernel ):
     m_kerneldatasize( 0 ),
-    m_refCount(0),
     m_kernel(kernel),
+    m_refCount(0),
     m_isInUse(true)
 {
    CmSafeMemSet(&m_halKernelParam, 0, sizeof(CM_HAL_KERNEL_PARAM));

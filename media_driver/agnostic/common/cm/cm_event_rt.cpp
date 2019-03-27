@@ -88,6 +88,7 @@ int32_t CmEventRT::Destroy( CmEventRT* &event )
 CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *device, bool isVisible):
     m_index( index ),
     m_taskDriverId( taskDriverId ),
+    m_osData(nullptr),
     m_status( CM_STATUS_QUEUED ),
     m_time( 0 ),
     m_ticks(0),
@@ -98,7 +99,6 @@ CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int
     m_refCount(0),
     m_isVisible(isVisible),
     m_task(task),
-    m_osData(nullptr),
     m_callbackFunction(nullptr),
     m_callbackUserData(nullptr)
 {
