@@ -113,12 +113,12 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_device(device),
     m_eventArray(CM_INIT_EVENT_COUNT),
     m_eventCount(0),
-    m_halMaxValues(nullptr),
     m_copyKernelParamArray(CM_INIT_GPUCOPY_KERNL_COUNT),
     m_copyKernelParamArrayCount(0),
+    m_halMaxValues(nullptr),
     m_queueOption(queueCreateOption),
-    m_osSyncEvent(nullptr),
-    m_usingVirtualEngine(false)
+    m_usingVirtualEngine(false),
+    m_osSyncEvent(nullptr)
 {
 
 }

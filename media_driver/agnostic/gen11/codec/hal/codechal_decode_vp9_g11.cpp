@@ -54,9 +54,9 @@ CodechalDecodeVp9G11::CodechalDecodeVp9G11(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecodeVp9(hwInterface, debugInterface, standardInfo),
-                                            m_scalabilityState(nullptr),
+                                            m_frameSizeMaxAlloced(0),
                                             m_sinlgePipeVeState(nullptr),
-                                            m_frameSizeMaxAlloced(0)
+                                            m_scalabilityState(nullptr)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 

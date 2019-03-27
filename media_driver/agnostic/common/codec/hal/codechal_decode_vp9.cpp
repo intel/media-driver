@@ -166,14 +166,14 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
                                             m_curMvTempBufIdx(0),
                                             m_colMvTempBufIdx(0),
                                             m_copyDataBufferSize(0),
+                                            m_copyDataBufferInUse(false),
                                             m_prevFrmWidth(0),
                                             m_prevFrmHeight(0),
                                             m_allocatedWidthInSb(0),
                                             m_allocatedHeightInSb(0),
                                             m_mvBufferSize(0),
                                             m_pendingResetPartial(0),
-                                            m_saveInterProbs(0),
-                                            m_copyDataBufferInUse(false)
+                                            m_saveInterProbs(0)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 

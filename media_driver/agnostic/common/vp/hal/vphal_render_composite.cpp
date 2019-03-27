@@ -6895,6 +6895,13 @@ CompositeState::CompositeState(
     : RenderState(pOsInterface, pRenderHal, pPerfData, peStatus),
     m_iMaxProcampEntries(0),
     m_iProcampVersion(0),
+    m_bNullHwRenderComp(false),
+    m_b8TapAdaptiveEnable(false),
+    m_pKernelDllState(nullptr),
+    m_ThreadCountPrimary(0),
+    m_iBatchBufferCount(0),
+    m_iCallID(0),
+    m_bLastPhase(false),
     m_fSamplerLinearBiasX(0),
     m_fSamplerLinearBiasY(0),
     m_bFtrMediaWalker(false),
@@ -6907,18 +6914,11 @@ CompositeState::CompositeState(
     m_bKernelSupportDualOutput(false),
     m_bKernelSupportHdcDW(false),
     m_bApplyTwoLayersCompOptimize(false),
-    m_bAvsTableCoeffExtraEnabled(false),
-    m_bAvsTableBalancedFilter(false),
-    m_bNullHwRenderComp(false),
-    m_b8TapAdaptiveEnable(false),
-    m_pKernelDllState(nullptr),
-    m_ThreadCountPrimary(0),
-    m_iBatchBufferCount(0),
-    m_iCallID(0),
     m_need3DSampler(false),
     m_bEnableSamplerLumakey(false),
     m_bYV12iAvsScaling(false),
-    m_bLastPhase(false)
+    m_bAvsTableCoeffExtraEnabled(false),
+    m_bAvsTableBalancedFilter(false)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;

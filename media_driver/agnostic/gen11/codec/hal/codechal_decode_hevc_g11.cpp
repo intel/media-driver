@@ -1792,9 +1792,9 @@ CodechalDecodeHevcG11::CodechalDecodeHevcG11(
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecodeHevc(hwInterface, debugInterface, standardInfo),
                                             m_hevcExtPicParams(nullptr),
                                             m_hevcExtSliceParams(nullptr),
-                                            m_scalabilityState(nullptr),
+                                            m_frameSizeMaxAlloced(0),
                                             m_sinlgePipeVeState(nullptr),
-                                            m_frameSizeMaxAlloced(0)
+                                            m_scalabilityState(nullptr)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 

@@ -168,13 +168,13 @@ CmThreadSpaceRT::CmThreadSpaceRT( CmDeviceRT* device , uint32_t indexTsArray, ui
     m_walkingPattern(CM_WALK_DEFAULT),
     m_mediaWalkerParamsSet(false),
     m_dependencyVectorsSet(false),
-    m_dirtyStatus(nullptr),
-    m_groupSelect(CM_MW_GROUP_NONE),
     m_threadSpaceOrderSet(false),
     m_swBoardSurf(nullptr),
     m_swBoard(nullptr),
     m_swScoreBoardEnabled(false),
-    m_threadGroupSpace(nullptr)
+    m_threadGroupSpace(nullptr),
+    m_dirtyStatus(nullptr),
+    m_groupSelect(CM_MW_GROUP_NONE)
 {
     CmSafeMemSet( &m_dependency, 0, sizeof(CM_HAL_DEPENDENCY) );
     CmSafeMemSet( &m_wavefront26ZDispatchInfo, 0, sizeof(CM_HAL_WAVEFRONT26Z_DISPATCH_INFO) );

@@ -269,8 +269,8 @@ void Mhw_BlockManager_ReverseMergeSort(uint32_t *pdwSizes, int32_t iCount)
 }
 
 MHW_BLOCK_MANAGER::MHW_BLOCK_MANAGER(PMHW_BLOCK_MANAGER_PARAMS pParams):
-    m_pStateHeap(nullptr),
-    m_MemoryPool(sizeof(MHW_STATE_HEAP_MEMORY_BLOCK), sizeof(void *))
+    m_MemoryPool(sizeof(MHW_STATE_HEAP_MEMORY_BLOCK), sizeof(void *)),
+    m_pStateHeap(nullptr)
 {
     //Init Parameters
     if(pParams != nullptr)
