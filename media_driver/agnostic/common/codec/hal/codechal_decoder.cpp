@@ -931,6 +931,10 @@ MOS_STATUS CodechalDecode::EndFrame ()
                     m_osInterface,
                     &dstSurface));
 
+                m_debugInterface->DumpBltOutput(
+                    &dstSurface,
+                    CodechalDbgAttr::attrDecodeBltOutput);
+
                 CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
                     CodechalDbgAttr::attrDecodeOutputSurface,
