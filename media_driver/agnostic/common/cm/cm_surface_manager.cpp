@@ -2260,6 +2260,10 @@ int32_t CmSurfaceManager::UpdateSurface2DTableRotation(uint32_t index, CM_ROTATI
     PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
     entry = &state->umdSurf2DTable[index];
     entry->rotationFlag = CmRotationToMhwRotation(rotationFlag);
+    if(state->advExecutor)
+    {
+        state->advExecutor->SetRotationFlag(entry->surfStateMgr, entry->rotationFlag);
+    }
 
     return CM_SUCCESS;
 }
@@ -2287,6 +2291,10 @@ int32_t CmSurfaceManager::UpdateSurface2DTableChromaSiting(uint32_t index, int32
     PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
     entry = &state->umdSurf2DTable[index];
     entry->chromaSiting = chromaSiting;
+    if(state->advExecutor)
+    {
+        state->advExecutor->SetChromaSitting(entry->surfStateMgr, (uint8_t)entry->chromaSiting);
+    }
     return CM_SUCCESS;
 }
 
