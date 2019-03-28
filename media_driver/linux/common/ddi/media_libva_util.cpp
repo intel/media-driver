@@ -299,7 +299,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
     MOS_LINUX_BO               *bo = nullptr;
     GMM_RESCREATE_PARAMS        gmmParams;
     GMM_RESOURCE_INFO          *gmmResourceInfo = nullptr;
-    bool                        grallocAllocation;
 
     DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
@@ -387,11 +386,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
             tag = PROTECTED_SURFACE_TAG;
         }
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
-         if( (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-             || (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+         if( (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+             || (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
            )
         {
-            if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+            if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {
                 bo = mos_bo_gem_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
             }
@@ -415,7 +414,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
         }
-        else if( mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
+        else if( mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
         {
 
             pitch    = mediaSurface->pSurfDesc->uiPitches[0];
@@ -453,8 +452,15 @@ VAStatus DdiMediaUtil_AllocateSurface(
                return VA_STATUS_ERROR_ALLOCATION_FAILED;
            }
         }
-        else
+        else if( mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING )
         {
+            tileformat = I915_TILING_Y;
+        }
+        else if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
+        {
+            tileformat = I915_TILING_NONE;
+            alignedHeight = height;
+        } else {
             DDI_ASSERTMESSAGE("Input buffer descriptor (%d) is not supported by current driver.", mediaSurface->pSurfDesc->uiFlags);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
@@ -462,7 +468,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     // Create GmmResourceInfo
     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-    if (DdiMediaUtil_IsExternalSurface(mediaSurface))
+    if (DdiMediaUtil_IsExternalSurface(mediaSurface) &&
+        mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
         gmmParams.BaseWidth         = mediaSurface->iWidth;
         gmmParams.BaseHeight        = mediaSurface->iHeight;
@@ -539,7 +546,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         goto finish;
     }
 
-    if (!DdiMediaUtil_IsExternalSurface(mediaSurface))
+    if (!DdiMediaUtil_IsExternalSurface(mediaSurface) ||
+        mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
         unsigned long  ulPitch = 0;
         if ( tileformat == I915_TILING_NONE )
@@ -553,7 +561,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             pitch = ulPitch;
         }
     }
-    else if(mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+    else if(mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
     {
         gmmHeight = height;
     }

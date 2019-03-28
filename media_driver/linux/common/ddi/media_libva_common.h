@@ -200,6 +200,7 @@ typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR
     uintptr_t  ulBuffer;                              // buffer handle or user pointer
     uint32_t   uiSize;                                // buffer size
     uint32_t   uiFlags;                               // See "Surface external buffer descriptor flags"
+    uint32_t   uiVaMemType;                           // VA Mem type
     uint32_t   uiTile;                                // Used for user pointer
     uint32_t   uiBuffserSize;                         // Used for user pointer
     bool       bIsGralloc;                            // buffer allocated by Gralloc
