@@ -1249,7 +1249,7 @@ DdiVp_SetProcPipelineParams(
     // add UsrPtr mode support
     if (pMediaSrcSurf->pSurfDesc)
     {
-        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
         if (pVpHalSrcSurf->bUsrPtr)
         {
             pVpHalSrcSurf->dwPitch                 = pMediaSrcSurf->iPitch;
@@ -3017,7 +3017,7 @@ VAStatus DdiVp_BeginPicture(
     if (pMediaTgtSurf->pSurfDesc)
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
         if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
@@ -3120,7 +3120,7 @@ VAStatus DdiVp_BeginPictureInt(
     if (pMediaTgtSurf->pSurfDesc)
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
         if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
