@@ -861,3 +861,42 @@ static bool cflDevice3ea3 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool cflDevice3ea2 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3ea2, &cflGt3eInfo);
 
+/* CML GT1 */
+static bool cmlDevice9b21 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9b21, &cflGt1Info);
+static bool cmlDevice9baa = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9baa, &cflGt1Info);
+static bool cmlDevice9bab = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bab, &cflGt1Info);
+static bool cmlDevice9bac = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bac, &cflGt1Info);
+static bool cmlDeviceba0 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9ba0, &cflGt1Info);
+static bool cmlDevice9ba5 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9ba5, &cflGt1Info);
+static bool cmlDevice9ba8 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9ba8, &cflGt1Info);
+static bool cmlDevice9ba4 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9ba4, &cflGt1Info);
+static bool cmlDevice9ba2 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9ba2, &cflGt1Info);
+
+/* CML GT2 */
+static bool cmlDevice9b41 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9b41, &cflGt2Info);
+static bool cmlDevice9bca = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bca, &cflGt2Info);
+static bool cmlDevice9bcb = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bcb, &cflGt2Info);
+static bool cmlDevice9bcc = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bcc, &cflGt2Info);
+static bool cmlDevice9bc0 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bc0, &cflGt2Info);
+static bool cmlDevice9bc5 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bc5, &cflGt2Info);
+static bool cmlDevice9bc8 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bc8, &cflGt2Info);
+static bool cmlDevice9bc4 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bc4, &cflGt2Info);
+static bool cmlDevice9bc2 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bc2, &cflGt2Info);
