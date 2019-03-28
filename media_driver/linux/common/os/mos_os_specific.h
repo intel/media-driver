@@ -823,6 +823,17 @@ bool Mos_Specific_IsSetMarkerEnabled(
 PMOS_RESOURCE Mos_Specific_GetMarkerResource(
     PMOS_INTERFACE         pOsInterface);
 
+//!
+//! \brief    Get TimeStamp frequency base
+//! \details  Get TimeStamp frequency base from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   uint32_t
+//!           time stamp frequency base
+//!
+uint32_t Mos_Specific_GetTsFrequency(
+    PMOS_INTERFACE         pOsInterface);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
     PMOS_INTERFACE        pOsInterface);

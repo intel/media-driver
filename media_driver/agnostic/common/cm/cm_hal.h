@@ -1557,7 +1557,7 @@ typedef struct _CM_HAL_STATE
 
     CMRT_UMD::CSync             *criticalSectionDSH;
 
-    uint64_t                    tsFrequency;
+    uint32_t                    tsFrequency;
 
     bool                        forceKernelReload;
 

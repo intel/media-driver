@@ -7997,7 +7997,7 @@ MOS_STATUS HalCm_Allocate(
     //Turn Turbo boost on
     CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnEnableTurboBoost(state));
 
-    state->tsFrequency = HalCm_GetTsFrequency(state->osInterface);
+    state->tsFrequency = Mos_Specific_GetTsFrequency(state->osInterface);
 
     if (state->refactor)
     {

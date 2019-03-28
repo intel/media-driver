@@ -6541,6 +6541,33 @@ PMOS_RESOURCE Mos_Specific_GetMarkerResource(
     return 0;
 }
 
+//!
+//! \brief    Get TimeStamp frequency base
+//! \details  Get TimeStamp frequency base from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   uint32_t
+//!           time stamp frequency base
+//!
+uint32_t Mos_Specific_GetTsFrequency(PMOS_INTERFACE osInterface)
+{
+    int32_t freq = 0;
+    drm_i915_getparam_t gp;
+    MOS_ZeroMemory(&gp, sizeof(gp));
+    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
+    gp.value = &freq;
+    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if(ret == 0)
+    {
+        return freq;
+    }
+    else
+    {
+        // fail to query it from KMD
+        return 0;
+    }
+}
+
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 struct GpuCmdResInfoDump::GpuCmdResInfo
 {
