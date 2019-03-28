@@ -1453,25 +1453,6 @@ MOS_STATUS HalCm_SetupSipSurfaceState(
     return MOS_STATUS_SUCCESS;
 }
 
-uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE osInterface)
-{
-    int32_t freq = 0;
-    drm_i915_getparam_t gp;
-    MOS_ZeroMemory(&gp, sizeof(gp));
-    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
-    gp.value = &freq;
-    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-    if(ret == 0)
-    {
-        return freq;
-    }
-    else
-    {
-        // fail to query it from KMD
-        return 0;
-    }
-}
-
 //!
 //! \brief    Prepare virtual engine hint parametere
 //! \details  Prepare virtual engine hint parameter for CCS node
