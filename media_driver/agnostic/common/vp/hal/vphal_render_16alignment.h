@@ -238,8 +238,6 @@ typedef struct _VPHAL_16_ALIGN_RENDER_DATA
     int32_t                             iBindingTable;
     int32_t                             iMediaID;
     PRENDERHAL_MEDIA_STATE              pMediaState;
-    float                               ScalingStep_H;
-    float                               ScalingStep_V;
     float                               ScalingRatio_H;
     float                               ScalingRatio_V;
     // Kernel Information
@@ -247,6 +245,8 @@ typedef struct _VPHAL_16_ALIGN_RENDER_DATA
     Kdll_CacheEntry                     KernelEntry;
     int32_t                             iCurbeLength;
     int32_t                             iInlineLength;
+    uint32_t                            dwSurfStateWd;       //!< Surface Height as programmed in SS
+    uint32_t                            dwSurfStateHt;       //!< Surface Height as programmed in SS
 
     MHW_SAMPLER_STATE_PARAM             SamplerStateParams;           //!< Sampler State 
     PMHW_AVS_PARAMS                     pAVSParameters;               //!< AVS parameters
