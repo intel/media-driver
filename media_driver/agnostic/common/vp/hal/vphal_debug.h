@@ -48,6 +48,10 @@
 
 #define VPHAL_DBG_DUMP_OUTPUT_FOLDER                "\\vphaldump\\"
 
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET (-1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STARTED (1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STOPPED (0)
+
 //------------------------------------------------------------------------------
 // Dump macro.  Simply calls the dump function.  defined as null in production
 //------------------------------------------------------------------------------

@@ -2477,6 +2477,8 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
     // Called frequently, so avoid repeated stack resizing with static
     static char pcDumpPrefix[MAX_PATH];
     static char pcDumpLoc[MAX_PATH];
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    int32_t VphalSurfDumpManualTrigger = VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET;
 
     MOS_STATUS  eStatus;
     int32_t     i;
@@ -2485,8 +2487,49 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
     eStatus = MOS_STATUS_SUCCESS;
     i       = 0;
 
-    if (pDumpSpec->uiStartFrame <= uiFrameNumber &&
-        uiFrameNumber <= pDumpSpec->uiEndFrame)
+    // Get if manual triggered build
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME_ID,
+        &UserFeatureData);
+    VphalSurfDumpManualTrigger = UserFeatureData.u32Data;
+
+    if (VphalSurfDumpManualTrigger != VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET)
+    {
+        if (VphalSurfDumpManualTrigger == VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STARTED)
+        {
+            VPHAL_DEBUG_NORMALMESSAGE("Dump manaul trigger enabled, dump started: %d \n", VphalSurfDumpManualTrigger);
+
+            for (i = 0; i < pDumpSpec->iNumDumpLocs; i++)
+            {
+                if (pDumpSpec->pDumpLocations[i].DumpLocation == Location &&      // should dump at this pipeline location AND
+                    (pDumpSpec->pDumpLocations[i].SurfType == pSurf->SurfType ||  // should dump for this surface type OR
+                        pDumpSpec->pDumpLocations[i].SurfType == SURF_NONE))      // should dump for any surface type
+                {
+                    VPHAL_DEBUG_CHK_STATUS(EnumToLocString(Location, pcDumpLoc));
+                    MOS_SecureStringPrint(pcDumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, pcDumpLoc, uiCounter);
+                    DumpSurfaceToFile(
+                        m_osInterface,
+                        pSurf,
+                        pcDumpPrefix,
+                        uiFrameNumber,
+                        true);
+                    break;
+                }
+            }
+        }
+        else if (VphalSurfDumpManualTrigger == VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STOPPED)
+        {
+            VPHAL_DEBUG_NORMALMESSAGE("Dump manaul trigger enabled, dump stopped: %d \n", VphalSurfDumpManualTrigger);
+        }
+        else
+        {
+            VPHAL_DEBUG_NORMALMESSAGE("Dump manaul trigger flag: %d \n", VphalSurfDumpManualTrigger);
+        }
+    }
+    else if (pDumpSpec->uiStartFrame <= uiFrameNumber &&
+             uiFrameNumber <= pDumpSpec->uiEndFrame)
     {
         for (i = 0; i < pDumpSpec->iNumDumpLocs; i++)
         {
@@ -2506,6 +2549,10 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
                 break;
             }
         }
+    }
+    else
+    {
+        VPHAL_DEBUG_VERBOSEMESSAGE("surface dumpped disabled, VphalSurfDumpManualTrigger: %d, uiStartFrame: %d,  uiEndFrame: %d\n", VphalSurfDumpManualTrigger, pDumpSpec->uiStartFrame, pDumpSpec->uiEndFrame);
     }
 
 finish:
