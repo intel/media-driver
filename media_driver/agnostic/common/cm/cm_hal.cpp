@@ -4356,6 +4356,7 @@ finish:
     return eStatus;
 }
 
+
 MOS_STATUS HalCm_Setup2DSurfaceState(
     PCM_HAL_STATE              state,
     PCM_HAL_KERNEL_ARG_PARAM   argParam,
@@ -4365,6 +4366,11 @@ MOS_STATUS HalCm_Setup2DSurfaceState(
     uint8_t                    *buffer)
 {
     MOS_STATUS                 eStatus;
+    
+    if (state->cmHalInterface->IsNeedtoDecompressSurface())
+    {
+        HalCm_DecompressSurface(state, argParam, threadIndex);
+    }
 
     //Binding surface based at the unit of dword
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_Setup2DSurfaceStateBasic(

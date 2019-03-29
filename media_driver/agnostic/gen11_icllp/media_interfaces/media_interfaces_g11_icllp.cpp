@@ -523,6 +523,7 @@ MOS_STATUS CMHalInterfacesG11Icllp::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->AddSupportedCisaIDs(&cisaID);
     m_cmhalDevice->SetOverridePowerOptionPerGpuContext(true);
     m_cmhalDevice->SetRequestShutdownSubslicesForVmeUsage(true);
+    m_cmhalDevice->SetDecompressFlag(true);
     return MOS_STATUS_SUCCESS;
 }
 
