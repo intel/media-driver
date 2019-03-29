@@ -757,16 +757,17 @@ MOS_STATUS CodechalDebugInterface::DumpSurface(
     lockFlags.ReadOnly = 1;
     uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
     CODECHAL_DEBUG_CHK_NULL(data);
-
+    
+    std::string bufName  = std::string(surfaceName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
     const char *fileName;
     if (mediaState == CODECHAL_NUM_MEDIA_STATES)
     {
-        fileName = CreateFileName(surfaceName, nullptr, extType);
+        fileName = CreateFileName(bufName.c_str(), nullptr, extType);
     }
     else
     {
         std::string kernelName = m_configMgr->GetMediaStateStr(mediaState);
-        fileName               = CreateFileName(kernelName.c_str(), surfaceName, extType);
+        fileName               = CreateFileName(kernelName.c_str(), bufName.c_str(), extType);
     }
 
     MOS_STATUS status;
