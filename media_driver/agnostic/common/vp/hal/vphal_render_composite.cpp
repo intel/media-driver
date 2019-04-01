@@ -5534,13 +5534,11 @@ bool CompositeState::RenderBufferComputeWalker(
     uint32_t*                           pdwDestXYTopLeft;
     uint32_t*                           pdwDestXYBottomRight;
     RECT                                AlignedRect;
-    bool                                bVerticalPattern;
 
     MOS_UNUSED(pBatchBuffer);
 
     bResult          = false;
     pRenderHal       = m_pRenderHal;
-    bVerticalPattern = false;
     pBbArgs          = &pRenderingData->BbArgs;
     pWalkerStatic    = &pRenderingData->WalkerStatic;
 
@@ -5593,7 +5591,6 @@ bool CompositeState::RenderBufferComputeWalker(
 
     // Get media walker kernel block size
     uiMediaWalkerBlockSize = pRenderHal->pHwSizes->dwSizeMediaWalkerBlock;
-    bVerticalPattern       = MediaWalkerVertical(pRenderingData);
 
     // Calculate aligned output area in order to determine the total # blocks
     // to process in case of non-16x16 aligned target.
@@ -5607,20 +5604,10 @@ bool CompositeState::RenderBufferComputeWalker(
     // Set walker cmd params - Rasterscan
     pWalkerParams->InterfaceDescriptorOffset    = pRenderingData->iMediaID;
 
-    if(bVerticalPattern)
-    {
-        pWalkerParams->GroupStartingX = (AlignedRect.top / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupStartingY = (AlignedRect.left / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupWidth     = pRenderingData->iBlocksY;
-        pWalkerParams->GroupHeight    = pRenderingData->iBlocksX;
-    }
-    else
-    {
-        pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
-        pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
-    }
+    pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
+    pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
+    pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
+    pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
 
     pWalkerParams->ThreadWidth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH;
     pWalkerParams->ThreadHeight = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
