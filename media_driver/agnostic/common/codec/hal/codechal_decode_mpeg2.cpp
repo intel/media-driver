@@ -218,10 +218,13 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
             "Failed to allocate copied residual data buffer.");
     }
 
-    // initialize lock flags
-    MOS_LOCK_PARAMS lockFlagsWriteOnly;
-    MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-    lockFlagsWriteOnly.WriteOnly = 1;
+    if ((m_nextCopiedDataOffset + dataSize) > m_copiedDataBufferSize)
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("Copied data buffer is not large enough.");
+
+        m_slicesInvalid = true;
+        return MOS_STATUS_UNKNOWN;
+    }
 
     uint32_t size = MOS_ALIGN_CEIL(dataSize, 16); // 16 byte aligned
 
@@ -243,14 +246,6 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
         *currOffset = m_nextCopiedDataOffset;
         m_nextCopiedDataOffset += MOS_ALIGN_CEIL(size, MHW_CACHELINE_SIZE);  // 64-byte aligned
         return MOS_STATUS_SUCCESS;
-    }
-
-    if ((m_nextCopiedDataOffset + dataSize) > m_copiedDataBufferSize)
-    {
-        CODECHAL_DECODE_ASSERTMESSAGE("Copied data buffer is not large enough.");
-
-        m_slicesInvalid = true;
-        return MOS_STATUS_UNKNOWN;
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
