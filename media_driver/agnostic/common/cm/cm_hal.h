@@ -876,6 +876,7 @@ typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
 {
     uint32_t                    width;                                       // [in]         Surface Width
     uint32_t                    height;                                      // [in]         Surface Height
+    uint32_t                    size;                                        // [in]         Surface total size
     MOS_FORMAT                  format;                                      // [in]         Surface Format
     void                        *data;                                       // [in/out]     Pointer to data
     uint32_t                    pitch;                                       // [out]        Pitch
@@ -884,6 +885,7 @@ typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
     MOS_PLANE_OFFSET            VSurfaceOffset;                              // [out]        V plane Offset
     uint32_t                    lockFlag;                                    // [out]        lock flag
     uint32_t                    handle;                                      // [in/out]     Handle
+    bool                        useGmmOffset;                                // [in/out]     Only use Gmm offset in Linux
 } CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM, *PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM;
 
 //*-----------------------------------------------------------------------------
