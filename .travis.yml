@@ -7,6 +7,7 @@ services:
 install:
   - cd ..
   - git clone https://github.com/intel/gmmlib.git gmmlib
+  - git clone https://github.com/intel/libva.git libva
   - cd ./media-driver
 
 script:
@@ -18,11 +19,36 @@ script:
       docker run
       -v $HOME/.ccache:/opt/ccache
       -v ${TRAVIS_BUILD_DIR}/../:/opt/src
+      -w /opt/src/libva
+      -e CCACHE_DIR=/opt/ccache
+      intelmediadriver/media-driver-docker
+      ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}/../:/opt/src
+      -w /opt/src/libva
+      -e CCACHE_DIR=/opt/ccache
+      intelmediadriver/media-driver-docker
+      make -j 8
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}/../:/opt/src
+      -w /opt/src/libva
+      -e CCACHE_DIR=/opt/ccache
+      intelmediadriver/media-driver-docker
+      make install
+  - ccache -s
+  - ccache -z
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}/../:/opt/src
       -w /opt/src/build
       -e CCACHE_DIR=/opt/ccache
       intelmediadriver/media-driver-docker
       cmake
-      -DMEDIA_VERSION="0.1.0"
       -DBUILD_TYPE=Release
       ../media-driver
   - >
@@ -44,7 +70,6 @@ script:
       -e CCACHE_DIR=/opt/ccache
       intelmediadriver/media-driver-docker
       cmake
-      -DMEDIA_VERSION="0.1.0"
       -DENABLE_KERNELS=OFF
       -DBUILD_TYPE=Release
       ../media-driver
@@ -67,7 +92,6 @@ script:
       -e CCACHE_DIR=/opt/ccache
       intelmediadriver/media-driver-docker
       cmake
-      -DMEDIA_VERSION="0.1.0"
       -DENABLE_NONFREE_KERNELS=OFF
       -DBUILD_TYPE=Release
       ../media-driver
