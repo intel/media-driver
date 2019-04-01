@@ -476,7 +476,6 @@ MOS_STATUS CMHalInterfacesG9Bxt::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_BXT, gengt, "BXT");
     uint32_t cisaIDs[] = {GENX_BXT, GENX_SKL};
     m_cmhalDevice->AddSupportedCisaIDs(cisaIDs, sizeof(cisaIDs)/sizeof(uint32_t));
-    m_cmhalDevice->SetDecompressFlag(true);
 
     CM_HAL_G9_X *pGen9Device = static_cast<CM_HAL_G9_X *>(m_cmhalDevice);
     const char *CmSteppingInfo_BXT[] = { "A0", "A0", "Ax", "B0", "B1", "Bx", "B0-prime", "B0-prime", 

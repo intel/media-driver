@@ -540,7 +540,6 @@ MOS_STATUS CMHalInterfacesG10Cnl::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_CNL, gengt, "CNL");
     uint32_t cisaID = GENX_CNL;
     m_cmhalDevice->AddSupportedCisaIDs(&cisaID);
-    m_cmhalDevice->SetDecompressFlag(true);
     return MOS_STATUS_SUCCESS;
 }
 

@@ -527,7 +527,6 @@ MOS_STATUS CMHalInterfacesG9Skl::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_SKL, gengt, "SKL");
     uint32_t cisaID = GENX_SKL;
     m_cmhalDevice->AddSupportedCisaIDs(&cisaID);
-    m_cmhalDevice->SetDecompressFlag(true);
     return MOS_STATUS_SUCCESS;
 }
 

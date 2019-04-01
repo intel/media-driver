@@ -100,7 +100,6 @@ MOS_STATUS CMHalInterfacesG9Cfl::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_CFL, gengt, "SKL");
     uint32_t cisaID = GENX_SKL;
     m_cmhalDevice->AddSupportedCisaIDs(&cisaID);
-    m_cmhalDevice->SetDecompressFlag(true);
 
     CM_HAL_G9_X *pGen9Device = static_cast<CM_HAL_G9_X *>(m_cmhalDevice);
     const char *CmSteppingInfo_CFL[] = {nullptr};
