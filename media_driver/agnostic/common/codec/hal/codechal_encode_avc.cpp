@@ -8550,22 +8550,22 @@ MOS_STATUS CodechalEncodeAvcEnc::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, M
             refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
             uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
-            MOS_SURFACE* surface;
             if (params->b32xMeInUse)
             {
-                surface = m_trackedBuf->Get32xDsSurface(scaledIdx);
+                refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
+                refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else if (params->b16xMeInUse)
             {
-                surface = m_trackedBuf->Get16xDsSurface(scaledIdx);
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
+                refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else
             {
-                surface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+                refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
-            CODECHAL_ENCODE_CHK_NULL_RETURN(surface);
-            refScaledSurface.OsResource = surface->OsResource;
-            refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
+
             // L0 Reference Picture Y - VME
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
             surfaceParams.bUseAdvState = true;
