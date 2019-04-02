@@ -28,7 +28,7 @@
 #define __LINUX_SKUWA_DEBUG_H__
 
 #if defined(ANDROID)
-#include <log/log.h>
+#include <cutils/log.h>
 
 #define DEVINFO_ASSERT(expr) ALOG_ASSERT(expr)
 
