@@ -3035,26 +3035,6 @@ VAStatus DdiVp_RenderPicture (
         DdiMedia_MapBuffer(pVaDrvCtx, buffers[i], &pData);
         DDI_CHK_NULL(pData, "Null pData.", VA_STATUS_ERROR_INVALID_BUFFER);
 
-        pVpCtx->MosDrvCtx.RequireCPLIB = false;
-        VAProcPipelineParameterBuffer *pProcBuf =  (VAProcPipelineParameterBuffer*) pData;
-        if (pProcBuf->input_surface_flag == 1)
-        {
-            pVpCtx->MosDrvCtx.RequireCPLIB = true;
-        }
-
-        /* HWC does not call vaCreateContext on every playback session for perf reason
-         * Since HWC reuses the same context, recreate Vphal if there is
-         * transition from secure -> clear OR clear -> secure
-         */
-        PMOS_INTERFACE osInterface = pVpCtx->pVpHal->GetOsInterface();
-        if(osInterface->pOsContext->RequireCPLIB != pVpCtx->MosDrvCtx.RequireCPLIB)
-        {
-            osInterface->pOsContext->RequireCPLIB = pVpCtx->MosDrvCtx.RequireCPLIB;
-            MOS_Delete(pVpCtx->pVpHal);
-            pVpCtx->pVpHal = nullptr;
-            DDI_CHK_RET(DdiVp_InitVpHal(pVpCtx), "Call DdiVp_InitVpHal failed");
-        }
-
         switch ((int32_t)pBuf->uiType)
         {
             // VP Buffer Types

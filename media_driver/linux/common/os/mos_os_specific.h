@@ -531,7 +531,6 @@ struct _MOS_OS_CONTEXT
    
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
-    bool                RequireCPLIB;
 
 #ifndef ANDROID
     std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
