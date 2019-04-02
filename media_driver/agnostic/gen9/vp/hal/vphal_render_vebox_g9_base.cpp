@@ -2075,9 +2075,13 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsFormatSupported(
     // Vebox only support P016 format, P010 format can be supported by faking it as P016
     if (pSrcSurface->Format != Format_NV12 &&
         pSrcSurface->Format != Format_AYUV &&
-        pSrcSurface->Format != Format_Y416 &&
         pSrcSurface->Format != Format_P010 &&
         pSrcSurface->Format != Format_P016 &&
+        pSrcSurface->Format != Format_P210 &&
+        pSrcSurface->Format != Format_P216 &&
+        pSrcSurface->Format != Format_Y8   &&
+        pSrcSurface->Format != Format_Y16U &&
+        pSrcSurface->Format != Format_Y16S &&
         !IS_PA_FORMAT(pSrcSurface->Format))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
@@ -2109,8 +2113,16 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsRTFormatSupported(
     bRet = false;
 
     // Check if RT Format is supported by Vebox
-    if (IS_PA_FORMAT(pRTSurface->Format) ||
-        pRTSurface->Format == Format_NV12)
+    if (IS_PA_FORMAT(pRTSurface->Format)  ||
+        pRTSurface->Format == Format_NV12 ||
+        pRTSurface->Format == Format_AYUV ||
+        pRTSurface->Format == Format_P010 ||
+        pRTSurface->Format == Format_P016 ||
+        pRTSurface->Format == Format_P210 ||
+        pRTSurface->Format == Format_P216 ||
+        pRTSurface->Format == Format_Y8   ||
+        pRTSurface->Format == Format_Y16U ||
+        pRTSurface->Format == Format_Y16S)
     {
         // Supported Vebox Render Target format. Vebox Pipe Output can be selected.
         bRet = true;
