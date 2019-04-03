@@ -3902,6 +3902,8 @@ int32_t CompositeState::SetLayer(
     pRenderingData->BbArgs.Rotation[iLayer] = pSource->Rotation;
     pRenderingData->BbArgs.iLayers++;
 
+    VPHAL_RENDER_NORMALMESSAGE("Layer %d, SamplerType:%d, Scaling Model %d,  SamplerIndex %d",
+                               iLayer, SamplerType, pSource->ScalingMode, iSamplerID);
     iResult = 1;
 
 finish:
