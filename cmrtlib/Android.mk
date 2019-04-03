@@ -44,6 +44,7 @@ LOCAL_SRC_FILES := \
     linux/hardware/cm_timer_os.cpp \
 
 LOCAL_C_INCLUDES += \
+    $(LOCAL_PATH)/proprietary/share \
     $(LOCAL_PATH)/agnostic/share \
     $(LOCAL_PATH)/agnostic/hardware \
     $(LOCAL_PATH)/linux/share \
