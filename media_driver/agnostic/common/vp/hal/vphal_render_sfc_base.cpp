@@ -689,9 +689,13 @@ bool VphalSfcState::IsFormatSupported(
              pOutSurface->Format == Format_A8B8G8R8    ||
              pOutSurface->Format == Format_R10G10B10A2 ||
              pOutSurface->Format == Format_B10G10R10A2 ||
+             pOutSurface->Format == Format_Y410        ||
+             pOutSurface->Format == Format_Y416        ||
              pOutSurface->Format == Format_AYUV)       &&
             (pSrcSurface->Format == Format_A8B8G8R8    ||
              pSrcSurface->Format == Format_A8R8G8B8    ||
+             pSrcSurface->Format == Format_Y410        ||
+             pSrcSurface->Format == Format_Y416        ||
              pSrcSurface->Format == Format_AYUV))
         {
             ret = false;
