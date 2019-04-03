@@ -1472,3 +1472,58 @@ MOS_STATUS HalCm_PrepareVEHintParam(
     return MOS_STATUS_UNIMPLEMENTED;
 }
 
+
+//!
+//! \brief    Decompress the surface
+//! \details  Decompress the media compressed surface
+//! \param    PCM_HAL_STATE state
+//!           [in] Pointer to CM_HAL_STATE Structure
+//! \param    PCM_HAL_KERNEL_ARG_PARAM argParam
+//!           [in]Pointer to HAL cm kernel argrument parameter
+//! \param    uint32_t threadIndex
+//!           [in] is used to get index of surface array
+//! \return   MOS_STATUS
+//!
+MOS_STATUS HalCm_DecompressSurface(
+    PCM_HAL_STATE              state,
+    PCM_HAL_KERNEL_ARG_PARAM   argParam,
+    uint32_t                   threadIndex)
+{
+    MOS_STATUS                 eStatus = MOS_STATUS_SUCCESS;
+    uint32_t                   handle = 0;
+    uint8_t                    *src = nullptr;
+    PCM_HAL_SURFACE2D_ENTRY    pEntry = nullptr;
+    PMOS_RESOURCE              pOsResource = nullptr;
+    PMOS_INTERFACE             pOsInterface = nullptr;
+    GMM_RESOURCE_FLAG          GmmFlags = { 0 };
+
+    //Get the index of  surface array handle from kernel data
+    CM_ASSERT(argParam->unitSize == sizeof(handle));
+    src = argParam->firstValue + (threadIndex * argParam->unitSize);
+    handle = *((uint32_t *)src) & CM_SURFACE_MASK;
+    if (handle == CM_NULL_SURFACE)
+    {
+        eStatus = MOS_STATUS_SUCCESS;
+        goto finish;
+    }
+
+    pEntry = &state->umdSurf2DTable[handle];
+    pOsResource = &pEntry->osResource;
+    pOsInterface = state->osInterface;
+
+    if (pOsResource->pGmmResInfo)
+    {
+        GmmFlags = pOsResource->pGmmResInfo->GetResFlags();
+        if (GmmFlags.Gpu.MMC || pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0))
+        {
+            PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
+            MOS_OS_ASSERT(pOsContext);
+            MOS_OS_ASSERT(pOsContext->ppMediaMemDecompState);
+            MOS_OS_ASSERT(pOsContext->pfnMemoryDecompress);
+            pOsContext->pfnMemoryDecompress(pOsContext, pOsResource);
+        }
+    }
+
+finish:
+    return eStatus;
+}

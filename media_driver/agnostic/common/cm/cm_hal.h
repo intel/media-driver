@@ -2278,6 +2278,11 @@ MOS_STATUS HalCm_PrepareVEHintParam(
     bool                           bScalable,
     PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam);
 
+MOS_STATUS HalCm_DecompressSurface(
+    PCM_HAL_STATE              state,
+    PCM_HAL_KERNEL_ARG_PARAM   argParam,
+    uint32_t                   threadIndex);
+
 //*-----------------------------------------------------------------------------
 //| Helper functions for EnqueueWithHints
 //*-----------------------------------------------------------------------------
