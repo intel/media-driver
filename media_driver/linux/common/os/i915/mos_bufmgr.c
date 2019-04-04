@@ -3342,8 +3342,14 @@ mos_gem_bo_exec2(struct mos_linux_bo *bo, int used,
                drm_clip_rect_t *cliprects, int num_cliprects,
                int DR4)
 {
+#ifndef ANDROID // TODO:biskhand: two versions of mos_gem_bo_exec2?
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
             I915_EXEC_RENDER);
+#else
+    return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
+            I915_EXEC_RENDER, 0);
+#endif
+
 }
 
 static int
@@ -3351,8 +3357,13 @@ mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
             drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
             unsigned int flags)
 {
+#ifndef ANDROID // TODO:biskhand: two versions of mos_gem_bo_mrb_exec2?
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
             flags);
+#else
+    return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
+            flags, 0);
+#endif
 }
 
 int
