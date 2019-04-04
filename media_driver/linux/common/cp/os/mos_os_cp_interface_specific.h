@@ -30,7 +30,14 @@
 #include "mos_defs.h"
 #include "mos_os_hw.h"
 #include "mos_util_debug.h"
-#include "cplib.h"
+
+static void OsStubMessage()
+{
+    MOS_NORMALMESSAGE(
+        MOS_COMPONENT_CP,
+        MOS_CP_SUBCOMP_OS,
+        "This function is stubbed as CP is not enabled.");
+}
 
 class MosCpInterface
 {
@@ -39,135 +46,128 @@ public:
 
     virtual ~MosCpInterface() {}
 
-    //!
-    //! \brief    Registers CP patch entry for CP Mode
-    //! \details  The function registers parameters for CP mode tracking.
-    //! \param    [in] pPatchAddress
-    //!           Address to patch location in GPU command buffer
-    //! \param    [in] bWrite
-    //!           is write operation
-    //! \param    [in] HwCommandType
-    //!           the cmd that the cpCmdProps assocites with
-    //! \param    [in] forceDwordOffset
-    //!           override of uint32_t offset to Data parameter
-    //! \param    [in] plResource
-    //!           hAllocation - Allocation handle to notify GMM about possible 
-    //!           changes in protection flag for display surface tracking
-    //!           Parameter is void to mos_os OS agnostic
-    //!           pGmmResourceInfo - GMM resource information to notify GMM about 
-    //!           possible changes in protection flag for display surface tracking
-    //!           Parameter is void to mos_os OS agnostic
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
     virtual MOS_STATUS RegisterPatchForHM(
-        uint32_t       *pPatchAddress,
+        uint32_t *     pPatchAddress,
         uint32_t       bWrite,
         MOS_HW_COMMAND HwCommandType,
         uint32_t       forceDwordOffset,
-        void           *plResource,
-        void           *pPatchLocationList);
+        void *         plResource,
+        void *         pPatchLocationList)
 
-    //!
-    //! \brief    UMD level patching
-    //! \details  The function performs command buffer patching
-    //! \param    virt
-    //!           [in] virtual address to be patched
-    //! \param    pvCurrentPatch
-    //!           [in] pointer to current patch address
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    {
+        MOS_UNUSED(pPatchAddress);
+        MOS_UNUSED(bWrite);
+        MOS_UNUSED(HwCommandType);
+        MOS_UNUSED(forceDwordOffset);
+        MOS_UNUSED(plResource);
+        MOS_UNUSED(pPatchLocationList);
+
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual MOS_STATUS PermeatePatchForHM(
-        void        *virt,
-        void        *pvCurrentPatch,
-        void        *resource);
+        void *virt,
+        void *pvCurrentPatch,
+        void *resource)
+    {
+        MOS_UNUSED(virt);
+        MOS_UNUSED(pvCurrentPatch);
+        MOS_UNUSED(resource);
 
-    //!
-    //! \brief    Determines if this UMD Context is running with CP enabled
-    //! \return   bool
-    //!           true if CP enabled, false otherwise
-    //!
-    virtual bool IsCpEnabled();
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
 
-    //!
-    //! \brief    transist UMD Context running with/without CP enabled
-    //! \param    [in] isCpInUse
-    //!           
-    //! \return   void
-    //!
-    virtual void SetCpEnabled(bool bIsCpEnabled);
+    virtual bool IsCpEnabled()
+    {
+        OsStubMessage();
+        return false;
+    }
 
-    //!
-    //! \brief    Determines if this UMD Context is running in CP Mode
-    //! \return   bool
-    //!           true if CP Mode, false otherwise
-    //!
-    virtual bool IsHMEnabled();
+    virtual void SetCpEnabled(bool bIsCpEnabled)
+    {
+        OsStubMessage();
+    }
 
-    //!
-    //! \brief    Determines if this UMD Context is running in Isolated Decode Mode
-    //! \return   bool
-    //!           true if Isolated Decode Mode, false otherwise
-    //!
-    virtual bool IsIDMEnabled();
+    virtual bool IsHMEnabled()
+    {
+        OsStubMessage();
+        return false;
+    }
 
-    //!
-    //! \brief    Determines if this UMD Context is running in Stout Mode
-    //! \return   bool
-    //!           true if Stout Mode, false otherwise
-    //!
-    virtual bool IsSMEnabled();
+    virtual bool IsIDMEnabled()
+    {
+        OsStubMessage();
+        return false;
+    }
 
-    //!
-    //! \brief    Determines if tear down happened
-    //! \return   bool
-    //!           true if tear down happened, false otherwise
-    //!
-    virtual bool IsTearDownHappen();
+    virtual bool IsSMEnabled()
+    {
+        OsStubMessage();
+        return false;
+    }
+
+    virtual bool IsTearDownHappen()
+    {
+        OsStubMessage();
+        return false;
+    }
 
     virtual MOS_STATUS SetResourceEncryption(
-        void        *pResource,
-        bool        bEncryption);
+        void *pResource,
+        bool  bEncryption)
+
+    {
+        MOS_UNUSED(pResource);
+        MOS_UNUSED(bEncryption);
+
+        OsStubMessage();
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
 
     virtual MOS_STATUS PrepareResources(
-        void        *source[],
-        uint32_t    sourceCount,
-        void        *target[],
-        uint32_t    targetCount);
+        void *   source[],
+        uint32_t sourceCount,
+        void *   target[],
+        uint32_t targetCount)
+    {
+        MOS_UNUSED(source);
+        MOS_UNUSED(sourceCount);
+        MOS_UNUSED(target);
+        MOS_UNUSED(targetCount);
 
-    //!
-    //! \brief    Determines whether or not render has access to content.
-    //! \details  Render does not have access to content when Stout
-    //!           or Isolated Decode is in use.
-    //! \return   bool
-    //!           True if render does not have access, false otherwise
-    //!
-    virtual bool RenderBlockedFromCp();
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
 
-    //!
-    //! \brief    Used by video processor to request the cached version of transcrypted and authenticated kernels
-    //! \param    [out] **ppTKs
-    //!           Cached version of transcrypted kernels
-    //! \param    [out] *pTKsSize
-    //!           Sized in bytes of the cached transcrypted kernels
-    //! \param    [out] *pTKsUpdateCnt
-    //!           The update count of the cached transcrypted kernels.
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
+    virtual bool RenderBlockedFromCp()
+    {
+        OsStubMessage();
+        return false;
+    }
+
     virtual MOS_STATUS GetTK(
-        uint32_t                    **ppTKs,
-        uint32_t                    *pTKsSize,
-        uint32_t                    *pTKsUpdateCnt);
+        uint32_t **ppTKs,
+        uint32_t * pTKsSize,
+        uint32_t * pTKsUpdateCnt)
+    {
+        MOS_UNUSED(ppTKs);
+        MOS_UNUSED(pTKsSize);
+        MOS_UNUSED(pTKsUpdateCnt);
 
-    //!
-    //! \brief    Read Counter Nounce Register
-    //! \param    [in] readCtr0
-    //!           Read counter 0 register
-    //! \param    [out] pCounter
-    //!           Pointer to hw counter
-    //!
-    MOS_STATUS ReadCtrNounceRegister(bool readCtr0, uint32_t *pCounter);
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS ReadCtrNounceRegister(bool readCtr0, uint32_t *pCounter)
+    {
+        MOS_UNUSED(readCtr0);
+        MOS_UNUSED(pCounter);
+
+        OsStubMessage();
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
 };
 
 //!
@@ -182,7 +182,7 @@ public:
 MosCpInterface* Create_MosCpInterface(void* pvOsInterface);
 
 //!
-//! \brief    Delete the MhwCpInterface Object according CPLIB loading status
+//! \brief    Delete the MosCpInterface Object according CPLIB loading status
 //!
 //! \param    [in] pMosCpInterface 
 //!           MosCpInterface

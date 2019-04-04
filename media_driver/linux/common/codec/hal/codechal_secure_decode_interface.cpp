@@ -29,7 +29,7 @@
 
 static void SecureDecodeStubMessage()
 {
-    MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, CP_STUB_MESSAGE);
+    MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "This function is stubbed as CP is not enabled.");
 }
 
 CodechalSecureDecodeInterface *Create_SecureDecodeInterface(

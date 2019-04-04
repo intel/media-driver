@@ -21,17 +21,10 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_cp_interface.cpp
 )
-set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_cp_interface.h
-)
 
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
-)
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
 )
 
 media_add_curr_to_include_path()
