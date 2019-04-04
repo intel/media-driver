@@ -31,7 +31,6 @@
 #include <dlfcn.h>
 #include <unordered_map>
 
-#define CP_STUB_MESSAGE "This function is stubbed as CP is not enabled."
 #define REQUIRED_CPLIB_MAJOR_VERSION 1
 
 #define CPLIB_NORMALMESSAGE(_message, ...)                                    \

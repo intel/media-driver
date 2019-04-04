@@ -28,7 +28,6 @@
 #define __MEDIA_LIBVA_CAPS_CP_INTERFACE_H__
 
 #include "media_libva.h"
-#include "cplib.h"
 
 class MediaLibvaCapsCpInterface
 {
@@ -36,32 +35,7 @@ public:
     MediaLibvaCapsCpInterface() {}
     virtual ~MediaLibvaCapsCpInterface() {}
     
-    //!
-    //! \brief    Return if decode encrytion is supported 
-    //!
-    //! \param    [in] mediaCtx 
-    //!           Pointer to DDI_MEDIA_CONTEXT
-    //!
-    //! \return   false: decode encrytion isn't supported on current platform
-    //!           true: decode encrytion is supported on current platform
-    //!
     virtual bool IsDecEncryptionSupported(DDI_MEDIA_CONTEXT *mediaCtx);
- 
-    //!
-    //! \brief    Get the supported decode encrytion types 
-    //!
-    //! \param    [in] profile 
-    //!           VAProfile
-    //!
-    //! \param    [in/out] encrytionType 
-    //!           Pointer to a array of uint32_t, which will be filled with result. 
-    //!
-    //! \param    [in] arraySize 
-    //!           The array size of encrytionType. 
-    //!
-    //! \return   Return the real number of supported decode encrytion types 
-    //!           Return -1 if arraySize is too small or profile is invalide 
-    //!
     virtual int32_t GetEncryptionTypes(
         VAProfile profile, 
         uint32_t *encrytionType, 
