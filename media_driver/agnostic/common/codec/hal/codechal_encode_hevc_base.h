@@ -1436,6 +1436,7 @@ public:
     bool          m_encode4KSequence                      = false;                        //!< Flag to specify if input sequence is 4k size
     bool          m_hevcRdoqEnabled                       = false;                        //!< RDOQ enable flag
     uint32_t      m_rdoqIntraTuThreshold                  = 0;                            //!< RDOQ intra threshold
+    bool          m_hevcIFrameRdoqEnabled                 = true;                        //!< Control intra frame RDOQ enable/disable
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool          m_rdoqIntraTuOverride                   = false;                        //!< Override RDOQ intra TU or not
     bool          m_rdoqIntraTuDisableOverride            = false;                        //!< Override RDOQ intra TU disable 

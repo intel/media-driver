@@ -2295,7 +2295,17 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
     // Send HEVC_VP9_RDOQ_STATE command
     if (m_hevcRdoqEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcVp9RdoqStateCmd(&cmdBuffer, &picStateParams));
+        if (m_pictureCodingType == I_TYPE)
+        {
+            if (m_hevcIFrameRdoqEnabled)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcVp9RdoqStateCmd(&cmdBuffer, &picStateParams));
+            }
+        }
+        else
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcVp9RdoqStateCmd(&cmdBuffer, &picStateParams));
+        }
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
@@ -3694,7 +3704,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcUpdate()
 
     hucVDEncBrcUpdateDmem->SlidingWindow_Enable_U8          = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW);
     hucVDEncBrcUpdateDmem->LOG_LCU_Size_U8                  = 6;
-    hucVDEncBrcUpdateDmem->RDOQ_Enable_U8                   = (uint8_t)m_hevcRdoqEnabled;
+    hucVDEncBrcUpdateDmem->RDOQ_Enable_U8                   = m_hevcRdoqEnabled ? (m_pictureCodingType == I_TYPE ? m_hevcIFrameRdoqEnabled : 1) : 0;
     hucVDEncBrcUpdateDmem->ReEncodePositiveQPDeltaThr_S8    = 4;
     hucVDEncBrcUpdateDmem->ReEncodeNegativeQPDeltaThr_S8    = -5;
     hucVDEncBrcUpdateDmem->SceneChgPrevIntraPctThreshold_U8 = 96;

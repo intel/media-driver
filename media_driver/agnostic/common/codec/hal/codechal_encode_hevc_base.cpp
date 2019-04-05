@@ -119,6 +119,12 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_IFRAME_RDOQ_ENABLE_ID,
+        &userFeatureData);
+    m_hevcIFrameRdoqEnabled = userFeatureData.i32Data ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -2217,7 +2223,7 @@ void CodechalEncodeHevcBase::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELE
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = m_vdencEnabled;
     pipeModeSelectParams.bVdencEnabled = m_vdencEnabled;
-    pipeModeSelectParams.bRdoqEnable                = m_hevcRdoqEnabled;
+    pipeModeSelectParams.bRdoqEnable = m_hevcRdoqEnabled ? (m_pictureCodingType == I_TYPE ? m_hevcIFrameRdoqEnabled : 1) : 0;
     pipeModeSelectParams.bAdvancedRateControlEnable = m_vdencBrcEnabled;
 
     if (m_hevcSeqParams->SAO_enabled_flag)
@@ -2361,7 +2367,7 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     picStateParams.bSAOEnable            = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
     picStateParams.bUseVDEnc = m_vdencEnabled;
     picStateParams.bNotFirstPass = m_vdencEnabled && !IsFirstPass() ;
-    picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
+    picStateParams.bHevcRdoqEnabled = m_hevcRdoqEnabled ? (m_pictureCodingType == I_TYPE ? m_hevcIFrameRdoqEnabled : 1) : 0;
     picStateParams.bRDOQIntraTUDisable   = m_hevcRdoqEnabled && (1 != m_hevcSeqParams->TargetUsage);
     picStateParams.wRDOQIntraTUThreshold = (uint16_t)m_rdoqIntraTuThreshold;
     picStateParams.bTransformSkipEnable  = m_hevcPicParams->transform_skip_enabled_flag;
