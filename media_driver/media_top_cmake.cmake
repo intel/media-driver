@@ -29,15 +29,18 @@ option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON)
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
 include(${MEDIA_DRIVER_CMAKE}/media_feature_flags.cmake)
 
-# checking dependencies
-pkg_check_modules(LIBGMM igdgmm)
 
-if(LIBGMM_FOUND)
-    include_directories(BEFORE ${LIBGMM_INCLUDE_DIRS})
-    # link_directories() should appear before add_library and the like
-    # otherwise it will not take effect
-    link_directories(${LIBGMM_LIBRARY_DIRS})
-endif()
+if(NOT DEFINED SKIP_GMM_CHECK)
+    # checking dependencies
+    pkg_check_modules(LIBGMM igdgmm)
+
+    if(LIBGMM_FOUND)
+        include_directories(BEFORE ${LIBGMM_INCLUDE_DIRS})
+        # link_directories() should appear before add_library and the like
+        # otherwise it will not take effect
+        link_directories(${LIBGMM_LIBRARY_DIRS})
+    endif()
+endif(NOT DEFINED SKIP_GMM_CHECK)
 
 message("-- media -- PLATFORM = ${PLATFORM}")
 message("-- media -- ARCH = ${ARCH}")
