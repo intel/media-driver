@@ -144,6 +144,7 @@ VAStatus DdiDecodeVP8::ParseIQMatrix(
     return VA_STATUS_SUCCESS;
 }
 
+
 // Load VP8 Picture Parameters from the libva buffer into the Codec Hal buffer.
 VAStatus DdiDecodeVP8::ParsePicParams(
     DDI_MEDIA_CONTEXT           *mediaCtx,
@@ -157,8 +158,6 @@ VAStatus DdiDecodeVP8::ParsePicParams(
 
     PDDI_MEDIA_SURFACE *vp8Surfaces = m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VP8.pReferenceFrames;
 
-    PDDI_MEDIA_SURFACE currentSurface = m_ddiDecodeCtx->RTtbl.pCurrentRT;
-
     // only no-keyframe have last/gold/alt reference frame
     if (picParam->pic_fields.bits.key_frame)
     {
@@ -167,22 +166,27 @@ VAStatus DdiDecodeVP8::ParsePicParams(
         altRefSurface    = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->alt_ref_frame);
     }
 
-    int32_t frameIdx;
-    frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, currentSurface);
-    if (frameIdx == (int32_t)DDI_CODEC_INVALID_FRAME_INDEX)
+    VASurfaceID currRtVaId;
+
+    //DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, renderTargets[i]);
+    currRtVaId = m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface();
+    if (currRtVaId == VA_INVALID_ID)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-    codecPicParams->ucCurrPicIndex = frameIdx;
 
-    frameIdx                          = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, lastRefSurface);
-    codecPicParams->ucLastRefPicIndex = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8) ? (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1) : frameIdx;
+    codecPicParams->ucCurrPicIndex = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(currRtVaId);
 
-    frameIdx                            = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, goldenRefSurface);
-    codecPicParams->ucGoldenRefPicIndex = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8) ? (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1) : frameIdx;
+    uint8_t frameIdx = CODECHAL_INVALID_FRAME_INDEX;
 
-    frameIdx                         = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, altRefSurface);
-    codecPicParams->ucAltRefPicIndex = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8) ? (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1) : frameIdx;
+    frameIdx                            = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->last_ref_frame);
+    codecPicParams->ucLastRefPicIndex   = (frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8) ? (CODECHAL_INVALID_FRAME_INDEX) : frameIdx;
+
+    frameIdx                            = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->golden_ref_frame);
+    codecPicParams->ucGoldenRefPicIndex = (frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8) ? (CODECHAL_INVALID_FRAME_INDEX) : frameIdx;
+
+    frameIdx                            = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->alt_ref_frame);
+    codecPicParams->ucAltRefPicIndex    = (frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8) ? (CODECHAL_INVALID_FRAME_INDEX) : frameIdx;
 
     codecPicParams->CurrPic.FrameIdx            = codecPicParams->ucCurrPicIndex;
     codecPicParams->wFrameWidthInMbsMinus1      = ((picParam->frame_width + 15) / 16) - 1;
@@ -637,6 +641,8 @@ void DdiDecodeVP8::ContextInit(
     DdiMediaDecode::ContextInit(picWidth, picHeight);
 
     m_ddiDecodeCtx->wMode    = CODECHAL_DECODE_MODE_VP8VLD;
+
+    m_ddiDecodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
 }
 
 extern template class MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR>;

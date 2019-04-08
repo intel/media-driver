@@ -324,9 +324,6 @@ protected:
     //!           outside of the instance.
     DDI_DECODE_CONTEXT *m_ddiDecodeCtx = nullptr;
 
-    //! \brief    decoded picture buffer flag
-    bool m_withDpb                     = true;
-
     //!
     //! \brief    return the Buffer offset for sliceGroup
     //! \details  return the Base  offset for one given slice_data buffer.

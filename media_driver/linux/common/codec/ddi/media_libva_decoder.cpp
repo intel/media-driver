@@ -357,7 +357,7 @@ VAStatus DdiDecode_CreateContext (
             DdiDecodeCleanUp(ctx,decCtx);
             return va;
         }
-        if (VA_STATUS_SUCCESS != ddiDecBase->RegisterRTSurfaces(&decCtx->RTtbl, surface))
+        if (VA_STATUS_SUCCESS != decCtx->pRTtbl->RegisterRTSurface(renderTargets[i]))
         {
             va = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
             DdiDecodeCleanUp(ctx,decCtx);
@@ -382,7 +382,7 @@ VAStatus DdiDecode_CreateContext (
     DdiMediaUtil_UnLockMutex(&mediaCtx->DecoderMutex);
 
     // init the RecListSUrfaceID for checking DPB.
-    for(int32_t i = 0; i < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE; i++)
+    for(int32_t i = 0; i < CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC; i++)
     {
         decCtx->RecListSurfaceID[i] = VA_INVALID_ID;
     }

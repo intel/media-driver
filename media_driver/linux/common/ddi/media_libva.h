@@ -50,6 +50,8 @@
 #include "codechal_encoder_base.h"
 #include "media_libva_common.h"
 
+#include <vector>
+
 #define DDI_CODEC_GEN_MAX_PROFILES                 31   //  the number of va profiles, some profiles in va_private.h
 #define DDI_CODEC_GEN_MAX_ENTRYPOINTS              7    // VAEntrypointVLD, VAEntrypointEncSlice, VAEntrypointEncSliceLP, VAEntrypointVideoProc
 
@@ -113,6 +115,14 @@
 
 // Enable unlimited output buffer, delete this build option (remove multiple output buffer) when it is verified
 #define ENABLE_ENC_UNLIMITED_OUTPUT
+
+
+#define DDI_CODEC_INVALID_FRAME_INDEX              0xffffffff
+#define DDI_CODEC_NUM_MAX_REF_FRAME                16
+
+#define DDI_CODEC_NUM_MACROBLOCKS_WIDTH(dwWidth)     ((dwWidth + (CODECHAL_MACROBLOCK_WIDTH - 1)) / CODECHAL_MACROBLOCK_WIDTH)
+#define DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(dwHeight)   ((dwHeight + (CODECHAL_MACROBLOCK_HEIGHT - 1)) / CODECHAL_MACROBLOCK_HEIGHT)
+
 
 typedef struct _DDI_CODEC_VC1BITPLANE_OBJECT
 {
@@ -278,21 +288,6 @@ typedef struct _DDI_CODEC_COM_BUFFER_MGR
     // for External decode StreamOut Buffer
     MOS_RESOURCE                                 resExternalStreamOutBuffer;
 } DDI_CODEC_COM_BUFFER_MGR;
-
-typedef struct _DDI_CODEC_RENDER_TARGET_TABLE
-{
-    int32_t                      iNumRenderTargets;
-    DDI_MEDIA_SURFACE           *pCurrentRT;           // raw input for encode
-    DDI_MEDIA_SURFACE           *pCurrentReconTarget;  // recon surface for encode
-    DDI_MEDIA_SURFACE           *pRT[DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT];
-    uint8_t                      ucRTFlag[DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT];
-} DDI_CODEC_RENDER_TARGET_TABLE, *PDDI_CODEC_RENDER_TARGET_TABLE;
-
-#define DDI_CODEC_INVALID_FRAME_INDEX              0xffffffff
-#define DDI_CODEC_NUM_MAX_REF_FRAME                16
-
-#define DDI_CODEC_NUM_MACROBLOCKS_WIDTH(dwWidth)     ((dwWidth + (CODECHAL_MACROBLOCK_WIDTH - 1)) / CODECHAL_MACROBLOCK_WIDTH)
-#define DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(dwHeight)   ((dwHeight + (CODECHAL_MACROBLOCK_HEIGHT - 1)) / CODECHAL_MACROBLOCK_HEIGHT)
 
 //! \brief  Map buffer
 //!

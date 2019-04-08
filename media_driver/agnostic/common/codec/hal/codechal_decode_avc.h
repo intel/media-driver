@@ -384,7 +384,7 @@ public:
     CODEC_AVC_DMV_LIST       m_avcDmvList[CODEC_AVC_NUM_DMV_BUFFERS];         //!< Avc Dmv List
     CODEC_PIC_ID             m_avcPicIdx[CODEC_AVC_MAX_NUM_REF_FRAME];        //!< Avc Pic Index
 
-    PCODEC_REF_LIST             m_avcRefList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];  //!< Pointer to AVC Ref List
+    PCODEC_REF_LIST             m_avcRefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC];  //!< Pointer to AVC Ref List
     PCODEC_AVC_PIC_PARAMS       m_avcPicParams;                                    //!< Pointer to AVC picture parameter
     PCODEC_MVC_EXT_PIC_PARAMS   m_mvcExtPicParams;                                 //!< Pointer to MVC ext picture parameter
     PCODEC_AVC_SLICE_PARAMS     m_avcSliceParams;                                  //!< Pointer to AVC slice parameter

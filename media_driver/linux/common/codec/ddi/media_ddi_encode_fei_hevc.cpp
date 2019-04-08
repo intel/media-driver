@@ -63,6 +63,8 @@ VAStatus DdiEncodeHevcFei::ContextInitialize(CodechalSetting * codecHalSettings)
     m_encodeCtx->pFeiPicParams = (void *)MOS_AllocAndZeroMemory(CODECHAL_HEVC_MAX_PPS_NUM * sizeof(CodecEncodeHevcFeiPicParams));
     DDI_CHK_NULL(m_encodeCtx->pFeiPicParams, "nullptr m_encodeCtx->pFeiPicParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
+    m_encodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -71,7 +73,7 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
 
     EncoderParams encodeParams;
     MOS_ZeroMemory(&encodeParams, sizeof(encodeParams));
@@ -101,7 +103,8 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
         rawSurface.Format = Format_NV12;
     }
 
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
+    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
+    DdiMedia_MediaSurfaceToMosResource(curr_rt_surface, &(rawSurface.OsResource));
 
     // Recon Surface
     MOS_SURFACE reconSurface;
@@ -116,10 +119,11 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
         reconSurface.Format = Format_NV12;
     }
 
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
+    DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
+    DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface.OsResource));
 
     //clear registered recon/ref surface flags
-    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
+    m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
 
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;

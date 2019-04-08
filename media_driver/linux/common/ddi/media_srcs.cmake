@@ -19,11 +19,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/media_ddi_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_common.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_util.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_ddi_render_target_table.cpp
 )
 
 set(TMP_HEADERS_
@@ -35,6 +35,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_common.h
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_util.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_ddi_render_target_table.h
 )
 
 if(NOT ${PLATFORM} STREQUAL "android" AND X11_FOUND)

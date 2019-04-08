@@ -165,6 +165,7 @@ VAStatus DdiDecodeMPEG2::ParseIQMatrix(
 //
 #define S_CODED 0x4
 
+
 VAStatus DdiDecodeMPEG2::ParsePicParams(
     DDI_MEDIA_CONTEXT             *mediaCtx,
     VAPictureParameterBufferMPEG2 *picParam)
@@ -172,11 +173,19 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
     CodecDecodeMpeg2PicParams *codecPicParam = (CodecDecodeMpeg2PicParams *)(m_ddiDecodeCtx->DecodeParams.m_picParams);
     if ((codecPicParam == nullptr) || (picParam == nullptr))
     {
-        DDI_ASSERTMESSAGE("Invalid Parameter for Parsing Mpeg2 Picture Parameter\n");
+        DDI_ASSERTMESSAGE("DdiDecodeMPEG2::ParsePicParams: Invalid Parameter for Parsing Mpeg2 Picture Parameter\n");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    codecPicParam->m_currPic.FrameIdx = GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), m_ddiDecodeCtx->RTtbl.pCurrentRT);
+    VASurfaceID currRtVaId = m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface();
+    if (currRtVaId == VA_INVALID_ID)
+    {
+        DDI_ASSERTMESSAGE("DdiDecodeMPEG2::ParsePicParams: Invalid surface in the render target table\n");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    codecPicParam->m_currPic.FrameIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(currRtVaId);
+
     switch (picParam->picture_coding_extension.bits.picture_structure)
     {
     case TOP_FIELD:
@@ -219,16 +228,16 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
     {
         if (picParam->forward_reference_picture != VA_INVALID_SURFACE)
         {
-            if (UpdateRegisteredRTSurfaceFlag(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture)) != VA_STATUS_SUCCESS)
+            if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->forward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
             {
-                DDI_CHK_RET(RegisterRTSurfaces(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture)), "RegisterRTSurfaces failed!");
+                DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurface failed!");
             }
 
-            codecPicParam->m_forwardRefIdx = GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture));  //(unsigned char)GetMPEG2SurfaceIdx(&(pRTtbl->pRT[0]), picParam->forward_reference_picture);
+            codecPicParam->m_forwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->forward_reference_picture);
         }
         else
         {
-            codecPicParam->m_forwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+            codecPicParam->m_forwardRefIdx = CODECHAL_INVALID_FRAME_INDEX;
         }
 
         if (codecPicParam->m_secondField)
@@ -244,39 +253,39 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
     {
         if (picParam->forward_reference_picture != VA_INVALID_SURFACE)
         {
-            if (UpdateRegisteredRTSurfaceFlag(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture)) != VA_STATUS_SUCCESS)
+            if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->forward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
             {
-                DDI_CHK_RET(RegisterRTSurfaces(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture)), "RegisterRTSurfaces failed!");
+                DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurfaces failed!");
             }
-            codecPicParam->m_forwardRefIdx = GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture));  //(unsigned char)GetMPEG2SurfaceIdx(&(pRTtbl->pRT[0]), picParam->forward_reference_picture);
+            codecPicParam->m_forwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->forward_reference_picture);
         }
         else
         {
-            codecPicParam->m_forwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+            codecPicParam->m_forwardRefIdx = CODECHAL_INVALID_FRAME_INDEX;
         }
         if (picParam->backward_reference_picture != VA_INVALID_SURFACE)
         {
-            if (UpdateRegisteredRTSurfaceFlag(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->backward_reference_picture)) != VA_STATUS_SUCCESS)
+            if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->backward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
             {
-                DDI_CHK_RET(RegisterRTSurfaces(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->backward_reference_picture)), "RegisterRTSurfaces failed!");
+                DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->backward_reference_picture), "RegisterRTSurfaces failed!");
             }
-            codecPicParam->m_backwardRefIdx = GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->backward_reference_picture));  //(unsigned char)GetMPEG2SurfaceIdx(&(pRTtbl->pRT[0]), picParam->backward_reference_picture);
+            codecPicParam->m_backwardRefIdx =  m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->backward_reference_picture);
         }
         else
         {
-            codecPicParam->m_backwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+            codecPicParam->m_backwardRefIdx = CODECHAL_INVALID_FRAME_INDEX;
         }
     }
 
     //add protection checking to prevent ref pic index larger than DPB size
     if (codecPicParam->m_forwardRefIdx > CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
     {
-        codecPicParam->m_forwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+        codecPicParam->m_forwardRefIdx = CODECHAL_INVALID_FRAME_INDEX;
     }
 
     if (codecPicParam->m_backwardRefIdx > CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
     {
-        codecPicParam->m_backwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+        codecPicParam->m_backwardRefIdx = CODECHAL_INVALID_FRAME_INDEX;
     }
 
     codecPicParam->W0.m_scanOrder          = picParam->picture_coding_extension.bits.alternate_scan;
@@ -500,6 +509,8 @@ void DdiDecodeMPEG2::ContextInit(
     DdiMediaDecode::ContextInit(picWidth, picHeight);
 
     m_ddiDecodeCtx->wMode             = CODECHAL_DECODE_MODE_MPEG2VLD;
+
+    m_ddiDecodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 }
 
 VAStatus DdiDecodeMPEG2::InitResourceBuffer()

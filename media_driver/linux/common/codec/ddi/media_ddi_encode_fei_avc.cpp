@@ -81,6 +81,7 @@ VAStatus DdiEncodeAvcFei::ContextInitialize(CodechalSetting * codecHalSettings)
     iqWeightScaleLists = (PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS));
     DDI_CHK_NULL(iqWeightScaleLists, "nullptr iqWeightScaleLists", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
+    m_encodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC);
     return VA_STATUS_SUCCESS;
 }
 
@@ -95,7 +96,7 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
     CodecEncodeAvcFeiPicParams *feiPicParams = (CodecEncodeAvcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
     FeiPreEncParams *preEncParams = (FeiPreEncParams*)(m_encodeCtx->pPreEncParams);
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl     = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl     = m_encodeCtx->pRTtbl;
 
     MOS_STATUS status;
 
@@ -120,13 +121,22 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
     rawSurface->Format   = Format_NV12;
     rawSurface->dwOffset = 0;
 
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface->OsResource));
+    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
+    DdiMedia_MediaSurfaceToMosResource(curr_rt_surface, &(rawSurface->OsResource));
 
     if (m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
     {
-        if (rtTbl->pRT[preEncParams->CurrOriginalPicture.FrameIdx] != rtTbl->pCurrentRT)
+        VASurfaceID va_id = m_encodeCtx->pRTtbl->GetVAID(preEncParams->CurrOriginalPicture.FrameIdx);
+        DDI_MEDIA_SURFACE* rtSurf = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, va_id);
+        if (rtSurf == nullptr)
         {
-            DDI_ASSERTMESSAGE("PREENC CurrOriginalPicture.FrameIdx != pCurrentRT");
+            DDI_ASSERTMESSAGE("Invalid VASurfaceID in DdiEncodeAvcFei::EncodeInCodecHal");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        if (preEncParams->CurrOriginalPicture.FrameIdx != pRTTbl->GetCurrentRTSurface())
+        {
+            DDI_ASSERTMESSAGE("PREENC CurrOriginalPicture.FrameIdx != pRTTbl->GetCurrentRTSurface()");
         }
         rawSurface->dwWidth                  = rawSurface->OsResource.iWidth;
         rawSurface->dwHeight                 = rawSurface->OsResource.iHeight;
@@ -134,7 +144,7 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         rawSurface->TileType                 = rawSurface->OsResource.TileType;
         preEncParams->psCurrOriginalSurface  = rawSurface;
         encodeParams->pPreEncParams          = m_encodeCtx->pPreEncParams;
-        DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, false), "ClearRefList failed!");
+        m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
     }
     else
     {
@@ -143,7 +153,8 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         reconSurface->Format   = Format_NV12;
         reconSurface->dwOffset = 0;
 
-        DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface->OsResource));
+        DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
+        DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface->OsResource));
 
         // Bitstream surface
         PMOS_RESOURCE bitstreamSurface = &encodeParams->resBitstreamBuffer;
@@ -281,7 +292,7 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         encodeParams->pSlcHeaderData = (void *)m_encodeCtx->pSliceHeaderData;
         encodeParams->pFeiPicParams  = (CodecEncodeAvcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
         //clear registered recon/ref surface flags
-        DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
+        m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
     }
 
     CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
@@ -842,6 +853,7 @@ VAStatus DdiEncodeAvcFei::ParseMiscParams(void *ptr)
     return status;
 }
 
+
 VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *ptr)
 {
     if ((nullptr == ptr) || (nullptr == m_encodeCtx))
@@ -852,7 +864,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
 
     VAStatsStatisticsParameterH264 *statsParams  = (VAStatsStatisticsParameterH264 *)ptr;
     FeiPreEncParams *preEncParams  = (FeiPreEncParams*)(m_encodeCtx->pPreEncParams);
-    DDI_CODEC_RENDER_TARGET_TABLE        *rtTbl        = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
 
     preEncParams->dwNumPastReferences      = statsParams->stats_params.num_past_references;
     preEncParams->dwNumFutureReferences    = statsParams->stats_params.num_future_references;
@@ -883,7 +895,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
 
     if (statsParams->stats_params.input.picture_id == VA_INVALID_ID)
     {
-        DDI_ASSERTMESSAGE("invalidate input parameters, current picture id is invalidate");
+        DDI_ASSERTMESSAGE("invalid input parameters, current picture id is invalid");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -898,12 +910,12 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
     DDI_MEDIA_SURFACE *currentSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, statsParams->stats_params.input.picture_id);
     if (nullptr == currentSurface)
     {
-        DDI_ASSERTMESSAGE("invalidate current ref surface");
+        DDI_ASSERTMESSAGE("invalid current ref surface");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    DDI_CHK_RET(RegisterRTSurfaces(&m_encodeCtx->RTtbl, currentSurface), "RegisterRTSurfaces failed!");
-    preEncParams->CurrOriginalPicture.FrameIdx = (uint8_t)GetRenderTargetID(rtTbl, currentSurface);
+    DDI_CHK_RET(m_encodeCtx->pRTtbl->RegisterRTSurface(statsParams->stats_params.input.picture_id), "RegisterRTSurfaces failed!");
+    preEncParams->CurrOriginalPicture.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(statsParams->stats_params.input.picture_id);
     preEncParams->CurrOriginalPicture.PicFlags = picFlags;
     DDI_MEDIA_BUFFER *mediaBuffer;
     if ((preEncParams->dwNumPastReferences == 1) && (statsParams->stats_params.past_references[0].picture_id != VA_INVALID_ID))
@@ -915,11 +927,11 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         DDI_MEDIA_SURFACE *pastRefSurface = (DDI_MEDIA_SURFACE *)DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, statsParams->stats_params.past_references->picture_id);
         if (nullptr == pastRefSurface)
         {
-            DDI_ASSERTMESSAGE("invalidate Future ref surface");
+            DDI_ASSERTMESSAGE("invalid past ref surface");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
-        DDI_CHK_RET(RegisterRTSurfaces(&m_encodeCtx->RTtbl, pastRefSurface), "RegisterRTSurfaces failed!");
-        preEncParams->PastRefPicture.FrameIdx = (uint8_t)GetRenderTargetID(rtTbl, pastRefSurface);
+        DDI_CHK_RET(m_encodeCtx->pRTtbl->RegisterRTSurface(statsParams->stats_params.past_references->picture_id), "RegisterRTSurfaces failed!");
+        preEncParams->PastRefPicture.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(statsParams->stats_params.past_references->picture_id);
         picFlags                              = ((statsParams->stats_params.past_references->flags & 0xF) == VA_PICTURE_STATS_PROGRESSIVE) ? PICTURE_FRAME : (((statsParams->stats_params.past_references->flags & 0xF) == VA_PICTURE_STATS_TOP_FIELD) ? PICTURE_TOP_FIELD : (((statsParams->stats_params.past_references->flags & 0xF) == VA_PICTURE_STATS_BOTTOM_FIELD) ? PICTURE_BOTTOM_FIELD : PICTURE_INVALID));
         preEncParams->PastRefPicture.PicFlags = picFlags;
 
@@ -959,7 +971,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
     }
     else
     {
-        preEncParams->PastRefPicture.FrameIdx = (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX;
+        preEncParams->PastRefPicture.FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
         preEncParams->PastRefPicture.PicFlags = PICTURE_INVALID;
     }
 
@@ -975,8 +987,8 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
             DDI_ASSERTMESSAGE("invalidate Future ref surface");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
-        DDI_CHK_RET(RegisterRTSurfaces(&m_encodeCtx->RTtbl, futureRefSurface), "RegisterRTSurfaces failed!");
-        preEncParams->FutureRefPicture.FrameIdx = (uint8_t)GetRenderTargetID(rtTbl, futureRefSurface);
+        DDI_CHK_RET(m_encodeCtx->pRTtbl->RegisterRTSurface(statsParams->stats_params.future_references->picture_id), "RegisterRTSurfaces failed!");
+        preEncParams->FutureRefPicture.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(statsParams->stats_params.future_references->picture_id);
         picFlags                                = ((statsParams->stats_params.future_references->flags & 0xF) == VA_PICTURE_STATS_PROGRESSIVE) ? PICTURE_FRAME : (((statsParams->stats_params.future_references->flags & 0xF) == VA_PICTURE_STATS_TOP_FIELD) ? PICTURE_TOP_FIELD : (((statsParams->stats_params.future_references->flags & 0xF) == VA_PICTURE_STATS_BOTTOM_FIELD) ? PICTURE_BOTTOM_FIELD : PICTURE_INVALID));
         preEncParams->FutureRefPicture.PicFlags = picFlags;
 
@@ -1015,7 +1027,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
     }
     else
     {
-        preEncParams->FutureRefPicture.FrameIdx = (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX;
+        preEncParams->FutureRefPicture.FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
         preEncParams->FutureRefPicture.PicFlags = PICTURE_INVALID;
     }
 
