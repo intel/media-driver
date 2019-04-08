@@ -117,7 +117,7 @@ VAStatus DdiDecodeAVC::ParseSliceParams(
             {
                 SetupCodecPicture(
                     mediaCtx,
-                    &(m_ddiDecodeCtx->RTtbl),
+                    m_ddiDecodeCtx->pRTtbl,
                     &(avcSliceParams->RefPicList[0][i]),
                     slc->RefPicList0[i],
                     avcPicParams->pic_fields.field_pic_flag,
@@ -131,7 +131,7 @@ VAStatus DdiDecodeAVC::ParseSliceParams(
             {
                 SetupCodecPicture(
                     mediaCtx,
-                    &(m_ddiDecodeCtx->RTtbl),
+                    m_ddiDecodeCtx->pRTtbl,
                     &(avcSliceParams->RefPicList[1][i]),
                     slc->RefPicList1[i],
                     avcPicParams->pic_fields.field_pic_flag,
@@ -185,7 +185,7 @@ VAStatus DdiDecodeAVC::ParsePicParams(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
 
     SetupCodecPicture(mediaCtx,
-        &(m_ddiDecodeCtx->RTtbl),
+        m_ddiDecodeCtx->pRTtbl,
         &avcPicParams->CurrPic,
         picParam->CurrPic,
         picParam->pic_fields.bits.field_pic_flag,
@@ -194,7 +194,7 @@ VAStatus DdiDecodeAVC::ParsePicParams(
 
     //Check the current frame index
     //Add the invalid surface id to RecList
-    if (avcPicParams->CurrPic.FrameIdx < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+    if (avcPicParams->CurrPic.FrameIdx < CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC)
     {
         m_ddiDecodeCtx->RecListSurfaceID[avcPicParams->CurrPic.FrameIdx] =
             picParam->CurrPic.picture_id;
@@ -207,14 +207,12 @@ VAStatus DdiDecodeAVC::ParsePicParams(
     {
         if (picParam->ReferenceFrames[i].picture_id != VA_INVALID_SURFACE)
         {
-            UpdateRegisteredRTSurfaceFlag(&(m_ddiDecodeCtx->RTtbl),
-                DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx,
-                    picParam->ReferenceFrames[i].picture_id));
+            m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->ReferenceFrames[i].picture_id, RT_STATE_ACTIVE_IN_CURFRAME);
         }
 
         SetupCodecPicture(
             mediaCtx,
-            &(m_ddiDecodeCtx->RTtbl),
+            m_ddiDecodeCtx->pRTtbl,
             &(avcPicParams->RefFrameList[i]),
             picParam->ReferenceFrames[i],
             picParam->pic_fields.bits.field_pic_flag,
@@ -248,7 +246,8 @@ VAStatus DdiDecodeAVC::ParsePicParams(
     for (i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
     {
         //Check the surface id of reference list
-        if (VA_INVALID_ID == m_ddiDecodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx])
+        if ((avcPicParams->RefFrameList[i].FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC) ||
+            VA_INVALID_ID == m_ddiDecodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx])
         {
             //Set invalid flag
             avcPicParams->RefFrameList[i].PicFlags = PICTURE_INVALID;
@@ -501,6 +500,9 @@ void DdiDecodeAVC::ContextInit(int32_t picWidth, int32_t picHeight)
         m_ddiDecodeCtx->bShortFormatInUse = true;
     }
     m_ddiDecodeCtx->wMode    = CODECHAL_DECODE_MODE_AVCVLD;
+
+    m_ddiDecodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC);
+
     return;
 }
 
@@ -805,7 +807,7 @@ void DdiDecodeAVC::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slcR
     {return;}
 
     int32_t i = 0;
-    if (slcReference->FrameIdx != CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+    if (slcReference->FrameIdx != CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC)
     {
         for (i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
         {
@@ -817,30 +819,28 @@ void DdiDecodeAVC::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slcR
         }
         if (i == CODEC_MAX_NUM_REF_FRAME)
         {
-            slcReference->FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
+            slcReference->FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC;
         }
     }
 }
 
 void DdiDecodeAVC::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                   *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE       *rtTbl,
+    DDI_CODEC_RENDER_TARGET_TABLE       *pRTTbl,
     CODEC_PICTURE                       *codecHalPic,
     VAPictureH264                       vaPic,
     bool                                fieldPicFlag,
     bool                                picReference,
     bool                                sliceReference)
 {
-    if(vaPic.picture_id != DDI_CODEC_INVALID_FRAME_INDEX)
+    if(vaPic.picture_id != VA_INVALID_ID)
     {
-        DDI_MEDIA_SURFACE *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, vaPic.picture_id);
-        vaPic.frame_idx    = GetRenderTargetID(rtTbl, surface);
-        codecHalPic->FrameIdx = (uint8_t)vaPic.frame_idx;
+        codecHalPic->FrameIdx = pRTTbl->GetFrameIdx(vaPic.picture_id);
     }
     else
     {
         vaPic.frame_idx    = DDI_CODEC_INVALID_FRAME_INDEX;
-        codecHalPic->FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE - 1;
+        codecHalPic->FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
     }
 
     if (picReference)
@@ -877,7 +877,7 @@ void DdiDecodeAVC::SetupCodecPicture(
         }
     }
 
-    if (sliceReference && (vaPic.picture_id == VA_INVALID_ID))//VA_INVALID_ID is used to indicate invalide picture in LIBVA.
+    if (sliceReference && (vaPic.picture_id == VA_INVALID_ID))//VA_INVALID_ID is used to indicate invalid picture in LIBVA.
     {
         codecHalPic->PicFlags = PICTURE_INVALID;
     }

@@ -74,6 +74,7 @@ VAStatus DdiDecodeVP9::ParseSliceParams(
     return VA_STATUS_SUCCESS;
 }
 
+
 VAStatus DdiDecodeVP9::ParsePicParams(
     DDI_MEDIA_CONTEXT              *mediaCtx,
     VADecPictureParameterBufferVP9 *picParam)
@@ -110,13 +111,14 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     picVp9Params->PicFlags.fields.frame_context_idx            = picParam->pic_fields.bits.frame_context_idx;
     picVp9Params->PicFlags.fields.LosslessFlag                 = picParam->pic_fields.bits.lossless_flag;
 
-    int32_t frameIdx;
-    frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, m_ddiDecodeCtx->RTtbl.pCurrentRT);
-    if (frameIdx == (int32_t)DDI_CODEC_INVALID_FRAME_INDEX)
+    VASurfaceID currRtVaId = m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface();
+
+    if (currRtVaId == VA_INVALID_ID)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-    picVp9Params->CurrPic.FrameIdx = frameIdx;
+
+    picVp9Params->CurrPic.FrameIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(currRtVaId);
 
     int32_t i;
     for (i = 0; i < 8; i++)
@@ -124,27 +126,18 @@ VAStatus DdiDecodeVP9::ParsePicParams(
         if (picParam->reference_frames[i] < mediaCtx->uiNumSurfaces)
         {
             PDDI_MEDIA_SURFACE refSurface          = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reference_frames[i]);
-            frameIdx                               = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, refSurface);
-            picVp9Params->RefFrameList[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9) ? (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1) : frameIdx;
+            picVp9Params->RefFrameList[i].FrameIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->reference_frames[i]);
         }
         else
         {
             PDDI_MEDIA_SURFACE refSurface          = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reference_frames[i]);
-            if (refSurface != nullptr)
+            if (m_ddiDecodeCtx->pRTtbl->IsRegistered(picParam->reference_frames[i]))
             {
-                frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, refSurface);
-                if (frameIdx != DDI_CODEC_INVALID_FRAME_INDEX)
-                {
-                    picVp9Params->RefFrameList[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9) ? (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1) : frameIdx;
-                }
-                else
-                {
-                    picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
-                }
+                picVp9Params->RefFrameList[i].FrameIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->reference_frames[i]);
             }
             else
             {
-                picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+                picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
             }
         }
     }
@@ -559,9 +552,9 @@ VAStatus DdiDecodeVP9::InitDecodeParams(
     bufMgr->dwNumSliceData    = 0;
     bufMgr->dwNumSliceControl = 0;
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
 
-    if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
+    if (pRTTbl->GetCurrentRTSurface() == VA_INVALID_ID)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -572,7 +565,7 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
 {
     slcFlag = false;
     MOS_FORMAT Format = Format_NV12;
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
 
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;
@@ -581,12 +574,14 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
     {
         Format = Format_AYUV;
     }
+
     if (((picParams->profile == CODEC_PROFILE_VP9_PROFILE2) ||
         (picParams->profile == CODEC_PROFILE_VP9_PROFILE3)) &&
         (picParams->BitDepthMinus8 > 0))
     {
+        DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
         Format = Format_P010;
-        if((picParams->BitDepthMinus8 > 2) || (rtTbl->pCurrentRT->format == Media_Format_P016))
+        if((picParams->BitDepthMinus8 > 2) || (curr_rt_surface->format == Media_Format_P016))
         {
             Format = Format_P016;
         }
@@ -601,7 +596,7 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
                 Format = Format_Y410;
 
                 //10bit decode in 12bit
-                if(rtTbl->pCurrentRT->format == Media_Format_Y416)
+                if(curr_rt_surface->format == Media_Format_Y416)
                 {
                     Format = Format_Y416;
                 }
@@ -631,6 +626,8 @@ void DdiDecodeVP9::ContextInit(
     DdiMediaDecode::ContextInit(picWidth, picHeight);
 
     m_ddiDecodeCtx->wMode    = CODECHAL_DECODE_MODE_VP9VLD;
+
+    m_ddiDecodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);
 }
 
 extern template class MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR>;

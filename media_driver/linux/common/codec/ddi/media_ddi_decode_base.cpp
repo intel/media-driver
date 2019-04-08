@@ -70,6 +70,13 @@ VAStatus DdiMediaDecode::BasicInit(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
+    m_ddiDecodeCtx->pRTtbl = MOS_New(DDI_CODEC_RENDER_TARGET_TABLE);
+
+    if (m_ddiDecodeCtx->pRTtbl == nullptr)
+    {
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -189,18 +196,17 @@ VAStatus DdiMediaDecode::BeginPicture(
     DDI_CHK_NULL(curRT, "nullptr pCurRT", VA_STATUS_ERROR_INVALID_SURFACE);
     curRT->pDecCtx = m_ddiDecodeCtx;
 
-    DDI_CODEC_RENDER_TARGET_TABLE *RTtbl;
-    RTtbl             = &(m_ddiDecodeCtx->RTtbl);
-    RTtbl->pCurrentRT = curRT;
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
+
+    // register render targets
+    DDI_CHK_RET(pRTTbl->RegisterRTSurface(renderTarget),"RegisterRTSurfaces failed!");
+    pRTTbl->SetCurrentRTSurface(renderTarget);
 
     m_streamOutEnabled              = false;
     m_ddiDecodeCtx->DecodeParams.m_numSlices       = 0;
     m_ddiDecodeCtx->DecodeParams.m_dataSize        = 0;
     m_ddiDecodeCtx->DecodeParams.m_deblockDataSize = 0;
     m_groupIndex                                   = 0;
-
-    // register render targets
-    DDI_CHK_RET(RegisterRTSurfaces(&m_ddiDecodeCtx->RTtbl, curRT),"RegisterRTSurfaces failed!");
 
     if (nullptr == m_ddiDecodeCtx->pCodecHal)
     {
@@ -330,15 +336,19 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
         m_ddiDecodeCtx->pCodecHal = nullptr;
     }
 
-    int32_t i;
-    for (i = 0; i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; i++)
+    std::vector<VASurfaceID> rt_va_id_vec = m_ddiDecodeCtx->pRTtbl->GetRegisteredVAIDs();
+
+    for (VASurfaceID id : rt_va_id_vec)
     {
-        if ((m_ddiDecodeCtx->RTtbl.pRT[i] != nullptr) &&
-            (m_ddiDecodeCtx->RTtbl.pRT[i]->pDecCtx == m_ddiDecodeCtx))
+        DDI_MEDIA_SURFACE* rt_surf = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, id);
+        if (rt_surf->pDecCtx == m_ddiDecodeCtx)
         {
-            m_ddiDecodeCtx->RTtbl.pRT[i]->pDecCtx = nullptr;
+            rt_surf->pDecCtx = nullptr;
         }
     }
+
+    MOS_Delete(m_ddiDecodeCtx->pRTtbl);
+    m_ddiDecodeCtx->pRTtbl = nullptr;
 
     if (m_ddiDecodeCtx->pCpDdiInterface)
     {
@@ -369,6 +379,9 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
 
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_subsetParams);
     m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
+    // ?! MOS_FreeMemory(m_ddiDecodeCtx) missing?
+
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeCtx->DecodeParams.m_procParams != nullptr)
@@ -583,9 +596,9 @@ VAStatus DdiMediaDecode::InitDecodeParams(
     memset(&m_destSurface, 0, sizeof(MOS_SURFACE));
     m_destSurface.dwOffset = 0;
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
 
-    if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
+    if (pRTTbl->GetCurrentRTSurface() == VA_INVALID_ID)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -603,7 +616,9 @@ VAStatus DdiMediaDecode::SetDecodeParams()
 
     MOS_FORMAT expectedFormat = GetFormat();
     m_destSurface.Format   = expectedFormat;
-    DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+
+    DDI_MEDIA_SURFACE* curr_rt_surf = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface());
+    DdiMedia_MediaSurfaceToMosResource(curr_rt_surf, &(m_destSurface.OsResource));
 
     if (m_destSurface.OsResource.Format != expectedFormat)
     {
@@ -648,7 +663,7 @@ VAStatus DdiMediaDecode::EndPicture(
     DDI_CHK_RET(InitDecodeParams(ctx,context),"InitDecodeParams failed!");
 
     DDI_CHK_RET(SetDecodeParams(), "SetDecodeParams failed!");
-    DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), m_withDpb), "ClearRefList failed!");
+    m_ddiDecodeCtx->pRTtbl->ReleaseDPBRenderTargets();
     if (m_ddiDecodeCtx->pCodecHal == nullptr)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -720,7 +735,7 @@ VAStatus DdiMediaDecode::EndPicture(
         return VA_STATUS_ERROR_DECODING_ERROR;
     }
 
-    (&(m_ddiDecodeCtx->RTtbl))->pCurrentRT = nullptr;
+    m_ddiDecodeCtx->pRTtbl->SetCurrentRTSurface(VA_INVALID_ID);
 
     status = m_ddiDecodeCtx->pCodecHal->EndFrame();
     if (status != MOS_STATUS_SUCCESS)
@@ -995,13 +1010,18 @@ void DdiMediaDecode::GetDummyReferenceFromDPB(
         return;
     }
 
-    for (i = 0; i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; i++)
+
+    std::vector<VASurfaceID> rt_va_id_vec = decodeCtx->pRTtbl->GetRegisteredVAIDs();
+
+    for (VASurfaceID id : rt_va_id_vec)
     {
-        if (decodeCtx->RTtbl.pRT[i] != nullptr && 
-            decodeCtx->RTtbl.pRT[i] != decodeCtx->RTtbl.pCurrentRT)
+
+        if (id != decodeCtx->pRTtbl->GetCurrentRTSurface())
         {
+            DDI_MEDIA_SURFACE* rt_surf = DdiMedia_GetSurfaceFromVASurfaceID(decodeCtx->pMediaCtx, id);
+
             MOS_ZeroMemory(&dummyReference, sizeof(MOS_SURFACE));
-            DdiMedia_MediaSurfaceToMosResource(decodeCtx->RTtbl.pRT[i], &(dummyReference.OsResource));
+            DdiMedia_MediaSurfaceToMosResource(rt_surf, &(dummyReference.OsResource));
 
             if (!Mos_ResourceIsNull(&dummyReference.OsResource))
             {
@@ -1028,7 +1048,7 @@ void DdiMediaDecode::GetDummyReferenceFromDPB(
         }
     }
 
-    if (i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
+    if (decodeCtx->pRTtbl->GetNumRenderTargets() < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
     {
         CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decodeCtx->pCodecHal);
         decoder->GetDummyReference()->OsResource = dummyReference.OsResource;

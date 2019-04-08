@@ -1960,7 +1960,7 @@ static VAStatus DdiMedia_DestroySurfaces (
             surface->pReferenceFrameSemaphore = nullptr;
         }
 
-        DdiMediaUtil_UnRegisterRTSurfaces(ctx, surface);
+        DdiMediaUtil_UnRegisterRTSurfaces(ctx, surfaces[i]);
 
         DdiMediaUtil_FreeSurface(surface);
         MOS_FreeMemory(surface);

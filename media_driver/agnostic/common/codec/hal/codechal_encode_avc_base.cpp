@@ -1918,7 +1918,7 @@ CodechalEncodeAvcBase::CodechalEncodeAvcBase(
     MOS_ZeroMemory(m_avcSeqParams, CODEC_AVC_MAX_SPS_NUM * sizeof(PCODEC_AVC_ENCODE_SEQUENCE_PARAMS));
     MOS_ZeroMemory(&m_userFlags, sizeof(CODEC_AVC_ENCODE_USER_FLAGS));
     MOS_ZeroMemory(m_picIdx, CODEC_AVC_MAX_NUM_REF_FRAME * sizeof(CODEC_PIC_ID));
-    MOS_ZeroMemory(m_refList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE * sizeof(PCODEC_REF_LIST));
+    MOS_ZeroMemory(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC * sizeof(PCODEC_REF_LIST));
     MOS_ZeroMemory(m_avcFrameStoreID, CODEC_AVC_MAX_NUM_REF_FRAME * sizeof(CODEC_AVC_FRAME_STORE_ID));
     MOS_ZeroMemory(&m_nalUnitType, sizeof(CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE));
     MOS_ZeroMemory(&m_trellisQuantParams, sizeof(CODECHAL_ENCODE_AVC_TQ_PARAMS));
@@ -1941,7 +1941,7 @@ CodechalEncodeAvcBase::~CodechalEncodeAvcBase()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // Release Ref Lists
-    CodecHalFreeDataList(m_refList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
+    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC);
 
     for (uint8_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
@@ -2248,7 +2248,7 @@ MOS_STATUS CodechalEncodeAvcBase::AllocateResources()
     // Allocate Ref Lists
     CodecHalAllocateDataList(
         m_refList,
-        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC);
 
     if (m_pakEnabled && m_mfxInterface->IsIntraRowstoreCacheEnabled() == false)
     {

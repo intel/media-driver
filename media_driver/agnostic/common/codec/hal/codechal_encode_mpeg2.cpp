@@ -4986,8 +4986,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         &surfaceCodecParams,
         kernelState));
 
-    uint8_t picIdx0 = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
-    uint8_t picIdx1 = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+    uint8_t picIdx0 = CODECHAL_INVALID_FRAME_INDEX;
+    uint8_t picIdx1 = CODECHAL_INVALID_FRAME_INDEX;
     bool refL0BottomField = false;
     bool refL1BottomField = false;
 

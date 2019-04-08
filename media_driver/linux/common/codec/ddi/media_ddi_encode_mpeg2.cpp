@@ -133,6 +133,8 @@ VAStatus DdiEncodeMpeg2::ContextInitialize(
 
     m_encodeCtx->pbsBuffer->BufferSize = m_encodeCtx->wPicHeightInMB * PACKED_HEADER_SIZE_PER_ROW;
 
+    m_encodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -242,24 +244,29 @@ VAStatus DdiEncodeMpeg2::EncodeInCodecHal(
         encodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC_PAK;
     }
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
 
     // Raw Surface
     MOS_SURFACE rawSurface;
     MOS_ZeroMemory(&rawSurface, sizeof(MOS_SURFACE));
     rawSurface.Format   = Format_NV12;
     rawSurface.dwOffset = 0;
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
+
+
+    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
+    DdiMedia_MediaSurfaceToMosResource(curr_rt_surface, &(rawSurface.OsResource));
 
     // Recon Surface
     MOS_SURFACE reconSurface;
     MOS_ZeroMemory(&reconSurface, sizeof(MOS_SURFACE));
     reconSurface.Format   = Format_NV12;
     reconSurface.dwOffset = 0;
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
+
+    DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
+    DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface.OsResource));
 
     //clear registered recon/ref surface flags
-    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, false), "ClearRefList failed!");
+    m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
 
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;
@@ -518,7 +525,7 @@ VAStatus DdiEncodeMpeg2::ParsePicParams(
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(ptr, "nullptr ptr", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
 
     VAEncPictureParameterBufferMPEG2 *picParams = (VAEncPictureParameterBufferMPEG2 *)ptr;
 
@@ -579,37 +586,35 @@ VAStatus DdiEncodeMpeg2::ParsePicParams(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     auto recon = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->reconstructed_picture);
-    DDI_CHK_RET(RegisterRTSurfaces(&m_encodeCtx->RTtbl, recon),"RegisterRTSurfaces failed!");
+    DDI_CHK_RET(m_encodeCtx->pRTtbl->RegisterRTSurface(picParams->reconstructed_picture),"RegisterRTSurfaces failed!");
 
-    mpeg2PicParams->m_currReconstructedPic.FrameIdx = GetRenderTargetID(rtTbl, recon);
+    mpeg2PicParams->m_currReconstructedPic.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(picParams->reconstructed_picture);
     mpeg2PicParams->m_currReconstructedPic.PicFlags = PICTURE_FRAME;
 
     // be attention , that codec hal use this value to manager the reference list
-    mpeg2PicParams->m_currOriginalPic.FrameIdx = GetRenderTargetID(rtTbl, recon);
+    mpeg2PicParams->m_currOriginalPic.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(picParams->reconstructed_picture);
     mpeg2PicParams->m_currOriginalPic.PicFlags = mpeg2PicParams->m_currReconstructedPic.PicFlags;
 
-    if (DDI_CODEC_INVALID_FRAME_INDEX != picParams->forward_reference_picture)
+    if (VA_INVALID_ID != picParams->forward_reference_picture)
     {
-        auto fwRef = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->forward_reference_picture);
-        UpdateRegisteredRTSurfaceFlag(&m_encodeCtx->RTtbl,fwRef);
-        mpeg2PicParams->m_refFrameList[0].FrameIdx = GetRenderTargetID(rtTbl, fwRef);
+        m_encodeCtx->pRTtbl->SetRTState(picParams->forward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME);
+        mpeg2PicParams->m_refFrameList[0].FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(picParams->forward_reference_picture);
         mpeg2PicParams->m_refFrameList[0].PicFlags = PICTURE_FRAME;
     }
     else
     {
-        mpeg2PicParams->m_refFrameList[0].FrameIdx = (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX;
+        mpeg2PicParams->m_refFrameList[0].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
         mpeg2PicParams->m_refFrameList[0].PicFlags = PICTURE_INVALID;
     }
-    if (DDI_CODEC_INVALID_FRAME_INDEX != picParams->backward_reference_picture)
+    if (VA_INVALID_ID != picParams->backward_reference_picture)
     {
-        auto bwRef = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->backward_reference_picture);
-        UpdateRegisteredRTSurfaceFlag(&m_encodeCtx->RTtbl,bwRef);
-        mpeg2PicParams->m_refFrameList[1].FrameIdx = GetRenderTargetID(rtTbl, bwRef);
+        m_encodeCtx->pRTtbl->SetRTState(picParams->backward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME);
+        mpeg2PicParams->m_refFrameList[1].FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(picParams->backward_reference_picture);
         mpeg2PicParams->m_refFrameList[1].PicFlags = PICTURE_FRAME;
     }
     else
     {
-        mpeg2PicParams->m_refFrameList[1].FrameIdx = (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX;
+        mpeg2PicParams->m_refFrameList[1].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
         mpeg2PicParams->m_refFrameList[1].PicFlags = PICTURE_INVALID;
     }
     if (mpeg2PicParams->m_pictureCodingType == I_TYPE)
@@ -620,7 +625,7 @@ VAStatus DdiEncodeMpeg2::ParsePicParams(
     {
         mpeg2PicParams->m_newGop = false;
     }
-    rtTbl->pCurrentReconTarget = recon;;
+    pRTTbl->SetCurrentReconTarget(picParams->reconstructed_picture);
 
     DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, picParams->coded_buf);
 

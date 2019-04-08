@@ -120,6 +120,8 @@ VAStatus DdiEncodeVp8::ContextInitialize(CodechalSetting *codecHalSettings)
         m_mvOffset = MOS_ALIGN_CEIL(CODECHAL_VP8_MB_CODE_SIZE * sizeof(uint32_t) + CODECHAL_VP8_MB_MV_CODE_SIZE, CODECHAL_VP8_MB_CODE_ALIGNMENT) + MOS_ALIGN_CEIL(CODECHAL_VP8_MB_CODE_SIZE * sizeof(uint32_t), CODECHAL_VP8_MB_CODE_ALIGNMENT) * numMBs;
     }
 
+    m_encodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
+
     return vaStatus;
 }
 
@@ -426,6 +428,7 @@ VAStatus DdiEncodeVp8::ParseSeqParams(void *ptr)
     return VA_STATUS_SUCCESS;
 }
 
+
 VAStatus DdiEncodeVp8::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
 {
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -488,22 +491,22 @@ VAStatus DdiEncodeVp8::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     vp8PicParams->ClampQindexHigh = picParams->clamp_qindex_high;
     vp8PicParams->ClampQindexLow  = picParams->clamp_qindex_low;
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
 
-    rtTbl->pCurrentReconTarget = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->reconstructed_frame);
-    DDI_CHK_NULL(rtTbl->pCurrentReconTarget, "nullptr rtTbl->pCurrentReconTarget", VA_STATUS_ERROR_INVALID_PARAMETER);
-    RegisterRTSurfaces(rtTbl,rtTbl->pCurrentReconTarget);
+    pRTTbl->RegisterRTSurface(picParams->reconstructed_frame);
+    pRTTbl->SetCurrentReconTarget(picParams->reconstructed_frame);
 
-    SetupCodecPicture(mediaCtx, rtTbl, &vp8PicParams->CurrReconstructedPic, picParams->reconstructed_frame, false);
+
+    SetupCodecPicture(mediaCtx, pRTTbl, &vp8PicParams->CurrReconstructedPic, picParams->reconstructed_frame, false);
     // curr orig pic
-    vp8PicParams->CurrOriginalPic.FrameIdx = GetRenderTargetID(rtTbl, rtTbl->pCurrentReconTarget);
+    vp8PicParams->CurrOriginalPic.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(picParams->reconstructed_frame);
     vp8PicParams->CurrOriginalPic.PicFlags = vp8PicParams->CurrReconstructedPic.PicFlags;
 
-    SetupCodecPicture(mediaCtx, rtTbl, &vp8PicParams->LastRefPic, picParams->ref_last_frame, true);
+    SetupCodecPicture(mediaCtx, pRTTbl, &vp8PicParams->LastRefPic, picParams->ref_last_frame, true);
 
-    SetupCodecPicture(mediaCtx, rtTbl, &vp8PicParams->GoldenRefPic, picParams->ref_gf_frame, true);
+    SetupCodecPicture(mediaCtx, pRTTbl, &vp8PicParams->GoldenRefPic, picParams->ref_gf_frame, true);
 
-    SetupCodecPicture(mediaCtx, rtTbl, &vp8PicParams->AltRefPic, picParams->ref_arf_frame, true);
+    SetupCodecPicture(mediaCtx, pRTTbl, &vp8PicParams->AltRefPic, picParams->ref_arf_frame, true);
 
     DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, picParams->coded_buf);
     DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -563,7 +566,7 @@ VAStatus DdiEncodeVp8::EncodeInCodecHal(uint32_t numSlices)
 {
     DDI_UNUSED(numSlices);
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE *pRTTbl = m_encodeCtx->pRTtbl;
 
     CODEC_VP8_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP8_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
 
@@ -577,14 +580,17 @@ VAStatus DdiEncodeVp8::EncodeInCodecHal(uint32_t numSlices)
     rawSurface.Format   = Format_NV12;
     rawSurface.dwOffset = 0;
 
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
+    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
+    DdiMedia_MediaSurfaceToMosResource(curr_rt_surface, &(rawSurface.OsResource));
     // Recon Surface
     MOS_SURFACE reconSurface;
     MOS_ZeroMemory(&reconSurface, sizeof(MOS_SURFACE));
     reconSurface.Format   = Format_NV12;
     reconSurface.dwOffset = 0;
 
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
+    DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
+    DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface.OsResource));
+
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;
     MOS_ZeroMemory(&bitstreamSurface, sizeof(MOS_RESOURCE));
@@ -756,24 +762,23 @@ void DdiEncodeVp8::ParseMiscParameterTemporalLayerParams(void *data)
 
 void DdiEncodeVp8::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE         *rtTbl,
+    DDI_CODEC_RENDER_TARGET_TABLE         *pRTTbl,
     CODEC_PICTURE                         *codecHalPic,
     VASurfaceID                           surfaceID,
     bool                                  picReference)
 {
-    if(DDI_CODEC_INVALID_FRAME_INDEX != surfaceID)
+    if(VA_INVALID_ID != surfaceID)
     {
-        DDI_MEDIA_SURFACE *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surfaceID);
-        codecHalPic->FrameIdx = GetRenderTargetID(rtTbl, surface);
+        codecHalPic->FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(surfaceID);
     }
     else
     {
-        codecHalPic->FrameIdx = (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX;
+        codecHalPic->FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
     }
 
     if (picReference)
     {
-        if (codecHalPic->FrameIdx == (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX)
+        if (codecHalPic->FrameIdx == CODECHAL_INVALID_FRAME_INDEX)
         {
             codecHalPic->PicFlags = PICTURE_INVALID;
         }

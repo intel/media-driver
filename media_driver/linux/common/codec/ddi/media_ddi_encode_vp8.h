@@ -268,7 +268,7 @@ private:
     //!
     //! \param    [in] mediaCtx
     //!           Pointer to DDI_MEDIA_CONTEXT
-    //! \param    [in] rtTbl
+    //! \param    [in] pRTTbl
     //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
     //! \param    [in] surfaceID
     //!           VASurface index
@@ -281,10 +281,11 @@ private:
     //!
     void SetupCodecPicture(
         DDI_MEDIA_CONTEXT                     *mediaCtx,
-        DDI_CODEC_RENDER_TARGET_TABLE         *rtTbl,
+        DDI_CODEC_RENDER_TARGET_TABLE         *pRTTbl,
         CODEC_PICTURE                         *codecHalPic,
         VASurfaceID                           surfaceID,
         bool                                  picReference);
+
 
     uint32_t   m_mvOffset = 0; //!< Motion vector offset.
 };

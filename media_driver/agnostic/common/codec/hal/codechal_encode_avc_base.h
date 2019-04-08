@@ -45,7 +45,7 @@
 #define CODECHAL_ENCODE_AVC_DEFAULT_AVBR_CONVERGENCE        150
 #define CODECHAL_ENCODE_AVC_REF_PIC_SELECT_ENTRIES          (CODEC_AVC_MAX_NUM_REF_FRAME + 1) // one extra for current picture
 // Invalid AVC PicID
-#define CODECHAL_ENCODE_AVC_INVALID_PIC_ID                      CODEC_AVC_NUM_UNCOMPRESSED_SURFACE
+#define CODECHAL_ENCODE_AVC_INVALID_PIC_ID                      CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC
 
 #define CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE_COMMON   128
 
@@ -1692,7 +1692,7 @@ public:
     CODEC_AVC_ENCODE_USER_FLAGS                 m_userFlags;                        //!< Encoder user flag settings
 
     CODEC_PIC_ID                                m_picIdx[CODEC_AVC_MAX_NUM_REF_FRAME];              //!< Picture index
-    PCODEC_REF_LIST                             m_refList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];   //!< Pointer to reference list
+    PCODEC_REF_LIST                             m_refList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC];   //!< Pointer to reference list
     CODEC_AVC_FRAME_STORE_ID                 m_avcFrameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];     //!< Refer to CODEC_AVC_FRAME_STORE_ID
     CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE           m_nalUnitType;                      //!< Nal unit type
     PCODECHAL_NAL_UNIT_PARAMS                   *m_nalUnitParams    = nullptr;      //!< Pointers to NAL unit parameters array

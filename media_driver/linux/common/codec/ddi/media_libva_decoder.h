@@ -30,6 +30,7 @@
 #include "media_libva.h"
 #include "media_libva_cp_interface.h"
 #include "media_ddi_decode_base.h"
+#include "media_ddi_render_target_table.h"
 
 #define DDI_DECODE_SFC_MAX_WIDTH                    4096
 #define DDI_DECODE_SFC_MAX_HEIGHT                   4096
@@ -71,11 +72,11 @@ struct DDI_DECODE_CONTEXT
     Codechal                        *pCodecHal;
     bool                            bShortFormatInUse;
     VASurfaceDecodeMBErrors         vaSurfDecErrOutput[2];
-    DDI_CODEC_RENDER_TARGET_TABLE   RTtbl;
+    DDI_CODEC_RENDER_TARGET_TABLE   *pRTtbl;
     DDI_CODEC_COM_BUFFER_MGR        BufMgr;
     PDDI_MEDIA_CONTEXT              pMediaCtx;
     // Add a list to track DPB.
-    VASurfaceID                     RecListSurfaceID[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];
+    VASurfaceID                     RecListSurfaceID[CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC];
     uint32_t                        dwSliceParamBufNum;
     uint32_t                        dwSliceCtrlBufNum;
     uint32_t                        uiDecProcessingType;

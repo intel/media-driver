@@ -155,7 +155,7 @@ protected:
     //!
     //! \param    [in] mediaCtx
     //!           Pointer to DDI_MEDIA_CONTEXT
-    //! \param    [in] rtTbl
+    //! \param    [in] pRTTbl
     //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
     //! \param    [in] vaPic
     //!           HEVC VAPicture structure
@@ -172,12 +172,13 @@ protected:
     //!
     void SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE         *rtTbl,
+    DDI_CODEC_RENDER_TARGET_TABLE         *pRTTbl,
     CODEC_PICTURE                         *codecHalPic,
     VAPictureHEVC                         vaPic,
     bool                                  fieldPicFlag,
     bool                                  bottomFieldFlag,
     bool                                  picReference);
+
 };
 
 #endif /* _MEDIA_DDI_DECODE_HEVC_H */

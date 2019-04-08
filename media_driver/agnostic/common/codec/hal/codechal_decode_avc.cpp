@@ -957,10 +957,10 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesFixedSizes()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_avcRefList,
-        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC));
 
     m_currPic.PicFlags = PICTURE_INVALID;
-    m_currPic.FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
+    m_currPic.FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC;
 
     return eStatus;
 }
@@ -1077,7 +1077,7 @@ CodechalDecodeAvc::~CodechalDecodeAvc()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CodecHalFreeDataList(m_avcRefList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
+    CodecHalFreeDataList(m_avcRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC);
 
     m_osInterface->pfnDestroySyncResource(
         m_osInterface,
@@ -1996,7 +1996,7 @@ CodechalDecodeAvc::CodechalDecodeAvc(
     MOS_ZeroMemory(&m_avcDmvList, (sizeof(CODEC_AVC_DMV_LIST) * CODEC_AVC_NUM_DMV_BUFFERS));
 
     MOS_ZeroMemory(&m_avcPicIdx, (sizeof(CODEC_PIC_ID) * CODEC_AVC_MAX_NUM_REF_FRAME));
-    MOS_ZeroMemory(m_avcRefList, (sizeof(PCODEC_REF_LIST) * CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
+    MOS_ZeroMemory(m_avcRefList, (sizeof(PCODEC_REF_LIST) * CODECHAL_NUM_UNCOMPRESSED_SURFACE_AVC));
 
     m_avcDmvBufferSize = 0;
 

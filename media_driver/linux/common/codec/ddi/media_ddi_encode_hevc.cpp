@@ -195,6 +195,8 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     m_encodeCtx->pbsBuffer->pBase      = (uint8_t *)MOS_AllocAndZeroMemory(m_encodeCtx->pbsBuffer->BufferSize);
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer->pBase, "nullptr m_encodeCtx->pbsBuffer->pBase.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
+    m_encodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+
     return eStatus;
 }
 
@@ -282,7 +284,7 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
 
     EncoderParams encodeParams;
     MOS_ZeroMemory(&encodeParams, sizeof(encodeParams));
@@ -301,17 +303,19 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     MOS_ZeroMemory(&rawSurface, sizeof(rawSurface));
     rawSurface.dwOffset = 0;
 
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
+    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
+    DdiMedia_MediaSurfaceToMosResource(curr_rt_surface, &(rawSurface.OsResource));
 
     // Recon Surface
     MOS_SURFACE reconSurface;
     MOS_ZeroMemory(&reconSurface, sizeof(reconSurface));
     reconSurface.dwOffset = 0;
 
-    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
+    DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
+    DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface.OsResource));
 
     //clear registered recon/ref surface flags
-    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
+    m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
 
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;
@@ -484,6 +488,7 @@ VAStatus DdiEncodeHevc::ParseSeqParams(void *ptr)
     return VA_STATUS_SUCCESS;
 }
 
+
 VAStatus DdiEncodeHevc::ParsePicParams(
     DDI_MEDIA_CONTEXT *mediaCtx,
     void              *ptr)
@@ -502,29 +507,23 @@ VAStatus DdiEncodeHevc::ParsePicParams(
 
     if(picParams->decoded_curr_pic.picture_id != VA_INVALID_SURFACE)
     {
-        DDI_CHK_RET(RegisterRTSurfaces(&(m_encodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->decoded_curr_pic.picture_id)), "RegisterRTSurfaces failed!");
+        DDI_CHK_RET(m_encodeCtx->pRTtbl->RegisterRTSurface(picParams->decoded_curr_pic.picture_id), "RegisterRTSurfaces failed!");
     }
 
     // Curr Recon Pic
     SetupCodecPicture(
         mediaCtx,
-        &(m_encodeCtx->RTtbl),
+        m_encodeCtx->pRTtbl,
         &hevcPicParams->CurrReconstructedPic,
         picParams->decoded_curr_pic,
         false,
         false);
 
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
-    rtTbl->pCurrentReconTarget           = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->decoded_curr_pic.picture_id);
-    // The surface for reconstructed frame is not registered, return error to app
-    if (nullptr == rtTbl->pCurrentReconTarget)
-    {
-        DDI_ASSERTMESSAGE("invalid surface for reconstructed frame");
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
+    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    pRTTbl->SetCurrentReconTarget(picParams->decoded_curr_pic.picture_id);
 
     // curr orig pic
-    hevcPicParams->CurrOriginalPic.FrameIdx = (uint8_t)GetRenderTargetID(rtTbl, rtTbl->pCurrentReconTarget);
+    hevcPicParams->CurrOriginalPic.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(picParams->decoded_curr_pic.picture_id);
     hevcPicParams->CurrOriginalPic.PicFlags = hevcPicParams->CurrReconstructedPic.PicFlags;
     hevcPicParams->CurrOriginalPic.PicEntry = hevcPicParams->CurrReconstructedPic.PicEntry;
     hevcPicParams->CollocatedRefPicIndex    = picParams->collocated_ref_pic_index;
@@ -534,11 +533,11 @@ VAStatus DdiEncodeHevc::ParsePicParams(
     {
         if(picParams->reference_frames[i].picture_id != VA_INVALID_SURFACE)
         {
-            DDI_CHK_RET(UpdateRegisteredRTSurfaceFlag(&(m_encodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->reference_frames[i].picture_id)), "RegisterRTSurfaces failed!");
+            DDI_CHK_RET(m_encodeCtx->pRTtbl->SetRTState(picParams->reference_frames[i].picture_id, RT_STATE_ACTIVE_IN_CURFRAME), "SetRTState failed!");
         }
         SetupCodecPicture(
             mediaCtx,
-            &(m_encodeCtx->RTtbl),
+            m_encodeCtx->pRTtbl,
             &(hevcPicParams->RefFrameList[i]),
             picParams->reference_frames[i],
             true,
@@ -721,7 +720,7 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
         {
             if(i >  hevcSlcParams->num_ref_idx_l0_active_minus1)
             {
-                hevcSlcParams->RefPicList[0][i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+                hevcSlcParams->RefPicList[0][i].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
                 hevcSlcParams->RefPicList[0][i].PicFlags = PICTURE_INVALID;
                 hevcSlcParams->RefPicList[0][i].PicEntry = 0xFF;
             }
@@ -729,7 +728,7 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
             {
                 SetupCodecPicture(
                     mediaCtx,
-                    &(m_encodeCtx->RTtbl),
+                    m_encodeCtx->pRTtbl,
                     &(hevcSlcParams->RefPicList[0][i]),
                     vaEncSlcParamsHEVC->ref_pic_list0[i],
                     false,
@@ -742,7 +741,7 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
         {
             if(i >  hevcSlcParams->num_ref_idx_l1_active_minus1)
             {
-                hevcSlcParams->RefPicList[1][i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+                hevcSlcParams->RefPicList[1][i].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
                 hevcSlcParams->RefPicList[1][i].PicFlags = PICTURE_INVALID;
                 hevcSlcParams->RefPicList[1][i].PicEntry = 0xFF;
             }
@@ -750,7 +749,7 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
             {
                 SetupCodecPicture(
                     mediaCtx,
-                    &(m_encodeCtx->RTtbl),
+                    m_encodeCtx->pRTtbl,
                     &(hevcSlcParams->RefPicList[1][i]),
                     vaEncSlcParamsHEVC->ref_pic_list1[i],
                     false,
@@ -1264,7 +1263,7 @@ void DdiEncodeHevc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slc
     }
 
     int32_t i = 0;
-    if (CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC != slcReference->FrameIdx)
+    if (CODECHAL_INVALID_FRAME_INDEX != slcReference->FrameIdx)
     {
         for (i = 0; i < numMaxRefFrame; i++)
         {
@@ -1277,7 +1276,7 @@ void DdiEncodeHevc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slc
         }
         if (numMaxRefFrame == i)
         {
-            slcReference->FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+            slcReference->FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
             slcReference->PicEntry = 0xFF;
         }
     }
@@ -1285,7 +1284,7 @@ void DdiEncodeHevc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slc
 
 void DdiEncodeHevc::SetupCodecPicture(
     DDI_MEDIA_CONTEXT             *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl,
+    DDI_CODEC_RENDER_TARGET_TABLE *pRTTbl,
     CODEC_PICTURE                 *codecHalPic,
     VAPictureHEVC                 vaPicHEVC,
     bool                          picReference,
@@ -1293,14 +1292,14 @@ void DdiEncodeHevc::SetupCodecPicture(
 {
     DDI_UNUSED(sliceReference);
 
-    if (DDI_CODEC_INVALID_FRAME_INDEX != vaPicHEVC.picture_id)
+    if (VA_INVALID_ID != vaPicHEVC.picture_id)
     {
-        codecHalPic->FrameIdx = GetRenderTargetID(rtTbl, DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, vaPicHEVC.picture_id));
+        codecHalPic->FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(vaPicHEVC.picture_id);
         codecHalPic->PicEntry = codecHalPic->FrameIdx;
     }
     else
     {
-        codecHalPic->FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+        codecHalPic->FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
         codecHalPic->PicFlags = PICTURE_INVALID;
         codecHalPic->PicEntry = 0xFF;
     }
