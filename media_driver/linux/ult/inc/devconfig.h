@@ -54,7 +54,7 @@ struct DeviceConfig
             uint32_t has_exec_async      :1; // I915_PARAM_HAS_EXEC_ASYNC
             uint32_t has_bsd2            :1; // I915_PARAM_HAS_BSD
             uint32_t has_huc             :1; // I915_PARAM_HAS_HUC
-            uint32_t reserved            :21;
+            uint32_t reserved            :20;
        };
     };
 
