@@ -1653,7 +1653,7 @@ public:
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  5)    ; //!< DWORD_LENGTH
-                uint32_t                 ContentProtectionAppId                           : __CODEGEN_BITFIELD( 6,  6)    ; //!< Content Protection App ID
+                uint32_t                 Reserved6                                        : __CODEGEN_BITFIELD( 6,  6)    ; //!< Content Protection App ID
                 uint32_t                 VideoPipelineCacheInvalidate                     : __CODEGEN_BITFIELD( 7,  7)    ; //!< Video Pipeline Cache invalidate
                 uint32_t                 NotifyEnable                                     : __CODEGEN_BITFIELD( 8,  8)    ; //!< Notify Enable
                 uint32_t                 Reserved9                                        : __CODEGEN_BITFIELD( 9, 13)    ; //!< Reserved
