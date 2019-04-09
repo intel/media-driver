@@ -249,7 +249,7 @@ public:
     //!     and enabling of resource streamer in a batch buffer for 3D and GPGPU
     //!     workloads. MI_BATCH_BUFFER_START (Resource Streamer Enabled)
     //!     PIPELINE_SELECT (3D) 3DSTATE_BINDING_TABLE_POOL_ALLOC (Binding Table
-    //!     Pool Enabled) 3D WORKLAOD MI_RS_CONTROL (Disable Resource Streamer)
+    //!     Pool Enabled) 3D WORKLOAD MI_RS_CONTROL (Disable Resource Streamer)
     //!     3DSTATE_BINDING_TABLE_POOL_ALLOC (Binding Table Pool Disabled)
     //!     PIPELINE_SELECT (GPGPU) GPGPU Workload 3DSTATE_BINDING_TABLE_POOL_ALLOC
     //!     (Binding Table Pool Enabled) MI_RS_CONTROL (Enable Resource Streamer) 3D

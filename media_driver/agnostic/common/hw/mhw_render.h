@@ -264,7 +264,6 @@ typedef struct _MHW_WALKER_PARAMS
 
     bool                    bAddMediaFlush;
     bool                    bRequestSingleSlice;
-    bool                    bForceNoneCpWorkload;
 
     uint32_t                IndirectDataLength;
     uint32_t                IndirectDataStartAddress;
