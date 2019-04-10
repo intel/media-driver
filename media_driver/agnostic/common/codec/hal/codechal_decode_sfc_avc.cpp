@@ -55,6 +55,11 @@ MOS_STATUS CodechalAvcSfcState::CheckAndInitialize(
         m_sfcPipeOut = true;
     }
 
+    if (decProcessingParams->bIsReferenceOnlyPattern)
+    {
+        m_sfcPipeOut = false;
+    }
+
     return eStatus;
 }
 
