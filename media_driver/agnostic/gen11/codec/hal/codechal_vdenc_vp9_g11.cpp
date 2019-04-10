@@ -823,7 +823,7 @@ MOS_STATUS CodechalVdencVp9StateG11::SendMeSurfaces(
 
     // Reference height and width information should be taken from the current scaled surface rather
     // than from the reference scaled surface in the case of PAFF.
-    MOS_SURFACE refScaledSurface = *currScaledSurface;
+
 
     uint32_t width  = MOS_ALIGN_CEIL(params->dwDownscaledWidthInMb * 32, 64);
     uint32_t height = params->dwDownscaledHeightInMb * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER;
@@ -956,26 +956,26 @@ MOS_STATUS CodechalVdencVp9StateG11::SendMeSurfaces(
                 refPicIdx                           = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
                 uint8_t  scaledIdx                  = params->ppRefList[refPicIdx]->ucScalingIdx;
                 uint32_t refScaledBottomFieldOffset = 0;
+                MOS_SURFACE *refScaledSurface;
                 if (params->b32xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get32xDsSurface(scaledIdx);
                 }
                 else if (params->b16xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get16xDsSurface(scaledIdx);
                 }
                 else
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get4xDsSurface(scaledIdx);
                 }
+                refScaledBottomFieldOffset          = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                
 
                 // L0 Reference Picture Y - VME
                 MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
                 surfaceParams.bUseAdvState          = true;
-                surfaceParams.psSurface             = &refScaledSurface;
+                surfaceParams.psSurface             = refScaledSurface;
                 surfaceParams.dwOffset              = isRefBottomField ? refScaledBottomFieldOffset : 0;
                 surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;
                 surfaceParams.dwBindingTableOffset  = meBindingTable->dwMEFwdRefPicIdx[refIdx];
@@ -1025,26 +1025,26 @@ MOS_STATUS CodechalVdencVp9StateG11::SendMeSurfaces(
                 refPicIdx                           = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
                 uint8_t  scaledIdx                  = params->ppRefList[refPicIdx]->ucScalingIdx;
                 uint32_t refScaledBottomFieldOffset = 0;
+                MOS_SURFACE *refScaledSurface;
                 if (params->b32xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get32xDsSurface(scaledIdx);
                 }
                 else if (params->b16xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get16xDsSurface(scaledIdx);
                 }
                 else
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get4xDsSurface(scaledIdx);
                 }
+                refScaledBottomFieldOffset          = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                
 
                 // L1 Reference Picture Y - VME
                 MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
                 surfaceParams.bUseAdvState          = true;
-                surfaceParams.psSurface             = &refScaledSurface;
+                surfaceParams.psSurface             = refScaledSurface;
                 surfaceParams.dwOffset              = isRefBottomField ? refScaledBottomFieldOffset : 0;
                 surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;
                 surfaceParams.dwBindingTableOffset  = meBindingTable->dwMEBwdRefPicIdx[refIdx];
