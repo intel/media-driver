@@ -221,7 +221,8 @@ typedef struct __CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_KBL
     uint16_t    UPD_WidthInMB_U16;                    // width in MB
     uint16_t    UPD_HeightInMB_U16;                   // height in MB
     int8_t      UPD_ROIQpDelta_I8[8];                 // Application specified ROI QP Adjustment for Zone0, Zone1, Zone2 and Zone3, Zone4, Zone5, Zone6 and Zone7.
-    uint8_t     RSVD2[36];
+    uint32_t    UPD_TR_TargetSize_U32;                // target frame size in TCBRC mode. If zero, TCBRC is disabled.
+    uint8_t     RSVD2[28];
 } _CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_KBL, *P_CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_KBL;
 
 const uint32_t CodechalVdencAvcStateG9Kbl::MV_Cost_SkipBias_QPel[3][8] =
@@ -585,6 +586,8 @@ MOS_STATUS CodechalVdencAvcStateG9Kbl::SetDmemHuCBrcUpdate()
     }
     pHucVDEncBrcDmem->UPD_WidthInMB_U16 = m_picWidthInMb;
     pHucVDEncBrcDmem->UPD_HeightInMB_U16 = m_picHeightInMb;
+
+    pHucVDEncBrcDmem->UPD_TR_TargetSize_U32 = m_avcPicParam->TargetFrameSize * 8;  // convert bytes to bits
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(
