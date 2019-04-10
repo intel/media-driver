@@ -1282,7 +1282,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "Encode",
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
-        "0",
+        "1",
         "Enable VQI for HEVC VDEnc"),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
         "Force PAK Pass Num",
