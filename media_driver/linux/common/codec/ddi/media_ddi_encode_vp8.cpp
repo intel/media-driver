@@ -621,6 +621,15 @@ VAStatus DdiEncodeVp8::EncodeInCodecHal(uint32_t numSlices)
     {
         seqParams->RateControlMethod = 2;
     }
+    if((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate[0]) || (m_encodeCtx->uiMaxBitRate != seqParams-> MaxBitRate))
+    {
+        if(m_encodeCtx->uiTargetBitRate )
+        {
+            seqParams->ResetBRC = 0x1;
+        }
+        m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate[0];
+        m_encodeCtx->uiMaxBitRate = seqParams->MaxBitRate;
+    }
 
     encodeParams.pSeqParams   = m_encodeCtx->pSeqParams;
     encodeParams.pPicParams   = m_encodeCtx->pPicParams;
