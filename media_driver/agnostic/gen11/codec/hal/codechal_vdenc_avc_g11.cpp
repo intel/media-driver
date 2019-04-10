@@ -1345,6 +1345,22 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcInitReset()
 
     dmem->INIT_SinglePassOnly = m_vdencSinglePassEnable;
 
+    if (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING)
+    {
+        if (m_avcSeqParam->RateControlMethod == RATECONTROL_VBR)
+        {
+            m_avcSeqParam->MaxBitRate = m_avcSeqParam->TargetBitRate;
+        }
+
+        // Disable delta QP adaption for non-VCM/ICQ/LowDelay until we have better algorithm
+        if ((m_avcSeqParam->RateControlMethod != RATECONTROL_VCM) &&
+            (m_avcSeqParam->RateControlMethod != RATECONTROL_ICQ) &&
+            (m_avcSeqParam->FrameSizeTolerance != EFRAMESIZETOL_EXTREMELY_LOW))
+        {
+            dmem->INIT_DeltaQP_Adaptation_U8 = 0;
+        }
+    }
+
     if (((m_avcSeqParam->TargetUsage & 0x07) == TARGETUSAGE_BEST_SPEED) &&
         (m_avcSeqParam->FrameWidth >= m_singlePassMinFrameWidth) &&
         (m_avcSeqParam->FrameHeight >= m_singlePassMinFrameHeight) &&
@@ -1414,7 +1430,7 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcUpdate()
     dmem->UPD_WidthInMB_U16 = m_picWidthInMb;
     dmem->UPD_HeightInMB_U16 = m_picHeightInMb;
 
-    dmem->MOTION_ADAPTIVE_G4 = 0;
+    dmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING);
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(

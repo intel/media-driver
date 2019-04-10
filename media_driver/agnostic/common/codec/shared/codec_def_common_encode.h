@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -131,7 +131,8 @@ typedef enum _CODEC_SCENARIO
     ESCENARIO_ARCHIVE           = 3,
     ESCENARIO_LIVESTREAMING     = 4,
     ESCENARIO_VIDEOCAPTURE      = 5,
-    ESCENARIO_VIDEOSURVEILLANCE = 6
+    ESCENARIO_VIDEOSURVEILLANCE = 6,
+    ESCENARIO_GAMESTREAMING     = 7
 } CODEC_SCENARIO, ENCODE_SCENARIO;
 
 /*! \brief Provides a hint to encoder about the content for the encoding session.
