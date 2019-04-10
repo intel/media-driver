@@ -1219,7 +1219,10 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
+        if (!decProcessingParams->bIsReferenceOnlyPattern)
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
+        }
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize(
             decProcessingParams,
@@ -1231,7 +1234,8 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
                   m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
                 m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
-            m_sfcState->m_sfcPipeOut == false)
+            m_sfcState->m_sfcPipeOut == false && 
+            !decProcessingParams->bIsReferenceOnlyPattern)
         {
             eStatus = MOS_STATUS_UNKNOWN;
             CODECHAL_DECODE_ASSERTMESSAGE("Downsampling parameters are NOT supported!");

@@ -81,6 +81,7 @@ typedef struct _CODECHAL_DECODE_PROCESSING_PARAMS
     uint32_t                     uiBlendState;
     uint32_t                     uiMirrorState;
     bool                         bIsSourceSurfAllocated;
+    bool                         bIsReferenceOnlyPattern;
 }CODECHAL_DECODE_PROCESSING_PARAMS, *PCODECHAL_DECODE_PROCESSING_PARAMS;
 
 //!
