@@ -1077,10 +1077,6 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             m_firstExecuteCall));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_PreProcessDecode(
-        m_osInterface,
-        m_decodeParams.m_destSurface));
-
     // For multiple execution call, this function will be entered by multple times,
     // so clear bFirstExecuteCall flag when this function exit.
     CodechalDecodeRestoreData<bool> FirstExecuteCallRestore(&(m_firstExecuteCall), false);
@@ -1153,6 +1149,10 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     }
 #endif
     m_decodeParams  = *decodeParams;
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_PreProcessDecode(
+        m_osInterface,
+        m_decodeParams.m_destSurface));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cpInterface->UpdateParams(true));
 
