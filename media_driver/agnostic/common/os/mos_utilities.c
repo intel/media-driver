@@ -2434,7 +2434,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "0",
-        "Specifiy if send HuC and HCP commands in one DMA buffer or two DMA buffer. "),
+        "Specify if send HuC and HCP commands in one DMA buffer or two DMA buffer. "),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVCDATROWSTORECACHE_DISABLE_ID,
         "DisableHevcDatRowStoreCache",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
