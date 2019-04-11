@@ -4015,11 +4015,11 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     PVPHAL_RNDR_PERF_DATA           pPerfData,
     const VPHAL_DNDI_CACHE_CNTL     &dndiCacheCntl,
     MOS_STATUS                      *peStatus) :
+    RenderState(pOsInterface, pRenderHal, pPerfData, peStatus),
     m_pVeboxInterface(pVeboxInterface),
     m_pSfcInterface(pSfcInterface),
-    m_pVeboxExecState(pVeboxExecState),
     m_currKernelId(baseKernelMaxNumID),
-    RenderState(pOsInterface, pRenderHal, pPerfData, peStatus)
+    m_pVeboxExecState(pVeboxExecState)
 {
     // External components
     m_IECP                  = nullptr;

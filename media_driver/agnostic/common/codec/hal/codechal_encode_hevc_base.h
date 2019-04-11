@@ -185,18 +185,18 @@ struct MultiPassConfig
         SliceMinQPOffset1(0),
         SliceMinQPOffset2(0), // Set this to Default Max Limit as per Spec.,
         SliceMinQPOffset3(0),
-        FrameRateCtrlFlag(0),
-        MbRateCtrlFlag(0),
         MaxIntraConformanceLimit(3180),
         MaxInterConformanceLimit(3180),
-        FrameSzOverFlag(0),
-        FrameSzUnderFlag(0),
+        FrameRateCtrlFlag(0),
         InterMbMaxBitFlag(0),
         IntraMbMaxBitFlag(0),
-        FrameMaxBitRateUnit(0),
-        FrameMinBitRateUnit(0),
         MinFrameRateDelta(0),
         MaxFrameRateDelta(0),
+        MbRateCtrlFlag(0),
+        FrameSzOverFlag(0),
+        FrameSzUnderFlag(0),
+        FrameMinBitRateUnit(0),
+        FrameMaxBitRateUnit(0),
         StreamOutEnable(0)
     {}
 };
@@ -1436,6 +1436,7 @@ public:
     bool          m_encode4KSequence                      = false;                        //!< Flag to specify if input sequence is 4k size
     bool          m_hevcRdoqEnabled                       = false;                        //!< RDOQ enable flag
     uint32_t      m_rdoqIntraTuThreshold                  = 0;                            //!< RDOQ intra threshold
+    bool          m_hevcIFrameRdoqEnabled                 = true;                        //!< Control intra frame RDOQ enable/disable
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool          m_rdoqIntraTuOverride                   = false;                        //!< Override RDOQ intra TU or not
     bool          m_rdoqIntraTuDisableOverride            = false;                        //!< Override RDOQ intra TU disable 

@@ -29,7 +29,6 @@
 #define  __MEDIA_LIBVA_CP_INTERFACE_H__
 #include "media_libva.h"
 #include "codechal_encoder_base.h"
-#include "cplib.h"
 #include "mos_os.h"
 
 typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
@@ -43,132 +42,37 @@ public:
 
     virtual ~DdiCpInterface() {}
 
-    //! \brief    set HostEncryptMode in EncryptionParams
-    //! \param    [in] encryptionType
-    //!           input type from outside
-    //!
-    //! \param    [out]setting 
-    //!           CodechalSetting
-    //!
     virtual void SetCpParams(uint32_t encryptionType, CodechalSetting *setting);
 
-    //! \brief    End picture process 
-    //! \param    [in] vaDrvCtx
-    //!           
-    //! \param    [in] contextId
-    //!           input va context id to get decode ctx
-    //! \return   VAStatus
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
-    virtual VAStatus EndPictureCenc(
-        VADriverContextP vaDrvCtx,
-        VAContextID      contextId);
-
-    //! \brief    query status
-    //! \param    [in] ctx
-    //!           input driver ctx to get decode ctx
-    //! \param    [in] context
-    //!           input ctx id to get decode ctx
-    //! \param    [in] bufferdata
-    //!           input buffer, queried status address
-    //! \param    [in] data_size
-    //!           status data size
-    //! \return   VAStatus
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
-    virtual VAStatus QueryCencStatus(
-        uint16_t            mode,
-        uint32_t            infoSize,
-        void                *info);
-    //! \brief    render picture process 
-    //! \param    [in] vaDrvCtx
-    //!           
-    //! \param    [in] contextId
-    //!           input va context id to get decode ctx
-    //! \param    [in] buf
-    //!           input media buffer
-    //! \param    [in] data
-    //!           input data contain parameters
-    //! \return   VA_STATUS
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
     virtual VAStatus RenderCencPicture(
         VADriverContextP      vaDrvctx,
         VAContextID           contextId,
         DDI_MEDIA_BUFFER      *buf,
         void                  *data);
 
-    //! \brief    create buffer for CP related buffer types
-    //! \param    [in] type
-    //!           buffer type to be created 
-    //! \param    [in] buffer
-    //!           pointer to general buffer
-    //! \param    [in] size
-    //!           size of general buffer size
-    //! \param    [in] num_elements
-    //!           number of general buffer element
-    //! \return   VA_STATUS
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
     virtual VAStatus CreateBuffer(
         VABufferType             type,
         DDI_MEDIA_BUFFER*        buffer,
         uint32_t                 size,
         uint32_t                 num_elements);
 
-    //! \brief    check input buffer type is supported or not for codec
-    //! \param    [in] type
-    //!           buffer typer
-    //! \return   bool
-    //!           return true if supported, otherwise false
-    static bool CheckSupportedBufferForCodec(VABufferType type);
-
-    //! \brief    Allocate and initialize HDCP2 buffer for encode status report
-    //! \param    [in] bufMgr
-    //!           input buffer manager to add hdcp2 buffer.
-    //! \return   VAStatus
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
     virtual VAStatus InitHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr);
 
-    //! \brief    fill the HDCP buffer based on status report
-    //! \param    [in] bufMgr
-    //!           input BufMgr to fill in.
-    //! \param    [in] info
-    //!           input info to get status report info.
-    //! \return   VAStatus
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
     virtual VAStatus StatusReportForHdcp2Buffer(
         DDI_CODEC_COM_BUFFER_MGR*       bufMgr,
         void*              encodeStatusReport);
 
-    //! \brief    Allocate and initialize HDCP2 buffer for encode status report
-    //! \param    [in] bufMgr
-    //!           status report buffer manager to be added.
-    //! \return   void
     virtual void FreeHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr);
 
-    //! \brief    store counter in status report so App can get correct values by the order in which they are added
-    //! \param    [in] info
-    //!           input DDI_ENCODE_STATUS_REPORT_INFO to be writed
-    //! \return   MOS_STATUS
-    //!           return MOS_STATUS_SUCCESS if succeed, otherwise failed
     virtual MOS_STATUS StoreCounterToStatusReport(
         PDDI_ENCODE_STATUS_REPORT_INFO info);
 
-    //! \brief    parse EncryptionParams in decoder
-    //! \return   VA_STATUS
-    //!           return VA_STATUS_SUCCESS if succeed, otherwise failed
     virtual VAStatus ParseCpParamsForEncode();
 
     virtual void SetHdcp2Enabled(int32_t flag);
 
-    //! \brief    Is Hdcp2Enabled for encoder
-    //! \return   [in] bool
-    //!           true if hdcp2 enabled, otherwise false
     virtual bool IsHdcp2Enabled();
 
-    //! \brief    Set cp tag for an input resource
-    //! \param    [in] osInterface
-    //!           pointer of mos interface
-    //! \param    [in] resource
-    //!           pointer of the os resource
-    //! \return
     virtual void SetInputResourceEncryption(PMOS_INTERFACE osInterface, PMOS_RESOURCE resource);
 
     virtual VAStatus CreateCencDecode(

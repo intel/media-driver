@@ -48,6 +48,10 @@
 
 #define VPHAL_DBG_DUMP_OUTPUT_FOLDER                "\\vphaldump\\"
 
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET (-1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STARTED (1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STOPPED (0)
+
 //------------------------------------------------------------------------------
 // Dump macro.  Simply calls the dump function.  defined as null in production
 //------------------------------------------------------------------------------
@@ -542,6 +546,8 @@ private:
     //!           Number of planes of the surface
     //! \param    [out] pdwSize
     //!           The total size of the surface
+    //! \param    [in] auxEnable
+    //!           Whether aux dump is enabled
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
@@ -550,7 +556,7 @@ private:
         VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
         uint32_t*                           pdwNumPlanes,
         uint32_t*                           pdwSize,
-        bool                                paddingNeeded);
+        bool                                auxEnable);
 
     //!
     //! \brief    Parse dump location

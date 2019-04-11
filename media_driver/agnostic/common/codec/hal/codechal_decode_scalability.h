@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,9 +41,30 @@
 #define CODEC_SCALABILITY_FIRST_TILE_WIDTH_8K 4096
 
 #define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH            3840
-#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH            7680
-#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT           2160
-#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT           4320
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH            3996
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_WIDTH            5120
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH            7680
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT           1440
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT           1716
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_HEIGHT           2160
+#define CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT           4320
+
+inline static bool CodechalDecodeResolutionEqualLargerThan4k(uint32_t width, uint32_t height)
+{
+    return (((width * height) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_HEIGHT))
+        || ((width >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH) && (height >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT)));
+}
+
+inline static bool CodechalDecodeResolutionEqualLargerThan5k(uint32_t width, uint32_t height)
+{
+    return (((width * height) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_HEIGHT))
+        || ((width >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_WIDTH) && (height >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)));
+}
+
+inline static bool CodechalDecodeNonRextFormat(MOS_FORMAT format)
+{
+    return ((format == Format_NV12) || (format == Format_P010));
+}
 
 //!
 //! \enum   CODECHAL_HCP_DECODE_SCALABLE_PHASE
@@ -83,6 +104,7 @@ typedef struct _CODECHAL_DECODE_SCALABILITY_INIT_PARAMS
 {
     uint32_t         u32PicWidthInPixel;             //!< Picture width in pixel align to minimal coding block
     uint32_t         u32PicHeightInPixel;            //!< Picture height in pixel align to minimal coding block
+    MOS_FORMAT       format;                         //!< Surface format
     bool             usingSFC;
     uint8_t          u8NumTileColumns;               //!< Number of tile columns for this picture
     uint8_t          u8NumTileRows;                  //!< Number of tile rows for this picture
@@ -132,7 +154,7 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
     bool                            bAlwaysFrameSplit;
     uint32_t                        dbgOvrdWidthInMinCb;
 #endif
-    
+
     //For SFC Scalability
     uint32_t                        fistValidTileIndex;
     uint32_t                        lastValidTileIndex;
@@ -389,7 +411,7 @@ MOS_STATUS CodecHalDecodeScalability_AllocateCABACStreamOutBuffer(
     PMOS_RESOURCE                        presCABACStreamOutBuffer);
 
 //!
-//! \brief    Destroy resources for scalability decoder 
+//! \brief    Destroy resources for scalability decoder
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \return   MOS_STATUS
@@ -399,8 +421,8 @@ void CodecHalDecodeScalability_Destroy (
     PCODECHAL_DECODE_SCALABILITY_STATE  pScalabilityState);
 
 //!
-//! \brief    get command buffer to use 
-//! \details  decide and get command buffer to add cmds. it is for decoder which can support both scalability and single pipe 
+//! \brief    get command buffer to use
+//! \details  decide and get command buffer to add cmds. it is for decoder which can support both scalability and single pipe
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in]  pScdryCmdBuf
@@ -416,7 +438,7 @@ MOS_STATUS CodecHalDecodeScalability_GetCmdBufferToUse(
     PMOS_COMMAND_BUFFER                 *ppCmdBufToUse);
 
 //!
-//! \brief    return secondary cmd buffer 
+//! \brief    return secondary cmd buffer
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in]  pScdryCmdBuf
@@ -430,7 +452,7 @@ MOS_STATUS CodecHalDecodeScalability_ReturnSdryCmdBuffer(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 //!
-//! \brief    dump command buffer in scalability mode 
+//! \brief    dump command buffer in scalability mode
 //! \param    [in]  pDecoder
 //!                Decoder device
 //! \param    [in]  pScalabilityState
@@ -473,7 +495,7 @@ MOS_STATUS CodecHalDecodeScalablity_GetFEReportedCabacStreamoutBufferSize(
 
 //!
 //! \brief    Determine decode phase
-//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode 
+//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode
 //! \param    [in] pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pHcpDecPhase
@@ -487,7 +509,7 @@ MOS_STATUS CodecHalDecodeScalability_DetermineDecodePhase(
 
 //!
 //! \brief    Determine if sending watch dog timer start cmd
-//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode 
+//! \details  determine decode phase for decoder supporting scalability mode but not necessarily always running in scalable mode
 //! \param    [in] pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pbSend
@@ -537,14 +559,14 @@ MOS_STATUS CodecHalDecodeScalability_InitSemaMemResources(
 MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalabilityState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams,
-    uint8_t                                   *pucDecPassNum);
+    uint16_t                                   *pucDecPassNum);
 
 //!
 //! \brief     Set virtual engine hint parameters for scalable decode
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pSetHintParms
-//!                pointer to set hint parameter 
+//!                pointer to set hint parameter
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
@@ -558,7 +580,7 @@ MOS_STATUS CodecHalDecodeScalability_SetHintParams(
 //! \param    [in]  pScalabilityState
 //!                Scalability decode state
 //! \param    [in] pPrimCmdBuf
-//!                pointer to primary cmd buffer 
+//!                pointer to primary cmd buffer
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
@@ -581,7 +603,7 @@ MOS_STATUS CodecHalDecodeScalability_SignalFE2BESemaphore(
     PMOS_COMMAND_BUFFER                 pCmdBufferInUse);
 
 //!
-//! \brief    Sync between FE and BE 
+//! \brief    Sync between FE and BE
 //! \details  This function does 3 major things
 //!              1) send hw or sw semaphore wait at start of BE0 cmd.
 //!              2) use HW semaphore wait and MI ATOMIC cmd to make all BEs start running at the same time
@@ -603,7 +625,7 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
 //!                Scalability decode state
 //! \return   bool
 //!           True means to submit command buffer, False means not to submit.
-//!    
+//!
 bool CodecHalDecodeScalabilityIsToSubmitCmdBuffer(
     PCODECHAL_DECODE_SCALABILITY_STATE pScalabilityState);
 
@@ -726,7 +748,7 @@ MOS_STATUS CodecHalDecodeScalability_CalculateHcpTileCodingParams(
         if (ucPipeIdx == 0)
         {
             usVTileColPos = 0;
-            if (uiWidthInPixel * uiHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT)
+            if ((uiWidthInPixel * uiHeightInPixel) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT))
             {
                 // need to align first Tile Column to 4096
                 pScalabilityState->uiFirstTileColWidth = CODEC_SCALABILITY_FIRST_TILE_WIDTH_8K;
@@ -797,7 +819,7 @@ MOS_STATUS CodecHalDecodeScalability_ReadCSEngineIDReg(
     PMOS_COMMAND_BUFFER                pCmdBufferInUse);
 
 //!
-//! \brief    State initialization for virtual engine decode supporting scalable and single pipe mode 
+//! \brief    State initialization for virtual engine decode supporting scalable and single pipe mode
 //! \param    [in]  pDecoder
 //!                Decoder device
 //! \param    [in]  pScalabilityState
@@ -841,4 +863,3 @@ MOS_STATUS CodechalDecodeScalability_ChkGpuCtxReCreation(
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED          CurgpuCtxCreatOpts);
 
 #endif //__CODECHAL_DECODER_SCALABILITY_H__
-

@@ -64,6 +64,8 @@ public:
     virtual void Set2DRenderTarget(CmSurfaceState2DMgr *stateMgr, bool renderTarget) {}
     virtual void Set2DMemoryObjectControl(CmSurfaceState2DMgr *stateMgr, uint16_t mocs) {}
     virtual void Set2DFrameType(CmSurfaceState2DMgr *stateMgr, CM_FRAME_TYPE frameType) {}
+    virtual void SetRotationFlag(CmSurfaceState2DMgr *stateMgr, uint32_t rotation) {}
+    virtual void SetChromaSitting(CmSurfaceState2DMgr *stateMgr, uint8_t chromaSitting) {}
     virtual uint32_t *GetLatestFastTracker() {return nullptr; }
     virtual CMRT_UMD::CmKernelRT *CreateKernelRT(CMRT_UMD::CmDeviceRT *device,
                 CMRT_UMD::CmProgramRT *program,

@@ -54,9 +54,9 @@ CodechalDecodeVp9G11::CodechalDecodeVp9G11(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecodeVp9(hwInterface, debugInterface, standardInfo),
-                                            m_scalabilityState(nullptr),
+                                            m_frameSizeMaxAlloced(0),
                                             m_sinlgePipeVeState(nullptr),
-                                            m_frameSizeMaxAlloced(0)
+                                            m_scalabilityState(nullptr)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -200,6 +200,7 @@ MOS_STATUS CodechalDecodeVp9G11 :: InitializeDecodeMode ()
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel  = m_usFrameWidthAlignedMinBlk;
         initParams.u32PicHeightInPixel = m_usFrameHeightAlignedMinBlk;
+        initParams.format = m_decodeParams.m_destSurface->Format;
         initParams.usingSFC            = false;
         initParams.gpuCtxInUse         = GetVideoContext();
 

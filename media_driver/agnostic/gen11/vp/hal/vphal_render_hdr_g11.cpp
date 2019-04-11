@@ -287,8 +287,8 @@ Hdr3DLutGenerator::Hdr3DLutGenerator(PRENDERHAL_INTERFACE renderHal) :
     m_hdr3DLutCmRender(nullptr),
     m_hdrcoefBuffer(nullptr),
     m_bHdr3DLutInit(false),
-    m_savedMaxCLL(4000),
     m_savedMaxDLL(1000),
+    m_savedMaxCLL(4000),
     m_savedHdrMode(VPHAL_HDR_MODE_NONE)
 {
     m_eventManager = MOS_New(EventManager, "EventManager");

@@ -280,6 +280,11 @@ static bool DdiMedia_ReleaseBsBuffer(
         }
         return false;
     }
+    else
+    {
+        if (bufMgr->dwNumSliceData)
+            bufMgr->dwNumSliceData--;
+    }
     return true;
 }
 
@@ -3860,6 +3865,10 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Format = GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
             gmmParams.Flags.Info.Linear = true;
             break;
+        case VA_FOURCC_RGB565:
+            gmmParams.Format = GMM_FORMAT_B5G6R5_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
         case VA_FOURCC_I420:
             gmmParams.Format = GMM_FORMAT_I420_TYPE;
             gmmParams.Flags.Info.Linear = true;
@@ -3922,10 +3931,12 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Format = GMM_FORMAT_UYVY;
             gmmParams.Flags.Info.TiledY = true;
             break;
-        case VA_FOURCC_A2R10G10B10:
-            gmmParams.Format = GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
+        case VA_FOURCC_Y210:
+            gmmParams.Format = GMM_FORMAT_Y210_TYPE;
             gmmParams.Flags.Info.TiledY = true;
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
+
         default:
             MOS_FreeMemory(vaimg);
             return VA_STATUS_ERROR_UNIMPLEMENTED;
@@ -3962,8 +3973,12 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_ARGB:
         case VA_FOURCC_ABGR:
         case VA_FOURCC_XRGB:
-        case VA_FOURCC_A2R10G10B10:
             vaimg->format.bits_per_pixel = 32;
+            vaimg->num_planes = 1;
+            vaimg->pitches[0] = gmmPitch;
+            break;
+        case VA_FOURCC_RGB565:
+            vaimg->format.bits_per_pixel = 16;
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
             break;
@@ -4028,6 +4043,12 @@ VAStatus DdiMedia_CreateImage(
             vaimg->pitches[2] = gmmPitch;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
+            break;
+        case VA_FOURCC_Y210:
+            vaimg->format.bits_per_pixel = 32;
+            vaimg->num_planes = 1;
+            vaimg->pitches[0] = gmmPitch;
+            vaimg->offsets[0] = 0;
             break;
     }
 
@@ -4748,8 +4769,7 @@ VAStatus DdiMedia_PutImage(
     DDI_CHK_NULL(imageData, "nullptr imageData.", VA_STATUS_ERROR_INVALID_IMAGE);
 
     // VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (mediaSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc,vaimg->format.alpha_mask) ||
-        mediaSurface->iWidth != vaimg->width || mediaSurface->iHeight != vaimg->height)
+    if (mediaSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc,vaimg->format.alpha_mask))
     {
         VAContextID context     = VA_INVALID_ID;
 

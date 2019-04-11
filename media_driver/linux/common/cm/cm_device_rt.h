@@ -336,10 +336,6 @@ public:
 
     int32_t GetCapsInternal(void *caps, uint32_t *size);
 
-    int32_t RegisterSyncEvent(void *syncEventHandle);
-
-    int32_t GetOSSyncEventHandle(void* &hOSSyncEvent);
-
     int32_t Acquire();
 
     int32_t Release();
@@ -517,8 +513,6 @@ protected:
     CmProgram *m_gpuCopyKernelProgram;
 
     CmProgram *m_surfInitKernelProgram;
-
-    void  *m_osSyncEvent;   //KMD Notification
 
 #if USE_EXTENSION_CODE
     CmGTPin *m_gtpin;

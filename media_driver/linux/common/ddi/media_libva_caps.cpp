@@ -109,7 +109,6 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_XRGB, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
     {VA_FOURCC_RGBX, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
     {VA_FOURCC_XBGR, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
-    {VA_FOURCC_XBGR, VA_LSB_FIRST, 16,  16, 0xf800, 0x07d0, 0x001f,  0x0000},
     {VA_FOURCC_NV12, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC_NV21, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC_YUY2, VA_LSB_FIRST, 16, 0,0,0,0,0},
@@ -129,7 +128,11 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_BGRP, VA_LSB_FIRST, 24, 24, 0x0000ff, 0x00ff00, 0xff0000, 0},
     {VA_FOURCC_P208, VA_LSB_FIRST, 8, 0,0,0,0,0},
     {VA_FOURCC_P016, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_RGB565, VA_LSB_FIRST, 16, 16, 0xf800, 0x07e0, 0x001f, 0},
     {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_Y410, VA_LSB_FIRST, 32, 0,0,0,0,0},
+    {VA_FOURCC_Y210, VA_LSB_FIRST, 32, 0,0,0,0,0}
 };
 
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
@@ -1772,6 +1775,23 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
     }
     m_mediaCtx->FeiFunction = 0;
 
+    bool rc_mb_flag = false;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        switch(m_profileEntryTbl[profileTableIdx].m_profile)
+        {
+            case VAProfileHEVCMain:
+            case VAProfileHEVCMain10:
+            case VAProfileHEVCMain444:
+            case VAProfileHEVCMain444_10:
+                rc_mb_flag = true;
+                break;
+            default:
+                rc_mb_flag = false;
+                break;
+        }
+    }
+
     int32_t j;
     for (j = 0; j < numAttribs; j++)
     {
@@ -1781,7 +1801,11 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
             //if it happend, just set it to default RC mode
             if(attribList[j].value != VA_RC_MB)
             {
-                rcMode = attribList[j].value;
+                if ((attribList[j].value == VA_RC_CBR ||
+                    attribList[j].value == VA_RC_VBR) && rc_mb_flag)
+                    rcMode = attribList[j].value | VA_RC_MB;
+                else
+                    rcMode = attribList[j].value;
             }
         }
         if(VAConfigAttribFEIFunctionType == attribList[j].type)

@@ -351,8 +351,8 @@ struct _MOS_GPUCTX_CREATOPTIONS
 
     _MOS_GPUCTX_CREATOPTIONS() : 
         CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
-        SSEUValue(0),
-        RAMode(0) {}
+        RAMode(0),
+        SSEUValue(0){}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };

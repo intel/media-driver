@@ -83,8 +83,8 @@ CmSurface2DUPRT::CmSurface2DUPRT( uint32_t handle, uint32_t width, uint32_t heig
     m_handle( handle ),
     m_width( width ),
     m_height( height ),
-    m_format ( format ),
     m_frameType(CM_FRAME),
+    m_format ( format ),
     m_sysMem(sysMem)
 {
     CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_UNKNOW, CM_USE_PTE, 0);

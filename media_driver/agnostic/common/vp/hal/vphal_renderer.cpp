@@ -1632,19 +1632,8 @@ MOS_STATUS VpHal_RndrSetYUVComponents(
 VphalRenderer::VphalRenderer(
     PRENDERHAL_INTERFACE                pRenderHal,
     MOS_STATUS                          *pStatus) :
-    m_pRenderHal(pRenderHal),
-    m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
-    m_pSkuTable(nullptr),
-    m_modifyKdllFunctionPointers(nullptr),
     Align16State(),
     Fast1toNState(),
-    uiSsdControl(0),
-    bDpRotationUsed(false),
-    bSkuDisableVpFor4K(false),
-    bSkuDisableLaceFor4K(false),
-    bSkuDisableDNFor4K(false),
-    PerfData(),
-    m_reporting(nullptr),
     VeboxExecState(),
     pRender(),
     pPrimaryFwdRef(),
@@ -1662,7 +1651,18 @@ VphalRenderer::VphalRenderer(
     m_parameterDumper(nullptr),
 #endif
     StatusTable(),
-    maxSrcRect()
+    maxSrcRect(),
+    m_pRenderHal(pRenderHal),
+    m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
+    m_pSkuTable(nullptr),
+    m_modifyKdllFunctionPointers(nullptr),
+    uiSsdControl(0),
+    bDpRotationUsed(false),
+    bSkuDisableVpFor4K(false),
+    bSkuDisableLaceFor4K(false),
+    bSkuDisableDNFor4K(false),
+    PerfData(),
+    m_reporting(nullptr)
 {
     MOS_STATUS                          eStatus;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;

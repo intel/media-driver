@@ -241,6 +241,8 @@ public:
 
     CM_QUEUE_CREATE_OPTION &GetQueueOption();
 
+    int32_t GetOSSyncEventHandle(void *& hOSSyncEvent);
+
 protected:
     CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
@@ -323,6 +325,9 @@ protected:
                                 CM_GPUCOPY_DIRECTION copyDirection,
                                 CM_GPUCOPY_KERNEL* &kernelParam);
 
+    int32_t RegisterSyncEvent();
+
+
     CmDeviceRT *m_device;
     ThreadSafeQueue m_enqueuedTasks;
     ThreadSafeQueue m_flushedTasks;
@@ -345,6 +350,8 @@ protected:
 
     bool m_usingVirtualEngine;
     MOS_VIRTUALENGINE_HINT_PARAMS m_mosVeHintParams;
+
+    void  *m_osSyncEvent;   //KMD Notification
 
 private:
     CmQueueRT(const CmQueueRT& other);

@@ -370,6 +370,8 @@ struct CM_HAL_QUERY_TASK_PARAM
     CM_HAL_TASK_STATUS status;             // [out] Task Status
     uint64_t taskDurationNs;               // [out] Task Duration
     uint64_t taskDurationTicks;            // [out] Task Duration in Ticks
+    uint64_t taskHWStartTimeStampInTicks;  // [out] Task Start Time Stamp in Ticks
+    uint64_t taskHWEndTimeStampInTicks;    // [out] Task End Time Stamp in Ticks
     LARGE_INTEGER taskGlobalSubmitTimeCpu; // [out] The CM task submission time in CPU
     LARGE_INTEGER taskSubmitTimeGpu;       // [out] The CM task submission time in GPU
     LARGE_INTEGER taskHWStartTimeStamp;    // [out] The task start execution time in GPU
@@ -874,6 +876,7 @@ typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
 {
     uint32_t                    width;                                       // [in]         Surface Width
     uint32_t                    height;                                      // [in]         Surface Height
+    uint32_t                    size;                                        // [in]         Surface total size
     MOS_FORMAT                  format;                                      // [in]         Surface Format
     void                        *data;                                       // [in/out]     Pointer to data
     uint32_t                    pitch;                                       // [out]        Pitch
@@ -882,6 +885,7 @@ typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
     MOS_PLANE_OFFSET            VSurfaceOffset;                              // [out]        V plane Offset
     uint32_t                    lockFlag;                                    // [out]        lock flag
     uint32_t                    handle;                                      // [in/out]     Handle
+    bool                        useGmmOffset;                                // [in/out]     Only use Gmm offset in Linux
 } CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM, *PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM;
 
 //*-----------------------------------------------------------------------------
@@ -1555,7 +1559,7 @@ typedef struct _CM_HAL_STATE
 
     CMRT_UMD::CSync             *criticalSectionDSH;
 
-    uint64_t                    tsFrequency;
+    uint32_t                    tsFrequency;
 
     bool                        forceKernelReload;
 
@@ -2273,6 +2277,11 @@ MOS_STATUS HalCm_PrepareVEHintParam(
     PCM_HAL_STATE                  state,
     bool                           bScalable,
     PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam);
+
+MOS_STATUS HalCm_DecompressSurface(
+    PCM_HAL_STATE              state,
+    PCM_HAL_KERNEL_ARG_PARAM   argParam,
+    uint32_t                   threadIndex);
 
 //*-----------------------------------------------------------------------------
 //| Helper functions for EnqueueWithHints

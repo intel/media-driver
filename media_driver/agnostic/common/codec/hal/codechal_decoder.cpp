@@ -920,9 +920,12 @@ MOS_STATUS CodechalDecode::EndFrame ()
             bool olpDump = false;
 
             MOS_SURFACE dstSurface;
-            if (CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
-                CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
-                CodecHal_PictureIsField(decodeStatusReport->m_currDecodedPic))
+            if ((CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
+                 CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
+                 CodecHal_PictureIsField(decodeStatusReport->m_currDecodedPic)) && 
+                (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeBltOutput) || 
+                 m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface) || 
+                 m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrStreamOut)))
             {
                 MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
                 dstSurface.Format       = Format_NV12;
@@ -930,6 +933,10 @@ MOS_STATUS CodechalDecode::EndFrame ()
                 CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
                     m_osInterface,
                     &dstSurface));
+
+                m_debugInterface->DumpBltOutput(
+                    &dstSurface,
+                    CodechalDbgAttr::attrDecodeBltOutput);
 
                 CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
@@ -953,7 +960,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
 
             if (m_standard == CODECHAL_VC1      &&
                 decodeStatusReport->m_olpNeeded &&
-                olpDump)
+                olpDump && 
+                m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface))
             {
                 MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
                 dstSurface.Format     = Format_NV12;
@@ -970,7 +978,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
             }
 
             if ((m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9) &&
-                (decodeStatusReport->m_currSfcOutputPicRes != nullptr))
+                (decodeStatusReport->m_currSfcOutputPicRes != nullptr) && 
+                m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSfcOutputSurface))
             {
                 MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
                 dstSurface.Format     = Format_NV12;
@@ -1068,10 +1077,6 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             m_firstExecuteCall));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_PreProcessDecode(
-        m_osInterface,
-        m_decodeParams.m_destSurface));
-
     // For multiple execution call, this function will be entered by multple times,
     // so clear bFirstExecuteCall flag when this function exit.
     CodechalDecodeRestoreData<bool> FirstExecuteCallRestore(&(m_firstExecuteCall), false);
@@ -1144,6 +1149,10 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     }
 #endif
     m_decodeParams  = *decodeParams;
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_PreProcessDecode(
+        m_osInterface,
+        m_decodeParams.m_destSurface));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cpInterface->UpdateParams(true));
 

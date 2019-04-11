@@ -3902,6 +3902,8 @@ int32_t CompositeState::SetLayer(
     pRenderingData->BbArgs.Rotation[iLayer] = pSource->Rotation;
     pRenderingData->BbArgs.iLayers++;
 
+    VPHAL_RENDER_NORMALMESSAGE("Layer %d, SamplerType:%d, Scaling Model %d,  SamplerIndex %d",
+                               iLayer, SamplerType, pSource->ScalingMode, iSamplerID);
     iResult = 1;
 
 finish:
@@ -5534,13 +5536,11 @@ bool CompositeState::RenderBufferComputeWalker(
     uint32_t*                           pdwDestXYTopLeft;
     uint32_t*                           pdwDestXYBottomRight;
     RECT                                AlignedRect;
-    bool                                bVerticalPattern;
 
     MOS_UNUSED(pBatchBuffer);
 
     bResult          = false;
     pRenderHal       = m_pRenderHal;
-    bVerticalPattern = false;
     pBbArgs          = &pRenderingData->BbArgs;
     pWalkerStatic    = &pRenderingData->WalkerStatic;
 
@@ -5593,7 +5593,6 @@ bool CompositeState::RenderBufferComputeWalker(
 
     // Get media walker kernel block size
     uiMediaWalkerBlockSize = pRenderHal->pHwSizes->dwSizeMediaWalkerBlock;
-    bVerticalPattern       = MediaWalkerVertical(pRenderingData);
 
     // Calculate aligned output area in order to determine the total # blocks
     // to process in case of non-16x16 aligned target.
@@ -5607,20 +5606,10 @@ bool CompositeState::RenderBufferComputeWalker(
     // Set walker cmd params - Rasterscan
     pWalkerParams->InterfaceDescriptorOffset    = pRenderingData->iMediaID;
 
-    if(bVerticalPattern)
-    {
-        pWalkerParams->GroupStartingX = (AlignedRect.top / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupStartingY = (AlignedRect.left / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupWidth     = pRenderingData->iBlocksY;
-        pWalkerParams->GroupHeight    = pRenderingData->iBlocksX;
-    }
-    else
-    {
-        pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
-        pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
-    }
+    pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
+    pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
+    pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
+    pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
 
     pWalkerParams->ThreadWidth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH;
     pWalkerParams->ThreadHeight = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
@@ -6895,6 +6884,13 @@ CompositeState::CompositeState(
     : RenderState(pOsInterface, pRenderHal, pPerfData, peStatus),
     m_iMaxProcampEntries(0),
     m_iProcampVersion(0),
+    m_bNullHwRenderComp(false),
+    m_b8TapAdaptiveEnable(false),
+    m_pKernelDllState(nullptr),
+    m_ThreadCountPrimary(0),
+    m_iBatchBufferCount(0),
+    m_iCallID(0),
+    m_bLastPhase(false),
     m_fSamplerLinearBiasX(0),
     m_fSamplerLinearBiasY(0),
     m_bFtrMediaWalker(false),
@@ -6907,18 +6903,11 @@ CompositeState::CompositeState(
     m_bKernelSupportDualOutput(false),
     m_bKernelSupportHdcDW(false),
     m_bApplyTwoLayersCompOptimize(false),
-    m_bAvsTableCoeffExtraEnabled(false),
-    m_bAvsTableBalancedFilter(false),
-    m_bNullHwRenderComp(false),
-    m_b8TapAdaptiveEnable(false),
-    m_pKernelDllState(nullptr),
-    m_ThreadCountPrimary(0),
-    m_iBatchBufferCount(0),
-    m_iCallID(0),
     m_need3DSampler(false),
     m_bEnableSamplerLumakey(false),
     m_bYV12iAvsScaling(false),
-    m_bLastPhase(false)
+    m_bAvsTableCoeffExtraEnabled(false),
+    m_bAvsTableBalancedFilter(false)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;

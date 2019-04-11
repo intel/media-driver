@@ -112,7 +112,7 @@ typedef unsigned char byte;
 #define CM_MIN_SURF_HEIGHT      1
 #define CM_MIN_SURF_DEPTH       2
 
-#define CM_MAX_1D_SURF_WIDTH    0x40000000 // 2^30, 1024M
+#define CM_MAX_1D_SURF_WIDTH    0x80000000 // 2^31, 2 GB
 
 #define CM_PAGE_ALIGNMENT       0x1000
 #define CM_PAGE_ALIGNMENT_MASK  0x0FFF

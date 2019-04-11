@@ -25,17 +25,8 @@
 //!
 
 #include "mos_os_cp_interface_specific.h"
-#include "mos_os.h"
-#include "mhw_cp_interface.h"
 #include "cplib_utils.h"
-
-static void OsStubMessage()
-{
-    MOS_NORMALMESSAGE(
-        MOS_COMPONENT_CP, 
-        MOS_CP_SUBCOMP_OS, 
-        CP_STUB_MESSAGE);
-}
+#include "mos_os.h"
 
 MosCpInterface* Create_MosCpInterface(void* pvOsInterface)
 {
@@ -70,119 +61,4 @@ void Delete_MosCpInterface(MosCpInterface* pMosCpInterface)
     }
 }
 
-MOS_STATUS MosCpInterface::RegisterPatchForHM(
-    uint32_t       *pPatchAddress,
-    uint32_t       bWrite,
-    MOS_HW_COMMAND HwCommandType,
-    uint32_t       forceDwordOffset,
-    void           *plResource,
-    void           *pPatchLocationList)
-{
-    MOS_UNUSED(pPatchAddress);
-    MOS_UNUSED(bWrite);
-    MOS_UNUSED(HwCommandType);
-    MOS_UNUSED(forceDwordOffset);
-    MOS_UNUSED(plResource);
-    MOS_UNUSED(pPatchLocationList);
 
-    OsStubMessage();
-    return  MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MosCpInterface::PermeatePatchForHM(
-    void    *virt,
-    void    *pvCurrentPatch,
-    void    *resource)
-{
-    MOS_UNUSED(virt);
-    MOS_UNUSED(pvCurrentPatch);
-    MOS_UNUSED(resource);
-
-    OsStubMessage();
-    return  MOS_STATUS_SUCCESS;
-}
-
-bool MosCpInterface::IsCpEnabled()
-{
-    OsStubMessage();
-    return false;
-}
-
-void MosCpInterface::SetCpEnabled(bool bIsCpEnabled)
-{
-    OsStubMessage();
-}
-
-bool MosCpInterface::IsHMEnabled()
-{
-    OsStubMessage();
-    return false;
-}
-
-bool MosCpInterface::IsIDMEnabled()
-{
-    OsStubMessage();
-    return false;
-}
-
-bool MosCpInterface::IsSMEnabled()
-{
-    OsStubMessage();
-    return false;
-}
-
-bool MosCpInterface::IsTearDownHappen()
-{
-    OsStubMessage();
-    return false;
-}
-
-MOS_STATUS MosCpInterface::SetResourceEncryption(
-    void          *pvResource,
-    bool          bEncryption)
-{
-    MOS_UNUSED(pvResource);
-    MOS_UNUSED(bEncryption);
-
-    OsStubMessage();
-    return MOS_STATUS_UNIMPLEMENTED;
-}
-
-MOS_STATUS MosCpInterface::PrepareResources(
-    void        *source[],
-    uint32_t    sourceCount,
-    void        *target[],
-    uint32_t    targetCount)
-{
-    MOS_UNUSED(source);
-    MOS_UNUSED(sourceCount);
-    MOS_UNUSED(target);
-    MOS_UNUSED(targetCount);
-
-    OsStubMessage();
-    return MOS_STATUS_SUCCESS;
-}
-
-bool MosCpInterface::RenderBlockedFromCp()
-{
-    OsStubMessage();
-    return false;
-}
-
-MOS_STATUS MosCpInterface::GetTK(
-    uint32_t                    **ppTKs,
-    uint32_t                    *pTKsSize,
-    uint32_t                    *pTKsUpdateCnt)
-{
-    MOS_UNUSED(ppTKs);
-    MOS_UNUSED(pTKsSize);
-    MOS_UNUSED(pTKsUpdateCnt);
-
-    OsStubMessage();
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MosCpInterface::ReadCtrNounceRegister(bool readCtr0, uint32_t *pCounter)
-{
-    return  MOS_STATUS_UNIMPLEMENTED;
-}
