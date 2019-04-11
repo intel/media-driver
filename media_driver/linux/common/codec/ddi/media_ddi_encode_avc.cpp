@@ -452,7 +452,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamQuantization(void *data)
         {
             seqParams->Trellis |= trellisEnabledB;
         }
-        else
+        if (!seqParams->Trellis)
         {
             DDI_ASSERTMESSAGE("trellis enabled, but the input parameters is invalided");
         }
@@ -564,11 +564,11 @@ VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
 #ifdef _FULL_OPEN_SOURCE
     if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP))
     {
-        if(m_encodeCtx->targetUsage >= 1 && m_encodeCtx->targetUsage <= 2)
+        if (m_encodeCtx->targetUsage >= 1 && m_encodeCtx->targetUsage <= 2)
         {
             m_encodeCtx->targetUsage = 4;
         }
-        else if(m_encodeCtx->targetUsage >= 3 &&m_encodeCtx->targetUsage <= 5)
+        else if (m_encodeCtx->targetUsage >= 3 &&m_encodeCtx->targetUsage <= 5)
         {
             m_encodeCtx->targetUsage = 7;
         }
