@@ -78,6 +78,13 @@ public:
     int32_t DestroySurface( CmSurfaceVme* &vmeSurface);
 
     int32_t CreateSampler8x8Surface(CmSurface2DRT* currentSurface, SurfaceIndex* & sampler8x8SurfaceIndex, CM_SAMPLER8x8_SURFACE sampler8x8Type, CM_SURFACE_ADDRESS_CONTROL_MODE addressControl, CM_FLAG* flag);
+
+    int32_t CreateSampler8x8SurfaceFromAlias(
+        CmSurface2DRT *originalSurface,
+        SurfaceIndex *aliasIndex,
+        CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
+        SurfaceIndex* &sampler8x8SurfaceIndex);
+
     int32_t DestroySampler8x8Surface(SurfaceIndex* &sampler8x8SurfaceIndex );
     int32_t DestroySurface( CmSurfaceSampler8x8* &sampler8x8Surface);
 

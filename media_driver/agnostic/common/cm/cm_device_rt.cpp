@@ -3812,4 +3812,29 @@ CM_RT_API int32_t CmDeviceRT::UpdateSurface2D(PMOS_RESOURCE mosResource,
     }
 }
 
+CM_RT_API int32_t CmDeviceRT::CreateSampler8x8SurfaceFromAlias(
+    CmSurface2D *originalSurface,
+    SurfaceIndex *aliasIndex,
+    CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
+    SurfaceIndex* &sampler8x8SurfaceIndex)
+{
+    INSERT_API_CALL_LOG();
+    CmSurface2DRT *original_surface_rt = static_cast<CmSurface2DRT*>(originalSurface);
+    if (!original_surface_rt)  {
+        CM_ASSERTMESSAGE("Error: Pointer to current surface is null.");
+        return CM_NULL_POINTER;
+    }
+
+    uint32_t width = 0, height = 0, size_per_pixel = 0;
+    CM_SURFACE_FORMAT format;
+    original_surface_rt->GetSurfaceDesc(width, height, format, size_per_pixel);
+
+    CLock locker(m_criticalSectionSurface);
+
+    return m_surfaceMgr
+            ->CreateSampler8x8SurfaceFromAlias(original_surface_rt,
+                                               aliasIndex,
+                                               addressControl,
+                                               sampler8x8SurfaceIndex);
+}
 }  // namespace

@@ -4883,6 +4883,53 @@ finish:
     return eStatus;
 }
 
+static bool
+UpdateMosSurfaceFromAliasState(CM_HAL_STATE *state,
+                               CM_HAL_KERNEL_ARG_PARAM *argParam,
+                               uint32_t surface_index,
+                               MOS_SURFACE *surface)
+{
+    uint32_t surface_state_index = argParam->aliasIndex/state->surfaceArraySize;
+    const CM_HAL_SURFACE2D_SURFACE_STATE_PARAM &surface_state_param
+            = state->umdSurf2DTable[surface_index].surfaceStateParam[
+                surface_state_index];
+    if (surface_state_param.width)
+    {
+        surface->dwWidth = surface_state_param.width;
+    }
+    if (surface_state_param.height)
+    {
+        surface->dwHeight = surface_state_param.height;
+    }
+    if (surface_state_param.depth)
+    {
+        surface->dwDepth = surface_state_param.depth;
+    }
+    if (surface_state_param.pitch)
+    {
+        surface->dwPitch= surface_state_param.pitch;
+    }
+    if (surface_state_param.format)
+    {
+        surface->Format
+                = static_cast<MOS_FORMAT>(surface_state_param.format);
+    }
+    if (surface_state_param.surfaceXOffset)
+    {
+        surface->YPlaneOffset.iXOffset = surface_state_param.surfaceXOffset;
+    }
+    if (surface_state_param.surfaceYOffset)
+    {
+        surface->YPlaneOffset.iYOffset = surface_state_param.surfaceYOffset;
+    }
+    if (surface_state_param.surfaceOffset)
+    {
+        surface->dwOffset = surface_state_param.surfaceOffset;
+    }
+
+    return true;
+}
+
 //*-----------------------------------------------------------------------------
 //| Purpose: Setup VME surface State
 //| Returns: Result of the operation
@@ -4953,7 +5000,7 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
     renderHal->bEnableP010SinglePass = state->cmHalInterface->IsP010SinglePassSupported();
 
     btIndex = state->bti2DIndexTable[ index ].BTI.sampler8x8SurfIndex;
-    if ( btIndex == ( unsigned char )CM_INVALID_INDEX )
+    if (btIndex == ( unsigned char )CM_INVALID_INDEX || argParam->aliasCreated)
     {
         // Get Details of Sampler8x8 surface and fill the surface
         CM_CHK_MOSSTATUS_GOTOFINISH( HalCm_GetSurfaceAndRegister( state, &surface, argParam->kind, index, 0 ) );
@@ -4967,6 +5014,9 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
         surfaceParam.Boundary = RENDERHAL_SS_BOUNDARY_ORIGINAL;
         surfaceParam.bVASurface = ( argParam->kind == CM_ARGUMENT_SURFACE_SAMPLER8X8_VA ) ? 1 : 0;
         surfaceParam.AddressControl = argParam->nCustomValue;
+
+        UpdateMosSurfaceFromAliasState(state, argParam, index,
+                                       &surface.OsSurface);
 
         //Set memory object control
         state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);

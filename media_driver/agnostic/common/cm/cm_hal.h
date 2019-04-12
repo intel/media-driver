@@ -867,6 +867,7 @@ typedef struct _CM_HAL_SURFACE2D_SURFACE_STATE_PARAM
     uint16_t memoryObjectControl;
     uint32_t surfaceXOffset;
     uint32_t surfaceYOffset;
+    uint32_t surfaceOffset;
 } CM_HAL_SURFACE2D_SURFACE_STATE_PARAM, *PCM_HAL_SURFACE2D_SURFACE_STATE_PARAM;
 
 //------------------------------------------------------------------------------

@@ -3171,6 +3171,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_L8:
+            case Format_R8UN:
                 if (pParams->bForceNV12)
                 {
                     PlaneDefinition     = RENDERHAL_PLANES_NV12_ADV;

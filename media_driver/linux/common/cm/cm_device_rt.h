@@ -275,7 +275,14 @@ public:
                                            CmBuffer* &surface);
 
     CM_RT_API int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
-                                              CmSurface2D* &surface);
+                                      CmSurface2D* &surface);
+
+    CM_RT_API int32_t
+    CreateSampler8x8SurfaceFromAlias(
+        CmSurface2D *originalSurface,
+        SurfaceIndex *aliasIndex,
+        CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
+        SurfaceIndex* &sampler8x8SurfaceIndex);
 
     void* GetAccelData() { return m_accelData; }
 

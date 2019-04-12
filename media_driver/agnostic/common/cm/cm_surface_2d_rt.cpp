@@ -1288,6 +1288,7 @@ CM_RT_API int32_t CmSurface2DRT::SetSurfaceStateParam( SurfaceIndex *surfIndex, 
     inParam.memoryObjectControl   = surfStateParam->memory_object_control;
     inParam.surfaceXOffset        = surfStateParam->surface_x_offset;
     inParam.surfaceYOffset        = surfStateParam->surface_y_offset;
+    inParam.surfaceOffset         = surfStateParam->surface_offset;
 
     if (surfIndex)
     {
