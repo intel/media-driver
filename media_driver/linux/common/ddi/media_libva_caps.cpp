@@ -1890,6 +1890,10 @@ VAStatus MediaLibvaCaps::CheckDecodeResolution(
             maxWidth = m_decHevcMaxWidth;
             maxHeight = m_decHevcMaxHeight;
             break;
+        case CODECHAL_DECODE_MODE_VP9VLD:
+            maxWidth = m_decVp9MaxWidth;
+            maxHeight = m_decVp9MaxHeight;
+            break;
         default:
             maxWidth = m_decDefaultMaxWidth;
             maxHeight = m_decDefaultMaxHeight;
@@ -2540,6 +2544,11 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         {
             maxWidth = m_decJpegMaxWidth;
             maxHeight = m_decJpegMaxHeight;
+        }
+        else if(IsVp9Profile(profile))
+        {
+            maxWidth = m_decVp9MaxWidth;
+            maxHeight = m_decVp9MaxHeight;
         }
 
         attribs[i].type = VASurfaceAttribMaxWidth;
