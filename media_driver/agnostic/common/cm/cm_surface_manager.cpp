@@ -1198,6 +1198,39 @@ int32_t CmSurfaceManager::CreateSampler8x8Surface(CmSurface2DRT* currentSurface,
     }
 }
 
+int32_t CmSurfaceManager::CreateSampler8x8SurfaceFromAlias(
+    CmSurface2DRT *originalSurface,
+    SurfaceIndex *aliasIndex,
+    CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
+    SurfaceIndex* &sampler8x8SurfaceIndex)
+{
+    uint32_t surface_index_value = ValidSurfaceIndexStart();
+    if (CM_SUCCESS != AllocateSurfaceIndex(0, 0, 0, CM_SURFACE_FORMAT_INVALID,
+                                           surface_index_value, nullptr))
+    {
+        return CM_EXCEED_SURFACE_AMOUNT;
+    }
+
+
+    uint32_t original_surface_handle = 0;
+    originalSurface->GetIndexFor2D(original_surface_handle);
+    CmSurfaceSampler8x8 *sampler8x8_surface = nullptr;
+    int32_t result = CmSurfaceSampler8x8::Create(surface_index_value,
+                                                 original_surface_handle,
+                                                 aliasIndex->get_data(), this,
+                                                 sampler8x8_surface,
+                                                 CM_AVS_SURFACE, addressControl,
+                                                 nullptr);
+    if ( result != CM_SUCCESS )
+    {
+        CM_ASSERTMESSAGE("Error: Falied to create sampler8x8 surface.");
+        return result;
+    }
+    m_surfaceArray[surface_index_value] = sampler8x8_surface;
+    sampler8x8_surface->GetIndex(sampler8x8SurfaceIndex);
+    return CM_SUCCESS;
+}
+
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destroy Sampler8x8 surface
 //| Returns:    Result of the operation.

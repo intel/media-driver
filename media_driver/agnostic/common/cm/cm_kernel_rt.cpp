@@ -1790,6 +1790,12 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                      CmSurfaceSampler8x8* surfSampler8x8 = static_cast <CmSurfaceSampler8x8 *> (surface);
                      surfSampler8x8->GetIndexCurrent(samplerIndex);
                      surfSampler8x8->GetCmIndex(samplerCmIndex);
+                     if (samplerCmIndex > surfaceArraySize)
+                     {
+                         m_args[index].aliasIndex = samplerCmIndex;
+                         m_args[index].aliasCreated = true;
+                         samplerCmIndex %= surfaceArraySize;
+                     }
 
                      m_surfaceMgr->GetSurface(samplerCmIndex, surface);
                      if (!surface)
@@ -5612,7 +5618,7 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
     //Calculate surface number and needed binding table entries
     for (uint32_t surfIndex = 0; surfIndex <= m_maxSurfaceIndexAllocated; surfIndex ++)
     {
-        if (m_surfaceArray[surfIndex])
+        if (m_surfaceArray[surfIndex%surfaceArraySize])
         {
             surf = nullptr;
             m_surfaceMgr->GetSurface(surfIndex, surf);
