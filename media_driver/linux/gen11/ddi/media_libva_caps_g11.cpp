@@ -906,6 +906,11 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
             maxWidth = m_decJpegMaxWidth;
             maxHeight = m_decJpegMaxHeight;
         }
+        else if(IsVp9Profile(profile))
+        {
+            maxWidth = m_decVp9MaxWidth;
+            maxHeight = m_decVp9MaxHeight;
+        }
 
         attribs[i].type = VASurfaceAttribMaxWidth;
         attribs[i].value.type = VAGenericValueTypeInteger;
