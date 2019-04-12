@@ -115,7 +115,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
     CODECHAL_DECODE_VERBOSEMESSAGE("m_width = %d, Max Width = %d, m_height %d, Max Height = %d",
         m_width, widthMax, m_height, heightMax);
 
-    uint8_t maxBitDepth     = (m_is10BitHevc) ? 10 : 8;
+    uint8_t maxBitDepth     = (m_is12BitHevc) ? 12 :((m_is10BitHevc) ? 10 : 8);
     uint8_t chromaFormatPic = m_hevcPicParams->chroma_format_idc;
     uint8_t chromaFormat    = m_chromaFormatinProfile;
     CODECHAL_DECODE_ASSERT(chromaFormat >= chromaFormatPic);
@@ -387,7 +387,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
         // Metadata Tile Column buffer
         hcpBufSizeParam.dwPicHeight = heightMax;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->GetHevcBufferSize(
-            MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_TILE_COL,
+            MHW_VDBOX_HCP_INTERNAL_BUFFER_META_TILE_COL,
             &hcpBufSizeParam));
 
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
@@ -2576,6 +2576,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     m_width                         = settings->width;
     m_height                        = settings->height;
     m_is10BitHevc                   = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
+    m_is12BitHevc                   = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS) ? true : false;
     m_chromaFormatinProfile         = settings->chromaFormat;
     m_shortFormatInUse              = settings->shortFormatInUse;
 
