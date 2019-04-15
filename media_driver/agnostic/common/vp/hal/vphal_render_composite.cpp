@@ -6277,7 +6277,7 @@ bool CompositeState::BuildFilter(
 
         // Y_Uoffset(Height*2 + Height/2) of RENDERHAL_PLANES_YV12 define Bitfield_Range(0, 13) on gen9+.
         // The max value is 16383. So use PL3 kernel to avoid out of range when Y_Uoffset is larger than 16383.
-        // Use PL3 plane to avoid YV12 bleeding issue with DI enabled
+        // Use PL3 plane to avoid YV12 blending issue with DI enabled and U channel shift issue with not 4-aligned height
         if ((pFilter->format   == Format_YV12)           &&
             (pSrc->ScalingMode != VPHAL_SCALING_AVS)     &&
             (pSrc->bIEF        != true)                  &&
@@ -6285,6 +6285,7 @@ bool CompositeState::BuildFilter(
             m_pRenderHal->bEnableYV12SinglePass          &&
             !pSrc->pDeinterlaceParams                    &&
             !pSrc->bInterlacedScaling                    &&
+            MOS_IS_ALIGNED(pSrc->dwHeight, 4)            &&
             ((pSrc->dwHeight * 2 + pSrc->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9))
         {
             pFilter->format = Format_YV12_Planar;
