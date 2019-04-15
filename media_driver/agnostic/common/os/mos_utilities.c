@@ -3369,7 +3369,7 @@ void MOS_InitSimulateRandomAllocMemoryFailFlag()
         int32_t Rn = rand();                                    \
         if (Rn % MosSimulateRandomAllocMemoryFailFreq == 1)     \
         {                                                       \
-            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_NORMAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
+            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
                 "Simulated Allocate Memory Fail (Rn=%d) for: functionName: %s, filename: %s, line: %d, size: %d \n", \
                  Rn, functionName, filename, line, size);       \
             return nullptr;                                     \
