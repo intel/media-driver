@@ -1603,14 +1603,14 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                     else
                     {
                         // Check to see if decoding error occurs
-                        if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg &
-                             m_mfxInterface->GetMfxErrorFlagsMask()) != 0)
-                        {
-                            codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
-                        }
-                        //MB Count bit[15:0] is error concealment MB count for none JPEG decoder.
                         if (m_standard != CODECHAL_JPEG)
                         {
+                            if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg &
+                                 m_mfxInterface->GetMfxErrorFlagsMask()) != 0)
+                            {
+                                codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
+                            }
+                        //MB Count bit[15:0] is error concealment MB count for none JPEG decoder.
                             codecStatus[j].m_numMbsAffected =
                                 m_decodeStatusBuf.m_decodeStatus[i].m_mmioMBCountReg & 0xFFFF;
                         }
