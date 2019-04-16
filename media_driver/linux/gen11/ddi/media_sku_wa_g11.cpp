@@ -89,6 +89,8 @@ static bool InitIclMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile0Decoding8bit420, codecInfo->vp9Decoding);
         MEDIA_WR_SKU(skuTable, FtrVP9VLD10bProfile2Decoding, codecInfo->vp9b10Decoding);
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding, codecInfo->vp9b10Decoding);
+        MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding10bit420, codecInfo->vp9b10Decoding);
+
 
         /* VP8 enc */
         MEDIA_WR_SKU(skuTable, FtrEncodeVP8, codecInfo->vp8Encoding);
