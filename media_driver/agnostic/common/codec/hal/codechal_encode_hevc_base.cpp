@@ -1055,7 +1055,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if (!m_hevcSeqParams->scaling_list_enable_flag)
+    if (!m_hevcSeqParams->scaling_list_enable_flag || !m_hevcPicParams->scaling_list_data_present_flag)
     {
         CreateFlatScalingList();
     }
