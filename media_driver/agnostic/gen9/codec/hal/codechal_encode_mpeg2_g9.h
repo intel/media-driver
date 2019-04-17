@@ -59,6 +59,14 @@ protected:
 
     MOS_STATUS InitKernelStateMbEnc();
 
+    //!
+    //! \brief    Encode kernel functions
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ExecuteKernelFunctions();
+
     MOS_STATUS SetCurbeMe();
 
     MOS_STATUS SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer);
