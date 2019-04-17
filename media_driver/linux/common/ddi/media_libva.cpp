@@ -1871,9 +1871,9 @@ static VAStatus DdiMedia_DestroySurfaces (
 
         DdiMediaUtil_UnRegisterRTSurfaces(ctx, surface);
 
+        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         DdiMediaUtil_FreeSurface(surface);
         MOS_FreeMemory(surface);
-        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaCtx->pSurfaceHeap, (uint32_t)surfaces[i]);
         mediaCtx->uiNumSurfaces--;
         DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
