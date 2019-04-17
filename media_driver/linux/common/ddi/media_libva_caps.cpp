@@ -893,6 +893,16 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
         {
             attrib.value = VA_ATTRIB_NOT_SUPPORTED;
         }
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile1Decoding8bit444))
+            (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV444;
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding))
+            (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV420_10;
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding10bit444))
+            (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV444_10;
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding12bit420))
+            (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV420_12;
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding12bit444))
+            (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV444_12;
     }
     else
     {
