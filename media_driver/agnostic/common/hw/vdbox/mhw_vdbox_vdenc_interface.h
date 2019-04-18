@@ -98,6 +98,8 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     uint8_t                                *pucVdencHmeMvCosts;
     uint8_t                                *pucVdencModeCosts;
     void                                   *pInputParams;
+    uint16_t                                usSADQPLambda = 0;
+    uint16_t                                usRDQPLambda = 0;
 } MHW_VDBOX_VDENC_CMD1_PARAMS, *PMHW_VDBOX_VDENC_CMD1_PARAMS;
 
 struct MHW_VDBOX_VDENC_CMD2_STATE
