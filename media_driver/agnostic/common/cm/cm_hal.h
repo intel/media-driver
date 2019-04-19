@@ -54,6 +54,8 @@
 #define SURFACE_FLAG_ASSUME_NOT_IN_USE 1
 #define CM_THREADSPACE_MAX_COLOR_COUNT 16
 
+static const uint32_t INVALID_STREAM_INDEX = 0xFFFFFFFF;
+
 //*-----------------------------------------------------------------------------
 //| Macro unsets bitPos bit in value
 //*-----------------------------------------------------------------------------
@@ -1898,6 +1900,8 @@ typedef struct _CM_HAL_STATE
         (
         PCM_HAL_STATE               state,
         uint64_t                    kernelId);
+
+    uint32_t (*pfnRegisterStream) (PCM_HAL_STATE state);
 } CM_HAL_STATE, *PCM_HAL_STATE;
 
 typedef struct _CM_HAL_MI_REG_OFFSETS
