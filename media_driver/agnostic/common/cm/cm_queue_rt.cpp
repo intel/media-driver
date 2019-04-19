@@ -243,11 +243,10 @@ int32_t CmQueueRT::Initialize()
 
             ctxCreateOption.RAMode = m_queueOption.RAMode;
 
-            // Create Render GPU Context
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D, &ctxCreateOption));
-
-            // Set current GPU context
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface, tmpGpuCtx));
+            // Create render GPU context.
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                CreateGpuContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D,
+                                 &ctxCreateOption));
 
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
@@ -280,13 +279,8 @@ int32_t CmQueueRT::Initialize()
             }
 
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
-                cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
-                                                MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
-
-            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
-                cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface,
-                                                          MOS_GPU_CONTEXT_CM_COMPUTE));
-
+                CreateGpuContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
+                                 MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
             m_queueOption.GPUContext = MOS_GPU_CONTEXT_CM_COMPUTE;
         }
         else
@@ -2767,10 +2761,11 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnSetPowerOption( cmData->cmHalState, task->GetPowerOption() ) );
 
-    cmData->cmHalState->osInterface->pfnSetGpuContext(cmData->cmHalState->osInterface, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
-    RegisterSyncEvent();
-
-    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnExecuteGroupTask( cmData->cmHalState, &param ) );
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+        ExecuteGroupTask(
+            cmData->cmHalState,
+            &param,
+            static_cast<MOS_GPU_CONTEXT>(m_queueOption.GPUContext)));
 
     if( param.taskIdOut < 0 )
     {
@@ -3566,31 +3561,46 @@ finish:
 }
 
 CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
-                              CmEvent *&event,
-                              const CmThreadSpace *threadSpace)
+                                         CmEvent* &event,
+                                         const CmThreadSpace *threadSpace)
 {
     CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    int32_t result = CM_SUCCESS;
     if (state == nullptr || state->advExecutor == nullptr)
     {
-        return CM_NULL_POINTER;
+        result = CM_NULL_POINTER;
     }
     else
     {
-        const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
+        const CmThreadSpaceRT *threadSpaceRTConst
+                = static_cast<const CmThreadSpaceRT*>(threadSpace);
         if (state->cmHalInterface->CheckMediaModeAvailability() == false)
         {
+            uint32_t old_stream_idx = state->osInterface->streamIndex;
+            state->osInterface->streamIndex = m_streamIndex;
             if (threadSpaceRTConst != nullptr)
             {
-                return state->advExecutor->SubmitComputeTask(this, task, event, threadSpaceRTConst->GetThreadGroupSpace(), (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+                result = state->advExecutor->SubmitComputeTask(
+                    this, task, event,
+                    threadSpaceRTConst->GetThreadGroupSpace(),
+                    (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
             }
             else
             {
-                
-                return state->advExecutor->SubmitComputeTask(this, task, event, nullptr, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+                result = state->advExecutor->SubmitComputeTask(
+                    this, task, event, nullptr,
+                    (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
             }
+            state->osInterface->streamIndex = old_stream_idx;
         }
-        return state->advExecutor->SubmitTask(this, task, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+        else
+        {
+            result = state->advExecutor->SubmitTask(
+                this, task, event, threadSpace,
+                (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+        }
     }
+    return result;
 }
 
 CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
@@ -3607,17 +3617,25 @@ CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
     }
 }
 
-CM_RT_API int32_t CmQueueRT::EnqueueWithGroupFast(CmTask *task,
-                                      CmEvent *&event,
-                                      const CmThreadGroupSpace *threadGroupSpace)
+CM_RT_API int32_t
+CmQueueRT::EnqueueWithGroupFast(CmTask *task,
+                                CmEvent* &event,
+                                const CmThreadGroupSpace *threadGroupSpace)
 {
     CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    int32_t result = CM_SUCCESS;
     if (state == nullptr || state->advExecutor == nullptr)
     {
-        return CM_NULL_POINTER;
+        result = CM_NULL_POINTER;
     }
 
-    return state->advExecutor->SubmitComputeTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    uint32_t old_stream_idx = state->osInterface->streamIndex;
+    state->osInterface->streamIndex = m_streamIndex;
+    result = state->advExecutor->SubmitComputeTask(
+        this, task, event, threadGroupSpace,
+        (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    state->osInterface->streamIndex = old_stream_idx;
+    return result;
 }
 
 int32_t CmQueueRT::GetOSSyncEventHandle(void *& hOSSyncEvent)
@@ -3646,4 +3664,45 @@ finish:
     return hr;
 }
 
+MOS_STATUS CmQueueRT::CreateGpuContext(CM_HAL_STATE *halState,
+                                       MOS_GPU_CONTEXT gpuContextName,
+                                       MOS_GPU_NODE gpuNode,
+                                       MOS_GPUCTX_CREATOPTIONS *createOptions)
+{
+    uint32_t old_stream_idx = 0;
+    if (MOS_GPU_CONTEXT_CM_COMPUTE == gpuContextName)
+    {
+        m_streamIndex = halState->pfnRegisterStream(halState);
+        old_stream_idx = halState->osInterface->streamIndex;
+        halState->osInterface->streamIndex = m_streamIndex;
+    }
+    else
+    {  // As there is only one render context, the original stream index will be used.
+        old_stream_idx = m_streamIndex = halState->osInterface->streamIndex;
+    }
+    MOS_STATUS status = halState->pfnCreateGPUContext(halState,
+                                                      gpuContextName, gpuNode,
+                                                      createOptions);
+    halState->osInterface->streamIndex = old_stream_idx;
+    return status;
 }
+
+MOS_STATUS CmQueueRT::ExecuteGroupTask(CM_HAL_STATE *halState,
+                                       CM_HAL_EXEC_TASK_GROUP_PARAM *taskParam,
+                                       MOS_GPU_CONTEXT gpuContextName)
+{
+    uint32_t old_stream_idx = halState->osInterface->streamIndex;
+    halState->osInterface->streamIndex = m_streamIndex;
+    MOS_STATUS result
+            = halState->osInterface->pfnSetGpuContext(halState->osInterface,
+                                                      gpuContextName);
+    if (MOS_STATUS_SUCCESS != result)
+    {
+        return result;
+    }
+    RegisterSyncEvent();
+    result = halState->pfnExecuteGroupTask(halState, taskParam);
+    halState->osInterface->streamIndex = old_stream_idx;
+    return result;
+}
+}  // namespace
