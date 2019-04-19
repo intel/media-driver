@@ -243,6 +243,8 @@ public:
 
     int32_t GetOSSyncEventHandle(void *& hOSSyncEvent);
 
+    uint32_t StreamIndex() const { return m_streamIndex; }
+
 protected:
     CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
@@ -354,6 +356,18 @@ protected:
     void  *m_osSyncEvent;   //KMD Notification
 
 private:
+    uint32_t m_streamIndex;
+
+    MOS_STATUS CreateGpuContext(CM_HAL_STATE *halState,
+                                MOS_GPU_CONTEXT gpuContextName,
+                                MOS_GPU_NODE gpuNode,
+                                MOS_GPUCTX_CREATOPTIONS *createOptions);
+
+    // Calls CM HAL API to submit a group task to command buffer.
+    MOS_STATUS ExecuteGroupTask(CM_HAL_STATE *halState,
+                                CM_HAL_EXEC_TASK_GROUP_PARAM *taskParam,
+                                MOS_GPU_CONTEXT gpuContextName);
+
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);
 };
