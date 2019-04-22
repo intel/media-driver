@@ -91,10 +91,10 @@ With the above options it is possible to build (table assumes that non-listed op
 
 | No. | Build option(s) | HW Features | Shaders (Kernels) | Comments |
 |-|-|-|-|-|
-| 1 | ENABLE_KERNELS=ON | Yes | Close source (pre-built) | **Default**, full feature driver |
+| 1 | ENABLE_KERNELS=ON | Yes | Close source (pre-built) | **Default Build**, full feature driver |
 | 2 | ENABLE_KERNELS=OFF | Yes | None | HW features only, include HW decoder, HW VDEnc Encoder (CQP mode) |
-| 3 | ENABLE_NONFREE_KERNELS=OFF | Yes | Open source (pre-built) | HW features available in prev. mode (ENABLE_KERNELS=ON) and features supported by open source shaders |
-| 4 | ENABLE_NONFREE_KERNELS=OFF BUILD_KERNELS=ON | Yes | Open source | Same as ENABLE_NONFREE_KERNELS=OFF driver, but shaders are rebuilt from sources |
+| 3 | ENABLE_NONFREE_KERNELS=OFF | Yes | Open source (pre-built) | **Open Source Build**, HW features available in prev. mode (ENABLE_KERNELS=ON) and features supported by open source shaders |
+| 4 | ENABLE_NONFREE_KERNELS=OFF BUILD_KERNELS=ON | Yes | Open source | **Open Source Build**, Same as ENABLE_NONFREE_KERNELS=OFF driver, but shaders are rebuilt from sources |
 
 ## Supported Platforms
 
@@ -110,106 +110,102 @@ CFL (Coffee Lake)
 
 WHL (Whiskey Lake)
 
-CNL (Cannonlake)
+CML (Comet Lake)
 
 ICL (Ice Lake)
 
-## Default Driver Build Features
+## Driver Features
 
-| CODEC      | BDW  |  SKL   | BXT/APL |   KBL   |  CFL  |  WHL  | CNL  |   ICL*  |
-|------------|------|--------|---------|---------|-------|-------|------|---------|
-| AVC        | D/Es | D/E/Es | D/E/Es  | D/E/Es  | D/E/Es| D/E/Es| D/Es | D/E/Es  |
-| MPEG-2     | D/Es |  D/Es  | D       | D/Es    | D/Es  | D/Es  | D/Es | D/Es    |
-| VC-1       | D    |   D    | D       | D       | D     | D     | D    | D       |
-| JPEG       | D    |   D/E  | D/E     | D/E     | D/E   | D/E   | D/E  | D/E     |
-| VP8        | D    |   D    | D       | D       | D     | D/Es  | D/Es | D/Es    |
-| HEVC 8bit  |      |   D/Es | D/Es    | D/Es    | D/Es  | D/Es  | D/Es | D/E/Es  |
-| HEVC 10bit |      |        | D       | D       | D     | D     | D/Es | D/E/Es  |
-| VP9 8bit   |      |        | D       | D       | D     | D     | D    | D/E     |
-| VP9 10bit  |      |        |         | D       | D     | D     | D    | D/E     |
+### Features in Default Driver Build
+
+| CODEC | BDW | SKL | BXT/APL | KBL | CFL | WHL | CML | ICL* |
+|---|---|---|---|---|---|---|---|---|
+| AVC | D/Es | D/E/Es | D/E/Es | D/E/Es | D/E/Es | D/E/Es | D/E/Es | D/E/Es |
+| MPEG-2 | D/Es | D/Es | D | D/Es | D/Es | D/Es | D/Es | D/Es |
+| VC-1 | D | D | D | D | D | D | D | D |
+| JPEG | D | D/E | D/E | D/E | D/E | D/E | D/E | D/E |
+| VP8 | D | D | D | D/Es | D/Es | D/Es | D/Es | D/Es |
+| HEVC 8bit |  | D/Es | D/Es | D/Es | D/Es | D/Es | D/Es | D/E/Es |
+| HEVC 8bit 422 |  |  |  |  |  |  |  | D/Es |
+| HEVC 8bit 444 |  |  |  |  |  |  |  | D/E |
+| HEVC 10bit |  |  | D | D/Es | D/Es | D/Es | D/Es | D/E/Es |
+| HEVC 10bit 422 |  |  |  |  |  |  |  | D/Es |
+| HEVC 10bit 444 |  |  |  |  |  |  |  | D/E |
+| VP9 8bit |  |  | D | D | D | D | D | D/E |
+| VP9 8bit 444 |  |  |  |  |  |  |  | D/E |
+| VP9 10bit |  |  |  | D | D | D | D | D/E |
+| VP9 10bit 444 |  |  |  |  |  |  |  | D/E |
 
 D  - HW Decoding
 
-E  - HW Encoding
+E  - HW Encoding, Low Power Encoding
 
 Es - HW + Shader Encoding
 
 \* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 
-| Video Processing                             | BDW | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL |
-|----------------------------------------------|-----|-----|---------|-----|-----|-----|-----|-----|
-| Blending                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| CSC (Color Space Conversion)                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| De-interlace                                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| De-noise                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| Luma Key                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| Mirroring                                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| ProcAmp (brightness,contrast,hue,saturation) |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| Rotation                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| Scaling                                      |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| Sharpening                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| STD/E (Skin Tone Detect & Enhancement)       |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| TCC (Total Color Control)                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| Chroma Siting                                |     |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |  Y  |
-| HDR10 Tone Mapping                           |     |     |         |     |     |     |     |  Y  |
+| Video Processing | BDW | SKL | BXT/APL | KBL | CFL | WHL | CML | ICL |
+|---|---|---|---|---|---|---|---|---|
+| Blending | Y | Y | Y | Y | Y | Y | Y | Y |
+| CSC (Color Space Conversion) | Y | Y | Y | Y | Y | Y | Y | Y |
+| De-interlace | Y | Y | Y | Y | Y | Y | Y | Y |
+| De-noise | Y | Y | Y | Y | Y | Y | Y | Y |
+| Luma Key | Y | Y | Y | Y | Y | Y | Y | Y |
+| Mirroring | Y | Y | Y | Y | Y | Y | Y | Y |
+| ProcAmp (brightness,contrast,hue,saturation) | Y | Y | Y | Y | Y | Y | Y | Y |
+| Rotation | Y | Y | Y | Y | Y | Y | Y | Y |
+| Scaling | Y | Y | Y | Y | Y | Y | Y | Y |
+| Sharpening | Y | Y | Y | Y | Y | Y | Y | Y |
+| STD/E (Skin Tone Detect & Enhancement) | Y | Y | Y | Y | Y | Y | Y | Y |
+| TCC (Total Color Control) | Y | Y | Y | Y | Y | Y | Y | Y |
+| Color fill | Y | Y | Y | Y | Y | Y | Y | Y |
+| Chroma Siting |  | Y | Y | Y | Y | Y | Y | Y |
+| HDR10 Tone Mapping |  |  |  |  |  |  |  | Y |
 
 For detail feature information, you can access [Media Features](https://github.com/intel/media-driver/blob/master/docs/media_features.md).
 
-## HW Media Features
 
-| Media Features | BDW  | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL |
-|----------------|------|-----|---------|-----|-----|-----|-----|-----|
-| AVC            |   D  |  D  | D/E     | D/E | D/E | D/E |  D  | D/E |
-| MPEG-2         |   D  |  D  | D       | D   | D   | D   |  D  | D   |
-| VC-1           |   D  |  D  | D       | D   | D   | D   |  D  | D   |
-| JPEG           |   D  | D/E | D/E     | D/E | D/E | D/E | D/E | D/E |
-| VP8            |   D  |  D  | D       | D   | D   | D   |  D  | D   |
-| HEVC 8bit      |      |  D  | D       | D   | D   | D   |  D  | D/E |
-| HEVC 10bit     |      |     | D       | D   | D   | D   |  D  | D/E |
-| VP9 8bit       |      |     | D       | D   | D   | D   |  D  | D/E |
-| VP9 10bit      |      |     |         | D   | D   | D   |  D  | D/E |
+### Features in Open Source Build
+
+| CODEC | BDW | SKL | BXT/APL | KBL | CFL | WHL | CML | ICL* |
+|---|---|---|---|---|---|---|---|---|
+| AVC | D | D/E | D/E | D/E | D/E | D/E | D/E | D/E |
+| MPEG-2 | D | D | D | D | D | D | D | D |
+| VC-1 |  |  |  |  |  |  |  |  |
+| JPEG | D | D/E | D/E | D/E | D/E | D/E | D/E | D/E |
+| VP8 | D | D | D | D | D | D | D | D |
+| HEVC 8bit |  | D | D | D | D | D | D | D/E |
+| HEVC 8bit 422 |  |  |  |  |  |  |  | D |
+| HEVC 8bit 444 |  |  |  |  |  |  |  | D/E |
+| HEVC 10bit |  |  | D | D | D | D | D | D/E |
+| HEVC 10bit 422 |  |  |  |  |  |  |  | D |
+| HEVC 10bit 444 |  |  |  |  |  |  |  | D/E |
+| VP9 8bit |  |  | D | D | D | D | D | D/E |
+| VP9 8bit 444 |  |  |  |  |  |  |  | D/E |
+| VP9 10bit |  |  |  | D | D | D | D | D/E |
+| VP9 10bit 444 |  |  |  |  |  |  |  | D/E |
 
 D  - HW Decoding
 
-E  - HW Encoding, VDEnc CQP mode only, BRC mode is pending on i915 support on upstream.
-
-
-## Open Source Shader Media Features
-
-| Media Features                               | BDW | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL |
-|----------------------------------------------|-----|-----|---------|-----|-----|-----|-----|-----|
-| Blending                                     |     |     |         |     |     |     |     |  Y  |
-| CSC (Color Space Conversion)                 |     |     |         |     |     |     |     |  Y  |
-| De-interlace                                 |     |     |         |     |     |     |     |  Y  |
-| Luma Key                                     |     |     |         |     |     |     |     |  Y  |
-| Mirroring                                    |     |     |         |     |     |     |     |  Y  |
-| ProcAmp (brightness,contrast,hue,saturation) |     |     |         |     |     |     |     |  Y  |
-| Rotation                                     |     |     |         |     |     |     |     |  Y  |
-| Scaling                                      |     |     |         |     |     |     |     |  Y  |
-| Sharpening                                   |     |     |         |     |     |     |     |  Y  |
-| Color fill                                   |     |     |         |     |     |     |     |  Y  |
-| Chroma Siting                                |     |     |         |     |     |     |     |  Y  |
-
-
-## Close Source Shader Media Codec Features
-
-All Open Source Shaders listed in the previous paragraph are still available, but Close Source Media Codec Shaders provide few additional features listed below.
-
-| Encode Features | BDW | SKL | BXT/APL | KBL | CFL | WHL | CNL | ICL* |
-|-----------------|-----|-----|---------|-----|-----|-----|-----|------|
-| AVC             |  Es |  Es |   Es    |  Es |  Es |  Es |  Es |  Es  |
-| MPEG-2          |  Es |  Es |         |  Es |  Es |  Es |  Es |  Es  |
-| VP8             |     |     |         |     |     |  Es |  Es |  Es  |
-| HEVC 8bit       |     |  Es |   Es    |  Es |  Es |  Es |  Es |  Es  |
-| HEVC 10bit      |     |     |         |     |     |     |  Es |  Es  |
-
-Es - HW + Shader Encoding
+E  - HW Encoding, Low Power Encoding
 
 \* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 
+| Video Processing | BDW | SKL | BXT/APL | KBL | CFL | WHL | CML | ICL |
+|---|---|---|---|---|---|---|---|---|
+| Blending |  |  |  |  |  |  |  | Y |
+| CSC (Color Space Conversion) |  |  |  |  |  |  |  | Y |
+| De-interlace |  |  |  |  |  |  |  | Y |
+| Luma Key |  |  |  |  |  |  |  | Y |
+| Mirroring |  |  |  |  |  |  |  | Y |
+| ProcAmp (brightness,contrast,hue,saturation) |  |  |  |  |  |  |  | Y |
+| Rotation |  |  |  |  |  |  |  | Y |
+| Scaling |  |  |  |  |  |  |  | Y |
+| Sharpening |  |  |  |  |  |  |  | Y |
+| Color fill |  |  |  |  |  |  |  | Y |
+| Chroma Siting |  |  |  |  |  |  |  | Y |
 
 
 ## Known Issues and Limitations
