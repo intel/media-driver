@@ -206,6 +206,7 @@ typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
     uint32_t                    dwMediaFrameTrackingAddrOffset;
     MOS_RESOURCE                resMediaFrameTrackingSurface;
     int32_t                     bUmdSSEUEnable;
+    int32_t                     bFrequencyBoost;
     void*                       pAttriVe;
 } MOS_COMMAND_BUFFER_ATTRIBUTES, *PMOS_COMMAND_BUFFER_ATTRIBUTES;
 

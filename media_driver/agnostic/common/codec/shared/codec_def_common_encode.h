@@ -132,7 +132,8 @@ typedef enum _CODEC_SCENARIO
     ESCENARIO_LIVESTREAMING     = 4,
     ESCENARIO_VIDEOCAPTURE      = 5,
     ESCENARIO_VIDEOSURVEILLANCE = 6,
-    ESCENARIO_GAMESTREAMING     = 7
+    ESCENARIO_GAMESTREAMING     = 7,
+    ESCENARIO_REMOTEGAMING      = 8
 } CODEC_SCENARIO, ENCODE_SCENARIO;
 
 /*! \brief Provides a hint to encoder about the content for the encoding session.

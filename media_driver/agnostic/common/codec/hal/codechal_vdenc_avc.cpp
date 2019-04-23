@@ -3250,6 +3250,8 @@ MOS_STATUS CodechalVdencAvcState::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
     bool                        frameTracking)
 {
+    // Set flag bIsMdfLoad in remote gaming scenario to boost GPU frequency for low latency
+    cmdBuffer->Attributes.bFrequencyBoost = (m_avcSeqParam->ScenarioInfo == ESCENARIO_REMOTEGAMING); 
     return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
 }
 
