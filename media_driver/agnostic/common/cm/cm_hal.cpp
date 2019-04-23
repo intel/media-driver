@@ -7289,12 +7289,36 @@ MOS_STATUS HalCm_SetupMediaWalkerParams(
                     break;
 
                 case CM_WALK_WAVEFRONT26:
-                    walkerParams->localLoopExecCount = kernelThreadSpace.threadSpaceWidth + (kernelThreadSpace.threadSpaceHeight - 1) * 2 - 1;
-
+                    walkerParams->globalResolution.x = kernelThreadSpace.threadSpaceWidth;
+                    walkerParams->globalResolution.y = kernelThreadSpace.threadSpaceHeight;
                     walkerParams->localOutLoopStride.x = 1;
                     walkerParams->localOutLoopStride.y = 0;
                     walkerParams->localInnerLoopUnit.x = 0xFFFE;  // -2 in uint32_t:16
                     walkerParams->localInnerLoopUnit.y = 1;
+                    walkerParams->localLoopExecCount = kernelThreadSpace.threadSpaceWidth +
+                                                       (kernelThreadSpace.threadSpaceHeight - 1) * 2 - 1;
+
+                    //localLoopExecCount has limitation, it should be less than 2^12
+                    while (walkerParams->localLoopExecCount >= 0xFFF)
+                    {
+                        //separate to multiple global levels
+                        if (walkerParams->blockResolution.x > (walkerParams->blockResolution.y * 2))
+                        {
+                            walkerParams->blockResolution.x = (walkerParams->blockResolution.x+1) >> 1;
+                            walkerParams->globalLoopExecCount = (walkerParams->globalResolution.x +
+                            walkerParams->blockResolution.x - 1) / walkerParams->blockResolution.x;
+                        }
+                        else
+                        {
+                            walkerParams->blockResolution.y = (walkerParams->blockResolution.y + 1) >> 1;
+                        }
+                        walkerParams->localLoopExecCount = walkerParams->blockResolution.x +
+                                                           (walkerParams->blockResolution.y - 1) * 2 - 1;
+                    }
+                    walkerParams->globalOutlerLoopStride.x = walkerParams->blockResolution.x;
+                    walkerParams->globalOutlerLoopStride.y = 0;
+                    walkerParams->globalInnerLoopUnit.x = 0;
+                    walkerParams->globalInnerLoopUnit.y = walkerParams->blockResolution.y;
                     break;
 
                 case CM_WALK_WAVEFRONT26X:
@@ -7420,7 +7444,7 @@ MOS_STATUS HalCm_SetupMediaWalkerParams(
                 walkerParams->globalInnerLoopUnit.x = 0xFFFC;
                 walkerParams->globalInnerLoopUnit.y = 2;
             }
-            else
+            else if(walkPattern != CM_WALK_WAVEFRONT26)
             {
                 walkerParams->globalResolution.x = walkerParams->blockResolution.x;
                 walkerParams->globalResolution.y = walkerParams->blockResolution.y;
