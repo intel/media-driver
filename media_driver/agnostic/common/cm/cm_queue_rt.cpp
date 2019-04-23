@@ -3626,7 +3626,7 @@ CmQueueRT::EnqueueWithGroupFast(CmTask *task,
     int32_t result = CM_SUCCESS;
     if (state == nullptr || state->advExecutor == nullptr)
     {
-        result = CM_NULL_POINTER;
+        return CM_NULL_POINTER;
     }
 
     uint32_t old_stream_idx = state->osInterface->streamIndex;
