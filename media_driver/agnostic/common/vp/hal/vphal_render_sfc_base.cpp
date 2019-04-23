@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2018, Intel Corporation
+* Copyright (c) 2012-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1133,7 +1133,19 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
 
     // CSC params
     pSfcStateParams->bCSCEnable      = m_renderData.bCSC;
-    pSfcStateParams->bRGBASwapEnable = pSfcStateParams->bCSCEnable;
+
+    // ARGB8,ABGR10 output format need to enable swap
+    if (pOutSurface->Format == Format_X8R8G8B8 ||
+        pOutSurface->Format == Format_A8R8G8B8 ||
+        pOutSurface->Format == Format_R10G10B10A2)
+    {
+        pSfcStateParams->bRGBASwapEnable = true;
+    }
+    else
+    {
+        pSfcStateParams->bRGBASwapEnable = false;
+    }
+
     if (IS_RGB_CSPACE(pSrcSurface->ColorSpace))
     {
         pSfcStateParams->bInputColorSpace = true;
