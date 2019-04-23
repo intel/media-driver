@@ -4720,6 +4720,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();
     mhwHevcPicState.rhodomainRCEnable = m_brcEnabled && (m_numPipe > 1);
     mhwHevcPicState.bSAOEnable = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
+    mhwHevcPicState.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcPicBrcBuffer(brcHcpStateReadBuffer, &mhwHevcPicState));
 
     PMOS_SURFACE brcConstantData = &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx];
