@@ -679,10 +679,13 @@ VphalState::~VphalState()
 
     if (m_renderHal)
     {
-        eStatus = m_renderHal->pfnDestroy(m_renderHal);
-        if (eStatus != MOS_STATUS_SUCCESS)
+        if (m_renderHal->pfnDestroy)
         {
-            VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+            eStatus = m_renderHal->pfnDestroy(m_renderHal);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+            }
         }
         MOS_FreeMemory(m_renderHal);
     }
