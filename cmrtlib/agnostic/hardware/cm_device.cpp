@@ -321,40 +321,12 @@ CM_RT_API int32_t CmDevice_RT::DestroyTask( CmTask*& task)
 //!     CM_OUT_OF_HOST_MEMORY if out of system memory;
 //!     CM_FAILURE otherwise;
 //!
-CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
+CM_RT_API int32_t CmDevice_RT::CreateQueue(CmQueue* &queue)
 {
     INSERT_PROFILER_RECORD();
 
-    // For legacy CreateQueue API, we will only return the same queue
-    m_criticalSectionQueue.Acquire();
-    for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)
-    {
-        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-        if (queueType == CM_QUEUE_TYPE_RENDER)
-        {
-            queue = (*iter);
-            m_criticalSectionQueue.Release();
-            return CM_SUCCESS;
-        }
-    }
-
-    CmQueue_RT *queueRT = nullptr;
-    int32_t result = CmQueue_RT::Create(this, queueRT);
-    if (result != CM_SUCCESS)
-    {
-        CmAssert(0);
-        CmDebugMessage(("Failed to create queue!"));
-        m_criticalSectionQueue.Release();
-        return result;
-    }
-
-    m_queue.push_back(queueRT);
-    m_criticalSectionQueue.Release();
-
-    if (queueRT != nullptr)
-    {
-        queue = static_cast< CmQueue* >(queueRT);
-    }
+    CM_QUEUE_CREATE_OPTION option = CM_DEFAULT_QUEUE_CREATE_OPTION;
+    int32_t result = CreateQueueEx(queue, option);
 
 #if USE_EXTENSION_CODE
     GTPIN_MAKER_FUNCTION(CmrtCodeMarkerForGTPin_CreateQueue(this, queue));
@@ -363,28 +335,40 @@ CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
     return result;
 }
 
-CM_RT_API int32_t CmDevice_RT::CreateQueueEx(CmQueue *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption)
+CM_RT_API int32_t
+CmDevice_RT::CreateQueueEx(CmQueue* &queue,
+                           CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_PROFILER_RECORD();
-
     m_criticalSectionQueue.Acquire();
+
     CmQueue_RT *queueRT = nullptr;
+    if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
+    {
+        for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+        {
+            CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+            if (queueType == CM_QUEUE_TYPE_RENDER)
+            {
+                queue = (*iter);
+                m_criticalSectionQueue.Release();
+                return CM_SUCCESS;
+            }
+        }
+    }
+
     int32_t result = CmQueue_RT::Create(this, queueRT, queueCreateOption);
-    if (result != CM_SUCCESS)
+    if (CM_SUCCESS != result || nullptr == queueRT)
     {
         CmAssert(0);
         CmDebugMessage(("Failed to create queue!"));
         m_criticalSectionQueue.Release();
         return result;
     }
-
     m_queue.push_back(queueRT);
+    queue = queueRT;
     m_criticalSectionQueue.Release();
 
-    if (queueRT != nullptr)
-    {
-        queue = static_cast< CmQueue* >(queueRT);
-    }
     return result;
 }
 
