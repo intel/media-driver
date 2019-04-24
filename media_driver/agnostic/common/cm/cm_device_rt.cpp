@@ -1731,15 +1731,13 @@ CM_RT_API int32_t CmDeviceRT::DestroyKernel(CmKernel*& kernel)
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmDeviceRT::CreateQueue(CmQueue* & queue)
+CM_RT_API int32_t CmDeviceRT::CreateQueue(CmQueue* &queue)
 {
     INSERT_API_CALL_LOG();
 
-    CmQueue *tmpQueue = nullptr;
-
-    // For legacy CreateQueue API, we will only return the same queue
+    CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
     m_criticalSectionQueue.Acquire();
-    for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)
+    for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
     {
         CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
         if (queueType == CM_QUEUE_TYPE_RENDER)
@@ -1750,8 +1748,6 @@ CM_RT_API int32_t CmDeviceRT::CreateQueue(CmQueue* & queue)
         }
     }
     m_criticalSectionQueue.Release();
-
-    CM_QUEUE_CREATE_OPTION queueCreateOption = {};
 
     // Check queue type redirect is needed.
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
@@ -1770,51 +1766,44 @@ CM_RT_API int32_t CmDeviceRT::CreateQueue(CmQueue* & queue)
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Check queue type override for debugging is needed.
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
-    if( MOS_UserFeature_ReadValue_ID( nullptr,
+    if (MOS_UserFeature_ReadValue_ID(
+            nullptr,
             __MEDIA_USER_FEATURE_VALUE_MDF_DEFAULT_CM_QUEUE_TYPE_ID,
             &UserFeatureData) == MOS_STATUS_SUCCESS )
     {
         if (UserFeatureData.u32Data == CM_QUEUE_TYPE_RENDER
-         || UserFeatureData.u32Data == CM_QUEUE_TYPE_COMPUTE)
+            || UserFeatureData.u32Data == CM_QUEUE_TYPE_COMPUTE)
         {
-            queueCreateOption.QueueType = (CM_QUEUE_TYPE)UserFeatureData.u32Data;
+            queueCreateOption.QueueType
+                    = (CM_QUEUE_TYPE)UserFeatureData.u32Data;
         }
     }
 #endif
 
-    int32_t result = CreateQueueEx(tmpQueue, queueCreateOption);
-
-    if (result != CM_SUCCESS)
-    {
-        CM_ASSERTMESSAGE("Failed to create the queue.");
-        return result;
-    }
-
-    queue = tmpQueue;
-    return CM_SUCCESS;
+    return CreateQueueEx(queue, queueCreateOption);
 }
 
 CM_RT_API int32_t
-CmDeviceRT::CreateQueueEx(CmQueue* & queue,
+CmDeviceRT::CreateQueueEx(CmQueue* &queue,
                           CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_API_CALL_LOG();
-
     m_criticalSectionQueue.Acquire();
+
     CmQueueRT *queueRT = nullptr;
-
-    for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)
+    if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
     {
-        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-        unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
-
-        if (queueType == CM_QUEUE_TYPE_RENDER
-            && queueType == queueCreateOption.QueueType
-            && gpuContext == queueCreateOption.GPUContext)
+        for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
         {
-            queue = (*iter);
-            m_criticalSectionQueue.Release();
-            return CM_SUCCESS;
+            CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+            unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
+            if (queueType == CM_QUEUE_TYPE_RENDER
+                && gpuContext == queueCreateOption.GPUContext)
+            {
+                queue = (*iter);
+                m_criticalSectionQueue.Release();
+                return CM_SUCCESS;
+            }
         }
     }
 
@@ -1825,7 +1814,6 @@ CmDeviceRT::CreateQueueEx(CmQueue* & queue,
         m_criticalSectionQueue.Release();
         return result;
     }
-
     m_queue.push_back(queueRT);
     queue = queueRT;
     m_criticalSectionQueue.Release();
