@@ -129,8 +129,15 @@ VphalState* VphalDevice::CreateFactory(
     if (vphalDevice->Initialize(osInterface, osDriverContext, eStatus) != MOS_STATUS_SUCCESS)
     {
         VPHAL_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
-        if (osInterface->bDeallocateOnExit)
+
+         // If m_vphalState has been created, osInterface should be released in VphalState::~VphalState.
+        if (osInterface->bDeallocateOnExit && nullptr == vphalDevice->m_vphalState)
         {
+            // Deallocate OS interface structure (except if externally provided)
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, true);
+            }
             MOS_FreeMemAndSetNull(osInterface);
         }
         vphalDevice->Destroy();
