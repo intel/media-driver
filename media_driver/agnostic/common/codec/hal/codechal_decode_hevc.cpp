@@ -1473,6 +1473,11 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(cmdBufferInUse);
 
+    if (m_statusQueryReportingEnabled)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(cmdBufferInUse));
+    }
+
     // Load HuC FW Kernel from WOPCM.
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS hucImemStateParams;
     MOS_ZeroMemory(&hucImemStateParams, sizeof(hucImemStateParams));
@@ -1532,11 +1537,6 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(
         cmdBufferInUse,
         &hucDmemStateParams));
-
-    if (m_statusQueryReportingEnabled)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(cmdBufferInUse));
-    }
 
     return eStatus;
 }
@@ -1632,6 +1632,7 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
     m_picMhwParams.PipeBufAddrParams->presCurMvTempBuffer          = &m_resMvTemporalBuffer[m_hevcMvBufferIndex];
 
     MOS_ZeroMemory(m_presReferences, sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_HEVC);
+    MOS_ZeroMemory(m_dummyReferenceSlot, sizeof(m_dummyReferenceSlot));
 
     if (!m_curPicIntra)
     {
@@ -1752,6 +1753,7 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
             !Mos_ResourceIsNull(&m_dummyReference.OsResource))
         {
             m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
+            m_dummyReferenceSlot[i] = true;
         }
     }
 
@@ -2067,6 +2069,7 @@ MOS_STATUS CodechalDecodeHevc::SendSliceLongFormat(
     {
         MHW_VDBOX_HEVC_REF_IDX_PARAMS refIdxParams;
         MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_HEVC_REF_IDX_PARAMS));
+        refIdxParams.bDummyReference = true;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpRefIdxStateCmd(
             cmdBuffer,
             nullptr,
@@ -2528,26 +2531,24 @@ MOS_STATUS CodechalDecodeHevc::CalcDownsamplingParams(
 
     PCODEC_HEVC_PIC_PARAMS hevcPicParams = (PCODEC_HEVC_PIC_PARAMS)picParams;
 
-    *refSurfWidth   = 0;
-    *refSurfHeight  = 0;
-    *format   = Format_NV12;
-    *frameIdx        = hevcPicParams->CurrPic.FrameIdx;
+    *refSurfWidth = 0;
+    *refSurfHeight = 0;
+    *format = Format_NV12;
+    *frameIdx = hevcPicParams->CurrPic.FrameIdx;
 
-    if (m_refSurfaces == nullptr)
+    uint32_t                         widthInPix, heightInPix;
+
+    widthInPix = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicWidthInMinCbsY);
+    heightInPix = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicHeightInMinCbsY);
+
+    *refSurfWidth = MOS_ALIGN_CEIL(widthInPix, 64);
+    *refSurfHeight = MOS_ALIGN_CEIL(heightInPix, 64);
+
+    if (m_is10BitHevc)
     {
-        uint32_t                         widthInPix, heightInPix;
-
-        widthInPix      = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicWidthInMinCbsY);
-        heightInPix     = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicHeightInMinCbsY);
-
-        *refSurfWidth  = MOS_ALIGN_CEIL(widthInPix, 64);
-        *refSurfHeight = MOS_ALIGN_CEIL(heightInPix, 64);
-
-        if (m_is10BitHevc)
-        {
-            *format = Format_P010;
-        }
+        *format = Format_P010;
     }
+
 
     return eStatus;
 }

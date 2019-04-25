@@ -35,13 +35,7 @@
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
-#ifndef __user
-#define __user
-#endif
 #include "i915_drm.h"
-#if defined(MEDIA_EXT)
-#include "i915_drm_ext.h"
-#endif
 #include "mos_bufmgr.h"
 #include "xf86drm.h"
 
@@ -82,7 +76,8 @@ enum DdiSurfaceFormat
     DDI_FORMAT_V8U8         = 60,
     DDI_FORMAT_UYVY         = MAKEFOURCC('U', 'Y', 'V', 'Y'),
     DDI_FORMAT_NV12         = MAKEFOURCC('N', 'V', '1', '2'),
-    DDI_FORMAT_A16B16G16R16 = 36
+    DDI_FORMAT_A16B16G16R16 = 36,
+    DDI_FORMAT_R32G32B32A32F = 115,
 };
 
 #define INDIRECT_HEAP_SIZE_UNITS    (1024)
@@ -108,6 +103,7 @@ enum DdiSurfaceFormat
 #define MOS_LOCKFLAG_WRITEONLY                    OSKM_LOCKFLAG_WRITEONLY
 #define MOS_LOCKFLAG_READONLY                     OSKM_LOCKFLAG_READONLY
 #define MOS_LOCKFLAG_NOOVERWRITE                  OSKM_LOCKFLAG_NOOVERWRITE
+#define MOS_LOCKFLAG_NO_SWIZZLE                   OSKM_LOCKFLAG_NO_SWIZZLE
 
 #define MOS_DIR_SEPERATOR                         '/'
 
@@ -122,6 +118,7 @@ enum DdiSurfaceFormat
 #define OSKM_LOCKFLAG_WRITEONLY                   0x00000001
 #define OSKM_LOCKFLAG_READONLY                    0x00000002
 #define OSKM_LOCKFLAG_NOOVERWRITE                 0x00000004
+#define OSKM_LOCKFLAG_NO_SWIZZLE                  0x00000008
 
 // should be defined in libdrm, this is a temporary solution to pass QuickBuild
 #define I915_EXEC_VEBOX                  (4<<0)
@@ -178,7 +175,8 @@ typedef enum _MOS_GPU_NODE
     MOS_GPU_NODE_VE      = I915_EXEC_VEBOX,
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,
-    MOS_GPU_NODE_MAX     = 6,//GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2) + 1
+    MOS_GPU_NODE_BLT     = I915_EXEC_BLT,
+    MOS_GPU_NODE_MAX     = 7,//GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2, I915_EXEC_BLT) + 1
 } MOS_GPU_NODE, *PMOS_GPU_NODE;
 
 //!
@@ -195,23 +193,22 @@ static inline MOS_GPU_NODE OSKMGetGpuNode(MOS_GPU_CONTEXT uiGpuContext)
         case MOS_GPU_CONTEXT_COMPUTE: //change this context mapping to Compute Node instead of 3D node after the node name is defined in linux.
             return  MOS_GPU_NODE_3D;
             break;
-
         case MOS_GPU_CONTEXT_VEBOX:
             return  MOS_GPU_NODE_VE;
             break;
-
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
         case MOS_GPU_CONTEXT_VIDEO3:
             return MOS_GPU_NODE_VIDEO;
             break;
-
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
             return MOS_GPU_NODE_VIDEO2;
             break;
-
+        case MOS_GPU_CONTEXT_BLT:
+            return MOS_GPU_NODE_BLT;
+            break;  
         default:
             return MOS_GPU_NODE_MAX ;
             break;
@@ -531,7 +528,6 @@ struct _MOS_OS_CONTEXT
    
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
-    bool                RequireCPLIB;
 
 #ifndef ANDROID
     std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;

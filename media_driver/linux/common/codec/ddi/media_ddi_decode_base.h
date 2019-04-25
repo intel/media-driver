@@ -302,6 +302,18 @@ public:
     {
         return false;
     }
+
+    //! \brief    Combine the Bitstream Before decoding execution
+    //! \details  Help to refine and combine the decoded input bitstream if
+    //!           required. It is decided by the flag of IsSliceOverSize.
+    //! \param    [in] mediaCtx
+    //!           DDI_MEDIA_CONTEXT * type
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx);
+
 protected:
     //! \brief    the decode_config_attr related with Decode_CONTEXT
     DDI_DECODE_CONFIG_ATTR *m_ddiDecodeAttr = nullptr;
@@ -343,17 +355,6 @@ protected:
     VAStatus ParseProcessingBuffer(
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *bufAddr);
-
-    //! \brief    Combine the Bitstream Before decoding execution
-    //! \details  Help to refine and combine the decoded input bitstream if
-    //!           required. It is decided by the flag of IsSliceOverSize.
-    //! \param    [in] mediaCtx
-    //!           DDI_MEDIA_CONTEXT * type
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    VAStatus DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx);
 
     //!
     //! \brief    Create the back-end CodecHal of DdiMediaDecode

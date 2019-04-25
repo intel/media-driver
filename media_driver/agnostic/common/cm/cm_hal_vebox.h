@@ -52,6 +52,7 @@ struct CM_HAL_EXEC_VEBOX_TASK_PARAM
     void *veboxParam;         // CmBuffer, hold the vebox parameters
     uint32_t veboxParamIndex;  // vebox parameter surface index (UMD)
     CM_VEBOX_SURFACE_DATA veboxSurfaceData;
+    CM_QUEUE_CREATE_OPTION queueOption; // cm queue info, such as rcs/ccs gpu context.
     int32_t taskIdOut;        // [out] Task ID
     void *osData;              // [out] Used for Linux OS data to pass to event
 };

@@ -704,6 +704,7 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_P208,
     RENDERHAL_PLANES_P208_1PLANE_ADV,
     RENDERHAL_PLANES_Y416_RT,
+    RENDERHAL_PLANES_R32G32B32A32F,
 
     RENDERHAL_PLANES_DEFINITION_COUNT
 } RENDERHAL_PLANE_DEFINITION, *PRENDERHAL_PLANE_DEFINITION;
@@ -1345,9 +1346,8 @@ typedef struct _RENDERHAL_INTERFACE
     //---------------------------
     // State Setup - HW + OS Specific
     //---------------------------
-    MOS_STATUS (* pfnSetupSurfaceStateOs) (
+    MOS_STATUS (* pfnSetupSurfaceStatesOs) (
                 PRENDERHAL_INTERFACE            pRenderHal,
-                PRENDERHAL_SURFACE              pRenderHalSurface,
                 PRENDERHAL_SURFACE_STATE_PARAMS pParams,
                 PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceStateEntry);
 

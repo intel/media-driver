@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,9 @@
 //!
 
 #include "media_interfaces_g9_kbl.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g9.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -422,11 +424,28 @@ MOS_STATUS CodechalInterfacesG9Kbl::Initialize(
         }
         else
 #endif
+#ifdef _VP8_ENCODE_SUPPORTED
+        if (info->Mode == CODECHAL_ENCODE_MODE_VP8)
+        {
+            // Setup encode interface functions
+            encoder = MOS_New(Encode::Vp8, hwInterface, debugInterface, info);
+            if (encoder == nullptr)
+            {
+                CODECHAL_PUBLIC_ASSERTMESSAGE("VP8 Encode allocation failed!");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                m_codechalDevice = encoder;
+            }
+        }
+        else
+#endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             // Create CSC and Downscaling interface
@@ -435,6 +454,7 @@ MOS_STATUS CodechalInterfacesG9Kbl::Initialize(
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
+#endif
     }
     else
     {

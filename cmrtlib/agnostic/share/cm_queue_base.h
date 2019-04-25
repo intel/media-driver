@@ -38,8 +38,7 @@ enum CM_QUEUE_TYPE
 {
     CM_QUEUE_TYPE_NONE      = 0,
     CM_QUEUE_TYPE_RENDER    = 1,
-    CM_QUEUE_TYPE_COMPUTE   = 2,
-    CM_QUEUE_TYPE_VEBOX     = 3
+    CM_QUEUE_TYPE_COMPUTE   = 2
 };
 
 enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
@@ -50,16 +49,17 @@ enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
 
 struct CM_QUEUE_CREATE_OPTION
 {
-    CM_QUEUE_TYPE QueueType : 3;
-    bool RunAloneMode       : 1;
-    unsigned int Reserved0  : 3;
-    bool UserGPUContext     : 1;
-    unsigned int GPUContext : 8; // user provided GPU CONTEXT in enum MOS_GPU_CONTEXT, this will override CM_QUEUE_TYPE if set
-    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
-    unsigned int Reserved2  : 13;
+    CM_QUEUE_TYPE                 QueueType               : 3;
+    bool                          RAMode                  : 1;
+    unsigned int                  Reserved0               : 3;
+    bool                          UserGPUContext          : 1; // Is the user-provided GPU Context already created externally
+    unsigned int                  GPUContext              : 8; // user-provided GPU Context ordinal
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint           : 3;
+    unsigned int                  Reserved1               : 1;
+    unsigned int                  Reserved2               : 12;
 };
 
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0, 0 };
 
 //!
 //! \brief CM task queue management.
@@ -325,7 +325,7 @@ public:
     //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
     //!           its value returned by runtime is NULL.
     //! \retval   CM_SUCCESS if the task is successfully enqueued
-    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surface’s width in bytes.
+    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surfaceÂ’s width in bytes.
     //! \retval   CM_GPUCOPY_INVALID_SYSMEM if sysMem is not 16-Byte aligned.
     //! \retval   CM_GPUCOPY_INVALID_SIZE if surface's height is more than CM_MAX_GPUCOPY_SURFACE_HEIGHT
     //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources
@@ -400,7 +400,7 @@ public:
     //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
     //!           its value returned by runtime is NULL.
     //! \retval   CM_SUCCESS if the task is successfully enqueued
-    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surface’s width in bytes.
+    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surfaceÂ’s width in bytes.
     //! \retval   CM_GPUCOPY_INVALID_SYSMEM if sysMem is not 16-Byte aligned.
     //! \retval   CM_GPUCOPY_INVALID_SIZE if surface's height is more than CM_MAX_GPUCOPY_SURFACE_HEIGHT
     //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources
@@ -504,6 +504,27 @@ public:
     //! \retval   CM_FAILURE otherwise
     //!
     CM_RT_API virtual int32_t DestroyEventFast(CmEvent *&event) = 0;
+
+    //!
+    //! \brief    Enqueue the task with thread group space in a fast path.
+    //! \details
+    //! \param    [in]task
+    //!           pointer to task to submit
+    //! \param    [in,out] event
+    //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
+    //!           its value returned by runtime is NULL.
+    //! \param    [in] threadGroupSpace
+    //!           pointer to thread group space which defines the dimensions of the task.
+    //!           pThreadGroupSpace  can not be NULL.
+    //! \retval   CM_SUCCESS if the task is successfully enqueued.
+    //! \retval   CM_INVALID_ARG_VALUE if input task is not valid
+    //! \retval   CM_EXCEED_MAX_KERNEL_PER_ENQUEUE if the task's kernel number exceeds limitation.
+    //! \retval   CM_INVALID_THREAD_GROUP_SPACE if the thread group space specification is invalid.
+    //! \retval   CM_THREAD_ARG_NOT_ALLOWED if user has per thread arguments
+    //!
+    CM_RT_API virtual int32_t EnqueueWithGroupFast(CmTask *task,
+                                  CmEvent *&event,
+                                  const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
 
 protected:
     virtual ~CmQueue() = default;

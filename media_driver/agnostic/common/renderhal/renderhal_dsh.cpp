@@ -746,6 +746,13 @@ MOS_STATUS RenderHal_DSH_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
     // Free Surface State Entries
     if (pStateHeap->pSurfaceEntry)
     {
+        // Free MOS surface in surface state entry
+        for (int32_t index = 0; index < pRenderHal->StateHeapSettings.iSurfaceStates; ++index) {
+            PRENDERHAL_SURFACE_STATE_ENTRY entry = pStateHeap->pSurfaceEntry + index;
+            MOS_SafeFreeMemory(entry->pSurface);
+            entry->pSurface = nullptr;
+        }
+
         MOS_FreeMemory(pStateHeap->pSurfaceEntry);
         pStateHeap->pSurfaceEntry = nullptr;
     }
@@ -775,6 +782,8 @@ MOS_STATUS RenderHal_DSH_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
     // Free State Heap Control structure
     MOS_AlignedFreeMemory(pStateHeap);
     pRenderHal->pStateHeap = nullptr;
+
+    pRenderHal->pRenderHalPltInterface->FreeScratchSpaceBuffer(pRenderHal);
 
     eStatus = MOS_STATUS_SUCCESS;
 
@@ -1820,7 +1829,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     uint8_t                             *performanceMemory = nullptr;
     uint32_t                            performanceSize;
     uint32_t                            dwFrameId;
-    uint32_t                            currentExtendSize;
+    uint32_t                            currentExtendSize = 0;
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
@@ -1986,30 +1995,50 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
     // Kernel Spill Area
     if (pParams->iMaxSpillSize > 0)
-    {   
+    {
         // per thread scratch space must be 1K*(2^n), (2K*(2^n) for BDW A0), alignment is 1kB
-        int iPerThreadScratchSpace;
+        int iPerThreadScratchSpace = 0;
         if (pRenderHal->pfnPerThreadScratchSpaceStart2K(pRenderHal))
+        {
             iPerThreadScratchSpace = 2048;
+        }
+        else if (pRenderHal->pRenderHalPltInterface
+                 ->PerThreadScratchSpaceStart64Byte(pRenderHal))
+        {
+            iPerThreadScratchSpace = 64;
+        }
         else
+        {
             iPerThreadScratchSpace = 1024;
+        }
 
         for (iPerThreadScratchSpace; iPerThreadScratchSpace < pParams->iMaxSpillSize; iPerThreadScratchSpace <<= 1);
+        pDynamicState->iMaxScratchSpacePerThread = pParams->iMaxSpillSize
+                = iPerThreadScratchSpace;
 
-        pDynamicState->iMaxScratchSpacePerThread = pParams->iMaxSpillSize = iPerThreadScratchSpace;
-        pDynamicState->dwScratchSpace = pRenderHal->pfnGetScratchSpaceSize(pRenderHal, iPerThreadScratchSpace);
-        pDynamicState->scratchSpaceOffset = dwSizeMediaState;
-
-        // Allocate more 1k space in state heap, which is used to make scratch space offset 1k-aligned.
-        dwSizeMediaState += pDynamicState->dwScratchSpace + MHW_SCRATCH_SPACE_ALIGN;
-
-        currentExtendSize = pRenderHal->dgsheapManager->GetExtendSize();
-        if (currentExtendSize < pDynamicState->dwScratchSpace)
+        MOS_STATUS result = pRenderHal->pRenderHalPltInterface
+            ->AllocateScratchSpaceBuffer(iPerThreadScratchSpace, pRenderHal);
+        if (MOS_STATUS_UNIMPLEMENTED == result)  // Scratch space buffer is not supported
         {
-            // update extend size for scratch space
-            MHW_RENDERHAL_CHK_STATUS(
-                pRenderHal->dgsheapManager->SetExtendHeapSize(
-                    pDynamicState->dwScratchSpace));
+            pDynamicState->dwScratchSpace
+                    = pRenderHal->pfnGetScratchSpaceSize(pRenderHal,
+                                                         iPerThreadScratchSpace);
+            pDynamicState->scratchSpaceOffset = dwSizeMediaState;
+
+            // Allocate more 1k space in state heap, which is used to make scratch space offset 1k-aligned.
+            dwSizeMediaState += pDynamicState->dwScratchSpace + MHW_SCRATCH_SPACE_ALIGN;
+            currentExtendSize = pRenderHal->dgsheapManager->GetExtendSize();
+            if (currentExtendSize < pDynamicState->dwScratchSpace)
+            {
+                // update extend size for scratch space
+                MHW_RENDERHAL_CHK_STATUS(
+                    pRenderHal->dgsheapManager->SetExtendHeapSize(
+                        pDynamicState->dwScratchSpace));
+            }
+        }
+        else
+        {
+            MHW_RENDERHAL_CHK_STATUS(result);
         }
     }
 
@@ -2027,7 +2056,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         true,
         true));
 
-    if (pParams->iMaxSpillSize > 0)
+    if (pParams->iMaxSpillSize > 0 && currentExtendSize > 0)
     {
         // Restore original extend heap size
         MHW_RENDERHAL_CHK_STATUS(
@@ -2328,7 +2357,6 @@ MOS_STATUS RenderHal_DSH_SendStateBaseAddress(PRENDERHAL_INTERFACE pRenderHal, P
     PMOS_RESOURCE               pIshResource;
     uint32_t                    dwIshSize;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    MHW_STATE_BASE_ADDR_PARAMS  StateBaseAddressParams;
     //----------------------------------------
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -2348,19 +2376,18 @@ MOS_STATUS RenderHal_DSH_SendStateBaseAddress(PRENDERHAL_INTERFACE pRenderHal, P
     pIshResource  = &(pRenderHal->pMhwStateHeap->GetISHPointer()->resHeap);
     dwIshSize     = pRenderHal->pMhwStateHeap->GetISHPointer()->dwSize;
 
-    StateBaseAddressParams.presGeneralState              = pGshResource;
-    StateBaseAddressParams.dwGeneralStateSize            = dwGshSize;
-    StateBaseAddressParams.presDynamicState              = pGshResource;
-    StateBaseAddressParams.dwDynamicStateSize            = dwGshSize;
-    StateBaseAddressParams.dwDynamicStateMemObjCtrlState = 0;
-    StateBaseAddressParams.bDynamicStateRenderTarget     = false;
-    StateBaseAddressParams.presIndirectObjectBuffer      = pGshResource;
-    StateBaseAddressParams.dwIndirectObjectBufferSize    = dwGshSize;
-    StateBaseAddressParams.presInstructionBuffer         = pIshResource;
-    StateBaseAddressParams.dwInstructionBufferSize       = dwIshSize;
+    pRenderHal->StateBaseAddressParams.presGeneralState              = pGshResource;
+    pRenderHal->StateBaseAddressParams.dwGeneralStateSize            = dwGshSize;
+    pRenderHal->StateBaseAddressParams.presDynamicState              = pGshResource;
+    pRenderHal->StateBaseAddressParams.dwDynamicStateSize            = dwGshSize;
+    pRenderHal->StateBaseAddressParams.bDynamicStateRenderTarget     = false;
+    pRenderHal->StateBaseAddressParams.presIndirectObjectBuffer      = pGshResource;
+    pRenderHal->StateBaseAddressParams.dwIndirectObjectBufferSize    = dwGshSize;
+    pRenderHal->StateBaseAddressParams.presInstructionBuffer         = pIshResource;
+    pRenderHal->StateBaseAddressParams.dwInstructionBufferSize       = dwIshSize;
 
     eStatus = pRenderHal->pMhwRenderInterface->AddStateBaseAddrCmd(pCmdBuffer,
-                                                                   &StateBaseAddressParams);
+                                                                   &pRenderHal->StateBaseAddressParams);
 finish:
     return eStatus;
 }

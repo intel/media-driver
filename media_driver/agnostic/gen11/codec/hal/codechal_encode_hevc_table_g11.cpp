@@ -38,13 +38,14 @@ const uint8_t CodechalEncHevcStateG11::m_tuSettings[TotalTuParams][3]
     { 1, 0, 0 }, // EnableCu64CheckTuParam
     { 6, 0, 0 }, // DynamicOrderThTuParam
     { 0, 6, 8 }, // Dynamic64ThTuParam
-    { 1, 0, 0 }, // Dynamic64OrderTuParam
+    { 0, 0, 0 }, // Dynamic64OrderTuParam
     { 0, 2, 2 }, // Dynamic64EnableTuParam
     { 1, 6, 11 }, // IncreaseExitThreshTuParam
     { 2, 1, 1 }, // Log2TUMaxDepthInterTuParam
     { 2, 2, 1 }, // Log2TUMaxDepthIntraTuParam
     { 3, 2, 2 }, // MaxNumIMESearchCenterTuParam
     { 0, 1, 1 }, // Fake32EnableTuParam
+    { 3, 0, 0 }, // Dynamic64Min32
 };
 
 //!< Mode bits LUT based on LCUType/Mode/SliceType

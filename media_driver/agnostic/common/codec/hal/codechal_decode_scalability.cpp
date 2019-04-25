@@ -1489,17 +1489,26 @@ MOS_STATUS CodecHalDecodeScalability_SetHintParams(
         {
             //set Hint parameter for FE submission
             VEParams.bScalableMode = false;
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+            if (pVEInterface->pfnVESetHintParams)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+            }
         }
 
         VEParams.bScalableMode = true;
         VEParams.bHaveFrontEndCmds = (pScalabilityState->bFESeparateSubmission ? false : true);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        if (pVEInterface->pfnVESetHintParams)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        }
     }
     else
     {
         VEParams.bScalableMode = false;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        if (pVEInterface->pfnVESetHintParams)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        }
     }
 
     return eStatus;
@@ -1562,21 +1571,24 @@ MOS_STATUS CodecHalDecodeScalability_PopulateHintParams(
     CODECHAL_DECODE_CHK_NULL_RETURN(pPrimCmdBuf);
     pAttriVe = (PMOS_CMD_BUF_ATTRI_VE)(pPrimCmdBuf->Attributes.pAttriVe);
 
-    if ((CodecHalDecodeScalabilityIsScalableMode(pScalabilityState) &&
-         !CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState)) ||
-        (CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState) &&
-         CodecHalDecodeScalabilityIsBEPhase(pScalabilityState)))
+    if (pAttriVe)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pScalHintParms);
-        pAttriVe->VEngineHintParams = *(pScalabilityState->pScalHintParms);
-    }
-    else
-    {
-        CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pSingleHintParms);
-        pAttriVe->VEngineHintParams = *(pScalabilityState->pSingleHintParms);
-    }
+        if ((CodecHalDecodeScalabilityIsScalableMode(pScalabilityState) &&
+             !CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState)) ||
+            (CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState) &&
+             CodecHalDecodeScalabilityIsBEPhase(pScalabilityState)))
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pScalHintParms);
+            pAttriVe->VEngineHintParams = *(pScalabilityState->pScalHintParms);
+        }
+        else
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pSingleHintParms);
+            pAttriVe->VEngineHintParams = *(pScalabilityState->pSingleHintParms);
+        }
 
-    pAttriVe->bUseVirtualEngineHint = true;
+        pAttriVe->bUseVirtualEngineHint = true;
+    }
 
     return eStatus;
 }
@@ -1691,13 +1703,6 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
                 &dataParams));
         }
 
-        if (pOsInterface->osCpInterface &&
-            pOsInterface->osCpInterface->IsHMEnabled() &&
-            pScalabilityState->pHwInterface->GetCpInterface())
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetCpInterface()->AddConditionalBatchBufferEndForEarlyExit(pOsInterface, pCmdBufferInUse));
-        }
-
         //reset HW semaphore
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->SendMiAtomicDwordCmd(&pScalabilityState->resSemaMemBEs, 1, MHW_MI_ATOMIC_DEC, pCmdBufferInUse));
 
@@ -1708,6 +1713,13 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
             0,
             true,
             pCmdBufferInUse));
+
+        if (pOsInterface->osCpInterface &&
+            pOsInterface->osCpInterface->IsHMEnabled() &&
+            pScalabilityState->pHwInterface->GetCpInterface())
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetCpInterface()->AddConditionalBatchBufferEndForEarlyExit(pOsInterface, pCmdBufferInUse));
+        }
     }
 
     return eStatus;
@@ -1891,8 +1903,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     }
 
     pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO;
-    pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
-    pScalabilityState->VideoContextFor3P = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+    pScalabilityState->VideoContextForMP = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO5 : MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+    pScalabilityState->VideoContextFor3P = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO7 : MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
 
     pScalabilityState->numDelay = 15;
 
@@ -1949,15 +1961,18 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     if (pScalabilityState->bFESeparateSubmission)
     {
         MOS_GPU_CONTEXT         GpuContext = MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO : MOS_GPU_CONTEXT_VIDEO4;
-        MOS_GPUCTX_CREATOPTIONS createOpts;
-        MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
+        GpuContext = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO4 : GpuContext;
 
+        MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
         CODECHAL_DECODE_CHK_STATUS_RETURN(vdboxMfxInterface->FindGpuNodeToUse(
             &gpuNodeLimit));
+        MOS_GPU_NODE videoGpuNode = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
+
+        MOS_GPUCTX_CREATOPTIONS createOpts;
         CODECHAL_DECODE_CHK_STATUS_RETURN(osInterface->pfnCreateGpuContext(
             osInterface,
             GpuContext,
-            (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse),
+            videoGpuNode,
             &createOpts));
         pScalabilityState->VideoContextForFE = GpuContext;
     }
@@ -1978,8 +1993,14 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(osInterface, &VEInitParms));
     pScalabilityState->pVEInterface = pVEInterface = osInterface->pVEInterf;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, true, &pScalabilityState->pScalHintParms));
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, false, &pScalabilityState->pSingleHintParms));
+    if (pVEInterface->pfnVEGetHintParams)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, true, &pScalabilityState->pScalHintParms));
+    }
+    if (pVEInterface->pfnVEGetHintParams)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, false, &pScalabilityState->pSingleHintParms));
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));

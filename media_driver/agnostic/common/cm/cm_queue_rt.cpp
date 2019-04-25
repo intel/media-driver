@@ -116,7 +116,8 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_halMaxValues(nullptr),
     m_copyKernelParamArray(CM_INIT_GPUCOPY_KERNL_COUNT),
     m_copyKernelParamArrayCount(0),
-    m_queueOption(queueCreateOption)
+    m_queueOption(queueCreateOption),
+    m_usingVirtualEngine(false)
 {
 
 }
@@ -192,24 +193,20 @@ int32_t CmQueueRT::Initialize()
             // command buffer number
             ctxCreateOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(cmHalState->osInterface, cmHalState->cmDeviceParam.maxTasks);
 
-            MOS_GPU_CONTEXT tmpGpuCtx = (m_queueOption.GPUContext == 0) ? cmHalState->gpuContext : (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
+            MOS_GPU_CONTEXT tmpGpuCtx = cmHalState->requestCustomGpuContext? MOS_GPU_CONTEXT_RENDER4: MOS_GPU_CONTEXT_RENDER3;;
 
             // check if context handle was specified by user.
             if (m_queueOption.GPUContext != 0)
             {
                 tmpGpuCtx = (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
             }
-            else
-            {
-                tmpGpuCtx = cmHalState->gpuContext;
-            }
 
             // sanity check of context handle for CM
-            if (tmpGpuCtx != MOS_GPU_CONTEXT_RENDER3 && tmpGpuCtx != MOS_GPU_CONTEXT_RENDER4)
+            if (HalCm_IsValidGpuContext(tmpGpuCtx) == false)
             {
                 return CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX;
             }
-            
+
             // SSEU overriding
             if (cmHalState->cmHalInterface->IsOverridePowerOptionPerGpuContext())
             {
@@ -230,7 +227,7 @@ int32_t CmQueueRT::Initialize()
                     nullptr,
                     __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
                     &UserFeatureData);
-               
+
                 // +---------------+----------------+----------------+----------------+
                 // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
                 // +-------------24+--------------16+---------------8+---------------0+
@@ -244,12 +241,14 @@ int32_t CmQueueRT::Initialize()
 #endif
             }
 
+            ctxCreateOption.RAMode = m_queueOption.RAMode;
+
             // Create Render GPU Context
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D, &ctxCreateOption));
 
             // Set current GPU context
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface, tmpGpuCtx));
-                    
+
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
             //init GuC
@@ -260,6 +259,26 @@ int32_t CmQueueRT::Initialize()
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
+            ctxCreateOption.RAMode = m_queueOption.RAMode;
+
+            bool bVeUsedInCm = false; //need change to true once feature is done in future.
+#if (_DEBUG || _RELEASE_INTERNAL)
+            MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+            MOS_UserFeature_ReadValue_ID(nullptr,
+                __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_INTERFACE, &UserFeatureData);
+            bVeUsedInCm = (UserFeatureData.u32Data == 0x1)? true: false;
+#endif
+            Mos_SetVirtualEngineSupported(cmHalState->osInterface, bVeUsedInCm);
+
+            if (cmHalState->osInterface->veDefaultEnable && cmHalState->osInterface->bSupportVirtualEngine) // check if VE enabled on OS
+            {
+                // prepare virtual egine hint param on this cm queue.
+                CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+                    HalCm_PrepareVEHintParam(cmHalState, false, &m_mosVeHintParams));
+
+                m_usingVirtualEngine = true;
+            }
+
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
                 cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,
                                                 MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
@@ -348,15 +367,15 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
     int32_t result;
     const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
     PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
-    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false) 
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        if (threadSpaceRTConst != nullptr) 
+        if (threadSpaceRTConst != nullptr)
         {
             result = EnqueueWithGroup(kernelArray, event, threadSpaceRTConst->GetThreadGroupSpace());
         }
         else
         {
-            // If there isn't any shared thread space or associated thread space, 
+            // If there isn't any shared thread space or associated thread space,
             // create a temporary (maxThreadCount x 1) thread group space whose
             // size equal to the max thread count of kernel who doesn't have a
             // thread space associated.
@@ -948,6 +967,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPU( CmSurface2D* surface, const un
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, (unsigned char*)sysMem, 0, 0, CM_FASTCOPY_CPU2GPU, CM_FASTCOPY_OPTION_NONBLOCKING, event);
 }
@@ -975,11 +999,16 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToCPU( CmSurface2D* surface, unsigned
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, sysMem, 0, 0, CM_FASTCOPY_GPU2CPU, CM_FASTCOPY_OPTION_NONBLOCKING, event);
 }
 
-int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigned char* sysMem, const uint32_t widthStride, const uint32_t heightStride, CM_GPUCOPY_DIRECTION direction, CmEvent* &event )
+int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigned char* sysMem, const uint32_t widthStride, const uint32_t heightStride, CM_GPUCOPY_DIRECTION direction)
 {
     int32_t         hr                          = CM_SUCCESS;
     uint32_t        bufferupSize               = 0;
@@ -1006,10 +1035,10 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
     SurfaceIndex           *bufferIndexCM             = nullptr;
     SurfaceIndex           *hybridCopyAuxIndexCM      = nullptr;
     SurfaceIndex           *surf2DIndexCM             = nullptr;
-    CmThreadSpace          *threadSpace                        = nullptr;
-    CmQueue                *cmQueue                   = nullptr;
+    CmThreadSpace          *threadSpace               = nullptr;
     CmTask                 *gpuCopyTask               = nullptr;
     CmProgram              *gpuCopyProgram            = nullptr;
+    CmEvent                *event                     = nullptr;
     CM_STATUS              status;
     CM_SURFACE_FORMAT      format;
 
@@ -1117,10 +1146,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
     CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount( threadNum ));
 
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
-    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
     CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
-    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, event, threadSpace ));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, event, threadSpace));
 
     if(event)
     {
@@ -1172,6 +1200,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
         }
     }
 
+    CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(event));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyTask(gpuCopyTask));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyThreadSpace(threadSpace));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->DestroyBufferUP(bufferUP));
@@ -1196,8 +1225,9 @@ finish:
             hr = CM_GPUCOPY_OUT_OF_RESOURCE;
         }
 
+        if(event)                          DestroyEventFast(event);
         if(kernel)                         m_device->DestroyKernel(kernel);
-        if(threadSpace)                             m_device->DestroyThreadSpace(threadSpace);
+        if(threadSpace)                    m_device->DestroyThreadSpace(threadSpace);
         if(gpuCopyTask)                    m_device->DestroyTask(gpuCopyTask);
         if(bufferUP)                       m_device->DestroyBufferUP(bufferUP);
         if(hybridCopyAuxBufferUP)          m_device->DestroyBufferUP(hybridCopyAuxBufferUP);
@@ -1287,7 +1317,6 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
     SurfaceIndex    *bufferIndexCM     = nullptr;
     SurfaceIndex    *surf2DIndexCM     = nullptr;
     CmThreadSpace   *threadSpace                = nullptr;
-    CmQueue         *cmQueue           = nullptr;
     CmTask          *gpuCopyTask       = nullptr;
     CmEvent         *internalEvent     = nullptr;
 
@@ -1391,7 +1420,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
         kernel = nullptr;
         CM_CHK_CMSTATUS_GOTOFINISH( m_device->CreateBufferUP(  sliceCopyBufferUPSize, ( void * )linearAddressAligned, cmbufferUP ));
         CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUP);
-        
+
         //Configure memory object control for BufferUP to solve the cache-line issue.
         if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
         {
@@ -1413,6 +1442,11 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
         CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount( threadNum ));
         CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace( threadWidth, threadHeight, threadSpace ));
 
+        if(direction == CM_FASTCOPY_GPU2CPU)
+        {
+            surface->SetReadSyncFlag(true, this); // GPU -> CPU, set surf2d as read sync flag
+        }
+
         if( direction == CM_FASTCOPY_CPU2GPU)
         {
             if (cmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
@@ -1428,10 +1462,6 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
         }
 
-        if(direction == CM_FASTCOPY_GPU2CPU)
-        {
-            surface->SetReadSyncFlag(true); // GPU -> CPU, set surf2d as read sync flag
-        }
 
         widthDword = (uint32_t)ceil((double)widthByte / 4);
         strideInDwords = (uint32_t)ceil((double)strideInBytes / 4);
@@ -1455,7 +1485,6 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 7, sizeof( uint32_t ), &startY ));
         }
 
-        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
         CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
         CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
         if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
@@ -1466,7 +1495,8 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
             gpuCopyTask->SetProperty(taskConfig);
         }
-        CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, internalEvent, threadSpace ));
+        CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, internalEvent,
+                                           threadSpace));
 
         GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
@@ -1479,7 +1509,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
 
         if(totalBufferUPSize > 0)   //Intermediate event, we don't need it
         {
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->DestroyEvent(internalEvent));
+            CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(internalEvent));
         }
         else //Last one event, need keep or destroy it
         {
@@ -1491,7 +1521,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
             if(event == CM_NO_EVENT)  //User doesn't need CmEvent for this copy
             {
                 event = nullptr;
-                CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->DestroyEvent(internalEvent));
+                CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(internalEvent));
             }
             else //User needs this CmEvent
             {
@@ -1518,7 +1548,7 @@ finish:
         if(threadSpace)                                m_device->DestroyThreadSpace(threadSpace);
         if(gpuCopyTask)                       m_device->DestroyTask(gpuCopyTask);
         if(cmbufferUP)                        m_device->DestroyBufferUP(cmbufferUP);
-        if(internalEvent)                     cmQueue->DestroyEvent(internalEvent);
+        if(internalEvent)                     DestroyEventFast(internalEvent);
 
         // CM_FAILURE for all the other errors
         // return CM_EXCEED_MAX_TIMEOUT to notify app that gpu reset happens
@@ -1560,8 +1590,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
     SurfaceIndex    *bufferUPIndexY       = nullptr;
     SurfaceIndex    *bufferUPIndexUV      = nullptr;
     SurfaceIndex    *surf2DIndexCM         = nullptr;
-    CmThreadSpace   *threadSpace                    = nullptr;
-    CmQueue         *cmQueue               = nullptr;
+    CmThreadSpace   *threadSpace           = nullptr;
     CmTask          *gpuCopyTask           = nullptr;
     CmEvent         *internalEvent         = nullptr;
 
@@ -1651,7 +1680,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
     CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPY);
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP(bufferUPUVSize, (void *)linearAddressAlignedUV, cmbufferUPUV));
     CM_CHK_NULL_GOTOFINISH_CMERROR(cmbufferUPUV);
-    
+
     //Configure memory object control for the two BufferUP to solve the same cache-line coherency issue.
     if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
     {
@@ -1719,10 +1748,9 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
         CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(8, sizeof(uint32_t), &widthDword));
         CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(9, sizeof(uint32_t), &heightInRow));
 
-        surface->SetReadSyncFlag(true); // GPU -> CPU, set surf2d as read sync flag
+        surface->SetReadSyncFlag(true, this); // GPU -> CPU, set surf2d as read sync flag
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue(cmQueue));
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
     CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel(kernel));
     if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
@@ -1733,7 +1761,8 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
         taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
         gpuCopyTask->SetProperty(taskConfig);
     }
-    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(gpuCopyTask, internalEvent, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, internalEvent,
+                                       threadSpace));
 
     GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
 
@@ -1745,7 +1774,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
     if (event == CM_NO_EVENT)  //User doesn't need CmEvent for this copy
     {
         event = nullptr;
-        CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->DestroyEvent(internalEvent));
+        CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(internalEvent));
     }
     else //User needs this CmEvent
     {
@@ -1772,7 +1801,7 @@ finish:
         if (gpuCopyTask)                       m_device->DestroyTask(gpuCopyTask);
         if (cmbufferUPY)                      m_device->DestroyBufferUP(cmbufferUPY);
         if (cmbufferUPUV)                     m_device->DestroyBufferUP(cmbufferUPUV);
-        if (internalEvent)                     cmQueue->DestroyEvent(internalEvent);
+        if (internalEvent)                     DestroyEventFast(internalEvent);
 
         // CM_FAILURE for all the other errors
         // return CM_EXCEED_MAX_TIMEOUT to notify app that gpu reset happens
@@ -1809,6 +1838,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     uint32_t srcSurfaceWidth = 0;
     uint32_t srcSurfaceHeight = 0;
     uint32_t dstSurfaceWidth = 0;
@@ -1828,7 +1862,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
     SurfaceIndex        *surfaceOutputIndex = nullptr;
     CmThreadSpace       *threadSpace = nullptr;
     CmTask              *task = nullptr;
-    CmQueue             *cmQueue = nullptr;
     uint32_t            srcSurfAlignedWidthInBytes = 0;
     CM_GPUCOPY_KERNEL *gpuCopyKernelParam = nullptr;
 
@@ -1910,8 +1943,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
         task->SetProperty(taskConfig);
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue(cmQueue));
-    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(task, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, event, threadSpace));
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (event))
     {
         CM_CHK_CMSTATUS_GOTOFINISH(event->WaitForTaskFinished());
@@ -1952,6 +1984,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     int hr = CM_SUCCESS;
     size_t inputLinearAddress  = (size_t )srcSysMem;
     size_t outputLinearAddress = (size_t )dstSysMem;
@@ -1966,7 +2003,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
     SurfaceIndex    *surfaceOutputIndex    = nullptr;
     CmThreadSpace   *threadSpace                    = nullptr;
     CmTask          *task                  = nullptr;
-    CmQueue         *cmQueue               = nullptr;
 
     int32_t         srcLeftShiftOffset      = 0;
     int32_t         dstLeftShiftOffset      = 0;
@@ -2081,8 +2117,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
         task->SetProperty(taskConfig);
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue));
-    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue(task, event, threadSpace));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, event, threadSpace));
 
     if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (event))
     {
@@ -2278,7 +2313,11 @@ CM_RT_API int32_t CmQueueRT::DestroyEvent( CmEvent* & event )
 
     uint32_t index = 0;
 
-    CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+    CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+    if (eventRT == nullptr)
+    {
+        return DestroyEventFast(event);
+    }
     eventRT->GetIndex(index);
     CM_ASSERT( m_eventArray.GetElement( index ) == eventRT );
 
@@ -2358,6 +2397,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* surf2D, const ui
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuInitKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     int32_t         hr                      = CM_SUCCESS;
     uint32_t        width                   = 0;
     uint32_t        height                  = 0;
@@ -2365,8 +2409,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* surf2D, const ui
     CmProgram       *gpuInitKernelProgram  = nullptr;
     CmKernel        *kernel                = nullptr;
     SurfaceIndex    *outputIndexCM         = nullptr;
-    CmThreadSpace   *threadSpace                    = nullptr;
-    CmQueue         *cmQueue               = nullptr;
+    CmThreadSpace   *threadSpace           = nullptr;
     CmTask          *gpuCopyTask           = nullptr;
     uint32_t        threadWidth             = 0;
     uint32_t        threadHeight            = 0;
@@ -2410,14 +2453,12 @@ CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* surf2D, const ui
     CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 0, sizeof( uint32_t ), &initValue ));
     CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), outputIndexCM ));
 
-    CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateQueue( cmQueue ));
-
     CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(gpuCopyTask));
     CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyTask);
 
     CM_CHK_CMSTATUS_GOTOFINISH(gpuCopyTask->AddKernel( kernel ));
 
-    CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->Enqueue( gpuCopyTask, event, threadSpace ));
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(gpuCopyTask, event, threadSpace));
 
 finish:
 
@@ -2669,6 +2710,7 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     param.kernelSizes = MOS_NewArray(uint32_t, count);
     param.kernelCurbeOffset = MOS_NewArray(uint32_t, count);
     param.queueOption = m_queueOption;
+    param.mosVeHintParams = (m_usingVirtualEngine)? &m_mosVeHintParams: nullptr;
 
     CmSafeMemCopy(&param.taskConfig, task->GetTaskConfig(), sizeof(param.taskConfig));
     CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernels);
@@ -2792,6 +2834,8 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
     param.veboxParam = veboxParamBuf;
 
     param.veboxSurfaceData = cmVeboxSurfaceData;
+
+    param.queueOption = m_queueOption;
 
     //Set VEBOX task id to -1
     param.taskIdOut = -1;
@@ -3025,7 +3069,7 @@ finish:
         return CM_NULL_POINTER;
     }
     surfaceLock->Acquire();
-    surfaceMgr->DestroySurfaceInPool(freeSurfNum, DELAYED_DESTROY);
+    surfaceMgr->RefreshDelayDestroySurfaces(freeSurfNum);
     surfaceLock->Release();
 
     return hr;
@@ -3153,6 +3197,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPUFullStride( CmSurface2D* surface
 {
     INSERT_API_CALL_LOG();
 
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, (unsigned char*)sysMem, widthStride, heightStride, CM_FASTCOPY_CPU2GPU, option, event);
 }
@@ -3184,6 +3233,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToCPUFullStride( CmSurface2D* surface
                                                      CmEvent* & event )
 {
     INSERT_API_CALL_LOG();
+
+    if (!m_device->HasGpuCopyKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
     return EnqueueCopyInternal(surfaceRT, sysMem, widthStride, heightStride, CM_FASTCOPY_GPU2CPU, option, event);
@@ -3513,6 +3567,14 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
     }
     else
     {
+        const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
+        if (state->cmHalInterface->CheckMediaModeAvailability() == false) 
+        {
+            if (threadSpaceRTConst != nullptr) 
+            {
+                return state->advExecutor->SubmitComputeTask(this, task, event, threadSpaceRTConst->GetThreadGroupSpace(), (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+            }
+        }
         return state->advExecutor->SubmitTask(this, task, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
     }
 }
@@ -3520,7 +3582,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
 CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
 {
     CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
-    
+
     if (state == nullptr || state->advExecutor == nullptr)
     {
         return CM_NULL_POINTER;
@@ -3529,6 +3591,19 @@ CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
     {
         return state->advExecutor->DestoryEvent(this, event);
     }
+}
+
+CM_RT_API int32_t CmQueueRT::EnqueueWithGroupFast(CmTask *task,
+                                      CmEvent *&event,
+                                      const CmThreadGroupSpace *threadGroupSpace)
+{
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (state == nullptr || state->advExecutor == nullptr)
+    {
+        return CM_NULL_POINTER;
+    }
+
+    return state->advExecutor->SubmitComputeTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
 }
 
 }

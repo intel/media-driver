@@ -2267,12 +2267,6 @@ protected:
         eStatus = MhwVdboxMfxInterfaceGeneric<TMfxCmds, mhw_mi_g9_X>::AddMfdVp8BsdObjectCmd(cmdBuffer, params);
         MHW_MI_CHK_STATUS(eStatus);
 
-        cmd.DW3.IndirectPartition0DataLength += 1;
-        if (cmd.DW3.IndirectPartition0DataLength == 0)
-        {
-            cmd.DW3.IndirectPartition0DataLength -= 1;
-        }
-
         return eStatus;
     }
 
@@ -2387,7 +2381,7 @@ protected:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
-        if (params->dwPartitions == 0 || params->dwPartitions >= MhwVdboxMfxInterface::m_vp8MaxNumPartitions)
+        if (params->dwPartitions == 0 || params->dwPartitions > MhwVdboxMfxInterface::m_vp8MaxNumPartitions)
         {
             MHW_ASSERTMESSAGE("Invalid Partitions.");
             eStatus = MOS_STATUS_INVALID_PARAMETER;

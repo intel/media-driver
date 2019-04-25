@@ -226,28 +226,15 @@ struct mos_bufmgr {
                    uint32_t write_domain);
 
     /** Executes the command buffer pointed to by bo. */
-#ifdef ANDROID
-    int (*bo_exec) (struct mos_linux_bo *bo, int used,
-            drm_clip_rect_t *cliprects, int num_cliprects,
-            int DR4, int fence_in, int *fence_out);
-#else
     int (*bo_exec) (struct mos_linux_bo *bo, int used,
             drm_clip_rect_t *cliprects, int num_cliprects,
             int DR4);
-#endif
     /** Executes the command buffer pointed to by bo on the selected
      * ring buffer
      */
-#ifdef ANDROID
-    int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
-                drm_clip_rect_t *cliprects, int num_cliprects,
-                int DR4, unsigned flags,
-                int fence_in, int *fence_out);
-#else
     int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
                 drm_clip_rect_t *cliprects, int num_cliprects,
                 int DR4, unsigned flags);
-#endif
 
     /**
      * Pin a buffer to the aperture and fix the offset until unpinned
@@ -298,15 +285,6 @@ struct mos_bufmgr {
      */
     int (*bo_flink) (struct mos_linux_bo *bo, uint32_t * name);
 
-#ifdef ANDROID
-    /**
-     * Create a dma-buf prime fd for a buffer which can be used by other apps
-     *
-     * \param buf Buffer to create a prime fd for
-     * \param prime_fd Returned prime fd
-     */
-    int (*bo_prime) (struct mos_linux_bo *bo, uint32_t * prime_fd);
-#endif
     /**
      * Returns 1 if mapping the buffer for write could cause the process
      * to block, due to the object being active in the GPU.
@@ -360,6 +338,8 @@ struct mos_bufmgr {
 
     /** Returns true if target_bo is in the relocation tree rooted at bo. */
     int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
+
+    void (*set_exec_object_async) (struct mos_linux_bo *bo);
 
     /**< Enables verbose debugging printouts */
     int debug;

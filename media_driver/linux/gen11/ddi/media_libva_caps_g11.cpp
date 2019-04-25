@@ -288,16 +288,19 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
             }
             else if (IsAvcProfile(profile))
             {
-                // the capacity is differnt for CQP and BRC mode, set it as larger one here
-                uint32_t roiBRCPriorityLevelSupport = 1;
-                uint32_t roiBRCQpDeltaSupport = 1;
-                *value = (roiBRCPriorityLevelSupport << 9)
-                    | (roiBRCQpDeltaSupport << 8)
-                    | ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                VAConfigAttribValEncROI roi_attrib = {0};
+                roi_attrib.bits.num_roi_regions = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                roi_attrib.bits.roi_rc_priority_support = 1;
+                roi_attrib.bits.roi_rc_qp_delta_support = 1;
+                *value = roi_attrib.value;
             }
-            else
+            else if (IsHevcProfile(profile))
             {
-                *value = 0;
+                VAConfigAttribValEncROI roi_attrib = {0};
+                roi_attrib.bits.num_roi_regions = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
+                roi_attrib.bits.roi_rc_priority_support = 0;
+                roi_attrib.bits.roi_rc_qp_delta_support = 1;
+                *value = roi_attrib.value;
             }
             break;
         }
@@ -510,9 +513,10 @@ VAStatus MediaLibvaCapsG11::LoadProfileEntrypoints()
     DDI_CHK_RET(status, "Failed to initialize Caps!");
     status = LoadVp9EncProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
+#ifdef ENABLE_KERNELS
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
-
+#endif
     return status;
 }
 
@@ -522,6 +526,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
         uint32_t height)
 {
     uint32_t maxWidth, maxHeight;
+
     switch (profile)
     {
         case VAProfileJPEGBaseline:
@@ -552,9 +557,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
             if ((width > m_maxVp9EncWidth) ||
                 (width < m_encMinWidth) ||
                 (height > m_maxVp9EncHeight) ||
-                (height < m_encMinHeight) ||
-                (width % 8) ||
-                (height % 8))
+                (height < m_encMinHeight))
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -1078,6 +1081,34 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
     MOS_SecureMemcpy(attribList, i * sizeof(*attribs), attribs, i * sizeof(*attribs));
 
     MOS_FreeMemory(attribs);
+    return status;
+}
+
+VAStatus MediaLibvaCapsG11::CreateDecAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList)
+{
+    VAStatus status = MediaLibvaCaps::CreateDecAttributes(profile, entrypoint, attributeList);
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    auto attribList = *attributeList;
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAConfigAttrib attrib;
+    attrib.type = VAConfigAttribRTFormat;
+    if(profile == VAProfileHEVCMain444)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+    else if(profile == VAProfileHEVCMain444_10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        attrib.value |= VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV444_10;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+
     return status;
 }
 

@@ -56,7 +56,7 @@ typedef enum _MEDIA_EVENT
     EVENT_MHW_PROLOG,               //! event for MHW GPU cmd prolog.
     EVENT_MHW_EPILOG,               //! event for MHW GPU cmd epilog.
     EVENT_KEYEXCHANGE_WV,           //! event for WV key exchange
-    EVENT_TEST1,                    //! event for immediate event trace usage in debug. 
+    EVENT_TEST1,                    //! event for immediate event trace usage in debug.
     EVENT_TEST2,                    //! avoid build manifest for temp event.
     EVENT_TEST3,                    //! pre allocate 3 events.
     EVENT_CP_CREATE,                //! event for cp session create
@@ -65,6 +65,16 @@ typedef enum _MEDIA_EVENT
     EVENT_CP_CHECK_SESSION_STATUS,  //! event for cp session status check
     EVENT_CP_RESOURCR_SESSION,      //! event for cp resource session create
     EVENT_PREPARE_RESOURCES,        //! event for prepare resource
+    EVENT_DDI_CODEC_CREATE,         //! event for ddi tracking - codec create
+    EVENT_DDI_CODEC_DESTROY,        //! event for ddi tracking - codec destroy
+    EVENT_DDI_CODEC_VIEW,           //! event for ddi tracking - codec view
+    EVENT_DDI_VP_CREATE,            //! event for ddi tracking - vp create
+    EVENT_DDI_VP_DESTROY,           //! event for ddi tracking - vp destroy
+    EVENT_DDI_VP_VIEW,              //! event for ddi tracking - vp view
+    EVENT_DDI_VP_BLT,               //! event for ddi tracking - vp blt
+    EVENT_DDI_VP_BLT_SETSTATE,      //! event for ddi tracking - vp blt stream state
+    EVENT_DDI_VPHAL_REPORT,         //! event for ddi tracking - vp hal report
+    EVENT_DDI_VP_BLT_HINTS,         //! event for ddi tracking - vp blt hints
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

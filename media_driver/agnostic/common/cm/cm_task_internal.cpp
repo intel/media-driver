@@ -37,7 +37,13 @@
 #include "cm_vebox_data.h"
 #include "cm_queue_rt.h"
 #include "cm_surface_manager.h"
+#include "cm_buffer_rt.h"
 #include "cm_surface_2d_rt.h"
+#include "cm_surface_2d_up_rt.h"
+#include "cm_surface_3d_rt.h"
+#include "cm_surface_vme.h"
+#include "cm_surface_sampler.h"
+#include "cm_surface_sampler8x8.h"
 
 namespace CMRT_UMD
 {
@@ -158,7 +164,6 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::Destroy( CmTaskInternal* &task )
 {
-    task->UpdateSurfaceStateOnTaskDestroy();
     CmSafeDelete( task );
     return CM_SUCCESS;
 }
@@ -1454,7 +1459,7 @@ int32_t CmTaskInternal::GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get the size of shared local memory
+//| Purpose:    Get the size of sharedlocalmemory
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetSLMSize(uint32_t& slmSize)
@@ -1692,7 +1697,7 @@ int32_t CmTaskInternal::SetPowerOption( PCM_POWER_OPTION powerOption )
         CM_ASSERTMESSAGE("Error: Pointer to power option is null.");
         return CM_NULL_POINTER;
     }
-    CmFastMemCopy( &m_powerOption, powerOption, sizeof( m_powerOption ) );
+    CmSafeMemCopy( &m_powerOption, powerOption, sizeof( m_powerOption ) );
     return CM_SUCCESS;
 }
 
@@ -1780,16 +1785,18 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
         return CM_NULL_POINTER;
     }
 
-    surfaceMgr->GetSurfaceState(surfState);
-    if (surfState == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface state is null.");
-        return CM_NULL_POINTER;
-    }
-
     uint32_t poolSize = surfaceMgr->GetSurfacePoolSize();
+    uint32_t handle = 0;
+    uint32_t curTaskSurfCnt = 0;
+    void **  curTaskSurfResArray = nullptr;
+    uint32_t  refSurfCnt = 0;
+    uint32_t *refSurfHandleArray = nullptr;
+
+    curTaskSurfResArray = (void **)MOS_AllocAndZeroMemory(sizeof(void *)*poolSize);
+    CM_CHK_NULL_RETURN_CMERROR(curTaskSurfResArray);
 
     CSync* surfaceLock = m_cmDevice->GetSurfaceCreationLock();
+
     if (surfaceLock == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface creation lock is null.");
@@ -1797,6 +1804,12 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
     }
 
     surfaceLock->Acquire();
+
+    // get the last tracker
+    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    PCM_HAL_STATE state = cmData->cmHalState;
+    CM_CHK_NULL_RETURN_CMERROR(state);
 
     if (!m_isSurfaceUpdateDone)
     {
@@ -1804,7 +1817,97 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
         {
             if (m_surfaceArray[i])
             {
-                surfState[i] ++;
+                CmSurface *surface = NULL;
+                CM_CHK_CMSTATUS_RETURN(surfaceMgr->GetSurface(i, surface));
+                if (surface == nullptr) // surface destroyed but not updated in kernel
+                {
+                    continue;
+                }
+                if (m_taskType == CM_INTERNAL_TASK_VEBOX)
+                {
+                    surface->SetVeboxTracker(state->renderHal->veBoxTrackerRes.currentTrackerId);
+                }
+                else
+                {
+                    surface->SetRenderTracker(state->renderHal->trackerResource.currentTrackerId);
+                }
+
+                // Push this surface's resource into array for CP check.
+                switch (surface->Type())
+                {
+                    case CM_ENUM_CLASS_TYPE_CMBUFFER_RT :
+                        static_cast< CmBuffer_RT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->bufferTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACE2D :
+                        static_cast< CmSurface2DRT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
+                        static_cast< CmSurface2DUPRT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf2DUPTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACE3D :
+                        static_cast< CmSurface3DRT* >( surface )->GetHandle(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf3DTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACEVME:
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexCurrent(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource; // current surface
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardCount(refSurfCnt);
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardArray(refSurfHandleArray);
+                        for(i = 0; i < refSurfCnt; i++)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[refSurfHandleArray[i]].osResource; // forward surfaces
+                        }
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardCount(refSurfCnt);
+                        static_cast< CmSurfaceVme* >( surface )->GetIndexForwardArray(refSurfHandleArray);
+                        for(i = 0; i < refSurfCnt; i++)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[refSurfHandleArray[i]].osResource; // backward surfaces
+                        }
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8:
+                        static_cast< CmSurfaceSampler8x8* >( surface )->GetIndexCurrent(handle);
+                        curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource;
+                        break;
+
+                    case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER:
+                        static_cast< CmSurfaceSampler* >( surface )->GetHandle(handle);
+                        SAMPLER_SURFACE_TYPE type;
+                        static_cast< CmSurfaceSampler* >( surface )->GetSurfaceType(type);
+                        if (type == SAMPLER_SURFACE_TYPE_2D)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->umdSurf2DTable[handle].osResource;
+                        }
+                        else if (type == SAMPLER_SURFACE_TYPE_2DUP)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf2DUPTable[handle].osResource;
+                        }
+                        else if (type == SAMPLER_SURFACE_TYPE_3D)
+                        {
+                            curTaskSurfResArray[curTaskSurfCnt++] = (void *)&state->surf3DTable[handle].osResource;
+                        }
+                        else
+                        {
+                            surfaceLock->Release();
+                            if (curTaskSurfResArray)
+                            {
+                                MOS_FreeMemory(curTaskSurfResArray);
+                                curTaskSurfResArray = nullptr;
+                            }
+                            return CM_INVALID_ARG_INDEX;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
             }
         }
 
@@ -1812,56 +1915,19 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
     }
 
     surfaceLock->Release();
-    return CM_SUCCESS;
-}
 
-//*-----------------------------------------------------------------------------
-//| Purpose:    Update surface state on task creation stage
-//*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::UpdateSurfaceStateOnTaskDestroy()
-{
-    CmSurfaceManager*   surfaceMgr = nullptr;
-    int32_t             *surfState  = nullptr;
-
-    m_cmDevice->GetSurfaceManager(surfaceMgr);
-    if (!surfaceMgr)
+    // Check if there is any secure surface.
+    if (curTaskSurfCnt > 0 && state->osInterface && state->osInterface->osCpInterface)
     {
-        CM_ASSERTMESSAGE("Error: Pointer to surface manager is null.");
-        return CM_NULL_POINTER;
+        state->osInterface->osCpInterface->PrepareResources(curTaskSurfResArray, curTaskSurfCnt, nullptr, 0);
     }
 
-    surfaceMgr->GetSurfaceState(surfState);
-    if (surfState == nullptr)
+    if (curTaskSurfResArray)
     {
-        CM_ASSERTMESSAGE("Error: Pointer to surface state is null.");
-        return CM_NULL_POINTER;
+        MOS_FreeMemory(curTaskSurfResArray);
+        curTaskSurfResArray = nullptr;
     }
 
-    uint32_t poolSize = surfaceMgr->GetSurfacePoolSize();
-
-    CSync* surfaceLock = m_cmDevice->GetSurfaceCreationLock();
-    if (surfaceLock == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to surface creation lock is null.");
-        return CM_NULL_POINTER;
-    }
-
-    surfaceLock->Acquire();
-
-    if (m_isSurfaceUpdateDone)
-    {
-        for (uint32_t i = 0; i < poolSize; i++)
-        {
-            if (m_surfaceArray[i])
-            {
-                surfState[i] --;
-            }
-        }
-
-        m_isSurfaceUpdateDone = false;
-    }
-
-    surfaceLock->Release();
     return CM_SUCCESS;
 }
 
@@ -1939,7 +2005,7 @@ int32_t CmTaskInternal::SetProperty(CM_TASK_CONFIG * taskConfig)
         CM_ASSERTMESSAGE("Error: Pointer to task config is null.");
         return CM_NULL_POINTER;
     }
-    CmFastMemCopy(&m_taskConfig, taskConfig, sizeof(m_taskConfig));
+    CmSafeMemCopy(&m_taskConfig, taskConfig, sizeof(m_taskConfig));
     return CM_SUCCESS;
 }
 

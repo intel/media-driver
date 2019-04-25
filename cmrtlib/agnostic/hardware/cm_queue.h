@@ -71,6 +71,7 @@ typedef struct _CM_ENQUEUE_GPUCOPY_PARAM
 class CmQueue_RT : public CmQueue
 {
 public:
+    static int32_t Create(CmDevice_RT *device, CmQueue_RT *&queue);
     static int32_t Create(CmDevice_RT *device, CmQueue_RT *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption);
     static int32_t Destroy(CmQueue_RT *&queue);
 
@@ -148,6 +149,10 @@ public:
 
     CM_RT_API int32_t DestroyEventFast(CmEvent *&event);
 
+    CM_RT_API int32_t EnqueueWithGroupFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadGroupSpace *threadGroupSpace = nullptr);
+
     CM_QUEUE_CREATE_OPTION GetQueueOption();
 
 protected:
@@ -155,6 +160,7 @@ protected:
 
     ~CmQueue_RT();
 
+    int32_t Initialize();
     int32_t Initialize(CM_QUEUE_CREATE_OPTION queueCreateOption);
 
     int32_t EnqueueCopy(CmSurface2D *surface,

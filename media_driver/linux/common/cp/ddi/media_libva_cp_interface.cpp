@@ -42,16 +42,11 @@ static void DdiStubMessage()
 
 DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx)
 {
-    DdiCpInterface *pDdiCpInterface = nullptr;
-
-    if (mosCtx.RequireCPLIB)
-    {
-        using Create_DdiCpFuncType = DdiCpInterface *(*)(MOS_CONTEXT * pMosCtx);
-        CPLibUtils::InvokeCpFunc<Create_DdiCpFuncType>(
-            pDdiCpInterface,
-            CPLibUtils::FUNC_CREATE_DDICP,
-            &mosCtx);
-    }
+    DdiCpInterface* pDdiCpInterface = nullptr;
+    using Create_DdiCpFuncType = DdiCpInterface* (*)(MOS_CONTEXT* pMosCtx);
+    CPLibUtils::InvokeCpFunc<Create_DdiCpFuncType>(
+        pDdiCpInterface, 
+        CPLibUtils::FUNC_CREATE_DDICP, &mosCtx);
 
     if(nullptr == pDdiCpInterface) DdiStubMessage();
 

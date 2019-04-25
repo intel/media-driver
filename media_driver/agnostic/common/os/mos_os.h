@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -63,16 +63,25 @@
     ((GpuContext) == MOS_GPU_CONTEXT_VIDEO4)        || \
     ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO)  || \
     ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO2) || \
-    ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO3)    \
+    ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO3) || \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO5)        || \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO6)        || \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO7)           \
 )
 
-#define MOS_RCS_ENGINE_USED(GpuContext) (              \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER)        || \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER2)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER3)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_RENDER4)       || \
-    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE)          \
+#define MOS_RCS_ENGINE_USED(GpuContext) (                 \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER)           || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER2)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER3)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER4)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE)          || \
+    ((GpuContext) == MOS_GPU_CONTEXT_CM_COMPUTE)       || \
+    ((GpuContext) == MOS_GPU_CONTEXT_COMPUTE_RA)       || \
+    ((GpuContext) == MOS_GPU_CONTEXT_RENDER_RA)           \
 )
+
+#define MOS_BCS_ENGINE_USED(GpuContext) (             \
+    ((GpuContext) == MOS_GPU_CONTEXT_BLT))
 
 #if MOS_MEDIASOLO_SUPPORTED
 #define MOS_VECS_ENGINE_USED(GpuContext) (             \
@@ -156,11 +165,15 @@ typedef enum _MOS_FORCE_VDBOX
 //!
 typedef enum _MOS_FORCE_VEBOX
 {
-    MOS_FORCE_VEBOX_NONE = 0,
-    MOS_FORCE_VEBOX_1 = 0x0001,
-    MOS_FORCE_VEBOX_2 = 0x0002,
+    MOS_FORCE_VEBOX_NONE    = 0,
+    MOS_FORCE_VEBOX_1       = 0x0001,
+    MOS_FORCE_VEBOX_2       = 0x0002,
+    MOS_FORCE_VEBOX_3       = 0x0003,
+    MOS_FORCE_VEBOX_4       = 0x0004,
     // For scalability case
-    MOS_FORCE_VEBOX_1_2 = 0x0012
+    MOS_FORCE_VEBOX_1_2     = 0x0012,
+    MOS_FORCE_VEBOX_1_2_3   = 0x0123,
+    MOS_FORCE_VEBOX_1_2_3_4 = 0x1234
 } MOS_FORCE_VEBOX;
 
 #define MOS_FORCEVEBOX_VEBOXID_BITSNUM              4 //each VEBOX ID occupies 4 bits see defintion MOS_FORCE_VEBOX
@@ -321,7 +334,7 @@ typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CR
 struct _MOS_GPUCTX_CREATOPTIONS
 {
     uint32_t  CmdBufferNumScale;
-
+    uint32_t  RAMode;
     //For slice shutdown
     union
     {
@@ -338,7 +351,8 @@ struct _MOS_GPUCTX_CREATOPTIONS
 
     _MOS_GPUCTX_CREATOPTIONS() : 
         CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
-        SSEUValue(0) {}
+        SSEUValue(0),
+        RAMode(0) {}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };
@@ -455,7 +469,8 @@ typedef struct _MOS_INTERFACE
 #if MOS_MEDIASOLO_SUPPORTED
     // MediaSolo related
     int32_t                         bSoloInUse;                                   //!< Flag to indicate if MediaSolo is enabled
-    void                            *pvSoloContext;                                //!< pointer to MediaSolo context
+    static void                    *pvSoloContext;                                //!< pointer to MediaSolo context
+    static uint32_t                 soloRefCnt;
     uint32_t                        dwEnableMediaSoloFrameNum;                    //!< The frame number at which MediaSolo will be enabled, 0 is not valid.
 #endif // MOS_MEDIASOLO_SUPPORTED
 
@@ -933,6 +948,11 @@ typedef struct _MOS_INTERFACE
         PMOS_RESOURCE               pOsResource,
         int32_t                     bHintOn);
 
+    MOS_STATUS (* pfnGetMemoryCompressionFormat) (
+        PMOS_INTERFACE              pOsInterface,
+        PMOS_RESOURCE               pOsResource,
+        uint32_t                    *pResMmcFormat);
+
     MOS_STATUS (* pfnCreateVideoNodeAssociation)(
         PMOS_INTERFACE              pOsInterface,
         int32_t                     bSetVideoNode,
@@ -1037,6 +1057,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bUseHwSemaForResSyncInVE;                     //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface 
     PMOS_VIRTUALENGINE_INTERFACE    pVEInterf;
     bool                            ctxBasedScheduling;                           //!< Flag to indicate if context based scheduling enabled for virtual engine, that is VE2.0.
+    bool                            multiNodeScaling;                             //!< Flag to indicate if multi-node scaling is enabled for virtual engine, that is VE3.0.
     bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
 
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
@@ -1151,6 +1172,9 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
 
 #define MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface) \
     (pOsInterface ? pOsInterface->ctxBasedScheduling : false)
+
+#define MOS_VE_MULTINODESCALING_SUPPORTED(pOsInterface) \
+    (pOsInterface ? pOsInterface->multiNodeScaling : false)
 
 #if MOS_MEDIASOLO_SUPPORTED
 #define MOS_MEDIASOLO_VE_SUPPORTED(pOsInterface) \

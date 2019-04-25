@@ -34,7 +34,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <errno.h>
-#include "drm_header.h"
+#include "drm.h"
 #include "i915_drm.h"
 #include <pciaccess.h>
 #include "libdrm_macros.h"
@@ -325,6 +325,13 @@ mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable)
     }
 
     return -ENODEV;
+}
+
+void
+mos_bo_set_exec_object_async(struct mos_linux_bo *bo)
+{
+    if( bo->bufmgr->set_exec_object_async)
+        bo->bufmgr->set_exec_object_async(bo);
 }
 
 int

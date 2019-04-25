@@ -562,7 +562,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                 10 * mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD::byteSize + // 8 for BRCStatistics and 2 for RC6 WAs
                 mhw_mi_g11_X::MI_LOAD_REGISTER_MEM_CMD::byteSize + // 1 for RC6 WA
                 2 * mhw_vdbox_hcp_g11_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize + // Two PAK insert object commands are for headers before the slice header and the header for the end of stream
-                4 * mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +    // two (BRC+reference frame) for clean-up HW semaphore memory and another two for signal it 
+                4 * mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +    // two (BRC+reference frame) for clean-up HW semaphore memory and another two for signal it
                 17 * mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize +// Use HW wait command for each reference and one wait for current semaphore object
                 mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize +     // Use HW wait command for each BRC pass
                 + mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize    // Use HW wait command for each VDBOX
@@ -577,7 +577,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                 PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) + // When BRC is on, HCP_PIC_STATE_CMD command is in the BB
                 2 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) + // Slice level commands
                 2 * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) +       // need for Status report, Mfc Status and
-                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) + // 8 for BRCStatistics and 3 for RC6 WAs  
+                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) + // 8 for BRCStatistics and 3 for RC6 WAs
                 22 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD)      // Use HW wait commands plus its memory clean-up and signal (4+ 16 + 1 + 1)
                 + 8 * PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) // At maximal, there are 8 batch buffers for 8 VDBOXes for VE. Each box has one BB.
                 + PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD)               // Need one flush before copy command
@@ -602,13 +602,13 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
 
             if (paramsG11->bScalableMode)
             {
-                // Due to the fact that there is no slice level command in BE status, we mainly consider commands in FE. 
+                // Due to the fact that there is no slice level command in BE status, we mainly consider commands in FE.
                 maxSize +=
                     4 * mhw_mi_g11_X::MI_ATOMIC_CMD::byteSize +                       // used to reset semaphore in BEs
                     2 * mhw_mi_g11_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize + // 1 Conditional BB END for FE hang, 1 for streamout buffer writing over allocated size
                     3 * mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize +             // for FE & BE0, BEs sync
                     3 * mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +               // for FE status set and clear
-                    3 * mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize +            // for FE status set 
+                    3 * mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize +            // for FE status set
                     2 * mhw_mi_g11_X::MI_FLUSH_DW_CMD::byteSize +                     // 2 needed for command flush in slice level
                     2 * mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD::byteSize +           // store the carry flag of reported size in FE
                     4 * sizeof(MHW_MI_ALU_PARAMS) +                                    // 4 ALU commands needed for substract opertaion in FE
@@ -665,7 +665,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                 mhw_vdbox_hcp_g11_X::HCP_TILE_CODING_CMD::byteSize +
                 mhw_mi_g11_X::MI_BATCH_BUFFER_START_CMD::byteSize +
                 mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize * 2 +   // Use HW wait command for each VDBOX, one for second pass only
-                mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize * 5;                    // One is for reset and another one for set per VDBOX, three for wait 
+                mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize * 5;                    // One is for reset and another one for set per VDBOX, three for wait
 
 
             patchListMaxSize +=
@@ -695,7 +695,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                     mhw_mi_g11_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize +   // for streamout buffer writing over allocated size
                     mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize * 3 +   // for FE & BE0, BEs sync
                     mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +   // for FE status set
-                    mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 3 +   // for FE status set 
+                    mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 3 +   // for FE status set
                     mhw_mi_g11_X::MI_FLUSH_DW_CMD::byteSize +   // for command flush in partition level
                     mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD::byteSize * 2 +   // store the carry flag of reported size in FE
                     4 * sizeof(MHW_MI_ALU_PARAMS) +                                    // 4 ALU commands needed for substract opertaion in FE
@@ -777,7 +777,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpPrimitiveCommandSize(
                 PATCH_LIST_COMMAND(HCP_BSD_OBJECT_CMD);
         }
     }
-    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does. 
+    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does.
     {
         if (modeSpecific)                  // VP9 DRM
         {
@@ -922,8 +922,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHevcBufferSize(
         bufferSize = MOS_MAX(mvtSize, mvtbSize) * MHW_CACHELINE_SIZE;
         break;
     case MHW_VDBOX_HCP_INTERNAL_BUFFER_CABAC_STREAMOUT:
-        //From sas, cabac stream out buffer size = 
-        //(#LCU) in picture * (Worst case LCU_CU_TU_info) + 1 byte aligned per LCU + Bitstream Size * 3 
+        //From sas, cabac stream out buffer size =
+        //(#LCU) in picture * (Worst case LCU_CU_TU_info) + 1 byte aligned per LCU + Bitstream Size * 3
         if ((chromaFormat == HCP_CHROMA_FORMAT_YUV420) && (maxBitDepth == 8))
         {
             bufferSize = widthInCtb * heightInCtb * MHW_HCP_WORST_CASE_CU_TU_INFO
@@ -1023,8 +1023,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetVp9BufferSize(
         bufferSize = intraPredMultiplier * heightInSb * MHW_CACHELINE_SIZE;
         break;
     case MHW_VDBOX_HCP_INTERNAL_BUFFER_CABAC_STREAMOUT:
-        //From sas, cabac stream out buffer size = 
-        //(#LCU) in picture * (Worst case LCU_CU_TU_info) + 1 byte aligned per LCU + Bitstream Size * 3 
+        //From sas, cabac stream out buffer size =
+        //(#LCU) in picture * (Worst case LCU_CU_TU_info) + 1 byte aligned per LCU + Bitstream Size * 3
         if ((chromaFormat == HCP_CHROMA_FORMAT_YUV420) && (maxBitDepth == 8))
         {
             bufferSize = widthInMinCb * heightInMinCb * MHW_HCP_WORST_CASE_CU_TU_INFO
@@ -1196,7 +1196,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpPipeModeSelectCmd(
 
     //for gen 11, we need to add MFX wait for both KIN and VRT before and after HCP Pipemode select...
     MHW_MI_CHK_STATUS(m_miInterface->AddMfxWaitCmd(cmdBuffer, nullptr, true));
-    
+
     // Secure scalable encode workloads requires special handling for Gen11+
     scalableEncode = (paramsG11->MultiEngineMode != MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY && !m_decodeInUse);
     MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForHcpPipeModeSelect((uint32_t *)&cmd, scalableEncode));
@@ -1259,7 +1259,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpDecodeSurfaceStateCmd(
         {
             cmd->DW2.SurfaceFormat = cmd->SURFACE_FORMAT_Y216Y210FORMAT;
         }
-        else if (params->ChromaType == HCP_CHROMA_FORMAT_YUV444 && params->psSurface->Format == Format_AYUV) // 4:4:4 8bit surface 
+        else if (params->ChromaType == HCP_CHROMA_FORMAT_YUV444 && params->psSurface->Format == Format_AYUV) // 4:4:4 8bit surface
         {
             cmd->DW2.SurfaceFormat = cmd->SURFACE_FORMAT_AYUV4444FORMAT;
         }
@@ -1361,7 +1361,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSurfaceStateCmd(
             cmd->DW2.SurfaceFormat = cmd->SURFACE_FORMAT_Y416FORMAT;
         }
     }
-    else    //params->ChromaType == HCP_CHROMA_FORMAT_YUV420 
+    else    //params->ChromaType == HCP_CHROMA_FORMAT_YUV420
     {
         if (params->ucBitDepthLumaMinus8 > 0)
         {
@@ -1383,7 +1383,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSurfaceStateCmd(
 
     cmd->DW2.YOffsetForUCbInPixel  = cmd->DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
-    //Set U/V offsets for Variant surfaces 
+    //Set U/V offsets for Variant surfaces
     if (cmd->DW2.SurfaceFormat == cmd->SURFACE_FORMAT_Y416VARIANT ||
         cmd->DW2.SurfaceFormat == cmd->SURFACE_FORMAT_AYUV4444VARIANT)
     {
@@ -1804,7 +1804,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpPipeBufAddrCmd(
             resourceParams.dwOffset = 0;
             resourceParams.pdwCmd = (cmd.CollocatedMotionVectorTemporalBuffer07[i].DW0_1.Value);
             resourceParams.dwLocationInCmd = (i * 2) + 66;
-            resourceParams.bIsWritable = true;
+            resourceParams.bIsWritable = false;
 
             resourceParams.dwSharedMocsOffset = 82 - resourceParams.dwLocationInCmd; // Common Prodected Data bit is in DW82
 
@@ -1962,7 +1962,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpPipeBufAddrCmd(
     //Gen11 new added buffer
     auto paramsG11 = dynamic_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11>(params);
     MHW_MI_CHK_NULL(paramsG11);
-    
+
     // Slice state stream out buffer
     if (paramsG11->presSliceStateStreamOutBuffer != nullptr)
     {
@@ -2131,7 +2131,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpIndObjBaseAddrCmd(
             resourceParams.dwSize = MOS_ALIGN_CEIL(params->dwMvObjectSize, 0x1000);
             resourceParams.bIsWritable = false;
 
-            // no upper bound for indirect CU object 
+            // no upper bound for indirect CU object
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
             MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
@@ -2286,7 +2286,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpDecodePicStateCmd(
     cmd->DW2.ChromaSubsampling           = hevcPicParams->chroma_format_idc;
     cmd->DW3.Log2Maxtransformskipsize    = 0x2;
     if (hevcExtPicParams)
-    {    
+    {
         cmd->DW3.Log2Maxtransformskipsize            = hevcExtPicParams->log2_max_transform_skip_block_size_minus2 + 2;
         cmd->DW3.CrossComponentPredictionEnabledFlag = hevcExtPicParams->PicRangeExtensionFlags.fields.cross_component_prediction_enabled_flag;
         cmd->DW3.CabacBypassAlignmentEnabledFlag     = hevcExtPicParams->PicRangeExtensionFlags.fields.cabac_bypass_alignment_enabled_flag;
@@ -2366,24 +2366,24 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodePicStateCmd(
     cmd.DW2.Minpcmsize = 0; // Not supported in CNL
     cmd.DW2.Maxpcmsize = 0; // Not supported in CNL
 
-    cmd.DW3.Colpicisi = 0; 
-    cmd.DW3.Curpicisi = 0; 
+    cmd.DW3.Colpicisi = 0;
+    cmd.DW3.Curpicisi = 0;
 
     cmd.DW4.SampleAdaptiveOffsetEnabledFlag         = params->bSAOEnable;
     cmd.DW4.PcmEnabledFlag                          = 0; // Not supported in CNL
     cmd.DW4.CuQpDeltaEnabledFlag                    = hevcPicParams->cu_qp_delta_enabled_flag; // In VDENC mode, this field should always be set to 1.
     cmd.DW4.DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth  = hevcPicParams->diff_cu_qp_delta_depth;
     cmd.DW4.PcmLoopFilterDisableFlag                = hevcSeqParams->pcm_loop_filter_disable_flag;
-    cmd.DW4.ConstrainedIntraPredFlag                = 0; 
-    cmd.DW4.Log2ParallelMergeLevelMinus2            = 0; 
+    cmd.DW4.ConstrainedIntraPredFlag                = 0;
+    cmd.DW4.Log2ParallelMergeLevelMinus2            = 0;
     cmd.DW4.SignDataHidingFlag                      = 0; // currently not supported in encoder
-    cmd.DW4.LoopFilterAcrossTilesEnabledFlag        = 0; 
+    cmd.DW4.LoopFilterAcrossTilesEnabledFlag        = 0;
     cmd.DW4.EntropyCodingSyncEnabledFlag            = 0; // not supported as per Dimas notes. PAK restriction
     cmd.DW4.TilesEnabledFlag                        = 0; // not supported in encoder
     cmd.DW4.WeightedPredFlag                        = hevcPicParams->weighted_pred_flag;
     cmd.DW4.WeightedBipredFlag                      = hevcPicParams->weighted_bipred_flag;
-    cmd.DW4.Fieldpic                                = 0; 
-    cmd.DW4.Bottomfield                             = 0; 
+    cmd.DW4.Fieldpic                                = 0;
+    cmd.DW4.Bottomfield                             = 0;
     cmd.DW4.AmpEnabledFlag                          = hevcSeqParams->amp_enabled_flag;
     cmd.DW4.TransquantBypassEnableFlag              = hevcPicParams->transquant_bypass_enabled_flag;
     cmd.DW4.StrongIntraSmoothingEnableFlag          = hevcSeqParams->strong_intra_smoothing_enable_flag;
@@ -2430,7 +2430,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodePicStateCmd(
         cmd.DW21.SliceSizeThresholdInBytes      = hevcPicParams->MaxSliceSizeInBytes;  // HuC FW is expected to update this
         cmd.DW22.TargetSliceSizeInBytes         = hevcPicParams->MaxSliceSizeInBytes;
     }
-  
+
     cmd.DW4.TilesEnabledFlag                 = hevcPicParams->tiles_enabled_flag;
     cmd.DW2.ChromaSubsampling                = hevcSeqParams->chroma_format_idc;
     cmd.DW4.LoopFilterAcrossTilesEnabledFlag = hevcPicParams->loop_filter_across_tiles_flag;
@@ -2438,7 +2438,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodePicStateCmd(
     // Disable HEVC RDOQ for Intra blocks
     cmd.DW20.Intratucountbasedrdoqdisable   = params->bRDOQIntraTUDisable;
     cmd.DW37.Rdoqintratuthreshold           = params->wRDOQIntraTUThreshold;
-   
+
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
@@ -2469,7 +2469,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpTileStateCmd(
     uint32_t column        = hevcPicParams->num_tile_columns_minus1 + 1;
     uint32_t lastDwEleNum  = column % 4;
     uint32_t count       = column / 4;
-    
+
     for (uint8_t i = 0; i < 5; i++)
     {
         cmd.CtbColumnPositionOfTileColumn[i].DW0.Value = 0;
@@ -2494,7 +2494,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpTileStateCmd(
         uint32_t &CtbColumnMsbValue = ((i << 3) >> 5) == 0 ? cmd.CtbColumnPositionMsb.DW0.Value : cmd.CtbColumnPositionMsb.DW1.Value;
 
         cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I   = colCumulativeValue & 0xFF;//lower 8bits
-        CtbColumnMsbValue                                   = CtbColumnMsbValue | 
+        CtbColumnMsbValue                                   = CtbColumnMsbValue |
                                                               (((colCumulativeValue >> 8) & 0x3) << ((i*8) + 0));//MSB 2bits
         colCumulativeValue                                 += params->pTileColWidth[4 * i];
 
@@ -2588,7 +2588,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpTileStateCmd(
                 cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos1I = rowCumulativeValue & 0xFF;//lower 8bits
                 CtbRowMsbValue                              = CtbRowMsbValue |
                                                               (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 2));//MSB 2bits
-            
+
                 if (lastDwEleNum > 2)
                 {
                     rowCumulativeValue                         += params->pTileRowHeight[4 * i + 1];
@@ -2628,7 +2628,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpWeightOffsetStateCmd(
     {
         cmd.Lumaoffsets[refIdx].DW0.DeltaLumaWeightLxI  = params->LumaWeights[i][refIdx];
         cmd.Lumaoffsets[refIdx].DW0.LumaOffsetLxI       = (char)(params->LumaOffsets[i][refIdx] & 0xFF);//lower 8bits
-        cmd.Lumaoffsets[refIdx].DW0.LumaOffsetLxIMsbyte = (char)((params->LumaOffsets[i][refIdx] >> 8) & 0xFF);//MSB 8bits 
+        cmd.Lumaoffsets[refIdx].DW0.LumaOffsetLxIMsbyte = (char)((params->LumaOffsets[i][refIdx] >> 8) & 0xFF);//MSB 8bits
     }
 
     // Chroma
@@ -2884,13 +2884,13 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSliceStateCmd(
     cmd.DW4.SliceHeaderDisableDeblockingFilterFlag          = hevcSliceParams->slice_deblocking_filter_disable_flag;
     cmd.DW4.SliceTcOffsetDiv2OrFinalTcOffsetDiv2Encoder     = hevcSliceParams->tc_offset_div2;
     cmd.DW4.SliceBetaOffsetDiv2OrFinalBetaOffsetDiv2Encoder = hevcSliceParams->beta_offset_div2;
-    cmd.DW4.SliceLoopFilterAcrossSlicesEnabledFlag          = 0; 
+    cmd.DW4.SliceLoopFilterAcrossSlicesEnabledFlag          = 0;
     cmd.DW4.SliceSaoChromaFlag                              = hevcSliceParams->slice_sao_chroma_flag;
     cmd.DW4.SliceSaoLumaFlag                                = hevcSliceParams->slice_sao_luma_flag;
     cmd.DW4.MvdL1ZeroFlag                                   = 0; // Decoder only - set to 0 for encoder
     cmd.DW4.Islowdelay                                      = hevcSliceState->bIsLowDelay;
     cmd.DW4.CollocatedFromL0Flag                            = hevcSliceParams->collocated_from_l0_flag;
-    cmd.DW4.Chromalog2Weightdenom                           = (hevcPicParams->weighted_pred_flag || hevcPicParams->weighted_bipred_flag) ? 
+    cmd.DW4.Chromalog2Weightdenom                           = (hevcPicParams->weighted_pred_flag || hevcPicParams->weighted_bipred_flag) ?
                                                               (hevcPicParams->bEnableGPUWeightedPrediction ? 6 : hevcSliceParams->luma_log2_weight_denom + hevcSliceParams->delta_chroma_log2_weight_denom) : 0;
     cmd.DW4.LumaLog2WeightDenom                             = (hevcPicParams->weighted_pred_flag || hevcPicParams->weighted_bipred_flag) ?
                                                               (hevcPicParams->bEnableGPUWeightedPrediction ? 6 : hevcSliceParams->luma_log2_weight_denom) : 0;
@@ -2928,7 +2928,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSliceStateCmd(
     cmd.DW6.Roundinter = 4;
     cmd.DW6.Roundintra = 10;
 
-    cmd.DW7.Cabaczerowordinsertionenable    = 1;
+    cmd.DW7.Cabaczerowordinsertionenable    = hevcSliceState->bVdencInUse ? 0 : 1;
     cmd.DW7.Emulationbytesliceinsertenable  = 1;
     cmd.DW7.TailInsertionEnable             = (hevcPicParams->bLastPicInSeq || hevcPicParams->bLastPicInStream) && hevcSliceState->bLastSlice;
     cmd.DW7.SlicedataEnable                 = 1;
@@ -2945,7 +2945,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSliceStateCmd(
         cmd.DW10.TransformskipNumzerocoeffsFactor1      = hevcSliceState->EncodeHevcTransformSkipParams.Transformskip_Numzerocoeffs_Factor1;
         cmd.DW10.TransformskipNumnonzerocoeffsFactor1   = hevcSliceState->EncodeHevcTransformSkipParams.Transformskip_Numnonzerocoeffs_Factor1;
     }
-    
+
     if (hevcSliceState->bLastSlice)
     {
         cmd.DW2.NextslicestartctbxOrNextSliceStartLcuXEncoder         = 0;
@@ -2955,7 +2955,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSliceStateCmd(
     {
         if(hevcPicParams->tiles_enabled_flag)
         {
-            // when tile is enabled, need to consider if slice is within one tile 
+            // when tile is enabled, need to consider if slice is within one tile
             cmd.DW2.NextslicestartctbxOrNextSliceStartLcuXEncoder         = hevcSliceParams[1].slice_segment_address % widthInCtb;
             cmd.DW2.NextslicestartctbyOrNextSliceStartLcuYEncoder         = hevcSliceParams[1].slice_segment_address / widthInCtb;
         }
@@ -3060,7 +3060,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpPakInsertObject(
             dataBitsInLastDw = 32;
         }
 
-        dwordsUsed                                                += (MOS_ALIGN_CEIL(byteSize, sizeof(uint32_t))) / sizeof(uint32_t); 
+        dwordsUsed                                                += (MOS_ALIGN_CEIL(byteSize, sizeof(uint32_t))) / sizeof(uint32_t);
         cmd.DW0.DwordLength                                         = OP_LENGTH(dwordsUsed);
         cmd.DW1.Headerlengthexcludefrmsize                          = 0;
         cmd.DW1.EndofsliceflagLastdstdatainsertcommandflag          = params->bEndOfSlice;
@@ -3099,7 +3099,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpVp9PicStateCmd(
     mhw_vdbox_hcp_g11_X::HCP_VP9_PIC_STATE_CMD cmd;
     auto vp9PicParams = params->pVp9PicParams;
     auto vp9RefList = params->ppVp9RefList;
-        
+
     cmd.DW0.DwordLength                         = mhw_vdbox_hcp_g11_X::GetOpLength(12); //VP9_PIC_STATE command is common for both Decoder and Encoder. Decoder uses only 12 DWORDS of the generated 33 DWORDS
 
     uint32_t curFrameWidth                      = vp9PicParams->FrameWidthMinus1 + 1;
@@ -3140,7 +3140,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpVp9PicStateCmd(
     }
     cmd.DW3.Bitdepthminus8 = vp9PicParams->BitDepthMinus8;
     cmd.DW3.ProfileLevel   = vp9PicParams->profile;
-    
+
     cmd.DW10.UncompressedHeaderLengthInBytes70  = vp9PicParams->UncompressedHeaderLengthInBytes;
     cmd.DW10.FirstPartitionSizeInBytes150       = vp9PicParams->FirstPartitionSize;
 
@@ -3160,23 +3160,23 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpVp9PicStateCmd(
         uint32_t altRefFrameWidth     = vp9RefList[altRefPicIndex]->dwFrameWidth;
         uint32_t altRefFrameHeight    = vp9RefList[altRefPicIndex]->dwFrameHeight;
 
-        bool isScaling                = (curFrameWidth == params->dwPrevFrmWidth) && (curFrameHeight == params->dwPrevFrmHeight) ? 
+        bool isScaling                = (curFrameWidth == params->dwPrevFrmWidth) && (curFrameHeight == params->dwPrevFrmHeight) ?
                                                     false : true;
 
         cmd.DW2.AllowHiPrecisionMv              = vp9PicParams->PicFlags.fields.allow_high_precision_mv;
         cmd.DW2.McompFilterType                 = vp9PicParams->PicFlags.fields.mcomp_filter_type;
         cmd.DW2.SegmentationTemporalUpdate      = cmd.DW2.SegmentationUpdateMap && vp9PicParams->PicFlags.fields.segmentation_temporal_update;
 
-        cmd.DW2.RefFrameSignBias02              = vp9PicParams->PicFlags.fields.LastRefSignBias | 
-                                                  (vp9PicParams->PicFlags.fields.GoldenRefSignBias << 1) | 
+        cmd.DW2.RefFrameSignBias02              = vp9PicParams->PicFlags.fields.LastRefSignBias |
+                                                  (vp9PicParams->PicFlags.fields.GoldenRefSignBias << 1) |
                                                   (vp9PicParams->PicFlags.fields.AltRefSignBias << 2);
 
         cmd.DW2.LastFrameType                   = !params->PrevFrameParams.fields.KeyFrame;
 
         cmd.DW2.UsePrevInFindMvReferences       = vp9PicParams->PicFlags.fields.error_resilient_mode    ||
-                                                    params->PrevFrameParams.fields.KeyFrame             || 
-                                                    params->PrevFrameParams.fields.IntraOnly            || 
-                                                    !params->PrevFrameParams.fields.Display             || 
+                                                    params->PrevFrameParams.fields.KeyFrame             ||
+                                                    params->PrevFrameParams.fields.IntraOnly            ||
+                                                    !params->PrevFrameParams.fields.Display             ||
                                                     isScaling ? false : true;
 
         cmd.DW2.SegmentIdStreaminEnable         = vp9PicParams->PicFlags.fields.error_resilient_mode    ||
@@ -3236,8 +3236,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpVp9PicStateEncCmd(
     cmd.DW2.AllowHiPrecisionMv          = vp9PicParams->PicFlags.fields.allow_high_precision_mv;
     cmd.DW2.McompFilterType             = vp9PicParams->PicFlags.fields.mcomp_filter_type;
 
-    cmd.DW2.RefFrameSignBias02          = vp9PicParams->RefFlags.fields.LastRefSignBias | 
-                                          (vp9PicParams->RefFlags.fields.GoldenRefSignBias << 1) | 
+    cmd.DW2.RefFrameSignBias02          = vp9PicParams->RefFlags.fields.LastRefSignBias |
+                                          (vp9PicParams->RefFlags.fields.GoldenRefSignBias << 1) |
                                           (vp9PicParams->RefFlags.fields.AltRefSignBias << 2);
 
     cmd.DW2.HybridPredictionMode        = vp9PicParams->PicFlags.fields.comp_prediction_mode == 2;
@@ -3451,7 +3451,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpVp9SegmentStateCmd(
 MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpHevcVp9RdoqStateCmd(
     PMOS_COMMAND_BUFFER              cmdBuffer,
     PMHW_VDBOX_HEVC_PIC_STATE        params)
-{    
+{
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MHW_MI_CHK_NULL(params);
@@ -3469,47 +3469,47 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpHevcVp9RdoqStateCmd(
     if (params->pHevcEncSeqParams->bit_depth_luma_minus8 == 0)
     {
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[0][0], 
-            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]), 
-            RDOQLamdas8bits[sliceTypeIdx][0][0], 
+            lambdaTab[0][0],
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]),
+            RDOQLamdas8bits[sliceTypeIdx][0][0],
             sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0])));
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[0][1], 
-            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]), 
-            RDOQLamdas8bits[sliceTypeIdx][0][1], 
+            lambdaTab[0][1],
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]),
+            RDOQLamdas8bits[sliceTypeIdx][0][1],
             sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1])));
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[1][0], 
-            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]), 
-            RDOQLamdas8bits[sliceTypeIdx][1][0], 
+            lambdaTab[1][0],
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]),
+            RDOQLamdas8bits[sliceTypeIdx][1][0],
             sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0])));
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[1][1], 
-            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]), 
-            RDOQLamdas8bits[sliceTypeIdx][1][1], 
+            lambdaTab[1][1],
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]),
+            RDOQLamdas8bits[sliceTypeIdx][1][1],
             sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1])));
     }
     else if (params->pHevcEncSeqParams->bit_depth_luma_minus8 == 2)
     {
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[0][0], 
-            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]), 
-            RDOQLamdas10bits[sliceTypeIdx][0][0], 
+            lambdaTab[0][0],
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]),
+            RDOQLamdas10bits[sliceTypeIdx][0][0],
             sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0])));
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[0][1], 
-            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]), 
-            RDOQLamdas10bits[sliceTypeIdx][0][1], 
+            lambdaTab[0][1],
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]),
+            RDOQLamdas10bits[sliceTypeIdx][0][1],
             sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1])));
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[1][0], 
-            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]), 
-            RDOQLamdas10bits[sliceTypeIdx][1][0], 
+            lambdaTab[1][0],
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]),
+            RDOQLamdas10bits[sliceTypeIdx][1][0],
             sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0])));
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-            lambdaTab[1][1], 
-            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]), 
-            RDOQLamdas10bits[sliceTypeIdx][1][1], 
+            lambdaTab[1][1],
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]),
+            RDOQLamdas10bits[sliceTypeIdx][1][1],
             sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1])));
     }
 
@@ -3556,7 +3556,7 @@ MOS_STATUS  MhwVdboxHcpInterfaceG11::AddHcpDecodeTileCodingCmd(
 
     MHW_ASSERT(params->ucNumDecodePipes <= numVdbox);
     MHW_ASSERT(params->ucPipeIdx < params->ucNumDecodePipes);
-    
+
     cmd.DW1.NumberOfActiveBePipes    = params->ucNumDecodePipes;
     cmd.DW1.NumOfTileColumnsInAFrame = params->ucNumDecodePipes;
     cmd.DW2.TileRowPosition          = 0;
@@ -3580,9 +3580,9 @@ MOS_STATUS  MhwVdboxHcpInterfaceG11::AddHcpEncodeTileCodingCmd(
     MHW_MI_CHK_NULL(params);
 
     mhw_vdbox_hcp_g11_X::HCP_TILE_CODING_CMD cmd;
-    
+
     cmd.DW1.NumberOfActiveBePipes    = params->NumberOfActiveBePipes;
-    cmd.DW1.NumOfTileColumnsInAFrame = params->NumOfTileColumnsInFrame; //This field is not used by HW. This field should be same as "Number of Active BE Pipes". 
+    cmd.DW1.NumOfTileColumnsInAFrame = params->NumOfTileColumnsInFrame; //This field is not used by HW. This field should be same as "Number of Active BE Pipes".
     cmd.DW2.TileColumnPosition       = params->TileStartLCUX;
     cmd.DW2.TileRowPosition          = params->TileStartLCUY;
     cmd.DW2.Islasttileofcolumn       = params->IsLastTileofColumn;
@@ -3619,8 +3619,8 @@ MOS_STATUS  MhwVdboxHcpInterfaceG11::AddHcpEncodeTileCodingCmd(
             m_osInterface,
             cmdBuffer,
             &resourceParams));
-    }    
-    
+    }
+
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;

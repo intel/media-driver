@@ -31,7 +31,7 @@
 #include <pthread.h>
 
 #include "xf86drm.h"
-#include "drm_header.h"
+#include "drm.h"
 #include "i915_drm.h"
 #include "mos_bufmgr.h"
 #include "mos_context.h"
@@ -261,6 +261,7 @@ typedef struct _DDI_MEDIA_SURFACE
     uint32_t                uiLockedImageID;
     int32_t                 iRefCount;
     uint8_t                *pData;
+    uint32_t                data_size;
     uint32_t                isTiled;
     uint32_t                TileType;
     uint32_t                bMapped;
@@ -283,6 +284,8 @@ typedef struct _DDI_MEDIA_SURFACE
     PMEDIA_SEM_T            pReferenceFrameSemaphore; // to sync reference frame surface. when this semaphore is posted, the surface is not used as reference frame, and safe to be destroied
 
     uint8_t                 *pSystemShadow;           // Shadow surface in system memory
+
+    uint32_t                uiMapFlag;
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
@@ -456,7 +459,7 @@ struct DDI_MEDIA_CONTEXT
     bool                m_useSwSwizzling;
     bool                m_tileYFlag;
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
     // X11 Func table, for vpgPutSurface (Linux)
     PDDI_X11_FUNC_TABLE X11FuncTable;
 

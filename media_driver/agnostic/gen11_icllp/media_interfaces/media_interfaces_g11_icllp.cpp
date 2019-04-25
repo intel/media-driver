@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,9 @@
 
 #include "media_interfaces_g11_icllp.h"
 #include "codechal_encoder_base.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g11.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -445,7 +447,9 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
                 m_codechalDevice = encoder;
             }
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G11;
+#endif
         }
         else
 #endif
@@ -470,7 +474,13 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
+#if defined(ENABLE_KERNELS)
+
+    #if defined(_FULL_OPEN_SOURCE)
+        if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
+    #else
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
+    #endif
         {
             // Create CSC and Downscaling interface
             if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
@@ -478,6 +488,7 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
+#endif
     }
     else
     {

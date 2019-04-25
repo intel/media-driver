@@ -132,7 +132,6 @@
 #define CM_NO_EVENT  ((CmEvent *)(-1))  //NO Event
 
 // Cm Device Create Option
-#define CM_DEVICE_CREATE_OPTION_DEFAULT                     0
 #define CM_DEVICE_CREATE_OPTION_SCRATCH_SPACE_DISABLE       1
 #define CM_DEVICE_CREATE_OPTION_TDR_DISABLE                 64
 
@@ -143,6 +142,10 @@
 #define CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_DISENABLE         (1 << CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_OFFSET)    
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET                  23
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_ENABLE               (1 << CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET)
+#define CM_DEVICE_CONFIG_FAST_PATH_OFFSET                  30
+#define CM_DEVICE_CONFIG_FAST_PATH_ENABLE                  (1 << CM_DEVICE_CONFIG_FAST_PATH_OFFSET)
+
+#define CM_DEVICE_CREATE_OPTION_DEFAULT                    CM_DEVICE_CONFIG_FAST_PATH_ENABLE
 
 #define CM_MAX_DEPENDENCY_COUNT         8
 #define CM_NUM_DWORD_FOR_MW_PARAM       16
@@ -557,8 +560,7 @@ enum CM_QUEUE_TYPE
 {
     CM_QUEUE_TYPE_NONE = 0,
     CM_QUEUE_TYPE_RENDER = 1,
-    CM_QUEUE_TYPE_COMPUTE = 2,
-    CM_QUEUE_TYPE_VEBOX = 3
+    CM_QUEUE_TYPE_COMPUTE = 2
 };
 
 enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
@@ -1156,7 +1158,8 @@ struct CM_FLAG {
 };
 
 struct _CM_TASK_CONFIG {
-    uint32_t turboBoostFlag;        //CM_TURBO_BOOST_DISABLE----disabled, CM_TURBO_BOOST_ENABLE--------enabled.
+    bool     turboBoostFlag     : 1;
+    uint32_t reserved_bits      :31;
     uint32_t reserved0;
     uint32_t reserved1;
     uint32_t reserved2;
@@ -1201,16 +1204,18 @@ typedef struct _CM_SURFACE2D_STATE_PARAM
     UINT reserved[4]; // for future usage
 } CM_SURFACE2D_STATE_PARAM;
 
-struct CM_QUEUE_CREATE_OPTION
+struct _CM_QUEUE_CREATE_OPTION
 {
-    CM_QUEUE_TYPE QueueType : 3;
-    bool RunAloneMode       : 1;
-    unsigned int Reserved0  : 3;
-    bool UserGPUContext     : 1;
-    unsigned int GPUContext : 8; // user provided GPU CONTEXT in enum MOS_GPU_CONTEXT, this will override CM_QUEUE_TYPE if set
-    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
-    unsigned int Reserved2  : 13;
+    CM_QUEUE_TYPE                 QueueType               : 3;
+    bool                          RAMode                  : 1;
+    unsigned int                  Reserved0               : 3;
+    bool                          UserGPUContext          : 1; // Is the user-provided GPU Context already created externally
+    unsigned int                  GPUContext              : 8; // user-provided GPU Context ordinal
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint           : 3;
+    unsigned int                  Reserved1               : 1;
+    unsigned int                  Reserved2               : 12;
 };
+#define CM_QUEUE_CREATE_OPTION _CM_QUEUE_CREATE_OPTION
 
 typedef enum _CM_CONDITIONAL_END_OPERATOR_CODE {
     MAD_GREATER_THAN_IDD = 0,
@@ -1227,11 +1232,6 @@ struct CM_CONDITIONAL_END_PARAM {
     bool  opMask;
     bool  opLevel;
 };
-
-//**********************************************************************
-// Constants
-//**********************************************************************
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
 
 //**********************************************************************
 // Classes forward declarations
@@ -1259,6 +1259,11 @@ class SamplerIndex;
 // Extended definitions if any
 //**********************************************************************
 #include "cm_rt_extension.h"
+
+//**********************************************************************
+// Constants
+//**********************************************************************
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0, 0 };
 
 //**********************************************************************
 // Classes
@@ -1454,6 +1459,9 @@ public:
                               CmEvent *&event,
                               const CmThreadSpace *threadSpace = nullptr) = 0;
     CM_RT_API virtual INT DestroyEventFast(CmEvent *&event) = 0;
+    CM_RT_API virtual INT EnqueueWithGroupFast(CmTask *task,
+                                  CmEvent *&event,
+                                  const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
 protected:
     ~CmQueue(){};
 };
@@ -1482,5 +1490,6 @@ EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 #include "cm_rt_g8.h"
 #include "cm_rt_g9.h"
 #include "cm_rt_g10.h"
+#include "cm_rt_g11.h"
 
 #endif //__CM_RT_H__

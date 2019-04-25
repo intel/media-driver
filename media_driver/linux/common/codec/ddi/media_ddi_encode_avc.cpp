@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,7 @@ static const uint16_t vuiKbps = 1024;
 static const uint8_t sliceTypeP = 0;
 static const uint8_t sliceTypeB = 1;
 static const uint8_t sliceTypeI = 2;
+static const uint8_t maxPassesNum = 4;
 
 //Inter MB partition 16x16 can't be disabled.
 static const uint8_t disMbPartMask      = 0x7E;
@@ -259,6 +260,11 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     {
         seqParams->ICQQualityFactor = encMiscParamRC->ICQ_quality_factor;
     }
+    else if (VA_RC_AVBR == m_encodeCtx->uiRCMethod)
+    {
+        seqParams->AVBRAccuracy = encMiscParamRC->target_percentage;
+        seqParams->AVBRConvergence = encMiscParamRC->window_size;
+    }
     else
     {
         seqParams->MaxBitRate    = seqParams->TargetBitRate;
@@ -330,6 +336,42 @@ VAStatus DdiEncodeAvc::ParseMiscParamMaxFrameSize(void *data)
 
     // populate MaxFrameSize from DDI
     seqParams->UserMaxFrameSize = vaEncMiscParamMaxFrameSize->max_frame_size >> 3;  // convert to byte
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeAvc::ParseMiscParamMultiPassFrameSize(void *data)
+{
+    DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PCODEC_AVC_ENCODE_PIC_PARAMS picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    VAEncMiscParameterBufferMultiPassFrameSize *vaEncMiscParamMultiPassFrameSize = (VAEncMiscParameterBufferMultiPassFrameSize *)data;
+    DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    //add for multiple pass pak
+    picParams->dwMaxFrameSize = vaEncMiscParamMultiPassFrameSize->max_frame_size;
+    if (picParams->dwMaxFrameSize)
+    {
+        picParams->dwNumPasses = vaEncMiscParamMultiPassFrameSize->num_passes;
+        if ((picParams->dwNumPasses == 0) || (picParams->dwNumPasses > maxPassesNum))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        if (picParams->pDeltaQp != nullptr)
+        {
+            MOS_FreeMemory(picParams->pDeltaQp);
+        }
+        picParams->pDeltaQp = (uint8_t *)MOS_AllocAndZeroMemory(sizeof(uint8_t) * picParams->dwNumPasses);
+        if (!picParams->pDeltaQp)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        if (MOS_STATUS_SUCCESS != MOS_SecureMemcpy(picParams->pDeltaQp, picParams->dwNumPasses, vaEncMiscParamMultiPassFrameSize->delta_qp, picParams->dwNumPasses))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
 
     return VA_STATUS_SUCCESS;
 }
@@ -508,7 +550,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
     m_encodeCtx->targetUsage = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
     uint8_t qualityUpperBoundary = TARGETUSAGE_BEST_SPEED;
 #ifdef _FULL_OPEN_SOURCE
-    qualityUpperBoundary = 5;
+    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP))
+        qualityUpperBoundary = 5;
 #endif
     // check if TU setting is valid, otherwise change to default
     if ((m_encodeCtx->targetUsage > qualityUpperBoundary) || (0 == m_encodeCtx->targetUsage))
@@ -519,14 +562,18 @@ VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
     }
 
 #ifdef _FULL_OPEN_SOURCE
-    if(m_encodeCtx->targetUsage >= 1 && m_encodeCtx->targetUsage <= 2)
+    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP))
     {
-        m_encodeCtx->targetUsage = 4;
+        if(m_encodeCtx->targetUsage >= 1 && m_encodeCtx->targetUsage <= 2)
+        {
+            m_encodeCtx->targetUsage = 4;
+        }
+        else if(m_encodeCtx->targetUsage >= 3 &&m_encodeCtx->targetUsage <= 5)
+        {
+            m_encodeCtx->targetUsage = 7;
+        }
     }
-    else if(m_encodeCtx->targetUsage >= 3 &&m_encodeCtx->targetUsage <= 5)
-    {
-        m_encodeCtx->targetUsage = 7;
-    }
+
 #endif
 
     return VA_STATUS_SUCCESS;
@@ -1877,6 +1924,10 @@ VAStatus DdiEncodeAvc::ParseMiscParams(void *ptr)
 
     case VAEncMiscParameterTypeMaxFrameSize:
         status = ParseMiscParamMaxFrameSize((void *)miscParamBuf->data);
+        break;
+
+    case VAEncMiscParameterTypeMultiPassFrameSize:
+        status = ParseMiscParamMultiPassFrameSize((void *)miscParamBuf->data);
         break;
 
     case VAEncMiscParameterTypeQualityLevel:

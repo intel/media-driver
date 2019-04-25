@@ -154,27 +154,15 @@ MOS_STATUS CodechalKernelHmeG11::SetCurbe(MHW_KERNEL_STATE *kernelState)
 
     if (m_4xMeInUse && m_curbeParam.brcEnable) // HME kernel generates Sum MV and Distortion for Hevc dual pipe
     {
-        curbe.m_data.DW5.SumMVThreshold = 16; // As per kernel requirement, used only when BRC is on/LTR is on
+        curbe.m_data.DW5.SumMVThreshold = m_curbeParam.sumMVThreshold; // As per kernel requirement, used only when BRC is on/LTR is on
         curbe.m_data.DW6.BRCEnable      = m_curbeParam.brcEnable;
     }
 
     // r3 & r4
-    uint8_t methodIndex;
-    if (m_pictureCodingType == B_TYPE)
-    {
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_bmeMethodTable);
-        methodIndex = m_curbeParam.bmeMethodTable ?
-            m_curbeParam.bmeMethodTable[m_curbeParam.targetUsage] : m_bmeMethodTable[m_curbeParam.targetUsage];
-    }
-    else
-    {
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_meMethodTable);
-        methodIndex = m_curbeParam.meMethodTable ?
-            m_curbeParam.meMethodTable[m_curbeParam.targetUsage] : m_meMethodTable[m_curbeParam.targetUsage];
-    }
+    uint8_t methodIndex = 0; // kernel requirement
+    uint8_t tableIndex  = (m_pictureCodingType == B_TYPE) ? 1 : 0;
 
-    uint8_t tableIndex = (m_pictureCodingType == B_TYPE) ? 1 : 0;
-    MOS_SecureMemcpy(&curbe.m_data.SpDelta, 14 * sizeof(uint32_t), codechalEncodeSearchPath[tableIndex][0], 14 * sizeof(uint32_t));  //methodIndex set to 0 as per kernel requirement
+    MOS_SecureMemcpy(&curbe.m_data.SpDelta, 14 * sizeof(uint32_t), codechalEncodeSearchPath[tableIndex][methodIndex], 14 * sizeof(uint32_t));
 
     // Non legacy stream in is for hevc vp9 streamin kernel
     if (m_4xMeInUse && m_useNonLegacyStreamIn)
@@ -653,7 +641,7 @@ MHW_KERNEL_STATE *CodechalKernelHmeG11::GetActiveKernelState()
         kernelIndex  = KernelIndex::hmeB;
         operation    = ENC_ME;
         kernelOffset = 1;
-        if (m_noMEKernelForPFrame)
+        if (m_noMEKernelForPFrame || m_surfaceParam.refL1List->PicFlags == PICTURE_INVALID)
         {
             kernelOffset = 0; 
             kernelIndex = KernelIndex::hmeP;

@@ -156,7 +156,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetGpuCtxCreatOption(
 
             if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 2)
             {
-                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO5 : MOS_GPU_CONTEXT_VDBOX2_VIDEO;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
@@ -168,12 +168,12 @@ MOS_STATUS CodechalDecodeHevcG11::SetGpuCtxCreatOption(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
                     MOS_GPU_CONTEXT_VIDEO,
-                    MOS_GPU_NODE_VIDEO,
+                    m_videoGpuNode,
                     &createOption));
             }
             else if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 3)
             {
-                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO7 : MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
@@ -185,7 +185,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetGpuCtxCreatOption(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
                     MOS_GPU_CONTEXT_VIDEO,
-                    MOS_GPU_NODE_VIDEO,
+                    m_videoGpuNode,
                     &createOption));
             }
             else
@@ -440,6 +440,8 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
     if (m_shortFormatInUse)
     {
         m_dmemBufferProgrammed = false;
+        m_dmemBufferIdx++;
+        m_dmemBufferIdx %= CODECHAL_HEVC_NUM_DMEM_BUFFERS;
     }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
@@ -572,6 +574,8 @@ MOS_STATUS CodechalDecodeHevcG11::EndStatusReport(
 
     CodechalDecodeStatus *decodeStatus = &m_decodeStatusBuf.m_decodeStatus[m_decodeStatusBuf.m_currIndex];
     MOS_ZeroMemory(decodeStatus, sizeof(CodechalDecodeStatus));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, cmdBuffer));
 
     if (!m_osInterface->bEnableKmdMediaFrameTracking && m_osInterface->bInlineCodecStatusUpdate)
     {
@@ -970,7 +974,7 @@ MOS_STATUS CodechalDecodeHevcG11::SendPictureLongFormat()
             CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_InitSemaMemResources(m_scalabilityState, cmdBufferInUse));
         }
     }
-
+    
     //Send status report Start
     if (m_statusQueryReportingEnabled)
     {
@@ -1007,6 +1011,10 @@ MOS_STATUS CodechalDecodeHevcG11::SendPictureLongFormat()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_FEBESync(
             m_scalabilityState,
             cmdBufferInUse));
+        if (m_perfFEBETimingEnabled && CodecHalDecodeScalabilityIsLastCompletePhase(m_scalabilityState))
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+        }
     }
 
     if (CodecHalDecodeScalabilityIsBEPhase(m_scalabilityState))
@@ -1106,6 +1114,7 @@ MOS_STATUS CodechalDecodeHevcG11::SendSliceLongFormat(
     {
         MHW_VDBOX_HEVC_REF_IDX_PARAMS refIdxParams;
         MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_HEVC_REF_IDX_PARAMS));
+        refIdxParams.bDummyReference = true;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpRefIdxStateCmd(
             cmdBuffer,
             nullptr,
@@ -1460,6 +1469,10 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
         if (m_statusQueryReportingEnabled)
         {
             EndStatusReportForFE(cmdBufferInUse);
+            if (m_perfFEBETimingEnabled)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+            }
         }
     }
 

@@ -74,12 +74,12 @@ MOS_STATUS CodechalDecodeVc1G11::SetGpuCtxCreatOption(
     {
         m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(    
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
             m_veState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
             false));
-    }
-        
+        m_videoContext = MOS_GPU_CONTEXT_VIDEO; // Move functionality to CodecHalDecodeMapGpuNodeToGpuContex
+    } 
     return eStatus;
 }
 
@@ -531,6 +531,7 @@ MOS_STATUS CodechalDecodeVc1G11::DecodePrimitiveLevelVLD()
                         lOffset = CODECHAL_DECODE_VC1_STUFFING_BYTES - 1;
                         lLength += CODECHAL_DECODE_VC1_STUFFING_BYTES;
                         slc->macroblock_offset += CODECHAL_DECODE_VC1_STUFFING_BYTES << 3;
+                        slc->macroblock_offset &= (~0x7); // Clear bit offset of first MB for short format
                     }
                 }
             }

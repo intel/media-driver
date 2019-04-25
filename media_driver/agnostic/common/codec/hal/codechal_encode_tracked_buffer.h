@@ -330,6 +330,7 @@ public:
 
     MOS_STATUS ResizeSurfaceDS();
 
+    MOS_STATUS ResizeDsReconSurfacesVdenc();
     //!
     //! \brief    Allocate DS surface or pick an existing one from the pool
     //!

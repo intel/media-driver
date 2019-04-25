@@ -234,6 +234,19 @@
 //!
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG        "MMC Sub Components Tags"
 
+//!
+//! \brief User feature keys for component BLT:
+//!
+#define __MOS_USER_FEATURE_KEY_MESSAGE_BLT_TAG              "BLT Message Tags"
+#define __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_BLT         "BLT Tags By Sub Component"
+//!
+//! \brief 63____________________________________________________________________________3__________0
+//!         |                                                                            |   Self   |
+//!         |                    Reserved (can create BLT subcomponents)                 |Asrt|level|
+//!         |____________________________________________________________________________|__________|
+//!
+#define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_BLT_TAG        "BLT Sub Components Tags"
+
 #endif // MOS_MESSAGES_ENABLED
 
 //User feature key for MDF
@@ -246,11 +259,19 @@
 #define __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE                      "MDF EMU Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER                     "MDF CMD DUMP COUNTER"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER           "MDF SURFACE STATE DUMP COUNTER"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP       "MDF Interface Descriptor Dump Enable"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER    "MDF Interface Descriptor Dump Counter"
+
+
 //User feature key for VP
 #define __MEDIA_USER_FEATURE_VALUE_VP_3P_DUMP_UFKEY_LOCATION                "Software\\Intel\\VPPDPI"
 
 #define __MOS_USER_FEATURE_KEY_XML_AUTOGEN              "XML AutoGen Enable"
 #define __MOS_USER_FEATURE_KEY_XML_FILEPATH             "XML File Path"
 #define __MOS_USER_FEATURE_KEY_XML_DUMP_GROUPS          "XML Dump Group"
+
+
+//User feature key for enable simulating random memory allocation failure
+#define __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL "Simulate Random Alloc Memory Fail"
 
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_H__

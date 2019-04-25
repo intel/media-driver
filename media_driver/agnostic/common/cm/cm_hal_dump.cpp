@@ -99,9 +99,13 @@ int32_t GetFileNameAndCounter(char fileNamePrefix[], bool timeStampFlag, int32_t
         {
             counter = GetCommandBufferDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER);
         }
-        else
+        else if (!strcmp(outputFile,"Surface_State_Dump"))
         {
             counter = GetSurfaceStateDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER);
+        }
+        else if (!strcmp(outputFile, "Interface_Descriptor_Data_Dump"))
+        {
+            counter = GetInterfaceDescriptorDataDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER);
         }
        
         PlatformSNPrintf(fileNamePrefix + strlen(fileNamePrefix), 
@@ -206,6 +210,7 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     uint32_t        numberOfDwords = 0;
     uint32_t        sizeToAllocate = 0;
     char            fileName[MOS_MAX_HLT_FILENAME_LEN];
+    uint32_t        offset = 0;
 
     PMOS_INTERFACE osInterface = state->osInterface;
     PRENDERHAL_STATE_HEAP stateHeap   = state->renderHal->pStateHeap;
@@ -219,8 +224,11 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
                           __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER, 
                           HALCM_COMMAND_BUFFER_OUTPUT_DIR,
                           HALCM_COMMAND_BUFFER_OUTPUT_FILE);
-       
-    numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t);
+
+    //get the command buffer header size
+    offset = GetCommandBufferHeaderDWords(osInterface);
+
+    numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t) - offset;
     sizeToAllocate = numberOfDwords * (SIZE_OF_DWORD_PLUS_ONE)+2 +   //length of command buffer line
         stateHeap->iCurrentSurfaceState *
         (SIZE_OF_DWORD_PLUS_ONE * 
@@ -230,10 +238,11 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     if (!outputBuffer) {
         MOS_OS_NORMALMESSAGE("Failed to allocate memory for command buffer dump");
         return MOS_STATUS_NO_SPACE;
-    }
+    }    
+
     // write command buffer dwords.
     bytesWritten += HalCm_CopyHexDwordLine(outputBuffer, sizeToAllocate - bytesWritten,
-                                          (uint32_t *)cmdBuffer->pCmdBase, numberOfDwords);
+                                          (uint32_t *)cmdBuffer->pCmdBase + offset, numberOfDwords);
     MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
     commandBufferNumber++;
 
@@ -519,7 +528,6 @@ finish:
 //!
 int32_t HalCm_DumpSurfaceState(PCM_HAL_STATE state,  int offsetSurfaceState, size_t sizeOfSurfaceState)
 {
-
     int32_t         hr = CM_FAILURE;
     MOS_STATUS      eStatus = MOS_STATUS_UNKNOWN;
 
@@ -580,6 +588,155 @@ finish:
     if (surfaceoutputBuffer)
     {
         MOS_FreeMemAndSetNull(surfaceoutputBuffer);
+    }
+
+    return hr;
+
+}
+#endif
+
+#if MDF_INTERFACE_DESCRIPTOR_DATA_DUMP
+#define HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR         "HALCM_Interface_Descriptor_Data_Dumps"
+#define HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_FILE        "Interface_Descriptor_Data_Dump"
+
+int32_t HalCm_InitDumpInterfaceDescriporData(PCM_HAL_STATE state)
+{
+    MOS_USER_FEATURE        userFeature;
+    char                    fileName[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_STATUS              eStatus;
+    MOS_USER_FEATURE_VALUE  userFeatureValue;
+    int32_t                 hr = CM_FAILURE;
+
+    MOS_OS_ASSERT(state);
+
+    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
+    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
+
+    // Check if command buffer dump was enabled in user feature settings.
+    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
+    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    userFeature.pValues = &userFeatureValue;
+    userFeature.uiNumValues = 1;
+    userFeatureValue.bData = false;
+
+    GetLogFileLocation(HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR, fileName);
+
+    eStatus = MOS_UserFeature_ReadValue(
+        nullptr,
+        &userFeature,
+        __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_NORMALMESSAGE("Unable to read interface descriptor data dump user feature key. Status = %d", eStatus);
+        goto finish;
+    }
+    if (userFeatureValue.bData)
+    {
+        eStatus = MOS_CreateDirectory(fileName);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
+            goto finish;
+        }
+        // Setup member function and variable.
+        state->dumpIDData = userFeatureValue.bData ? true : false;
+        if (userFeatureValue.bData == 17)
+        {
+            state->enableIDDumpTimeStamp = true;
+        }
+        else
+        {
+            state->enableIDDumpTimeStamp = false;
+        }
+        
+    }
+    hr = CM_SUCCESS;
+finish:
+    return hr;
+}
+
+//!
+//! \brief    Dump interface descriptor data to file
+//! \param    [in] state
+//!           pointer to cm hal state
+//! \return   int32_t
+//!           CM_SUCCESS if success, else fail reason
+//!
+int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state)
+{
+    uint32_t        IDDNumber = 0; 
+    int32_t         hr = CM_FAILURE;
+    MOS_STATUS      eStatus = MOS_STATUS_UNKNOWN;
+    char            *outputBuffer = nullptr;
+    uint32_t        bytesWritten = 0;
+    char            fileName[MOS_MAX_HLT_FILENAME_LEN];
+    uint32_t        numberOfDwords = 0;
+    uint32_t        sizeToAllocate = 0;
+    PMOS_INTERFACE osInterface = state->osInterface;
+    uint32_t        *InterfaceDescriptorData = nullptr;
+    PRENDERHAL_STATE_HEAP stateHeap = state->renderHal->pStateHeap;
+
+    MOS_OS_ASSERT(state);
+
+    // Set the file name.
+    GetLogFileLocation(HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR, fileName);
+
+    //Check if use timestamp in cmd buffer dump file
+    IDDNumber = GetFileNameAndCounter(fileName, state->enableIDDumpTimeStamp,
+        IDDNumber,
+        __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER,
+        HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR,
+        HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_FILE);
+
+    // write interface descriptor data dwords.
+    if (state->dshEnabled)
+    {
+        numberOfDwords = stateHeap->pCurMediaState->pDynamicState->MediaID.dwSize / sizeof(uint32_t);
+        sizeToAllocate = numberOfDwords * SIZE_OF_DWORD_PLUS_ONE + 2;
+        outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
+        InterfaceDescriptorData = (uint32_t *)MOS_AllocAndZeroMemory(stateHeap->pCurMediaState->pDynamicState->MediaID.dwSize);
+        stateHeap->pCurMediaState->pDynamicState->memoryBlock.ReadData(InterfaceDescriptorData,
+            stateHeap->pCurMediaState->pDynamicState->MediaID.dwOffset,
+            stateHeap->pCurMediaState->pDynamicState->MediaID.dwSize);
+
+        bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
+            sizeToAllocate - bytesWritten,
+            InterfaceDescriptorData,
+            numberOfDwords);
+    }
+    else
+    {
+        numberOfDwords = stateHeap->dwSizeMediaID / sizeof(uint32_t);
+        sizeToAllocate = numberOfDwords * SIZE_OF_DWORD_PLUS_ONE + 2;
+        outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
+        bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
+            sizeToAllocate - bytesWritten,
+            (uint32_t*)(stateHeap->pGshBuffer + stateHeap->pCurMediaState->dwOffset + stateHeap->dwOffsetMediaID),
+            numberOfDwords);
+    }
+
+    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
+
+    IDDNumber++;
+    if (!state->enableIDDumpTimeStamp)
+    {
+        RecordInterfaceDescriptorDataDumpCounter(IDDNumber,
+            __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID);
+    }
+
+    hr = CM_SUCCESS;
+
+finish:
+    // Free the memory.
+    if (outputBuffer)
+    {
+        MOS_FreeMemAndSetNull(outputBuffer);
+    }
+
+    if (InterfaceDescriptorData)
+    {
+        MOS_FreeMemAndSetNull(InterfaceDescriptorData);
     }
 
     return hr;

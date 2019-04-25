@@ -74,6 +74,129 @@
 #define CODECHAL_VDENC_AVC_POS_MULT_VBR                     100
 #define CODECHAL_VDENC_AVC_NEG_MULT_VBR                     -50
 
+#define __CODEGEN_BITFIELD(l, h) (h) - (l) + 1
+//!
+//! \brief CODECHAL_VDENC_STREAMIN_STATE
+//! \details
+//!
+//!
+struct CODECHAL_VDENC_STREAMIN_STATE
+{
+    union
+    {
+        //!< DWORD 0
+        struct
+        {
+            uint32_t RegionOfInterestRoiSelection : __CODEGEN_BITFIELD(0, 7);  //!< Region of Interest (ROI) Selection
+            uint32_t Forceintra : __CODEGEN_BITFIELD(8, 8);                    //!< FORCEINTRA
+            uint32_t Forceskip : __CODEGEN_BITFIELD(9, 9);                     //!< FORCESKIP
+            uint32_t Reserved10 : __CODEGEN_BITFIELD(10, 31);                  //!< Reserved
+        };
+        uint32_t Value;
+    } DW0;
+    union
+    {
+        //!< DWORD 1
+        struct
+        {
+            uint32_t Qpprimey : __CODEGEN_BITFIELD(0, 7);           //!< QPPRIMEY
+            uint32_t Targetsizeinword : __CODEGEN_BITFIELD(8, 15);  //!< TargetSizeInWord
+            uint32_t Maxsizeinword : __CODEGEN_BITFIELD(16, 23);    //!< MaxSizeInWord
+            uint32_t Reserved56 : __CODEGEN_BITFIELD(24, 31);       //!< Reserved
+        };
+        uint32_t Value;
+    } DW1;
+    union
+    {
+        //!< DWORD 2
+        struct
+        {
+            uint32_t FwdPredictorX : __CODEGEN_BITFIELD(0, 15);   //!< Fwd Predictor.X
+            uint32_t FwdPredictorY : __CODEGEN_BITFIELD(16, 31);  //!< Fwd Predictor.Y
+        };
+        uint32_t Value;
+    } DW2;
+    union
+    {
+        //!< DWORD 3
+        struct
+        {
+            uint32_t BwdPredictorX : __CODEGEN_BITFIELD(0, 15);   //!< Bwd Predictor.X
+            uint32_t BwdPredictorY : __CODEGEN_BITFIELD(16, 31);  //!< Bwd Predictor.Y
+        };
+        uint32_t Value;
+    } DW3;
+    union
+    {
+        //!< DWORD 4
+        struct
+        {
+            uint32_t FwdRefid0 : __CODEGEN_BITFIELD(0, 3);     //!< Fwd RefID0
+            uint32_t BwdRefid0 : __CODEGEN_BITFIELD(4, 7);     //!< Bwd RefID0
+            uint32_t Reserved136 : __CODEGEN_BITFIELD(8, 31);  //!< Reserved
+        };
+        uint32_t Value;
+    } DW4;
+
+    uint32_t Reserved160[11];  //!< Reserved
+
+    //! \name Local enumerations
+
+    //! \brief FORCEINTRA
+    //! \details
+    //!     This field specifies whether current macroblock should be coded as an
+    //!     intra macroblock.
+    //!                    It is illegal to enable both ForceSkip and ForceIntra for
+    //!     the same macroblock.
+    //!                    This should be disabled if Rolling-I is enabled in the
+    //!     VDEnc Image State.
+    enum FORCEINTRA
+    {
+        FORCEINTRA_DISABLE = 0,  //!< VDEnc determined macroblock type
+        FORCEINTRA_ENABLE  = 1,  //!< Force to be coded as an intra macroblock
+    };
+
+    //! \brief FORCESKIP
+    //! \details
+    //!     This field specifies whether current macroblock should be coded as a
+    //!     skipped macroblock.
+    //!                    It is illegal to enable both ForceSkip and ForceIntra for
+    //!     the same macroblock.
+    //!                    This should be disabled if Rolling-I is enabled in the
+    //!     VDEnc Image State.
+    //!                      It is illegal to enable ForceSkip for I-Frames.
+    enum FORCESKIP
+    {
+        FORCESKIP_DISABLE = 0,  //!< VDEnc determined macroblock type
+        FORCESKIP_ENABLE  = 1,  //!< Force to be coded as a skipped macroblock
+    };
+
+    //! \brief QPPRIMEY
+    //! \details
+    //!     Quantization parameter for Y.
+    enum QPPRIMEY
+    {
+        QPPRIMEY_UNNAMED0  = 0,   //!< No additional details
+        QPPRIMEY_UNNAMED51 = 51,  //!< No additional details
+    };
+
+    CODECHAL_VDENC_STREAMIN_STATE()
+    {
+        DW0.Value      = 0;
+        DW0.Forceintra = 0;
+        DW0.Forceskip  = 0;
+        DW1.Value      = 0;
+        DW1.Qpprimey   = 0;
+        DW2.Value      = 0;
+        DW3.Value      = 0;
+        DW4.Value      = 0;
+        MOS_ZeroMemory(&Reserved160, sizeof(Reserved160));
+    }
+
+    static const size_t dwSize   = 16;
+    static const size_t byteSize = 64;
+};
+
 typedef struct _AVCVdencBRCCostantData
 {
     uint8_t     UPD_GlobalRateQPAdjTabI_U8[64];
@@ -423,7 +546,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetupROIStreamIn(
+    virtual MOS_STATUS SetupROIStreamIn(
         PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
         PMOS_RESOURCE                vdencStreamIn);
 
@@ -709,6 +832,10 @@ protected:
     //!
     virtual PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CreateMhwVdboxVdencWalkerStateParams();
 
+    virtual uint32_t GetBRCCostantDataSize() { return sizeof(AVCVdencBRCCostantData); }
+
+    virtual MOS_STATUS FillHucConstData(uint8_t *data);
+
 protected:
     bool                                        m_vdencSinglePassEnable = false;   //!< Enable VDEnc single pass
 
@@ -776,6 +903,7 @@ protected:
     bool    m_skipBiasAdjustmentSupported;  //!< SkipBiasAdjustment support for P frame
     bool    m_sliceLevelReportSupported;    //!< Slice Level Report support
     bool    m_brcRoiSupported;              //!< BRC Roi Support Flag.
+    bool    m_brcMotionAdaptiveEnable;      //!< BRC motion adaptive optimization enabled. 
 
     bool     m_roundingInterEnable;          //!< RoundingInter Enable Flag.
     bool     m_adaptiveRoundingInterEnable;  //!< Adaptive Rounding Inter Enable Flag.
@@ -875,6 +1003,9 @@ private:
     static const uint8_t  AdaptiveInterRoundingPWithoutB[CODEC_AVC_NUM_QP];                //!< InterRounding Table.
     static const uint8_t  AdaptiveInterRoundingP[CODEC_AVC_NUM_QP];                        //!< InterRounding Table.
     static const uint32_t InterRoundingP[NUM_TARGET_USAGE_MODES];                          //!< P Picture InterRounding Table.
+    static const uint32_t InterRoundingB[NUM_TARGET_USAGE_MODES];                          //!< B Picture InterRounding Table.
+    static const uint32_t InterRoundingBRef[NUM_TARGET_USAGE_MODES];                       //!< B Ref Picture InterRounding Table.
+    static const uint8_t  AdaptiveInterRoundingB[CODEC_AVC_NUM_QP];                        //!< B Picture Adaptive InterRounding Table.
 
 #if USE_CODECHAL_DEBUG_TOOL
 protected:

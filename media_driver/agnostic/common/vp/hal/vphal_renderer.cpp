@@ -672,9 +672,7 @@ MOS_STATUS VphalRenderer::RenderPass(
     PVPHAL_RENDER_PARAMS    pRenderParams)
 {
     MOS_STATUS              eStatus;
-    uint32_t                uiIndex;                                            // Current source index
-    uint32_t                uiSources;                                          // Number of Sources
-    PVPHAL_SURFACE          pSrcSurface;                                        // Current source surface
+    uint32_t                uiIndex_in;                                         // Current source index
     uint32_t                uiIndex_out;                                        // current target index
     PVPHAL_VEBOX_EXEC_STATE pVeboxExecState;
     RenderpassData          RenderPassData;
@@ -683,7 +681,6 @@ MOS_STATUS VphalRenderer::RenderPass(
 
     eStatus                 = MOS_STATUS_SUCCESS;
     pVeboxExecState         = &VeboxExecState[uiCurrentChannel];
-    pSrcSurface             = nullptr;
 
     RenderPassData.AllocateTempOutputSurfaces();
     RenderPassData.bCompNeeded      = true;
@@ -695,85 +692,82 @@ MOS_STATUS VphalRenderer::RenderPass(
     VPHAL_RENDER_CHK_STATUS(ProcessRenderParameter(pRenderParams, &RenderPassData));
 
     // Loop through the sources
-    for (uiSources = 0, uiIndex = 0;
-         uiSources < pRenderParams->uSrcCount && uiIndex < VPHAL_MAX_SOURCES;
-         uiIndex++)
+    for (uiIndex_in = 0; uiIndex_in < pRenderParams->uSrcCount; uiIndex_in++)
     {
-        pSrcSurface = pRenderParams->pSrc[uiIndex];
-
-        if (pSrcSurface == nullptr)
+        if (pRenderParams->pSrc[uiIndex_in] == nullptr)
         {
             continue;
         }
 
-        uiSources++;
-
         //------------------------------------------
         VPHAL_RNDR_DUMP_SURF(
-            this, uiIndex, VPHAL_DBG_DUMP_TYPE_PRE_ALL, pSrcSurface);
+            this, uiIndex_in, VPHAL_DBG_DUMP_TYPE_PRE_ALL, pRenderParams->pSrc[uiIndex_in]);
         //------------------------------------------
 
-        RenderPassData.pOriginalSrcSurface  = pSrcSurface;
-        RenderPassData.pSrcSurface          = pSrcSurface;
-        RenderPassData.uiSrcIndex           = uiIndex;
+        RenderPassData.pOriginalSrcSurface  = pRenderParams->pSrc[uiIndex_in];
+        RenderPassData.pSrcSurface          = pRenderParams->pSrc[uiIndex_in];
+        RenderPassData.uiSrcIndex           = uiIndex_in;
 
-        if (VpHal_RndrIsFast1toNSupport(&Fast1toNState, pRenderParams, pSrcSurface))
+        if (VpHal_RndrIsFast1toNSupport(&Fast1toNState, pRenderParams, pRenderParams->pSrc[uiIndex_in]))
         {
             // new 1toN path for multi ouput with scaling only case.
             VPHAL_RENDER_NORMALMESSAGE("Enter fast 1to N render.");
             VPHAL_RENDER_CHK_STATUS(RenderFast1toNComposite(pRenderParams, &RenderPassData));
-            UpdateReport(pRenderParams, &RenderPassData);
         }
         else
         {
             // loop through the dst for every src input.
-            for (uiIndex_out = 0;
-                 uiIndex_out < pRenderParams->uDstCount;
-                 uiIndex_out++)
+            // backup the render params to execute as dst_count=1 to compatible with legacy logic.
+            VPHAL_RENDER_PARAMS StoreRenderParams = *pRenderParams;
+            pRenderParams->uDstCount              = 1;
+            for (uiIndex_out = 0; uiIndex_out < StoreRenderParams.uDstCount; uiIndex_out++)
             {
-                VPHAL_RENDER_PARAMS     TPRenderParams;
-                TPRenderParams  = *pRenderParams;
-                if (pRenderParams->pTarget[uiIndex_out] == nullptr)
+                if (StoreRenderParams.pTarget[uiIndex_out] == nullptr)
                 {
                     continue;
                 }
-                // update the first target point, set the dst_count as 1 to compatible with legacy path
-                TPRenderParams.pTarget[0]                = pRenderParams->pTarget[uiIndex_out];
-                TPRenderParams.bUserPrt_16Align[0]       = pRenderParams->bUserPrt_16Align[uiIndex_out];
-                TPRenderParams.uDstCount                 = 1;
-                if (pRenderParams->uDstCount > 1)
+                // update the first target point
+                pRenderParams->pTarget[0]                = StoreRenderParams.pTarget[uiIndex_out];
+                pRenderParams->bUserPrt_16Align[0]       = StoreRenderParams.bUserPrt_16Align[uiIndex_out];
+                if (StoreRenderParams.uDstCount > 1)
                 {
                     // for multi output, support different scaling ratio but doesn't support cropping.
-                    RenderPassData.pSrcSurface->rcDst.top    = TPRenderParams.pTarget[0]->rcSrc.top;
-                    RenderPassData.pSrcSurface->rcDst.left   = TPRenderParams.pTarget[0]->rcSrc.left;
-                    RenderPassData.pSrcSurface->rcDst.bottom = TPRenderParams.pTarget[0]->rcSrc.bottom;
-                    RenderPassData.pSrcSurface->rcDst.right  = TPRenderParams.pTarget[0]->rcSrc.right;
+                    RenderPassData.pSrcSurface->rcDst.top    = pRenderParams->pTarget[0]->rcSrc.top;
+                    RenderPassData.pSrcSurface->rcDst.left   = pRenderParams->pTarget[0]->rcSrc.left;
+                    RenderPassData.pSrcSurface->rcDst.bottom = pRenderParams->pTarget[0]->rcSrc.bottom;
+                    RenderPassData.pSrcSurface->rcDst.right  = pRenderParams->pTarget[0]->rcSrc.right;
                 }
-                RenderSingleStream(&TPRenderParams, &RenderPassData);
+
+                RenderSingleStream(pRenderParams, &RenderPassData);
 
                 if (!RenderPassData.bCompNeeded &&
-                    TPRenderParams.pTarget[0] &&
-                    TPRenderParams.pTarget[0]->bFastColorFill)
+                    pRenderParams->pTarget[0] &&
+                    pRenderParams->pTarget[0]->bFastColorFill)
                 {
                     // with fast color fill enabled, we seperate target surface into two parts:
                     // (1) upper rectangle rendered by vebox
                     // (2) bottom rectangle with back ground color fill by composition
                     pRenderParams->uSrcCount = 0; // set to zero for color fill
-                    TPRenderParams.pTarget[0]->rcDst.top = TPRenderParams.pTarget[0]->rcDst.bottom;
+                    pRenderParams->pTarget[0]->rcDst.top = pRenderParams->pSrc[0]->rcDst.bottom;
                     RenderPassData.bCompNeeded = true;
                     VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
                 }
-
-                if (RenderPassData.bCompNeeded)
+                if (RenderPassData.bCompNeeded &&
+                    (uiIndex_in == pRenderParams->uSrcCount-1 || // compatible with N:1 case, only render at the last input.
+                     pRenderParams->uSrcCount == 0))             // fast color fill
                 {
-                    VPHAL_RENDER_CHK_STATUS(RenderComposite(&TPRenderParams, &RenderPassData));
+                    VPHAL_RENDER_CHK_STATUS(RenderComposite(pRenderParams, &RenderPassData));
                 }
-
-                // Report Render modes
-                UpdateReport(pRenderParams, &RenderPassData);
             }
+            // restore render pointer and count.
+            pRenderParams->pTarget[0]            = StoreRenderParams.pTarget[0];
+            pRenderParams->bUserPrt_16Align[0]   = StoreRenderParams.bUserPrt_16Align[0];
+            pRenderParams->uDstCount             = StoreRenderParams.uDstCount;
         }
     }
+
+    // Report Render modes
+    UpdateReport(pRenderParams, &RenderPassData);
 
     //------------------------------------------
     VPHAL_RNDR_DUMP_SURF_PTR_ARRAY(
@@ -826,6 +820,16 @@ MOS_STATUS VphalRenderer::RenderSingleStream(
             this,
             pRenderParams,
             pRenderPassData));
+
+        if (pRenderPassData->bSFCScalingOnly)
+        {
+            // set the output surface which from the Vebox+SFC as input surface, and let comp to do composite.
+            VPHAL_RENDER_CHK_NULL(pRenderPassData->pOutSurface);
+            pRenderPassData->bCompNeeded = true;
+            pRenderPassData->bSFCScalingOnly = false;
+            pRenderPassData->pSrcSurface = pRenderPassData->pOutSurface;
+            pRenderPassData->pSrcSurface->SurfType = SURF_IN_PRIMARY;
+        }
 
         if (pRenderPassData->bOutputGenerated)
         {
@@ -1138,6 +1142,11 @@ MOS_STATUS VphalRenderer::Render(
             pSrcRight,
             &uiRenderPasses));
 
+    //Update GpuContext
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrCCSNode))
+    {
+        UpdateRenderGpuContext();
+    }
     // align rectangle and source surface
     for (uiDst = 0; uiDst < RenderParams.uDstCount; uiDst++)
     {
@@ -1179,6 +1188,82 @@ finish:
 }
 
 //!
+//! \brief    Update Render Gpu Context
+//! \details  Update Render Gpu Context
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRenderer::UpdateRenderGpuContext()
+{
+    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+    MOS_GPU_CONTEXT         renderGpuContext, currentGpuContext;
+    MOS_GPU_NODE            renderGpuNode;
+    MOS_GPUCTX_CREATOPTIONS createOption;
+    PVPHAL_VEBOX_STATE      pVeboxState = nullptr;
+    int                     i           = 0;
+    currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+    if (m_pOsInterface->osCpInterface->IsCpEnabled() &&
+        (m_pOsInterface->osCpInterface->IsHMEnabled() || m_pOsInterface->osCpInterface->IsSMEnabled()))
+    {
+        if (currentGpuContext == MOS_GPU_CONTEXT_COMPUTE ||
+            currentGpuContext == MOS_GPU_CONTEXT_COMPUTE_RA)  // CCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_COMPUTE_RA;
+            renderGpuNode    = MOS_GPU_NODE_COMPUTE;
+        }
+        else  // RCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_RENDER_RA;
+            renderGpuNode    = MOS_GPU_NODE_3D;
+        }
+        createOption.RAMode = 1;
+    }
+    else
+    {
+        if (currentGpuContext == MOS_GPU_CONTEXT_COMPUTE ||
+            currentGpuContext == MOS_GPU_CONTEXT_COMPUTE_RA)  // CCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_COMPUTE;
+            renderGpuNode    = MOS_GPU_NODE_COMPUTE;
+        }
+        else  // RCS
+        {
+            renderGpuContext = MOS_GPU_CONTEXT_RENDER;
+            renderGpuNode    = MOS_GPU_NODE_3D;
+        }
+        createOption.RAMode = 0;
+    }
+
+    // no gpucontext will be created if the gpu context has been created before.
+    VPHAL_PUBLIC_CHK_STATUS(m_pOsInterface->pfnCreateGpuContext(
+        m_pOsInterface,
+        renderGpuContext,
+        renderGpuNode,
+        &createOption));
+
+    VPHAL_PUBLIC_CHK_STATUS(m_pOsInterface->pfnSetGpuContext(
+        m_pOsInterface,
+        renderGpuContext));
+
+    // Register Render GPU context with the event
+    VPHAL_PUBLIC_CHK_STATUS(m_pOsInterface->pfnRegisterBBCompleteNotifyEvent(
+        m_pOsInterface,
+        renderGpuContext));
+
+    //update sub render status one by one
+    for (i = 0; i < VPHAL_RENDER_ID_COUNT - 1; i++)
+    {  // VPHAL_RENDER_ID_COMPOSITE is not inherited from vphal_vebox_state, skip it.
+        pVeboxState = (PVPHAL_VEBOX_STATE)(pRender[i]);
+        if (pVeboxState != nullptr)
+        {
+            pVeboxState->UpdateRenderGpuContext(renderGpuContext);
+        }
+    }
+finish:
+    VPHAL_RENDER_NORMALMESSAGE("gpucontext switch from %d to %d", currentGpuContext, renderGpuContext);
+    return eStatus;
+}
+    //!
 //! \brief    Release intermediate surfaces
 //! \details  Release intermediate surfaces created for main render function
 //! \return   MOS_STATUS
@@ -1546,7 +1631,7 @@ VphalRenderer::VphalRenderer(
     PRENDERHAL_INTERFACE                pRenderHal,
     MOS_STATUS                          *pStatus) :
     m_pRenderHal(pRenderHal),
-    m_pOsInterface(pRenderHal->pOsInterface),
+    m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
     m_pSkuTable(nullptr),
     m_modifyKdllFunctionPointers(nullptr),
     Align16State(),
@@ -1580,6 +1665,9 @@ VphalRenderer::VphalRenderer(
     MOS_STATUS                          eStatus;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 
+    VPHAL_RENDER_CHK_NULL(m_pRenderHal);
+    VPHAL_RENDER_CHK_NULL(m_pOsInterface);
+
     MOS_ZeroMemory(&pRender, sizeof(pRender));
 
     // Read Slice Shutdown (SSD Control) User Feature Key once during initialization
@@ -1599,7 +1687,11 @@ VphalRenderer::VphalRenderer(
     // Get SKU table
     m_pSkuTable = m_pOsInterface->pfnGetSkuTable(m_pOsInterface);
 
-    *pStatus = eStatus;
+finish:
+    if (pStatus)
+    {
+        *pStatus = eStatus;
+    }
 }
 
 //!

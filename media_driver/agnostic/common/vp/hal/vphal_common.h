@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -516,11 +516,12 @@ C_ASSERT(BLEND_CONSTANT == 3);      //!< When adding, update assert & vphal_solo
 //!
 typedef enum _VPHAL_SCALING_MODE
 {
-    VPHAL_SCALING_NEAREST,
+    VPHAL_SCALING_NEAREST = 0,
     VPHAL_SCALING_BILINEAR,
-    VPHAL_SCALING_AVS
+    VPHAL_SCALING_AVS,
+    VPHAL_SCALING_ADV_QUALITY        // !< Advance Perf mode
 } VPHAL_SCALING_MODE;
-C_ASSERT(VPHAL_SCALING_AVS == 2);   //!< When adding, update assert & vphal_solo_scenario.cpp
+C_ASSERT(VPHAL_SCALING_ADV_QUALITY == 3);   //!< When adding, update assert & vphal_solo_scenario.cpp
 
 typedef enum _VPHAL_SCALING_PREFERENCE
 {
@@ -819,6 +820,7 @@ typedef struct _VPHAL_DI_PARAMS
     VPHAL_DI_MODE       DIMode;            //!< DeInterlacing mode
     bool                bEnableFMD;        //!< FMD
     bool                bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
+    bool                bSCDEnable;        //!< Scene change detection
 } VPHAL_DI_PARAMS, *PVPHAL_DI_PARAMS;
 
 //!
@@ -832,16 +834,30 @@ typedef enum _VPHAL_NOISELEVEL
 C_ASSERT(NOISELEVEL_VC1_HD == 1); //!< When adding, update assert & vphal_solo_scenario.cpp
 
 //!
+//! Structure VPHAL_HVSDENOISE_PARAMS
+//! \brief HVS Denoise Parameters - Human Vision System Based Denoise
+//!
+typedef struct _VPHAL_HVSDENOISE_PARAMS
+{
+    uint16_t            QP;
+    uint16_t            Strength;
+    void*               pHVSDenoiseParam;
+    uint32_t            dwDenoiseParamSize;
+} VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
+
+//!
 //! Structure VPHAL_DENOISE_PARAMS
 //! \brief Denoise parameters
 //!
 typedef struct _VPHAL_DENOISE_PARAMS
 {
-    bool                bEnableChroma;
-    bool                bEnableLuma;
-    bool                bAutoDetect;
-    float               fDenoiseFactor;
-    VPHAL_NOISELEVEL    NoiseLevel;
+    bool                            bEnableChroma;
+    bool                            bEnableLuma;
+    bool                            bAutoDetect;
+    float                           fDenoiseFactor;
+    VPHAL_NOISELEVEL                NoiseLevel;
+    bool                            bEnableHVSDenoise;
+    VPHAL_HVSDENOISE_PARAMS         HVSDenoise;
 } VPHAL_DENOISE_PARAMS, *PVPHAL_DENOISE_PARAMS;
 
 //!

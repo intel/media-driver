@@ -107,6 +107,7 @@ public:
     static const uint32_t                   m_hucModeCostsIFrame[364];
     static const uint32_t                   m_hucModeCostsPbFrame[364];
     static const uint16_t                   m_sadQpLambdaI[52];
+    static const uint16_t                   m_sadQpLambdaI_VQI[52];
     static const uint16_t                   m_sadQpLambdaP[52];
     static const uint16_t                   m_rdQpLambdaI[52];
     static const uint16_t                   m_rdQpLambdaP[52];
@@ -121,6 +122,7 @@ public:
     bool                                    m_vdencHuCConditional2ndPass = false;              //!< HuC conditional 2nd pass enable flag
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only
+    bool                                    m_hevcVisualQualityImprovement = false;            //!< VQI enable flag
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
@@ -140,6 +142,7 @@ public:
     MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                         //!< VDEnc brc constant data buffer
     MOS_RESOURCE                            m_vdencBrcHistoryBuffer;                           //!< VDEnc brc history buffer
     MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer
+    MOS_RESOURCE                            m_vdencGroup3BatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer for Group3
     MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
     uint32_t                                m_deltaQpRoiBufferSize;                            //!< VDEnc DeltaQp for ROI buffer size
     uint32_t                                m_brcRoiBufferSize;                                //!< BRC ROI input buffer size
@@ -664,6 +667,10 @@ public:
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
     virtual MOS_STATUS DumpVdencOutputs();
     virtual MOS_STATUS DumpSeqParFile();
+    MOS_STATUS PopulateDdiParam(
+        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
+        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  hevcPicParams,
+        PCODEC_HEVC_ENCODE_SLICE_PARAMS    hevcSlcParams) override;
 
     //!
     //! \brief  Modify the frame size with fake header size

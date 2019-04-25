@@ -104,6 +104,11 @@ public:
     //! \brief  Destructor
     //!
     virtual ~CodechalSecureDecodeInterface(){} 
+
+    //!
+    //! \brief  Update huc streamout buffer index
+    //!
+    virtual MOS_STATUS UpdateHuCStreamoutBufferIndex() = 0;
 };
 
 

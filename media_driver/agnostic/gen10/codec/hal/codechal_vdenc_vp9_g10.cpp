@@ -37,7 +37,7 @@
 
 #include "codechal_vdenc_vp9_g10.h"
 #include "codeckrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g10.h"
 #endif
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"
@@ -51,10 +51,8 @@ CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_VP9_NUM_SYNC_TAGS;
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_ENCODE_VP9_INIT_DSH_SIZE;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G10;
-#else
-    m_kernelBase = nullptr;
 #endif
 
     m_kuid = IDR_CODEC_VDENC_HME;
@@ -494,7 +492,7 @@ MOS_STATUS CodechalVdencVp9StateG10::InitKernelStates()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     // DYS
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateDys());
     // VDEnc SHME (16x)
@@ -514,7 +512,7 @@ uint32_t CodechalVdencVp9StateG10::GetMaxBtCount()
 
     m_maxBtCount = 0;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     uint16_t btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
 
     if (m_hmeSupported)
@@ -589,7 +587,7 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
 
     m_dysVdencMultiPassEnabled = true;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     if (m_cscDsState)
     {
         m_cscDsState->EnableColor();
@@ -894,7 +892,7 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     uint32_t dumpFormat = 0;
     CODECHAL_DEBUG_TOOL(
     //    CodecHal_DbgMapSurfaceFormatToDumpFormat(m_rawSurfaceToEnc->Format, &dumpFormat);

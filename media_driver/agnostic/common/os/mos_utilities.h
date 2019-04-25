@@ -184,6 +184,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
     __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_FE_BE_TIMING,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TIMER_REG,
@@ -242,6 +243,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_PREFETCH_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_ALLOCATION_WA_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_SINGLE_PASS_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VDENC_BRC_MOTION_ADAPTIVE_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_0_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_1_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_2_OVERRIDE_ID,
@@ -293,6 +295,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_PATH_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_VQI_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ROUNDING_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_PAKOBJCMD_STREAMOUT_ENABLE_ID,
@@ -383,6 +386,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
     __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
+    __MEDIA_USER_FEATURE_VALUE_RECON_SURFACE_SIZE_OVERWRITE_ID,
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION_ID,
@@ -424,6 +428,9 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
     __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_MESSAGE_BLT_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_BLT_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_BLT_TAG_ID,
 #endif // MOS_MESSAGES_ENABLED
     __MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVCDATROWSTORECACHE_DISABLE_ID,
@@ -442,7 +449,12 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_DEFAULT_CM_QUEUE_TYPE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_INTERFACE,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_DEBUG_OVERRIDE,
     __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
     __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,
     __VPHAL_VEBOX_FEATURE_INUSE_ID,
@@ -454,6 +466,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME_ID,
     __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME_ID,
+    __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP_ID,
     __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK_ID,
     __VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME_ID,
     __VPHAL_DBG_STATE_DUMP_LOCATION_KEY_NAME_ID,
@@ -471,6 +484,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_ENABLE_MMC_IN_USE_ID,
     __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS_ID,
     __VPHAL_VEBOX_DISABLE_TEMPORAL_DENOISE_FILTER_ID,
+    __VPHAL_ENABLE_SUPER_RESOLUTION_ID,
 #if (_DEBUG || _RELEASE_INTERNAL)
     __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE_ID,
 #endif
@@ -520,6 +534,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_SET_CMD_DEFAULT_PARS_FROM_FILES_ID,
     __MEDIA_USER_FEATURE_VALUE_CMD_PARS_FILES_DIRECORY_ID,
     __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 
@@ -1660,6 +1675,33 @@ MOS_STATUS MOS_UserFeature_WriteValues(
     PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
     uint32_t                                 uiNumOfValues);
 
+
+// User Feature Report Writeout
+#define WriteUserFeature64(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i64Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeature(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i32Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeatureString(key, value, len)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.StringData.pStringData = (value);\
+    UserFeatureWriteData.Value.StringData.uSize = (len);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
 //!
 //! \brief    Lookup the user feature value name associated with the ID
 //! \details  Lookup the user feature value name associated with the ID
@@ -2614,6 +2656,29 @@ void MOS_TraceEvent(
     uint32_t         dwSize2);
 
 //!
+//! \brief    MOS log trace event Msg
+//! \details  log trace event msg w/ level/compID/functionname/lineNum arguments
+//!           arguments are in raw data format, need match data structure in manifest.
+//! \param    [in] level
+//!           Indicates msg level
+//! \param    [in] compID
+//!           Indicates compID
+//! \param    [in] message
+//!           event msg
+//! \param    [in] functionName
+//!           func name
+//! \param    [in] lineNum
+//!           event line number
+//! \return   void
+//!
+void MOS_TraceEventMsg(
+    uint8_t          level,
+    uint8_t          compID,
+    void*            message,
+    void*            functionName,
+    uint32_t         lineNum);
+
+//!
 //! \brief    MOS gfx info initialize
 //! \details  Load igdinfoXX.dll library and get gfx info function pointer
 //! \param    void
@@ -2642,9 +2707,21 @@ void MOS_GfxInfoClose();
 //!           Feature ID, an unique identifier for each component.
 //! \param    [in] ErrorCode
 //!           Error code that will be recorded.
+//! \param    [in] num_of_triples
+//!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+//! \param    [in] ...
+//!           Triples (name, type, value), for example
+//!             int8_t i = 3;
+//!             "Name1", GFXINFO_PTYPE_UINT8, &i
+//!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
 //! \return   void
 //!
-void MOS_GfxInfo_RTErr(uint8_t ver, uint16_t compId, uint16_t FtrId, uint32_t ErrorCode);
+void MOS_GfxInfo_RTErr(uint8_t ver,
+    uint16_t    compId,
+    uint16_t    FtrId,
+    uint32_t    ErrorCode,
+    uint8_t     num_of_triples,
+    ...);
 
 //!
 //! \brief    MOS_GfxInfo

@@ -46,9 +46,6 @@ class GpuCmdFactoryEncodeHevcDualPipe : public GpuCmdFactory
             break;
         case igfxBROADWELL:
             break;
-        case igfxCANNONLAKE:
-            PUSH(GpuCmdHcpPipeBufAddrG10);
-            break;
         default:
             return;
         }
@@ -66,10 +63,6 @@ class GpuCmdFactoryDecodeHEVCLong : public GpuCmdFactory
         case igfxBROXTON:
             break;
         case igfxBROADWELL:
-            break;
-        case igfxCANNONLAKE:
-            PUSH(GpuCmdHcpPipeBufAddrG10);
-            PUSH(GpuCmdHcpIndObjBaseAddrG10);
             break;
         default:
             return;
@@ -95,11 +88,6 @@ class GpuCmdFactoryEncodeAvcDualPipe : public GpuCmdFactory
             break;
         case igfxBROADWELL:
             break;
-        case igfxCANNONLAKE:
-            //PUSH(GpuCmdMfxPipeBufAddrG10);
-            //PUSH(GpuCmdMfxIndObjBaseAddrG10);
-            //PUSH(GpuCmdMfxBspBufBaseAddrG10);
-            break;
         default:
             return;
         }
@@ -123,11 +111,6 @@ class GpuCmdFactoryDecodeAVCLong : public GpuCmdFactory
             //PUSH(GpuCmdMfxBspBufBaseAddrG9Bxt);
             break;
         case igfxBROADWELL:
-            break;
-        case igfxCANNONLAKE:
-            //PUSH(GpuCmdMfxPipeBufAddrG10);
-            //PUSH(GpuCmdMfxIndObjBaseAddrG10);
-            //PUSH(GpuCmdMfxBspBufBaseAddrG10);
             break;
         default:
             return;

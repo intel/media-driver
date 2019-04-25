@@ -44,6 +44,11 @@ const MOS_USER_FEATURE g_MosUserFeatureInit =
     0                                                                           // uiNumSettingValues
 };
 
+#if MOS_MEDIASOLO_SUPPORTED
+void *   _MOS_INTERFACE::pvSoloContext = nullptr; 
+uint32_t _MOS_INTERFACE::soloRefCnt = 0;
+#endif  // MOS_MEDIASOLO_SUPPORTED
+
 //! \brief    Unified OS add command to command buffer
 //! \details  Offset returned is dword aligned but size requested can be byte aligned
 //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
@@ -387,13 +392,19 @@ MOS_STATUS Mos_DumpCommandBuffer(
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
             MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
             break;
         case MOS_GPU_CONTEXT_RENDER:
         case MOS_GPU_CONTEXT_RENDER2:
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
+        case MOS_GPU_CONTEXT_RENDER_RA:
         case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
+        case MOS_GPU_CONTEXT_CM_COMPUTE:
             MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
             break;
         case MOS_GPU_CONTEXT_VEBOX:
@@ -698,7 +709,9 @@ MOS_STATUS Mos_InitInterface(
     MOS_COMPONENT  component)
 {
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
+#if !EMUL
     MOS_OS_CHK_NULL_RETURN(pOsDriverContext);
+#endif
     MOS_STATUS                  eStatus = MOS_STATUS_UNKNOWN;
     PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface = nullptr;
     MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
@@ -854,6 +867,7 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         // CM USAGES
         //
         CM_RESOURCE_USAGE_SurfaceState,
+        CM_RESOURCE_USAGE_StateHeap,
         CM_RESOURCE_USAGE_NO_L3_SurfaceState,
         CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
         CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
@@ -945,6 +959,8 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         {
             osInterface->ctxBasedScheduling = false;
         }
+        osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_USER_FEATURE_VALUE_WRITE_DATA  userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = osInterface->ctxBasedScheduling ? true : false;
@@ -978,9 +994,11 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         {
             osInterface->ctxBasedScheduling = false;
         }
+        osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
     }
 
     MOS_OS_VERBOSEMESSAGE("Virtual Engine Context based SCheduling enabled:%d.\n", osInterface->ctxBasedScheduling);
+    MOS_OS_VERBOSEMESSAGE("Virtual Engine Multi-node Scaling enabled:%d.\n", osInterface->multiNodeScaling);
 
     return eStatus;
 }

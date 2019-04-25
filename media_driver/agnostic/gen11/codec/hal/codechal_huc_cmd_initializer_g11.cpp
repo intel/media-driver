@@ -83,6 +83,21 @@ MOS_STATUS CodechalCmdInitializerG11::ConstructHevcHucCmd1ConstData(
     cmd1.SADQPLambda  = (uint16_t)(lambda * 4 + 0.5);
     cmd1.RDQPLambda   = (uint16_t)(qpScale * pow(2.0, MOS_MAX(0, picParams->QpY - 12) / 3.0) * 4 + 0.5);  //U14.2
 
+    if (m_hevcVisualQualityImprovement)
+    {
+        if (qpPrimeYac >= 22 && qpPrimeYac <= 51 && sliceParams->slice_type == SLICE_I)
+        {
+            double ScalingFactor = 1.0 + 0.025 * (qpPrimeYac - 22);
+            ScalingFactor = (ScalingFactor >= 1.5 ? 1.5 : ScalingFactor);
+            cmd1.SADQPLambda = (uint16_t)(ScalingFactor * lambda * 4 + 0.5); //U8.2
+        }
+
+        if (picParams->QpY >= 22 && picParams->QpY <= 51)
+        {
+            cmd1.Intra32X32ModeMask = 507;
+        }
+    }
+
     cmd1.num_ref_idx_l1_active_minus1 = sliceParams->num_ref_idx_l1_active_minus1;
     cmd1.ROIStreamInEnabled           = (uint8_t)m_roiStreamInEnabled;
     cmd1.UseDefaultQpDeltas           = (m_acqpEnabled && seqParams->QpAdjustment) || (m_brcEnabled && seqParams->MBBRC != mbBrcDisabled);
@@ -143,6 +158,38 @@ MOS_STATUS CodechalCmdInitializerG11::ConstructHevcHucCmd1ConstData(
     cmd1.BRCMaxQp = picParams->BRCMaxQp < 0x0a ? 0x33 : (picParams->BRCMaxQp > 0x33 ? 0x33 : picParams->BRCMaxQp);  // Setting values from arch spec
 
     MOS_SecureMemcpy(hucConstData->InputCOM[1].data, sizeof(HucInputCmd1G11), &cmd1, sizeof(HucInputCmd1G11));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalCmdInitializerG11::ConstructHevcHucCmd2ConstData(
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+    struct HucComData *                hucConstData)
+{
+    hucConstData->InputCOM[0].ID = 2;
+    hucConstData->InputCOM[0].SizeOfData = 2;
+
+    auto qpPrimeYAC = 10;  //This is constant from Arch C Model
+
+    double qpScale = (picParams->CodingType == I_TYPE) ? 0.60 : 0.65;
+    double lambdaInputCom = sqrt(qpScale * pow(2.0, MOS_MAX(0, qpPrimeYAC - 12) / 3.0));
+
+    uint8_t SadPenaltyforIntraNonDC32X32PredMode = (uint8_t)(0.00 * 4 + 0.5);
+    if (m_hevcVisualQualityImprovement)
+    {
+        auto   qpPrimeYac = CodecHal_Clip3(0, 51, picParams->QpY + sliceParams->slice_qp_delta);
+        if (qpPrimeYac >= 22 && qpPrimeYac <= 51)
+        {
+            uint8_t penaltyForIntraNonDC32x32Predmode = (uint8_t)((0.1 * 63) * (qpPrimeYac - 22));
+            penaltyForIntraNonDC32x32Predmode = (penaltyForIntraNonDC32x32Predmode >= 63) ? 63 : penaltyForIntraNonDC32x32Predmode;
+            SadPenaltyforIntraNonDC32X32PredMode = penaltyForIntraNonDC32x32Predmode;
+        }
+    }
+
+    hucConstData->InputCOM[0].data[0] = (uint32_t)(lambdaInputCom * 4 + 0.5);
+    hucConstData->InputCOM[0].data[1] = (SadPenaltyforIntraNonDC32X32PredMode << 8) | (uint8_t)m_roiStreamInEnabled;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -222,7 +269,7 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerSetDmem(bool brcEnabled)
     hucCmdInitializerDmem->OutputCOM[1].ID           = 1;
     hucCmdInitializerDmem->OutputCOM[1].Type         = 1;
     hucCmdInitializerDmem->OutputCOM[1].StartInBytes = GetCmd2StartOffset(brcEnabled);
-    hucCmdInitializerDmem->OutputCOM[1].BBEnd        = brcEnabled ? 0 : BATCH_BUFFER_END;
+    hucCmdInitializerDmem->OutputCOM[1].BBEnd        = BATCH_BUFFER_END;
 
     offset += CODECHAL_CMDINITIALIZER_MAX_CMD_SIZE;
 
@@ -377,12 +424,12 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9SetDmem()
 
     // Command ID 1
     hucConstData->InputCOM[1].ID = 1;
-    hucConstData->InputCOM[1].SizeOfData = 0x18;
+    hucConstData->InputCOM[1].SizeOfData = sizeof(HucInputCmd1G11) / sizeof(uint32_t);
 
     HucInputCmd1G11 hucInputCmd1;
     MOS_ZeroMemory(&hucInputCmd1, sizeof(hucInputCmd1));
-    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
-    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
+    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
+    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
     hucInputCmd1.PakOnlyMultipassEnable = m_vp9Params.vdencPakOnlyMultipassEnabled;
     hucInputCmd1.num_ref_idx_l0_active_minus1 = (m_vp9Params.picParams->PicFlags.fields.frame_type) ? m_vp9Params.numRefFrames - 1 : 0;
 
@@ -518,6 +565,14 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerAllocateResources(CodechalHw
         &m_vdencCopyBatchBuffer,
         nullptr,
         m_hwInterface->m_vdencCopyBatchBufferSize));
+    
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_VQI_ENABLE_ID,
+        &userFeatureData);
+    m_hevcVisualQualityImprovement = userFeatureData.i32Data ? true : false;
 
     return eStatus;
 }

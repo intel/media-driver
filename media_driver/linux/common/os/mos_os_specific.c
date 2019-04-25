@@ -1572,7 +1572,22 @@ GMM_CLIENT_CONTEXT *Mos_Specific_GetGmmClientContext(
         return nullptr;
     }
 
-    return pOsInterface->pOsContext->GetGmmClientContext(pOsInterface->pOsContext);
+    if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
+    {
+        OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+        if (pOsContextSpecific)
+        {
+            return pOsContextSpecific->GetGmmClientContext();
+        }
+    }
+    else
+    {
+        if (pOsInterface->pOsContext)
+        {
+            return pOsInterface->pOsContext->GetGmmClientContext(pOsInterface->pOsContext);
+        }
+    }
+    return nullptr;
 }
 
 //!
@@ -2026,7 +2041,6 @@ MOS_STATUS Mos_Specific_AllocateResource(
     switch(tileformat)
     {
         case MOS_TILE_Y:
-            GmmParams.Flags.Info.TiledY    = true;
             GmmParams.Flags.Gpu.MMC        = pParams->bIsCompressed;
             tileformat_linux               = I915_TILING_Y;
             break;
@@ -2038,6 +2052,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
             GmmParams.Flags.Info.Linear    = true;
             tileformat_linux               = I915_TILING_NONE;
     }
+    GmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrLocalMemory);
 
     pOsResource->pGmmResInfo = pGmmResourceInfo = pOsInterface->pOsContext->pGmmClientContext->CreateResInfoObject(&GmmParams);
 
@@ -2054,9 +2069,12 @@ MOS_STATUS Mos_Specific_AllocateResource(
             tileformat_linux               = I915_TILING_Y;
             break;
         case GMM_NOT_TILED:
-        default:
             tileformat = MOS_TILE_LINEAR;
             tileformat_linux               = I915_TILING_NONE;
+            break;
+        default:
+            tileformat = MOS_TILE_Y;
+            tileformat_linux               = I915_TILING_Y;
             break;
     }
 
@@ -2069,44 +2087,15 @@ MOS_STATUS Mos_Specific_AllocateResource(
     iSize       = GFX_ULONG_CAST(pGmmResourceInfo->GetSizeSurface());
     iHeight     = pGmmResourceInfo->GetBaseHeight();
 
-#if defined(I915_PARAM_CREATE_VERSION)
-    drm_i915_getparam_t gp;
-    int32_t gpvalue;
-    int32_t ret;
-    gpvalue = 0;
-    ret = -1;
-    memset( &gp, 0, sizeof(gp) );
-    gp.value = &gpvalue;
-    gp.param = I915_PARAM_CREATE_VERSION;
-    ret = drmIoctl(pOsInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp );
-
-    if ((0 == ret) && ( tileformat_linux != I915_TILING_NONE))
+    // Only Linear and Y TILE supported
+    if( tileformat_linux == I915_TILING_NONE )
     {
-        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1,
-                 &tileformat_linux, &ulPitch, BO_ALLOC_STOLEN);
-        if (nullptr == bo)
-        {
-            bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0);
-        }
-        else
-        {
-            MOS_OS_VERBOSEMESSAGE("Stolen memory is created sucessfully on Mos");
-        }
+        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096);
+    }
+    else
+    {
+        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0);
         iPitch = (int32_t)ulPitch;
-    } else
-#endif
-    {
-        // Only Linear and Y TILE supported
-        if( tileformat_linux == I915_TILING_NONE )
-        {
-            bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096);
-        }
-        else
-        {
-            bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0);
-            iPitch = (int32_t)ulPitch;
-        }
-
     }
 
     pOsResource->bMapped = false;
@@ -2200,30 +2189,32 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     // check resource's tile type
-    if( GmmFlags.Info.TiledY )
+    switch (pGmmResourceInfo->GetTileType())
     {
-        if( GmmFlags.Info.TiledYf )
-        {
-            pResDetails->TileType = MOS_TILE_YF;
-        }
-        else if( GmmFlags.Info.TiledYs )
-        {
-            pResDetails->TileType = MOS_TILE_YS;
-        }
-        else
-        {
-            pResDetails->TileType = MOS_TILE_Y;
-        }
+    case GMM_TILED_Y:
+          if (GmmFlags.Info.TiledYf)
+          {
+              pResDetails->TileType = MOS_TILE_YF;
+          }
+          else if (GmmFlags.Info.TiledYs)
+          {
+              pResDetails->TileType = MOS_TILE_YS;
+          }
+          else
+          {
+              pResDetails->TileType = MOS_TILE_Y;
+          }
+          break;
+    case GMM_TILED_X:
+          pResDetails->TileType = MOS_TILE_X;
+          break;
+    case GMM_NOT_TILED:
+          pResDetails->TileType = MOS_TILE_LINEAR;
+          break;
+    default:
+          pResDetails->TileType = MOS_TILE_Y;
+          break;
     }
-    else if( GmmFlags.Info.TiledX )
-    {
-        pResDetails->TileType = MOS_TILE_X;
-    }
-    else
-    {
-        pResDetails->TileType = MOS_TILE_LINEAR;
-    }
-
     pResDetails->Format   = pOsResource->Format;
 
     // Get planes
@@ -3521,8 +3512,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                dwBatchBufferEndCmd;
     uint32_t                            cpCmdProps;
-    uint32_t                            dwAddCb2;
-    PLATFORM                            platform;
     int32_t                             PerfData;
     uint32_t                            ExecFlag;
     drm_clip_rect_t                     *cliprects;
@@ -3533,7 +3522,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
     boOffset = 0;
 #endif
-    dwAddCb2 = 0xffffffff;
     eStatus  = MOS_STATUS_SUCCESS;
     ret      = 0;
 
@@ -3554,8 +3542,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
     pPatchList = pOsGpuContext->pPatchLocationList;
     MOS_OS_CHK_NULL(pPatchList);
-
-    pOsInterface->pfnGetPlatform(pOsInterface,&platform);
 
     // Allocate command buffer from video memory
     CmdBufferSize = (pCmdBuffer->pCmdPtr - pCmdBuffer->pCmdBase)*4;// pCmdBuffer->OsResource.iPitch;        // ??? Not 100% sure about this ...
@@ -3680,15 +3666,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     num_cliprects = 0;
     DR4 = pOsContext->uEnablePerfTag ? PerfData : 0;
 
-    if (GpuNode == I915_EXEC_RENDER)
-    {
-         if (true == pOsInterface->osCpInterface->IsHMEnabled())
-         {
-              cliprects = (drm_clip_rect*)(&dwAddCb2);
-              num_cliprects = sizeof(dwAddCb2);
-         }
-    }
-    else
+    //Since CB2 command is not supported, remove it and set cliprects to nullprt as default.
+    if (GpuNode != I915_EXEC_RENDER)
     {
         if (pOsContext->bKMDHasVCS2)
         {
@@ -4098,6 +4077,33 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
         auto cmdBufMgr = pOsContextSpecific->GetCmdBufMgr();
         MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
 
+        MOS_OS_CHK_NULL_RETURN(createOption);
+        if (GpuNode == MOS_GPU_NODE_3D && createOption->SSEUValue != 0)
+        {
+            struct drm_i915_gem_context_param_sseu sseu;
+            MOS_ZeroMemory(&sseu, sizeof(sseu));
+            sseu.engine_class = I915_ENGINE_CLASS_RENDER;
+            sseu.engine_instance = 0;
+
+            if (mos_get_context_param_sseu(pOsInterface->pOsContext->intel_context, &sseu))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to get sseu configuration.");
+                return MOS_STATUS_UNKNOWN;
+            };
+
+            if (mos_hweight8(sseu.subslice_mask) > createOption->packed.SubSliceCount)
+            {
+                sseu.subslice_mask = mos_switch_off_n_bits(sseu.subslice_mask,
+                        mos_hweight8(sseu.subslice_mask)-createOption->packed.SubSliceCount);
+            }
+
+            if (mos_set_context_param_sseu(pOsInterface->pOsContext->intel_context, sseu))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
+                return MOS_STATUS_UNKNOWN;
+            };
+        }
+
         if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
         {
             auto gpuContext = gpuContextMgr->CreateGpuContext(GpuNode, cmdBufMgr, mosGpuCxt);
@@ -4402,6 +4408,7 @@ MOS_FORMAT Mos_Specific_FmtOsToMos(
         case DDI_FORMAT_A8L8         : return Format_A8L8;
         case DDI_FORMAT_V8U8         : return Format_V8U8;
         case DDI_FORMAT_A16B16G16R16 : return Format_A16B16G16R16;
+        case DDI_FORMAT_R32G32B32A32F: return Format_R32G32B32A32F;
         case FOURCC_YVYU             : return Format_YVYU;
         case FOURCC_UYVY             : return Format_UYVY;
         case FOURCC_VYUY             : return Format_VYUY;
@@ -4501,6 +4508,7 @@ MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     case Format_A16B16G16R16 : return (MOS_OS_FORMAT)DDI_FORMAT_A16B16G16R16;
     case Format_Y210         : return (MOS_OS_FORMAT)FOURCC_Y216;
     case Format_Y410         : return (MOS_OS_FORMAT)FOURCC_Y410;
+    case Format_R32G32B32A32F: return (MOS_OS_FORMAT)DDI_FORMAT_R32G32B32A32F;
     default                  : return (MOS_OS_FORMAT)DDI_FORMAT_UNKNOWN;
     }
 }
@@ -5214,8 +5222,16 @@ int32_t Mos_Specific_SetCpuCacheability(
 MOS_STATUS Mos_Specific_SkipResourceSync(
     PMOS_RESOURCE               pOsResource)
 {
-    MOS_UNUSED(pOsResource);
-    return MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    //---------------------------------------
+    MOS_OS_CHK_NULL(pOsResource);
+    //---------------------------------------
+
+    mos_bo_set_exec_object_async(pOsResource->bo);
+
+finish:
+    return eStatus;
 }
 
 //!
@@ -5563,6 +5579,44 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Get the memory compression format
+//! \details  Gets the memory compression format from GMM
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] pointer to OS interface structure
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] pointer to input OS resource
+//! \param    uint32_t *pResMmcFormat
+//!           [out] the memory compression format gotten from GMM resource
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_Specific_GetMemoryCompressionFormat(
+    PMOS_INTERFACE      pOsInterface,
+    PMOS_RESOURCE       pOsResource,
+    uint32_t            *pResMmcFormat)
+{
+
+    PGMM_RESOURCE_INFO      pGmmResourceInfo;
+    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
+    MOS_UNUSED(pOsInterface);
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL(pOsResource);
+    MOS_OS_CHK_NULL(pResMmcFormat);
+
+    // Get Gmm resource info
+    pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
+    MOS_OS_CHK_NULL(pGmmResourceInfo);
+
+    // GetResourceFormat() is not declared in Linux project, use Mos_Specific_ConvertMosFmtToGmmFmt()?
+    eStatus = MOS_STATUS_SUCCESS;
+
+finish:
+    return eStatus;
+
+}
+
+
 #ifdef ANDROID
 //!
 //! \brief    Create GPU node association.
@@ -5804,53 +5858,6 @@ MOS_VDBOX_NODE_IND Mos_Specific_GetVdboxNodeId(
         idx = pCmdBuffer->iVdboxNodeIndex;
         return idx;
     }
-
-#if defined(MEDIA_EXT) && !defined(ANDROID)
-    if (pOsInterface->pOsContext->bPerCmdBufferBalancing)
-    {
-        int32_t ret;
-
-        // Query KMD for VDBox load counters;
-        drm_i915_ring_load_info vdbox_load[] = {
-            {.ring_id = I915_EXEC_BSD | I915_EXEC_BSD_RING1, .load_cnt = 0},
-            {.ring_id = I915_EXEC_BSD | I915_EXEC_BSD_RING2, .load_cnt = 0},
-        };
-
-        drm_i915_ring_load_query vdbox_load_query = {
-            .query_size = sizeof(vdbox_load) / sizeof(vdbox_load[0]),
-            .load_info  = &vdbox_load[0],
-        };
-
-        ret = drmIoctl(pOsInterface->pOsContext->fd, DRM_IOCTL_I915_LOAD_BALANCING_HINT,
-            &vdbox_load_query);
-
-        if (ret) {
-            MOS_OS_ASSERTMESSAGE("Failed to query KMD for balancing hint:"
-                " error %d (falling back to ctx assigment)", ret);
-        } else {
-            int32_t cnt1 = vdbox_load[0].load_cnt;
-            int32_t cnt2 = vdbox_load[1].load_cnt;
-
-            // Assign task to VDBox with smaller load counter.
-            // Give small priority to VDBox 2;
-            if (0 == cnt2)
-            {
-                idx = MOS_VDBOX_NODE_2;
-            } else if (0 == cnt1)
-            {
-                idx = MOS_VDBOX_NODE_1;
-            } else if (cnt1 < cnt2)
-            {
-                idx = MOS_VDBOX_NODE_1;
-            } else {
-                idx = MOS_VDBOX_NODE_2;
-            }
-
-            // Save assigned VDBox number inside cmdbuf
-            pCmdBuffer->iVdboxNodeIndex = idx;
-        }
-    }
-#endif //#ifndef ANDROID
 
 finish:
     return idx;
@@ -6152,7 +6159,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     }
 
     iDeviceId                                 = pOsDriverContext->iDeviceId;
-    pOsContext->RequireCPLIB                  = pOsDriverContext->RequireCPLIB;
     pOsContext->bFreeContext                  = true;
     pOsInterface->pOsContext                  = pOsContext;
     pOsInterface->bUsesPatchList              = true;
@@ -6255,6 +6261,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetMemoryCompressionMode               = Mos_Specific_GetMemoryCompressionMode;
     pOsInterface->pfnSetMemoryCompressionMode               = Mos_Specific_SetMemoryCompressionMode;
     pOsInterface->pfnSetMemoryCompressionHint               = Mos_Specific_SetMemoryCompressionHint;
+    pOsInterface->pfnGetMemoryCompressionFormat             = Mos_Specific_GetMemoryCompressionFormat;
     pOsInterface->pfnCreateVideoNodeAssociation             = Mos_Specific_CreateVideoNodeAssociation;
     pOsInterface->pfnDestroyVideoNodeAssociation            = Mos_Specific_DestroyVideoNodeAssociation;
     pOsInterface->pfnGetVdboxNodeId                         = Mos_Specific_GetVdboxNodeId;
@@ -6347,16 +6354,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 #if MOS_MEDIASOLO_SUPPORTED
     Mos_Solo_Initialize(pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
-
-#if defined(MEDIA_EXT)
-    // read the "Disable VDBox load balancing" user feature key
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        NULL,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_BALANCING_ID,
-        &UserFeatureData);
-    pOsInterface->bEnableVdboxBalancing = (bool)UserFeatureData.u32Data;
-#endif
 
     // read the "Disable KMD Watchdog" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));

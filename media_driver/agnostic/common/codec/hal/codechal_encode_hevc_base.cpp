@@ -72,6 +72,7 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
     m_cscDsState->EnableCopy();
     m_cscDsState->EnableColor();
 #endif
+    m_mfeEnabled = settings->isMfeEnabled;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::Initialize(settings));
 
@@ -419,9 +420,9 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateResources()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
 
     // Allocate Ref Lists
-    CodecHalAllocateDataList(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_refList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
 
     // Create the sync objects which will be used by each reference frame
     for (uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_refSync); i++)
@@ -961,6 +962,12 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
             uint32_t numRef = (ll == 0) ? slcParams->num_ref_idx_l0_active_minus1 :
                 slcParams->num_ref_idx_l1_active_minus1;
 
+            if (numRef > CODEC_MAX_NUM_REF_FRAME_HEVC)
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("Invalid number of ref frames for l0 %d or l1 %d", slcParams->num_ref_idx_l0_active_minus1, slcParams->num_ref_idx_l1_active_minus1);
+                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                return eStatus;
+            }
             for (uint32_t i = 0; i <= numRef; i++)
             {
                 CODEC_PICTURE refPic = slcParams->RefPicList[ll][i];
@@ -1180,9 +1187,42 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
     m_b16XMeEnabled = m_16xMeSupported && m_pictureCodingType != I_TYPE;
     m_b32XMeEnabled = m_32xMeSupported && m_pictureCodingType != I_TYPE;
 
-    // the following computation is directly copied from the BRC prototype
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CalcLCUMaxCodingSize());
+
+    // Screen content flag will come in with PPS on Linux/Android, but in SPS on other platforms,
+    // we will use screen content flag in PPS for kernel programming, and update
+    // the PPS screen content flag based on the SPS screen content flag if enabled.
+    m_hevcPicParams->bScreenContent |= m_hevcSeqParams->bScreenContent;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncodeHevcBase::CalcLCUMaxCodingSize()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
     uint16_t log2_max_coding_block_size = m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3;
-    uint16_t rawCTUBits = (1 << (2 * log2_max_coding_block_size + 3)) + (1 << (2 * log2_max_coding_block_size + 2));
+    uint32_t rawCTUBits = (1 << (2 * log2_max_coding_block_size));
+
+    switch (m_hevcSeqParams->chroma_format_idc)
+    {
+        // 420
+    case 1:
+        rawCTUBits = rawCTUBits * 3 / 2;
+        break;
+        // 422
+    case 2:
+        rawCTUBits = rawCTUBits * 2;
+        break;
+        // 444
+    case 3:
+        rawCTUBits = rawCTUBits * 3;
+        break;
+    default:
+        break;
+    };
+
+    rawCTUBits = rawCTUBits * (m_hevcSeqParams->bit_depth_luma_minus8 + 8);
     rawCTUBits = (5 * rawCTUBits / 3);
 
     if (m_hevcPicParams->LcuMaxBitsizeAllowed == 0 || m_hevcPicParams->LcuMaxBitsizeAllowed > rawCTUBits)
@@ -1190,12 +1230,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
         m_hevcPicParams->LcuMaxBitsizeAllowed = rawCTUBits;
     }
 
-    // Screen content flag will come in with PPS on Android, but in SPS on Android,
-    // we will use screen content flag in PPS for kernel programming, and update
-    // the PPS screen content flag based on the SPS screen content flag if enabled.
-    m_hevcPicParams->bScreenContent |= m_hevcSeqParams->bScreenContent;
-
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
@@ -1702,6 +1737,7 @@ void CodechalEncodeHevcBase::CalcTransformSkipParameters(
         return;
     }
 
+    params.Transformskip_enabled = true;
     int sliceQP = CalSliceQp();
 
     int qpIdx = 0;
@@ -2024,7 +2060,6 @@ MOS_STATUS CodechalEncodeHevcBase::UserFeatureKeyReport()
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_32xME_ENABLE_ID, m_32xMeSupported);
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID, (!m_enable26WalkingPattern));
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_RATECONTROL_METHOD_ID, m_hevcSeqParams->RateControlMethod);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_USED_VDBOX_NUM_ID, 1);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_CODEC_SIM_ENABLE_ID, m_osInterface->bSimIsActive);
@@ -2322,6 +2357,7 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
     picStateParams.bRDOQIntraTUDisable   = m_hevcRdoqEnabled && (1 != m_hevcSeqParams->TargetUsage);
     picStateParams.wRDOQIntraTUThreshold = (uint16_t)m_rdoqIntraTuThreshold;
+    picStateParams.bTransformSkipEnable  = m_hevcPicParams->transform_skip_enabled_flag;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_rdoqIntraTuOverride)
@@ -2455,6 +2491,10 @@ void CodechalEncodeHevcBase::SetHcpSliceStateParams(
     sliceStateParams.bInsertBeforeSliceHeaders = (currSlcIdx == 0);
     sliceStateParams.bSaoLumaFlag              = (m_hevcSeqParams->SAO_enabled_flag) ? m_hevcSliceParams[currSlcIdx].slice_sao_luma_flag : 0;
     sliceStateParams.bSaoChromaFlag            = (m_hevcSeqParams->SAO_enabled_flag) ? m_hevcSliceParams[currSlcIdx].slice_sao_chroma_flag : 0;
+    sliceStateParams.DeblockingFilterDisable   = m_hevcSliceParams[currSlcIdx].slice_deblocking_filter_disable_flag;
+    sliceStateParams.TcOffsetDiv2              = m_hevcSliceParams[currSlcIdx].tc_offset_div2;
+    sliceStateParams.BetaOffsetDiv2            = m_hevcSliceParams[currSlcIdx].beta_offset_div2;
+
 
     if (m_useBatchBufferForPakSlices)
     {
@@ -3508,7 +3548,7 @@ MOS_STATUS CodechalEncodeHevcBase::DumpMbEncPakOutput(PCODEC_REF_LIST currRefLis
     CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
         &currRefList->resRefMbCodeBuffer,
         CodechalDbgAttr::attrOutput,
-        "MbCode",
+        "PakObj",
         m_mvOffset,
         0,
         CODECHAL_MEDIA_STATE_ENC_NORMAL));
@@ -3634,6 +3674,28 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->Log2MinCUSize                        = hevcSeqParams->log2_min_coding_block_size_minus3 + 3;
         m_hevcPar->Log2MaxTUSize                        = hevcSeqParams->log2_max_transform_block_size_minus2 + 2;
         m_hevcPar->Log2MinTUSize                        = hevcSeqParams->log2_min_transform_block_size_minus2 + 2;
+
+        uint32_t inputChromaFormatIDC = 0;
+        switch (m_rawSurface.Format)
+        {
+        case (Format_NV12):
+        case (Format_P010):
+            inputChromaFormatIDC = 1;
+            break;
+        case (Format_YUY2):
+        case (Format_Y210):
+            inputChromaFormatIDC = 2;
+            break;
+        case (Format_Y410):
+        case (Format_AYUV):
+            inputChromaFormatIDC = 3;
+            break;
+        default:
+            inputChromaFormatIDC = 0;
+            break;
+        }
+        m_hevcPar->InputChromaFormatIDC                 = inputChromaFormatIDC;
+        m_hevcPar->ChromaFormatIDC                      = hevcSeqParams->chroma_format_idc;
         m_hevcPar->InputBitDepthLuma                    = hevcSeqParams->SourceBitDepth ? 10 : 8;
         m_hevcPar->InputBitDepthChroma                  = hevcSeqParams->SourceBitDepth ? 10 : 8;
         m_hevcPar->OutputBitDepthLuma                   = hevcSeqParams->bit_depth_luma_minus8 + 8;
@@ -3656,25 +3718,25 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->ChromaCbQpOffset                     = hevcPicParams->pps_cb_qp_offset;
         m_hevcPar->ChromaCrQpOffset                     = hevcPicParams->pps_cr_qp_offset;
         m_hevcPar->DeblockingTc                         = hevcSlcParams->tc_offset_div2;
-        m_hevcPar->DeblockingIDC                        = hevcSlcParams->slice_deblocking_filter_disable_flag;
+        m_hevcPar->DeblockingIDC                        = !hevcSlcParams->slice_deblocking_filter_disable_flag;
         m_hevcPar->LoopFilterAcrossSlicesEnabledFlag    = hevcPicParams->loop_filter_across_slices_flag;
         m_hevcPar->SignDataHidingFlag                   = hevcPicParams->sign_data_hiding_flag;
         m_hevcPar->CabacInitFlag                        = hevcSlcParams->cabac_init_flag;
         m_hevcPar->ConstrainedIntraPred                 = hevcPicParams->constrained_intra_pred_flag;
         m_hevcPar->LowDelay                             = 1;
         m_hevcPar->EnableBAsRefs                        = 1;
-        m_hevcPar->BitRate                              = hevcSeqParams->TargetBitRate * 1024;
-        m_hevcPar->MaxBitRate                           = hevcSeqParams->MaxBitRate * 1024;
+        m_hevcPar->BitRate                              = hevcSeqParams->TargetBitRate * 1000;
+        m_hevcPar->MaxBitRate                           = hevcSeqParams->MaxBitRate * 1000;
         m_hevcPar->VbvSzInBit                           = hevcSeqParams->VBVBufferSizeInBit;
         m_hevcPar->InitVbvFullnessInBit                 = hevcSeqParams->InitVBVBufferFullnessInBit;
         m_hevcPar->CuRC                                 = hevcSeqParams->MBBRC;
         m_hevcPar->EnableMultipass                      = 1;
-        m_hevcPar->MaxNumPakPassesI                     = m_numPasses;
-        m_hevcPar->MaxNumPakPassesPB                    = m_numPasses;
+        m_hevcPar->MaxNumPakPassesI                     = m_numPasses + 1;
+        m_hevcPar->MaxNumPakPassesPB                    = m_numPasses + 1;
         m_hevcPar->UserMaxIFrame                        = hevcSeqParams->UserMaxIFrameSize;
         m_hevcPar->UserMaxPBFrame                       = hevcSeqParams->UserMaxPBFrameSize;
-        m_hevcPar->FrameRateM                           = hevcSeqParams->FrameRate.Numerator;
-        m_hevcPar->FrameRateD                           = hevcSeqParams->FrameRate.Denominator;
+        m_hevcPar->FrameRateM                           = hevcSeqParams->FrameRate.Numerator / 100;
+        m_hevcPar->FrameRateD                           = hevcSeqParams->FrameRate.Denominator / 100;
         m_hevcPar->IntraRefreshEnable                   = hevcPicParams->bEnableRollingIntraRefresh ? 1 : 0;
         m_hevcPar->IntraRefreshMode                     = hevcPicParams->bEnableRollingIntraRefresh == 2 ? 1 : 0;
         m_hevcPar->IntraRefreshSizeIn32x32              = hevcPicParams->IntraInsertionSize;
@@ -3707,6 +3769,7 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
 
         uint8_t brcMethod = 0;
         uint8_t brcType = 0;
+
         if (CodecHalIsRateControlBrc(hevcSeqParams->RateControlMethod, CODECHAL_HEVC))
         {
             brcMethod = 2;
@@ -3715,7 +3778,7 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
             {
             case RATECONTROL_ICQ:
                 brcMethod = m_vdencEnabled ? 2 : 3;
-                brcType = 16;
+                brcType = 0;
                 break;
             case RATECONTROL_QVBR:
                 brcMethod = m_vdencEnabled ? 2 : 4;
@@ -3742,6 +3805,8 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
                 brcType = 8;
             }
         }
+
+        m_hevcPar->CRFQualityFactor                     = hevcSeqParams->ICQQualityFactor;
         m_hevcPar->BRCMethod                            = brcMethod;
         m_hevcPar->BRCType                              = brcType;
         m_hevcPar->SAOEnabledFlag                       = hevcSlcParams->slice_sao_luma_flag | hevcSlcParams->slice_sao_chroma_flag;

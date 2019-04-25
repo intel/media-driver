@@ -337,9 +337,24 @@ CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
             return CM_SUCCESS;
         }
     }
+
+    CmQueue_RT *queueRT = nullptr;
+    int32_t result = CmQueue_RT::Create(this, queueRT);
+    if (result != CM_SUCCESS)
+    {
+        CmAssert(0);
+        CmDebugMessage(("Failed to create queue!"));
+        m_criticalSectionQueue.Release();
+        return result;
+    }
+
+    m_queue.push_back(queueRT);
     m_criticalSectionQueue.Release();
 
-    int32_t result = CreateQueueEx( queue, CM_DEFAULT_QUEUE_CREATE_OPTION);
+    if (queueRT != nullptr)
+    {
+        queue = static_cast< CmQueue* >(queueRT);
+    }
 
 #if USE_EXTENSION_CODE
     GTPIN_MAKER_FUNCTION(CmrtCodeMarkerForGTPin_CreateQueue(this, queue));

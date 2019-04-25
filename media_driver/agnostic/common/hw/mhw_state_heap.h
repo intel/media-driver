@@ -338,6 +338,7 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    bVerticalLineStrideOffset : 1;
     uint32_t    bCompressionEnabled       : 1;
     uint32_t    bCompressionMode          : 1;
+    uint32_t    MmcState                  : 3;
     uint32_t    bInterleaveChroma         : 1;
     uint32_t    bHalfPitchChroma          : 1;
     uint32_t    bSeperateUVPlane          : 1;
@@ -345,6 +346,7 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    UVPixelOffsetVDirection   : 2;
     uint32_t    RotationMode              : 3;
     uint32_t    bSurfaceArraySpacing      : 1;
+    uint32_t    bBoardColorOGL            : 1;
     int32_t     iXOffset;
     int32_t     iYOffset;
     uint32_t    dwXOffsetForU; // U or UV
@@ -425,7 +427,7 @@ typedef struct _MHW_ID_ENTRY_PARAMS
     bool                bBarrierEnable;                 //! Enable Barrier
     bool                bGlobalBarrierEnable;           //! Enable Global Barrier (SKL+)
     uint32_t            dwNumberofThreadsInGPGPUGroup;  //! Number of threads per group
-    uint32_t            dwSharedLocalMemorySize;        //! Size of Shared Local Memory (SLM)
+    uint32_t            dwSharedLocalMemorySize;        //! Size of SharedLocalMemory (SLM)
     int32_t             iCrsThdConDataRdLn;             //!
     PMHW_STATE_HEAP     pGeneralStateHeap;              //! General state heap in use
     MemoryBlock         *memoryBlock;                   //! Memory block associated with the state heap

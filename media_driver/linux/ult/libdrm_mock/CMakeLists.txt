@@ -23,6 +23,16 @@ project(libdrm_mock)
 
 include_directories(../../common/os/i915/include ../inc)
 aux_source_directory(. SOURCES)
+
+if (MEDIA_EXT)
+    list(REMOVE_ITEM SOURCES ./mos_bufmgr_mock.c)
+    list(REMOVE_ITEM SOURCES ./libdrm_mock/xf86drm_mock.c)
+    set(SOURCES
+        ${MEDIA_EXT_ULT}/linux/libdrm_mock/mos_bufmgr_mock.c
+        ${MEDIA_EXT_ULT}/linux/libdrm_mock/xf86drm_mock.c
+)
+endif ()
+
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE "CXX")
 add_library(drm_mock SHARED ${SOURCES})
 

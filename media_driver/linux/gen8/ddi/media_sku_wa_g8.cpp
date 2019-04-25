@@ -39,8 +39,8 @@ static struct LinuxCodecInfo bdwCodecInfo =
     .vp8Decoding        = 1,
     .vc1Decoding        = 1,
     .jpegDecoding       = 1,
-    .avcEncoding        = 1,
-    .mpeg2Encoding      = 1,
+    .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .mpeg2Encoding      = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitBdwMediaSku(struct GfxDeviceInfo *devInfo,
@@ -124,6 +124,7 @@ static bool InitBdwMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaVC1UnequalFieldHeights, 1);
     MEDIA_WR_WA(waTable, WaJPEGHeightAlignYUV422H2YToNV12, 1);
     MEDIA_WR_WA(waTable, WaEnableDscale, 1);
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
 
     return true;
 }

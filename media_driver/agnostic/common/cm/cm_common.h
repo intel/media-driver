@@ -46,6 +46,7 @@
 #define MDF_CURBE_DATA_DUMP             1
 #define MDF_SURFACE_CONTENT_DUMP        1
 #define MDF_SURFACE_STATE_DUMP          1
+#define MDF_INTERFACE_DESCRIPTOR_DATA_DUMP  1
 #endif
 
 //===============<Definitions>==================================================
@@ -409,8 +410,7 @@ enum CM_QUEUE_TYPE
 {
     CM_QUEUE_TYPE_NONE = 0,
     CM_QUEUE_TYPE_RENDER = 1,
-    CM_QUEUE_TYPE_COMPUTE = 2,
-    CM_QUEUE_TYPE_VEBOX = 3
+    CM_QUEUE_TYPE_COMPUTE = 2
 };
 
 enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
@@ -419,18 +419,20 @@ enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
     CM_QUEUE_SSEU_USAGE_HINT_VME  = 1
 };
 
-struct CM_QUEUE_CREATE_OPTION
+struct _CM_QUEUE_CREATE_OPTION
 {
-    CM_QUEUE_TYPE QueueType : 3;
-    bool RunAloneMode       : 1;
-    unsigned int Reserved0  : 3;
-    bool UserGPUContext     : 1;
-    unsigned int GPUContext : 8; // user provided GPU CONTEXT in enum MOS_GPU_CONTEXT, this will override CM_QUEUE_TYPE if set
-    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
-    unsigned int Reserved2  : 13;
+    CM_QUEUE_TYPE                 QueueType               : 3;
+    bool                          RAMode                  : 1;
+    unsigned int                  Reserved0               : 3;
+    bool                          UserGPUContext          : 1; // Is the user-provided GPU Context already created externally
+    unsigned int                  GPUContext              : 8; // user-provided GPU Context ordinal
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint           : 3;
+    unsigned int                  Reserved1               : 1;
+    unsigned int                  Reserved2               : 12;
 };
+#define CM_QUEUE_CREATE_OPTION _CM_QUEUE_CREATE_OPTION
 
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0, 0 };
 
 //------------------------------------------------------------------------------
 //|GT-PIN
@@ -518,10 +520,11 @@ typedef struct _CM_WALKING_PARAMETERS
 
 typedef struct _CM_TASK_CONFIG
 {
-    uint32_t turboBoostFlag;         //CM_TURBO_BOOST_DISABLE----disabled, CM_TURBO_BOOST_ENABLE--------enabled.
+    bool     turboBoostFlag     : 1;
+    uint32_t reserved_bits      :31;
     uint32_t reserved0;
     uint32_t reserved1;
-    uint32_t reserved2;              //reserve 2 uint32_t fields for future extention
+    uint32_t reserved2;
 }CM_TASK_CONFIG, *PCM_TASK_CONFIG;
 
 typedef enum _CM_KERNEL_EXEC_MODE
@@ -675,7 +678,7 @@ typedef enum _CM_FRAME_TYPE
 
 //L3 Configurations
 typedef struct _L3_CONFIG {
-    uint32_t    slm;            //shared local memory
+    uint32_t    slm;            //sharedlocalmemory
     uint32_t    urb;            //unified return buffer
     uint32_t    rest;           //rest
     uint32_t    datacluster;    //data cluster
@@ -701,9 +704,8 @@ typedef enum _L3_SUGGEST_CONFIG
 
 enum SURFACE_DESTROY_KIND{
     APP_DESTROY         = 0,
-    GC_DESTROY          = 1,
-    FORCE_DESTROY       = 2,
-    DELAYED_DESTROY     = 3
+    DELAYED_DESTROY     = 1,
+    FORCE_DESTROY       = 2
 };
 
 // Need to consistant with compiler

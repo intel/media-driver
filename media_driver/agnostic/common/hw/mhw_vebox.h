@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -269,6 +269,7 @@ typedef struct _MHW_VEBOX_DNDI_PARAMS
     bool      bLocalCheck;
     bool      bSyntheticContentCheck;
     bool      bSyntheticFrame;
+    bool      bSCDEnable;
     uint32_t  dwDirectionCheckThreshold;
     uint32_t  dwTearingLowThreshold;
     uint32_t  dwTearingHighThreshold;

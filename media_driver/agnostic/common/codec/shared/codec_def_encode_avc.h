@@ -470,6 +470,16 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *    The range is from 1 – 51, with 1 being the best quality.
     */
     uint16_t           ICQQualityFactor;
+    /*! \brief Indicates the bitrate accuracy for AVBR
+    *
+    *    The range is [1, 100], 1 means one percent, and so on.
+    */
+    uint32_t           AVBRAccuracy;
+    /*! \brief Indicates the bitrate convergence period for AVBR
+    *
+    *    The unit is frame.
+    */
+    uint32_t          AVBRConvergence;
 
     /*! \brief Indicates the uncompressed input color space
     *
@@ -859,6 +869,30 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    1: force-to-skip will be disabled in BRC kernel.
     */
     bool            bDisableFrameSkip;
+
+    /*! \brief Maximum frame size for all frame types in bytes.
+    *
+    *    Applicable for CQP and multi PAK. If dwMaxFrameSize > 0, driver will do multiple PAK and adjust QP 
+    *    (frame level QP + slice_qp_delta) to make the compressed frame size to be less than this value. 
+    *    If dwMaxFrameSize equals 0, driver will not do multiple PAK and do not adjust QP.
+    */
+    uint32_t        dwMaxFrameSize;
+
+    /*! \brief Total pass number for multiple PAK.
+    *
+    *    Valid range is 0 - 4. If dwNumPasses is set to 0, driver will not do multiple PAK and do not adjust 
+    *    QP (frame level QP + slice_qp_delta), otherwise, driver will do multiple times PAK and in each time 
+    *    the QP will be adjust according deltaQp parameters.
+    */
+    uint32_t        dwNumPasses;
+
+    /*! \brief Delta QP array for each PAK pass.
+    *
+    *    This pointer points to an array of deltaQp, the max array size for AVC encoder is 4. The valid range 
+    *    for each deltaQp is 0 - 51. If the value is out of this valid range, driver will return error. 
+    *    Otherwise, driver will adjust QP (frame level QP + slice_qp_delta) by adding this value in each PAK pass.
+    */
+    uint8_t        *pDeltaQp;
 
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 

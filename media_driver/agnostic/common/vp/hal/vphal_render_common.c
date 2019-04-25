@@ -403,6 +403,8 @@ finish:
 //!             Pointer to GPGPU walker parameters
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSubmission
+//!             Is last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrCommonSubmitCommands(
@@ -411,7 +413,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     bool                                bNullRendering,
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
-    VpKernelID                          KernelID)
+    VpKernelID                          KernelID,
+    bool                                bLastSubmission)
 {
     PMOS_INTERFACE                      pOsInterface;
     MOS_COMMAND_BUFFER                  CmdBuffer;
@@ -446,7 +449,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         KernelID));
 
 #ifndef EMUL
-    if (pOsInterface->bEnableKmdMediaFrameTracking)
+    if (bLastSubmission && pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
@@ -631,6 +634,8 @@ finish:
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSubmission
+//!             Is last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrSubmitCommands(
@@ -640,7 +645,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
     PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
-    VpKernelID                          KernelID)
+    VpKernelID                          KernelID,
+    bool                                bLastSubmission)
 {
     PMOS_INTERFACE                      pOsInterface;
     MOS_COMMAND_BUFFER                  CmdBuffer;
@@ -675,7 +681,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         KernelID));
 
 #ifndef EMUL
-    if (pOsInterface->bEnableKmdMediaFrameTracking)
+    if (bLastSubmission && pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
@@ -1330,6 +1336,8 @@ bool VpHal_RndrCommonIsAlignmentWANeeded(
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
         case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
+        case MOS_GPU_CONTEXT_RENDER_RA:
             if (!(MOS_IS_ALIGNED(MOS_MIN((uint32_t)pSurface->dwHeight, (uint32_t)pSurface->rcMaxSrc.bottom), 4)) &&
                 (pSurface->Format == Format_NV12))
             {

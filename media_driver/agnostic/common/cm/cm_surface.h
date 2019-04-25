@@ -26,12 +26,14 @@
 #pragma once
 
 #include "cm_def.h"
+#include "cm_surface_manager.h"
 
 namespace CMRT_UMD
 {
 
 class CmSurfaceManager;
 class CmEventRT;
+class CSync;
 
 class CmSurface
 {
@@ -45,6 +47,25 @@ public:
     std::string GetFormatString(CM_SURFACE_FORMAT format);
     virtual void DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex) { return; }
     virtual void Log(std::ostringstream &oss) { return; }
+    inline void SetRenderTracker(uint32_t tracker) {m_lastRenderTracker = tracker; }
+    inline void SetFastTracker(uint32_t tracker) {m_lastFastTracker = tracker; }
+    inline void SetVeboxTracker(uint32_t tracker) {m_lastVeboxTracker = tracker; }
+    inline void DelayDestroy() { m_released = true; }
+    inline bool IsDelayDestroyed() {return m_released; }
+    inline bool AllReferenceCompleted() {
+            // not called in render, otherwise it finished execution in render
+        return (m_lastRenderTracker == 0 || ((int)(m_lastRenderTracker - m_surfaceMgr->LatestRenderTracker()) <= 0))
+           // not called in enqueuefast, otherwise it finished execution in enqueuefast
+           && (m_lastFastTracker == 0 || ((int)(m_lastFastTracker - m_surfaceMgr->LatestFastTracker()) <= 0))
+           // not called in vebox, otherwise it finished execution in vebox
+           && (m_lastVeboxTracker == 0 || ((int)(m_lastVeboxTracker - m_surfaceMgr->LatestVeboxTracker()) <= 0));
+        }
+    inline bool CanBeDestroyed() {
+        return m_released && AllReferenceCompleted();
+        }
+
+    inline CmSurface*& DelayDestroyPrev() {return m_delayDestroyPrev; }
+    inline CmSurface*& DelayDestroyNext() {return m_delayDestroyNext; } 
 
 protected:
     CmSurface( CmSurfaceManager* surfMgr , bool isCmCreated );
@@ -61,6 +82,18 @@ protected:
     bool m_isCmCreated;
 
     CM_SURFACE_MEM_OBJ_CTRL m_memObjCtrl;
+
+    uint32_t m_lastRenderTracker;
+
+    uint32_t m_lastFastTracker;
+
+    uint32_t m_lastVeboxTracker;
+
+    bool m_released; // if true, means it is been destroyed by app and added in the delaydestroy queue in surfmgr
+
+    CmSurface *m_delayDestroyPrev; // previous node in bi-directional list
+
+    CmSurface *m_delayDestroyNext; // next node in bi-directional list
 
 private:
     CmSurface (const CmSurface& other);

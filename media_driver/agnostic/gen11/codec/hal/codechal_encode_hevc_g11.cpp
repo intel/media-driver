@@ -662,6 +662,7 @@ MOS_STATUS CodechalEncHevcStateG11::AllocateEncResources()
 
     // Surfaces used by I & B Kernels
     uint32_t   width = 0, height = 0;
+    uint32_t   size = 0;
 
     // Intermediate CU Record surface
     if (Mos_ResourceIsNull(&m_intermediateCuRecordSurfaceLcu32.OsResource))
@@ -691,19 +692,20 @@ MOS_STATUS CodechalEncHevcStateG11::AllocateEncResources()
     }
 
     // LCU Level Input Data
-    if (Mos_ResourceIsNull(&m_lcuLevelInputDataSurface.OsResource))
+    for(uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_lcuLevelInputDataSurface); i++)
     {
-        width  = 16 * ((m_widthAlignedMaxLcu >> 6) << 1);
-        height = ((m_heightAlignedMaxLcu >> 6) << 1);
+        if (Mos_ResourceIsNull(&m_lcuLevelInputDataSurface[i].OsResource))
+        {
+            width  = 16 * ((m_widthAlignedMaxLcu >> 6) << 1);
+            height = ((m_heightAlignedMaxLcu >> 6) << 1);
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
-            &m_lcuLevelInputDataSurface,
-            width,
-            height,
-            "Lcu Level Data Input surface"));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
+                &m_lcuLevelInputDataSurface[i],
+                width,
+                height,
+                "Lcu Level Data Input surface"));
+        }
     }
-
-      uint32_t size = 0;
 
     m_brcInputForEncKernelBuffer = nullptr;
 
@@ -847,9 +849,12 @@ MOS_STATUS CodechalEncHevcStateG11::FreeEncResources()
         &m_scratchSurface.OsResource);
 
     // Release LCU Level Input Data
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &m_lcuLevelInputDataSurface.OsResource);
+    for(uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_lcuLevelInputDataSurface); i++)
+    {
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_lcuLevelInputDataSurface[i].OsResource);
+    }
 
     // Release Current Picture Y with Reconstructed boundary pixels surface
     m_osInterface->pfnFreeResource(
@@ -1491,6 +1496,33 @@ MOS_STATUS CodechalEncHevcStateG11::AllocatePakResources()
         m_hwInterface->m_HucStitchCmdBatchBufferSize));
     }
 
+    if (m_numDelay)
+    {
+        allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+        allocParamsForBufferLinear.pBufName = "DelayMinusMemory";
+
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_resDelayMinus), "Failed to allocate delay minus memory.");
+
+        uint8_t* data;
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+        data = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resDelayMinus,
+            &lockFlags);
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resDelayMinus);
+    }
+
+
     return eStatus;
 }
 
@@ -1599,6 +1631,11 @@ MOS_STATUS CodechalEncHevcStateG11::FreePakResources()
             }
         }
         Mhw_FreeBb(m_osInterface, &m_HucStitchCmdBatchBuffer, nullptr);
+    }
+
+    if (m_numDelay)
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &m_resDelayMinus);
     }
 
     return CodechalEncHevcState::FreePakResources();
@@ -2108,6 +2145,18 @@ MOS_STATUS CodechalEncHevcStateG11::ExecutePictureLevel()
             &m_resPipeStartSemaMem,
             &cmdBuffer,
             m_numPipe));
+        
+        // Program some placeholder cmds to resolve the hazard between BEs sync
+        MHW_MI_STORE_DATA_PARAMS dataParams;
+        dataParams.pOsResource = &m_resDelayMinus;
+        dataParams.dwResourceOffset = 0;
+        dataParams.dwValue = 0xDE1A;
+        for (uint32_t i = 0; i < m_numDelay; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+                &cmdBuffer,
+                &dataParams));
+        }
         //clean HW semaphore memory
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resPipeStartSemaMem, 1, MHW_MI_ATOMIC_DEC, &cmdBuffer));
 
@@ -2324,7 +2373,10 @@ void CodechalEncHevcStateG11::SetHcpSliceStateCommonParams(
 {
     CodechalEncHevcState::SetHcpSliceStateCommonParams(sliceState);
 
-    sliceState.bWeightedPredInUse           = m_useWeightedSurfaceForL0 || m_useWeightedSurfaceForL1;
+    sliceState.RoundingIntra         = m_roundingIntraInUse;
+    sliceState.RoundingInter         = m_roundingInterInUse;
+    
+    sliceState.bWeightedPredInUse    = m_useWeightedSurfaceForL0 || m_useWeightedSurfaceForL1;
     static_cast<MHW_VDBOX_HEVC_SLICE_STATE_G11 &>(sliceState).dwNumPipe = m_numPipe;
 }
 
@@ -2810,7 +2862,7 @@ MOS_STATUS CodechalEncHevcStateG11::GetSystemPipeNumberCommon()
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
         &userFeatureData);
 
-    bool disableScalability = false;
+    bool disableScalability = true;
     if (statusKey == MOS_STATUS_SUCCESS)
     {
         disableScalability = userFeatureData.i32Data ? true : false;
@@ -2949,6 +3001,7 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
     // Common initialization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::Initialize(settings));
 
+    m_numDelay                              = 15; //Value suggested by HW team.
     m_bmeMethodTable                        = (uint8_t *)m_meMethod;
     m_b4XMeDistortionBufferSupported        = true;
     m_brcBuffers.dwBrcConstantSurfaceWidth  = HEVC_BRC_CONSTANT_SURFACE_WIDTH_G9;
@@ -3124,7 +3177,7 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_DISABLE_ID,
         &userFeatureData);
-    m_enableBrcLTR = (userFeatureData.i32Data) ? false : false;
+    m_enableBrcLTR = (userFeatureData.i32Data) ? false : true;
 #endif
 
      if (m_codecFunction != CODECHAL_FUNCTION_PAK)
@@ -3173,14 +3226,7 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
 
     else if (m_frameWidth < 512 || m_frameHeight < 512)
     {
-        m_16xMeSupported = true;
         m_32xMeSupported = false;
-    }
-
-    else
-    {
-        m_16xMeSupported = true;
-        m_32xMeSupported = true;
     }
 
     char    stringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
@@ -3311,6 +3357,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
     curbe.IncreaseExitThresh     = m_tuSettings[IncreaseExitThreshTuParam][tuMapping];
     curbe.IntraSpotCheck         = m_tuSettings[IntraSpotCheckFlagTuParam][tuMapping];
     curbe.Fake32Enable           = m_tuSettings[Fake32EnableTuParam][tuMapping];
+    curbe.Dynamic64Min32         = m_tuSettings[Dynamic64Min32][tuMapping];
 
     curbe.FrameWidthInSamples   = m_frameWidth;
     curbe.FrameHeightInSamples  = m_frameHeight;
@@ -3380,9 +3427,20 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
     curbe.CollocatedFromL0Flag  = m_hevcSliceParams->collocated_from_l0_flag;
     curbe.theSameRefList        = m_sameRefList;
     curbe.IsLowDelay            = m_lowDelay;
-    curbe.MaxNumMergeCand       = m_hevcSliceParams->MaxNumMergeCand;
     curbe.NumRefIdxL0           = m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1;
     curbe.NumRefIdxL1           = (curbe.SliceType == CODECHAL_ENCODE_HEVC_P_SLICE) ? 0 : (m_hevcSliceParams->num_ref_idx_l1_active_minus1 + 1);
+    if (m_hevcSeqParams->TargetUsage == 1)
+    {
+        // MaxNumMergeCand C Model uses 4 for TU1, 
+        // for quality consideration, make sure not larger than the value from App as it will be used in PAK
+        curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 4);        
+    }
+    else
+    {
+        // MaxNumMergeCand C Model uses 2 for TU4 and TU7, 
+        // for quality consideration, make sure not larger than the value from App as it will be used in PAK
+       curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 2);        
+    }
 
     int32_t tbRefListL0[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L0_REF_G10] = { 0 }, tbRefListL1[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L1_REF_G10] = {0};
     curbe.FwdPocNumber_L0_mTb_0 = tbRefListL0[0] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][0]);
@@ -3398,15 +3456,15 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
     curbe.RefFrameWinHeight     = m_frameHeight;
     curbe.RefFrameWinWidth      = m_frameWidth;
 
-    // Hard coding for now from Gen10HEVC_TU4_default.par
-    curbe.RoundingInter      = (m_roundingInter + 1) << 4;  // Should be an input from par in the cmodel (slice state)
-    curbe.RoundingIntra      = (m_roundingIntra + 1) << 4;  // Should be an input from par in the cmodel (slice state)
-    curbe.RDEQuantRoundValue = (m_roundingInter + 1) << 4;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::GetRoundingIntraInterToUse());
+    
+    curbe.RoundingInter      = (m_roundingInterInUse + 1) << 4;  // Should be an input from par in the cmodel (slice state)
+    curbe.RoundingIntra      = (m_roundingIntraInUse + 1) << 4;  // Should be an input from par in the cmodel (slice state)
+    curbe.RDEQuantRoundValue = (m_roundingInterInUse + 1) << 4;
 
-    uint32_t gopP = (m_hevcSeqParams->GopRefDist) ? ((m_hevcSeqParams->GopPicSize - 1) / m_hevcSeqParams->GopRefDist) : 0;
-    uint32_t gopB = m_hevcSeqParams->GopPicSize - 1 - gopP;
+    uint32_t gopB = m_hevcSeqParams->GopRefDist;
 
-    curbe.CostScalingForRA = 1; // default setting
+    curbe.CostScalingForRA = 1;  // default setting
 
     // get the min distance between current pic and ref pics
     uint32_t minPocDist     = 255;
@@ -3429,13 +3487,17 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
 
             if (gopB == 4)
             {
-                if (minPocDist == 1 || minPocDist == 2 || minPocDist == 4)
-                    costTableIndex = minPocDist;
+                costTableIndex = minPocDist;
+                if (minPocDist == 4)
+                    costTableIndex -= 1;
             }
             if (gopB == 8)
             {
-                if (minPocDist == 1 || minPocDist == 2 || minPocDist == 4 || minPocDist == 8)
-                    costTableIndex = minPocDist + 3;
+                costTableIndex = minPocDist + 3;
+                if (minPocDist == 4)
+                    costTableIndex -= 1;
+                if (minPocDist == 8)
+                    costTableIndex -= 4;
             }
         }
     }
@@ -3484,6 +3546,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeMbEncKernel()
         curbe.Degree45              = 1;
         curbe.Break12Dependency     = 1;
         curbe.DisableTemporal16and8 = 0;
+        break;
     default:
         curbe.Degree45              = 1;
         curbe.Break12Dependency     = 1;
@@ -4016,7 +4079,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
             CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
     );
 
-    // Combined 1D buffer 2, which contains non fixed sizes of buffers
+    // Combined 1D RAW buffer 2, which contains non fixed sizes of buffers
     startBTI = MBENC_B_FRAME_ENCODER_COMBINED_BUFFER2;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         &surfaceCodecParams,
@@ -4310,7 +4373,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendMbEncSurfacesKernel(
     startBTI = MBENC_B_FRAME_LCU_LEVEL_DATA_INPUT;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams2D(
         &surfaceCodecParams,
-        &m_lcuLevelInputDataSurface,
+        &m_lcuLevelInputDataSurface[m_currRecycledBufIdx],
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_LCU_LEVEL_DATA_ENCODE].Value,
         bindingTable->dwBindingTableEntries[startBTI],
         m_verticalLineStride,
@@ -5334,7 +5397,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
         &idParams));
 
     // Generate Lcu Level Data
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(GenerateLcuLevelData(m_lcuLevelInputDataSurface));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GenerateLcuLevelData(m_lcuLevelInputDataSurface[m_currRecycledBufIdx]));
 
     // Generate Concurrent Thread Group Data
     if(m_swScoreboardState->GetDependencyPattern() == dependencyWavefront26Degree ||
@@ -5396,7 +5459,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
         if (m_pictureCodingType == I_TYPE)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
-                &m_lcuLevelInputDataSurface,
+                &m_lcuLevelInputDataSurface[m_currRecycledBufIdx],
                 CodechalDbgAttr::attrOutput,
                 "HEVC_I_MBENC_LcuLevelData_In",
                 CODECHAL_MEDIA_STATE_HEVC_I_MBENC));
@@ -5404,7 +5467,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeMbEncKernel(
         else
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
-                &m_lcuLevelInputDataSurface,
+                &m_lcuLevelInputDataSurface[m_currRecycledBufIdx],
                 CodechalDbgAttr::attrOutput,
                 "HEVC_B_MBENC_LcuLevelData_In",
                 CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
@@ -6156,7 +6219,7 @@ MOS_STATUS CodechalEncHevcStateG11::EncodeKernelFunctions()
 
     m_swScoreboardState->SetCurSwScoreboardSurfaceIndex(m_currRecycledBufIdx);
 
-    swScoreboardKernelParames.lcuInfoSurface = &m_lcuLevelInputDataSurface;
+    swScoreboardKernelParames.lcuInfoSurface = &m_lcuLevelInputDataSurface[m_currRecycledBufIdx];
 
     if(m_useSwInitScoreboard)
     {

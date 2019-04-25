@@ -30,9 +30,16 @@
 #include "mhw_render_g11_X.h"
 #include "mhw_utilities.h"
 #include "cm_def.h"
+#include "renderhal_platform_interface.h"
+#if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g11lp.h"
 #include "cm_gpuinit_kernel_g11lp.h"
-#include "renderhal_platform_interface.h"
+#else
+unsigned int iGPUCopy_kernel_isa_size_gen11lp = 0;
+unsigned int iGPUInit_kernel_isa_size_gen11lp = 0;
+unsigned char *pGPUCopy_kernel_isa_gen11lp = nullptr;
+unsigned char *pGPUInit_kernel_isa_gen11lp = nullptr;
+#endif
 
 // Gen11 Surface state tokenized commands - a SURFACE_STATE_G11 command and
 // a surface state command, either SURFACE_STATE_G11 or SURFACE_STATE_ADV_G11
@@ -389,7 +396,6 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     int32_t                      tmp;
     bool                         sipEnable = renderHal->bSIPKernel?true: false;
     bool                         csrEnable = renderHal->bCSRKernel?true: false;
-    uint32_t                     i;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
     MOS_RESOURCE                 osResource;
     uint32_t                     tag;
@@ -439,10 +445,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
 
     renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, &osResource, tag);
     stateHeap->pCurMediaState->dwSyncTag = tag;
-
-    // Initialize command buffer and insert prolog
-    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
-
+    
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
     {
@@ -456,6 +459,9 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     pipeCtlParams.dwPostSyncOp = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+
+    // Initialize command buffer and insert prolog
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
     // update tracker tag used with CM tracker resource
     renderHal->pfnIncTrackerId(state->renderHal);
@@ -766,7 +772,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     if (state->svmBufferUsed)
     {
         // Find the SVM slot, patch it into this dummy pipe_control
-        for ( i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++ )
+        for (uint32_t i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++ )
         {
             //Only register SVM resource here
             if ( state->bufferTable[ i ].address )
@@ -779,6 +785,15 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
             }
         }
     }
+
+    // Send Sync Tag
+    if (!state->dshEnabled || !(enableWalker || enableGpGpu))
+    {
+        CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+    }
+
+    // Update tracker resource
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
 
     // issue a PIPE_CONTROL to write timestamp
     syncOffset += sizeof( uint64_t );
@@ -794,15 +809,6 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     {
         CM_CHK_MOSSTATUS_GOTOFINISH(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
     }
-
-    // Send Sync Tag
-    if (!state->dshEnabled || !(enableWalker || enableGpGpu))
-    {
-        CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
-    }
-
-    // Update tracker resource
-    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
 
     // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
     MHW_PIPE_CONTROL_PARAMS pipeControlParams;

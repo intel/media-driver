@@ -30,6 +30,9 @@
 #include "vphal_render_sfc_g9_base.h"
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#include "igvpkrn_isa_g9.h"
+#endif
 
 #define MAX_INPUT_PREC_BITS         16
 #define DOWNSHIFT_WITH_ROUND(x, n)  (((x) + (((n) > 0) ? (1 << ((n) - 1)) : 0)) >> (n))
@@ -1249,6 +1252,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetDNDIParams(
     eStatus             = MOS_STATUS_SUCCESS;
     pDNParams           = pSrcSurface->pDenoiseParams;
 
+    VPHAL_RENDER_ASSERT(pDNParams);
+
     // Set Luma DN params
     if (pRenderData->bDenoise)
     {
@@ -1332,6 +1337,11 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetDNDIParams(
             pChromaParams->dwSTADThresholdU =
             pChromaParams->dwSTADThresholdV = dwSTADThresholdUV[dwDenoiseFactor];
         }
+    }
+
+    if (pDNParams && pDNParams->bEnableHVSDenoise)
+    {
+        VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(pSrcSurface);
     }
 
     return eStatus;
@@ -2168,9 +2178,16 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsDiFormatSupported(
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrc);
 
     if (pSrc->Format != Format_AYUV &&
+        pSrc->Format != Format_Y410 &&
         pSrc->Format != Format_Y416 &&
         pSrc->Format != Format_P010 &&
-        pSrc->Format != Format_P016)
+        pSrc->Format != Format_P016 &&
+        pSrc->Format != Format_A8B8G8R8 &&
+        pSrc->Format != Format_A8R8G8B8 &&
+        pSrc->Format != Format_B10G10R10A2 &&
+        pSrc->Format != Format_R10G10B10A2 &&
+        pSrc->Format != Format_A16B16G16R16 &&
+        pSrc->Format != Format_A16R16G16B16)
     {
         bRet = true;
     }
@@ -2209,5 +2226,9 @@ VPHAL_VEBOX_STATE_G9_BASE::VPHAL_VEBOX_STATE_G9_BASE(
     pKernelParamTable                   = (PRENDERHAL_KERNEL_PARAM)g_Vebox_KernelParam_g9;
     iNumFFDISurfaces                    = 2;  // PE on: 4 used. PE off: 2 used
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    m_hvsKernelBinary                   = (uint8_t *)IGVP_HVS_DENOISE_G900;
+    m_hvsKernelBinarySize               = IGVP_HVS_DENOISE_G900_SIZE;
+#endif
 }
 

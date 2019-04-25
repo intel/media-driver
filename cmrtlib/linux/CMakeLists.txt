@@ -21,16 +21,6 @@
 cmake_minimum_required(VERSION 2.8)
 include (${CMAKE_CURRENT_LIST_DIR}/cmrt_utils.cmake)
 
-# Distinguish between 32 and 64 bits
-# The string that is set is used to modify the target names of some of the libraries generated
-if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-  set(TARGET_MODIFIER "32")
-  set(PB_PATH_MODIFIER "x86")
-else()
-  set(TARGET_MODIFIER "64")
-  set(PB_PATH_MODIFIER "x64")
-endif()
-
 set(EXECUTABLE_OUTPUT_PATH ${MDF_OPTION__OUTPUT_DIR})
 set(LIBRARY_OUTPUT_PATH    ${MDF_OPTION__OUTPUT_DIR})
 
@@ -47,10 +37,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_SKIP_RPATH ON)
 endif(CMAKE_COMPILER_IS_GNUCC)
 
-#setup_configurations must be called before project()
-#setup_configurations()
-
 #include paths
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../proprietary/share/)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../agnostic/share)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../agnostic/hardware)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../linux/share)
@@ -79,7 +67,7 @@ set(CMRT_DEFINES "")
 cmrt_include_directory(${CMAKE_CURRENT_LIST_DIR}/../agnostic)
 cmrt_include_directory(${CMAKE_CURRENT_LIST_DIR}/../linux)
 
-setup_library(igfxcmrt "${CMRT_SOURCES}" TRUE "igfxcmrt${TARGET_MODIFIER}")
+add_library(igfxcmrt SHARED "${CMRT_SOURCES}")
 
 set(CMRT_DEFINES ${CMRT_DEFINES} VPHAL ISTDLIB_UMD CM_RT_EXPORTS)
 
@@ -90,8 +78,36 @@ endif()
 set_target_properties( igfxcmrt PROPERTIES 
   FOLDER CM_RT 
   COMPILE_DEFINITIONS "${CMRT_DEFINES}" 
-  OUTPUT_NAME "igfxcmrt${TARGET_MODIFIER}"
   )
-set_target_properties( igfxcmrt PROPERTIES PREFIX "")
+
+# set the version
+get_cmrt_versions(CMRT_VERSION_MAJOR CMRT_VERSION_MINOR CMRT_VERSION_PATCH)
+set(CMRT_VERSION ${CMRT_VERSION_MAJOR}.${CMRT_VERSION_MINOR}.${CMRT_VERSION_PATCH})
+
+set_target_properties(igfxcmrt PROPERTIES VERSION ${CMRT_VERSION})
+set_target_properties(igfxcmrt PROPERTIES SOVERSION ${CMRT_VERSION_MAJOR})
 target_link_libraries( igfxcmrt dl va rt ${GCC_SECURE_LINK_FLAGS})
 
+include(GNUInstallDirs)
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/igfxcmrt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/igfxcmrt.pc @ONLY)
+
+install(TARGETS igfxcmrt LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT media NAMELINK_SKIP)
+install(TARGETS igfxcmrt LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT media NAMELINK_ONLY)
+
+set(CMRT_HEADERS
+    ${CMRT_HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g8.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g9.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g10.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_hw_vebox_cmd_g10.h
+    ${CMAKE_CURRENT_LIST_DIR}/share/cm_rt_def_os.h
+    ${CMAKE_CURRENT_LIST_DIR}/share/cm_rt_api_os.h
+    )
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cm_rt_extension.h "//empty file for future implementation")
+
+install(FILES ${CMRT_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/igfxcmrt COMPONENT media)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cm_rt_extension.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/igfxcmrt COMPONENT media)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/igfxcmrt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig COMPONENT media)

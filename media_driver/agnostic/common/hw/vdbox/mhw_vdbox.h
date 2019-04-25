@@ -271,6 +271,7 @@ typedef struct _MHW_VDBOX_SURFACE_PARAMS
     uint32_t                    dwReconSurfHeight;
     MOS_MEMCOMP_STATE           mmcState;
     uint8_t                     mmcSkipMask;
+    uint32_t                    dwCompressionFormat;
 } MHW_VDBOX_SURFACE_PARAMS, *PMHW_VDBOX_SURFACE_PARAMS;
 
 struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
@@ -345,6 +346,8 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     uint32_t                    dwVdencStatsStreamOutOffset = 0;
     bool                        oneOnOneMapping = false;                 // Flag for indicating using 1:1 ref index mapping for vdenc
     bool                        isLowDelayB = true;                      // Flag to indicate if it is LDB
+    uint8_t                     IBCRefIdxMask = 0;
+    PMOS_RESOURCE               presVdencCumulativeCuCountStreamoutSurface = nullptr;
     virtual ~MHW_VDBOX_PIPE_BUF_ADDR_PARAMS() {}
 };
 using PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS = MHW_VDBOX_PIPE_BUF_ADDR_PARAMS * ;

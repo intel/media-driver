@@ -53,7 +53,13 @@ int32_t CmSurface::Destroy( CmSurface* &surface )
 CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_index( nullptr ),
     m_surfaceMgr( surfMgr ),
-    m_isCmCreated (isCmCreated)
+    m_isCmCreated (isCmCreated),
+    m_lastRenderTracker(0),
+    m_lastFastTracker(0),
+    m_lastVeboxTracker(0),
+    m_released(false),
+    m_delayDestroyPrev(nullptr),
+    m_delayDestroyNext(nullptr)
 {
     MOS_ZeroMemory(&m_memObjCtrl, sizeof(m_memObjCtrl));
 }
@@ -158,14 +164,12 @@ int32_t CmSurface::TouchDeviceQueue()
 int32_t CmSurface::WaitForReferenceFree()
 {
     // Make sure the surface is not referenced any more
-    int32_t * surfState = nullptr;
-    m_surfaceMgr->GetSurfaceState(surfState);
-    while (surfState[m_index->get_data()])
+    while (!AllReferenceCompleted())
     {
         if (FAILED(TouchDeviceQueue()))
         {
             CM_ASSERTMESSAGE("Error: Failed to touch device queue.")
-             return CM_FAILURE;
+            return CM_FAILURE;
         };
     };
 
@@ -281,6 +285,7 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         case CM_SURFACE_FORMAT_R32_TYPELESS:       return "r32";
         case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:  return "r32g8x24";
         case CM_SURFACE_FORMAT_R8_UNORM:           return "r8un";
+        case CM_SURFACE_FORMAT_R32G32B32A32F:      return "rgba32f";
         default:                                   return "Invalid";
     }
 }

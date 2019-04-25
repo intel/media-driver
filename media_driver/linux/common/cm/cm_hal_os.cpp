@@ -906,6 +906,11 @@ MOS_STATUS HalCm_Lock2DResource(
                   &surface));
 
         param->pitch = surface.dwPitch;
+        param->format = surface.Format;
+        param->YSurfaceOffset = surface.YPlaneOffset;
+        param->USurfaceOffset = surface.UPlaneOffset;
+        param->VSurfaceOffset = surface.VPlaneOffset;
+
         // Lock the resource
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
 
@@ -1220,6 +1225,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
 
     if (!conditionalParams->bDisableCompareMask)
     {
+        loadRegMemParams.presStoreBuffer = conditionalParams->presSemaphoreBuffer;
         loadRegMemParams.dwOffset = conditionalParams->dwOffset + 4;
         loadRegMemParams.dwRegister = offsets->gprOffset + 8 * 2;
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &loadRegMemParams)); //r1, r2: compared value and its mask
@@ -1460,5 +1466,24 @@ uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE osInterface)
         // fail to query it from KMD
         return 0;
     }
+}
+
+//!
+//! \brief    Prepare virtual engine hint parametere
+//! \details  Prepare virtual engine hint parameter for CCS node
+//! \param    PCM_HAL_STATE state
+//!           [in] Pointer to CM_HAL_STATE Structure
+//! \param    bool bScalable
+//!           [in] is scalable pipe or single pipe
+//! \param    PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam
+//!           [out] Pointer to prepared VE hint parameter struct
+//! \return   MOS_STATUS
+//!
+MOS_STATUS HalCm_PrepareVEHintParam(
+    PCM_HAL_STATE                  state,
+    bool                           bScalable,
+    PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
 }
 

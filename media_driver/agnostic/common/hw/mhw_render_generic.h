@@ -80,6 +80,7 @@ public:
         {
             cmd.DW1_2.GeneralStateBaseAddressModifyEnable    = true;
             cmd.DW12.GeneralStateBufferSizeModifyEnable      = true;
+            cmd.DW1_2.GeneralStateMemoryObjectControlState   = params->mocs4GeneralState;
             resourceParams.presResource                      = params->presGeneralState;
             resourceParams.dwOffset                          = 0;
             resourceParams.pdwCmd                            = cmd.DW1_2.Value;
@@ -108,6 +109,7 @@ public:
             // command need to have the modify
             // bit associated with it set to 1.
             cmd.DW4_5.SurfaceStateBaseAddressModifyEnable    = true;
+            cmd.DW4_5.SurfaceStateMemoryObjectControlState   = params->mocs4SurfaceState;
             resourceParams.presResource                      = &cmdBuffer->OsResource;
             resourceParams.dwOffset                          = indirectStateOffset;
             resourceParams.pdwCmd                            = cmd.DW4_5.Value;
@@ -125,6 +127,7 @@ public:
         if (params->presDynamicState)
         {
             cmd.DW6_7.DynamicStateBaseAddressModifyEnable    = true;
+            cmd.DW6_7.DynamicStateMemoryObjectControlState   = params->mocs4DynamicState;
             cmd.DW13.DynamicStateBufferSizeModifyEnable      = true;
             resourceParams.presResource                      = params->presDynamicState;
             resourceParams.dwOffset                          = 0;

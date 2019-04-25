@@ -379,7 +379,8 @@ public:
         uint32_t size,
         const char* name,
         bool initialize = false,
-        uint8_t value = 0);
+        uint8_t value = 0,
+        bool bPersistent = false);
 
     //!
     //! \brief    Help function to allocate a NV12 TILE_Y surface
@@ -559,7 +560,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer);
+    virtual MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief  Indicates whether or not the status query reporting is enabled
@@ -900,7 +901,33 @@ private:
         uint32_t allocWidth,
         uint32_t allocHeight,
         MOS_FORMAT format);
-
+    //!
+    //! \brief    Resize specific reference surfaces 
+    //! \details  Resize specific reference surfaces for decode downsampling for all codec types
+    //! \param    frameIdx
+    //!           [in] index of surfaces array 
+    //! \param    width
+    //!           [in] Width of the surfaces to be allocated
+    //! \param    height
+    //!           [in] Height of the surfaces to be allocated
+    //! \param    format
+    //!           [in] Flag to indicate the format of the surfaces to be allocated
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+   MOS_STATUS RefSurfacesResize(
+        uint32_t     frameIdx,
+        uint32_t     width,
+        uint32_t     height,
+        MOS_FORMAT   format);
+    //!
+    //! \brief    Deallocate specific reference surfaces 
+    //! \details  Deallocate specific reference surfaces for decode downsampling for all codec types
+    //! \param    frameIdx
+    //!           [in] index of surfaces array
+    //! \return   N/A
+    //!
+    void DeallocateSpecificRefSurfaces(uint32_t frameIdx);
     //!
     //! \brief    Deallocate reference surfaces
     //! \details  Deallocate reference surfaces for decode downsampling for all codec types
@@ -984,6 +1011,9 @@ protected:
 
     //! \brief Flag to indicate if we support eStatus query reporting on current platform
     bool                        m_statusQueryReportingEnabled = false;
+    //! \brief Flag to indicate if UMD Perf Profiler FE BE timing measurement is enabled
+    bool                        m_perfFEBETimingEnabled = false;
+
     //! \brief Stores all the status_query related data
     CodechalDecodeStatusBuffer  m_decodeStatusBuf;
     //! \brief The feedback number reported by app in picparams call

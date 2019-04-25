@@ -358,6 +358,7 @@ public:
         Log2TUMaxDepthIntraTuParam,
         MaxNumIMESearchCenterTuParam,
         Fake32EnableTuParam,
+        Dynamic64Min32,
         TotalTuParams
     };
 
@@ -1141,7 +1142,7 @@ public:
     static const double m_modeBitsScale[46][3];                 //!< Mode bits LUT based on [mode][SliceType]
 
     MOS_SURFACE             m_currPicWithReconBoundaryPix;      //!< Current Picture with Reconstructed boundary pixels
-    MOS_SURFACE             m_lcuLevelInputDataSurface;         //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
+    MOS_SURFACE             m_lcuLevelInputDataSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]; //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
     MOS_SURFACE             m_intermediateCuRecordSurfaceLcu32; //!< Intermediate CU Record surface for I and B kernel
     MOS_SURFACE             m_scratchSurface;                   //!< Scratch surface for I-kernel
     CODECHAL_ENCODE_BUFFER  m_debugSurface[4];                  //!< Debug surface used in MBENC kernels
@@ -1179,7 +1180,7 @@ public:
     uint32_t                m_threadTaskBufferSize = 0;
     uint32_t                m_threadTaskBufferOffset = 0;
     bool                    m_initEncConstTable = true;
-    bool                    m_enableBrcLTR = 0;  //!< flag to enable long term reference BRC feature.
+    bool                    m_enableBrcLTR = 1;  //!< flag to enable long term reference BRC feature.
     bool                    m_isFrameLTR = 0;    //!<flag to check if current frame is set as long term reference
     uint32_t                m_ltrInterval = 0;   //!< long term reference interval
 
@@ -1219,6 +1220,8 @@ public:
     MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
     MOS_RESOURCE           m_resPipeCompleteSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
     PCODECHAL_ENCODE_SCALABILITY_STATE  m_scalabilityState = nullptr;                                                                                  //!< Scalability state
+    MOS_RESOURCE           m_resDelayMinus;
+    uint32_t               m_numDelay;
 
     // the following constant integers and tables are from the kernel for score board computation
     static uint32_t const m_ct = 3;

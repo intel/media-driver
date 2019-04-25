@@ -5586,7 +5586,7 @@ MOS_STATUS CodechalEncodeAvcEnc::SetPictureStructs()
         m_numPasses = (CODECHAL_ENCODE_AVC_CQP_NUM_OF_PASSES - 1);
     }
 
-    //add for FEI multiple Pass Pak
+    //add for multiple Pass Pak
     if (CodecHalIsFeiEncode(m_codecFunction))
     {
         CodecEncodeAvcFeiPicParams *feiPicParams;
@@ -5597,6 +5597,10 @@ MOS_STATUS CodechalEncodeAvcEnc::SetPictureStructs()
         {
             m_numPasses = (uint8_t)feiPicParams->dwNumPasses; //-1+1 for additional one IPCM pass
         }
+    }
+    else if (CodecHalUsesPakEngine(m_codecFunction) && picParams->dwMaxFrameSize != 0)
+    {
+        m_numPasses = (uint8_t)picParams->dwNumPasses; //-1+1 for additional one IPCM pass
     }
 
     if (seqParams->RateControlMethod == RATECONTROL_VCM && m_pictureCodingType == B_TYPE)
@@ -8620,7 +8624,6 @@ MOS_STATUS CodechalEncodeAvcEnc::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, M
             else if (params->b16xMeInUse)
             {
                 surface = m_trackedBuf->Get16xDsSurface(scaledIdx);
-
             }
             else
             {
@@ -8911,6 +8914,11 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
         {
             imageStateParams.pDeltaQp = m_avcFeiPicParams->pDeltaQp;
             imageStateParams.dwMaxFrameSize = m_avcFeiPicParams->dwMaxFrameSize;
+        }
+        else if (CodecHalUsesPakEngine(m_codecFunction) && m_avcPicParam->dwMaxFrameSize)
+        {
+            imageStateParams.pDeltaQp = m_avcPicParam->pDeltaQp;
+            imageStateParams.dwMaxFrameSize = m_avcPicParam->dwMaxFrameSize;
         }
         imageStateParams.wPicWidthInMb = m_picWidthInMb;
         imageStateParams.wPicHeightInMb = m_picHeightInMb;

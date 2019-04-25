@@ -34,7 +34,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <errno.h>
-#include <drm_header.h>
+#include <drm.h>
 #include <i915_drm.h>
 #include <pciaccess.h>
 #include "libdrm_macros.h"
@@ -55,6 +55,13 @@ mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
            unsigned long size, unsigned int alignment)
 {
     return bufmgr->bo_alloc(bufmgr, name, size, alignment);
+}
+
+void
+mos_bo_set_exec_object_async(struct mos_linux_bo *bo)
+{
+    if(bo->bufmgr->set_exec_object_async)
+        bo->bufmgr->set_exec_object_async(bo);
 }
 
 #ifdef ANDROID
@@ -169,26 +176,8 @@ int
 mos_bo_exec(struct mos_linux_bo *bo, int used,
           drm_clip_rect_t * cliprects, int num_cliprects, int DR4)
 {
-#ifdef ANDROID
-    return bo->bufmgr->bo_exec(bo, used, cliprects, num_cliprects, DR4, -1, nullptr);
-#else
     return bo->bufmgr->bo_exec(bo, used, cliprects, num_cliprects, DR4);
-#endif
 }
-
-#ifdef ANDROID
-int
-mos_bo_fence_exec(struct mos_linux_bo *bo, int used,
-          drm_clip_rect_t * cliprects, int num_cliprects, int DR4,
-            int fence_in, int* fence_out)
-{
-    if (fence_out)
-        *fence_out = -1;
-
-    return bo->bufmgr->bo_exec(bo, used, cliprects, num_cliprects, DR4,
-                fence_in, fence_out);
-}
-#endif
 
 int
 mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
@@ -196,57 +185,19 @@ mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
         unsigned int rings)
 {
     if (bo->bufmgr->bo_mrb_exec)
-#ifdef ANDROID
-        return bo->bufmgr->bo_mrb_exec(bo, used,
-                    cliprects, num_cliprects, DR4,
-                    rings, -1, nullptr);
-#else
         return bo->bufmgr->bo_mrb_exec(bo, used,
                     cliprects, num_cliprects, DR4,
                     rings);
-#endif
 
     switch (rings) {
     case I915_EXEC_DEFAULT:
     case I915_EXEC_RENDER:
-#ifdef ANDROID
-        return bo->bufmgr->bo_exec(bo, used,
-                       cliprects, num_cliprects, DR4,
-                        -1, nullptr);
-#else
         return bo->bufmgr->bo_exec(bo, used,
                        cliprects, num_cliprects, DR4);
-#endif
     default:
         return -ENODEV;
     }
 }
-
-#ifdef ANDROID
-int
-mos_bo_mrb_fence_exec(struct mos_linux_bo *bo, int used,
-        drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-        unsigned int rings, int fence_in, int* fence_out)
-{
-    if (fence_out)
-        *fence_out = -1;
-
-    if (bo->bufmgr->bo_mrb_exec)
-        return bo->bufmgr->bo_mrb_exec(bo, used,
-                    cliprects, num_cliprects, DR4,
-                    rings, fence_in, fence_out);
-
-    switch (rings) {
-    case I915_EXEC_DEFAULT:
-    case I915_EXEC_RENDER:
-        return bo->bufmgr->bo_exec(bo, used,
-                       cliprects, num_cliprects, DR4,
-                        fence_in, fence_out);
-    default:
-        return -ENODEV;
-    }
-}
-#endif
 
 void
 mos_bufmgr_set_debug(struct mos_bufmgr *bufmgr, int enable_debug)
@@ -268,16 +219,6 @@ mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name)
 
     return -ENODEV;
 }
-
-#ifdef ANDROID
-int mos_bo_prime(struct mos_linux_bo *bo, uint32_t * name)
-{
-    if (bo->bufmgr->bo_prime)
-        return bo->bufmgr->bo_prime(bo, name);
-
-    return -ENODEV;
-}
-#endif
 
 #ifndef ANDROID
 int

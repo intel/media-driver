@@ -41,6 +41,7 @@ class CmProgramRT;
 class CmQueueRT;
 class CmTask;
 class CmThreadSpace;
+class CmThreadGroupSpace;
 class CmEvent;
 };
 class CmExecutionAdv
@@ -59,9 +60,11 @@ public:
     virtual void DeleteSurfStateVme(CmSurfaceStateVME *state) {}
     virtual void SetBufferOrigSize(CmSurfaceStateBufferMgr *stateMgr, uint32_t size) {}
     virtual void SetBufferMemoryObjectControl(CmSurfaceStateBufferMgr *stateMgr, uint16_t mocs) {}
+    virtual void Set2DOrigFormat(CmSurfaceState2DMgr *stateMgr, MOS_FORMAT format) {}
     virtual void Set2DRenderTarget(CmSurfaceState2DMgr *stateMgr, bool renderTarget) {}
     virtual void Set2DMemoryObjectControl(CmSurfaceState2DMgr *stateMgr, uint16_t mocs) {}
     virtual void Set2DFrameType(CmSurfaceState2DMgr *stateMgr, CM_FRAME_TYPE frameType) {}
+    virtual uint32_t *GetLatestFastTracker() {return nullptr; }
     virtual CMRT_UMD::CmKernelRT *CreateKernelRT(CMRT_UMD::CmDeviceRT *device,
                 CMRT_UMD::CmProgramRT *program,
                 uint32_t kernelIndex,
@@ -75,5 +78,11 @@ public:
 
     virtual int DestoryEvent(CMRT_UMD::CmQueueRT *queue, CMRT_UMD::CmEvent *&event);
 
+    virtual int SubmitComputeTask(CMRT_UMD::CmQueueRT *queue,
+                CMRT_UMD::CmTask *task,
+                CMRT_UMD::CmEvent* &event, 
+                const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
+                MOS_GPU_CONTEXT gpuContext);
+    virtual int WaitForAllTasksFinished() {return 0; }
     
 };

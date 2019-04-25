@@ -103,11 +103,17 @@ extern int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state);
 
 #if MDF_SURFACE_CONTENT_DUMP
 extern int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state);
+
 #endif
 
 #if MDF_SURFACE_STATE_DUMP
 extern int32_t HalCm_InitDumpSurfaceState(PCM_HAL_STATE state);
 extern int32_t HalCm_DumpSurfaceState(PCM_HAL_STATE state, int offsetSurfaceState, size_t sizeOfSurfaceState);
+#endif
+
+#if MDF_INTERFACE_DESCRIPTOR_DATA_DUMP
+extern int32_t HalCm_InitDumpInterfaceDescriporData(PCM_HAL_STATE state);
+extern int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state);
 #endif
 
 extern uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE pOsInterface);
@@ -1583,6 +1589,7 @@ MOS_STATUS HalCm_ParseGroupTask(
     taskParam->surfacePerBT = MOS_MIN(CM_MAX_STATIC_SURFACE_STATES_PER_BT, taskParam->surfacePerBT);
 
     taskParam->queueOption = execGroupParam->queueOption;
+    taskParam->mosVeHintParams = execGroupParam->mosVeHintParams;
 
     return eStatus;
 }
@@ -2979,10 +2986,9 @@ finish:
 bool isRenderTarget(PCM_HAL_STATE state, uint32_t index)
 {
     bool readSync = false;
-    if ( ( state->gpuContext == MOS_GPU_CONTEXT_RENDER3 ) || ( state->gpuContext == MOS_GPU_CONTEXT_RENDER4 ) )
-    {
-        readSync = state->umdSurf2DTable[index].readSyncs[state->gpuContext - MOS_GPU_CONTEXT_RENDER3];
-    }
+
+    readSync = state->umdSurf2DTable[index].readSyncs[state->osInterface->CurrentGpuContextOrdinal];
+
     if (readSync)
         return false;
     else
@@ -3720,7 +3726,6 @@ MOS_STATUS HalCm_SetupBufferSurfaceState(
                 &surfaceEntry));
 
         // Bind the surface State
-        surfaceEntry->pSurface = &surface.OsSurface;
         CM_ASSERT(((int32_t)btIndex) < renderHal->StateHeapSettings.iSurfacesPerBT + surfBTIInfo.normalSurfaceStart);
         CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnBindSurfaceState(
                renderHal,
@@ -3920,6 +3925,8 @@ MOS_STATUS HalCm_Setup3DSurfaceState(
         btIndex = HalCm_GetFreeBindingIndex(state, indexParam, nSurfaceEntries);
         for (i = 0; i < (uint32_t)nSurfaceEntries; i++)
         {
+            *(surfaceEntries[i]->pSurface) = surface.OsSurface;
+
             // Bind the surface State
             CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnBindSurfaceState(
                         renderHal,
@@ -4030,6 +4037,24 @@ MOS_STATUS HalCm_HwSetSurfaceProperty(
     }
 
     return eStatus;
+}
+
+// A special treatment of NV12 format. Offset of the UV plane in an NV12 surface is adjusted, so
+// this plane can be accessed as a separate R8G8 surface in kernels.
+static bool UpdateSurfaceAliasPlaneOffset(
+    CM_HAL_SURFACE2D_SURFACE_STATE_PARAM *surfaceStateParam,
+    MOS_SURFACE *mosSurface)
+{
+    if (Format_R8G8UN != surfaceStateParam->format
+        || Format_NV12 != mosSurface->Format)
+    {
+        mosSurface->Format
+                = static_cast<MOS_FORMAT>(surfaceStateParam->format);
+        return false;  // No need to update offset.
+    }
+    mosSurface->dwOffset = mosSurface->UPlaneOffset.iSurfaceOffset;
+    mosSurface->Format = Format_R8G8UN;
+    return false;
 }
 
 //*-----------------------------------------------------------------------------
@@ -4219,7 +4244,7 @@ MOS_STATUS HalCm_Setup2DSurfaceStateBasic(
     }
     if (surfStateParam->format)
     {
-        surface->Format = (MOS_FORMAT)surfStateParam->format;
+        UpdateSurfaceAliasPlaneOffset(surfStateParam, surface);
     }
     if (surfStateParam->surfaceXOffset)
     {
@@ -4287,6 +4312,8 @@ MOS_STATUS HalCm_Setup2DSurfaceStateBasic(
                     surfaceParam,
                     CM_ARGUMENT_SURFACE2D));
         }
+        surfaceEntries[i]->pSurface->dwWidth = state->umdSurf2DTable[index].width;
+        surfaceEntries[i]->pSurface->dwHeight = state->umdSurf2DTable[index].height;
     }
 
     // only update the reuse table for non-aliased surface
@@ -5091,7 +5118,6 @@ MOS_STATUS HalCm_SetupStateBufferSurfaceState(
         &surfaceEntry ) );
 
     // Bind the surface State
-    surfaceEntry->pSurface = &renderhalSurface.OsSurface;
     CM_ASSERT( ( ( int32_t )btIndex ) < renderHal->StateHeapSettings.iSurfacesPerBT + surfBTIInfo.normalSurfaceStart );
     CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnBindSurfaceState(
         renderHal,
@@ -7789,6 +7815,14 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
     {
         HalCm_DumpCurbeData(state);
     }
+
+#endif
+
+#if MDF_INTERFACE_DESCRIPTOR_DATA_DUMP
+    if (state->dumpIDData)
+    {
+        HalCm_DumpInterfaceDescriptorData(state);
+    }   
 #endif
 
 finish:
@@ -8138,17 +8172,14 @@ MOS_STATUS HalCm_ExecuteTask(
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_ParseTask(state, execParam));
 
     // Reset the SSH configuration according to the property of the task
-    btsizePower2 = (uint32_t)renderHal->StateHeapSettings.iBTAlignment/renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
-    while (btsizePower2 < taskParam->surfacePerBT)
-    {
-        btsizePower2 = btsizePower2 * 2;
-    }
-    taskParam->surfacePerBT = btsizePower2;
     renderHal->pStateHeap->iBindingTableSize = MOS_ALIGN_CEIL(taskParam->surfacePerBT *  // Reconfigure the binding table size
                                                  renderHal->pRenderHalPltInterface->GetBTStateCmdSize(), renderHal->StateHeapSettings.iBTAlignment);
-
+    
+    taskParam->surfacePerBT = renderHal->pStateHeap->iBindingTableSize/renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
+    
     renderHal->StateHeapSettings.iBindingTables = renderHal->StateHeapSettings.iBindingTables *             // Reconfigure the binding table number
                                                          renderHal->StateHeapSettings.iSurfacesPerBT / taskParam->surfacePerBT;
+    
     renderHal->StateHeapSettings.iSurfacesPerBT = taskParam->surfacePerBT;                            // Reconfigure the surface per BT
 
     if (execParam->numKernels > (uint32_t)renderHal->StateHeapSettings.iBindingTables)
@@ -8448,15 +8479,11 @@ MOS_STATUS HalCm_ExecuteGroupTask(
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_ParseGroupTask(state, execGroupParam));
 
     // Reset the SSH configuration according to the property of the task
-    btsizePower2 = (uint32_t)renderHal->StateHeapSettings.iBTAlignment/renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
-    while (btsizePower2 < taskParam->surfacePerBT)
-    {
-        btsizePower2 = btsizePower2 * 2;
-    }
-    taskParam->surfacePerBT = btsizePower2;
     renderHal->pStateHeap->iBindingTableSize = MOS_ALIGN_CEIL(taskParam->surfacePerBT *               // Reconfigure the binding table size
                                                          renderHal->pRenderHalPltInterface->GetBTStateCmdSize(),
                                                          renderHal->StateHeapSettings.iBTAlignment);
+
+    taskParam->surfacePerBT = renderHal->pStateHeap->iBindingTableSize / renderHal->pRenderHalPltInterface->GetBTStateCmdSize();
 
     renderHal->StateHeapSettings.iBindingTables           = renderHal->StateHeapSettings.iBindingTables *          // Reconfigure the binding table number
                                                          renderHal->StateHeapSettings.iSurfacesPerBT / taskParam->surfacePerBT;
@@ -9229,7 +9256,8 @@ finish:
 MOS_STATUS HalCm_SetSurfaceReadFlag(
     PCM_HAL_STATE           state,                                             // [in]  Pointer to CM State
     uint32_t                handle,                                           // [in]  index of surface 2d
-    bool                    readSync)
+    bool                    readSync,
+    MOS_GPU_CONTEXT         gpuContext)
 {
     MOS_STATUS                 eStatus  = MOS_STATUS_SUCCESS;
     PCM_HAL_SURFACE2D_ENTRY    entry;
@@ -9237,10 +9265,9 @@ MOS_STATUS HalCm_SetSurfaceReadFlag(
     // Get the Buffer Entry
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurface2DEntry(state, handle, &entry));
 
-    // Two slots, RENDER3 and RENDER4
-    if ( ( state->gpuContext == MOS_GPU_CONTEXT_RENDER3 ) || ( state->gpuContext == MOS_GPU_CONTEXT_RENDER4 ) )
+    if (HalCm_IsValidGpuContext(gpuContext))
     {
-        entry->readSyncs[state->gpuContext - MOS_GPU_CONTEXT_RENDER3] = readSync;
+        entry->readSyncs[gpuContext] = readSync;
         state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
     }
     else
@@ -9576,6 +9603,7 @@ MOS_STATUS HalCm_AllocateSurface2D(
     if (state->advExecutor)
     {
         entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
+        state->advExecutor->Set2DOrigFormat(entry->surfStateMgr, entry->format);
     }
    
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
@@ -9624,6 +9652,7 @@ MOS_STATUS HalCm_UpdateSurface2D(
     {
         state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
         entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
+        state->advExecutor->Set2DOrigFormat(entry->surfStateMgr, entry->format);
     }
     
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
@@ -10310,12 +10339,9 @@ MOS_STATUS HalCm_Create(
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
     state->waTable  = state->osInterface->pfnGetWaTable (state->osInterface);
 
-    //GPU context
-    state->gpuContext =   param->requestCustomGpuContext? MOS_GPU_CONTEXT_RENDER4 : MOS_GPU_CONTEXT_RENDER3;
-
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
-        
+
         // Create VEBOX Context
         createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
         CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_CreateGPUContext(
@@ -10542,6 +10568,10 @@ MOS_STATUS HalCm_Create(
     state->pfnDumpSurfaceState = HalCm_DumpSurfaceState;
 #endif
 
+#if MDF_INTERFACE_DESCRIPTOR_DATA_DUMP
+  HalCm_InitDumpInterfaceDescriporData(state);
+#endif
+
     state->cmHalInterface = CMHalDevice::CreateFactory(state);
     CM_CHK_NULL_GOTOFINISH_MOSERROR(state->cmHalInterface);
 
@@ -10553,6 +10583,8 @@ MOS_STATUS HalCm_Create(
     {
         state->refactor = false;
     }
+
+    state->requestCustomGpuContext = param->requestCustomGpuContext;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
@@ -10652,7 +10684,6 @@ void HalCm_Destroy(
 
             // Delete sip surface
             HalCm_FreeSipResource(state);
-
         }
 
         // Delete tracker resource
@@ -10676,7 +10707,10 @@ void HalCm_Destroy(
         // Delete RenderHal Interface
         if (state->renderHal)
         {
-            state->renderHal->pfnDestroy(state->renderHal);
+            if (state->renderHal->pfnDestroy)
+            {
+                state->renderHal->pfnDestroy(state->renderHal);
+            }
             MOS_FreeMemory(state->renderHal);
             state->renderHal = nullptr;
         }
@@ -10693,7 +10727,10 @@ void HalCm_Destroy(
         // Delete OS Interface
         if (state->osInterface)
         {
-            state->osInterface->pfnDestroy(state->osInterface, true);
+            if (state->osInterface->pfnDestroy)
+            {
+                state->osInterface->pfnDestroy(state->osInterface, true);
+            }
             if (state->osInterface->bDeallocateOnExit)
             {
                 MOS_FreeMemory(state->osInterface);
@@ -11647,7 +11684,7 @@ MOS_STATUS HalCm_SyncOnResource(
         osInterface->pfnSyncOnOverlayResource(
             osInterface,
             &(surface->OsResource),
-            state->gpuContext);
+            state->osInterface->CurrentGpuContextOrdinal);
     }
 
     return eStatus;
@@ -11832,5 +11869,29 @@ uint64_t HalCm_ConvertTicksToNanoSeconds(
         return state->cmHalInterface->ConverTicksToNanoSecondsDefault(ticks);
     }
     return (ticks * 1000000000) / (state->tsFrequency);
+}
+
+//!
+//! \brief    Check GPU context
+//! \details  Check if the GPU context is valid for CM layer
+//! \param    MOS_GPU_CONTEXT gpuContext
+//!           [in] GPU Context ordinal
+//! \return   true/false
+//!
+bool HalCm_IsValidGpuContext(
+    MOS_GPU_CONTEXT             gpuContext)
+{
+    if( gpuContext == MOS_GPU_CONTEXT_RENDER3
+     || gpuContext == MOS_GPU_CONTEXT_RENDER4
+     || gpuContext == MOS_GPU_CONTEXT_CM_COMPUTE
+     || gpuContext == MOS_GPU_CONTEXT_VEBOX)
+    {
+        return true;
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Invalid GPU context for CM.");
+        return false;
+    }
 }
 

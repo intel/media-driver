@@ -176,9 +176,11 @@ set(MEDIA_COMPILER_FLAGS_DEBUG
     -DINSTR_GTUNE_EXT
 )
 
+if(X11_FOUND)
+    add_definitions(-DX11_FOUND)
+endif()
 
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_compile_flags_linux_ext.cmake OPTIONAL)
-
+include(${MEDIA_EXT_CMAKE}/ext/linux/media_compile_flags_linux_ext.cmake OPTIONAL)
 
 if(${PLATFORM} STREQUAL "linux")
     #set predefined compiler flags set
@@ -196,8 +198,4 @@ if (DEFINED MEDIA_VERSION)
     add_definitions(-DUFO_VERSION="${MEDIA_VERSION}")
 elseif (DEFINED ENV{MEDIA_VERSION})
     add_definitions(-DUFO_VERSION="$ENV{MEDIA_VERSION}")
-endif()
-
-if (MEDIA_EXT)
-    add_definitions(-DMEDIA_EXT)
 endif()

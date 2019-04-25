@@ -90,7 +90,7 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
 
             if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 2)
             {
-                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO5 : MOS_GPU_CONTEXT_VDBOX2_VIDEO;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
@@ -102,12 +102,12 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
                     MOS_GPU_CONTEXT_VIDEO,
-                    MOS_GPU_NODE_VIDEO,
+                    m_videoGpuNode,
                     &createOption));
             }
             else if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 3)
             {
-                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO7 : MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
@@ -119,7 +119,7 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
                     m_osInterface,
                     MOS_GPU_CONTEXT_VIDEO,
-                    MOS_GPU_NODE_VIDEO,
+                    m_videoGpuNode,
                     &createOption));
             }
             else
@@ -295,6 +295,8 @@ MOS_STATUS CodechalDecodeVp9G11::EndStatusReport(
 
     CodechalDecodeStatus *decodeStatus = &m_decodeStatusBuf.m_decodeStatus[m_decodeStatusBuf.m_currIndex];
     MOS_ZeroMemory(decodeStatus, sizeof(CodechalDecodeStatus));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, cmdBuffer));
 
     if (!m_osInterface->bEnableKmdMediaFrameTracking && m_osInterface->bInlineCodecStatusUpdate)
     {
@@ -563,6 +565,10 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_FEBESync(
             m_scalabilityState,
             cmdBufferInUse));
+        if (m_perfFEBETimingEnabled && CodecHalDecodeScalabilityIsLastCompletePhase(m_scalabilityState))
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+        }
     }
 
     if (CodecHalDecodeScalabilityIsBEPhase(m_scalabilityState))
@@ -685,6 +691,10 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
         if (m_statusQueryReportingEnabled)
         {
             EndStatusReportForFE(cmdBufferInUse);
+            if (m_perfFEBETimingEnabled)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+            }
         }
     }
 
@@ -985,5 +995,66 @@ MOS_STATUS CodechalDecodeVp9G11 :: AllocateStandard (
     }
 
     return eStatus;
+}
+
+MOS_STATUS CodechalDecodeVp9G11::SetCencBatchBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_DECODE_CHK_NULL_RETURN(cmdBuffer);
+
+    MHW_BATCH_BUFFER        batchBuffer;
+    MOS_ZeroMemory(&batchBuffer, sizeof(MHW_BATCH_BUFFER));
+    MOS_RESOURCE *resHeap = nullptr;
+    CODECHAL_DECODE_CHK_NULL_RETURN(resHeap = m_cencBuf->secondLvlBbBlock->GetResource());
+
+    batchBuffer.OsResource   = *resHeap;
+    batchBuffer.dwOffset     = m_cencBuf->secondLvlBbBlock->GetOffset() + VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+    batchBuffer.iSize        = m_cencBuf->secondLvlBbBlock->GetSize() - VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+    batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+        cmdBuffer,
+        &batchBuffer));
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+            &batchBuffer,
+            CODECHAL_NUM_MEDIA_STATES,
+            "_2ndLvlBatch_Pic_Cmd"));)
+
+    // Primitive level cmds should not be in BE phases
+    if (!(CodecHalDecodeScalabilityIsBEPhase(m_scalabilityState) && MOS_VE_SUPPORTED(m_osInterface)))
+    {
+        batchBuffer.dwOffset = m_cencBuf->secondLvlBbBlock->GetOffset();
+        batchBuffer.iSize = VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+        batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+            cmdBuffer,
+            &batchBuffer));
+
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+                &batchBuffer,
+                CODECHAL_NUM_MEDIA_STATES,
+                "_2ndLvlBatch_Primitive_Cmd"));)
+    }
+
+    // Update GlobalCmdBufId
+    MHW_MI_STORE_DATA_PARAMS miStoreDataParams;
+    MOS_ZeroMemory(&miStoreDataParams, sizeof(miStoreDataParams));
+    miStoreDataParams.pOsResource = m_cencBuf->resTracker;
+    miStoreDataParams.dwValue     = m_cencBuf->trackerId;
+    CODECHAL_DECODE_VERBOSEMESSAGE("dwCmdBufId = %d", miStoreDataParams.dwValue);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &miStoreDataParams));
+    return MOS_STATUS_SUCCESS;
 }
 

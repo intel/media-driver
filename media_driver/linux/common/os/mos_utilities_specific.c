@@ -673,6 +673,7 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
     int32_t       iPos;
     MOS_UF_VALUE  *pValueArray;
     MOS_UF_KEY    *Key;
+    void          *ulValueBuf;
 
     iPos         = -1;
     pValueArray  = nullptr;
@@ -683,6 +684,12 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
         return MOS_STATUS_UNKNOWN;
     }
 
+    // Prepare the ValueBuff of the NewKey
+    if ((ulValueBuf = MOS_AllocMemory(NewKey.pValueArray[0].ulValueLen)) == nullptr)
+    {
+         return MOS_STATUS_NO_SPACE;
+    }
+
     if ( (iPos = _UserFeature_FindValue(*Key, NewKey.pValueArray[0].pcValueName)) == NOT_FOUND)
     {
         //not found, add a new value to key struct.
@@ -690,6 +697,7 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
         pValueArray = (MOS_UF_VALUE*)MOS_AllocMemory(sizeof(MOS_UF_VALUE)*(Key->ulValueNum+1));
         if (pValueArray == nullptr)
         {
+            MOS_FreeMemory(ulValueBuf);
             return MOS_STATUS_NO_SPACE;
         }
 
@@ -708,14 +716,15 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
             NewKey.pValueArray[0].pcValueName);
         Key->ulValueNum ++;
     }
+    else
+    {
+        //if found, the previous value buffer needs to be freed before reallocating
+        MOS_FreeMemory(Key->pValueArray[iPos].ulValueBuf);
+    }
 
     Key->pValueArray[iPos].ulValueLen  = NewKey.pValueArray[0].ulValueLen;
     Key->pValueArray[iPos].ulValueType = NewKey.pValueArray[0].ulValueType;
-    Key->pValueArray[iPos].ulValueBuf  = MOS_AllocMemory(NewKey.pValueArray[0].ulValueLen);
-    if(Key->pValueArray[iPos].ulValueBuf == nullptr)
-    {
-        return MOS_STATUS_NO_SPACE;
-    }
+    Key->pValueArray[iPos].ulValueBuf  = ulValueBuf;
 
     MOS_ZeroMemory(Key->pValueArray[iPos].ulValueBuf, NewKey.pValueArray[0].ulValueLen);
 
@@ -1024,16 +1033,37 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
             if(_UserFeature_Add(pKeyList, CurKey) != MOS_STATUS_SUCCESS)
             {
                 // if the CurKey didn't be added in pKeyList, free it.
+                for (uint32_t i = 0; i < iCount; i++)
+                {
+                    if (CurValue)
+                    {
+                        MOS_FreeMemory(CurValue[i].ulValueBuf);
+                    }
+                }
                 MOS_FreeMemory(CurKey);
             }
         }
         else
         {
+            for (uint32_t i = 0; i < iCount; i++)
+            {
+                if (CurValue)
+                {
+                    MOS_FreeMemory(CurValue[i].ulValueBuf);
+                }
+            }
             MOS_FreeMemory(CurKey);
         }
     }
     else
     {
+        for (uint32_t i = 0; i < iCount; i++)
+        {
+            if (CurValue)
+            {
+                MOS_FreeMemory(CurValue[i].ulValueBuf);
+            }
+        }
         MOS_FreeMemory(CurKey);
     }
     fclose(File);
@@ -2646,6 +2676,7 @@ PMOS_MUTEX MOS_CreateMutex()
     {
         if (pthread_mutex_init(pMutex, nullptr))
         {
+            MOS_FreeMemory(pMutex);
             pMutex = nullptr;
         }
     }
@@ -2706,7 +2737,7 @@ PMOS_SEMAPHORE MOS_CreateSemaphore(
 
     pSemaphore = (PMOS_SEMAPHORE)MOS_AllocMemory(sizeof(*pSemaphore));
     if (!pSemaphore)
-        return NULL;
+        return nullptr;
     if (sem_init(pSemaphore, 0, uiInitialCount))
     {
         MOS_SafeFreeMemory(pSemaphore);
@@ -2949,17 +2980,17 @@ void MOS_GfxInfoClose()
     // not implemented
 }
 
-void MOS_GfxInfo(uint8_t ver, uint16_t compId, uint16_t tmtryID, char const* xmlTmtryStr)
+void MOS_GfxInfo_RTErr(uint8_t ver,
+    uint16_t    compId,
+    uint16_t    FtrId,
+    uint32_t    ErrorCode,
+    uint8_t     num_of_triples,
+    ...)
 {
     // not implemented
 }
 
-void MOS_GfxInfo_RTErr(uint8_t ver, uint16_t compId, uint16_t FtrId, uint32_t ErrorCode)
-{
-    // not implemented
-}
-
-void MOS_GfxInfo_Params(
+void MOS_GfxInfo(
     uint8_t         ver,
     uint16_t        compId,
     uint32_t        tmtryID,

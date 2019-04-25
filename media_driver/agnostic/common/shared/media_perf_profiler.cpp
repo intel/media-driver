@@ -586,16 +586,21 @@ PerfGPUNode MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
         case MOS_GPU_OVERLAY_CONTEXT:
+        case MOS_GPU_CONTEXT_RENDER_RA:
             node = PERF_GPU_NODE_3D;
             break;
         case MOS_GPU_CONTEXT_COMPUTE:
         case MOS_GPU_CONTEXT_CM_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
             node = PERF_GPU_NODE_3D;
             break;
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
         case MOS_GPU_CONTEXT_VIDEO3:
         case MOS_GPU_CONTEXT_VIDEO4:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
             node = PERF_GPU_NODE_VIDEO;
             break;
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:

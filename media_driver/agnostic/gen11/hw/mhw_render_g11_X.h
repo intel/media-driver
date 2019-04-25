@@ -56,7 +56,7 @@ public:
         // L3 Cache size per bank = 384 KB.
         // {SLM,    URB,     DC,      RO(I/S, C, T),   L3 Client Pool}
         // {  0,     64,      0,                  0,         320     }
-        m_l3CacheCntlRegisterValueDefault = 0xA0000420;
+        m_l3CacheCntlRegisterValueDefault = 0xA0000620;
     }
 
     virtual ~MhwRenderInterfaceG11() { MHW_FUNCTION_ENTER; }

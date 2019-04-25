@@ -51,6 +51,7 @@ struct DeviceConfig
             uint32_t has_vebox           :1; // I915_PARAM_HAS_VEBOX
             uint32_t has_ext_mmap        :1; // I915_PARAM_MMAP_VERSION
             uint32_t has_exec_softpin    :1; // I915_PARAM_HAS_EXEC_SOFTPIN
+            uint32_t has_exec_async      :1; // I915_PARAM_HAS_EXEC_ASYNC
             uint32_t has_bsd2            :1; // I915_PARAM_HAS_BSD
             uint32_t has_huc             :1; // I915_PARAM_HAS_HUC
             uint32_t reserved            :21;

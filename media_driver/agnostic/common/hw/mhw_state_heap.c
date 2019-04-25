@@ -74,6 +74,7 @@ extern const MHW_SURFACE_STATE_PARAMS g_cInit_MhwSurfaceStateParams =
     false,    // bVerticalLineStrideOffset
     false,    // bCompressionEnabled
     false,    // bCompressionMode
+    0,        // MmcState
     false,    // bInterleaveChroma
     false,    // bHalfPitchChroma
     false,    // bSeperateUVPlane
@@ -81,6 +82,7 @@ extern const MHW_SURFACE_STATE_PARAMS g_cInit_MhwSurfaceStateParams =
     0,        // UVPixelOffsetVDirection
     0,        // RotationMode
     0,        // bSurfaceArraySpacing
+    false,    // bBoardColorOGL
     0,        // iXOffset
     0,        // iYOffset
     0,        // dwXOffsetForU

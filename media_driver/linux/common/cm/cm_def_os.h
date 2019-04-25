@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_def_os.h 
-//! \brief     Contains CM definitions 
+//! \file      cm_def_os.h
+//! \brief     Contains CM definitions
 //!
 #pragma once
 
@@ -39,8 +39,6 @@
 #include <cstring>
 #include "dlfcn.h"
 #include "media_libva_cm.h"
-
-#define USERMODE_DEVICE_CONTEXT      MOS_CONTEXT
 
 #ifndef SUCCEEDED
 #define SUCCEEDED(hr)   (hr == VA_STATUS_SUCCESS)
@@ -113,7 +111,7 @@ namespace CMRT_UMD
 class SurfaceIndex
 {
 public:
-    CM_NOINLINE SurfaceIndex() { index = 0; };
+    CM_NOINLINE SurfaceIndex() { index = 0; extraByte = 0; };
     CM_NOINLINE SurfaceIndex(const SurfaceIndex& src) { index = src.index; };
     CM_NOINLINE SurfaceIndex(const unsigned int& n) { index = n; };
     CM_NOINLINE SurfaceIndex& operator = (const unsigned int& n) { this->index = n; return *this; };
@@ -142,7 +140,7 @@ private:
 class SamplerIndex
 {
 public:
-    CM_NOINLINE SamplerIndex() { index = 0; };
+    CM_NOINLINE SamplerIndex() { index = 0; extraByte = 0;};
     CM_NOINLINE SamplerIndex(SamplerIndex& src) { index = src.get_data(); };
     CM_NOINLINE SamplerIndex(const unsigned int& n) { index = n; };
     CM_NOINLINE SamplerIndex& operator = (const unsigned int& n) { this->index = n; return *this; };

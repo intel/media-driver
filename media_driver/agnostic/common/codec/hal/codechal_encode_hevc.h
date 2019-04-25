@@ -165,6 +165,9 @@ public:
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_mbEncKernelBindingTable = nullptr;  //!< MbEnc kernel binding table
     uint32_t                                    m_numMbEncEncKrnStates    = 0;        //!< Number of MbEnc kernel states
     EncStatsBuffers                             m_encStatsBuffers;
+    uint8_t                                     m_mbCodeIdxForTempMVP     = 0xFF;     //!< buf index for current frame temporal mvp 
+    uint8_t                                     m_roundingIntraInUse = 0;             //!< rounding intra actually used
+    uint8_t                                     m_roundingInterInUse = 0;             //!< rounding inter actually used
 
     // ScalingAndConversion
     PMHW_KERNEL_STATE                      m_scalingAndConversionKernelState        = nullptr;  //!< Pointer to ScalingAndConversion kernel state
@@ -518,5 +521,12 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS DumpHMESurfaces();
+    //!
+    //! \brief    Get rounding inter/intra for current frame to use
+    //!           
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetRoundingIntraInterToUse();
 };
 #endif  // __CODECHAL_ENCODE_HEVC_H__

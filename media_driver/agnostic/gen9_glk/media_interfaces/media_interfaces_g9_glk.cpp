@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,9 @@
 
 #include "media_interfaces_g9_kbl.h"
 #include "media_interfaces_g9_glk.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g9.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -311,7 +313,7 @@ MOS_STATUS CodechalInterfacesG9Glk::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             // Create CSC and Downscaling interface
@@ -320,6 +322,7 @@ MOS_STATUS CodechalInterfacesG9Glk::Initialize(
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
+#endif
     }
     else
     {

@@ -356,7 +356,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
 {
     VphalState             *vpHal = nullptr;
     int32_t                 ovRenderIndex = 0;
-    static VPHAL_SURFACE    Surf;
+    VPHAL_SURFACE           Surf;
     VPHAL_SURFACE           target;
     VPHAL_RENDER_PARAMS     renderParams;
     VPHAL_COLORFILL_PARAMS  colorFill;
@@ -461,7 +461,6 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
         {
         case I915_TILING_Y:
            tileType = MOS_TILE_Y;
-           gmmParams.Flags.Info.TiledY    = true;
            break;
         case I915_TILING_X:
            tileType = MOS_TILE_X;
@@ -485,6 +484,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
         tileType = MOS_TILE_LINEAR;
         gmmParams.Flags.Info.Linear    = true;
     }
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrLocalMemory);
 
     target.Format                = Format_A8R8G8B8;
     target.SurfType              = SURF_OUT_RENDERTARGET;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -198,11 +198,11 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     }
 
     // Add reference index and weight offset commands
-    MOS_ZeroMemory(&refIdxParams, sizeof(refIdxParams));
-    refIdxParams.CurrPic = params->pEncodeAvcPicParams->CurrReconstructedPic;
-    refIdxParams.isEncode = true;
-    refIdxParams.pAvcPicIdx = params->pAvcPicIdx;
-    refIdxParams.avcRefList = (void**)m_refList;
+    refIdxParams.CurrPic         = params->pEncodeAvcPicParams->CurrReconstructedPic;
+    refIdxParams.isEncode        = true;
+    refIdxParams.bVdencInUse     = params->bVdencInUse;
+    refIdxParams.pAvcPicIdx      = params->pAvcPicIdx;
+    refIdxParams.avcRefList      = (void **)m_refList;
     refIdxParams.oneOnOneMapping = params->oneOnOneMapping;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
@@ -213,7 +213,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     if (Slice_Type[avcSlcParams->slice_type] == SLICE_P)
     {
         refIdxParams.uiList = LIST_0;
-        refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
+        refIdxParams.uiNumRefForList[LIST_0] = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
@@ -241,12 +241,12 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     else if (Slice_Type[avcSlcParams->slice_type] == SLICE_B)
     {
         refIdxParams.uiList = LIST_0;
-        refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
+        refIdxParams.uiNumRefForList[LIST_0] = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
         refIdxParams.uiList = LIST_1;
-        refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l1_active_minus1 + 1;
+        refIdxParams.uiNumRefForList[LIST_1] = avcSlcParams->num_ref_idx_l1_active_minus1 + 1;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
@@ -3418,10 +3418,6 @@ void CodechalEncodeAvcBase::UpdateSSDSliceCount()
 
 MOS_STATUS CodechalEncodeAvcBase::AddIshSize( uint32_t kuid , uint8_t* kernelBase)
 {
-#ifndef _FULL_OPEN_SOURCE
-    CODECHAL_ENCODE_CHK_NULL_RETURN(kernelBase);
-#endif
-
     uint8_t* kernelBinary;
     uint32_t kernelSize;
 
@@ -4208,6 +4204,8 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
         return MOS_STATUS_SUCCESS;
     }
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateTargetUsage());
+
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
 
@@ -4265,6 +4263,31 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalEncodeAvcBase::PopulateTargetUsage()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    if (m_populateTargetUsage == false)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char *fileName = m_debugInterface->CreateFileName(
+        "EncodeSequence",
+        "EncodePar",
+        CodechalDbgExtType::par);
+
+    std::ifstream ifs(fileName);
+    std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    ifs.close();
+    std::ofstream ofs(fileName, std::ios::trunc);
+    ofs << "TargetUsage = " << static_cast<uint32_t>(m_avcSeqParam->TargetUsage) << std::endl;
+    ofs << str;
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS avcSeqParams,
     PCODEC_AVC_ENCODE_PIC_PARAMS      avcPicParams,
@@ -4292,10 +4315,10 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
             0 : (CodecHal_PictureIsTopField(avcPicParams->CurrOriginalPic) ? 1 : 3);
         m_avcPar->PictureCodingType = pictureCodingType;
 
-        uint16_t gopP = (avcSeqParams->GopRefDist) ? ((avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist) : 0;
-        uint16_t gopB = avcSeqParams->GopPicSize - 1 - gopP;
+        uint16_t gopP  = (avcSeqParams->GopRefDist) ? ((avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist) : 0;
+        uint16_t gopB  = avcSeqParams->GopPicSize - 1 - gopP;
         m_avcPar->NumP = gopP;
-        m_avcPar->NumB = m_vdencEnabled ? 0 : ((gopP > 0) ? (gopB / gopP) : 0);
+        m_avcPar->NumB = ((gopP > 0) ? (gopB / gopP) : 0);
 
         if ((avcPicParams->NumSlice * m_sliceHeight) >=
             (uint32_t)(avcSeqParams->pic_height_in_map_units_minus1 + 1 + m_sliceHeight))

@@ -47,17 +47,15 @@ int32_t CmSurfaceManager::UpdateStateForDelayedDestroy(SURFACE_DESTROY_KIND dest
     switch (destroyKind)
     {
         case DELAYED_DESTROY:
-        case GC_DESTROY:
-            if (!m_surfaceReleased[index] ||
-                m_surfaceStates[index])
+            if (!m_surfaceArray[index]->CanBeDestroyed())
             {
                 return CM_SURFACE_IN_USE;
             }
             break;
 
         case APP_DESTROY:
-            m_surfaceReleased[index] = true;
-            if (m_surfaceStates[index])
+            m_surfaceArray[index]->DelayDestroy();
+            if (!m_surfaceArray[index]->CanBeDestroyed())
             {
                 return CM_SURFACE_IN_USE;
             }
@@ -73,7 +71,6 @@ int32_t CmSurfaceManager::UpdateStateForDelayedDestroy(SURFACE_DESTROY_KIND dest
 
 int32_t CmSurfaceManager::UpdateStateForRealDestroy(uint32_t index, CM_ENUM_CLASS_TYPE surfaceType)
 {
-    m_surfaceReleased[index] = false;
     m_surfaceArray[index] = nullptr;
 
     m_surfaceSizes[index] = 0;
@@ -217,8 +214,6 @@ CmSurfaceManager::CmSurfaceManager( CmDeviceRT* device):
     m_device( device ),
     m_surfaceArraySize( 0 ),
     m_surfaceArray( nullptr ),
-    m_surfaceStates(nullptr),
-    m_surfaceReleased(nullptr),
     m_surfaceSizes(nullptr),
     m_maxBufferCount(0),
     m_bufferCount(0),
@@ -237,7 +232,12 @@ CmSurfaceManager::CmSurfaceManager( CmDeviceRT* device):
     m_garbageCollectionTriggerTimes(0),
     m_garbageCollection1DSize(0),
     m_garbageCollection2DSize(0),
-    m_garbageCollection3DSize(0)
+    m_garbageCollection3DSize(0),
+    m_latestRenderTracker(nullptr),
+    m_latestFastTracker(nullptr),
+    m_latestVeboxTracker(nullptr),
+    m_delayDestroyHead(nullptr),
+    m_delayDestroyTail(nullptr)
 {
     GetSurfaceBTIInfo();
 };
@@ -267,8 +267,6 @@ CmSurfaceManager::~CmSurfaceManager()
     printf("\n\n");
 #endif
 
-    MosSafeDeleteArray(m_surfaceStates);
-    MosSafeDeleteArray(m_surfaceReleased);
     MosSafeDeleteArray(m_surfaceSizes);
     MosSafeDeleteArray(m_surfaceArray);
 }
@@ -400,17 +398,11 @@ int32_t CmSurfaceManager::Initialize( CM_HAL_MAX_VALUES halMaxValues, CM_HAL_MAX
     typedef CmSurface* PCMSURFACE;
 
     m_surfaceArray      = MOS_NewArray(PCMSURFACE, m_surfaceArraySize);
-    m_surfaceStates      = MOS_NewArray(int32_t, m_surfaceArraySize);
-    m_surfaceReleased   = MOS_NewArray(bool, m_surfaceArraySize);
     m_surfaceSizes      = MOS_NewArray(int32_t, m_surfaceArraySize);
 
     if( m_surfaceArray == nullptr ||
-        m_surfaceStates == nullptr ||
-        m_surfaceReleased == nullptr ||
         m_surfaceSizes == nullptr)
     {
-        MosSafeDeleteArray(m_surfaceStates);
-        MosSafeDeleteArray(m_surfaceReleased);
         MosSafeDeleteArray(m_surfaceSizes);
         MosSafeDeleteArray(m_surfaceArray);
 
@@ -419,36 +411,28 @@ int32_t CmSurfaceManager::Initialize( CM_HAL_MAX_VALUES halMaxValues, CM_HAL_MAX
     }
 
     CmSafeMemSet( m_surfaceArray, 0, m_surfaceArraySize * sizeof( CmSurface* ) );
-    CmSafeMemSet( m_surfaceStates, 0, m_surfaceArraySize * sizeof( int32_t ) );
-    CmSafeMemSet( m_surfaceReleased, 0, m_surfaceArraySize * sizeof( bool ) );
     CmSafeMemSet( m_surfaceSizes, 0, m_surfaceArraySize * sizeof( int32_t ) );
     return CM_SUCCESS;
 }
 
 // Sysmem based surface allocation will always use new surface entry.
-int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFACE_DESTROY_KIND destroyKind)
+int32_t CmSurfaceManager::RefreshDelayDestroySurfaces(uint32_t &freeSurfaceCount)
 {
-    CmSurface*   surface = nullptr;
+    CmSurface*   surface = m_delayDestroyHead;
     CmBuffer_RT*   surf1D  = nullptr;
     CmSurface2DRT*   surf2D  = nullptr;
     CmSurface2DUPRT*   surf2DUP = nullptr;
     CmSurface3DRT*   surf3D  = nullptr;
     CmStateBuffer* surfStateBuffer = nullptr;
     int32_t status = CM_FAILURE;
-    uint32_t index = ValidSurfaceIndexStart();
 
     freeSurfaceCount = 0;
+    uint32_t count = 0;
 
-    while(index <= m_maxSurfaceIndexAllocated )
+    while(surface != nullptr && count <= m_maxSurfaceIndexAllocated)
     {
-        surface  = m_surfaceArray[index];
-        if (!surface)
-        {
-            index ++;
-            continue;
-        }
-
         status = CM_FAILURE;
+        CmSurface *next = surface->DelayDestroyNext();
 
         switch (surface->Type())
         {
@@ -456,7 +440,7 @@ int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFA
             surf2D = static_cast< CmSurface2DRT* >( surface );
             if (surf2D)
             {
-                status = DestroySurface( surf2D, destroyKind);
+                status = DestroySurface( surf2D, DELAYED_DESTROY);
             }
             break;
 
@@ -464,7 +448,7 @@ int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFA
             surf1D = static_cast< CmBuffer_RT* >( surface );
             if (surf1D)
             {
-                status = DestroySurface( surf1D, destroyKind);
+                status = DestroySurface( surf1D, DELAYED_DESTROY);
             }
             break;
 
@@ -472,7 +456,7 @@ int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFA
             surf3D = static_cast< CmSurface3DRT* >( surface );
             if (surf3D)
             {
-                 status = DestroySurface( surf3D, destroyKind);
+                 status = DestroySurface( surf3D, DELAYED_DESTROY);
             }
             break;
 
@@ -480,7 +464,7 @@ int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFA
              surf2DUP = static_cast< CmSurface2DUPRT* >( surface );
              if( surf2DUP )
              {
-                  status = DestroySurface( surf2DUP, destroyKind );
+                  status = DestroySurface( surf2DUP, DELAYED_DESTROY );
              }
              break;
 
@@ -488,7 +472,7 @@ int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFA
             surfStateBuffer = static_cast< CmStateBuffer* >( surface );
             if ( surfStateBuffer )
             {
-                status = DestroyStateBuffer( surfStateBuffer, destroyKind );
+                status = DestroyStateBuffer( surfStateBuffer, DELAYED_DESTROY );
             }
             break;
 
@@ -507,7 +491,9 @@ int32_t CmSurfaceManager::DestroySurfaceInPool(uint32_t &freeSurfaceCount, SURFA
         {
             freeSurfaceCount++;
         }
-        index ++;
+
+        surface = next;
+        ++ count;
     }
 
     return CM_SUCCESS;
@@ -518,7 +504,7 @@ int32_t CmSurfaceManager::TouchSurfaceInPoolForDestroy()
     uint32_t freeNum = 0;
     std::vector<CmQueueRT*> &pCmQueue = m_device->GetQueue();
 
-    DestroySurfaceInPool(freeNum, GC_DESTROY);
+    RefreshDelayDestroySurfaces(freeNum);
     if (pCmQueue.size() == 0)
     {
         return freeNum;
@@ -539,7 +525,7 @@ int32_t CmSurfaceManager::TouchSurfaceInPoolForDestroy()
         }
         lock->Release();
 
-        DestroySurfaceInPool(freeNum, GC_DESTROY);
+        RefreshDelayDestroySurfaces(freeNum);
     }
 
     m_garbageCollectionTriggerTimes++;
@@ -596,6 +582,11 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
 {
      switch( format )
     {
+
+        case CM_SURFACE_FORMAT_R32G32B32A32F:
+             sizePerPixel = 16;
+             break;
+
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
@@ -726,7 +717,6 @@ int32_t CmSurfaceManager::AllocateSurfaceIndex(uint32_t width, uint32_t height, 
     }
 
     freeIndex = index;
-    m_surfaceReleased[index] = false;
     m_maxSurfaceIndexAllocated = Max(index, m_maxSurfaceIndexAllocated);
 
     return CM_SUCCESS;
@@ -1418,10 +1408,16 @@ int32_t CmSurfaceManager::DestroySurface( CmBuffer_RT* & buffer, SURFACE_DESTROY
     else
     {
         //Delayed destroy
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
         result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
 
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -1446,6 +1442,7 @@ int32_t CmSurfaceManager::DestroySurface( CmBuffer_RT* & buffer, SURFACE_DESTROY
     }
 
     CmSurface* surface = buffer;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
     CmSurface::Destroy( surface ) ;
 
     UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMBUFFER_RT);
@@ -1475,9 +1472,15 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DUPRT* & surface2dUP, SURFAC
     }
     else
     {
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
         result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -1495,6 +1498,7 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DUPRT* & surface2dUP, SURFAC
     }
 
     CmSurface* surface = surface2dUP;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
     CmSurface::Destroy( surface ) ;
 
     UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACE2DUP);
@@ -1524,11 +1528,16 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DRT* & surface2d,  SURFACE_D
     }
     else
     {
-
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
         result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
 
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -1546,6 +1555,7 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DRT* & surface2d,  SURFACE_D
     }
 
     CmSurface* surface = surface2d;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
     CmSurface::Destroy( surface ) ;
 
     UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACE2D);
@@ -1655,6 +1665,10 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
     updatedHeight = height;
     switch( format )
     {
+        case CM_SURFACE_FORMAT_R32G32B32A32F:
+             sizePerPixel = 16;
+             break;
+
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
@@ -1961,11 +1975,16 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface3DRT* & surface3d, SURFACE_DE
     }
     else
     {
-
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
         result = UpdateStateForDelayedDestroy(destroyKind, indexData);
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
 
         if (result != CM_SUCCESS)
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
@@ -1983,6 +2002,7 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface3DRT* & surface3d, SURFACE_DE
     }
 
     CmSurface* surface = surface3d;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
     CmSurface::Destroy( surface ) ;
 
     UpdateStateForRealDestroy(indexData, CM_ENUM_CLASS_TYPE_CMSURFACE3D);
@@ -2194,13 +2214,6 @@ uint32_t CmSurfaceManager::GetSurfacePoolSize()
     return m_surfaceArraySize;
 }
 
-uint32_t CmSurfaceManager::GetSurfaceState(int32_t * &surfState)
-{
-    surfState =  m_surfaceStates;
-
-    return CM_SUCCESS;
-}
-
 int32_t CmSurfaceManager::UpdateSurface2DTableMosResource( uint32_t index, MOS_RESOURCE * mosResource )
 {
     PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
@@ -2406,16 +2419,23 @@ int32_t CmSurfaceManager::DestroyStateBuffer( CmStateBuffer *&buffer, SURFACE_DE
     else
     {
         //Delayed destroy
+        bool alreadyInList = m_surfaceArray[indexData]->IsDelayDestroyed();
         result = UpdateStateForDelayedDestroy( destroyKind, indexData );
+        bool delayDestroy = m_surfaceArray[indexData]->IsDelayDestroyed();
 
         if ( result != CM_SUCCESS )
         {
+            if (!alreadyInList && delayDestroy)
+            {
+                AddToDelayDestroyList(m_surfaceArray[indexData]);
+            }
             return result;
         }
     }
 
     //Destroy surface
     CmSurface* surface = buffer;
+    RemoveFromDelayDestroyList(surface); // this function can handle the case if surface not in the list
     CmSurface::Destroy( surface );
 
     UpdateStateForRealDestroy( indexData, CM_ENUM_CLASS_TYPE_CMBUFFER_RT );
@@ -2494,6 +2514,7 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_BGRP:
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_R10G10B10A2:
+        case CM_SURFACE_FORMAT_R8_UNORM:
             return true;
 
         default:
@@ -2534,5 +2555,62 @@ int32_t CmSurfaceManager::UpdateBuffer(MOS_RESOURCE * mosResource, int index, ui
 
     return ret;
 }
+
+void CmSurfaceManager::AddToDelayDestroyList(CmSurface *surface)
+{
+    CM_ASSERT(surface->DelayDestroyNext() == nullptr); // not added in any list
+    CM_ASSERT(surface->DelayDestroyPrev() == nullptr);
+
+    m_delayDestoryListSync.Acquire();
+    
+    // add to the end of the list
+    if (m_delayDestroyTail == nullptr)
+    {
+        CM_ASSERT(m_delayDestroyHead == nullptr);
+        m_delayDestroyHead = m_delayDestroyTail = surface;
+    }
+    else
+    {
+        m_delayDestroyTail->DelayDestroyNext() = surface;
+        surface->DelayDestroyPrev() = m_delayDestroyTail;
+        m_delayDestroyTail = surface;
+    }
+
+    m_delayDestoryListSync.Release();
+}
+
+void CmSurfaceManager::RemoveFromDelayDestroyList(CmSurface *surface)
+{
+    if (surface->DelayDestroyPrev() == nullptr && (m_delayDestroyHead != surface))
+    {
+        return; // not in the list
+    }
+    if (surface->DelayDestroyNext() == nullptr && (m_delayDestroyTail != surface))
+    {
+        return; // not in the list
+    }
+    m_delayDestoryListSync.Acquire();
+    if (surface->DelayDestroyPrev() == nullptr) // remove the first node
+    {
+        m_delayDestroyHead = surface->DelayDestroyNext();
+    }
+    else
+    {
+        surface->DelayDestroyPrev()->DelayDestroyNext() = surface->DelayDestroyNext();
+    }
+
+    if (surface->DelayDestroyNext() == nullptr) // remove the last node
+    {
+        m_delayDestroyTail = surface->DelayDestroyPrev();
+    }
+    else
+    {
+        surface->DelayDestroyNext()->DelayDestroyPrev() = surface->DelayDestroyPrev();
+    }
+
+    surface->DelayDestroyNext() = surface->DelayDestroyPrev() = nullptr;
+    m_delayDestoryListSync.Release();
+}
+
 
 }

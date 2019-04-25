@@ -186,6 +186,10 @@ public:
 
     CM_RT_API int32_t DestroyEventFast(CmEvent *&event);
 
+    CM_RT_API int32_t EnqueueWithGroupFast(CmTask *task,
+                                      CmEvent *&event,
+                                      const CmThreadGroupSpace *threadGroupSpace = nullptr);
+
     int32_t EnqueueCopyInternal_1Plane(CmSurface2DRT *surface,
                                        unsigned char *sysMem,
                                        CM_SURFACE_FORMAT format,
@@ -222,8 +226,7 @@ public:
                                          unsigned char *sysMem,
                                          const uint32_t widthStride,
                                          const uint32_t heightStride,
-                                         CM_GPUCOPY_DIRECTION direction,
-                                         CmEvent *&event);
+                                         CM_GPUCOPY_DIRECTION direction);
 
     int32_t FlushTaskWithoutSync(bool flushBlocked = false);
 
@@ -339,6 +342,9 @@ protected:
 
     CM_HAL_MAX_VALUES *m_halMaxValues;
     CM_QUEUE_CREATE_OPTION m_queueOption;
+
+    bool m_usingVirtualEngine;
+    MOS_VIRTUALENGINE_HINT_PARAMS m_mosVeHintParams;
 
 private:
     CmQueueRT(const CmQueueRT& other);

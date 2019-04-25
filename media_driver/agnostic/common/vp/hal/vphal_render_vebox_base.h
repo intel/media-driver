@@ -35,6 +35,7 @@
 #include "vphal_render_common.h"
 #include "vphal_render_vebox_iecp.h"
 #include "vphal_render_sfc_base.h"
+#include "vphal_render_vebox_denoise.h"
 
 #define VPHAL_MAX_NUM_FFDI_SURFACES     4                                       //!< 2 for ADI plus additional 2 for parallel execution on HSW+
 #define VPHAL_NUM_FFDN_SURFACES         2                                       //!< Number of FFDN surfaces
@@ -693,6 +694,7 @@ public:
     bool                                bBeCsc;
     bool                                bVeboxBypass;
     bool                                b60fpsDi;
+    bool                                bQueryVariance;
 
     // Surface Information
     int32_t                             iFrame0;
@@ -950,6 +952,11 @@ public:
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
     VPHAL_SURFACE                    Vebox3DLookUpTables = {};
+
+    VphalHVSDenoiser                 *m_hvsDenoiser        = nullptr;            //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
+    uint8_t                          *m_hvsKernelBinary    = nullptr;            //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
+    uint32_t                         m_hvsKernelBinarySize = 0;                  //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
+
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
 
@@ -1055,6 +1062,15 @@ public:
     virtual MOS_STATUS VeboxQueryStatLayout(
         VEBOX_STAT_QUERY_TYPE           QueryType,
         uint32_t*                       pQuery) = 0;
+    //!
+    //! \brief    Update RenderGpuContext
+    //! \details  Update RenderGpuContext
+    //! \param    [in] renderGpuContext
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateRenderGpuContext(
+        MOS_GPU_CONTEXT renderGpuContext);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     //!
@@ -1759,6 +1775,17 @@ protected:
     //!           Return created VphalSfcState pointer
     //!
     virtual VphalSfcState* CreateSfcState() = 0;
+
+    //!
+    //! \brief    Vebox Set Human Vision System based Denoise parameter
+    //! \details  Vebox Set Human Vision System based Denoise parameter
+    //! \param    [in] pSrcSurface
+    //!           Pointer to input surface of Vebox
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS VeboxSetHVSDNParams(
+        PVPHAL_SURFACE pSrcSurface);
 
 };
 

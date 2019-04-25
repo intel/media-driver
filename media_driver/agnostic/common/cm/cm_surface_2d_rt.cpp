@@ -31,6 +31,7 @@
 #include "cm_device_rt.h"
 #include "cm_mem.h"
 #include "cm_queue_rt.h"
+#include "cm_wrapper_os.h"
 
 #define COPY_OPTION(option)    (option & 0x1)
 
@@ -140,18 +141,6 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
 
     widthInBytes = m_width * sizePerPixel;
 
-    if( event )
-    {
-        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
-        if (eventRT)
-        {
-            FlushDeviceQueue(eventRT);
-        }
-        else
-        {
-            event->WaitForTaskFinished();
-        }
-    }
     WaitForReferenceFree();   // wait all owner task finished
 
     if (forceCPUCopy)
@@ -163,30 +152,13 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
         if(IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyCPUToGPUFullStride(this, sysMem, horizontalStride, verticalStride, 0, event));
-            if(event)
-            {
-                CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                while(status != CM_STATUS_FINISHED)
-                {
-                    if (status == CM_STATUS_RESET)
-                    {
-                        hr = CM_TASK_MEDIA_RESET;
-                        goto finish;
-                    }
-                    CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                }
-            }
-            else
-            {
-                CM_ASSERTMESSAGE("Error: Hybrid memory copy from system memory to Surface 2D failure.")
-                return CM_FAILURE;
-            }
+            CmEvent *tempEvent = CM_NO_EVENT;
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyCPUToGPUFullStride(this, sysMem, horizontalStride, verticalStride, CM_FASTCOPY_OPTION_BLOCKING, tempEvent));
         }
         else if (IsUnalignedGPUCopy(widthInBytes, m_height))
         {
             cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_CPU2GPU, event));
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_CPU2GPU));
         }
         else
         {
@@ -336,19 +308,6 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* sysMem
 
     widthInBytes = m_width * sizePerPixel;
 
-    if( event )
-    {
-        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
-        if (eventRT)
-        {
-            FlushDeviceQueue(eventRT);
-        }
-        else
-        {
-            event->WaitForTaskFinished();
-        }
-    }
-
     WaitForReferenceFree();   // wait all owner task finished
 
     if (forceCPUCopy)
@@ -360,30 +319,13 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* sysMem
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
         if(IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyGPUToCPUFullStride(this, sysMem, horizontalStride, verticalStride, 0, event));
-            if(event)
-            {
-                CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                while(status != CM_STATUS_FINISHED)
-                {
-                    if (status == CM_STATUS_RESET)
-                    {
-                        hr = CM_TASK_MEDIA_RESET;
-                        goto finish;
-                    }
-                    CM_CHK_CMSTATUS_GOTOFINISH(event->GetStatus(status));
-                }
-            }
-            else
-            {
-                CM_ASSERTMESSAGE("Error: Hybrid memory copy from surface 2D to system memory failure.")
-                return CM_FAILURE;
-            }
+            CmEvent *tempEvent = CM_NO_EVENT;
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueue->EnqueueCopyGPUToCPUFullStride(this, sysMem, horizontalStride, verticalStride, CM_FASTCOPY_OPTION_BLOCKING, tempEvent));
         }
         else if (IsUnalignedGPUCopy(widthInBytes, m_height))
         {
             cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
-            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_GPU2CPU, event));
+            CM_CHK_CMSTATUS_GOTOFINISH(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, horizontalStride, verticalStride, CM_FASTCOPY_GPU2CPU));
         }
         else
         {
@@ -1148,7 +1090,10 @@ CM_RT_API int32_t CmSurface2DRT::SetSurfaceStateParam( SurfaceIndex *surfIndex, 
     CmSafeMemSet( &inParam, 0, sizeof( inParam ) );
     inParam.width       = surfStateParam->width;
     inParam.height      = surfStateParam->height;
-    inParam.format      = surfStateParam->format;
+    if (surfStateParam->format)
+    {
+        inParam.format = surfStateParam->format;
+    }
     inParam.depth       = surfStateParam->depth;
     inParam.pitch       = surfStateParam->pitch;
     inParam.memoryObjectControl   = surfStateParam->memory_object_control;
@@ -1170,7 +1115,7 @@ finish:
     return hr;
 }
 
-CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool readSync)
+CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool readSync, CmQueue *cmQueue)
 {
     int32_t hr = CM_SUCCESS;
 
@@ -1181,7 +1126,11 @@ CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool readSync)
     CM_CHK_NULL_RETURN_CMERROR(cmData);
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
-    hr = cmData->cmHalState->pfnSetSurfaceReadFlag(cmData->cmHalState, m_handle, readSync);
+    CmQueueRT *cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
+    CM_CHK_NULL_RETURN_CMERROR(cmQueueRT);
+
+    hr = cmData->cmHalState->pfnSetSurfaceReadFlag(cmData->cmHalState, m_handle, readSync,
+                                                   (MOS_GPU_CONTEXT)cmQueueRT->GetQueueOption().GPUContext);
 
     if( FAILED(hr) )
     {

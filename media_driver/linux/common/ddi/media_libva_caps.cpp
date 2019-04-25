@@ -59,11 +59,11 @@ const uint32_t MediaLibvaCaps::m_decProcessMode[2] =
     VA_DEC_PROCESSING
 };
 
-const uint32_t MediaLibvaCaps::m_encRcMode[8] =
+const uint32_t MediaLibvaCaps::m_encRcMode[9] =
 {
     VA_RC_CQP, VA_RC_CBR, VA_RC_VBR,
     VA_RC_CBR | VA_RC_MB, VA_RC_VBR | VA_RC_MB,
-    VA_RC_ICQ, VA_RC_VCM, VA_RC_QVBR
+    VA_RC_ICQ, VA_RC_VCM, VA_RC_QVBR, VA_RC_AVBR
 };
 
 const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
@@ -115,6 +115,7 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_YUY2, VA_LSB_FIRST, 16, 0,0,0,0,0},
     {VA_FOURCC_UYVY, VA_LSB_FIRST, 16, 0,0,0,0,0},
     {VA_FOURCC_YV12, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_I420, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC_IYUV, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC_Y210, VA_LSB_FIRST, 16, 0,0,0,0,0},
     {VA_FOURCC_Y216, VA_LSB_FIRST, 16, 0,0,0,0,0},
@@ -561,12 +562,17 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
         if (IsHevcProfile(profile))
         {
-            attrib.value |= VA_RC_ICQ | VA_RC_VCM;
+            attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR;
         }
     }
     if (IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
     {
-        attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR;
+        attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR | VA_RC_AVBR;
+    }
+    if (IsAvcProfile(profile) &&
+            ((entrypoint == VAEntrypointEncSliceLP) && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
+    {
+        attrib.value |= VA_RC_QVBR;
     }
     if(entrypoint == VAEntrypointFEI)
     {
@@ -711,14 +717,20 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribEncROI;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
+        VAConfigAttribValEncROI roi_attrib = {0};
         if (IsAvcProfile(profile))
         {
-            attrib.value = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
+            roi_attrib.bits.num_roi_regions = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
         }
         else if (IsHevcProfile(profile))
         {
-            attrib.value = 8;
+            roi_attrib.bits.num_roi_regions = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
         }
+
+        roi_attrib.bits.roi_rc_priority_support = 0;
+        roi_attrib.bits.roi_rc_qp_delta_support = 1;
+
+        attrib.value = roi_attrib.value;
     }
     else
     {
@@ -797,7 +809,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     else if(profile == VAProfileHEVCMain10)
     {
-        attrib.value = VA_RT_FORMAT_YUV420_10;
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10;
     }
     else if(profile == VAProfileHEVCMain422_10)
     {
@@ -858,6 +870,12 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding)
             || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding10bit444))
         {
+            attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
+            vp9ProfileSupported = true;
+        }
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding10bit420))
+        {
+            (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV420_10;
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
             vp9ProfileSupported = true;
         }
@@ -1054,7 +1072,7 @@ VAStatus MediaLibvaCaps::LoadAvcEncProfileEntrypoints()
             for (int32_t i = 0; i < 3; i++)
             {
                 configStartIdx = m_encConfigs.size();
-                int32_t maxRcMode = (entrypoint[e] == VAEntrypointEncSlice ? 8 : 1);
+                int32_t maxRcMode = (entrypoint[e] == VAEntrypointEncSlice ? 9 : 1);
                 for (int32_t j = 0; j < maxRcMode; j++)
                 {
                     AddEncConfig(m_encRcMode[j]);
@@ -1096,6 +1114,7 @@ VAStatus MediaLibvaCaps::LoadAvcEncLpProfileEntrypoints()
                 {
                     AddEncConfig(m_encRcMode[j]);
                 }
+                AddEncConfig(VA_RC_QVBR);
             }
             AddProfileEntry(profile[i], VAEntrypointEncSliceLP, attributeList,
                     configStartIdx, m_encConfigs.size() - configStartIdx);
@@ -1512,6 +1531,7 @@ VAStatus MediaLibvaCaps::LoadDecProfileEntrypoints(VAProfile profile)
 VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
+    const uint8_t rcModeSize = (sizeof(m_encRcMode))/(sizeof(m_encRcMode[0]));
 
 #if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
     AttribMap *attributeList = nullptr;
@@ -1523,8 +1543,8 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     
         uint32_t configStartIdx = m_encConfigs.size();
-        AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < rcModeSize; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1551,12 +1571,13 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     
         uint32_t configStartIdx = m_encConfigs.size();
-        AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < rcModeSize; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
         }
+
         AddProfileEntry(VAProfileHEVCMain10, VAEntrypointEncSlice, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -1568,12 +1589,13 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     
         uint32_t configStartIdx = m_encConfigs.size();
-        AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < rcModeSize; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
         }
+
         AddProfileEntry(VAProfileHEVCMain12, VAEntrypointEncSlice, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -1585,12 +1607,13 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     
         uint32_t configStartIdx = m_encConfigs.size();
-        AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < rcModeSize; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
         }
+
         AddProfileEntry(VAProfileHEVCMain422_10, VAEntrypointEncSlice, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -1602,12 +1625,13 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     
         uint32_t configStartIdx = m_encConfigs.size();
-        AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 1; j < 7; j++)
+
+        for (int32_t j = 0; j < rcModeSize; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
         }
+
         AddProfileEntry(VAProfileHEVCMain422_12, VAEntrypointEncSlice, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }

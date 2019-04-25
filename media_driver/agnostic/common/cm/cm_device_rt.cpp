@@ -44,6 +44,7 @@
 #include "cm_surface_3d_rt.h"
 #include "cm_vebox_rt.h"
 #include "cm_printf_host.h"
+#include "cm_execution_adv.h"
 
 struct CM_SET_CAPS
 {
@@ -201,7 +202,9 @@ CmDeviceRT::CmDeviceRT(uint32_t options):
     m_nGPUFreqMin(0),
     m_nGPUFreqMax(0),
     m_vtuneOn(false),
-    m_isDriverStoreEnabled(0)
+    m_isDriverStoreEnabled(0),
+    m_hasGpuCopyKernel(false),
+    m_hasGpuInitKernel(false)
 {
     //Initialize Dev Create Param
     InitDevCreateOption( m_cmHalCreateOption, options );
@@ -254,6 +257,11 @@ void CmDeviceRT::DestructCommon()
         (*iter)->CleanQueue();
     }
     m_criticalSectionQueue.Release();
+    PCM_CONTEXT_DATA  pCmData = (PCM_CONTEXT_DATA)m_accelData;
+    if (pCmData && pCmData->cmHalState && pCmData->cmHalState->advExecutor)
+    {
+        pCmData->cmHalState->advExecutor->WaitForAllTasksFinished();
+    }
 
     for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {
@@ -428,27 +436,27 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *mosContext)
         return result;
     }
 
-    if( result != CM_SUCCESS )
-    {
-        CM_ASSERTMESSAGE("Error: Create CmQueue failure.");
-        return result;
-    }
-
     ReadVtuneProfilingFlag();
 
     // Load Predefined Kernels
     CmProgram* tmpProgram = nullptr;
     int32_t ret = 0;
     ret = LoadPredefinedCopyKernel(tmpProgram);
-    if (ret != CM_SUCCESS)
+    if (ret == CM_SUCCESS)
     {
-        return ret;
+        m_hasGpuCopyKernel = true;
     }
     ret = LoadPredefinedInitKernel(tmpProgram);
-    if (ret != CM_SUCCESS)
+    if (ret == CM_SUCCESS)
     {
-        return ret;
+        m_hasGpuInitKernel = true;
     }
+
+    // get the last tracker
+    PCM_HAL_STATE state = (( PCM_CONTEXT_DATA )m_accelData)->cmHalState;
+    m_surfaceMgr->SetLatestRenderTrackerAddr(state->renderHal->trackerResource.data);
+    m_surfaceMgr->SetLatestFastTrackerAddr(state->advExecutor->GetLatestFastTracker());
+    m_surfaceMgr->SetLatestVeboxTrackerAddr(state->renderHal->veBoxTrackerRes.data);
 
     if (m_notifierGroup != nullptr)
     {
@@ -1745,7 +1753,37 @@ CM_RT_API int32_t CmDeviceRT::CreateQueue(CmQueue* & queue)
     }
     m_criticalSectionQueue.Release();
 
-    CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
+    CM_QUEUE_CREATE_OPTION queueCreateOption = {};
+
+    // Check queue type redirect is needed.
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->cmHalInterface);
+    if (cmData->cmHalState->cmHalInterface->IsRedirectRcsToCcs())
+    {
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
+    }
+    else
+    {
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_RENDER;
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Check queue type override for debugging is needed.
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+    if( MOS_UserFeature_ReadValue_ID( nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MDF_DEFAULT_CM_QUEUE_TYPE_ID,
+            &UserFeatureData) == MOS_STATUS_SUCCESS )
+    {
+        if (UserFeatureData.u32Data == CM_QUEUE_TYPE_RENDER
+         || UserFeatureData.u32Data == CM_QUEUE_TYPE_COMPUTE)
+        {
+            queueCreateOption.QueueType = (CM_QUEUE_TYPE)UserFeatureData.u32Data;
+        }
+    }
+#endif
+
     int32_t result = CreateQueueEx(tmpQueue, queueCreateOption);
 
     if (result != CM_SUCCESS)
@@ -1763,20 +1801,6 @@ CmDeviceRT::CreateQueueEx(CmQueue* & queue,
                           CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_API_CALL_LOG();
-
-    // Redirect RCS to CCS for some gen platforms. If test application already
-    // passed proper queue type, we can remove this w/a.
-    if (queueCreateOption.QueueType == CM_QUEUE_TYPE_RENDER)
-    {
-        PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
-        CM_CHK_NULL_RETURN_CMERROR(cmData);
-        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
-        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->cmHalInterface);
-        if (cmData->cmHalState->cmHalInterface->IsRedirectRcsToCcs())
-        {
-            queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
-        }
-    }
 
     m_criticalSectionQueue.Acquire();
     CmQueueRT *queueRT = nullptr;
@@ -2566,7 +2590,7 @@ int32_t CmDeviceRT::RegisterSampler8x8State(
         case CM_SAMPLER8X8_CONV:
             dst = (void *)&(param.sampler8x8State.convolveState);
             src = (void *)sampler8x8State.conv;
-            CmFastMemCopy( dst, src, sizeof( CM_CONVOLVE_STATE_MSG));
+            CmSafeMemCopy( dst, src, sizeof( CM_CONVOLVE_STATE_MSG));
             break;
 
         case CM_SAMPLER8X8_MISC:
@@ -2731,6 +2755,10 @@ int32_t CmDeviceRT::LoadPredefinedCopyKernel(CmProgram*& program)
     uint32_t gpucopyKernelIsaSize;
 
     cmHalState->cmHalInterface->GetCopyKernelIsa(gpucopyKernelIsa, gpucopyKernelIsaSize);
+    if (gpucopyKernelIsa == nullptr || gpucopyKernelIsaSize == 0)
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     hr = LoadProgram((void *)gpucopyKernelIsa, gpucopyKernelIsaSize, program, "PredefinedGPUKernel");
     if (hr != CM_SUCCESS)
@@ -2764,6 +2792,10 @@ int32_t CmDeviceRT::LoadPredefinedInitKernel(CmProgram*& program)
     uint32_t gpuinitKernelIsaSize;
 
     cmHalState->cmHalInterface->GetInitKernelIsa(gpuinitKernelIsa, gpuinitKernelIsaSize);
+    if (gpuinitKernelIsa == nullptr || gpuinitKernelIsaSize == 0)
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
 
     hr = LoadProgram((void *)gpuinitKernelIsa, gpuinitKernelIsaSize, program, "PredefinedGPUKernel");
     if (hr != CM_SUCCESS)
@@ -3449,7 +3481,7 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & cmHalCreateParam,
     // [10] request slice shutdown
     cmHalCreateParam.requestSliceShutdown = (option & CM_DEVICE_CONFIG_SLICESHUTDOWN_ENABLE ) ? true:false;
 
-    // [12] request custom gpu context
+    // [12] request custom gpu context. This flag is deprecated since GPU context is decoupled with cmhal for supporting multiple context.
     cmHalCreateParam.requestCustomGpuContext = (option & CM_DEVICE_CONFIG_GPUCONTEXT_ENABLE) ? true:false;
 
     // [20:13] calculate size in GSH reserved for kernel binary

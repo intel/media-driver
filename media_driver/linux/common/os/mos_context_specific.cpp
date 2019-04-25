@@ -333,48 +333,6 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
     m_sseuShmId = MOS_LINUX_IPC_INVALID_ID;
     m_sseuShm   = MOS_LINUX_SHM_INVALID;
 
-#if defined(MEDIA_EXT)
-    // Read dynamic slice shutdown user feature key
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SLICE_COUNT_SET_SUPPORT_ID,
-        &UserFeatureData);
-    m_sliceCountSetSupported = (UserFeatureData.i32Data) ? true : false;
-
-    if (!m_sliceCountSetSupported)
-    {
-      // return directly if slice count set unsupport in KMD
-      return eStatus;
-    }
-
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DYNAMIC_SLICE_SHUTDOWN_ID,
-        &UserFeatureData);
-    m_enableDymanicSliceShutdown = UserFeatureData.i32Data;
-
-    if (m_enableDymanicSliceShutdown < 0 && m_enableDymanicSliceShutdown < -1 ||
-        m_enableDymanicSliceShutdown > 0 && (uint32_t) m_enableDymanicSliceShutdown > m_gtSystemInfo.SliceCount)
-    {
-        m_enableDymanicSliceShutdown = m_gtSystemInfo.SliceCount;
-    }
-
-    eStatus = ConnectCreateSemaphore(m_sseuKey, &m_sseuSemId);
-    MOS_CHK_STATUS_SAFE(eStatus);
-
-    LockSemaphore(m_sseuSemId);
-    eStatus = ConnectCreateShm(m_sseuKey, m_sseuShmSize, &m_sseuShmId, &m_sseuShm);
-    if(m_sseuShm)
-    {
-        *(int32_t*)m_sseuShm = m_enableDymanicSliceShutdown;
-        *((uint32_t*)m_sseuShm+1) = m_gtSystemInfo.SliceCount;
-    }
-    UnLockSemaphore(m_sseuSemId);
-#endif
-
-finish:
     return eStatus;
 }
 
@@ -404,101 +362,8 @@ void OsContextSpecific::DestroySSEUIPC()
 
 void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
 {
-    uint32_t sliceCount = 0;
-    uint32_t sliceMask = 0;
-
     if (pSliceCount == nullptr)
-    {
         MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
-        return ;
-    }
-
-#if defined(MEDIA_EXT)
-    if (!m_sliceCountSetSupported)
-    {
-        // m_sliceCountSetSupported == false, SSEU is unsupport in KMD
-        return ;
-    }
-
-    if (m_enableDymanicSliceShutdown == 0)
-    {
-        // m_enableDymanicSliceShutdown == 0, default slice count
-        sliceCount = m_gtSystemInfo.SliceCount;
-    }
-    else if (m_enableDymanicSliceShutdown > 0)
-    {
-        // m_enableDymanicSliceShutdown > 0, static slice shutdown
-        sliceCount = (m_enableDymanicSliceShutdown < m_gtSystemInfo.SliceCount)? m_enableDymanicSliceShutdown:m_gtSystemInfo.SliceCount;
-    }
-    else
-    {
-        // m_enableDymanicSliceShutdown = -1, dynamic slice shutdown
-        //
-        // Use the highest slice number of all the contexts as the rulling slice number.
-        // A context's slice count expires after it is inactive for 1 second.
-        // For example, there are 2 contexts:
-        //     - ctx1 requests 1 slice;
-        //     - ctx2 requests 2 slices;
-        // When both ctx1 and ctx2 are running, 2 slices are configured for both ctx1 and ctx2.
-        // When ctx2 exited, ctx1 will be re-configured as 1 slice after 1 second.
-
-        uint32_t sliceNum = *pSliceCount;
-        if (sliceNum == 0 || sliceNum > m_gtSystemInfo.SliceCount)
-        {
-            sliceNum = m_gtSystemInfo.SliceCount;
-        }
-        sliceCount = sliceNum;
-
-        struct timespec ts;
-        if (clock_gettime( CLOCK_MONOTONIC, &ts))
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to get time.");
-            return ;
-        }
-        uint64_t timestamp = ts.tv_sec*1000 + ts.tv_nsec/1000000; //milliseconds
-
-        for (int sliceCountShm = m_gtSystemInfo.SliceCount; sliceCountShm > 0; sliceCountShm--)
-        {
-            uint64_t* pTimestampShm = (uint64_t*)m_sseuShm + sliceCountShm;
-            uint64_t   timestampShm = __atomic_load_n(pTimestampShm, __ATOMIC_SEQ_CST);
-            if (sliceNum == sliceCountShm)
-            {
-                __atomic_store_n(pTimestampShm, timestamp, __ATOMIC_SEQ_CST);
-                break;
-            }
-            else if (sliceNum < sliceCountShm
-                        && timestamp - timestampShm < m_sliceCountTimeoutMS
-                        && sliceCount < sliceCountShm)
-            {
-                sliceCount = sliceCountShm;
-            }
-        }
-    }
-
-    struct drm_i915_gem_context_param_sseu sseu = { .flags = I915_EXEC_RENDER };
-    sseu.value = m_sseu;
-    sliceMask = mos_get_slice_mask(sliceCount);
-
-    if (sliceMask != sseu.packed.slice_mask)
-    {
-        if (mos_get_context_param_sseu(m_intelContext, &sseu))
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to get context parameter.");
-            return ;
-        };
-        sseu.packed.slice_mask = sliceMask;
-        if (mos_set_context_param_sseu(m_intelContext, sseu))
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to set context parameter.");
-            return ;
-        }
-        m_sseu = sseu.value;
-    }
-
-    *pSliceCount = sliceCount;
-
-    return ;
-#endif
 }
 
 #endif //#ifndef ANDROID

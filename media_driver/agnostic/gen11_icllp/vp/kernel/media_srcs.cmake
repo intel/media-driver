@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018, Intel Corporation
+# Copyright (c) 2017-2019, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g11_icllp.c
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g11_icllp.c
 )
-
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g11_icllp.h

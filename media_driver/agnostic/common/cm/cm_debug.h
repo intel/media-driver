@@ -208,12 +208,17 @@ bool RequestSipBinary(PLATFORM platform,
 /*===================== end EU Debugger related stuff =======================*/
 uint32_t GetLogFileLocation(const char *filename, char fileNamePrefix[]);
 int32_t GetDumpCounter(const char *pValueName);
-int32_t RecordDumpCounter(int count, uint32_t ValueID);
+int32_t RecordDumpCounter(int32_t count, uint32_t ValueID);
 
 int32_t GetCommandBufferDumpCounter(const char *pValueName);
-int32_t RecordCommandBufferDumpCounter(int count, uint32_t ValueID);
+int32_t RecordCommandBufferDumpCounter(int32_t count, uint32_t ValueID);
 
 int32_t GetSurfaceStateDumpCounter(const char *pValueName);
-int32_t RecordSurfaceStateDumpCounter(int count, uint32_t ValueID);
+int32_t RecordSurfaceStateDumpCounter(int32_t count, uint32_t ValueID);
+
+int32_t GetInterfaceDescriptorDataDumpCounter(const char *pValueName);
+int32_t RecordInterfaceDescriptorDataDumpCounter(int32_t count, uint32_t ValueID);
+
+uint32_t GetCommandBufferHeaderDWords(PMOS_INTERFACE osInterface);
 
 #endif // __CM_DEBUG_H__

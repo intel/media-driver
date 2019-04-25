@@ -1428,6 +1428,8 @@ bool CodechalEncHevcState::CheckSupportedFormat(PMOS_SURFACE surface)
     case Format_NV12:
         isColorFormatSupported = IS_Y_MAJOR_TILE_FORMAT(surface->TileType);
         break;
+    case Format_P010:
+        isColorFormatSupported = true;
     case Format_YUY2:
     case Format_YUYV:
     case Format_A8R8G8B8:
@@ -1796,3 +1798,71 @@ MOS_STATUS CodechalEncHevcState::SetupROISurface()
 
     return eStatus;
 }
+
+MOS_STATUS CodechalEncHevcState::GetRoundingIntraInterToUse()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingIntra)
+    {
+        m_roundingIntraInUse = m_hevcPicParams->CustomRoundingOffsetsParams.fields.RoundingOffsetIntra;
+    }
+    else
+    {
+        if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
+        {
+            //Hierachical B GOP
+            if (m_hevcPicParams->CodingType == I_TYPE || 
+                m_hevcPicParams->CodingType == P_TYPE)
+            {
+                m_roundingIntraInUse = 4;
+            }
+            else if (m_hevcPicParams->CodingType == B_TYPE)
+            {
+                m_roundingIntraInUse = 3;
+            }
+            else
+            {
+                m_roundingIntraInUse = 2;
+            }
+        }
+        else
+        {
+            m_roundingIntraInUse = 10;
+        }
+    }
+
+    if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingInter)
+    {
+        m_roundingInterInUse = m_hevcPicParams->CustomRoundingOffsetsParams.fields.RoundingOffsetInter;
+    }
+    else
+    {
+        if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
+        {
+            //Hierachical B GOP 
+            if (m_hevcPicParams->CodingType == I_TYPE || 
+                m_hevcPicParams->CodingType == P_TYPE)
+            {
+                m_roundingInterInUse = 4;
+            }
+            else if (m_hevcPicParams->CodingType == B_TYPE)
+            {
+                m_roundingInterInUse = 3;
+            }
+            else
+            {
+                m_roundingInterInUse = 2;
+            }
+        }
+        else
+        {
+            m_roundingInterInUse = 4;
+        }
+    }
+
+    return eStatus;
+}
+

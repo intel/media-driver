@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_wrapper.cpp 
+//! \file      cm_wrapper.cpp
 //! \brief     Contains implementations of OS-agnostic functions for executing
 //!            commands from cmrtlib.
 //!
@@ -506,12 +506,31 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         CM_CREATEQUEUE_PARAM *cmCreateQueParam;
         cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
 
-        CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
-        queueCreateOption.QueueType = (CM_QUEUE_TYPE)cmCreateQueParam->queueType;
-        queueCreateOption.RunAloneMode = cmCreateQueParam->runAloneMode;
-        queueCreateOption.GPUContext = cmCreateQueParam->gpuContext;
-        queueCreateOption.SseuUsageHint = (CM_QUEUE_SSEU_USAGE_HINT_TYPE)cmCreateQueParam->sseuUsageHint;
-        cmRet = device->CreateQueueEx(cmQueue, queueCreateOption);
+        cmRet = device->CreateQueue(cmQueue);
+
+        if (cmRet == CM_SUCCESS && cmQueue != nullptr)
+        {
+            // Sync queue option and handle to thin layer.
+            CmQueueRT *cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
+            cmCreateQueParam->createOption  = cmQueueRT->GetQueueOption();
+            cmCreateQueParam->queueHandle   = (cmQueue);
+            cmCreateQueParam->returnValue   = CM_SUCCESS;
+        }
+        else
+        {
+            cmCreateQueParam->queueHandle   = nullptr;
+            cmCreateQueParam->returnValue   = cmRet;
+        }
+        break;
+    }
+
+    case CM_FN_CMDEVICE_CREATEQUEUEEX:
+    {
+        CM_CREATEQUEUE_PARAM *cmCreateQueParam;
+        cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
+        CM_ASSERT(cmCreateQueParam);
+
+        cmRet = device->CreateQueueEx(cmQueue, cmCreateQueParam->createOption);
 
         cmCreateQueParam->returnValue = cmRet;
         cmCreateQueParam->queueHandle = (cmQueue);
@@ -742,19 +761,39 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         break;
 
     case CM_FN_CMQUEUE_ENQUEUEWITHGROUP:
+    {
         PCM_ENQUEUEGROUP_PARAM enqueueGroupParam;
         enqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(cmPrivateInputData);
-        cmQueue    = (CmQueue *)enqueueGroupParam->queueHandle;
+        cmQueue = (CmQueue *)enqueueGroupParam->queueHandle;
         threadGrpSpace = (CmThreadGroupSpace *)enqueueGroupParam->threadGroupSpaceHandle;
-        cmTask     = (CmTask *)enqueueGroupParam->taskHandle;
-        cmEvent    = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
+        cmTask = (CmTask *)enqueueGroupParam->taskHandle;
+        cmEvent = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
 
         cmRet = cmQueue->EnqueueWithGroup(cmTask,
-                                        cmEvent,
-                                        threadGrpSpace);
+            cmEvent,
+            threadGrpSpace);
 
         enqueueGroupParam->eventHandle = cmEvent;
         enqueueGroupParam->returnValue = cmRet;
+    }
+        break;
+
+    case CM_FN_CMQUEUE_ENQUEUEWITHGROUPFAST:
+    {
+        PCM_ENQUEUEGROUP_PARAM enqueueGroupParam;
+        enqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(cmPrivateInputData);
+        cmQueue = (CmQueue *)enqueueGroupParam->queueHandle;
+        threadGrpSpace = (CmThreadGroupSpace *)enqueueGroupParam->threadGroupSpaceHandle;
+        cmTask = (CmTask *)enqueueGroupParam->taskHandle;
+        cmEvent = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
+
+        cmRet = cmQueue->EnqueueWithGroupFast(cmTask,
+            cmEvent,
+            threadGrpSpace);
+
+        enqueueGroupParam->eventHandle = cmEvent;
+        enqueueGroupParam->returnValue = cmRet;
+    }
         break;
 
     case CM_FN_CMDEVICE_GETCAPS:

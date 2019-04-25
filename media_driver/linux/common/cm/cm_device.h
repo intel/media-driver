@@ -1143,6 +1143,7 @@ public:
     //!             following formats: \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16 \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16F \n
+    //!                 CM_SURFACE_FORMAT_R32G32B32A32F \n
     //!                 CM_SURFACE_FORMAT_A8 \n
     //!                 CM_SURFACE_FORMAT_A8R8G8B8 \n
     //!                 CM_SURFACE_FORMAT_YUY2 \n
@@ -1622,6 +1623,7 @@ public:
     //!             surface's formats, for now, we support following: \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16 \n
     //!                 CM_SURFACE_FORMAT_A16B16G16R16F \n
+    //!                 CM_SURFACE_FORMAT_R32G32B32A32F \n
     //!                 CM_SURFACE_FORMAT_A8 \n
     //!                 CM_SURFACE_FORMAT_A8R8G8B8 \n
     //!                 CM_SURFACE_FORMAT_YUY2 \n
@@ -1733,7 +1735,7 @@ public:
     //!             struct CM_QUEUE_CREATE_OPTION
     //!             {
     //!                 CM_QUEUE_TYPE QueueType : 3;
-    //!                 bool RunAloneMode       : 1;
+    //!                 bool RA       : 1;
     //!                 unsigned int Reserved0  : 3;
     //!                 bool UserGPUContext     : 1;
     //!                 unsigned int GPUContext : 8;
@@ -1753,7 +1755,7 @@ public:
     //!             };
     //!             \endcode
     //!             \n
-    //!             <b>RunAloneMode</b> decides if the queue will occupy GPU
+    //!             <b>RAMode</b> decides if the queue will occupy GPU
     //!             exclusively during execution.\n
     //!             <b>UserGPUContext</b> indicates if the user wants to
     //!             provide an existing MOS GPU Context.\n

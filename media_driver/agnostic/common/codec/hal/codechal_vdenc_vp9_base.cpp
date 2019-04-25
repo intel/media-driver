@@ -915,6 +915,27 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
         dmem->SegmentSkip[i] = m_vp9SegmentParams->SegData[i].SegmentFlags.fields.SegmentSkipped;
     }
 
+    if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_KEY_FRAME && m_currPass == 0)
+    {
+        for (auto i = 1; i < CODEC_VP9_NUM_CONTEXTS; i++)
+        {
+            uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
+                m_osInterface,
+                &m_resProbBuffer[i],
+                &lockFlagsWriteOnly);
+
+            CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+            ContextBufferInit(data, 0);
+            CtxBufDiffInit(data, 0);
+
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+                m_osInterface,
+                &m_resProbBuffer[i]));
+        }
+    }
+
+
     // in multipasses, only delta seg qp (SegCodeAbs = 0) is supported, confirmed by the arch team
     dmem->SegCodeAbs                     = 0;
     dmem->SegTemporalUpdate              = m_vp9PicParams->PicFlags.fields.segmentation_temporal_update;
@@ -2205,8 +2226,11 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
     // and to simplify handling the boundary condition, we set each CU with size 8x8, inter and zero MV.
     // Segment skip needs to be turned on also.
 
-    uint32_t numCuLastSbCol = (m_oriFrameWidth / CODEC_VP9_MIN_BLOCK_WIDTH) - (m_picWidthInSb - 1) * (CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH);
-    uint32_t numCuLastSbRow = (m_oriFrameHeight / CODEC_VP9_MIN_BLOCK_HEIGHT) - (m_picHeightInSb - 1) * (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT);
+    auto oriFrameHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_HEIGHT);
+    auto oriFrameWidth  = MOS_ALIGN_CEIL(m_oriFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH);
+
+    uint32_t numCuLastSbCol = (oriFrameWidth / CODEC_VP9_MIN_BLOCK_WIDTH) - (m_picWidthInSb - 1) * (CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH);
+    uint32_t numCuLastSbRow = (oriFrameHeight / CODEC_VP9_MIN_BLOCK_HEIGHT) - (m_picHeightInSb - 1) * (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT);
 
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -4130,11 +4154,12 @@ MOS_STATUS CodechalVdencVp9State::Resize4x8xforDS(uint8_t bufIdx)
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     
     // calculate the expected 4x dimensions
-    uint32_t downscaledSurfaceWidth4x = m_downscaledWidthInMb4x * CODECHAL_MACROBLOCK_WIDTH;
+    uint32_t downscaledSurfaceWidth4x  = m_downscaledWidthInMb4x * CODECHAL_MACROBLOCK_WIDTH;
     uint32_t downscaledSurfaceHeight4x = ((m_downscaledHeightInMb4x + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
+    downscaledSurfaceHeight4x          = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
 
     // calculate the expected 8x dimensions
-    uint32_t downscaledSurfaceWidth8x = downscaledSurfaceWidth4x >> 1;
+    uint32_t downscaledSurfaceWidth8x  = downscaledSurfaceWidth4x >> 1;
     uint32_t downscaledSurfaceHeight8x = downscaledSurfaceHeight4x >> 1;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf);
@@ -4163,26 +4188,8 @@ MOS_STATUS CodechalVdencVp9State::Resize4x8xforDS(uint8_t bufIdx)
         CODECHAL_ENCODE_CHK_NULL_RETURN(
             m_trackedBuf8xDsReconSurface = (MOS_SURFACE*)m_allocator->AllocateResource(
                 m_standard, new8xWidth, new8xHeight, ds8xRecon, "ds8xRecon", bufIdx, false, Format_NV12, MOS_TILE_Y));
-        
-        // Initialize the surface to zero
-        uint32_t size = new8xWidth * new8xHeight;
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-        lockFlagsWriteOnly.WriteOnly = 1;
 
-        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &(m_trackedBuf8xDsReconSurface->OsResource),
-            &lockFlagsWriteOnly);
-
-        if (data == nullptr)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock 8x Ds Recon Surface.");
-            return MOS_STATUS_UNKNOWN;
-        }
-
-        MOS_ZeroMemory(data, size);
-        m_osInterface->pfnUnlockResource(m_osInterface, &(m_trackedBuf8xDsReconSurface->OsResource));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBuf8xDsReconSurface));
     }
 
     if (m_trackedBuf4xDsReconSurface->dwWidth < downscaledSurfaceWidth4x || m_trackedBuf4xDsReconSurface->dwHeight < downscaledSurfaceHeight4x) {
@@ -4202,26 +4209,7 @@ MOS_STATUS CodechalVdencVp9State::Resize4x8xforDS(uint8_t bufIdx)
             m_trackedBuf4xDsReconSurface = (MOS_SURFACE*)m_allocator->AllocateResource(
                 m_standard, new4xWidth, new4xHeight, ds4xRecon, "ds4xRecon", bufIdx, false, Format_NV12, MOS_TILE_Y));
 
-        // Initialize the surface to zero
-        uint32_t size = new4xWidth * new4xHeight;
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-        lockFlagsWriteOnly.WriteOnly = 1;
-
-        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &(m_trackedBuf4xDsReconSurface->OsResource),
-            &lockFlagsWriteOnly);
-
-        if (data == nullptr)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock 4x Ds Recon Surface.");
-            return MOS_STATUS_UNKNOWN;
-        }
-
-        MOS_ZeroMemory(data, size);
-        m_osInterface->pfnUnlockResource(m_osInterface, &(m_trackedBuf4xDsReconSurface->OsResource));
-
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBuf4xDsReconSurface));
     }
     return eStatus;
 }
@@ -5702,6 +5690,11 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
     m_vdencPakonlyMultipassEnabled = false;
     m_vdencPakObjCmdStreamOutEnabled = false;
 
+    // In case there is overflow
+    if ((m_vp9PicParams->LumaACQIndex + m_vp9PicParams->LumaDCQIndexDelta) < 0)
+    {
+        m_vp9PicParams->LumaACQIndex = MOS_ABS(m_vp9PicParams->LumaDCQIndexDelta) + 1;
+    }
     refList[currRefIdx]->ucQPValue[0] = m_vp9PicParams->LumaACQIndex + m_vp9PicParams->LumaDCQIndexDelta;
 
     m_txMode = CODEC_VP9_TX_SELECTABLE;

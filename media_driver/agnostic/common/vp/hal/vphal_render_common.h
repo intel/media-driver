@@ -2172,7 +2172,7 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
 #define VPHAL_BB_ALIGN_SIZE         32768
 
 //!
-//! \brief      SLM: shared local memory. DC: data cache. 
+//! \brief      SLM: sharedlocalmemory. DC: data cache. 
 //!             I/S: instruction/state cache 
 //!             C: constant cache. T: texture cache
 //!             Default for GT1/GT2
@@ -2559,6 +2559,8 @@ MOS_STATUS VpHal_CommonSetBufferSurfaceForHwAccess(
 //!             Pointer to GPGPU walker parameters
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSubmission
+//!             whether it is the last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrCommonSubmitCommands(
@@ -2567,7 +2569,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     bool                                bNullRendering,
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
-    VpKernelID                          KernelID);
+    VpKernelID                          KernelID,
+    bool                                bLastSubmission);
 
 //!
 //! \brief      Submit commands for rendering
@@ -2586,6 +2589,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] bLastSubmission
+//!             whether it is the last submission
 //! \return     MOS_STATUS
 //!
 MOS_STATUS VpHal_RndrSubmitCommands(
@@ -2594,8 +2599,9 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     bool                                bNullRendering,
     PMHW_WALKER_PARAMS                  pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
-    PSTATUS_TABLE_UPDATE_PARAMS            pStatusTableUpdateParams,
-    VpKernelID                          KernelID);
+    PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
+    VpKernelID                          KernelID,
+    bool                                bLastSubmission);
 
 //!
 //! \brief      Is Alignment WA needed

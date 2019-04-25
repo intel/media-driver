@@ -129,11 +129,6 @@ struct mos_aub_annotation {
 };
 
 #define BO_ALLOC_FOR_RENDER (1<<0)
-#ifdef ANDROID
-#define BO_ALLOC_STOLEN        (1<<1)
-#define BO_ALLOC_POPULATE   (1<<2)
-#define BO_ALLOC_FLUSH        (1<<3)
-#endif
 
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
                  unsigned long size, unsigned int alignment);
@@ -172,14 +167,6 @@ void mos_bufmgr_set_debug(struct mos_bufmgr *bufmgr, int enable_debug);
 void mos_bufmgr_destroy(struct mos_bufmgr *bufmgr);
 int mos_bo_exec(struct mos_linux_bo *bo, int used,
               struct drm_clip_rect *cliprects, int num_cliprects, int DR4);
-#ifdef ANDROID
-int mos_bo_fence_exec(struct mos_linux_bo *bo, int used,
-              struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-            int fence_in,  int *fence_out);
-int mos_bo_mrb_fence_exec(struct mos_linux_bo *bo, int used,
-            struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-            unsigned int flags, int fence_in, int *fence_out);
-#endif
 int mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
             struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
             unsigned int flags);
@@ -204,12 +191,10 @@ int mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
                 uint32_t * swizzle_mode);
 
 int mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name);
-#ifdef ANDROID
-int mos_bo_prime(struct mos_linux_bo *bo, uint32_t * name);
-#endif
 int mos_bo_busy(struct mos_linux_bo *bo);
 int mos_bo_madvise(struct mos_linux_bo *bo, int madv);
 int mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable);
+void mos_bo_set_exec_object_async(struct mos_linux_bo *bo);
 int mos_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset);
 
 int mos_bo_disable_reuse(struct mos_linux_bo *bo);
@@ -219,11 +204,6 @@ int mos_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size);
 
 /* drm_intel_bufmgr_gem.c */
 struct mos_bufmgr *mos_bufmgr_gem_init(int fd, int batch_size);
-#ifdef ANDROID
-struct mos_linux_bo *mos_bo_gem_create_from_prime_fd(struct mos_bufmgr *bufmgr,
-                                   const char *name,
-                                   unsigned int prime_fd);
-#endif
 struct mos_linux_bo *mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned int handle);
@@ -271,13 +251,6 @@ mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_con
 int mos_gem_bo_tag_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                         struct drm_clip_rect *cliprects, int num_cliprects,
                         int DR4, unsigned int flags, unsigned int tag);
-int mos_gem_bo_tag_fence_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-                        struct drm_clip_rect *cliprects, int num_cliprects,
-                        int DR4, unsigned int flags, int fence_in,
-                        int *fence_out, unsigned int tag);
-int mos_gem_bo_context_fence_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
-                        int used, unsigned int flags,
-                        int fence_in, int *fence_out);
 #endif
 int mos_bo_gem_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
 struct mos_linux_bo *mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr,
@@ -336,14 +309,6 @@ int mos_get_reset_stats(struct mos_linux_context *ctx,
                   uint32_t *active,
                   uint32_t *pending);
 
-int mos_get_context_param_sseu(struct mos_linux_context *ctx,
-                struct drm_i915_gem_context_param_sseu *sseu);
-
-int mos_set_context_param_sseu(struct mos_linux_context *ctx,
-                struct drm_i915_gem_context_param_sseu sseu);
-
-int mos_get_slice_mask(uint32_t slice_count);
-
 int mos_get_context_param(struct mos_linux_context *ctx,
                            uint32_t size,
                            uint64_t param,
@@ -356,6 +321,16 @@ int mos_set_context_param(struct mos_linux_context *ctx,
 
 int mos_get_subslice_total(int fd, unsigned int *subslice_total);
 int mos_get_eu_total(int fd, unsigned int *eu_total);
+
+int mos_get_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu *sseu);
+int mos_set_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu sseu);
+int mos_get_subslice_mask(int fd, unsigned int *subslice_mask);
+int mos_get_slice_mask(int fd, unsigned int *slice_mask);
+uint8_t mos_switch_off_n_bits(uint8_t in_mask, int n);
+unsigned int mos_hweight8(uint8_t w);
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
