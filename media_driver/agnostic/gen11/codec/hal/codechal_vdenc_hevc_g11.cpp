@@ -107,6 +107,18 @@ const int8_t CodechalVdencHevcStateG11::m_lowdelayDeltaFrmszB[][8] = {
     { 64, 48, 28, 20, 16,  12,  8,  4 },
 };
 
+const uint8_t m_qpAdaptiveWeight[52] = { 6, 6, 6, 6, 6, 6, 6, 6, 6, 7,
+                                     7, 7, 7, 7, 7, 7, 8, 8, 8, 8,
+                                     8, 8, 8, 9, 9, 10, 11, 12, 13, 14,
+                                     16, 17, 18, 20, 21, 23, 24, 26, 28, 30,
+                                     32, 34, 36, 38, 40, 42, 44, 46, 48, 50,
+                                     50, 50 };
+const uint8_t m_boostTable[52] = { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+                                     3, 3, 3, 3, 3, 4, 4, 5, 5, 5,
+                                     6, 6, 6, 7, 7, 8, 8, 8, 9, 9,
+                                     9, 10,10,10,11,11,11,11,11,11,
+                                     11,11,12,12,12,12,12,12,12,12,12,12 };
+
 const uint32_t CodechalVdencHevcStateG11::m_hucConstantData[]  = {
     0x01900190, 0x01900190, 0x01900190, 0x01900190, 0x01900190, 0x012c012c, 0x012c012c, 0x012c012c,
     0x012c012c, 0x012c012c, 0x00c800c8, 0x00c800c8, 0x00c800c8, 0x00c800c8, 0x00c800c8, 0x00640064,
@@ -3569,6 +3581,18 @@ MOS_STATUS CodechalVdencHevcStateG11::SetConstDataHuCBrcUpdate()
         currentLocation = baseLocation;
     }
 
+    // Add motion apatative settings
+    if (m_enableMotionAdaptive)
+    {
+        MOS_SecureMemcpy(hucConstData->QPAdaptiveWeight, sizeof(m_qpAdaptiveWeight), m_qpAdaptiveWeight, sizeof(m_qpAdaptiveWeight));
+        MOS_SecureMemcpy(hucConstData->boostTable, sizeof(m_boostTable), m_boostTable, sizeof(m_boostTable));
+    }
+    else
+    {
+        MOS_ZeroMemory(hucConstData->QPAdaptiveWeight, sizeof(m_qpAdaptiveWeight));
+        MOS_ZeroMemory(hucConstData->boostTable, sizeof(m_boostTable));
+    }
+
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx]);
 
     return eStatus;
@@ -3709,6 +3733,8 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcUpdate()
     hucVDEncBrcUpdateDmem->ReEncodeNegativeQPDeltaThr_S8    = -5;
     hucVDEncBrcUpdateDmem->SceneChgPrevIntraPctThreshold_U8 = 96;
     hucVDEncBrcUpdateDmem->SceneChgCurIntraPctThreshold_U8  = 192;
+
+    hucVDEncBrcUpdateDmem->EnableMotionAdaptive = m_enableMotionAdaptive;
 
     // reset skip frame statistics
     m_numSkipFrames = 0;
