@@ -242,6 +242,10 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
                     *(int *)(gp->value) = DeviceConfigTable[DevIdx].has_exec_softpin;
                     ret = 0;
                     break;
+                case I915_PARAM_HAS_EXEC_ASYNC:
+                    *(int *)(gp->value) = DeviceConfigTable[DevIdx].has_exec_async;
+                    ret = 0;
+                    break;
                 case I915_PARAM_NUM_FENCES_AVAIL:
                     *(int *)(gp->value) = DeviceConfigTable[DevIdx].num_fences_avail;
                     ret = 0;
