@@ -80,7 +80,7 @@ public:
     static constexpr uint8_t                m_numMaxVdencL1Ref = 3;                   //!< Max number of reference frame list1
     static constexpr uint32_t               m_brcPakStatsBufSize = 512;               //!< Pak statistic buffer size
     static constexpr uint32_t               m_brcStatsBufSize = 1216;                 //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
-    static constexpr uint32_t               m_brcHistoryBufSize = 964;                //!< BRC history buffer size
+    static constexpr uint32_t               m_brcHistoryBufSize = 1024;                //!< BRC history buffer size
     static constexpr uint32_t               m_brcDebugBufSize = 0x1000;               //!< BRC debug buffer size
     static constexpr uint32_t               m_weightHistSize = 1024;                  //!< Weight Histogram (part of VDEnc Statistic): 256 DWs (16CLs) of Histogram Stats = 1024
     static constexpr uint32_t               m_roiStreamInBufferSize = 65536 * CODECHAL_CACHELINE_SIZE; //!< ROI Streamin buffer size (part of BRC Update)
@@ -123,6 +123,7 @@ public:
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only
     bool                                    m_hevcVisualQualityImprovement = false;            //!< VQI enable flag
+    bool                                    m_enableMotionAdaptive = false;                    //!< Motion adaptive enable flag
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer

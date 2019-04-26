@@ -2370,6 +2370,12 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
 
     m_targetUsage = (uint32_t)m_hevcSeqParams->TargetUsage;
 
+    // enable motion adaptive under game streamming scenario for better quality
+    if (m_hevcSeqParams->ScenarioInfo == ESCENARIO_GAMESTREAMING)
+    {
+        m_enableMotionAdaptive = true;
+    }
+
     // ACQP is by default disabled, enable it when SSC/QpAdjust required.
     if (m_hevcSeqParams->SliceSizeControl == true ||
         m_hevcSeqParams->QpAdjustment == true)

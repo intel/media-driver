@@ -456,6 +456,12 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     */
     ENCODE_INPUT_COLORSPACE     InputColorSpace;
 
+    /*! \brief Provides a hint to encoder about the scenario for the encoding session.
+    *
+    *   BRC algorithm may tune differently based on this info.
+    */
+    ENCODE_SCENARIO             ScenarioInfo;
+
     /*! \brief Indicates the tolerance the application has to variations in the frame size.
     *
     *   It affects the BRC algorithm used, but may or may not have an effect based on the combination of other BRC parameters.  Only valid when the driver reports support for FrameSizeToleranceSupport.
