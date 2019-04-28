@@ -5024,8 +5024,6 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
                 param.presVdencReferences[refIdx] = &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
                 param.presVdenc4xDsSurface[refIdx] =
                     &(m_trackedBuf->Get4xDsReconSurface(m_refList[refPicIdx]->ucScalingIdx))->OsResource;
-                param.presVdenc8xDsSurface[refIdx] =
-                    &(m_trackedBuf->Get8xDsReconSurface(m_refList[refPicIdx]->ucScalingIdx))->OsResource;
             }
         }
     }
