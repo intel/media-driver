@@ -34,7 +34,67 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create surface 2d
+//| Purpose:    Create Surface Manager
+//| Arguments :
+//|               device         [in]       Pointer to Cm Device
+//|               halMaxValues   [in]       Cm Max values
+//|               surfaceManager [out]      Reference to pointer to CmSurfaceManager
+//|
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t CmSurfaceManager::Create(
+    CmDeviceRT* device,
+    CM_HAL_MAX_VALUES halMaxValues,
+    CM_HAL_MAX_VALUES_EX halMaxValuesEx,
+    CmSurfaceManager* &surfaceManager)
+{
+    int32_t result = CM_SUCCESS;
+
+    surfaceManager = new (std::nothrow) CmSurfaceManager(device);
+    if (surfaceManager)
+    {
+        result = surfaceManager->Initialize(halMaxValues, halMaxValuesEx);
+        if (result != CM_SUCCESS)
+        {
+            CmSurfaceManager::Destroy(surfaceManager);
+        }
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Error: Failed to create CmSurfaceManager due to out of system memory.");
+        result = CM_OUT_OF_HOST_MEMORY;
+    }
+    return result;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Destroy CmSurfaceManager
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t CmSurfaceManager::Destroy(CmSurfaceManager* &surfaceManager)
+{
+    if (surfaceManager)
+    {
+        delete surfaceManager;
+        surfaceManager = nullptr;
+    }
+    return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Constructor of CmSurfaceManager
+//| Returns:    None
+//*-----------------------------------------------------------------------------
+CmSurfaceManager::CmSurfaceManager(CmDeviceRT* device) :CmSurfaceManagerBase(device) {}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Destructor of CmSurfaceManager
+//| Returns:    None
+//*-----------------------------------------------------------------------------
+CmSurfaceManager::~CmSurfaceManager() {}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create surface 2d with mos info
 //| Arguments :
 //|               mosResource        [in]       pointer to mos resource
 //|               createdByCm        [in]       if this surface created by thin layer
@@ -42,7 +102,7 @@ namespace CMRT_UMD
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
- int32_t CmSurfaceManager::CreateSurface2D(MOS_RESOURCE * mosResource, bool createdByCm, CmSurface2DRT* & surface)
+ int32_t CmSurfaceManager::CreateSurface2DFromMosResource(MOS_RESOURCE * mosResource, bool createdByCm, CmSurface2DRT* & surface)
  {
     uint32_t handle         = 0;
     uint32_t index          = ValidSurfaceIndexStart();

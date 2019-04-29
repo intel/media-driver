@@ -152,7 +152,7 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID vaSurface,
     }
 
     CmSurface2DRT *surfaceRT = nullptr;
-    hr = m_surfaceMgr->CreateSurface2D(&mosResource, false, surfaceRT);
+    hr = m_surfaceMgr->CreateSurface2DFromMosResource(&mosResource, false, surfaceRT);
     surface = surfaceRT;
     return hr;
 }
