@@ -729,7 +729,7 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2D(PMOS_RESOURCE mosResource,
     CLock locker(m_criticalSectionSurface);
 
     CmSurface2DRT *surfaceRT = nullptr;
-    int ret = m_surfaceMgr->CreateSurface2D( mosResource, false, surfaceRT);
+    int ret = m_surfaceMgr->CreateSurface2DFromMosResource( mosResource, false, surfaceRT);
     surface = surfaceRT;
     return ret;
 }
@@ -752,7 +752,7 @@ int32_t CmDeviceRT:: CreateSurface2D(PMOS_RESOURCE mosResource,
     CLock locker(m_criticalSectionSurface);
 
     CmSurface2DRT *surfaceRT = nullptr;
-    int ret = m_surfaceMgr->CreateSurface2D( mosResource, isCmCreated, surfaceRT);
+    int ret = m_surfaceMgr->CreateSurface2DFromMosResource( mosResource, isCmCreated, surfaceRT);
     surface = surfaceRT;
     return ret;
 }
