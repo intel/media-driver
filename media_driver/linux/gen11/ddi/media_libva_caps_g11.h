@@ -94,9 +94,12 @@ public:
     //! \param    [in] entrypoint 
     //!           Specify the entrypoint 
     //!
+    //! \param    [in] feiFunction
+    //!           Specify the feiFunction
+    //!
     //! \return   Std::string encode codec key 
     //!
-    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint) override;
+    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction) override;
 
     //!
     //! \brief convert Media Format to Gmm Format for GmmResCreate parameter.
