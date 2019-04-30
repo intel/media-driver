@@ -3289,6 +3289,8 @@ static VAStatus DdiMedia_SyncSurface (
     PDDI_DECODE_CONTEXT decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
     if (decCtx && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
     {
+        DdiMediaUtil_LockGuard guard(&mediaCtx->SurfaceMutex);
+
         Codechal *codecHal = decCtx->pCodecHal;
         DDI_CHK_NULL(codecHal, "nullptr decCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -3335,7 +3337,6 @@ static VAStatus DdiMedia_SyncSurface (
 
                     if ((tempNewReport.m_codecStatus == CODECHAL_STATUS_SUCCESSFUL) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_ERROR) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_INCOMPLETE))
                     {
-                        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
                         PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
                         uint32_t j = 0;
@@ -3355,10 +3356,8 @@ static VAStatus DdiMedia_SyncSurface (
 
                         if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
                         {
-                            DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
                             return VA_STATUS_ERROR_OPERATION_FAILED;
                         }
-                        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
                     }
                     else
                     {
