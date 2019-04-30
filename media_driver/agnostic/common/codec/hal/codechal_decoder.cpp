@@ -958,6 +958,29 @@ MOS_STATUS CodechalDecode::EndFrame ()
                 olpDump = true;
             }
 
+            MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_DECOMPRESS_DECODE_OUTPUT_ID,
+                &userFeatureData);
+            if (userFeatureData.u32Data)
+            {
+                MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+                dstSurface.Format       = Format_NV12;
+                dstSurface.OsResource   = decodeStatusReport->m_currDecodedPicRes;
+                CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
+                    m_osInterface,
+                    &dstSurface));
+                MOS_LOCK_PARAMS lockFlags {};
+                lockFlags.ReadOnly = 1;
+                lockFlags.TiledAsTiled = 1;
+                m_osInterface->pfnLockResource(m_osInterface, &dstSurface.OsResource, &lockFlags);
+                m_osInterface->pfnDecompResource(m_osInterface, &dstSurface.OsResource);
+                m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext);
+                m_osInterface->pfnUnlockResource(m_osInterface, &dstSurface.OsResource);
+            }
+
             if (m_standard == CODECHAL_VC1      &&
                 decodeStatusReport->m_olpNeeded &&
                 olpDump && 
