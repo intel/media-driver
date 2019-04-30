@@ -48,6 +48,19 @@ do\
 }while(0)
 #endif
 
+const MHW_VEBOX_SETTINGS g_Vebox_Settings_g11 =
+{
+    MHW_MAX_VEBOX_STATES,                                                     //!< uiNumInstances
+    MHW_SYNC_SIZE,                                                            //!< uiSyncSize
+    MHW_PAGE_SIZE,                                                            //!< uiDndiStateSize
+    MHW_PAGE_SIZE,                                                            //!< uiIecpStateSize
+    MHW_PAGE_SIZE * 2,                                                        //!< uiGamutStateSize
+    MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
+    MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
+    MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
+    0                                                                         //!< ui3DLUTSize
+};
+
 class MhwVeboxInterfaceG11 : public MhwVeboxInterfaceGeneric<mhw_vebox_g11_X>
 {
 public:

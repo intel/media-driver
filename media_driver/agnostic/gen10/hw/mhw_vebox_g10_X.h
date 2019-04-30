@@ -28,6 +28,19 @@
 #include "mhw_vebox_generic.h"
 #include "mhw_vebox_hwcmd_g10_X.h"
 
+const MHW_VEBOX_SETTINGS g_Vebox_Settings_g10 =
+{
+    MHW_MAX_VEBOX_STATES,                                                     //!< uiNumInstances
+    MHW_SYNC_SIZE,                                                            //!< uiSyncSize
+    MHW_PAGE_SIZE,                                                            //!< uiDndiStateSize
+    MHW_PAGE_SIZE,                                                            //!< uiIecpStateSize
+    MHW_PAGE_SIZE * 2,                                                        //!< uiGamutStateSize
+    MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
+    MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
+    MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
+    0                                                                         //!< ui3DLUTSize
+};
+
 class MhwVeboxInterfaceG10 : public MhwVeboxInterfaceGeneric<mhw_vebox_g10_X>
 {
 public:
