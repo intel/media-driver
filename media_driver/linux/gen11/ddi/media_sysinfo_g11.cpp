@@ -210,11 +210,29 @@ static struct GfxDeviceInfo icllpGt2Info = {
 static bool icllpDeviceff05 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xff05, &icllpGt1Info);
 
+static bool icllpDevice8a50 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a50, &icllpGt2Info);
+
 static bool icllpDevice8a51 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x8a51, &icllpGt2Info);
 
 static bool icllpDevice8a52 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x8a52, &icllpGt2Info);
+
+static bool icllpDevice8a53 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a53, &icllpGt2Info);
+
+static bool icllpDevice8a56 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a56, &icllpGt1Info);
+
+static bool icllpDevice8a57 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a57, &icllpGt1Info);
+
+static bool icllpDevice8a58 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a58, &icllpGt1Info);
+
+static bool icllpDevice8a59 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a59, &icllpGt1Info);
 
 static bool icllpDevice8a5d = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x8a5d, &icllpGt1Info);
