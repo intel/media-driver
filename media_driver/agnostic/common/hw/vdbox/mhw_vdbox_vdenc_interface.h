@@ -152,13 +152,6 @@ struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 };
 using PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS = MHW_VDBOX_VDENC_WALKER_STATE_PARAMS * ;
 
-
-struct MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS
-{
-    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams = nullptr;
-};
-using PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS = std::shared_ptr<MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS>;
-
 //!  MHW Vdbox Vdenc interface
 /*!
 This class defines the interfaces for constructing Vdbox Vdenc commands across all platforms
@@ -528,8 +521,8 @@ public:
         PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS   params) = 0;
 
     virtual MOS_STATUS AddVdencSliceStateCmd(
-        PMOS_COMMAND_BUFFER                     cmdBuffer,
-        PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS params)
+        PMOS_COMMAND_BUFFER        cmdBuffer,
+        PMHW_VDBOX_AVC_SLICE_STATE params)
     {
         return MOS_STATUS_SUCCESS;
     }

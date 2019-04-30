@@ -401,10 +401,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
         {
             weightOffsetParams.pAvcPicParams = params->pEncodeAvcPicParams;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcWeightsOffsetsStateCmd(cmdBuffer, &weightOffsetParams));
-
-            PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS vdencSliceStateParams = std::make_shared<MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS>();
-            vdencSliceStateParams->pAvcSlcParams = avcSlcParams;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, vdencSliceStateParams));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, params));
 
             vdencWalkerStateParams.Mode             = CODECHAL_ENCODE_MODE_AVC;
             vdencWalkerStateParams.slcIdx           = params->dwSliceIndex;
