@@ -4113,8 +4113,8 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
         {
             struct drm_i915_gem_context_param_sseu sseu;
             MOS_ZeroMemory(&sseu, sizeof(sseu));
-            sseu.engine_class = I915_ENGINE_CLASS_RENDER;
-            sseu.engine_instance = 0;
+            sseu.engine.engine_class = I915_ENGINE_CLASS_RENDER;
+            sseu.engine.engine_instance = 0;
 
             if (mos_get_context_param_sseu(pOsInterface->pOsContext->intel_context, &sseu))
             {
