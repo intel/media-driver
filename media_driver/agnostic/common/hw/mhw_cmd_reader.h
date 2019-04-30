@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <set>
 
 class MhwCmdReader final
 {
@@ -73,16 +74,29 @@ private:
 
     void SetFilePath(std::string path);
 
+    void GetFileType();
+
     void PrepareCmdData();
+
+    void PrepareCmdDataBin();
+
+    void PrepareCmdDataCsv();
 
     void AssignField(uint32_t *cmd, const CmdField &field) const;
 
 private:
 
+    enum class FileType
+    {
+        BIN,
+        CSV,
+    };
+
     static std::shared_ptr<MhwCmdReader> m_instance;
 
     bool                     m_ready = false;
     std::string              m_path;
+    FileType                 m_fileType;
     std::vector<CmdField>    m_longTermFields;
     std::list<CmdField>      m_shortTermFields;
     std::vector<std::string> m_cmdNames;
