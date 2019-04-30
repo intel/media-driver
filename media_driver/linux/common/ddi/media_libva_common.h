@@ -445,7 +445,6 @@ struct DDI_MEDIA_CONTEXT
         PMOS_CONTEXT  pMosCtx,
         PMOS_RESOURCE pOsResource);
 
-    uint32_t            FeiFunction;
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;

@@ -180,14 +180,14 @@ std::string MediaLibvaCapsG11::GetDecodeCodecKey(VAProfile profile)
     }
 }
 
-std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint)
+std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction)
 {
     switch (profile)
     {
         case VAProfileH264High:
         case VAProfileH264Main:
         case VAProfileH264ConstrainedBaseline:
-            if (IsEncFei(entrypoint))
+            if (IsEncFei(entrypoint, feiFunction))
             {
                 return ENCODE_ID_AVCFEI;
             }
@@ -211,7 +211,7 @@ std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
         case VAProfileHEVCMain10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
-            if (IsEncFei(entrypoint))
+            if (IsEncFei(entrypoint, feiFunction))
             {
                 return ENCODE_ID_HEVCFEI;
             }
@@ -220,7 +220,7 @@ std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
                 return ENCODE_ID_HEVC;
             }
         case VAProfileNone:
-            if (IsEncFei(entrypoint))
+            if (IsEncFei(entrypoint, feiFunction))
             {
                 return ENCODE_ID_AVCFEI;
             }
