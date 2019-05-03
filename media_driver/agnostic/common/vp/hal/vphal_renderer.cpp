@@ -1147,7 +1147,8 @@ MOS_STATUS VphalRenderer::Render(
     //Update GpuContext
     if (MEDIA_IS_SKU(m_pSkuTable, FtrCCSNode))
     {
-        UpdateRenderGpuContext();
+        MOS_GPU_CONTEXT currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+        UpdateRenderGpuContext(currentGpuContext);
     }
     // align rectangle and source surface
     for (uiDst = 0; uiDst < RenderParams.uDstCount; uiDst++)
@@ -1192,18 +1193,19 @@ finish:
 //!
 //! \brief    Update Render Gpu Context
 //! \details  Update Render Gpu Context
+//! \param    [in] renderGpuContext
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VphalRenderer::UpdateRenderGpuContext()
+MOS_STATUS VphalRenderer::UpdateRenderGpuContext(MOS_GPU_CONTEXT currentGpuContext)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
-    MOS_GPU_CONTEXT         renderGpuContext, currentGpuContext;
+    MOS_GPU_CONTEXT         renderGpuContext;
     MOS_GPU_NODE            renderGpuNode;
     MOS_GPUCTX_CREATOPTIONS createOption;
     PVPHAL_VEBOX_STATE      pVeboxState = nullptr;
     int                     i           = 0;
-    currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+
     if (m_pOsInterface->osCpInterface->IsCpEnabled() &&
         (m_pOsInterface->osCpInterface->IsHMEnabled() || m_pOsInterface->osCpInterface->IsSMEnabled()))
     {
