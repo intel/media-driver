@@ -290,10 +290,11 @@ public:
     //!
     //! \brief    Update Render Gpu Context
     //! \details  Update Render Gpu Context
+    //! \param    [in] renderGpuContext
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS UpdateRenderGpuContext();
+    virtual MOS_STATUS UpdateRenderGpuContext(MOS_GPU_CONTEXT renderGpuContext);
 
 protected:
     //!
