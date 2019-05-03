@@ -57,9 +57,7 @@ typedef struct drm_i915_cmd_descriptor cmd_descriptor;
 struct mos_linux_context {
     unsigned int ctx_id;
     struct mos_bufmgr *bufmgr;
-#ifndef ANDROID
     struct _MOS_OS_CONTEXT    *pOsContext;
-#endif
 };
 
 struct mos_linux_bo {

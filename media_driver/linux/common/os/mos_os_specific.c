@@ -1283,8 +1283,6 @@ MOS_STATUS Linux_InitContext(
     pContext->bUse64BitRelocs = true;
     pContext->bUseSwSwizzling = MEDIA_IS_SKU(&pContext->SkuTable, FtrSimulationMode);
     pContext->bTileYFlag      = MEDIA_IS_SKU(&pContext->SkuTable, FtrTileY);
-
-#ifndef ANDROID
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
     {
@@ -1298,9 +1296,6 @@ MOS_STATUS Linux_InitContext(
     }
 
     pContext->intel_context->pOsContext = pContext;
-#else
-    pContext->intel_context = nullptr;
-#endif
 
     pContext->bIsAtomSOC = IS_ATOMSOC(iDeviceId);
 

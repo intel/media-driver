@@ -446,7 +446,6 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
-    #ifndef ANDROID
         m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
     
         if (m_intelContext == nullptr)
@@ -454,9 +453,6 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
             return MOS_STATUS_UNKNOWN;
         }
-    #else
-        m_intelContext                   = nullptr;
-    #endif
     
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
     
