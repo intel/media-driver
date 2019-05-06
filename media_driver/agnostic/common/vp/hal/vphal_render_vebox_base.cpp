@@ -2219,7 +2219,8 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
                                    (pSrc->Format   == pRef->Format)     &&
                                    (pSrc->dwWidth  == pRef->dwWidth)    &&
                                    (pSrc->dwHeight == pRef->dwHeight)   &&
-                                   (pSrc->FrameID  != pRef->FrameID));
+                                   (pSrc->FrameID  != pRef->FrameID)    &&
+                                   (pSrc->InterlacedScalingType == ISCALING_NONE));
 
     // Flags needs to be set if the reference sample is valid
     if (pRenderData->bRefValid)
