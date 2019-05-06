@@ -77,6 +77,7 @@ typedef enum _MEDIA_EVENT
     EVENT_DDI_VP_BLT_HINTS,         //! event for ddi tracking - vp blt hints
     EVENT_CP_CERT_COUNT,            //! event for number of certs
     EVENT_CP_CERT_NOT_FOUND,        //! event for certificate not found
+    EVENT_DDI_VIDEOVIEW_CLEAR,      //! event for ddi tracking - ClearVideoView
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
