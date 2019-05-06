@@ -747,6 +747,9 @@ public:
     // Memory compression flag
     bool                                bEnableMMC;                             //!< Enable memory compression flag
 
+    // Temp surface for the field won't be output
+    PVPHAL_SURFACE                      pOutputTempField;
+
     // Scaling ratio from source to render target
     // Scaling ratio is needed to determine if SFC or VEBOX is used
     float                               fScaleX;                                //!< X Scaling ratio

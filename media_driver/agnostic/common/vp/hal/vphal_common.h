@@ -211,6 +211,11 @@ extern "C" {
 #define VPHAL_MAX_TARGETS               8        //!< multi output support
 #define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
 
+#define VPHAL_TOP_FIELD           0
+#define VPHAL_BOTTOM_FIELD        1
+#define VPHAL_TOP_FIELD_FIRST     0
+#define VPHAL_BOTTOM_FIELD_FIRST  1
+
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
 {
     bool                           bL3CachingEnabled;
@@ -486,6 +491,29 @@ typedef enum _VPHAL_SAMPLE_TYPE
     SAMPLE_INVALID
 } VPHAL_SAMPLE_TYPE;
 C_ASSERT(SAMPLE_INVALID == 7);      //!< When adding, update assert & vphal_solo_scenario.cpp
+
+//!
+//! \brief Frame Format enum
+//!
+typedef enum _VPHAL_FRAME_FORMAT
+{
+    FRAME_FORMAT_PROGRESSIVE,
+    FRAME_FORMAT_INTERLEAVED,
+    FRAME_FORMAT_FIELD
+} VPHAL_FRAME_FORMAT;
+
+//!
+//! \brief Interlaced Scaling Mode enum
+//!
+typedef enum _VPHAL_ISCALING_TYPE
+{
+    ISCALING_NONE,
+    ISCALING_INTERLEAVED_TO_INTERLEAVED,
+    ISCALING_INTERLEAVED_TO_FIELD,
+    ISCALING_FIELD_TO_INTERLEAVED,
+    ISCALING_FIELD_TO_FIELD
+} VPHAL_ISCALING_TYPE;
+C_ASSERT(ISCALING_FIELD_TO_FIELD == 4);
 
 //!
 //! \brief DI Mode enum
@@ -921,13 +949,16 @@ struct VPHAL_SURFACE
     PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
     PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
     bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
-    bool                        bInterlacedScaling; //!< Interlaced scaling
-    bool                        bFieldWeaving;      //!< Field Weaving
     bool                        bQueryVariance;     //!< enable variance query
     bool                        bDirectionalScalar; //!< Vebox Directional Scalar
     bool                        bFastColorFill;     //!< enable fast color fill without copy surface
     bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
     bool                        bUsrPtr;            //!< is system linear memory.
+
+    // Interlaced Scaling
+    bool                        bInterlacedScaling;    //!< Interlaced scaling
+    bool                        bFieldWeaving;         //!< Field Weaving
+    VPHAL_ISCALING_TYPE         InterlacedScalingType; //!< Interlaced scaling type for new interlaced scaling mode
 
     // Advanced Processing
     PVPHAL_DI_PARAMS            pDeinterlaceParams;
@@ -988,7 +1019,6 @@ struct VPHAL_SURFACE
 
     bool                        bUseSampleUnorm;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
     bool                        bUseSamplerLumakey; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
-
     //------------------------------------------
     // HDR related parameters, provided by DDI
     //------------------------------------------

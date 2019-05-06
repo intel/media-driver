@@ -567,7 +567,7 @@ void VphalSfcState::SetRenderingFlags(
     m_renderData.bScaling   = ((fScaleX == 1.0F) && (fScaleY == 1.0F)) ?
                                  false : true;
 
-    m_renderData.bColorFill = (pColorFillParams &&
+    m_renderData.bColorFill = (pColorFillParams && pSrc->InterlacedScalingType == ISCALING_NONE &&
                                   (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst))) ?
                                  true : false;
 
