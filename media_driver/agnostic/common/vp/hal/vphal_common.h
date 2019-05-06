@@ -1136,6 +1136,8 @@ struct VPHAL_RENDER_PARAMS
                                                                         // extension parameters
     void                                    *pExtensionData;            //!< Extension data
 
+    bool                                    bPathConfig;
+
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
         pSrc(),
@@ -1156,7 +1158,8 @@ struct VPHAL_RENDER_PARAMS
         bTriggerGPUHang(false),
 #endif
         bCalculatingAlpha(false),
-        pExtensionData(nullptr)
+        pExtensionData(nullptr),
+        bPathConfig(false)
     {
     }
 

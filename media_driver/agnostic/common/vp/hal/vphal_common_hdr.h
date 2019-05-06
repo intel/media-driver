@@ -134,6 +134,7 @@ typedef struct _VPHAL_HDR_PARAMS
     uint16_t MaxCLL;                          //!< Max Content Light Level
     uint16_t MaxFALL;                         //!< Max Frame Average Light Level
     bool     bAutoMode;                       //!< Hdr auto mode.
+    bool     bPathConfig;                     //!< Hdr path config
 } VPHAL_HDR_PARAMS, *PVPHAL_HDR_PARAMS;
 
 #endif  // __VPHAL_COMMON_HDR_H__
