@@ -1484,6 +1484,9 @@ void VpHal_AllocParamsInitType(
     MOS_GFXRES_TYPE             DefaultResType,
     MOS_TILE_TYPE               DefaultTileType);
 
+MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(
+    PVPHAL_SURFACE pSurface);
+
 #ifdef __cplusplus
 }
 #endif
