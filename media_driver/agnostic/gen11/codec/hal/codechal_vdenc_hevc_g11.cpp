@@ -5504,7 +5504,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SendPrologWithFrameTracking(
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_hwInterface->GetOsInterface();
     genericPrologParams.pvMiInterface = m_hwInterface->GetMiInterface();
-    genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
+    genericPrologParams.bMmcEnabled = m_mmcState->IsMmcEnabled();
     genericPrologParams.dwStoreDataValue = m_storeData - 1;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(commandBufferInUse, &genericPrologParams));
