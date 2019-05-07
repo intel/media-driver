@@ -3629,7 +3629,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetRegionsHuCBrcUpdate(PMHW_VDBOX_HUC_VIRT
         // In scalable-mode, use PAK Integration kernel output to get bistream size
         virtualAddrParams->regionParams[8].presRegion   = &m_resBrcDataBuffer;
     }
-    virtualAddrParams->regionParams[12].presRegion = &m_vdencGroup3BatchBuffer[m_currRecycledBufIdx][currentPass];        // Region 12 – SLB buffer for group 3 (Input)
+    virtualAddrParams->regionParams[12].presRegion = &m_vdencGroup3BatchBuffer[m_currRecycledBufIdx][currentPass];        // Region 12 - SLB buffer for group 3 (Input)
 
     return eStatus;
 }
