@@ -7974,8 +7974,8 @@ MOS_STATUS CodechalEncHevcStateG10::Initialize(CodechalSetting * settings)
     // disable MMCD if we enable Codechal dump. Because dump code changes the surface state from compressed to uncompressed,
     // this causes mis-match issue between dump is enabled or disabled.
     CODECHAL_DEBUG_TOOL(
-        if (CodecHalMmcState::IsMmcEnabled() && m_debugInterface && m_debugInterface->m_dbgCfgHead) {
-            if (m_mmcState)
+        if (m_debugInterface && m_debugInterface->m_dbgCfgHead) {
+            if (m_mmcState && m_mmcState->IsMmcEnabled())
             {
                 m_mmcState->SetMmcDisabled();
             }
