@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 #ifndef __IGVPKRN_ISA_G11_ICLLP_H__
 #define __IGVPKRN_ISA_G11_ICLLP_H__
 
-extern const unsigned int IGVP3DLUT_GENERATION_G11_ICLLP_SIZE;
-extern const unsigned int IGVP3DLUT_GENERATION_G11_ICLLP[];
+extern unsigned int IGVP3DLUT_GENERATION_G11_ICLLP_SIZE;
+extern unsigned int IGVP3DLUT_GENERATION_G11_ICLLP[];
 
 #endif // __IGVPKRN_G11_ICLLP_H__
