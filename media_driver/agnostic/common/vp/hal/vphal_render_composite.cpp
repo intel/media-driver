@@ -55,9 +55,6 @@
 //!
 //! \brief  Sampler State Indices
 //!
-#define VPHAL_SAMPLER_Y                 1
-#define VPHAL_SAMPLER_U                 2
-#define VPHAL_SAMPLER_V                 3
 #define VPHAL_SAMPLER_8x8_AVS_Y         4
 #define VPHAL_SAMPLER_8x8_AVS_U         8
 #define VPHAL_SAMPLER_8x8_AVS_V         12
@@ -1634,12 +1631,6 @@ bool CompositeState::AddCompLayer(
     }
 
     scalingMode           = pSource->ScalingMode;
-
-    // set default Scaling Model as Bilinear if AVS was not supported.
-    if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
-    {
-        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
-    }
 
     // On Gen9+, Rotation is done in sampler. Multiple phases are not required.
     if (!m_bSamplerSupportRotation)
