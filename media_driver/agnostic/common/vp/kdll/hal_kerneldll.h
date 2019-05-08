@@ -434,6 +434,7 @@ typedef struct tagKdll_FilterEntry
     MOS_TILE_TYPE   tiletype;         // Tiling Type
     bool            dualout;          // dual output mode
     bool            bWaEnableDscale;  // enable DScale kernels for sampler-unrom issue
+    bool            bEnableDscale;    // always enable DScale Kernels
     int32_t         chromasiting;     // chromasiting        (-1 if Chromasiting is disabled)
 
     // This flag is used to select between kernels:
