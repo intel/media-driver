@@ -179,6 +179,9 @@ MOS_STATUS CodechalVdencVp9StateG11::GetSystemPipeNumberCommon()
         disableScalability = userFeatureData.i32Data ? true : false;
     }
 
+    //Disable scalability temporarily
+    disableScalability = true;
+
     MEDIA_SYSTEM_INFO *gtSystemInfo = m_gtSystemInfo;
 
     if (gtSystemInfo && disableScalability == false)
