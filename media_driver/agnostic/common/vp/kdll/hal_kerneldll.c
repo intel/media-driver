@@ -4479,9 +4479,10 @@ void KernelDll_StartKernelSearch(
             // DScale Kernels are enabled for all gen9 stepping.
             //For Gen9+, kernel don't support sublayer DScale+rotation
             //Sampler_unorm does not support Y410/RGB10, we need to use sampler_16 to support Y410/RGB10
-            if (!pFilter[nLayer].bWaEnableDscale ||
+            if (!pFilter[nLayer].bEnableDscale &&
+                (!pFilter[nLayer].bWaEnableDscale ||
                 (pFilter[nLayer].layer == Layer_SubVideo &&
-                 pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY))
+                 pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY)))
             {
                 if (pFilter[nLayer].sampler == Sample_Scaling_034x)
                 {

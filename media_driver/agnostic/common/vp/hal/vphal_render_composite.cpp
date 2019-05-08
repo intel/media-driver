@@ -6349,16 +6349,20 @@ bool CompositeState::BuildFilter(
             pSrc->Format == Format_Y410        ||
             pSrc->Format == Format_Y416)
         {
-            pFilter->bWaEnableDscale = true;
+            pFilter->bEnableDscale = true;
         }
         else
         {
-            pFilter->bWaEnableDscale = MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
+            pFilter->bEnableDscale = false;
         }
 
         if (m_bFtrComputeWalker)
         {
             pFilter->bWaEnableDscale = true;
+        }
+        else
+        {
+            pFilter->bWaEnableDscale = MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
         }
 
         //--------------------------------
