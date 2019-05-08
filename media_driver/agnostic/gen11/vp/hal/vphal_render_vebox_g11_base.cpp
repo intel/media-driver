@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,9 @@
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
 #include "vphal_common_hdr.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#include "igvpkrn_isa_g11_icllp.h"
+#endif
 
 #define MAX_INPUT_PREC_BITS         16
 #define DOWNSHIFT_WITH_ROUND(x, n)  (((x) + (((n) > 0) ? (1 << ((n) - 1)) : 0)) >> (n))
@@ -750,8 +753,10 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
 
         if (nullptr == m_hdr3DLutGenerator)
         {
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
-            m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal);
+            m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_G11_ICLLP, IGVP3DLUT_GENERATION_G11_ICLLP_SIZE);
+#endif
         }
     }
 
