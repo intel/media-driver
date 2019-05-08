@@ -3908,7 +3908,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     curbe.DW24_DeviationThreshold6_Iframe = (uint32_t)(50 * pow(0.66, bpsRatio));
     curbe.DW24_DeviationThreshold7_Iframe = (uint32_t)(50 * pow(0.9, bpsRatio));
 
-    curbe.DW26_RandomAccess = !m_lowDelay;
+    curbe.DW26_RandomAccess = (m_hevcSeqParams->HierarchicalFlag && !m_hevcSeqParams->LowDelayMode) ? true : false;
 
     if (m_brcInit)
     {
