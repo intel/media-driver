@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,9 +27,6 @@
 #if !EMUL
 
 #include "vphal_render_hdr_g11.h"
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-#include "igvpkrn_isa_g11_icllp.h"
-#endif
 #include "renderhal.h"
 
 static const std::string DumpRoot("C:\\temp\\");
@@ -214,15 +211,14 @@ static void CalcCCMMatrix()
     color_matrix_calculation[2][3] = 0.0f;
 }
 
-Hdr3DLutCmRender::Hdr3DLutCmRender() :
+Hdr3DLutCmRender::Hdr3DLutCmRender(uint32_t* kernelBinary, uint32_t kernelSize) :
     VPCmRenderer("Hdr3DLutCmRender"),
     m_cmProgram(nullptr),
     m_cmKernel(nullptr),
     m_cmPayload(nullptr)
 {
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-    m_cmProgram = LoadProgram(IGVP3DLUT_GENERATION_G11_ICLLP, IGVP3DLUT_GENERATION_G11_ICLLP_SIZE);
-#endif
+    m_cmProgram = LoadProgram(kernelBinary, kernelSize);
+
     if (!m_cmProgram)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Hdr3DLutCmRender [%s]: CM LoadProgram error %d\n");
@@ -280,7 +276,7 @@ void Hdr3DLutCmRender::PrepareKernel(CmKernel *kernel)
     kernel->SetKernelArg(3, sizeof(uint16_t), &m_cmPayload->hdr3DLutSurfaceHeight);
 }
 
-Hdr3DLutGenerator::Hdr3DLutGenerator(PRENDERHAL_INTERFACE renderHal) :
+Hdr3DLutGenerator::Hdr3DLutGenerator(PRENDERHAL_INTERFACE renderHal, uint32_t* kernelBinary, uint32_t kernelSize) :
     m_renderHal(renderHal),
     m_hdr3DLutSurface(nullptr),
     m_hdrCoefSurface(nullptr),
@@ -293,6 +289,9 @@ Hdr3DLutGenerator::Hdr3DLutGenerator(PRENDERHAL_INTERFACE renderHal) :
 {
     m_eventManager = MOS_New(EventManager, "EventManager");
     VPHAL_RENDER_NORMALMESSAGE("Hdr3DLutGenerator Constructor!");
+
+    m_kernelBinary = kernelBinary;
+    m_kernelSize   = kernelSize;
 }
 
 Hdr3DLutGenerator::~Hdr3DLutGenerator()
@@ -458,7 +457,7 @@ void Hdr3DLutGenerator::Render(const uint32_t maxDLL, const uint32_t maxCLL, con
         CmContext::sOsContext = m_renderHal->pOsInterface->pOsContext;
         CmContext::GetCmContext().AddRefCount();
 
-        m_hdr3DLutCmRender = MOS_New(Hdr3DLutCmRender);
+        m_hdr3DLutCmRender = MOS_New(Hdr3DLutCmRender, m_kernelBinary, m_kernelSize);
         AllocateResources();
 
         m_bHdr3DLutInit = true;

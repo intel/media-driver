@@ -3998,7 +3998,7 @@ DdiVp_QueryVideoProcFilterCaps (
         case VAProcFilterHighDynamicRangeToneMapping:
         {
             PDDI_MEDIA_CONTEXT mediaDrvCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
-            if (mediaDrvCtx && GFX_IS_PRODUCT(mediaDrvCtx->platform, IGFX_ICELAKE_LP))
+            if (mediaDrvCtx)
             {
                 uExistCapsNum = 1;
                 *num_filter_caps = uExistCapsNum;
