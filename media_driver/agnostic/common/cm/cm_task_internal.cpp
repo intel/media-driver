@@ -358,6 +358,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* threadSpace, bool isWi
     }
 
     m_cmDevice->GetSurfaceManager( surfaceMgr );
+    CM_CHK_NULL_RETURN_CMERROR(surfaceMgr);
     surfacePoolSize = surfaceMgr->GetSurfacePoolSize();
 
     m_surfaceArray = MOS_NewArray(bool, surfacePoolSize);
@@ -519,7 +520,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* threadGroupSpace)
     m_cmDevice->GetHalMaxValues( halMaxValues, halMaxValuesEx );
 
     m_cmDevice->GetSurfaceManager( surfaceMgr );
-    CM_ASSERT( surfaceMgr );
+    CM_CHK_NULL_RETURN_CMERROR( surfaceMgr );
     surfacePoolSize = surfaceMgr->GetSurfacePoolSize();
     m_surfaceArray = MOS_NewArray(bool, surfacePoolSize);
     if (!m_surfaceArray)
@@ -663,7 +664,7 @@ int32_t CmTaskInternal::Initialize(CmVeboxRT* vebox)
     uint32_t surfacePoolSize = 0;
 
     m_cmDevice->GetSurfaceManager( surfaceMgr );
-    CM_ASSERT( surfaceMgr );
+    CM_CHK_NULL_RETURN_CMERROR( surfaceMgr );
     surfacePoolSize = surfaceMgr->GetSurfacePoolSize();
     m_surfaceArray = MOS_NewArray(bool, surfacePoolSize);
     if (!m_surfaceArray)
