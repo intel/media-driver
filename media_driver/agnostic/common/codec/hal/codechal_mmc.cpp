@@ -27,7 +27,7 @@
 #include "codechal_hw.h"
 #include "codechal_mmc.h"
 
-bool CodecHalMmcState::s_mmcEnabledDefault  = false;
+bool CodecHalMmcState::m_mmcEnabled  = false;
 
 CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
 {
@@ -57,9 +57,8 @@ CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
             nullptr,
             valueId,
             &userFeatureData);
-        s_mmcEnabledDefault = (userFeatureData.i32Data) ? true : false;
+        m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
 
-        m_mmcEnabled = s_mmcEnabledDefault;
         // report in-use
         MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));

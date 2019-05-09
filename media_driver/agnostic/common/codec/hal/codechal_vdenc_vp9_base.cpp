@@ -2140,7 +2140,7 @@ bool CodechalVdencVp9State::IsToBeCompressed(bool isDownScaledSurface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
     // For regular encoding, we always compress this surface regardless of downscaling
-    return m_mmcState->IsMmcEnabled();
+    return CodecHalMmcState::IsMmcEnabled();
 }
 
 MOS_STATUS CodechalVdencVp9State::DysRefFrames()
