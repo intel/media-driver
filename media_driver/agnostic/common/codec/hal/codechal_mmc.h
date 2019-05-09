@@ -52,23 +52,12 @@ public:
     virtual ~CodecHalMmcState() {};
 
     //!
-    //! \brief    Check if MMC is enabled by default
+    //! \brief    Check if MMC is enabled 
     //!
     //! \return   bool
     //!           true if mmc is enabled, else false
     //!
-    static bool IsMmcEnabledDefault()
-    {
-        return s_mmcEnabledDefault;
-    }
-
-    //!
-    //! \brief    Check if MMC is enabled for each instance
-    //!
-    //! \return   bool
-    //!           true if mmc is enabled, else false
-    //!
-    bool IsMmcEnabled();
+    static bool IsMmcEnabled();
 
     //!
     //! \brief    Disable MMC state 
@@ -245,8 +234,7 @@ public:
 
 protected:
 
-    static bool             s_mmcEnabledDefault;                    //!< Indicate if media memory compression is enabled by default
-    bool                    m_mmcEnabled;                           //!< Indicate if media memory compression is enabled for each instance
+    static bool             m_mmcEnabled;                           //!< Indicate if media memory compression is enabled
     PMOS_INTERFACE          m_osInterface = nullptr;                //!< Os Inteface
     CodechalHwInterface     *m_hwInterface = nullptr;               //!< Pointer to HW Interface
     bool                    m_hcpMmcEnabled = false;                //!< Inidate if hcp mmc is enabled
