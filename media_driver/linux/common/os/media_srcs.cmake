@@ -33,7 +33,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_sw_swizzle.c
 )
 
 set(TMP_HEADERS_
@@ -48,7 +47,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_sw_swizzle.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")
