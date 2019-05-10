@@ -2066,3 +2066,15 @@ uint32_t DdiEncodeAvc::getQMatrixBufferSize()
 {
     return sizeof(VAIQMatrixBufferH264);
 }
+
+void DdiEncodeAvc::ClearPicParams()
+{
+    uint8_t ppsIdx = ((PCODEC_AVC_ENCODE_SLICE_PARAMS)(m_encodeCtx->pSliceParams))->pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_PIC_PARAMS  picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)m_encodeCtx->pPicParams + ppsIdx;
+
+    if (picParams != nullptr && picParams->pDeltaQp != nullptr)
+    {
+        MOS_FreeMemory(picParams->pDeltaQp);
+        picParams->pDeltaQp = nullptr;
+    }
+}

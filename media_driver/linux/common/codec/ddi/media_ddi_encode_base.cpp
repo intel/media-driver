@@ -75,6 +75,7 @@ VAStatus DdiEncodeBase::EndPicture(
     DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     VAStatus status = EncodeInCodecHal(m_encodeCtx->dwNumSlices);
+    ClearPicParams();
     if (VA_STATUS_SUCCESS != status)
     {
         DDI_ASSERTMESSAGE("DDI:DdiEncode_EncodeInCodecHal return failure.");
@@ -1353,4 +1354,8 @@ uint32_t DdiEncodeBase::getPictureParameterBufferSize()
 uint32_t DdiEncodeBase::getQMatrixBufferSize()
 {
     return 0xffffffff;
+}
+
+void DdiEncodeBase::ClearPicParams()
+{
 }
