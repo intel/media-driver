@@ -307,6 +307,14 @@ protected:
         void *             ptr) = 0;
 
     //!
+    //! \brief    Clear picture params
+    //! \details  Clear picture params called by EndPicture
+    //!
+    //! \return   void
+    //!
+    virtual void ClearPicParams();
+
+    //!
     //! \brief    get Slice Parameter Buffer Size
     //!
     //! \return   uint32_t
