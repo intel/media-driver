@@ -38,7 +38,6 @@
 #include "media_libva_util.h"
 #include "mos_utilities.h"
 #include "mos_os.h"
-#include "mos_sw_swizzle.h"
 #include "hwinfo_linux.h"
 #include "media_ddi_decode_base.h"
 #include "media_ddi_encode_base.h"
@@ -890,13 +889,9 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                     DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
                     DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
 
-                    mos_memcpy_tiled_to_linear(0, surface->iPitch,
-                                            0, surfSize / surface->iPitch,
-                                            (char*)surface->pSystemShadow, (char*)surface->bo->virt,
-                                            surface->iPitch, surface->iPitch,
-                                            false,
-                                            surface->TileType,
-                                            MOS_MEMCPY_STREAMING_LOAD);
+                    Mos_SwizzleData((uint8_t*)surface->bo->virt, (uint8_t*)surface->pSystemShadow,
+                                    MOS_TILE_Y, MOS_TILE_LINEAR,
+                                    static_cast<int32_t>(surfSize / surface->iPitch), surface->iPitch, flags);
                 }
             }
             else if (flag & MOS_LOCKFLAG_WRITEONLY)
@@ -962,16 +957,12 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
             }
             else if (surface->pSystemShadow)
             {
+                int32_t flags = surface->pMediaCtx->m_tileYFlag ? 0 : 1;
                 uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
 
-                mos_memcpy_linear_to_tiled(0, surface->iPitch,
-                                           0, surfSize / surface->iPitch,
-                                        (char*)surface->bo->virt, (char*)surface->pSystemShadow,
-                                        surface->iPitch, surface->iPitch,
-                                        false,
-                                        surface->TileType,
-                                        MOS_MEMCPY_STREAMING_LOAD);
-
+                Mos_SwizzleData((uint8_t*)surface->pSystemShadow, (uint8_t*)surface->bo->virt,
+                                MOS_TILE_LINEAR, MOS_TILE_Y,
+                                static_cast<int32_t>(surfSize / surface->iPitch), surface->iPitch, flags);
                 MOS_FreeMemory(surface->pSystemShadow);
                 surface->pSystemShadow = nullptr;
 
