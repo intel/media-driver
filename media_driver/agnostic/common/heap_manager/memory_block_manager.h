@@ -38,6 +38,8 @@
 #include "heap.h"
 #include "memory_block.h"
 
+class FrameTrackerProducer;
+
 //! \brief Used by the heap manager to allow the client to access the heap memory.
 class MemoryBlockManager
 {
@@ -61,6 +63,8 @@ public:
         std::vector<uint32_t>   &m_blockSizes;
         //! \brief Requested block alignment
         uint32_t                m_alignment = 0;
+        //! \brief Index to the frame tracker
+        uint32_t                m_trackerIndex = 0;
         //! \brief Must be valid, used for determining whether or not a the block is still in use. \see m_trackerData.
         uint32_t                m_trackerId = MemoryBlockInternal::m_invalidTrackerId;
         //! \brief Zero memory blocks after allocation
@@ -152,6 +156,18 @@ protected:
     MOS_STATUS RegisterTrackerResource(uint32_t *trackerData);
 
     //!
+    //! \brief  Registers the tracker producer to be used for determining whether a
+    //!         memory block is available. This function has a higher priority than
+    //!         RegisterTrackerResource, so if it is called, the trackerResource will
+    //!         be useless.
+    //! \param  [in] trackerProducer
+    //!         Must be valid; pointer to trackerProducer.
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS RegisterTrackerProducer(FrameTrackerProducer *trackerProducer);
+
+    //!
     //! \brief  Gets the size of the all heaps
     //! \return The size of all heaps managed \see m_size
     //!
@@ -161,7 +177,11 @@ protected:
     //! \brief  Determines whether a valid tracker data has been registered
     //! \return True if the pointer is valid, false otherwise
     //!
-    bool IsTrackerDataValid() { return (m_trackerData != nullptr); }
+    bool IsTrackerDataValid()
+    {
+        return (!m_useProducer && m_trackerData != nullptr)
+            || (m_useProducer && m_trackerProducer != nullptr);
+    }
 
     //!
     //! \brief   All heaps allocated are locked and kept locked for their lifetimes
@@ -268,6 +288,28 @@ private:
     //!
     MOS_STATUS AllocateBlock(
         uint32_t alignedSize,
+        uint32_t trackerId,
+        bool staticBlock,
+        MemoryBlockInternal *freeBlock);
+
+    //!
+    //! \brief  Sets up memory blocks for the requested space
+    //! \param  [in] alignedSize
+    //!         Aligned size of the memory requested
+    //! \param  [in] trackerIndex
+    //!         Tracker index to be used for the allocated block
+    //! \param  [in] trackerId
+    //!         Tracker ID to be used for the allocated block
+    //! \param  [in] staticBlock
+    //!         Indicates that the newly created block is expected to be static
+    //! \param  [out] freeBlock
+    //!         Free block that will be used for the allocation of the new block
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateBlock(
+        uint32_t alignedSize,
+        uint32_t trackerIndex,
         uint32_t trackerId,
         bool staticBlock,
         MemoryBlockInternal *freeBlock);
@@ -399,5 +441,9 @@ private:
     
     //! \brief Persistent storage for the sorted sizes used during AcquireSpace()
     std::list<SortedSizePair> m_sortedSizes;
+    //! \brief TrackerProducer
+    FrameTrackerProducer *m_trackerProducer = nullptr;
+    //! \bried Whether trackerProducer is set
+    bool m_useProducer = false;
 };
 #endif // __MEMORY_BLOCK_MANAGER_H__

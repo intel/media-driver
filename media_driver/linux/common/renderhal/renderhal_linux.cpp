@@ -27,56 +27,11 @@
 #include "mos_os.h"
 #include "renderhal.h"
 
-void RenderHal_IncTrackerId(PRENDERHAL_INTERFACE renderHal)
-{
-    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
-
-
-    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
-    {
-        renderHal->veBoxTrackerRes.currentTrackerId++;
-    }
-    else
-    {
-        renderHal->trackerResource.currentTrackerId++;
-    }
-}
-
-uint32_t RenderHal_GetNextTrackerId(PRENDERHAL_INTERFACE renderHal)
-{
-    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
-
-    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
-    {
-        return renderHal->veBoxTrackerRes.currentTrackerId;
-    }
-    else
-    {
-        return renderHal->trackerResource.currentTrackerId;
-    }
-}
-
-uint32_t RenderHal_GetCurrentTrackerId(PRENDERHAL_INTERFACE renderHal)
-{
-    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
-
-    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
-    {
-        return *(renderHal->veBoxTrackerRes.data);
-    }
-    else
-    {
-        return *(renderHal->trackerResource.data);
-    }
-}
-
 void RenderHal_SetupPrologParams(
     PRENDERHAL_INTERFACE              renderHal,
     RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
     PMOS_RESOURCE                     osResource,
+    uint32_t                          offset,
     uint32_t                          tag)
 {
     return;

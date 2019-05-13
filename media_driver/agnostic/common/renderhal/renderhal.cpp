@@ -2135,6 +2135,7 @@ loadkernel:
     pKernelAllocation->iKUID           = iKernelUniqueID;
     pKernelAllocation->iKCID           = iKernelCacheID;
     pKernelAllocation->dwSync          = 0;
+    FrameTrackerTokenFlat_Clear(&pKernelAllocation->trackerToken);
     pKernelAllocation->dwOffset        = dwOffset;
     pKernelAllocation->iSize           = iSize;
     pKernelAllocation->dwFlags         = RENDERHAL_KERNEL_ALLOCATION_USED;
@@ -2229,6 +2230,7 @@ MOS_STATUS RenderHal_UnloadKernel(
     pKernelAllocation->iKUID            = -1;
     pKernelAllocation->iKCID            = -1;
     pKernelAllocation->dwSync           = 0;
+    FrameTrackerTokenFlat_Clear(&pKernelAllocation->trackerToken);
     pKernelAllocation->dwFlags          = RENDERHAL_KERNEL_ALLOCATION_FREE;
     pKernelAllocation->dwCount          = 0;
     pKernelAllocation->pKernelEntry     = nullptr;
@@ -2313,6 +2315,7 @@ void RenderHal_ResetKernels(
         pKernelAllocation->iKUID            = -1;
         pKernelAllocation->iKCID            = -1;
         pKernelAllocation->dwSync           = 0;
+        FrameTrackerTokenFlat_Clear(&pKernelAllocation->trackerToken);
         pKernelAllocation->dwOffset         = 0;
         pKernelAllocation->iSize            = 0;
         pKernelAllocation->dwFlags          = RENDERHAL_KERNEL_ALLOCATION_FREE;
@@ -4222,6 +4225,9 @@ MOS_STATUS RenderHal_Destroy(PRENDERHAL_INTERFACE pRenderHal)
        pRenderHal->pPerfProfiler = nullptr;
     }
 
+    // Free multiple trackers
+    pRenderHal->trackerProducer.~FrameTrackerProducer();
+
     // Free Debug Surface
     RenderHal_FreeDebugSurface(pRenderHal);
 
@@ -4990,13 +4996,11 @@ finish:
     return eStatus;
 }
 
-uint32_t RenderHal_GetNextTrackerId(PRENDERHAL_INTERFACE renderHal);
-void RenderHal_IncTrackerId(PRENDERHAL_INTERFACE renderHal);
-uint32_t RenderHal_GetCurrentTrackerId(PRENDERHAL_INTERFACE renderHal);
 void RenderHal_SetupPrologParams(
     PRENDERHAL_INTERFACE              renderHal,
     RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
     PMOS_RESOURCE                     osResource,
+    uint32_t                          offset,
     uint32_t                          tag);
 
 //!
@@ -5075,6 +5079,8 @@ MOS_STATUS RenderHal_Initialize(
 
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pPerfProfiler->Initialize((void*)pRenderHal, pOsInterface));
     }
+
+    new(&pRenderHal->trackerProducer) FrameTrackerProducer();
 
 finish:
     return eStatus;
@@ -6948,9 +6954,6 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSendCscCoeffSurface        = RenderHal_SendCscCoeffSurface;
 
     // Tracker tag
-    pRenderHal->pfnIncTrackerId               = RenderHal_IncTrackerId;
-    pRenderHal->pfnGetNextTrackerId           = RenderHal_GetNextTrackerId;
-    pRenderHal->pfnGetCurrentTrackerId        = RenderHal_GetCurrentTrackerId;
     pRenderHal->pfnSetupPrologParams          = RenderHal_SetupPrologParams;
 
     // InterfaceDescriptor

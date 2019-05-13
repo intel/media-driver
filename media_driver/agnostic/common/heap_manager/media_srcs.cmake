@@ -23,6 +23,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/heap_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_block.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_block_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/frame_tracker.cpp
 )
 
 set(TMP_HEADERS_
@@ -30,6 +31,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/heap_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/memory_block.h
     ${CMAKE_CURRENT_LIST_DIR}/memory_block_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/frame_tracker.h
 )
 
 set(SOURCES_

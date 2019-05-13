@@ -112,6 +112,12 @@ MOS_STATUS HeapManager::RegisterTrackerResource(uint32_t *trackerData)
     return m_blockManager.RegisterTrackerResource(trackerData);
 }
 
+MOS_STATUS HeapManager::RegisterTrackerProducer(FrameTrackerProducer *trackerProducer)
+{
+    HEAP_FUNCTION_ENTER;
+    return m_blockManager.RegisterTrackerProducer(trackerProducer);
+}
+
 MOS_STATUS HeapManager::SetInitialHeapSize(uint32_t size)
 {
     HEAP_FUNCTION_ENTER;

@@ -406,13 +406,14 @@ void RenderHal_DSH_TouchDynamicKernel(
 
     // Set sync tag, for deallocation control
     pKernelAllocation->dwFlags = RENDERHAL_KERNEL_ALLOCATION_LOCKED;
-    pKernelAllocation->dwSync  = pRenderHal->pfnGetNextTrackerId(pRenderHal);
+    FrameTrackerTokenFlat_SetProducer(&pKernelAllocation->trackerToken, &pRenderHal->trackerProducer);
+    FrameTrackerTokenFlat_Merge(&pKernelAllocation->trackerToken, 0, pRenderHal->trackerProducer.GetNextTracker(0));
 
     // Move kernel to the tail of the submitted list (list is sorted with the most recently used at the end)
     RenderHal_DSH_KernelAttach(&pStateHeap->KernelsSubmitted, pKernelAllocation, false);
 
     // Update memory block
-    pMhwStateHeap->SubmitDynamicBlockDyn(MHW_ISH_TYPE, pKernelAllocation->pMemoryBlock, pKernelAllocation->dwSync);
+    pMhwStateHeap->SubmitDynamicBlockDyn(MHW_ISH_TYPE, pKernelAllocation->pMemoryBlock, &pKernelAllocation->trackerToken);
 
     // Update kernel usage - this is where kernels age if they are not constantly used, and may be removed
     pKernelAllocation->dwCount++;
@@ -516,7 +517,6 @@ MOS_STATUS RenderHal_DSH_UnregisterKernel(PRENDERHAL_INTERFACE pRenderHal, PREND
 {
     PRENDERHAL_STATE_HEAP      pStateHeap;
     MOS_STATUS                 eStatus = MOS_STATUS_SUCCESS;
-    uint32_t                   dwFrameId;
 
     pStateHeap = (pRenderHal) ? pRenderHal->pStateHeap : nullptr;
     if (pStateHeap == nullptr)
@@ -525,11 +525,10 @@ MOS_STATUS RenderHal_DSH_UnregisterKernel(PRENDERHAL_INTERFACE pRenderHal, PREND
     }
 
     // Free kernel before releasing
-    dwFrameId = pRenderHal->pfnGetCurrentTrackerId(pRenderHal);
     if (pKernelAllocation->pMemoryBlock)
     {
         // Get new kernel allocation entry
-        pRenderHal->pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKernelAllocation->pMemoryBlock, dwFrameId);
+        pRenderHal->pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKernelAllocation->pMemoryBlock);
         pKernelAllocation->pMemoryBlock = nullptr;
     }
 
@@ -691,7 +690,9 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
     pStateHeap->pSync = (uint32_t *)pRenderHal->pMhwStateHeap->GetCmdBufIdGlobalPointer();
 
     // Reset pool of Kernel allocations objects
-    pStateHeap->pKernelAllocMemPool = MOS_New(MHW_MEMORY_POOL, sizeof(RENDERHAL_KRN_ALLOCATION), sizeof(void *));
+    pStateHeap->pKernelAllocMemPool = MOS_New(MHW_MEMORY_POOL,
+                                sizeof(RENDERHAL_KRN_ALLOCATION),
+                                sizeof(void *));
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pKernelAllocMemPool);
 
     MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendKernelAllocPool(pStateHeap));
@@ -804,7 +805,7 @@ finish:
 //! \return   MOS_STATUS
 //!
 MOS_STATUS RenderHal_DSH_AssignSpaceInStateHeap(
-    RENDERHAL_TR_RESOURCE *trackerInfo,
+    FrameTrackerProducer *trackerProducer,
     HeapManager *heapManager,
     MemoryBlock *block,
     uint32_t size)
@@ -815,12 +816,13 @@ MOS_STATUS RenderHal_DSH_AssignSpaceInStateHeap(
     std::vector<uint32_t> blockSizes;
 
     MemoryBlockManager::AcquireParams acquireParams = 
-        MemoryBlockManager::AcquireParams(trackerInfo->currentTrackerId,
+        MemoryBlockManager::AcquireParams(trackerProducer->GetNextTracker(0),
                                           blockSizes);
+    acquireParams.m_trackerIndex = 0; // use the first tracker only
 
     MHW_RENDERHAL_CHK_NULL(heapManager);    
     MHW_RENDERHAL_CHK_NULL(block);
-    MHW_RENDERHAL_CHK_NULL(trackerInfo);
+    MHW_RENDERHAL_CHK_NULL(trackerProducer);
 
     if (blockSizes.empty())
     {
@@ -896,7 +898,6 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
 
     // Most recent tags
     pStateHeap->dwSyncTag = dwCurrentTag     = pStateHeap->pSync[0];
-    pStateHeap->dwFrameId = dwCurrentFrameId = pRenderHal->pfnGetCurrentTrackerId(pRenderHal);
 
     // Refresh batch buffers
     iBuffersInUse = 0;
@@ -934,7 +935,7 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
         if (!pCurMediaState->bBusy) continue;
 
         // The condition below is valid when sync tag wraps from 2^32-1 to 0
-        if ((int32_t)(dwCurrentFrameId - pCurMediaState->dwSyncTag) >= 0)
+        if (FrameTrackerTokenFlat_IsExpired(&pCurMediaState->trackerToken))
         {
             pDynamicState = pCurMediaState->pDynamicState;
             pCurMediaState->bBusy = false;
@@ -1000,14 +1001,14 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
         pNext = pKrnAllocation->pNext;
 
         // Move kernels back to allocated list (kernel remains cached)
-        if ((int32_t)(dwCurrentFrameId - pKrnAllocation->dwSync) >= 0)
+        if (FrameTrackerTokenFlat_IsExpired(&pKrnAllocation->trackerToken))
         {
             RenderHal_DSH_KernelAttach(&pStateHeap->KernelsAllocated, pKrnAllocation, false);
 
             // Kernel block is flagged for removal (growing ISH) - delete block, mark kernel as stale
             if (pKrnAllocation->pMemoryBlock && pKrnAllocation->pMemoryBlock->bDelete)
             {
-                pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwCurrentFrameId);
+                pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock);
                 pKrnAllocation->dwFlags = RENDERHAL_KERNEL_ALLOCATION_USED;
             }
             else
@@ -1023,7 +1024,7 @@ MOS_STATUS RenderHal_DSH_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
     }
 
     // Refresh blocks
-    pMhwStateHeap->RefreshDynamicHeapDyn(MHW_ISH_TYPE, dwCurrentFrameId);
+    pMhwStateHeap->RefreshDynamicHeapDyn(MHW_ISH_TYPE);
 
     // Save number of states/buffers in use
     pRenderHal->iBuffersInUse     = iBuffersInUse;
@@ -1057,7 +1058,6 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
     PRENDERHAL_STATE_HEAP     pStateHeap;
     uint32_t                  dwNewSize;
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
-    uint32_t                  dwFrameId;
     PMHW_STATE_HEAP              pOldInstructionHeap;
     PMHW_STATE_HEAP_MEMORY_BLOCK pOldSipKernelBlock;
 
@@ -1067,7 +1067,6 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
 
     pMhwStateHeap = pRenderHal->pMhwStateHeap;
     pStateHeap    = pRenderHal->pStateHeap;
-    dwFrameId     = pRenderHal->pfnGetCurrentTrackerId(pRenderHal); 
 
     // Increase size of the ISH (up to max size)
     dwNewSize = MOS_ALIGN_CEIL(pMhwStateHeap->GetISHPointer()->dwSize + dwAdditionalKernelSpaceNeeded,
@@ -1084,7 +1083,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
         if (pKrnAllocation->pMemoryBlock)
         {
             pKrnAllocation->pMemoryBlock->bStatic = false;
-            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId));
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock));
             pKrnAllocation->pMemoryBlock = nullptr;
         }
     }
@@ -1095,7 +1094,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
         pKrnAllocation->dwFlags = RENDERHAL_KERNEL_ALLOCATION_STALE;
         if (pKrnAllocation->pMemoryBlock)
         {
-            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId));
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock));
             pKrnAllocation->pMemoryBlock = nullptr;
         }
     }
@@ -1204,7 +1203,7 @@ MOS_STATUS RenderHal_DSH_RefreshDynamicKernels(
                 dwSpaceNeeded -= MOS_MIN(dwSpaceNeeded, pKrnAllocation->pMemoryBlock->dwBlockSize);
             }
 
-            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, pStateHeap->dwFrameId));
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock));
             pKrnAllocation->pMemoryBlock = nullptr;
             pKrnAllocation->dwOffset     = 0;
             pKrnAllocation->dwFlags      = RENDERHAL_KERNEL_ALLOCATION_REMOVED;
@@ -1341,7 +1340,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_LoadDynamicKernel(
     pKernelAllocation->iKID            = -1;
     pKernelAllocation->iKUID           = iKernelUniqueID;
     pKernelAllocation->iKCID           = iKernelCacheID;
-    pKernelAllocation->dwSync          = 0;
+    FrameTrackerTokenFlat_Clear(&pKernelAllocation->trackerToken);
     pKernelAllocation->dwOffset        = pKernelMemoryBlock->dwDataOffset;  // NOT USED IN DSH - KEPT FOR DEBUG SUPPORT
     pKernelAllocation->iSize           = pKernelMemoryBlock->dwDataSize;    // NOT USED IN DSH - KEPT FOR DEBUG SUPPORT
     pKernelAllocation->dwFlags         = RENDERHAL_KERNEL_ALLOCATION_USED;
@@ -1412,7 +1411,7 @@ MOS_STATUS RenderHal_DSH_UnloadDynamicKernel(
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnRefreshSync(pRenderHal));
 
     // Check if kernel may be unloaded
-    if ((int32_t)(pStateHeap->dwFrameId - pKernelAllocation->dwSync) < 0)
+    if (!FrameTrackerTokenFlat_IsExpired(&pKernelAllocation->trackerToken))
     {
         goto finish;
     }
@@ -1421,7 +1420,7 @@ MOS_STATUS RenderHal_DSH_UnloadDynamicKernel(
     pKernelAllocation->iKID             = -1;
     pKernelAllocation->iKUID            = -1;
     pKernelAllocation->iKCID            = -1;
-    pKernelAllocation->dwSync           = 0;
+    FrameTrackerTokenFlat_Clear(&pKernelAllocation->trackerToken);
     pKernelAllocation->dwFlags          = RENDERHAL_KERNEL_ALLOCATION_FREE;
     pKernelAllocation->dwCount          = 0;
     pKernelAllocation->pKernelEntry     = nullptr;
@@ -1828,7 +1827,6 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     uint8_t                             *pCurrentPtr;
     uint8_t                             *performanceMemory = nullptr;
     uint32_t                            performanceSize;
-    uint32_t                            dwFrameId;
     uint32_t                            currentExtendSize = 0;
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -2044,7 +2042,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
     // Use generic heap manager to allocate memory block for dynamic general state heap
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnAssignSpaceInStateHeap(
-        &pRenderHal->trackerResource,
+        &pRenderHal->trackerProducer,
         pRenderHal->dgsheapManager,
         &pDynamicState->memoryBlock,
         dwSizeMediaState)); 
@@ -2072,7 +2070,8 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     }
  
     // set the sync tag for the media state
-    pMediaState->dwSyncTag = pRenderHal->pfnGetNextTrackerId(pRenderHal);
+    FrameTrackerTokenFlat_SetProducer(&pMediaState->trackerToken, &pRenderHal->trackerProducer);
+    FrameTrackerTokenFlat_Merge(&pMediaState->trackerToken, 0, pRenderHal->trackerProducer.GetNextTracker(0));
 
     // Reset HW allocations
     pRenderHal->iChromaKeyCount = 0;
