@@ -452,7 +452,6 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *mosContext)
 
     // get the last tracker
     PCM_HAL_STATE state = (( PCM_CONTEXT_DATA )m_accelData)->cmHalState;
-    m_surfaceMgr->SetLatestFastTrackerAddr(state->advExecutor->GetLatestFastTracker());
     m_surfaceMgr->SetLatestVeboxTrackerAddr(state->renderHal->veBoxTrackerRes.data);
 
     if (m_notifierGroup != nullptr)

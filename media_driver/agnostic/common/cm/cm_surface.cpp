@@ -32,6 +32,7 @@
 #include "cm_mem.h"
 #include "cm_queue_rt.h"
 #include "cm_surface_manager.h"
+#include "cm_execution_adv.h"
 
 namespace CMRT_UMD
 {
@@ -54,7 +55,6 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_index( nullptr ),
     m_surfaceMgr( surfMgr ),
     m_isCmCreated (isCmCreated),
-    m_lastFastTracker(0),
     m_lastVeboxTracker(0),
     m_released(false),
     m_delayDestroyPrev(nullptr),
@@ -87,6 +87,7 @@ int32_t CmSurface::Initialize( uint32_t index )
         return CM_FAILURE;
     }
     m_lastRenderTracker.SetProducer(&cmHalState->renderHal->trackerProducer);
+    m_lastFastTracker.SetProducer(cmHalState->advExecutor->GetFastTrackerProducer());
     // using CM compiler data structure
     m_index = MOS_New(SurfaceIndex, index);
     if( m_index )

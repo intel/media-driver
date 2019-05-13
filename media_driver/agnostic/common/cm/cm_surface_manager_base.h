@@ -156,9 +156,7 @@ public:
     uint32_t MaxIndirectSurfaceCount();
     uint32_t ValidSurfaceIndexStart();
     bool IsSupportedForSamplerSurface2D(CM_SURFACE_FORMAT format);
-    inline void SetLatestFastTrackerAddr(uint32_t *tracker) {m_latestFastTracker = tracker; }
     inline void SetLatestVeboxTrackerAddr(uint32_t *tracker) {m_latestVeboxTracker = tracker; }
-    inline uint32_t LatestFastTracker() {return *m_latestFastTracker; }
     inline uint32_t LatestVeboxTracker() {return *m_latestVeboxTracker; }
 
     void AddToDelayDestroyList(CmSurface *surface);
@@ -238,8 +236,6 @@ protected:
 
     CM_SURFACE_BTI_INFO m_surfaceBTIInfo;
 
-    uint32_t *m_latestRenderTracker;
-    uint32_t *m_latestFastTracker;
     uint32_t *m_latestVeboxTracker;
 
     CmSurface *m_delayDestroyHead;
