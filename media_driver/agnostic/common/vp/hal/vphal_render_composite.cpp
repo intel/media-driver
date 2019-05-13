@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -5606,7 +5606,8 @@ bool CompositeState::RenderBufferComputeWalker(
     pWalkerParams->ThreadHeight = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
     pWalkerParams->ThreadDepth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_DEPTH;
     pWalkerParams->IndirectDataStartAddress = pRenderingData->iCurbeOffset;
-    pWalkerParams->IndirectDataLength       = MOS_ROUNDUP_SHIFT(pRenderingData->iCurbeLength, MHW_COMPUTE_INDIRECT_SHIFT);
+    // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
+    pWalkerParams->IndirectDataLength       = MOS_ALIGN_CEIL(pRenderingData->iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);
     pWalkerParams->BindingTableID = pRenderingData->iBindingTable;
 
     bResult = true;
