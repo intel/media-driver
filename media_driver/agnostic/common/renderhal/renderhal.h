@@ -40,6 +40,8 @@
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
 
+#include "frame_tracker.h"
+
 
 class XRenderHal_Platform_Interface;
 
@@ -756,6 +758,7 @@ typedef struct _RENDERHAL_KRN_ALLOCATION
     int32_t                      iKUID;                                         // Kernel Unique ID
     int32_t                      iKCID;                                         // Kernel Cache ID
     uint32_t                     dwSync;                                        // Kernel last sync (used to determine whether the kernel may be unloaded)
+    FrameTrackerTokenFlat        trackerToken;                                  // Kernel last sync with multiple trackers
     uint32_t                     dwOffset;                                      // Kernel offset in GSH (from GSH base, 0 is KAC entry is available)
     int32_t                      iSize;                                         // Kernel block size in GSH (0 if not loaded)
     uint32_t                     dwFlags : 4;                                   // Kernel allocation flag
@@ -795,6 +798,7 @@ typedef struct _RENDERHAL_MEDIA_STATE
 
     // set at runtime
     uint32_t            dwSyncTag;                                              // Sync Tag
+    FrameTrackerTokenFlat trackerToken;
     uint32_t            dwSyncCount;                                            // Number of sync tags
     int32_t             iCurbeOffset;                                           // Current CURBE Offset
     uint32_t            bBusy   : 1;                                            // 1 if the state is in use (must sync before use)
@@ -1222,7 +1226,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bDynamicStateHeap;        //!< Indicates that DSH is in use
 
 
-    RENDERHAL_TR_RESOURCE       trackerResource;        // Resource to mark command buffer completion
+    FrameTrackerProducer        trackerProducer;        // Resource to mark command buffer completion
     RENDERHAL_TR_RESOURCE       veBoxTrackerRes;        // Resource to mark command buffer completion
 
     HeapManager                 *dgsheapManager;        // Dynamic general state heap manager
@@ -1472,7 +1476,7 @@ typedef struct _RENDERHAL_INTERFACE
     // New Dynamic State Heap interfaces
     //---------------------------
     MOS_STATUS(*pfnAssignSpaceInStateHeap)(
-        RENDERHAL_TR_RESOURCE *trackerInfo,
+        FrameTrackerProducer  *trackerProducer,
         HeapManager           *heapManager,
         MemoryBlock           *block,
         uint32_t               size);
@@ -1598,19 +1602,11 @@ typedef struct _RENDERHAL_INTERFACE
                 PMOS_RESOURCE               presCscCoeff,
                 Kdll_CacheEntry             *pKernelEntry);
 
-    void       (* pfnIncTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
-    uint32_t   (* pfnGetNextTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
-    uint32_t   (* pfnGetCurrentTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
     void       (* pfnSetupPrologParams) (
                 PRENDERHAL_INTERFACE             renderHal,
                 RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
                 PMOS_RESOURCE                    osResource,
+                uint32_t                         offset,
                 uint32_t                         tag);
 
     // Samplers and other states

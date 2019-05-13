@@ -1292,11 +1292,12 @@ typedef struct _CM_HAL_TS_RESOURCE
     uint8_t                     *data;                                          // [in] Linear Data
 } CM_HAL_TS_RESOURCE, *PCM_HAL_TS_RESOURCE;
 
+class FrameTrackerProducer;
 struct CM_HAL_HEAP_PARAM
 {
     uint32_t initialSizeGSH;
     uint32_t extendSizeGSH;
-    uint32_t *trackerResourceGSH;
+    FrameTrackerProducer *trackerProducer;
     HeapManager::Behavior behaviorGSH;
 };
 

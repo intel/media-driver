@@ -1830,7 +1830,7 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
                 }
                 else
                 {
-                    surface->SetRenderTracker(state->renderHal->trackerResource.currentTrackerId);
+                    surface->SetRenderTracker(0, state->renderHal->trackerProducer.GetNextTracker(0));
                 }
 
                 // Push this surface's resource into array for CP check.

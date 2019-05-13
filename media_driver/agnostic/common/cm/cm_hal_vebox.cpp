@@ -195,7 +195,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     osResource = state->renderHal->veBoxTrackerRes.osResource;
     tag = state->renderHal->veBoxTrackerRes.currentTrackerId;
-    state->renderHal->pfnSetupPrologParams(state->renderHal, &genericPrologParams, &osResource, tag);
+    state->renderHal->pfnSetupPrologParams(state->renderHal, &genericPrologParams, &osResource, 0, tag);
 
     //---------------------------------
     // send command buffer header at the beginning (OS dependent)
@@ -222,7 +222,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     // update tracker tag
     //---------------------------------
-    state->renderHal->pfnIncTrackerId(state->renderHal);
+    renderHal->veBoxTrackerRes.currentTrackerId++;
 
     //---------------------------------
     // send vebox state commands

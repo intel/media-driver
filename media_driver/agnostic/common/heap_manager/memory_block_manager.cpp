@@ -160,21 +160,28 @@ MOS_STATUS MemoryBlockManager::RefreshBlockStates(bool &blocksUpdated)
 {
     HEAP_FUNCTION_ENTER_VERBOSE;
 
-    if (m_trackerData == nullptr)
+    if ((!m_useProducer && m_trackerData == nullptr) 
+        || (m_useProducer && m_trackerProducer == nullptr))
     {
         HEAP_ASSERTMESSAGE("It is not possible to check current tracker ID");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
     blocksUpdated = false;
-    uint32_t currTrackerId = *m_trackerData;
+    uint32_t currTrackerId = 0;
+    if (!m_useProducer)
+    {
+        currTrackerId = *m_trackerData;
+    }
 
     auto block = m_sortedBlockList[MemoryBlockInternal::State::submitted];
     MemoryBlockInternal *nextSubmitted = nullptr;
     while (block != nullptr)
     {
         nextSubmitted = block->m_stateNext;
-        if (block->GetTrackerId() <= currTrackerId)
+        FrameTrackerToken *trackerToken = block->GetTrackerToken();
+        if ( (!m_useProducer && block->GetTrackerId() <= currTrackerId)
+            ||(m_useProducer && trackerToken->IsExpired()))
         {
             auto heap = block->GetHeap();
             HEAP_CHK_NULL(heap);
@@ -350,6 +357,15 @@ MOS_STATUS MemoryBlockManager::RegisterTrackerResource(uint32_t *trackerData)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MemoryBlockManager::RegisterTrackerProducer(FrameTrackerProducer *trackerProducer)
+{
+    HEAP_FUNCTION_ENTER;
+    HEAP_CHK_NULL(trackerProducer);
+    m_trackerProducer = trackerProducer;
+    m_useProducer = true;
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MemoryBlockManager::RegisterOsInterface(PMOS_INTERFACE osInterface)
 {
     HEAP_FUNCTION_ENTER;
@@ -467,11 +483,23 @@ MOS_STATUS MemoryBlockManager::AllocateSpace(
             {
                 auto heap = block->GetHeap();
                 HEAP_CHK_NULL(heap);
-                HEAP_CHK_STATUS(AllocateBlock(
-                    (*requestIterator).m_blockSize,
-                    params.m_trackerId,
-                    params.m_staticBlock,
-                    block));
+                if (!m_useProducer)
+                {
+                    HEAP_CHK_STATUS(AllocateBlock(
+                        (*requestIterator).m_blockSize,
+                        params.m_trackerId,
+                        params.m_staticBlock,
+                        block));
+                }
+                else
+                {
+                    HEAP_CHK_STATUS(AllocateBlock(
+                        (*requestIterator).m_blockSize,
+                        params.m_trackerIndex,
+                        params.m_trackerId,
+                        params.m_staticBlock,
+                        block));
+                }
                 if ((*requestIterator).m_originalIdx >= m_sortedSizes.size())
                 {
                     HEAP_ASSERTMESSAGE("Index is out of bounds");
@@ -537,6 +565,55 @@ MOS_STATUS MemoryBlockManager::AllocateBlock(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS MemoryBlockManager::AllocateBlock(
+    uint32_t alignedSize,
+    uint32_t index,
+    uint32_t trackerId,
+    bool staticBlock,
+    MemoryBlockInternal *freeBlock)
+{
+    HEAP_FUNCTION_ENTER_VERBOSE;
+
+    HEAP_CHK_NULL(freeBlock);
+
+    if (!m_useProducer)
+    {
+        HEAP_ASSERTMESSAGE("FrameTrackerProducer need to be registered");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if (alignedSize == 0 || alignedSize > freeBlock->GetSize())
+    {
+        HEAP_ASSERTMESSAGE("Size requested is invalid");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if (freeBlock->GetState() != MemoryBlockInternal::State::free)
+    {
+        HEAP_ASSERTMESSAGE("Free block is not free");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    HEAP_CHK_STATUS(RemoveBlockFromSortedList(freeBlock, freeBlock->GetState()));
+
+    if (alignedSize < freeBlock->GetSize())
+    {
+        auto remainderBlock = GetBlockFromPool();
+        HEAP_CHK_NULL(remainderBlock);
+        freeBlock->Split(remainderBlock, alignedSize);
+        HEAP_CHK_STATUS(AddBlockToSortedList(remainderBlock, remainderBlock->GetState()));
+    }
+    if (staticBlock)
+    {
+        freeBlock->SetStatic();
+    }
+    HEAP_CHK_STATUS(freeBlock->Allocate(index, trackerId, m_trackerProducer));
+    HEAP_CHK_STATUS(AddBlockToSortedList(freeBlock, freeBlock->GetState()));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 
 MOS_STATUS MemoryBlockManager::AddBlockToSortedList(
     MemoryBlockInternal *block,

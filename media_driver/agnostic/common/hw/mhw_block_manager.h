@@ -124,7 +124,7 @@ public:
     //! \return   MOS_STATUS
     //!           Returns the status of the operation
     //!
-    MOS_STATUS Refresh(uint32_t dwSyncTag);
+    MOS_STATUS Refresh();
 
     //!
     //! \brief    Allocate memory block with scratch space
@@ -171,8 +171,7 @@ public:
     //!           Returns the status of the operation
     //!
     MOS_STATUS FreeBlock(
-        PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
-        uint32_t dwSyncTag);
+        PMHW_STATE_HEAP_MEMORY_BLOCK pBlock);
 
     //!
     //! \brief    Calculate the memory of space required
@@ -208,7 +207,7 @@ public:
     //!
     MOS_STATUS SubmitBlock(
         PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
-        uint32_t                     dwSyncTag);
+        const FrameTrackerTokenFlat  *trackerToken);
 
     //!
     //! \brief    Set state heap to block manager

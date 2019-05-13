@@ -263,39 +263,14 @@ MOS_STATUS HalCm_AllocateTrackerResource(
     osInterface = state->osInterface;
     renderHal   = state->renderHal;
 
-    // Tracker resource for RENDER engine
-    Mos_ResetResource(&renderHal->trackerResource.osResource);
-
-    MOS_ZeroMemory(&allocParamsLinearBuffer, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsLinearBuffer.Type     = MOS_GFXRES_BUFFER;
-    allocParamsLinearBuffer.TileType = MOS_TILE_LINEAR;
-    allocParamsLinearBuffer.Format   = Format_Buffer;
-    allocParamsLinearBuffer.dwBytes  = MHW_CACHELINE_SIZE;
-    allocParamsLinearBuffer.pBufName = "TrackerResource";
-
-    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnAllocateResource(
-        osInterface,
-        &allocParamsLinearBuffer,
-        &renderHal->trackerResource.osResource));
-
-    // Lock the Resource
-    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-
-    lockFlags.ReadOnly = 1;
-    lockFlags.ForceCached = true;
-
-    renderHal->trackerResource.data = (uint32_t*)osInterface->pfnLockResource(
-        osInterface,
-        &renderHal->trackerResource.osResource,
-        &lockFlags);
-
-    CM_CHK_NULL_GOTOFINISH_MOSERROR(renderHal->trackerResource.data);
-
-    *(renderHal->trackerResource.data) = MemoryBlock::m_invalidTrackerId;
-
-    renderHal->trackerResource.currentTrackerId = 1;
-
-    renderHal->trackerResource.locked = true;
+    // Tracker producer for RENDER engine
+    renderHal->trackerProducer.Initialize(osInterface);
+    int trackerIndex = renderHal->trackerProducer.AssignNewTracker();
+    if (trackerIndex != 0) // we only use one tracker by now
+    {
+        CM_ASSERTMESSAGE("We only allocate one tracker by now");
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
 
     // Tracker resource for VeBox engine
     Mos_ResetResource(&renderHal->veBoxTrackerRes.osResource);
@@ -357,7 +332,7 @@ MOS_STATUS HalCm_InitializeDynamicStateHeaps(
     dgsHeap->SetDefaultBehavior(heapParam->behaviorGSH);
     CM_CHK_MOSSTATUS_GOTOFINISH(dgsHeap->SetInitialHeapSize(heapParam->initialSizeGSH));
     CM_CHK_MOSSTATUS_GOTOFINISH(dgsHeap->SetExtendHeapSize(heapParam->extendSizeGSH));
-    CM_CHK_MOSSTATUS_GOTOFINISH(dgsHeap->RegisterTrackerResource(heapParam->trackerResourceGSH));
+    CM_CHK_MOSSTATUS_GOTOFINISH(dgsHeap->RegisterTrackerProducer(heapParam->trackerProducer));
     // lock the heap in the beginning, so cpu doesn't need to wait gpu finishing occupying it to lock it again
     CM_CHK_MOSSTATUS_GOTOFINISH(dgsHeap->LockHeapsOnAllocate());
 
@@ -428,23 +403,6 @@ __inline void HalCm_FreeTrackerResources(
     MOS_STATUS          hr;
 
     osInterface = state->osInterface;
-
-    if (!Mos_ResourceIsNull(&state->renderHal->trackerResource.osResource))
-    {
-        if(state->renderHal->trackerResource.locked)
-        {
-            hr = (MOS_STATUS)osInterface->pfnUnlockResource(
-                osInterface,
-                &state->renderHal->trackerResource.osResource);
-
-            CM_ASSERT(hr == MOS_STATUS_SUCCESS);
-        }
-
-        osInterface->pfnFreeResourceWithFlag(
-            osInterface,
-            &state->renderHal->trackerResource.osResource,
-            SURFACE_FLAG_ASSUME_NOT_IN_USE);
-    }
 
     if (!Mos_ResourceIsNull(&state->renderHal->veBoxTrackerRes.osResource))
     {
@@ -1778,6 +1736,7 @@ void CmLoadKernel(PCM_HAL_STATE             state,
         kernelAllocation->iKUID       = -1;
         kernelAllocation->iKCID       = -1;
         kernelAllocation->dwSync      = 0;
+        FrameTrackerTokenFlat_Clear(&kernelAllocation->trackerToken);
         kernelAllocation->dwCount     = 0;
         kernelAllocation->dwFlags     = RENDERHAL_KERNEL_ALLOCATION_FREE;
         kernelAllocation->pMhwKernelParam = nullptr;
@@ -2218,6 +2177,7 @@ int32_t HalCm_UnloadKernel(
     kernelAllocation->iKUID    = -1;
     kernelAllocation->iKCID    = -1;
     kernelAllocation->dwSync   = 0;
+    FrameTrackerTokenFlat_Clear(&kernelAllocation->trackerToken);
     kernelAllocation->dwFlags          = RENDERHAL_KERNEL_ALLOCATION_FREE;
     kernelAllocation->dwCount  = 0;
     kernelAllocation->pMhwKernelParam  = nullptr;
@@ -3009,11 +2969,8 @@ int32_t HalCm_DSH_LoadKernelArray(
     int32_t                      blockCount;                              // Number of kernels to load
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     int32_t                      hr = CM_FAILURE;
-    uint32_t                     currId, nextId;
 
     renderHal = state->renderHal;
-    nextId = renderHal->pfnGetNextTrackerId(renderHal);
-    currId = renderHal->pfnGetCurrentTrackerId(renderHal);
     state->criticalSectionDSH->Acquire();
     do
     {
@@ -3039,7 +2996,7 @@ int32_t HalCm_DSH_LoadKernelArray(
                     // Kernel needs to be reloaded in current heap
                     if (memoryBlock->pStateHeap != renderHal->pMhwStateHeap->GetISHPointer() || state->forceKernelReload) //pInstructionStateHeaps
                     {
-                        renderHal->pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, memoryBlock, currId);
+                        renderHal->pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, memoryBlock);
                         krnAllocation[i]->pMemoryBlock = nullptr;
                     }
                     else
@@ -3149,7 +3106,8 @@ int32_t HalCm_DSH_LoadKernelArray(
                         allocation->iKID = -1;
                         allocation->iKUID = static_cast<int>((kernelArray[i]->kernelId >> 32));
                         allocation->iKCID = -1;
-                        allocation->dwSync = nextId;
+                        FrameTrackerTokenFlat_SetProducer(&allocation->trackerToken, &renderHal->trackerProducer);
+                        FrameTrackerTokenFlat_Merge(&allocation->trackerToken, 0, renderHal->trackerProducer.GetNextTracker(0));
                         allocation->dwOffset = memoryBlock->dwDataOffset;
                         allocation->iSize = kernelArray[i]->kernelBinarySize + CM_KERNEL_BINARY_PADDING_SIZE;
                         allocation->dwCount = 0;
@@ -8037,7 +7995,7 @@ MOS_STATUS HalCm_Allocate(
     heapParams.behaviorGSH        = HeapManager::Behavior::destructiveExtend;
     heapParams.initialSizeGSH     = 0x0080000;
     heapParams.extendSizeGSH      = 0x0080000;
-    heapParams.trackerResourceGSH = state->renderHal->trackerResource.data;
+    heapParams.trackerProducer    = &state->renderHal->trackerProducer;
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_InitializeDynamicStateHeaps(state, &heapParams));
 
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_AllocateTables(state));

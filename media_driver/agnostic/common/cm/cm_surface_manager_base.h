@@ -156,10 +156,8 @@ public:
     uint32_t MaxIndirectSurfaceCount();
     uint32_t ValidSurfaceIndexStart();
     bool IsSupportedForSamplerSurface2D(CM_SURFACE_FORMAT format);
-    inline void SetLatestRenderTrackerAddr(uint32_t *tracker) {m_latestRenderTracker = tracker; }
     inline void SetLatestFastTrackerAddr(uint32_t *tracker) {m_latestFastTracker = tracker; }
     inline void SetLatestVeboxTrackerAddr(uint32_t *tracker) {m_latestVeboxTracker = tracker; }
-    inline uint32_t LatestRenderTracker() {return *m_latestRenderTracker; }
     inline uint32_t LatestFastTracker() {return *m_latestFastTracker; }
     inline uint32_t LatestVeboxTracker() {return *m_latestVeboxTracker; }
 

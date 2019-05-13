@@ -54,7 +54,6 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_index( nullptr ),
     m_surfaceMgr( surfMgr ),
     m_isCmCreated (isCmCreated),
-    m_lastRenderTracker(0),
     m_lastFastTracker(0),
     m_lastVeboxTracker(0),
     m_released(false),
@@ -79,6 +78,15 @@ CmSurface::~CmSurface( void )
 //*-----------------------------------------------------------------------------
 int32_t CmSurface::Initialize( uint32_t index )
 {
+    // set the tracker producer
+    CmDeviceRT* cmDevice =  nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    PCM_HAL_STATE  cmHalState = ((PCM_CONTEXT_DATA)cmDevice->GetAccelData())->cmHalState;
+    if (cmHalState == nullptr)
+    {
+        return CM_FAILURE;
+    }
+    m_lastRenderTracker.SetProducer(&cmHalState->renderHal->trackerProducer);
     // using CM compiler data structure
     m_index = MOS_New(SurfaceIndex, index);
     if( m_index )
