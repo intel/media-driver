@@ -2980,6 +2980,14 @@ CM_RT_API int32_t CmDeviceRT::SetL3Config(const L3ConfigRegisterValues *l3Config
 
     l3Values = *l3Config;
 
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)this->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    if (cmData->cmHalState->advExecutor != nullptr)
+    {
+        cmData->cmHalState->advExecutor->SetL3Config(l3Config);
+    }
+
     SetCaps(CAP_L3_CONFIG, sizeof(L3ConfigRegisterValues), &l3Values);
 
     return CM_SUCCESS;
@@ -2996,6 +3004,12 @@ CM_RT_API int32_t CmDeviceRT::SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestCo
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)this->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    if (cmData->cmHalState->advExecutor != nullptr)
+    {
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->advExecutor->SetSuggestedL3Config(l3SuggestConfig));
+    }
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->cmHalInterface->SetSuggestedL3Conf(l3SuggestConfig));
 
 finish:
