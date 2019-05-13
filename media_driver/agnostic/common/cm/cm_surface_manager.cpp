@@ -189,8 +189,6 @@ CmSurfaceManagerBase::CmSurfaceManagerBase(CmDeviceRT* device) :
     m_garbageCollection1DSize(0),
     m_garbageCollection2DSize(0),
     m_garbageCollection3DSize(0),
-    m_latestRenderTracker(nullptr),
-    m_latestFastTracker(nullptr),
     m_latestVeboxTracker(nullptr),
     m_delayDestroyHead(nullptr),
     m_delayDestroyTail(nullptr)

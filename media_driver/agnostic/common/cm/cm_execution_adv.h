@@ -66,7 +66,7 @@ public:
     virtual void Set2DFrameType(CmSurfaceState2DMgr *stateMgr, CM_FRAME_TYPE frameType) {}
     virtual void SetRotationFlag(CmSurfaceState2DMgr *stateMgr, uint32_t rotation) {}
     virtual void SetChromaSitting(CmSurfaceState2DMgr *stateMgr, uint8_t chromaSitting) {}
-    virtual uint32_t *GetLatestFastTracker() {return nullptr; }
+    virtual FrameTrackerProducer *GetFastTrackerProducer() {return nullptr; }
     virtual CMRT_UMD::CmKernelRT *CreateKernelRT(CMRT_UMD::CmDeviceRT *device,
                 CMRT_UMD::CmProgramRT *program,
                 uint32_t kernelIndex,
