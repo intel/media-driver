@@ -725,8 +725,17 @@ MOS_STATUS HalCm_GetPlatformInfo_Linux(
 
     platformInfo->numHWThreadsPerEU    = gtSystemInfo->ThreadCount / gtSystemInfo->EUCount;
     platformInfo->numEUsPerSubSlice    = gtSystemInfo->EUCount / gtSystemInfo->SubSliceCount;
-    platformInfo->numSlices            = gtSystemInfo->SliceCount;
-    platformInfo->numSubSlices         = gtSystemInfo->SubSliceCount;
+
+    if (state->cmHalInterface->CheckMediaModeAvailability())
+    {
+        platformInfo->numSlices            = gtSystemInfo->SliceCount;
+        platformInfo->numSubSlices         = gtSystemInfo->SubSliceCount;
+    }
+    else
+    { // not use Slice/SubSlice count  set to 0
+        platformInfo->numSlices = 0;
+        platformInfo->numSubSlices = 0;
+    }
 
     return eStatus;
 }
