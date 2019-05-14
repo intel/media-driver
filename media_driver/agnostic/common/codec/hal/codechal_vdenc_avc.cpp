@@ -5779,6 +5779,25 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
     // Enc Params
     oss << "BlockBasedSkip = " << std::dec << +m_avcPar->BlockBasedSkip << std::endl;
     oss << "VDEncPerfMode = " << std::dec << +m_avcPar->VDEncPerfMode << std::endl;
+    oss << "SubPelMode = " << std::dec << +m_avcPar->SubPelMode << std::endl;
+    oss << "LeftNbrPelMode = " << std::dec << +m_avcPar->LeftNbrPelMode << std::endl;
+    oss << "ImePredOverlapThr = " << std::dec << +m_avcPar->ImePredOverlapThr << std::endl;
+    oss << "MBSizeEstScalingRatioINTRA = " << std::dec << +m_avcPar->MBSizeEstScalingRatioINTRA << std::endl;
+    oss << "IntraMBHdrScaleFactor = " << std::dec << +m_avcPar->IntraMBHdrScaleFactor << std::endl;
+    oss << "MBSizeEstScalingRatioINTER = " << std::dec << +m_avcPar->MBSizeEstScalingRatioINTER << std::endl;
+    oss << "InterMBHdrScaleFactor = " << std::dec << +m_avcPar->InterMBHdrScaleFactor << std::endl;
+    oss << "HMERefWindowSize = " << std::dec << +m_avcPar->HMERefWindowSize << std::endl;
+    oss << "IMELeftPredDep = " << std::dec << +m_avcPar->IMELeftPredDep << std::endl;
+    oss << "NumFMECandCheck = " << std::dec << +m_avcPar->NumFMECandCheck << std::endl;
+    oss << "RdoChromaEnable = " << std::dec << +m_avcPar->RdoChromaEnable << std::endl;
+    oss << "Intra4x4ModeMask = " << std::dec << +m_avcPar->Intra4x4ModeMask << std::endl;
+    oss << "Intra8x8ModeMask = " << std::dec << +m_avcPar->Intra8x8ModeMask << std::endl;
+    oss << "RdoIntraChromaSearch = " << std::dec << +m_avcPar->RdoIntraChromaSearch << std::endl;
+    oss << "Intra16x16ModeMask = " << std::dec << +m_avcPar->Intra16x16ModeMask << std::endl;
+    oss << "InitMBBudgetTr4x4 = " << std::dec << +m_avcPar->InitMBBudgetTr4x4 << std::endl;
+    oss << "ROIEnable = " << std::dec << +m_avcPar->ROIEnable << std::endl;
+    oss << "ForceIPCMMinQP = " << std::dec << +m_avcPar->ForceIPCMMinQP << std::endl;
+    oss << "IntraTr4x4Percent = " << std::dec << +m_avcPar->IntraTr4x4Percent << std::endl;
 
     // PAK Params
     oss << "TrellisQuantizationEnable = " << std::dec << +m_avcPar->TrellisQuantizationEnable << std::endl;
@@ -5817,6 +5836,7 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
             oss << "EnableWeightPredictionDetection = " << std::dec << +m_avcPar->EnableWeightPredictionDetection << std::endl;
         }
         oss << "WeightedPred = " << std::dec << +m_avcPar->WeightedPred << std::endl;
+        oss << "WeightedBiPred = " << std::dec << +m_avcPar->WeightedBiPred << std::endl;
         if (m_avcPar->WeightedPred)
         {
             oss << "EnableWeightPredictionDetection = 1" << std::endl;
@@ -5840,7 +5860,6 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
         oss << "MEMethod = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->meMethod : m_avcPar->MEMethod) << std::endl;
 
         // Enc Params
-        oss << "SubPelMode = " << std::dec << +m_avcPar->SubPelMode << std::endl;
         oss << "FTQBasedSkip = " << std::dec << +m_avcPar->FTQBasedSkip << std::endl;
         oss << "BiMixDisable = " << std::dec << +m_avcPar->BiMixDisable << std::endl;
         oss << "SurvivedSkipCost = " << std::dec << +m_avcPar->SurvivedSkipCost << std::endl;
@@ -5856,6 +5875,11 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
         oss << "AdaptiveMvStreamIn = " << std::dec << +m_avcPar->AdaptiveMvStreamIn << std::endl;
         oss << "LargeMvThresh = " << std::dec << +m_avcPar->LargeMvThresh << std::endl;
         oss << "LargeMvPctThreshold = " << std::dec << +m_avcPar->LargeMvPctThreshold << std::endl;
+        oss << "DisPSubPartMask = " << std::dec << +m_avcPar->DisPSubPartMask << std::endl;
+        oss << "DisPSubMbMask = " << std::dec << +m_avcPar->DisPSubMbMask << std::endl;
+        oss << "PFrameMaxNumImePred = " << std::dec << +m_avcPar->PFrameMaxNumImePred << std::endl;
+        oss << "PFrameImePredLargeSW = " << std::dec << +m_avcPar->PFrameImePredLargeSW << std::endl;
+        oss << "PFrameZeroCbfEn = " << std::dec << +m_avcPar->PFrameZeroCbfEn << std::endl;
 
         // BRC Frame Update
         oss << "Transform8x8PDisable = " << std::dec << +m_avcPar->Transform8x8PDisable << std::endl;
@@ -5870,6 +5894,11 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
     if (m_avcPar->NumB > 0)
     {
         oss << "BSliceQP = " << std::dec << +m_avcPar->BSliceQP << std::endl;
+        oss << "DisBSubPartMask = " << std::dec << +m_avcPar->DisBSubPartMask << std::endl;
+        oss << "DisBSubMbMask = " << std::dec << +m_avcPar->DisBSubMbMask << std::endl;
+        oss << "BFrameMaxNumImePred = " << std::dec << +m_avcPar->BFrameMaxNumImePred << std::endl;
+        oss << "BFrameImePredLargeSW = " << std::dec << +m_avcPar->BFrameImePredLargeSW << std::endl;
+        oss << "BFrameZeroCbfEn = " << std::dec << +m_avcPar->BFrameZeroCbfEn << std::endl;
     }
 
     const char *fileName = m_debugInterface->CreateFileName(
