@@ -573,7 +573,7 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
 
     CodecHalFreeDataList(m_hevcRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
-    if (!m_hcpInterface->IsHevcDfRowstoreCacheEnabled())
+    if (!Mos_ResourceIsNull(&m_resMfdDeblockingFilterRowStoreScratchBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -588,7 +588,7 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
         m_osInterface,
         &m_resDeblockingFilterColumnRowStoreScratchBuffer);
 
-    if (!m_hcpInterface->IsHevcDatRowstoreCacheEnabled())
+    if (!Mos_ResourceIsNull(&m_resMetadataLineBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -603,7 +603,7 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
         m_osInterface,
         &m_resMetadataTileColumnBuffer);
 
-    if (!m_hcpInterface->IsHevcSaoRowstoreCacheEnabled())
+    if (!Mos_ResourceIsNull(&m_resSaoLineBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
