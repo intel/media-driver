@@ -205,6 +205,7 @@ struct VPHAL_DBG_SURF_DUMP_SPEC
     uint32_t                      uiEndFrame;                                   //!< Frame to stop dumping at
     int32_t                       iNumDumpLocs;                                 //!< Number of pipe stage dump locations
     bool                          enableAuxDump;                                //!< Enable aux data dump for compressed surface
+    bool                          enablePlaneDump;                              //!< Enable surface dump by plane
 };
 
 //!
