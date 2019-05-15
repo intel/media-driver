@@ -3438,6 +3438,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
        "0",
        "Enable MOS to simualte random memory allocate fail. "),
+        MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_EXTERNAL_COPY_SYNC_ID,
+       "External Copy Sync",
+       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+       "Encode",
+       MOS_USER_FEATURE_TYPE_USER,
+       MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+       "0",
+       "Enable GPU polling based sync for external raw surface copy."),
 };
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))
