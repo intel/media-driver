@@ -30,6 +30,7 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Wno-attributes
     -Wno-narrowing
     -Wno-overflow
+    -Wno-parentheses
     -Werror=implicit-function-declaration
     -Werror=address
     -Werror=format-security
