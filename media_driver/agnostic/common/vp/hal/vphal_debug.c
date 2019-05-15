@@ -439,16 +439,15 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
         }
     }
 
-    PaddingEnable = ((pSurface->UPlaneOffset.iSurfaceOffset - pSurface->YPlaneOffset.iSurfaceOffset) / pSurface->dwPitch + pSurface->UPlaneOffset.iYOffset) > pSurface->dwHeight;
-    // checking whether Padding needed
-    if (auxEnable && PaddingEnable)
+    //compressed surface need 32 align on height
+    if (auxEnable)
     {
         for (i = 0; i < *pdwNumPlanes; i++)
         {
             pPlanes[i].dwHeight = MOS_ALIGN_CEIL(pPlanes[i].dwHeight, 32);
         }
     }
-    
+
     // For uncompressed surface, padding data is not needed. For compressed surface, padding data is needed for offline check
     if (auxEnable)
     {
@@ -481,10 +480,12 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
     uint8_t                             *pDst, *pTmpSrc, *pTmpDst;
     uint32_t                            dwNumPlanes, dwSize, j, i;
     VPHAL_DBG_SURF_DUMP_SURFACE_DEF     planes[3];
+    uint32_t                            dstPlaneOffset[3] = {0};
     MOS_LOCK_PARAMS                     LockFlags;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
     bool                                hasAuxSurf;
     bool                                enableAuxDump;
+    bool                                enablePlaneDump = false;
 
 #if !EMUL
     GMM_RESOURCE_FLAG                   gmmFlags;
@@ -501,6 +502,8 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
     enableAuxDump   = m_dumpSpec.enableAuxDump;
     MOS_ZeroMemory(sPath,   MAX_PATH);
     MOS_ZeroMemory(sOsPath, MAX_PATH);
+    dwNumPlanes = 0;
+    enablePlaneDump = m_dumpSpec.enablePlaneDump;
 
     if (pSurface->dwDepth == 0)
     {
@@ -520,7 +523,7 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         planes,
         &dwNumPlanes,
         &dwSize,
-        enableAuxDump));
+        (hasAuxSurf && enableAuxDump)));
 
     if (bLockSurface)
     {
@@ -570,15 +573,16 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
 
     pDst = (uint8_t*)MOS_AllocAndZeroMemory(dwSize);
     VPHAL_DEBUG_CHK_NULL(pDst);
+    VPHAL_DEBUG_CHK_NULL(pData);
     pTmpSrc = pData;
     pTmpDst = pDst;
 
     for (j = 0; j < dwNumPlanes; j++)
     {
         pTmpSrc = pData + planes[j].dwOffset;
-        for (i = 0; i < planes[j].dwHeight; i++)
+        for (i = 0; i <     MOS_ALIGN_CEIL(planes[j].dwHeight, 32); i++)
         {
-            if (enableAuxDump)
+            if (hasAuxSurf && enableAuxDump)
             {
                 MOS_SecureMemcpy(
                     pTmpDst,
@@ -588,6 +592,8 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
 
                 pTmpSrc += planes[j].dwPitch;
                 pTmpDst += planes[j].dwPitch;
+
+                dstPlaneOffset[j+1] += planes[j].dwPitch;
             }
             else
             {
@@ -599,9 +605,43 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
 
                 pTmpSrc += planes[j].dwPitch;
                 pTmpDst += planes[j].dwWidth;
+
+                dstPlaneOffset[j+1] += planes[j].dwWidth;
+            }
+        }
+
+        //if more than 1 plane, dump each plane's surface for offline analysis
+        if (enablePlaneDump)
+        {
+            if ((dwNumPlanes > 1) && (dwNumPlanes <= 3))
+            {
+                char sPlanePath[MAX_PATH], sPlaneOsPath[MAX_PATH];
+                MOS_ZeroMemory(sPlanePath, MAX_PATH);
+                MOS_ZeroMemory(sPlaneOsPath, MAX_PATH);
+
+                MOS_SecureStringPrint(
+                    sPlanePath,
+                    MAX_PATH,
+                    sizeof(sPlanePath),
+                    "%s_f[%03lld]_w[%d]_h[%d]_p[%d].%s",
+                    psPathPrefix,
+                    iCounter,
+                    planes[j].dwWidth,
+                    planes[j].dwHeight,
+                    planes[j].dwPitch,
+                    (j == 0 ? "Y" : ((dwNumPlanes == 2) ? "UV" : ((j == 1) ? "U" : "V"))));
+
+                VphalDumperTool::GetOsFilePath(sPlanePath, sPlaneOsPath);
+
+                VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sPlaneOsPath, pDst + dstPlaneOffset[j], dstPlaneOffset[j + 1]));
+            }
+            else
+            {
+                VPHAL_DEBUG_ASSERTMESSAGE("More than 3 planes not supported during plane dump.");
             }
         }
     }
+
     VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDst, dwSize));
 
 #if !EMUL
@@ -2088,6 +2128,14 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
         __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP_ID,
         &UserFeatureData));
     pDumpSpec->enableAuxDump = UserFeatureData.u32Data;
+
+    // Get plane dump enabled flag
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP,
+        &UserFeatureData));
+    pDumpSpec->enablePlaneDump = UserFeatureData.u32Data;
 
 finish:
     if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled))
