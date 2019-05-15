@@ -1295,6 +1295,7 @@ MOS_STATUS CodechalDecodeVp9 :: DetermineDecodePhase()
 MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    PMOS_RESOURCE usedDummyReference = nullptr;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -1372,6 +1373,16 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     m_picMhwParams.SurfaceParams[0]->ucBitDepthChromaMinus8 = m_vp9PicParams->BitDepthMinus8;
     m_picMhwParams.SurfaceParams[0]->dwUVPlaneAlignment = 8;
 
+    if (MEDIA_IS_WA(m_waTable, WaDummyReference) &&
+        !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+    {
+        usedDummyReference = &m_dummyReference.OsResource;
+    }
+    else
+    {
+        usedDummyReference = &m_destSurface.OsResource;
+    }
+
     // Populate surface param for reference pictures
     if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
         !m_vp9PicParams->PicFlags.fields.intra_only &&
@@ -1379,6 +1390,19 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
         m_presGoldenRefSurface != nullptr &&
         m_presAltRefSurface != nullptr)
     {
+        if (Mos_ResourceIsNull(m_presLastRefSurface))
+        {
+            m_presLastRefSurface = usedDummyReference;
+        }
+        if (Mos_ResourceIsNull(m_presGoldenRefSurface))
+        {
+            m_presGoldenRefSurface = usedDummyReference;
+        }
+        if (Mos_ResourceIsNull(m_presAltRefSurface))
+        {
+            m_presAltRefSurface = usedDummyReference;
+        }
+
         //MOS_SURFACE lastRefSurface;
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &m_lastRefSurface.OsResource,
@@ -1445,15 +1469,7 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     {
         if (!m_picMhwParams.PipeBufAddrParams->presReferences[i])
         {
-            if (MEDIA_IS_WA(m_waTable, WaDummyReference) &&
-                !Mos_ResourceIsNull(&m_dummyReference.OsResource))
-            {
-                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
-            }
-            else
-            {
-                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &(m_destSurface.OsResource);
-            }
+            m_picMhwParams.PipeBufAddrParams->presReferences[i] = usedDummyReference;
         }
     }
 
