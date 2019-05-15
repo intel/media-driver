@@ -652,6 +652,7 @@ protected:
     bool&                       m_singleTaskPhaseSupported;
     bool&                       m_firstTaskInPhase;
     bool&                       m_lastTaskInPhase;
+    bool&                       m_externalCopySync;
     uint8_t&                    m_groupId;
     uint8_t&                    m_outputChromaFormat;
     uint32_t&                   m_standard;

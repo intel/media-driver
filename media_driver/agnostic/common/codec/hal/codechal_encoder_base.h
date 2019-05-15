@@ -1378,6 +1378,7 @@ public:
     bool                            m_2xScalingEnabled = false;   //!< 2x Scaling kernel only used by HEVC now
     bool                            m_useRawForRef = false;       //!< Flag to indicate if using raw surface for reference
     bool                            m_disableReconMMCD = false;   //!< disable Recon surface's MMC
+    bool                            m_externalCopySync  = false;  //!< Flag to indicate if GPU polling based sync for raw surface copy is enabled
     uint8_t                         m_prevReconFrameIdx = 0;      //!< Previous reconstruct frame index
     uint8_t                         m_currReconFrameIdx = 0;      //!< Current reconstruct frame index
 

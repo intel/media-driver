@@ -1189,6 +1189,13 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
+            __MEDIA_USER_FEATURE_VALUE_EXTERNAL_COPY_SYNC_ID,
+            &userFeatureData);
+        m_externalCopySync = userFeatureData.bData == 1;
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
             __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_ALLOCATION_WA_ENABLE_ID,
             &userFeatureData);
         if (userFeatureData.u32Data == 0) // MFX_LRA_0/1/2 offsets might not be available
@@ -3154,6 +3161,8 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
     )
 
         m_firstTaskInPhase = true;
+
+    m_externalCopySync &= (m_avcSeqParam->ScenarioInfo == ESCENARIO_REMOTEGAMING);
 
     if (m_cscDsState->UseSfc() && m_cscDsState->RequireCsc())
     {
