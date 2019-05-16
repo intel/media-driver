@@ -405,7 +405,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
     // get the tag
-    tag = renderHal->trackerProducer.GetNextTracker(0);
+    tag = renderHal->trackerProducer.GetNextTracker(renderHal->currentTrackerIndex);
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
@@ -417,7 +417,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     if (state->cbbEnabled)
     {
         *(taskSyncLocation + 2) = tag;
-        *(taskSyncLocation + 3) = 0; // use the first tracker by now
+        *(taskSyncLocation + 3) = state->renderHal->currentTrackerIndex;
     }
 
     // Register batch buffer for rendering
@@ -445,10 +445,10 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdatePowerOption(state, &state->powerOption));
 
     // use frame tracking to write the tracker ID to CM tracker resource
-    renderHal->trackerProducer.GetLatestTrackerResource(0, &osResource, &tagOffset);
+    renderHal->trackerProducer.GetLatestTrackerResource(renderHal->currentTrackerIndex, &osResource, &tagOffset);
     renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, osResource, tagOffset, tag);
     FrameTrackerTokenFlat_SetProducer(&stateHeap->pCurMediaState->trackerToken, &renderHal->trackerProducer);
-    FrameTrackerTokenFlat_Merge(&stateHeap->pCurMediaState->trackerToken, 0, tag);
+    FrameTrackerTokenFlat_Merge(&stateHeap->pCurMediaState->trackerToken, renderHal->currentTrackerIndex, tag);
 
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
@@ -468,7 +468,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
     // update tracker tag used with CM tracker resource
-    renderHal->trackerProducer.StepForward(0);
+    renderHal->trackerProducer.StepForward(renderHal->currentTrackerIndex);
 
     // Increment sync tag
     syncTag = stateHeap->dwNextTag++;

@@ -407,7 +407,9 @@ void RenderHal_DSH_TouchDynamicKernel(
     // Set sync tag, for deallocation control
     pKernelAllocation->dwFlags = RENDERHAL_KERNEL_ALLOCATION_LOCKED;
     FrameTrackerTokenFlat_SetProducer(&pKernelAllocation->trackerToken, &pRenderHal->trackerProducer);
-    FrameTrackerTokenFlat_Merge(&pKernelAllocation->trackerToken, 0, pRenderHal->trackerProducer.GetNextTracker(0));
+    FrameTrackerTokenFlat_Merge(&pKernelAllocation->trackerToken,
+                                pRenderHal->currentTrackerIndex,
+                                pRenderHal->trackerProducer.GetNextTracker(pRenderHal->currentTrackerIndex));
 
     // Move kernel to the tail of the submitted list (list is sorted with the most recently used at the end)
     RenderHal_DSH_KernelAttach(&pStateHeap->KernelsSubmitted, pKernelAllocation, false);
@@ -805,6 +807,7 @@ finish:
 //! \return   MOS_STATUS
 //!
 MOS_STATUS RenderHal_DSH_AssignSpaceInStateHeap(
+    uint32_t trackerIndex,
     FrameTrackerProducer *trackerProducer,
     HeapManager *heapManager,
     MemoryBlock *block,
@@ -816,9 +819,9 @@ MOS_STATUS RenderHal_DSH_AssignSpaceInStateHeap(
     std::vector<uint32_t> blockSizes;
 
     MemoryBlockManager::AcquireParams acquireParams = 
-        MemoryBlockManager::AcquireParams(trackerProducer->GetNextTracker(0),
+        MemoryBlockManager::AcquireParams(trackerProducer->GetNextTracker(trackerIndex),
                                           blockSizes);
-    acquireParams.m_trackerIndex = 0; // use the first tracker only
+    acquireParams.m_trackerIndex = trackerIndex; // use the first tracker only
 
     MHW_RENDERHAL_CHK_NULL(heapManager);    
     MHW_RENDERHAL_CHK_NULL(block);
@@ -2042,6 +2045,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
     // Use generic heap manager to allocate memory block for dynamic general state heap
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnAssignSpaceInStateHeap(
+        pRenderHal->currentTrackerIndex,
         &pRenderHal->trackerProducer,
         pRenderHal->dgsheapManager,
         &pDynamicState->memoryBlock,
@@ -2071,7 +2075,9 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
  
     // set the sync tag for the media state
     FrameTrackerTokenFlat_SetProducer(&pMediaState->trackerToken, &pRenderHal->trackerProducer);
-    FrameTrackerTokenFlat_Merge(&pMediaState->trackerToken, 0, pRenderHal->trackerProducer.GetNextTracker(0));
+    FrameTrackerTokenFlat_Merge(&pMediaState->trackerToken, 
+                                pRenderHal->currentTrackerIndex,
+                                pRenderHal->trackerProducer.GetNextTracker(pRenderHal->currentTrackerIndex));
 
     // Reset HW allocations
     pRenderHal->iChromaKeyCount = 0;
