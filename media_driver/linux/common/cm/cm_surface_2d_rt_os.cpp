@@ -46,20 +46,10 @@ CmSurface2DRT::CmSurface2DRT(
     CM_SURFACE_FORMAT format,
     CmSurfaceManager* surfaceManager ,
     bool isCmCreated):
-    CmSurface( surfaceManager,isCmCreated ),
-    m_width( width ),
-    m_height( height ),
-    m_handle( handle ),
-    m_pitch(pitch),
-    m_format(format),
-    m_umdResource( nullptr ),
-    m_numAliases( 0 ),
-    m_vaSurfaceID( 0 ),
-    m_vaCreated ( false ),
-    m_frameType(CM_FRAME)
+    CmSurface2DRTBase(handle, width, height, pitch, format, surfaceManager, isCmCreated)
 {
-    CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_UNKNOW, CM_USE_PTE, 0);
-    CmSafeMemSet(m_aliasIndexes, 0, sizeof(SurfaceIndex*) * CM_HAL_MAX_NUM_2D_ALIASES);
+    m_vaSurfaceID = 0;
+    m_vaCreated = 0;
 }
 
 //*-----------------------------------------------------------------------------
@@ -80,6 +70,54 @@ CmSurface2DRT::~CmSurface2DRT( void )
         m_surfaceMgr->GetCmDevice(device);
         device->ReleaseVASurface(m_vaDisplay, &m_vaSurfaceID);
     }
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create Surface 2D
+//| Arguments :
+//|               index             [in]     index in runtime Surface2D table
+//|               handle            [in]     index in driver's surface2D table
+//|               width             [in]     width of the  CmSurface2D
+//|               height            [in]     height of the CmSurface2D
+//|               pitch             [in]     pitch of the CmSurface2D
+//|               format            [out]    format of CmSurface2D
+//|               isCmCreated       [out]    ture,if the surface created by CM;
+//|                                          false,if the surface created externally
+//|               surfaceManager   [out]    Pointer to CmSurfaceManager
+//|               surface          [out]    Reference to the Pointer to CmSurface2D
+
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t CmSurface2DRT::Create(
+                           uint32_t index,
+                           uint32_t handle,
+                           uint32_t width,
+                           uint32_t height,
+                           uint32_t pitch,
+                           CM_SURFACE_FORMAT format,
+                           bool isCmCreated,
+                           CmSurfaceManager* surfaceManager,
+                           CmSurface2DRT* &surface )
+{
+    int32_t result = CM_SUCCESS;
+
+    surface = new (std::nothrow) CmSurface2DRT( handle,width,height, pitch,format,surfaceManager, isCmCreated);
+    if( surface )
+    {
+        result = surface->Initialize( index );
+        if( result != CM_SUCCESS )
+        {
+            CmSurface* baseSurface = surface;
+            CmSurface::Destroy( baseSurface );
+        }
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Error: Failed to CmSurface2DRTBase due to out of system memory.")
+        result = CM_OUT_OF_HOST_MEMORY;
+    }
+
+    return result;
 }
 
 int32_t CmSurface2DRT::SetVaSurfaceID( VASurfaceID  vaSurface, void  *vaDisplay)
