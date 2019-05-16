@@ -1228,6 +1228,7 @@ typedef struct _RENDERHAL_INTERFACE
 
     FrameTrackerProducer        trackerProducer;        // Resource to mark command buffer completion
     RENDERHAL_TR_RESOURCE       veBoxTrackerRes;        // Resource to mark command buffer completion
+    uint32_t                    currentTrackerIndex;    // Record the tracker index
 
     HeapManager                 *dgsheapManager;        // Dynamic general state heap manager
 
@@ -1476,6 +1477,7 @@ typedef struct _RENDERHAL_INTERFACE
     // New Dynamic State Heap interfaces
     //---------------------------
     MOS_STATUS(*pfnAssignSpaceInStateHeap)(
+        uint32_t              trackerIndex,
         FrameTrackerProducer  *trackerProducer,
         HeapManager           *heapManager,
         MemoryBlock           *block,

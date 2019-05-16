@@ -90,5 +90,7 @@ public:
     virtual void SetL3Config(const L3ConfigRegisterValues *l3Config) {}
 
     virtual int SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestConfig) {return 0; }
+
+    virtual int AssignNewTracker() {return 0; }
     
 };

@@ -243,6 +243,8 @@ public:
 
     int32_t GetOSSyncEventHandle(void *& hOSSyncEvent);
 
+    inline uint32_t GetFastTrackerIndex() {return m_fastTrackerIndex; }
+
 protected:
     CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
@@ -352,6 +354,9 @@ protected:
     MOS_VIRTUALENGINE_HINT_PARAMS m_mosVeHintParams;
 
     void  *m_osSyncEvent;   //KMD Notification
+
+    uint32_t m_trackerIndex;
+    uint32_t m_fastTrackerIndex;
 
 private:
     CmQueueRT(const CmQueueRT& other);

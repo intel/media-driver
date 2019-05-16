@@ -265,12 +265,6 @@ MOS_STATUS HalCm_AllocateTrackerResource(
 
     // Tracker producer for RENDER engine
     renderHal->trackerProducer.Initialize(osInterface);
-    int trackerIndex = renderHal->trackerProducer.AssignNewTracker();
-    if (trackerIndex != 0) // we only use one tracker by now
-    {
-        CM_ASSERTMESSAGE("We only allocate one tracker by now");
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
 
     // Tracker resource for VeBox engine
     Mos_ResetResource(&renderHal->veBoxTrackerRes.osResource);
@@ -3107,7 +3101,9 @@ int32_t HalCm_DSH_LoadKernelArray(
                         allocation->iKUID = static_cast<int>((kernelArray[i]->kernelId >> 32));
                         allocation->iKCID = -1;
                         FrameTrackerTokenFlat_SetProducer(&allocation->trackerToken, &renderHal->trackerProducer);
-                        FrameTrackerTokenFlat_Merge(&allocation->trackerToken, 0, renderHal->trackerProducer.GetNextTracker(0));
+                        FrameTrackerTokenFlat_Merge(&allocation->trackerToken,
+                                                    renderHal->currentTrackerIndex,
+                                                    renderHal->trackerProducer.GetNextTracker(renderHal->currentTrackerIndex));
                         allocation->dwOffset = memoryBlock->dwDataOffset;
                         allocation->iSize = kernelArray[i]->kernelBinarySize + CM_KERNEL_BINARY_PADDING_SIZE;
                         allocation->dwCount = 0;

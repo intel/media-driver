@@ -1123,7 +1123,7 @@ MOS_STATUS HalCm_UpdateTrackerResource_Linux(
     }
     else
     {
-        state->renderHal->trackerProducer.GetLatestTrackerResource(0,
+        state->renderHal->trackerProducer.GetLatestTrackerResource(state->renderHal->currentTrackerIndex,
                             &storeDataParams.pOsResource,
                             &storeDataParams.dwResourceOffset);
     }
@@ -1225,7 +1225,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &loadRegMemParams));    //R1: compared value 32bits, in coditional surface
                                                                                                   // Load current tracker tag from resource to R8
     MOS_ZeroMemory(&loadRegMemParams, sizeof(loadRegMemParams));
-    state->renderHal->trackerProducer.GetLatestTrackerResource(0,
+    state->renderHal->trackerProducer.GetLatestTrackerResource(state->renderHal->currentTrackerIndex,
                                 &loadRegMemParams.presStoreBuffer,
                                 &loadRegMemParams.dwOffset);
     loadRegMemParams.dwRegister = offsets->gprOffset+ 8 * 8;
@@ -1410,7 +1410,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
 
     // Store R15 to trackerResource
     MOS_ZeroMemory(&storeRegMemParams, sizeof(storeRegMemParams));
-    state->renderHal->trackerProducer.GetLatestTrackerResource(0,
+    state->renderHal->trackerProducer.GetLatestTrackerResource(state->renderHal->currentTrackerIndex,
                                             &storeRegMemParams.presStoreBuffer,
                                             &storeRegMemParams.dwOffset);
     storeRegMemParams.dwRegister = offsets->gprOffset+ 8 * 15;

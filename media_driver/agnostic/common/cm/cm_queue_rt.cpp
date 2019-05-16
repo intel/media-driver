@@ -118,7 +118,9 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_halMaxValues(nullptr),
     m_queueOption(queueCreateOption),
     m_usingVirtualEngine(false),
-    m_osSyncEvent(nullptr)
+    m_osSyncEvent(nullptr),
+    m_trackerIndex(0),
+    m_fastTrackerIndex(0)
 {
 
 }
@@ -172,6 +174,14 @@ int32_t CmQueueRT::Initialize()
     CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
     CM_RETURN_CODE hr = CM_SUCCESS;
     m_device->GetHalMaxValues(m_halMaxValues, halMaxValuesEx);
+
+    // Assign a new tracker and record the tracker index
+    int ret = cmHalState->renderHal->trackerProducer.AssignNewTracker();
+    CM_CHK_COND_RETURN((ret < 0), CM_FAILURE, "Error: failed to assign a new tracker");
+    m_trackerIndex = ret;
+    ret = cmHalState->advExecutor->AssignNewTracker();
+    CM_CHK_COND_RETURN((ret < 0), CM_FAILURE, "Error: failed to assign a new tracker");
+    m_fastTrackerIndex = ret;
 
     // Creates or gets GPU Context for the test
     if (m_queueOption.UserGPUContext == true)
@@ -527,6 +537,14 @@ int32_t CmQueueRT::Enqueue_RT(
     bool isEventVisible = (event == CM_NO_EVENT)? false:true;
 
     CLock Locker(m_criticalSectionTaskInternal);
+
+    // set the current tracker index in renderhal
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->renderHal);
+    cmData->cmHalState->renderHal->currentTrackerIndex = m_trackerIndex;
+
     CmTaskInternal* task = nullptr;
     int32_t result = CmTaskInternal::Create(kernelCount, totalThreadCount, kernelArray, threadSpace, m_device, syncBitmap, task, conditionalEndBitmap, conditionalEndInfo);
     if( result != CM_SUCCESS )
@@ -595,6 +613,13 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     }
 
     CLock Locker(m_criticalSectionTaskInternal);
+
+    // set the current tracker index in renderhal
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->renderHal);
+    cmData->cmHalState->renderHal->currentTrackerIndex = m_trackerIndex;
 
     CmTaskInternal* task = nullptr;
     int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray,
@@ -702,6 +727,13 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* kernelArray[],
     }
 
     CLock Locker(m_criticalSectionTaskInternal);
+
+    // set the current tracker index in renderhal
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->renderHal);
+    cmData->cmHalState->renderHal->currentTrackerIndex = m_trackerIndex;
 
     result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, task, numTasksGenerated, isLastTask, hints, m_device );
     if( result != CM_SUCCESS )
