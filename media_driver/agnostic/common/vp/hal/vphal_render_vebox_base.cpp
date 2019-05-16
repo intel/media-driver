@@ -2247,6 +2247,7 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
     // Flags needs to be set if the reference sample is valid
     if (pRenderData->bRefValid)
     {
+        VPHAL_RENDER_CHK_NULL_NO_STATUS(pPrvSurf);
         pRenderData->bSameSamples   =
                WITHIN_BOUNDS(
                       pCurSurf->FrameID - pVeboxState->iCurFrameID,
@@ -2277,6 +2278,9 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
 
     // Cache Render Target pointer
     pRenderData->pRenderTarget = pRenderTarget;
+
+finish:
+    return;
 }
 
 //!
