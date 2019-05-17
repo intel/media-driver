@@ -1133,6 +1133,11 @@ MOS_STATUS HalCm_UpdateTrackerResource_Linux(
     return eStatus;
 }
 
+uint32_t HalCm_RegisterStream(CM_HAL_STATE *state)
+{
+    return state->osInterface->streamIndex;
+}
+
 void HalCm_OsInitInterface(
     PCM_HAL_STATE           cmState)          // [out]  pointer to CM State
 {
@@ -1152,6 +1157,7 @@ void HalCm_OsInitInterface(
     cmState->pfnIsWASLMinL3Cache                    = HalCm_IsWaSLMinL3Cache_Linux;
     cmState->pfnEnableTurboBoost                    = HalCm_EnableTurboBoost_Linux;
     cmState->pfnUpdateTrackerResource               = HalCm_UpdateTrackerResource_Linux;
+    cmState->pfnRegisterStream                      = HalCm_RegisterStream;
 
     HalCm_GetLibDrmVMapFnt(cmState);
     return;
