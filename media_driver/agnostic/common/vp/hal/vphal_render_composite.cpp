@@ -6492,6 +6492,16 @@ bool CompositeState::BuildFilter(
     pFilter->matrix   = DL_CSC_DISABLED;
     pFilter->bFillOutputAlphaWithConstant = true;
 
+    if(pCompParams->pSource[0] != nullptr &&
+       pCompParams->pSource[0]->Format == Format_R5G6B5 &&
+       pCompParams->Target[0].Format == Format_R5G6B5)
+    {
+        pFilter->bIsDitherNeeded = false;
+    }else
+    {
+        pFilter->bIsDitherNeeded = true;
+    }
+
     if (pFilter->format == Format_A8R8G8B8    ||
         pFilter->format == Format_A8B8G8R8    ||
         pFilter->format == Format_R10G10B10A2 ||
