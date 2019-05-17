@@ -3767,6 +3767,124 @@ void VPHAL_VEBOX_STATE::CopyReporting(VphalFeatureReport* pReporting)
     CopyResourceReporting(pReporting);
 }
 
+//!
+//! \brief    Allocate sfc temp surface for Vebox output
+//! \details  Allocate sfc temp surface for Vebox output
+//! \param    VphalRenderer* pRenderer
+//!           [in,out] VPHAL renderer pointer
+//! \param    PCVPHAL_RENDER_PARAMS pcRenderParams
+//!           [in] Const pointer to VPHAL render parameter
+//! \param    PVPHAL_VEBOX_RENDER_DATA pRenderData
+//!           [in] pointer to VPHAL VEBOX render parameter
+//! \param    PVPHAL_SURFACE pInSurface
+//!           [in] Pointer to input surface
+//! \param    PVPHAL_SURFACE pOutSurface
+//!           [in] Pointer to output surface
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VPHAL_VEBOX_STATE::AllocateSfcTempSurfaces(
+    VphalRenderer                  *pRenderer,
+    PCVPHAL_RENDER_PARAMS           pcRenderParams,
+    PVPHAL_VEBOX_RENDER_DATA        pRenderData,
+    PVPHAL_SURFACE                  pInSurface,
+    PVPHAL_SURFACE                  pOutSurface)
+{
+    MOS_STATUS               eStatus;
+    PMOS_INTERFACE           pOsInterface;
+    PVPHAL_VEBOX_STATE       pVeboxState;
+    PVPHAL_SURFACE           pInSurfaceExt;
+    PVPHAL_SURFACE           pOutSurfaceExt;
+    PVPHAL_SURFACE           pSfcTempSurface;
+    bool                     bAllocated;
+    MOS_FORMAT               surfaceFormat;
+    uint32_t                 dwSurfaceWidth;
+    uint32_t                 dwSurfaceHeight;
+
+    VPHAL_RENDER_CHK_NULL(pInSurface);
+    VPHAL_RENDER_CHK_NULL(pOutSurface);
+    VPHAL_RENDER_CHK_NULL(pRenderer);
+    VPHAL_RENDER_CHK_NULL(pcRenderParams);
+    VPHAL_RENDER_CHK_NULL(pRenderData);
+
+    eStatus                 = MOS_STATUS_SUCCESS;
+    dwSurfaceWidth          = pOutSurface->dwWidth;
+    dwSurfaceHeight         = pOutSurface->dwHeight;
+    surfaceFormat           = pInSurface->Format;
+
+    eStatus                 = MOS_STATUS_SUCCESS;
+    pVeboxState             = (PVPHAL_VEBOX_STATE)pRenderer->pRender[VPHAL_RENDER_ID_VEBOX + pRenderer->uiCurrentChannel];
+    pOsInterface            = pRenderer->GetOsInterface();
+    pSfcTempSurface         = &pVeboxState->SfcTempSurface;
+
+    // Copy rect sizes so that if input surface state needs to adjust,
+    // output surface can be adjustted also.
+    pSfcTempSurface->rcSrc = pOutSurface->rcSrc;
+    pSfcTempSurface->rcDst = pOutSurface->rcDst;
+
+    // Sfc intermediate surface should be Y tile for best performance
+    VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+        pOsInterface,
+        pSfcTempSurface,
+        "VeboxSfcTempSurface",
+        surfaceFormat,
+        MOS_GFXRES_2D,
+        pInSurface->TileType,
+        dwSurfaceWidth,
+        dwSurfaceHeight,
+        false,
+        MOS_MMC_DISABLED,
+        &bAllocated));
+
+    // Copy max src rect
+    pSfcTempSurface->rcMaxSrc      = pOutSurface->rcMaxSrc;
+    pSfcTempSurface->iPalette      = pOutSurface->iPalette;
+    pSfcTempSurface->SampleType    = pOutSurface->SampleType;
+    pSfcTempSurface->ColorSpace    = pInSurface->ColorSpace;
+    pSfcTempSurface->Format        = surfaceFormat;
+    pSfcTempSurface->SurfType      = pOutSurface->SurfType;
+    pSfcTempSurface->FrameID       = pOutSurface->FrameID;
+    pSfcTempSurface->ScalingMode   = pOutSurface->ScalingMode;
+    pSfcTempSurface->ChromaSiting  = pOutSurface->ChromaSiting;
+
+    if (pInSurface->pLumaKeyParams)
+    {
+        if (!pSfcTempSurface->pLumaKeyParams)
+        {
+            pSfcTempSurface->pLumaKeyParams = (PVPHAL_LUMAKEY_PARAMS)MOS_AllocAndZeroMemory(sizeof(PVPHAL_LUMAKEY_PARAMS));
+            VPHAL_RENDER_CHK_NULL(pSfcTempSurface->pLumaKeyParams);
+        }
+
+        MOS_SecureMemcpy(pSfcTempSurface->pLumaKeyParams, sizeof(PVPHAL_LUMAKEY_PARAMS),
+            pInSurface->pLumaKeyParams, sizeof(PVPHAL_LUMAKEY_PARAMS));
+    }
+    else
+    {
+        MOS_FreeMemory(pSfcTempSurface->pLumaKeyParams);
+        pSfcTempSurface->pLumaKeyParams = nullptr;
+    }
+
+    if (pInSurface->pBlendingParams)
+    {
+        if (!pSfcTempSurface->pBlendingParams)
+        {
+            pSfcTempSurface->pBlendingParams = (PVPHAL_BLENDING_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_BLENDING_PARAMS));
+            VPHAL_RENDER_CHK_NULL(pSfcTempSurface->pBlendingParams);
+        }
+
+        MOS_SecureMemcpy(pSfcTempSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS),
+            pInSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS));
+    }
+    else
+    {
+        MOS_FreeMemory(pSfcTempSurface->pBlendingParams);
+        pSfcTempSurface->pBlendingParams = nullptr;
+    }
+
+finish:
+    return eStatus;
+}
+
 MOS_STATUS VpHal_VeboxAllocateTempSurfaces(
     VphalRenderer                   *pRenderer,
     PCVPHAL_RENDER_PARAMS           pcRenderParams,
@@ -3939,6 +4057,19 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pOutSurface = pcRenderParams->pTarget[0];
         }
 
+        if (pRenderPassData->bSFCScalingOnly)
+        {
+            VPHAL_RENDER_CHK_STATUS(pVeboxState->AllocateSfcTempSurfaces(pRenderer, pcRenderParams, pRenderData, pRenderPassData->pSrcSurface, pcRenderParams->pTarget[0]));
+            pOutSurface   = &pVeboxState->SfcTempSurface;
+            // Reset rendering flags for SFC since output surface changed
+            pVeboxState->m_sfcPipeState->SetRenderingFlags(
+                pcRenderParams->pColorFillParams,
+                pcRenderParams->pCompAlpha,
+                pRenderPassData->pSrcSurface,
+                pOutSurface,
+                pRenderData);
+        }
+
         if (pRenderData->bHdr3DLut)
         {
             VpHal_VeboxAllocateTempSurfaces(pRenderer, pcRenderParams, pRenderData, pcRenderParams->pSrc[0], pcRenderParams->pTarget[0], &pRenderer->IntermediateSurface);
@@ -3946,7 +4077,7 @@ MOS_STATUS VpHal_RndrRenderVebox(
             SET_VEBOX_EXECUTION_MODE(pVeboxState->m_pVeboxExecState, VEBOX_EXEC_MODE_0);
             pOutSurface                     = &pRenderer->IntermediateSurface;
             pRenderData->pRenderTarget      = &pRenderer->IntermediateSurface;
-        }        
+        }
 
         pRenderPassData->pOutSurface    = pOutSurface;
 
