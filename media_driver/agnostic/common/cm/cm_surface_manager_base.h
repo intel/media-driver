@@ -142,13 +142,8 @@ public:
     int32_t UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME_TYPE frameType);
     int32_t UpdateSurface2DTableChromaSiting(uint32_t index, int32_t chromaSiting);
 
-    int32_t CreateStateBuffer( CM_STATE_BUFFER_TYPE state_buffer_type, uint32_t size,
-                               void  *media_state_ptr, CmKernelRT *kernel_ptr,
-                               CmStateBuffer *&buffer_ptr );
     int32_t DestroyStateBuffer( CmStateBuffer *&buffer_ptr,
                                 SURFACE_DESTROY_KIND destroyKind );
-
-    int32_t CreateMediaStateByCurbeSize( void  *&media_state_ptr, uint32_t curbe_size );
     int32_t DestroyMediaState( void  *media_state_ptr );
 
     bool IsCmReservedSurfaceIndex(uint32_t surfBTI);

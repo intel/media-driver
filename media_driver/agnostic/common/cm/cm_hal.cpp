@@ -10186,29 +10186,6 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS HalCm_InsertToStateBufferList(
-    PCM_HAL_STATE               state,
-    void                        *kernelPtr,
-    uint32_t                    stateBufferIndex,
-    CM_STATE_BUFFER_TYPE        stateBufferType,
-    uint32_t                    stateBufferSize,
-    uint64_t                    stateBufferVaPtr,
-    PRENDERHAL_MEDIA_STATE      mediaStatePtr )
-{
-    MOS_STATUS result = MOS_STATUS_SUCCESS;
-
-    CM_HAL_STATE_BUFFER_ENTRY entry;
-    entry.kernelPtr = kernelPtr;
-    entry.stateBufferIndex = stateBufferIndex;
-    entry.stateBufferType = stateBufferType;
-    entry.stateBufferSize = stateBufferSize;
-    entry.stateBufferVaPtr = stateBufferVaPtr;
-    entry.mediaStatePtr = mediaStatePtr;
-
-    ( *state->state_buffer_list_ptr )[ kernelPtr ] = entry;
-    return result;
-}
-
 MOS_STATUS HalCm_DeleteFromStateBufferList(
     PCM_HAL_STATE               state,
     void                        *kernelPtr )
@@ -10557,7 +10534,6 @@ MOS_STATUS HalCm_Create(
     state->pfnGetGlobalTime               = HalCm_GetGlobalTime;
     state->pfnConvertToQPCTime            = HalCm_ConvertToQPCTime;
 
-    state->pfnInsertToStateBufferList = HalCm_InsertToStateBufferList;
     state->pfnDeleteFromStateBufferList = HalCm_DeleteFromStateBufferList;
     state->pfnGetMediaStatePtrForKernel = HalCm_GetMediaStatePtrForKernel;
     state->pfnGetStateBufferVAPtrForSurfaceIndex = HalCm_GetStateBufferVAPtrForSurfaceIndex;

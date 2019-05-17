@@ -1314,7 +1314,6 @@ public:
     CM_RT_API virtual INT DeAssociateThreadSpace(CmThreadSpace* & pTS) = 0;
     CM_RT_API virtual INT DeAssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
     CM_RT_API virtual INT QuerySpillSize(unsigned int &spillSize) = 0;
-    CM_RT_API virtual INT GetIndexForCurbeData( UINT curbe_data_size, SurfaceIndex *pSurface ) = 0;
 protected:
    ~CmKernel(){};
 };

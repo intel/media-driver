@@ -181,9 +181,6 @@ public:
 
     CM_RT_API int32_t QuerySpillSize(uint32_t &spillMemorySize);
 
-    CM_RT_API CM_RETURN_CODE
-    GetIndexForCurbeData(uint32_t curbeDataSize, SurfaceIndex *surfaceIndex);
-
     CMRT_UMD_API int32_t GetBinary(std::vector<char> &binary);
 
     CMRT_UMD_API int32_t ReplaceBinary(std::vector<char> &binary);

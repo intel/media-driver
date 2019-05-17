@@ -244,21 +244,6 @@ public:
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t QuerySpillSize(uint32_t &spillMemorySize) = 0;
 
-    //! \brief      Get the surface index of the curbe memory for this kernel.
-    //! \details    In order for other kernel to modify the curbe data of
-    //!             this kernel, a SurfaceIndex is needed for the curbe data.
-    //!             This fucntion is to get the surface index of the curbe
-    //!             memory for this kernel.
-    //! \param      [in] curbeDataSize
-    //!             The size of curbe data.
-    //! \param      [out] surfaceIndex
-    //!             The surface index of the curbe data memory.
-    //! \retval     CM_SUCCESS if the surface index is get successfully.
-    //! \retval     CM_FAILED_TO_CREATE_CURBE_SURFACE if the curbe surface creation failed
-    CM_RT_API virtual CM_RETURN_CODE
-    GetIndexForCurbeData(uint32_t curbeDataSize,
-                         SurfaceIndex *surfaceIndex) = 0;
-
 public:
     //! \brief      Get the kernel binary of this kernel.
     //! \param      [in,out] binary
