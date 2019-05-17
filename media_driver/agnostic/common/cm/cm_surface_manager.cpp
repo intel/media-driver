@@ -2352,61 +2352,6 @@ bool CmSurfaceManagerBase::IsValidSurfaceIndex(uint32_t surfaceBTI)
     }
 }
 
-int32_t CmSurfaceManagerBase::CreateStateBuffer( CM_STATE_BUFFER_TYPE stateBufferType,
-                                                 uint32_t size, void  *mediaState,
-                                                 CmKernelRT *kernel, CmStateBuffer *&buffer )
-{
-    int32_t result = CM_SUCCESS;
-
-    uint32_t index = ValidSurfaceIndexStart();
-    buffer = nullptr;
-
-    uint32_t handle = 0;
-
-    if ( AllocateSurfaceIndex( size, 0, 0, CM_SURFACE_FORMAT_INVALID, index, nullptr ) != CM_SUCCESS )
-    {
-        return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    if ( m_bufferCount >= m_maxBufferCount )
-    {
-        CM_ASSERTMESSAGE("Error: Exceed the maximum buffer count.");
-        return CM_EXCEED_SURFACE_AMOUNT;
-    }
-
-    result = AllocateBuffer( size, CM_BUFFER_STATE, handle, nullptr, nullptr );
-    if ( result != CM_SUCCESS )
-    {
-        CM_ASSERTMESSAGE("Error: Failed to allocate state buffer.");
-        return result;
-    }
-
-    CmSurfaceManager * surfaceManager = dynamic_cast<CmSurfaceManager *>(this);
-    CM_CHK_NULL_RETURN_CMERROR(surfaceManager);
-
-    result = CmStateBuffer::Create( index, handle, size, surfaceManager,
-                                    stateBufferType, buffer );
-    if ( result != CM_SUCCESS )
-    {
-        CM_ASSERTMESSAGE("Error: Failed to allocate CmStateBuffer.");
-        return result;
-    }
-
-    m_surfaceArray[ index ] = buffer;
-    UpdateProfileFor1DSurface( index, size);
-
-    switch ( stateBufferType )
-    {
-        case CM_STATE_BUFFER_CURBE:
-            break;
-        default:
-            result = CM_NOT_IMPLEMENTED;
-            break;
-    }
-
-    return result;
-}
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destroy CmBuffer of state heap in SurfaceManager
 //| Returns:    Result of the operation.
@@ -2453,37 +2398,6 @@ int32_t CmSurfaceManagerBase::DestroyStateBuffer( CmStateBuffer *&buffer,
     CmSurface::Destroy( surface );
 
     UpdateStateForRealDestroy( indexData, CM_ENUM_CLASS_TYPE_CMBUFFER_RT );
-
-    return result;
-}
-
-int32_t CMRT_UMD::CmSurfaceManagerBase::CreateMediaStateByCurbeSize( void  *& mediaState,
-                                                                     uint32_t curbeSize )
-{
-    int32_t result = CM_SUCCESS;
-
-    // create media state heap
-    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE state = cmData->cmHalState;
-
-    // Max media state configuration - Curbe, Samplers (3d/AVS/VA),
-    //8x8 sampler table, Media IDs, Kernel Spill area
-    RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
-    params.iMax8x8Tables = CM_MAX_SAMPLER_8X8_TABLE_SIZE;
-    params.iMaxCurbeOffset = curbeSize;
-    params.iMaxCurbeSize = curbeSize;
-    params.iMaxMediaIDs = CM_MAX_KERNELS_PER_TASK;
-    params.iMaxSamplerIndex3D = CM_MAX_3D_SAMPLER_SIZE;
-    params.iMaxSamplerIndexAVS = CM_MAX_SAMPLER_8X8_TABLE_SIZE;
-    params.iMaxSamplerIndexConv = 0;
-    params.iMaxSamplerIndexMisc = 0;
-    params.iMaxSpillSize = CM_MAX_SPILL_SIZE_PER_THREAD_HEVC;
-    params.iMaxThreads = CM_MAX_USER_THREADS;
-
-    // Prepare Media States to accommodate all parameters - Curbe, Samplers (3d/AVS/VA),
-    //8x8 sampler table, Media IDs
-    mediaState = state->renderHal->pfnAssignDynamicState( state->renderHal,
-                                                          &params, RENDERHAL_COMPONENT_CM );
 
     return result;
 }

@@ -1802,16 +1802,6 @@ typedef struct _CM_HAL_STATE
 
     bool (*pfnIsWASLMinL3Cache)(  );
 
-    MOS_STATUS( *pfnInsertToStateBufferList )
-        (
-        PCM_HAL_STATE               state,
-        void                        *kernelPtr,
-        uint32_t                    stateBufferIndex,
-        CM_STATE_BUFFER_TYPE        stateBufferType,
-        uint32_t                    stateBufferSize,
-        uint64_t                    stateBufferVaPtr,
-        PRENDERHAL_MEDIA_STATE      mediaStatePtr );
-
     MOS_STATUS( *pfnDeleteFromStateBufferList )
         (
         PCM_HAL_STATE               state,

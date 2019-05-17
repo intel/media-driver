@@ -5080,62 +5080,6 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadGroupSpace(CmThreadGroupSpace *&thr
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose: Create a surface in the surface manager array, return the surface index
-//| Returns: Result of the operation.
-//*-----------------------------------------------------------------------------
-CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbeDataSize, SurfaceIndex *surfaceIndex )
-{
-    CM_RETURN_CODE hr = CM_SUCCESS;
-
-    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE state = cmData->cmHalState;
-    PRENDERHAL_MEDIA_STATE mediaStatePtr = nullptr;
-    void  *tempPtr = nullptr;
-    CmStateBuffer *stateBuffer = nullptr;
-
-    if ( state->dshEnabled == false )
-    {
-        // Currently only support it when dynamic state heap is enabled
-        return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-    }
-
-    CM_CHK_CMSTATUS_GOTOFINISH( m_surfaceMgr->CreateMediaStateByCurbeSize( tempPtr, curbeDataSize ) );
-    mediaStatePtr = static_cast< PRENDERHAL_MEDIA_STATE >( tempPtr );
-    CM_CHK_CMSTATUS_GOTOFINISH( m_surfaceMgr->CreateStateBuffer( CM_STATE_BUFFER_CURBE, curbeDataSize, mediaStatePtr, this, stateBuffer ) );
-
-    if ( ( stateBuffer != nullptr ) && ( mediaStatePtr != nullptr ) )
-    {
-        // Get curbe address, ideally the DSH should provide the API to get all of the GFX VA of different part of the heap
-        uint64_t curbeGfxVa = state->osInterface->pfnGetResourceGfxAddress( state->osInterface, mediaStatePtr->pDynamicState->memoryBlock.GetResource() ) +
-            mediaStatePtr->pDynamicState->memoryBlock.GetOffset() + mediaStatePtr->pDynamicState->Curbe.dwOffset;
-
-        SurfaceIndex *tempIndex = nullptr;
-        uint32_t handle = 0;
-        stateBuffer->GetIndex( tempIndex );
-        stateBuffer->GetHandle( handle );
-        if ( tempIndex != nullptr )
-        {
-            *surfaceIndex = *tempIndex;
-            state->pfnInsertToStateBufferList( state, this, handle, CM_STATE_BUFFER_CURBE, curbeDataSize, curbeGfxVa, mediaStatePtr );
-        }
-        else
-        {
-            // it means the stateBuffer was not created successfully, null pointer failure
-            return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-        }
-    }
-    else
-    {
-        // null pointer failure
-        return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-    }
-
-    m_stateBufferBounded = CM_STATE_BUFFER_CURBE;
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
 //| Purpose: Clear threadspace for kernel
 //| Returns: Result of the operation.
 //*-----------------------------------------------------------------------------
