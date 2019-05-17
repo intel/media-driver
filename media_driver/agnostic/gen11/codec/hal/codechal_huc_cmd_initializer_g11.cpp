@@ -78,7 +78,7 @@ MOS_STATUS CodechalCmdInitializerG11::ConstructHevcHucCmd1ConstData(
     cmd1.PakOnlyMultipassEnable       = m_pakOnlyPass;
     cmd1.num_ref_idx_l0_active_minus1 = sliceParams->num_ref_idx_l0_active_minus1;
 
-    auto   qpPrimeYac = CodecHal_Clip3(0, 51, picParams->QpY + sliceParams->slice_qp_delta);
+    auto   qpPrimeYac = CodecHal_Clip3(10, 51, picParams->QpY + sliceParams->slice_qp_delta);
     double lambda     = sqrt(qpScale * pow(2.0, MOS_MAX(0, qpPrimeYac - 12) / 3.0));
     cmd1.SADQPLambda  = (uint16_t)(lambda * 4 + 0.5);
     cmd1.RDQPLambda   = (uint16_t)(qpScale * pow(2.0, MOS_MAX(0, picParams->QpY - 12) / 3.0) * 4 + 0.5);  //U14.2
@@ -179,7 +179,7 @@ MOS_STATUS CodechalCmdInitializerG11::ConstructHevcHucCmd2ConstData(
     uint8_t SadPenaltyforIntraNonDC32X32PredMode = (uint8_t)(0.00 * 4 + 0.5);
     if (m_hevcVisualQualityImprovement)
     {
-        auto   qpPrimeYac = CodecHal_Clip3(0, 51, picParams->QpY + sliceParams->slice_qp_delta);
+        auto   qpPrimeYac = CodecHal_Clip3(10, 51, picParams->QpY + sliceParams->slice_qp_delta);
         if (qpPrimeYac >= 22 && qpPrimeYac <= 51)
         {
             uint8_t penaltyForIntraNonDC32x32Predmode = (uint8_t)((0.1 * 63) * (qpPrimeYac - 22));
