@@ -100,6 +100,7 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     void                                   *pInputParams;
     uint16_t                                usSADQPLambda = 0;
     uint16_t                                usRDQPLambda = 0;
+    bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
 } MHW_VDBOX_VDENC_CMD1_PARAMS, *PMHW_VDBOX_VDENC_CMD1_PARAMS;
 
 struct MHW_VDBOX_VDENC_CMD2_STATE
@@ -133,6 +134,7 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     uint16_t                                usRDQPLambda = 0;
     bool                                    bPakOnlyMultipassEnable = false;
     void                                    *pInputParams = nullptr;
+    bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
     virtual ~MHW_VDBOX_VDENC_CMD2_STATE() {}
 };
 using PMHW_VDBOX_VDENC_CMD2_STATE = MHW_VDBOX_VDENC_CMD2_STATE *;

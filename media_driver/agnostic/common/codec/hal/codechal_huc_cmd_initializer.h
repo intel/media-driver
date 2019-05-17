@@ -240,6 +240,8 @@ public:
     static constexpr uint32_t CODECHAL_CMD1_SIZE = 120;
     static constexpr uint32_t CODECHAL_CMD2_SIZE = 148;
 
+    bool m_hevcVisualQualityImprovementEnableFlag = false;  //!< VQI enable flag
+
 public:
     //!
     //! \brief    Constructor
