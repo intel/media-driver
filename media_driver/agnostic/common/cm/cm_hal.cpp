@@ -11904,4 +11904,3 @@ bool HalCm_IsValidGpuContext(
         return false;
     }
 }
-
