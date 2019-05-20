@@ -2072,6 +2072,23 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
         FlushDwParams,
         &GenericPrologParams));
 
+    // Return unused command buffer space to OS
+    pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
+
+    VPHAL_RENDER_CHK_STATUS(VeboxSyncIndirectStateCmd());
+    VPHAL_RENDER_CHK_STATUS(VeboxSendVeboxCmdSetParamBeforeSubmit());
+
+    // Flush the command buffer
+    VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnSubmitCommandBuffer(
+        pOsInterface,
+        &CmdBuffer,
+        pVeboxState->bNullHwRenderDnDi));
+
+    if (pVeboxState->bNullHwRenderDnDi == false)
+    {
+        pVeboxInterface->UpdateVeboxSync();
+    }
+
 finish:
     // Failed -> discard all changes in Command Buffer
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -2087,27 +2104,11 @@ finish:
         CmdBuffer.iRemaining  = iRemaining;
         CmdBuffer.iOffset    -= i;
         CmdBuffer.pCmdPtr     = CmdBuffer.pCmdBase + CmdBuffer.iOffset/sizeof(uint32_t);
+
+        pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
     }
-
-    // Return unused command buffer space to OS
-    pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
-
-    VPHAL_RENDER_CHK_STATUS(VeboxSyncIndirectStateCmd());
-    VPHAL_RENDER_CHK_STATUS(VeboxSendVeboxCmdSetParamBeforeSubmit());
-
-    // Flush the command buffer
-    // WARNING: This CHK_STATUS (former CHK_HR) might cause an infinite loop when fail!
-    VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnSubmitCommandBuffer(
-        pOsInterface,
-        &CmdBuffer,
-        pVeboxState->bNullHwRenderDnDi));
 
     VpHal_RndrUpdateStatusTableAfterSubmit(pOsInterface, &m_StatusTableUpdateParams, MOS_GPU_CONTEXT_VEBOX, eStatus);
-
-    if (pVeboxState->bNullHwRenderDnDi == false)
-    {
-        pVeboxInterface->UpdateVeboxSync( );
-    }
 
     return eStatus;
 }
