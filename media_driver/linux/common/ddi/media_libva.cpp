@@ -3275,7 +3275,7 @@ static VAStatus DdiMedia_BeginPicture (
 
     DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
     surface->curCtxType = ctxType;
-    surface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUREY_STATE_PENDING;
+    surface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING;
     if(ctxType == DDI_MEDIA_CONTEXT_TYPE_VP)
     {
         surface->curStatusReport.vpp.status = VPREP_NOTAVAILABLE;
@@ -3437,7 +3437,7 @@ static VAStatus DdiMedia_SyncSurface (
 
         if (decoder->IsStatusQueryReportingEnabled())
         {
-            if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUREY_STATE_PENDING)
+            if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING)
             {
                 CodechalDecodeStatusBuffer *decodeStatusBuf = decoder->GetDecodeStatusBuf();
                 uint32_t uNumAvailableReport = (decodeStatusBuf->m_currIndex - decodeStatusBuf->m_firstIndex) & (CODECHAL_DECODE_STATUS_NUM - 1);
@@ -3487,7 +3487,7 @@ static VAStatus DdiMedia_SyncSurface (
                                 mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.m_codecStatus;
                                 mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.m_numMbsAffected;
                                 mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.crcValue = (decoder->GetStandard() == CODECHAL_AVC)?(uint32_t)tempNewReport.m_frameCrc:0;
-                                mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED;
+                                mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
                                 break;
                             }
                         }
@@ -3506,7 +3506,7 @@ static VAStatus DdiMedia_SyncSurface (
             }
 
             // check the report ptr of current surface.
-            if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED)
+            if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
             {
                 if (surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL)
                 {
@@ -3541,7 +3541,7 @@ static VAStatus DdiMedia_SyncSurface (
         uint32_t tableLen = 0;
         vpCtx->pVpHal->GetStatusReportEntryLength(&tableLen);
 
-        if (tableLen > 0 && surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUREY_STATE_PENDING)
+        if (tableLen > 0 && surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING)
         {
             // Query the status for all of surfaces which have finished
             for(i = 0; i < tableLen; i++)
@@ -3559,7 +3559,7 @@ static VAStatus DdiMedia_SyncSurface (
 
                 // Update the status of the surface which is reported.
                 tempSurface->curStatusReport.vpp.status = (uint32_t)tempVpReport.dwStatus;
-                tempSurface->curStatusReportQueryState  = DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED;
+                tempSurface->curStatusReportQueryState  = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
 
                 if(tempVpReport.StatusFeedBackID == render_target)
                 {
@@ -3568,7 +3568,7 @@ static VAStatus DdiMedia_SyncSurface (
             }
         }
 
-        if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED)
+        if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
         {
             if(surface->curStatusReport.vpp.status == VPREP_OK)
             {
@@ -3685,7 +3685,7 @@ VAStatus DdiMedia_QuerySurfaceError(
     DDI_CHK_NULL(surfaceErrors , "nullptr surfaceErrors", VA_STATUS_ERROR_INVALID_CONTEXT );
 
     DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
-    if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED)
+    if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
     {
         if (error_status == -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
             //&& surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL)  // get the crc value whatever the status is
