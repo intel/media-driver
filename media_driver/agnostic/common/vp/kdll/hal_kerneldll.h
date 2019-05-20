@@ -310,7 +310,6 @@ typedef enum tagKdll_RuleID
     RID_IsProcampEnabled ,     // Match Procamp
     RID_IsSetCoeffMode   ,     // Set CSC coefficients mode
     RID_IsConstOutAlpha  ,     // Match alpha fill mode
-    RID_IsDitherNeeded   ,     // Whether dithering needed
 
     // Extended Match Rules - 0x0100 to 0x01ff
 
@@ -442,8 +441,7 @@ typedef struct tagKdll_FilterEntry
     // Save_RGB         or     Save_ARGB
     // Save_R10G10B10   or     Save_R10G10B10A2
     // Save_VUYA        or     Save_SrcVUYA
-    bool            bFillOutputAlphaWithConstant;
-    bool            bIsDitherNeeded;
+    bool                   bFillOutputAlphaWithConstant;
 
     Kdll_RenderMethod      RenderMethod;
     Kdll_SetCSCCoeffMethod SetCSCCoeffMode;

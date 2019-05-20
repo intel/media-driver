@@ -598,7 +598,6 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_IsSrc1Chromasiting : return _T("IsSrc1Chromasiting");
         case RID_IsSetCoeffMode     : return _T("IsSetCoeffMode");
         case RID_IsConstOutAlpha    : return _T("IsConstOutAlpha");
-        case RID_IsDitherNeeded     : return _T("IsDitherNeeded");
         case RID_SetSrc0Procamp     : return _T("SetSrc0Procamp");
     }
 
@@ -2420,16 +2419,6 @@ bool KernelDll_FindRule(
 
                 case RID_IsConstOutAlpha:
                     if (pSearchState->pFilter->bFillOutputAlphaWithConstant == (pRuleEntry->value ? true : false))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        break;
-                    }
-
-                case RID_IsDitherNeeded:
-                    if (pSearchState->pFilter->bIsDitherNeeded == (pRuleEntry->value ? true : false))
                     {
                         continue;
                     }
