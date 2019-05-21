@@ -942,8 +942,8 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
 
     if (!mediaMemDecompState)
     {
-        mediaMemDecompState =
-            static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
+        mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
+        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
     }
 
     if (mediaMemDecompState)
@@ -1006,7 +1006,6 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
-        mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
         mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
 
@@ -1016,8 +1015,7 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        
-        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+
         DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
         DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
 
