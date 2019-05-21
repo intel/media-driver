@@ -1070,6 +1070,13 @@ public:
         if (cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatY416Variant ||
             cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatAyuvVariant)
         {
+            /* Y410/Y416 Reconstructed format handling */
+            if (cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatY416Variant)
+                cmd.Dwords25.DW1.SurfacePitch = params->psSurface->dwPitch / 2 - 1;
+            /* AYUV Reconstructed format handling */
+            if (cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatAyuvVariant)
+                cmd.Dwords25.DW1.SurfacePitch = params->psSurface->dwPitch / 4 - 1;
+
             cmd.Dwords25.DW2.YOffsetForUCb = params->dwReconSurfHeight;
             cmd.Dwords25.DW3.YOffsetForVCr = params->dwReconSurfHeight << 1;
         }
