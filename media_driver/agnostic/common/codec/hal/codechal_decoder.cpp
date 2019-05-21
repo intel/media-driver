@@ -966,6 +966,7 @@ MOS_STATUS CodechalDecode::EndFrame ()
                 &userFeatureData);
             if (userFeatureData.u32Data)
             {
+                CODECHAL_DECODE_VERBOSEMESSAGE("force ve decompress decode output");
                 MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
                 dstSurface.Format       = Format_NV12;
                 dstSurface.OsResource   = decodeStatusReport->m_currDecodedPicRes;
@@ -975,9 +976,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
                 MOS_LOCK_PARAMS lockFlags {};
                 lockFlags.ReadOnly = 1;
                 lockFlags.TiledAsTiled = 1;
+                lockFlags.NoDecompress = 0;
                 m_osInterface->pfnLockResource(m_osInterface, &dstSurface.OsResource, &lockFlags);
-                m_osInterface->pfnDecompResource(m_osInterface, &dstSurface.OsResource);
-                m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext);
                 m_osInterface->pfnUnlockResource(m_osInterface, &dstSurface.OsResource);
             }
 
@@ -1018,6 +1018,30 @@ MOS_STATUS CodechalDecode::EndFrame ()
                     "SfcDstSurf"));
             }
 
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_DECOMPRESS_DECODE_SFC_OUTPUT_ID,
+                &userFeatureData);
+            if (userFeatureData.u32Data)
+            {
+                CODECHAL_DECODE_VERBOSEMESSAGE("force ve decompress sfc output");
+                MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+                dstSurface.Format       = Format_NV12;
+                dstSurface.OsResource   = *decodeStatusReport->m_currSfcOutputPicRes;
+                CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
+                    m_osInterface,
+                    &dstSurface));
+
+                MOS_LOCK_PARAMS lockFlags {};
+                lockFlags.ReadOnly = 1;
+                lockFlags.TiledAsTiled = 1;
+                lockFlags.NoDecompress = 0;
+                m_osInterface->pfnLockResource(m_osInterface, &dstSurface.OsResource, &lockFlags);
+                m_osInterface->pfnUnlockResource(m_osInterface, &dstSurface.OsResource);
+
+            }
+
             if (CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
                 CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
                 CodecHal_PictureIsField(decodeStatusReport->m_currDecodedPic))
@@ -1049,7 +1073,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
             }
         }
 
-        m_debugInterface->m_preIndex = preIndex;)
+        m_debugInterface->m_preIndex = preIndex;
+    )
 
     if (m_consecutiveMbErrorConcealmentInUse &&
         m_incompletePicture)
