@@ -535,7 +535,7 @@ void CmSurface3DRT::Log(std::ostringstream &oss)
 #endif
 }
 
-void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex)
+void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex, uint32_t vectorIndex)
 {
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream outputFileName;
@@ -547,6 +547,7 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
         << "_k_" << kernelNumber
         << "_" << kernelName
         << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex
         << "_surf2d_surfi_" << m_index->get_data()
         << "_w_" << m_width
         << "_h_" << m_height

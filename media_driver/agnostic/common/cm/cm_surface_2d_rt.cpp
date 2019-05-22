@@ -1337,18 +1337,29 @@ void CmSurface2DRTBase::Log(std::ostringstream &oss)
 #endif
 }
 
-void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex)
+void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex, uint32_t vectorIndex)
 {
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream         outputFileName;
-    static uint32_t            surface2DDumpNumber = 0;
-    char                       fileNamePrefix[MAX_PATH];
-    std::ofstream              outputFileStream;
 
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_" << kernelName
         << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex;
+
+    DumpContentToFile(outputFileName.str().c_str());
+#endif
+}
+
+void CmSurface2DRTBase::DumpContentToFile(const char *filename)
+{
+#if MDF_SURFACE_CONTENT_DUMP
+    static uint32_t surface2DDumpNumber = 0;
+    std::ostringstream outputFileName;
+    char fileNamePrefix[MAX_PATH];
+
+    outputFileName << filename
         << "_surf2d_surfi_"<< m_index->get_data()
         << "_w_" << m_width
         << "_h_" << m_height
@@ -1357,7 +1368,7 @@ void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int
         << "_" << surface2DDumpNumber;
 
     GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
-
+    std::ofstream outputFileStream;
     // Open file
     outputFileStream.open(fileNamePrefix, std::ios::app);
     CM_ASSERT(outputFileStream);
@@ -1414,6 +1425,7 @@ void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int
 
     outputFileStream.write(&surface[0], surfaceSize);
     outputFileStream.close();
+
     surface2DDumpNumber++;
 #endif
 }
