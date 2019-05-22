@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1398,6 +1398,7 @@ VAStatus DdiMedia__Initialize (
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+        mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
         eStatus = mediaCtx->m_osContext->Init(&mosCtx);
         if (MOS_STATUS_SUCCESS != eStatus)
