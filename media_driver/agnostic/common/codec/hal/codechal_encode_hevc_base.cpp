@@ -2775,14 +2775,14 @@ short CodechalEncodeHevcBase::ComputeTemporalDifferent(CODEC_PICTURE  refPic)
     {
         diff_poc = m_hevcPicParams->CurrPicOrderCnt - m_hevcPicParams->RefFramePOCList[refPic.FrameIdx];
 
-        if (diff_poc < -128)
+        if (diff_poc < -16)
         {
-            diff_poc = -128;
+            diff_poc = -16;
         }
         else
-            if (diff_poc > 127)
+            if (diff_poc > 16)
             {
-                diff_poc = 127;
+                diff_poc = 16;
             }
     }
 
