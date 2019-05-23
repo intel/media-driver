@@ -28,6 +28,7 @@
 #include "vphal_render_composite.h"
 #include "mos_os.h"
 #include "mos_solo_generic.h"
+#include "renderhal_oca_support.h"
 
 extern const MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA =
 {
@@ -416,18 +417,29 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     VpKernelID                          KernelID,
     bool                                bLastSubmission)
 {
-    PMOS_INTERFACE                      pOsInterface;
-    MOS_COMMAND_BUFFER                  CmdBuffer;
-    MOS_STATUS                          eStatus;
-    uint32_t                            dwSyncTag;
-    int32_t                             i, iRemaining;
-    PMHW_MI_INTERFACE                   pMhwMiInterface;
-    MhwRenderInterface                  *pMhwRender;
-    MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam;
-    bool                                bEnableSLM;
+    PMOS_INTERFACE                      pOsInterface = nullptr;
+    MOS_COMMAND_BUFFER                  CmdBuffer = {};
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+    uint32_t                            dwSyncTag = 0;
+    int32_t                             i = 0, iRemaining = 0;
+    PMHW_MI_INTERFACE                   pMhwMiInterface = nullptr;
+    MhwRenderInterface                  *pMhwRender = nullptr;
+    MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam = {};
+    bool                                bEnableSLM = false;
     RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
-    MOS_RESOURCE                        GpuStatusBuffer;
-    MediaPerfProfiler                   *pPerfProfiler;
+    MOS_RESOURCE                        GpuStatusBuffer = {};
+    MediaPerfProfiler                   *pPerfProfiler = nullptr;
+    MOS_CONTEXT                         *pOsContext = nullptr;
+    PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
+    RenderhalOcaSupport                 *pRenderhalOcaSupport = nullptr;
+
+    MHW_RENDERHAL_CHK_NULL(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface->GetMmioRegisters());
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pfnGetOcaSupport);
 
     eStatus             = MOS_STATUS_UNKNOWN;
     pOsInterface        = pRenderHal->pOsInterface;
@@ -437,6 +449,9 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     FlushParam          = g_cRenderHal_InitMediaStateFlushParams;
     MOS_ZeroMemory(&CmdBuffer, sizeof(CmdBuffer));
     pPerfProfiler       = pRenderHal->pPerfProfiler;
+    pOsContext          = pOsInterface->pOsContext;
+    pMmioRegisters      = pMhwRender->GetMmioRegisters();
+    pRenderhalOcaSupport = &pRenderHal->pfnGetOcaSupport();
 
     // Allocate all available space, unused buffer will be returned later
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
@@ -469,6 +484,10 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
+
+    pRenderhalOcaSupport->On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
+        *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+
     // Write timing data for 3P budget
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
@@ -494,6 +513,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
             &pBatchBuffer->OsResource,
             false,
             true));
+
+        pRenderhalOcaSupport->OnSubLevelBBStart(CmdBuffer, *pOsContext, &pBatchBuffer->OsResource, 0, true, 0);
 
         // Send Start 2nd level batch buffer command (HW/OS dependent)
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferStartCmd(
@@ -553,6 +574,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         }
     }
 
+    pRenderhalOcaSupport->On1stLevelBBEnd(CmdBuffer, *pOsContext);
+
     if (pBatchBuffer)
     {
         // Send Batch Buffer end command (HW/OS dependent)
@@ -611,7 +634,10 @@ finish:
             CmdBuffer.pCmdBase + CmdBuffer.iOffset / sizeof(uint32_t);
 
         // Return unused command buffer space to OS
-        pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
+        if (pOsInterface)
+        {
+            pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
+        }
     }
 
     return eStatus;
@@ -634,6 +660,10 @@ finish:
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] FcKernelCount
+//!             VP FC Kernel Count
+//! \param      [in] FcKernelList
+//!             VP FC Kernel List
 //! \param      [in] bLastSubmission
 //!             Is last submission
 //! \return     MOS_STATUS
@@ -646,20 +676,33 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
     PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
     VpKernelID                          KernelID,
+    int                                 FcKernelCount,
+    int                                 *FcKernelList,
     bool                                bLastSubmission)
 {
-    PMOS_INTERFACE                      pOsInterface;
-    MOS_COMMAND_BUFFER                  CmdBuffer;
-    MOS_STATUS                          eStatus;
-    uint32_t                            dwSyncTag;
-    int32_t                             i, iRemaining;
-    PMHW_MI_INTERFACE                   pMhwMiInterface;
-    MhwRenderInterface                  *pMhwRender;
-    MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam;
-    bool                                bEnableSLM;
+    PMOS_INTERFACE                      pOsInterface = nullptr;
+    MOS_COMMAND_BUFFER                  CmdBuffer = {};
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+    uint32_t                            dwSyncTag = 0;
+    int32_t                             i = 0, iRemaining = 0;
+    PMHW_MI_INTERFACE                   pMhwMiInterface = nullptr;
+    MhwRenderInterface                  *pMhwRender = nullptr;
+    MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam = {};
+    bool                                bEnableSLM = false;
     RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
-    MOS_RESOURCE                        GpuStatusBuffer;
-    MediaPerfProfiler                   *pPerfProfiler;
+    MOS_RESOURCE                        GpuStatusBuffer = {};
+    MediaPerfProfiler                   *pPerfProfiler = nullptr;
+    MOS_CONTEXT                         *pOsContext = nullptr;
+    PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
+    RenderhalOcaSupport                 *pRenderhalOcaSupport = nullptr;
+
+    MHW_RENDERHAL_CHK_NULL(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface->GetMmioRegisters());
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pfnGetOcaSupport);
 
     eStatus              = MOS_STATUS_UNKNOWN;
     pOsInterface         = pRenderHal->pOsInterface;
@@ -669,9 +712,18 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     FlushParam           = g_cRenderHal_InitMediaStateFlushParams;
     MOS_ZeroMemory(&CmdBuffer, sizeof(CmdBuffer));
     pPerfProfiler       = pRenderHal->pPerfProfiler;
+    pOsContext          = pOsInterface->pOsContext;
+    pMmioRegisters      = pMhwRender->GetMmioRegisters();
+    pRenderhalOcaSupport = &pRenderHal->pfnGetOcaSupport();
 
     // Allocate all available space, unused buffer will be returned later
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
+
+    pRenderhalOcaSupport->On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
+        *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+
+    // Add kernel info to log.
+    pRenderhalOcaSupport->DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, FcKernelCount, FcKernelList);
 
     // Set initial state
     iRemaining = CmdBuffer.iRemaining;
@@ -736,6 +788,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
             &pBatchBuffer->OsResource,
             false,
             true));
+        
+        pRenderhalOcaSupport->OnSubLevelBBStart(CmdBuffer, *pOsContext, &pBatchBuffer->OsResource, 0, true, 0);
 
         // Send Start 2nd level batch buffer command (HW/OS dependent)
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferStartCmd(
@@ -794,6 +848,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
             VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMediaStateFlush(&CmdBuffer, nullptr, &FlushParam));
         }
     }
+
+    pRenderhalOcaSupport->On1stLevelBBEnd(CmdBuffer, *pOsContext);
 
     if (pBatchBuffer)
     {
@@ -868,7 +924,10 @@ finish:
             CmdBuffer.pCmdBase + CmdBuffer.iOffset / sizeof(uint32_t);
 
         // Return unused command buffer space to OS
-        pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
+        if (pOsInterface)
+        {
+            pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
+        }
     }
 
     return eStatus;

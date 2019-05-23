@@ -578,6 +578,14 @@ public:
     //!
     void SetOsInterface(PMOS_INTERFACE osInterface) { m_osInterface = osInterface;}
 
+    //!
+    //! \brief    Get mmio registers address
+    //! \details  Get mmio registers address
+    //! \return   [out] PMHW_MI_MMIOREGISTERS*
+    //!           mmio registers got.
+    //!
+    virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters() = 0;
+
 protected:
     //!
     //! \brief    Initializes the Render interface

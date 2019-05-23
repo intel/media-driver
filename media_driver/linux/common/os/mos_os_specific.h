@@ -45,6 +45,7 @@ typedef unsigned int MOS_OS_FORMAT;
 
 class GraphicsResource;
 class AuxTableMgr;
+class MosOcaInterface;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -600,6 +601,7 @@ struct _MOS_OS_CONTEXT
     GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
         PMOS_CONTEXT               pOsContext);
 
+    MosOcaInterface* (*GetOcaInterface)();
 };
 
 //!

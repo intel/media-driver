@@ -274,4 +274,7 @@
 //User feature key for enable simulating random memory allocation failure
 #define __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL "Simulate Random Alloc Memory Fail"
 
+//User feature key for enable/disable UMD_OCA
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA       "Enable UMD_OCA"
+
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_H__

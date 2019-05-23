@@ -2589,6 +2589,10 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 //!             Pointer to pStatusTableUpdateParams
 //! \param      [in] KernelID
 //!             VP Kernel ID
+//! \param      [in] FcKernelCount
+//!             VP FC Kernel Count
+//! \param      [in] FcKernelList
+//!             VP FC Kernel List
 //! \param      [in] bLastSubmission
 //!             whether it is the last submission
 //! \return     MOS_STATUS
@@ -2601,6 +2605,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     PMHW_GPGPU_WALKER_PARAMS            pGpGpuWalkerParams,
     PSTATUS_TABLE_UPDATE_PARAMS         pStatusTableUpdateParams,
     VpKernelID                          KernelID,
+    int                                 FcKernelCount,
+    int                                 *FcKernelList,
     bool                                bLastSubmission);
 
 //!
