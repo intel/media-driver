@@ -424,6 +424,7 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
         comamndBuffer->iRemaining = cmdBuf->GetCmdBufSize();
         comamndBuffer->iCmdIndex  = m_nextFetchIndex;
         comamndBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
+        comamndBuffer->Attributes.pAttriVe = nullptr;
 
         // zero comamnd buffer
         MOS_ZeroMemory(comamndBuffer->pCmdBase, comamndBuffer->iRemaining);
