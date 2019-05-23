@@ -264,6 +264,8 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
+
     return true;
 }
 
