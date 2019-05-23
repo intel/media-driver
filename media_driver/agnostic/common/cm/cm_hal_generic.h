@@ -655,6 +655,10 @@ public:
         return m_decompress;
     }
 
+    virtual MOS_STATUS RegisterResourceBeforeLock(PMOS_INTERFACE pOsInterface, PMOS_RESOURCE pResource)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 protected:
     uint32_t              m_platformID;
     uint32_t              m_genGT;
