@@ -3566,7 +3566,7 @@ MOS_STATUS CodechalEncodeAvcBase::DumpSeqParams(
     oss << "vui_parameters_present_flag = " << +seqParams->vui_parameters_present_flag << std::endl;
     oss << "frame_cropping_flag = " << +seqParams->frame_cropping_flag << std::endl;
     oss << "EnableSliceLevelRateCtrl = " << +seqParams->EnableSliceLevelRateCtrl << std::endl;
-    oss << "ICQQualityFactor = " << +seqParams->ICQQualityFactor << std::endl;
+    oss << "QualityFactor = " << +seqParams->QualityFactor << std::endl;
     oss << "InputColorSpace = " << +seqParams->InputColorSpace << std::endl;
 
     // begining of union/struct
@@ -4392,7 +4392,7 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
         m_avcPar->EntropyCodingMode     = avcPicParams->entropy_coding_mode_flag;
         m_avcPar->DirectInference       = avcSeqParams->direct_8x8_inference_flag;
         m_avcPar->Transform8x8Mode      = avcPicParams->transform_8x8_mode_flag;
-        m_avcPar->CRFQualityFactor      = avcSeqParams->ICQQualityFactor;
+        m_avcPar->CRFQualityFactor      = avcSeqParams->QualityFactor;
         m_avcPar->ConstrainedIntraPred  = avcPicParams->constrained_intra_pred_flag;
 
         // This is only for header matching although I frame doesn't have references

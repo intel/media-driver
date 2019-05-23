@@ -260,7 +260,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     }
     else if (VA_RC_ICQ == m_encodeCtx->uiRCMethod)
     {
-        seqParams->ICQQualityFactor = encMiscParamRC->ICQ_quality_factor;
+        seqParams->QualityFactor = encMiscParamRC->quality_factor;
     }
     else if (VA_RC_AVBR == m_encodeCtx->uiRCMethod)
     {
@@ -276,7 +276,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
 
         if (VA_RC_QVBR == m_encodeCtx->uiRCMethod)
         {
-            seqParams->ICQQualityFactor = encMiscParamRC->quality_factor;
+            seqParams->QualityFactor = encMiscParamRC->quality_factor;
         }
 
         if ((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate) ||

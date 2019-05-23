@@ -1660,7 +1660,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
             break;
         case RATECONTROL_QVBR:
             hucVdencBrcInitDmem->BRCFlag = 2;
-            hucVdencBrcInitDmem->ACQP_U32 = m_hevcSeqParams->ICQQualityFactor;
+            hucVdencBrcInitDmem->ACQP_U32 = m_hevcSeqParams->QualityFactor;
             break;
         default:
             break;

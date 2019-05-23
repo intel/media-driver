@@ -5013,7 +5013,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcBrcInitReset(PCODECHAL_ENCODE_AVC_
     else if (seqParams->RateControlMethod == RATECONTROL_ICQ)
     {
         cmd.DW8.BRCFlag = cmd.DW8.BRCFlag | CODECHAL_ENCODE_BRCINIT_ISICQ;
-        cmd.DW23.ACQP = seqParams->ICQQualityFactor;
+        cmd.DW23.ACQP = seqParams->QualityFactor;
     }
     else if (seqParams->RateControlMethod == RATECONTROL_VCM)
     {
@@ -5026,8 +5026,8 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcBrcInitReset(PCODECHAL_ENCODE_AVC_
             cmd.DW3.AverageBitRate = cmd.DW4.MaxBitRate; // Use max bit rate for HRD compliance
         }
         cmd.DW8.BRCFlag = cmd.DW8.BRCFlag | CODECHAL_ENCODE_BRCINIT_ISQVBR;
-        // use ICQQualityFactor to determine the larger Qp for each MB
-        cmd.DW23.ACQP = seqParams->ICQQualityFactor;
+        // use QualityFactor to determine the larger Qp for each MB
+        cmd.DW23.ACQP = seqParams->QualityFactor;
     }
 
     cmd.DW10.AVBRAccuracy    =     usAVBRAccuracy;

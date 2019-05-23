@@ -1074,7 +1074,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         }
         else if (VA_RC_ICQ & m_encodeCtx->uiRCMethod)
         {
-            seqParams->ICQQualityFactor  = vaEncMiscParamRC->ICQ_quality_factor;
+            seqParams->QualityFactor  = vaEncMiscParamRC->quality_factor;
             seqParams->RateControlMethod = RATECONTROL_ICQ;
             seqParams->MBBRC             = 1;
         }
@@ -1090,7 +1090,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         else if (VA_RC_QVBR & m_encodeCtx->uiRCMethod)
         {
             seqParams->RateControlMethod = RATECONTROL_QVBR;
-            seqParams->ICQQualityFactor = vaEncMiscParamRC->ICQ_quality_factor;
+            seqParams->QualityFactor = vaEncMiscParamRC->quality_factor;
             seqParams->MBBRC = 1;
         }
         else
