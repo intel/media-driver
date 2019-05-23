@@ -947,7 +947,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
 
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
         if ((!veDefaultEnable || !osInterface->veDefaultEnable) && 
-            (eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+            (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
         {
             osInterface->bSupportVirtualEngine = false;
         }
