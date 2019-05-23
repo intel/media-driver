@@ -997,7 +997,7 @@ bool VphalRenderer::IsFormatSupported(
     VPHAL_RENDER_ASSERT(pcRenderParams);
 
     // Protection mechanism
-    // P010 output support from KBL+
+    // P010 output support from BXT+
     if (m_pSkuTable)
     {
         if (pcRenderParams->pTarget[0])
@@ -1075,7 +1075,7 @@ MOS_STATUS VphalRenderer::Render(
         goto finish;
     }
 
-    // Protection mechanism, Only KBL+ support P010 output.
+    // Protection mechanism, Only BXT+ support P010 output.
     if (IsFormatSupported(pcRenderParams) == false)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Invalid Render Target Output Format.");
