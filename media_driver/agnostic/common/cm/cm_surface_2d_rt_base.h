@@ -151,10 +151,7 @@ public:
     void DumpContent(uint32_t kernelNumber,
                      char *kernelName,
                      int32_t taskId,
-                     uint32_t argIndex,
-                     uint32_t vectorIndex);
-
-    void DumpContentToFile(const char *filename);
+                     uint32_t argIndex);
 
     int32_t UpdateSurfaceProperty(uint32_t width, uint32_t height, uint32_t pitch, CM_SURFACE_FORMAT format);
 

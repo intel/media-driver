@@ -46,7 +46,7 @@ public:
     int32_t WaitForReferenceFree();
     int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age);
     std::string GetFormatString(CM_SURFACE_FORMAT format);
-    virtual void DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex, uint32_t vectorIndex) { return; }
+    virtual void DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex) { return; }
     virtual void Log(std::ostringstream &oss) { return; }
     inline void SetRenderTracker(uint32_t index, uint32_t tracker) {m_lastRenderTracker.Merge(index, tracker); }
     inline void SetFastTracker(uint32_t index, uint32_t tracker) {m_lastFastTracker.Merge(index, tracker); }

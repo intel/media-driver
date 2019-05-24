@@ -579,20 +579,6 @@ int32_t CmQueueRT::Enqueue_RT(
 
     result = FlushTaskWithoutSync();
 
-#if MDF_SURFACE_CONTENT_DUMP
-    if (cmData->cmHalState->dumpSurfaceContent)
-    {
-        // Get the Task Id
-        int32_t taskId = 0;
-        HalCm_GetNewTaskId(cmData->cmHalState, &taskId);
-        event->WaitForTaskFinished();
-        for (uint32_t i = 0; i < kernelCount; i++)
-        {
-            kernelArray[i]->SurfaceDump(i, taskId);
-        }
-    }
-#endif
-
     return result;
 }
 
@@ -669,23 +655,6 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     }
 
     result = FlushTaskWithoutSync();
-
-#if MDF_SURFACE_CONTENT_DUMP
-    if (cmData->cmHalState->dumpSurfaceContent)
-    {
-        // Get the Task Id
-        int32_t taskId = 0;
-        HalCm_GetNewTaskId(cmData->cmHalState, &taskId);
-        if (event != nullptr)
-        {
-            event->WaitForTaskFinished();
-        }
-        for (uint32_t i = 0; i < kernelCount; i++)
-        {
-            kernelArray[i]->SurfaceDump(i, taskId);
-        }
-    }
-#endif
 
     return result;
 }
@@ -804,20 +773,6 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* kernelArray[],
     }
 
     result = FlushTaskWithoutSync();
-
-#if MDF_SURFACE_CONTENT_DUMP
-    if (cmData->cmHalState->dumpSurfaceContent)
-    {
-        // Get the Task Id
-        int32_t taskId = 0;
-        HalCm_GetNewTaskId(cmData->cmHalState, &taskId);
-        event->WaitForTaskFinished();
-        for (uint32_t i = 0; i < kernelCount; i++)
-        {
-            kernelArray[i]->SurfaceDump(i, taskId);
-        }
-    }
-#endif
 
     return result;
 }
@@ -2255,6 +2210,20 @@ void CmQueueRT::PopTaskFromFlushedQueue()
                 event->SetCompleteTime( nTime );
             }
         }
+
+#if MDF_SURFACE_CONTENT_DUMP
+        PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+        if (cmData->cmHalState->dumpSurfaceContent)
+        {
+            int32_t taskId = 0;
+            if (event != nullptr)
+            {
+                event->GetTaskDriverId(taskId);
+            }
+            topTask->SurfaceDump(taskId);
+        }
+#endif
+
         CmTaskInternal::Destroy( topTask );
     }
     return;
@@ -3214,18 +3183,17 @@ int32_t CmQueueRT::CreateEvent(CmTaskInternal *task, bool isVisible, int32_t &ta
 
     if (hr == CM_SUCCESS)
     {
+
         m_eventArray.SetElement( freeSlotInEventArray, event );
         m_eventCount ++;
 
         task->SetTaskEvent( event );
-#if MDF_SURFACE_CONTENT_DUMP
-        //force this event to be visible in surface content dump
-        isVisible = true;
-#endif
-        if (!isVisible)
+
+        if(!isVisible)
         {
             event = nullptr;
         }
+
     }
     else
     {

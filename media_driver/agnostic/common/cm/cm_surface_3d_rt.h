@@ -83,8 +83,7 @@ public:
     void DumpContent(uint32_t kernelNumber,
                      char *kernelName,
                      int32_t taskId,
-                     uint32_t argIndex,
-                     uint32_t vectorIndex);
+                     uint32_t argIndex);
 
 protected:
     CmSurface3DRT(uint32_t handle,
