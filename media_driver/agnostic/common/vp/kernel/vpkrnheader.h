@@ -862,26 +862,36 @@
 #define IDR_VP_zzz_preproduction_gcBltPS_32_To_128_Mirror_Gen 828
 #define IDR_VP_zzz_preproduction_gcBltPS_64_To_128_Mirror_Gen 829
 #define IDR_VP_zzz_preproduction_gcBltPS_Gen 830
-#define IDR_VP_zzz_preproduction_gcClearNoReplicatePS_Gen 831
-#define IDR_VP_zzz_preproduction_gcClearReplicatePS_Gen 832
-#define IDR_VP_zzz_preproduction_gcColorFillNoReplicatePS_Gen 833
-#define IDR_VP_zzz_preproduction_gcColorFillReplicatePS_Gen 834
-#define IDR_VP_zzz_preproduction_gcFastClearReplicatePS_Gen 835
-#define IDR_VP_zzz_production 836
-#define IDR_VP_zzz_production_ALLPL2Copy_Gen 837
-#define IDR_VP_zzz_production_HDR_mandatory_Gen 838
-#define IDR_VP_zzz_production_HDR_per_frame_stat_Gen 839
-#define IDR_VP_zzz_production_gcBltPS_32_To_128_Mirror_Gen 840
-#define IDR_VP_zzz_production_gcBltPS_64_To_128_Mirror_Gen 841
-#define IDR_VP_zzz_production_gcBltPS_Gen 842
-#define IDR_VP_zzz_production_gcClearNoReplicatePS_Gen 843
-#define IDR_VP_zzz_production_gcClearReplicatePS_Gen 844
-#define IDR_VP_zzz_production_gcColorFillNoReplicatePS_Gen 845
-#define IDR_VP_zzz_production_gcColorFillReplicatePS_Gen 846
-#define IDR_VP_zzz_production_gcFastClearReplicatePS_Gen 847
-#define IDR_VP_TOTAL_NUM_KERNELS 848
+#define IDR_VP_zzz_preproduction_gcBlt_D11 831
+#define IDR_VP_zzz_preproduction_gcClearNoReplicatePS_Gen 832
+#define IDR_VP_zzz_preproduction_gcClearReplicatePS_Gen 833
+#define IDR_VP_zzz_preproduction_gcClear_NoReplicate_D11 834
+#define IDR_VP_zzz_preproduction_gcClear_Replicate_D11 835
+#define IDR_VP_zzz_preproduction_gcColorFillNoReplicatePS_Gen 836
+#define IDR_VP_zzz_preproduction_gcColorFillReplicatePS_Gen 837
+#define IDR_VP_zzz_preproduction_gcFastClearReplicatePS_Gen 838
+#define IDR_VP_zzz_preproduction_gcFastClear_Replicate_D11 839
+#define IDR_VP_zzz_preproduction_gcResourceCopy_D11 840
+#define IDR_VP_zzz_production 841
+#define IDR_VP_zzz_production_ALLPL2Copy_Gen 842
+#define IDR_VP_zzz_production_HDR_mandatory_Gen 843
+#define IDR_VP_zzz_production_HDR_per_frame_stat_Gen 844
+#define IDR_VP_zzz_production_gcBltPS_32_To_128_Mirror_Gen 845
+#define IDR_VP_zzz_production_gcBltPS_64_To_128_Mirror_Gen 846
+#define IDR_VP_zzz_production_gcBltPS_Gen 847
+#define IDR_VP_zzz_production_gcBlt_D11 848
+#define IDR_VP_zzz_production_gcClearNoReplicatePS_Gen 849
+#define IDR_VP_zzz_production_gcClearReplicatePS_Gen 850
+#define IDR_VP_zzz_production_gcClear_NoReplicate_D11 851
+#define IDR_VP_zzz_production_gcClear_Replicate_D11 852
+#define IDR_VP_zzz_production_gcColorFillNoReplicatePS_Gen 853
+#define IDR_VP_zzz_production_gcColorFillReplicatePS_Gen 854
+#define IDR_VP_zzz_production_gcFastClearReplicatePS_Gen 855
+#define IDR_VP_zzz_production_gcFastClear_Replicate_D11 856
+#define IDR_VP_zzz_production_gcResourceCopy_D11 857
+#define IDR_VP_TOTAL_NUM_KERNELS 858
 
-#if _DEBUG || _RELEASE_INTERNAL
+#if _DEBUG
 #define IDR_VP_KERNEL_NAMES   \
     _T("1_1_16aligned"),\
     _T("3DLUT"),\
@@ -1714,11 +1724,16 @@
     _T("zzz_preproduction_gcBltPS_32_To_128_Mirror_Gen"),\
     _T("zzz_preproduction_gcBltPS_64_To_128_Mirror_Gen"),\
     _T("zzz_preproduction_gcBltPS_Gen"),\
+    _T("zzz_preproduction_gcBlt_D11"),\
     _T("zzz_preproduction_gcClearNoReplicatePS_Gen"),\
     _T("zzz_preproduction_gcClearReplicatePS_Gen"),\
+    _T("zzz_preproduction_gcClear_NoReplicate_D11"),\
+    _T("zzz_preproduction_gcClear_Replicate_D11"),\
     _T("zzz_preproduction_gcColorFillNoReplicatePS_Gen"),\
     _T("zzz_preproduction_gcColorFillReplicatePS_Gen"),\
     _T("zzz_preproduction_gcFastClearReplicatePS_Gen"),\
+    _T("zzz_preproduction_gcFastClear_Replicate_D11"),\
+    _T("zzz_preproduction_gcResourceCopy_D11"),\
     _T("zzz_production"),\
     _T("zzz_production_ALLPL2Copy_Gen"),\
     _T("zzz_production_HDR_mandatory_Gen"),\
@@ -1726,11 +1741,16 @@
     _T("zzz_production_gcBltPS_32_To_128_Mirror_Gen"),\
     _T("zzz_production_gcBltPS_64_To_128_Mirror_Gen"),\
     _T("zzz_production_gcBltPS_Gen"),\
+    _T("zzz_production_gcBlt_D11"),\
     _T("zzz_production_gcClearNoReplicatePS_Gen"),\
     _T("zzz_production_gcClearReplicatePS_Gen"),\
+    _T("zzz_production_gcClear_NoReplicate_D11"),\
+    _T("zzz_production_gcClear_Replicate_D11"),\
     _T("zzz_production_gcColorFillNoReplicatePS_Gen"),\
     _T("zzz_production_gcColorFillReplicatePS_Gen"),\
     _T("zzz_production_gcFastClearReplicatePS_Gen"),\
+    _T("zzz_production_gcFastClear_Replicate_D11"),\
+    _T("zzz_production_gcResourceCopy_D11"),\
     _T("")
 #else // !_DEBUG
 #define IDR_VP_KERNEL_NAMES   \
@@ -2582,6 +2602,16 @@
     _T("845"),\
     _T("846"),\
     _T("847"),\
+    _T("848"),\
+    _T("849"),\
+    _T("850"),\
+    _T("851"),\
+    _T("852"),\
+    _T("853"),\
+    _T("854"),\
+    _T("855"),\
+    _T("856"),\
+    _T("857"),\
     _T("")
 #endif // _DEBUG
 
