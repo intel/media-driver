@@ -61,8 +61,6 @@ public:
         // SLM     URB     DC      RO     Rest
         // 0      256      0       0      512 (KB chunks based on GT2)
         m_l3CacheCntlRegisterValueDefault = 0x80000040;
-
-        InitMmioRegisters();
     }
 
     virtual ~MhwRenderInterfaceG9() { MHW_FUNCTION_ENTER; }
@@ -100,15 +98,6 @@ public:
 
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() { return &m_l3CacheConfig; }
 
-    virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters()
-    {
-        return &m_mmioRegisters;
-    }
-
-private:
-    //! \brief Mmio registers address
-    MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
-    void InitMmioRegisters();
 };
 
 #endif

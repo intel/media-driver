@@ -910,8 +910,6 @@ MOS_STATUS VpHal_Fast1toNRender(
         nullptr,
         &pFast1toNState->StatusTableUpdateParams,
         kernelFast1toN,
-        0,
-        nullptr,
         true));
 
 finish:

@@ -39,7 +39,6 @@
 #include "mhw_memory_pool.h"
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
-#include "renderhal_oca_support.h"
 
 #include "frame_tracker.h"
 
@@ -881,8 +880,6 @@ typedef struct _RENDERHAL_STATE_HEAP
     uint32_t                dwOffsetMediaID;                                    // Offset to Media IDs from Media State Base
     uint32_t                dwSizeMediaID;                                      // Size of each Media ID
 
-    MHW_ID_ENTRY_PARAMS     CurIDEntryParams = {};                              // Parameters for current Interface Descriptor Entry
-
     // Performance capture
     uint32_t                dwOffsetStartTime;                                  // Offset to the start time of the media state
     uint32_t                dwStartTimeSize;                                    // Size of Start time
@@ -955,7 +952,6 @@ typedef struct _RENDERHAL_STATE_HEAP
     int32_t                 iKernelUsed;                                        // Kernel heap used size
     uint8_t                 *pKernelLoadMap;                                     // Kernel load map
     uint32_t                dwAccessCounter;                                    // Incremented when a kernel is loaded/used, for dynamic allocation
-    int32_t                 iKernelUsedForDump;                                 // Kernel heap used size without alignment data in tail.
 
     // Kernel Spill Area
     uint32_t                dwScratchSpaceSize;                                 // Size of the Scratch Area
@@ -1714,8 +1710,6 @@ typedef struct _RENDERHAL_INTERFACE
     bool(*pfnPerThreadScratchSpaceStart2K) (
                 PRENDERHAL_INTERFACE        pRenderHal);
 
-    RenderhalOcaSupport &(* pfnGetOcaSupport)();
-
     //---------------------------
     // Overwrite L3 Cache control register
     //---------------------------
@@ -1886,12 +1880,6 @@ MOS_STATUS RenderHal_SendTimingData(
     PRENDERHAL_INTERFACE         pRenderHal,
     PMOS_COMMAND_BUFFER          pCmdBuffer,
     bool                         bStartTime);
-
-//!
-//! \brief    Get Oca support object
-//! \return   RenderhalOcaSupport&
-//!
-RenderhalOcaSupport &RenderHal_GetOcaSupport();
 
 // Constants defined in RenderHal interface
 extern const MHW_PIPE_CONTROL_PARAMS      g_cRenderHal_InitPipeControlParams;

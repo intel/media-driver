@@ -5957,10 +5957,6 @@ MOS_STATUS CompositeState::RenderPhase(
             goto finish;
         }
     }
-    else
-    {
-        VPHAL_RENDER_NORMALMESSAGE("Use previous kernel list.");
-    }
 
     RenderingData.bCmFcEnable  = pKernelDllState->bEnableCMFC ? true : false;
 
@@ -6131,8 +6127,6 @@ MOS_STATUS CompositeState::RenderPhase(
         pComputeWalkerParams,
         &m_StatusTableUpdateParams,
         kernelCombinedFc,
-        m_KernelSearch.KernelCount,
-        m_KernelSearch.KernelID,
         m_bLastPhase));
 
 finish:

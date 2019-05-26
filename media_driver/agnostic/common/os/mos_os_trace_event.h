@@ -102,8 +102,7 @@ typedef enum _MEDIA_EVENT
     EVENT_DDE_CB_REPORT_ENCRYPTION_STATUS,
     EVENT_DDE_CB_REPORT_LINK_STATUS,
     EVENT_DDE_CB_SEND_DATA,
-    EVENT_DDE_MESSAGE,              //! event for debug message
-    EVENT_OCA_LAST_ERROR            //! event for last OCA error.
+    EVENT_DDE_MESSAGE               //! event for debug message
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

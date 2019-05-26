@@ -952,11 +952,6 @@ GMM_CLIENT_CONTEXT* Linux_GetGmmClientContext(PMOS_CONTEXT pOsContext)
     return pOsContext->pGmmClientContext;
 }
 
-MosOcaInterface* Linux_GetOcaInterface()
-{
-    return nullptr;
-}
-
 //!
 //! \brief    Get GPU tag for the given GPU context from the status buffer
 //! \details  Get GPU tag for the given GPU context from the status buffer
@@ -1440,7 +1435,6 @@ MOS_STATUS Linux_InitContext(
     pContext->pfnIncGpuCtxBufferTag      = Linux_IncGpuCtxBufferTag;
     pContext->GetGPUTag                  = Linux_GetGPUTag;
     pContext->GetGmmClientContext        = Linux_GetGmmClientContext;
-    pContext->GetOcaInterface            = Linux_GetOcaInterface;
 
 finish:
     if (!modularizedGpuCtxEnabled)
