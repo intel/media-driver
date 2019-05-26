@@ -891,7 +891,7 @@
 #define IDR_VP_zzz_production_gcResourceCopy_D11 857
 #define IDR_VP_TOTAL_NUM_KERNELS 858
 
-#if _DEBUG
+#if _DEBUG || _RELEASE_INTERNAL
 #define IDR_VP_KERNEL_NAMES   \
     _T("1_1_16aligned"),\
     _T("3DLUT"),\
