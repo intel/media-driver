@@ -573,7 +573,6 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         height >>= 1;
         break;
     case  Format_Y416:
-    case  Format_AYUV:
     case  Format_AUYV:
     case  Format_Y410: //444 10bit
         height *= 2;
@@ -593,6 +592,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case Format_IMC3:
         height = height / 2;
         break;
+    case  Format_AYUV:
     default:
         height = 0;
         break;
