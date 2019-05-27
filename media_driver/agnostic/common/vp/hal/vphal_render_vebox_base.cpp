@@ -1816,16 +1816,27 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     MHW_MI_FLUSH_DW_PARAMS&                  FlushDwParams,
     PRENDERHAL_GENERIC_PROLOG_PARAMS         pGenericPrologParams)
 {
-    MOS_STATUS                              eStatus;
-    PRENDERHAL_INTERFACE                    pRenderHal;
-    PMOS_INTERFACE                          pOsInterface;
-    PMHW_MI_INTERFACE                       pMhwMiInterface;
-    PMHW_VEBOX_INTERFACE                    pVeboxInterface;
-    bool                                    bDiVarianceEnable;
+    MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
+    PRENDERHAL_INTERFACE                    pRenderHal = nullptr;
+    PMOS_INTERFACE                          pOsInterface = nullptr;
+    PMHW_MI_INTERFACE                       pMhwMiInterface = nullptr;
+    PMHW_VEBOX_INTERFACE                    pVeboxInterface = nullptr;
+    bool                                    bDiVarianceEnable = false;
     const MHW_VEBOX_HEAP                    *pVeboxHeap = nullptr;
     PVPHAL_VEBOX_STATE                      pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA                pRenderData = GetLastExecRenderData();
-    MediaPerfProfiler                       *pPerfProfiler;
+    MediaPerfProfiler                       *pPerfProfiler = nullptr;
+    MOS_CONTEXT                             *pOsContext = nullptr;
+    PMHW_MI_MMIOREGISTERS                   pMmioRegisters = nullptr;
+    RenderhalOcaSupport                     *pRenderhalOcaSupport = nullptr;
+
+    MHW_RENDERHAL_CHK_NULL(pVeboxState);
+    MHW_RENDERHAL_CHK_NULL(pVeboxState->m_pRenderHal);
+    MHW_RENDERHAL_CHK_NULL(pVeboxState->m_pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pVeboxState->m_pRenderHal->pMhwMiInterface->GetMmioRegisters());
+    MHW_RENDERHAL_CHK_NULL(pVeboxState->m_pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pVeboxState->m_pRenderHal->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pVeboxState->m_pRenderHal->pfnGetOcaSupport);
 
     eStatus                 = MOS_STATUS_SUCCESS;
     pRenderHal              = pVeboxState->m_pRenderHal;
@@ -1833,6 +1844,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     pOsInterface            = pVeboxState->m_pOsInterface;
     pVeboxInterface         = pVeboxState->m_pVeboxInterface;
     pPerfProfiler           = pRenderHal->pPerfProfiler;
+    pOsContext              = pOsInterface->pOsContext;
+    pMmioRegisters          = pMhwMiInterface->GetMmioRegisters();
+    pRenderhalOcaSupport    = &pRenderHal->pfnGetOcaSupport();
 
     VPHAL_RENDER_CHK_STATUS(pVeboxInterface->GetVeboxHeapInfo(
                                 &pVeboxHeap));
@@ -1840,6 +1854,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, pGenericPrologParams));
+
+    pRenderhalOcaSupport->On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
+        *pRenderHal->pMhwMiInterface, *pMmioRegisters);
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
 
@@ -1959,6 +1976,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
             &CmdBuffer));
     }
 
+    pRenderhalOcaSupport->OnDispatch(CmdBuffer, *pOsContext, *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+
     //---------------------------------
     // Send CMD: Vebox_DI_IECP
     //---------------------------------
@@ -1994,6 +2013,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     }
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
+
+    pRenderhalOcaSupport->On1stLevelBBEnd(CmdBuffer, *pOsContext);
 
     if (pOsInterface->bNoParsingAssistanceInKmd)
     {

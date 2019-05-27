@@ -949,6 +949,8 @@ MOS_STATUS VpHal_16AlignRender(
         nullptr,
         &p16AlignState->StatusTableUpdateParams,
         kernelUserPtr,
+        0,
+        nullptr,
         true));
 
 finish:

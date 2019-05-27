@@ -2031,6 +2031,7 @@ int32_t RenderHal_LoadKernel(
         iSize    = MOS_ALIGN_CEIL(iKernelSize, pRenderHal->StateHeapSettings.iKernelBlockSize);
 
         // Update heap
+        pStateHeap->iKernelUsedForDump = pStateHeap->iKernelUsed + iKernelSize;
         pStateHeap->iKernelUsed += iSize;
 
         // Load kernel
@@ -2329,6 +2330,7 @@ void RenderHal_ResetKernels(
     pStateHeap->dwAccessCounter = 0;
     pStateHeap->iKernelSize = pRenderHal->StateHeapSettings.iKernelHeapSize;
     pStateHeap->iKernelUsed = 0;
+    pStateHeap->iKernelUsedForDump = 0;
 
 finish:
     return;
@@ -4312,6 +4314,10 @@ MOS_STATUS RenderHal_SendCurbeLoad(
     MHW_CURBE_LOAD_PARAMS CurbeLoadParams;
     PRENDERHAL_STATE_HEAP pStateHeap;
     MOS_STATUS            eStatus = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE        pOsInterface = nullptr;
+    MOS_CONTEXT           *pOsContext = nullptr;
+    MOS_OCA_BUFFER_HANDLE hOcaBuf = 0;
+    RenderhalOcaSupport   *pRenderhalOcaSupport = nullptr;
 
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -4319,10 +4325,16 @@ MOS_STATUS RenderHal_SendCurbeLoad(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pfnGetOcaSupport);
     //-----------------------------------------
 
-    eStatus     = MOS_STATUS_SUCCESS;
-    pStateHeap  = pRenderHal->pStateHeap;
+    eStatus                 = MOS_STATUS_SUCCESS;
+    pStateHeap              = pRenderHal->pStateHeap;
+    pOsInterface            = pRenderHal->pOsInterface;
+    pOsContext              = pOsInterface->pOsContext;
+    pRenderhalOcaSupport    = &pRenderHal->pfnGetOcaSupport();
 
     // CURBE size is in bytes
     if (pStateHeap->pCurMediaState->iCurbeOffset != 0)
@@ -4333,6 +4345,9 @@ MOS_STATUS RenderHal_SendCurbeLoad(
         CurbeLoadParams.dwCURBEDataStartAddress = pStateHeap->pCurMediaState->dwOffset + pStateHeap->dwOffsetCurbe;
 
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwRenderInterface->AddMediaCurbeLoadCmd(pCmdBuffer, &CurbeLoadParams));
+
+        pRenderhalOcaSupport->OnIndirectState(*pCmdBuffer, *pOsContext,pRenderHal->StateBaseAddressParams.presDynamicState,
+            CurbeLoadParams.dwCURBEDataStartAddress, false, CurbeLoadParams.dwCURBETotalDataLength);
     }
 
 finish:
@@ -4346,6 +4361,10 @@ MOS_STATUS RenderHal_SendMediaIdLoad(
     MHW_ID_LOAD_PARAMS    IdLoadParams;
     PRENDERHAL_STATE_HEAP pStateHeap;
     MOS_STATUS            eStatus = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE        pOsInterface = nullptr;
+    MOS_CONTEXT           *pOsContext = nullptr;
+    MOS_OCA_BUFFER_HANDLE hOcaBuf = 0;
+    RenderhalOcaSupport   *pRenderhalOcaSupport = nullptr;
 
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -4353,16 +4372,25 @@ MOS_STATUS RenderHal_SendMediaIdLoad(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pfnGetOcaSupport);
     //-----------------------------------------
 
-    eStatus     = MOS_STATUS_SUCCESS;
-    pStateHeap  = pRenderHal->pStateHeap;
+    eStatus                 = MOS_STATUS_SUCCESS;
+    pStateHeap              = pRenderHal->pStateHeap;
+    pOsInterface            = pRenderHal->pOsInterface;
+    pOsContext              = pOsInterface->pOsContext;
+    pRenderhalOcaSupport    = &pRenderHal->pfnGetOcaSupport();
 
     IdLoadParams.pKernelState                     = nullptr;
     IdLoadParams.dwInterfaceDescriptorStartOffset = pStateHeap->pCurMediaState->dwOffset +  pStateHeap->dwOffsetMediaID;
     IdLoadParams.dwInterfaceDescriptorLength      = pRenderHal->StateHeapSettings.iMediaIDs * pStateHeap->dwSizeMediaID;
 
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwRenderInterface->AddMediaIDLoadCmd(pCmdBuffer, &IdLoadParams));
+
+    pRenderhalOcaSupport->OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presDynamicState,
+        IdLoadParams.dwInterfaceDescriptorStartOffset, false, IdLoadParams.dwInterfaceDescriptorLength);
 
 finish:
     return eStatus;
@@ -4547,6 +4575,7 @@ MOS_STATUS RenderHal_SendPredicationCommand(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface->GetMmioRegisters());
     //-----------------------------------------
 
     MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS  condBBEndParams;
@@ -4566,6 +4595,7 @@ MOS_STATUS RenderHal_SendPredicationCommand(
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnPerformOverlaySync(pRenderHal->pOsInterface, &syncParams));
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnResourceWait(pRenderHal->pOsInterface, &syncParams));
 
+    // This function is only support VEBox right now, since register returned by pMhwMiInterface->GetMmioRegisters() is for VEBox.
     // Keep implementation same between Render and VEBox engines - for Render it is highly inefficient
     // Skip current frame if presPredication is not equal to zero
     if (pRenderHal->PredicationParams.predicationNotEqualZero)
@@ -5268,12 +5298,17 @@ MOS_STATUS RenderHal_SendMediaStates(
     PMHW_WALKER_PARAMS        pWalkerParams,
     PMHW_GPGPU_WALKER_PARAMS  pGpGpuWalkerParams)
 {
-    PMOS_INTERFACE               pOsInterface;
-    MhwRenderInterface           *pMhwRender;
-    PMHW_MI_INTERFACE            pMhwMiInterface;
-    PRENDERHAL_STATE_HEAP        pStateHeap;
-    MOS_STATUS                   eStatus;
+    PMOS_INTERFACE               pOsInterface = nullptr;
+    MhwRenderInterface           *pMhwRender = nullptr;
+    PMHW_MI_INTERFACE            pMhwMiInterface = nullptr;
+    PRENDERHAL_STATE_HEAP        pStateHeap = nullptr;
+    MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     MHW_VFE_PARAMS               *pVfeStateParams = nullptr;
+    MOS_CONTEXT                  *pOsContext = nullptr;
+    MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterImmParams = {};
+    PMHW_MI_MMIOREGISTERS        pMmioRegisters = nullptr;
+    MOS_OCA_BUFFER_HANDLE        hOcaBuf = 0;
+    RenderhalOcaSupport          *pRenderhalOcaSupport = nullptr;
 
     //---------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -5282,11 +5317,17 @@ MOS_STATUS RenderHal_SendMediaStates(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     MHW_RENDERHAL_ASSERT(pRenderHal->pStateHeap->bGshLocked);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface->GetMmioRegisters());
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pfnGetOcaSupport);
+
     //---------------------------------------
-    pOsInterface    = pRenderHal->pOsInterface;
-    pMhwRender      = pRenderHal->pMhwRenderInterface;
-    pMhwMiInterface = pRenderHal->pMhwMiInterface;
-    pStateHeap      = pRenderHal->pStateHeap;
+    pOsInterface            = pRenderHal->pOsInterface;
+    pMhwRender              = pRenderHal->pMhwRenderInterface;
+    pMhwMiInterface         = pRenderHal->pMhwMiInterface;
+    pStateHeap              = pRenderHal->pStateHeap;
+    pOsContext              = pOsInterface->pOsContext;
+    pMmioRegisters          = pMhwRender->GetMmioRegisters();
+    pRenderhalOcaSupport    = &pRenderHal->pfnGetOcaSupport();
 
     // This need not be secure, since PPGTT will be used here. But moving this after
     // L3 cache configuration will delay UMD from fetching another media state.
@@ -5308,6 +5349,10 @@ MOS_STATUS RenderHal_SendMediaStates(
     // Send Pipeline Select command
     MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddPipelineSelectCmd(pCmdBuffer,
                                                                  (pGpGpuWalkerParams) ? true: false));
+
+    // The binding table for surface states is at end of command buffer. No need to add it to indirect state heap.
+    pRenderhalOcaSupport->OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer,
+        pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
 
     // Send State Base Address command
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendStateBaseAddress(pRenderHal, pCmdBuffer));
@@ -5356,6 +5401,8 @@ MOS_STATUS RenderHal_SendMediaStates(
 
     // Send Palettes in use
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendPalette(pRenderHal, pCmdBuffer));
+
+    pRenderhalOcaSupport->OnDispatch(*pCmdBuffer, *pOsContext, *pRenderHal->pMhwMiInterface, *pMmioRegisters);
 
     // Send Media object walker
     if(pWalkerParams)
@@ -5633,38 +5680,40 @@ MOS_STATUS RenderHal_SetupInterfaceDescriptor(
     PRENDERHAL_INTERFACE_DESCRIPTOR_PARAMS pInterfaceDescriptorParams)
 {
     MOS_STATUS               eStatus = MOS_STATUS_SUCCESS;
-    MHW_ID_ENTRY_PARAMS      Params;
-    PRENDERHAL_STATE_HEAP    pStateHeap;
+    PMHW_ID_ENTRY_PARAMS     pParams = nullptr;
+    PRENDERHAL_STATE_HEAP    pStateHeap = nullptr;
 
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pMediaState);
     MHW_RENDERHAL_CHK_NULL(pKernelAllocation);
     MHW_RENDERHAL_CHK_NULL(pInterfaceDescriptorParams);
     //-----------------------------------------
 
     // Get states, params
-    pStateHeap    = pRenderHal->pStateHeap;
+    pStateHeap      = pRenderHal->pStateHeap;
+    pParams         = &pStateHeap->CurIDEntryParams;
 
-    Params.dwMediaIdOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetMediaID;
-    Params.iMediaId             = pInterfaceDescriptorParams->iMediaID;
-    Params.dwKernelOffset       = pKernelAllocation->dwOffset;
-    Params.dwSamplerOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetSampler +
+    pParams->dwMediaIdOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetMediaID;
+    pParams->iMediaId             = pInterfaceDescriptorParams->iMediaID;
+    pParams->dwKernelOffset       = pKernelAllocation->dwOffset;
+    pParams->dwSamplerOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetSampler +
                                   pInterfaceDescriptorParams->iMediaID * pStateHeap->dwSizeSampler;
-    Params.dwSamplerCount       = pKernelAllocation->Params.Sampler_Count;
-    Params.dwBindingTableOffset = pInterfaceDescriptorParams->iBindingTableID * pStateHeap->iBindingTableSize;
-    Params.iCurbeOffset         = pInterfaceDescriptorParams->iCurbeOffset;
-    Params.iCurbeLength         = pInterfaceDescriptorParams->iCurbeLength;
+    pParams->dwSamplerCount       = pKernelAllocation->Params.Sampler_Count;
+    pParams->dwBindingTableOffset = pInterfaceDescriptorParams->iBindingTableID * pStateHeap->iBindingTableSize;
+    pParams->iCurbeOffset         = pInterfaceDescriptorParams->iCurbeOffset;
+    pParams->iCurbeLength         = pInterfaceDescriptorParams->iCurbeLength;
 
-    Params.bBarrierEnable                   = pInterfaceDescriptorParams->blBarrierEnable;
-    Params.bGlobalBarrierEnable             = pInterfaceDescriptorParams->blGlobalBarrierEnable;    //It's only applied for BDW+
-    Params.dwNumberofThreadsInGPGPUGroup    = pInterfaceDescriptorParams->iNumberThreadsInGroup;
-    Params.dwSharedLocalMemorySize          = pRenderHal->pfnEncodeSLMSize(pRenderHal, pInterfaceDescriptorParams->iSLMSize);
-    Params.iCrsThdConDataRdLn               = pInterfaceDescriptorParams->iCrsThrdConstDataLn;
-    Params.pGeneralStateHeap                = nullptr;
+    pParams->bBarrierEnable                   = pInterfaceDescriptorParams->blBarrierEnable;
+    pParams->bGlobalBarrierEnable             = pInterfaceDescriptorParams->blGlobalBarrierEnable;    //It's only applied for BDW+
+    pParams->dwNumberofThreadsInGPGPUGroup    = pInterfaceDescriptorParams->iNumberThreadsInGroup;
+    pParams->dwSharedLocalMemorySize          = pRenderHal->pfnEncodeSLMSize(pRenderHal, pInterfaceDescriptorParams->iSLMSize);
+    pParams->iCrsThdConDataRdLn               = pInterfaceDescriptorParams->iCrsThrdConstDataLn;
+    pParams->pGeneralStateHeap                = nullptr;
 
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetInterfaceDescriptorEntry(&Params));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetInterfaceDescriptorEntry(pParams));
 
 finish:
     return eStatus;
@@ -6958,6 +7007,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSendRcsStatusTag           = RenderHal_SendRcsStatusTag;
     pRenderHal->pfnSendSyncTag                = RenderHal_SendSyncTag;
     pRenderHal->pfnSendCscCoeffSurface        = RenderHal_SendCscCoeffSurface;
+    pRenderHal->pfnGetOcaSupport              = RenderHal_GetOcaSupport;
 
     // Tracker tag
     pRenderHal->pfnSetupPrologParams          = RenderHal_SetupPrologParams;

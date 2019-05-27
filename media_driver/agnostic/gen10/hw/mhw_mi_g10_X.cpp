@@ -141,6 +141,10 @@ void MhwMiInterfaceG10::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G10;
     mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G10;
     mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GP_REGISTER11_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GP_REGISTER11_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GP_REGISTER12_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GP_REGISTER12_HI_OFFSET_G10;
 }
 
 MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder)

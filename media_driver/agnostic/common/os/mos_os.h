@@ -45,6 +45,8 @@
 #include "mos_os_specific.h"
 #include "mos_os_virtualengine_specific.h"
 
+#include "mos_oca_interface.h"
+
 #define MOS_NAL_UNIT_LENGTH                 4
 #define MOS_NAL_UNIT_STARTCODE_LENGTH       3
 #define MOS_MAX_PATH_LENGTH                 256
@@ -238,6 +240,7 @@ typedef struct _MOS_COMMAND_BUFFER
     MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
 
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
+    MOS_OCA_BUFFER_HANDLE hOcaBuf;                  //!< Oca buffer handle for current command
 } MOS_COMMAND_BUFFER;
 
 //!
