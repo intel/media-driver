@@ -108,7 +108,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_execution_adv.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_rt_umd.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_base.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.h)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.h)
 
 set(SOURCES_
     ${SOURCES_}
