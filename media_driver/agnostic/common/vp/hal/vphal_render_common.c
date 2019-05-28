@@ -902,7 +902,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 
 finish:
 
-    if (pStatusTableUpdateParams)
+    if (pStatusTableUpdateParams && pOsInterface)
     {
         VpHal_RndrUpdateStatusTableAfterSubmit(pOsInterface, pStatusTableUpdateParams, pOsInterface->CurrentGpuContextOrdinal, eStatus);
     }
