@@ -2707,7 +2707,6 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsDnFormatSupported(
         (pSrcSurface->Format != Format_YUY2) &&
         (pSrcSurface->Format != Format_Y8) &&
         (pSrcSurface->Format != Format_NV12) &&
-        (pSrcSurface->Format != Format_AYUV) &&
         (pSrcSurface->Format != Format_Y216) &&
         (pSrcSurface->Format != Format_Y210) &&
         (pSrcSurface->Format != Format_Y416) &&
