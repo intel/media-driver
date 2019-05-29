@@ -50,16 +50,6 @@ struct mos_bufmgr {
     struct mos_linux_bo *(*bo_alloc) (struct mos_bufmgr *bufmgr, const char *name,
                    unsigned long size, unsigned int alignment);
 
-#ifdef ANDROID
-    /**
-     * Allocate a buffer object, hinting where the object is supposed to be
-     * placed (like backed by stolen memory area or by shmem) or it should
-     * be pre-populated or not, by using flags parameter.
-     */
-    struct mos_linux_bo *(*bo_alloc2) (struct mos_bufmgr *bufmgr, const char *name,
-                   unsigned long size, unsigned int alignment,
-                   unsigned long flags);
-#endif
     /**
      * Allocate a buffer object, hinting that it will be used as a
      * render target.

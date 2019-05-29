@@ -441,12 +441,11 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             m_skuTable = pOsDriverContext->SkuTable;
             m_waTable  = pOsDriverContext->WaTable;
         }
-    
+
         m_use64BitRelocs = true;
         m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
-    #ifndef ANDROID
         if (MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
             m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
@@ -471,10 +470,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
             return MOS_STATUS_UNKNOWN;
         }
-    #else
-        m_intelContext                   = nullptr;
-    #endif
-    
+
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
     
     #ifndef ANDROID

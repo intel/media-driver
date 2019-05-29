@@ -870,28 +870,6 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     }
     else if (nullRendering == false)
     {
-#ifdef ANDROID
-        if (osContext->uEnablePerfTag == 2)
-        {
-            ret = mos_gem_bo_tag_exec(cmd_bo,
-                m_commandBufferSize,
-                osContext->intel_context,
-                cliprects,
-                num_cliprects,
-                0,
-                execFlag,
-                perfData);
-        }
-        else
-        {
-            ret = mos_bo_mrb_exec(cmd_bo,
-                m_commandBufferSize,
-                cliprects,
-                num_cliprects,
-                DR4,
-                execFlag);
-        }
-#else
         if (osInterface->ctxBasedScheduling && m_i915Context != nullptr)
         {
             ret = mos_gem_bo_context_exec2(cmd_bo,
@@ -912,8 +890,6 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 DR4,
                 execFlag);
         }
-#endif
-
         if (ret != 0)
         {
             eStatus = MOS_STATUS_UNKNOWN;

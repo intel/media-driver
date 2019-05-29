@@ -456,14 +456,12 @@ typedef struct _CMD_BUFFER_BO_POOL
     MOS_LINUX_BO        *pCmd_bo[MAX_CMD_BUF_NUM];
 }CMD_BUFFER_BO_POOL;
 
-#ifndef ANDROID
 struct MOS_CONTEXT_OFFSET
 {
     MOS_LINUX_CONTEXT *intel_context;
     MOS_LINUX_BO      *target_bo;
     uint64_t          offset64;
 };
-#endif
 
 typedef struct _MOS_OS_CONTEXT MOS_CONTEXT, *PMOS_CONTEXT, MOS_OS_CONTEXT, *PMOS_OS_CONTEXT, MOS_DRIVER_CONTEXT,*PMOS_DRIVER_CONTEXT;
 //!
@@ -535,9 +533,7 @@ struct _MOS_OS_CONTEXT
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 
-#ifndef ANDROID
     std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
-#endif
 
     // Media memory decompression function
     void (* pfnMemoryDecompress)(

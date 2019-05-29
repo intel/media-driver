@@ -41,9 +41,6 @@
 #include "mos_bufmgr.h"
 #include "mos_bufmgr_priv.h"
 #include "xf86drm.h"
-#ifdef ANDROID
-#include <unistd.h>
-#endif
 
 /** @file mos_bufmgr_api.c
  *

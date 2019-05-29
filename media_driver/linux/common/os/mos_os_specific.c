@@ -1293,8 +1293,6 @@ MOS_STATUS Linux_InitContext(
     pContext->bUse64BitRelocs = true;
     pContext->bUseSwSwizzling = MEDIA_IS_SKU(&pContext->SkuTable, FtrSimulationMode);
     pContext->bTileYFlag      = MEDIA_IS_SKU(&pContext->SkuTable, FtrTileY);
-
-#ifndef ANDROID
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
     {
@@ -1329,9 +1327,6 @@ MOS_STATUS Linux_InitContext(
     }
 
     pContext->intel_context->pOsContext = pContext;
-#else
-    pContext->intel_context = nullptr;
-#endif
 
     pContext->bIsAtomSOC = IS_ATOMSOC(iDeviceId);
 
@@ -3822,28 +3817,7 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     }
     else if (bNullRendering == false)
     {
-#ifdef ANDROID
-     if (pOsContext->uEnablePerfTag == 2)
-     {
-         ret = mos_gem_bo_tag_exec(cmd_bo,
-                                        pOsGpuContext->uiCommandBufferSize,
-                                        pOsContext->intel_context,
-                                        cliprects,
-                                        num_cliprects,
-                                        0,
-                                        ExecFlag,
-                                        PerfData);
-     }
-     else
-     {
-           ret = mos_bo_mrb_exec(cmd_bo,
-                                       pOsGpuContext->uiCommandBufferSize,
-                                       cliprects,
-                                       num_cliprects,
-                                       DR4,
-                                       ExecFlag);
-     }
-#else
+
      ret = mos_gem_bo_context_exec2(cmd_bo,
                                        pOsGpuContext->uiCommandBufferSize,
                                        pOsContext->intel_context,
@@ -3851,8 +3825,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
                                        num_cliprects,
                                        DR4,
                                        ExecFlag);
-#endif
-
       if (ret != 0) {
           eStatus = MOS_STATUS_UNKNOWN;
       }
