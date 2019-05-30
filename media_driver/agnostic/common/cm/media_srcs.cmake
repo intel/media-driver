@@ -40,10 +40,10 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_sampler_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_sampler8x8_state_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_up_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_3d_rt.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_sampler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_sampler8x8.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_vme.cpp
