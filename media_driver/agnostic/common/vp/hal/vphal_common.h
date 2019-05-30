@@ -1166,6 +1166,8 @@ struct VPHAL_RENDER_PARAMS
                                                                         // extension parameters
     void                                    *pExtensionData;            //!< Extension data
 
+    bool                                    bPathKernel;                // HDR path config if use kernel
+
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
         pSrc(),
@@ -1186,7 +1188,8 @@ struct VPHAL_RENDER_PARAMS
         bTriggerGPUHang(false),
 #endif
         bCalculatingAlpha(false),
-        pExtensionData(nullptr)
+        pExtensionData(nullptr),
+        bPathKernel(false)
     {
     }
 
