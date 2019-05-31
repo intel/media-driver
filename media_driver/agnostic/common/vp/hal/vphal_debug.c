@@ -61,6 +61,8 @@
 #define VPHAL_DBG_SURF_DUMP_LOC_POSTDNDI            "postdndi"
 #define VPHAL_DBG_SURF_DUMP_LOC_PRECOMP             "precomp"
 #define VPHAL_DBG_SURF_DUMP_LOC_POSTCOMP            "postcomp"
+#define VPHAL_DBG_SURF_DUMP_LOC_PREMEMDECOMP        "prememdecomp"
+#define VPHAL_DBG_SURF_DUMP_LOC_POSTMEMDECOMP       "postmemdecomp"
 #define VPHAL_DBG_SURF_DUMP_LOC_POSTALL             "postall"
 
 #define VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME        "outfileLocation"
@@ -1757,6 +1759,14 @@ MOS_STATUS VphalSurfaceDumper::LocStringToEnum(
     {
         *pLocation = VPHAL_DBG_DUMP_TYPE_POST_COMP;
     }
+    else if (strcmp(pcLocString, VPHAL_DBG_SURF_DUMP_LOC_PREMEMDECOMP) == 0)
+    {
+        *pLocation = VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP;
+    }
+    else if (strcmp(pcLocString, VPHAL_DBG_SURF_DUMP_LOC_POSTMEMDECOMP) == 0)
+    {
+        *pLocation = VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP;
+    }
     else if (strcmp(pcLocString, VPHAL_DBG_SURF_DUMP_LOC_POSTALL)  == 0)
     {
         *pLocation = VPHAL_DBG_DUMP_TYPE_POST_ALL;
@@ -1804,6 +1814,12 @@ MOS_STATUS VphalSurfaceDumper::EnumToLocString(
             break;
         case VPHAL_DBG_DUMP_TYPE_POST_COMP:
             MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_POSTCOMP);
+            break;
+        case VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP:
+            MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_PREMEMDECOMP);
+            break;
+        case VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP:
+            MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_POSTMEMDECOMP);
             break;
         case VPHAL_DBG_DUMP_TYPE_POST_ALL:
             MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_POSTALL);
