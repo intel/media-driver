@@ -125,11 +125,12 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState = nullptr;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams = nullptr;
     bool                                    bPrevFrameSegEnabled;
-    uint8_t                                 temporalMVpEnable = 0;
-    uint8_t                                 ucNumRefIdxL0ActiveMinus1 = 0;
     bool                                    bDynamicScalingEnabled = false;
+    bool                                    temporalMVpEnable = false;
 
     // Common
+    uint8_t                                 ucNumRefIdxL0ActiveMinus1 = 0;
+    uint8_t                                 ucNumRefIdxL1ActiveMinus1 = 0;
     uint16_t                                usSADQPLambda = 0;
     uint16_t                                usRDQPLambda = 0;
     bool                                    bPakOnlyMultipassEnable = false;
@@ -137,7 +138,7 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
     virtual ~MHW_VDBOX_VDENC_CMD2_STATE() {}
 };
-using PMHW_VDBOX_VDENC_CMD2_STATE = MHW_VDBOX_VDENC_CMD2_STATE *;
+using PMHW_VDBOX_VDENC_CMD2_STATE = std::shared_ptr<MHW_VDBOX_VDENC_CMD2_STATE>;
 
 struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 {
