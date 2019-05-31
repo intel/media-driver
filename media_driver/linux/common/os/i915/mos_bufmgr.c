@@ -3969,6 +3969,10 @@ struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr)
     int ret;
 
     vm = (struct drm_i915_gem_vm_control *)calloc(1, sizeof(*vm));
+    if (nullptr == vm)
+    {
+        return nullptr;
+    }
     memset(vm, 0, sizeof(*vm));
 
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_VM_CREATE, vm);
@@ -4064,6 +4068,11 @@ int mos_query_engines(int fd,
     len = query_item.length;
 
     engines = (drm_i915_query_engine_info *)malloc(len);
+    if (nullptr == engines)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
     memset(engines,0,len);
     memclear(query_item);
     query_item.query_id = DRM_I915_QUERY_ENGINE_INFO;

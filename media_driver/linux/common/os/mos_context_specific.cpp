@@ -462,7 +462,10 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         else //use legacy context create ioctl for pre-gen11 platforms
         {
            m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
-           m_intelContext->vm = nullptr;
+           if (m_intelContext)
+           {
+               m_intelContext->vm = nullptr;
+           }
         }
 
         if (m_intelContext == nullptr)
@@ -568,7 +571,7 @@ void OsContextSpecific::Destroy()
      #endif
         m_skuTable.reset();
         m_waTable.reset();
-        if (m_intelContext->vm)
+        if (m_intelContext && m_intelContext->vm)
         {
             mos_gem_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm);
         }

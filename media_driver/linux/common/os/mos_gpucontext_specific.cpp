@@ -116,6 +116,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
     m_GPUStatusTag = 1;
 
     m_createOptionEnhanced = (MOS_GPUCTX_CREATOPTIONS_ENHANCED*)MOS_AllocAndZeroMemory(sizeof(MOS_GPUCTX_CREATOPTIONS_ENHANCED));
+    MOS_OS_CHK_NULL_RETURN(m_createOptionEnhanced);
     m_createOptionEnhanced->SSEUValue = createOption->SSEUValue;
 
     if (typeid(*createOption) == typeid(MOS_GPUCTX_CREATOPTIONS_ENHANCED))

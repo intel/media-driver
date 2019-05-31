@@ -1308,8 +1308,11 @@ MOS_STATUS Linux_InitContext(
        }
        else //try legacy context create ioctl if DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT is not supported
        {
-          pContext->intel_context = mos_gem_context_create(pOsDriverContext->bufmgr);
-          pContext->intel_context->vm = nullptr;
+           pContext->intel_context = mos_gem_context_create(pOsDriverContext->bufmgr);
+           if (pContext->intel_context)
+           {
+               pContext->intel_context->vm = nullptr;
+           }
        }
 
        if (pContext->intel_context == nullptr)
