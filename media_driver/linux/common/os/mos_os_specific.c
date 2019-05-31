@@ -6089,6 +6089,23 @@ void Mos_Specific_NotifyStreamIndexSharing(
     MOS_UNUSED(pOsInterface);
 }
 
+MOS_STATUS Mos_Specific_CheckVirtualEngineSupported(
+    PMOS_INTERFACE      pOsResource)
+{
+    auto skuTable = pOsResource->pfnGetSkuTable(pOsResource);
+    MOS_OS_CHK_NULL_RETURN(skuTable);
+    if (MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+    {
+        pOsResource->bSupportVirtualEngine = true;
+    }
+    else
+    {
+        pOsResource->bSupportVirtualEngine = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -6255,6 +6272,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnFreeLibrary                            = Mos_Specific_FreeLibrary;
     pOsInterface->pfnGetProcAddress                         = Mos_Specific_GetProcAddress;
     pOsInterface->pfnLogData                                = Mos_Specific_LogData;
+    pOsInterface->pfnCheckVirtualEngineSupported            = Mos_Specific_CheckVirtualEngineSupported;
 
     //GPU context and synchronization functions
     pOsInterface->pfnCreateGpuContext                       = Mos_Specific_CreateGpuContext;

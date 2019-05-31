@@ -1067,6 +1067,9 @@ typedef struct _MOS_INTERFACE
 
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
 
+    MOS_STATUS (*pfnCheckVirtualEngineSupported)(
+        PMOS_INTERFACE              pOsInterface);
+
 #if MOS_MEDIASOLO_SUPPORTED
     int32_t                         bSupportMediaSoloVirtualEngine;               //!< Flag to indicate if MediaSolo uses VE solution in cmdbuffer submission.
 #endif // MOS_MEDIASOLO_SUPPORTED

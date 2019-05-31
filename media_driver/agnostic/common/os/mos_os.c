@@ -947,7 +947,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
 
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
         if ((!veDefaultEnable || !osInterface->veDefaultEnable) && 
-            (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+            (eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
         {
             osInterface->bSupportVirtualEngine = false;
         }
@@ -962,6 +962,12 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         {
             osInterface->ctxBasedScheduling = false;
         }
+
+        if(osInterface->pfnCheckVirtualEngineSupported)
+        {
+            osInterface->pfnCheckVirtualEngineSupported(osInterface);
+        }
+
         osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
