@@ -3844,18 +3844,18 @@ MOS_STATUS VPHAL_VEBOX_STATE::AllocateSfcTempSurfaces(
     pSfcTempSurface->rcSrc = pOutSurface->rcSrc;
     pSfcTempSurface->rcDst = pOutSurface->rcDst;
 
-    // Sfc intermediate surface should be Y tile for best performance
+    // Sfc intermediate surface should be Y tile for best performance meanwhile enable MMC.
     VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
         pOsInterface,
         pSfcTempSurface,
         "VeboxSfcTempSurface",
         surfaceFormat,
         MOS_GFXRES_2D,
-        pInSurface->TileType,
+        MOS_TILE_Y,
         dwSurfaceWidth,
         dwSurfaceHeight,
-        false,
-        MOS_MMC_DISABLED,
+        true,
+        MOS_MMC_MC,
         &bAllocated));
 
     // Copy max src rect
