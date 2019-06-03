@@ -9408,7 +9408,7 @@ MOS_STATUS HalCm_FreeSurface2DUP(
 
     if (state->advExecutor)
     {
-        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
+        state->advExecutor->Delete2Dor3DStateMgr(entry->surfStateMgr);
     }
 
     osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
@@ -9547,15 +9547,16 @@ MOS_STATUS HalCm_SetSurfaceMOCS(
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_AVS:
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_VA:
             state->umdSurf2DTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2DMemoryObjectControl(state->umdSurf2DTable[handle].surfStateMgr, mocs);
+            state->advExecutor->Set2Dor3DMemoryObjectControl(state->umdSurf2DTable[handle].surfStateMgr, mocs);
             break;
         case CM_ARGUMENT_SURFACE2D_UP:
         case CM_ARGUMENT_SURFACE2DUP_SAMPLER:
             state->surf2DUPTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2DMemoryObjectControl(state->surf2DUPTable[handle].surfStateMgr, mocs);
+            state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf2DUPTable[handle].surfStateMgr, mocs);
             break;
         case CM_ARGUMENT_SURFACE3D:
             state->surf3DTable[handle].memObjCtl = mocs;
+            state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf3DTable[handle].surfStateMgr, mocs);
             break;
         default:
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -9641,7 +9642,11 @@ MOS_STATUS HalCm_AllocateSurface2D(
     if (state->advExecutor)
     {
         entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
-        state->advExecutor->Set2DOrigFormat(entry->surfStateMgr, entry->format);
+        state->advExecutor->Set2Dor3DOrigFormat(entry->surfStateMgr, entry->format);
+        state->advExecutor->Set2Dor3DOrigDimension(entry->surfStateMgr,
+                                                 entry->width,
+                                                 entry->height,
+                                                 0); // no need to change depth in 2D surface
     }
    
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
@@ -9688,9 +9693,13 @@ MOS_STATUS HalCm_UpdateSurface2D(
 
     if (state->advExecutor)
     {
-        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
+        state->advExecutor->Delete2Dor3DStateMgr(entry->surfStateMgr);
         entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
-        state->advExecutor->Set2DOrigFormat(entry->surfStateMgr, entry->format);
+        state->advExecutor->Set2Dor3DOrigFormat(entry->surfStateMgr, entry->format);
+        state->advExecutor->Set2Dor3DOrigDimension(entry->surfStateMgr,
+                                                 entry->width,
+                                                 entry->height,
+                                                 0); // no need to change depth in 2D surface
     }
     
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
@@ -9764,7 +9773,7 @@ MOS_STATUS HalCm_FreeSurface2D(
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurface2DEntry(state, handle, &entry));
     if (state->advExecutor)
     {
-        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
+        state->advExecutor->Delete2Dor3DStateMgr(entry->surfStateMgr);
     }
     
     if(entry->isAllocatedbyCmrtUmd)
@@ -9847,6 +9856,14 @@ MOS_STATUS HalCm_AllocateSurface3D(CM_HAL_STATE *state, // [in]  Pointer to CM S
     entry->depth = param->depth;
     entry->format = param->format;
 
+    if (state->advExecutor)
+    {
+        entry->surfStateMgr = state->advExecutor->Create3DStateMgr(&entry->osResource);
+        state->advExecutor->Set2Dor3DOrigDimension(entry->surfStateMgr,
+                                                 entry->width,
+                                                 entry->height,
+                                                 entry->depth);
+    }
 finish:
     return eStatus;
 }

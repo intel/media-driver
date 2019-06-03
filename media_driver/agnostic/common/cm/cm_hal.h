@@ -1194,7 +1194,7 @@ typedef struct _CM_HAL_BUFFER_ENTRY
 //------------------------------------------------------------------------------
 //| HAL CM 2D UP Table
 //------------------------------------------------------------------------------
-class CmSurfaceState2DMgr;
+class CmSurfaceState2Dor3DMgr;
 typedef struct _CM_HAL_SURFACE2D_UP_ENTRY
 {
     MOS_RESOURCE                osResource;                                     // [in] Pointer to OS Resource
@@ -1203,7 +1203,7 @@ typedef struct _CM_HAL_SURFACE2D_UP_ENTRY
     MOS_FORMAT                  format;                                         // [in] Format of Surface
     void                        *gmmResourceInfo;                               // [out] GMM resource info
     uint16_t                    memObjCtl;                                      // [in] MOCS value set from CMRT
-    CmSurfaceState2DMgr         *surfStateMgr;
+    CmSurfaceState2Dor3DMgr     *surfStateMgr;
 } CM_HAL_SURFACE2D_UP_ENTRY, *PCM_HAL_SURFACE2D_UP_ENTRY;
 
 typedef struct _CM_HAL_SURFACE_STATE_ENTRY
@@ -1250,7 +1250,7 @@ inline uint32_t getSurfNumFromArgArraySize(uint32_t argArraySize, uint32_t argNu
 //------------------------------------------------------------------------------
 //| HAL CM 2D Table
 //------------------------------------------------------------------------------
-class CmSurfaceState2DMgr;
+class CmSurfaceState2Dor3DMgr;
 typedef struct _CM_HAL_SURFACE2D_ENTRY
 {
     MOS_RESOURCE                osResource;                                    // [in] Pointer to OS Resource
@@ -1267,7 +1267,7 @@ typedef struct _CM_HAL_SURFACE2D_ENTRY
     int32_t                     chromaSiting;
     CM_FRAME_TYPE               frameType;
     uint16_t                    memObjCtl;                                      // [in] MOCS value set from CMRT
-    CmSurfaceState2DMgr         *surfStateMgr;
+    CmSurfaceState2Dor3DMgr     *surfStateMgr;
     bool                        surfStateSet;
 } CM_HAL_SURFACE2D_ENTRY, *PCM_HAL_SURFACE2D_ENTRY;
 
@@ -1282,6 +1282,7 @@ typedef struct _CM_HAL_3DRESOURCE_ENTRY
     uint32_t               depth;                                         // [in] Depth of Surface
     MOS_FORMAT             format;                                        // [in] Format of Surface
     uint16_t               memObjCtl;                                     // [in] MOCS value set from CMRT
+    CmSurfaceState2Dor3DMgr *surfStateMgr;
 } CM_HAL_3DRESOURCE_ENTRY, *PCM_HAL_3DRESOURCE_ENTRY;
 
 //*-----------------------------------------------------------------------------
