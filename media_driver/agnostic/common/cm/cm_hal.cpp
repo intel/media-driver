@@ -199,6 +199,8 @@ MOS_STATUS HalCm_AllocateTsResource(
         &allocParams,
         &state->renderTimeStampResource.osResource));
 
+    osInterface->pfnSkipResourceSync(&state->renderTimeStampResource.osResource);
+
     // Lock the Resource
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
 
@@ -444,6 +446,8 @@ MOS_STATUS HalCm_AllocateCSRResource(
         osInterface,
         &allocParams,
         &state->csrResource));
+
+    osInterface->pfnSkipResourceSync(&state->csrResource);
 
 finish:
     return eStatus;

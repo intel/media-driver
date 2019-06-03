@@ -137,6 +137,8 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
         &m_resource,
         &lockFlags);
 
+    m_osInterface->pfnSkipResourceSync(&m_resource);
+
     MHW_CHK_NULL_RETURN(m_resourceData);
 
     return MOS_STATUS_SUCCESS;

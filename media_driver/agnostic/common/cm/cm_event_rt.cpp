@@ -826,14 +826,14 @@ std::string CmEventRT::Log(const char *callerFuncName)
     };
 
     std::ostringstream  oss;
-    oss << callerFuncName << "(): <CmEvent>"
-        << " Status: " << statusStrings[m_status]
-        << " Duration:" << m_time << "ns"
-        << " DurationInTick:" << m_ticks
-        << " StartTimeInTick:" << m_hwStartTimeStampInTicks
-        << " EndTimeInTick:"<< m_hwEndTimeStampInTicks
-        << " Kernel Cnt:"<< m_kernelCount
-        << std::endl;
+    oss << callerFuncName << "():\n"
+        << "<CmEvent>:" << reinterpret_cast<uint64_t>(this) << "\n"
+        << " Status: " << statusStrings[m_status] << "\n"
+        << " Duration:" << m_time << "ns\n"
+        << " DurationInTick:" << m_ticks << "\n"
+        << " StartTimeInTick:" << m_hwStartTimeStampInTicks << "\n"
+        << " EndTimeInTick:"<< m_hwEndTimeStampInTicks << "\n"
+        << " Kernel Cnt:"<< m_kernelCount << std::endl;
 
     return oss.str();
 }
