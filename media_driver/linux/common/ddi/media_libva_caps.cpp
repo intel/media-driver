@@ -1659,9 +1659,14 @@ VAStatus MediaLibvaCaps::GetConfigAttributes(VAProfile profile,
     DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t i = GetProfileTableIdx(profile, entrypoint);
 
-    if (i < 0)
+    switch(i)
     {
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
+        case -2:
+            return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+        case -1:
+            return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        default:
+            break;
     }
 
     DDI_CHK_NULL(m_profileEntryTbl[i].m_attributes, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
