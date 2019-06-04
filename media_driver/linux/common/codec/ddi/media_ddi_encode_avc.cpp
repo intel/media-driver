@@ -968,7 +968,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl     = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl     = m_encodeCtx->pRTtbl;
 
     EncoderParams *encodeParams = &m_encodeCtx->EncodeParams;
     MOS_ZeroMemory(encodeParams, sizeof(EncoderParams));
@@ -1004,9 +1004,6 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
     DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface->OsResource));
-
-    //clear registered recon/ref surface flags
-    m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
 
     // Bitstream surface
     PMOS_RESOURCE bitstreamSurface = &encodeParams->resBitstreamBuffer;
@@ -1390,7 +1387,7 @@ VAStatus DdiEncodeAvc::ParsePicParams(
 
     // Curr Recon Pic
     SetupCodecPicture(mediaCtx, m_encodeCtx->pRTtbl, &picParams->CurrReconstructedPic,pic->CurrPic, picParams->FieldCodingFlag, false, false);
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
 
     pRTTbl->SetCurrentReconTarget(pic->CurrPic.picture_id);
 
@@ -1412,7 +1409,7 @@ VAStatus DdiEncodeAvc::ParsePicParams(
     {
         if(pic->ReferenceFrames[i].picture_id!= VA_INVALID_SURFACE)
         {
-            m_encodeCtx->pRTtbl->SetRTState(pic->ReferenceFrames[i].picture_id, RT_STATE_ACTIVE_IN_CURFRAME);
+            DDI_CHK_RET(m_encodeCtx->pRTtbl->RegisterRTSurface(pic->ReferenceFrames[i].picture_id), "RegisterRTSurface failed!");
         }
         SetupCodecPicture(mediaCtx, m_encodeCtx->pRTtbl, &(picParams->RefFrameList[i]), pic->ReferenceFrames[i], picParams->FieldCodingFlag, true, false);
     }
@@ -1983,7 +1980,7 @@ void DdiEncodeAvc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slcR
 
 void DdiEncodeAvc::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                   *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE       *pRTTbl,
+    MediaDdiRenderTargetTable       *pRTTbl,
     CODEC_PICTURE                       *codecHalPic,
     VAPictureH264                       vaPic,
     bool                                fieldPicFlag,

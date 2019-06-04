@@ -88,7 +88,7 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
 
     CODEC_VP9_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
     CODEC_VP9_ENCODE_PIC_PARAMS *vp9PicParam = (PCODEC_VP9_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
@@ -189,9 +189,6 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     MOS_ZeroMemory(&bitstreamSurface, sizeof(MOS_RESOURCE));
     bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
     bitstreamSurface.Format = Format_Buffer;
-
-    //clear registered recon/ref surface flags
-    m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
 
     encodeParams.psRawSurface               = &rawSurface;
     encodeParams.psReconSurface             = &reconSurface;
@@ -635,7 +632,7 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     vp9PicParam->NumSkipFrames  = picParam->number_skip_frames;
     vp9PicParam->SizeSkipFrames = picParam->skip_frames_size;
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
 
     auto recon = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reconstructed_frame);
     DDI_CHK_RET(pRTTbl->RegisterRTSurface(picParam->reconstructed_frame),"RegisterRTSurface failed!");
@@ -652,7 +649,7 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     {
         if (picParam->reference_frames[i] != VA_INVALID_SURFACE)
         {
-            pRTTbl->SetRTState(picParam->reference_frames[i], RT_STATE_ACTIVE_IN_CURFRAME);
+            DDI_CHK_RET(pRTTbl->RegisterRTSurface(picParam->reference_frames[i]), "RegisterRTSurface failed!");
         }
         SetupCodecPicture(
             mediaCtx,
@@ -1038,7 +1035,7 @@ VAStatus DdiEncodeVp9::ReportExtraStatus(
 
 void DdiEncodeVp9::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE         *pRTTbl,
+    MediaDdiRenderTargetTable         *pRTTbl,
     CODEC_PICTURE                         *codecHalPic,
     VASurfaceID                           surfaceID,
     bool                                  picReference)

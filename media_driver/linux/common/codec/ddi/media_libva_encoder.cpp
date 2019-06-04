@@ -253,7 +253,7 @@ VAStatus DdiEncode_CreateContext(
     ddiEncode->m_encodeCtx = (PDDI_ENCODE_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_ENCODE_CONTEXT));
     DDI_CHK_NULL(ddiEncode->m_encodeCtx, "nullptr ddiEncode->m_encodeCtx", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    ddiEncode->m_encodeCtx->pRTtbl = MOS_New(DDI_CODEC_RENDER_TARGET_TABLE);
+    ddiEncode->m_encodeCtx->pRTtbl = MOS_New(MediaDdiRenderTargetTable);
     DDI_CHK_NULL(ddiEncode->m_encodeCtx->pRTtbl, "nullptr ddiEncode->m_encodeCtx->pRTtbl", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     PDDI_ENCODE_CONTEXT encCtx = ddiEncode->m_encodeCtx;

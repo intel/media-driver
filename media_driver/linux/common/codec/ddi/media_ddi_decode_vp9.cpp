@@ -552,7 +552,7 @@ VAStatus DdiDecodeVP9::InitDecodeParams(
     bufMgr->dwNumSliceData    = 0;
     bufMgr->dwNumSliceControl = 0;
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_ddiDecodeCtx->pRTtbl;
 
     if (pRTTbl->GetCurrentRTSurface() == VA_INVALID_ID)
     {
@@ -565,7 +565,7 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
 {
     slcFlag = false;
     MOS_FORMAT Format = Format_NV12;
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_ddiDecodeCtx->pRTtbl;
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
 
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;

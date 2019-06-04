@@ -168,7 +168,7 @@ typedef struct _DDI_ENCODE_CONTEXT
     //Per-MB Qp control
     bool                              bMBQpEnable;
 
-    DDI_CODEC_RENDER_TARGET_TABLE     *pRTtbl;
+    MediaDdiRenderTargetTable     *pRTtbl;
     DDI_CODEC_COM_BUFFER_MGR          BufMgr;
     PDDI_MEDIA_CONTEXT                pMediaCtx;
 

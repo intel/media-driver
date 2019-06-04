@@ -171,7 +171,7 @@ VAStatus DdiDecodeHEVC::ParsePicParams(
     {
         if (picParam->ReferenceFrames[i].picture_id != VA_INVALID_SURFACE)
         {
-            m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->ReferenceFrames[i].picture_id, RT_STATE_ACTIVE_IN_CURFRAME);
+            DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->ReferenceFrames[i].picture_id), "RegisterRTSurface failed!");
         }
         SetupCodecPicture(
             mediaCtx,
@@ -455,7 +455,7 @@ VAStatus DdiDecodeHEVC::RenderPicture(
 MOS_FORMAT DdiDecodeHEVC::GetFormat()
 {
     MOS_FORMAT Format = Format_NV12;
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_ddiDecodeCtx->pRTtbl;
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
     CODEC_HEVC_PIC_PARAMS *picParams = (CODEC_HEVC_PIC_PARAMS *)decodeParams->m_picParams;
 
@@ -889,7 +889,7 @@ CleanUpandReturn:
 
 void DdiDecodeHEVC::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE         *pRTTbl,
+    MediaDdiRenderTargetTable         *pRTTbl,
     CODEC_PICTURE                         *codecHalPic,
     VAPictureHEVC                         vaPic,
     bool                                  fieldPicFlag,

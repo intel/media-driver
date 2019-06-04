@@ -228,10 +228,7 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
     {
         if (picParam->forward_reference_picture != VA_INVALID_SURFACE)
         {
-            if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->forward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
-            {
-                DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurface failed!");
-            }
+            DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurface failed!");
 
             codecPicParam->m_forwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->forward_reference_picture);
         }
@@ -253,10 +250,8 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
     {
         if (picParam->forward_reference_picture != VA_INVALID_SURFACE)
         {
-            if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->forward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
-            {
-                DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurfaces failed!");
-            }
+            DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurface failed!");
+
             codecPicParam->m_forwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->forward_reference_picture);
         }
         else
@@ -265,10 +260,8 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
         }
         if (picParam->backward_reference_picture != VA_INVALID_SURFACE)
         {
-            if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->backward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
-            {
-                DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->backward_reference_picture), "RegisterRTSurfaces failed!");
-            }
+            DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->backward_reference_picture), "RegisterRTSurface failed!");
+
             codecPicParam->m_backwardRefIdx =  m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->backward_reference_picture);
         }
         else

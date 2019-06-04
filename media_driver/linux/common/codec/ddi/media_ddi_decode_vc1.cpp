@@ -217,7 +217,7 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     if (picParam->inloop_decoded_picture != VA_INVALID_ID)
     {
         codecPicParam->DeblockedPicIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface());
-        DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->inloop_decoded_picture), "RegisterRTSurfaces failed!");
+        DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->inloop_decoded_picture), "RegisterRTSurface failed!");
 
         codecPicParam->CurrPic.FrameIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->inloop_decoded_picture);
         m_deblockPicIdx                 = codecPicParam->DeblockedPicIdx;
@@ -237,10 +237,8 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     }
     else
     {
-        if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->forward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
-        {
-            DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurfaces failed!");
-        }
+        DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurface failed!");
+
         codecPicParam->ForwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->forward_reference_picture);
     }
 
@@ -250,10 +248,8 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     }
     else
     {
-        if (m_ddiDecodeCtx->pRTtbl->SetRTState(picParam->backward_reference_picture, RT_STATE_ACTIVE_IN_CURFRAME) != VA_STATUS_SUCCESS)
-        {
-            DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->backward_reference_picture), "RegisterRTSurfaces failed!");
-        }
+        DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->backward_reference_picture), "RegisterRTSurface failed!");
+
         codecPicParam->BackwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->backward_reference_picture);
     }
 

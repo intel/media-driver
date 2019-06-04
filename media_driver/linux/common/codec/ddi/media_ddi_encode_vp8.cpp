@@ -491,7 +491,7 @@ VAStatus DdiEncodeVp8::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     vp8PicParams->ClampQindexHigh = picParams->clamp_qindex_high;
     vp8PicParams->ClampQindexLow  = picParams->clamp_qindex_low;
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
 
     pRTTbl->RegisterRTSurface(picParams->reconstructed_frame);
     pRTTbl->SetCurrentReconTarget(picParams->reconstructed_frame);
@@ -566,7 +566,7 @@ VAStatus DdiEncodeVp8::EncodeInCodecHal(uint32_t numSlices)
 {
     DDI_UNUSED(numSlices);
 
-    DDI_CODEC_RENDER_TARGET_TABLE *pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable *pRTTbl = m_encodeCtx->pRTtbl;
 
     CODEC_VP8_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP8_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
 
@@ -771,7 +771,7 @@ void DdiEncodeVp8::ParseMiscParameterTemporalLayerParams(void *data)
 
 void DdiEncodeVp8::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    DDI_CODEC_RENDER_TARGET_TABLE         *pRTTbl,
+    MediaDdiRenderTargetTable         *pRTTbl,
     CODEC_PICTURE                         *codecHalPic,
     VASurfaceID                           surfaceID,
     bool                                  picReference)

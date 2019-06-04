@@ -1480,7 +1480,7 @@ int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *devName)
     return hDevice;
 }
 
-VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
+VAStatus DdiMediaUtil_UnregisterRTSurfaces(
     VADriverContextP    ctx,
     VASurfaceID surface_id)
 {
@@ -1503,7 +1503,7 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
                 if (decCtx && decCtx->m_ddiDecode)
                 {
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
-                    decCtx->pRTtbl->UnRegisterRTSurface(surface_id);
+                    decCtx->pRTtbl->UnregisterRTSurface(surface_id);
                 }
             }
         }
@@ -1523,7 +1523,7 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
                 if (pEncCtx && pEncCtx->m_encode)
                 {
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
-                    pEncCtx->pRTtbl->UnRegisterRTSurface(surface_id);
+                    pEncCtx->pRTtbl->UnregisterRTSurface(surface_id);
                 }
             }
         }

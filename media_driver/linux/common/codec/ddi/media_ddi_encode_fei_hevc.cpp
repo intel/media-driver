@@ -73,7 +73,7 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
 
     EncoderParams encodeParams;
     MOS_ZeroMemory(&encodeParams, sizeof(encodeParams));
@@ -121,9 +121,6 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
 
     DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
     DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface.OsResource));
-
-    //clear registered recon/ref surface flags
-    m_encodeCtx->pRTtbl->ReleaseDPBRenderTargets();
 
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;

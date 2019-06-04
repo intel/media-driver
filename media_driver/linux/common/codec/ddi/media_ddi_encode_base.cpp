@@ -49,7 +49,7 @@ VAStatus DdiEncodeBase::BeginPicture(
     DDI_MEDIA_SURFACE *curRT = (DDI_MEDIA_SURFACE *)DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, renderTarget);
     DDI_CHK_NULL(curRT, "Null curRT", VA_STATUS_ERROR_INVALID_SURFACE);
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
 
     // raw input frame
     DDI_CHK_RET(pRTTbl->RegisterRTSurface(renderTarget),"RegisterRTSurface failed!");
@@ -81,7 +81,7 @@ VAStatus DdiEncodeBase::EndPicture(
         return VA_STATUS_ERROR_ENCODING_ERROR;
     }
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
     pRTTbl->SetCurrentRTSurface(VA_INVALID_ID);
     m_encodeCtx->bNewSeq                 = false;
 

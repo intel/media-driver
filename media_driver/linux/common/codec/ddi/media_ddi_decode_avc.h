@@ -169,7 +169,7 @@ private:
     //! \param    [in] mediaCtx
     //!           Pointer to DDI_MEDIA_CONTEXT
     //! \param    [in] pRTTbl
-    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
+    //!           Pointer to MediaDdiRenderTargetTable
     //! \param    [in] vaPic
     //!           H264 VAPicture structure
     //! \param    [in] fieldPicFlag
@@ -185,7 +185,7 @@ private:
     //!
     void SetupCodecPicture(
         DDI_MEDIA_CONTEXT                   *mediaCtx,
-        DDI_CODEC_RENDER_TARGET_TABLE       *pRTTbl,
+        MediaDdiRenderTargetTable       *pRTTbl,
         CODEC_PICTURE                       *codecHalPic,
         VAPictureH264                       vaPic,
         bool                                fieldPicFlag,

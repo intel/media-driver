@@ -503,7 +503,7 @@ VAStatus DdiDecodeJPEG::InitDecodeParams(
     bufMgr->dwNumSliceControl    = 0;
     memset(&m_destSurface, 0, sizeof(MOS_SURFACE));
     m_destSurface.dwOffset = 0;
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_ddiDecodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_ddiDecodeCtx->pRTtbl;
 
     if (pRTTbl->GetCurrentRTSurface() == VA_INVALID_ID)
     {

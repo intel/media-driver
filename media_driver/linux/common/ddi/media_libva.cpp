@@ -1871,7 +1871,7 @@ static VAStatus DdiMedia_DestroySurfaces (
             surface->pReferenceFrameSemaphore = nullptr;
         }
 
-        DdiMediaUtil_UnRegisterRTSurfaces(ctx, surfaces[i]);
+        DdiMediaUtil_UnregisterRTSurfaces(ctx, surfaces[i]);
 
         DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         DdiMediaUtil_FreeSurface(surface);

@@ -73,7 +73,7 @@ struct DDI_DECODE_CONTEXT
     bool                            bShortFormatInUse;
     bool                            bDecodeModeReported;
     VASurfaceDecodeMBErrors         vaSurfDecErrOutput[2];
-    DDI_CODEC_RENDER_TARGET_TABLE   *pRTtbl;
+    MediaDdiRenderTargetTable   *pRTtbl;
     DDI_CODEC_COM_BUFFER_MGR        BufMgr;
     PDDI_MEDIA_CONTEXT              pMediaCtx;
     // Add a list to track DPB.

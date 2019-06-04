@@ -504,7 +504,7 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    DDI_CODEC_RENDER_TARGET_TABLE* pRTTbl = m_encodeCtx->pRTtbl;
+    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
 
     CodecEncodeJpegPictureParams *picParams = (CodecEncodeJpegPictureParams *)(m_encodeCtx->pPicParams);
 
