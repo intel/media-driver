@@ -9885,6 +9885,10 @@ MOS_STATUS HalCm_Free3DResource(
 
     // Get the Buffer Entry
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_Get3DResourceEntry(state, handle, &entry));
+    if (state->advExecutor)
+    {
+        state->advExecutor->Delete2Dor3DStateMgr(entry->surfStateMgr);
+    }
 
     osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
 
