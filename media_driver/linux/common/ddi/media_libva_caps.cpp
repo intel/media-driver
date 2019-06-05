@@ -753,10 +753,12 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.value = 1;
     (*attribList)[attrib.type] = attrib.value;
 
-    if(IsAvcProfile(profile) || IsHevcProfile(profile))
+    if ((entrypoint == VAEntrypointFEI) && (IsAvcProfile(profile) || IsHevcProfile(profile)))
     {
         attrib.type = (VAConfigAttribType)VAConfigAttribFEIFunctionType;
-        attrib.value = (VA_FEI_FUNCTION_ENC | VA_FEI_FUNCTION_PAK | VA_FEI_FUNCTION_ENC_PAK);
+        attrib.value = IsAvcProfile(profile) ?
+                       (VA_FEI_FUNCTION_ENC | VA_FEI_FUNCTION_PAK | VA_FEI_FUNCTION_ENC_PAK) :
+                       VA_FEI_FUNCTION_ENC_PAK;
         (*attribList)[attrib.type] = attrib.value;
     }
 
@@ -1585,7 +1587,7 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
         configStartIdx = m_encConfigs.size();
-        AddEncConfig(VA_RC_CQP);
+        AddEncConfig(VA_RC_CQP, VA_FEI_FUNCTION_ENC_PAK);
 
         AddProfileEntry(VAProfileHEVCMain, VAEntrypointFEI, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
@@ -1847,6 +1849,11 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
             }
         }
     }
+
+    // If VAEntrypointFEI but FEI type (ENC/PAK/ENCPAK) wasn't provided via VAConfigAttribFEIFunctionType
+    // then use ENC_PAK as default
+    if (VAEntrypointFEI == entrypoint && 0 == feiFunction)
+        feiFunction = VA_FEI_FUNCTION_ENC_PAK;
 
     int32_t startIdx = m_profileEntryTbl[profileTableIdx].m_configStartIdx;
     int32_t configNum = m_profileEntryTbl[profileTableIdx].m_configNum;
