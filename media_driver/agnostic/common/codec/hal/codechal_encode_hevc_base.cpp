@@ -3731,7 +3731,7 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->ChromaCbQpOffset                     = hevcPicParams->pps_cb_qp_offset;
         m_hevcPar->ChromaCrQpOffset                     = hevcPicParams->pps_cr_qp_offset;
         m_hevcPar->DeblockingTc                         = hevcSlcParams->tc_offset_div2;
-        m_hevcPar->DeblockingIDC                        = !hevcSlcParams->slice_deblocking_filter_disable_flag;
+        m_hevcPar->DeblockingIDC                        = hevcSlcParams->slice_deblocking_filter_disable_flag;
         m_hevcPar->LoopFilterAcrossSlicesEnabledFlag    = hevcPicParams->loop_filter_across_slices_flag;
         m_hevcPar->SignDataHidingFlag                   = hevcPicParams->sign_data_hiding_flag;
         m_hevcPar->CabacInitFlag                        = hevcSlcParams->cabac_init_flag;
@@ -3748,8 +3748,8 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->MaxNumPakPassesPB                    = m_numPasses + 1;
         m_hevcPar->UserMaxIFrame                        = hevcSeqParams->UserMaxIFrameSize;
         m_hevcPar->UserMaxPBFrame                       = hevcSeqParams->UserMaxPBFrameSize;
-        m_hevcPar->FrameRateM                           = hevcSeqParams->FrameRate.Numerator / 100;
-        m_hevcPar->FrameRateD                           = hevcSeqParams->FrameRate.Denominator / 100;
+        m_hevcPar->FrameRateM                           = hevcSeqParams->FrameRate.Numerator;
+        m_hevcPar->FrameRateD                           = hevcSeqParams->FrameRate.Denominator;
         m_hevcPar->IntraRefreshEnable                   = hevcPicParams->bEnableRollingIntraRefresh ? 1 : 0;
         m_hevcPar->IntraRefreshMode                     = hevcPicParams->bEnableRollingIntraRefresh == 2 ? 1 : 0;
         m_hevcPar->IntraRefreshSizeIn32x32              = hevcPicParams->IntraInsertionSize;
@@ -3767,7 +3767,7 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->SliceSizeCtrl                        = hevcSeqParams->SliceSizeControl;
         m_hevcPar->SliceSizeThreshold                   = hevcPicParams->MaxSliceSizeInBytes; //?
         m_hevcPar->MaxSliceSize                         = hevcPicParams->MaxSliceSizeInBytes;
-        m_hevcPar->VDEncMode                            = m_vdencEnabled;
+        m_hevcPar->VDEncMode                            = m_hevcSeqParams->TargetUsage == 7 ? 0 : 1;
         //TU related
         m_hevcPar->DisableIntraLuma4x4Tu                = m_hevcSeqParams->TargetUsage == 7 ? 1 : 0;
         m_hevcPar->HMERef1Disable                       = m_hevcSeqParams->TargetUsage == 7 ? 1 : 0;
@@ -3830,20 +3830,22 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->StaticFrameZMVPercent                = 80;
         m_hevcPar->HMEStreamInRefCost                   = 50;
         m_hevcPar->IntraPeriod                          = hevcSeqParams->GopPicSize;
-        m_hevcPar->BGOPSize                             = 0; //Does not support BGOP yet.
+        m_hevcPar->BGOPSize                             = 0;
     }
     else if (hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_P_SLICE)
     {
+        m_hevcPar->StreamInEn                           = m_vdencStreamInEnabled;
         m_hevcPar->PSliceQP                             = hevcPicParams->QpY + hevcSlcParams->slice_qp_delta;
-        m_hevcPar->MaxRefIdxL0                          = MOS_MAX(m_hevcPar->MaxRefIdxL0, hevcSlcParams->num_ref_idx_l0_active_minus1);
-        m_hevcPar->MaxRefIdxL1                          = MOS_MAX(m_hevcPar->MaxRefIdxL1, hevcSlcParams->num_ref_idx_l1_active_minus1);
+        m_hevcPar->MaxRefIdxL0                          = MOS_MAX(m_hevcPar->MaxRefIdxL0, static_cast<uint32_t>(hevcSlcParams->num_ref_idx_l0_active_minus1 + 1));
+        m_hevcPar->MaxRefIdxL1                          = MOS_MAX(m_hevcPar->MaxRefIdxL1, static_cast<uint32_t>(hevcSlcParams->num_ref_idx_l1_active_minus1 + 1));
 
     }
     else if (hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_B_SLICE)
     {
+        m_hevcPar->StreamInEn                           = m_vdencStreamInEnabled;
         m_hevcPar->BSliceQP                             = hevcPicParams->QpY + hevcSlcParams->slice_qp_delta;
-        m_hevcPar->MaxRefIdxL0                          = MOS_MAX(m_hevcPar->MaxRefIdxL0, hevcSlcParams->num_ref_idx_l0_active_minus1);
-        m_hevcPar->MaxRefIdxL1                          = MOS_MAX(m_hevcPar->MaxRefIdxL1, hevcSlcParams->num_ref_idx_l1_active_minus1);
+        m_hevcPar->MaxRefIdxL0                          = MOS_MAX(m_hevcPar->MaxRefIdxL0, static_cast<uint32_t>(hevcSlcParams->num_ref_idx_l0_active_minus1 + 1));
+        m_hevcPar->MaxRefIdxL1                          = MOS_MAX(m_hevcPar->MaxRefIdxL1, static_cast<uint32_t>(hevcSlcParams->num_ref_idx_l1_active_minus1 + 1));
     }
 
     return MOS_STATUS_SUCCESS;
