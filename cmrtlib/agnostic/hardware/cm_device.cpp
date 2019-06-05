@@ -348,7 +348,9 @@ CmDevice_RT::CreateQueueEx(CmQueue* &queue,
         for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
         {
             CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-            if (queueType == CM_QUEUE_TYPE_RENDER)
+            unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
+            if (queueType == CM_QUEUE_TYPE_RENDER
+                && gpuContext == queueCreateOption.GPUContext)
             {
                 queue = (*iter);
                 m_criticalSectionQueue.Release();
