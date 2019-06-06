@@ -844,7 +844,7 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer(m_scalabilityState);
     }
 
-    if (submitCommand || m_osInterface->phasedSubmission)
+    if (submitCommand)
     {
         uint32_t renderingFlags = m_videoContextUsesNullHw;
 
@@ -853,24 +853,10 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&primCmdBuffer));
         }
-
-        if (m_osInterface->phasedSubmission
-            && MOS_VE_SUPPORTED(m_osInterface)
-            && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
-        {
-            CodecHalDecodeScalability_DecPhaseToSubmissionType(m_scalabilityState,cmdBufferInUse);
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
-                m_osInterface,
-                cmdBufferInUse,
-                renderingFlags));
-        }
-        else
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
-                m_osInterface,
-                &primCmdBuffer,
-                renderingFlags));
-        }
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
+            m_osInterface,
+            &primCmdBuffer,
+            renderingFlags));
     }
 
     // Reset status report
