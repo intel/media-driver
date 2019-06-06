@@ -4398,12 +4398,13 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             m_osInterface->pfnResetOsStates(m_osInterface);
             m_currPass = 0;
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
-
             for (m_currPass = 0; m_currPass <= m_numPasses; m_currPass++)
             {
                 m_firstTaskInPhase = (m_currPass == 0);
                 m_lastTaskInPhase = (m_currPass == m_numPasses);
+
+                if (m_firstTaskInPhase || !m_singleTaskPhaseSupported)
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
 
                 // Setup picture level PAK commands
                 CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ExecutePictureLevel(),
