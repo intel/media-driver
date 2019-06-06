@@ -335,6 +335,7 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     PMOS_SURFACE                presP010RTSurface = nullptr;                               // For HEVC only
     PMOS_RESOURCE               presFrameStatStreamOutBuffer = nullptr;
     PMOS_RESOURCE               presSseSrcPixelRowStoreBuffer = nullptr;
+    PMOS_RESOURCE               presSegmentMapStreamIn  = nullptr;
     PMOS_RESOURCE               presSegmentMapStreamOut = nullptr;
     PMOS_RESOURCE               presPakCuLevelStreamoutBuffer = nullptr;
     PMHW_VDBOX_SURFACE_PARAMS   pRawSurfParam = nullptr;
