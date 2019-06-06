@@ -2728,7 +2728,7 @@ mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
 drm_export int
 do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags, int *fence)
+     unsigned int flags)
 {
     if(GetDrmMode())
         return 0; //libdrm_mock
@@ -2785,20 +2785,12 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     else
         i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
     execbuf.rsvd2 = 0;
-    if(flags & I915_EXEC_FENCE_SUBMIT)
-    {
-        execbuf.rsvd2 = *fence;
-    }
-    if(flags & I915_EXEC_FENCE_OUT)
-    {
-        execbuf.rsvd2 = -1;
-    }
 
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
     ret = drmIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
+               DRM_IOCTL_I915_GEM_EXECBUFFER2,
                &execbuf);
     if (ret != 0) {
         ret = -errno;
@@ -2816,11 +2808,6 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     if (ctx != nullptr)
     {
         mos_update_buffer_offsets2(bufmgr_gem, ctx, bo);
-    }
-
-    if(flags & I915_EXEC_FENCE_OUT)
-    {
-        *fence = execbuf.rsvd2 >> 32;
     }
 
 skip_execution:
@@ -2848,7 +2835,7 @@ mos_gem_bo_exec2(struct mos_linux_bo *bo, int used,
                int DR4)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            I915_EXEC_RENDER, nullptr);
+            I915_EXEC_RENDER);
 }
 
 static int
@@ -2857,23 +2844,23 @@ mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
             unsigned int flags)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            flags, nullptr);
+            flags);
 }
 
 int
 mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
                   int used, unsigned int flags)
 {
-    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags, nullptr);
+    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags);
 }
 
 int
 mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                            drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-                           unsigned int flags,int *fence)
+                           unsigned int flags)
 {
     return do_exec2(bo, used, ctx, cliprects, num_cliprects, DR4,
-                        flags,fence);
+                        flags);
 }
 
 static int

@@ -1441,7 +1441,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     }
 
     // Decide scalable mode or single pipe mode
-    if (pScalabilityState->ucScalablePipeNum > 1 && pOsInterface->frameSplit)
+    if (pScalabilityState->ucScalablePipeNum > 1)
     {
         pScalabilityState->bScalableDecodeMode = true;
     }
@@ -2069,29 +2069,5 @@ bool CodecHalDecodeScalabilityIsToSubmitCmdBuffer(
     {
         return (CodecHalDecodeScalabilityIsFinalBEPhase(pScalabilityState) ||
             (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_FE && pScalabilityState->bFESeparateSubmission));
-    }
-}
-
-void CodecHalDecodeScalability_DecPhaseToSubmissionType(
-    PCODECHAL_DECODE_SCALABILITY_STATE pScalabilityState,
-    PMOS_COMMAND_BUFFER pCmdBuffer)
-{
-    switch (pScalabilityState->HcpDecPhase)
-    {
-        case CodechalDecode::CodechalHcpDecodePhaseLegacyS2L:
-            //Note: no break here, S2L and FE commands put in one secondary command buffer.
-        case CODECHAL_HCP_DECODE_PHASE_FE:
-            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_ALONE;
-            break;
-        case CODECHAL_HCP_DECODE_PHASE_BE0:
-            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
-            break;
-        case CODECHAL_HCP_DECODE_PHASE_BE1:
-            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
-            break;
-        case CODECHAL_HCP_DECODE_PHASE_RESERVED:
-        default:
-            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_ALONE;
-            break;
     }
 }

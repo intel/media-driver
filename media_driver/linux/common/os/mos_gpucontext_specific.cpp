@@ -30,8 +30,6 @@
 #include "mos_commandbuffer_specific.h"
 #include "mos_util_devult_specific.h"
 #include "mos_cmdbufmgr.h"
-#include "mos_os_virtualengine.h"
-#include <unistd.h>
 
 #define MI_BATCHBUFFER_END 0x05000000
 static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -127,22 +125,17 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
         m_createOptionEnhanced->UsingSFC = createOptionEnhanced->UsingSFC;
     }
 
-    for (int i=0; i<MAX_ENGINE_INSTANCE_NUM+1; i++)
-    {
-        m_i915Context[i] = nullptr;
-    }
-
     if (osInterface->ctxBasedScheduling)
     {
-        m_i915Context[0] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
+        m_i915Context = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
                                              osInterface->pOsContext->intel_context,
                                              I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
-        if (m_i915Context[0] == nullptr)
+        if (m_i915Context == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
             return MOS_STATUS_UNKNOWN;
         }
-        m_i915Context[0]->pOsContext = osInterface->pOsContext;
+        m_i915Context->pOsContext = osInterface->pOsContext;
 
         m_i915ExecFlag = I915_EXEC_DEFAULT;
         if (GpuNode == MOS_GPU_NODE_3D || GpuNode == MOS_GPU_NODE_COMPUTE)
@@ -151,7 +144,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
             engine_map.engine_class = I915_ENGINE_CLASS_RENDER;
             engine_map.engine_instance = 0;
 
-            if (mos_set_context_param_load_balance(m_i915Context[0],&engine_map, 1))
+            if (mos_set_context_param_load_balance(m_i915Context,&engine_map, 1))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
                 return MOS_STATUS_UNKNOWN;
@@ -164,7 +157,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 sseu.flags = I915_CONTEXT_SSEU_FLAG_ENGINE_INDEX;
                 sseu.engine.engine_instance = m_i915ExecFlag;
 
-                if (mos_get_context_param_sseu(m_i915Context[0], &sseu))
+                if (mos_get_context_param_sseu(m_i915Context, &sseu))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to get sseu configuration.");
                     return MOS_STATUS_UNKNOWN;
@@ -176,7 +169,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                             mos_hweight8(sseu.subslice_mask)-createOption->packed.SubSliceCount);
                 }
 
-                if (mos_set_context_param_sseu(m_i915Context[0], sseu))
+                if (mos_set_context_param_sseu(m_i915Context, sseu))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
                     return MOS_STATUS_UNKNOWN;
@@ -203,50 +196,10 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 return MOS_STATUS_UNKNOWN;
             }
 
-            if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
+            if (mos_set_context_param_load_balance(m_i915Context, engine_map, nengine))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
                 return MOS_STATUS_UNKNOWN;
-            }
-
-            if (nengine >= 2)
-            {
-                //master queue
-                m_i915Context[1] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
-                                                                 osInterface->pOsContext->intel_context,
-                                                                 I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
-                if (m_i915Context[1] == nullptr)
-                {
-                    MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
-                    return MOS_STATUS_UNKNOWN;
-                }
-                m_i915Context[1]->pOsContext = osInterface->pOsContext;
-
-                if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
-                {
-                    MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
-                    return MOS_STATUS_UNKNOWN;
-                }
-
-                //slave queue
-                for (int i=1; i<nengine; i++)
-                {
-                    m_i915Context[i+1] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
-                                                                     osInterface->pOsContext->intel_context,
-                                                                     I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
-                    if (m_i915Context[i+1] == nullptr)
-                    {
-                        MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
-                        return MOS_STATUS_UNKNOWN;
-                    }
-                    m_i915Context[i+1]->pOsContext = osInterface->pOsContext;
-
-                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0],&engine_map[i], 1))
-                    {
-                        MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension.\n");
-                        return MOS_STATUS_UNKNOWN;
-                    }
-                }
             }
         }
         else
@@ -298,14 +251,10 @@ void GpuContextSpecific::Clear()
     MOS_SafeFreeMemory(m_attachedResources);
     MOS_SafeFreeMemory(m_writeModeList);
     MOS_SafeFreeMemory(m_createOptionEnhanced);
-
-    for (int i=0; i<MAX_ENGINE_INSTANCE_NUM; i++)
+    if (m_i915Context)
     {
-        if (m_i915Context[i])
-        {
-            mos_gem_context_destroy(m_i915Context[i]);
-            m_i915Context[i] = nullptr;
-        }
+        mos_gem_context_destroy(m_i915Context);
+        m_i915Context = nullptr;
     }
 }
 
@@ -480,7 +429,6 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
 
         // zero comamnd buffer
         MOS_ZeroMemory(comamndBuffer->pCmdBase, comamndBuffer->iRemaining);
-        comamndBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
         MOS_ZeroMemory(&comamndBuffer->Attributes,sizeof(comamndBuffer->Attributes));
 
         // update command buffer relared filed in GPU context
@@ -686,8 +634,6 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     uint32_t     execFlag = gpuNode;
     MOS_STATUS   eStatus  = MOS_STATUS_SUCCESS;
     int32_t      ret      = 0;
-    int          fence = -1;
-    unsigned int fence_flag = 0;
 
     // Command buffer object DRM pointer
     m_cmdBufFlushed = true;
@@ -742,11 +688,6 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
         {
             *((uint32_t *)((uint8_t *)cmd_bo->virt + currentPatch->PatchOffset)) =
                     boOffset + currentPatch->AllocationOffset;
-        }
-
-        if (cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
-        {
-            mos_bo_set_exec_object_async(alloc_bo);
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
@@ -818,8 +759,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     int32_t          DR4           = osContext->uEnablePerfTag ? perfData : 0;
 
     //Since CB2 command is not supported, remove it and set cliprects to nullprt as default.
-    if ((gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2) &&
-        (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_SINGLE_PIPE_MASK))
+    if (gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2)
     {
         if (osContext->bKMDHasVCS2)
         {
@@ -931,57 +871,15 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     }
     else if (nullRendering == false)
     {
-        if (osInterface->ctxBasedScheduling && m_i915Context[0] != nullptr)
+        if (osInterface->ctxBasedScheduling && m_i915Context != nullptr)
         {
-            if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASK)
-            {
-                MOS_LINUX_CONTEXT *queue = m_i915Context[0];
-                if (execFlag == MOS_GPU_NODE_VIDEO || execFlag == MOS_GPU_NODE_VIDEO2)
-                {
-                    execFlag = I915_EXEC_DEFAULT;
-                }
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
-                {
-                    fence = osContext->submit_fence;
-                    fence_flag = I915_EXEC_FENCE_SUBMIT;
-                    int slave_index = cmdBuffer->iSubmissionType >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
-                    queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
-                }
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_MASTER)
-                {
-                    fence_flag = I915_EXEC_FENCE_OUT;
-                    queue = m_i915Context[1];
-                }
-
-                ret = mos_gem_bo_context_exec2(cmd_bo,
-                                              cmd_bo->size,
-                                              queue,
-                                              cliprects,
-                                              num_cliprects,
-                                              DR4,
-                                              execFlag | fence_flag,
-                                              &fence);
-
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_MASTER)
-                {
-                    osContext->submit_fence = fence;
-                }
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
-                {
-                    close(fence);
-                }
-            }
-            else
-            {
-                ret = mos_gem_bo_context_exec2(cmd_bo,
-                    m_commandBufferSize,
-                    m_i915Context[0],
-                    cliprects,
-                    num_cliprects,
-                    DR4,
-                    m_i915ExecFlag,
-                    nullptr);
-            }
+            ret = mos_gem_bo_context_exec2(cmd_bo,
+                m_commandBufferSize,
+                m_i915Context,
+                cliprects,
+                num_cliprects,
+                DR4,
+                m_i915ExecFlag);
         }
         else
         {
@@ -991,8 +889,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 cliprects,
                 num_cliprects,
                 DR4,
-                execFlag,
-                nullptr);
+                execFlag);
         }
         if (ret != 0)
         {

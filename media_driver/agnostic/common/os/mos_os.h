@@ -223,15 +223,6 @@ typedef enum _MOS_VDBOX_NODE_IND
     MOS_VDBOX_NODE_2           = 0x1
 } MOS_VDBOX_NODE_IND;
 
-#define SUBMISSION_TYPE_SINGLE_PIPE                     (1 << 0)
-#define SUBMISSION_TYPE_SINGLE_PIPE_MASK                (0xff)
-#define SUBMISSION_TYPE_MULTI_PIPE_SHIFT                8
-#define SUBMISSION_TYPE_MULTI_PIPE_ALONE                (1 << SUBMISSION_TYPE_MULTI_PIPE_SHIFT)
-#define SUBMISSION_TYPE_MULTI_PIPE_MASTER               (1 << (SUBMISSION_TYPE_MULTI_PIPE_SHIFT+1))
-#define SUBMISSION_TYPE_MULTI_PIPE_SLAVE                (1 << (SUBMISSION_TYPE_MULTI_PIPE_SHIFT+2))
-#define SUBMISSION_TYPE_MULTI_PIPE_MASK                 (0xff << SUBMISSION_TYPE_MULTI_PIPE_SHIFT)
-#define SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT    16
-
 //!
 //! \brief Structure to command buffer
 //!
@@ -247,7 +238,6 @@ typedef struct _MOS_COMMAND_BUFFER
     int32_t             iTokenOffsetInCmdBuf;       //!< Pointer to (Un)Secure token's next field Offset
     int32_t             iCmdIndex;                  //!< command buffer's index
     MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
-    int32_t             iSubmissionType;
 
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
     MOS_OCA_BUFFER_HANDLE hOcaBuf;                  //!< Oca buffer handle for current command
@@ -1074,8 +1064,7 @@ typedef struct _MOS_INTERFACE
     bool                            ctxBasedScheduling;                           //!< Flag to indicate if context based scheduling enabled for virtual engine, that is VE2.0.
     bool                            multiNodeScaling;                             //!< Flag to indicate if multi-node scaling is enabled for virtual engine, that is VE3.0.
     bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
-    bool                            phasedSubmission = false;                     //!< Flag to indicate if secondary command buffers are submitted together (Win) or separately (Linux)
-    bool                            frameSplit = true;                            //!< Flag to indicate if frame split is enabled
+
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
 
     MOS_STATUS (*pfnCheckVirtualEngineSupported)(
