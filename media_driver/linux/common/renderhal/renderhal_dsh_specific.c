@@ -39,12 +39,3 @@ MOS_STATUS RenderHal_DSH_SendTimingData(
 {
     return MOS_STATUS_SUCCESS;
 }
-
-//!
-//! \brief    Get Oca support object
-//! \return   RenderhalOcaSupport&
-//!
-RenderhalOcaSupport &RenderHal_DSH_GetOcaSupport()
-{
-    return RenderhalOcaSupport::GetInstance();
-}

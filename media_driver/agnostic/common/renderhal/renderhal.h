@@ -39,7 +39,6 @@
 #include "mhw_memory_pool.h"
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
-#include "renderhal_oca_support.h"
 
 #include "frame_tracker.h"
 
@@ -1714,8 +1713,6 @@ typedef struct _RENDERHAL_INTERFACE
     bool(*pfnPerThreadScratchSpaceStart2K) (
                 PRENDERHAL_INTERFACE        pRenderHal);
 
-    RenderhalOcaSupport &(* pfnGetOcaSupport)();
-
     //---------------------------
     // Overwrite L3 Cache control register
     //---------------------------
@@ -1886,12 +1883,6 @@ MOS_STATUS RenderHal_SendTimingData(
     PRENDERHAL_INTERFACE         pRenderHal,
     PMOS_COMMAND_BUFFER          pCmdBuffer,
     bool                         bStartTime);
-
-//!
-//! \brief    Get Oca support object
-//! \return   RenderhalOcaSupport&
-//!
-RenderhalOcaSupport &RenderHal_GetOcaSupport();
 
 // Constants defined in RenderHal interface
 extern const MHW_PIPE_CONTROL_PARAMS      g_cRenderHal_InitPipeControlParams;

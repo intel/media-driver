@@ -20,27 +20,22 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     renderhal_oca_support.h
-//! \brief    Implementation of functions for Renderhal OCA support
+//! \file     hal_oca_interface.h
+//! \brief    Implementation of functions for HAL OCA Interface
 //!
-#ifndef __RENDERHAL_OCA_SUPPORT_H__
-#define __RENDERHAL_OCA_SUPPORT_H__
 
-/****************************************************************************************************/
-/*                                      RenderhalOcaSupport                                             */
-/****************************************************************************************************/
+#ifndef __HAL_OCA_INTERFACE_H__
+#define __HAL_OCA_INTERFACE_H__
 
-#include "mhw_mmio.h"
 #include "mhw_mi.h"
 
-class RenderhalOcaSupport
+/****************************************************************************************************/
+/*                                      HalOcaInterface                                             */
+/****************************************************************************************************/
+
+class HalOcaInterface
 {
 public:
-    //!
-    //! \brief  Destructor
-    //!
-    virtual ~RenderhalOcaSupport();
-
     //!
     //! \brief  Oca operation which should be called at the beginning of 1st level batch buffer start.
     //! \param  [in/out] cmdBuffer
@@ -62,7 +57,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    virtual void On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext,
+    static void On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext,
         uint32_t gpuContextHandle, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters,
         uint32_t offsetOf1stLevelBB = 0, bool bUseSizeOfCmdBuf = true, uint32_t sizeOf1stLevelBB = 0);
 
@@ -76,7 +71,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    virtual void On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
+    static void On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
 
     //!
     //! \brief  Oca operation which should be called before sending start sub level batch buffer command.
@@ -95,7 +90,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    virtual void OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB);
+    static void OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB);
 
     //!
     //! \brief  Oca operation which should be called when indirect states being added.
@@ -114,7 +109,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    virtual void OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfIndirectState, bool bUseSizeOfResource, uint32_t sizeOfIndirectState);
+    static void OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfIndirectState, bool bUseSizeOfResource, uint32_t sizeOfIndirectState);
 
     //!
     //! \brief  Oca operation which should be called before adding dispatch states,
@@ -130,7 +125,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    virtual void OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters);
+    static void OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters);
 
     //!
     //! \brief  Add string to oca log section
@@ -145,7 +140,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    virtual void TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, const char *str, uint32_t maxCount);
+    static void TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, const char *str, uint32_t maxCount);
 
     //!
     //! \brief  Add vp kernel info to oca log section.
@@ -162,14 +157,26 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    virtual void DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList);
+    static void DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList);
 
-    static RenderhalOcaSupport& GetInstance();
-protected:
+private:
+    //!
+    //! \brief  Error handle function.
+    //! \param  [in] status
+    //!         The MOS_STATUS for current error.
+    //! \param  [in] funcName
+    //!         The failure function name.
+    //! \param  [in] lineNumber
+    //!         The line number where OnOcaError being called in failure function.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void OnOcaError(MOS_STATUS status, const char *functionName, uint32_t lineNumber);
+
     // Private functions to ensure class singleton.
-    RenderhalOcaSupport();
-    RenderhalOcaSupport(RenderhalOcaSupport &);
-    RenderhalOcaSupport& operator= (RenderhalOcaSupport &);
+    HalOcaInterface();
+    HalOcaInterface(HalOcaInterface &);
+    HalOcaInterface& operator= (HalOcaInterface &);
 };
 
-#endif  // __RENDERHAL_OCA_SUPPORT_H__
+#endif // __RHAL_OCA_INTERFACE_H__
