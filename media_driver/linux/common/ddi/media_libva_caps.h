@@ -526,7 +526,14 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) = 0;
+
+    //!
+    //! \brief    Return the maxinum number of supported image formats 
+    //!
+    //! \return   The maxinum number of supported image formats 
+    //!
+    virtual uint32_t GetImageFormatsMaxNum() = 0;
 
     //!
     //! \brief    Populate the color masks info 
@@ -538,8 +545,10 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
-    
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt) = 0;
+
+    virtual bool IsImageSupported(uint32_t fourcc) = 0;
+
     //!
     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
     //!
@@ -559,13 +568,6 @@ public:
     //!           VA_STATUS_SUCCESS if succeed 
     //!
     virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) = 0;
-
-    //!
-    //! \brief    Return the maxinum number of supported image formats 
-    //!
-    //! \return   The maxinum number of supported image formats 
-    //!
-    virtual uint32_t GetImageFormatsMaxNum();
 
     //!
     //! \brief    Check if the configID is a valid decode config 
@@ -650,6 +652,16 @@ public:
     //!         Pointer to gmm format type
     //!
     virtual GMM_RESOURCE_FORMAT ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT format);
+
+    //!
+    //! \brief convert FOURCC to Gmm Format.
+    //!
+    //! \param    [in] fourcc
+    //!
+    //! \return GMM_RESOURCE_FORMAT
+    //!         Pointer to gmm format type
+    //!
+    virtual GMM_RESOURCE_FORMAT ConvertFourccToGmmFmt(uint32_t fourcc);
 
     //!
     //! \brief    Initialize the MediaLibvaCaps instance for current platform 
@@ -750,7 +762,6 @@ protected:
     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
     static const uint32_t m_jpegSurfaceAttr[m_numJpegSurfaceAttr]; //!< Store the JPEG surface attributes
     static const uint32_t m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr]; //!< Store the JPEG encode surface attributes
-    static const VAImageFormat m_supportedImageformats[]; //!< Store all the supported image formats
 
     static const uint32_t m_decMpeg2MaxWidth = 2048; //!< Maximum width for Mpeg2 decode
     static const uint32_t m_decMpeg2MaxHeight = 2048; //!< Maximum height for Mpeg2 decode
@@ -1208,13 +1219,6 @@ protected:
             VAEntrypoint entrypoint,
             VAConfigAttribType type,
             uint32_t *value) = 0;
-
-    //!
-    //! \brief    Return if image format P010 supported on current platform
-    //!
-    //! \return   True if P010 is supported, otherwise false 
-    //!
-    virtual bool IsP010Supported() = 0;
 
     //!
     //! \brief    Return encode Mb processing rate on current platform

@@ -315,17 +315,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_X8R8G8B8:
         case Media_Format_X8B8G8R8:
         case Media_Format_A8B8G8R8:
-        case Media_Format_R8G8B8A8:
         case Media_Format_R5G6B5:
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
         case Media_Format_B10G10R10A2:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
-            {
-                 tileformat = I915_TILING_NONE;
-                 break;
-            }
-        case Media_Format_NV21:
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
@@ -344,6 +337,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  break;
             }
         case Media_Format_NV12:
+        case Media_Format_NV21:
         case Media_Format_444P:
         case Media_Format_422H:
         case Media_Format_411P:

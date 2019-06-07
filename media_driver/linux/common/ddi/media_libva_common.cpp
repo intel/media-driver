@@ -70,7 +70,6 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
             mosResource->Format    = Format_X8B8G8R8;
             break;
         case Media_Format_A8B8G8R8:
-        case Media_Format_R8G8B8A8:
             mosResource->Format    = Format_A8B8G8R8;
             break;
         case Media_Format_A8R8G8B8:
