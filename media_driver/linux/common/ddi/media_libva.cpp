@@ -681,12 +681,14 @@ static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx)
         return;
 
     int32_t bufNums = mediaCtx->uiNumBufs;
-    for (int32_t elementId = 0; elementId < bufNums; ++elementId)
+    for (int32_t elementId = 0; bufNums > 0; ++elementId)
     {
         PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
         if (nullptr == mediaBufferHeapElmt->pBuffer)
             continue;
         DdiMedia_DestroyBuffer(ctx,mediaBufferHeapElmt->uiVaBufferID);
+        //Ensure the non-empty buffer to be destroyed.
+        --bufNums;
     }
 }
 
