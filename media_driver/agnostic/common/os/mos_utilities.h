@@ -554,9 +554,13 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SUPER_RESOLUTION_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SUPER_RESOLUTION_MODE_ID,
-    __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL_ID,
     __MEDIA_USER_FEATURE_VALUE_EXTERNAL_COPY_SYNC_ID,
     __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA_ID,
+#if (_DEBUG || _RELEASE_INTERNAL)
+    __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
+    __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER_ID,
+#endif
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 
@@ -820,6 +824,19 @@ extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaratio
 //    }
 //}
 
+//Memory alloc fail simulatiion related defination
+#if (_DEBUG || _RELEASE_INTERNAL)
+
+#define NO_ALLOC_ALIGNMENT (1)
+
+bool MOS_SimulateAllocMemoryFail(
+    size_t      size,
+    size_t      alignment,
+    const char *functionName,
+    const char *filename,
+    int32_t     line);
+#endif  //(_DEBUG || _RELEASE_INTERNAL)
+
 #if MOS_MESSAGES_ENABLED
 template<class _Ty, class... _Types>
 _Ty* MOS_NewUtil(const char *functionName,
@@ -830,6 +847,13 @@ template<class _Ty, class... _Types>
 _Ty* MOS_NewUtil(_Types&&... _Args)
 #endif
 {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Simulate allocate memory fail if flag turned on
+        if (MOS_SimulateAllocMemoryFail(sizeof(_Ty), NO_ALLOC_ALIGNMENT, functionName, filename, line))
+        {
+            return nullptr;
+        }
+#endif
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
@@ -853,6 +877,13 @@ template<class _Ty, class... _Types>
 _Ty* MOS_NewArrayUtil(int32_t numElements)
 #endif
 {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Simulate allocate memory fail if flag turned on
+        if (MOS_SimulateAllocMemoryFail(sizeof(_Ty) * numElements, NO_ALLOC_ALIGNMENT, functionName, filename, line))
+        {
+            return nullptr;
+        }
+#endif
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
         if (ptr != nullptr)
         {

@@ -270,9 +270,12 @@
 #define __MOS_USER_FEATURE_KEY_XML_FILEPATH             "XML File Path"
 #define __MOS_USER_FEATURE_KEY_XML_DUMP_GROUPS          "XML Dump Group"
 
-
+#if (_DEBUG || _RELEASE_INTERNAL)
 //User feature key for enable simulating random memory allocation failure
-#define __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL "Simulate Random Alloc Memory Fail"
+#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE    "Alloc Memory Fail Simulate Mode"
+#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ    "Alloc Memory Fail Simulate Freq"
+#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER "Alloc Memory Fail Simulate Counter"
+#endif //(_DEBUG || _RELEASE_INTERNAL)
 
 //User feature key for enable/disable UMD_OCA
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA       "Enable UMD_OCA"

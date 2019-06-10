@@ -206,7 +206,6 @@ int32_t MosMemAllocCounterGfx;
 int32_t MosMemAllocCounterNoUserFeature;
 int32_t MosMemAllocCounterNoUserFeatureGfx;
 uint8_t MosUltFlag;
-int32_t MosSimulateRandomAllocMemoryFailFreq;
 
 #ifdef __cplusplus
 extern "C" {
@@ -3456,15 +3455,6 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "0",
         "Eanble Apogeios path. 1: enable, 0: disable."),
-    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL_ID,
-       __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL,
-       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
-       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
-       "MOS",
-       MOS_USER_FEATURE_TYPE_USER,
-       MOS_USER_FEATURE_VALUE_TYPE_UINT32,
-       "0",
-       "Enable MOS to simualte random memory allocate fail. "),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_EXTERNAL_COPY_SYNC_ID,
        "External Copy Sync",
        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -3483,14 +3473,54 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
        "0",
        "Enable UMD_OCA in media driver. This key is not valid on Linux."),
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE_ID,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+        "0",
+        "MOS memory alloc fail simulate mode， 0-Disable, 1-Random, 3-Traverse."),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+        "0",
+        "MOS memory alloc fail simulate frequence."),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER_ID,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+        "0",
+        "MOS memory alloc fail simulate counter."),
+#endif //(_DEBUG || _RELEASE_INTERNAL)
 };
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))
 
-#if MOS_MESSAGES_ENABLED
+#if (_DEBUG || _RELEASE_INTERNAL)
+uint32_t MosAllocMemoryFailSimulateMode;
+uint32_t MosAllocMemoryFailSimulateFreq;
+uint32_t MosAllocMemoryFailSimulateCount;
 
-#define MIN_MEMORY_ALLOCATION_FAILURE_FREQ  (2)  //max random memory allcation fail rate 1/2
-#define MAX_MEMORY_ALLOCATION_FAILURE_FREQ (1000)  //max random memory allcation fail rate 1/1000
+#define MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT (0)
+#define MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM (1)
+#define MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE (2)
+
+#define MIN_MEMORY_ALLOC_FAIL_FREQ (1)      //max memory allcation fail rate 100%
+#define MAX_MEMORY_ALLOC_FAIL_FREQ (10000)  //min memory allcation fail rate 1/10000
+
+#define MosAllocMemoryFailSimulationEnabled                                      \
+    (MosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM || \
+     MosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE)
 
 //!
 //! \brief    Init simulate random memory allocation fail flag
@@ -3498,18 +3528,20 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
 //!           __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL
 //! \return   void
 //!
-void MOS_InitSimulateRandomAllocMemoryFailFlag()
+void MOS_InitAllocMemoryFailSimulateFlag()
 {
     MOS_USER_FEATURE       UserFeature;
     MOS_USER_FEATURE_VALUE UserFeatureValue;
+    MOS_STATUS             eStatus = MOS_STATUS_SUCCESS;
 
     //default off for simulate random fail
-    MosSimulateRandomAllocMemoryFailFreq = 0;
+    MosAllocMemoryFailSimulateMode  = MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT;
+    MosAllocMemoryFailSimulateFreq = 0;
+    MosAllocMemoryFailSimulateCount = 0;
 
-    // Read Config if need to simulate random memory allocation failure
+    // Read Config : memory allocation failure simulate mode
     MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
     UserFeatureValue.u32Data = 0;  // Init as default value
-
     UserFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
     UserFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
     UserFeature.pValues     = &UserFeatureValue;
@@ -3518,37 +3550,162 @@ void MOS_InitSimulateRandomAllocMemoryFailFlag()
     MOS_UserFeature_ReadValue(
         nullptr,
         &UserFeature,
-        __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE,
         MOS_USER_FEATURE_VALUE_TYPE_UINT32);
 
-    if ((UserFeature.pValues[0].u32Data >= MIN_MEMORY_ALLOCATION_FAILURE_FREQ) &&
-        (UserFeature.pValues[0].u32Data <= MAX_MEMORY_ALLOCATION_FAILURE_FREQ))
+    if ((UserFeature.pValues[0].u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT) ||
+        (UserFeature.pValues[0].u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM) ||
+        (UserFeature.pValues[0].u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE))
     {
-        MosSimulateRandomAllocMemoryFailFreq = UserFeature.pValues[0].u32Data;
-        MOS_OS_NORMALMESSAGE("Init MosSimulateRandomAllocMemoryFailFreq as %d \n ", MosSimulateRandomAllocMemoryFailFreq);
-        srand((unsigned int)time(nullptr));
+        MosAllocMemoryFailSimulateMode = UserFeature.pValues[0].u32Data;
+        MOS_OS_NORMALMESSAGE("Init MosSimulateAllocMemoryFailSimulateMode as %d \n ", MosAllocMemoryFailSimulateMode);
+    }
+    else
+    {
+        MosAllocMemoryFailSimulateMode = MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT;
+        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Mode from config: %d \n ", UserFeature.pValues[0].u32Data);
+    }
+
+    // Read Config : memory allocation failure simulate frequence
+    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
+    UserFeatureValue.u32Data = 0;  // Init as default value
+    UserFeature.Type         = MOS_USER_FEATURE_TYPE_USER;
+    UserFeature.pPath        = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    UserFeature.pValues      = &UserFeatureValue;
+    UserFeature.uiNumValues  = 1;
+
+    MOS_UserFeature_ReadValue(
+        nullptr,
+        &UserFeature,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+
+    if ((UserFeature.pValues[0].u32Data >= MIN_MEMORY_ALLOC_FAIL_FREQ) &&
+        (UserFeature.pValues[0].u32Data <= MAX_MEMORY_ALLOC_FAIL_FREQ))
+    {
+        MosAllocMemoryFailSimulateFreq = UserFeature.pValues[0].u32Data;
+        MOS_OS_NORMALMESSAGE("Init MosSimulateRandomAllocMemoryFailFreq as %d \n ", MosAllocMemoryFailSimulateFreq);
+
+        if (MosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM)
+        {
+            srand((unsigned int)time(nullptr));
+        }
+    }
+    else
+    {
+        MosAllocMemoryFailSimulateFreq = 0;
+        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Freq from config: %d \n ", UserFeature.pValues[0].u32Data);
+    }
+
+    // Read Config : memory allocation failure simulate counter
+    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
+    UserFeatureValue.u32Data = 0;  // Init as default value
+    UserFeature.Type         = MOS_USER_FEATURE_TYPE_USER;
+    UserFeature.pPath        = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    UserFeature.pValues      = &UserFeatureValue;
+    UserFeature.uiNumValues  = 1;
+
+    MOS_UserFeature_ReadValue(
+        nullptr,
+        &UserFeature,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+
+    if (UserFeature.pValues[0].u32Data <= MosAllocMemoryFailSimulateFreq)
+    {
+        MosAllocMemoryFailSimulateCount = UserFeature.pValues[0].u32Data;
+        MOS_OS_NORMALMESSAGE("Init MosAllocMemoryFailSimulateCount as %d \n ", MosAllocMemoryFailSimulateCount);
+    }
+    else
+    {
+        MosAllocMemoryFailSimulateCount = UserFeature.pValues[0].u32Data;
+        MOS_OS_NORMALMESSAGE("Init MosAllocMemoryFailSimulateCount as %d, INVALID CONFIG \n ", MosAllocMemoryFailSimulateCount);
     }
 }
 
-#define MOS_SimulateRandomAllocMemoryFail(size)                 \
-    {                                                           \
-        int32_t Rn = rand();                                    \
-        if (Rn % MosSimulateRandomAllocMemoryFailFreq == 1)     \
-        {                                                       \
-            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
-                "Simulated Allocate Memory Fail (Rn=%d) for: functionName: %s, filename: %s, line: %d, size: %d \n", \
-                 Rn, functionName, filename, line, size);       \
-            return nullptr;                                     \
-        }                                                       \
-    }
-#else
-void MOS_InitSimulateRandomAllocMemoryFailFlag()
+bool MOS_SimulateAllocMemoryFail(
+    size_t      size,
+    size_t      alignment,
+    const char  *functionName,
+    const char  *filename,
+    int32_t     line)
 {
-    MosSimulateRandomAllocMemoryFailFreq = 0;
-}
+    bool  bSimulateAllocFail = false;
 
-#define MOS_SimulateRandomAllocMemoryFail(size) {};
-#endif  // MOS_MESSAGES_ENABLED
+    if (!MosAllocMemoryFailSimulationEnabled)
+    {
+        return false;
+    }
+
+    if (MosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM)
+    {
+        int32_t Rn = rand();
+        if (Rn % MosAllocMemoryFailSimulateFreq == 1)
+        {
+            bSimulateAllocFail = true;
+            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
+                "Simulated Allocate Memory Fail (Rn=%d) for: functionName: %s, filename: %s, line: %d, size: %d, alignment: %d \n", Rn, functionName, filename, line, size, alignment);
+        }
+        else
+        {
+            bSimulateAllocFail = false;
+        }
+    }
+    else if (MosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE)
+    {
+        MOS_USER_FEATURE       UserFeature;
+        MOS_USER_FEATURE_VALUE UserFeatureValue;
+
+        MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
+        UserFeatureValue.u32Data = 0;
+        UserFeature.Type         = MOS_USER_FEATURE_TYPE_USER;
+        UserFeature.pPath        = __MEDIA_USER_FEATURE_SUBKEY_REPORT;
+        UserFeature.pValues      = &UserFeatureValue;
+        UserFeature.uiNumValues  = 1;
+
+        MOS_UserFeature_ReadValue(
+            nullptr,
+            &UserFeature,
+            __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER,
+            MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+
+        if (UserFeature.pValues[0].u32Data <= MosAllocMemoryFailSimulateFreq)
+        {
+            MosAllocMemoryFailSimulateCount = UserFeature.pValues[0].u32Data;
+        }
+        else
+        {
+            MOS_OS_NORMALMESSAGE("Alloc Memory Fail Simulate Counter %d, INVALID CONFIG \n ", UserFeature.pValues[0].u32Data);
+        }
+
+        if ((MosAllocMemoryFailSimulateCount < MosAllocMemoryFailSimulateFreq)
+            && (MosAllocMemoryFailSimulateCount == MosMemAllocCounter))
+        {
+            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
+                "Simulated Allocate Memory Fail (counter=%d) for: functionName: %s, filename: %s, line: %d, size: %d \n", MosAllocMemoryFailSimulateCount, functionName, filename, line, size, alignment);
+            bSimulateAllocFail = true;
+            MosAllocMemoryFailSimulateCount++;
+        }
+        else
+        {
+            bSimulateAllocFail = false;
+        }
+
+        MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData;
+        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+        UserFeatureWriteData.Value.u32Data = MosAllocMemoryFailSimulateCount;
+        UserFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER_ID;
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+    }
+    else
+    {
+        MOS_OS_NORMALMESSAGE("Invalid MosAllocMemoryFailSimulateMode: %d \n ", MosAllocMemoryFailSimulateMode);
+    }
+
+    return bSimulateAllocFail;
+}
+#endif  //(_DEBUG || _RELEASE_INTERNAL)
+
 
 //!
 //! \brief    Init Function for MOS utilities
@@ -3565,8 +3722,10 @@ MOS_STATUS MOS_utilities_init()
 
     eStatus = MOS_OS_Utilities_Init();
 
-    //Initialize MOS simulate random alloc memory fail flag
-    MOS_InitSimulateRandomAllocMemoryFailFlag();
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //Initialize MOS simulate alloc memory fail flag
+    MOS_InitAllocMemoryFailSimulateFlag();
+#endif
 
     return eStatus;
 }
@@ -3591,8 +3750,10 @@ MOS_STATUS MOS_utilities_close()
     // Any memory allocation release after MOS_OS_Utilities_Close() will be treated as mem leak.
     eStatus = MOS_OS_Utilities_Close();
 
-    //Reset Simulate Random Alloc Memory Fail Frequence to 0
-    MosSimulateRandomAllocMemoryFailFreq = 0;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //Reset Simulate Alloc Memory Fail flags
+    MOS_InitAllocMemoryFailSimulateFlag();
+#endif
 
     return eStatus;
 }
@@ -3643,11 +3804,12 @@ void  *MOS_AlignedAllocMemory(
 {
     void  *ptr;
 
-    if (MosSimulateRandomAllocMemoryFailFreq != 0)
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MOS_SimulateAllocMemoryFail(size, alignment, functionName, filename, line))
     {
-        //Try to simulate random allocate memory fail if flag turned on
-        MOS_SimulateRandomAllocMemoryFail(size);
+        return nullptr;
     }
+#endif
 
     ptr = _aligned_malloc(size, alignment);
 
@@ -3715,11 +3877,12 @@ void  *MOS_AllocMemory(size_t size)
 {
     void  *ptr;
 
-    if (MosSimulateRandomAllocMemoryFailFreq != 0)
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MOS_SimulateAllocMemoryFail(size, NO_ALLOC_ALIGNMENT, functionName, filename, line))
     {
-        //Try to simulate random allocate memory fail if flag turned on
-        MOS_SimulateRandomAllocMemoryFail(size);
+        return nullptr;
     }
+#endif
 
     ptr = malloc(size);
 
@@ -3757,11 +3920,12 @@ void  *MOS_AllocAndZeroMemory(size_t size)
 {
     void  *ptr;
 
-    if (MosSimulateRandomAllocMemoryFailFreq != 0)
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MOS_SimulateAllocMemoryFail(size, NO_ALLOC_ALIGNMENT, functionName, filename, line))
     {
-        //Try to simulate random allocate memory fail if flag turned on
-        MOS_SimulateRandomAllocMemoryFail(size);
+        return nullptr;
     }
+#endif
 
     ptr = malloc(size);
 
@@ -3803,8 +3967,18 @@ void *MOS_ReallocMemory(
     size_t     newSize)
 #endif // MOS_MESSAGES_ENABLED
 {
-    void *oldPtr = ptr;
-    void *newPtr = realloc(ptr, newSize);
+    void *oldPtr = nullptr;
+    void *newPtr = nullptr;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MOS_SimulateAllocMemoryFail(newSize, NO_ALLOC_ALIGNMENT, functionName, filename, line))
+    {
+        return nullptr;
+    }
+#endif
+
+    oldPtr = ptr;
+    newPtr = realloc(ptr, newSize);
 
     MOS_OS_ASSERT(newPtr != nullptr);
 
