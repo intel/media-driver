@@ -849,6 +849,7 @@ DdiVp_SetProcPipelineParams(
 
     VP_DDI_FUNCTION_ENTER;
     DDI_CHK_NULL(pVaDrvCtx, "Null pVaDrvCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(pPipelineParam, "Null pPipelineParam Buffer.", VA_STATUS_ERROR_INVALID_BUFFER);
 
     // initialize
     pMediaCtx           = DdiMedia_GetMediaContext(pVaDrvCtx);
@@ -1142,6 +1143,27 @@ DdiVp_SetProcPipelineParams(
         }
         break;
     }
+
+    switch (pPipelineParam->processing_mode)
+    {
+    case VAProcPowerSavingMode:
+        if (pVpHalSrcSurf->SurfType == SURF_IN_PRIMARY)
+        {
+            pVpHalSrcSurf->ScalingMode       = VPHAL_SCALING_AVS;
+            pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_SFC;
+        }
+        break;
+    case VAProcPerformanceMode:
+        if (pVpHalSrcSurf->SurfType == SURF_IN_PRIMARY)
+        {
+            pVpHalSrcSurf->ScalingMode       = VPHAL_SCALING_AVS;
+            pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_COMP;
+        }
+        break;
+    default:
+        break;
+    }
+
     //init interlace scaling flag
     pVpHalSrcSurf->bInterlacedScaling = false;
     // For interlace scaling
