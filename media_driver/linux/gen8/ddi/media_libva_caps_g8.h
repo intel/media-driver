@@ -45,14 +45,6 @@ public:
         return;
     }
 
-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
-
-    virtual uint32_t GetImageFormatsMaxNum();
-
-    virtual bool IsImageSupported(uint32_t fourcc);
-
-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
-
 protected:
     virtual VAStatus GetPlatformSpecificAttrib(
             VAProfile profile,
@@ -67,6 +59,13 @@ protected:
     //!     Return VA_STATUS_SUCCESS if call success, else fail reason
     //!
     VAStatus LoadProfileEntrypoints();
+
+    //! 
+    //! \brief  Is P010 supported
+    //! 
+    //! \return false
+    //!
+    bool IsP010Supported() { return false; };
 
     //! 
     //! \brief  Query AVC ROI maximum number

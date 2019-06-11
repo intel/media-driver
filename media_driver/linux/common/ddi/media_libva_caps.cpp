@@ -100,6 +100,42 @@ const uint32_t MediaLibvaCaps::m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr] =
     VA_FOURCC_Y800
 };
 
+const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
+{   {VA_FOURCC_BGRA, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_ARGB, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_RGBA, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+    {VA_FOURCC_ABGR, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+    {VA_FOURCC_BGRX, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+    {VA_FOURCC_XRGB, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+    {VA_FOURCC_RGBX, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+    {VA_FOURCC_XBGR, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+    {VA_FOURCC_NV12, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_NV21, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_YUY2, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_UYVY, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_YV12, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_I420, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_IYUV, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_Y210, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_Y216, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_422H, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_422V, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_Y800, VA_LSB_FIRST, 8, 0,0,0,0,0},
+    {VA_FOURCC_411P, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_IMC3, VA_LSB_FIRST, 16, 0,0,0,0,0},
+    {VA_FOURCC_444P, VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_RGBP, VA_LSB_FIRST, 24, 24, 0xff0000, 0x00ff00, 0x0000ff, 0},
+    {VA_FOURCC_BGRP, VA_LSB_FIRST, 24, 24, 0x0000ff, 0x00ff00, 0xff0000, 0},
+    {VA_FOURCC_P208, VA_LSB_FIRST, 8, 0,0,0,0,0},
+    {VA_FOURCC_P016, VA_LSB_FIRST, 12, 0,0,0,0,0},
+    {VA_FOURCC_RGB565, VA_LSB_FIRST, 16, 16, 0xf800, 0x07e0, 0x001f, 0},
+    {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_AYUV, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_Y410, VA_LSB_FIRST, 32, 0,0,0,0,0},
+    {VA_FOURCC_Y210, VA_LSB_FIRST, 32, 0,0,0,0,0},
+    {VA_FOURCC_R8G8B8, VA_LSB_FIRST, 24, 24,0xff0000,0x00ff00,0x0000ff,0}
+};
+
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
 {
     m_mediaCtx = mediaCtx;
@@ -112,6 +148,28 @@ MediaLibvaCaps::~MediaLibvaCaps()
     FreeAttributeList();
     Delete_MediaLibvaCapsCpInterface(m_CapsCp);
     m_CapsCp = nullptr;
+}
+
+VAStatus MediaLibvaCaps::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+{
+    uint32_t maxNum = GetImageFormatsMaxNum();
+
+    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    for (int32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (m_supportedImageformats[idx].fourcc == vaImgFmt->fourcc)
+        {
+            vaImgFmt->red_mask = m_supportedImageformats[idx].red_mask;
+            vaImgFmt->green_mask = m_supportedImageformats[idx].green_mask;
+            vaImgFmt->blue_mask = m_supportedImageformats[idx].blue_mask;
+            vaImgFmt->alpha_mask = m_supportedImageformats[idx].alpha_mask;
+
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
 }
 
 bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType codecType)
@@ -2949,6 +3007,42 @@ std::string MediaLibvaCaps::GetEncodeCodecKey(VAProfile profile, VAEntrypoint en
     }
 }
 
+VAStatus MediaLibvaCaps::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
+{
+    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    int32_t num = 0;
+    bool supportP010 = IsP010Supported();
+    uint32_t maxNum = MediaLibvaCaps::GetImageFormatsMaxNum();
+
+    memset(formatList, 0,  sizeof(m_supportedImageformats));
+    for (uint32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (!supportP010 && m_supportedImageformats[idx].fourcc == VA_FOURCC('P','0','1','0') )
+        {
+            continue;
+        }
+
+        formatList[num].fourcc           = m_supportedImageformats[idx].fourcc;
+        formatList[num].byte_order       = m_supportedImageformats[idx].byte_order;
+        formatList[num].bits_per_pixel   = m_supportedImageformats[idx].bits_per_pixel;
+        formatList[num].depth            = m_supportedImageformats[idx].depth;
+        formatList[num].red_mask         = m_supportedImageformats[idx].red_mask;
+        formatList[num].green_mask       = m_supportedImageformats[idx].green_mask;
+        formatList[num].blue_mask        = m_supportedImageformats[idx].blue_mask;
+        formatList[num].alpha_mask       = m_supportedImageformats[idx].alpha_mask;
+        num++;
+    }
+    *numFormats = num;
+
+    return VA_STATUS_SUCCESS;
+}
+
+uint32_t MediaLibvaCaps::GetImageFormatsMaxNum()
+{
+    return sizeof(m_supportedImageformats)/sizeof(m_supportedImageformats[0]);
+}
+
 bool MediaLibvaCaps::IsDecConfigId(VAConfigID configId)
 {
     return ((configId >= DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE) &&
@@ -3009,6 +3103,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_A8R8G8B8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
         case Media_Format_X8B8G8R8   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
         case Media_Format_A8B8G8R8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+        case Media_Format_R8G8B8A8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
         case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
         case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
@@ -3030,45 +3125,6 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;   
         default                      : return GMM_FORMAT_INVALID;
-    }
-}
-
-GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
-{
-    switch (fourcc)
-    {
-        case VA_FOURCC_BGRA   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-        case VA_FOURCC_ARGB   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-        case VA_FOURCC_RGBA   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case VA_FOURCC_ABGR   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case VA_FOURCC_BGRX   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-        case VA_FOURCC_XRGB   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-        case VA_FOURCC_RGBX   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
-        case VA_FOURCC_XBGR   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
-        case VA_FOURCC_R8G8B8 : return GMM_FORMAT_R8G8B8_UNORM;
-        case VA_FOURCC_RGBP   : return GMM_FORMAT_RGBP;
-        case VA_FOURCC_BGRP   : return GMM_FORMAT_RGBP;
-        case VA_FOURCC_RGB565 : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
-        case VA_FOURCC_AYUV   : return GMM_FORMAT_AYUV_TYPE;
-        case VA_FOURCC_NV12   : return GMM_FORMAT_NV12_TYPE;
-        case VA_FOURCC_NV21   : return GMM_FORMAT_NV21_TYPE;
-        case VA_FOURCC_YUY2   : return GMM_FORMAT_YUY2;
-        case VA_FOURCC_UYVY   : return GMM_FORMAT_UYVY;
-        case VA_FOURCC_YV12   : return GMM_FORMAT_YV12_TYPE;
-        case VA_FOURCC_I420   : return GMM_FORMAT_I420_TYPE;
-        case VA_FOURCC_IYUV   : return GMM_FORMAT_IYUV_TYPE;
-        case VA_FOURCC_411P   : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
-        case VA_FOURCC_422H   : return GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
-        case VA_FOURCC_422V   : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
-        case VA_FOURCC_444P   : return GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
-        case VA_FOURCC_IMC3   : return GMM_FORMAT_IMC3_TYPE;
-        case VA_FOURCC_P208   : return GMM_FORMAT_P208_TYPE;
-        case VA_FOURCC_P010   : return GMM_FORMAT_P010_TYPE;
-        case VA_FOURCC_P016   : return GMM_FORMAT_P016_TYPE;
-        case VA_FOURCC_Y210   : return GMM_FORMAT_Y210_TYPE;
-        case VA_FOURCC_Y410   : return GMM_FORMAT_Y410_TYPE;
-        case VA_FOURCC_Y800   : return GMM_FORMAT_GENERIC_8BIT;
-        default               : return GMM_FORMAT_INVALID;
     }
 }
 

@@ -34,32 +34,10 @@
 #include "media_ddi_decode_const_g11.h"
 #include "media_libva_vp.h"
 
-const VAImageFormat m_supportedImageformatsG11[] =
-{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
-    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
-    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
-    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
-    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
-    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
-    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
-    {VA_FOURCC_BGRP,   VA_LSB_FIRST,   24, 24, 0x0000ff,   0x00ff00,   0xff0000,    0},
-    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
-    {VA_FOURCC_AYUV,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
-    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0},
-    {VA_FOURCC_Y210,   VA_LSB_FIRST,   32, 0,0,0,0,0},
-    {VA_FOURCC_Y410,   VA_LSB_FIRST,   32, 0,0,0,0,0}
+const VAImageFormat MediaLibvaCapsG11::m_G11ImageFormats[] =
+{    {VA_FOURCC_AYUV, VA_LSB_FIRST, 32, 0,0,0,0,0},
+     {VA_FOURCC_Y410, VA_LSB_FIRST, 32, 0,0,0,0,0},
+     {VA_FOURCC_Y416, VA_LSB_FIRST, 64, 0,0,0,0,0}
 };
 
 const VAConfigAttribValEncRateControlExt MediaLibvaCapsG11::m_encVp9RateControlExt =
@@ -71,20 +49,21 @@ VAStatus MediaLibvaCapsG11::QueryImageFormats(VAImageFormat *formatList, int32_t
 {
     DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    int32_t num = 0;
-    uint32_t maxNum = GetImageFormatsMaxNum();
+    MediaLibvaCaps::QueryImageFormats(formatList, numFormats);
 
-    memset(formatList, 0,  sizeof(m_supportedImageformatsG11));
-    for (uint32_t idx = 0; idx < maxNum; idx++)
+    int32_t num = *numFormats;
+    uint32_t numG11ImageFormats = GetNumG11ImageFormats();
+
+    for (int32_t idx = 0; idx < numG11ImageFormats; idx++)
     {
-        formatList[num].fourcc           = m_supportedImageformatsG11[idx].fourcc;
-        formatList[num].byte_order       = m_supportedImageformatsG11[idx].byte_order;
-        formatList[num].bits_per_pixel   = m_supportedImageformatsG11[idx].bits_per_pixel;
-        formatList[num].depth            = m_supportedImageformatsG11[idx].depth;
-        formatList[num].red_mask         = m_supportedImageformatsG11[idx].red_mask;
-        formatList[num].green_mask       = m_supportedImageformatsG11[idx].green_mask;
-        formatList[num].blue_mask        = m_supportedImageformatsG11[idx].blue_mask;
-        formatList[num].alpha_mask       = m_supportedImageformatsG11[idx].alpha_mask;
+        formatList[num].fourcc           = m_G11ImageFormats[idx].fourcc;
+        formatList[num].byte_order       = m_G11ImageFormats[idx].byte_order;
+        formatList[num].bits_per_pixel   = m_G11ImageFormats[idx].bits_per_pixel;
+        formatList[num].depth            = m_G11ImageFormats[idx].depth;
+        formatList[num].red_mask         = m_G11ImageFormats[idx].red_mask;
+        formatList[num].green_mask       = m_G11ImageFormats[idx].green_mask;
+        formatList[num].blue_mask        = m_G11ImageFormats[idx].blue_mask;
+        formatList[num].alpha_mask       = m_G11ImageFormats[idx].alpha_mask;
         num++;
     }
     *numFormats = num;
@@ -92,39 +71,32 @@ VAStatus MediaLibvaCapsG11::QueryImageFormats(VAImageFormat *formatList, int32_t
     return VA_STATUS_SUCCESS;
 }
 
-uint32_t MediaLibvaCapsG11::GetImageFormatsMaxNum()
+uint32_t MediaLibvaCapsG11::GetNumG11ImageFormats()
 {
-    return sizeof(m_supportedImageformatsG11)/sizeof(m_supportedImageformatsG11[0]);
+    return sizeof(m_G11ImageFormats)/sizeof(m_G11ImageFormats[0]);
 }
 
-bool MediaLibvaCapsG11::IsImageSupported(uint32_t fourcc)
+uint32_t MediaLibvaCapsG11::GetImageFormatsMaxNum()
 {
-    uint32_t maxNum = GetImageFormatsMaxNum();
-    for (int32_t idx = 0; idx < maxNum; idx++)
-    {
-        if (m_supportedImageformatsG11[idx].fourcc == fourcc)
-        {
-            return true;
-        }
-    }
-
-    return false;
+    return MediaLibvaCaps::GetImageFormatsMaxNum() +
+        GetNumG11ImageFormats();
 }
 
 VAStatus MediaLibvaCapsG11::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
 {
-    uint32_t maxNum = GetImageFormatsMaxNum();
+    if(MediaLibvaCaps::PopulateColorMaskInfo(vaImgFmt) == VA_STATUS_SUCCESS)
+        return VA_STATUS_SUCCESS;
 
-    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    uint32_t numG11ImageFormats = GetNumG11ImageFormats();
 
-    for (int32_t idx = 0; idx < maxNum; idx++)
+    for (int32_t idx = 0; idx < numG11ImageFormats; idx++)
     {
-        if (m_supportedImageformatsG11[idx].fourcc == vaImgFmt->fourcc)
+        if (m_G11ImageFormats[idx].fourcc == vaImgFmt->fourcc)
         {
-            vaImgFmt->red_mask   = m_supportedImageformatsG11[idx].red_mask;
-            vaImgFmt->green_mask = m_supportedImageformatsG11[idx].green_mask;
-            vaImgFmt->blue_mask  = m_supportedImageformatsG11[idx].blue_mask;
-            vaImgFmt->alpha_mask = m_supportedImageformatsG11[idx].alpha_mask;
+            vaImgFmt->red_mask = m_G11ImageFormats[idx].red_mask;
+            vaImgFmt->green_mask = m_G11ImageFormats[idx].green_mask;
+            vaImgFmt->blue_mask = m_G11ImageFormats[idx].blue_mask;
+            vaImgFmt->alpha_mask = m_G11ImageFormats[idx].alpha_mask;
 
             return VA_STATUS_SUCCESS;
         }
@@ -694,6 +666,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG11::ConvertMediaFmtToGmmFmt(
         case Media_Format_A8R8G8B8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
         case Media_Format_X8B8G8R8   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
         case Media_Format_A8B8G8R8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+        case Media_Format_R8G8B8A8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
         case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
         case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
