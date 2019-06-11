@@ -668,6 +668,13 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         else if (kind == 0x30) {
             kind = ARG_KIND_GENERAL_DEPCNT;
         }
+        else if (kind == 0x80) {
+            // IMP_PSEUDO_INPUT = 0x80 is pseudo input. All inputs after this
+            // will be ignored by CMRT without checking and payload copied.
+            // This resizes the argument count to achieve this.
+            m_argCount = i;
+            break;
+        }
 
         m_args[i].unitKind = kind;
         m_args[i].unitKindOrig = kind;
