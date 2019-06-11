@@ -184,6 +184,8 @@ static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, FtrHcpDecMemoryCompression, 0);
 
+    MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
+
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
     MEDIA_WR_SKU(skuTable, FtrTileY, 1);
