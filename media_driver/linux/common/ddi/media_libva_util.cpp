@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -320,6 +320,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
         case Media_Format_B10G10R10A2:
+        case Media_Format_A16R16G16B16:
+        case Media_Format_A16B16G16R16:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
                  tileformat = I915_TILING_NONE;
@@ -358,6 +360,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_AYUV:
         case Media_Format_Y410:
         case Media_Format_Y416:
+        case Media_Format_Y8:
+        case Media_Format_Y16S:
+        case Media_Format_Y16U:
+        case Media_Format_VYUY:
+        case Media_Format_YVYU:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT

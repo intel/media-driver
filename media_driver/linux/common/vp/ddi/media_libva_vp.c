@@ -218,6 +218,27 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_AYUV:
         format = Format_AYUV;
         break;
+    case Media_Format_Y8:
+        format = Format_Y8;
+        break;
+    case Media_Format_Y16S:
+        format = Format_Y16S;
+        break;
+    case Media_Format_Y16U:
+        format = Format_Y16U;
+        break;
+    case Media_Format_VYUY:
+        format = Format_VYUY;
+        break;
+    case Media_Format_YVYU:
+        format = Format_YVYU;
+        break;
+    case Media_Format_A16R16G16B16:
+        format = Format_A16R16G16B16;
+        break;
+    case Media_Format_A16B16G16R16:
+        format = Format_A16B16G16R16;
+        break;
     default:
         VP_DDI_ASSERTMESSAGE("ERROR media format to vphal format.");
         format = Format_Invalid;

@@ -455,6 +455,21 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_Y410;
         case Media_Format_Y416:
             return VA_FOURCC_Y416;
+        case Media_Format_Y8:
+            return VA_FOURCC_Y8;
+        case Media_Format_Y16S:
+            return VA_FOURCC_Y16;
+        case Media_Format_Y16U:
+            return VA_FOURCC_Y16;
+        case Media_Format_VYUY:
+            return VA_FOURCC_VYUY;
+        case Media_Format_YVYU:
+            return VA_FOURCC_YVYU;
+        case Media_Format_A16R16G16B16:
+            return VA_FOURCC_ARGB64;
+        case Media_Format_A16B16G16R16:
+            return VA_FOURCC_ABGR64;
+
         default:
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
@@ -558,6 +573,19 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
             return Media_Format_Y410;
         case VA_FOURCC_Y416:
             return Media_Format_Y416;
+        case VA_FOURCC_Y8:
+            return Media_Format_Y8;
+        case VA_FOURCC_Y16:
+            return Media_Format_Y16S;
+        case VA_FOURCC_VYUY:
+            return Media_Format_VYUY;
+        case VA_FOURCC_YVYU:
+            return Media_Format_YVYU;
+        case VA_FOURCC_ARGB64:
+            return Media_Format_A16R16G16B16;
+        case VA_FOURCC_ABGR64:
+            return Media_Format_A16B16G16R16;
+
         default:
             return Media_Format_Count;
     }

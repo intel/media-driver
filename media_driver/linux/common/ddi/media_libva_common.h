@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -177,7 +177,13 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_AYUV        ,
     Media_Format_Y410        ,
     Media_Format_Y416        ,
-
+    Media_Format_Y8          ,
+    Media_Format_Y16S        ,
+    Media_Format_Y16U        ,
+    Media_Format_VYUY        ,
+    Media_Format_YVYU        ,
+    Media_Format_A16R16G16B16,
+    Media_Format_A16B16G16R16,
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
 

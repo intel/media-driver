@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -123,6 +123,15 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
         case Media_Format_Y416:
             mosResource->Format    = Format_Y416;
             break;
+        case Media_Format_Y8:
+            mosResource->Format    = Format_Y8;
+            break;
+        case Media_Format_Y16S:
+            mosResource->Format    = Format_Y16S;
+            break;
+        case Media_Format_Y16U:
+            mosResource->Format    = Format_Y16U;
+            break;
         case Media_Format_R10G10B10A2:
             mosResource->Format    = Format_R10G10B10A2;
             break;
@@ -131,6 +140,18 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
             break;
         case Media_Format_UYVY:
             mosResource->Format    = Format_UYVY;
+            break;
+        case Media_Format_VYUY:
+            mosResource->Format    = Format_VYUY;
+            break;
+        case Media_Format_YVYU:
+            mosResource->Format    = Format_YVYU;
+            break;
+        case Media_Format_A16R16G16B16:
+            mosResource->Format    = Format_A16R16G16B16;
+            break;
+        case Media_Format_A16B16G16R16:
+            mosResource->Format    = Format_A16B16G16R16;
             break;
         default:
             DDI_ASSERTMESSAGE("DDI: unsupported media format for surface.");
