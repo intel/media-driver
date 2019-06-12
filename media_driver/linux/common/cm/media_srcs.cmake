@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_os.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_ftrace.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_os.cpp
