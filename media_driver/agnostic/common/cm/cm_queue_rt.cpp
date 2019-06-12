@@ -481,8 +481,10 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
     tmp[kernelCount ] = nullptr;
 
     CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+    CM_TASK_CONFIG taskConfig;
+    kernelArrayRT->GetProperty(taskConfig);
     result = Enqueue_RT(tmp, kernelCount, totalThreadNumber, eventRT, threadSpaceRTConst, kernelArrayRT->GetSyncBitmap(), kernelArrayRT->GetPowerOption(),
-                        kernelArrayRT->GetConditionalEndBitmap(), kernelArrayRT->GetConditionalEndInfo(), kernelArrayRT->GetTaskConfig());
+                        kernelArrayRT->GetConditionalEndBitmap(), kernelArrayRT->GetConditionalEndInfo(), &taskConfig);
 
     if (eventRT)
     {
@@ -846,11 +848,13 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
     tmp[count ] = nullptr;
 
     CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+    CM_TASK_CONFIG taskConfig;
+    taskRT->GetProperty(taskConfig);
     result = Enqueue_RT( tmp, count, totalThreadNumber, eventRT,
                          threadGroupSpace, taskRT->GetSyncBitmap(),
                          taskRT->GetPowerOption(),
                          taskRT->GetConditionalEndBitmap(), taskRT->GetConditionalEndInfo(),
-                         taskRT->GetTaskConfig(), taskRT->GetKernelExecuteConfig());
+                         &taskConfig, taskRT->GetKernelExecuteConfig());
 
     if (eventRT)
     {
@@ -2660,7 +2664,10 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
     param.conditionalEndBitmap = task->GetConditionalEndBitmap();
     param.userDefinedMediaState = task->GetMediaStatePtr();
     CmSafeMemCopy(param.conditionalEndInfo, task->GetConditionalEndInfo(), sizeof(param.conditionalEndInfo));
-    CmSafeMemCopy(&param.taskConfig, task->GetTaskConfig(), sizeof(param.taskConfig));
+
+    CM_TASK_CONFIG taskConfig;
+    task->GetProperty(taskConfig);
+    CmSafeMemCopy(&param.taskConfig, &taskConfig, sizeof(param.taskConfig));
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
@@ -2740,7 +2747,9 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     param.queueOption = m_queueOption;
     param.mosVeHintParams = (m_usingVirtualEngine)? &m_mosVeHintParams: nullptr;
 
-    CmSafeMemCopy(&param.taskConfig, task->GetTaskConfig(), sizeof(param.taskConfig));
+    CM_TASK_CONFIG taskConfig;
+    task->GetProperty(taskConfig);
+    CmSafeMemCopy(&param.taskConfig, &taskConfig, sizeof(param.taskConfig));
     CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernels);
     CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernelSizes);
     CM_CHK_NULL_GOTOFINISH_CMERROR(param.kernelCurbeOffset);

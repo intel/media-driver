@@ -59,6 +59,7 @@ public:
                                         CM_CONDITIONAL_END_PARAM *conditionalParam);
 
     CM_RT_API int32_t SetProperty(const CM_TASK_CONFIG &taskConfig);
+    CM_RT_API int32_t GetProperty(CM_TASK_CONFIG &taskConfig);
 
     CM_RT_API int32_t AddKernelWithConfig(CmKernel *kernel, const CM_EXECUTION_CONFIG *config);
 

@@ -1328,6 +1328,7 @@ public:
     CM_RT_API virtual INT AddConditionalEnd(SurfaceIndex* pSurface, UINT offset, CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
     CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;
     CM_RT_API virtual INT AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
+    CM_RT_API virtual INT GetProperty(CM_TASK_CONFIG &taskConfig) = 0;
 protected:
    ~CmTask(){};
 }; 

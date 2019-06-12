@@ -2011,6 +2011,12 @@ int32_t CmTaskInternal::SetProperty(CM_TASK_CONFIG * taskConfig)
     return CM_SUCCESS;
 }
 
+int32_t CmTaskInternal::GetProperty(CM_TASK_CONFIG &taskConfig)
+{
+    taskConfig = m_taskConfig;
+    return CM_SUCCESS;
+}
+
 PCM_TASK_CONFIG CmTaskInternal::GetTaskConfig()
 {
     return &m_taskConfig;

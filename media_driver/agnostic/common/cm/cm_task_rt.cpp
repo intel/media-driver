@@ -469,6 +469,12 @@ CM_RT_API int32_t CmTaskRT::SetProperty(const CM_TASK_CONFIG &taskConfig)
     return CM_SUCCESS;
 }
 
+CM_RT_API int32_t CmTaskRT::GetProperty(CM_TASK_CONFIG &taskConfig)
+{
+    taskConfig = m_taskConfig;
+    return CM_SUCCESS;
+}
+
 PCM_TASK_CONFIG CmTaskRT::GetTaskConfig()
 {
     return &m_taskConfig;
