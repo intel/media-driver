@@ -475,11 +475,6 @@ CM_RT_API int32_t CmTaskRT::GetProperty(CM_TASK_CONFIG &taskConfig)
     return CM_SUCCESS;
 }
 
-PCM_TASK_CONFIG CmTaskRT::GetTaskConfig()
-{
-    return &m_taskConfig;
-}
-
 CM_RT_API int32_t CmTaskRT::AddConditionalEnd(
                                 SurfaceIndex* conditionalSurfaceIndex,
                                 uint32_t offset,

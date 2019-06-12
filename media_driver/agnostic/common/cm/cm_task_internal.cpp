@@ -2017,11 +2017,6 @@ int32_t CmTaskInternal::GetProperty(CM_TASK_CONFIG &taskConfig)
     return CM_SUCCESS;
 }
 
-PCM_TASK_CONFIG CmTaskInternal::GetTaskConfig()
-{
-    return &m_taskConfig;
-}
-
 void  *CMRT_UMD::CmTaskInternal::GetMediaStatePtr()
 {
     return m_mediaStatePtr;

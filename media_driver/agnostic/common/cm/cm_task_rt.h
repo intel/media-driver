@@ -83,8 +83,6 @@ public:
 
     PCM_POWER_OPTION GetPowerOption();
 
-    PCM_TASK_CONFIG GetTaskConfig();
-
     int32_t AddKernelInternal( CmKernel *kernel,  const CM_EXECUTION_CONFIG *config);
 
     const CM_EXECUTION_CONFIG* GetKernelExecuteConfig() { return m_kernelExecuteConfig; };
