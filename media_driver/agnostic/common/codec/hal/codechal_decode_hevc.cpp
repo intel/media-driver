@@ -75,18 +75,22 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesFixedSizes()
         m_hevcRefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
-    MOS_ZeroMemory(&m_secondLevelBatchBuffer, sizeof(m_secondLevelBatchBuffer));
+    MOS_ZeroMemory(&m_secondLevelBatchBuffer, CODEC_HEVC_NUM_SECOND_BB * sizeof(MHW_BATCH_BUFFER));
     if (m_shortFormatInUse)
     {
         // Second level batch buffer for HuC FW to use
         uint32_t u32Size = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * m_standardDecodeSizeNeeded,
             CODECHAL_PAGE_SIZE);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
-            m_osInterface,
-            &m_secondLevelBatchBuffer,
-            nullptr,
-            u32Size));
-        m_secondLevelBatchBuffer.bSecondLevel = true;
+
+        for (int i = 0; i < CODEC_HEVC_NUM_SECOND_BB; i++)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
+                m_osInterface,
+                &m_secondLevelBatchBuffer[i],
+                nullptr,
+                u32Size));
+            m_secondLevelBatchBuffer[i].bSecondLevel = true;
+        }
 
         // DMEM buffer send to HuC FW
         m_dmemBufferSize = GetDmemBufferSize();
@@ -627,7 +631,10 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
 
     if (m_shortFormatInUse)
     {
-        Mhw_FreeBb(m_osInterface, &m_secondLevelBatchBuffer, nullptr);
+        for (uint32_t i = 0; i < CODEC_HEVC_NUM_SECOND_BB; i++)
+        {
+            Mhw_FreeBb(m_osInterface, &m_secondLevelBatchBuffer[i], nullptr);
+        }
 
         for (uint32_t i = 0; i < CODECHAL_HEVC_NUM_DMEM_BUFFERS; i++)
         {
@@ -1514,7 +1521,7 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
     // Virtual addr state
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS hucVirtualStateParams;
     MOS_ZeroMemory(&hucVirtualStateParams, sizeof(hucVirtualStateParams));
-    hucVirtualStateParams.regionParams[0].presRegion    = &m_secondLevelBatchBuffer.OsResource;
+    hucVirtualStateParams.regionParams[0].presRegion    = &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].OsResource;
     hucVirtualStateParams.regionParams[0].isWritable    = true;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(
@@ -2196,12 +2203,12 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
         if (m_enableSf2DmaSubmits)
         {
             #if (_DEBUG || _RELEASE_INTERNAL)
-            m_secondLevelBatchBuffer.iLastCurrent = m_secondLevelBatchBuffer.iSize;
+            m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].iLastCurrent = m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].iSize;
             #endif
 
             CODECHAL_DEBUG_TOOL(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
-                    &m_secondLevelBatchBuffer,
+                    &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex],
                     CODECHAL_NUM_MEDIA_STATES,
                     "DEC"));)
         }
@@ -2215,7 +2222,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
             // this is S2L conversion
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
                 cmdBufferInUse,
-                &m_secondLevelBatchBuffer));
+                &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex]));
         }
     }
     else
@@ -2654,6 +2661,7 @@ CodechalDecodeHevc::CodechalDecodeHevc(
                                             m_metadataLineBufferPicWidth(0),
                                             m_saoLineBufferPicWidth(0),
                                             m_mvBufferProgrammed(false),
+                                            m_secondLevelBatchBufferIndex(0),
                                             m_dmemBufferIdx(0),
                                             m_copyDataBufferSize(0),
                                             m_copyDataBufferInUse(false),

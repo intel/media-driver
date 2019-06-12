@@ -1301,12 +1301,12 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
         if (m_enableSf2DmaSubmits)
         {
             #if (_DEBUG || _RELEASE_INTERNAL)
-            m_secondLevelBatchBuffer.iLastCurrent = m_secondLevelBatchBuffer.iSize;
+            m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].iLastCurrent = m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].iSize;
             #endif
 
             CODECHAL_DEBUG_TOOL(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
-                    &m_secondLevelBatchBuffer,
+                    &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex],
                     CODECHAL_NUM_MEDIA_STATES,
                     "_DEC"));)
         }
@@ -1314,7 +1314,7 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
         //S2L conversion
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
             cmdBufferInUse,
-            &m_secondLevelBatchBuffer));
+            &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex]));
     }
     else
     {

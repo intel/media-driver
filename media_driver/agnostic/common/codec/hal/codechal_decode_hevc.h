@@ -538,7 +538,8 @@ public:
     MOS_RESOURCE     m_resSaoTileColumnBuffer;                          //!< Handle of SAO Tile Column data buffer
     bool             m_mvBufferProgrammed;                              //!< Indicate mv buffer is programmed
     MOS_RESOURCE     m_resMvTemporalBuffer[CODEC_NUM_HEVC_MV_BUFFERS];  //!< Handles of MV Temporal data buffer
-    MHW_BATCH_BUFFER m_secondLevelBatchBuffer;                          //!< Handle of second level batch buffer
+    uint32_t         m_secondLevelBatchBufferIndex;
+    MHW_BATCH_BUFFER m_secondLevelBatchBuffer[CODEC_HEVC_NUM_SECOND_BB];//!< Handle of second level batch buffer
     uint32_t         m_dmemBufferIdx;                                   //!< Indicate current idx of DMEM buffer to program
     MOS_RESOURCE     m_resDmemBuffer[CODECHAL_HEVC_NUM_DMEM_BUFFERS];   //!< Handles of DMEM buffer
     uint32_t         m_dmemBufferSize;                                  //!< Size of DMEM buffer
