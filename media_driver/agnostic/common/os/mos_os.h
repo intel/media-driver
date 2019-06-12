@@ -606,6 +606,9 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_SYNC_PARAMS            pParams);
 
+    MOS_STATUS (* pfnWaitAllCmdCompletion) (
+        PMOS_INTERFACE              pOsInterface);
+
     MOS_STATUS (* pfnCreateSyncResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pOsResource);

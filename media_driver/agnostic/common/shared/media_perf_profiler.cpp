@@ -170,6 +170,8 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
     MOS_LockMutex(profiler->m_mutex);
     profiler->m_ref--;
 
+    osInterface->pfnWaitAllCmdCompletion(osInterface);
+
     profiler->m_contextIndexMap.erase(context);
 
     if (profiler->m_ref == 0)
