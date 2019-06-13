@@ -96,6 +96,8 @@ CmTaskRT::CmTaskRT(CmDeviceRT *device,
     CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
     CmSafeMemSet(&m_taskConfig, 0, sizeof(m_taskConfig));
     m_taskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    cmHalState->cmHalInterface->InitTaskProperty(m_taskConfig);
 }
 
 //*-----------------------------------------------------------------------------

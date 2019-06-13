@@ -659,6 +659,18 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    //!
+    //! \brief    Init the default value of task related property
+    //! \param    [in,out]  taskConfig
+    //!           Task related property
+    //! \return   MOS_STATUS_SUCCESS
+    //!
+    virtual MOS_STATUS InitTaskProperty(CM_TASK_CONFIG &taskConfig)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     uint32_t              m_platformID;
     uint32_t              m_genGT;
