@@ -111,146 +111,6 @@ void DdiMediaUtil_MediaPrintFps()
 }
 #endif
 
-#ifdef ANDROID
-#define GTT_SIZE_THRESHOLD  (4096*4096*3)    //use the maximum 4K resolution YUV 444 as the threshold
-// The following implemention refers to Solo_PerformManualSwizzling in mos_os_solo.c.
-static __inline int32_t SwizzleOffset(
-    // Linear Offset:
-    int32_t             OffsetX,        // Horizontal byte offset from left edge of tiled surface.
-    int32_t             OffsetY,        // Vertical offset from top of tiled surface.
-    // Swizzling Parameters:
-    int32_t             Pitch,          // Row-to-row byte stride.
-    uint32_t            TileFormat,     // Either 'x' or 'y'--for X-Major or Y-Major tiling, respectively.
-    int32_t             CsxSwizzle)     // (boolean) Additionally perform Channel Select XOR swizzling.
-{
-    int32_t LBits, LPos; // Size and swizzled position of the Line component.
-    if (TileFormat == I915_TILING_NONE)
-    {
-        return(OffsetY * Pitch + OffsetX);
-    }
-
-    if (TileFormat == I915_TILING_Y)
-    {
-        LBits = 5; // Log2(TileY.Height = 32)
-        LPos = 4;  // Log2(TileY.PseudoWidth = 16)
-    }
-    else //if (TileFormat == I915_TILING_X)
-    {
-        LBits = 3; // Log2(TileX.Height = 8)
-        LPos = 9;  // Log2(TileX.Width = 512)
-    }
-
-    int32_t row  =  OffsetY >> LBits;               // OffsetY / LinesPerTile
-    int32_t line =  OffsetY & ((1 << LBits) - 1);   // OffsetY % LinesPerTile
-    int32_t col  =  OffsetX >> LPos;                // OffsetX / BytesPerLine
-    int32_t x    =  OffsetX & ((1 << LPos) - 1);    // OffsetX % BytesPerLine
-
-    int32_t swizzledOffset =
-        (((((row * (Pitch >> LPos)) + col) << LBits) + line) << LPos) + x;
-    //                V                V                 V
-    //                / BytesPerLine   * LinesPerTile    * BytesPerLine
-
-    /// Channel Select XOR Swizzling ///////////////////////////////////////////
-    if (CsxSwizzle)
-    {
-        if (TileFormat == I915_TILING_Y) // A6 = A6 ^ A9
-        {
-            swizzledOffset ^= ((swizzledOffset >> (9 - 6)) & 0x40);
-        }
-        else //if (TileFormat == I915_TILING_X) // A6 = A6 ^ A9 ^ A10
-        {
-            swizzledOffset ^= (((swizzledOffset >> (9 - 6)) ^ (swizzledOffset >> (10 - 6))) & 0x40);
-        }
-    }
-
-    return(swizzledOffset);
-}
-
-static void SwizzleData(
-    uint8_t  *src,
-    uint8_t  *dst,
-    uint32_t  srcTiling,
-    uint32_t  dstTiling,
-    int32_t   height,
-    int32_t   pitch)
-{
-#define IS_TILED(_a)                ((_a) != I915_TILING_NONE)
-#define IS_TILED_TO_LINEAR(_a, _b)  (IS_TILED(_a) && !IS_TILED(_b))
-#define IS_LINEAR_TO_TILED(_a, _b)  (!IS_TILED(_a) && IS_TILED(_b))
-
-    DDI_CHK_NULL(src, "nullptr", );
-    DDI_CHK_NULL(dst, "nullptr", );
-
-    int32_t y,linearOffset,tileOffset;
-    // Translate from one format to another
-    for (y = 0, linearOffset = 0, tileOffset = 0; y < height; y++)
-    {
-        for (int32_t x = 0; x < pitch; x++, linearOffset++)
-        {
-            // x or y --> linear
-            if (IS_TILED_TO_LINEAR(srcTiling, dstTiling))
-            {
-                tileOffset = SwizzleOffset(
-                    x,
-                    y,
-                    pitch,
-                    srcTiling,
-                    false);
-
-                *(dst + linearOffset) = *(src + tileOffset);
-            }
-            // linear --> x or y
-            else if (IS_LINEAR_TO_TILED(srcTiling, dstTiling))
-            {
-                tileOffset = SwizzleOffset(
-                    x,
-                    y,
-                    pitch,
-                    dstTiling,
-                    false);
-
-                *(dst + tileOffset) = *(src + linearOffset);
-            }
-            else
-            {
-                MOS_OS_ASSERT(0);
-            }
-        }
-    }
-}
-
-static bool NeedSwizzleData(PDDI_MEDIA_SURFACE surface, bool lock)
-{
-    DDI_CHK_NULL(surface, "nullptr surface", false);
-    DDI_CHK_NULL(surface->pGmmResourceInfo, "nullptr pGmmResourceInfo", false);
-    uint32_t pitch = (uint32_t)surface->pGmmResourceInfo->GetRenderPitch();
-    uint32_t size  = (uint32_t)surface->pGmmResourceInfo->GetSizeSurface();
-    GMM_RESOURCE_FLAG gmmFlags = surface->pGmmResourceInfo->GetResFlags();
-
-    if (gmmFlags.Gpu.RenderTarget      &&
-        gmmFlags.Gpu.UnifiedAuxSurface &&
-        gmmFlags.Gpu.CCS)
-    {
-        size = size - (uint32_t)(surface->pGmmResourceInfo->GetSizeAuxSurface(GMM_AUX_SURF));
-    }
-
-    uint8_t *resourceBase = (uint8_t*)MOS_AllocAndZeroMemory(size);
-    DDI_CHK_NULL(resourceBase, "nullptr resourceBase", false);
-
-    if (lock)
-    {
-        SwizzleData((uint8_t*) surface->bo->virt, resourceBase, surface->TileType, I915_TILING_NONE, size / pitch, pitch);
-    }
-    else
-    {
-        SwizzleData((uint8_t*) surface->bo->virt, resourceBase, I915_TILING_NONE, surface->TileType, size / pitch, pitch);
-    }
-    MOS_SecureMemcpy((uint8_t*) surface->bo->virt, size, resourceBase, size);
-    MOS_FreeMemory(resourceBase);
-
-    return true;
-}
-#endif
 /*
  * DdiMediaUtil_IsExternalSurface
  *    Descripion: if the bo of media surface was allocated from App,
@@ -859,23 +719,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
     {
         if (surface->pMediaCtx->bIsAtomSOC)
         {
-#ifdef ANDROID
-            if (surface->iWidth * surface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
-            {
-                mos_gem_bo_map_gtt(surface->bo);
-            }
-            else
-            {
-                mos_bo_map(surface->bo, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
-                if (surface->TileType != I915_TILING_NONE)
-                {
-                    if (NeedSwizzleData(surface, true) == false)
-                        return nullptr;
-                }
-            }
-#else
             mos_gem_bo_map_gtt(surface->bo);
-#endif
         }
         else
         {
@@ -944,21 +788,7 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
     {
         if (surface->pMediaCtx->bIsAtomSOC)
         {
-#ifdef ANDROID
-            if (surface->iWidth * surface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
-            {
-                mos_gem_bo_unmap_gtt(surface->bo);
-            }
-            else
-            {
-                if (surface->TileType != I915_TILING_NONE)
-                    NeedSwizzleData(surface, false);
-
-                mos_bo_unmap(surface->bo);
-            }
-#else
             mos_gem_bo_unmap_gtt(surface->bo);
-#endif
         }
         else
         {
