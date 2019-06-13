@@ -666,7 +666,6 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             currentPatch,
             resource));
 
-#ifndef ANDROID
         uint64_t boOffset = alloc_bo->offset64;
         if (alloc_bo != cmd_bo)
         {
@@ -700,27 +699,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             I915_GEM_DOMAIN_RENDER,                                            // Read domain
             (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
             boOffset);
-#else
-            if (osContext->bUse64BitRelocs)
-            {
-                *((uint64_t*)((uint8_t*)cmd_bo->virt + currentPatch->PatchOffset)) =
-                        alloc_bo->offset64 + currentPatch->AllocationOffset;
-            }
-            else
-            {
-                *((uint32_t*)((uint8_t*)cmd_bo->virt + currentPatch->PatchOffset)) =
-                        alloc_bo->offset64 + currentPatch->AllocationOffset;
-            }
 
-        // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
-        ret = mos_bo_emit_reloc(
-            cmd_bo,                          // Command buffer
-            currentPatch->PatchOffset,       // Offset in the command buffer
-            alloc_bo,                        // Allocation object for which the patch will be made.
-            currentPatch->AllocationOffset,  // Offset to the indirect state
-            I915_GEM_DOMAIN_RENDER,          // Read domain
-            (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0);  // Write domain
-#endif
         if (ret != 0)
         {
             MOS_OS_ASSERTMESSAGE("Error patching alloc_bo = 0x%x, cmd_bo = 0x%x.",

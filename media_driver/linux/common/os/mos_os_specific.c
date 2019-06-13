@@ -1090,13 +1090,11 @@ void Linux_Destroy(
         Linux_ReleaseGPUStatus(pOsContext);
     }
 
-#ifndef ANDROID
     if (pOsContext->contextOffsetList.size())
     {
          pOsContext->contextOffsetList.clear();
          pOsContext->contextOffsetList.shrink_to_fit();
     }
-#endif
 
     if (!MODSEnabled && (pOsContext->intel_context))
     {
@@ -2409,7 +2407,6 @@ void Mos_Specific_FreeResource(
 
         mos_bo_unreference((MOS_LINUX_BO *)(pOsResource->bo));
 
-#ifndef ANDROID
         if ( pOsInterface->pOsContext != nullptr && pOsInterface->pOsContext->contextOffsetList.size()) 
         {
           MOS_CONTEXT *pOsCtx = pOsInterface->pOsContext;
@@ -2427,7 +2424,7 @@ void Mos_Specific_FreeResource(
              }
           }
         }
-#endif
+
         pOsResource->bo = nullptr;
         if (pOsResource->pGmmResInfo != nullptr && 
             pOsInterface->pOsContext != nullptr &&
@@ -2597,16 +2594,6 @@ void  *Mos_Specific_LockResource(
             }
             else
             {
-#ifdef ANDROID
-                if (pOsResource->TileType != MOS_TILE_LINEAR ||pLockFlags->Uncached)
-                {
-                    mos_gem_bo_map_gtt(bo);
-                }
-                else
-                {
-                    mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY&pLockFlags->WriteOnly));
-                }
-#else
                 if (pOsResource->TileType != MOS_TILE_LINEAR && !pLockFlags->TiledAsTiled)
                 {
                     if (pContext->bUseSwSwizzling)
@@ -2643,7 +2630,6 @@ void  *Mos_Specific_LockResource(
                     mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY&pLockFlags->WriteOnly));
                     pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
                 }
-#endif
             }
             pOsResource->pData   = pOsResource->pSystemShadow ? pOsResource->pSystemShadow : (uint8_t*)bo->virt;
             pOsResource->bMapped = true;
@@ -2728,16 +2714,6 @@ MOS_STATUS Mos_Specific_UnlockResource(
            }
            else
            {
-#ifdef ANDROID
-               if (pOsResource->TileType == MOS_TILE_LINEAR)
-               {
-                   mos_bo_unmap(pOsResource->bo);
-               }
-               else
-               {
-                   mos_gem_bo_unmap_gtt(pOsResource->bo);
-               }
-#else
                if (pOsResource->pSystemShadow)
                {
                    int32_t flags = pContext->bTileYFlag ? 0 : 1;
@@ -2762,7 +2738,6 @@ MOS_STATUS Mos_Specific_UnlockResource(
                         MOS_OS_ASSERTMESSAGE("Invalid mmap operation type");
                         break;
                }
-#endif
            }
            pOsResource->bo->virt = nullptr;
            pOsResource->bMapped  = false;
@@ -3576,11 +3551,9 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     drm_clip_rect_t                     *cliprects;
     int32_t                             num_cliprects;
     int32_t                             DR4, ret;
-#ifndef ANDROID
     uint64_t                            boOffset;
 
     boOffset = 0;
-#endif
     eStatus  = MOS_STATUS_SUCCESS;
     ret      = 0;
 
@@ -3632,7 +3605,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
             pCurrentPatch,
             pResource));
 
-#ifndef ANDROID
         boOffset = alloc_bo->offset64;
         if (alloc_bo != cmd_bo)
         {
@@ -3666,28 +3638,7 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
                           I915_GEM_DOMAIN_RENDER,                                              // Read domain
                           (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
                           boOffset);
-#else
-        if (pOsContext->bUse64BitRelocs)
-        {
-            *((uint64_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
-                    alloc_bo->offset64 + pCurrentPatch->AllocationOffset;
-        }
-        else
-        {
-            *((uint32_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
-                    alloc_bo->offset64 + pCurrentPatch->AllocationOffset;
-        }
 
-        // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
-        ret = mos_bo_emit_reloc(
-                          cmd_bo,                                                              // Command buffer
-                          pCurrentPatch->PatchOffset,                                          // Offset in the command buffer
-                          alloc_bo,                                                            // Allocation object for which the patch will be made.
-                          pCurrentPatch->AllocationOffset,                                     // Offset to the indirect state
-                          I915_GEM_DOMAIN_RENDER,                                              // Read domain
-                          (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0);   // Write domain
-
-#endif
         if (ret != 0)
         {
             MOS_OS_ASSERTMESSAGE("Error patching alloc_bo = 0x%x, cmd_bo = 0x%x.",
@@ -5936,13 +5887,6 @@ MOS_STATUS Mos_Specific_LoadLibrary(
     //---------------------------------
 
     *ppvModule = dlopen(pFileName, RTLD_LAZY);
-    if (!(*ppvModule))
-    {
-#ifdef ANDROID
-        error = (char *)dlerror();
-        ALOGD("%s", error);
-#endif
-    }
 
     return ((*ppvModule) ? MOS_STATUS_SUCCESS : MOS_STATUS_LOAD_LIBRARY_FAILED);
 }
@@ -6082,12 +6026,7 @@ void Mos_Specific_SetSliceCount(
 void Mos_Specific_LogData(
     char       *pData)
 {
-#ifdef Android
-    ALOGD(pData);
-#else
     MOS_UNUSED(pData);
-#endif
-
     return;
 }
 

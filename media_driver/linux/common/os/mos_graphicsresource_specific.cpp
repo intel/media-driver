@@ -456,16 +456,6 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
             }
             else
             {
-#ifdef ANDROID
-                if (m_tileType != MOS_TILE_LINEAR ||params.m_uncached)
-                {
-                    mos_gem_bo_map_gtt(boPtr);
-                }
-                else
-                {
-                    mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
-                }
-#else
                 if (m_tileType != MOS_TILE_LINEAR && !params.m_tileAsTiled)
                 {
                     if (pOsContextSpecific->UseSwSwizzling())
@@ -504,7 +494,6 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                     mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
                     m_mmapOperation = MOS_MMAP_OPERATION_MMAP;
                 }
-#endif
             }
             m_mapped = true;
             m_pData  = m_systemShadow ? m_systemShadow : (uint8_t *)boPtr->virt;
@@ -546,17 +535,6 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
            }
            else
            {
-#ifdef ANDROID
-
-               if (m_tileType == MOS_TILE_LINEAR)
-               {
-                   mos_bo_unmap(boPtr);
-               }
-               else
-               {
-                   mos_gem_bo_unmap_gtt(boPtr);
-               }
-#else
                if (m_systemShadow)
                {
                    int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
@@ -583,7 +561,6 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
                         MOS_OS_ASSERTMESSAGE("Invalid mmap operation type");
                         break;
                }
-#endif
             }
 
             m_mapped           = false;

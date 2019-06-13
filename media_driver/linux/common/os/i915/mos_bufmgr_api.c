@@ -61,15 +61,6 @@ mos_bo_set_exec_object_async(struct mos_linux_bo *bo)
         bo->bufmgr->set_exec_object_async(bo);
 }
 
-#ifdef ANDROID
-struct mos_linux_bo *
-mos_bo_alloc2(struct mos_bufmgr *bufmgr, const char *name,
-           unsigned long size, unsigned int alignment, unsigned long flags)
-{
-    return bufmgr->bo_alloc2(bufmgr, name, size, alignment, flags);
-}
-#endif
-
 struct mos_linux_bo *
 mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr, const char *name,
                   unsigned long size, unsigned int alignment)
@@ -217,7 +208,6 @@ mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name)
     return -ENODEV;
 }
 
-#ifndef ANDROID
 int
 mos_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
                        struct mos_linux_bo *target_bo, uint32_t target_offset,
@@ -229,7 +219,6 @@ mos_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
                                         read_domains, write_domain,
                                         presumed_offset);
 }
-#endif
 
 int
 mos_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
