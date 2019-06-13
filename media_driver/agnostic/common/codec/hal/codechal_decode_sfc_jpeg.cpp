@@ -25,6 +25,7 @@
 //! \details  Downsampling in this case is supported by the SFC fixed function HW unit.
 //!
 
+#include "codechal_decoder.h"
 #include "codechal_decode_sfc_jpeg.h"
 
 MOS_STATUS CodechalJpegSfcState::CheckAndInitialize(
@@ -108,11 +109,9 @@ MOS_STATUS CodechalJpegSfcState::CheckAndInitialize(
         }
     }
 
-    // Sanity check - supposed to have been done in Media SDK
-    if (!m_sfcPipeOut && destSurface->Format == Format_A8R8G8B8)
+    if (m_decoder)
     {
-        CODECHAL_HW_ASSERTMESSAGE("SFC YUV->RGB Unsupported.");
-        return MOS_STATUS_UNKNOWN;
+        m_decoder->SetVdSfcSupportedFlag(m_sfcPipeOut);
     }
 
     return eStatus;

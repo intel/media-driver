@@ -58,6 +58,10 @@ public:
         m_ddiDecodeAttr = nullptr;
         MOS_Delete(m_codechalSettings);
         m_codechalSettings = nullptr;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        MOS_FreeMemory(m_procBuf);
+        m_procBuf = nullptr;
+#endif
     }
 
     //! \brief    the type conversion to get the DDI_DECODE_CONTEXT
@@ -398,6 +402,20 @@ protected:
     void ReportDecodeMode(
         uint16_t      wMode);
 
+    //! \brief    Use EU path to do the scaling
+    //! \details  When VD+SFC are not supported, it will call into VPhal to do scaling
+    //!
+    //! \param    [in] ctx
+    //!           VADriverContextP * type
+    //! \param    [in] context
+    //!           Already created context for the process
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    VAStatus ExtraDownScaling(
+            VADriverContextP         ctx,
+            VAContextID              context);
+
     //! \brief  the type of decode base class
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure
     uint32_t                    m_groupIndex;           //!<global Group
@@ -410,6 +428,10 @@ protected:
     uint32_t                    m_sliceCtrlBufNum;      //!<Slice control Buffer Number
     uint32_t                    m_decProcessingType;    //!<Decode Processing type
     CodechalSetting             *m_codechalSettings = nullptr;    //!<Codechal Settings
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    VAProcPipelineParameterBuffer *m_procBuf = nullptr; //!< Process parameters for vp sfc input
+#endif
 };
 
 #endif /*  _MEDIA_DDI_DEC_BASE_H_ */

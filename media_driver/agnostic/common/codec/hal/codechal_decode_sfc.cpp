@@ -757,7 +757,6 @@ bool CodechalSfcState::IsSfcOutputSupported(
         if (!MOS_WITHIN_RANGE(srcSurface->dwWidth, m_sfcInterface->m_minWidth, m_sfcInterface->m_maxWidth) ||
             !MOS_WITHIN_RANGE(srcSurface->dwHeight, m_sfcInterface->m_minHeight, m_sfcInterface->m_maxHeight))
         {
-            CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Input Resolution '0x%08x'x'0x%08x' for SFC.", srcSurface->dwWidth, srcSurface->dwHeight);
             return false;
         }
 
@@ -769,7 +768,6 @@ bool CodechalSfcState::IsSfcOutputSupported(
     if (!MOS_WITHIN_RANGE(srcSurfWidth, m_sfcInterface->m_minWidth, m_sfcInterface->m_maxWidth) ||
         !MOS_WITHIN_RANGE(srcSurfHeight, m_sfcInterface->m_minHeight, m_sfcInterface->m_maxHeight))
     {
-        CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Input Resolution '0x%08x'x'0x%08x' for SFC.", srcSurfWidth, srcSurfHeight);
         return false;
     }
 
@@ -806,7 +804,6 @@ bool CodechalSfcState::IsSfcOutputSupported(
     if ((sourceRegionWidth > srcSurface->dwWidth) ||
         (sourceRegionHeight > srcSurface->dwHeight))
     {
-        CODECHAL_DECODE_ASSERTMESSAGE("Input region is out of bound for SFC.");
         return false;
     }
 
@@ -814,7 +811,6 @@ bool CodechalSfcState::IsSfcOutputSupported(
     if (!MOS_WITHIN_RANGE(dstSurfWidth, m_sfcInterface->m_minWidth, m_sfcInterface->m_maxWidth) ||
         !MOS_WITHIN_RANGE(dstSurfHeight, m_sfcInterface->m_minHeight, m_sfcInterface->m_maxHeight))
     {
-        CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Output Resolution '0x%08x'x'0x%08x' for SFC.", dstSurfWidth, dstSurfHeight);
         return false;
     }
 
@@ -825,7 +821,6 @@ bool CodechalSfcState::IsSfcOutputSupported(
     if ((outputRegionWidth > destSurface->dwWidth) ||
         (outputRegionHeight > destSurface->dwHeight))
     {
-        CODECHAL_DECODE_ASSERTMESSAGE("Output region is out of bound for SFC.");
         return false;
     }
 
@@ -837,7 +832,6 @@ bool CodechalSfcState::IsSfcOutputSupported(
     if (!MOS_WITHIN_RANGE(m_scaleX, m_sfcInterface->m_minScalingRatio, m_sfcInterface->m_maxScalingRatio) ||
         !MOS_WITHIN_RANGE(m_scaleY, m_sfcInterface->m_minScalingRatio, m_sfcInterface->m_maxScalingRatio))
     {
-        CODECHAL_DECODE_ASSERTMESSAGE("Scaling factor not supported by SFC Pipe.");
         return false;
     }
 

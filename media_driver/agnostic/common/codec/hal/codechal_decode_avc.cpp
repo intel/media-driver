@@ -1232,14 +1232,16 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
             m_deblockingEnabled));
 
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
-                  m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
-                m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
-            m_sfcState->m_sfcPipeOut == false && 
+             m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
+             m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
+             m_sfcState->m_sfcPipeOut == false &&
             !decProcessingParams->bIsReferenceOnlyPattern)
         {
-            eStatus = MOS_STATUS_UNKNOWN;
-            CODECHAL_DECODE_ASSERTMESSAGE("Downsampling parameters are NOT supported!");
-            return eStatus;
+            m_vdSfcSupported = false;
+        }
+        else
+        {
+            m_vdSfcSupported = true;
         }
     }
 #endif

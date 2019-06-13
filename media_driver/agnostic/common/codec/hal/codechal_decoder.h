@@ -647,6 +647,18 @@ public:
     CodechalDecodeHistogram* GetDecodeHistogram() { return m_decodeHistogram; }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
+    //!
+    //! \brief  Indicates whether or not the vd sfc is supported
+    //! \return If vd sfc is supported \see m_vdSfcSupported
+    //!
+    bool IsVdSfcSupported() { return m_vdSfcSupported; }
+
+    //!
+    //! \brief  Set if vd sfc supported
+    //! \return No return
+    //!
+    void SetVdSfcSupportedFlag(bool isVdSfcSpported) { m_vdSfcSupported = isVdSfcSpported; }
+
     //! \brief Field scaling interface
     FieldScalingInterface       *m_fieldScalingInterface = nullptr;
 #endif
@@ -1013,6 +1025,11 @@ protected:
     bool                        m_statusQueryReportingEnabled = false;
     //! \brief Flag to indicate if UMD Perf Profiler FE BE timing measurement is enabled
     bool                        m_perfFEBETimingEnabled = false;
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    //! \brief Flag to indicate if vd sfc is supported
+    bool                        m_vdSfcSupported = false;
+#endif
 
     //! \brief Stores all the status_query related data
     CodechalDecodeStatusBuffer  m_decodeStatusBuf;

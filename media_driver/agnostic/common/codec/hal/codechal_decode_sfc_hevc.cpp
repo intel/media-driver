@@ -25,6 +25,7 @@
 //! \details  Downsampling in this case is supported by the SFC fixed function HW unit.
 //!
 
+#include "codechal_decoder.h"
 #include "codechal_decode_sfc_hevc.h"
 
 MOS_STATUS CodechalHevcSfcState::CheckAndInitialize(
@@ -55,11 +56,17 @@ MOS_STATUS CodechalHevcSfcState::CheckAndInitialize(
             CODECHAL_HW_CHK_STATUS_RETURN(Initialize(
                 decProcessingParams,
                  MhwSfcInterface::SFC_PIPE_MODE_VEBOX));
+            if(m_decoder)
+            {
+                m_decoder->SetVdSfcSupportedFlag(true);
+            }
         }
         else
         {
-            CODECHAL_HW_ASSERTMESSAGE("Downsampling parameters are NOT supported by SFC!");
-            return MOS_STATUS_UNKNOWN;
+            if(m_decoder)
+            {
+                m_decoder->SetVdSfcSupportedFlag(false);
+            }
         }
     }
 
