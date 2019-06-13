@@ -365,10 +365,8 @@ typedef struct _PATCHLOCATIONLIST
     uint32_t                    uiWriteOperation;
 } PATCHLOCATIONLIST, *PPATCHLOCATIONLIST;
 
-//#define PATCHLOCATIONLIST_SIZE 25
+#define PATCHLOCATIONLIST_SIZE 256
 #define CODECHAL_MAX_REGS  128
-#define PATCHLOCATIONLIST_SIZE CODECHAL_MAX_REGS
-
 //!
 //! \brief Structure to Allocation List
 //!
