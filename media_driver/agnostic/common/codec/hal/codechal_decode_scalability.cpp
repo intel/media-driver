@@ -1945,13 +1945,6 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
         __MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB,
         &UserFeatureData);
     pScalabilityState->dbgOvrdWidthInMinCb = UserFeatureData.u32Data;
-
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
-        &UserFeatureData);
-    pScalabilityState->numDelay = UserFeatureData.u32Data;
 #endif
 
     // enable FE separate submission by default in multi-pipe mode

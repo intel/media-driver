@@ -4626,13 +4626,6 @@ MOS_STATUS CodechalVdencHevcStateG11::Initialize(CodechalSetting * settings)
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE,
         &userFeatureData);
     m_kmdVeOveride.Value = (uint64_t)userFeatureData.i64Data;
-
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
-        &userFeatureData);
-    m_numDelay = userFeatureData.u32Data;
 #endif
 
     if (settings->disableUltraHME)
