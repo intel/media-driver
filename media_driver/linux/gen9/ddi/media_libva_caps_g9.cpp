@@ -30,6 +30,97 @@
 #include "media_libva_caps_g9.h"
 #include "media_libva_caps_factory.h"
 
+const VAImageFormat m_supportedImageformatsG9[] =
+{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
+    {VA_FOURCC_BGRP,   VA_LSB_FIRST,   24, 24, 0x0000ff,   0x00ff00,   0xff0000,    0},
+    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
+    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
+    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0}
+};
+
+VAStatus MediaLibvaCapsG9::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
+{
+    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    int32_t num = 0;
+    uint32_t maxNum = GetImageFormatsMaxNum();
+
+    memset(formatList, 0,  sizeof(m_supportedImageformatsG9));
+    for (uint32_t idx = 0; idx < maxNum; idx++)
+    {
+        formatList[num].fourcc           = m_supportedImageformatsG9[idx].fourcc;
+        formatList[num].byte_order       = m_supportedImageformatsG9[idx].byte_order;
+        formatList[num].bits_per_pixel   = m_supportedImageformatsG9[idx].bits_per_pixel;
+        formatList[num].depth            = m_supportedImageformatsG9[idx].depth;
+        formatList[num].red_mask         = m_supportedImageformatsG9[idx].red_mask;
+        formatList[num].green_mask       = m_supportedImageformatsG9[idx].green_mask;
+        formatList[num].blue_mask        = m_supportedImageformatsG9[idx].blue_mask;
+        formatList[num].alpha_mask       = m_supportedImageformatsG9[idx].alpha_mask;
+        num++;
+    }
+    *numFormats = num;
+
+    return VA_STATUS_SUCCESS;
+}
+
+uint32_t MediaLibvaCapsG9::GetImageFormatsMaxNum()
+{
+    return sizeof(m_supportedImageformatsG9)/sizeof(m_supportedImageformatsG9[0]);
+}
+
+bool MediaLibvaCapsG9::IsImageSupported(uint32_t fourcc)
+{
+    uint32_t maxNum = GetImageFormatsMaxNum();
+    for (int32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (m_supportedImageformatsG9[idx].fourcc == fourcc)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+VAStatus MediaLibvaCapsG9::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+{
+    uint32_t maxNum = GetImageFormatsMaxNum();
+
+    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    for (int32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (m_supportedImageformatsG9[idx].fourcc == vaImgFmt->fourcc)
+        {
+            vaImgFmt->red_mask   = m_supportedImageformatsG9[idx].red_mask;
+            vaImgFmt->green_mask = m_supportedImageformatsG9[idx].green_mask;
+            vaImgFmt->blue_mask  = m_supportedImageformatsG9[idx].blue_mask;
+            vaImgFmt->alpha_mask = m_supportedImageformatsG9[idx].alpha_mask;
+
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
+}
+
 VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
         VAEntrypoint entrypoint,
         VAConfigAttribType type,

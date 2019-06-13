@@ -327,7 +327,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  tileformat = I915_TILING_NONE;
                  break;
             }
-        case Media_Format_NV21:
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
@@ -346,6 +345,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  break;
             }
         case Media_Format_NV12:
+        case Media_Format_NV21:
         case Media_Format_444P:
         case Media_Format_422H:
         case Media_Format_411P:
