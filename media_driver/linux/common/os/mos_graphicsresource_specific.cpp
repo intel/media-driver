@@ -452,7 +452,14 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
         {
             if (pOsContextSpecific->IsAtomSoc())
             {
-                mos_gem_bo_map_gtt(boPtr);
+                if (m_tileType != MOS_TILE_LINEAR ||params.m_uncached)
+                {
+                    mos_gem_bo_map_gtt(boPtr);
+                }
+                else
+                {
+                    mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
+                }
             }
             else
             {
@@ -542,12 +549,18 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
         {
            if (pOsContextSpecific->IsAtomSoc())
            {
-               mos_gem_bo_unmap_gtt(boPtr);
+               if (m_tileType == MOS_TILE_LINEAR)
+               {
+                   mos_bo_unmap(boPtr);
+               }
+               else
+               {
+                   mos_gem_bo_unmap_gtt(boPtr);
+               }
            }
            else
            {
 #ifdef ANDROID
-
                if (m_tileType == MOS_TILE_LINEAR)
                {
                    mos_bo_unmap(boPtr);
