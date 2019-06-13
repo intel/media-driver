@@ -248,6 +248,10 @@ int mos_query_engines(int fd,
 int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
                          struct i915_engine_class_instance *ci,
                          unsigned int count);
+int mos_set_context_param_bond(struct mos_linux_context *ctx,
+                        struct i915_engine_class_instance master_ci,
+                        struct i915_engine_class_instance *bond_ci,
+                        unsigned int bond_count);
 
 void mos_gem_context_destroy(struct mos_linux_context *ctx);
 int mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
@@ -255,7 +259,7 @@ int mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *c
 int
 mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                                struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-                               unsigned int flags);
+                               unsigned int flags, int *fence);
 int mos_bo_gem_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
 struct mos_linux_bo *mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr,
                         int prime_fd, int size);
@@ -357,7 +361,7 @@ mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
               drm_clip_rect_t * cliprects, int num_cliprects, int DR4);
 drm_export int do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags);
+     unsigned int flags, int *fence);
 
 drm_export void mos_gem_bo_free(struct mos_linux_bo *bo);
 drm_export void mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time);

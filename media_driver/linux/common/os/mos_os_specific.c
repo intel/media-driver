@@ -51,6 +51,9 @@
 #include <sys/types.h>
 #endif
 
+#include "mos_os_virtualengine.h"
+#include "mos_util_user_interface.h"
+
 //!
 //! \brief DRM VMAP patch
 //!
@@ -199,6 +202,8 @@ int32_t Linux_GetCommandBuffer(
     pCmdBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
 
     MOS_ZeroMemory(pCmdBuffer->pCmdBase, cmd_bo->size);
+    pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
+    MOS_ZeroMemory(&pCmdBuffer->Attributes, sizeof(pCmdBuffer->Attributes));
     bResult = true;
 
 finish:
@@ -3783,7 +3788,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
                                        cliprects,
                                        num_cliprects,
                                        DR4,
-                                       ExecFlag);
+                                       ExecFlag,
+                                       nullptr);
       if (ret != 0) {
           eStatus = MOS_STATUS_UNKNOWN;
       }
@@ -6053,6 +6059,63 @@ MOS_STATUS Mos_Specific_CheckVirtualEngineSupported(
     return MOS_STATUS_SUCCESS;
 }
 
+static MOS_STATUS Mos_Specific_InitInterface_Ve(
+    PMOS_INTERFACE osInterface)
+{
+    PLATFORM                            Platform;
+    MOS_STATUS                          eStatus;
+    MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+    // Get platform information
+    memset(&Platform, 0, sizeof(PLATFORM));
+    if (!Mos_Solo_IsEnabled())
+    {
+        osInterface->pfnGetPlatform(osInterface, &Platform);
+    }
+
+    if (GFX_IS_GEN_11_OR_LATER(Platform) || Mos_Solo_IsEnabled())
+    {
+        //keep this as false until VE is enabled by all media components
+        osInterface->bSupportVirtualEngine = false;
+        osInterface->bUseHwSemaForResSyncInVE = false;
+        osInterface->pVEInterf = nullptr;
+        osInterface->VEEnable = false;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Read Scalable/Legacy Decode mode on Gen11+
+        //1:by default for scalable decode mode
+        //0:for legacy decode mode
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        auto eStatusUserFeature = MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
+            &userFeatureData);
+        osInterface->bHcpDecScalabilityMode = userFeatureData.u32Data ? true : false;
+
+        if (MosUtilUserInterface::IsDefaultValueChanged() &&
+           (eStatusUserFeature == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED ||
+            eStatusUserFeature == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+        {
+            osInterface->bHcpDecScalabilityMode = false;
+        }
+
+        osInterface->frameSplit                  = false;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
+            &userFeatureData);
+        osInterface->frameSplit = (uint32_t)userFeatureData.i32Data;
+#endif
+    }
+
+    return eStatus;
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -6090,6 +6153,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->modularizedGpuCtxEnabled    = true;
     pOsInterface->veDefaultEnable             = true;
+    pOsInterface->phasedSubmission            = true;
 
     // Create Linux OS Context
     pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
@@ -6362,6 +6426,12 @@ MOS_STATUS Mos_Specific_InitInterface(
         __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
         &UserFeatureData);
     pOsContext->uEnablePerfTag = UserFeatureData.i32Data;
+
+    eStatus = Mos_Specific_InitInterface_Ve(pOsInterface);
+    if(eStatus != MOS_STATUS_SUCCESS)
+    {
+        goto finish;
+    }
 
     eStatus = MOS_STATUS_SUCCESS;
 
