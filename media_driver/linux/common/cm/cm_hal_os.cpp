@@ -508,11 +508,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
                                  tileformat,
                                  ROUND_UP_TO(size,MOS_PAGE_SIZE),
                                  ROUND_UP_TO(size,MOS_PAGE_SIZE),
-#if defined(ANDROID)
-                                 I915_USERPTR_UNSYNCHRONIZED
-#else
-                 0
-#endif
+                                 0
                  );
 #else
            bo =  mos_bo_alloc_vmap(osInterface->pOsContext->bufmgr,
@@ -521,11 +517,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
                                 tileformat,
                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
-#if defined(ANDROID)
-                                 I915_USERPTR_UNSYNCHRONIZED
-#else
-                 0
-#endif
+                                0
                  );
 #endif
 

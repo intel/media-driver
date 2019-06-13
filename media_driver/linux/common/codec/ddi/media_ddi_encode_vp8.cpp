@@ -473,9 +473,7 @@ VAStatus DdiEncodeVp8::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     // first_ref and second_ref parameters are currently passed through the reserved parameter by the application
     vp8PicParams->first_ref  = (picParams->ref_flags.bits.reserved >> 18) & 0x3;
     vp8PicParams->second_ref = (picParams->ref_flags.bits.reserved >> 16) & 0x3;
-#ifdef ANDROID
     vp8PicParams->temporal_id = picParams->ref_flags.bits.temporal_id;
-#endif
     // Copy list of 4 loop filter level values, delta values for ref frame and coding mode based MB-level
     for (int32_t i = 0; i < 4; i++)
     {
@@ -706,9 +704,7 @@ void DdiEncodeVp8::ParseMiscParamFR(void *data)
     }
 
     uint32_t tmpId = 0;
-#ifdef ANDROID
     tmpId = vaFrameRate->framerate_flags.bits.temporal_id;
-#endif
     seqParams->FramesPer100Sec[tmpId] = numerator/denominator;
 }
 
@@ -719,9 +715,7 @@ void DdiEncodeVp8::ParseMiscParamRC(void *data)
     VAEncMiscParameterRateControl *vaEncMiscParamRC = (VAEncMiscParameterRateControl *)data;
 
     uint32_t tmpId = 0;
-#ifdef ANDROID
     tmpId = vaEncMiscParamRC->rc_flags.bits.temporal_id;
-#endif
     seqParams->MaxBitRate           = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
     seqParams->TargetBitRate[tmpId] = seqParams->MaxBitRate;
     seqParams->ResetBRC             = vaEncMiscParamRC->rc_flags.bits.reset;  // adding reset here. will apply both CBR and VBR

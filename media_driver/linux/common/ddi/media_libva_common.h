@@ -49,7 +49,7 @@
 #include <va/va_backend.h>
 
 #ifdef ANDROID
-#include <utils/Log.h>
+#include <log/log.h>
 
 #ifndef LOG_TAG
 #define LOG_TAG "DDI"

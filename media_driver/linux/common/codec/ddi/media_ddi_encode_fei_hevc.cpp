@@ -731,10 +731,8 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
             }
             picParams->NumROI = MOS_MIN(vaEncMiscParamROI->num_roi, maxROIsupported);
         }
-#ifndef ANDROID
         // support DeltaQP based ROI by default
         seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
-#endif
         break;
     }
     case VAEncMiscParameterTypeSkipFrame:
