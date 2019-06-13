@@ -3672,9 +3672,18 @@ CmQueueRT::EnqueueWithGroupFast(CmTask *task,
 
     uint32_t old_stream_idx = state->osInterface->streamIndex;
     state->osInterface->streamIndex = m_streamIndex;
-    result = state->advExecutor->SubmitComputeTask(
-        this, task, event, threadGroupSpace,
-        (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    if (state->cmHalInterface->CheckMediaModeAvailability())
+    {
+        result = state->advExecutor->SubmitGpgpuTask(
+            this, task, event, threadGroupSpace,
+            (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    }
+    else
+    {
+        result = state->advExecutor->SubmitComputeTask(
+            this, task, event, threadGroupSpace,
+            (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    }
     state->osInterface->streamIndex = old_stream_idx;
     return result;
 }
