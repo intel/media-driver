@@ -1092,7 +1092,9 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
                 m_encodeCtx->uiMaxBitRate    = seqParams->MaxBitRate;
             }
         }
+#ifndef ANDROID
         seqParams->FrameSizeTolerance = static_cast<ENCODE_FRAMESIZE_TOLERANCE>(vaEncMiscParamRC->rc_flags.bits.frame_tolerance_mode);
+#endif
         break;
     }
     case VAEncMiscParameterTypeParallelBRC:
@@ -1192,6 +1194,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             }
             picParams->NumROI = MOS_MIN(vaEncMiscParamROI->num_roi, maxROIsupported);
         }
+#ifndef ANDROID
         // support DeltaQP based ROI by default
         seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
         if(picParams->NumROI != 0 && seqParams->ROIValueInDeltaQP == 0)
@@ -1199,6 +1202,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             DDI_ASSERTMESSAGE("ROI does not support priority level now.");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
+#endif
         break;
     }
     case VAEncMiscParameterTypeSkipFrame:
