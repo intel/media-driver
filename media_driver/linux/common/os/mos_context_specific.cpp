@@ -40,6 +40,11 @@
 #include <time.h>
 #endif
 
+#if MOS_MEDIASOLO_SUPPORTED
+#include "mos_os_solo.h"
+#endif // MOS_MEDIASOLO_SUPPORTED
+#include "mos_solo_generic.h"
+
 #include "mos_context_specific.h"
 #include "mos_gpucontextmgr.h"
 #include "mos_cmdbufmgr.h"
@@ -446,7 +451,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
-        if (MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
+        if (!Mos_Solo_IsEnabled() && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
             m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
             if (m_intelContext)

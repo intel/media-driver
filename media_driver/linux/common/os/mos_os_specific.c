@@ -1300,7 +1300,7 @@ MOS_STATUS Linux_InitContext(
     if (!MODSEnabled)
     {
        pContext->intel_context = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
-       if (pContext->intel_context)
+       if (!Mos_Solo_IsEnabled() && pContext->intel_context)
        {
            pContext->intel_context->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
            if (pContext->intel_context->vm == nullptr)
