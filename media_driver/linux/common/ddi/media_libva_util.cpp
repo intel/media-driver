@@ -196,7 +196,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  break;
             }
         case Media_Format_RGBP:
-        case Media_Format_UYVY:
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
@@ -225,6 +224,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_Y16U:
         case Media_Format_VYUY:
         case Media_Format_YVYU:
+        case Media_Format_UYVY:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
