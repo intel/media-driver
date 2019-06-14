@@ -160,6 +160,7 @@ CODECHAL_MODE MediaLibvaCapsG11::GetEncodeCodecMode(VAProfile profile, VAEntrypo
             return CODECHAL_ENCODE_MODE_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
             return CODECHAL_ENCODE_MODE_HEVC;
@@ -237,6 +238,7 @@ std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
             return ENCODE_ID_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
             if (IsEncFei(entrypoint, feiFunction))
