@@ -83,6 +83,7 @@ static bool InitIclMediaSku(struct GfxDeviceInfo *devInfo,
 
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVC, codecInfo->hevcEncoding);
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVC10bit, codecInfo->hevc10Encoding);
+        MEDIA_WR_SKU(skuTable, FtrEncodeHEVC10bit422, codecInfo->hevc10Encoding);
         MEDIA_WR_SKU(skuTable, FtrEncodeJPEG, codecInfo->jpegEncoding);
         MEDIA_WR_SKU(skuTable, FtrEncodeAVCVdenc, codecInfo->avcVdenc);
         MEDIA_WR_SKU(skuTable, FtrVP9VLDDecoding, codecInfo->vp9Decoding);
