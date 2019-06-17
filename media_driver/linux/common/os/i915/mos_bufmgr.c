@@ -829,7 +829,7 @@ retry:
     bo_gem->used_as_reloc_target = false;
     bo_gem->has_error = false;
     bo_gem->reusable = true;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alignment);
 
@@ -978,7 +978,7 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     bo_gem->used_as_reloc_target = false;
     bo_gem->has_error = false;
     bo_gem->reusable = false;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, 0);
 
@@ -1137,7 +1137,7 @@ mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
     bo_gem->bo.handle = open_arg.handle;
     bo_gem->global_name = handle;
     bo_gem->reusable = false;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     memclear(get_tiling);
     get_tiling.handle = bo_gem->gem_handle;
@@ -2962,7 +2962,7 @@ mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
     bo_gem->used_as_reloc_target = false;
     bo_gem->has_error = false;
     bo_gem->reusable = false;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     DRMINITLISTHEAD(&bo_gem->vma_list);
     DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
