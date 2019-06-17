@@ -38,7 +38,6 @@
 #define CODEC_AVC_MAX_SPS_NUM                32
 #define CODEC_AVC_MAX_PPS_NUM                255
 
-#define CODEC_AVC_NUM_UNCOMPRESSED_SURFACE   128 // 7 bits
 
 //!
 //! \enum     CODEC_AVC_WEIGHT_SCALE_SIZE

@@ -34,10 +34,6 @@
 #include "media_libva.h"
 #include "media_libva_util.h"
 
-#define SURFACE_STATE_INACTIVE              0   //!< Surface state inactive flag, should be transfer from inactive->inuse->active->inactive
-#define SURFACE_STATE_ACTIVE_IN_LASTFRAME   1   //!< Surface state active in last frame flag, means surface appears in DPB of last frame and certainly some of them will appear in DPB of current frame.
-#define SURFACE_STATE_ACTIVE_IN_CURFRAME    64  //!< Surface state active in current frame flag, means surface will be used in current frame.
-
 //!
 //! \class  DdiMediaBase
 //! \brief  Ddi media base class
@@ -114,76 +110,6 @@ public:
         VADriverContextP ctx,
         VAContextID      context) = 0;
 
-    //!
-    //! \brief    Register Render Target Surface
-    //! \details  Register surface in render target table
-    //!
-    //! \param    [in] rtTbl
-    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
-    //! \param    [in] surface
-    //!           Pointer to DDI_MEDIA_SURFACE
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    VAStatus RegisterRTSurfaces(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, DDI_MEDIA_SURFACE *surface);
-
-    //!
-    //! \brief    Unregister Render Target Surface
-    //! \details  Unregister surface in render target table
-    //!
-    //! \param    [in] rtTbl
-    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
-    //! \param    [in] surface
-    //!           Pointer to DDI_MEDIA_SURFACE
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    VAStatus UnRegisterRTSurfaces(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, DDI_MEDIA_SURFACE *surface);
-
-protected:
-    //!
-    //! \brief    Get Render Target Index
-    //! \details  Get surface index in render target table
-    //!
-    //! \param    [in] rtTbl
-    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
-    //! \param    [in] surface
-    //!           Pointer to DDI_MEDIA_SURFACE
-    //!
-    //! \return   int32_t
-    //!           Render target index
-    //!
-    int32_t GetRenderTargetID(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, DDI_MEDIA_SURFACE *surface);
-
-    //!
-    //! \brief    Clear Reference List
-    //! \details  Clear surface state in render target table
-    //!
-    //! \param    [in] rtTbl
-    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
-    //! \param    [in] withDpb
-    //!           Dpb flag
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    VAStatus ClearRefList(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, bool withDpb);
-
-    //!
-    //! \brief    Update Registered Render Target Surface Flag
-    //! \details  Check if surface need to be registered in render target table
-    //!
-    //! \param    [in] rtTbl
-    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
-    //! \param    [in] surface
-    //!           Pointer to DDI_MEDIA_SURFACE
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    VAStatus UpdateRegisteredRTSurfaceFlag(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, DDI_MEDIA_SURFACE *surface);
 };
 
 #endif /*  _MEDIA_DDI_BASE_H_ */
