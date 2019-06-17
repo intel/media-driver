@@ -140,4 +140,16 @@ MOS_STATUS CodechalEncodeScalability_ChkGpuCtxReCreation(
     PCODECHAL_ENCODE_SCALABILITY_STATE         pScalabilityState,
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED          CurgpuCtxCreatOpts);
 
+//!
+//! \brief    Convert Encode Phase to Batch Buffer Submission Type
+//! \param    [in]  isFirstPipe
+//!                Is it the fist pipe?
+//! \param    [in] pCmdBuffer
+//!                Pointer to command buffer
+//! \return   void
+//!           void
+//!
+void CodecHalEncodeScalability_EncodePhaseToSubmissionType(
+    bool isFirstPipe,
+    PMOS_COMMAND_BUFFER pCmdBuffer);
 #endif //__CODECHAL_ENCODER_SCALABILITY_H__
