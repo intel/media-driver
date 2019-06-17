@@ -51,7 +51,9 @@ const VAImageFormat m_supportedImageformatsG10[] =
     {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
     {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
     {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0}
+    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0},
+    {VA_FOURCC_A2R10G10B10,    VA_LSB_FIRST,   32, 30, 0x3ff00000, 0x000ffc00, 0x000003ff, 0x30000000},  /* [31:0] A:R:G:B 2:10:10:10 little endian */
+    {VA_FOURCC_A2B10G10R10,    VA_LSB_FIRST,   32, 30, 0x000003ff, 0x000ffc00, 0x3ff00000, 0x30000000}   /* [31:0] A:B:G:R 2:10:10:10 little endian */
 };
 
 VAStatus MediaLibvaCapsG10::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)

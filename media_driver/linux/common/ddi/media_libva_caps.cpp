@@ -3069,6 +3069,8 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
         case VA_FOURCC_Y210   : return GMM_FORMAT_Y210_TYPE;
         case VA_FOURCC_Y410   : return GMM_FORMAT_Y410_TYPE;
         case VA_FOURCC_Y800   : return GMM_FORMAT_GENERIC_8BIT;
+        case VA_FOURCC_A2R10G10B10   : return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
+        case VA_FOURCC_A2B10G10R10   : return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
         default               : return GMM_FORMAT_INVALID;
     }
 }
