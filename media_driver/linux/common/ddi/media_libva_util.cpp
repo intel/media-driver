@@ -167,6 +167,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     int32_t size          = 0;
     uint32_t tileformat   = I915_TILING_NONE;
     VAStatus hRes         = VA_STATUS_SUCCESS;
+    int32_t alignedWidth  = width;
     int32_t alignedHeight = height;
     uint32_t tag          = 0;
 
@@ -235,6 +236,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 alignedHeight = MOS_ALIGN_CEIL(height, 32);
 #endif
             }
+            alignedWidth = MOS_ALIGN_CEIL(width, 8);
             tileformat  = I915_TILING_Y;
             break;
         case Media_Format_Buffer:
@@ -354,7 +356,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     }
     else
     {
-        gmmParams.BaseWidth         = width;
+        gmmParams.BaseWidth         = alignedWidth;
         gmmParams.BaseHeight        = alignedHeight;
     }
 
