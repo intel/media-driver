@@ -111,7 +111,8 @@ public:
     void DumpContent(uint32_t kernelNumber,
                      char *kernelName,
                      int32_t taskId,
-                     uint32_t argIndex);
+                     uint32_t argIndex,
+                     uint32_t vectorIndex);
 
     int32_t UpdateProperty(uint32_t size);
 

@@ -5791,7 +5791,7 @@ void CmKernelRT::SurfaceDump(uint32_t kernelNumber, int32_t taskId)
                 {
                     return;
                 }
-                surf->DumpContent(kernelNumber, m_kernelInfo->kernelName, taskId, argIndex);
+                surf->DumpContent(kernelNumber, m_kernelInfo->kernelName, taskId, argIndex, i);
             }
         }
     }

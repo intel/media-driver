@@ -204,23 +204,27 @@ void CmSurface2DUPRT::Log(std::ostringstream &oss)
 #endif
 }
 
-void CmSurface2DUPRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex)
+void CmSurface2DUPRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex, uint32_t vectorIndex)
 {
 #if MDF_SURFACE_CONTENT_DUMP
+    char fileNamePrefix[MAX_PATH] = { 0 };
     std::ostringstream outputFileName;
     static uint32_t surface2DUPDumpNumber = 0;
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
-        << "_" << kernelName        
+        << "_" << kernelName
         << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex
         << "_surf2d_surfi_"<< m_index->get_data()
         << "_w_" << m_width
         << "_h_" << m_height
         << "_f_" << GetFormatString(m_format)
         << "_" << surface2DUPDumpNumber;
 
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
+
     std::ofstream outputFileStream;
-    outputFileStream.open(outputFileName.str().c_str(), std::ofstream::binary);
+    outputFileStream.open(fileNamePrefix, std::ofstream::binary);
 
     uint32_t        sizePerPixel = 0;
     uint32_t        updatedHeight = 0;

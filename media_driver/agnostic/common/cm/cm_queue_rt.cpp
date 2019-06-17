@@ -635,6 +635,7 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     }
 
     int32_t taskDriverId = -1;
+
     result = CreateEvent(task, !(event == CM_NO_EVENT) , taskDriverId, event);
     if (result != CM_SUCCESS)
     {
@@ -2215,19 +2216,6 @@ void CmQueueRT::PopTaskFromFlushedQueue()
             }
         }
 
-#if MDF_SURFACE_CONTENT_DUMP
-        PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-        if (cmData->cmHalState->dumpSurfaceContent)
-        {
-            int32_t taskId = 0;
-            if (event != nullptr)
-            {
-                event->GetTaskDriverId(taskId);
-            }
-            topTask->SurfaceDump(taskId);
-        }
-#endif
-
         CmTaskInternal::Destroy( topTask );
     }
     return;
@@ -3015,6 +3003,9 @@ int32_t CmQueueRT::FlushTaskWithoutSync( bool flushBlocked )
     uint32_t            freeSurfNum = 0;
     CmSurfaceManager*   surfaceMgr = nullptr;
     CSync*              surfaceLock = nullptr;
+    PCM_CONTEXT_DATA    cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    CmEventRT*          event = nullptr;
+    int32_t             taskId = 0;
 
     m_criticalSectionHalExecute.Acquire(); // Enter HalCm Execute Protection
 
@@ -3094,6 +3085,21 @@ int32_t CmQueueRT::FlushTaskWithoutSync( bool flushBlocked )
 
     } // loop for task
 
+#if MDF_SURFACE_CONTENT_DUMP
+    if (cmData->cmHalState->dumpSurfaceContent)
+    {
+        task->GetTaskEvent(event);
+        if (event != nullptr)
+        {
+            while (event->GetStatusWithoutFlush() != CM_STATUS_FINISHED)
+            {
+                event->Query();
+            }
+            event->GetTaskDriverId(taskId);
+        }
+        task->SurfaceDump(taskId);
+    }
+#endif
     QueryFlushedTasks();
 
 finish:
@@ -3192,17 +3198,14 @@ int32_t CmQueueRT::CreateEvent(CmTaskInternal *task, bool isVisible, int32_t &ta
 
     if (hr == CM_SUCCESS)
     {
-
         m_eventArray.SetElement( freeSlotInEventArray, event );
         m_eventCount ++;
 
         task->SetTaskEvent( event );
-
-        if(!isVisible)
+        if (!isVisible)
         {
             event = nullptr;
         }
-
     }
     else
     {
