@@ -1702,6 +1702,10 @@ void Mos_Specific_Destroy(
         pOsInterface->pOsContext->pfnDestroy(pOsInterface->pOsContext, pOsInterface->modulizedMosEnabled, modularizedGpuCtxEnabled);
         pOsInterface->pOsContext = nullptr;
     }
+    if (pOsInterface->pVEInterf)
+    {
+        MOS_FreeMemAndSetNull(pOsInterface->pVEInterf);
+    }
 }
 
 //!
