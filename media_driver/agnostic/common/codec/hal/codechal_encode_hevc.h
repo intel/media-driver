@@ -166,8 +166,8 @@ public:
     uint32_t                                    m_numMbEncEncKrnStates    = 0;        //!< Number of MbEnc kernel states
     EncStatsBuffers                             m_encStatsBuffers;
     uint8_t                                     m_mbCodeIdxForTempMVP     = 0xFF;     //!< buf index for current frame temporal mvp 
-    uint8_t                                     m_roundingIntraInUse = 0;             //!< rounding intra actually used
-    uint8_t                                     m_roundingInterInUse = 0;             //!< rounding inter actually used
+    uint8_t                                     m_roundingIntraInUse = 10;             //!< rounding intra actually used
+    uint8_t                                     m_roundingInterInUse = 4;             //!< rounding inter actually used
 
     // ScalingAndConversion
     PMHW_KERNEL_STATE                      m_scalingAndConversionKernelState        = nullptr;  //!< Pointer to ScalingAndConversion kernel state
