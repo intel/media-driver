@@ -858,16 +858,11 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         // Same reg offset and value for gpgpu pipe and media pipe
         if ( enableGpGpu )
         {
-            if (MEDIA_IS_SKU(state->skuTable, FtrGpGpuMidThreadLevelPreempt))
+            if ( MEDIA_IS_SKU(state->skuTable, FtrGpGpuThreadGroupLevelPreempt )
+                || MEDIA_IS_SKU(state->skuTable, FtrGpGpuMidThreadLevelPreempt))
             {
-                if (csrEnable)
-                    loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
-                else
-                    loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
-
-            }
-            else if ( MEDIA_IS_SKU(state->skuTable, FtrGpGpuThreadGroupLevelPreempt ))
-            {
+                //if FtrGpGpuThreadGroupLevelPreempt is true, still program the
+                //it to MID_THREAD_GROUP.Gen9 doesn't support MID_THREAD level
                 loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
                 state->renderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( state->renderHal );
             }
@@ -884,12 +879,11 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         }
         else
         {
-            if ( MEDIA_IS_SKU(state->skuTable, FtrMediaMidThreadLevelPreempt))
+            if ( MEDIA_IS_SKU(state->skuTable, FtrMediaThreadGroupLevelPreempt)
+                || MEDIA_IS_SKU(state->skuTable, FtrMediaMidThreadLevelPreempt))
             {
-                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
-            }
-            else if ( MEDIA_IS_SKU(state->skuTable, FtrMediaThreadGroupLevelPreempt) )
-            {
+                //if FtrMediaMidThreadLevelPreempt is true, still program the
+                //it to MID_THREAD_GROUP.Gen9 doesn't support MID_THREAD.
                 loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
             }
             else if ( MEDIA_IS_SKU(state->skuTable, FtrMediaMidBatchPreempt))
