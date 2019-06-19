@@ -115,6 +115,15 @@ protected:
         cmd.DW1.SurfaceId = params->ucSurfaceStateId;
         cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch - 1;
 
+        /* Handling of reconstructed surface is different for Y410 & AYUV formats */
+        if ((params->ucSurfaceStateId != CODECHAL_HCP_SRC_SURFACE_ID) &&
+            (params->psSurface->Format == Format_Y410))
+            cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch / 2 - 1;
+
+        if ((params->ucSurfaceStateId != CODECHAL_HCP_SRC_SURFACE_ID) &&
+            (params->psSurface->Format == Format_AYUV))
+            cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch / 4 - 1;
+
         cmd.DW2.YOffsetForUCbInPixel = params->psSurface->UPlaneOffset.iYOffset;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));

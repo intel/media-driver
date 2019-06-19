@@ -1309,7 +1309,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSurfaceStateCmd(
     mhw_vdbox_hcp_g11_X::HCP_SURFACE_STATE_CMD  *cmd =
         (mhw_vdbox_hcp_g11_X::HCP_SURFACE_STATE_CMD*)cmdBuffer->pCmdPtr;
 
-    MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g11_X>::AddHcpDecodeSurfaceStateCmd(cmdBuffer, params));
+    MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g11_X>::AddHcpEncodeSurfaceStateCmd(cmdBuffer, params));
 
     bool surf10bit= (params->psSurface->Format == Format_P010) ||
                    (params->psSurface->Format == Format_P210) ||
