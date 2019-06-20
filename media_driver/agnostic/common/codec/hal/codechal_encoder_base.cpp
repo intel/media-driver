@@ -4418,6 +4418,8 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             }
         }
 
+        m_prevRawSurface = *m_rawSurfaceToPak;
+
         // User Feature Key Reporting - only happens after first frame
         if (m_firstFrame == true)
         {

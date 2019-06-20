@@ -902,6 +902,37 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     uint32_t        TargetFrameSize;
 
+    /*! \brief Indicates if GPU polling based sync is enabled. 
+    *
+    *  Applicaiton sets to 1 to enable GPU polling based sync in driver. 
+    */
+    bool            bEnableSync;
+
+    /*! \brief Indicates if the current frame is repeat frame. 
+    *
+    *  Applicaiton sets to 1 if current frame is repeat frame. 
+    */
+    bool            bRepeatFrame;
+
+    /*! \brief Indicates marker coordinates in raw surface for GPU polling based sync. 
+    *
+    *  In unite of bytes. Valid for encoders which report SyncSupport capability as true.
+    */
+    uint16_t        SyncMarkerX;
+    uint16_t        SyncMarkerY;
+
+    /*! \brief Point to marker value for GPU polling based sync. 
+    *
+    *  Valid for encoders which report SyncSupport capability as true.
+    */
+    uint8_t         *pSyncMarkerValue;
+    
+    /*! \brief Indicates marker value for GPU polling based sync. 
+    *
+    *  In unit of bytes. Should be larger than or equal to 4. Valid for encoders which report SyncSupport capability as true.
+    */
+    uint32_t        SyncMarkerSize;
+
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for AVC encoding.

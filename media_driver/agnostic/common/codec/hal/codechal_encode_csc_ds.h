@@ -652,7 +652,7 @@ protected:
     bool&                       m_singleTaskPhaseSupported;
     bool&                       m_firstTaskInPhase;
     bool&                       m_lastTaskInPhase;
-    bool&                       m_externalCopySync;
+    bool&                       m_pollingSyncEnabled;
     uint8_t&                    m_groupId;
     uint8_t&                    m_outputChromaFormat;
     uint32_t&                   m_standard;
@@ -673,6 +673,8 @@ protected:
     uint32_t&                   m_maxBtCount;
     uint32_t&                   m_vmeStatesSize;
     uint32_t&                   m_storeData;
+    uint32_t&                   m_syncMarkerOffset;
+    uint32_t &                  m_syncMarkerValue;
     MOS_GPU_CONTEXT&            m_renderContext;
     MHW_WALKER_MODE&            m_walkerMode;
     CODEC_REF_LIST*&            m_currRefList;

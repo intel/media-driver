@@ -1134,6 +1134,7 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     MHW_VEBOX_IECP_PARAMS               veboxIecpParams;
     MhwVeboxInterface                   *veboxInterface;
     PMHW_SFC_INTERFACE                  sfcInterface;
+    MhwMiInterface                      *miInterface;
     MOS_COMMAND_BUFFER                  cmdBuffer;
     bool                                requestFrameTracking;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
@@ -1145,6 +1146,7 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     CODECHAL_ENCODE_CHK_NULL_RETURN(encoder);
     CODECHAL_ENCODE_CHK_NULL_RETURN(sfcInterface = m_hwInterface->GetSfcInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(veboxInterface = m_hwInterface->GetVeboxInterface());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(miInterface = m_hwInterface->GetMiInterface());
 
     // Switch GPU context to VEBOX
     m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
@@ -1158,6 +1160,23 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     // the first task?
     requestFrameTracking = false;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(encoder->SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
+
+    // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external
+    // raw surface processing to complete, before start CSC. Once the marker in
+    // raw surface is overwritten by external operation, HW semaphore will be
+    // signalled and CSC will start. This is to reduce SW latency between 
+    // external raw surface processing and CSC, in usages like remote gaming.
+    if (encoder->m_pollingSyncEnabled)
+    {
+        MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
+        MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
+        miSemaphoreWaitParams.presSemaphoreMem = &m_inputSurface->OsResource;
+        miSemaphoreWaitParams.dwResourceOffset = encoder->m_syncMarkerOffset;
+        miSemaphoreWaitParams.bPollingWaitMode = true;
+        miSemaphoreWaitParams.dwSemaphoreData  = encoder->m_syncMarkerValue;
+        miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_NOT_EQUAL_SDD;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
+    }
 
     // Setup cmd prameters
     MOS_ZeroMemory(&veboxStateCmdParams, sizeof(veboxStateCmdParams));
@@ -1185,6 +1204,16 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddSfcCommands(sfcInterface, &cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(veboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
+
+    // If m_pollingSyncEnabled is set, write the marker to source surface for next MI_SEMAPHORE_WAIT to check.
+    if (encoder->m_pollingSyncEnabled)
+    {
+        MHW_MI_STORE_DATA_PARAMS storeDataParams;
+        storeDataParams.pOsResource      = &m_inputSurface->OsResource;
+        storeDataParams.dwResourceOffset = encoder->m_syncMarkerOffset;
+        storeDataParams.dwValue          = encoder->m_syncMarkerValue;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &storeDataParams));
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(
         &cmdBuffer,

@@ -1358,6 +1358,7 @@ public:
     EncoderParams                   m_encodeParams;               //!< Encode parameters used in each frame
     uint32_t                        *m_dataHwCount = nullptr;     //!< HW count data
     MOS_RESOURCE                     m_resHwCount;                //!< Resource of HW count
+    MOS_SURFACE                     m_prevRawSurface;             //!< Pointer to MOS_SURFACE of previous raw surface
     MOS_SURFACE                     m_rawSurface;                 //!< Pointer to MOS_SURFACE of raw surface
     MOS_SURFACE                     m_reconSurface;               //!< Pointer to MOS_SURFACE of reconstructed surface
     MOS_RESOURCE                    m_resBitstreamBuffer;         //!< Pointer to MOS_SURFACE of bitstream surface
@@ -1378,7 +1379,10 @@ public:
     bool                            m_2xScalingEnabled = false;   //!< 2x Scaling kernel only used by HEVC now
     bool                            m_useRawForRef = false;       //!< Flag to indicate if using raw surface for reference
     bool                            m_disableReconMMCD = false;   //!< disable Recon surface's MMC
-    bool                            m_externalCopySync  = false;  //!< Flag to indicate if GPU polling based sync for raw surface copy is enabled
+    bool                            m_repeatFrame = false;        //!< Flag to indicate if current frame is repeat frame
+    bool                            m_pollingSyncEnabled = false; //!< Flag to indicate if GPU polling based sync for raw surface copy is enabled
+    uint32_t                        m_syncMarkerOffset = 0;       //!< Sync marker offset in raw surface for GPU polling based sync
+    uint32_t                        m_syncMarkerValue = 0;        //!< Sync marker value in raw surface for GPU polling based sync
     uint8_t                         m_prevReconFrameIdx = 0;      //!< Previous reconstruct frame index
     uint8_t                         m_currReconFrameIdx = 0;      //!< Current reconstruct frame index
 

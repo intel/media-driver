@@ -1189,9 +1189,9 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
-            __MEDIA_USER_FEATURE_VALUE_EXTERNAL_COPY_SYNC_ID,
+            __MEDIA_USER_FEATURE_VALUE_GPU_POLLING_BASED_SYNC_ID,
             &userFeatureData);
-        m_externalCopySync = userFeatureData.bData == 1;
+        m_pollingSyncEnabled = userFeatureData.bData == 1;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
@@ -3147,6 +3147,13 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
         return eStatus;
     }
 
+    if (m_avcPicParam->bRepeatFrame)
+    {
+        m_cscDsState->ResetCscFlag();
+        m_rawSurfaceToEnc = &m_prevRawSurface;
+        m_rawSurfaceToPak = &m_prevRawSurface;
+    }
+
     // SHME and CSC require calling EU kernels
     if (!(m_16xMeSupported || m_cscDsState->RequireCsc()))
     {
@@ -3162,7 +3169,25 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
 
         m_firstTaskInPhase = true;
 
-    m_externalCopySync &= (m_avcSeqParam->ScenarioInfo == ESCENARIO_REMOTEGAMING);
+    if (!m_avcPicParam->bRepeatFrame && 
+        ((m_rawSurfaceToEnc->Format == Format_A8R8G8B8) || m_rawSurfaceToEnc->Format == Format_A8B8G8R8))
+    {
+        m_pollingSyncEnabled &= m_avcPicParam->bEnableSync;
+        m_syncMarkerOffset = m_rawSurfaceToEnc->dwPitch * m_avcPicParam->SyncMarkerY + m_avcPicParam->SyncMarkerX * 4;
+        if ((m_avcPicParam->SyncMarkerSize >= 4) && (m_avcPicParam->pSyncMarkerValue != nullptr))
+        {
+            // driver only uses the lower 4 bytes as marker for now, as MI_SEMAPHORE_WAIT only supports 32-bit semaphore data.
+            m_syncMarkerValue = *((uint32_t *)m_avcPicParam->pSyncMarkerValue);
+        }
+        else // application is not sending valid marker, use default value.
+        {
+            m_syncMarkerValue = 0x01234501;
+        }
+    }
+    else
+    {
+        m_pollingSyncEnabled = false;
+    }
 
     if (m_cscDsState->UseSfc() && m_cscDsState->RequireCsc())
     {
