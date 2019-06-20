@@ -1189,13 +1189,6 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
-            __MEDIA_USER_FEATURE_VALUE_GPU_POLLING_BASED_SYNC_ID,
-            &userFeatureData);
-        m_pollingSyncEnabled = userFeatureData.bData == 1;
-
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
             __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_ALLOCATION_WA_ENABLE_ID,
             &userFeatureData);
         if (userFeatureData.u32Data == 0) // MFX_LRA_0/1/2 offsets might not be available
@@ -3172,7 +3165,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
     if (!m_avcPicParam->bRepeatFrame && 
         ((m_rawSurfaceToEnc->Format == Format_A8R8G8B8) || m_rawSurfaceToEnc->Format == Format_A8B8G8R8))
     {
-        m_pollingSyncEnabled &= m_avcPicParam->bEnableSync;
+        m_pollingSyncEnabled = m_avcPicParam->bEnableSync;
         m_syncMarkerOffset = m_rawSurfaceToEnc->dwPitch * m_avcPicParam->SyncMarkerY + m_avcPicParam->SyncMarkerX * 4;
         if ((m_avcPicParam->SyncMarkerSize >= 4) && (m_avcPicParam->pSyncMarkerValue != nullptr))
         {
