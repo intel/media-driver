@@ -487,6 +487,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDI surfaces
+        for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
+        {
+            if (pVeboxState->FFDISurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDISurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // When DI switch to DNDI, the first FFDN surface pitch doesn't match with
     // the input surface pitch and cause the flicker issue
@@ -566,6 +579,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDN surfaces
+        for (i = 0; i < VPHAL_NUM_FFDN_SURFACES; i++)
+        {
+            if (pVeboxState->FFDNSurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDNSurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // Adjust the rcMaxSrc of pRenderTarget when Vebox output is enabled
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
@@ -610,6 +636,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
                 m_reporting->STMMCompressible = bSurfCompressed;
                 m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
             }
+        }
+    }
+    else
+    {
+        // Free DI history buffers (STMM = Spatial-temporal motion measure)
+        for (i = 0; i < VPHAL_NUM_STMM_SURFACES; i++)
+        {
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &pVeboxState->STMMSurfaces[i].OsResource);
         }
     }
 
@@ -758,6 +794,15 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_G11_ICLLP, IGVP3DLUT_GENERATION_G11_ICLLP_SIZE);
 #endif
         }
+    }
+    else
+    {
+        // Free 3DLook Up table surface for VEBOX
+        pOsInterface->pfnFreeResource(
+            pOsInterface,
+            &pVeboxState->Vebox3DLookUpTables.OsResource);
+
+        MOS_Delete(m_hdr3DLutGenerator);
     }
 
 finish:
