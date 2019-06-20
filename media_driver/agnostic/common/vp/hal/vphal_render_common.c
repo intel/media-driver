@@ -479,11 +479,14 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     }
 #endif
 
-    // Initialize command buffer and insert prolog
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
-
     HalOcaInterface::On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
         *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+
+    // Add kernel info to log.
+    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, 0, nullptr);
+
+    // Initialize command buffer and insert prolog
+    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
 
     // Write timing data for 3P budget
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
@@ -713,12 +716,6 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     // Allocate all available space, unused buffer will be returned later
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
 
-    HalOcaInterface::On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
-        *pRenderHal->pMhwMiInterface, *pMmioRegisters);
-
-    // Add kernel info to log.
-    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, FcKernelCount, FcKernelList);
-
     // Set initial state
     iRemaining = CmdBuffer.iRemaining;
 
@@ -744,6 +741,12 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         pOsInterface->pfnIncrementGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
     }
 #endif
+
+    HalOcaInterface::On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
+        *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+
+    // Add kernel info to log.
+    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, FcKernelCount, FcKernelList);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
