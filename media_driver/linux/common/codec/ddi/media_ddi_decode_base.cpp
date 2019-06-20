@@ -664,10 +664,10 @@ VAStatus DdiMediaDecode::ExtraDownScaling(
     VAStatus vaStatus = MOS_STATUS_SUCCESS;
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_ddiDecodeCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
-    if(m_ddiDecodeCtx &&
-        m_ddiDecodeCtx->DecodeParams.m_procParams &&
-        decoder &&
+    DDI_CHK_NULL(decoder, "nullptr decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
+    if(m_ddiDecodeCtx->DecodeParams.m_procParams &&
         !decoder->IsVdSfcSupported())
     {
         //check vp context
