@@ -5184,6 +5184,14 @@ MOS_STATUS Mos_Specific_WaitForBBCompleteNotifyEvent(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Mos_Specific_WaitAllCmdCompletion_Os(
+    PMOS_INTERFACE pOsInterface)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+
 //!
 //! \brief    Determines if the resource should be CPU cacheable during allocation
 //! \param    PMOS_INTERFACE pOsInterface
@@ -6300,6 +6308,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnPerformOverlaySync                     = Mos_Specific_PerformOverlaySync;
     pOsInterface->pfnEngineSignal                           = Mos_Specific_EngineSignal;
     pOsInterface->pfnEngineWait                             = Mos_Specific_EngineWait;
+    pOsInterface->pfnWaitAllCmdCompletion                   = Mos_Specific_WaitAllCmdCompletion_Os;
     pOsInterface->pfnResourceSignal                         = Mos_Specific_ResourceSignal;
     pOsInterface->pfnResourceWait                           = Mos_Specific_ResourceWait;
     pOsInterface->pfnCreateSyncResource                     = Mos_Specific_CreateSyncResource;
