@@ -1869,6 +1869,13 @@ public:
     void CreateFlatScalingList();
 
     //!
+    //! \brief    Help function to create a default scaling list (when scaling list data is not presented in picture parameter)
+    //!
+    //! \return   void
+    //!
+    void CreateDefaultScalingList();
+
+    //!
     //! \brief    Validate low delay mode for B frame
     //!
     //! \param    [in] slcParams
