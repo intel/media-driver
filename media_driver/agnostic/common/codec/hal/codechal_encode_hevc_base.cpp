@@ -2860,11 +2860,13 @@ short CodechalEncodeHevcBase::ComputeTemporalDifferent(CODEC_PICTURE  refPic)
 
         if (diff_poc < -16)
         {
+            CODECHAL_ENCODE_ASSERTMESSAGE("POC out of range, it will be clipped.");
             diff_poc = -16;
         }
         else
             if (diff_poc > 16)
             {
+                CODECHAL_ENCODE_ASSERTMESSAGE("POC out of range, it will be clipped.");
                 diff_poc = 16;
             }
     }
