@@ -152,18 +152,16 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS SetMfxInlineStatusRead(
+    virtual MOS_STATUS ReadEncodeCounterFromHW(
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMOS_RESOURCE       resource,
-        uint16_t            currentIndex,
-        uint32_t            writeOffset)
+        uint16_t            currentIndex)
     {
         MOS_UNUSED(osInterface);
         MOS_UNUSED(cmdBuffer);
         MOS_UNUSED(resource);
         MOS_UNUSED(currentIndex);
-        MOS_UNUSED(writeOffset);
 
         MhwStubMessage();
         return MOS_STATUS_SUCCESS;

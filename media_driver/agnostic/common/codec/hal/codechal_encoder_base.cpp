@@ -2923,12 +2923,11 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
 
             CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->SetMfxInlineStatusRead(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->ReadEncodeCounterFromHW(
                 m_osInterface,
                 cmdBuffer,
                 &m_resHwCount,
-                encodeStatusBuf->wCurrIndex,
-                writeOffset));
+                encodeStatusBuf->wCurrIndex));
         }
     }
 
