@@ -31,6 +31,7 @@
 #include "mhw_utilities.h"
 #include "cm_def.h"
 #include "renderhal_platform_interface.h"
+#include "hal_oca_interface.h"
 #if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g11lp.h"
 #include "cm_gpuinit_kernel_g11lp.h"
@@ -401,6 +402,8 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     uint32_t                     tag;
     uint32_t                     tagOffset = 0;
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 cacheSettings = {};
+    MOS_CONTEXT                  *pOsContext = renderHal->pOsInterface->pOsContext;
+    PMHW_MI_MMIOREGISTERS        pMmioRegisters = renderHal->pMhwRenderInterface->GetMmioRegisters();
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
@@ -466,6 +469,9 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
 
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
+    
+    HalOcaInterface::On1stLevelBBStart(mosCmdBuffer, *pOsContext, osInterface->CurrentGpuContextHandle,
+        *renderHal->pMhwMiInterface, *pMmioRegisters);
 
     // update tracker tag used with CM tracker resource
     renderHal->trackerProducer.StepForward(renderHal->currentTrackerIndex);
@@ -643,6 +649,8 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     idLoadParams.pKernelState = nullptr;
     CM_CHK_MOSSTATUS_GOTOFINISH( mhwRender->AddMediaIDLoadCmd(&mosCmdBuffer, &idLoadParams ) );
 
+    HalOcaInterface::OnDispatch(mosCmdBuffer, *pOsContext, *renderHal->pMhwMiInterface, *pMmioRegisters);
+
     if ( enableWalker )
     {
         // send media walker command, if required
@@ -738,6 +746,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     }
     else
     {
+        HalOcaInterface::OnSubLevelBBStart(mosCmdBuffer, *pOsContext, &batchBuffer->OsResource, 0, true, 0);
         // Send Start batch buffer command
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferStartCmd(
             &mosCmdBuffer,
@@ -824,6 +833,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     pipeControlParams.bDisableCSStall = false;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeControlParams));
 
+    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *pOsContext);
     //Couple to the BB_START , otherwise GPU Hang without it
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr ) );
 

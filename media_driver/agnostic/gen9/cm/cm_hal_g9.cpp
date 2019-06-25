@@ -28,6 +28,8 @@
 #include "mhw_render_hwcmd_g9_X.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
+#include "hal_oca_interface.h"
+
 #if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g9.h"
 #include "cm_gpuinit_kernel_g9.h"
@@ -756,6 +758,9 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #endif
 #endif
 
+    MOS_CONTEXT               *pOsContext = renderHal->pOsInterface->pOsContext;
+    PMHW_MI_MMIOREGISTERS     pMmioRegisters = renderHal->pMhwRenderInterface->GetMmioRegisters();
+
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
     // get the tag
@@ -829,7 +834,10 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
-    
+
+    HalOcaInterface::On1stLevelBBStart(mosCmdBuffer, *pOsContext, osInterface->CurrentGpuContextHandle,
+        *renderHal->pMhwMiInterface, *pMmioRegisters);
+
     // update tracker tag used with CM tracker resource
     renderHal->trackerProducer.StepForward(renderHal->currentTrackerIndex);
 
@@ -990,6 +998,8 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     idLoadParams.pKernelState = nullptr;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaIDLoadCmd(&mosCmdBuffer, &idLoadParams));
 
+    HalOcaInterface::OnDispatch(mosCmdBuffer, *pOsContext, *renderHal->pMhwMiInterface, *pMmioRegisters);
+
     if (enableWalker)
     {
         // send media walker command, if required
@@ -1052,6 +1062,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     }
     else
     {
+        HalOcaInterface::OnSubLevelBBStart(mosCmdBuffer, *pOsContext, &batchBuffer->OsResource, 0, true, 0);
         // Send Start batch buffer command
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferStartCmd(
             &mosCmdBuffer,
@@ -1142,6 +1153,8 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         vfeStateParams.dwNumberofURBEntries = 1;
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
     }
+
+    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *pOsContext);
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
