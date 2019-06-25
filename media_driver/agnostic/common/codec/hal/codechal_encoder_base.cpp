@@ -202,7 +202,10 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
 
         if (m_hwInterface->m_slicePowerGate)
         {
-            createOption.packed.SubSliceCount = (m_gtSystemInfo->SubSliceCount / m_gtSystemInfo->SliceCount) >> 1;
+            createOption.packed.SubSliceCount = (m_gtSystemInfo->SubSliceCount / m_gtSystemInfo->SliceCount);
+            // If there are multiply sub slices, disable half of sub slices.
+            if (createOption.packed.SubSliceCount > 1)
+                createOption.packed.SubSliceCount >>= 1;
             createOption.packed.SliceCount = (uint8_t)m_gtSystemInfo->SliceCount;
             createOption.packed.MaxEUcountPerSubSlice = (uint8_t)(m_gtSystemInfo->EUCount / m_gtSystemInfo->SubSliceCount);
             createOption.packed.MinEUcountPerSubSlice = (uint8_t)(m_gtSystemInfo->EUCount / m_gtSystemInfo->SubSliceCount);
