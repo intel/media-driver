@@ -158,7 +158,11 @@ typedef enum _MOS_HW_RESOURCE_DEF
     // MP USAGES
     MOS_MP_RESOURCE_USAGE_BEGIN,
     MOS_MP_RESOURCE_USAGE_DEFAULT,
+    MOS_MP_RESOURCE_USAGE_DEFAULT_FF,
+    MOS_MP_RESOURCE_USAGE_DEFAULT_RCS,
     MOS_MP_RESOURCE_USAGE_SurfaceState,
+    MOS_MP_RESOURCE_USAGE_SurfaceState_FF,
+    MOS_MP_RESOURCE_USAGE_SurfaceState_RCS,
     MOS_MP_RESOURCE_USAGE_AGE3_SurfaceState,
     MOS_MP_RESOURCE_USAGE_EDRAM_SurfaceState,
     MOS_MP_RESOURCE_USAGE_EDRAM_AGE3_SurfaceState,
@@ -178,7 +182,7 @@ typedef enum _MOS_HW_RESOURCE_DEF
     // always last one
     MOS_HW_RESOURCE_DEF_MAX
 } MOS_HW_RESOURCE_DEF;
-C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 130); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
+C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 134); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
 
 //!
 //! \brief Enum allow callers to specify a command streamer.

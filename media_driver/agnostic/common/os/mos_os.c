@@ -887,7 +887,11 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         //
         MP_RESOURCE_USAGE_BEGIN,
         MP_RESOURCE_USAGE_DEFAULT,
+        MP_RESOURCE_USAGE_DEFAULT_FF,
+        MP_RESOURCE_USAGE_DEFAULT_RCS,
         MP_RESOURCE_USAGE_SurfaceState,
+        MP_RESOURCE_USAGE_SurfaceState_FF,
+        MP_RESOURCE_USAGE_SurfaceState_RCS,
         MP_RESOURCE_USAGE_AGE3_SurfaceState,
         MP_RESOURCE_USAGE_EDRAM_SurfaceState,
         MP_RESOURCE_USAGE_EDRAM_AGE3_SurfaceState,
