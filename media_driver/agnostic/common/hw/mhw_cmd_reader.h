@@ -72,6 +72,8 @@ public:
 
 private:
 
+    static std::string TrimSpace(const std::string &str);
+
     void SetFilePath(std::string path);
 
     void GetFileType();
