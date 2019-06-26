@@ -2238,8 +2238,8 @@ int32_t CmQueueRT::TouchFlushedTasks( )
             }
         }
         else
-        {   // no task in flushedQueue and EnqueuedQueue
-            return CM_FAILURE;
+        {   // no task in flushedQueue and EnqueuedQueue, just skip
+            return CM_SUCCESS;
         }
     }
 
