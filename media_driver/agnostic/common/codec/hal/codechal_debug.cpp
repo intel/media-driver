@@ -880,6 +880,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     case hucRegionDumpHpu:
         funcName = funcName + dmemName + "_HpuPass" + passName;
         break;
+    case hucRegionDumpBackAnnotation:
+        funcName = funcName + dmemName + "_BackAnnotationPass" + passName;
+        break;
     default:
         funcName = funcName + dmemName + "_Pass" + passName;
         break;
@@ -949,6 +952,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
         break;
     case hucRegionDumpHpu:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_HpuPass" + passName;
+        break;
+    case hucRegionDumpBackAnnotation:
+        funcName = funcName + inputName + bufName + regionNumName + regionName + "_BackAnnotationPass" + passName;
         break;
     default:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_Pass" + passName;
