@@ -215,12 +215,83 @@ int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_
     {
         return CM_FAILURE;
     }
+    CmDeviceRT* cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    uint32_t platform = 0;
+    cmDevice->GetGenPlatform(platform);
 
     m_memObjCtrl.mem_ctrl = memCtrl;
     m_memObjCtrl.mem_type = memType;
     m_memObjCtrl.age= age;
 
+    if (platform > IGFX_GEN8_CORE)
+    {
+        switch (memCtrl)
+        {
+        case CM_MEMORY_OBJECT_CONTROL_DEFAULT:
+            m_memObjCtrl.mem_ctrl = (unsigned int)MOS_CM_RESOURCE_USAGE_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_NO_L3:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_L3_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_NO_LLC_ELLC:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_NO_LLC:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_LLC_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_NO_ELLC:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_ELLC_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_NO_LLC_L3:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_NO_ELLC_L3:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_NO_CACHE:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_CACHE_SurfaceState;
+            break;
+
+        case CM_MEMORY_OBJECT_CONTROL_L1_ENABLED:
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_L1_Enabled_SurfaceState;
+            break;
+
+        default:
+            // any invalid CM_HAL_MEMORY_OBJECT_CONTROL value is converted to default
+            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_SurfaceState;
+            break;
+        }
+    }
+
     return CM_SUCCESS;
+}
+
+int32_t CmSurface::SetResourceUsage(MOS_HW_RESOURCE_DEF mosUsage)
+{
+    CmDeviceRT* cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    uint32_t platform = 0;
+    cmDevice->GetGenPlatform(platform);
+    // MOS usage memory object setting is only available to gen9+
+    if (platform > IGFX_GEN8_CORE)
+    if (mosUsage < MOS_HW_RESOURCE_DEF_MAX)
+    {
+        m_memObjCtrl.mem_ctrl = mosUsage;
+        m_memObjCtrl.mem_type = CM_USE_PTE;
+        m_memObjCtrl.age = 0;
+        return CM_SUCCESS;
+    }
+    return CM_FAILURE;
 }
 
 std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)

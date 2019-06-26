@@ -109,6 +109,19 @@ public:
     //!
     CM_RT_API virtual int32_t
     SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl) = 0;
+
+    //!
+    //! \brief      Selects one of the pre-defined mos resource usage
+    //!             this cm_buffer
+    //! \note       This function works on Gen9+ paltforms.
+    //! \param      [in] mosUsage
+    //!             The selected pre-defined MOS resource usage for memory object control setting.
+    //! \retval     CM_SUCCESS if the given parameter is valid
+    //! \retval     CM_FAILURE otherwise.
+    //!
+    CMRT_UMD_API virtual int32_t
+    SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage) = 0;
+
 };
 
 //!
@@ -242,6 +255,18 @@ public:
     SetSurfaceStateParam(SurfaceIndex *surfIndex,
                          const CM_BUFFER_STATE_PARAM *bufferStateParam) = 0;
 
+    //!
+    //! \brief      Selects one of the pre-defined mos resource usage
+    //!             settings for this buffer.
+    //! \note       This function works on Gen9+ paltforms.
+    //! \param      [in] mosUsage
+    //!             The selected pre-defined MOS resource usage for memory object control setting.
+    //! \retval     CM_SUCCESS if the memory object control is set successfully.
+    //! \retval     CM_FAILURE otherwise.
+    //! \note       This API is only supported for Gen9 and plus platform.
+    //!
+    CMRT_UMD_API virtual int32_t
+    SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage) = 0;
 };
 };//namespace
 

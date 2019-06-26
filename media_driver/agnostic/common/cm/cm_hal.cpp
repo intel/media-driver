@@ -9635,9 +9635,10 @@ MOS_STATUS HalCm_AllocateSurface2D(
         entry->format  = param->format;
         entry->isAllocatedbyCmrtUmd = false;
         entry->osResource = *param->mosResource;
-
         HalCm_OsResource_Reference(&entry->osResource);
     }
+    // set default CM MOS usage
+    entry->memObjCtl = MOS_CM_RESOURCE_USAGE_SurfaceState << 8;
 
     if (state->advExecutor)
     {

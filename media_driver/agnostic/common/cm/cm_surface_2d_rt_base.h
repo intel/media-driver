@@ -107,8 +107,9 @@ public:
                                    MEMORY_TYPE mem_type,
                                    unsigned int age);
 
-    CM_RT_API int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+    CM_RT_API int32_t SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+
+    CMRT_UMD_API int32_t SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage);
 
     CM_RT_API int32_t SetCompressionMode(MEMCOMP_STATE MmcMode);
 

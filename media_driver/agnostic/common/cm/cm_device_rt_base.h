@@ -287,11 +287,11 @@ public:
                   CM_QUEUE_CREATE_OPTION QueueCreateOption
                   = CM_DEFAULT_QUEUE_CREATE_OPTION);
 
-    CM_RT_API int32_t UpdateBuffer(PMOS_RESOURCE mosResource,
-                                           CmBuffer* &surface);
+    CM_RT_API int32_t UpdateBuffer(PMOS_RESOURCE mosResource, CmBuffer* &surface,
+                                   MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState);
 
-    CM_RT_API int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
-                                      CmSurface2D* &surface);
+    CM_RT_API int32_t UpdateSurface2D(PMOS_RESOURCE mosResource, CmSurface2D* &surface,
+                                      MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState);
 
     CM_RT_API int32_t
     CreateSampler8x8SurfaceFromAlias(

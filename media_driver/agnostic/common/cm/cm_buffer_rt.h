@@ -73,10 +73,13 @@ public:
                                    MEMORY_TYPE memType,
                                    uint32_t age);
 
-    CM_RT_API int32_t GetAddress(void* &addr);
-
     CM_RT_API int32_t
     SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl);
+
+    CMRT_UMD_API int32_t
+    SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage);
+
+    CM_RT_API int32_t GetAddress(void* &addr);
 
     CM_RT_API int32_t
     SetSurfaceStateParam(SurfaceIndex *surfIndex,

@@ -1790,14 +1790,16 @@ public:
     //!           pointer to MOS resource.
     //! \param    [in,out] surface
     //!           reference to pointer of surface to be created.
+    //! \param    [in] mosUsage
+    //!           The selected pre-defined MOS usage of memory object control cache setting
     //! \retval   CM_SUCCESS if the CmBuffer is successfully created.
     //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if mosResource is nullptr.
     //! \retval   CM_OUT_OF_HOST_MEMORY if out of system memory
     //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 1D surfaces is exceeded.
     //! \retval   CM_FAILURE otherwise
     //!
-    CM_RT_API virtual int32_t UpdateBuffer(PMOS_RESOURCE mosResource,
-                                           CmBuffer* &surface) = 0;
+    CM_RT_API virtual int32_t UpdateBuffer(PMOS_RESOURCE mosResource, CmBuffer* &surface,
+                                           MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState) = 0;
 
     //!
     //! \brief    Update the MOS Resource in the CmSurface2D. If surface is null, 
@@ -1808,14 +1810,16 @@ public:
     //!           pointer to MOS resource.
     //! \param    [in,out] surface
     //!           reference to pointer of surface to be created.
+    //! \param    [in] mosUsage
+    //!           The selected pre-defined MOS usage of memory object control cache setting
     //! \retval   CM_SUCCESS if the CmSurface2D is successfully created.
     //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResrouce is nullptr.
     //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 2D surfaces
     //!           is exceeded.
     //! \retval   CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
-                                              CmSurface2D* &surface) = 0;
+    CM_RT_API virtual int32_t UpdateSurface2D(PMOS_RESOURCE mosResource, CmSurface2D* &surface,
+                                              MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState) = 0;
 
     //!
     //! \brief      Creates a CmSampler8x8 surface from Surface2D alias.

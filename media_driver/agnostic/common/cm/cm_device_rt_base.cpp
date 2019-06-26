@@ -3665,32 +3665,48 @@ int32_t CmDeviceRTBase::GetVISAVersion(uint32_t& majorVersion,
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmDeviceRTBase::UpdateBuffer(PMOS_RESOURCE mosResource,
-                                               CmBuffer* &surface)
+
+CM_RT_API int32_t CmDeviceRTBase::UpdateBuffer(PMOS_RESOURCE mosResource, CmBuffer* &surface,
+                                               MOS_HW_RESOURCE_DEF mosUsage)
 {
+    int32_t hr = CM_SUCCESS;
     if (surface)
     {
         CmBuffer_RT *bufferRT = static_cast<CmBuffer_RT *>(surface);
-        return bufferRT->UpdateResource(mosResource);
+        hr = bufferRT->UpdateResource(mosResource);
     }
     else
     {
-        return CreateBuffer(mosResource, surface);
+        hr = CreateBuffer(mosResource, surface);
     }
+
+    if (hr == CM_SUCCESS)
+    {
+        hr = surface->SetResourceUsage(mosUsage);
+    }
+    return hr;
 }
 
-CM_RT_API int32_t CmDeviceRTBase::UpdateSurface2D(PMOS_RESOURCE mosResource,
-                                                  CmSurface2D* &surface)
+
+CM_RT_API int32_t CmDeviceRTBase::UpdateSurface2D(PMOS_RESOURCE mosResource, CmSurface2D* &surface,
+                                                  MOS_HW_RESOURCE_DEF mosUsage)
 {
+    int32_t hr = CM_SUCCESS;
     if (surface)
     {
         CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
-        return surfaceRT->UpdateResource(mosResource);
+        hr = surfaceRT->UpdateResource(mosResource);
     }
     else
     {
-        return CreateSurface2D(mosResource, surface);
+        hr = CreateSurface2D(mosResource, surface);
     }
+
+    if (hr == CM_SUCCESS)
+    {
+        hr = surface->SetResourceUsage(mosUsage);
+    }
+    return hr;
 }
 
 CM_RT_API int32_t CmDeviceRTBase::CreateSampler8x8SurfaceFromAlias(

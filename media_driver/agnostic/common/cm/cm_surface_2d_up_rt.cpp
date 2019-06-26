@@ -164,6 +164,25 @@ CM_RT_API int32_t CmSurface2DUPRT::SelectMemoryObjectControlSetting(MEMORY_OBJEC
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
 }
 
+CMRT_UMD_API int32_t CmSurface2DUPRT::SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage)
+{
+    int32_t  hr = CM_SUCCESS;
+    uint16_t mocs = 0;
+    hr = CmSurface::SetResourceUsage(mosUsage);
+
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type << 4) | m_memObjCtrl.age;
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D_UP));
+finish:
+    return hr;
+}
+
 //*-------------------------------------------------------------------------------------------
 //| Purpose:    Get the description of surface 2d, width,height,format and the size PER pixel.
 //| Arguments :

@@ -692,6 +692,7 @@ CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceHybridStrides( const unsigned c
     else
     {
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
+
         if(IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
             CmEvent *tempEvent = CM_NO_EVENT;
@@ -991,6 +992,7 @@ CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceHybridStrides(unsigned char* sys
     else
     {
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
+
         if (IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
             CmEvent *tempEvent = CM_NO_EVENT;
@@ -1188,15 +1190,12 @@ finish:
     return hr;
 }
 
+
 int32_t CmSurface2DRTBase::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age)
 {
-    INSERT_API_CALL_LOG();
-
-    CM_RETURN_CODE  hr = CM_SUCCESS;
+    int32_t  hr = CM_SUCCESS;
     uint16_t mocs = 0;
-
-    CmSurface::SetMemoryObjectControl( memCtrl, memType, age );
-
+    hr = CmSurface::SetMemoryObjectControl(memCtrl, memType, age);
     CmDeviceRT *cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
     CM_CHK_NULL_RETURN_CMERROR(cmDevice);
@@ -1205,16 +1204,35 @@ int32_t CmSurface2DRTBase::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
-
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D));
-
 finish:
     return hr;
 }
 
 CM_RT_API int32_t CmSurface2DRTBase::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl)
 {
+    INSERT_API_CALL_LOG();
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
+}
+
+CMRT_UMD_API int32_t CmSurface2DRTBase::SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage)
+{
+    INSERT_API_CALL_LOG();
+    int32_t  hr = CM_SUCCESS;
+    uint16_t mocs = 0;
+    hr = CmSurface::SetResourceUsage(mosUsage);
+
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type << 4) | m_memObjCtrl.age;
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D));
+finish:
+    return hr;
 }
 
 int32_t CmSurface2DRTBase::Create2DAlias(SurfaceIndex* & aliasIndex)

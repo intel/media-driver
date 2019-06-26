@@ -585,67 +585,18 @@ MOS_STATUS CM_HAL_G10_X::HwSetSurfaceMemoryObjectControl(
 {
     PRENDERHAL_INTERFACE renderHal = m_cmState->renderHal;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CM_HAL_MEMORY_OBJECT_CONTROL_G9 cacheType;
+    MOS_HW_RESOURCE_DEF mosUsage;
     // The memory object control uint16_t is composed with cache type(8:15), memory type(4:7), ages(0:3)
-    cacheType = (CM_HAL_MEMORY_OBJECT_CONTROL_G9)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
+    mosUsage = (MOS_HW_RESOURCE_DEF)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
+    if (mosUsage >= MOS_HW_RESOURCE_DEF_MAX)
+        mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState;
 
-    if ((uint16_t)cacheType == CM_INVALID_MEMOBJCTL)
-    {
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        return eStatus;
-    }
-
-    switch (cacheType)
-    {
-    case CM_MEMORY_OBJECT_CONTROL_SKL_DEFAULT:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_ELLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_CACHE:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    default:
-        eStatus = MOS_STATUS_UNKNOWN;
-    }
+    surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(mosUsage,
+        renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
 
     return eStatus;
 }
+
 
 MOS_STATUS CM_HAL_G10_X::UpdatePlatformInfoFromPower(
     PCM_PLATFORM_INFO      platformInfo,
