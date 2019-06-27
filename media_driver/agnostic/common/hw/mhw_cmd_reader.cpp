@@ -117,13 +117,24 @@ void MhwCmdReader::OverrideCmdDataFromFile(string cmdName, uint32_t cmdLen, uint
             if (it->info.dwordIdx < cmdLen)
             {
                 AssignField(cmd, *it);
-            }
 
-            it = m_shortTermFields.erase(it);
-            while (it != m_shortTermFields.end() && it->info.cmdIdx == cmdIdx &&
-                it->info.dwordIdx == dwordIdx && it->info.stardBit == stardBit)
+                it = m_shortTermFields.erase(it);
+                while (it != m_shortTermFields.end() && it->info.cmdIdx == cmdIdx &&
+                    it->info.dwordIdx == dwordIdx && it->info.stardBit == stardBit)
+                {
+                    ++it;
+                }
+            }
+            else if (it->info.dwordIdx == 0xff)
             {
-                ++it;
+                // 0xff is a delimiter which indicates following override data are for next time adding this command
+                m_shortTermFields.erase(it);
+                break;
+            }
+            else
+            {
+                // dwordIdx is greater than cmdLen, should be discarded
+                it = m_shortTermFields.erase(it);
             }
         }
         else
