@@ -239,6 +239,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     // Assuming picParams are sent before MiscParams
     picParams->ucMinimumQP = encMiscParamRC->min_qp;
     picParams->ucMaximumQP = encMiscParamRC->max_qp;
+    if (picParams->ucMaximumQP == 0 && picParams->ucMinimumQP)
+        picParams->ucMaximumQP = 51;
 
     if ((VA_RC_CBR == m_encodeCtx->uiRCMethod) || ((VA_RC_CBR | VA_RC_MB) == m_encodeCtx->uiRCMethod))
     {
