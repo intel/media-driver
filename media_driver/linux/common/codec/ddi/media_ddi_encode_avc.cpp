@@ -237,8 +237,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     seqParams->MBBRC                   = encMiscParamRC->rc_flags.bits.mb_rate_control;
 
     // Assuming picParams are sent before MiscParams
-    picParams->ucMaximumQP = (encMiscParamRC->max_qp == 0) ? 51 : (uint8_t)CodecHal_Clip3(1, 51, (int8_t)encMiscParamRC->max_qp);
-    picParams->ucMinimumQP = (encMiscParamRC->min_qp == 0) ? 1 : (uint8_t)CodecHal_Clip3(1, picParams->ucMaximumQP, (int8_t)encMiscParamRC->min_qp);
+    picParams->ucMinimumQP = encMiscParamRC->min_qp;
+    picParams->ucMaximumQP = encMiscParamRC->max_qp;
 
     if ((VA_RC_CBR == m_encodeCtx->uiRCMethod) || ((VA_RC_CBR | VA_RC_MB) == m_encodeCtx->uiRCMethod))
     {
