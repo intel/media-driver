@@ -41,7 +41,7 @@ bool FrameTrackerTokenFlat_IsExpired(const FrameTrackerTokenFlat *self)
     {
         if (self->trackers[i] != 0)
         {
-            volatile uint32_t latestTracker = *(self->producer->GetLatestTrackerAddress(i));
+            uint32_t latestTracker = *(self->producer->GetLatestTrackerAddress(i));
             if ((int)(self->trackers[i] - latestTracker) > 0)
             {
                 return false;
@@ -61,7 +61,7 @@ bool FrameTrackerToken::IsExpired()
     for (auto ite = m_holdTrackers.begin(); ite != m_holdTrackers.end(); ite ++)
     {
         uint32_t index = ite->first;
-        volatile uint32_t latestTracker = *(m_producer->GetLatestTrackerAddress(index));
+        uint32_t latestTracker = *(m_producer->GetLatestTrackerAddress(index));
         uint32_t holdTracker = ite->second;
         if ((int)(holdTracker - latestTracker) > 0)
         {
