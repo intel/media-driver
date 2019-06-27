@@ -1205,7 +1205,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
     pStateHeap              = pRenderHal->pStateHeap;
     pMhwRender              = pRenderHal->pMhwRenderInterface;
     pMhwMiInterface         = pRenderHal->pMhwMiInterface;
-    pOsInterface            = pVeboxState->m_pOsInterface;
+    pOsInterface            = pRenderHal->pOsInterface;
     pPerfProfiler           = pRenderHal->pPerfProfiler;
     pOsContext              = pOsInterface->pOsContext;
     pMmioRegisters          = pMhwRender->GetMmioRegisters();
