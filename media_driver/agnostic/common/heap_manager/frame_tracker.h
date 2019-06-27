@@ -146,7 +146,7 @@ public:
         *offset = index * m_trackerSize;
     }
     
-    inline uint32_t *GetLatestTrackerAddress(uint32_t index)
+    inline volatile uint32_t *GetLatestTrackerAddress(uint32_t index)
     {
         return (uint32_t *)((uint8_t *)m_resourceData + index * m_trackerSize);
     }
