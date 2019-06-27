@@ -527,6 +527,6 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS GetRoundingIntraInterToUse();
+    virtual MOS_STATUS GetRoundingIntraInterToUse();
 };
 #endif  // __CODECHAL_ENCODE_HEVC_H__
