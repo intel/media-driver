@@ -2809,8 +2809,21 @@ VAStatus DdiMedia_MapBufferInternal (
             }
             break;
 
-        case VABufferTypeMax:
-            if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
+        case VAProbabilityBufferType:
+            *pbuf = (void *)(buf->pData + buf->uiOffset);
+
+            break;
+
+        case VAEncMacroblockDisableSkipMapBufferType:
+            if(buf->bo)
+            {
+                *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
+            }
+            break;
+
+        case VAImageBufferType:
+        default:
+            if((buf->format != Media_Format_CPU) && (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT))
             {
                 DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
 
@@ -2830,23 +2843,10 @@ VAStatus DdiMedia_MapBufferInternal (
                     return VA_STATUS_SUCCESS;
                 }
             }
-            return VA_STATUS_ERROR_INVALID_BUFFER;
-
-        case VAProbabilityBufferType:
-            *pbuf = (void *)(buf->pData + buf->uiOffset);
-
-            break;
-
-        case VAEncMacroblockDisableSkipMapBufferType:
-            if(buf->bo)
+            else
             {
-                *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
+                *pbuf = (void *)(buf->pData + buf->uiOffset);
             }
-            break;
-
-        case VAImageBufferType:
-        default:
-            *pbuf = (void *)(buf->pData + buf->uiOffset);
             break;
     }
 
@@ -2943,16 +2943,6 @@ VAStatus DdiMedia_UnmapBuffer (
                 DdiMediaUtil_UnlockBuffer(buf);
             }
             break;
-
-        case VABufferTypeMax:
-            if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
-            {
-                DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
-                DdiMediaUtil_UnlockBuffer(buf);
-                DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
-                return VA_STATUS_SUCCESS;
-            }
-            return VA_STATUS_ERROR_INVALID_BUFFER;
         case VAEncMacroblockDisableSkipMapBufferType:
             if(buf->bo)
             {
@@ -2961,7 +2951,13 @@ VAStatus DdiMedia_UnmapBuffer (
             break;
 
         case VAImageBufferType:
-         default:
+        default:
+            if((buf->format != Media_Format_CPU) &&(DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT))
+            {
+                DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
+                DdiMediaUtil_UnlockBuffer(buf);
+                DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+            }
             break;
     }
 
@@ -3035,7 +3031,15 @@ VAStatus DdiMedia_DestroyBuffer (
         case VAPictureParameterBufferType:
             break;
         case VAImageBufferType:
-            MOS_FreeMemory(buf->pData);
+            if(buf->format == Media_Format_CPU)
+            {
+                MOS_FreeMemory(buf->pData);
+            }
+            else
+            {
+                DdiMediaUtil_UnRefBufObjInMediaBuffer(buf);
+            }
+            break;
             break;
         case VAProcPipelineParameterBufferType:
         case VAProcFilterParameterBufferType:
@@ -3050,9 +3054,6 @@ VAStatus DdiMedia_DestroyBuffer (
         case VAEncPackedHeaderDataBufferType:
         case VAEncPackedHeaderParameterBufferType:
             MOS_FreeMemory(buf->pData);
-            break;
-        case VABufferTypeMax:
-            DdiMediaUtil_UnRefBufObjInMediaBuffer(buf);
             break;
         case VAEncMacroblockMapBufferType:
             DdiMediaUtil_FreeBuffer(buf);
@@ -4269,7 +4270,7 @@ VAStatus DdiMedia_DeriveImage (
     }
     buf->uiNumElements = 1;
     buf->iSize         = vaimg->data_size;
-    buf->uiType        = VABufferTypeMax;
+    buf->uiType        = VAImageBufferType;
     buf->format        = mediaSurface->format;
     buf->uiOffset      = 0;
 
