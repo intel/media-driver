@@ -142,7 +142,8 @@ struct CodechalVdencAvcStateG11::BrcInitDmem
     uint8_t     INIT_ICQReEncode_U8;                  // 0: disabled, 1: enabled
     uint8_t     Reserved_u8;                          // must be zero
     uint8_t     INIT_SinglePassOnly;                  // 0: disabled, 1: enabled
-    uint8_t     RSVD2[56];                            // must be zero
+    uint8_t     INIT_New_DeltaQP_Adaptation_U8;       // = 1 to enable new delta QP adaption
+    uint8_t     RSVD2[55];                            // must be zero
 };
 
 struct CodechalVdencAvcStateG11::BrcUpdateDmem
@@ -1359,6 +1360,8 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcInitReset()
         {
             dmem->INIT_DeltaQP_Adaptation_U8 = 0;
         }
+
+        dmem->INIT_New_DeltaQP_Adaptation_U8 = 1;
     }
 
     if (((m_avcSeqParam->TargetUsage & 0x07) == TARGETUSAGE_BEST_SPEED) &&
