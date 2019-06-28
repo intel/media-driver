@@ -32,6 +32,7 @@
 #include "cm_def.h"
 #include "renderhal_platform_interface.h"
 #include "hal_oca_interface.h"
+#include "mhw_mmio_g11.h"
 #if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g11lp.h"
 #include "cm_gpuinit_kernel_g11lp.h"
@@ -358,6 +359,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 cacheSettings = {};
     MOS_CONTEXT                  *pOsContext = renderHal->pOsInterface->pOsContext;
     PMHW_MI_MMIOREGISTERS        pMmioRegisters = renderHal->pMhwRenderInterface->GetMmioRegisters();
+    CM_HAL_MI_REG_OFFSETS        miRegG11 = { REG_TIMESTAMP_BASE_G11, REG_GPR_BASE_G11 };
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
@@ -618,21 +620,8 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
 
                 CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
 
-                // Insert a pipe control for synchronization since this Conditional Batch Buffer End command
-                // will use value written by previous kernel. Also needed since this may be the Batch Buffer End
-                pipeCtlParams = g_cRenderHal_InitPipeControlParams;
-                pipeCtlParams.presDest = &state->renderTimeStampResource.osResource;
-                pipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
-                pipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-                CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams ) );
-
-                // issue a PIPE_CONTROL to write timestamp
-                pipeCtlParams = g_cRenderHal_InitPipeControlParams;
-                pipeCtlParams.presDest = &state->renderTimeStampResource.osResource;
-                pipeCtlParams.dwResourceOffset = syncOffset + sizeof( uint64_t );
-                pipeCtlParams.dwPostSyncOp = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-                pipeCtlParams.dwFlushMode = MHW_FLUSH_READ_CACHE;
-                CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams ) );
+                // conditionally write timestamp
+                CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_OsAddArtifactConditionalPipeControl(&miRegG11, state, &mosCmdBuffer, syncOffset, &taskParam->conditionalBBEndParams[i], tag));
 
                 // Insert conditional batch buffer end
                 mhwMiInterface->AddMiConditionalBatchBufferEndCmd(&mosCmdBuffer, &taskParam->conditionalBBEndParams[ i ] );
