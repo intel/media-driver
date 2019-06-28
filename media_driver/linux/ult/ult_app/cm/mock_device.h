@@ -78,7 +78,10 @@ public:
     static vaDestroySurfacesFunc vaDestroySurfaces;
 
     MockDevice(): vaCmExtSendReqMsg(nullptr),
-                  m_cmDevice(nullptr) {}
+                  m_cmDevice(nullptr)
+    {
+        MOS_ZeroMemory(&vaCmExtSendReqMsg, sizeof(vaCmExtSendReqMsg));
+    }
 
     ~MockDevice() { Release(); }
 

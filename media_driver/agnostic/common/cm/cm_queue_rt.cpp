@@ -120,9 +120,10 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_usingVirtualEngine(false),
     m_osSyncEvent(nullptr),
     m_trackerIndex(0),
-    m_fastTrackerIndex(0)
+    m_fastTrackerIndex(0),
+    m_streamIndex(0)
 {
-
+    MOS_ZeroMemory(&m_mosVeHintParams, sizeof(m_mosVeHintParams));
 }
 
 //*-----------------------------------------------------------------------------

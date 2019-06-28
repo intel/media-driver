@@ -566,7 +566,7 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
     snprintf(traceFile+offset, 256-offset, "%s", "/.mdf_trace");
 
     FILE *traceFd = fopen(traceFile, "r");
-    uint flag = 0;
+    int flag = 0;
     if(traceFd )
     {
       //read data from file

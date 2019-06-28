@@ -170,6 +170,7 @@ CmSurfaceManagerBase::CmSurfaceManagerBase(CmDeviceRT* device) :
     m_device(device),
     m_surfaceArraySize(0),
     m_surfaceArray(nullptr),
+    m_maxSurfaceIndexAllocated(0),
     m_surfaceSizes(nullptr),
     m_maxBufferCount(0),
     m_bufferCount(0),
@@ -193,6 +194,7 @@ CmSurfaceManagerBase::CmSurfaceManagerBase(CmDeviceRT* device) :
     m_delayDestroyHead(nullptr),
     m_delayDestroyTail(nullptr)
 {
+    MOS_ZeroMemory(&m_surfaceBTIInfo, sizeof(m_surfaceBTIInfo));
     GetSurfaceBTIInfo();
 };
 

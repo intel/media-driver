@@ -46,10 +46,11 @@ CmSurface2DRT::CmSurface2DRT(
     CM_SURFACE_FORMAT format,
     CmSurfaceManager* surfaceManager ,
     bool isCmCreated):
-    CmSurface2DRTBase(handle, width, height, pitch, format, surfaceManager, isCmCreated)
+    CmSurface2DRTBase(handle, width, height, pitch, format, surfaceManager, isCmCreated),
+    m_vaSurfaceID(0),
+    m_vaCreated(0),
+    m_vaDisplay(nullptr)
 {
-    m_vaSurfaceID = 0;
-    m_vaCreated = 0;
 }
 
 //*-----------------------------------------------------------------------------

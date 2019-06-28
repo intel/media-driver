@@ -1792,6 +1792,7 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
     void **  curTaskSurfResArray = nullptr;
     uint32_t  refSurfCnt = 0;
     uint32_t *refSurfHandleArray = nullptr;
+    CM_RETURN_CODE hr = CM_SUCCESS;
 
     curTaskSurfResArray = (void **)MOS_AllocAndZeroMemory(sizeof(void *)*poolSize);
     CM_CHK_NULL_RETURN_CMERROR(curTaskSurfResArray);
@@ -1808,9 +1809,10 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
 
     // get the last tracker
     PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_cmDevice->GetAccelData();
-    CM_CHK_NULL_RETURN_CMERROR(cmData);
-    PCM_HAL_STATE state = cmData->cmHalState;
-    CM_CHK_NULL_RETURN_CMERROR(state);
+    PCM_HAL_STATE state = nullptr;
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmData);
+    state = cmData->cmHalState;
+    CM_CHK_NULL_GOTOFINISH_CMERROR(state);
 
     if (!m_isSurfaceUpdateDone)
     {
@@ -1819,7 +1821,7 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
             if (m_surfaceArray[i])
             {
                 CmSurface *surface = NULL;
-                CM_CHK_CMSTATUS_RETURN(surfaceMgr->GetSurface(i, surface));
+                CM_CHK_CMSTATUS_GOTOFINISH(surfaceMgr->GetSurface(i, surface));
                 if (surface == nullptr) // surface destroyed but not updated in kernel
                 {
                     continue;
@@ -1897,13 +1899,8 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
                         }
                         else
                         {
-                            surfaceLock->Release();
-                            if (curTaskSurfResArray)
-                            {
-                                MOS_FreeMemory(curTaskSurfResArray);
-                                curTaskSurfResArray = nullptr;
-                            }
-                            return CM_INVALID_ARG_INDEX;
+                            hr = CM_INVALID_ARG_INDEX;
+                            goto finish;
                         }
                         break;
 
@@ -1916,21 +1913,21 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
         m_isSurfaceUpdateDone = true;
     }
 
-    surfaceLock->Release();
-
     // Check if there is any secure surface.
     if (curTaskSurfCnt > 0 && state->osInterface && state->osInterface->osCpInterface)
     {
         state->osInterface->osCpInterface->PrepareResources(curTaskSurfResArray, curTaskSurfCnt, nullptr, 0);
     }
 
+finish:
+    surfaceLock->Release();
     if (curTaskSurfResArray)
     {
         MOS_FreeMemory(curTaskSurfResArray);
         curTaskSurfResArray = nullptr;
     }
 
-    return CM_SUCCESS;
+    return hr;
 }
 
 #if CM_LOG_ON

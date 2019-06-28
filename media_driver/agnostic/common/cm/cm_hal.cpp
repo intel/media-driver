@@ -9012,11 +9012,13 @@ finish:
         if (batchBuffer->bLocked)
         {
             // Only happens in Error cases
-            CM_CHK_NULL_RETURN_MOSERROR(batchBuffer->pPrivateData);
-
-            if (((PCM_HAL_BB_ARGS)batchBuffer->pPrivateData)->refCount == 1)
+            if (batchBuffer->pPrivateData && ((PCM_HAL_BB_ARGS)batchBuffer->pPrivateData)->refCount == 1)
             {
                 renderHal->pfnUnlockBB(renderHal, batchBuffer);
+            }
+            else if (batchBuffer->pPrivateData == nullptr)
+            {
+                eStatus = MOS_STATUS_NULL_POINTER;
             }
         }
     }
