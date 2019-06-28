@@ -139,9 +139,15 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
     m_nGPUFreqMax(0),
     m_vtuneOn(false),
     m_isDriverStoreEnabled(0),
+    m_notifierGroup(nullptr),
     m_hasGpuCopyKernel(false),
     m_hasGpuInitKernel(false)
 {
+    //Initialize the structures in the class
+    MOS_ZeroMemory(&m_halMaxValues, sizeof(m_halMaxValues));
+    MOS_ZeroMemory(&m_halMaxValuesEx, sizeof(m_halMaxValuesEx));
+    MOS_ZeroMemory(&m_cmHalCreateOption, sizeof(m_cmHalCreateOption));
+
     //Initialize Dev Create Param
     InitDevCreateOption( m_cmHalCreateOption, options );
 
@@ -1657,7 +1663,7 @@ CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
                               CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_API_CALL_LOG();
-    m_criticalSectionQueue.Acquire();
+    CLock locker(m_criticalSectionQueue);
 
     CmQueueRT *queueRT = nullptr;
     if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
@@ -1670,7 +1676,6 @@ CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
                 && gpuContext == queueCreateOption.GPUContext)
             {
                 queue = (*iter);
-                m_criticalSectionQueue.Release();
                 return CM_SUCCESS;
             }
         }
@@ -1682,12 +1687,10 @@ CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
     if (result != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Failed to create the queue.");
-        m_criticalSectionQueue.Release();
         return result;
     }
     m_queue.push_back(queueRT);
     queue = queueRT;
-    m_criticalSectionQueue.Release();
 
     return result;
 }
