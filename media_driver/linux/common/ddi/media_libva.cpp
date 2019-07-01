@@ -3794,6 +3794,8 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_I420:
         case VA_FOURCC_IYUV:
         case VA_FOURCC_UYVY:
+        case VA_FOURCC_A2R10G10B10:
+        case VA_FOURCC_A2B10G10R10:
             gmmParams.BaseHeight = height;
             break;
         case VA_FOURCC_YUY2:
@@ -3858,6 +3860,8 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_XBGR:
         case VA_FOURCC_R8G8B8:
         case VA_FOURCC_RGB565:
+        case VA_FOURCC_A2R10G10B10:
+        case VA_FOURCC_A2B10G10R10:
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
             vaimg->offsets[0] = 0;
