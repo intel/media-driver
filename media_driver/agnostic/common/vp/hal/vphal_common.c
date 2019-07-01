@@ -723,6 +723,14 @@ VPHAL_COLORPACK VpHal_GetSurfaceColorPack (
             ColorPack = VPHAL_COLORPACK_444;
             break;
 
+        case Format_400P:
+            ColorPack = VPHAL_COLORPACK_400;
+            break;
+
+        case Format_411P:
+            ColorPack = VPHAL_COLORPACK_411;
+            break;
+
         default:
             VPHAL_PUBLIC_ASSERTMESSAGE("Input format color pack unknown.");
             ColorPack = VPHAL_COLORPACK_UNKNOWN;

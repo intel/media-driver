@@ -3837,6 +3837,7 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_444P:
         case VA_FOURCC_422V:
         case VA_FOURCC_IMC3:
+        case VA_FOURCC_Y800:
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
         default:
@@ -3902,6 +3903,7 @@ VAStatus DdiMedia_CreateImage(
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
             break;
+        case VA_FOURCC_Y800:
         case VA_FOURCC_UYVY:
         case VA_FOURCC_YUY2:
         case VA_FOURCC_AYUV:

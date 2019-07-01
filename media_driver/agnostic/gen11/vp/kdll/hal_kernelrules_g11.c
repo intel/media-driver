@@ -3726,6 +3726,20 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
     { RID_SetParserState   , Parser_End                          , Kdll_None },
 
+    // Write 400P
+    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
+    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
+    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
+    { RID_IsLayerFormat    , Format_400P                         , Kdll_None },
+    { RID_IsLayerNumber    , 0                                   , Kdll_None },
+    { RID_IsSrc0ColorFill  , ColorFill_True                      , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Colorfill_444Scale16         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Save_444Scale16_PLY          , Kdll_None },
+    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
+    { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
+    { RID_SetParserState   , Parser_End                          , Kdll_None },
+
     // Write PL3
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
     { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
@@ -3905,6 +3919,15 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     { RID_IsLayerFormat    , Format_NV21                         , Kdll_None },
     { RID_SetKernel        , IDR_VP_Set_Dest_Surf_Indexes_Primary, Kdll_None },
     { RID_SetKernel        , IDR_VP_Save_444Scale16_NV21         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
+    { RID_SetParserState   , Parser_End                          , Kdll_None },
+
+    // Write 400P - Normal Save, Sample_8x8 not used or already shuffled
+    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
+    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
+    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
+    { RID_IsLayerFormat    , Format_400P                         , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Save_444Scale16_PLY          , Kdll_None },
     { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
     { RID_SetParserState   , Parser_End                          , Kdll_None },
 
