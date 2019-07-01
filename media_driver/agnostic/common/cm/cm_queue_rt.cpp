@@ -552,6 +552,7 @@ int32_t CmQueueRT::Enqueue_RT(
     if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )))
     {
         CM_ASSERTMESSAGE("Error: Query performance counter failure.");
+        CmTaskInternal::Destroy(task);
         return CM_FAILURE;
     }
 
@@ -630,6 +631,7 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )))
     {
         CM_ASSERTMESSAGE("Error: Query performance counter failure.");
+        CmTaskInternal::Destroy(task);
         return CM_FAILURE;
     }
 
@@ -741,6 +743,7 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* kernelArray[],
     if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )) )
     {
         CM_ASSERTMESSAGE("Error: Query performance counter failure.");
+        CmTaskInternal::Destroy(task);
         return CM_FAILURE;
     }
 
@@ -3143,7 +3146,8 @@ CM_RT_API int32_t CmQueueRT::EnqueueVebox(CmVebox * vebox, CmEvent* & event)
     if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )) )
     {
         CM_ASSERTMESSAGE("Error: Query Performance counter failure.");
-        return CM_FAILURE;
+        hr = CM_FAILURE;
+        goto finish;
     }
 
     CM_CHK_CMSTATUS_GOTOFINISH(CreateEvent(task, isEventVisible, taskDriverId, eventRT));
@@ -3164,7 +3168,10 @@ CM_RT_API int32_t CmQueueRT::EnqueueVebox(CmVebox * vebox, CmEvent* & event)
     CM_CHK_CMSTATUS_GOTOFINISH(FlushTaskWithoutSync());
 
 finish:
-
+    if (hr != CM_SUCCESS)
+    {
+        CmTaskInternal::Destroy(task);
+    }
     return hr;
 }
 
