@@ -2080,7 +2080,7 @@ void CodecHalDecodeScalability_DecPhaseToSubmissionType(
             pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
             break;
         case CODECHAL_HCP_DECODE_PHASE_BE1:
-            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE | SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE;
             break;
         case CODECHAL_HCP_DECODE_PHASE_RESERVED:
         default:

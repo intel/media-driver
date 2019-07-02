@@ -744,7 +744,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                     boOffset + currentPatch->AllocationOffset;
         }
 
-        if (cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+        if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
         {
             mos_bo_set_exec_object_async(alloc_bo);
         }
@@ -920,14 +920,14 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 {
                     execFlag = I915_EXEC_DEFAULT;
                 }
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
                 {
                     fence = osContext->submit_fence;
                     fence_flag = I915_EXEC_FENCE_SUBMIT;
-                    int slave_index = cmdBuffer->iSubmissionType >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
+                    int slave_index = (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_MASK) >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
                     queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
                 }
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
                 {
                     fence_flag = I915_EXEC_FENCE_OUT;
                     queue = m_i915Context[1];
@@ -942,11 +942,11 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                                               execFlag | fence_flag,
                                               &fence);
 
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
                 {
                     osContext->submit_fence = fence;
                 }
-                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)
                 {
                     close(fence);
                 }
