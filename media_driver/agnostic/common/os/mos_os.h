@@ -223,18 +223,6 @@ typedef enum _MOS_VDBOX_NODE_IND
     MOS_VDBOX_NODE_2           = 0x1
 } MOS_VDBOX_NODE_IND;
 
-//!
-//! \brief VEBOX indices
-//!
-typedef enum _MOS_VEBOX_NODE_IND
-{
-    MOS_VEBOX_NODE_INVALID     = -1,
-    MOS_VEBOX_NODE_1           = 0x0,
-    MOS_VEBOX_NODE_2           = 0x1,
-    MOS_VEBOX_NODE_3           = 0x2,
-    MOS_VEBOX_NODE_4           = 0x3
-} MOS_VEBOX_NODE_IND;
-
 #define SUBMISSION_TYPE_SINGLE_PIPE                     (1 << 0)
 #define SUBMISSION_TYPE_SINGLE_PIPE_MASK                (0xff)
 #define SUBMISSION_TYPE_MULTI_PIPE_SHIFT                8
@@ -259,9 +247,7 @@ typedef struct _MOS_COMMAND_BUFFER
     int32_t             iTokenOffsetInCmdBuf;       //!< Pointer to (Un)Secure token's next field Offset
     int32_t             iCmdIndex;                  //!< command buffer's index
     MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
-    MOS_VEBOX_NODE_IND  iVeboxNodeIndex;            //!< Which VEBOX buffer is binded to
     int32_t             iSubmissionType;
-    bool                bLastVeboxNode = false;     //!< Flag to indicate whether last submission of phased submission
 
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
     MOS_OCA_BUFFER_HANDLE hOcaBuf;                  //!< Oca buffer handle for current command

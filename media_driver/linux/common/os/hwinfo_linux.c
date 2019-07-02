@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -140,22 +140,6 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         if (mos_query_engines(fd,I915_ENGINE_CLASS_VIDEO,0,&nengine,uengines) == 0)
         {
             gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
-        }
-    }
-
-    if (gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled == 0)
-    {
-        unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
-        struct i915_engine_class_instance uengines[MAX_ENGINE_INSTANCE_NUM];
-        if (mos_query_engines(fd,I915_ENGINE_CLASS_VIDEO_ENHANCE,0,&nengine,uengines) == 0)
-        {
-            MOS_OS_ASSERT(nengine <= MAX_ENGINE_INSTANCE_NUM);
-            gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled = nengine;
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to query vebox engine\n");
-            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
     }
 
