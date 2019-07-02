@@ -282,6 +282,7 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
+    mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
 
     if (nullptr == mosCtx.pPerfData)
     {
