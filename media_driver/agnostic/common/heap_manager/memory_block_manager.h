@@ -437,7 +437,7 @@ private:
     //!          to the udpated value may be re-used.
     uint32_t *m_trackerData = nullptr;
     PMOS_INTERFACE m_osInterface = nullptr; //!< OS interface used for managing graphics resources
-    bool m_lockHeapsOnAllocate;             //!< All heaps allocated with the keep locked flag.
+    bool m_lockHeapsOnAllocate = false;             //!< All heaps allocated with the keep locked flag.
     
     //! \brief Persistent storage for the sorted sizes used during AcquireSpace()
     std::list<SortedSizePair> m_sortedSizes;
