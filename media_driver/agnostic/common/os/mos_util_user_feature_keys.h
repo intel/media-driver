@@ -277,7 +277,14 @@
 #define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER "Alloc Memory Fail Simulate Counter"
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
-//User feature key for enable/disable UMD_OCA
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA       "Enable UMD_OCA"
+//User feature key for UMD_OCA
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA                               "Enable UMD_OCA"
+//Error Report for UMD_OCA
+#define __MEDIA_USER_FEATURE_VALUE_LAST_OCA_ERROR                               "Last OCA Error"
+#define __MEDIA_USER_FEATURE_VALUE_LINE_NUMBER_OF_LAST_OCA_ERROR                "Line Number Of Last OCA Error"
+#define __MEDIA_USER_FEATURE_VALUE_IS_INDIRECT_STATE_HEAP_INVALID               "Is Indirect State Heap Invalid"
+#define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_BUFFER_LEAKED                  "Count For Oca Buffer Leaked"
+#define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_1ST_LEVEL_BB_END_MISSED        "Count For Oca 1st Level BB End Missed"
+#define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_ADDITIONAL_OCA_BUFFER_ALLOCATED    "Count For Additional Oca Buffer Allocated"
 
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_H__
