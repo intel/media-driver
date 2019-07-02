@@ -657,11 +657,7 @@ typedef struct VPHAL_VEBOX_RENDER_DATA_EXT *PVPHAL_VEBOX_RENDER_DATA_EXT;
 struct VPHAL_VEBOX_RENDER_DATA
 {
 public:
-                                        VPHAL_VEBOX_RENDER_DATA()
-                                        {
-                                            m_pVeboxStateParams = nullptr;
-                                            m_pVeboxIecpParams  = nullptr;
-                                        }
+                                        VPHAL_VEBOX_RENDER_DATA();
                                         VPHAL_VEBOX_RENDER_DATA(const VPHAL_VEBOX_RENDER_DATA&) = delete;
                                         VPHAL_VEBOX_RENDER_DATA& operator=(const VPHAL_VEBOX_RENDER_DATA&) = delete;
     virtual                             ~VPHAL_VEBOX_RENDER_DATA();
@@ -748,17 +744,17 @@ public:
     bool                                bEnableMMC;                             //!< Enable memory compression flag
 
     // Temp surface for the field won't be output
-    PVPHAL_SURFACE                      pOutputTempField      = nullptr;
+    PVPHAL_SURFACE                      pOutputTempField;
 
     // Scaling ratio from source to render target
     // Scaling ratio is needed to determine if SFC or VEBOX is used
     float                               fScaleX;                                //!< X Scaling ratio
     float                               fScaleY;                                //!< Y Scaling ratio
-    
-    bool                                bHdr3DLut             = false;          //!< Enable 3DLut to process HDR
-    uint32_t                            uiMaxDisplayLum       = 4000;           //!< Maximum Display Luminance
-    uint32_t                            uiMaxContentLevelLum  = 1000;           //!< Maximum Content Level Luminance
-    VPHAL_HDR_MODE                      hdrMode               = VPHAL_HDR_MODE_NONE;
+
+    bool                                bHdr3DLut;                              //!< Enable 3DLut to process HDR
+    uint32_t                            uiMaxDisplayLum;                        //!< Maximum Display Luminance
+    uint32_t                            uiMaxContentLevelLum;                   //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE                      hdrMode;
 
 protected:
     // Vebox State Parameters
@@ -888,7 +884,7 @@ public:
             VPHAL_SURFACE           *FFDISurfaces[VPHAL_MAX_NUM_FFDI_SURFACES];  //!< FFDI output surface structure
         };
     };
-    VPHAL_SURFACE                   VeboxRGBHistogram = {};            //!< VEBOX RGB Histogram surface for Vebox Gen9+
+    VPHAL_SURFACE                   VeboxRGBHistogram;                          //!< VEBOX RGB Histogram surface for Vebox Gen9+
     VPHAL_SURFACE                   VeboxStatisticsSurface;                     //!< Statistics Surface for VEBOX
     RENDERHAL_SURFACE               RenderHalVeboxStatisticsSurface;            //!< Statistics Surface for VEBOX for MHW
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -977,14 +973,14 @@ public:
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
-    VPHAL_SURFACE                    Vebox3DLookUpTables = {};
-    VPHAL_SURFACE                    SfcTempSurface = {};
+    VPHAL_SURFACE                    Vebox3DLookUpTables;
+    VPHAL_SURFACE                    SfcTempSurface;
 
-    VphalHVSDenoiser                 *m_hvsDenoiser        = nullptr;            //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
-    uint8_t                          *m_hvsKernelBinary    = nullptr;            //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
-    uint32_t                         m_hvsKernelBinarySize = 0;                  //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
+    VphalHVSDenoiser                 *m_hvsDenoiser;                             //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
+    uint8_t                          *m_hvsKernelBinary;                         //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
+    uint32_t                         m_hvsKernelBinarySize;                      //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
 
-    bool                             bPhasedSubmission     = false;              //!< Flag to indicate if secondary command buffers are submitted together (Win) or separately (Linux)
+    bool                             bPhasedSubmission;                          //!< Flag to indicate if secondary command buffers are submitted together (Win) or separately (Linux)
 
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
