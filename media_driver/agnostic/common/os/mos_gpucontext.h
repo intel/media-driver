@@ -42,7 +42,12 @@ public:
     //!
     //! \brief  Constructor
     //!
-    GpuContext(){}
+    GpuContext()
+    {
+        m_nodeOrdinal = MOS_GPU_NODE_MAX;
+        m_gpuContextHandle = 0;
+        m_gpuContext = MOS_GPU_CONTEXT_RENDER;
+    }
 
     //!
     //! \brief  Destructor

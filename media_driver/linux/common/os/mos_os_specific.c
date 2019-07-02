@@ -1802,7 +1802,8 @@ void Mos_Specific_ResetOsStates(
             return;
         }
 
-        return gpuContext->ResetGpuContextStatus();
+        gpuContext->ResetGpuContextStatus();
+        return;
     }
 
     pOsContext = pOsInterface->pOsContext;

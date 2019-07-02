@@ -48,6 +48,7 @@ GpuContextSpecific::GpuContextSpecific(
     m_cmdBufMgr            = cmdBufMgr;
     m_gpuContext           = mosGpuCtx;
     m_statusBufferResource = nullptr;
+    m_maxPatchLocationsize = PATCHLOCATIONLIST_SIZE;
 
     if (reusedContext)
     {
