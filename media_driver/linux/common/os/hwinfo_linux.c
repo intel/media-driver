@@ -141,6 +141,10 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         {
             gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
         }
+        for (int i=0; i<nengine; i++)
+        {
+            gtSystemInfo->VDBoxInfo.Instances.VDBoxEnableMask |= 1<<uengines[i].engine_instance;
+        }
     }
 
     uint32_t platformKey = devInfo->productFamily;
