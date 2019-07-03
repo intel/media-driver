@@ -176,12 +176,6 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
 
-    if (rawSurface.OsResource.Format != reconSurface.OsResource.Format)
-    {
-        DDI_ASSERTMESSAGE("DDI:Incorrect Format for Reconstructed surface\n!");
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
-
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;
     MOS_ZeroMemory(&bitstreamSurface, sizeof(MOS_RESOURCE));
