@@ -38,10 +38,6 @@ ISAfile::ISAfile(const ISAfile& other) {
     data = other.data;
     end = other.end;
     size = other.size;
-    if (error)
-    {
-        delete[] error;
-    }
     char *perror = new char[std::strlen(other.error)];
     MOS_SecureMemcpy(perror, sizeof(perror), other.error, sizeof(other.error));
     error = perror;
