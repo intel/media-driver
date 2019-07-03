@@ -2664,10 +2664,10 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
 
-    cmData->cmHalState->osInterface->pfnSetGpuContext(cmData->cmHalState->osInterface, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
-    RegisterSyncEvent();
-
-    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnExecuteTask(cmData->cmHalState, &param));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
+        ExecuteGeneralTask(cmData->cmHalState,
+                           &param,
+                           static_cast<MOS_GPU_CONTEXT>(m_queueOption.GPUContext)));
 
     if( param.taskIdOut < 0 )
     {
@@ -2795,10 +2795,9 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnSetPowerOption( cmData->cmHalState, task->GetPowerOption() ) );
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
-        ExecuteGroupTask(
-            cmData->cmHalState,
-            &param,
-            static_cast<MOS_GPU_CONTEXT>(m_queueOption.GPUContext)));
+        ExecuteGroupTask(cmData->cmHalState,
+                         &param,
+                         static_cast<MOS_GPU_CONTEXT>(m_queueOption.GPUContext)));
 
     if( param.taskIdOut < 0 )
     {
@@ -3763,6 +3762,25 @@ MOS_STATUS CmQueueRT::ExecuteGroupTask(CM_HAL_STATE *halState,
     }
     RegisterSyncEvent();
     result = halState->pfnExecuteGroupTask(halState, taskParam);
+    halState->osInterface->streamIndex = old_stream_idx;
+    return result;
+}
+
+MOS_STATUS CmQueueRT::ExecuteGeneralTask(CM_HAL_STATE *halState,
+                                         CM_HAL_EXEC_TASK_PARAM *taskParam,
+                                         MOS_GPU_CONTEXT gpuContextName)
+{
+    uint32_t old_stream_idx = halState->osInterface->streamIndex;
+    halState->osInterface->streamIndex = m_streamIndex;
+    MOS_STATUS result
+            = halState->osInterface->pfnSetGpuContext(halState->osInterface,
+                                                      gpuContextName);
+    if (MOS_STATUS_SUCCESS != result)
+    {
+        return result;
+    }
+    RegisterSyncEvent();
+    result = halState->pfnExecuteTask(halState, taskParam);
     halState->osInterface->streamIndex = old_stream_idx;
     return result;
 }

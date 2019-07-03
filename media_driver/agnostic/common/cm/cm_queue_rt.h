@@ -373,6 +373,11 @@ private:
                                 CM_HAL_EXEC_TASK_GROUP_PARAM *taskParam,
                                 MOS_GPU_CONTEXT gpuContextName);
 
+    // Calls CM HAL API to submit a general task to command buffer.
+    MOS_STATUS ExecuteGeneralTask(CM_HAL_STATE *halState,
+                                  CM_HAL_EXEC_TASK_PARAM *taskParam,
+                                  MOS_GPU_CONTEXT gpuContextName);
+
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);
 };
