@@ -21,7 +21,7 @@
 */
 //!
 //! \file      media_libva_cm.c 
-//! \brief     LibVA CM(C for Media) extensions interface implementaion 
+//! \brief     LibVA CM(C for Metal) extensions interface implementaion 
 //!
 #include <va/va.h>
 #include <va/va_vpp.h>
