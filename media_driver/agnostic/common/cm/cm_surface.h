@@ -70,6 +70,8 @@ public:
     inline CmSurface*& DelayDestroyPrev() {return m_delayDestroyPrev; }
     inline CmSurface*& DelayDestroyNext() {return m_delayDestroyNext; } 
 
+    inline uint8_t GetPropertyIndex() {return m_propertyIndex; }
+
 protected:
     CmSurface( CmSurfaceManager* surfMgr , bool isCmCreated );
     virtual ~CmSurface( void );
@@ -97,6 +99,8 @@ protected:
     CmSurface *m_delayDestroyPrev; // previous node in bi-directional list
 
     CmSurface *m_delayDestroyNext; // next node in bi-directional list
+
+    uint8_t m_propertyIndex; // Index to the current surface properties
 
 private:
     CmSurface (const CmSurface& other);

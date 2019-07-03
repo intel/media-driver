@@ -58,7 +58,8 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
     m_lastVeboxTracker(0),
     m_released(false),
     m_delayDestroyPrev(nullptr),
-    m_delayDestroyNext(nullptr)
+    m_delayDestroyNext(nullptr),
+    m_propertyIndex(0)
 {
     MOS_ZeroMemory(&m_memObjCtrl, sizeof(m_memObjCtrl));
 }

@@ -410,6 +410,7 @@ CM_RT_API int32_t CmSurface2DRTBase::SetCompressionMode(MEMCOMP_STATE mmcMode)
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetCompressionMode(cmData->cmHalState, mmcModeParam));
+    ++ m_propertyIndex;
 
 finish:
     return hr;
@@ -1205,6 +1206,7 @@ int32_t CmSurface2DRTBase::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D));
+    ++ m_propertyIndex;
 finish:
     return hr;
 }
@@ -1212,6 +1214,7 @@ finish:
 CM_RT_API int32_t CmSurface2DRTBase::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl)
 {
     INSERT_API_CALL_LOG();
+    ++ m_propertyIndex;
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
 }
 
@@ -1231,6 +1234,7 @@ CMRT_UMD_API int32_t CmSurface2DRTBase::SetResourceUsage(const MOS_HW_RESOURCE_D
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type << 4) | m_memObjCtrl.age;
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D));
+    ++ m_propertyIndex;
 finish:
     return hr;
 }
@@ -1309,6 +1313,8 @@ CM_RT_API int32_t CmSurface2DRTBase::SetSurfaceStateParam( SurfaceIndex *surfInd
     }
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnSet2DSurfaceStateParam(cmData->cmHalState, &inParam, aliasIndex, m_handle) );
+
+    ++ m_propertyIndex;
 
 finish:
     return hr;
@@ -1452,6 +1458,7 @@ CM_RT_API int32_t CmSurface2DRTBase::SetProperty(CM_FRAME_TYPE frameType)
 {
     m_frameType = frameType;
     m_surfaceMgr->UpdateSurface2DTableFrameType(m_handle, frameType);
+    ++ m_propertyIndex;
     return CM_SUCCESS;
 }
 
@@ -1474,6 +1481,7 @@ int32_t CmSurface2DRTBase::UpdateSurfaceProperty(uint32_t width, uint32_t height
     m_height = height;
     m_pitch = pitch;
     m_format = format;
+    ++ m_propertyIndex;
     return CM_SUCCESS;
 }
 

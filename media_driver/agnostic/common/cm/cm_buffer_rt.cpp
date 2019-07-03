@@ -306,6 +306,7 @@ int32_t CmBuffer_RT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, MEMO
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_1D));
+    ++ m_propertyIndex;
 finish:
     return hr;
 }
@@ -313,6 +314,7 @@ finish:
 CM_RT_API int32_t CmBuffer_RT::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl)
 {
     INSERT_API_CALL_LOG();
+    ++ m_propertyIndex;
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
 }
 
@@ -332,6 +334,7 @@ CMRT_UMD_API int32_t CmBuffer_RT::SetResourceUsage(const MOS_HW_RESOURCE_DEF mos
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type << 4) | m_memObjCtrl.age;
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_1D));
+    ++ m_propertyIndex;
 finish:
     return hr;
 }
@@ -384,6 +387,7 @@ CM_RT_API int32_t CmBuffer_RT::SetSurfaceStateParam(SurfaceIndex *surfIndex, con
     inParam.mocs    = (uint16_t)((bufferStateParam->mocs.mem_ctrl << 8)|(bufferStateParam->mocs.mem_type << 4)|(bufferStateParam->mocs.age));
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetBufferSurfaceStatePara(cmData->cmHalState, &inParam));
+    ++ m_propertyIndex;
 
 finish:
     return hr;
