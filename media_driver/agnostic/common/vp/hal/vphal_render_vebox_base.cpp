@@ -4237,7 +4237,6 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     {
         FFDISurfaces[i] = nullptr;
     }
-    VeboxRGBHistogram               = {};
     VeboxStatisticsSurface          = {};            //!< Statistics Surface for VEBOX
     RenderHalVeboxStatisticsSurface = {};            //!< Statistics Surface for VEBOX for MHW
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -4321,16 +4320,9 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     bDisableTemporalDenoiseFilter        = false;   //!< Temporal denoise filter disable flag - read from User feature keys
     bDisableTemporalDenoiseFilterUserKey = false;   //!< Backup temporal denoise filter disable flag - read from User feature keys
 
-    uiCurrentChannel                     = 0;
-
     RenderGpuContext = pOsInterface ? (pOsInterface->CurrentGpuContextOrdinal) : MOS_GPU_CONTEXT_RENDER;
 
-    Vebox3DLookUpTables = { };
-    SfcTempSurface      = { };
-
-    m_hvsDenoiser         = nullptr;
-    m_hvsKernelBinary     = nullptr;
-    m_hvsKernelBinarySize = 0;
+    m_hvsDenoiser = nullptr;
 }
 
 VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()
@@ -4491,86 +4483,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(
     return eStatus;
 }
 
-VPHAL_VEBOX_RENDER_DATA::VPHAL_VEBOX_RENDER_DATA()
-{
-    // Flags
-    bRefValid      = false;
-    bSameSamples   = false;
-    bProgressive   = false;
-    bDenoise       = false;
-#if VEBOX_AUTO_DENOISE_SUPPORTED
-    bAutoDenoise   = false;
-#endif
-    bChromaDenoise = false;
-    bOutOfBound    = false;
-    bVDIWalker     = false;
-    bIECP          = false;
-    bColorPipe     = false;
-    bProcamp       = false;
-    // DNDI/Vebox
-    bDeinterlace   = false;
-    bSingleField   = false;
-    bTFF           = false;
-    bTopField      = false;
-    bBeCsc         = false;
-    bVeboxBypass   = false;
-    b60fpsDi       = false;
-    bQueryVariance = false;
-    // Surface Information
-    iFrame0        = 0;
-    iFrame1        = 0;
-    iCurDNIn       = 0;
-    iCurDNOut      = 0;
-    iCurHistIn     = 0;
-    iCurHistOut    = 0;
-    // Geometry
-    iBlocksX       = 0;
-    iBlocksY       = 0;
-    iBindingTable  = 0;
-    iMediaID0      = 0;
-    iMediaID1      = 0;
-    // Perf
-    PerfTag        = VPHAL_NONE;
-    // States
-    pMediaState        = nullptr;
-    pVeboxState        = nullptr;
-    pRenderTarget      = nullptr;
-    SamplerStateParams = { };
-    VeboxDNDIParams    = { };
-    pAlphaParams       = nullptr;
-    // Batch Buffer rendering arguments
-    BbArgs = { };
-    // Vebox output parameters
-    OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
-    // Kernel Information
-    for (int i = 0; i < VPHAL_NUM_KERNEL_VEBOX; i++)
-    {
-        pKernelParam[i] = nullptr;
-        KernelEntry[i]  = { };
-    }
-    pDNUVParams          = nullptr;
-    iCurbeLength         = 0;
-    iInlineLength        = 0;
-    // Debug parameters
-    pKernelName          = nullptr;
-    Component            = COMPONENT_UNKNOWN;
-    // Memory compression flag
-    bEnableMMC           = false;
-
-    pOutputTempField     = nullptr;
-
-    fScaleX              = 0.0f;
-    fScaleY              = 0.0f;
-
-    bHdr3DLut            = false;
-    uiMaxDisplayLum      = 4000;
-    uiMaxContentLevelLum = 1000;
-    hdrMode              = VPHAL_HDR_MODE_NONE;
-
-    m_pVeboxStateParams  = nullptr;
-    m_pVeboxIecpParams   = nullptr;
-}
-
 VPHAL_VEBOX_RENDER_DATA::~VPHAL_VEBOX_RENDER_DATA()
 {
     if (m_pVeboxStateParams)
@@ -4613,6 +4525,88 @@ MOS_STATUS VPHAL_VEBOX_RENDER_DATA::Init()
         }
     }
     m_pVeboxIecpParams->Init();
+
+    bColorPipe      = false;
+    bIECP           = false;
+    bProcamp        = false;
+
+    // Flags
+    bRefValid       = false;
+    bSameSamples    = false;
+    bProgressive    = false;
+    bDenoise        = false;
+#if VEBOX_AUTO_DENOISE_SUPPORTED
+    bAutoDenoise    = false;
+#endif
+    bChromaDenoise  = false;
+    bOutOfBound     = false;
+    bVDIWalker      = false;
+
+    // DNDI/Vebox
+    bDeinterlace    = false;
+    bSingleField    = false;
+    bTFF            = false;
+    bTopField       = false;
+    bBeCsc          = false;
+    bVeboxBypass    = false;
+    b60fpsDi        = false;
+
+    // Surface Information
+    iFrame0     = 0;
+    iFrame1     = 0;
+    iCurDNIn    = 0;
+    iCurDNOut   = 0;
+    iCurHistIn  = 0;
+    iCurHistOut = 0;
+
+    // Geometry
+    iBlocksX        = 0;
+    iBlocksY        = 0;
+    iBindingTable   = 0;
+    iMediaID0       = 0;
+    iMediaID1       = 0;
+
+    // Perf
+    PerfTag = VPHAL_NONE;
+
+    // States
+    pMediaState     = nullptr;
+    pVeboxState     = nullptr;
+    pRenderTarget   = nullptr;
+
+    SamplerStateParams  = { };
+
+    VeboxDNDIParams     = { };
+
+    pAlphaParams    = nullptr;
+
+    // Batch Buffer rendering arguments
+    BbArgs = { };
+
+    // Vebox output parameters
+    OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+
+    // Kernel Information
+    int i;
+    for (i = 0; i < VPHAL_NUM_KERNEL_VEBOX; i++)
+    {
+        pKernelParam[i] = nullptr;
+        KernelEntry[i]  = { };
+    }
+
+    pDNUVParams     = nullptr;
+    iCurbeLength    = 0;
+    iInlineLength   = 0;
+
+    // Debug parameters
+    pKernelName = nullptr;
+    Component   = COMPONENT_UNKNOWN;
+
+    // Memory compression flag
+    bEnableMMC = false;
+
+    fScaleX = 0.0f;                                //!< X Scaling ratio
+    fScaleY = 0.0f;                                //!< Y Scaling ratio
 
     return MOS_STATUS_SUCCESS;
 }
