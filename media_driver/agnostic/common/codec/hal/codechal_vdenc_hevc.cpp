@@ -900,42 +900,50 @@ MOS_STATUS CodechalVdencHevcState::SetupDirtyRectStreamIn(PMOS_RESOURCE streamIn
     uint32_t streamInWidthNo64Align  = (MOS_ALIGN_CEIL(m_frameWidth, 32) / 32);
     uint32_t streamInHeightNo64Align = (MOS_ALIGN_CEIL(m_frameHeight, 32) / 32);
 
-    uint32_t bstreamInWidth32Align  = (streamInWidthNo64Align * 32) == m_frameWidth;
-    uint32_t bstreamInHeight32Align = (streamInHeightNo64Align * 32) == m_frameHeight;
+    bool bActualWidth32Align  = (m_frameWidth % 32) == 0;
+    bool bActualHeight32Align = (m_frameHeight % 32) == 0;
 
     // Set the static region when the width is not 64 CU aligned.
-    if (streamInWidthNo64Align != streamInWidth)
+    if (streamInWidthNo64Align != streamInWidth || !bActualWidth32Align)
     {
         auto border_top    = 0;
         auto border_bottom = streamInHeight;
         auto border_left   = streamInWidthNo64Align - 1;
         auto border_right  = streamInWidth;
 
-        if (bstreamInWidth32Align)
+        if (!bActualWidth32Align)
         {
-            StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top, border_bottom, border_left, border_right, data);
+            StreaminSetDirtyRectRegion(streamInWidth, border_top, border_bottom, border_left, border_right, 3, data);
+            if (streamInWidthNo64Align == streamInWidth)
+            {
+                StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top, border_bottom, border_left-1, border_right-1, data);
+            }
         }
         else
         {
-            StreaminSetDirtyRectRegion(streamInWidth, border_top, border_bottom, border_left, border_right, 3, data);
+            StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top, border_bottom, border_left, border_right, data);
         }
     }
 
     // Set the static region when the height is not 64 CU aligned.
-    if (streamInHeightNo64Align != streamInHeight)
+    if (streamInHeightNo64Align != streamInHeight || !bActualHeight32Align)
     {
         auto border_top    = streamInHeightNo64Align - 1;
         auto border_bottom = streamInHeight;
         auto border_left   = 0;
         auto border_right  = streamInWidth;
 
-        if (bstreamInHeight32Align)
+        if (!bActualHeight32Align)
         {
-            StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top, border_bottom, border_left, border_right, data);
+            StreaminSetDirtyRectRegion(streamInWidth, border_top, border_bottom, border_left, border_right, 3, data);
+            if (streamInHeightNo64Align == streamInHeight)
+            {
+                StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top - 1, border_bottom - 1, border_left, border_right, data);
+            }                
         }
         else
         {
-            StreaminSetDirtyRectRegion(streamInWidth, border_top, border_bottom, border_left, border_right, 3, data);
+            StreaminSetBorderNon64AlignStaticRegion(streamInWidth, border_top, border_bottom, border_left, border_right, data);
         }
     }
 
