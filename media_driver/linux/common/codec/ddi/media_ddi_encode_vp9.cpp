@@ -231,6 +231,11 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
             MOS_ZeroMemory(&(m_segParams->SegData[i]), sizeof(CODEC_VP9_ENCODE_SEG_PARAMS));
         }
     }
+    else if (!isSegParamsChanged)
+    {
+        /* segmentation is enabled, but segment parameters are not changed */
+        vp9PicParam->PicFlags.fields.seg_update_data = 0;
+    }
 
     encodeParams.pSeqParams      = m_encodeCtx->pSeqParams;
     encodeParams.pPicParams      = m_encodeCtx->pPicParams;
@@ -751,9 +756,17 @@ VAStatus DdiEncodeVp9::Qmatrix(void *ptr)
     DDI_CHK_NULL(m_segParams, "nullptr m_segParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAEncMiscParameterTypeVP9PerSegmantParam *segParams = (VAEncMiscParameterTypeVP9PerSegmantParam *)ptr;
+    isSegParamsChanged = false;
 
     for (int32_t i = 0; i < 8; ++i)
     {
+        if (   m_segParams->SegData[i].SegmentFlags.fields.SegmentReferenceEnabled != segParams->seg_data[i].seg_flags.bits.segment_reference_enabled
+            || m_segParams->SegData[i].SegmentFlags.fields.SegmentReference != segParams->seg_data[i].seg_flags.bits.segment_reference
+            || m_segParams->SegData[i].SegmentFlags.fields.SegmentSkipped != segParams->seg_data[i].seg_flags.bits.segment_reference_skipped
+            || m_segParams->SegData[i].SegmentQIndexDelta != MOS_CLAMP_MIN_MAX(segParams->seg_data[i].segment_qindex_delta, -255, 255)
+            || m_segParams->SegData[i].SegmentLFLevelDelta != MOS_CLAMP_MIN_MAX(segParams->seg_data[i].segment_lf_level_delta, -63, 63))
+            isSegParamsChanged = true;
+
         m_segParams->SegData[i].SegmentFlags.fields.SegmentReferenceEnabled =
             segParams->seg_data[i].seg_flags.bits.segment_reference_enabled;
         m_segParams->SegData[i].SegmentFlags.fields.SegmentReference =
