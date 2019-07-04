@@ -4237,6 +4237,7 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     {
         FFDISurfaces[i] = nullptr;
     }
+    VeboxRGBHistogram               = {};
     VeboxStatisticsSurface          = {};            //!< Statistics Surface for VEBOX
     RenderHalVeboxStatisticsSurface = {};            //!< Statistics Surface for VEBOX for MHW
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -4320,9 +4321,16 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     bDisableTemporalDenoiseFilter        = false;   //!< Temporal denoise filter disable flag - read from User feature keys
     bDisableTemporalDenoiseFilterUserKey = false;   //!< Backup temporal denoise filter disable flag - read from User feature keys
 
+    uiCurrentChannel                     = 0;
+
     RenderGpuContext = pOsInterface ? (pOsInterface->CurrentGpuContextOrdinal) : MOS_GPU_CONTEXT_RENDER;
 
-    m_hvsDenoiser = nullptr;
+    Vebox3DLookUpTables = { };
+    SfcTempSurface      = { };
+
+    m_hvsDenoiser         = nullptr;
+    m_hvsKernelBinary     = nullptr;
+    m_hvsKernelBinarySize = 0;
 }
 
 VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()
