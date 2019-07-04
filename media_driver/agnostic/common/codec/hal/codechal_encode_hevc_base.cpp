@@ -2343,9 +2343,6 @@ void CodechalEncodeHevcBase::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& sr
     srcSurfaceParams.ChromaType = m_outputChromaFormat;
     srcSurfaceParams.bSrc8Pak10Mode         = false; //No usage for 8->10 bit encode
     srcSurfaceParams.dwActualHeight = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
-#ifdef _MMC_SUPPORTED
-    m_mmcState->SetSurfaceState(&srcSurfaceParams);
-#endif
 }
 
 void CodechalEncodeHevcBase::SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& reconSurfaceParams)
