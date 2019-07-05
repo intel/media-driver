@@ -701,23 +701,6 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
-private:
-    //!
-    //! \brief    Prepare phases for composite and determine intermediate colorspace
-    //! \param    [in] pcRenderParams
-    //!           Pointer to Render parameters
-    //! \param    [in] ppSources
-    //!           Pointer to the address of Source Surfaces
-    //! \param    [in] iSources
-    //!           Count of Source Surfaces
-    //! \return   VPHAL_CSPACE
-    //!           Return intermediate colorspace
-    //!
-    VPHAL_CSPACE PrepareCSC(
-        PCVPHAL_RENDER_PARAMS   pcRenderParams,
-        PVPHAL_SURFACE          *ppSources,
-        int32_t                 iSources);
-
     //!
     //! \brief    Prepare phases for composite and allocate intermediate buffer for rendering
     //! \param    [in] pcRenderParams
@@ -729,32 +712,10 @@ private:
     //! \return   bool
     //!           Return true if multiple phases, otherwise false
     //!
-    bool PreparePhases(
+    virtual bool PreparePhases(
         PCVPHAL_RENDER_PARAMS       pcRenderParams,
         PVPHAL_SURFACE              *ppSources,
         int32_t                     iSources);
-
-    //!
-    //! \brief    Composite multiple phase rendering
-    //! \details  Composite render with multiple phases. In some cases we cannot process composition just in one phase
-    //!           for example, if the input streams count is 9 (1 primary + 8 substreams), we need to postpone the
-    //!           9th stream to next second phase due to the input count limitation of current composition kernel.
-    //! \param    [in] pcRenderParams
-    //!           Pointer to VPHAL_RENDER_PARAMS
-    //! \param    [in] ppSources
-    //!           Pointer to PVPHAL_SURFACE, array of input surfaces
-    //! \param    [in] iSources
-    //!           constant int iSource indicating the size of ppSources
-    //! \param    [in] pOutput
-    //!           Pointer to VPHAL_SURFACE, output surface for the overall composition process
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    MOS_STATUS RenderMultiPhase(
-        PCVPHAL_RENDER_PARAMS   pcRenderParams,
-        PVPHAL_SURFACE          *ppSources,
-        const int32_t           iSources,
-        PVPHAL_SURFACE          pOutput);
 
     //!
     //! \brief    Reset composite rendering parameters for the current phase
@@ -790,6 +751,45 @@ private:
     bool AddCompTarget(
         PVPHAL_COMPOSITE_PARAMS     pComposite,
         PVPHAL_SURFACE              pTarget);
+
+private:
+    //!
+    //! \brief    Prepare phases for composite and determine intermediate colorspace
+    //! \param    [in] pcRenderParams
+    //!           Pointer to Render parameters
+    //! \param    [in] ppSources
+    //!           Pointer to the address of Source Surfaces
+    //! \param    [in] iSources
+    //!           Count of Source Surfaces
+    //! \return   VPHAL_CSPACE
+    //!           Return intermediate colorspace
+    //!
+    VPHAL_CSPACE PrepareCSC(
+        PCVPHAL_RENDER_PARAMS   pcRenderParams,
+        PVPHAL_SURFACE          *ppSources,
+        int32_t                 iSources);
+
+    //!
+    //! \brief    Composite multiple phase rendering
+    //! \details  Composite render with multiple phases. In some cases we cannot process composition just in one phase
+    //!           for example, if the input streams count is 9 (1 primary + 8 substreams), we need to postpone the
+    //!           9th stream to next second phase due to the input count limitation of current composition kernel.
+    //! \param    [in] pcRenderParams
+    //!           Pointer to VPHAL_RENDER_PARAMS
+    //! \param    [in] ppSources
+    //!           Pointer to PVPHAL_SURFACE, array of input surfaces
+    //! \param    [in] iSources
+    //!           constant int iSource indicating the size of ppSources
+    //! \param    [in] pOutput
+    //!           Pointer to VPHAL_SURFACE, output surface for the overall composition process
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS RenderMultiPhase(
+        PCVPHAL_RENDER_PARAMS   pcRenderParams,
+        PVPHAL_SURFACE          *ppSources,
+        const int32_t           iSources,
+        PVPHAL_SURFACE          pOutput);
 
     //!
     //! \brief    Perform multiple layer composite operation in one phase
@@ -1061,10 +1061,6 @@ private:
     RENDERHAL_KERNEL_PARAM          m_KernelParams;
     int32_t                         m_ThreadCountPrimary;
 
-    // Intermediate surface (multiple phase / constriction support)
-    VPHAL_SURFACE                   m_Intermediate;
-    // Rotation output intermediate surface
-    VPHAL_SURFACE                   m_Intermediate2;
     // CMFC CSC Coefficient surface
     VPHAL_SURFACE                   m_CmfcCoeff;
     RENDERHAL_SURFACE               m_RenderHalCmfcCoeff;
@@ -1105,6 +1101,8 @@ protected:
 
     static const int                AVS_CACHE_SIZE = 4;           //!< AVS coefficients cache size
     AvsCoeffsCache<AVS_CACHE_SIZE>  m_AvsCoeffsCache;             //!< AVS coefficients calculation is expensive, add cache to mitigate
+    VPHAL_SURFACE                   m_Intermediate;               //!< Intermediate surface (multiple phase / constriction support)
+    VPHAL_SURFACE                   m_Intermediate2;              //!< Rotation output intermediate surface
 };
 
 typedef CompositeState * PCComposite;
