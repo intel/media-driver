@@ -516,6 +516,12 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *  Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
     */
     uint32_t  MinBitRatePerSlidingWindow;
+    
+    /*! \brief Indicates number of frames to lookahead.
+    *
+    *    Range is [0~127]. Default is 0 which means lookahead disabled. Valid only when LookaheadBRCSupport is 1. When not 0, application should send LOOKAHEADDATA buffer to driver.
+    */
+    uint8_t   LookaheadDepth;
 
     uint8_t            constraint_set0_flag               : 1;    //!< Same as AVC syntax element.
     uint8_t            constraint_set1_flag               : 1;    //!< Same as AVC syntax element.
