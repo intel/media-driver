@@ -274,7 +274,7 @@
 //User feature key for enable simulating random memory allocation failure
 #define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE    "Alloc Memory Fail Simulate Mode"
 #define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ    "Alloc Memory Fail Simulate Freq"
-#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER "Alloc Memory Fail Simulate Counter"
+#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT    "Alloc Memory Fail Simulate Hint"
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
 //User feature key for UMD_OCA
