@@ -69,6 +69,8 @@ public:
     void startTick(std::string tag);
     void stopTick(std::string tag);
     void savePerfData();
+    bool bPerfUtilityKey;
+    int32_t dwPerfUtilityIsEnabled;
 
 private:
     PerfUtility();
@@ -568,6 +570,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
     __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_COUNTER_ID,
 #endif
+    __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 

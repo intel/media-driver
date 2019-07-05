@@ -1171,6 +1171,21 @@ VAStatus DdiMedia__Initialize (
 
     MOS_utilities_init();
 
+    //Read user feature key here for Per Utility Tool Enabling
+#if _RELEASE_INTERNAL
+    if(!g_perfutility->bPerfUtilityKey)
+    {
+        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+            &UserFeatureData);
+        g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
+        g_perfutility->bPerfUtilityKey = true;
+    }
+#endif
+
     mediaCtx = DdiMedia_CreateMediaDriverContext();
     if (nullptr == mediaCtx)
     {
@@ -2466,6 +2481,8 @@ static VAStatus DdiMedia_DestroyContext (
     uint32_t            ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
     void *ctxPtr = DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
 
+    PERF_UTILITY_PRINT;
+
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
@@ -3288,6 +3305,8 @@ static VAStatus DdiMedia_SyncSurface (
     VASurfaceID         render_target
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
