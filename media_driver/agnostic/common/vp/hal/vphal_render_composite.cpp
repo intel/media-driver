@@ -2466,6 +2466,14 @@ void CompositeState::SetScalingMode(
     {
         pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
     }
+
+    // WA for multilayer P010 AVS+3D one single pass corruption hw issue
+    if (uSourceCount > 1 &&
+        pSource->Format == Format_P010)
+    {
+        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
+    }
+
 }
 
 //!
@@ -2741,9 +2749,7 @@ void CompositeState::SetSurfaceParams(
     }
 
     // Set surface type based on scaling mode
-    // If m_bFallbackIefPatch is on, fallback IEF patch from AVS to SFC
-    if (pSource->ScalingMode == VPHAL_SCALING_AVS || (pSource->bIEF &&
-        !m_bFallbackIefPatch))
+    if (pSource->ScalingMode == VPHAL_SCALING_AVS)
     {
         pSurfaceParams->Type = m_pRenderHal->SurfaceTypeAdvanced;
         pSurfaceParams->bAVS = true;
