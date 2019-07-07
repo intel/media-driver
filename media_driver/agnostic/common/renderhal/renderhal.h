@@ -954,7 +954,7 @@ typedef struct _RENDERHAL_STATE_HEAP
     int32_t                 iKernelUsed;                                        // Kernel heap used size
     uint8_t                 *pKernelLoadMap;                                     // Kernel load map
     uint32_t                dwAccessCounter;                                    // Incremented when a kernel is loaded/used, for dynamic allocation
-    int32_t                 iKernelUsedForDump;                                 // Kernel heap used size without alignment data in tail.
+    int32_t                 iKernelUsedForDump;                                 // The kernel size to be dumped in oca buffer.
 
     // Kernel Spill Area
     uint32_t                dwScratchSpaceSize;                                 // Size of the Scratch Area

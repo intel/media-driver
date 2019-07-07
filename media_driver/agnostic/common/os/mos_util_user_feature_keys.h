@@ -281,7 +281,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA                               "Enable UMD_OCA"
 //Error Report for UMD_OCA
 #define __MEDIA_USER_FEATURE_VALUE_OCA_STATUS                                   "OCA Status"
-#define __MEDIA_USER_FEATURE_VALUE_LINE_NUMBER_OF_OCA_ERROR                     "Line Number Of OCA Error"
+#define __MEDIA_USER_FEATURE_VALUE_OCA_ERROR_HINT                               "OCA Error Hint"
 #define __MEDIA_USER_FEATURE_VALUE_IS_INDIRECT_STATE_HEAP_INVALID               "Is Indirect State Heap Invalid"
 #define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_BUFFER_LEAKED                  "Count For Oca Buffer Leaked"
 #define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_1ST_LEVEL_BB_END_MISSED        "Count For Oca 1st Level BB End Missed"

@@ -2005,6 +2005,9 @@ int32_t RenderHal_LoadKernel(
         }
     }
 
+    // The kernel size to be dumped in oca buffer.
+    pStateHeap->iKernelUsedForDump = iKernelSize;
+
     // Kernel already loaded: refresh timer; return allocation index
     if (iKernelAllocationID < iMaxKernels)
     {
@@ -2032,7 +2035,6 @@ int32_t RenderHal_LoadKernel(
         iSize    = MOS_ALIGN_CEIL(iKernelSize, pRenderHal->StateHeapSettings.iKernelBlockSize);
 
         // Update heap
-        pStateHeap->iKernelUsedForDump = pStateHeap->iKernelUsed + iKernelSize;
         pStateHeap->iKernelUsed += iSize;
 
         // Load kernel

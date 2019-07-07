@@ -129,7 +129,7 @@ public:
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS OnSubLevelBBStart(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT pMosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB)
+    virtual MOS_STATUS OnSubLevelBBStart(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT pMosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
