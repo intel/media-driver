@@ -49,6 +49,7 @@ RenderState::RenderState(
     m_pSkuTable(nullptr),
     m_pWaTable(nullptr),
     m_bDisableRender(false),
+    m_bSingleSlice(false),
     m_pPerfData(pPerfData),
     m_reporting(nullptr)
 {

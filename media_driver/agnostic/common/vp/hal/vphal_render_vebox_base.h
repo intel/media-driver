@@ -1051,12 +1051,12 @@ public:
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
-    VPHAL_SURFACE                    Vebox3DLookUpTables = {};
-    VPHAL_SURFACE                    SfcTempSurface = {};
+    VPHAL_SURFACE                    Vebox3DLookUpTables;
+    VPHAL_SURFACE                    SfcTempSurface;
 
-    VphalHVSDenoiser                 *m_hvsDenoiser        = nullptr;            //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
-    uint8_t                          *m_hvsKernelBinary    = nullptr;            //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
-    uint32_t                         m_hvsKernelBinarySize = 0;                  //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
+    VphalHVSDenoiser                 *m_hvsDenoiser;                             //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
+    uint8_t                          *m_hvsKernelBinary;                         //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
+    uint32_t                         m_hvsKernelBinarySize;                      //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
 
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
