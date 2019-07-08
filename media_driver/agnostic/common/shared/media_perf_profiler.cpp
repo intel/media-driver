@@ -161,8 +161,6 @@ MediaPerfProfiler* MediaPerfProfiler::Instance()
 
 void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_INTERFACE *osInterface)
 {
-    PERF_UTILITY_PRINT;
-
     if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
     {
         return;

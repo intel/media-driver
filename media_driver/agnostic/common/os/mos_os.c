@@ -33,25 +33,6 @@
 #include "mos_util_debug.h"
 #include "mos_util_user_interface.h"
 
-PerfUtility *g_perfutility = PerfUtility::getInstance();
-
-AutoPerfUtility::AutoPerfUtility(std::string tag, std::string comp, std::string level)
-{
-    if (PERFUTILITY_IS_ENABLED(comp, level))
-    {
-        g_perfutility->startTick(tag);
-        autotag = tag;
-    }
-}
-
-AutoPerfUtility::~AutoPerfUtility()
-{
-    if (g_perfutility->dwPerfUtilityIsEnabled)
-    {
-        g_perfutility->stopTick(autotag);
-    }
-}
-
 //!
 //! \brief GLOBAL INITIALIZERS
 //!

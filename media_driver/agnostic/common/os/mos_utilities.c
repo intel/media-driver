@@ -86,10 +86,11 @@ void PerfUtility::savePerfData()
 void PerfUtility::printPerfSummary()
 {
     std::ofstream fout;
-    fout.open("perf_summary.csv");
+    fout.open("perf_summary.txt");
 
     printHeader(fout);
     printBody(fout);
+    printFooter(fout);
 
     fout.close();
 }
@@ -117,13 +118,20 @@ void PerfUtility::printPerfDetails()
 void PerfUtility::printHeader(std::ofstream& fout)
 {
     fout << "Summary: " << std::endl;
+    fout << getDashString(80);
     std::stringstream ss;
-    ss << "CPU Latency Tag,";
-    ss << "Hit Count,";
-    ss << "Average (ms),";
-    ss << "Minimum (ms),";
+    ss.width(16);
+    ss << "CPU Latency Tag";
+    ss.width(16);
+    ss << "Hit Count";
+    ss.width(16);
+    ss << "Average (ms)";
+    ss.width(16);
+    ss << "Minimum (ms)";
+    ss.width(16);
     ss << "Maximum (ms)" << std::endl;
     fout << ss.str();
+    fout << getDashString(80);
 }
 
 void PerfUtility::printBody(std::ofstream& fout)
@@ -140,17 +148,19 @@ std::string PerfUtility::formatPerfData(std::string tag, std::vector<Tick>& reco
     PerfInfo info = {};
     getPerfInfo(record, &info);
 
+    ss.width(16);
     ss << tag;
-    ss << ",";
-    ss.precision(3);
+
+    ss.precision(2);
     ss.setf(std::ios::fixed, std::ios::floatfield);
 
+    ss.width(16);
     ss << info.count;
-    ss << ",";
+    ss.width(16);
     ss << info.avg;
-    ss << ",";
+    ss.width(16);
     ss << info.min;
-    ss << ",";
+    ss.width(16);
     ss << info.max << std::endl;
 
     return ss.str();
@@ -3546,15 +3556,6 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "0",
         "MOS memory alloc fail simulate counter."),
 #endif //(_DEBUG || _RELEASE_INTERNAL)
-    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
-       __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE,
-       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
-       __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
-       "MOS",
-       MOS_USER_FEATURE_TYPE_USER,
-       MOS_USER_FEATURE_VALUE_TYPE_UINT32,
-       "0",
-       "Enable Perf Utility Tool. ")
 };
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))
