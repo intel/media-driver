@@ -375,12 +375,14 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
 
     encodeParams.pBSBuffer      = m_encodeCtx->pbsBuffer;
     encodeParams.pSlcHeaderData = (void *)m_encodeCtx->pSliceHeaderData;
-    
-    CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
 
-    encoder->m_mfeEncodeParams.submitIndex  = 0;
-    encoder->m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
-    encoder->m_mfeEncodeParams.streamId  = 0;
+    CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
+    if(encoder != nullptr)
+    {
+        encoder->m_mfeEncodeParams.submitIndex  = 0;
+        encoder->m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
+        encoder->m_mfeEncodeParams.streamId  = 0;
+    }
 
     MOS_STATUS status = m_encodeCtx->pCodecHal->Execute(&encodeParams);
     if (MOS_STATUS_SUCCESS != status)
