@@ -324,16 +324,11 @@ typedef enum _CM_PIXEL_TYPE
 
 enum GPU_PLATFORM{
     PLATFORM_INTEL_UNKNOWN     = 0,
-    PLATFORM_INTEL_SNB         = 1,
-    PLATFORM_INTEL_IVB         = 2,
-    PLATFORM_INTEL_HSW         = 3,
     PLATFORM_INTEL_BDW         = 4,
-    PLATFORM_INTEL_VLV         = 5,
-    PLATFORM_INTEL_CHV         = 6,
     PLATFORM_INTEL_SKL         = 7,
     PLATFORM_INTEL_BXT         = 8,
-    PLATFORM_INTEL_CNL         = 9,
     PLATFORM_INTEL_KBL         = 11,
+    PLATFORM_INTEL_ICLLP       = 13,
     PLATFORM_INTEL_GLK         = 16,
     PLATFORM_INTEL_CFL         = 17,
 };
