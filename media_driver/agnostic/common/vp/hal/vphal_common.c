@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -668,6 +668,12 @@ VPHAL_COLORPACK VpHal_GetSurfaceColorPack (
 
     switch (Format)
     {
+        case Format_Y8:
+        case Format_Y16S:
+        case Format_Y16U:
+            ColorPack = VPHAL_COLORPACK_400;
+            break;
+
         case Format_IMC1:
         case Format_IMC2:
         case Format_IMC3:

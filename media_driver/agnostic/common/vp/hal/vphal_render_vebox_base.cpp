@@ -765,6 +765,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
                             case Format_Y210:
                             case Format_Y216:
                             case Format_AYUV:
+                            case Format_Y8:
+                            case Format_Y16S:
+                            case Format_Y16U:
                                 *pPerfTag = VPHAL_NONE;
                                 break;
                             default:
@@ -808,6 +811,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
                             case Format_Y210:
                             case Format_Y216:
                             case Format_AYUV:
+                            case Format_Y8:
+                            case Format_Y16S:
+                            case Format_Y16U:
                                 *pPerfTag = VPHAL_NONE;
                                 break;
                             default:
@@ -876,6 +882,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
                             case Format_Y210:
                             case Format_Y216:
                             case Format_AYUV:
+                            case Format_Y8:
+                            case Format_Y16S:
+                            case Format_Y16U:
                                 *pPerfTag = VPHAL_NONE;
                                 break;
                             default:
@@ -920,6 +929,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
                             case Format_Y210:
                             case Format_Y216:
                             case Format_AYUV:
+                            case Format_Y8:
+                            case Format_Y16S:
+                            case Format_Y16U:
                                 *pPerfTag = VPHAL_NONE;
                                 break;
                             default:
