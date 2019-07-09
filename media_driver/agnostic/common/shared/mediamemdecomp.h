@@ -71,9 +71,10 @@ public:
     //!
     //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
     //!
-    virtual MOS_STATUS MemoryDecompressCopy(
+    virtual MOS_STATUS MediaMemoryCopy(
         PMOS_RESOURCE inputResource,
-        PMOS_RESOURCE outputResource)
+        PMOS_RESOURCE outputResource,
+        bool          bOutputCompressed)
     {
         return MOS_STATUS_SUCCESS;
     }
