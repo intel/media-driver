@@ -59,6 +59,14 @@ public:
     {
         pColorPipeParams    = nullptr;
         pProcAmpParams      = nullptr;
+        dstFormat           = Format_Any;
+        srcFormat           = Format_Any;
+        bCSCEnable          = false;
+        pfCscCoeff          = nullptr;
+        pfCscInOffset       = nullptr;
+        pfCscOutOffset      = nullptr;
+        bAlphaEnable        = false;
+        wAlphaValue         = 0;
     }
     virtual ~VPHAL_VEBOX_IECP_PARAMS()
     {
