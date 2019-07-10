@@ -3625,10 +3625,10 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
     {
         const CmThreadSpaceRT *threadSpaceRTConst
                 = static_cast<const CmThreadSpaceRT*>(threadSpace);
+        uint32_t old_stream_idx = state->osInterface->streamIndex;
+        state->osInterface->streamIndex = m_streamIndex;
         if (state->cmHalInterface->CheckMediaModeAvailability() == false)
         {
-            uint32_t old_stream_idx = state->osInterface->streamIndex;
-            state->osInterface->streamIndex = m_streamIndex;
             if (threadSpaceRTConst != nullptr)
             {
                 result = state->advExecutor->SubmitComputeTask(
@@ -3642,7 +3642,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
                     this, task, event, nullptr,
                     (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
             }
-            state->osInterface->streamIndex = old_stream_idx;
         }
         else
         {
@@ -3650,6 +3649,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
                 this, task, event, threadSpace,
                 (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
         }
+        state->osInterface->streamIndex = old_stream_idx;
     }
     return result;
 }
