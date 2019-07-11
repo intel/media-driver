@@ -450,7 +450,7 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual void AllocateDebugDumper();
+    virtual MOS_STATUS AllocateDebugDumper();
 
 };
 

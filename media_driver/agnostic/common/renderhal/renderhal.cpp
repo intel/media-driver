@@ -2663,6 +2663,13 @@ MOS_STATUS RenderHal_AssignSurfaceState(
     pSurfaceEntry->dwSurfStateOffset    = (uint32_t)-1;                         // Each platform to setup
     pSurfaceEntry->pSurfaceState        = pStateHeap->pSshBuffer + dwOffset;
     pSurfaceEntry->pSurface             = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+    if (pSurfaceEntry->pSurface == nullptr)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Allocating Surface failed!");
+        eStatus = MOS_STATUS_NO_SPACE;
+        goto finish;
+    }
+
     *ppSurfaceEntry                     = pSurfaceEntry;
 
     // Increment the Current Surface State Entry

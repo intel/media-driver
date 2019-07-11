@@ -1413,7 +1413,12 @@ MOS_STATUS VphalRenderer::Initialize(
            pSettings,
            pKernelDllState))
 
-    AllocateDebugDumper();
+    eStatus = AllocateDebugDumper();
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Debug dumper allocate failed!");
+        goto finish;
+    }
 
     if (MEDIA_IS_SKU(m_pSkuTable, FtrVpDisableFor4K))
     {
@@ -2003,18 +2008,73 @@ finish:
     return;
 }
 
-void VphalRenderer::AllocateDebugDumper()
+MOS_STATUS VphalRenderer::AllocateDebugDumper()
 {
     PRENDERHAL_INTERFACE pRenderHal = m_pRenderHal;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // Allocate feature report
     m_reporting = MOS_New(VphalFeatureReport);
+    if (m_reporting == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");
+        eStatus = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
 
     // Initialize Surface Dumper
-    VPHAL_DBG_SURF_DUMP_CREATE();
+    VPHAL_DBG_SURF_DUMP_CREATE()
+    if (m_surfaceDumper == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");
+        eStatus = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
 
     // Initialize State Dumper
-    VPHAL_DBG_STATE_DUMPPER_CREATE();
+    VPHAL_DBG_STATE_DUMPPER_CREATE()
+    if (pRenderHal->pStateDumper == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");
+        eStatus = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
 
-    VPHAL_DBG_PARAMETERS_DUMPPER_CREATE();
+    VPHAL_DBG_PARAMETERS_DUMPPER_CREATE()
+    if (m_parameterDumper == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");
+        eStatus = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
+
+#endif
+
+finish:
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        if (m_reporting)
+        {
+            MOS_Delete(m_reporting);
+            m_reporting = nullptr;
+        }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+
+        if (m_surfaceDumper)
+        {
+            VPHAL_DBG_SURF_DUMP_DESTORY(m_surfaceDumper)
+        }
+
+        if (pRenderHal->pStateDumper)
+        {
+            VPHAL_DBG_STATE_DUMPPER_DESTORY(pRenderHal->pStateDumper)
+        }
+#endif
+
+    }
+
+    return eStatus;
 }
