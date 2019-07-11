@@ -81,6 +81,7 @@ public:
         BRCINIT_FIELD_PIC                  = 0x0100,
         BRCINIT_ISICQ                      = 0x0200,
         BRCINIT_ISVCM                      = 0x0400,
+        BRCINIT_PANIC_MODE_ISENABLED       = 0x1000,
         BRCINIT_IGNORE_PICTURE_HEADER_SIZE = 0x2000,
         BRCINIT_ISCQP                      = 0x4000,
         BRCINIT_DISABLE_MBBRC              = 0x8000
