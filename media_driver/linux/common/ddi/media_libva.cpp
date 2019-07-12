@@ -3796,7 +3796,8 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_UYVY:
         case VA_FOURCC_A2R10G10B10:
         case VA_FOURCC_A2B10G10R10:
-            gmmParams.BaseHeight = height;
+            gmmParams.BaseHeight        = height;
+            gmmParams.Flags.Info.Linear = true;
             break;
         case VA_FOURCC_YUY2:
         case VA_FOURCC_AYUV:
