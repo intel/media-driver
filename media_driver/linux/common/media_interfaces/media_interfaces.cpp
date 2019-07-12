@@ -193,6 +193,7 @@ void MhwInterfaces::Destroy()
     MOS_Delete(m_hcpInterface);
     MOS_Delete(m_hucInterface);
     MOS_Delete(m_vdencInterface);
+    MOS_Delete(m_bltInterface);
 }
 
 Codechal* CodechalDevice::CreateFactory(
