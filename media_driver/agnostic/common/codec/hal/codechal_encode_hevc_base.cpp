@@ -2268,6 +2268,13 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     m_sliceStatesSize    = m_defaultSliceStatesSize;
     m_slicePatchListSize = m_defaultSlicePatchListSize;
 
+    // Mb Qp data
+    m_mbQpDataEnabled = params.bMbQpDataEnabled;
+    if (m_mbQpDataEnabled)
+    {
+        m_mbQpDataSurface = *(params.psMbQpDataSurface);
+    }
+
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic            = m_hevcPicParams->CurrOriginalPic;
         m_debugInterface->m_bufferDumpFrameNum = m_storeData;

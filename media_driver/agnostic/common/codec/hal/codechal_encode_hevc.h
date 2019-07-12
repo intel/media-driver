@@ -179,10 +179,6 @@ public:
     bool m_cqpEnabled                                        = false;  //!< CQP Rate Control
     bool m_sseSupported                                      = false;  //!< PAK SSE support flag
 
-    // Mb Qp Data
-    bool                                m_mbQpDataEnabled;              //!< Mb Qp Data Enable Flag.
-    MOS_SURFACE                         m_mbQpDataSurface;              //!< Pointer to MOS_SURFACE of Mb Qp data surface, provided by DDI.
-
 protected:
     //!
     //! \brief    Constructor

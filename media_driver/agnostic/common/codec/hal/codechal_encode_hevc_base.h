@@ -1486,6 +1486,10 @@ public:
 
     CODECHAL_ENCODE_BUFFER m_resPakcuLevelStreamoutData;  //!< PAK LCU level stream out data buffer
 
+    // Mb Qp Data
+    bool            m_mbQpDataEnabled = false;      //!< Mb Qp Data Enable Flag.
+    MOS_SURFACE     m_mbQpDataSurface;              //!< Pointer to MOS_SURFACE of Mb Qp data surface, provided by DDI.
+
 protected:
     //!
     //! \brief    Constructor
