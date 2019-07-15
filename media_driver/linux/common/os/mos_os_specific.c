@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -200,6 +200,7 @@ int32_t Linux_GetCommandBuffer(
     pCmdBuffer->iRemaining  = cmd_bo->size;
     pCmdBuffer->iCmdIndex   = -1;
     pCmdBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
+    pCmdBuffer->iVeboxNodeIndex = MOS_VEBOX_NODE_INVALID;
 
     MOS_ZeroMemory(pCmdBuffer->pCmdBase, cmd_bo->size);
     pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
@@ -256,6 +257,7 @@ void Linux_ReturnCommandBuffer(
     pOsGpuContext->pCB->iRemaining = pCmdBuffer->iRemaining;
     pOsGpuContext->pCB->pCmdPtr    = pCmdBuffer->pCmdPtr;
     pOsGpuContext->pCB->iVdboxNodeIndex = pCmdBuffer->iVdboxNodeIndex;
+    pOsGpuContext->pCB->iVeboxNodeIndex = pCmdBuffer->iVeboxNodeIndex;
 
 finish:
     return;
@@ -6118,6 +6120,33 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
             &userFeatureData);
         osInterface->frameSplit = (uint32_t)userFeatureData.i32Data;
+
+        // read the "Force VEBOX" user feature key
+        // 0: not force
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
+            &userFeatureData);
+        osInterface->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
+
+        //KMD Virtual Engine DebugOverride
+        // 0: not Override
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
+            &userFeatureData);
+        osInterface->bEnableDbgOvrdInVE = userFeatureData.u32Data ? true : false;
+
+        // UMD Vebox Virtual Engine Scalability Mode
+        // 0: disable. can set to 1 only when KMD VE is enabled.
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
+            &userFeatureData);
+        osInterface->bVeboxScalabilityMode = userFeatureData.u32Data ? true : false;
 #endif
     }
 

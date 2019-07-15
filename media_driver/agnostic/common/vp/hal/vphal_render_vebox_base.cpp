@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2136,10 +2136,13 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
     VPHAL_RENDER_CHK_STATUS(VeboxSendVeboxCmdSetParamBeforeSubmit());
 
     // Flush the command buffer
-    VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnSubmitCommandBuffer(
-        pOsInterface,
-        &CmdBuffer,
-        pVeboxState->bNullHwRenderDnDi));
+    if (!bPhasedSubmission)
+    {
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnSubmitCommandBuffer(
+            pOsInterface,
+            &CmdBuffer,
+            pVeboxState->bNullHwRenderDnDi));
+    }
 
     if (pVeboxState->bNullHwRenderDnDi == false)
     {
@@ -4343,6 +4346,8 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     m_hvsDenoiser         = nullptr;
     m_hvsKernelBinary     = nullptr;
     m_hvsKernelBinarySize = 0;
+
+    bPhasedSubmission     = false;
 }
 
 VPHAL_VEBOX_STATE::~VPHAL_VEBOX_STATE()

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -477,6 +477,7 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
         comamndBuffer->iRemaining = cmdBuf->GetCmdBufSize();
         comamndBuffer->iCmdIndex  = m_nextFetchIndex;
         comamndBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
+        comamndBuffer->iVeboxNodeIndex = MOS_VEBOX_NODE_INVALID;
         comamndBuffer->Attributes.pAttriVe = nullptr;
 
         // zero comamnd buffer
@@ -522,6 +523,7 @@ void GpuContextSpecific::ReturnCommandBuffer(
     m_commandBuffer->iRemaining = cmdBuffer->iRemaining;
     m_commandBuffer->pCmdPtr    = cmdBuffer->pCmdPtr;
     m_commandBuffer->iVdboxNodeIndex = cmdBuffer->iVdboxNodeIndex;
+    m_commandBuffer->iVeboxNodeIndex = cmdBuffer->iVeboxNodeIndex;
 }
 
 MOS_STATUS GpuContextSpecific::ResetCommandBuffer()
@@ -916,9 +918,16 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASK)
             {
                 MOS_LINUX_CONTEXT *queue = m_i915Context[0];
+                bool isVeboxSubmission   = false;
+
                 if (execFlag == MOS_GPU_NODE_VIDEO || execFlag == MOS_GPU_NODE_VIDEO2)
                 {
                     execFlag = I915_EXEC_DEFAULT;
+                }
+                if (execFlag == MOS_GPU_NODE_VE)
+                {
+                    execFlag = I915_EXEC_DEFAULT;
+                    isVeboxSubmission = true;
                 }
                 if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
                 {
@@ -926,6 +935,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                     fence_flag = I915_EXEC_FENCE_SUBMIT;
                     int slave_index = (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_MASK) >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
                     queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
+                    if (isVeboxSubmission)
+                    {
+                        queue = m_i915Context[cmdBuffer->iVeboxNodeIndex + 1];
+                    }
                 }
                 if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
                 {
