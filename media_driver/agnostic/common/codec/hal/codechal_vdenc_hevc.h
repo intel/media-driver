@@ -145,8 +145,8 @@ public:
     MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer
     MOS_RESOURCE                            m_vdencGroup3BatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer for Group3
     MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
-    uint32_t                                m_deltaQpRoiBufferSize;                            //!< VDEnc DeltaQp for ROI buffer size
-    uint32_t                                m_brcRoiBufferSize;                                //!< BRC ROI input buffer size
+    uint32_t                                m_deltaQpRoiBufferSize = 0;                            //!< VDEnc DeltaQp for ROI buffer size
+    uint32_t                                m_brcRoiBufferSize = 0;                                //!< BRC ROI input buffer size
 
     // Batch Buffer for VDEnc
     MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< VDEnc 2nd level batch buffer
@@ -168,8 +168,8 @@ public:
 
     PCODECHAL_CMD_INITIALIZER               m_hucCmdInitializer = nullptr;
 
-    MOS_RESOURCE                            m_resDelayMinus;
-    uint32_t                                m_numDelay;
+    MOS_RESOURCE                            m_resDelayMinus = {0};
+    uint32_t                                m_numDelay = 0;
 
 protected:
     //!

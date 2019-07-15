@@ -800,7 +800,7 @@ struct EncodeBrcBuffers
 struct CODECHAL_ENCODE_BUFFER
 {
     MOS_RESOURCE    sResource;
-    uint32_t        dwSize;
+    uint32_t        dwSize = 0;
 };
 using PCODECHAL_ENCODE_BUFFER = CODECHAL_ENCODE_BUFFER*;
 
