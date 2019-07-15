@@ -155,7 +155,7 @@ public:
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_brcKernelBindingTable = nullptr;              //!< BRC kernel binding table
     PMOS_SURFACE                                m_brcDistortion         = nullptr;              //!< Pointer to BRC distortion surface
     HevcEncBrcBuffers                           m_brcBuffers;                                   //!< BRC buffers
-    uint32_t                                    m_numBrcKrnStates;                              //!< Number of BRC kernel states
+    uint32_t                                    m_numBrcKrnStates = 0;                              //!< Number of BRC kernel states
     uint8_t                                     m_slidingWindowSize = 0;                        //!< Sliding window size in number of frames
     bool                                        m_roiRegionSmoothEnabled = false;               //!< ROI region smooth transition enable flag
     HEVC_BRC_FRAME_TYPE                         m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;    //!< frame brc level
