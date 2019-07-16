@@ -1584,6 +1584,17 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G9_BASE::GetOutputPipe(
         goto finish;
     }
 
+    //Let Kernel to cover the DI cases VEBOX cannot handle.
+    if (pSrcSurface->pDeinterlaceParams &&
+        pSrcSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB &&
+        ((IS_VEBOX_SURFACE_HEIGHT_UNALIGNED(pSrcSurface, 4) &&
+          pSrcSurface->Format == Format_NV12) ||
+         !this->IsDiFormatSupported(pSrcSurface)))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
     if (bOutputPipeVeboxFeasible)
     {
