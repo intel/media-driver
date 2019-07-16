@@ -69,8 +69,11 @@ VPHAL_VEBOX_IECP_RENDERER::~VPHAL_VEBOX_IECP_RENDERER()
 
     for (i = 0; i < m_filterCount; i++)
     {
-        MOS_Delete(m_filters[i]);
-        m_filters[i] = nullptr;
+        if (m_filters[i])
+        {
+            MOS_Delete(m_filters[i]);
+            m_filters[i] = nullptr;
+        }
     }
 }
 
@@ -146,6 +149,7 @@ MOS_STATUS VPHAL_VEBOX_IECP_RENDERER::InitParams(
 
     for (i = 0; i < m_filterCount; i++)
     {
+        VPHAL_RENDER_CHK_NULL(m_filters[i]);
         m_filters[i]->InitParams(pVphalVeboxIecpParams, pMhwVeboxIecpParams);
     }
 
