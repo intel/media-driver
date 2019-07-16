@@ -65,13 +65,14 @@ public:
 public:
     static PerfUtility *getInstance();
     ~PerfUtility();
-
+    PerfUtility();
     void startTick(std::string tag);
     void stopTick(std::string tag);
     void savePerfData();
+    bool bPerfUtilityKey;
+    int32_t dwPerfUtilityIsEnabled;
 
 private:
-    PerfUtility();
     void printPerfSummary();
     void printPerfDetails();
     void printHeader(std::ofstream& fout);
@@ -82,7 +83,7 @@ private:
     std::string getDashString(uint32_t num);
 
 private:
-    static PerfUtility *instance;
+    static std::shared_ptr<PerfUtility> instance;
     std::map<std::string, std::vector<Tick>*> records;
 };
 
@@ -568,6 +569,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
     __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT_ID,
 #endif
+    __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 

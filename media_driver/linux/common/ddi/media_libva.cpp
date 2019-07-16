@@ -1171,6 +1171,21 @@ VAStatus DdiMedia__Initialize (
 
     MOS_utilities_init();
 
+    //Read user feature key here for Per Utility Tool Enabling
+#if _RELEASE_INTERNAL
+    if(!g_perfutility->bPerfUtilityKey)
+    {
+        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+            &UserFeatureData);
+        g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
+        g_perfutility->bPerfUtilityKey = true;
+    }
+#endif
+
     mediaCtx = DdiMedia_CreateMediaDriverContext();
     if (nullptr == mediaCtx)
     {
@@ -1649,6 +1664,8 @@ static VAStatus DdiMedia_QueryConfigEntrypoints(
 )
 {
     DDI_FUNCTION_ENTER();
+
+    PERF_UTILITY_START_ONCE("First Frame Time", PERF_MOS, PERF_LEVEL_DDI);
 
     DDI_CHK_NULL(ctx, "nullptr Ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
@@ -3262,20 +3279,27 @@ static VAStatus DdiMedia_EndPicture (
 
     uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
     void     *ctxPtr = DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
-
+    VAStatus  vaStatus = VA_STATUS_SUCCESS;
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
         case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
-            return DdiDecode_EndPicture(ctx, context);
+            vaStatus = DdiDecode_EndPicture(ctx, context);
+            break;
         case DDI_MEDIA_CONTEXT_TYPE_ENCODER:
-            return DdiEncode_EndPicture(ctx, context);
+            vaStatus = DdiEncode_EndPicture(ctx, context);
+            break;
         case DDI_MEDIA_CONTEXT_TYPE_VP:
-            return DdiVp_EndPicture(ctx, context);
+            vaStatus = DdiVp_EndPicture(ctx, context);
+            break;
         default:
             DDI_ASSERTMESSAGE("DDI: unsupported context in DdiCodec_EndPicture.");
-            return VA_STATUS_ERROR_INVALID_CONTEXT;
+            vaStatus = VA_STATUS_ERROR_INVALID_CONTEXT;
     }
+
+    PERF_UTILITY_STOP_ONCE("First Frame Time", PERF_MOS, PERF_LEVEL_DDI);
+
+    return vaStatus;
 }
 
 /*
@@ -3288,6 +3312,8 @@ static VAStatus DdiMedia_SyncSurface (
     VASurfaceID         render_target
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
