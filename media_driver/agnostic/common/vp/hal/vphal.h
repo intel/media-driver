@@ -150,6 +150,9 @@
 #define VPHAL_DEBUG_FUNCTION_ENTER                                                   \
     MOS_FUNCTION_ENTER(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG)
 
+#define VPHAL_DEBUG_FUNCTION_EXIT                                                    \
+    MOS_FUNCTION_EXIT(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG)
+
 #define VPHAL_DEBUG_CHK_STATUS(_stmt)                                                \
     MOS_CHK_STATUS(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _stmt)
 

@@ -513,6 +513,7 @@ typedef enum _VEBOX_STAT_QUERY_TYPE
 #define BI_DN_TEMP_SURFACE                             2
 #define BI_DN_SPATIAL_ATTRIBUTES_CONFIGURATION_SURFACE 3
 
+/*
 //!
 //! \brief Comp can be bypassed when the following conditions are all met
 //!        1. Single Layer input only
@@ -567,6 +568,8 @@ typedef enum _VEBOX_STAT_QUERY_TYPE
     _pcRenderParams->pCompAlpha->AlphaMode  != VPHAL_ALPHA_FILL_MODE_BACKGROUND)          &&  \
     _pSrcSurface->rcDst.top                  == 0                             &&              \
     _pSrcSurface->rcDst.left                 == 0)
+*/
+
 
 //!
 //! \brief  Judgement for Vebox surface height alignment 
@@ -1889,6 +1892,16 @@ protected:
     //!
     virtual MOS_STATUS VeboxSetHVSDNParams(
         PVPHAL_SURFACE pSrcSurface);
+
+    //!
+    //! \brief Comp can be bypassed when the following conditions are all met
+    //!
+    bool IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface);
+    
+    //!
+    //! \brief Vebox can be the output pipe when the following conditions are all met
+    //!
+    bool IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVeboxState, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface);
 
 };
 

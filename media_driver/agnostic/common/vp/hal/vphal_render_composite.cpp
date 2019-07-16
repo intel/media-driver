@@ -1278,7 +1278,7 @@ VPHAL_CSPACE CompositeState::PrepareCSC(
     PVPHAL_SURFACE                  pTarget;
     PVPHAL_SURFACE                  pSrc;
     int32_t                         i, j;
-    int32_t                         csc_count;
+    int32_t                         csc_count = 0;
     int32_t                         csc_min = iSources + 1;
     int32_t                         cspace_in_use[CSpace_Count];
     bool                            bYUVTarget;
@@ -1380,6 +1380,12 @@ VPHAL_CSPACE CompositeState::PrepareCSC(
     }
 
 finish:
+
+    VPHAL_RENDER_NORMALMESSAGE("Main_ColorSpace %d, Temp_ColorSpace %d, csc_count %d.",
+        Main_ColorSpace,
+        Temp_ColorSpace,
+        csc_count);
+
     return Temp_ColorSpace;
 }
 
@@ -1771,6 +1777,8 @@ bool CompositeState::AddCompLayer(
     pComposite->uSourceCount++;
     bResult = true;
 
+    VPHAL_RENDER_NORMALMESSAGE("ScalingMode %d, nSampler %d", pSource->ScalingMode, pComposite->nSampler);
+
 finish:
     return bResult;
 }
@@ -2132,7 +2140,7 @@ MOS_STATUS CompositeState::Render(
 
     eStatus = MOS_STATUS_UNKNOWN;
 
-    VPHAL_RENDER_NORMALMESSAGE("enter CComposite::Render()");
+    VPHAL_RENDER_FUNCTION_ENTER;
 
     VPHAL_RENDER_CHK_NULL(pcRenderParams);
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
@@ -2379,6 +2387,8 @@ finish:
     {
         pRenderHal->pfnSetSliceShutdownMode(pRenderHal, false);
     }
+
+    VPHAL_RENDER_EXITMESSAGE("eStatus %d", eStatus);
 
     return eStatus;
 }
@@ -2783,6 +2793,11 @@ void CompositeState::SetSurfaceParams(
     {
         pSurfaceParams->b2PlaneNV12NeededByKernel = true;
     }
+
+     VPHAL_RENDER_NORMALMESSAGE("SurfaceTYpe %d, bAVS %d, b2PlaneNV12NeededByKernel %d",
+        pSurfaceParams->Type,
+        pSurfaceParams->bAVS,
+        pSurfaceParams->b2PlaneNV12NeededByKernel);
 }
 
 //!
@@ -3331,6 +3346,10 @@ int32_t CompositeState::SetLayer(
     //-----------------------------------
     if (pSource->pLumaKeyParams != nullptr)
     {
+        VPHAL_RENDER_NORMALMESSAGE("LumaLow %d, LumaHigh %d",
+            pSource->pLumaKeyParams->LumaLow,
+            pSource->pLumaKeyParams->LumaHigh);
+
         pStatic->DW14.LumakeyLowThreshold  = pSource->pLumaKeyParams->LumaLow;
         pStatic->DW14.LumakeyHighThreshold = pSource->pLumaKeyParams->LumaHigh;
     }
@@ -3472,6 +3491,10 @@ int32_t CompositeState::SetLayer(
          (pSource->pBlendingParams->BlendType == BLEND_CONSTANT_PARTIAL)))
     {
         float fAlpha = pSource->pBlendingParams->fAlpha;
+
+        VPHAL_RENDER_NORMALMESSAGE("BlendType %d, fAlpha %d",
+            pSource->pBlendingParams->BlendType,
+            pSource->pBlendingParams->fAlpha);
 
         // Don't render layer with alpha <= 0.0f
         if (fAlpha <= 0.0f)
@@ -5643,6 +5666,7 @@ void CompositeState::CalculateRenderData(
     if ((pCompParams->pColorFillParams != nullptr) &&
         (!RECT1_CONTAINS_RECT2(pSource->rcDst, pCompParams->Target[0].rcDst)))
     {
+        VPHAL_RENDER_NORMALMESSAGE("bColorfill enabled");
         *pbColorfill = true;
     }
 
@@ -5660,6 +5684,7 @@ void CompositeState::CalculateRenderData(
         pSource->pBlendingParams == nullptr                                     &&  // No Blending
         m_bKernelSupportHdcDW)                                                      // if HDC direct write is supported
     {
+        VPHAL_RENDER_NORMALMESSAGE("bHdcDwEnable enabled");
         pRenderingData->bHdcDwEnable = true;
     }
 }
@@ -5752,6 +5777,7 @@ MOS_STATUS CompositeState::RenderPhase(
         // Check Scaling mode for 3D Sampler use case
         if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
         {
+            VPHAL_RENDER_NORMALMESSAGE("Modify ScalingMode to BILINREA from AVS due to 3D Sampler enabled");
             pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
         }
 
@@ -5892,6 +5918,23 @@ MOS_STATUS CompositeState::RenderPhase(
         VPHAL_RENDER_ASSERTMESSAGE("Failed to create filter description.");
         eStatus = MOS_STATUS_UNIMPLEMENTED;
         goto finish;
+    }
+
+    //Log for debug
+    for (int32_t i = 0; i < iFilterSize; i++)
+    {
+        Kdll_FilterEntry *pTempFilter = (pFilter + i);
+        
+        if (pTempFilter == nullptr)
+            continue;
+
+        VPHAL_RENDER_NORMALMESSAGE("Kernel Search Filter %d: layer %d, format %d, cspace %d, \
+                                   bEnableDscale %d, bIsDitherNeeded %d, chromasiting %d, colorfill %d, dualout %d, \
+                                   lumakey %d, procamp %d, RenderMethod %d, sampler %d, samplerlumakey %d ", 
+                                   i, pTempFilter->layer, pTempFilter->format, pTempFilter->cspace, 
+                                   pTempFilter->bEnableDscale, pTempFilter->bIsDitherNeeded, 
+                                   pTempFilter->chromasiting, pTempFilter->colorfill,  pTempFilter->dualout, 
+                                   pTempFilter->lumakey, pTempFilter->procamp, pTempFilter->RenderMethod, pTempFilter->sampler, pTempFilter->samplerlumakey);
     }
 
     //============================

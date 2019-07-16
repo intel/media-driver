@@ -1036,6 +1036,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxPopulateDNDIParams(
     // DI and Luma Denoise Params
     if (pLumaParams != nullptr)
     {
+        VPHAL_RENDER_NORMALMESSAGE("bProgressiveDN %d, bDNDITopFirst %d", pLumaParams->bProgressiveDN, pLumaParams->bDNDITopFirst);
         if (pRenderData->bDenoise)
         {
             pVeboxDNDIParams->dwDenoiseASDThreshold     = pLumaParams->dwDenoiseASDThreshold;
@@ -1063,6 +1064,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxPopulateDNDIParams(
     // Chroma Denoise Params
     if (pRenderData->bChromaDenoise && pChromaParams != nullptr)
     {
+        VPHAL_RENDER_NORMALMESSAGE("bChromaDNEnable %d", pRenderData->bChromaDenoise);
         pVeboxDNDIParams->dwChromaSTADThreshold     = pChromaParams->dwSTADThresholdU; // Use U threshold for now
         pVeboxDNDIParams->dwChromaLTDThreshold      = pChromaParams->dwLTDThresholdU;  // Use U threshold for now
         pVeboxDNDIParams->dwChromaTDThreshold       = pChromaParams->dwTDThresholdU;   // Use U threshold for now
@@ -4506,6 +4508,115 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(
     }
 
     return eStatus;
+}
+
+//!
+//! \brief Comp can be bypassed when the following conditions are all met
+//!        1. Single Layer input only
+//!        2. Single render target only
+//!        3. Blending Disabled
+//!        4. Interlaced Scaling Disabled
+//!        5. Field Weaving Disabled
+//!        6. LumaKey Disabled
+//!        8. Constriction Disabled
+//!
+bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface)
+{
+    VPHAL_RENDER_NORMALMESSAGE(
+        "_bCompNeeded %d,                                                                           \
+         uSrcCount %d,                                                                              \
+         uDstCount %d,                                                                              \
+         pBlendingParams %p,                                                                        \
+         bInterlacedScaling %d,                                                                     \
+         bFieldWeaving %d,                                                                          \
+         pLumaKeyParams %p,                                                                         \
+         pConstriction %p",
+        _bCompNeeded,
+        _pcRenderParams->uSrcCount,
+        _pcRenderParams->uDstCount,
+        _pSrcSurface->pBlendingParams,
+        _pSrcSurface->bInterlacedScaling,
+        _pSrcSurface->bFieldWeaving,
+        _pSrcSurface->pLumaKeyParams,
+        _pcRenderParams->pConstriction);
+
+    return (_bCompNeeded == false &&
+            _pcRenderParams->uSrcCount == 1 &&
+            _pcRenderParams->uDstCount == 1 &&
+            _pSrcSurface->pBlendingParams == nullptr &&
+            _pSrcSurface->bInterlacedScaling == false &&
+            _pSrcSurface->bFieldWeaving == false &&
+            _pSrcSurface->pLumaKeyParams == nullptr &&
+            _pcRenderParams->pConstriction == nullptr);
+}
+
+//!
+//! \brief Vebox can be the output pipe when the following conditions are all met
+//!        1. User feature keys value "Bypass Composition" is enabled.
+//!        2. Single render target only
+//!        3. Src Size = Dst Size
+//!        4. Src Size = Max Src Size
+//!        5. No Colorfill
+//!        6. IEF Disabled
+//!        7. Input is progressive
+//!        8. Rotation Disabled
+//!        9. Variance Query is disabled
+//!        10. Input format is supported by Vebox
+//!        11. RT format is supported by Vebox
+//!        12. 2PassCSC is not supported by Vebox only
+//!        13. Alpha Fill is disabled or when it's enabled, it's not background Alpha Fill mode
+//!        14. Dst parameters top/left are zero.
+//!
+bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVeboxState, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface)
+{
+    VPHAL_RENDER_NORMALMESSAGE(
+        "dwCompBypassMode %d,                                                               \
+         _pcRenderParams->uDstCount %d,                                                     \
+         SAME_SIZE_RECT(rcSrc, rcDst) %d,                                                   \
+         SAME_SIZE_RECT(rcSrc, rcMaxSrc) %d,                                                \
+         SAME_SIZE_RECT(rcDst, pTarget[0]->rcDst) %p,                                       \
+         pIEFParams %d,                                                                     \
+         SampleType %d,                                                                     \
+         Rotation %p,                                                                       \
+         bQueryVariance %d,                                                                 \
+         IsFormatSupported %p,                                                              \
+         IsRTFormatSupported %d,                                                            \
+         VeboxIs2PassesCSCNeeded %d,                                                        \
+         AlphaMode %p,                                                                      \
+         rcDst.top %p,                                                                      \
+         rcDst.left %p",
+        _pVeboxState->dwCompBypassMode,
+        _pcRenderParams->uDstCount,
+        SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst),
+        SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcMaxSrc),
+        SAME_SIZE_RECT(_pSrcSurface->rcDst, _pcRenderParams->pTarget[0]->rcDst),
+        _pSrcSurface->pIEFParams,
+        _pSrcSurface->SampleType,
+        _pSrcSurface->Rotation,
+        _pSrcSurface->bQueryVariance,
+        _pVeboxState->IsFormatSupported(_pSrcSurface),
+        _pVeboxState->IsRTFormatSupported(_pSrcSurface, _pcRenderParams->pTarget[0]),
+        _pVeboxState->VeboxIs2PassesCSCNeeded(_pSrcSurface, _pcRenderParams->pTarget[0]),
+        (_pcRenderParams->pCompAlpha == nullptr || _pcRenderParams->pCompAlpha->AlphaMode != VPHAL_ALPHA_FILL_MODE_BACKGROUND),
+        _pSrcSurface->rcDst.top,
+        _pSrcSurface->rcDst.left);
+
+    return (_pVeboxState->dwCompBypassMode != VPHAL_COMP_BYPASS_DISABLED &&
+            _pcRenderParams->uDstCount == 1 &&
+            SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst) &&
+            SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcMaxSrc) &&
+            SAME_SIZE_RECT(_pSrcSurface->rcDst, _pcRenderParams->pTarget[0]->rcDst) &&
+            _pSrcSurface->pIEFParams == nullptr &&
+            _pSrcSurface->SampleType == SAMPLE_PROGRESSIVE &&
+            _pSrcSurface->Rotation == VPHAL_ROTATION_IDENTITY &&
+            _pSrcSurface->bQueryVariance == false &&
+            _pVeboxState->IsFormatSupported(_pSrcSurface) &&
+            _pVeboxState->IsRTFormatSupported(_pSrcSurface, _pcRenderParams->pTarget[0]) &&
+            !(_pVeboxState->VeboxIs2PassesCSCNeeded(_pSrcSurface, _pcRenderParams->pTarget[0])) &&
+            (_pcRenderParams->pCompAlpha == nullptr ||
+                _pcRenderParams->pCompAlpha->AlphaMode != VPHAL_ALPHA_FILL_MODE_BACKGROUND) &&
+            _pSrcSurface->rcDst.top == 0 &&
+            _pSrcSurface->rcDst.left == 0);
 }
 
 VPHAL_VEBOX_RENDER_DATA::~VPHAL_VEBOX_RENDER_DATA()

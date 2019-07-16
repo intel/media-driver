@@ -619,7 +619,11 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
 //! \def SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)
 //! Set the output pipe
 //!
-#define SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)              (_a->OutputPipe =  _Pipe)
+#define SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)                           \
+    {                                                              \
+        (_a->OutputPipe = _Pipe);                                  \
+        VPHAL_RENDER_NORMALMESSAGE("VPHAL_OUTPUT_PIPE %d", _Pipe); \
+    }
 
 //!
 //! \def IS_VPHAL_OUTPUT_PIPE_INVALID(_a)

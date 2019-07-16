@@ -2134,7 +2134,11 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
 //!
 #define REQUEST_VEBOX_SPECULATIVE_COPY(_a)            (_a->bSpeculativeCopy = true)
 #define IS_VEBOX_SPECULATIVE_COPY_REQUESTED(_a)       (_a->bSpeculativeCopy == true)
-#define SET_VEBOX_EXECUTION_MODE(_a, _Mode)           (_a->Mode = _Mode)
+#define SET_VEBOX_EXECUTION_MODE(_a, _Mode)                           \
+    {                                                                 \
+        (_a->Mode = _Mode);                                           \
+        VPHAL_RENDER_NORMALMESSAGE("VEBOX_EXECUTION_MODE %d", _Mode); \
+    }
 #define IS_VEBOX_EXECUTION_MODE_PARALLEL_CAPABLE(_a)  (_a->bEnable == true)
 #define IS_VEBOX_EXECUTION_MODE_0(_a)                 (_a->Mode == VEBOX_EXEC_MODE_0)
 #define IS_VEBOX_EXECUTION_MODE_0_TO_2(_a)            (_a->Mode == VEBOX_EXEC_MODE_0_TO_2)
