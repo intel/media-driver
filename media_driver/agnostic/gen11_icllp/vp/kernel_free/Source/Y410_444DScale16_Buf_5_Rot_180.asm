@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@ L0:
 (W&~f0.0)jmpi    L1760       
 L64:
          mov     (8|M0)                 acc0.0<1>:f         r26.3<0;1,0>:f       
-         mac     (1|M0)                 r23.3<1>:f          r26.5<0;1,0>:f       3.0:f             
+         mac     (1|M0)                 r23.3<1>:f          r26.5<0;1,0>:f       11.0:f            
          cmp     (1|M0)     (eq)f1.0    null.0<1>:w         r24.2<0;1,0>:ub      0x1:uw            
 (f1.0)   mov     (1|M0)                 acc0.3<1>:f         r23.3<0;1,0>:f       
 (f1.0)   mac     (1|M0)                 r23.3<1>:f          r24.1<0;1,0>:f       -2.0:f            
