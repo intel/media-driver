@@ -384,6 +384,10 @@ VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
         {
             for (int32_t j = 3; j < 7; j++)
             {
+                // HEVC VDENC cannot support ICQ
+                if (m_encRcMode[j] == VA_RC_ICQ)
+                    continue;
+
                 AddEncConfig(m_encRcMode[j]);
                 AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
             }
@@ -400,6 +404,10 @@ VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
         {
             for (int32_t j = 3; j < 7; j++)
             {
+                // HEVC VDENC cannot support ICQ
+                if (m_encRcMode[j] == VA_RC_ICQ)
+                    continue;
+
                 AddEncConfig(m_encRcMode[j]);
                 AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
             }
@@ -416,6 +424,10 @@ VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
         {
             for (int32_t j = 3; j < 7; j++)
             {
+                // HEVC VDENC cannot support ICQ
+                if (m_encRcMode[j] == VA_RC_ICQ)
+                    continue;
+
                 AddEncConfig(m_encRcMode[j]);
                 AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
             }
@@ -432,6 +444,10 @@ VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
         {
             for (int32_t j = 3; j < 7; j++)
             {
+                // HEVC VDENC cannot support ICQ
+                if (m_encRcMode[j] == VA_RC_ICQ)
+                    continue;
+
                 AddEncConfig(m_encRcMode[j]);
                 AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
             }
