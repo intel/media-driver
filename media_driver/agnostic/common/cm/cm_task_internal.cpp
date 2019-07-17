@@ -287,7 +287,10 @@ CmTaskInternal::~CmTaskInternal( void )
         CmEvent *eventBase = m_taskEvent;
         CmQueueRT *cmQueue = nullptr;
         m_taskEvent->GetQueue(cmQueue);
-        cmQueue->DestroyEvent(eventBase); // need to update the m_EventArray
+        if (cmQueue)
+        {
+            cmQueue->DestroyEvent(eventBase); // need to update the m_EventArray
+        }
     }
 
     if(m_threadCoordinates){
