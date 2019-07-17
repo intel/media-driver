@@ -1800,6 +1800,7 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_singleTaskPhaseSupported(encoder->m_singleTaskPhaseSupported),
       m_firstTaskInPhase(encoder->m_firstTaskInPhase),
       m_lastTaskInPhase(encoder->m_lastTaskInPhase),
+      m_pollingSyncEnabled(encoder->m_pollingSyncEnabled),
       m_groupId(encoder->m_groupId),
       m_outputChromaFormat(encoder->m_outputChromaFormat),
       m_standard(encoder->m_standard),
@@ -1820,15 +1821,14 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_maxBtCount(encoder->m_maxBtCount),
       m_vmeStatesSize(encoder->m_vmeStatesSize),
       m_storeData(encoder->m_storeData),
+      m_syncMarkerOffset(encoder->m_syncMarkerOffset),
+      m_syncMarkerValue(encoder->m_syncMarkerValue),
       m_renderContext(encoder->m_renderContext),
       m_walkerMode(encoder->m_walkerMode),
       m_currRefList(encoder->m_currRefList),
       m_resMbStatsBuffer(encoder->m_resMbStatsBuffer),
       m_rawSurfaceToEnc(encoder->m_rawSurfaceToEnc),
-      m_rawSurfaceToPak(encoder->m_rawSurfaceToPak),
-      m_pollingSyncEnabled(encoder->m_pollingSyncEnabled),
-      m_syncMarkerOffset(encoder->m_syncMarkerOffset),
-      m_syncMarkerValue(encoder->m_syncMarkerValue)
+      m_rawSurfaceToPak(encoder->m_rawSurfaceToPak)
 {
     // Initilize interface pointers
     m_encoder = encoder;

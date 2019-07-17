@@ -445,8 +445,8 @@ public:
     //! \brief    VphalSurfaceDumper constuctor
     //!
     VphalSurfaceDumper(PMOS_INTERFACE pOsInterface)
-    :   m_osInterface(pOsInterface),
-        m_dumpSpec()
+    :   m_dumpSpec(),
+        m_osInterface(pOsInterface)
     {
     };
 
@@ -623,12 +623,12 @@ public:
     //! \brief    VphalHwStateDumper constuctor
     //!
     VphalHwStateDumper(PRENDERHAL_INTERFACE             pRenderHal)
-        :   m_renderHal(pRenderHal),
+        :   m_dumpSpec(),
+            m_renderHal(pRenderHal),
             m_osInterface(pRenderHal->pOsInterface),
             m_hwSizes(pRenderHal->pHwSizes),
             m_stateHeap(pRenderHal->pStateHeap),
-            m_stateHeapSettings(&pRenderHal->StateHeapSettings),
-            m_dumpSpec()
+            m_stateHeapSettings(&pRenderHal->StateHeapSettings)
     {
     };
 
@@ -1055,8 +1055,8 @@ public:
     //! \brief    VphalParameterDumper constuctor
     //!
     VphalParameterDumper(PMOS_INTERFACE pOsInterface)
-    :   m_osInterface(pOsInterface),
-        m_dumpSpec()
+    :   m_dumpSpec(),
+        m_osInterface(pOsInterface)
     {
     };
 

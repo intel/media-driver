@@ -112,7 +112,7 @@ if(NOT ${PLATFORM} STREQUAL "android")
 
 set(MEDIA_COMPILER_CXX_FLAGS_COMMON
     # for cpp
-    -Wno-reorder
+    -Wreorder
     -Wsign-promo
     -Wnon-virtual-dtor
     -Wno-invalid-offsetof
