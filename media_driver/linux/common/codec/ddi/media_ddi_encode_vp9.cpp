@@ -885,6 +885,9 @@ VAStatus DdiEncodeVp9::ParseMiscParamRC(void *data)
     /* the reset flag in RC will be considered. */
     seqParams->SeqFlags.fields.bResetBRC |= vaEncMiscParamRC->rc_flags.bits.reset;  // adding reset here. will apply both CBR and VBR
 
+    /* Enabling Dynamic Scaling */
+    seqParams->SeqFlags.fields.EnableDynamicScaling = vaEncMiscParamRC->rc_flags.bits.enable_dynamic_scaling;
+
     return VA_STATUS_SUCCESS;
 }
 
