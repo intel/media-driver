@@ -148,7 +148,7 @@ public:
     }
 
     virtual MOS_STATUS AllocateRTEPhysicalBuffer(
-        uint8_t     **ppRTEBuffer,
+        void        **ppRTEBuffer,
         uint32_t    *pBufferSize)
     {
         MOS_UNUSED(ppRTEBuffer);
@@ -159,7 +159,7 @@ public:
     }
 
     virtual MOS_STATUS DeAllocateRTEPhysicalBuffer(
-        uint8_t     *pRTEBuffer)
+        void      *pRTEBuffer)
     {
         MOS_UNUSED(pRTEBuffer);
 
