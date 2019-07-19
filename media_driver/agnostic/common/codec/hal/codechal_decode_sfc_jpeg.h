@@ -41,7 +41,11 @@ public:
     //!
     //! \brief    Constructor
     //!
-    CodechalJpegSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
+    CodechalJpegSfcState()
+    {
+        CODECHAL_HW_FUNCTION_ENTER;
+        MOS_ZeroMemory(&m_sfcInSurface, sizeof(m_sfcInSurface));
+    };
     //!
     //! \brief    Destructor
     //!

@@ -494,11 +494,11 @@ private:
     //!
     void QuantSetup();
 
-    const uint8_t *m_bufferEnd;  //!< Pointer to Data Buffer End
-    const uint8_t *m_buffer;     //!< Pointer to Data Buffer
-    int32_t        m_count;      //!< Bits Count for Bitstream Buffer
-    uint32_t       m_value;      //!< Entropy Value
-    uint32_t       m_range;      //!< Entropy Range
+    const uint8_t *m_bufferEnd = nullptr;  //!< Pointer to Data Buffer End
+    const uint8_t *m_buffer = nullptr;     //!< Pointer to Data Buffer
+    int32_t        m_count = 0;      //!< Bits Count for Bitstream Buffer
+    uint32_t       m_value = 0;      //!< Entropy Value
+    uint32_t       m_range = 0;      //!< Entropy Range
 };
 
 using PVP8_ENTROPY_STATE = Vp8EntropyState*;

@@ -67,11 +67,23 @@ CodechalDecodeJpeg::CodechalDecodeJpeg(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecode(hwInterface, debugInterface, standardInfo),
-                                            m_copiedDataBufferSize(0)
+                                            m_dataSize(0),
+                                            m_dataOffset(0),
+                                            m_copiedDataBufferSize(0),
+                                            m_nextCopiedDataOffset(0),
+                                            m_totalDataLength(0),
+                                            m_preNumScans(0),
+                                            m_copiedDataBufferInUse(false)
+
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     MOS_ZeroMemory(&m_resCopiedDataBuffer, sizeof(m_resCopiedDataBuffer));
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    MOS_ZeroMemory(&m_jpegHuffmanTable, sizeof(m_jpegHuffmanTable));
+    MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
 }
 
 MOS_STATUS CodechalDecodeJpeg::InitializeBeginFrame()

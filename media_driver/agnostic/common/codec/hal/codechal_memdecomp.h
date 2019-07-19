@@ -211,7 +211,7 @@ protected:
     bool                         m_renderContextUsesNullHw = false;     //!< Indicate if render context use null hw or not
     bool                         m_disableDecodeSyncLock   = false;     //!< Indicate if decode sync lock disabled or not
     bool                         m_disableLockForTranscode = false;     //!< Indicate if lock is disabled for transcode or not
-    uint32_t                     *m_cmdBufIdGlobal;                     //!< Pointer to command buffer global Id
+    uint32_t                     *m_cmdBufIdGlobal = nullptr;                     //!< Pointer to command buffer global Id
     MOS_RESOURCE                 m_resCmdBufIdGlobal;                   //!< Resource for command buffer global Id
     uint32_t                     m_currCmdBufId;                        //!< Current command buffer Id
 };
