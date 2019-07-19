@@ -575,7 +575,7 @@ public:
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // SFC
-    CodechalHevcSfcState         *m_sfcState;                                            //!< HEVC SFC State
+    CodechalHevcSfcState         *m_sfcState = nullptr;                                            //!< HEVC SFC State
 #endif
     PIC_LONG_FORMAT_MHW_PARAMS      m_picMhwParams;                                         //!< picture parameters
 

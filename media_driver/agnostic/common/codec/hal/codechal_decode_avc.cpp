@@ -1975,6 +1975,9 @@ CodechalDecodeAvc::CodechalDecodeAvc(
     MOS_ZeroMemory(&m_resAvcDmvBuffers, (sizeof(MOS_RESOURCE) * CODEC_AVC_NUM_DMV_BUFFERS));
     MOS_ZeroMemory(&m_resInvalidRefBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_resMvcDummyDmvBuffer, (sizeof(MOS_RESOURCE) * 2));
+    MOS_ZeroMemory(&m_destSurface, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(MOS_RESOURCE));
     m_refFrameSurface = nullptr;
 
     m_vldSliceRecord = nullptr;
