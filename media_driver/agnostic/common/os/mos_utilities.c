@@ -62,6 +62,8 @@ PerfUtility *PerfUtility::getInstance()
 
 PerfUtility::PerfUtility()
 {
+    bPerfUtilityKey = false;
+    dwPerfUtilityIsEnabled = 0;
 }
 
 PerfUtility::~PerfUtility()

@@ -41,12 +41,13 @@ AutoPerfUtility::AutoPerfUtility(std::string tag, std::string comp, std::string 
     {
         g_perfutility->startTick(tag);
         autotag = tag;
+        bEnable = true;
     }
 }
 
 AutoPerfUtility::~AutoPerfUtility()
 {
-    if (g_perfutility->dwPerfUtilityIsEnabled)
+    if (bEnable)
     {
         g_perfutility->stopTick(autotag);
     }

@@ -1100,6 +1100,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
 MOS_STATUS CodechalDecode::Execute(void *params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 

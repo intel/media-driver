@@ -144,6 +144,7 @@ public:
     ~AutoPerfUtility();
 
 private:
+    bool bEnable = false;
     std::string autotag;
 };
 

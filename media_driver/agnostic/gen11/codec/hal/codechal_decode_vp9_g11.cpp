@@ -606,6 +606,8 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Bitstream is incomplete, don't do any decoding work.
