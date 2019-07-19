@@ -82,6 +82,12 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
         case Media_Format_R8G8B8:
             mosResource->Format    = Format_R8G8B8;
             break;
+        case Media_Format_RGBP:
+            mosResource->Format    = Format_RGBP;
+            break;
+        case Media_Format_BGRP:
+            mosResource->Format    = Format_BGRP;
+            break;
         case Media_Format_444P:
             mosResource->Format    = Format_444P;
             break;

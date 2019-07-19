@@ -170,6 +170,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_P010        ,
     Media_Format_R8G8B8      ,
     Media_Format_RGBP        ,
+    Media_Format_BGRP        ,
 
     Media_Format_P016        ,
     Media_Format_Y210        ,

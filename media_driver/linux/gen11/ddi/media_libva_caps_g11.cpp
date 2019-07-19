@@ -43,7 +43,6 @@ const VAImageFormat m_supportedImageformatsG11[] =
     {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0}, /* [31:0] x:R:G:B 8:8:8:8 little endian */
     {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0xff000000, 0x00ff0000, 0x0000ff00,  0}, /* [31:0] R:G:B:x 8:8:8:8 little endian */
     {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0}, /* [31:0] x:B:G:R 8:8:8:8 little endian */
-    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
     {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
     {VA_FOURCC_AYUV,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
     {VA_FOURCC_Y800,   VA_LSB_FIRST,   8,  0,0,0,0,0},
@@ -703,6 +702,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG11::ConvertMediaFmtToGmmFmt(
         case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
         case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
+        case Media_Format_BGRP       : return GMM_FORMAT_BGRP;
         case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
         case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
         case Media_Format_YUY2       : return GMM_FORMAT_YUY2;

@@ -3030,6 +3030,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
         case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
+        case Media_Format_BGRP       : return GMM_FORMAT_BGRP;
         case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
         case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
         case Media_Format_YUY2       : return GMM_FORMAT_YUY2;
@@ -3065,7 +3066,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
         case VA_FOURCC_XBGR   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
         case VA_FOURCC_R8G8B8 : return GMM_FORMAT_R8G8B8_UNORM;
         case VA_FOURCC_RGBP   : return GMM_FORMAT_RGBP;
-        case VA_FOURCC_BGRP   : return GMM_FORMAT_RGBP;
+        case VA_FOURCC_BGRP   : return GMM_FORMAT_BGRP;
         case VA_FOURCC_RGB565 : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case VA_FOURCC_AYUV   : return GMM_FORMAT_AYUV_TYPE;
         case VA_FOURCC_NV12   : return GMM_FORMAT_NV12_TYPE;

@@ -203,6 +203,9 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_RGBP:
         format = Format_RGBP;
         break;
+    case Media_Format_BGRP:
+        format = Format_BGRP;
+        break;
     case Media_Format_Y210:
         format = Format_Y210;
         break;

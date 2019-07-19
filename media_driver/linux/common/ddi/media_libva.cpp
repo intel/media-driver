@@ -439,6 +439,8 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_444P;
         case Media_Format_RGBP:
             return VA_FOURCC_RGBP;
+        case Media_Format_BGRP:
+            return VA_FOURCC_BGRP;
         case Media_Format_Buffer:
             return VA_FOURCC_P208;
         case Media_Format_P010:
@@ -553,8 +555,9 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
         case VA_FOURCC_IMC3:
             return Media_Format_IMC3;
         case VA_FOURCC_444P:
-        case VA_FOURCC_BGRP:
             return Media_Format_444P;
+        case VA_FOURCC_BGRP:
+            return Media_Format_BGRP;
         case VA_FOURCC_RGBP:
             return Media_Format_RGBP;
         case VA_FOURCC_P208:
@@ -4158,6 +4161,7 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_444P:
     case Media_Format_RGBP:
+    case Media_Format_BGRP:
         vaimg->format.bits_per_pixel    = 24;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3;
         vaimg->num_planes               = 3;
@@ -4234,6 +4238,7 @@ VAStatus DdiMedia_DeriveImage (
             break;
         case Media_Format_444P:
         case Media_Format_RGBP:
+        case Media_Format_BGRP:
         case Media_Format_411P:
         case Media_Format_422H:
             vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
@@ -4272,6 +4277,7 @@ VAStatus DdiMedia_DeriveImage (
             break;
         case Media_Format_444P:
         case Media_Format_RGBP:
+        case Media_Format_BGRP:
         case Media_Format_411P:
         case Media_Format_422H:
         case Media_Format_IMC3:

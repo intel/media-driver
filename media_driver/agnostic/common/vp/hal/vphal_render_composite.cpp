@@ -4583,6 +4583,7 @@ bool CompositeState::SubmitStates(
     }
 
     // Set flag to swap R and B in Save_RGB/ARGB if target format is Format_A8B8G8R8/Format_X8B8G8R8/Format_B10G10R10A2.
+    // No need for RGBP/BGRP, since they are 3 plane format, kenel change the RB channel by different plane order
     pStatic->DW09.ChannelSwap = ((pTarget->Format == Format_A8B8G8R8) ||
                                  (pTarget->Format == Format_X8B8G8R8) ||
                                  (pTarget->Format == Format_B10G10R10A2)) ? 1 : 0;

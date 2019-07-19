@@ -39,7 +39,6 @@ const VAImageFormat m_supportedImageformatsG10[] =
     {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0}, /* [31:0] x:R:G:B 8:8:8:8 little endian */
     {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0xff000000, 0x00ff0000, 0x0000ff00,  0}, /* [31:0] R:G:B:x 8:8:8:8 little endian */
     {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0}, /* [31:0] x:B:G:R 8:8:8:8 little endian */
-    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
     {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
     {VA_FOURCC_AYUV,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
     {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
