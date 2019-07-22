@@ -81,6 +81,7 @@ public:
                   m_cmDevice(nullptr)
     {
         MOS_ZeroMemory(&vaCmExtSendReqMsg, sizeof(vaCmExtSendReqMsg));
+        MOS_ZeroMemory(&m_vaDisplay, sizeof(m_vaDisplay));
     }
 
     ~MockDevice() { Release(); }
