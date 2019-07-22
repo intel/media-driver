@@ -5496,10 +5496,9 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* surface, uint32_t btIn
     m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].numBTIPerSurf = (uint16_t)SetSurfBTINumForIndirectData(format, surfaceRT->Type());
 
     //Copy it to surface index array
-    if (m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] == nullptr)
-    {
-        m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] = surface;
-    }
+
+    m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] = surface;
+
 
     // count is actally one larger than the actual index
     m_usKernelPayloadSurfaceCount = indirectSurfInfoEntry + 1;
