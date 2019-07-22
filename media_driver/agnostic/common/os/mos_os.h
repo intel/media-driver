@@ -376,7 +376,6 @@ typedef struct _MOS_COMMAND_BUFFER
     int32_t             iSubmissionType;
 
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
-    MOS_OCA_BUFFER_HANDLE hOcaBuf;                  //!< Oca buffer handle for current command
 } MOS_COMMAND_BUFFER;
 
 //!

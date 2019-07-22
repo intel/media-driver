@@ -198,10 +198,36 @@ private:
     //!
     static void OnOcaError(MOS_STATUS status, const char *functionName, uint32_t lineNumber);
 
+    //!
+    //! \brief  Get OCA buffer handle from pool.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
+    //! \param  [in] mosContext
+    //!         Reference to MOS_CONTEXT.
+    //! \return MOS_OCA_BUFFER_HANDLE
+    //!         MOS_OCA_BUFFER_HANDLE.
+    //!
+    static MOS_OCA_BUFFER_HANDLE GetOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
+
+    //!
+    //! \brief  Remove OCA buffer handle from pool.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
+    //! \param  [in] mosContext
+    //!         Reference to MOS_CONTEXT.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void RemoveOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
+
     // Private functions to ensure class singleton.
     HalOcaInterface();
     HalOcaInterface(HalOcaInterface &);
     HalOcaInterface& operator= (HalOcaInterface &);
+
+    static std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> s_hOcaMap;        //!< Oca buffer handle map to current command
+
 };
+
 
 #endif // __RHAL_OCA_INTERFACE_H__

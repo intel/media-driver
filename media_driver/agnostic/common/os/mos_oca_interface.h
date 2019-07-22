@@ -206,6 +206,16 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
+    //!
+    //! \brief  Get the mutex for oca buffer handles protection.
+    //! \return PMOS_MUTEX
+    //!         Return PMOS_MUTEX if successful, otherwise nullptr
+    //!
+    virtual PMOS_MUTEX GetMutex()
+    {
+        return nullptr;
+    }
 };
 
 #endif // #ifndef __MOS_OCA_INTERFACE_H__
