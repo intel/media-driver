@@ -624,6 +624,8 @@ public:
     //!
     VphalHwStateDumper(PRENDERHAL_INTERFACE             pRenderHal)
         :   m_renderHal(pRenderHal),
+            iDebugStage(0),
+            iPhase(0),
             m_osInterface(pRenderHal->pOsInterface),
             m_hwSizes(pRenderHal->pHwSizes),
             m_stateHeap(pRenderHal->pStateHeap),
