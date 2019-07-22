@@ -145,7 +145,7 @@ public:
 
 private:
     bool bEnable = false;
-    std::string autotag;
+    std::string autotag ="intialized";
 };
 
 //!

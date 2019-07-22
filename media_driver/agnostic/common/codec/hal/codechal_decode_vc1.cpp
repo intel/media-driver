@@ -4815,6 +4815,7 @@ CodechalDecodeVc1::CodechalDecodeVc1(
     MOS_ZeroMemory(m_unequalFieldRefListIdx, sizeof(m_unequalFieldRefListIdx));
     MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
     MOS_ZeroMemory(&m_deblockSurface, sizeof(m_deblockSurface));
+    MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
     MOS_ZeroMemory(&m_resBitplaneBuffer, sizeof(m_resBitplaneBuffer));
     MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
     MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));

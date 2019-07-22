@@ -2814,6 +2814,7 @@ CodechalEncodeHevcBase::CodechalEncodeHevcBase(
     MOS_ZeroMemory(&m_s16XMeMvDataBuffer, sizeof(m_s16XMeMvDataBuffer));
     MOS_ZeroMemory(&m_s32XMeMvDataBuffer, sizeof(m_s32XMeMvDataBuffer));
     MOS_ZeroMemory(&m_s4XMeDistortionBuffer, sizeof(m_s4XMeDistortionBuffer));
+    MOS_ZeroMemory(&m_mbQpDataSurface, sizeof(m_mbQpDataSurface));
 
     m_fieldScalingOutputInterleaved = false;
     m_interlacedFieldDisabled = true;
