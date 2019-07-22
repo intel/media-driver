@@ -3697,12 +3697,13 @@ bool MOS_SimulateAllocMemoryFail(
     if (MosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM)
     {
         int32_t Rn = rand();
+        MosAllocMemoryFailSimulateAllocCounter++;
         if (Rn % MosAllocMemoryFailSimulateFreq == 1)
         {
             bSimulateAllocFail = true;
             MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
-                "Simulated Allocate Memory Fail (Rn=%d) for: functionName: %s, filename: %s, line: %d, size: %d, alignment: %d \n", \
-                Rn, functionName, filename, line, size, alignment);
+                "Simulated Allocate Memory Fail (Rn=%d, SimulateAllocCounter=%d) for: functionName: %s, filename: %s, line: %d, size: %d, alignment: %d \n", \
+                Rn, MosAllocMemoryFailSimulateAllocCounter, functionName, filename, line, size, alignment);
         }
         else
         {
