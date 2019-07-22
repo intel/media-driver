@@ -729,7 +729,7 @@ protected:
     MOS_STATUS (*AddResourceToCmd) (
         PMOS_INTERFACE                  pOsInterface,
         PMOS_COMMAND_BUFFER             cmdBuffer,
-        PMHW_RESOURCE_PARAMS            params);
+        PMHW_RESOURCE_PARAMS            params) = nullptr;
 
     //!
     //! \brief    Helper function to get GTT type (PGTT or GGTT)
@@ -758,7 +758,7 @@ protected:
     } MediaResetParam;
 
     //! \brief Mmio registers address
-    MHW_MI_MMIOREGISTERS       m_mmioRegisters;  //!< mfx mmio registers
+    MHW_MI_MMIOREGISTERS       m_mmioRegisters = {};  //!< mfx mmio registers
 
 };
 

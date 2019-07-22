@@ -39,6 +39,15 @@ DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
     m_ddiDecodeAttr = ddiDecodeAttr;
     m_ddiDecodeCtx  = nullptr;
     MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    m_groupIndex = 0;
+    m_picWidthInMB = 0;
+    m_picHeightInMB = 0;
+    m_decProcessingType = 0;
+    m_width = 0;
+    m_height = 0;
+    m_streamOutEnabled = false;
+    m_sliceParamBufNum = 0;
+    m_sliceCtrlBufNum = 0;
     m_codechalSettings = CodechalSetting::CreateCodechalSetting();
 }
 

@@ -106,12 +106,13 @@ struct NodeHeader
 
 MediaPerfProfiler::MediaPerfProfiler()
 {
+    MOS_ZeroMemory(&m_perfStoreBuffer, sizeof(m_perfStoreBuffer));
     m_perfDataIndex = 0;
     m_ref           = 0;
     m_initialized   = false;
 
     m_profilerEnabled = 0;
-    
+
     MOS_USER_FEATURE_VALUE_DATA     userFeatureData;
     // Check whether profiler is enabled
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

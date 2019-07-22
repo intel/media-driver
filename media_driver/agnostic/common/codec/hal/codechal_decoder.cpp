@@ -229,6 +229,8 @@ CodechalDecode::CodechalDecode (
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    MOS_ZeroMemory(&m_dummyReference, sizeof(MOS_SURFACE));
+
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(hwInterface->GetOsInterface());
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(hwInterface->GetMiInterface());
@@ -251,8 +253,6 @@ CodechalDecode::CodechalDecode (
 
     m_mode              = standardInfo->Mode;
     m_isHybridDecoder   = standardInfo->bIsHybridCodec ? true : false;
-
-    MOS_ZeroMemory(&m_dummyReference, sizeof(MOS_SURFACE));
 }
 
 MOS_STATUS CodechalDecode::SetGpuCtxCreatOption(

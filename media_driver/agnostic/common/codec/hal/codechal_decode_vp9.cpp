@@ -168,6 +168,7 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
                                             m_vp9DepthIndicator(0),
                                             m_chromaFormatinProfile(0),
                                             m_dataSize(0),
+                                            m_dataOffset(0),
                                             m_frameCtxIdx(0),
                                             m_curMvTempBufIdx(0),
                                             m_colMvTempBufIdx(0),
@@ -180,8 +181,11 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
                                             m_allocatedWidthInSb(0),
                                             m_allocatedHeightInSb(0),
                                             m_mvBufferSize(0),
+                                            m_resetSegIdBuffer(false),
                                             m_pendingResetPartial(0),
-                                            m_saveInterProbs(0)
+                                            m_saveInterProbs(0),
+                                            m_fullProbBufferUpdate(false),
+                                            m_dmemBufferSize(0)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
