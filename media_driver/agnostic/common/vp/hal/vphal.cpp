@@ -527,6 +527,10 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
             eStatus = eStatusSingleRender;
             VPHAL_PUBLIC_ASSERTMESSAGE("Failed to redner for substreams, eStatus: %d.\n", eStatus);
         }
+
+        //Free the temporary surface
+        pRenderer->GetOsInterface()->pfnFreeResource(pRenderer->GetOsInterface(), &(pIntermediateSurface->OsResource));
+
     }
 
 finish:
