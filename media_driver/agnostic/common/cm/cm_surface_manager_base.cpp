@@ -621,6 +621,7 @@ int32_t CmSurfaceManagerBase::GetFormatSize(CM_SURFACE_FORMAT format,
         case CM_SURFACE_FORMAT_P208:
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_R8_UNORM:
+        case CM_SURFACE_FORMAT_Y8_UNORM:
             sizePerPixel = 1;
             break;
 
@@ -2449,6 +2450,7 @@ bool CMRT_UMD::CmSurfaceManagerBase::IsSupportedForSamplerSurface2D(CM_SURFACE_F
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_R10G10B10A2:
         case CM_SURFACE_FORMAT_R8_UNORM:
+        case CM_SURFACE_FORMAT_Y8_UNORM:
             return true;
 
         default:
