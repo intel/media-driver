@@ -4480,9 +4480,9 @@ MOS_STATUS CodechalEncodeVp8::SendMeSurfaces(
     encMediaStateType = params->b16xMeInUse ? CODECHAL_MEDIA_STATE_16X_ME : CODECHAL_MEDIA_STATE_4X_ME;
     vp8MeBindingTable = params->pMeBindingTable;
 
-    lastRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
-    goldenRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
-    alternateRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
+    lastRefPicIdx = CODECHAL_INVALID_FRAME_INDEX;
+    goldenRefPicIdx = CODECHAL_INVALID_FRAME_INDEX;
+    alternateRefPicIdx = CODECHAL_INVALID_FRAME_INDEX;
 
     if (!CodecHal_PictureIsInvalid(*params->pLastRefPic))
     {
@@ -4928,9 +4928,9 @@ MOS_STATUS CodechalEncodeVp8::SendMbEncSurfaces(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMbEncBindingTable);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
 
-    lastRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
-    goldenRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
-    alternateRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
+    lastRefPicIdx = CODECHAL_INVALID_FRAME_INDEX;
+    goldenRefPicIdx = CODECHAL_INVALID_FRAME_INDEX;
+    alternateRefPicIdx = CODECHAL_INVALID_FRAME_INDEX;
 
     vp8MbEncBindingTable = params->pMbEncBindingTable;
 
@@ -5197,7 +5197,7 @@ MOS_STATUS CodechalEncodeVp8::SendMbEncSurfaces(
         }
 
         // Last reference
-        if (lastRefPicIdx != CODECHAL_ENCODE_VP8_INVALID_PIC_ID)
+        if (lastRefPicIdx != CODECHAL_INVALID_FRAME_INDEX)
         {
             // Picture Y VME
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5224,7 +5224,7 @@ MOS_STATUS CodechalEncodeVp8::SendMbEncSurfaces(
         }
 
         // Golden reference
-        if (goldenRefPicIdx != CODECHAL_ENCODE_VP8_INVALID_PIC_ID)
+        if (goldenRefPicIdx != CODECHAL_INVALID_FRAME_INDEX)
         {
             // Picture Y VME
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5258,7 +5258,7 @@ MOS_STATUS CodechalEncodeVp8::SendMbEncSurfaces(
         }
 
         // Alternate reference
-        if (alternateRefPicIdx != CODECHAL_ENCODE_VP8_INVALID_PIC_ID)
+        if (alternateRefPicIdx != CODECHAL_INVALID_FRAME_INDEX)
         {
             // Picture Y VME
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));

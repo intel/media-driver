@@ -2996,7 +2996,7 @@ MOS_STATUS CodechalDecodeVc1::AllocateResources()
                 "Failed to allocate VC1 Unequal Fields WA decoding ouput surface data buffer.");
 
             // ensure that no entries are valid
-            m_unequalFieldRefListIdx[i] = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1;
+            m_unequalFieldRefListIdx[i] = CODECHAL_INVALID_FRAME_INDEX;
         }
 
         m_unequalFieldSurfaceForBType = CODECHAL_DECODE_VC1_UNEQUAL_FIELD_WA_SURFACES - 1;
