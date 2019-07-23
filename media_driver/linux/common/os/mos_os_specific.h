@@ -44,6 +44,7 @@
 typedef unsigned int MOS_OS_FORMAT;
 
 class GraphicsResource;
+class GraphicsResourceNext;
 class AuxTableMgr;
 class MosOcaInterface;
 
@@ -281,6 +282,7 @@ struct _MOS_SPECIFIC_RESOURCE
     uint64_t                user_provided_va;
     // for MODS Wrapper
     GraphicsResource*       pGfxResource;
+    GraphicsResourceNext*   pGfxResourceNext;
     bool                    bConvertedFromDDIResource;
 
 };
