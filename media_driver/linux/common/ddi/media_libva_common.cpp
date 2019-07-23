@@ -336,6 +336,7 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
     if (nullptr == surfaceElement)
     {
+        MOS_FreeMemory(dstSurface);
         return nullptr;
     }
 

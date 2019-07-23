@@ -2162,6 +2162,7 @@ DdiMedia_CreateSurfaces2(
                 surfDesc->uiTile = I915_TILING_NONE;
                 if (surfDesc->ulBuffer % 4096 != 0)
                 {
+                    MOS_FreeMemory(surfDesc);
                     DDI_VERBOSEMESSAGE("Buffer Address is invalid");
                     return VA_STATUS_ERROR_INVALID_PARAMETER;
                 }

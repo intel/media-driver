@@ -870,7 +870,13 @@ VAStatus DdiMedia_PutSurfaceLinuxSW(
     uint8_t *umdContextY = dispTempBuffer;
     uint8_t *ptr         = (uint8_t*)DdiMediaUtil_LockSurface(mediaSurface, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
     MOS_STATUS eStatus   = MOS_SecureMemcpy(umdContextY, surfaceSize, ptr, surfaceSize);
-    DDI_CHK_CONDITION((eStatus != MOS_STATUS_SUCCESS), "DDI:Failed to copy surface buffer data!", VA_STATUS_ERROR_OPERATION_FAILED);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_FreeMemory(dispTempBuffer);
+        DDI_ASSERTMESSAGE("DDI:Failed to copy surface buffer data!");
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
 
     Visual *visual       = DefaultVisual(ctx->native_dpy, ctx->x11_screen);
     GC     gc            = (*pfn_XCreateGC)((Display*)ctx->native_dpy, (Drawable)draw, 0, nullptr);
