@@ -572,6 +572,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
             break;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
             if (width > m_maxHevcEncWidth 
