@@ -934,7 +934,17 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                     fence = osContext->submit_fence;
                     fence_flag = I915_EXEC_FENCE_SUBMIT;
                     int slave_index = (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_MASK) >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
-                    queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
+                    if(slave_index < 7)
+                    {
+                        queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
+                    }
+                    else
+                    {
+                        MOS_OS_ASSERTMESSAGE("slave_index value: %s is invalid!", slave_index);
+                        eStatus = MOS_STATUS_UNKNOWN;
+                        goto finish;
+                    }
+
                     if (isVeboxSubmission)
                     {
                         queue = m_i915Context[cmdBuffer->iVeboxNodeIndex + 1];
