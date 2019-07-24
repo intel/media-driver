@@ -397,6 +397,8 @@ MOS_STATUS Mos_DumpCommandBuffer(
     char            sFileName[MOS_MAX_HLT_FILENAME_LEN];
     // Maximum length of engine name is 6
     char            sEngName[6];
+    char            *psFileNameAfterPrefix  = nullptr;
+    size_t          nSizeFileNamePrefix     = 0;
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
@@ -465,12 +467,13 @@ MOS_STATUS Mos_DumpCommandBuffer(
             goto finish;
         }
 
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MOS_SecureStringPrint(
-            sFileName,
-            sizeof(sFileName),
-            sizeof(sFileName),
-            "%s%c%s%c%s_%d.txt",
-            sFileName, MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR,
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s%c%s_%d.txt",
+            MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR,
             MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_FILE, dwCommandBufferNumber);
 
         // Write the output buffer to file.
@@ -548,6 +551,8 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     char                                sFileName[MOS_MAX_HLT_FILENAME_LEN];
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
+    char                                *psFileNameAfterPrefix = nullptr;
+    size_t                              nSizeFileNamePrefix = 0;
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
@@ -572,12 +577,13 @@ MOS_STATUS Mos_DumpCommandBufferInit(
             goto finish;
         }
 
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MOS_SecureStringPrint(
-            sFileName,
-            sizeof(sFileName),
-            sizeof(sFileName),
-            "%s%c%s",
-            sFileName, MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR);
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s",
+            MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR);
 
         eStatus = MOS_CreateDirectory(sFileName);
         if (eStatus != MOS_STATUS_SUCCESS)
