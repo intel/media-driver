@@ -141,7 +141,8 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
     m_isDriverStoreEnabled(0),
     m_notifierGroup(nullptr),
     m_hasGpuCopyKernel(false),
-    m_hasGpuInitKernel(false)
+    m_hasGpuInitKernel(false),
+    m_kernelsLoaded(0)
 {
     //Initialize the structures in the class
     MOS_ZeroMemory(&m_halMaxValues, sizeof(m_halMaxValues));

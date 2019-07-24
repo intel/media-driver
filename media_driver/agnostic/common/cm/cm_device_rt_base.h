@@ -401,6 +401,9 @@ public:
 
     inline bool HasGpuInitKernel() {return m_hasGpuInitKernel; }
 
+    // Num of kernels included in CmProgram Loaded by this device
+    inline uint32_t& KernelsLoaded() {return m_kernelsLoaded; }
+
     virtual int32_t GetJITCompileFnt(pJITCompile &fJITCompile) = 0;
 
     virtual int32_t GetJITCompileFntV2(pJITCompile_v2 &fJITCompile_v2) = 0;
@@ -582,6 +585,8 @@ protected:
     bool           m_hasGpuCopyKernel;
 
     bool           m_hasGpuInitKernel;
+
+    uint32_t       m_kernelsLoaded;
 
 private:
     CmDeviceRTBase(const CmDeviceRTBase& other);
