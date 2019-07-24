@@ -155,7 +155,7 @@ VAStatus DdiEncode_StatusReport(
     DDI_MEDIA_BUFFER    *mediaBuf,
     void                **buf)
 {
-    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
 
     DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -215,6 +215,8 @@ VAStatus DdiEncode_CreateContext(
     int32_t          num_render_targets,
     VAContextID     *context)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
+
     DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(ctx->pDriverData, "nullptr ctx->pDriverData", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -540,7 +542,7 @@ VAStatus DdiEncode_BeginPicture(
     VAContextID      context,
     VASurfaceID      render_target)
 {
-    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
 
     DDI_FUNCTION_ENTER();
 
@@ -566,7 +568,7 @@ VAStatus DdiEncode_RenderPicture(
     VABufferID      *buffers,
     int32_t          num_buffers)
 {
-    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
 
     DDI_FUNCTION_ENTER();
 
@@ -584,7 +586,7 @@ VAStatus DdiEncode_RenderPicture(
 
 VAStatus DdiEncode_EndPicture(VADriverContextP ctx, VAContextID context)
 {
-    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
 
     DDI_FUNCTION_ENTER();
 

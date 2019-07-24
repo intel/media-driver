@@ -1483,6 +1483,8 @@ VAStatus VpSetOsResource(
 /////////////////////////////////////////////////////////////////////////////////////////////
 VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PVPHAL_RENDER_PARAMS            pVpHalRenderParams = nullptr;
     int32_t                         uSurfIndex;
     PDDI_MEDIA_CONTEXT              pMediaCtx;
@@ -1625,6 +1627,8 @@ DdiVp_InitVpHal(
     PDDI_VP_CONTEXT   pVpCtx
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     VphalState                *pVpHal;
     VphalSettings             VpHalSettings;
 
@@ -2830,6 +2834,8 @@ VAStatus DdiVp_ConvertSurface(
     uint16_t             desth
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     VAStatus                    vaStatus;
     PVPHAL_SURFACE              pSurface;
     PVPHAL_SURFACE              pTarget;
@@ -2956,6 +2962,8 @@ VAStatus DdiVp_CreateContext (
     VAContextID        *pVaCtxID
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT                pMediaCtx;
     VAStatus                          vaStatus;
     PDDI_VP_CONTEXT                   pVpCtx;
@@ -3025,6 +3033,8 @@ VAStatus DdiVp_DestroyContext (
     VAContextID         vaCtxID
     )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT       pMediaCtx;
     PDDI_VP_CONTEXT          pVpCtx;
     uint32_t                 uiVpIndex;
@@ -3085,6 +3095,8 @@ VAStatus DdiVp_BeginPicture(
         VAContextID         vaCtxID,
         VASurfaceID         vaSurfID)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT          pMediaDrvCtx;
     PDDI_VP_CONTEXT             pVpCtx;
     uint32_t                    ctxType;
@@ -3343,6 +3355,8 @@ VAStatus DdiVp_RenderPicture (
     int32_t             num_buffers
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT        pMediaCtx;
     PDDI_VP_CONTEXT           pVpCtx;
     PDDI_MEDIA_BUFFER         pBuf;
@@ -3424,6 +3438,8 @@ VAStatus DdiVp_EndPicture (
         VADriverContextP    pVaDrvCtx,
         VAContextID         vaCtxID)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_VP_CONTEXT         pVpCtx;
     uint32_t                uiCtxType;
     VphalState              *pVpHal;
@@ -3493,6 +3509,8 @@ VAStatus DdiVp_VideoProcessPipeline(
     VASurfaceID         dstSurface,
     VARectangle         *dstRect)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     VAStatus            vaStatus;
     uint32_t            ctxType;
     PDDI_VP_CONTEXT     pVpCtx;
