@@ -36,8 +36,7 @@ MediaLibvaCapsG9Skl::MediaLibvaCapsG9Skl(DDI_MEDIA_CONTEXT *mediaCtx) : MediaLib
     {
         {AVC, DualPipe, VA_RT_FORMAT_YUV420},
         {AVC, Vdenc, VA_RT_FORMAT_YUV420},
-        {HEVC, DualPipe, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP},
-        {VP9, DualPipe, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP},
+        {HEVC, DualPipe, VA_RT_FORMAT_YUV420},
     };
     m_encodeFormatTable = (struct EncodeFormatTable*)(&encodeFormatTableSKL[0]);
     m_encodeFormatCount = sizeof(encodeFormatTableSKL)/sizeof(struct EncodeFormatTable);
