@@ -144,7 +144,6 @@ private:
     //! \brief   Free Resource buffer for VP8
     //!
     void FreeResourceBuffer();
-
 };
 
 #endif /* _MEDIA_DDI_DECODE_VP8_H */

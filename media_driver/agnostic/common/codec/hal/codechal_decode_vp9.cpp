@@ -1350,15 +1350,15 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
 
         if (refFrameList[lastRefPicIndex].FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9)
         {
-            refFrameList[lastRefPicIndex].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
+            refFrameList[lastRefPicIndex].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
         }
         if (refFrameList[goldenRefPicIndex].FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9)
         {
-            refFrameList[goldenRefPicIndex].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
+            refFrameList[goldenRefPicIndex].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
         }
         if (refFrameList[altRefPicIndex].FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9)
         {
-            refFrameList[altRefPicIndex].FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
+            refFrameList[altRefPicIndex].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
         }
         PCODEC_REF_LIST *vp9RefList = &(m_vp9RefList[0]);
         m_presLastRefSurface        = &(vp9RefList[refFrameList[lastRefPicIndex].FrameIdx]->resRefPic);

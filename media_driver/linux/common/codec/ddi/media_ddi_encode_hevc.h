@@ -242,7 +242,7 @@ private:
     //! \param    [in] mediaCtx
     //!           Pointer to DdiMediaContext
     //! \param    [in] RTtbl
-    //!           Pointer to MediaDdiRenderTargetTable
+    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
     //! \param    [in] vaPicHEVC
     //!           Pointer to VAPictureHEVC
     //! \param    [in] picReference
@@ -256,7 +256,7 @@ private:
     //!
     void SetupCodecPicture(
         DDI_MEDIA_CONTEXT             *mediaCtx,
-        MediaDdiRenderTargetTable *RTtbl,
+        DDI_CODEC_RENDER_TARGET_TABLE *RTtbl,
         CODEC_PICTURE                 *codecHalPic,
         VAPictureHEVC                 vaPicHEVC,
         bool                          picReference,

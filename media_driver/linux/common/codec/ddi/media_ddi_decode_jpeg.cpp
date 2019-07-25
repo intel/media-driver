@@ -503,9 +503,9 @@ VAStatus DdiDecodeJPEG::InitDecodeParams(
     bufMgr->dwNumSliceControl    = 0;
     memset(&m_destSurface, 0, sizeof(MOS_SURFACE));
     m_destSurface.dwOffset = 0;
-    MediaDdiRenderTargetTable* pRTTbl = m_ddiDecodeCtx->pRTtbl;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
 
-    if (pRTTbl->GetCurrentRTSurface() == VA_INVALID_ID)
+    if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -604,17 +604,14 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
     m_destSurface.Format   = Format_NV12;
 
     CodecDecodeJpegPicParams *jpegPicParam = (CodecDecodeJpegPicParams *)(m_ddiDecodeCtx->DecodeParams.m_picParams);
-    DDI_MEDIA_SURFACE* curr_rt_surf = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface());
-
-    if((curr_rt_surf->format == Media_Format_NV12)
+    if((m_ddiDecodeCtx->RTtbl.pCurrentRT->format == Media_Format_NV12)
         &&(jpegPicParam->m_chromaType == jpegYUV444))
     {
-        curr_rt_surf = DdiMedia_ReplaceSurfaceWithNewFormat(curr_rt_surf, Media_Format_444P);
-        m_ddiDecodeCtx->pRTtbl->SetCurrentRTSurface(DdiMedia_GetVASurfaceIDFromSurface(curr_rt_surf));
+        m_ddiDecodeCtx->RTtbl.pCurrentRT = DdiMedia_ReplaceSurfaceWithNewFormat(m_ddiDecodeCtx->RTtbl.pCurrentRT, Media_Format_444P);
     }
-    if(m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface() != VA_INVALID_ID)
+    if(m_ddiDecodeCtx->RTtbl.pCurrentRT != nullptr)
     {
-        DdiMedia_MediaSurfaceToMosResource(curr_rt_surf, &(m_destSurface.OsResource));
+        DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
     }
 
     (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;
@@ -766,8 +763,6 @@ void DdiDecodeJPEG::ContextInit(
     DdiMediaDecode::ContextInit(picWidth, picHeight);
 
     m_ddiDecodeCtx->wMode    = CODECHAL_DECODE_MODE_JPEG;
-
-    m_ddiDecodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
 }
 
 VAStatus DdiDecodeJPEG::InitResourceBuffer()

@@ -168,8 +168,8 @@ private:
     //!
     //! \param    [in] mediaCtx
     //!           Pointer to DDI_MEDIA_CONTEXT
-    //! \param    [in] pRTTbl
-    //!           Pointer to MediaDdiRenderTargetTable
+    //! \param    [in] rtTbl
+    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
     //! \param    [in] vaPic
     //!           H264 VAPicture structure
     //! \param    [in] fieldPicFlag
@@ -185,13 +185,12 @@ private:
     //!
     void SetupCodecPicture(
         DDI_MEDIA_CONTEXT                   *mediaCtx,
-        MediaDdiRenderTargetTable       *pRTTbl,
+        DDI_CODEC_RENDER_TARGET_TABLE       *rtTbl,
         CODEC_PICTURE                       *codecHalPic,
         VAPictureH264                       vaPic,
         bool                                fieldPicFlag,
         bool                                picReference,
         bool                                sliceReference);
-
 };
 
 #endif /* _MEDIA_DDI_DECODE_AVC_H */

@@ -49,12 +49,13 @@ VAStatus DdiEncodeBase::BeginPicture(
     DDI_MEDIA_SURFACE *curRT = (DDI_MEDIA_SURFACE *)DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, renderTarget);
     DDI_CHK_NULL(curRT, "Null curRT", VA_STATUS_ERROR_INVALID_SURFACE);
 
-    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
-
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
     // raw input frame
-    DDI_CHK_RET(pRTTbl->RegisterRTSurface(renderTarget),"RegisterRTSurface failed!");
-    pRTTbl->SetCurrentRTSurface(renderTarget); // Not registered yet for non-FEI PREENC?!
-
+    rtTbl->pCurrentRT = curRT;
+    if (m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
+    {
+        DDI_CHK_RET(RegisterRTSurfaces(rtTbl, curRT),"RegisterRTSurfaces failed!");
+    }
     // reset some the parameters in picture level
     ResetAtFrameLevel();
 
@@ -81,8 +82,8 @@ VAStatus DdiEncodeBase::EndPicture(
         return VA_STATUS_ERROR_ENCODING_ERROR;
     }
 
-    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
-    pRTTbl->SetCurrentRTSurface(VA_INVALID_ID);
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+    rtTbl->pCurrentRT                    = nullptr;
     m_encodeCtx->bNewSeq                 = false;
 
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_encodeCtx->BufMgr);

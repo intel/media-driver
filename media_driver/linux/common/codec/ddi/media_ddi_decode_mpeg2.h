@@ -41,7 +41,7 @@ public:
     //!
     //! \brief Constructor
     //!
-    DdiDecodeMPEG2(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr){};
+    DdiDecodeMPEG2(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr){m_withDpb = false;};
 
     //!
     //! \brief Destructor
@@ -153,7 +153,6 @@ private:
     //! \brief   Free Resource buffer for MPEG2
     //!
     void FreeResourceBuffer();
-
 };
 
 #endif /* _MEDIA_DDI_DECODE_MPEG2_H */

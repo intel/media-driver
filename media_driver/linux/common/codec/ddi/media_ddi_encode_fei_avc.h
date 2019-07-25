@@ -145,7 +145,6 @@ public:
         void              *ptr);
 
 private:
-
     //! \brief H.264 Inverse Quantization Matrix Buffer.
     PCODEC_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
 

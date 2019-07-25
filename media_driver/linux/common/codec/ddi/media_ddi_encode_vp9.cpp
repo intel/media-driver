@@ -88,7 +88,7 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     CODEC_VP9_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
     CODEC_VP9_ENCODE_PIC_PARAMS *vp9PicParam = (PCODEC_VP9_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
@@ -112,8 +112,7 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     MOS_SURFACE rawSurface;
     MOS_ZeroMemory(&rawSurface, sizeof(MOS_SURFACE));
 
-    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
-    DdiMedia_MediaSurfaceToMosResource(curr_rt_surface, &(rawSurface.OsResource));
+    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
 
     bool surfaceFormatInvalid = true;
     if (m_encodeCtx->vaProfile == VAProfileVP9Profile0 &&
@@ -175,14 +174,16 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     reconSurface.Format   = rawSurface.OsResource.Format;
     reconSurface.dwOffset = 0;
 
-    DDI_MEDIA_SURFACE* curr_recon_target = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, pRTTbl->GetCurrentReconTarget());
-    DdiMedia_MediaSurfaceToMosResource(curr_recon_target, &(reconSurface.OsResource));
+    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
 
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;
     MOS_ZeroMemory(&bitstreamSurface, sizeof(MOS_RESOURCE));
     bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
     bitstreamSurface.Format = Format_Buffer;
+
+    //clear registered recon/ref surface flags
+    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
 
     encodeParams.psRawSurface               = &rawSurface;
     encodeParams.psReconSurface             = &reconSurface;
@@ -364,8 +365,6 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
     /* RT is used as the default target usage */
     vp9TargetUsage = TARGETUSAGE_RT_SPEED;
 
-    m_encodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);
-
     return vaStatus;
 }
 
@@ -507,7 +506,6 @@ VAStatus DdiEncodeVp9::ParseSeqParams(void *ptr)
     return VA_STATUS_SUCCESS;
 }
 
-
 VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
 {
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -631,28 +629,29 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     vp9PicParam->NumSkipFrames  = picParam->number_skip_frames;
     vp9PicParam->SizeSkipFrames = picParam->skip_frames_size;
 
-    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     auto recon = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reconstructed_frame);
-    DDI_CHK_RET(pRTTbl->RegisterRTSurface(picParam->reconstructed_frame),"RegisterRTSurface failed!");
+    DDI_CHK_RET(RegisterRTSurfaces(rtTbl, recon),"RegisterRTSurfaces failed!");
 
-    SetupCodecPicture(mediaCtx, pRTTbl, &vp9PicParam->CurrReconstructedPic,
+    SetupCodecPicture(mediaCtx, rtTbl, &vp9PicParam->CurrReconstructedPic,
                                              picParam->reconstructed_frame, false);
-    pRTTbl->SetCurrentReconTarget(picParam->reconstructed_frame);
+    rtTbl->pCurrentReconTarget = recon;
+    DDI_CHK_NULL(rtTbl->pCurrentReconTarget, "NULL rtTbl->pCurrentReconTarget", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // curr orig pic
-    vp9PicParam->CurrOriginalPic.FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(picParam->reconstructed_frame);
+    vp9PicParam->CurrOriginalPic.FrameIdx = GetRenderTargetID(rtTbl, rtTbl->pCurrentReconTarget);
     vp9PicParam->CurrOriginalPic.PicFlags = vp9PicParam->CurrReconstructedPic.PicFlags;
 
     for (int32_t i = 0; i < 8; i++)
     {
         if (picParam->reference_frames[i] != VA_INVALID_SURFACE)
         {
-            DDI_CHK_RET(pRTTbl->RegisterRTSurface(picParam->reference_frames[i]), "RegisterRTSurface failed!");
+            UpdateRegisteredRTSurfaceFlag(rtTbl, DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reference_frames[i]));
         }
         SetupCodecPicture(
             mediaCtx,
-            pRTTbl,
+            rtTbl,
             &vp9PicParam->RefFrameList[i],
             picParam->reference_frames[i],
             true);
@@ -1045,23 +1044,24 @@ VAStatus DdiEncodeVp9::ReportExtraStatus(
 
 void DdiEncodeVp9::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    MediaDdiRenderTargetTable         *pRTTbl,
+    DDI_CODEC_RENDER_TARGET_TABLE         *rtTbl,
     CODEC_PICTURE                         *codecHalPic,
     VASurfaceID                           surfaceID,
     bool                                  picReference)
 {
     if(VA_INVALID_SURFACE != surfaceID)
     {
-        codecHalPic->FrameIdx = m_encodeCtx->pRTtbl->GetFrameIdx(surfaceID);
+        DDI_MEDIA_SURFACE *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surfaceID);
+        codecHalPic->FrameIdx = GetRenderTargetID(rtTbl, surface);
     }
     else
     {
-        codecHalPic->FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
+        codecHalPic->FrameIdx = (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX;
     }
 
     if (picReference)
     {
-        if (codecHalPic->FrameIdx == CODECHAL_INVALID_FRAME_INDEX)
+        if (codecHalPic->FrameIdx == (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX)
         {
             codecHalPic->PicFlags = PICTURE_INVALID;
         }

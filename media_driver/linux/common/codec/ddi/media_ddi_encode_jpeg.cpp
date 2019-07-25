@@ -104,8 +104,6 @@ VAStatus DdiEncodeJpeg::ContextInitialize(CodechalSetting *codecHalSettings)
     m_huffmanTable = (CodecEncodeJpegHuffmanDataArray *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegHuffmanDataArray));
     DDI_CHK_NULL(m_huffmanTable, "nullptr m_huffmanTable.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    m_encodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
-
     return vaStatus;
 }
 
@@ -225,8 +223,7 @@ VAStatus DdiEncodeJpeg::ResetAtFrameLevel()
     CodecEncodeJpegPictureParams *picParams = (CodecEncodeJpegPictureParams *)m_encodeCtx->pPicParams;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, m_encodeCtx->pRTtbl->GetCurrentRTSurface());
-    picParams->m_inputSurfaceFormat = ConvertMediaFormatToInputSurfaceFormat(curr_rt_surface->format);
+    picParams->m_inputSurfaceFormat = ConvertMediaFormatToInputSurfaceFormat(m_encodeCtx->RTtbl.pCurrentRT->format);
 
     m_appDataSize = 0;
     m_appDataTotalSize = 0;
@@ -504,7 +501,7 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    MediaDdiRenderTargetTable* pRTTbl = m_encodeCtx->pRTtbl;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     CodecEncodeJpegPictureParams *picParams = (CodecEncodeJpegPictureParams *)(m_encodeCtx->pPicParams);
 
@@ -533,8 +530,7 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
     rawSurface.Format   = (MOS_FORMAT)picParams->m_inputSurfaceFormat;
     rawSurface.dwOffset = 0;
 
-    DDI_MEDIA_SURFACE* curr_rt_surface = DdiMedia_GetSurfaceFromVASurfaceID(m_encodeCtx->pMediaCtx, m_encodeCtx->pRTtbl->GetCurrentRTSurface());
-    DdiMedia_MediaSurfaceToMosResource(curr_rt_surface, &(rawSurface.OsResource));
+    DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
     // Recon Surface
     MOS_SURFACE reconSurface;
     MOS_ZeroMemory(&reconSurface, sizeof(MOS_SURFACE));

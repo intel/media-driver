@@ -1320,13 +1320,14 @@ int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *devName)
     return hDevice;
 }
 
-VAStatus DdiMediaUtil_UnregisterRTSurfaces(
+VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
     VADriverContextP    ctx,
-    VASurfaceID surface_id)
+    PDDI_MEDIA_SURFACE surface)
 {
     DDI_CHK_NULL(ctx,"nullptr context!", VA_STATUS_ERROR_INVALID_CONTEXT);
     PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,"nullptr mediaCtx!", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(surface, "nullptr surface!", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     //Look through all decode contexts to unregister the surface in each decode context's RTtable.
     if (mediaCtx->pDecoderCtxHeap != nullptr)
@@ -1343,7 +1344,7 @@ VAStatus DdiMediaUtil_UnregisterRTSurfaces(
                 if (decCtx && decCtx->m_ddiDecode)
                 {
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
-                    decCtx->pRTtbl->UnregisterRTSurface(surface_id);
+                    decCtx->m_ddiDecode->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
                 }
             }
         }
@@ -1363,7 +1364,7 @@ VAStatus DdiMediaUtil_UnregisterRTSurfaces(
                 if (pEncCtx && pEncCtx->m_encode)
                 {
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
-                    pEncCtx->pRTtbl->UnregisterRTSurface(surface_id);
+                    pEncCtx->m_encode->UnRegisterRTSurfaces(&pEncCtx->RTtbl, surface);
                 }
             }
         }

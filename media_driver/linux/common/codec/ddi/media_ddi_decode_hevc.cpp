@@ -155,13 +155,13 @@ VAStatus DdiDecodeHEVC::ParsePicParams(
 
     SetupCodecPicture(
         mediaCtx,
-        m_ddiDecodeCtx->pRTtbl,
+        &m_ddiDecodeCtx->RTtbl,
         &codecPicParams->CurrPic,
         picParam->CurrPic,
         0,  //picParam->pic_fields.bits.FieldPicFlag,
         0,  //picParam->pic_fields.bits.FieldPicFlag,
         false);
-    if (codecPicParams->CurrPic.FrameIdx == CODECHAL_INVALID_FRAME_INDEX)
+    if (codecPicParams->CurrPic.FrameIdx == (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -171,16 +171,22 @@ VAStatus DdiDecodeHEVC::ParsePicParams(
     {
         if (picParam->ReferenceFrames[i].picture_id != VA_INVALID_SURFACE)
         {
-            DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->ReferenceFrames[i].picture_id), "RegisterRTSurface failed!");
+            UpdateRegisteredRTSurfaceFlag(&(m_ddiDecodeCtx->RTtbl),
+                DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->ReferenceFrames[i].picture_id));
         }
         SetupCodecPicture(
             mediaCtx,
-            m_ddiDecodeCtx->pRTtbl,
+            &m_ddiDecodeCtx->RTtbl,
             &(codecPicParams->RefFrameList[i]),
             picParam->ReferenceFrames[i],
             0,  //picParam->pic_fields.bits.FieldPicFlag,
             0,  //picParam->pic_fields.bits.FieldPicFlag,
             true);
+        if (codecPicParams->RefFrameList[i].FrameIdx == (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX)
+        {
+            //in case the ref frame sent from App is wrong, set it to invalid ref frame index in codechal.
+            codecPicParams->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+        }
     }
 
     codecPicParams->PicWidthInMinCbsY  = picParam->pic_width_in_luma_samples / (1 << (picParam->log2_min_luma_coding_block_size_minus3 + 3));
@@ -455,12 +461,9 @@ VAStatus DdiDecodeHEVC::RenderPicture(
 MOS_FORMAT DdiDecodeHEVC::GetFormat()
 {
     MOS_FORMAT Format = Format_NV12;
-    MediaDdiRenderTargetTable* pRTTbl = m_ddiDecodeCtx->pRTtbl;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
     CODEC_HEVC_PIC_PARAMS *picParams = (CODEC_HEVC_PIC_PARAMS *)decodeParams->m_picParams;
-
-    DDI_MEDIA_SURFACE* curr_rt_surf = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, pRTTbl->GetCurrentRTSurface());
-
     if ((m_ddiDecodeAttr->profile == VAProfileHEVCMain10) &&
         ((picParams->bit_depth_luma_minus8 ||
         picParams->bit_depth_chroma_minus8)))
@@ -479,9 +482,9 @@ MOS_FORMAT DdiDecodeHEVC::GetFormat()
     else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain10
         && picParams->bit_depth_luma_minus8 == 0
         && picParams->bit_depth_chroma_minus8 == 0
-        && curr_rt_surf->format == Media_Format_P010)
+        && rtTbl->pCurrentRT->format == Media_Format_P010)
     {
-        // for hevc decode 8bit in 10bit, the app will pass the render
+        // for hevc deocde 8bit in 10bit, the app will pass the render
         // target surface with the P010.
         Format = Format_P010;
     }
@@ -585,8 +588,6 @@ void DdiDecodeHEVC::ContextInit(
         m_ddiDecodeCtx->bShortFormatInUse = true;
     }
     m_ddiDecodeCtx->wMode    = CODECHAL_DECODE_MODE_HEVCVLD;
-
-    m_ddiDecodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 }
 
 VAStatus DdiDecodeHEVC::InitResourceBuffer()
@@ -886,10 +887,9 @@ CleanUpandReturn:
     return vaStatus;
 }
 
-
 void DdiDecodeHEVC::SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    MediaDdiRenderTargetTable         *pRTTbl,
+    DDI_CODEC_RENDER_TARGET_TABLE         *rtTbl,
     CODEC_PICTURE                         *codecHalPic,
     VAPictureHEVC                         vaPic,
     bool                                  fieldPicFlag,
@@ -898,16 +898,17 @@ void DdiDecodeHEVC::SetupCodecPicture(
 {
     if (vaPic.picture_id != VA_INVALID_SURFACE)
     {
-        codecHalPic->FrameIdx = pRTTbl->GetFrameIdx(vaPic.picture_id);
+        DDI_MEDIA_SURFACE *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, vaPic.picture_id);
+        codecHalPic->FrameIdx = GetRenderTargetID(rtTbl, surface);
     }
     else
     {
-        codecHalPic->FrameIdx = CODECHAL_INVALID_FRAME_INDEX;
+        codecHalPic->FrameIdx = (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX;
     }
 
     if (picReference)
     {
-        if (codecHalPic->FrameIdx == CODECHAL_INVALID_FRAME_INDEX)
+        if (codecHalPic->FrameIdx == (uint8_t)DDI_CODEC_INVALID_FRAME_INDEX)
         {
             codecHalPic->PicFlags = PICTURE_INVALID;
         }

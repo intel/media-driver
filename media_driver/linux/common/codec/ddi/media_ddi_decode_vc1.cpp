@@ -214,20 +214,21 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     uint32_t fwdRefDist = picParam->reference_fields.bits.reference_distance;
     int32_t  bwdRefDist = 0;
 
-    if (picParam->inloop_decoded_picture != VA_INVALID_ID)
+    if (picParam->inloop_decoded_picture != DDI_CODEC_INVALID_FRAME_INDEX)
     {
-        codecPicParam->DeblockedPicIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface());
-        DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->inloop_decoded_picture), "RegisterRTSurface failed!");
+        codecPicParam->DeblockedPicIdx = GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), m_ddiDecodeCtx->RTtbl.pCurrentRT);
+        DDI_CHK_RET(RegisterRTSurfaces(&m_ddiDecodeCtx->RTtbl, DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->inloop_decoded_picture)), "RegisterRTSurfaces failed!");
 
-        codecPicParam->CurrPic.FrameIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->inloop_decoded_picture);
+        codecPicParam->CurrPic.FrameIdx = (uint16_t)GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl),
+            DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->inloop_decoded_picture));
         m_deblockPicIdx                 = codecPicParam->DeblockedPicIdx;
         m_currPicIdx                    = codecPicParam->CurrPic.FrameIdx;
     }
     else
     {
-        codecPicParam->CurrPic.FrameIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface());
+        codecPicParam->CurrPic.FrameIdx = GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), m_ddiDecodeCtx->RTtbl.pCurrentRT);
         codecPicParam->DeblockedPicIdx  = codecPicParam->CurrPic.FrameIdx;
-        m_deblockPicIdx                 = CODECHAL_INVALID_FRAME_INDEX;
+        m_deblockPicIdx                 = DDI_CODEC_INVALID_FRAME_INDEX;
         m_currPicIdx                    = codecPicParam->CurrPic.FrameIdx;
     }
 
@@ -237,9 +238,11 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     }
     else
     {
-        DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->forward_reference_picture), "RegisterRTSurface failed!");
-
-        codecPicParam->ForwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->forward_reference_picture);
+        if (UpdateRegisteredRTSurfaceFlag(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture)) != VA_STATUS_SUCCESS)
+        {
+            DDI_CHK_RET(RegisterRTSurfaces(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture)), "RegisterRTSurfaces failed!");
+        }
+        codecPicParam->ForwardRefIdx = (uint16_t)GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->forward_reference_picture));
     }
 
     if (picParam->backward_reference_picture == DDI_CODEC_INVALID_FRAME_INDEX)
@@ -248,19 +251,21 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     }
     else
     {
-        DDI_CHK_RET(m_ddiDecodeCtx->pRTtbl->RegisterRTSurface(picParam->backward_reference_picture), "RegisterRTSurface failed!");
-
-        codecPicParam->BackwardRefIdx = m_ddiDecodeCtx->pRTtbl->GetFrameIdx(picParam->backward_reference_picture);
+        if (UpdateRegisteredRTSurfaceFlag(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->backward_reference_picture)) != VA_STATUS_SUCCESS)
+        {
+            DDI_CHK_RET(RegisterRTSurfaces(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->backward_reference_picture)), "RegisterRTSurfaces failed!");
+        }
+        codecPicParam->BackwardRefIdx = (uint16_t)GetRenderTargetID(&(m_ddiDecodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->backward_reference_picture));
     }
 
     //add protection checking to prevent ref pic index larger than DPB size
     if (codecPicParam->ForwardRefIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1)
     {
-        codecPicParam->ForwardRefIdx = CODECHAL_INVALID_FRAME_INDEX;
+        codecPicParam->ForwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1 - 1;
     }
     if (codecPicParam->BackwardRefIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1)
     {
-        codecPicParam->BackwardRefIdx = CODECHAL_INVALID_FRAME_INDEX;
+        codecPicParam->BackwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1 - 1;
     }
 
     if (picParam->picture_fields.bits.frame_coding_mode == 0)
@@ -616,8 +621,6 @@ void DdiDecodeVC1::ContextInit(
         m_height = alignedHeight;
         m_picHeightInMB    = (int16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(alignedHeight));
     }
-
-    m_ddiDecodeCtx->pRTtbl->Init(CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1);
 }
 
 VAStatus DdiDecodeVC1::BeginPicture(
@@ -805,19 +808,11 @@ VAStatus DdiDecodeVC1::SetDecodeParams()
 
     if (m_deblockPicIdx != DDI_CODEC_INVALID_FRAME_INDEX)
     {
-        VASurfaceID va_id = m_ddiDecodeCtx->pRTtbl->GetVAID(m_currPicIdx);
-        DDI_MEDIA_SURFACE* rtSurf = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, va_id);
-        if (rtSurf == nullptr)
-        {
-            DDI_ASSERTMESSAGE("Invalid VASurfaceID in DdiDecodeVC1::SetDecodeParams");
-            return VA_STATUS_ERROR_INVALID_PARAMETER;
-        }
-        DdiMedia_MediaSurfaceToMosResource(rtSurf, &(m_destSurface.OsResource));
+        DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pRT[m_currPicIdx], &(m_destSurface.OsResource));
     }
     else
     {
-        DDI_MEDIA_SURFACE* curr_rt_surf = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, m_ddiDecodeCtx->pRTtbl->GetCurrentRTSurface());
-        DdiMedia_MediaSurfaceToMosResource(curr_rt_surf, &(m_destSurface.OsResource));
+        DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
     }
 
     if (m_destSurface.OsResource.Format != expectedFormat)
@@ -834,16 +829,7 @@ VAStatus DdiDecodeVC1::SetDecodeParams()
         memset(&m_deblockSurface, 0, sizeof(MOS_SURFACE));
         m_deblockSurface.Format   = Format_NV12;
         m_deblockSurface.dwOffset = 0;
-
-        VASurfaceID va_id = m_ddiDecodeCtx->pRTtbl->GetVAID(m_deblockPicIdx);
-        DDI_MEDIA_SURFACE* rtSurf = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, va_id);
-        if (rtSurf == nullptr)
-        {
-            DDI_ASSERTMESSAGE("Invalid VASurfaceID in DdiDecodeVC1::SetDecodeParams");
-            return VA_STATUS_ERROR_INVALID_PARAMETER;
-        }
-
-        DdiMedia_MediaSurfaceToMosResource(rtSurf, &(m_deblockSurface.OsResource));
+        DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pRT[m_deblockPicIdx], &(m_deblockSurface.OsResource));
         (&m_ddiDecodeCtx->DecodeParams)->m_deblockSurface = &m_deblockSurface;
     }
     else

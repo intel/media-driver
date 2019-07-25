@@ -257,9 +257,6 @@ VAStatus DdiEncode_CreateContext(
     ddiEncode->m_encodeCtx = (PDDI_ENCODE_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_ENCODE_CONTEXT));
     DDI_CHK_NULL(ddiEncode->m_encodeCtx, "nullptr ddiEncode->m_encodeCtx", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    ddiEncode->m_encodeCtx->pRTtbl = MOS_New(MediaDdiRenderTargetTable);
-    DDI_CHK_NULL(ddiEncode->m_encodeCtx->pRTtbl, "nullptr ddiEncode->m_encodeCtx->pRTtbl", VA_STATUS_ERROR_ALLOCATION_FAILED);
-
     PDDI_ENCODE_CONTEXT encCtx = ddiEncode->m_encodeCtx;
     encCtx->m_encode           = ddiEncode;
 
@@ -406,13 +403,15 @@ VAStatus DdiEncode_CreateContext(
         DDI_MEDIA_SURFACE *surface;
 
         surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaDrvCtx, render_targets[i]);
-        vaStatus = encCtx->pRTtbl->RegisterRTSurface(render_targets[i]);
-        if (vaStatus == VA_STATUS_ERROR_INVALID_PARAMETER)
+        if (nullptr == surface)
         {
-            DDI_ASSERTMESSAGE("DDI: invalid render target %d in DdiEncode_CreateContext.", i);
+            DDI_ASSERTMESSAGE("DDI: invalid render target %d in vpgEncodeCreateContext.", i);
+            vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
             DdiEncodeCleanUp(encCtx);
             return vaStatus;
         }
+        encCtx->RTtbl.pRT[i] = surface;
+        encCtx->RTtbl.iNumRenderTargets++;
     }
 
     // convert PDDI_ENCODE_CONTEXT to VAContextID
@@ -482,8 +481,6 @@ VAStatus DdiEncode_DestroyContext(VADriverContextP ctx, VAContextID context)
         MOS_Delete(encCtx->m_encode);
         encCtx->m_encode = nullptr;
     }
-
-    MOS_Delete(encCtx->pRTtbl);
 
     MOS_FreeMemory(encCtx);
     encCtx = nullptr;
@@ -634,7 +631,7 @@ VAStatus DdiEncode_MfeSubmit(
         }
 
         // make sure the context has called BeginPicture&RenderPicture&EndPicture
-        if (encodeContext->pRTtbl->GetNumRenderTargets() == 0
+        if (encodeContext->RTtbl.pRT[0] == nullptr
             || encodeContext->dwNumSlices <= 0
             || encodeContext->EncodeParams.pBSBuffer != encodeContext->pbsBuffer)
         {

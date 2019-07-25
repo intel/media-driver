@@ -212,8 +212,8 @@ private:
     //!
     //! \param    [in] mediaCtx
     //!           Pointer to DDI_MEDIA_CONTEXT
-    //! \param    [in] pRTTbl
-    //!           Pointer to MediaDdiRenderTargetTable
+    //! \param    [in] rtTbl
+    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
     //! \param    [in] surfaceID
     //!           VASurface index
     //! \param    [in] picReference
@@ -225,7 +225,7 @@ private:
     //!
     void SetupCodecPicture(
     DDI_MEDIA_CONTEXT                     *mediaCtx,
-    MediaDdiRenderTargetTable         *pRTTbl,
+    DDI_CODEC_RENDER_TARGET_TABLE         *rtTbl,
     CODEC_PICTURE                         *codecHalPic,
     VASurfaceID                           surfaceID,
     bool                                  picReference);
@@ -307,7 +307,6 @@ private:
     VACodedBufferVP9Status *m_codedBufStatus = nullptr; //!< .Coded buffer status
 
 private:
-
     uint32_t savedTargetBit[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
     uint32_t savedMaxBitRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
 

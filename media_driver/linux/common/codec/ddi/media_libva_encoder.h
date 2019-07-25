@@ -29,8 +29,6 @@
 
 #include "media_libva.h"
 #include "media_libva_cp_interface.h"
-#include "media_ddi_render_target_table.h"
-
 #include <vector>
 
 // change to 0x1000 for memory optimization, double check when implement slice header packing in app
@@ -168,7 +166,7 @@ typedef struct _DDI_ENCODE_CONTEXT
     //Per-MB Qp control
     bool                              bMBQpEnable;
 
-    MediaDdiRenderTargetTable     *pRTtbl;
+    DDI_CODEC_RENDER_TARGET_TABLE     RTtbl;
     DDI_CODEC_COM_BUFFER_MGR          BufMgr;
     PDDI_MEDIA_CONTEXT                pMediaCtx;
 
