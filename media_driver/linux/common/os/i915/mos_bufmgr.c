@@ -3662,32 +3662,6 @@ mos_set_context_param(struct mos_linux_context *ctx,
 }
 
 int
-mos_gem_bo_48b_address_supported(struct mos_linux_context *ctx)
-{
-    uint64_t gtt_size = 0;
-    uint64_t gtt_size_4g = (uint64_t)1 << 32;
-    struct mos_bufmgr_gem *bufmgr_gem;
-    int ret;
-
-    if (ctx == nullptr)
-        return -EINVAL;
-
-    ret = mos_get_context_param(ctx, sizeof(uint64_t),I915_CONTEXT_PARAM_GTT_SIZE,&gtt_size);
-    if(ret)
-        return -EINVAL;
-
-    if(gtt_size >= gtt_size_4g)
-    {
-        bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
-        if(bufmgr_gem)
-        {
-            bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
-        }
-    }
-    return ret;
-}
-
-int
 mos_reg_read(struct mos_bufmgr *bufmgr,
            uint32_t offset,
            uint64_t *result)
@@ -3880,10 +3854,17 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     if (ret == 0 && *gp.value > 0)
         bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
 
-    gp.param = I915_PARAM_HAS_ALIASING_PPGTT;
-    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-    if (ret == 0 && *gp.value == 3)
-        bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
+    struct drm_i915_gem_context_param context_param;
+    memset(&context_param, 0, sizeof(context_param));
+    context_param.param = I915_CONTEXT_PARAM_GTT_SIZE;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM, &context_param);
+    if (ret == 0){
+        uint64_t gtt_size_4g = (uint64_t)1 << 32;
+        if (context_param.value > gtt_size_4g)
+        {
+            bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
+        }
+    }
 
     /* Let's go with one relocation per every 2 dwords (but round down a bit
      * since a power of two will mean an extra page allocation for the reloc

@@ -352,15 +352,6 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
         }
         break;
         case DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM:
-        {
-            struct drm_i915_gem_context_param* context_param = (struct drm_i915_gem_context_param *)arg;
-            if(context_param->param == I915_CONTEXT_PARAM_GTT_SIZE)
-            {
-                context_param->value = (uint64_t)1 << 32;
-            }
-            ret = 0;
-        }
-        break;
         case DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM:
         {
             ret = -1;
