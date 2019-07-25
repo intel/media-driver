@@ -148,15 +148,6 @@ MediaPerfProfiler* MediaPerfProfiler::Instance()
 {
     static MediaPerfProfiler instance;
 
-    if (instance.m_profilerEnabled == 0 || instance.m_mutex == nullptr)
-    {
-        return &instance;
-    }
-    
-    MOS_LockMutex(instance.m_mutex);
-    instance.m_ref++;
-    MOS_UnlockMutex(instance.m_mutex);
-
     return &instance;
 }
 
@@ -212,6 +203,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     MOS_LockMutex(m_mutex);
 
     m_contextIndexMap[context] = 0;
+    m_ref++;
 
     if (m_initialized == true)
     {
