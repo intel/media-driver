@@ -172,6 +172,7 @@ protected:
 
     virtual VAStatus LoadProfileEntrypoints();
     virtual VAStatus LoadVp9EncProfileEntrypoints();
+    virtual VAStatus LoadHevcEncProfileEntrypoints() override;
 
     virtual VAStatus CheckEncodeResolution(
             VAProfile profile,

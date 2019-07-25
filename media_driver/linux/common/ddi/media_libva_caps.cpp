@@ -313,6 +313,22 @@ VAStatus MediaLibvaCaps::SetAttribute(
     }
 }
 
+VAStatus MediaLibvaCaps::SetAttribute(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        VAConfigAttribType type,
+        uint32_t value)
+{
+    int32_t idx = GetProfileTableIdx(profile, entrypoint);
+    DDI_CHK_LARGER(idx, -1, "Didn't find the profile table", VA_STATUS_ERROR_INVALID_PARAMETER);
+ 
+    auto attribList = m_profileEntryTbl[idx].m_attributes;
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    (*attribList)[type] = value;
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus MediaLibvaCaps::FreeAttributeList()
 {
     uint32_t attribListCount = m_attributeLists.size();

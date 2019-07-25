@@ -361,6 +361,43 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
     return status;
 }
 
+VAStatus MediaLibvaCapsG11::LoadHevcEncProfileEntrypoints()
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
+
+    status = MediaLibvaCaps::LoadHevcEncProfileEntrypoints();
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC))
+    {
+        SetAttribute(VAProfileHEVCMain, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
+    {
+        SetAttribute(VAProfileHEVCMain10, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC12bit))
+    {
+        SetAttribute(VAProfileHEVCMain12, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit422))
+    {
+        SetAttribute(VAProfileHEVCMain422_10, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC12bit422))
+    {
+        SetAttribute(VAProfileHEVCMain422_12, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+#endif
+    return status;
+}
+
 VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
@@ -375,6 +412,7 @@ VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
     {
         status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSliceLP, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
+        (*attributeList)[VAConfigAttribEncTileSupport] = 1;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain))
