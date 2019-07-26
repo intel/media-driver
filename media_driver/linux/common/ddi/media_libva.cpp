@@ -5931,6 +5931,7 @@ static uint32_t DdiMedia_GetDrmFormatOfCompositeObject(uint32_t fourcc)
     case VA_FOURCC_Y800:
         return DRM_FORMAT_R8;
     case VA_FOURCC_P010:
+        return DRM_FORMAT_P010;
     case VA_FOURCC_I010:
         // These currently have no composite DRM format - they are usable
         // only as separate planes.
