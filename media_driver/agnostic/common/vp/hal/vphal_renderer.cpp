@@ -202,19 +202,25 @@ void VpHal_SaveRestorePrimaryFwdRefs(
 //! \details  The surface rects and width/height need to be aligned according to the surface format
 //! \param    [in,out] pSurface
 //!           Pointer to the surface
+//! \param    [in] formatForDstRect
+//!           Format for Dst Rect
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_RndrRectSurfaceAlignment(
-    PVPHAL_SURFACE       pSurface)
+    PVPHAL_SURFACE       pSurface,
+    MOS_FORMAT           formatForDstRect)
 {
     uint16_t   wWidthAlignUnit;
     uint16_t   wHeightAlignUnit;
+    uint16_t   wWidthAlignUnitForDstRect;
+    uint16_t   wHeightAlignUnitForDstRect;
     MOS_STATUS eStatus;
 
     eStatus = MOS_STATUS_SUCCESS;
 
     VpHal_RndrGetAlignUnit(&wWidthAlignUnit, &wHeightAlignUnit, pSurface->Format);
+    VpHal_RndrGetAlignUnit(&wWidthAlignUnitForDstRect, &wHeightAlignUnitForDstRect, formatForDstRect);
 
     // The source rectangle is floored to the aligned unit to
     // get rid of invalid data(ex: an odd numbered src rectangle with NV12 format
@@ -227,11 +233,11 @@ MOS_STATUS VpHal_RndrRectSurfaceAlignment(
 
     // The Destination rectangle is rounded to the upper alignment unit to prevent the loss of
     // data which was present in the source rectangle
-    pSurface->rcDst.bottom = MOS_ALIGN_CEIL((uint32_t)pSurface->rcDst.bottom, wHeightAlignUnit);
-    pSurface->rcDst.right  = MOS_ALIGN_CEIL((uint32_t)pSurface->rcDst.right, wWidthAlignUnit);
+    pSurface->rcDst.bottom = MOS_ALIGN_CEIL((uint32_t)pSurface->rcDst.bottom, wHeightAlignUnitForDstRect);
+    pSurface->rcDst.right  = MOS_ALIGN_CEIL((uint32_t)pSurface->rcDst.right, wWidthAlignUnitForDstRect);
 
-    pSurface->rcDst.top    = MOS_ALIGN_FLOOR((uint32_t)pSurface->rcDst.top, wHeightAlignUnit);
-    pSurface->rcDst.left   = MOS_ALIGN_FLOOR((uint32_t)pSurface->rcDst.left, wWidthAlignUnit);
+    pSurface->rcDst.top    = MOS_ALIGN_FLOOR((uint32_t)pSurface->rcDst.top, wHeightAlignUnitForDstRect);
+    pSurface->rcDst.left   = MOS_ALIGN_FLOOR((uint32_t)pSurface->rcDst.left, wWidthAlignUnitForDstRect);
 
     if (pSurface->SurfType == SURF_OUT_RENDERTARGET)
     {
@@ -614,7 +620,7 @@ MOS_STATUS VphalRenderer::ProcessRenderParameter(
             pRenderPassData->uiPrimaryIndex     = uiIndex;
 
             // align rectangle and source surface
-            VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(pSrcSurface));
+            VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(pSrcSurface, pRenderParams->pTarget[0] ? pRenderParams->pTarget[0]->Format : pSrcSurface->Format));
 
             // update max Src rect in both pRenderer and primary surface
             VpHal_RenderInitMaxRect(this, pSrcSurface);
@@ -1153,7 +1159,7 @@ MOS_STATUS VphalRenderer::Render(
     // align rectangle and source surface
     for (uiDst = 0; uiDst < RenderParams.uDstCount; uiDst++)
     {
-        VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(RenderParams.pTarget[uiDst]));
+        VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(RenderParams.pTarget[uiDst], RenderParams.pTarget[uiDst]->Format));
     }
 
     for (uiCurrentRenderPass = 0;
