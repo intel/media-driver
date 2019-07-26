@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1348,7 +1348,7 @@ public:
     bool                            m_mfeFirstStream = false;            //!< Is first stream during this submission
     bool                            m_mfeInitialized = false;            //!< Used for initializing MFE resources during first execute
     MfeParams                       m_mfeEncodeParams;                   //!< Mfe encode params during this submission
-    MfeSharedState                  *m_mfeEncodeSharedState;              //!< shared state from the parent context
+    MfeSharedState *                m_mfeEncodeSharedState = nullptr;    //!< shared state from the parent context
 
     // Common Kernel Parameters
     uint8_t*                        m_kernelBase = nullptr;              //!< Kernel base address
