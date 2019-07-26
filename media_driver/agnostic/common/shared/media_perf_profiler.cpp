@@ -63,7 +63,8 @@ struct NodeHeader
     uint32_t eventType   : 4;
     uint32_t perfMode    : 3;
     uint32_t genAndroid  : 4;
-    uint32_t reserved    : 15;
+    uint32_t genPlatform_ext : 2;
+    uint32_t reserved    : 13;
 };
 
 #define BASE_OF_NODE(perfDataIndex) (sizeof(NodeHeader) + (sizeof(PerfEntry) * perfDataIndex))
@@ -292,7 +293,8 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     // Append the header info
     MOS_ZeroMemory(header, m_bufferSize);
     header->eventType   = UMD_PERF_LOG;
-    header->genPlatform = GFX_GET_CURRENT_RENDERCORE(platform) - 8;
+    header->genPlatform = (GFX_GET_CURRENT_RENDERCORE(platform) - 8) & 0x7;
+    header->genPlatform_ext = ((GFX_GET_CURRENT_RENDERCORE(platform) - 8) >> 3) & 0x3;
     
     if (IsPerfModeWidthMemInfo(m_registers))
     {
