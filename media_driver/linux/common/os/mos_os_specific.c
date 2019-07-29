@@ -1917,6 +1917,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     GMM_RESCREATE_PARAMS GmmParams;
     GMM_RESOURCE_INFO *  pGmmResourceInfo = nullptr;
     GMM_RESOURCE_TYPE    resourceType = RESOURCE_INVALID;
+    AuxTableMgr*         auxTableMgr = nullptr;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -1936,6 +1937,8 @@ MOS_STATUS Mos_Specific_AllocateResource(
 
     bufname                                = pParams->pBufName;
     pOsResource->bConvertedFromDDIResource = false;
+
+    auxTableMgr = (AuxTableMgr*)pOsInterface->pfnGetAuxTableBaseAddr(pOsInterface);
 
     bool osContextValid = false;
     if (pOsInterface->osContextPtr != nullptr)
@@ -2149,6 +2152,15 @@ MOS_STATUS Mos_Specific_AllocateResource(
     {
         MOS_OS_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource).",iSize, pParams->dwWidth, pParams->dwHeight);
         eStatus = MOS_STATUS_NO_SPACE;
+    }
+
+    if(auxTableMgr)
+    {
+        eStatus = auxTableMgr->MapResource(pGmmResourceInfo, bo);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Map aux resource failed");
+        }
     }
 
     MosMemAllocCounterGfx++;
@@ -2573,10 +2585,15 @@ void  *Mos_Specific_LockResource(
     if (pOsResource && pOsResource->bo && pOsResource->pGmmResInfo)
     {
         MOS_LINUX_BO *bo = pOsResource->bo;
+        GMM_RESOURCE_FLAG GmmFlags;
+
+        MOS_ZeroMemory(&GmmFlags, sizeof(GmmFlags));
+        GmmFlags = pOsResource->pGmmResInfo->GetResFlags();
 
         // Do decompression for a compressed surface before lock
         if (!pLockFlags->NoDecompress &&
-             pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0))
+            (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Gpu.UnifiedAuxSurface)||
+             pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0)))
         {
             PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
 

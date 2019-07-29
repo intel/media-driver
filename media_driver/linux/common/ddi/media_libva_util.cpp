@@ -486,6 +486,17 @@ VAStatus DdiMediaUtil_AllocateSurface(
     {
         DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource).",gmmSize, width, height);
         hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        goto finish;
+    }
+
+    if (mediaDrvCtx->m_auxTableMgr)
+    {
+        if(mediaDrvCtx->m_auxTableMgr->MapResource(gmmResourceInfo, bo) != MOS_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Aux table map failed.");
+            hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto finish;
+        }
     }
 
 finish:

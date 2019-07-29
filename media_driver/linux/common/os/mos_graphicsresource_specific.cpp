@@ -321,6 +321,16 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_compressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfoPtr->GetMmcMode(0);
 
         MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).",bufSize, params.m_width, bufHeight);
+
+        AuxTableMgr* auxTableMgr = pOsContextSpecific->GetAuxTableMgr();
+
+        if(auxTableMgr)
+        {
+            if (auxTableMgr->MapResource(gmmResourceInfoPtr, boPtr) != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Map aux resource failed");
+            }
+        }
     }
     else
     {
