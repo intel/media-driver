@@ -499,6 +499,7 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         (*attributeList)[VAConfigAttribMaxPictureWidth] = m_maxVp9EncWidth;
         (*attributeList)[VAConfigAttribMaxPictureHeight] = m_maxVp9EncHeight;
+        (*attributeList)[VAConfigAttribEncDynamicScaling] = 1;
         (*attributeList)[VAConfigAttribEncTileSupport] = 1;
         (*attributeList)[VAConfigAttribEncRateControlExt] = m_encVp9RateControlExt.value;
     }
