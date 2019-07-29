@@ -50,7 +50,8 @@ struct PerfEntry
     uint32_t    timeStampBase;              //!< HW timestamp base
     uint32_t    beginRegisterValue[8];      //!< Begin register value
     uint32_t    endRegisterValue[8];        //!< End register value
-    uint32_t    reserved[16];               //!< Reserved[16]
+    uint32_t    beginCpuTime[2];            //!< Begin CPU Time Stamp
+    uint32_t    reserved[14];               //!< Reserved[14]
     uint64_t    beginTimeClockValue;        //!< Begin timestamp
     uint64_t    endTimeClockValue;          //!< End timestamp
 };
@@ -454,7 +455,21 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
                 m_registers[regIndex]));
         }
     }
+    
+    double beginCPUTimestamp = MOS_GetTime();
 
+    uint32_t timeStamp[2];
+    MOS_SecureMemcpy(timeStamp, 2*sizeof(uint32_t), &beginCPUTimestamp, 2*sizeof(uint32_t));
+    
+    for (int i = 0; i < 2; i++)
+    {
+        CHK_STATUS_RETURN(StoreData(
+            miInterface,
+            cmdBuffer,
+            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginCpuTime[i]),
+            timeStamp[i]));
+    }
+ 
     // The address of timestamp must be 8 bytes aligned.
     uint32_t offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginTimeClockValue);
     offset = MOS_ALIGN_CEIL(offset, 8);
