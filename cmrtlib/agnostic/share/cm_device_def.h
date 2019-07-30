@@ -62,7 +62,8 @@ typedef enum _CM_DEVICE_CAP_NAME {
   CAP_USER_DEFINED_THREAD_COUNT_PER_THREAD_GROUP,
   CAP_SURFACE2DUP_COUNT,
   CAP_PLATFORM_INFO,
-  CAP_MAX_BUFFER_SIZE
+  CAP_MAX_BUFFER_SIZE,
+  CAP_MAX_SUBDEV_COUNT //for app to retrieve the total count of sub devices
 } CM_DEVICE_CAP_NAME;
 
 // parameters used to set the surface state of the CmSurface
