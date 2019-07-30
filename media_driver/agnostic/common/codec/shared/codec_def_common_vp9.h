@@ -83,6 +83,7 @@ distinct bands). */
 
 #define CODEC_VP9_MAX_QP                      255
 #define CODEC_VP9_QINDEX_RANGE                (CODEC_VP9_MAX_QP + 1)
+#define CODEC_VP9_MAX_SEGMENTS                8
 
 //VP9 Profile
 typedef enum {

@@ -127,6 +127,19 @@ if(${VP9_Decode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${VP9_Encode_VME_Supported} STREQUAL "yes")
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp9.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/media_libvpx_vp9.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp9.h
+        ${CMAKE_CURRENT_LIST_DIR}/media_libvpx_vp9.h
+    )
+endif()
+
 #encode
 set(TMP_3_SOURCES_ "")
 

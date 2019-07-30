@@ -101,6 +101,9 @@
 #ifdef _VP8_ENCODE_SUPPORTED
 #include "codechal_encode_vp8_g9.h"
 #endif
+#ifdef _VP9_ENCODE_VME_SUPPORTED
+#include "codechal_encode_vp9_g9.h"
+#endif
 #include "codechal_encode_csc_ds_g9.h"
 
 #include "codechal_memdecomp_g9.h"
@@ -204,6 +207,9 @@ public:
 #endif
 #ifdef _VP8_ENCODE_SUPPORTED
     using Vp8 = CodechalEncodeVp8G9;
+#endif
+#ifdef _VP9_ENCODE_VME_SUPPORTED
+    using Vp9 = CodechalEncodeVp9G9;
 #endif
 };
 
