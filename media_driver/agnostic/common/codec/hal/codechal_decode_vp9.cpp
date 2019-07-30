@@ -1143,6 +1143,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
@@ -1701,6 +1702,7 @@ MOS_STATUS CodechalDecodeVp9 :: DecodeStateLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     if (m_secureDecoder && m_hcpDecPhase == CodechalHcpDecodePhaseInitialized)
