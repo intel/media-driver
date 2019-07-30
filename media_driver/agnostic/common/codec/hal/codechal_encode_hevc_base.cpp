@@ -2251,6 +2251,48 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPictureStructs());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSliceStructs());
 
+    // Set min/max QP values based on frame type if atleast one of them is non-zero
+    if (m_hevcPicParams->BRCMinQp || m_hevcPicParams->BRCMaxQp)
+    {
+        m_minMaxQpControlEnabled = true;
+        if (m_hevcPicParams->CodingType == I_TYPE)
+        {
+            m_maxQpForI = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMaxQp, 1), 51);           // Clamp to the max QP to [1, 51] . Zero is not used by our Kernel.
+            m_minQpForI = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMinQp, 1), m_maxQpForI);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+            if (!m_minMaxQpControlForP)
+            {
+                m_minQpForP = m_minQpForI;
+                m_maxQpForP = m_maxQpForI;
+            }
+            if (!m_minMaxQpControlForB)
+            {
+                m_minQpForB = m_minQpForI;
+                m_maxQpForB = m_maxQpForI;
+            }
+        }
+        else if (m_hevcPicParams->CodingType == P_TYPE)
+        {
+            m_minMaxQpControlForP   = true;
+            m_maxQpForP             = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMaxQp, 1), 51);           // Clamp to the max QP to [1, 51]. Zero is not used by our Kernel.
+            m_minQpForP             = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMinQp, 1), m_maxQpForP);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+            if (!m_minMaxQpControlForB)
+            {
+                m_minQpForB = m_minQpForP;
+                m_maxQpForB = m_maxQpForP;
+            }
+        }
+        else if (m_hevcPicParams->CodingType == B_TYPE)
+        {
+            m_minMaxQpControlForB   = true;
+            m_maxQpForB             = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMaxQp, 1), 51);           // Clamp to the max QP to [1, 51]. Zero is not used by our Kernel.
+            m_minQpForB             = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMinQp, 1), m_maxQpForB);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+        }
+
+        // Zero out the QP values, so we don't update the State settings until new values are sent
+        m_hevcPicParams->BRCMinQp = 0;
+        m_hevcPicParams->BRCMaxQp = 0;
+    }
+
     // Scaling occurs when either HME or BRC is enabled
     m_scalingEnabled = m_hmeSupported || m_brcEnabled;
     m_useRawForRef   = m_hevcPicParams->bUseRawPicForRef;
