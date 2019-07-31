@@ -649,6 +649,51 @@ public:
         MEMORYADDRESSATTRIBUTES_CMD              HcpPakBseObjectAddressMemoryAddressAttributes;                           //!< DW11, HCP PAK-BSE Object Address Memory Address Attributes
         SPLITBASEADDRESS4KBYTEALIGNED_CMD        HcpPakBseObjectAccessUpperBound;                                         //!< DW12..13, HCP PAK-BSE Object Access Upper Bound
 
+	        union
+        {
+            struct
+            {
+                uint64_t                 HcpVp9PakCompressedHeaderSyntaxStreaminBaseAddress                                 ; //!< HCP VP9 PAK Compressed Header Syntax Streamin- Base Address
+            };
+            uint32_t                     Value[2];
+        } DW14_15;
+        MEMORYADDRESSATTRIBUTES_CMD              HcpVp9PakCompressedHeaderSyntaxStreaminMemoryAddressAttributes;          //!< DW16, HCP VP9 PAK Compressed Header Syntax StreamIn Memory Address Attributes
+        union
+        {
+            struct
+            {
+                uint64_t                 HcpVp9PakProbabilityCounterStreamoutBaseAddress                                  ; //!< HCP VP9 PAK Probability Counter StreamOut- Base Address
+            };
+            uint32_t                     Value[2];
+        } DW17_18;
+        MEMORYADDRESSATTRIBUTES_CMD              HcpVp9PakProbabilityCounterStreamoutMemoryAddressAttributes;             //!< DW19, HCP VP9 PAK Probability Counter StreamOut Memory Address Attributes
+        union
+        {
+            struct
+            {
+                uint64_t                 HcpVp9PakProbabilityDeltasStreaminBaseAddress                                    ; //!< HCP VP9 PAK Probability Deltas StreamIn- Base Address
+            };
+            uint32_t                     Value[2];
+        } DW20_21;
+        MEMORYADDRESSATTRIBUTES_CMD              HcpVp9PakProbabilityDeltasStreaminMemoryAddressAttributes;               //!< DW22, HCP VP9 PAK Probability Deltas StreamIn Memory Address Attributes
+        union
+        {
+            struct
+            {
+                uint64_t                 HcpVp9PakTileRecordStreamoutBaseAddress                                          ; //!< HCP VP9 PAK Tile Record StreamOut- Base Address
+            };
+            uint32_t                     Value[2];
+        } DW23_24;
+        MEMORYADDRESSATTRIBUTES_CMD              HcpVp9PakTileRecordStreamoutMemoryAddressAttributes;                     //!< DW25, HCP VP9 PAK Tile Record StreamOut Memory Address Attributes
+        union
+        {
+            struct
+            {
+                uint64_t                 HcpVp9PakCuLevelStatisticStreamoutBaseAddress                                    ; //!< HCP VP9 PAK CU Level Statistic StreamOut- Base Address
+            };
+            uint32_t                     Value[2];
+        } DW26_27;
+        MEMORYADDRESSATTRIBUTES_CMD              HcpVp9PakCuLevelStatisticStreamoutMemoryAddressAttributes;               //!< DW28, HCP VP9 PAK CU Level Statistic StreamOut Memory Address Attributes
         //! \name Local enumerations
 
         enum MEDIA_INSTRUCTION_COMMAND
@@ -679,8 +724,8 @@ public:
         //! \brief Explicit member initialization function
         HCP_IND_OBJ_BASE_ADDR_STATE_CMD();
 
-        static const size_t dwSize = 14;
-        static const size_t byteSize = 56;
+        static const size_t dwSize = 29;
+        static const size_t byteSize = 116;
     };
 
     //!
@@ -2308,6 +2353,18 @@ public:
             uint32_t                     Value;
         } DW6;
 
+	union
+        {
+            struct
+            {
+                uint32_t                 SegmentQindexDeltaEncodeModeOnly                 : __CODEGEN_BITFIELD( 0,  8)    ; //!< Segment QIndex Delta (encode mode only)
+                uint32_t                 Reserved233                                      : __CODEGEN_BITFIELD( 9, 15)    ; //!< Reserved
+                uint32_t                 SegmentLfLevelDeltaEncodeModeOnly                : __CODEGEN_BITFIELD(16, 22)    ; //!< Segment LF Level Delta (Encode mode Only)
+                uint32_t                 Reserved247                                      : __CODEGEN_BITFIELD(23, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW7;
+
         //! \name Local enumerations
 
         enum MEDIA_INSTRUCTION_COMMAND
@@ -2338,8 +2395,8 @@ public:
         //! \brief Explicit member initialization function
         HCP_VP9_SEGMENT_STATE_CMD();
 
-        static const size_t dwSize = 7;
-        static const size_t byteSize = 28;
+        static const size_t dwSize = 8;
+        static const size_t byteSize = 32;
     };
 
     //!
@@ -2831,7 +2888,9 @@ public:
             {
                 uint32_t                 CompressedHeaderBinCount                         : __CODEGEN_BITFIELD( 0, 15)    ; //!< Compressed header BIN count
                 uint32_t                 BaseQIndexSameAsLumaAc                           : __CODEGEN_BITFIELD(16, 23)    ; //!< Base Q Index (Same as Luma AC)
-                uint32_t                 Reserved440                                      : __CODEGEN_BITFIELD(24, 31)    ; //!< Reserved
+                uint32_t                 TailInsertionEnable                              : __CODEGEN_BITFIELD(24, 24)    ; //!< Tail Insertion Enable
+                uint32_t                 HeaderInsertionEnable                            : __CODEGEN_BITFIELD(25, 25)    ; //!< Header Insertion Enable
+                uint32_t                 Reserved442                                      : __CODEGEN_BITFIELD(26, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW13;
@@ -2892,6 +2951,116 @@ public:
             };
             uint32_t                     Value;
         } DW18;
+	union
+        {
+            struct
+            {
+                uint32_t                 Reserved608                                      : __CODEGEN_BITFIELD( 0, 15)    ; //!< Reserved
+                uint32_t                 Nonfirstpassflag                                 : __CODEGEN_BITFIELD(16, 16)    ; //!< NONFIRSTPASSFLAG
+                uint32_t                 VdencPakOnlyPass                                 : __CODEGEN_BITFIELD(17, 17)    ; //!< VDENC PAK_ONLY  PASS
+                uint32_t                 Reserved626                                      : __CODEGEN_BITFIELD(18, 24)    ; //!< Reserved
+                uint32_t                 FrameszoverstatusenFramebitratemaxreportmask     : __CODEGEN_BITFIELD(25, 25)    ; //!< FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK
+                uint32_t                 FrameszunderstatusenFramebitrateminreportmask    : __CODEGEN_BITFIELD(26, 26)    ; //!< FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK
+                uint32_t                 Reserved635                                      : __CODEGEN_BITFIELD(27, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW19;
+        union
+        {
+            struct
+            {
+                uint32_t                 Framebitratemax                                  : __CODEGEN_BITFIELD( 0, 13)    ; //!< FrameBitRateMax
+                uint32_t                 Reserved654                                      : __CODEGEN_BITFIELD(14, 30)    ; //!< Reserved
+                uint32_t                 Framebitratemaxunit                              : __CODEGEN_BITFIELD(31, 31)    ; //!< FRAMEBITRATEMAXUNIT
+            };
+            uint32_t                     Value;
+        } DW20;
+        union
+        {
+            struct
+            {
+                uint32_t                 Framebitratemin                                  : __CODEGEN_BITFIELD( 0, 13)    ; //!< FrameBitRateMin
+                uint32_t                 Reserved686                                      : __CODEGEN_BITFIELD(14, 30)    ; //!< Reserved
+                uint32_t                 Framebitrateminunit                              : __CODEGEN_BITFIELD(31, 31)    ; //!< FRAMEBITRATEMINUNIT
+            };
+            uint32_t                     Value;
+        } DW21;
+        union
+        {
+            struct
+            {
+                uint64_t                 Framedeltaqindexmax                                                              ; //!< FrameDeltaQindexMax
+            };
+            uint32_t                     Value[2];
+        } DW22_23;
+        union
+        {
+            struct
+            {
+                uint32_t                 Framedeltaqindexmin                                                              ; //!< FrameDeltaQindexMin
+            };
+            uint32_t                     Value;
+        } DW24;
+        union
+        {
+            struct
+            {
+                uint64_t                 Framedeltalfmax                                                                  ; //!< FrameDeltaLFMax
+            };
+            uint32_t                     Value[2];
+        } DW25_26;
+        union
+        {
+            struct
+            {
+                uint32_t                 Framedeltalfmin                                                                  ; //!< FrameDeltaLFMin
+            };
+            uint32_t                     Value;
+        } DW27;
+        union
+        {
+            struct
+            {
+                uint64_t                 Framedeltaqindexlfmaxrange                                                       ; //!< FrameDeltaQindexLFMaxRange
+            };
+            uint32_t                     Value[2];
+        } DW28_29;
+       	union
+        {
+            struct
+            {
+                uint32_t                 Framedeltaqindexlfminrange                                                       ; //!< FrameDeltaQindexLFMinRange
+            };
+            uint32_t                     Value;
+        } DW30;
+	union
+        {
+            struct
+            {
+                uint32_t                 Minframsize                                      : __CODEGEN_BITFIELD( 0, 15)    ; //!< MinFramSize
+                uint32_t                 Reserved1008                                     : __CODEGEN_BITFIELD(16, 29)    ; //!< Reserved
+                uint32_t                 Minframesizeunits                                : __CODEGEN_BITFIELD(30, 31)    ; //!< MINFRAMESIZEUNITS
+            };
+            uint32_t                     Value;
+        } DW31;
+        union
+        {
+            struct
+            {
+                uint32_t                 Bitoffsetforfirstpartitionsize                   : __CODEGEN_BITFIELD( 0, 15)    ; //!< BitOffsetForFirstPartitionSize
+                uint32_t                 Reserved1040                                     : __CODEGEN_BITFIELD(16, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW32;
+        union
+        {
+            struct
+            {
+                uint32_t                 Class0SseThreshold0                              : __CODEGEN_BITFIELD( 0, 15)    ; //!< Class0_SSE_Threshold0
+                uint32_t                 Class0SseThreshold1                              : __CODEGEN_BITFIELD(16, 31)    ; //!< Class0_SSE_Threshold1
+            };
+            uint32_t                     Value;
+        } DW33;
 
         //! \name Local enumerations
 
@@ -3142,8 +3311,8 @@ public:
         //! \brief Explicit member initialization function
         HCP_VP9_PIC_STATE_CMD();
 
-        static const size_t dwSize = 19;
-        static const size_t byteSize = 76;
+        static const size_t dwSize = 34;
+        static const size_t byteSize = 136;
     };
 
     //!
