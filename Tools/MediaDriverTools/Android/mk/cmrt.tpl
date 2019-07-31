@@ -33,8 +33,8 @@ LOCAL_C_INCLUDES += \
 @LOCAL_C_INCLUDES
 
 LOCAL_CFLAGS += \
-	-Wno-non-virtual-dtor \
-	-DANDROID=1 \
+    -Wno-non-virtual-dtor \
+    -DANDROID=1 \
 @LOCAL_CFLAGS
 
 ifeq ($(CMRT_BUILD_TYPE), debug)

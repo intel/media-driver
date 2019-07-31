@@ -119,8 +119,8 @@ class Generator:
         return "cmake " + self.src
 
     def generateMakefile(self, debug=False):
-        #windows can help us debug the script
-        #but we do not want generate makefile on widnows
+        #Win env can help us debug the script
+        #but we do not want generate makefile on Win-system
         if os.name == "nt":
             return
         verbose = ";" if debug else "> /dev/null 2>&1;"
