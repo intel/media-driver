@@ -996,6 +996,15 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = maxHeight;
         i++;
+
+        attribs[i].type = VASurfaceAttribMemoryType;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+        i++;
     }
     else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
     {
@@ -1133,6 +1142,15 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = m_encJpegMinHeight;
         }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMemoryType;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
         i++;
     }
     else
