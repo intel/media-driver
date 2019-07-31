@@ -3517,7 +3517,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "Encode",
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
-        "0",
+        "1",
         "Encode Enable SW Back Annotation."),
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE_ID,
