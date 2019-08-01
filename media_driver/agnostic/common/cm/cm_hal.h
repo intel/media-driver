@@ -703,7 +703,7 @@ typedef CM_HAL_SAMPLER_BTI_PARAM *PCM_HAL_SAMPLER_BTI_PARAM;
 struct CM_HAL_CLONED_KERNEL_PARAM
 {
     bool isClonedKernel;
-    uint32_t kernelID;
+    int32_t kernelID;
     bool hasClones;
 };
 
