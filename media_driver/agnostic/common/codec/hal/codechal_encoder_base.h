@@ -856,7 +856,7 @@ struct EncodeStatusReport
     uint8_t                         NumberPasses;       //!< Number of PAK passes executed.
     uint8_t                         AverageQp;          //!< The average QP of all MBs or LCUs of the frame.
     HwCounter                       HWCounterValue;
-
+    uint64_t *                      hwctr;
     union
     {
         struct
