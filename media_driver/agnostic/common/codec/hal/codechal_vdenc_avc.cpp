@@ -5966,6 +5966,8 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
         oss << "PFrameMaxNumImePred = " << std::dec << +m_avcPar->PFrameMaxNumImePred << std::endl;
         oss << "PFrameImePredLargeSW = " << std::dec << +m_avcPar->PFrameImePredLargeSW << std::endl;
         oss << "PFrameZeroCbfEn = " << std::dec << +m_avcPar->PFrameZeroCbfEn << std::endl;
+        oss << "DirectMode = " << std::dec << +m_avcPar->DirectMode << std::endl;
+        oss << "MultiPassHmeEnable = " << std::dec << +m_avcPar->MultiPassHmeEnable << std::endl;
 
         // BRC Frame Update
         oss << "Transform8x8PDisable = " << std::dec << +m_avcPar->Transform8x8PDisable << std::endl;
@@ -5985,6 +5987,8 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
         oss << "BFrameMaxNumImePred = " << std::dec << +m_avcPar->BFrameMaxNumImePred << std::endl;
         oss << "BFrameImePredLargeSW = " << std::dec << +m_avcPar->BFrameImePredLargeSW << std::endl;
         oss << "BFrameZeroCbfEn = " << std::dec << +m_avcPar->BFrameZeroCbfEn << std::endl;
+        oss << "DirectMode = " << std::dec << +m_avcPar->DirectMode << std::endl;
+        oss << "MultiPassHmeEnable = " << std::dec << +m_avcPar->MultiPassHmeEnable << std::endl;
     }
 
     const char *fileName = m_debugInterface->CreateFileName(
