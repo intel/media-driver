@@ -155,6 +155,17 @@ if(${VP8_Encode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${VP9_Encode_VME_Supported} STREQUAL "yes")
+    set(TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_vp9_g9.cpp
+    )
+    set(TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_vp9_g9.h
+    )
+endif()
+
 set(SOURCES_
     ${SOURCES_}
     ${TMP_1_SOURCES_}
