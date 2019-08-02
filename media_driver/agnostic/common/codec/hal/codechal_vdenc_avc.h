@@ -553,14 +553,6 @@ public:
     //!
     //! \brief    Sort and set distinct delta QPs
     //!
-    //! \param    [in] numRoi
-    //!           Number of ROI
-    //! \param    [in] roiRegions
-    //!           ROI regions
-    //! \param    [in] numDistinctDeltaQp
-    //!           number of distinct delta QPs
-    //! \param    [in] roiDistinctDeltaQp
-    //!           data of distinct delta QPs
     //! \return   bool
     //!           true if native ROI, otherwise false
     //!
@@ -945,7 +937,6 @@ protected:
 
     static constexpr uint8_t m_maxNumRoi       = 16;  //!< VDEnc maximum number of ROI supported
     static constexpr uint8_t m_maxNumNativeRoi = 3;   //!< Number of native ROI supported by VDEnc HW
-    int8_t                   roiDistinctDeltaQp[m_maxNumRoi];
 
 private:
 

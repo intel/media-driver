@@ -2439,7 +2439,7 @@ bool CodechalVdencAvcState::ProcessRoiDeltaQp()
     // forceQp is enabled if there are greater than 3 distinct delta qps or if the deltaqp is beyond range (-8, 7)
     for (auto k = 0; k < m_maxNumRoi; k++)
     {
-        roiDistinctDeltaQp[k] = -128;
+        m_avcPicParam->ROIDistinctDeltaQp[k] = -128;
     }
 
     int32_t numQp = 0;
@@ -2451,13 +2451,13 @@ bool CodechalVdencAvcState::ProcessRoiDeltaQp()
         int32_t k = numQp - 1;
         for (; k >= 0; k--)
         {
-            if (m_avcPicParam->ROI[i].PriorityLevelOrDQp == roiDistinctDeltaQp[k] ||
+            if (m_avcPicParam->ROI[i].PriorityLevelOrDQp == m_avcPicParam->ROIDistinctDeltaQp[k] ||
                 m_avcPicParam->ROI[i].PriorityLevelOrDQp == 0)
             {
                 dqpNew = false;
                 break;
             }
-            else if (m_avcPicParam->ROI[i].PriorityLevelOrDQp < roiDistinctDeltaQp[k])
+            else if (m_avcPicParam->ROI[i].PriorityLevelOrDQp < m_avcPicParam->ROIDistinctDeltaQp[k])
             {
                 continue;
             }
@@ -2471,9 +2471,9 @@ bool CodechalVdencAvcState::ProcessRoiDeltaQp()
         {
             for (int32_t j = numQp - 1; (j >= k + 1 && j >= 0); j--)
             {
-                roiDistinctDeltaQp[j + 1] = roiDistinctDeltaQp[j];
+                m_avcPicParam->ROIDistinctDeltaQp[j + 1] = m_avcPicParam->ROIDistinctDeltaQp[j];
             }
-            roiDistinctDeltaQp[k + 1] = m_avcPicParam->ROI[i].PriorityLevelOrDQp;
+            m_avcPicParam->ROIDistinctDeltaQp[k + 1] = m_avcPicParam->ROI[i].PriorityLevelOrDQp;
             numQp++;
         }
     }
@@ -2481,11 +2481,11 @@ bool CodechalVdencAvcState::ProcessRoiDeltaQp()
     //Set the ROI DeltaQp to zero for remaining array elements
     for (auto k = numQp; k < m_maxNumRoi; k++)
     {
-        roiDistinctDeltaQp[k] = 0;
+        m_avcPicParam->ROIDistinctDeltaQp[k] = 0;
     }
 
     // return whether is native ROI or not
-    return (!(numQp > m_maxNumNativeRoi || roiDistinctDeltaQp[0] < -8 || roiDistinctDeltaQp[numQp - 1] > 7));
+    return (!(numQp > m_maxNumNativeRoi || m_avcPicParam->ROIDistinctDeltaQp[0] < -8 || m_avcPicParam->ROIDistinctDeltaQp[numQp - 1] > 7));
 }
 
 

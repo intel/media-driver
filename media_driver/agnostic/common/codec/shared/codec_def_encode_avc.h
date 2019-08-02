@@ -784,6 +784,11 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    Value entries are ROI[0] up to ROI[NumROI – 1], inclusively, if NumROI > 0. And it can be ignored otherwise.
     */
     CODEC_ROI       ROI[16];
+    /*! \brief Distinct delta QP values assigned to the ROI
+    *
+    *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp].
+    */
+    int8_t ROIDistinctDeltaQp[16];
     /*! \brief indicate native ROI / force QP ROI to be used.
     */
     bool        bNativeROI;
