@@ -449,7 +449,7 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
 
     if(m_device->IsPrintEnable())
     {
-        m_device->ClearPrintBuffer();
+        m_device->CreatePrintBuffer();
     }
 
     typedef CmKernelRT* pCmKernel;
@@ -822,7 +822,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
 
     if(m_device->IsPrintEnable())
     {
-        m_device->ClearPrintBuffer();
+        m_device->CreatePrintBuffer();
     }
 
     typedef CmKernelRT* pCmKernel;
@@ -940,7 +940,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithHints(
 
     if( m_device->IsPrintEnable() )
     {
-        m_device->ClearPrintBuffer();
+        m_device->CreatePrintBuffer();
     }
 
     kernels = MOS_NewArray(CmKernelRT*, (count + 1));

@@ -359,8 +359,6 @@ public:
 
     int32_t GetPrintBufferMem(unsigned char *& pPrintBufferMem) const;
 
-    int32_t ClearPrintBuffer();
-
     int32_t GetSurf2DLookUpEntry(uint32_t index,
                                  PCMLOOKUP_ENTRY &pLookupEntry);
 
@@ -392,6 +390,8 @@ public:
 #endif
 
     int32_t DestroyVmeSurface(SurfaceIndex *& pVmeIndex);
+
+    int32_t CreatePrintBuffer();
 
     CmNotifierGroup* GetNotifiers() {return m_notifierGroup;}
 
@@ -550,15 +550,13 @@ protected:
 
     CSync m_criticalSectionQueue;
 
-    unsigned char* m_printBufferMem;
+    std::list<uint8_t *> m_printBufferMems;
 
-    CmBufferUP*    m_printBufferUP;
+    std::list<CmBufferUP *> m_printBufferUPs;
 
     bool           m_isPrintEnabled;
 
     size_t         m_printBufferSize;
-
-    SurfaceIndex*  m_printBufferIndex;
 
     CmDynamicArray m_threadGroupSpaceArray;
 

@@ -125,11 +125,8 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
 #if USE_EXTENSION_CODE
     m_gtpin(nullptr),
 #endif
-    m_printBufferMem (nullptr),
-    m_printBufferUP(nullptr),
     m_isPrintEnabled(false),
     m_printBufferSize(0),
-    m_printBufferIndex(nullptr),
     m_threadGroupSpaceArray(CM_INIT_THREADGROUPSPACE_COUNT),
     m_threadGroupSpaceCount(0),
     m_taskArray(CM_INIT_TASK_COUNT),
@@ -174,14 +171,18 @@ void CmDeviceRTBase::DestructCommon()
     }
 
     //Free the surface/memory for print buffer
-    if(m_printBufferMem)
+    while(!m_printBufferMems.empty())
     {
-        MOS_AlignedFreeMemory(m_printBufferMem);
+        uint8_t *mem = m_printBufferMems.front();
+        m_printBufferMems.pop_front();
+        MOS_AlignedFreeMemory(mem);
     }
 
-    if(m_printBufferUP)
+    while(!m_printBufferUPs.empty())
     {
-        DestroyBufferUP(m_printBufferUP);
+        CmBufferUP *buffer = m_printBufferUPs.front();
+        m_printBufferUPs.pop_front();
+        DestroyBufferUP(buffer);
     }
 
 #if USE_EXTENSION_CODE
@@ -2989,42 +2990,37 @@ CM_RT_API int32_t CmDeviceRTBase::InitPrintBuffer(size_t printbufsize)
 {
     INSERT_API_CALL_LOG();
 
-    if (m_printBufferUP)
-    {
-        if (printbufsize == m_printBufferSize)
-        {
-            //Reuse existing buffer up
-            return CM_SUCCESS;
-        }
-        else
-        {
-            // Free the existing one first
-            DestroyBufferUP(m_printBufferUP);
-            MOS_AlignedFreeMemory(m_printBufferMem);
-        }
-    }
-
-    /// Allocate and Initialize host memory.
     m_printBufferSize = printbufsize;
-    m_printBufferMem = (uint8_t*)MOS_AlignedAllocMemory(m_printBufferSize, 0x1000); //PAGE SIZE
-    if(!m_printBufferMem)
+    m_isPrintEnabled = true;
+    return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create a new static buffer for kernel print
+//| Returns:    result of operation.
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRTBase::CreatePrintBuffer()
+{
+    uint8_t *mem = (uint8_t*)MOS_AlignedAllocMemory(m_printBufferSize, 0x1000); //PAGE SIZE
+    if(!mem)
     {
         return CM_OUT_OF_HOST_MEMORY;
     }
 
-    CmSafeMemSet(m_printBufferMem, 0, m_printBufferSize);
-    *(unsigned int*)m_printBufferMem = PRINT_BUFFER_HEADER_SIZE;
+    CmSafeMemSet(mem, 0, m_printBufferSize);
+    *(unsigned int*)mem = PRINT_BUFFER_HEADER_SIZE;
 
     /// Allocate device memory and MemCopy from host to device.
-    int32_t result = CreateBufferUP((uint32_t)m_printBufferSize, m_printBufferMem, m_printBufferUP);
-    if (result != CM_SUCCESS || m_printBufferUP == nullptr)
+    CmBufferUP *buffer = nullptr;
+    int32_t result = CreateBufferUP((uint32_t)m_printBufferSize, mem, buffer);
+    if (result != CM_SUCCESS || buffer == nullptr)
     {
         m_isPrintEnabled = false;
-        MOS_AlignedFreeMemory(m_printBufferMem);
+        MOS_AlignedFreeMemory(mem);
         return result;
     }
-    m_printBufferUP->GetIndex(m_printBufferIndex);
-    m_isPrintEnabled = true;
+    m_printBufferMems.push_back(mem);
+    m_printBufferUPs.push_back(buffer);
     return CM_SUCCESS;
 }
 
@@ -3034,7 +3030,7 @@ CM_RT_API int32_t CmDeviceRTBase::InitPrintBuffer(size_t printbufsize)
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRTBase::GetPrintBufferMem(unsigned char * &printBufferMem) const
 {
-    printBufferMem = m_printBufferMem;
+    printBufferMem = m_printBufferMems.back();
     return CM_SUCCESS;
 }
 
@@ -3044,7 +3040,7 @@ int32_t CmDeviceRTBase::GetPrintBufferMem(unsigned char * &printBufferMem) const
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRTBase::GetPrintBufferIndex(SurfaceIndex *& index) const
 {
-    index = m_printBufferIndex;
+    m_printBufferUPs.back()->GetIndex(index);
     return CM_SUCCESS;
 }
 
@@ -3055,19 +3051,6 @@ int32_t CmDeviceRTBase::GetPrintBufferIndex(SurfaceIndex *& index) const
 bool CmDeviceRTBase::IsPrintEnable() const
 {
      return m_isPrintEnabled;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Clear print buffer
-//| Returns:    CM_SUCCESS.
-//*-----------------------------------------------------------------------------
-int32_t CmDeviceRTBase::ClearPrintBuffer()
-{
-    //clean memory
-    CmSafeMemSet(m_printBufferMem, 0, m_printBufferSize);
-    *(unsigned int*)m_printBufferMem = PRINT_BUFFER_HEADER_SIZE;
-
-    return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
@@ -3452,8 +3435,7 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
         }
     }
 
-    if( m_printBufferMem == nullptr ||
-        m_printBufferSize == 0 ||
+    if( m_printBufferSize == 0 ||
         m_isPrintEnabled == false)
     {
         CM_ASSERTMESSAGE("Error: Print buffer is not initialized.");
@@ -3463,7 +3445,16 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
     }
 
     //Dump memory on the screen.
-    DumpAllThreadOutput(streamOutFile, m_printBufferMem, m_printBufferSize);
+    while(!m_printBufferMems.empty())
+    {
+        uint8_t *mem = m_printBufferMems.front();
+        CmBufferUP *buffer = m_printBufferUPs.front();
+        DumpAllThreadOutput(streamOutFile, mem, m_printBufferSize);
+        m_printBufferMems.pop_front();
+        m_printBufferUPs.pop_front();
+        DestroyBufferUP(buffer);
+        MOS_AlignedFreeMemory(mem);
+    }
 
     //Flush and close stream
     fflush(streamOutFile);
@@ -3472,10 +3463,6 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
         fclose(streamOutFile);
         streamOutFile = nullptr;
     }
-
-    //clean memory
-    CmSafeMemSet(m_printBufferMem, 0, m_printBufferSize);
-    *(unsigned int*)m_printBufferMem = sizeof(CM_PRINT_HEADER);
 
     return CM_SUCCESS;
 #else
