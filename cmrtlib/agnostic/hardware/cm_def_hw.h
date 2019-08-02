@@ -296,6 +296,12 @@ struct CM_DEVICE_INIT_PRINT_BUFFER_PARAM
     int32_t returnValue;        //[out] return value
 };
 
+struct CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM
+{
+    const char          *fileName;                //[in] target file name
+    int32_t             returnValue;              //[out] return value
+};
+
 struct CM_CREATEVEBOX_PARAM
 {
     void *cmVeboxHandle;         // [out] CmVeboxG75's handle

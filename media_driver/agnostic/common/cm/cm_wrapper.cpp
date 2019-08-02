@@ -1100,6 +1100,13 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         initPrintBufferParam->returnValue     = cmRet;
         break;
 
+    case CM_FN_CMDEVICE_FLUSH_PRINT_BUFFER:
+        PCM_DEVICE_FLUSH_PRINT_BUFFER_PARAM flushPrintBufferParam;
+        flushPrintBufferParam  = (PCM_DEVICE_FLUSH_PRINT_BUFFER_PARAM)(cmPrivateInputData);
+        cmRet = device->FlushPrintBufferIntoFile(flushPrintBufferParam->fileName);
+        flushPrintBufferParam->returnValue     = cmRet;
+        break;
+
     case CM_FN_CMDEVICE_CREATEVEBOX:
         {
             PCM_CREATEVEBOX_PARAM createVeboxParam;

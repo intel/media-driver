@@ -196,10 +196,6 @@ protected:
     CmBufferUP*     m_gtpinBufferUP1;
     CmBufferUP*     m_gtpinBufferUP2;
 
-    unsigned char* m_printBuffer;
-    bool           m_printEnabled;
-    size_t         m_printBufferSize;
-
     uint32_t       m_createOption;
     uint32_t       m_driverStoreEnabled;
 

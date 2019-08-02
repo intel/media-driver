@@ -915,10 +915,6 @@ CM_RT_API int32_t CmDevice_RT::InitPrintBuffer(size_t size)
     CHK_FAILURE_RETURN(hr);
     CHK_FAILURE_RETURN(initPrintBufferParam.returnValue);
 
-    m_printBuffer = (unsigned char *)initPrintBufferParam.printBufferMem;
-    m_printEnabled   = true;
-    m_printBufferSize = size;
-
     return CM_SUCCESS;
 }
 
@@ -950,46 +946,18 @@ CM_RT_API int32_t CmDevice_RT::FlushPrintBuffer()
 //*-----------------------------------------------------------------------------
  int32_t CmDevice_RT::FlushPrintBufferInternal(const char *filename)
 {
-    FILE * streamout = nullptr;
+    INSERT_PROFILER_RECORD();
 
-    if (filename == nullptr)
-    {
-        streamout = stdout;
-    }
-    else
-    {
-        CM_FOPEN(streamout, filename, "wb");
-        if (streamout == nullptr)
-        {
-            //Open file Failed
-            CmAssert(0);
-            return CM_FAILURE;
-        }
-    }
+    CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM flushPrintBufferParam;
+    CmSafeMemSet(&flushPrintBufferParam, 0, sizeof(CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM));
+    flushPrintBufferParam.fileName = filename;
 
-    if( m_printBuffer == nullptr ||
-        m_printBufferSize == 0      ||
-        m_printEnabled == false    )
-    {
-        CmAssert(0);
-        if (filename)
-        {
-            fclose(streamout);
-        }
-        return CM_FAILURE;
-    }
+    int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_FLUSH_PRINT_BUFFER,
+                                      &flushPrintBufferParam,
+                                      sizeof(flushPrintBufferParam));
 
-    //Dump memory on the screen.
-    DumpAllThreadOutput(streamout, m_printBuffer, m_printBufferSize);
-
-    //Flush and close stream
-    fflush(streamout);
-    if (filename)
-        fclose(streamout);
-
-    //clean memory
-    CmSafeMemSet(m_printBuffer, 0, m_printBufferSize);
-    *(unsigned int*)m_printBuffer = sizeof(CM_PRINT_HEADER);
+    CHK_FAILURE_RETURN(hr);
+    CHK_FAILURE_RETURN(flushPrintBufferParam.returnValue);
 
     return CM_SUCCESS;
 }

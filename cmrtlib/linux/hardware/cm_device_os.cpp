@@ -144,9 +144,6 @@ CmDevice_RT::CmDevice_RT(
     m_gtpinBufferUP0( nullptr ),
     m_gtpinBufferUP1( nullptr ),
     m_gtpinBufferUP2( nullptr ),
-    m_printBuffer( nullptr ),
-    m_printEnabled ( false),
-    m_printBufferSize( 0),
     m_createOption(createOption),
     m_driverStoreEnabled(0),
     m_driFileDescriptor(0)
