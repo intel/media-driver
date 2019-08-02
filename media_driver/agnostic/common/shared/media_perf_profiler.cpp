@@ -244,6 +244,14 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
 
     m_timerBase = Mos_Specific_GetTsFrequency(osInterface);
 
+    // Read multi processes support
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MULTI_PROCESS,
+        &userFeatureData);
+    m_multiprocess = userFeatureData.u32Data;
+
     // Read memory information register address
     int8_t regIndex = 0;
     for (regIndex = 0; regIndex < 8; regIndex++)
@@ -422,6 +430,15 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     gpuContext     = osInterface->pfnGetGpuContext(osInterface);
     rcsEngineUsed = MOS_RCS_ENGINE_USED(gpuContext);
 
+    if (m_multiprocess)
+    {
+        CHK_STATUS_RETURN(StoreData(
+            miInterface,
+            cmdBuffer,
+            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, processId),
+            MOS_GetPid()));
+    }
+
     CHK_STATUS_RETURN(StoreData(
         miInterface,
         cmdBuffer, 
@@ -572,8 +589,23 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
             &LockFlagsNoOverWrite);
 
         CHK_NULL_RETURN(pData);
+        
+        if (m_multiprocess)
+        {
+            int32_t pid       = MOS_GetPid();
+            tm      localtime = {0};
+            MOS_GetLocalTime(&localtime);
+            char outputFileName[MOS_MAX_PATH_LENGTH + 1];
 
-        MOS_WriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+            MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-%04d%02d%02d%02d%02d%02d.bin",
+                m_outputFileName, pid, localtime.tm_year, localtime.tm_mon, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
+
+            MOS_WriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+        }
+        else
+        {
+            MOS_WriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+        }
 
         osInterface->pfnUnlockResource(
             osInterface,
