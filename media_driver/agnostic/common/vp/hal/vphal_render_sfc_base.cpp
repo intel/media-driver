@@ -727,8 +727,7 @@ bool VphalSfcState::IsFormatSupported(
     // Check if the input/output combination is supported, given certain alpha fill mode.
     // So far SFC only supports filling constant alpha.
     if (pAlphaParams &&
-        (pAlphaParams->AlphaMode == VPHAL_ALPHA_FILL_MODE_NONE ||
-         pAlphaParams->AlphaMode == VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM))
+        pAlphaParams->AlphaMode == VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM)
     {
         if ((pOutSurface->Format == Format_A8R8G8B8    ||
              pOutSurface->Format == Format_A8B8G8R8    ||
