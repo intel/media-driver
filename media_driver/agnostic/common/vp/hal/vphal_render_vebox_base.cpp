@@ -4570,7 +4570,8 @@ bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDE
 bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVeboxState, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface)
 {
     VPHAL_RENDER_NORMALMESSAGE(
-        "dwCompBypassMode %d,                                                               \
+        "FtrDisableVEBoxFeatures %d,                                                        \
+         dwCompBypassMode %d,                                                               \
          _pcRenderParams->uDstCount %d,                                                     \
          SAME_SIZE_RECT(rcSrc, rcDst) %d,                                                   \
          SAME_SIZE_RECT(rcSrc, rcMaxSrc) %d,                                                \
@@ -4585,6 +4586,7 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
          AlphaMode %p,                                                                      \
          rcDst.top %p,                                                                      \
          rcDst.left %p",
+        MEDIA_IS_SKU(m_pSkuTable, FtrDisableVEBoxFeatures),
         _pVeboxState->dwCompBypassMode,
         _pcRenderParams->uDstCount,
         SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst),
@@ -4601,7 +4603,8 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
         _pSrcSurface->rcDst.top,
         _pSrcSurface->rcDst.left);
 
-    return (_pVeboxState->dwCompBypassMode != VPHAL_COMP_BYPASS_DISABLED &&
+    return (!MEDIA_IS_SKU(m_pSkuTable, FtrDisableVEBoxFeatures) &&
+            _pVeboxState->dwCompBypassMode != VPHAL_COMP_BYPASS_DISABLED &&
             _pcRenderParams->uDstCount == 1 &&
             SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst) &&
             SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcMaxSrc) &&
