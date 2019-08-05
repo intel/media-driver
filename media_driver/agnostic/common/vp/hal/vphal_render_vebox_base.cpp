@@ -2408,7 +2408,8 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
     pRenderData->bBeCsc             = (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) &&
                                         pSrc->ColorSpace != pRenderTarget->ColorSpace);
 
-    pRenderData->bProcamp           = (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData)  &&
+    pRenderData->bProcamp           = ((IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) ||
+                                        IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))  &&
                                         pSrc->pProcampParams                    &&
                                         pSrc->pProcampParams->bEnabled);
 
