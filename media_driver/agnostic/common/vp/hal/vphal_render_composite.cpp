@@ -3404,8 +3404,18 @@ int32_t CompositeState::SetLayer(
             }
             else
             {
-                fShiftX  = VPHAL_HW_LINEAR_SHIFT;   // Bilinear scaling shift
-                fShiftY  = VPHAL_HW_LINEAR_SHIFT;
+                //For Y210 with AVS(Y)+3D(U/V) sampler, the shift is not needed.
+                if (pSource->Format == Format_Y210 && pSurfaceEntries[0]->bAVS)
+                {
+                    fShiftX = 0.0f;
+                    fShiftY = 0.0f;
+                }
+                else
+                {
+                    fShiftX = VPHAL_HW_LINEAR_SHIFT;  // Bilinear scaling shift
+                    fShiftY = VPHAL_HW_LINEAR_SHIFT;
+                }
+
                 pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
             }
             pSamplerStateParams->Unorm.AddressU = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
