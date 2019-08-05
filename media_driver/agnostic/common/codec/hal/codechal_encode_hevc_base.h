@@ -1484,6 +1484,17 @@ public:
     bool     m_brcRoiEnabled                      = false;  //!< BRC Roi flag
     bool     m_roiValueInDeltaQp                  = true;   //!< ROI Value in deltaQP or priority flag
 
+    // Below values will be set if qp control params are sent by app
+    bool     m_minMaxQpControlEnabled = false;  //!< Flag to indicate if min/max QP feature is enabled or not.
+    int16_t  m_minQpForI              = 0;      //!< I frame Minimum QP.
+    int16_t  m_maxQpForI              = 0;      //!< I frame Maximum QP.
+    int16_t  m_minQpForP              = 0;      //!< P frame Minimum QP.
+    int16_t  m_maxQpForP              = 0;      //!< P frame Maximum QP.
+    int16_t  m_minQpForB              = 0;      //!< B frame Minimum QP.
+    int16_t  m_maxQpForB              = 0;      //!< B frame Maximum QP.
+    bool     m_minMaxQpControlForP = false;     //!< Indicates min/max QP values for P-frames are set separately or not.
+    bool     m_minMaxQpControlForB = false;     //!< Indicates min/max QP values for B-frames are set separately or not.
+
     CODECHAL_ENCODE_BUFFER m_resPakcuLevelStreamoutData;  //!< PAK LCU level stream out data buffer
 
     // Mb Qp Data
