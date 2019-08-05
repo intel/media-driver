@@ -202,7 +202,7 @@ void VpHal_GetCscMatrix(
     float*                      pfCscInOffset,                                  // [out] [3x1] Input Offset matrix
     float*                      pfCscOutOffset)                                 // [out] [3x1] Output Offset matrix
 {
-    float   fCscMatrix[12];
+    float   fCscMatrix[12] = {0};
     int32_t i;
 
     KernelDll_GetCSCMatrix(
