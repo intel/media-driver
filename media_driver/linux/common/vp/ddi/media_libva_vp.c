@@ -1248,6 +1248,12 @@ DdiVp_SetProcPipelineParams(
 
                 pVpHalSrcSurf->bInterlacedScaling = false;
                 pVpHalSrcSurf->bFieldWeaving = true;
+            }else if(pPipelineParam->output_surface_flag & VA_TOP_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_FIELD_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_SINGLE_TOP_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
             }else
             {
                 pVpHalSrcSurf->SampleType = SAMPLE_PROGRESSIVE;
@@ -1268,6 +1274,12 @@ DdiVp_SetProcPipelineParams(
 
                 pVpHalSrcSurf->bInterlacedScaling = false;
                 pVpHalSrcSurf->bFieldWeaving = true;
+            }else if(pPipelineParam->output_surface_flag & VA_BOTTOM_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_FIELD_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_SINGLE_BOTTOM_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
             }else
             {
                 pVpHalSrcSurf->SampleType = SAMPLE_PROGRESSIVE;
@@ -1284,7 +1296,7 @@ DdiVp_SetProcPipelineParams(
     }
 
     // For legacy interlace scaling
-    if (pVpHalSrcSurf->pDeinterlaceParams == nullptr)
+    if (pVpHalSrcSurf->pDeinterlaceParams == nullptr && pVpHalSrcSurf->InterlacedScalingType == ISCALING_NONE)
     {
         if (pPipelineParam->filter_flags & VA_TOP_FIELD)
         {
