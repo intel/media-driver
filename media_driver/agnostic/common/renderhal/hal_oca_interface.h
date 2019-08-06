@@ -184,6 +184,19 @@ public:
     //!
     static void DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList);
 
+    //!
+    //! \brief  Add vphal parameters to oca log section.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
+    //! \param  [in] mosContext
+    //!         Reference to MOS_CONTEXT.
+    //! \param  [in] pVphalDumper
+    //!         Pointer to vphal dumper object.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper);
+
 private:
     //!
     //! \brief  Error handle function.

@@ -1241,6 +1241,9 @@ typedef struct _RENDERHAL_INTERFACE
     void                        *pStateDumper;
 #endif
 
+    // Pointer to vphal oca dumper object to dump vphal parameters.
+    void                        *pVphalOcaDumper;
+
     // Predication
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
     MOS_RESOURCE                   PredicationBuffer;   //!< Predication buffer

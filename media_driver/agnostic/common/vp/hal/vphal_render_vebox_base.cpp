@@ -1235,6 +1235,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
 
     // Add kernel info to log.
     HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, kernelVeboxUpdateDnState, 0, nullptr);
+    // Add vphal param to log.
+    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, nullptr));
@@ -1892,6 +1894,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
 
     HalOcaInterface::On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
         *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+
+    // Add vphal param to log.
+    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, pGenericPrologParams));

@@ -484,6 +484,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 
     // Add kernel info to log.
     HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, 0, nullptr);
+    // Add vphal param to log.
+    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
@@ -747,6 +749,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 
     // Add kernel info to log.
     HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, FcKernelCount, FcKernelList);
+    // Add vphal param to log.
+    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));

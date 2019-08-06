@@ -171,6 +171,21 @@ void HalOcaInterface::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
 {
 }
 
+//!
+//! \brief  Add vphal parameters to oca log section.
+//! \param  [in] cmdBuffer
+//!         Command buffer for current BB.
+//! \param  [in] mosContext
+//!         Reference to MOS_CONTEXT.
+//! \param  [in] pVphalDumper
+//!         Pointer to vphal dumper object.
+//! \return void
+//!         No return value. Handle all exception inside the function.
+//!
+void HalOcaInterface::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper)
+{
+}
+
 void HalOcaInterface::OnOcaError(MOS_STATUS status, const char *functionName, uint32_t lineNumber)
 {
 }
