@@ -35,6 +35,7 @@
 class CmBuffer;
 class CmBufferUP;
 class CmBufferSVM;
+class CmBufferStateless;
 
 #if MDF_PROFILER_ENABLED
 CmPerfStatistics gCmPerfStatistics;  // global instance to record API's perf
@@ -1007,6 +1008,23 @@ CM_RT_API int32_t CmDevice_RT::DestroyBufferSVM( CmBufferSVM* &buffer)
     INSERT_PROFILER_RECORD();
 
     return m_surfaceManager->DestroyBufferSVM(buffer);
+}
+
+CM_RT_API int32_t CmDevice_RT::CreateBufferStateless(size_t size,
+                                                     uint32_t option,
+                                                     void *sysMem,
+                                                     CmBufferStateless *&buffer)
+{
+    INSERT_PROFILER_RECORD();
+
+    return m_surfaceManager->CreateBufferStateless(size, option, sysMem, buffer);
+}
+
+CM_RT_API int32_t CmDevice_RT::DestroyBufferStateless(CmBufferStateless* &buffer)
+{
+    INSERT_PROFILER_RECORD();
+
+    return m_surfaceManager->DestroyBufferStateless(buffer);
 }
 
 CM_RT_API int32_t CmDevice_RT::CreateSurface2DAlias(CmSurface2D* originalSurface, SurfaceIndex* &aliasIndex)

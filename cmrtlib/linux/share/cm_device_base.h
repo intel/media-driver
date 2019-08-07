@@ -40,7 +40,7 @@ class CmSurface3D ;
 class CmSampler;
 class CmSampler8x8;
 class CmVebox;
-class CmBufferSVM;
+class CmBufferStateless;
 class SurfaceIndex;
 struct CM_SAMPLER_8X8_DESCR;
 struct VME_STATE_G6;
@@ -1756,6 +1756,53 @@ public:
     CM_RT_API virtual int32_t
     CreateQueueEx(CmQueue *&queue,
                   CM_QUEUE_CREATE_OPTION createOption) = 0;
+
+    //!
+    //! \brief      It creates a CmBufferStateless of the specified size in bytes by
+    //!             using the vedio memory or the system memory.
+    //! \details    The stateless buffer means it is stateless-accessed by GPU. There
+    //!             are two ways to create a stateless buffer. One is to create from
+    //!             vedio memory, then it can be only accessed by GPU. The other way is
+    //!             to create from system memory, then it can be accessed by both GPU
+    //!             and CPU. In this way, The system memory will be allocated in runtime
+    //!             internally(if user pass nullptr pointer) or user provided (if user
+    //!             pass a valid pointer). And the system memory should be page aligned
+    //!             (4K bytes).
+    //! \param      [in] size
+    //!             Stateless buffer size in bytes.
+    //! \param      [in] option
+    //!             Stateless buffer create option.
+    //! \param      [in] sysMem
+    //!             Pointer to user provided system memory if option is system memory.
+    //! \param      [out] pSurface
+    //!             Reference to the pointer to the CmBufferStateless.
+    //! \retval     CM_SUCCESS if the CmBufferStateless is successfully created.
+    //! \retval     CM_SURFACE_ALLOCATION_FAILURE if creating the underneath 1D
+    //!             surface fails.
+    //! \retval     CM_OUT_OF_HOST_MEMORY if runtime can't allocate such size
+    //!             system memory.
+    //! \retval     CM_EXCEED_SURFACE_AMOUNT if maximum amount of 1D surfaces
+    //!             is exceeded. The amount is the amount of the surfaces that
+    //!             can co-exist. The amount can be obtained by querying the
+    //!             cap CAP_BUFFER_COUNT.
+    //! \retval     CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS if option is invalid.
+    //! \retval     CM_FAILURE otherwise.
+    CM_RT_API virtual int32_t CreateBufferStateless(size_t size,
+                                                    uint32_t option,
+                                                    void *sysMem,
+                                                    CmBufferStateless *&buffer) = 0;
+
+    //!
+    //! \brief      Destroy CmBufferStateless object and associated vedio/system memory.
+    //! \param      [in,out] pSurface
+    //!             Reference to the pointer pointing to CmBufferStateless, will be
+    //!             assigned to nullptr once it is destroyed successfully.
+    //! \retval     CM_SUCCESS if CmBufferStateless and associated vedio/system memory are
+    //!             successfully destroyed.
+    //! \retval     CM_FAILURE otherwise.
+    //!
+    CM_RT_API virtual int32_t DestroyBufferStateless(CmBufferStateless* &buffer) = 0;
+
 protected:
     virtual ~CmDevice() = default;
 };
