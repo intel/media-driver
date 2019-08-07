@@ -1050,19 +1050,30 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pipeCtlParams.dwFlushMode   = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
-    if (state->svmBufferUsed)
+    if (state->svmBufferUsed || state->statelessBufferUsed)
     {
-        // Find the SVM slot, patch it into this dummy pipe_control
+        // Find the SVM/statelessBuffer slot, patch it into this dummy pipe_control
         for (uint32_t i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++)
         {
-            //Only register SVM resource here
+            //register resource here
             if (state->bufferTable[i].address)
             {
                 CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
+                    osInterface,
+                    &state->bufferTable[i].osResource,
+                    true,
+                    false));
+
+                // sync resource
+                MOS_SURFACE mosSurface;
+                MOS_ZeroMemory(&mosSurface, sizeof(mosSurface));
+                CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnGetResourceInfo(
                         osInterface,
                         &state->bufferTable[i].osResource,
-                        true,
-                        false));
+                        &mosSurface));
+                mosSurface.OsResource = state->bufferTable[i].osResource;
+
+                CM_CHK_HRESULT_GOTOFINISH_MOSERROR(HalCm_SurfaceSync(state, &mosSurface, false));
             }
         }
     }

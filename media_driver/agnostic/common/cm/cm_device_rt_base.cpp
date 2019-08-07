@@ -3725,4 +3725,77 @@ CM_RT_API int32_t CmDeviceRTBase::CreateSampler8x8SurfaceFromAlias(
                                                addressControl,
                                                sampler8x8SurfaceIndex);
 }
+
+CM_RT_API int32_t CmDeviceRTBase::CreateBufferStateless(size_t size,
+                                                        uint32_t option,
+                                                        void *sysMem,
+                                                        CmBufferStateless *&bufferStateless)
+{
+    INSERT_API_CALL_LOG();
+
+    int result = CM_SUCCESS;
+
+    // Stateless buffer is going to stateless access, no size restriction like
+    // CmBuffer and CmBufferUP. But current supported size is less than 4G
+    // because of GMM limitation.
+    if (size == 0)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid buffer width.");
+        return CM_INVALID_WIDTH;
+    }
+
+    if (option == CM_BUFFER_STATELESS_CREATE_OPTION_SYS_MEM)
+    {
+        CM_ASSERTMESSAGE("Error: Stateless buffer created from system memory is not supported.");
+        return CM_NOT_IMPLEMENTED;
+    }
+    else if (option == CM_BUFFER_STATELESS_CREATE_OPTION_GFX_MEM)
+    {
+        CLock locker(m_criticalSectionSurface);
+
+        CmBuffer_RT *p  = nullptr;
+        void *sysMemory = nullptr;
+        result = m_surfaceMgr->CreateBuffer(size,
+                                            CM_BUFFER_STATELESS,
+                                            false,
+                                            p,
+                                            nullptr,
+                                            sysMemory,
+                                            false,
+                                            CM_DEFAULT_COMPARISON_VALUE);
+        bufferStateless = static_cast<CmBufferStateless *>(p);
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Error: Invalid option value.");
+        return CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS;
+    }
+
+    return result;
+}
+
+CM_RT_API int32_t CmDeviceRTBase::DestroyBufferStateless(CmBufferStateless *&bufferStateless)
+{
+    INSERT_API_CALL_LOG();
+
+    CmBuffer_RT *temp = static_cast<CmBuffer_RT *>(bufferStateless);
+    if (nullptr == temp)
+    {
+        return CM_NULL_POINTER;
+    }
+
+    CLock locker(m_criticalSectionSurface);
+
+    int32_t status = m_surfaceMgr->DestroySurface(temp, APP_DESTROY);
+
+    if (status != CM_FAILURE)  //CM_SURFACE_IN_USE, or  CM_SURFACE_CACHED may be returned, which should be treated as SUCCESS.
+    {
+        bufferStateless = nullptr;
+        return CM_SUCCESS;
+    }
+    else
+    {
+        return CM_FAILURE;
+    }
+}
 }  // namespace

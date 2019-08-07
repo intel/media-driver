@@ -58,6 +58,7 @@ class CmProgram;
 class CmBuffer;
 class CmBufferUP;
 class CmBufferSVM;
+class CmBufferStateless;
 class CmSurface2D;
 class CmSurface2DUP;
 class CmSurface2DUPRT;
@@ -299,6 +300,13 @@ public:
         SurfaceIndex *aliasIndex,
         CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
         SurfaceIndex* &sampler8x8SurfaceIndex);
+
+    CM_RT_API int32_t CreateBufferStateless(size_t size,
+                                            uint32_t option,
+                                            void *sysMem,
+                                            CmBufferStateless *&bufferStateless);
+
+    CM_RT_API int32_t DestroyBufferStateless(CmBufferStateless* & bufferStateless);
 
     void* GetAccelData(){ return m_accelData; }
 

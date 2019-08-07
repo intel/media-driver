@@ -160,6 +160,7 @@ typedef enum _CM_RETURN_CODE
     CM_FAILED_TO_CREATE_CURBE_SURFACE           = -100,
     CM_INVALID_CAP_NAME                         = -101,
     CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX    = -102,
+    CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS = -103,
 
     /*
      * RANGE -10000 ~ -19999 FOR INTERNAL ERROR CODE
@@ -396,6 +397,10 @@ typedef enum _CM_RETURN_CODE
 #define CM_DDI_7_2 702 //for MDFRT API refreshment.
 
 #define CM_VERSION (CM_DDI_7_2)
+
+#define CM_BUFFER_STATELESS_CREATE_OPTION_GFX_MEM 0
+#define CM_BUFFER_STATELESS_CREATE_OPTION_SYS_MEM 1
+#define CM_BUFFER_STATELESS_CREATE_OPTION_DEFAULT CM_BUFFER_STATELESS_CREATE_OPTION_GFX_MEM
 
 //------------------------------------------------------------------------------
 //| Forward declarations
