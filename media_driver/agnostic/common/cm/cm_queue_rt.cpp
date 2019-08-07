@@ -425,6 +425,16 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
         return result;
     }
 
+    // check if meet the requirements of fast path
+    // if yes, switch to fast path
+    // else, continue the legacy path
+    if (cmHalState && cmHalState->advExecutor && cmHalState->cmHalInterface &&
+        cmHalState->advExecutor->SwitchToFastPath(kernelArray) &&
+        cmHalState->cmHalInterface->IsFastPathByDefault())
+    {
+        return cmHalState->advExecutor->SubmitTask(this, kernelArray, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    }
+
     if (threadSpaceRTConst && threadSpaceRTConst->IsThreadAssociated())
     {
         if (threadSpaceRTConst->GetNeedSetKernelPointer() && threadSpaceRTConst->KernelPointerIsNULL())
@@ -519,6 +529,7 @@ int32_t CmQueueRT::Enqueue_RT(
                         CM_HAL_CONDITIONAL_BB_END_INFO* conditionalEndInfo,
                         PCM_TASK_CONFIG  taskConfig)
 {
+    CM_NORMALMESSAGE("================ in origin path, media walker===================");
     if(kernelArray == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Kernel array is NULL.");
@@ -598,6 +609,7 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
                         PCM_TASK_CONFIG  taskConfig,
                         const CM_EXECUTION_CONFIG* krnExecCfg)
 {
+    CM_ASSERTMESSAGE("================ in origin path, gpgpu walker===================");
     if(kernelArray == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Kernel array is NULL.");
@@ -808,6 +820,24 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
     {
         CM_ASSERTMESSAGE("Error: Kernel array is NULL.");
         return CM_INVALID_ARG_VALUE;
+    }
+
+    // check if meet the requirements of fast path
+    // if yes, switch to fast path
+    // else, continue the legacy path
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (cmHalState && cmHalState->advExecutor && cmHalState->cmHalInterface &&
+        cmHalState->advExecutor->SwitchToFastPath(task) &&
+        cmHalState->cmHalInterface->IsFastPathByDefault())
+    {
+        if (cmHalState->cmHalInterface->CheckMediaModeAvailability())
+        {
+            return cmHalState->advExecutor->SubmitGpgpuTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+        }
+        else
+        {
+            return cmHalState->advExecutor->SubmitComputeTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+        }
     }
 
     CmTaskRT *taskRT = static_cast<CmTaskRT *>(task);
@@ -3621,6 +3651,10 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
     {
         result = CM_NULL_POINTER;
     }
+    else if (state->advExecutor->SwitchToFastPath(task) == false)
+    {
+        return Enqueue(task, event, threadSpace);
+    }
     else
     {
         const CmThreadSpaceRT *threadSpaceRTConst
@@ -3678,6 +3712,10 @@ CmQueueRT::EnqueueWithGroupFast(CmTask *task,
     if (state == nullptr || state->advExecutor == nullptr)
     {
         return CM_NULL_POINTER;
+    }
+    else if (state->advExecutor->SwitchToFastPath(task) == false)
+    {
+        return EnqueueWithGroup(task, event, threadGroupSpace);
     }
 
     uint32_t old_stream_idx = state->osInterface->streamIndex;

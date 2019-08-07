@@ -101,4 +101,9 @@ public:
                 const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
                 MOS_GPU_CONTEXT gpuContext);
 
+    virtual bool SwitchToFastPath(CMRT_UMD::CmTask *task)
+    {
+        // Should always returns false as long as SubmitTask calls Enqueue
+        return false;
+    }
 };

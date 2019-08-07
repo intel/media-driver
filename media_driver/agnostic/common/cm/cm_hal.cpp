@@ -10626,11 +10626,30 @@ MOS_STATUS HalCm_Create(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_EXECUTION_PATH_ID,
+            &userFeatureData);
+
+        if (userFeatureData.i32Data == 1)
+        {
+            state->refactor = false;
+        }
+        else if (userFeatureData.i32Data == 2)
+        {
+            state->refactor = true;
+            state->cmHalInterface->SetFastPathByDefault(true);
+        }
+
         FILE *fp1 = nullptr;
         MOS_SecureFileOpen(&fp1, "refactor.key", "r");
         if (fp1 != nullptr)
         {
             state->refactor = true;
+            state->cmHalInterface->SetFastPathByDefault(true);
             fclose(fp1);
         }
 
@@ -10642,16 +10661,16 @@ MOS_STATUS HalCm_Create(
             fclose(fp2);
         }
     }
+#endif
+
     if (state->refactor)
     {
-        CM_NORMALMESSAGE("Use refactor path!\n");
+        CM_NORMALMESSAGE("Info: Fast path is enabled!\n");
     }
     else
     {
-        CM_NORMALMESSAGE("Use origin path!\n");
+        CM_NORMALMESSAGE("Info: Fast path is disabled!\n");
     }
-
-#endif
 
 finish:
     if (eStatus != MOS_STATUS_SUCCESS)
