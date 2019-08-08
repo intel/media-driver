@@ -46,13 +46,13 @@ public:
     //!
     virtual ~DdiEncodeAvc();
 
-    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings);
+    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings) override;
 
     virtual VAStatus RenderPicture(
         VADriverContextP ctx,
         VAContextID      context,
         VABufferID       *buffers,
-        int32_t          numBuffers);
+        int32_t          numBuffers) override;
 
     //!
     //! \brief    Parse Qp matrix
@@ -172,13 +172,13 @@ protected:
 
     uint32_t getQMatrixBufferSize() override;
 
-    virtual VAStatus EncodeInCodecHal(uint32_t numSlices);
+    virtual VAStatus EncodeInCodecHal(uint32_t numSlices) override;
 
-    virtual VAStatus ResetAtFrameLevel();
+    virtual VAStatus ResetAtFrameLevel() override;
 
     virtual VAStatus ParsePicParams(
         DDI_MEDIA_CONTEXT *mediaCtx,
-        void              *ptr);
+        void              *ptr) override;
 
     virtual void ClearPicParams() override;
 

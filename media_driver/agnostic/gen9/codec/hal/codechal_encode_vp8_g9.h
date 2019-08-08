@@ -46,7 +46,7 @@ public:
     ~CodechalEncodeVp8G9() {};
 
 protected:
-    MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
+    MOS_STATUS Initialize(CodechalSetting * codecHalSettings) override;
 
     MOS_STATUS InitKernelStateHelper(struct CodechalEncodeVp8InitKernelStateParams* params);
 
