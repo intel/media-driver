@@ -1815,6 +1815,16 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "5",
         "Override MOCS index value in MDF"),
 
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE,
+        "MDF Force RAMode",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Media",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Force GPU context be created in RAMode"),
+
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_GROUP_ID_ID,
         "Group ID",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,

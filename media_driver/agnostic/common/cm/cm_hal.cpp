@@ -10317,6 +10317,16 @@ MOS_STATUS HalCm_CreateGPUContext(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA  UserFeatureData;
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MOS_UserFeature_ReadValue_ID(nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE, &UserFeatureData);
+    if (eStatus == MOS_STATUS_SUCCESS && UserFeatureData.i32Data == 1)
+    {
+        pMosGpuContextCreateOption->RAMode = 1;
+    }
+#endif
+
     // Create Compute Context on Compute Node
     CM_CHK_HRESULT_GOTOFINISH_MOSERROR(state->osInterface->pfnCreateGpuContext(
         state->osInterface,
