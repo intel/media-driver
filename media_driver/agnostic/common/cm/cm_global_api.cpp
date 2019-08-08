@@ -153,11 +153,12 @@ CM_RT_API const char* GetCmErrorString(int errCode)
         ENUM_STRING(CM_INVALID_CAP_NAME),
         ENUM_STRING(CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX),
         ENUM_STRING(CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS),
+        ENUM_STRING(CM_INVALID_KERNEL_ARG_POINTER),
 #undef ENUM_STRING
     };
 
     const char *errorString = "Internal Error";
-    if ((errCode >= CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS) && (errCode <= CM_SUCCESS))
+    if ((errCode >= CM_INVALID_KERNEL_ARG_POINTER) && (errCode <= CM_SUCCESS))
     {
         errorString = errorStrings[MOS_ABS(errCode)];
     }

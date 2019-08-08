@@ -1317,7 +1317,7 @@ public:
     CM_RT_API virtual INT DeAssociateThreadSpace(CmThreadSpace* & pTS) = 0;
     CM_RT_API virtual INT DeAssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
     CM_RT_API virtual INT QuerySpillSize(unsigned int &spillSize) = 0;
-    CM_RT_API virtual INT SetKernelArgPointer(UINT index, size_t size, const void *pValue)                  = 0;
+    CM_RT_API virtual INT SetKernelArgPointer(UINT index, size_t size, const void *pValue) = 0;
 
 protected:
    ~CmKernel(){};

@@ -80,6 +80,7 @@ struct CM_ARG
 
     uint16_t *surfIndex;
     SURFACE_ARRAY_ARG *surfArrayArg; // record each arg kind and address control mode for media sampler in surface array
+    bool isStatelessBuffer;
     CM_ARG()
     {
         unitKind = 0;
@@ -171,6 +172,10 @@ public:
     CM_RT_API int32_t SetKernelArg(uint32_t index,
                                    size_t size,
                                    const void *value);
+
+    CM_RT_API virtual int32_t SetKernelArgPointer(uint32_t index,
+                                                  size_t size,
+                                                  const void *value);
 
     CM_RT_API int32_t SetThreadArg(uint32_t threadId,
                                    uint32_t index,

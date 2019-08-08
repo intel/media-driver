@@ -71,8 +71,17 @@ int32_t CmSurfaceManagerBase::UpdateStateForDelayedDestroy(
 }
 
 int32_t CmSurfaceManagerBase::UpdateStateForRealDestroy(uint32_t index,
-                              CM_ENUM_CLASS_TYPE surfaceType)
+                                                        CM_ENUM_CLASS_TYPE surfaceType)
 {
+    for(auto buffer : m_statelessSurfaceArray)
+    {
+        if (buffer == m_surfaceArray[index])
+        {
+            m_statelessSurfaceArray.erase(buffer);
+            break;
+        }
+    }
+
     m_surfaceArray[index] = nullptr;
 
     m_surfaceSizes[index] = 0;
@@ -225,6 +234,8 @@ CmSurfaceManagerBase::~CmSurfaceManagerBase()
 
     MosSafeDeleteArray(m_surfaceSizes);
     MosSafeDeleteArray(m_surfaceArray);
+
+    m_statelessSurfaceArray.clear();
 }
 
 //*-----------------------------------------------------------------------------
@@ -373,6 +384,7 @@ int32_t CmSurfaceManagerBase::Initialize( CM_HAL_MAX_VALUES halMaxValues,
 
     CmSafeMemSet( m_surfaceArray, 0, m_surfaceArraySize * sizeof( CmSurface* ) );
     CmSafeMemSet( m_surfaceSizes, 0, m_surfaceArraySize * sizeof( int32_t ) );
+
     return CM_SUCCESS;
 }
 
@@ -754,6 +766,11 @@ int32_t CmSurfaceManagerBase::CreateBuffer(size_t size, CM_BUFFER_TYPE type,
 
     m_surfaceArray[ index ] = buffer;
     UpdateProfileFor1DSurface(index, size);
+
+    if (type == CM_BUFFER_STATELESS || type == CM_BUFFER_SVM) {
+        // add this buffer into svm/stateless buffer array: <address, size, surface>
+        m_statelessSurfaceArray.insert(buffer);
+    }
 
     return CM_SUCCESS;
 }

@@ -402,18 +402,6 @@ finish:
     return hr;
 }
 
-int32_t CmBuffer_RT::GetSize(uint32_t &size)
-{
-    size = m_size;
-    return CM_SUCCESS;
-}
-
-int32_t CmBuffer_RT::GetSize(uint64_t &size)
-{
-    size = m_size;
-    return CM_SUCCESS;
-}
-
 void CmBuffer_RT::SetSize( size_t size )
 {
     m_size = size;

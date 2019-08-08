@@ -30,6 +30,7 @@
 
 #include "cm_def.h"
 #include "cm_hal.h"
+#include <set>
 
 typedef enum _MOS_FORMAT MOS_FORMAT;
 
@@ -156,6 +157,8 @@ public:
 
     void AddToDelayDestroyList(CmSurface *surface);
     void RemoveFromDelayDestroyList(CmSurface *surface);
+    std::set<CmSurface *> & GetStatelessSurfaceArray() { return m_statelessSurfaceArray; }
+
 protected:
     CmSurfaceManagerBase( CmDeviceRT* pCmDevice );
     CmSurfaceManagerBase();
@@ -237,6 +240,8 @@ protected:
     CmSurface *m_delayDestroyHead;
     CmSurface *m_delayDestroyTail;
     CSync m_delayDestoryListSync;
+
+    std::set<CmSurface *> m_statelessSurfaceArray;
 
 private:
     CmSurfaceManagerBase(const CmSurfaceManagerBase& other);

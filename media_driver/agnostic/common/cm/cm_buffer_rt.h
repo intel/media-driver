@@ -93,10 +93,6 @@ public:
 
     int32_t UpdateResource(MOS_RESOURCE *resource);
 
-    int32_t GetSize(uint32_t &size);
-
-    int32_t GetSize(uint64_t &size);
-
     size_t GetSize() { return m_size; }
 
     void SetSize(size_t size);
