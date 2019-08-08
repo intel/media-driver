@@ -2247,6 +2247,9 @@ CmDeviceRTBase::CreateSampler8x8Surface(CmSurface2D* surface2D,
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t sizeperpixel = 0;
+    uint32_t platform = 0;
+    
+    GetGenPlatform(platform);
 
     CmSurface2DRT* currentRT = static_cast<CmSurface2DRT *>(surface2D);
     if( ! currentRT )  {
@@ -2257,11 +2260,18 @@ CmDeviceRTBase::CreateSampler8x8Surface(CmSurface2D* surface2D,
     CM_SURFACE_FORMAT format;
     currentRT->GetSurfaceDesc(width, height, format, sizeperpixel);
 
-    if(format == CM_SURFACE_FORMAT_NV12)
-        if ((width % 4) != 0 || (height % 4) != 0) {  //width or height is not 4 aligned
+    if (format == CM_SURFACE_FORMAT_NV12)
+    {
+        if (platform < IGFX_GEN10_CORE  &&
+            ((width % 4) != 0 || (height % 4) != 0)) {  //width or height is not 4 aligned
             CM_ASSERTMESSAGE("Error: Width or height is not 4 aligned for nv12 surface.");
             return CM_SYSTEM_MEMORY_NOT_4PIXELS_ALIGNED;
         }
+        else if ((width % 2) != 0 || (height % 2) != 0) {
+            CM_ASSERTMESSAGE("Error: Width or height is not 2 aligned for nv12 surface.");
+            return CM_SYSTEM_MEMORY_NOT_2PIXELS_ALIGNED;
+        }
+    }
     CLock locker(m_criticalSectionSurface);
 
     int32_t result = m_surfaceMgr->CreateSampler8x8Surface( currentRT, sampler8x8SurfIndex, sampler8x8Type, mode, nullptr );

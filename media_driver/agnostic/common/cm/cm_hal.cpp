@@ -4981,6 +4981,7 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
 
         surface.Rotation = state->umdSurf2DTable[index].rotationFlag;
         surface.ChromaSiting = state->umdSurf2DTable[index].chromaSiting;
+        surface.ScalingMode = RENDERHAL_SCALING_AVS;
         nSurfaceEntries = 0;
 
         // interlace setting
