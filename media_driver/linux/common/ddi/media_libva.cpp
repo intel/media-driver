@@ -3834,6 +3834,7 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_AYUV:
         case VA_FOURCC_Y210:
         case VA_FOURCC_Y410:
+        case VA_FOURCC_Y416:
         case VA_FOURCC_NV12:
         case VA_FOURCC_NV21:
         case VA_FOURCC_P010:
@@ -3915,6 +3916,7 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_AYUV:
         case VA_FOURCC_Y210:
         case VA_FOURCC_Y410:
+        case VA_FOURCC_Y416:
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
             vaimg->offsets[0] = 0;
@@ -4205,6 +4207,7 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[2]               = mediaSurface->iPitch;
         break;
     case Media_Format_P010:
+    case Media_Format_P016:
         vaimg->format.bits_per_pixel    = 24;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3 / 2;
         vaimg->num_planes               = 2;
@@ -4216,6 +4219,12 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_AYUV:
     case Media_Format_Y210:
         vaimg->format.bits_per_pixel    = 32;
+        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
+        vaimg->num_planes               = 1;
+        vaimg->pitches[0]               = mediaSurface->iPitch;
+        break;
+    case Media_Format_Y416:
+        vaimg->format.bits_per_pixel    = 64; // packed format [alpha, Y, U, V], 16 bits per channel
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
@@ -5900,6 +5909,7 @@ static uint32_t DdiMedia_GetChromaPitchHeight(PDDI_MEDIA_SURFACE mediaSurface, u
             *chromaPitch = mediaSurface->iPitch / 2;
             return 3;
         case VA_FOURCC_P010:
+        case VA_FOURCC_P016:
             *chromaWidth = mediaSurface->iWidth ;
             *chromaHeight = mediaSurface->iHeight/2;
             *chromaPitch = mediaSurface->iPitch;
