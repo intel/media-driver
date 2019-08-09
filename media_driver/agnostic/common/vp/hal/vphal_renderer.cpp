@@ -1666,7 +1666,7 @@ VphalRenderer::VphalRenderer(
     m_surfaceDumper(nullptr),
     m_parameterDumper(nullptr),
 #endif
-    StatusTable(),
+    m_statusTable(nullptr),
     maxSrcRect(),
     m_pRenderHal(pRenderHal),
     m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),

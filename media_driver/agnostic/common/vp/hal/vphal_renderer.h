@@ -76,7 +76,7 @@
         bool bSurfIsRenderTarget = (pRenderParams->pTarget[0]->SurfType == SURF_OUT_RENDERTARGET);\
         (pState)->StatusTableUpdateParams.bReportStatus       = (pRenderParams->bReportStatus);   \
         (pState)->StatusTableUpdateParams.bSurfIsRenderTarget = bSurfIsRenderTarget;              \
-        (pState)->StatusTableUpdateParams.pStatusTable        = &pRenderer->StatusTable;          \
+        (pState)->StatusTableUpdateParams.pStatusTable        = pRenderer->m_statusTable;          \
         (pState)->StatusTableUpdateParams.StatusFeedBackID    = pRenderParams->StatusFeedBackID;  \
         (pState)->StatusTableUpdateParams.bTriggerGPUHang     = pRenderParams->bTriggerGPUHang;   \
     }                                                                                             \
@@ -88,7 +88,7 @@
         bool bSurfIsRenderTarget = (pRenderParams->pTarget[0]->SurfType == SURF_OUT_RENDERTARGET);\
         (pState)->StatusTableUpdateParams.bReportStatus       = (pRenderParams->bReportStatus);   \
         (pState)->StatusTableUpdateParams.bSurfIsRenderTarget = bSurfIsRenderTarget;              \
-        (pState)->StatusTableUpdateParams.pStatusTable        = &pRenderer->StatusTable;          \
+        (pState)->StatusTableUpdateParams.pStatusTable        = pRenderer->m_statusTable;         \
         (pState)->StatusTableUpdateParams.StatusFeedBackID    = pRenderParams->StatusFeedBackID;  \
     }                                                                                             \
 } while(0)
@@ -148,9 +148,8 @@ public:
     VphalParameterDumper        *m_parameterDumper;
 #endif
 
-    // StatusTable indicating if command is done by gpu or not,
-    // shared by renderer comp, vebox, cappip, fdfb, dprotation
-    VPHAL_STATUS_TABLE          StatusTable;
+    // StatusTable indicating if command is done by gpu or not
+    PVPHAL_STATUS_TABLE          m_statusTable;
 
     // max src rectangle
     RECT                        maxSrcRect;
@@ -278,6 +277,11 @@ public:
 
     MEDIA_FEATURE_TABLE* GetSkuTable() {
         return m_pSkuTable;
+    }
+
+    void SetStatusReportTable(PVPHAL_STATUS_TABLE statusTable)
+    {
+        m_statusTable = statusTable;
     }
 
     //!
