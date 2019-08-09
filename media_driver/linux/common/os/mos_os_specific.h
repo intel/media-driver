@@ -517,6 +517,7 @@ struct _MOS_OS_CONTEXT
     // For modulized GPU context
     void*               m_gpuContextMgr;
     void*               m_cmdBufMgr;
+    void*               m_osDeviceContext = nullptr;
 
     //For 2VD box
     int32_t             bKMDHasVCS2;

@@ -112,4 +112,11 @@ typedef struct _TP_CALLBACK_INSTANCE TP_CALLBACK_INSTANCE, *PTP_CALLBACK_INSTANC
 #define vsprintf_s(pBuffer, size, format, arg)              vsnprintf(pBuffer, size, format, arg)
 #define sprintf_s(pBuffer, size, format, ...)               snprintf(pBuffer, size, format, ##__VA_ARGS__)
 
+enum SYNC_HAZARD
+{
+    SYNC_RAW_HAZARD,
+    SYNC_WAR_HAZARD,
+    SYNC_WAW_HAZARD
+};
+
 #endif // __MOS_DEFS_SPECIFIC_H__

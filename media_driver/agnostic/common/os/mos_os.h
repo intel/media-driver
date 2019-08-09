@@ -473,25 +473,26 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
 typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
 struct _MOS_GPUCTX_CREATOPTIONS
 {
-    uint32_t  CmdBufferNumScale;
-    uint32_t  RAMode;
+    uint32_t CmdBufferNumScale;
+    uint32_t RAMode;
+    uint32_t gpuNode;
     //For slice shutdown
     union
     {
         struct
         {
             uint8_t SliceCount;
-            uint8_t SubSliceCount;          //Subslice count per slice
+            uint8_t SubSliceCount;  //Subslice count per slice
             uint8_t MaxEUcountPerSubSlice;
             uint8_t MinEUcountPerSubSlice;
-        }packed;
+        } packed;
 
         uint32_t SSEUValue;
     };
 
-    _MOS_GPUCTX_CREATOPTIONS() : 
-        CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
+    _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
         RAMode(0),
+        gpuNode(0),
         SSEUValue(0){}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
@@ -537,12 +538,55 @@ private:
 };
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
+class OsContextNext;
+typedef OsContextNext OsDeviceContext;
+typedef _MOS_GPUCTX_CREATOPTIONS GpuContextCreateOption;
+struct _MOS_INTERFACE;
+    
+struct MosStreamState
+{
+    OsDeviceContext *  osDeviceContext         = nullptr;
+    GPU_CONTEXT_HANDLE currentGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    MOS_COMPONENT      component;
+
+    PMOS_VIRTUALENGINE_INTERFACE virtualEngineInterface = nullptr;
+    MosCpInterface *osCpInterface = nullptr;
+
+    bool mediaReset    = false;
+    uint32_t GpuResetCount = 0;
+
+    bool simIsActive = false;  //!< Flag to indicate if Simulation is enabled
+    MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable; //!< To indicate which components to enable Null HW support
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    // Command buffer dump
+    bool  dumpCommandBuffer = false;                      //!< Flag to indicate if Dump command buffer is enabled
+    bool  dumpCommandBufferToFile = false;                //!< Indicates that the command buffer should be dumped to a file
+    bool  dumpCommandBufferAsMessages = false;            //!< Indicates that the command buffer should be dumped via MOS normal messages
+#endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+    _MOS_INTERFACE *osInterfaceLegacy = nullptr;
+};
+
+typedef OsDeviceContext *MOS_DEVICE_HANDLE;
+typedef MosStreamState  *MOS_STREAM_HANDLE;
+//typedef uint32_t             GPU_CONTEXT_HANDLE;
+typedef MOS_COMMAND_BUFFER *COMMAND_BUFFER_HANDLE;
+typedef MOS_RESOURCE       *MOS_RESOURCE_HANDLE;
+typedef void *              OsSpecificRes;
+typedef void *              OS_HANDLE;
+typedef MOS_SURFACE         MosResourceInfo;
+typedef void *              DDI_DEVICE_CONTEXT;
+
 class GpuContextMgr;
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
 typedef struct _MOS_INTERFACE
 {
+    //APO WRAPPER
+    MOS_STREAM_HANDLE osStreamState = MOS_INVALID_HANDLE; 
+
     // Saved OS context
     PMOS_CONTEXT                    pOsContext;
     MOS_GPU_CONTEXT                 CurrentGpuContextOrdinal;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,9 @@
 #include "mos_os.h"
 #include "mos_util_debug.h"
 #include "mos_util_user_interface.h"
+#include "mos_interface.h"
+
+uint32_t g_apoMosEnabled = 0;
 
 PerfUtility* g_perfutility = PerfUtility::getInstance();
 
@@ -86,6 +89,11 @@ MOS_STATUS Mos_AddCommand(
     uint32_t                dwCmdSize)
 {
     uint32_t dwCmdSizeDwAligned = 0;
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::AddCommand(pCmdBuffer, pCmd, dwCmdSize);
+    }
 
     //---------------------------------------------
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
@@ -402,6 +410,11 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::DumpCommandBuffer(pOsInterface->osStreamState, pCmdBuffer);
+    }
 
     // Set the name of the engine that is going to be used.
     MOS_GPU_CONTEXT sGpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
@@ -775,6 +788,27 @@ MOS_STATUS Mos_InitInterface(
         nullptr,
         &UserFeatureWriteData,
         1);
+
+    // Apo wrapper
+    if (g_apoMosEnabled)
+    {
+        pOsInterface->osStreamState->component                = pOsInterface->Component;
+        pOsInterface->osStreamState->currentGpuContextHandle  = pOsInterface->CurrentGpuContextHandle;
+        pOsInterface->osStreamState->GpuResetCount            = pOsInterface->dwGPUResetCount;
+        pOsInterface->osStreamState->mediaReset               = pOsInterface->bMediaReset;
+        pOsInterface->osStreamState->nullHwAccelerationEnable = pOsInterface->NullHWAccelerationEnable;
+        pOsInterface->osStreamState->osCpInterface            = pOsInterface->osCpInterface;
+        pOsInterface->osStreamState->osDeviceContext          = (OsDeviceContext *)pOsInterface->pOsContext->m_osDeviceContext;
+        pOsInterface->osStreamState->simIsActive              = pOsInterface->bSimIsActive;
+        pOsInterface->osStreamState->virtualEngineInterface   = pOsInterface->pVEInterf;
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+        pOsInterface->osStreamState->dumpCommandBuffer        = pOsInterface->bDumpCommandBuffer;
+        pOsInterface->osStreamState->dumpCommandBufferAsMessages = pOsInterface->bDumpCommandBufferAsMessages;
+        pOsInterface->osStreamState->dumpCommandBufferToFile  = pOsInterface->bDumpCommandBufferToFile;
+#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+        pOsInterface->osStreamState->osInterfaceLegacy = pOsInterface;
+    }
 
     return eStatus;
 }
