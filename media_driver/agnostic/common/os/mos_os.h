@@ -1265,6 +1265,8 @@ typedef struct _MOS_INTERFACE
     int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
     int32_t                         bSoftReset;                                   //!< trigger soft reset
 #endif // (_DEBUG || _RELEASE_INTERNAL)
+    //!< os interface extension
+    void                            *pOsExt;
 } MOS_INTERFACE;
 
 #ifdef __cplusplus
