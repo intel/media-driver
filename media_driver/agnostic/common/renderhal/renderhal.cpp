@@ -6869,7 +6869,10 @@ MOS_STATUS RenderHal_InitInterface(
     // Initialize MHW State Heap Interface
     // Note: there are two pStateHeapInterface in below line. First one is pointer to legacy MHW_STATE_HEAP
     // sturcture, while the last one points to the new class.
-    pRenderHal->pMhwStateHeap = pRenderHal->pMhwRenderInterface->m_stateHeapInterface->pStateHeapInterface;
+    if (pRenderHal->pMhwRenderInterface->m_stateHeapInterface != nullptr)
+    {
+        pRenderHal->pMhwStateHeap = pRenderHal->pMhwRenderInterface->m_stateHeapInterface->pStateHeapInterface;
+    }
 
     pRenderHal->pHwCaps  = pRenderHal->pMhwRenderInterface->GetHwCaps();
 

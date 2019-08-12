@@ -187,7 +187,10 @@ void VPHAL_VEBOX_IECP_RENDERER::SetParams(
 
     for (i = 0; i < m_filterCount; i++)
     {
-        m_filters[i]->SetParams(pSrcSurface, m_renderData);
+        if (m_filters[i])
+        {
+            m_filters[i]->SetParams(pSrcSurface, m_renderData);
+        }
     }
 
     if (IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData) ||

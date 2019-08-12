@@ -3836,7 +3836,10 @@ void MOS_Free_UserFeatureValueString(PMOS_USER_FEATURE_VALUE_STRING pUserString)
     {
         if (pUserString->uSize > 0)
         {
-            MOS_FreeMemAndSetNull(pUserString->pStringData);
+            if (pUserString->pStringData)
+            {
+                MOS_FreeMemAndSetNull(pUserString->pStringData);
+            }
             pUserString->uSize = 0;
         }
     }

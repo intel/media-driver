@@ -776,7 +776,11 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->streamIndex = 0;
 
     eStatus = Mos_Specific_InitInterface(pOsInterface, pOsDriverContext);
-
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_ASSERTMESSAGE("Mos_Specific_InitInterface FAILED, errno = 0x%x", eStatus);
+        return eStatus;
+    }
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     Mos_DumpCommandBufferInit(pOsInterface);
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
