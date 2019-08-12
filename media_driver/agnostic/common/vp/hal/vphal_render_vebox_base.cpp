@@ -4529,13 +4529,13 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(
 bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface)
 {
     VPHAL_RENDER_NORMALMESSAGE(
-        "_bCompNeeded %d,                                                                           \
-         uSrcCount %d,                                                                              \
-         uDstCount %d,                                                                              \
-         pBlendingParams %p,                                                                        \
-         bInterlacedScaling %d,                                                                     \
-         bFieldWeaving %d,                                                                          \
-         pLumaKeyParams %p,                                                                         \
+        "_bCompNeeded %d, \
+         uSrcCount %d, \
+         uDstCount %d, \
+         pBlendingParams %p, \
+         bInterlacedScaling %d, \
+         bFieldWeaving %d, \
+         pLumaKeyParams %p, \
          pConstriction %p",
         _bCompNeeded,
         _pcRenderParams->uSrcCount,
@@ -4576,20 +4576,20 @@ bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDE
 bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVeboxState, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface)
 {
     VPHAL_RENDER_NORMALMESSAGE(
-        "dwCompBypassMode %d,                                                               \
-         _pcRenderParams->uDstCount %d,                                                     \
-         SAME_SIZE_RECT(rcSrc, rcDst) %d,                                                   \
-         SAME_SIZE_RECT(rcSrc, rcMaxSrc) %d,                                                \
-         SAME_SIZE_RECT(rcDst, pTarget[0]->rcDst) %p,                                       \
-         pIEFParams %d,                                                                     \
-         SampleType %d,                                                                     \
-         Rotation %p,                                                                       \
-         bQueryVariance %d,                                                                 \
-         IsFormatSupported %p,                                                              \
-         IsRTFormatSupported %d,                                                            \
-         VeboxIs2PassesCSCNeeded %d,                                                        \
-         AlphaMode %p,                                                                      \
-         rcDst.top %p,                                                                      \
+        "dwCompBypassMode %d, \
+         _pcRenderParams->uDstCount %d, \
+         SAME_SIZE_RECT(rcSrc, rcDst) %d, \
+         SAME_SIZE_RECT(rcSrc, rcMaxSrc) %d, \
+         SAME_SIZE_RECT(rcDst, pTarget[0]->rcDst) %p, \
+         pIEFParams %d, \
+         SampleType %d, \
+         Rotation %p, \
+         bQueryVariance %d, \
+         IsFormatSupported %p, \
+         IsRTFormatSupported %d, \
+         VeboxIs2PassesCSCNeeded %d, \
+         AlphaMode %p, \
+         rcDst.top %p, \
          rcDst.left %p",
         _pVeboxState->dwCompBypassMode,
         _pcRenderParams->uDstCount,

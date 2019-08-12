@@ -167,10 +167,10 @@ bool VphalSfcState::IsOutputCapable(
     bool isOutputCapable = false;
 
     VPHAL_RENDER_NORMALMESSAGE(
-        "isColorFill %d,                                                                       \
-         src->rcDst.top %d,                                                                    \
-         src->rcDst.left %d,                                                                   \
-         renderTarget->TileType %d,                                                            \
+        "isColorFill %d, \
+         src->rcDst.top %d, \
+         src->rcDst.left %d, \
+         renderTarget->TileType %d, \
          renderTarget->Format %d",
         isColorFill,
         src->rcDst.top,
@@ -247,15 +247,15 @@ bool VphalSfcState::IsOutputPipeSfcFeasible(
     PVPHAL_SURFACE              pRenderTarget)
 {
     VPHAL_RENDER_NORMALMESSAGE(
-        "IsDisabled %d,                                                                      \
-         uDstCount %d,                                                                       \
-         Rotation %d,                                                                        \
-         pTarget[0]->TileType %d,                                                            \
-         IsFormatSupported %d,                                                               \
-         InputFormat %d,                                                                     \
-         OutputFormat %d,                                                                    \
-         pCompAlpha %p,                                                                      \
-         pDeinterlaceParams %p,                                                              \
+        "IsDisabled %d, \
+         uDstCount %d, \
+         Rotation %d, \
+         pTarget[0]->TileType %d, \
+         IsFormatSupported %d, \
+         InputFormat %d, \
+         OutputFormat %d, \
+         pCompAlpha %p, \
+         pDeinterlaceParams %p, \
          bQueryVariance %d",
         IsDisabled(),
         pcRenderParams->uDstCount,
