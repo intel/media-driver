@@ -287,6 +287,12 @@ bool VphalSfcState::IsOutputPipeSfcFeasible(
          (pSrcSurface->Format != Format_A8R8G8B8 && pSrcSurface->Format != Format_A8B8G8R8))    &&
         pSrcSurface->bQueryVariance             == false)
     {
+        // For platforms with VEBOX disabled but procamp enabled, go Render path
+        if (MEDIA_IS_SKU(m_renderHal->pSkuTable, FtrDisableVEBoxFeatures) && pSrcSurface->pProcampParams != nullptr)
+        {
+            return false;
+        }
+
         return true;
     }
 

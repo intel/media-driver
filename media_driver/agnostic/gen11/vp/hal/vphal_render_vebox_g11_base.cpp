@@ -2140,7 +2140,8 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
     PVPHAL_VEBOX_STATE_G11_BASE     pVeboxState                     = this;
     bool                            bHDRToneMappingNeed             = false;
 
-    OutputPipe  = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    pTarget    = pcRenderParams->pTarget[0];
 
     bCompBypassFeasible = IS_COMP_BYPASS_FEASIBLE(*pbCompNeeded, pcRenderParams, pSrcSurface);
 
@@ -2164,13 +2165,28 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
     }
 
     bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
+
+    // If No VEBOX, filter procamp case and csc case here.
+    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrDisableVEBoxFeatures))
+    {
+        if (pSrcSurface->pProcampParams)
+        {
+            bOutputPipeVeboxFeasible = false;
+        }
+        else if (pSrcSurface->Format != pTarget->Format         ||
+                 pSrcSurface->ColorSpace != pTarget->ColorSpace ||
+                 pSrcSurface->TileType != pTarget->TileType)
+        {
+            bOutputPipeVeboxFeasible = false;
+        }
+    }
+
     if (bOutputPipeVeboxFeasible)
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_VEBOX;
         goto finish;
     }
 
-    pTarget    = pcRenderParams->pTarget[0];
     bHDRToneMappingNeed = (pSrcSurface->pHDRParams || pTarget->pHDRParams);
     // Check if SFC can be the output pipe
     if (m_sfcPipeState && !bHDRToneMappingNeed)
