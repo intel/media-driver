@@ -3414,10 +3414,12 @@ static VAStatus DdiMedia_SyncSurface (
         DdiMediaUtil_LockGuard guard(&mediaCtx->SurfaceMutex);
 
         Codechal *codecHal = decCtx->pCodecHal;
-        DDI_CHK_NULL(codecHal, "nullptr decCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+        //return success just avoid vaDestroyContext is ahead of vaSyncSurface
+        DDI_CHK_NULL(codecHal, "nullptr decCtx->pCodecHal", VA_STATUS_SUCCESS);
 
+        //return success just avoid vaDestroyContext is ahead of vaSyncSurface
         CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
-        DDI_CHK_NULL(decoder, "nullptr codecHal->pDecoder", VA_STATUS_ERROR_INVALID_CONTEXT);
+        DDI_CHK_NULL(decoder, "nullptr codecHal->pDecoder", VA_STATUS_SUCCESS);
 
         if (decoder->IsStatusQueryReportingEnabled())
         {
@@ -4576,16 +4578,9 @@ VAStatus DdiMedia_GetImage(
     {
         VAContextID context = VA_INVALID_ID;
 
-        if (mediaCtx->pVpCtxHeap != nullptr && mediaCtx->pVpCtxHeap->pHeapBase != nullptr)
-        {
-            //Get VP Context from heap.
-            context = (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP);
-        }else
-        {
-            //Create VP Context.
-            vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
-            DDI_CHK_RET(vaStatus, "Create VP Context failed.");
-        }
+        //Create VP Context.
+        vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
+        DDI_CHK_RET(vaStatus, "Create VP Context failed.");
 
         //Create target surface for VP pipeline.
         DDI_MEDIA_FORMAT mediaFmt = DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
@@ -4615,7 +4610,8 @@ VAStatus DdiMedia_GetImage(
             DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
             return vaStatus;
         }
-
+        vaStatus = DdiMedia_SyncSurface(ctx, target_surface);
+        vaStatus = DdiVp_DestroyContext(ctx, context);
         output_surface = target_surface;
     }
 
@@ -4811,16 +4807,9 @@ VAStatus DdiMedia_PutImage(
     {
         VAContextID context     = VA_INVALID_ID;
 
-        if (mediaCtx->pVpCtxHeap != nullptr && mediaCtx->pVpCtxHeap->pHeapBase != nullptr)
-        {
-            //Get VP Context from heap.
-            context = (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP);
-        }else
-        {
-            //Create VP Context.
-            vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
-            DDI_CHK_RET(vaStatus, "Create VP Context failed");
-        }
+        //Create VP Context.
+        vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
+        DDI_CHK_RET(vaStatus, "Create VP Context failed");
 
         //Create temp surface for VP pipeline.
         DDI_MEDIA_FORMAT mediaFmt = DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
@@ -4888,6 +4877,8 @@ VAStatus DdiMedia_PutImage(
         }
 
         DdiMedia_DestroySurfaces(ctx, &tempSurface, 1);
+        vaStatus = DdiMedia_SyncSurface(ctx, tempSurface);
+        vaStatus = DdiVp_DestroyContext(ctx, context);
     }
     else
     {
