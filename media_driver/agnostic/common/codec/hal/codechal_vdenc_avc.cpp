@@ -8093,8 +8093,6 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
         oss << "BFrameMaxNumImePred = " << std::dec << +m_avcPar->BFrameMaxNumImePred << std::endl;
         oss << "BFrameImePredLargeSW = " << std::dec << +m_avcPar->BFrameImePredLargeSW << std::endl;
         oss << "BFrameZeroCbfEn = " << std::dec << +m_avcPar->BFrameZeroCbfEn << std::endl;
-        oss << "DirectMode = " << std::dec << +m_avcPar->DirectMode << std::endl;
-        oss << "MultiPassHmeEnable = " << std::dec << +m_avcPar->MultiPassHmeEnable << std::endl;
     }
 
     const char *fileName = m_debugInterface->CreateFileName(
