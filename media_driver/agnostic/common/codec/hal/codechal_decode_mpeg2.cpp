@@ -755,7 +755,9 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
+#endif
 
     // when there is not a forward or backward reference,
     // the index is set to the destination frame index
@@ -816,7 +818,9 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
+#endif
 
     CODECHAL_DEBUG_TOOL(
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)

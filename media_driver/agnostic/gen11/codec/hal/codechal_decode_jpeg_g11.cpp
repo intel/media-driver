@@ -204,7 +204,11 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
 
     pipeBufAddrParams.pDecodedReconParam = &surfaceParams;
     pipeBufAddrParams.psRawSurface = nullptr;
+
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams, &cmdBuffer));
+#endif
+
     pipeBufAddrParams.pDecodedReconParam = nullptr;
 
     // Set MFX_IND_OBJ_BASE_ADDR_STATE_CMD

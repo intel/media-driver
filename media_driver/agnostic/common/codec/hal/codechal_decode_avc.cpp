@@ -1334,7 +1334,9 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
         picMhwParams->PipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&picMhwParams->PipeBufAddrParams));
+#endif
 
     picMhwParams->PipeBufAddrParams.presMfdIntraRowStoreScratchBuffer =
         &m_resMfdIntraRowStoreScratchBuffer;
@@ -1409,9 +1411,11 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
         }
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&picMhwParams->PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
+#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(picMhwParams->PipeBufAddrParams.presReferences, sizeof(PMOS_RESOURCE) * CODEC_AVC_MAX_NUM_REF_FRAME, m_presReferences, sizeof(PMOS_RESOURCE) * CODEC_AVC_MAX_NUM_REF_FRAME));
 

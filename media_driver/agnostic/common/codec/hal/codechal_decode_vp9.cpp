@@ -1495,7 +1495,9 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
         }
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(m_picMhwParams.PipeBufAddrParams));
+#endif
 
     if (m_streamOutEnabled)
     {
@@ -1503,9 +1505,11 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(m_picMhwParams.PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
+#endif
 
     m_picMhwParams.PipeBufAddrParams->presMfdDeblockingFilterRowStoreScratchBuffer =
         &m_resDeblockingFilterLineRowStoreScratchBuffer;

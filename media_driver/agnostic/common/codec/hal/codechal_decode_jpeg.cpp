@@ -683,7 +683,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
     // Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
     pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
+#endif
 
     // Set MFX_IND_OBJ_BASE_ADDR_STATE_CMD
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;

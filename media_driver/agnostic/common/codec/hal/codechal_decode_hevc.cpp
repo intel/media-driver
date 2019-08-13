@@ -1623,7 +1623,9 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         m_picMhwParams.PipeBufAddrParams->presP010RTSurface = &m_destSurface;
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(m_picMhwParams.PipeBufAddrParams));
+#endif
 
     m_picMhwParams.PipeBufAddrParams->presMfdDeblockingFilterRowStoreScratchBuffer =
         &m_resMfdDeblockingFilterRowStoreScratchBuffer;
@@ -1766,9 +1768,11 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         }
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(m_picMhwParams.PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
+#endif
 
     m_picMhwParams.IndObjBaseAddrParams->Mode            = m_mode;
     m_picMhwParams.IndObjBaseAddrParams->dwDataSize      = m_copyDataBufferInUse ? m_copyDataBufferSize : m_dataSize;
