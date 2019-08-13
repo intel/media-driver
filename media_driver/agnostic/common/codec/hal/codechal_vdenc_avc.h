@@ -938,7 +938,7 @@ protected:
     static constexpr uint8_t m_maxNumRoi       = 16;  //!< VDEnc maximum number of ROI supported
     static constexpr uint8_t m_maxNumNativeRoi = 3;   //!< Number of native ROI supported by VDEnc HW
 
-private:
+protected:
 
     static const uint32_t AVC_I_SLICE_SIZE_MINUS = 500;                                    //!< VDENC I SLICE threshold
     static const uint32_t AVC_P_SLICE_SIZE_MINUS = 500;                                    //!< VDENC P SLICE threshold
