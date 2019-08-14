@@ -10065,7 +10065,8 @@ MOS_STATUS HalCm_SetCaps(
         }
         else
         {
-            state->maxHWThreadValues.apiValue = setCapsParam->maxValue;
+            state->maxHWThreadValues.apiValue = (setCapsParam->maxValue == 0) ? 0:
+                    MOS_MAX(setCapsParam->maxValue, state->cmHalInterface->GetSmallestMaxThreadNum());
         }
         break;
 

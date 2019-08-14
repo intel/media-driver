@@ -689,6 +689,14 @@ public:
     {
         return m_fastpathDefault;
     }
+    
+    //! \brief    Get the smallest max thread number that can be set in VFE
+    //! \return   the smallest max thread number
+    //!
+    virtual uint32_t GetSmallestMaxThreadNum()
+    {
+        return 1;
+    }
 
 protected:
     uint32_t              m_platformID;
