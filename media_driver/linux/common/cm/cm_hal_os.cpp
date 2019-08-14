@@ -563,6 +563,9 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
         HalCm_OsResource_Reference(&entry->osResource);
     }
 
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(
+        osInterface->pfnRegisterResource(osInterface, &entry->osResource, true, true));
+
     entry->size = param->size;
     entry->isAllocatedbyCmrtUmd = param->isAllocatedbyCmrtUmd;
     entry->surfaceStateEntry[0].surfaceStateSize = entry->size;

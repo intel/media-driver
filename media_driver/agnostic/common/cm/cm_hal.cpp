@@ -194,10 +194,14 @@ MOS_STATUS HalCm_AllocateTsResource(
     allocParams.TileType= MOS_TILE_LINEAR;
     allocParams.pBufName = "TsResource";
 
-    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnAllocateResource(
-        osInterface,
-        &allocParams,
-        &state->renderTimeStampResource.osResource));
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(
+        osInterface->pfnAllocateResource(osInterface,
+                                         &allocParams,
+                                         &state->renderTimeStampResource.osResource));
+    CM_CHK_MOSSTATUS_GOTOFINISH(
+        osInterface->pfnRegisterResource(osInterface,
+                                         &state->renderTimeStampResource.osResource,
+                                         true, true));
 
     osInterface->pfnSkipResourceSync(&state->renderTimeStampResource.osResource);
 

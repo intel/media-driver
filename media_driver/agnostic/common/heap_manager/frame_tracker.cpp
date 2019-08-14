@@ -127,6 +127,9 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
         &allocParamsLinearBuffer,
         &m_resource));
 
+    MHW_CHK_STATUS_RETURN(
+        m_osInterface->pfnRegisterResource(m_osInterface, &m_resource, true, true));
+
     // Lock the Resource
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));

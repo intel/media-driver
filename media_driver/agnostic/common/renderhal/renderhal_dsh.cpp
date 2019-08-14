@@ -2051,13 +2051,6 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         &pDynamicState->memoryBlock,
         dwSizeMediaState)); 
 
-    // Register the DGSH block
-     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnRegisterResource(
-        pRenderHal->pOsInterface,
-        pDynamicState->memoryBlock.GetResource(),
-        false,
-        false));
-
     if (pParams->iMaxSpillSize > 0 && currentExtendSize > 0)
     {
         // Restore original extend heap size
