@@ -9340,7 +9340,6 @@ MOS_STATUS HalCm_LockBuffer(
     osInterface    = state->osInterface;
 
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetBufferEntry(state, param->handle, &entry));
-
     if ((param->lockFlag != CM_HAL_LOCKFLAG_READONLY) && (param->lockFlag != CM_HAL_LOCKFLAG_WRITEONLY) )
     {
         eStatus = MOS_STATUS_INVALID_HANDLE;
@@ -9348,6 +9347,10 @@ MOS_STATUS HalCm_LockBuffer(
         eStatus = MOS_STATUS_UNKNOWN;
         goto finish;
     }
+
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(
+        osInterface->pfnRegisterResource(osInterface, &entry->osResource, true,
+                                         true));
 
     // Lock the resource
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
