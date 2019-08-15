@@ -86,6 +86,10 @@ typedef struct _MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS
     uint8_t     ucList;
     char        LumaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
     int16_t     LumaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
+    char        ChromaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
+    int16_t     ChromaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
+    uint32_t    dwChromaDenom;
+    bool        isLowDelay = true;
 } MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS, *PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS;
 
 typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
