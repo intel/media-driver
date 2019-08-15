@@ -4221,7 +4221,7 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     oss << "EndMB = -1" << std::endl;
     oss << "GOPMode = 0" << std::endl;
     oss << "BoxFilter = 1" << std::endl;
-    oss << "EnableBpyramid = 1" << std::endl;
+    oss << "EnableBpyramid = 0" << std::endl;
     oss << "EnableIPCM = 1" << std::endl;
     oss << "EnableMVUnpacked = 1" << std::endl;
     oss << "EnableNewModeCost = 1" << std::endl;
