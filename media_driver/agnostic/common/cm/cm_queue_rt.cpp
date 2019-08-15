@@ -432,7 +432,11 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
         cmHalState->advExecutor->SwitchToFastPath(kernelArray) &&
         cmHalState->cmHalInterface->IsFastPathByDefault())
     {
-        return cmHalState->advExecutor->SubmitTask(this, kernelArray, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+        uint32_t old_stream_idx = cmHalState->osInterface->streamIndex;
+        cmHalState->osInterface->streamIndex = m_streamIndex;
+        result = cmHalState->advExecutor->SubmitTask(this, kernelArray, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+        cmHalState->osInterface->streamIndex = old_stream_idx;
+        return result;
     }
 
     if (threadSpaceRTConst && threadSpaceRTConst->IsThreadAssociated())
@@ -830,14 +834,18 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
         cmHalState->advExecutor->SwitchToFastPath(task) &&
         cmHalState->cmHalInterface->IsFastPathByDefault())
     {
+        uint32_t old_stream_idx = cmHalState->osInterface->streamIndex;
+        cmHalState->osInterface->streamIndex = m_streamIndex;
         if (cmHalState->cmHalInterface->CheckMediaModeAvailability())
         {
-            return cmHalState->advExecutor->SubmitGpgpuTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+            result = cmHalState->advExecutor->SubmitGpgpuTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
         }
         else
         {
-            return cmHalState->advExecutor->SubmitComputeTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+            result = cmHalState->advExecutor->SubmitComputeTask(this, task, event, threadGroupSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
         }
+        cmHalState->osInterface->streamIndex = old_stream_idx;
+        return result;
     }
 
     CmTaskRT *taskRT = static_cast<CmTaskRT *>(task);
