@@ -3302,8 +3302,9 @@ CODECHAL_DEBUG_TOOL(
     {
         if (m_pictureCodingType != I_TYPE && m_avcSliceParams->RefPicList[0][i].PicFlags != PICTURE_INVALID)
         {
-            auto picIdx = m_picIdx[m_avcSliceParams->RefPicList[0][i].FrameIdx].ucPicIdx;
-            auto frameStoreId = m_refList[picIdx]->ucFrameId;
+            auto refPic         = m_avcSliceParams->RefPicList[0][i];
+            auto picIdx         = m_picIdx[refPic.FrameIdx].ucPicIdx;
+            auto frameStoreId   = m_refList[picIdx]->ucFrameId;
                 CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
                 
                 MOS_ZeroMemory(&refSurface, sizeof(refSurface));
@@ -3322,9 +3323,10 @@ CODECHAL_DEBUG_TOOL(
     } 
     for (uint8_t i = 0; i < numrefL1; i++) 
     {
-        if (m_pictureCodingType == B_TYPE && m_avcSliceParams->RefPicList[0][i].PicFlags != PICTURE_INVALID)
+        if (m_pictureCodingType == B_TYPE && m_avcSliceParams->RefPicList[1][i].PicFlags != PICTURE_INVALID)
         {
-            auto picIdx = m_picIdx[m_avcSliceParams->RefPicList[1][i].FrameIdx].ucPicIdx;
+            auto refPic       = m_avcSliceParams->RefPicList[1][i];
+            auto picIdx       = m_picIdx[refPic.FrameIdx].ucPicIdx;
             auto frameStoreId = m_refList[picIdx]->ucFrameId;
                 CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
                 //MOS_SURFACE refSurface;
