@@ -4561,7 +4561,7 @@ bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDE
 //!        1. User feature keys value "Bypass Composition" is enabled.
 //!        2. Single render target only
 //!        3. Src Size = Dst Size
-//!        4. Max Src Size >= Src Size
+//!        4. Src Size = Max Src Size
 //!        5. No Colorfill
 //!        6. IEF Disabled
 //!        7. Input is progressive
@@ -4579,7 +4579,7 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
         "dwCompBypassMode %d, \
          _pcRenderParams->uDstCount %d, \
          SAME_SIZE_RECT(rcSrc, rcDst) %d, \
-         RECT1_CONTAINS_RECT2(rcMaxSrc, rcSrc) %d, \
+         SAME_SIZE_RECT(rcSrc, rcMaxSrc) %d, \
          SAME_SIZE_RECT(rcDst, pTarget[0]->rcDst) %p, \
          pIEFParams %d, \
          SampleType %d, \
@@ -4594,7 +4594,7 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
         _pVeboxState->dwCompBypassMode,
         _pcRenderParams->uDstCount,
         SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst),
-        RECT1_CONTAINS_RECT2(_pSrcSurface->rcMaxSrc, _pSrcSurface->rcSrc),
+        SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcMaxSrc),
         SAME_SIZE_RECT(_pSrcSurface->rcDst, _pcRenderParams->pTarget[0]->rcDst),
         _pSrcSurface->pIEFParams,
         _pSrcSurface->SampleType,
@@ -4610,7 +4610,7 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
     return (_pVeboxState->dwCompBypassMode != VPHAL_COMP_BYPASS_DISABLED &&
             _pcRenderParams->uDstCount == 1 &&
             SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst) &&
-            RECT1_CONTAINS_RECT2(_pSrcSurface->rcMaxSrc, _pSrcSurface->rcSrc) &&
+            SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcMaxSrc) &&
             SAME_SIZE_RECT(_pSrcSurface->rcDst, _pcRenderParams->pTarget[0]->rcDst) &&
             _pSrcSurface->pIEFParams == nullptr &&
             _pSrcSurface->SampleType == SAMPLE_PROGRESSIVE &&
