@@ -362,7 +362,7 @@ public:
         };
     };
 
-    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11       m_tileParams;       //!< Pointer to the Tile params
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11       m_tileParams = nullptr;       //!< Pointer to the Tile params
 
     bool                        m_enableTileStitchByHW = false;          //!< Enable HW to stitch commands in scalable mode
     bool                        m_enableHWSemaphore = false;             //!< Enable HW semaphore
@@ -378,9 +378,9 @@ public:
     CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer;
-    HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset;       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
-    HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset;      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
-    HEVC_TILE_STATS_INFO                  m_hevcStatsSize;             //!< HEVC Statistics size
+    HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset = {};       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
+    HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset = {};      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
+    HEVC_TILE_STATS_INFO                  m_hevcStatsSize = {};             //!< HEVC Statistics size
     bool                                  m_enableTestMediaReset = 0;  //!< enable media reset test. driver will send cmd to make hang happens
 
     // HuC PAK stitch kernel

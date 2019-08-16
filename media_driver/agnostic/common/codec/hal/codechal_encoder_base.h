@@ -1317,15 +1317,15 @@ public:
     CodechalEncodeAllocator*        m_allocator = nullptr;                          //!< Resource allocator
     CodechalEncodeTrackedBuffer*    m_trackedBuf = nullptr;                         //!< Tracked buffer state
 
-    PLATFORM                        m_platform;                                     //!< The platorm info
+    PLATFORM                        m_platform = {};                                //!< The platorm info
     MEDIA_FEATURE_TABLE             *m_skuTable = nullptr;                          //!< SKU table
     MEDIA_WA_TABLE                  *m_waTable = nullptr;                           //!< WA table
     CodecHalMmcState*               m_mmcState = nullptr;                           //!< Memory compression
     MEDIA_SYSTEM_INFO               *m_gtSystemInfo = nullptr;                      //!< GT system infomation
     MOS_GPU_NODE                    m_videoGpuNode;                                 //!< GPU node of video
-    MOS_GPU_CONTEXT                 m_videoContext;                                 //!< GPU context of video
+    MOS_GPU_CONTEXT                 m_videoContext = MOS_GPU_CONTEXT_INVALID_HANDLE;              //!< GPU context of video
     MOS_GPU_CONTEXT                 m_videoContextExt[4];                           //!< Extand GPU context
-    MOS_GPU_CONTEXT                 m_renderContext;                                //!< GPU context of render
+    MOS_GPU_CONTEXT                 m_renderContext = MOS_GPU_CONTEXT_INVALID_HANDLE;             //!< GPU context of render
     bool                            m_pakEnabled = false;                           //!< flag to indicate if PAK is enabled
     bool                            m_encEnabled = false;                           //!< flag to indicate if ENC is enabled
     bool                            m_videoNodeAssociationCreated = false;          //!< flag to indicate if video node association is created
@@ -1336,10 +1336,10 @@ public:
     CodechalEncoderGenState*        m_encoderGenState = nullptr;          //!< Pointer to Gen Specific Encoder State
     CodechalEncodeCscDs*            m_cscDsState = nullptr;               //!< pointer to CSC Downscaling state
     CodechalEncodeWP*               m_wpState = nullptr;                  //!< pointer to weighted prediction state
-    CODECHAL_FUNCTION               m_codecFunction;                      //!< The encode state's codec function used
+    CODECHAL_FUNCTION               m_codecFunction = CODECHAL_FUNCTION_INVALID;                  //!< The encode state's codec function used
     uint32_t                        m_standard = 0;                       //!< The encode state's standard
     uint32_t                        m_mode = 0;                           //!< The encode mode
-    MHW_WALKER_MODE                 m_walkerMode;                         //!< The encode walker's mode
+    MHW_WALKER_MODE                 m_walkerMode = MHW_WALKER_MODE_NOT_SET;                       //!< The encode walker's mode
     uint8_t                         m_kernelMode = 0;                     //!< normal, performance, quality.
 
     bool                            m_mfeEnabled = false;                //!< Mfe enabled
@@ -1347,7 +1347,7 @@ public:
     bool                            m_mfeLastStream = false;             //!< Is last stream during this submission
     bool                            m_mfeFirstStream = false;            //!< Is first stream during this submission
     bool                            m_mfeInitialized = false;            //!< Used for initializing MFE resources during first execute
-    MfeParams                       m_mfeEncodeParams;                   //!< Mfe encode params during this submission
+    MfeParams                       m_mfeEncodeParams = {};              //!< Mfe encode params during this submission
     MfeSharedState *                m_mfeEncodeSharedState = nullptr;    //!< shared state from the parent context
 
     // Common Kernel Parameters
@@ -1355,20 +1355,20 @@ public:
     uint32_t                        m_kuid = 0;                          //!< Kernel unified ID
 
     // Per-frame Application Settings
-    EncoderParams                   m_encodeParams;               //!< Encode parameters used in each frame
+    EncoderParams                   m_encodeParams = {};          //!< Encode parameters used in each frame
     uint32_t                        *m_dataHwCount = nullptr;     //!< HW count data
     MOS_RESOURCE                     m_resHwCount;                //!< Resource of HW count
-    MOS_SURFACE                     m_prevRawSurface;             //!< Pointer to MOS_SURFACE of previous raw surface
-    MOS_SURFACE                     m_rawSurface;                 //!< Pointer to MOS_SURFACE of raw surface
-    MOS_SURFACE                     m_reconSurface;               //!< Pointer to MOS_SURFACE of reconstructed surface
+    MOS_SURFACE                     m_prevRawSurface = {};        //!< Pointer to MOS_SURFACE of previous raw surface
+    MOS_SURFACE                     m_rawSurface = {};            //!< Pointer to MOS_SURFACE of raw surface
+    MOS_SURFACE                     m_reconSurface = {};          //!< Pointer to MOS_SURFACE of reconstructed surface
     MOS_RESOURCE                    m_resBitstreamBuffer;         //!< Pointer to MOS_SURFACE of bitstream surface
     MOS_RESOURCE                    m_resMbCodeSurface;           //!< Pointer to MOS_SURFACE of MbCode surface
     MOS_RESOURCE                    m_resMvDataSurface;           //!< Pointer to MOS_SURFACE of MvData surface
     uint32_t                        m_mbDataBufferSize = 0;
     HwCounter                       m_regHwCount[CODECHAL_ENCODE_STATUS_NUM + 1];    //!< HW count register value
 
-    CODEC_PICTURE                   m_currOriginalPic;            //!< Raw.
-    CODEC_PICTURE                   m_currReconstructedPic;       //!< Recon.
+    CODEC_PICTURE                   m_currOriginalPic = {};       //!< Raw.
+    CODEC_PICTURE                   m_currReconstructedPic = {};  //!< Recon.
     uint16_t                        m_pictureCodingType = 0;      //!< I, P, or B frame
     int16_t                         m_frameNum = 0;               //!< Frame number
     bool                            m_firstFrame = true;          //!< Flag to indicate if it is first frame
@@ -1416,29 +1416,29 @@ public:
     bool                            m_codecGetStatusReportDefined = false;          //!< Need to be set to true by any codec/gen that has their own impleementation.
     uint32_t                        m_storeData = 0;                                //!< Stored data
     bool                            m_statusQueryReportingEnabled = false;                            //!< Flag to indicate if we support eStatus query reporting on current Platform
-    EncodeStatusBuffer              m_encodeStatusBuf;                              //!< Stores all the status_query related data for PAK engine
-    EncodeStatusBuffer              m_encodeStatusBufRcs;                           //!< Stores all the status_query related data for render ring (RCS)
+    EncodeStatusBuffer              m_encodeStatusBuf = {};                         //!< Stores all the status_query related data for PAK engine
+    EncodeStatusBuffer              m_encodeStatusBufRcs = {};                      //!< Stores all the status_query related data for render ring (RCS)
     MHW_VDBOX_IMAGE_STATUS_CONTROL  m_imgStatusControlBuffer;                       //!< Stores image eStatus control data
     uint32_t                        m_statusReportFeedbackNumber = 0;               //!< Status report feed back number
     bool                            m_frameTrackingEnabled = false;                 //!< Flag to indicate if we enable KMD frame tracking
     uint32_t                        m_numberTilesInFrame = 0;                       //!< Track number of tiles per frame
     bool                            m_inlineEncodeStatusUpdate = false;             //!< check whether use inline encode status update or seperate BB
-    AtomicScratchBuffer             m_atomicScratchBuf;                             //!< Stores atomic operands and result
+    AtomicScratchBuffer             m_atomicScratchBuf = {};                             //!< Stores atomic operands and result
     bool                            m_skipFrameBasedHWCounterRead = false;          //!< Skip reading Frame base HW counter for status report
     bool                            m_disableStatusReport = false;                  //!< Indicate status report is not needed.
 
     // Shared Parameters
-    BSBuffer                        m_bsBuffer;                                     //!< Bitstream buffer
+    BSBuffer                        m_bsBuffer = {};                                //!< Bitstream buffer
     bool                            m_newSeqHeader = false;                         //!< New sequence header flag
     bool                            m_newPpsHeader = false;                         //!< New PPS header flag
     bool                            m_newVuiData = false;                           //!< New Vui data flag
     bool                            m_newSeq = false;                               //!< New sequence flag
     bool                            m_lastPicInSeq = false;                         //!< Flag to indicate if it is last picture in sequence
     bool                            m_lastPicInStream = false;                      //!< Flag to indicate if it is last picture in stream
-    uint8_t                         m_numRefPair                          = 0;                          //!< number of reference pair (forward & backward)
+    uint8_t                         m_numRefPair = 0;                               //!< number of reference pair (forward & backward)
     uint8_t                         m_numPasses = 0;                                //!< Number passes
     uint8_t                         m_currPass = 0;                                 //!< Current pass
-    bool                            m_forceSinglePakPass                  = false;                             //!< Flag to enable forcing single pak pass
+    bool                            m_forceSinglePakPass = false;                   //!< Flag to enable forcing single pak pass
     bool                            m_useCmScalingKernel = false;                   //!< Flag to use cm scaling kernel
     bool                            m_useMwWlkrForAsmScalingKernel = false;         //!< Use media walker for ASM scaling kernel flag
     bool                            m_combinedDownScaleAndDepthConversion = false;   //!< Combied downscale and depth conversion
@@ -1556,10 +1556,10 @@ public:
 
     // Scaling
     MHW_KERNEL_STATE                m_scaling4xKernelStates[CODEC_NUM_FIELDS_PER_FRAME];  //!< Scaling 4x Kernel States
-    ScalingBindingTable             m_scaling4xBindingTable;                              //!< Scaling 4x Binding Table
+    ScalingBindingTable             m_scaling4xBindingTable = {};                        //!< Scaling 4x Binding Table
     MHW_KERNEL_STATE                m_scaling2xKernelStates[CODEC_NUM_FIELDS_PER_FRAME];  //!< Scaling 2x Kernel States
-    ScalingBindingTable             m_scaling2xBindingTable;                              //!< Scaling 2x Binding Table
-    uint32_t                        m_scalingCurbeSize;                                   //!< Scaling curbe size
+    ScalingBindingTable             m_scaling2xBindingTable = {};                        //!< Scaling 2x Binding Table
+    uint32_t                        m_scalingCurbeSize = 0;                               //!< Scaling curbe size
     bool                            m_interlacedFieldDisabled = false;                    //!< interlaced field disabled flag
     CodechalEncodeBbuf              m_scalingBBUF[CODECHAL_ENCODE_VME_BBUF_NUM];          //!< This Batch Buffer is used for scaling kernel.
     uint32_t                        m_scaledBottomFieldOffset = 0;                        //!< Scaled Bottom Field Offset
@@ -1587,7 +1587,7 @@ public:
     uint32_t                        m_downscaledFrameFieldHeightInMb32x = 0;              //!< Downscale frame field height in Mb 32x
 
     bool                            m_fieldScalingOutputInterleaved = false;              //!< Field scaling output interleaved flag
-    MOS_SURFACE                     m_flatnessCheckSurface;                               //!< Flatness check surface
+    MOS_SURFACE                     m_flatnessCheckSurface = {};                          //!< Flatness check surface
     uint32_t                        m_flatnessCheckBottomFieldOffset = 0;                 //!< Flatness check bottom field offset
     bool                            m_flatnessCheckEnabled = false;                       //!< Flatness check enabled flag
     bool                            m_mbStatsEnabled = false;                             //!< MB status enabled flag
@@ -1601,7 +1601,7 @@ public:
 
     // ME
     MHW_KERNEL_STATE                m_meKernelStates[CODECHAL_ENCODE_ME_IDX_NUM];     //!< ME kernel states
-    MeKernelBindingTable            m_meBindingTable;                                 //!< ME binding table
+    MeKernelBindingTable            m_meBindingTable = {};                            //!< ME binding table
 
     // Ds+Copy kernel optimization
     uint8_t                         m_outputChromaFormat = (uint8_t)HCP_CHROMA_FORMAT_YUV420;     //!< 1: 420 2: 422 3: 444
@@ -1610,10 +1610,10 @@ public:
     PMOS_SURFACE                    m_rawSurfaceToPak = nullptr;                                  //!< raw surf to pak
 
     // HME VDEnc
-    GenericBindingTable             m_vdencMeKernelBindingTable;        //!< Vdenc ME kernel binding table
+    GenericBindingTable             m_vdencMeKernelBindingTable = {};   //!< Vdenc ME kernel binding table
     MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state
 
-    GenericBindingTable             m_vdencStreaminKernelBindingTable;  //!< Vdenc stream in kernel binding table
+    GenericBindingTable             m_vdencStreaminKernelBindingTable = {};  //!< Vdenc stream in kernel binding table
     MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state for Low Delay B
     MHW_KERNEL_STATE                m_vdencStreaminKernelStateRAB;      //!< Vdenc stream in kernel state for Random Access B
 
@@ -1682,14 +1682,14 @@ public:
 
 #define CM_EVENT_NUM 128
     CmEvent *m_cmEvent[CM_EVENT_NUM] = {nullptr};
-    short    m_cmEventIdx;  // current  event idx
-    short    m_cmEventCheckIdx;
+    short    m_cmEventIdx = 0;  // current  event idx
+    short    m_cmEventCheckIdx = 0;
 
 #ifdef FEI_ENABLE_CMRT
     CodechalEncodeMdfKernelResource resDSKernel;
 #endif
 
-    bool m_colorbitSupported;
+    bool m_colorbitSupported = false;
 
 #if USE_CODECHAL_DEBUG_TOOL
     CodechalDebugEncodePar          *m_encodeParState = nullptr;         //!< Encode Par state
