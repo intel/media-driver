@@ -78,6 +78,20 @@ PerfUtility::~PerfUtility()
     records.clear();
 }
 
+void PerfUtility::setupFilePath(char *perfFilePath)
+{
+    MOS_SecureStrcpy(sSummaryFileName, MOS_MAX_PERF_FILENAME_LEN, perfFilePath);
+    MOS_SecureStrcat(sSummaryFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_sumamry.csv");
+    MOS_SecureStrcpy(sDetailsFileName, MOS_MAX_PERF_FILENAME_LEN, perfFilePath);
+    MOS_SecureStrcat(sDetailsFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_details.txt");
+}
+
+void PerfUtility::setupFilePath()
+{
+    MOS_SecureStrcpy(sSummaryFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_sumamry.csv");
+    MOS_SecureStrcpy(sDetailsFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_details.txt");
+}
+
 void PerfUtility::savePerfData()
 {
     printPerfSummary();
@@ -88,18 +102,17 @@ void PerfUtility::savePerfData()
 void PerfUtility::printPerfSummary()
 {
     std::ofstream fout;
-    fout.open("perf_summary.csv");
+    fout.open(sSummaryFileName);
 
     printHeader(fout);
     printBody(fout);
-
     fout.close();
 }
 
 void PerfUtility::printPerfDetails()
 {
     std::ofstream fout;
-    fout.open("perf_details.txt");
+    fout.open(sDetailsFileName);
 
     for (auto data : records)
     {
@@ -3585,6 +3598,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
        "0",
        "Enable Perf Utility Tool. "),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
+        __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_STRING,
+        "",
+        " Perf Utility Tool Customize Output Directory. "),
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_APO_MOS_PATH_ENABLE_ID,
         "ApoMosEnable",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,

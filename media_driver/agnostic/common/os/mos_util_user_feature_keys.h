@@ -290,5 +290,6 @@
 
 //User feature key for enable Perf Utility Tool
 #define __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE          "Perf Utility Tool Enable"
+#define __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY             "Perf Output Directory"
 
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_H__

@@ -44,6 +44,8 @@
 #include <vector>
 #include <map>
 
+#define MOS_MAX_PERF_FILENAME_LEN 260
+
 class PerfUtility
 {
 public:
@@ -69,7 +71,11 @@ public:
     void startTick(std::string tag);
     void stopTick(std::string tag);
     void savePerfData();
+    void setupFilePath(char *perfFilePath);
+    void setupFilePath();
     bool bPerfUtilityKey;
+    char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+    char sDetailsFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
     int32_t dwPerfUtilityIsEnabled;
 
 private:
@@ -573,6 +579,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT_ID,
 #endif
     __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
     __MEDIA_USER_FEATURE_VALUE_APO_MOS_PATH_ENABLE_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;

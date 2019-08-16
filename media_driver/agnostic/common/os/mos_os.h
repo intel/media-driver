@@ -50,18 +50,18 @@ extern PerfUtility *g_perfutility;
 #define PERF_LEVEL_DDI "DDI"
 #define PERF_LEVEL_HAL "HAL"
 
-#define DECODE_DDI 1
-#define DECODE_HAL 1 << 1
-#define ENCODE_DDI 1 << 4
-#define ENCODE_HAL 1 << 5
-#define VP_DDI 1 << 8
-#define VP_HAL 1 << 9
-#define CP_DDI 1 << 12
-#define CP_HAL 1 << 13
-#define MOS_DDI 1 << 16
-#define MOS_HAL 1 << 17
+#define DECODE_DDI (1)
+#define DECODE_HAL (1 << 1)
+#define ENCODE_DDI (1 << 4)
+#define ENCODE_HAL (1 << 5)
+#define VP_DDI     (1 << 8)
+#define VP_HAL     (1 << 9)
+#define CP_DDI     (1 << 12)
+#define CP_HAL     (1 << 13)
+#define MOS_DDI    (1 << 16)
+#define MOS_HAL    (1 << 17)
 
-#define PERFUTILITY_IS_ENABLED(sCOMP,sLEVEL)                                                             \
+#define PERFUTILITY_IS_ENABLED(sCOMP,sLEVEL)                                                              \
     (((sCOMP == "DECODE" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & DECODE_DDI)) ||  \
      ((sCOMP == "DECODE" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & DECODE_HAL)) ||  \
      ((sCOMP == "ENCODE" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & ENCODE_DDI)) ||  \
