@@ -4238,7 +4238,7 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     oss << "PicScalingList = 0" << std::endl;
     oss << "SeqScalingList = 0" << std::endl;
     oss << "SkipChromaCBPDetection = 1" << std::endl;
-    oss << "IdrInterval = 1" << std::endl;
+    oss << "IdrInterval = 0" << std::endl;
     oss << "AddEoSquenceNAL = 0" << std::endl;
     oss << "AddEoStreamNAL = 0" << std::endl;
     oss << "CabacZeroWordFlag = 0" << std::endl;
