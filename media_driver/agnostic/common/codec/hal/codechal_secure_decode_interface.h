@@ -102,7 +102,8 @@ public:
     //!
     virtual MOS_STATUS ProtectDefaultCdfTableBuffer(
         void            *state,
-        uint32_t        bufIndex) = 0;
+        uint32_t        bufIndex,
+        PMOS_COMMAND_BUFFER cmdBuffer) = 0;
 
     //!
     //! \brief Return the temp cdf table buffer
