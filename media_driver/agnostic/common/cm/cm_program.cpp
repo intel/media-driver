@@ -687,6 +687,7 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
     for (uint32_t i = 0; i < m_kernelCount; i++)
     {
         CM_KERNEL_INFO *kernelInfo = (CM_KERNEL_INFO *)m_kernelInfo.GetElement(i);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelInfo);
         // higher 32bit is the order of kernel in LoadProgram in the device
         // lower 32bit is the hash value of kernel info
         kernelInfo->hashValue = GetKernelInfoHash(kernelInfo) | ((uint64_t)m_device->KernelsLoaded() << 32);
