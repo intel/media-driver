@@ -869,6 +869,29 @@ public:
         PVPHAL_SURFACE                  pInSurface,
         PVPHAL_SURFACE                  pOutSurface);
 
+    //!
+    //! \brief    Allocate sfc 2pass 2nd time surface for Vebox output, only for multi-lays.
+    //! \details  Allocate sfc temp surface for Vebox output
+    //! \param    VphalRenderer* pRenderer
+    //!           [in,out] VPHAL renderer pointer
+    //! \param    PCVPHAL_RENDER_PARAMS pcRenderParams
+    //!           [in] Const pointer to VPHAL render parameter
+    //! \param    PVPHAL_VEBOX_RENDER_DATA pRenderData
+    //!           [in] pointer to VPHAL VEBOX render parameter
+    //! \param    PVPHAL_SURFACE pInSurface
+    //!           [in] Pointer to input surface
+    //! \param    PVPHAL_SURFACE pOutSurface
+    //!           [in] Pointer to output surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS AllocateSfc2ndTempSurfaces(
+      VphalRenderer                  *pRenderer,
+      PCVPHAL_RENDER_PARAMS           pcRenderParams,
+      PVPHAL_VEBOX_RENDER_DATA        pRenderData,
+      PVPHAL_SURFACE                  pInSurface,
+      PVPHAL_SURFACE                  pOutSurface);
+
     // External components
     PMHW_VEBOX_INTERFACE            m_pVeboxInterface;                            //!< Pointer to MHW Vebox Structure Interface
     PMHW_SFC_INTERFACE              m_pSfcInterface;                              //!< Pointer to SFC Structure Interface
@@ -997,8 +1020,9 @@ public:
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
-    VPHAL_SURFACE                    Vebox3DLookUpTables;
-    VPHAL_SURFACE                    SfcTempSurface;
+    VPHAL_SURFACE                    Vebox3DLookUpTables = {};
+    VPHAL_SURFACE                    SfcTempSurface = {};
+    VPHAL_SURFACE                    Sfc2ndTempSurface = {};
 
     VphalHVSDenoiser                 *m_hvsDenoiser;                             //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
     uint8_t                          *m_hvsKernelBinary;                         //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
