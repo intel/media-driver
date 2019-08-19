@@ -23,6 +23,7 @@
 #define CMRTLIB_LINUX_SHARE_CM_DEF_OS_H_
 
 #include "cm_include.h"
+#include "cm_common.h"
 
 #ifndef ANDROID
 #include "va/va.h"
@@ -33,6 +34,8 @@
 
 #include <cstring>
 #include "pthread.h"
+#include <malloc.h>
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 //      Platform dependent macros (Start)
@@ -84,6 +87,18 @@ typedef enum _VACMTEXTUREFILTERTYPE {
 ////////////////////////////////////////////////////////////////////////////////////
 
 #define VAExtModuleCMRT 2
+#define CM_MAX_SURFACE2D_FORMAT_COUNT 37
+
+inline void * CM_ALIGNED_MALLOC(size_t size, size_t alignment)
+{
+  return memalign(alignment, size);
+}
+
+inline void CM_ALIGNED_FREE(void * memory)
+{
+  free(memory);
+}
+
 
 typedef enum _VA_CM_FORMAT {
 
@@ -263,5 +278,7 @@ typedef VADisplay (*pfVAGetDisplayDRM) (int32_t fd);    //vaGetDisplayDRM from l
 #else
 #define CmAssert(expr)
 #endif
+
+typedef void *HMODULE;
 
 #endif  // #ifndef CMRTLIB_LINUX_SHARE_CM_DEF_OS_H_
