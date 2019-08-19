@@ -5367,7 +5367,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
             if (!Mos_ResourceIsNull(&BrcBuffers.sBrcMbQpBuffer.OsResource))
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                    &BrcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+                    &BrcBuffers.sBrcMbQpBuffer.OsResource,
                     CodechalDbgAttr::attrOutput,
                     "MbQp",
                     BrcBuffers.dwBrcMbQpBottomFieldOffset,
