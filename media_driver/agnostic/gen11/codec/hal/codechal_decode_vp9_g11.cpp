@@ -33,6 +33,7 @@
 #include "mhw_vdbox_mfx_g11_X.h"
 #include "mhw_vdbox_g11_X.h"
 #include "codechal_hw_g11_X.h"
+#include "hal_oca_interface.h"
 
 CodechalDecodeVp9G11 ::  ~CodechalDecodeVp9G11()
 {
@@ -498,6 +499,9 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
     MOS_COMMAND_BUFFER primCmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &primCmdBuffer, 0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     bool sendPrologWithFrameTracking;
     CODECHAL_DECODE_CHK_STATUS_RETURN(DetermineSendProlgwithFrmTracking(&sendPrologWithFrameTracking));
     if (sendPrologWithFrameTracking)
@@ -840,6 +844,8 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
             m_osInterface,
             &copyDataSyncParams));
     }
+
+    HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
 
     bool submitCommand = true;
     if (MOS_VE_SUPPORTED(m_osInterface) && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))

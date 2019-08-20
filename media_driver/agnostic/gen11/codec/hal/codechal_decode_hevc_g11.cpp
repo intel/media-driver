@@ -33,6 +33,7 @@
 #include "mhw_vdbox_mfx_g11_X.h"
 #include "mhw_vdbox_g11_X.h"
 #include "codechal_hw_g11_X.h"
+#include "hal_oca_interface.h"
 
 //==<Functions>=======================================================
 MOS_STATUS CodechalDecodeHevcG11::AllocateResourcesVariableSizes ()
@@ -907,6 +908,9 @@ MOS_STATUS CodechalDecodeHevcG11::SendPictureLongFormat()
     MOS_COMMAND_BUFFER primCmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &primCmdBuffer, 0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     bool sendPrologWithFrameTracking = false;
     CODECHAL_DECODE_CHK_STATUS_RETURN(DetermineSendProlgwithFrmTracking(&sendPrologWithFrameTracking));
 
@@ -1623,6 +1627,8 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
     {
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer(m_scalabilityState);
     }
+
+    HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
 
     if (submitCommand || m_osInterface->phasedSubmission)
     {

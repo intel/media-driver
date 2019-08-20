@@ -27,6 +27,7 @@
 
 #include "codechal_decode_jpeg.h"
 #include "codechal_mmc_decode_jpeg.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
 #include "codechal_debug.h"
@@ -652,6 +653,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
         &cmdBuffer,
         0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer, true));
 
@@ -974,6 +978,8 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             m_osInterface,
             &syncParams));
     }
+
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
         m_osInterface,

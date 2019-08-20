@@ -34,6 +34,7 @@
 #include "codechal_decode_vc1_g11.h"
 #include "codechal_secure_decode_interface.h"
 #include "mhw_vdbox_mfx_g11_X.h"
+#include "hal_oca_interface.h"
 
 MOS_STATUS CodechalDecodeVc1G11::AllocateStandard(
     CodechalSetting *          settings)
@@ -172,6 +173,9 @@ MOS_STATUS CodechalDecodeVc1G11::DecodeStateLevel()
 
     MOS_COMMAND_BUFFER  cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
 
     if (m_olpNeeded)
     {
@@ -719,6 +723,8 @@ submit:
         m_huCCopyInUse = false;
     }
 
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 
     CODECHAL_DEBUG_TOOL(
@@ -1025,6 +1031,8 @@ MOS_STATUS CodechalDecodeVc1G11::DecodePrimitiveLevelIT()
 
         m_huCCopyInUse = false;
     }
+
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 

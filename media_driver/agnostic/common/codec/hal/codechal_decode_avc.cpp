@@ -29,6 +29,7 @@
 #include "codechal_decode_sfc_avc.h"
 #include "codechal_mmc_decode_avc.h"
 #include "codechal_secure_decode_interface.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif
@@ -1524,13 +1525,15 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
     PIC_MHW_PARAMS picMhwParams;
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicMhwParams(&picMhwParams));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     if (m_cencBuf && m_cencBuf->checkStatusRequired)
     {
         CODECHAL_DECODE_COND_ASSERTMESSAGE((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-        auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->CheckStatusReportNum(
-            mmioRegisters, 
+            mmioRegisters,
             m_cencBuf->bufIdx,
             m_cencBuf->resStatus,
             &cmdBuffer));
@@ -1845,6 +1848,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
     //    m_debugInterface,
     //    &cmdBuffer));
     )
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 

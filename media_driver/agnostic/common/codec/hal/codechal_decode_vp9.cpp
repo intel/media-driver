@@ -29,6 +29,7 @@
 #include "codechal_secure_decode_interface.h"
 #include "codechal_decode_vp9.h"
 #include "codechal_mmc_decode_vp9.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
 #include <fstream>
@@ -1723,6 +1724,9 @@ MOS_STATUS CodechalDecodeVp9 :: DecodeStateLevel()
         &cmdBuffer,
         0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     //Frame tracking functionality is called at the start of a command buffer.
     //Called at FE decode phase, since BE decode phase will only construct BE batch buffers.
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
@@ -1889,6 +1893,8 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
     }
 
     uint32_t renderingFlags = m_videoContextUsesNullHw;
+
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
     //submit command buffer
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
