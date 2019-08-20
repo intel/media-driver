@@ -102,7 +102,7 @@ struct CM_ARG
         unitSizeOrig = 0;
         surfArrayArg = nullptr;
         aliasCreated = false;
-
+        isStatelessBuffer = false;
     }
 };
 
