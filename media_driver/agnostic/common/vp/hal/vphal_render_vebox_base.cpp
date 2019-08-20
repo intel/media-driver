@@ -1775,8 +1775,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
     // For VE+Render colorfill case, don't enable MediaFrame Track on vebox to avoid twice notification for one VP Blt.
     // We need to refactor decision code of bCompNeeded by setting bCompNeeded flag before Vebox/SFC processing in the future.
     if ((pRenderData->OutputPipe != VPHAL_OUTPUT_PIPE_MODE_COMP &&
-        !pRenderData->pRenderTarget->bFastColorFill &&
-        !pVeboxState->m_sfcPipeState->m_bSFC2Pass) &&
+        !pRenderData->pRenderTarget->bFastColorFill) &&
         pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
@@ -3914,6 +3913,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::AllocateSfcTempSurfaces(
     pSfcTempSurface->Format        = surfaceFormat;
     pSfcTempSurface->SurfType      = pOutSurface->SurfType;
     pSfcTempSurface->FrameID       = pOutSurface->FrameID;
+    pSfcTempSurface->ScalingMode   = pOutSurface->ScalingMode;
+    pSfcTempSurface->ChromaSiting  = pOutSurface->ChromaSiting;
 
     if (pInSurface->pLumaKeyParams)
     {
@@ -3953,105 +3954,6 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS VPHAL_VEBOX_STATE::AllocateSfc2ndTempSurfaces(
-    VphalRenderer                  *pRenderer,
-    PCVPHAL_RENDER_PARAMS           pcRenderParams,
-    PVPHAL_VEBOX_RENDER_DATA        pRenderData,
-    PVPHAL_SURFACE                  pInSurface,
-    PVPHAL_SURFACE                  pOutSurface)
-{
-    MOS_STATUS               eStatus;
-    PMOS_INTERFACE           pOsInterface;
-    PVPHAL_VEBOX_STATE       pVeboxState;
-    PVPHAL_SURFACE           pInSurfaceExt;
-    PVPHAL_SURFACE           pOutSurfaceExt;
-    PVPHAL_SURFACE           pSfcTempSurface;
-    bool                     bAllocated;
-    MOS_FORMAT               surfaceFormat;
-    uint32_t                 dwSurfaceWidth;
-    uint32_t                 dwSurfaceHeight;
-
-    VPHAL_RENDER_CHK_NULL(pInSurface);
-    VPHAL_RENDER_CHK_NULL(pOutSurface);
-    VPHAL_RENDER_CHK_NULL(pRenderer);
-    VPHAL_RENDER_CHK_NULL(pcRenderParams);
-    VPHAL_RENDER_CHK_NULL(pRenderData);
-
-    eStatus                 = MOS_STATUS_SUCCESS;
-    dwSurfaceWidth          = pOutSurface->dwWidth;
-    dwSurfaceHeight         = pOutSurface->dwHeight;
-    surfaceFormat           = pInSurface->Format;
-
-    eStatus                 = MOS_STATUS_SUCCESS;
-    pVeboxState             = (PVPHAL_VEBOX_STATE)pRenderer->pRender[VPHAL_RENDER_ID_VEBOX + pRenderer->uiCurrentChannel];
-    pOsInterface            = pRenderer->GetOsInterface();
-    pSfcTempSurface         = &pVeboxState->Sfc2ndTempSurface;
-
-    // Copy rect sizes so that if input surface state needs to adjust,
-    // output surface can be adjustted also.
-    pSfcTempSurface->rcSrc = pOutSurface->rcSrc;
-    pSfcTempSurface->rcDst = pOutSurface->rcDst;
-
-    // Sfc intermediate surface should be Y tile for best performance meanwhile enable MMC.
-    VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
-        pOsInterface,
-        pSfcTempSurface,
-        "VeboxSfcTempSurface",
-        surfaceFormat,
-        MOS_GFXRES_2D,
-        MOS_TILE_Y,
-        dwSurfaceWidth,
-        dwSurfaceHeight,
-        true,
-        MOS_MMC_MC,
-        &bAllocated));
-
-    // Copy max src rect
-    pSfcTempSurface->rcMaxSrc      = pOutSurface->rcMaxSrc;
-    pSfcTempSurface->iPalette      = pOutSurface->iPalette;
-    pSfcTempSurface->SampleType    = pOutSurface->SampleType;
-    pSfcTempSurface->ColorSpace    = pInSurface->ColorSpace;
-    pSfcTempSurface->Format        = surfaceFormat;
-    pSfcTempSurface->SurfType      = pOutSurface->SurfType;
-    pSfcTempSurface->FrameID       = pOutSurface->FrameID;
-
-    if (pInSurface->pLumaKeyParams)
-    {
-        if (!pSfcTempSurface->pLumaKeyParams)
-        {
-            pSfcTempSurface->pLumaKeyParams = (PVPHAL_LUMAKEY_PARAMS)MOS_AllocAndZeroMemory(sizeof(PVPHAL_LUMAKEY_PARAMS));
-            VPHAL_RENDER_CHK_NULL(pSfcTempSurface->pLumaKeyParams);
-        }
-
-        MOS_SecureMemcpy(pSfcTempSurface->pLumaKeyParams, sizeof(PVPHAL_LUMAKEY_PARAMS),
-            pInSurface->pLumaKeyParams, sizeof(PVPHAL_LUMAKEY_PARAMS));
-    }
-    else
-    {
-        MOS_FreeMemory(pSfcTempSurface->pLumaKeyParams);
-        pSfcTempSurface->pLumaKeyParams = nullptr;
-    }
-
-    if (pInSurface->pBlendingParams)
-    {
-        if (!pSfcTempSurface->pBlendingParams)
-        {
-            pSfcTempSurface->pBlendingParams = (PVPHAL_BLENDING_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_BLENDING_PARAMS));
-            VPHAL_RENDER_CHK_NULL(pSfcTempSurface->pBlendingParams);
-        }
-
-        MOS_SecureMemcpy(pSfcTempSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS),
-            pInSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS));
-    }
-    else
-    {
-        MOS_FreeMemory(pSfcTempSurface->pBlendingParams);
-        pSfcTempSurface->pBlendingParams = nullptr;
-    }
-
-finish:
-    return eStatus;
-}
 MOS_STATUS VpHal_VeboxAllocateTempSurfaces(
     VphalRenderer                   *pRenderer,
     PCVPHAL_RENDER_PARAMS           pcRenderParams,
@@ -4178,8 +4080,6 @@ MOS_STATUS VpHal_RndrRenderVebox(
     RenderState              *pRenderState  = nullptr;
     VphalFeatureReport*      pReport        = nullptr;
     PVPHAL_SURFACE           pOutSurface    = nullptr;
-    PVPHAL_SURFACE           pInSurface     = nullptr;
-    RECT                     rcTempOut      = {};
     RECT                     rcTemp         = {};
     PVPHAL_VEBOX_STATE       pVeboxState    = nullptr;
     PVPHAL_VEBOX_RENDER_DATA pRenderData    = nullptr;
@@ -4197,7 +4097,6 @@ MOS_STATUS VpHal_RndrRenderVebox(
     pOutSurface             = pRenderPassData->GetTempOutputSurface();
     pVeboxState             = (PVPHAL_VEBOX_STATE)pRenderState;
     pRenderData             = pVeboxState->GetLastExecRenderData();
-    pInSurface              = (PVPHAL_SURFACE)pRenderPassData->pSrcSurface;
 
     pRenderPassData->bOutputGenerated  = false;
 
@@ -4227,48 +4126,15 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pOutSurface = pcRenderParams->pTarget[0];
         }
 
-        rcTemp = pcRenderParams->pTarget[0]->rcDst;
-        if (pVeboxState->m_sfcPipeState && pVeboxState->m_sfcPipeState->m_bSFC2Pass)
-        { //SFC 2 pass, there is the first pass's surface;
-            float                    TempfScaleX = 1.0;
-            float                    TempfScaleY = 1.0;
-            if ((pRenderData->fScaleX >= 0.0625F) && (pRenderData->fScaleX < 0.125F))
-            {
-                TempfScaleX = 0.5F;
-            }
-            else if ((pRenderData->fScaleX > 8.0F) && (pRenderData->fScaleX <= 16.0F))
-            {
-                TempfScaleX = 2.0F;
-            }
-
-            if ((pRenderData->fScaleY >= 0.0625F) && (pRenderData->fScaleY < 0.125F))
-            {
-                TempfScaleY = 0.5F;
-            }
-            else if ((pRenderData->fScaleY > 8.0F) && (pRenderData->fScaleY <= 16.0F))
-            {
-                TempfScaleY = 2.0F;
-            }
-
-            //May Lose Precision after 0.x
-            rcTempOut.right  = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
-            rcTempOut.bottom = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
-
-            pOutSurface->rcDst    = rcTempOut;
-            pOutSurface->rcSrc    = rcTempOut;
-            pOutSurface->dwWidth  = rcTempOut.right;
-            pOutSurface->dwHeight = rcTempOut.bottom;
-        }
-        if (pRenderPassData->bSFCScalingOnly ||
-            (pVeboxState->m_sfcPipeState && pVeboxState->m_sfcPipeState->m_bSFC2Pass))
+        if (pRenderPassData->bSFCScalingOnly)
         {
-            VPHAL_RENDER_CHK_STATUS(pVeboxState->AllocateSfcTempSurfaces(pRenderer, pcRenderParams, pRenderData, pInSurface, pOutSurface));
-            pOutSurface = &pVeboxState->SfcTempSurface;
+            VPHAL_RENDER_CHK_STATUS(pVeboxState->AllocateSfcTempSurfaces(pRenderer, pcRenderParams, pRenderData, pRenderPassData->pSrcSurface, pcRenderParams->pTarget[0]));
+            pOutSurface   = &pVeboxState->SfcTempSurface;
             // Reset rendering flags for SFC since output surface changed
             pVeboxState->m_sfcPipeState->SetRenderingFlags(
                 pcRenderParams->pColorFillParams,
                 pcRenderParams->pCompAlpha,
-                pInSurface,
+                pRenderPassData->pSrcSurface,
                 pOutSurface,
                 pRenderData);
         }
@@ -4296,58 +4162,6 @@ MOS_STATUS VpHal_RndrRenderVebox(
                                                 pcRenderParams,
                                                 pRenderPassData))
 
-        //SFC second pass
-        if (pVeboxState->m_sfcPipeState && pVeboxState->m_sfcPipeState->m_bSFC2Pass)
-        {
-            pVeboxState->m_sfcPipeState->m_bSFC2Pass = false;
-            pInSurface = &pVeboxState->SfcTempSurface;
-            pInSurface->rcMaxSrc = pInSurface->rcSrc;
-            pInSurface->rcDst    = rcTemp;
-
-            // recover the orignal rcDst for the second loop
-            pcRenderParams->pTarget[0]->rcDst    = rcTemp;
-            pcRenderParams->pTarget[0]->rcSrc    = rcTemp;
-            pcRenderParams->pTarget[0]->dwWidth  = rcTemp.right;
-            pcRenderParams->pTarget[0]->dwHeight = rcTemp.bottom;
-
-            // Render Target is the output surface
-            pOutSurface = pcRenderParams->pTarget[0];
-            pRenderData->pRenderTarget = pOutSurface;
-            pRenderPassData->pSrcSurface = pInSurface;
-
-            // Second time vebox rending for scaling / colorfill/rotation on SFC, disable all other features
-            pRenderData->bDenoise = false;
-            pRenderData->bDeinterlace = false;
-            pRenderData->bQueryVariance = false;
-
-            if (pRenderPassData->bSFCScalingOnly)
-            {// only the multi-layers use the SFC 2pass need the second sfc tempsurfaces.
-                VPHAL_RENDER_CHK_STATUS(pVeboxState->AllocateSfc2ndTempSurfaces(pRenderer, pcRenderParams, pRenderData, pInSurface, pOutSurface));
-                pRenderPassData->pOutSurface = &pVeboxState->Sfc2ndTempSurface;
-                // Reset rendering flags for SFC since output surface changed
-                pVeboxState->m_sfcPipeState->SetRenderingFlags(
-                  pcRenderParams->pColorFillParams,
-                  pcRenderParams->pCompAlpha,
-                  pInSurface,
-                  pRenderPassData->pOutSurface,
-                  pRenderData);
-            }
-            else
-            {   // reset the output surface as targetsurface.
-                pRenderPassData->pOutSurface = pOutSurface;
-                pInSurface->SurfType         = SURF_IN_PRIMARY;
-                pVeboxState->m_sfcPipeState->SetRenderingFlags(
-                    pcRenderParams->pColorFillParams,
-                    pcRenderParams->pCompAlpha,
-                    pInSurface,
-                    pRenderPassData->pOutSurface,
-                    pRenderData);
-            }
-
-            VPHAL_RENDER_CHK_STATUS(pVeboxState->Render(
-              pcRenderParams,
-              pRenderPassData));
-        }
         pRenderState->CopyReporting(pReport);
 
         if (pRenderPassData->bCompNeeded)
