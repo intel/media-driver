@@ -6227,7 +6227,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
         OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
         pOsContext->intel_context             = pOsContextSpecific->GetDrmContext();
-        pOsContext->pGmmClientContext         = nullptr;
+        pOsContext->pGmmClientContext         = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     }
     else
     {

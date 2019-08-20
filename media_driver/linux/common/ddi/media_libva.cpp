@@ -1041,6 +1041,7 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
         mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+        mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
         pCpDdiInterface = Create_DdiCpInterface(mosCtx);
 
