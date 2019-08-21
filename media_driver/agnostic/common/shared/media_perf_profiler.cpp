@@ -598,7 +598,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
             char outputFileName[MOS_MAX_PATH_LENGTH + 1];
 
             MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-%04d%02d%02d%02d%02d%02d.bin",
-                m_outputFileName, pid, localtime.tm_year, localtime.tm_mon, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
+                m_outputFileName, pid, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
 
             MOS_WriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
         }
