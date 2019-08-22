@@ -428,6 +428,7 @@ struct MHW_VDBOX_AVC_IMG_PARAMS
     uint8_t                                *pVDEncModeCost = nullptr;
     uint8_t                                *pVDEncMvCost = nullptr;
     uint8_t                                *pVDEncHmeMvCost = nullptr;
+    uint32_t                               biWeight = 0;
     virtual ~MHW_VDBOX_AVC_IMG_PARAMS(){}
 };
 using PMHW_VDBOX_AVC_IMG_PARAMS = MHW_VDBOX_AVC_IMG_PARAMS * ;

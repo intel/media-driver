@@ -5787,6 +5787,18 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxQmCmd(&cmdBuffer, &qmParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxFqmCmd(&cmdBuffer, &fqmParams));
 
+    // Add AVC Direct Mode command
+    MHW_VDBOX_AVC_DIRECTMODE_PARAMS directmodeParams;
+    MOS_ZeroMemory(&directmodeParams, sizeof(directmodeParams));
+    directmodeParams.CurrPic = m_avcPicParam->CurrReconstructedPic;
+    directmodeParams.isEncode = true;
+    directmodeParams.uiUsedForReferenceFlags = 0xFFFFFFFF;
+    directmodeParams.pAvcPicIdx = &(m_picIdx[0]);
+    directmodeParams.avcRefList = (void**)m_refList;
+    directmodeParams.bPicIdRemappingInUse = false;
+    directmodeParams.bDisableDmvBuffers = true;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcDirectmodeCmd(&cmdBuffer, &directmodeParams));
+
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
     return eStatus;

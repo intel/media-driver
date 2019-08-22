@@ -4469,6 +4469,7 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
 
         m_avcPar->EnableWeightPredictionDetection = (avcPicParams->weighted_bipred_idc | avcPicParams->weighted_pred_flag) > 0 ? 1 : 0;
         m_avcPar->WeightedBiPred                  = avcPicParams->weighted_bipred_idc;
+        m_avcPar->BiWeight                        = m_biWeight;
     }
 
     return MOS_STATUS_SUCCESS;
