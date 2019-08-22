@@ -1328,7 +1328,7 @@ class CmTask
 public:       
     CM_RT_API virtual INT AddKernel(CmKernel *pKernel) = 0;
     CM_RT_API virtual INT Reset(void) = 0;
-    CM_RT_API virtual INT AddSync(void) = 0;
+    CM_RT_API virtual INT AddSync(bool dataCacheFlush = true) = 0;
     CM_RT_API virtual INT SetPowerOption( PCM_POWER_OPTION pCmPowerOption ) = 0;
     CM_RT_API virtual INT AddConditionalEnd(SurfaceIndex* pSurface, UINT offset, CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
     CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;

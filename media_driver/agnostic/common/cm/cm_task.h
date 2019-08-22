@@ -101,7 +101,7 @@ public:
     //!             synchronization points.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t AddSync() = 0;
+    CM_RT_API virtual int32_t AddSync(bool dataCacheFlush = true) = 0;
 
     //!
     //! \brief      Set a per-task based power option to current task.

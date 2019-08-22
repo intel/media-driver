@@ -50,7 +50,7 @@ public:
 
     CM_RT_API int32_t Reset();
 
-    CM_RT_API int32_t AddSync();
+    CM_RT_API int32_t AddSync(bool dataCacheFlush = true);
 
     CM_RT_API int32_t SetPowerOption(PCM_POWER_OPTION powerOption);
 
