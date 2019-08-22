@@ -1013,8 +1013,10 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
 
 MOS_STATUS CodechalDecodeJpeg::InitMmcState()
 {
+#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeJpeg, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

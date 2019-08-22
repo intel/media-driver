@@ -1751,9 +1751,10 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
         cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = 0;
     }
 
-#ifdef _MMC_SUPPORTED
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
-#endif
+    if (m_mmc)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+    }
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
