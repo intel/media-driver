@@ -4239,8 +4239,8 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     oss << "SeqScalingList = 0" << std::endl;
     oss << "SkipChromaCBPDetection = 1" << std::endl;
     oss << "IdrInterval = 0" << std::endl;
-    oss << "AddEoSquenceNAL = 0" << std::endl;
-    oss << "AddEoStreamNAL = 0" << std::endl;
+    oss << "AddEoSquenceNAL = 1" << std::endl;
+    oss << "AddEoStreamNAL = 1" << std::endl;
     oss << "CabacZeroWordFlag = 0" << std::endl;
     oss << "EncodeFrameSizeTolerance = 0" << std::endl;
     oss << "ForceIntraDC = 0" << std::endl;
@@ -4256,6 +4256,7 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     oss << "HighQPMvCostEnable = 1" << std::endl;
     oss << "HighQPHMECostEnable = 1" << std::endl;
     oss << "RefIDCostMode = 0" << std::endl;
+    oss << "EnableAdaptiveLambdaOffset = 0" << std::endl;
 
     m_encodeParState->m_isConstDumped = true;
 
