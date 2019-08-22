@@ -364,7 +364,7 @@ finish:
 //| Purpose:    Insert synchronization point before next kernel
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmTaskRT::AddSync(bool dataCacheFlush)
+CM_RT_API int32_t CmTaskRT::AddSync( void )
 {
     INSERT_API_CALL_LOG();
 
