@@ -57,6 +57,7 @@
 #include "mos_util_user_interface.h"
 #include "cplib_utils.h"
 #include "media_interfaces.h"
+#include "mos_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1043,6 +1044,8 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
+        mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
+
         pCpDdiInterface = Create_DdiCpInterface(mosCtx);
 
         if (nullptr == pCpDdiInterface)
@@ -1445,7 +1448,32 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
     mediaCtx->modularizedGpuCtxEnabled = true;
 
-    if (mediaCtx->modularizedGpuCtxEnabled)
+    SetupApoMosSwitch(&mediaCtx->platform);
+    using FuncType = bool (*)(uint32_t);
+    CPLibUtils::InvokeCpFunc<FuncType>(CPLibUtils::FUNC_SETUP_MOS_APO_SWITCH, g_apoMosEnabled);
+
+    if (g_apoMosEnabled)
+    {
+        MOS_CONTEXT mosCtx           = {};
+        mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
+        mosCtx.fd                    = mediaCtx->fd;
+        mosCtx.iDeviceId             = mediaCtx->iDeviceId;
+        mosCtx.SkuTable              = mediaCtx->SkuTable;
+        mosCtx.WaTable               = mediaCtx->WaTable;
+        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+        mosCtx.platform              = mediaCtx->platform;
+        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+        mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
+
+        if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to create MOS device context.");
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+    }
+    else if (mediaCtx->modularizedGpuCtxEnabled)
     {
         // prepare m_osContext
         mediaCtx->m_osContext = OsContext::GetOsContextObject();
@@ -1549,6 +1577,11 @@ static VAStatus DdiMedia_Terminate (
     DdiMedia_FreeContextHeapElements(ctx);
     DdiMedia_FreeContextCMElements(ctx);
 
+    if (g_apoMosEnabled)
+    {
+        MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
+        mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
+    }
     if (mediaCtx->modularizedGpuCtxEnabled)
     {
         if (mediaCtx->m_gpuContextMgr)

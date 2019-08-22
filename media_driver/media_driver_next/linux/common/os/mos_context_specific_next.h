@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,24 +20,23 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_context_specific.h
-//! \brief    Container for Linux/Android specific parameters shared across different GPU contexts of the same device instance
+//! \file     mos_context_specific_next.h
+//! \brief    Container for Linux specific parameters shared across different GPU contexts of the same device instance
 //!
 
-#ifndef __MOS_CONTEXT_SPECIFIC_H__
-#define __MOS_CONTEXT_SPECIFIC_H__
+#ifndef __MOS_CONTEXT_SPECIFIC_NEXT_H__
+#define __MOS_CONTEXT_SPECIFIC_NEXT_H__
 
-#include "mos_os_specific.h"
-#include "mos_context.h"
+#include "mos_context_next.h"
 #include "mos_auxtable_mgr.h"
 
-class GraphicsResourceSpecific;
-class CmdBufMgr;
-class GpuContextMgr;
+class GraphicsResourceSpecificNext;
+class CmdBufMgrNext;
+class GpuContextMgrNext;
 
-class OsContextSpecific : public OsContext
+class OsContextSpecificNext : public OsContextNext
 {
-    friend class GraphicsResourceSpecific;
+    friend class GraphicsResourceSpecificNext;
 
     //!
     //! \brief SW semaphore key for share memory btw dual VDBox
@@ -59,7 +58,6 @@ class OsContextSpecific : public OsContext
     //!
     constexpr static uint64_t m_sliceCountTimeoutMS = 1000;
 
-#ifndef ANDROID
     //!
     //! \brief Initial share memory handle
     //!
@@ -74,7 +72,6 @@ class OsContextSpecific : public OsContext
     //! \brief maximum number to try to get a valid semaphore
     //!
     constexpr static uint32_t MOS_LINUX_SEM_MAX_TRIES = 10;
-#endif
 
 public:
     //!
@@ -90,12 +87,12 @@ public:
     //!
     //! \brief  Constructor
     //!
-    OsContextSpecific();
+    OsContextSpecificNext();
 
     //!
     //! \brief  Destructor
     //!
-    ~OsContextSpecific();
+    ~OsContextSpecificNext();
 
     //!
     //! \brief  Initialize the MOS Context
@@ -120,7 +117,7 @@ public:
     //!
     void SetPerfInfo(const struct PerfInfo &performanceInfo)
     {
-        MOS_SecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));
+        MosUtilities::MOS_SecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));
     }
 
     //!
@@ -157,41 +154,10 @@ public:
 
     MOS_LINUX_CONTEXT *GetDrmContext() { return m_intelContext; }
 
-    GPU_CONTEXT_HANDLE GetGpuContextHandle(MOS_GPU_CONTEXT GpuContext)
-    {
-        return m_GpuContextHandle[GpuContext];
-    }
-
-    void SetGpuContextHandle(MOS_GPU_CONTEXT GpuContext, GPU_CONTEXT_HANDLE gpuContextHandle)
-    {
-        m_GpuContextHandle[GpuContext] = gpuContextHandle;
-    }
-
-    GPU_CONTEXT_HANDLE GetGpuContextHandleByIndex(uint32_t index)
-    {
-        return (index < MOS_GPU_CONTEXT_MAX) ? m_GpuContextHandle[index] : MOS_GPU_CONTEXT_INVALID_HANDLE;
-    }
-
-    void SetGpuContextHandleByIndex(uint32_t index, GPU_CONTEXT_HANDLE gpuContextHandle)
-    {
-        if (index < MOS_GPU_CONTEXT_MAX)
-        {
-            m_GpuContextHandle[index] = gpuContextHandle;
-        }
-    }
-
-    GpuContextMgr *GetGpuContextMgr() { return m_gpuContextMgr; }
-
-    CmdBufMgr* GetCmdBufMgr(){return m_cmdBufMgr;}
-
-    GMM_CLIENT_CONTEXT*  GetGmmClientContext() { return m_pGmmClientContext; };
-
     AuxTableMgr* GetAuxTableMgr() { return m_auxTableMgr; }
 
     bool UseSwSwizzling() { return m_useSwSwizzling; }
     bool GetTileYFlag() { return m_tileYFlag; }
-
-#ifndef ANDROID
 
     //!
     //! \brief  Set slice count to shared memory and KMD
@@ -201,10 +167,7 @@ public:
     //!
     void SetSliceCount(uint32_t *pSliceCount);
 
-#endif
-
 private:
-#ifndef ANDROID
     //!
     //! \brief  connect and create share memory for driver secure IPC
     //! \param  [in] key
@@ -291,7 +254,6 @@ private:
     //! \brief  destroy the SSEU IPC instance
     //!
     void DestroySSEUIPC();
-#endif // #ifndef ANDROID
 
     //!
     //! \brief  Performance specific switch for debug purpose
@@ -412,16 +374,6 @@ private:
     //!
     uint32_t            m_fd             = 0;
 
-    //!
-    //!UMD specific ClientContext object in GMM
-    //!
-    GMM_CLIENT_CONTEXT   *m_pGmmClientContext = nullptr;
-
     AuxTableMgr          *m_auxTableMgr = nullptr;
-
-    GPU_CONTEXT_HANDLE  m_GpuContextHandle[MOS_GPU_CONTEXT_MAX]; // Index to GPU Context (GpuContextHandles)
-
-    GpuContextMgr      *m_gpuContextMgr = nullptr;
-    CmdBufMgr          *m_cmdBufMgr = nullptr;
 };
-#endif // #ifndef __MOS_CONTEXT_SPECIFIC_H__
+#endif // #ifndef __MOS_CONTEXT_SPECIFIC_NEXT_H__

@@ -288,6 +288,8 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
 
+    mosCtx.m_osDeviceContext     = mediaDrvCtx->m_osDeviceContext;
+
     if (nullptr == mosCtx.pPerfData)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;

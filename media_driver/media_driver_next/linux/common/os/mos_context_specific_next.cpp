@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,52 +20,43 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_context_specific.cpp
+//! \file     mos_context_specific_next.cpp
 //! \brief    Container for Linux/Android specific parameters shared across different GPU contexts of the same device instance 
 //!
 
 #include "mos_os.h"
-#include "mos_util_debug.h"
+#include "mos_util_debug_next.h"
 #include "mos_resource_defs.h"
 #include <unistd.h>
 #include <dlfcn.h>
 #include "hwinfo_linux.h"
 #include <stdlib.h>
 
-#ifndef ANDROID
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/types.h>
 #include <time.h>
-#endif
 
 #if MOS_MEDIASOLO_SUPPORTED
 #include "mos_os_solo.h"
 #endif // MOS_MEDIASOLO_SUPPORTED
 #include "mos_solo_generic.h"
+#include "mos_context_specific_next.h"
+#include "mos_gpucontextmgr_next.h"
+#include "mos_cmdbufmgr_next.h"
 
-#include "mos_context_specific.h"
-#include "mos_gpucontextmgr.h"
-#include "mos_cmdbufmgr.h"
-
-OsContextSpecific::OsContextSpecific()
-{
-    for (int i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
-    {
-        m_GpuContextHandle[i] = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    }
-
-    MOS_OS_FUNCTION_ENTER;
-}
-
-OsContextSpecific::~OsContextSpecific()
+OsContextSpecificNext::OsContextSpecificNext()
 {
     MOS_OS_FUNCTION_ENTER;
 }
 
-#ifndef ANDROID
-MOS_STATUS OsContextSpecific::LockSemaphore(int32_t semid)
+OsContextSpecificNext::~OsContextSpecificNext()
+{
+    MOS_OS_FUNCTION_ENTER;
+}
+
+MOS_STATUS OsContextSpecificNext::LockSemaphore(int32_t semid)
 {
     struct sembuf op[2];
     op[0].sem_num = 0; // wait for [0] to be 0
@@ -88,7 +79,7 @@ MOS_STATUS OsContextSpecific::LockSemaphore(int32_t semid)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::UnLockSemaphore(int32_t semid)
+MOS_STATUS OsContextSpecificNext::UnLockSemaphore(int32_t semid)
 {
     struct sembuf op;
     op.sem_num = 0;
@@ -108,10 +99,10 @@ MOS_STATUS OsContextSpecific::UnLockSemaphore(int32_t semid)
     return MOS_STATUS_SUCCESS;
 }
 
-int16_t OsContextSpecific::ShmAttachedNumber(unsigned int shmid)
+int16_t OsContextSpecificNext::ShmAttachedNumber(unsigned int shmid)
 {
     struct shmid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
 
     if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
@@ -121,7 +112,7 @@ int16_t OsContextSpecific::ShmAttachedNumber(unsigned int shmid)
     return buf.shm_nattch;
 }
 
-MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
+MOS_STATUS OsContextSpecificNext::DestroySemaphore(unsigned int semid)
 {
     int32_t nwait = 0;
 
@@ -145,7 +136,7 @@ MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, int32_t *pShmid, void* *ppShm)
+MOS_STATUS OsContextSpecificNext::ConnectCreateShm(long key, uint32_t size, int32_t *pShmid, void* *ppShm)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     MOS_OS_CHK_NULL_RETURN(pShmid);
@@ -155,7 +146,7 @@ MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, int32_t 
     int32_t         shmid = 0;
     key_t           key_value = (key_t)key;
     void            *shmptr = nullptr;
-    MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
 
     shmid = shmget(key_value, size, IPC_CREAT | 0666);
     if (shmid < 0)
@@ -183,13 +174,13 @@ MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, int32_t 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::DetachDestroyShm(int32_t shmid, void  *pShm)
+MOS_STATUS OsContextSpecificNext::DetachDestroyShm(int32_t shmid, void  *pShm)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     MOS_OS_CHK_NULL_RETURN(pShm);
 
     struct shmid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
 
     if (shmid < 0)
     {
@@ -216,7 +207,7 @@ MOS_STATUS OsContextSpecific::DetachDestroyShm(int32_t shmid, void  *pShm)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, int32_t *pSemid)
+MOS_STATUS OsContextSpecificNext::ConnectCreateSemaphore(long key, int32_t *pSemid)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     MOS_OS_CHK_NULL_RETURN(pSemid);
@@ -227,8 +218,8 @@ MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, int32_t *pSemid)
     key_t           key_value = (key_t)key;
     int32_t         val = 0;
 
-    MOS_ZeroMemory(&sop, sizeof(sop));
-    MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MOS_ZeroMemory(&sop, sizeof(sop));
+    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
 
     semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
 
@@ -265,7 +256,7 @@ MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, int32_t *pSemid)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::CreateIPC()
+MOS_STATUS OsContextSpecificNext::CreateIPC()
 {
     MOS_STATUS eStatus;
 
@@ -274,7 +265,7 @@ MOS_STATUS OsContextSpecific::CreateIPC()
     m_shm   = MOS_LINUX_SHM_INVALID;
 
     struct semid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
     //wait and retry till to get a valid semphore
     for(int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i++)
     {
@@ -306,7 +297,7 @@ finish:
     return eStatus;
 }
 
-void OsContextSpecific::DestroyIPC()
+void OsContextSpecificNext::DestroyIPC()
 {
     if (MOS_LINUX_IPC_INVALID_ID != m_semId)
     {
@@ -330,7 +321,7 @@ void OsContextSpecific::DestroyIPC()
     }
 }
 
-MOS_STATUS OsContextSpecific::CreateSSEUIPC()
+MOS_STATUS OsContextSpecificNext::CreateSSEUIPC()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -341,7 +332,7 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
     return eStatus;
 }
 
-void OsContextSpecific::DestroySSEUIPC()
+void OsContextSpecificNext::DestroySSEUIPC()
 {
     if (MOS_LINUX_IPC_INVALID_ID != m_sseuSemId)
     {
@@ -365,15 +356,13 @@ void OsContextSpecific::DestroySSEUIPC()
     }
 }
 
-void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
+void OsContextSpecificNext::SetSliceCount(uint32_t *pSliceCount)
 {
     if (pSliceCount == nullptr)
         MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
 }
 
-#endif //#ifndef ANDROID
-
-MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
+MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
 {
     uint32_t      iDeviceId = 0;
     MOS_STATUS    eStatus;
@@ -394,12 +383,10 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         }
     
         m_bufmgr        = pOsDriverContext->bufmgr;
-        m_gpuContextMgr = static_cast<GpuContextMgr *>(pOsDriverContext->m_gpuContextMgr);
-        m_cmdBufMgr     = static_cast<CmdBufMgr *>(pOsDriverContext->m_cmdBufMgr);
         m_fd            = pOsDriverContext->fd;
-        MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
+        MosUtilities::MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
         mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
-        m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
+        m_gmmClientContext = pOsDriverContext->pGmmClientContext;
         m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
     
         // DDI layer can pass over the DeviceID.
@@ -411,10 +398,10 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MEDIA_WA_TABLE       waTable;
             MEDIA_SYSTEM_INFO    gtSystemInfo;
     
-            MOS_ZeroMemory(&platformInfo, sizeof(platformInfo));
-            MOS_ZeroMemory(&skuTable, sizeof(skuTable));
-            MOS_ZeroMemory(&waTable, sizeof(waTable));
-            MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
+            MosUtilities::MOS_ZeroMemory(&platformInfo, sizeof(platformInfo));
+            MosUtilities::MOS_ZeroMemory(&skuTable, sizeof(skuTable));
+            MosUtilities::MOS_ZeroMemory(&waTable, sizeof(waTable));
+            MosUtilities::MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
             eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
@@ -422,8 +409,8 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
                 return eStatus;
             }
     
-            MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
-            MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
+            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
+            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
     
             pOsDriverContext->iDeviceId      = platformInfo.usDeviceID;
             m_skuTable = skuTable;
@@ -440,13 +427,13 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         {
             // pOsDriverContext's parameters were passed by CmCreateDevice.
             // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
-            MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->platform), sizeof(PLATFORM));
-            MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
+            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->platform), sizeof(PLATFORM));
+            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
     
             m_skuTable = pOsDriverContext->SkuTable;
             m_waTable  = pOsDriverContext->WaTable;
         }
-
+    
         m_use64BitRelocs = true;
         m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
@@ -472,16 +459,15 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
                m_intelContext->vm = nullptr;
            }
         }
-
+    
         if (m_intelContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
             return MOS_STATUS_UNKNOWN;
         }
-
+    
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
     
-    #ifndef ANDROID
     
         if ((m_gtSystemInfo.VDBoxInfo.IsValid) && (m_gtSystemInfo.VDBoxInfo.NumberOfVDBoxEnabled > 1))
         {
@@ -508,7 +494,6 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_OS_ASSERTMESSAGE("Fatal error - Failed to create shared memory for SSEU configuration.");
             return eStatus;
         }
-    #endif
     
         m_transcryptedKernels       = nullptr;
         m_transcryptedKernelsSize   = 0;
@@ -532,52 +517,34 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_usesGfxAddress            = false;
     
         m_inlineCodecStatusUpdate   = true;
-    
-    #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-        CommandBufferDumpInit();
-    #endif
-    
+
         SetOsContextValid(true);
+        
+        // Prepare the command buffer manager
+        m_cmdBufMgr = CmdBufMgrNext::GetObject();
+        MOS_OS_CHK_NULL_RETURN(m_cmdBufMgr);
+        MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, COMMAND_BUFFER_SIZE));
+
+        // Prepare the gpu Context manager
+        m_gpuContextMgr = GpuContextMgrNext::GetObject(&m_gtSystemInfo, this);
+        MOS_OS_CHK_NULL_RETURN(m_gpuContextMgr);
     }
     return eStatus;
 }
 
-void OsContextSpecific::Destroy()
+void OsContextSpecificNext::Destroy()
 {
     MOS_OS_FUNCTION_ENTER;
 
     if (GetOsContextValid() == true)
     {
-        // APO MOS will destory each stream's GPU context at different place
-        if (!g_apoMosEnabled)
-        {
-            for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
-            {
-                if (m_GpuContextHandle[i] != MOS_GPU_CONTEXT_INVALID_HANDLE)
-                {
-                    if (m_gpuContextMgr == nullptr)
-                    {
-                        MOS_OS_ASSERTMESSAGE("GpuContextMgr is null when destroy GpuContext");
-                        break;
-                    }
-                    auto gpuContext = m_gpuContextMgr->GetGpuContext(m_GpuContextHandle[i]);
-                    if (gpuContext == nullptr)
-                    {
-                        MOS_OS_ASSERTMESSAGE("cannot find the gpuContext corresponding to the active gpuContextHandle");
-                        continue;
-                    }
-                    m_gpuContextMgr->DestroyGpuContext(gpuContext);
-                }
-            }
-        }
-    
-     #ifndef ANDROID
+
         if (m_kmdHasVCS2)
         {
             DestroyIPC();
         }
         DestroySSEUIPC();
-     #endif
+
         m_skuTable.reset();
         m_waTable.reset();
         if (m_intelContext && m_intelContext->vm)

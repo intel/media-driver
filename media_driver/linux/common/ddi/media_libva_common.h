@@ -38,6 +38,10 @@
 #include "mos_gpucontextmgr.h"
 #include "mos_cmdbufmgr.h"
 
+#include "mos_context_next.h"
+#include "mos_gpucontextmgr_next.h"
+#include "mos_cmdbufmgr_next.h"
+
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
 
@@ -430,6 +434,9 @@ struct DDI_MEDIA_CONTEXT
     OsContext          *m_osContext;
     GpuContextMgr      *m_gpuContextMgr;
     CmdBufMgr          *m_cmdBufMgr;
+
+    // Apogeio MOS module
+    MOS_DEVICE_HANDLE   m_osDeviceContext = MOS_INVALID_HANDLE;
 
     // mutexs to protect the shared resource among multiple context
     MEDIA_MUTEX_T       SurfaceMutex;

@@ -39,6 +39,12 @@
 #include "mos_gpucontext_specific.h"
 #include "mos_gpucontextmgr.h"
 
+#include "mos_graphicsresource_next.h"
+#include "mos_context_specific_next.h"
+#include "mos_gpucontext_specific_next.h"
+#include "mos_gpucontextmgr_next.h"
+#include "mos_interface.h"
+
 #if MOS_MEDIASOLO_SUPPORTED
 #include "mos_os_solo.h"
 #endif // MOS_MEDIASOLO_SUPPORTED
@@ -73,6 +79,73 @@
 extern int32_t MosMemAllocCounterGfx;
 
 //============= PRIVATE FUNCTIONS <BEGIN>=========================================
+
+void SetupApoMosSwitch(PLATFORM *platform)
+{
+    if (platform == nullptr)
+    {
+        g_apoMosEnabled = 0;
+        return;
+    }
+
+    // Mos APO wrapper
+    if (platform->eProductFamily >= FUTURE_PLATFORM_MOS_APO)
+    {
+        g_apoMosEnabled = 1;
+    }
+    else
+    {
+        g_apoMosEnabled = 0;
+    }
+
+    // For test perpose
+    if (platform->eProductFamily >= IGFX_ICELAKE)
+    {
+        g_apoMosEnabled = 1;
+    }
+    else
+    {
+        g_apoMosEnabled = 0;
+    }
+
+
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+
+    UserFeatureData.i32Data     = g_apoMosEnabled;
+    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_APO_MOS_PATH_ENABLE_ID,
+        &UserFeatureData);
+    g_apoMosEnabled = (UserFeatureData.i32Data) ? 1 : 0;
+
+#if MOS_MEDIASOLO_SUPPORTED
+    MOS_USER_FEATURE       UserFeature;
+    MOS_USER_FEATURE_VALUE UserFeatureValue;
+    int32_t                bSoloInUse;
+
+    // when MediaSolo is enabled, turn off APO MOS path
+    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
+    UserFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
+    UserFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    UserFeature.pValues     = &UserFeatureValue;
+    UserFeature.uiNumValues = 1;
+    MOS_UserFeature_ReadValue(
+        nullptr,
+        &UserFeature,
+        __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32);
+    bSoloInUse = (UserFeatureValue.u32Data) ? true : false;
+
+    if (bSoloInUse)
+    {
+        g_apoMosEnabled = 0;
+    }
+#endif //MOS_MEDIASOLO_SUPPORTED
+}
+
+
 
 //!
 //! \brief    Clear Gpu Context
@@ -1003,6 +1076,20 @@ uint32_t Linux_GetGPUTag(
         auto osCxtSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
 
         auto handle = osCxtSpecific->GetGpuContextHandle(mosGpuCtx);
+        
+        if(g_apoMosEnabled)
+        {
+            MOS_RESOURCE gpuStatusResource;
+            MOS_ZeroMemory(&gpuStatusResource, sizeof(MOS_RESOURCE));
+            MOS_OS_CHK_STATUS_RETURN(MosInterface::GetGpuStatusBufferResource(pOsInterface->osStreamState, &gpuStatusResource, handle));
+            auto gpuStatusData = (MOS_GPU_STATUS_DATA *)gpuStatusResource.pData;
+            if (gpuStatusData == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("cannot find ");
+                return 0;
+            }
+            return gpuStatusData->GPUTag;
+        }
 
         auto gpuContext = Linux_GetGpuContext(pOsInterface, handle);
 
@@ -1253,8 +1340,8 @@ MOS_STATUS Linux_InitContext(
     if (nullptr == pContext ||
         nullptr == pOsDriverContext ||
         nullptr == pOsDriverContext->bufmgr ||
-        (nullptr == pOsDriverContext->m_gpuContextMgr && modularizedGpuCtxEnabled) ||
-        (nullptr == pOsDriverContext->m_cmdBufMgr && modularizedGpuCtxEnabled) ||
+        (nullptr == pOsDriverContext->m_gpuContextMgr && modularizedGpuCtxEnabled && !g_apoMosEnabled) ||
+        (nullptr == pOsDriverContext->m_cmdBufMgr && modularizedGpuCtxEnabled && !g_apoMosEnabled) ||
         0 >= pOsDriverContext->fd)
     {
         MOS_OS_ASSERT(false);
@@ -1505,6 +1592,13 @@ MOS_STATUS Mos_Specific_SetGpuContext(
 
         // Set GPU context handle
         pOsInterface->CurrentGpuContextHandle = pOsContextSpecific->GetGpuContextHandle(GpuContext);
+
+        if (g_apoMosEnabled)
+        {
+            MOS_OS_CHK_STATUS_RETURN(MosInterface::SetGpuContext(
+                pOsInterface->osStreamState,
+                pOsContextSpecific->GetGpuContextHandle(GpuContext)));
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1600,6 +1694,11 @@ GMM_CLIENT_CONTEXT *Mos_Specific_GetGmmClientContext(
         return nullptr;
     }
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetGmmClientContext(pOsInterface->osStreamState);
+    }
+
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
     {
         OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
@@ -1640,6 +1739,17 @@ void Mos_Specific_GetPlatform(
     MOS_OS_CHK_NULL(pOsInterface->pOsContext);
     MOS_OS_CHK_NULL(pPlatform);
 
+    if (g_apoMosEnabled)
+    {
+        // apo wrapper
+        auto platform = MosInterface::GetPlatform(pOsInterface->osStreamState);
+        if (platform)
+        {
+            *pPlatform = *platform;
+        }
+        return;
+    }
+
     *pPlatform = pOsInterface->pOsContext->platform;
 
 finish:
@@ -1676,6 +1786,41 @@ void Mos_Specific_Destroy(
             return;
         }
 
+        // APO MOS destory GPU contexts here instead of inside osContextPtr
+        if (g_apoMosEnabled)
+        {
+            OsContextSpecific* pOsContextSpecific = static_cast<OsContextSpecific*>(pOsContext);
+            if (pOsInterface->osStreamState == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("osStreamState is null when destroy GpuContext");
+                return;
+            }
+            if (pOsInterface->osStreamState->osDeviceContext == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("osDeviceContext is null when destroy GpuContext");
+                return;
+            }
+            auto gpuContextMgr = pOsInterface->osStreamState->osDeviceContext->GetGpuContextMgr();
+            for (uint32_t i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+            {
+                if (pOsContextSpecific->GetGpuContextHandleByIndex(i) != MOS_GPU_CONTEXT_INVALID_HANDLE)
+                {
+                    if (gpuContextMgr == nullptr)
+                    {
+                        MOS_OS_ASSERTMESSAGE("GpuContextMgr is null when destroy GpuContext");
+                        break;
+                    }
+                    auto gpuContext = gpuContextMgr->GetGpuContext(pOsContextSpecific->GetGpuContextHandleByIndex(i));
+                    if (gpuContext == nullptr)
+                    {
+                        MOS_OS_ASSERTMESSAGE("cannot find the gpuContext corresponding to the active gpuContextHandle");
+                        continue;
+                    }
+                    gpuContextMgr->DestroyGpuContext(gpuContext);
+                    pOsContextSpecific->SetGpuContextHandleByIndex(i, MOS_GPU_CONTEXT_INVALID_HANDLE);
+                }
+            }
+        }
         pOsContext->CleanUp();
 
         MOS_Delete(pOsContext);
@@ -1704,6 +1849,16 @@ void Mos_Specific_Destroy(
     {
         MOS_FreeMemAndSetNull(pOsInterface->pVEInterf);
     }
+
+    if (g_apoMosEnabled)
+    {
+        auto status = MosInterface::DestroyOsStreamState(pOsInterface->osStreamState);
+        if (status != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to destroy stream state.");
+            return;
+        }
+    }
 }
 
 //!
@@ -1717,6 +1872,12 @@ void Mos_Specific_Destroy(
 MEDIA_FEATURE_TABLE *Mos_Specific_GetSkuTable(
     PMOS_INTERFACE pOsInterface)
 {
+    if (pOsInterface && g_apoMosEnabled)
+    {
+        // apo wrapper
+        return MosInterface::GetSkuTable(pOsInterface->osStreamState);
+    }
+
     if (pOsInterface && pOsInterface->pOsContext)
     {
         return &pOsInterface->pOsContext->SkuTable;
@@ -1735,6 +1896,12 @@ MEDIA_FEATURE_TABLE *Mos_Specific_GetSkuTable(
 MEDIA_WA_TABLE *Mos_Specific_GetWaTable(
     PMOS_INTERFACE pOsInterface)
 {
+    if (pOsInterface && g_apoMosEnabled)
+    {
+        // apo wrapper
+        return MosInterface::GetWaTable(pOsInterface->osStreamState);
+    }
+
     if (pOsInterface && pOsInterface->pOsContext)
     {
         return &pOsInterface->pOsContext->WaTable;
@@ -1758,6 +1925,13 @@ MEDIA_SYSTEM_INFO *Mos_Specific_GetGtSystemInfo(
         MOS_OS_ASSERTMESSAGE("input parameter pOsInterface is NULL.");
         return  nullptr;
     }
+
+    if (g_apoMosEnabled)
+    {
+        // apo wrapper
+        return MosInterface::GetGtSystemInfo(pOsInterface->osStreamState);
+    }
+
     if( nullptr == pOsInterface->pOsContext)
     {
         MOS_OS_ASSERTMESSAGE("pOsContext is NULL.");
@@ -1785,6 +1959,16 @@ void Mos_Specific_ResetOsStates(
     if (pOsInterface == nullptr ||
         pOsInterface->pOsContext == nullptr)
     {
+        return;
+    }
+
+    if (g_apoMosEnabled)
+    {
+        auto status = MosInterface::ResetCommandBuffer(pOsInterface->osStreamState, 0);
+        if (MOS_FAILED(status))
+        {
+            MOS_OS_ASSERTMESSAGE("ResetCommandBuffer failed.");
+        }
         return;
     }
 
@@ -1944,6 +2128,31 @@ MOS_STATUS Mos_Specific_AllocateResource(
         {
             osContextValid = true;
         }
+    }
+
+    if (g_apoMosEnabled)
+    {
+        pParams->bBypassMODImpl = !((pOsInterface->modulizedMosEnabled) && (!Mos_Solo_IsEnabled()) && (osContextValid == true));
+
+        if (!pParams->bBypassMODImpl)
+        {
+            GraphicsResourceNext::SetMemAllocCounterGfx(MosMemAllocCounterGfx);
+        }
+
+        eStatus = MosInterface::AllocateResource(pOsInterface->osStreamState, pParams, pOsResource);
+        MOS_OS_CHK_NULL(pOsResource->pGmmResInfo);
+
+        if (!pParams->bBypassMODImpl)
+        {
+            MosMemAllocCounterGfx = GraphicsResourceNext::GetMemAllocCounterGfx();
+        }
+        else
+        {
+            MosMemAllocCounterGfx++;
+        }
+        MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
+        (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
+        return eStatus;
     }
 
     if ((pOsInterface->modulizedMosEnabled) && (!Mos_Solo_IsEnabled()) && (osContextValid == true))
@@ -2190,6 +2399,11 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     MOS_OS_CHK_NULL(pOsResource);
     MOS_OS_CHK_NULL(pResDetails);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetResourceInfo(pOsInterface->osStreamState, pOsResource, *pResDetails);
+    }
+
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
@@ -2353,6 +2567,41 @@ void Mos_Specific_FreeResource(
         {
             osContextValid = true;
         }
+    }
+
+    if (g_apoMosEnabled)
+    {
+        bool byPassMod = !((pOsInterface->modulizedMosEnabled)
+           && (!pOsResource->bConvertedFromDDIResource)
+           && (osContextValid == true)
+           && (!Mos_Solo_IsEnabled())
+           && (pOsResource->pGfxResourceNext));
+
+        if (!byPassMod)
+        {
+            GraphicsResourceNext::SetMemAllocCounterGfx(MosMemAllocCounterGfx);
+        }
+
+        MosInterface::FreeResource(pOsInterface->osStreamState, pOsResource, 0);
+
+        if (!byPassMod)
+        {
+            MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+            MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
+            MOS_ZeroMemory(pOsResource, sizeof(*pOsResource));
+        }
+        else if (pOsResource->pGmmResInfo != nullptr && 
+            pOsInterface->pOsContext != nullptr &&
+            pOsInterface->pOsContext->pGmmClientContext != nullptr)
+        {
+            MosMemAllocCounterGfx--;
+            MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
+
+            pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);
+            pOsResource->pGmmResInfo = nullptr;
+        }
+
+        return;
     }
 
     if ((pOsInterface->modulizedMosEnabled)
@@ -2546,6 +2795,11 @@ void  *Mos_Specific_LockResource(
         }
     }
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::LockMosResource(pOsInterface->osStreamState, pOsResource, pLockFlags);
+    }
+
     if ((pOsInterface->modulizedMosEnabled)
        && (!pOsResource->bConvertedFromDDIResource)
        && (osContextValid == true)
@@ -2669,6 +2923,11 @@ MOS_STATUS Mos_Specific_UnlockResource(
     MOS_OS_CHK_NULL(pOsInterface);
     MOS_OS_CHK_NULL(pOsResource);
     MOS_OS_CHK_NULL(pOsInterface->pOsContext);
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::UnlockMosResource(pOsInterface->osStreamState, pOsResource);
+    }
 
     bool osContextValid;
     osContextValid = false;
@@ -2813,6 +3072,11 @@ MOS_STATUS Mos_Specific_SetPatchEntry(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pParams);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::SetPatchEntry(pOsInterface->osStreamState, pParams);
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -2876,6 +3140,20 @@ MOS_STATUS Mos_Specific_RegisterResource (
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pOsResource);
+
+    if (g_apoMosEnabled)
+    {
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+        GpuCmdResInfoDumpNext::GetInstance()->StoreCmdResPtr(pOsInterface, (const void *)pOsResource);
+#endif  // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
+        return MosInterface::RegisterResource(
+            pOsInterface->osStreamState,
+            pOsResource,
+            bWrite,
+            pOsInterface->streamIndex,
+            pOsInterface->CurrentGpuContextOrdinal);
+    }
 
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
@@ -2966,6 +3244,11 @@ MOS_STATUS Mos_Specific_VerifyCommandBufferSize(
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::VerifyCommandBufferSize(pOsInterface->osStreamState, 0, dwRequestedSize, dwFlags);
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -3048,6 +3331,11 @@ MOS_STATUS Mos_Specific_GetCommandBuffer(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetCommandBuffer(pOsInterface->osStreamState, pCmdBuffer, dwFlags);
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -3123,6 +3411,11 @@ MOS_STATUS Mos_Specific_SetIndirectStateSize(
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::SetupIndirectState(pOsInterface->osStreamState, uSize);
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -3169,6 +3462,16 @@ MOS_STATUS Mos_Specific_GetIndirectState(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(puOffset);
     MOS_OS_CHK_NULL_RETURN(puSize);
+
+    if (g_apoMosEnabled)
+    {
+        uint32_t offset = 0;
+        uint32_t size   = 0;
+        auto eStatus = MosInterface::GetIndirectState(pOsInterface->osStreamState, nullptr, offset, size);
+        *puOffset = offset;
+        *puSize   = size;
+        return eStatus;
+    }
 
    if (pOsInterface->CurrentGpuContextHandle == MOS_GPU_CONTEXT_INVALID_HANDLE)
     {
@@ -3260,6 +3563,13 @@ MOS_STATUS Mos_Specific_GetIndirectStatePointer(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pIndirectState);
 
+    if (g_apoMosEnabled)
+    {
+        uint32_t offset = 0;
+        uint32_t size   = 0;
+        return MosInterface::GetIndirectState(pOsInterface->osStreamState, pIndirectState, offset, size);
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -3315,6 +3625,16 @@ void Mos_Specific_ReturnCommandBuffer(
     if (pOsInterface == nullptr || pCmdBuffer == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Invalid parameters.");
+        return;
+    }
+
+    if (g_apoMosEnabled)
+    {
+        auto status = MosInterface::ReturnCommandBuffer(pOsInterface->osStreamState, pCmdBuffer, dwFlags);
+        if (MOS_FAILED(status))
+        {
+            MOS_OS_ASSERTMESSAGE("ReturnCommandBuffer failed.");
+        }
         return;
     }
 
@@ -3515,6 +3835,11 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::SubmitCommandBuffer(pOsInterface->osStreamState, pCmdBuffer, bNullRendering);
+    }
 
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
@@ -3917,6 +4242,11 @@ MOS_STATUS Mos_Specific_ResizeCommandBufferAndPatchList(
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::ResizeCommandBufferAndPatchList(pOsInterface->osStreamState, 0, dwRequestedCommandBufferSize, dwRequestedPatchListSize, dwFlags);
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -4060,10 +4390,16 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
         MOS_OS_CHK_NULL_RETURN(pOsContextSpecific);
 
         auto gpuContextMgr = pOsContextSpecific->GetGpuContextMgr();
-        MOS_OS_CHK_NULL_RETURN(gpuContextMgr);
+        if (!g_apoMosEnabled)
+        {
+            MOS_OS_CHK_NULL_RETURN(gpuContextMgr);
+        }
 
         auto cmdBufMgr = pOsContextSpecific->GetCmdBufMgr();
-        MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
+        if (!g_apoMosEnabled)
+        {
+            MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
+        }
 
         MOS_OS_CHK_NULL_RETURN(createOption);
         if (GpuNode == MOS_GPU_NODE_3D && createOption->SSEUValue != 0)
@@ -4090,6 +4426,44 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
                 MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
                 return MOS_STATUS_UNKNOWN;
             };
+        }
+
+        if (g_apoMosEnabled)
+        {
+            // Only wrapper will contain re-creation check based on stream Index and MOS_GPU_CONTEXT
+            createOption->gpuNode = GpuNode;
+            MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+            if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
+            {
+                GPU_CONTEXT_HANDLE gpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
+                eStatus = MosInterface::CreateGpuContext(pOsInterface->osStreamState, *createOption, gpuContextHandle);
+                if (MOS_FAILED(eStatus))
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to create GPU Context.");
+                    eStatus = MOS_STATUS_GPU_CONTEXT_ERROR;
+                    return eStatus;
+                }
+                pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextHandle);
+                
+                MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
+                auto osDeviceContext = pOsInterface->osStreamState->osDeviceContext;
+                auto gpuContextMgr = osDeviceContext->GetGpuContextMgr();
+                if (gpuContextMgr)
+                {
+                    GpuContextNext *gpuCtx = gpuContextMgr->GetGpuContext(gpuContextHandle);
+                
+                    auto gpuContextSpecific = static_cast<GpuContextSpecificNext *>(gpuCtx);
+                    gpuContextSpecific->SetGpuContext(mosGpuCxt);
+                    return eStatus;
+                }
+                else
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to get GPU Context mgr.");
+                    eStatus = MOS_STATUS_GPU_CONTEXT_ERROR;
+                    return eStatus;
+                }
+            }
+            return eStatus;
         }
 
         if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
@@ -4146,6 +4520,11 @@ MOS_STATUS Mos_Specific_DestroyGpuContext(
         MOS_OS_CHK_NULL_RETURN(pOsContextSpecific);
 
         GPU_CONTEXT_HANDLE gpuContextHandle = pOsContextSpecific->GetGpuContextHandle(mosGpuCxt);
+
+        if (g_apoMosEnabled)
+        {
+            return MosInterface::DestroyGpuContext(pOsInterface->osStreamState, gpuContextHandle);
+        }
 
         GpuContextMgr *gpuContextMgr = pOsContextSpecific->GetGpuContextMgr();
         MOS_OS_CHK_NULL_RETURN(gpuContextMgr);
@@ -4635,6 +5014,11 @@ MOS_STATUS Mos_Specific_GetGpuStatusBufferResource(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pOsResource);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetGpuStatusBufferResource(pOsInterface->osStreamState, pOsResource, pOsInterface->osStreamState->currentGpuContextHandle);
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -4680,6 +5064,11 @@ uint32_t Mos_Specific_GetGpuStatusTagOffset(
 
     uint32_t offset = 0;
 
+    if (g_apoMosEnabled)
+    {
+        // always 0 in apo
+        return 0;
+    }
     // A gobal status buffer for all GPU contexts is no longer used when modulized GPU context enabled,
     // replace with separate buffer corresponding to each GPU context and the offset will be 0
     if (!pOsInterface->modularizedGpuCtxEnabled || Mos_Solo_IsEnabled())
@@ -4725,6 +5114,11 @@ uint32_t Mos_Specific_GetGpuStatusTag(
         auto osCxtSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
 
         auto handle = osCxtSpecific->GetGpuContextHandle(mosGpuCtx);
+
+        if (g_apoMosEnabled)
+        {
+            return MosInterface::GetGpuStatusTag(pOsInterface->osStreamState, handle);
+        }
 
         auto gpuContext = Linux_GetGpuContext(pOsInterface, handle);
         MOS_OS_CHK_NULL_RETURN(gpuContext);
@@ -4776,6 +5170,12 @@ void Mos_Specific_IncrementGpuStatusTag(
         auto osCxtSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
 
         auto handle = osCxtSpecific->GetGpuContextHandle(mosGpuCtx);
+
+        if (g_apoMosEnabled)
+        {
+            MosInterface::IncrementGpuStatusTag(pOsInterface->osStreamState, handle);
+            return;
+        }
 
         auto gpuContext = Linux_GetGpuContext(pOsInterface, handle);
 
@@ -5357,6 +5757,25 @@ MOS_STATUS Mos_Specific_VerifyPatchListSize(
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
+    if (g_apoMosEnabled)
+    {
+        // No APO MOS interface support for this func, implement in wrapper
+        auto streamState = pOsInterface->osStreamState;
+
+        MOS_OS_CHK_NULL_RETURN(streamState);
+        MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
+
+        auto osDeviceContext = streamState->osDeviceContext;
+
+        auto gpuContextMgr = osDeviceContext->GetGpuContextMgr();
+        if (gpuContextMgr)
+        {
+            auto gpuCtx = gpuContextMgr->GetGpuContext(streamState->currentGpuContextHandle);
+
+            auto gpuCtxSpecific = static_cast<GpuContextSpecificNext *>(gpuCtx);
+            return (gpuCtxSpecific->VerifyPatchListSize(dwRequestedSize));
+        }
+    }
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
@@ -5408,6 +5827,11 @@ MOS_STATUS Mos_Specific_ResetCommandBuffer(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::ResetCommandBuffer(pOsInterface->osStreamState, pCmdBuffer);
+    }
+
     if (pOsInterface->CurrentGpuContextOrdinal == MOS_GPU_CONTEXT_INVALID_HANDLE)
     {
         MOS_OS_ASSERTMESSAGE("Invalid input parameter GpuContext.");
@@ -5455,6 +5879,11 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
     MOS_OS_FUNCTION_ENTER;
     MOS_OS_CHK_NULL(pOsResource);
     MOS_OS_CHK_NULL(pResMmcMode);
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetMemoryCompressionMode(pOsInterface->osStreamState, pOsResource, *pResMmcMode);
+    }
 
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
@@ -5512,6 +5941,11 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionMode(
     MOS_OS_FUNCTION_ENTER;
     MOS_OS_CHK_NULL(pOsResource);
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::SetMemoryCompressionMode(pOsInterface->osStreamState, pOsResource, ResMmcMode);
+    }
+
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
@@ -5563,6 +5997,11 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionHint(
     eStatus = MOS_STATUS_UNKNOWN;
     MOS_OS_CHK_NULL(pOsResource);
 
+     if (g_apoMosEnabled)
+     {
+         return MosInterface::SetMemoryCompressionHint(pOsInterface->osStreamState, pOsResource, bHintOn);
+     }
+
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
@@ -5599,6 +6038,11 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionFormat(
     MOS_OS_FUNCTION_ENTER;
     MOS_OS_CHK_NULL(pOsResource);
     MOS_OS_CHK_NULL(pResMmcFormat);
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetMemoryCompressionFormat(pOsInterface->osStreamState, pOsResource, pResMmcFormat);
+    }
 
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
@@ -5871,6 +6315,12 @@ MEMORY_OBJECT_CONTROL_STATE Mos_Specific_CachePolicyGetMemoryObject(
     MOS_HW_RESOURCE_DEF         MosUsage,
     GMM_CLIENT_CONTEXT          *pGmmClientContext)
 {
+    if (g_apoMosEnabled)
+    {
+        // Force convert to stream handle for wrapper
+        return MosInterface::GetCachePolicyMemoryObject((MOS_STREAM_HANDLE)pGmmClientContext, MosUsage);
+    }
+
     return Mos_CachePolicyGetMemoryObject(MosUsage, pGmmClientContext);
 }
 
@@ -6241,6 +6691,12 @@ MOS_STATUS Mos_Specific_InitInterface(
     {
         MOS_OS_ASSERTMESSAGE("Unable to initialize context.");
         goto finish;
+    }
+
+    if (g_apoMosEnabled)
+    {
+        pOsContext->m_osDeviceContext = pOsDriverContext->m_osDeviceContext;
+        MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(&pOsInterface->osStreamState, (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext));
     }
 
     iDeviceId                                 = pOsDriverContext->iDeviceId;

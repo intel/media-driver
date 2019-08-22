@@ -453,7 +453,7 @@ public:
     static MOS_STATUS ResetCommandBuffer(
         MOS_STREAM_HANDLE streamState,
         COMMAND_BUFFER_HANDLE cmdBuffer);
-    
+
     //!
     //! \brief    Verify Command Buffer Size
     //! \details  [Cmd Buffer Interface] Check if cmd buffer size is larger than the requested size
@@ -1088,6 +1088,8 @@ public:
     //!           Handle of Os Stream State
     //! \param    [out] resource
     //!           MOS resource handle of GPU status buffer got from current GPU context
+    //! \param    [in] gpuContext
+    //!           MOS GPU Context handle
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
@@ -1095,7 +1097,8 @@ public:
 
     static MOS_STATUS GetGpuStatusBufferResource(
         MOS_STREAM_HANDLE streamState,
-        MOS_RESOURCE_HANDLE resource);
+        MOS_RESOURCE_HANDLE resource,
+        GPU_CONTEXT_HANDLE gpuContext);
     
     //!
     //! \brief   Get CP Interface

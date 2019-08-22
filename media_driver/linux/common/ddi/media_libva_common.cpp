@@ -26,6 +26,7 @@
 #include "media_libva.h"
 #include "media_libva_util.h"
 #include "mos_solo_generic.h"
+#include "mos_interface.h"
 
 static void* DdiMedia_GetVaContextFromHeap(PDDI_MEDIA_HEAP  mediaHeap, uint32_t index, PMEDIA_MUTEX_T mutex)
 {
@@ -51,6 +52,12 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
     DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface",);
     DDI_CHK_NULL(mosResource, "nullptr mosResource",);
     DDI_ASSERT(mosResource->bo);
+
+    if (g_apoMosEnabled)
+    {
+        MosInterface::ConvertResourceFromDdi(mediaSurface, mosResource, OS_SPECIFIC_RESOURCE_SURFACE, 0);
+        return;
+    }
 
     switch (mediaSurface->format)
     {
@@ -200,6 +207,12 @@ void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOUR
     DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer",);
     DDI_CHK_NULL(mosResource, "nullptr mosResource",);
     DDI_ASSERT(mediaBuffer->bo);
+
+    if (g_apoMosEnabled)
+    {
+        MosInterface::ConvertResourceFromDdi(mediaBuffer, mosResource, OS_SPECIFIC_RESOURCE_BUFFER, 0);
+        return;
+    }
 
     switch (mediaBuffer->format)
     {

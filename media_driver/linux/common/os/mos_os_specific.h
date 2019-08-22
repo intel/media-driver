@@ -47,6 +47,7 @@ class GraphicsResource;
 class GraphicsResourceNext;
 class AuxTableMgr;
 class MosOcaInterface;
+class GraphicsResourceNext;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -465,6 +466,22 @@ struct MOS_CONTEXT_OFFSET
     uint64_t          offset64;
 };
 
+// APO related
+#define FUTURE_PLATFORM_MOS_APO   1234
+void SetupApoMosSwitch(PLATFORM *platform);
+
+enum OS_SPECIFIC_RESOURCE_TYPE
+{
+    OS_SPECIFIC_RESOURCE_INVALID = 0,
+    OS_SPECIFIC_RESOURCE_SURFACE = 1,
+    OS_SPECIFIC_RESOURCE_BUFFER = 2,
+    OS_SPECIFIC_RESOURCE_MAX
+};
+
+class OsContextNext;
+typedef OsContextNext    OsDeviceContext;
+typedef OsDeviceContext *MOS_DEVICE_HANDLE;
+
 typedef struct _MOS_OS_CONTEXT MOS_CONTEXT, *PMOS_CONTEXT, MOS_OS_CONTEXT, *PMOS_OS_CONTEXT, MOS_DRIVER_CONTEXT,*PMOS_DRIVER_CONTEXT;
 //!
 //! \brief Structure to OS context
@@ -517,7 +534,7 @@ struct _MOS_OS_CONTEXT
     // For modulized GPU context
     void*               m_gpuContextMgr;
     void*               m_cmdBufMgr;
-    void*               m_osDeviceContext = nullptr;
+    MOS_DEVICE_HANDLE   m_osDeviceContext = nullptr;
 
     //For 2VD box
     int32_t             bKMDHasVCS2;

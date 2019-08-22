@@ -327,6 +327,7 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
+    mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
 
     if (nullptr == mosCtx.pPerfData)
     {
