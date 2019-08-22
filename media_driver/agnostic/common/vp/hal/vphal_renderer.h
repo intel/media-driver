@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include "vphal_render_16alignment.h"
 #include "vphal_render_fast1ton.h"
 #include "vphal_debug.h"
+#include "vphal_render_hdr_base.h"
 
 #define VPHAL_RNDR_TEMP_OUT_SURFS            2
 
@@ -158,6 +159,7 @@ public:
     // 1) It is for viedo surveillance usage, when applying AVS for multiple surfaces;
     // 2) It could be VEBOX output or input for HDR processing;
     VPHAL_SURFACE               IntermediateSurface = {};
+    PVPHAL_HDR_STATE            pHdrState;
 
 protected:
     // Renderer private data
@@ -180,7 +182,6 @@ protected:
 
     // Renderer feature reporting
     VphalFeatureReport          *m_reporting;
-
 public:
     //!
     //! \brief    VphalRenderer constructor

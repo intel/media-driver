@@ -271,6 +271,15 @@ typedef struct _VPHAL_FAST1TON_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
 }VPHAL_FAST1TON_CACHE_CNTL, *PVPHAL_FAST1TON_CACHE_CNTL;
 
+typedef struct _VPHAL_HDR_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    Lut2DSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    Lut3DSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    CoeffSurfMemObjCtl;
+} VPHAL_HDR_CACHE_CNTL, *PVPHAL_HDR_CACHE_CNTL;
 
 //!
 //! \brief  Feature specific cache control settings

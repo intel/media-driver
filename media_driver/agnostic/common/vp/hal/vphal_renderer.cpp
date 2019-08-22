@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1497,6 +1497,13 @@ VphalRenderer::~VphalRenderer()
         Fast1toNState.pfnDestroy(&Fast1toNState);
     }
 
+    // Destroy resources allocated for Hdr
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrHDR) && pHdrState && pHdrState->pfnDestroy)
+    {
+        pHdrState->pfnDestroy(pHdrState);
+        MOS_Delete(pHdrState);
+    }
+
     // Destroy surface dumper
     VPHAL_DBG_SURF_DUMP_DESTORY(m_surfaceDumper);
 
@@ -1668,6 +1675,7 @@ VphalRenderer::VphalRenderer(
 #endif
     m_statusTable(nullptr),
     maxSrcRect(),
+    pHdrState(nullptr),
     m_pRenderHal(pRenderHal),
     m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
     m_pSkuTable(nullptr),

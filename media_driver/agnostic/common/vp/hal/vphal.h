@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -254,6 +254,10 @@ enum VpKernelID
     // Fast 1toN
     kernelFast1toN,
 
+    // HDR
+    kernelHdrMandatory,
+    kernelHdrPreprocess,
+
     baseKernelMaxNumID
 };
 
@@ -290,6 +294,7 @@ struct VphalSettings
         sameSampleThreshold(0),
         disableDnDi(0),
         kernelUpdate(0),
+        disableHdr(0),
         veboxParallelExecution(0)
     {
     };
@@ -299,6 +304,7 @@ struct VphalSettings
     int32_t                sameSampleThreshold;
     uint32_t               disableDnDi;                                          //!< For validation purpose
     uint32_t               kernelUpdate;                                         //!< For VEBox Copy and Update kernels
+    uint32_t               disableHdr;                                           //!< Disable Hdr
     uint32_t               veboxParallelExecution;                               //!< Control VEBox parallel execution with render engine
 };
 
@@ -350,6 +356,7 @@ struct VphalFeatureReport
     VPHAL_COMPOSITION_REPORT_MODE   CompositionMode;    //!< Inplace/Legacy Compostion flag
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
     bool                            DiScdMode;          //!< Scene change detection
+    VPHAL_HDR_MODE                  HDRMode;            //!< HDR mode
 };
 
 #pragma pack(pop)

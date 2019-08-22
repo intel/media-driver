@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -472,6 +472,7 @@ typedef enum _RENDERHAL_COMPONENT
     RENDERHAL_COMPONENT_CM,
     RENDERHAL_COMPONENT_16ALIGN,
     RENDERHAL_COMPONENT_FAST1TON,
+    RENDERHAL_COMPONENT_HDR,
     RENDERHAL_COMPONENT_COUNT_BASE,
     RENDERHAL_COMPONENT_RESERVED_NUM = 15,
     RENDERHAL_COMPONENT_COUNT
