@@ -141,9 +141,13 @@ void MhwMiInterfaceG10::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G10;
     mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G10;
     mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GP_REGISTER11_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GP_REGISTER11_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GP_REGISTER12_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GP_REGISTER12_HI_OFFSET_G10;
 }
 
-MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight)
+MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder)
 {
     MHW_FUNCTION_ENTER;
 
@@ -153,22 +157,40 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uin
         return MOS_STATUS_SUCCESS;
     }
 
-    if ((frameWidth * frameHeight) >= (7680 * 4320))
+    if (isEncoder)
     {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS;
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (3840 * 2160))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (1920 * 1080))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS;
+        }
     }
-    else if ((frameWidth * frameHeight) >= (3840 * 2160))
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // User feature config of watchdog timer threshold
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
+        &userFeatureData);
+    if (userFeatureData.u32Data != 0)
     {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS;
+        MediaResetParam.watchdogCountThreshold = userFeatureData.u32Data;
     }
-    else if ((frameWidth * frameHeight) >= (1920 * 1080))
-    {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS;
-    }
-    else
-    {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS;
-    }
+#endif
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

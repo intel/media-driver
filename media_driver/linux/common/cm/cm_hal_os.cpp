@@ -725,8 +725,17 @@ MOS_STATUS HalCm_GetPlatformInfo_Linux(
 
     platformInfo->numHWThreadsPerEU    = gtSystemInfo->ThreadCount / gtSystemInfo->EUCount;
     platformInfo->numEUsPerSubSlice    = gtSystemInfo->EUCount / gtSystemInfo->SubSliceCount;
-    platformInfo->numSlices            = gtSystemInfo->SliceCount;
-    platformInfo->numSubSlices         = gtSystemInfo->SubSliceCount;
+
+    if (state->cmHalInterface->CheckMediaModeAvailability())
+    {
+        platformInfo->numSlices            = gtSystemInfo->SliceCount;
+        platformInfo->numSubSlices         = gtSystemInfo->SubSliceCount;
+    }
+    else
+    { // not use Slice/SubSlice count  set to 0
+        platformInfo->numSlices = 0;
+        platformInfo->numSubSlices = 0;
+    }
 
     return eStatus;
 }
@@ -834,6 +843,10 @@ MOS_STATUS HalCm_QueryTask_Linux(
         hwEndNs = HalCm_ConvertTicksToNanoSeconds(state, *piSyncEnd);
 
         ticks = *piSyncEnd - *piSyncStart;
+
+        queryParam->taskDurationTicks = ticks;
+        queryParam->taskHWStartTimeStampInTicks = *piSyncStart;
+        queryParam->taskHWEndTimeStampInTicks   = *piSyncEnd;
 
         // Convert ticks to Nanoseconds
         queryParam->taskDurationNs = HalCm_ConvertTicksToNanoSeconds(state, ticks);
@@ -1098,7 +1111,6 @@ MOS_STATUS HalCm_UpdateTrackerResource_Linux(
     uint32_t            tag)
 {
     MHW_MI_STORE_DATA_PARAMS storeDataParams;
-    MOS_RESOURCE             osResource;
     MOS_GPU_CONTEXT          gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
     MOS_STATUS               eStatus = MOS_STATUS_SUCCESS;
 
@@ -1106,17 +1118,24 @@ MOS_STATUS HalCm_UpdateTrackerResource_Linux(
     gpuContext = state->renderHal->pOsInterface->CurrentGpuContextOrdinal;
     if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
     {
-        osResource = state->renderHal->veBoxTrackerRes.osResource;
+        MOS_RESOURCE osResource = state->renderHal->veBoxTrackerRes.osResource;
+        storeDataParams.pOsResource = &osResource;
     }
     else
     {
-        osResource = state->renderHal->trackerResource.osResource;
+        state->renderHal->trackerProducer.GetLatestTrackerResource(state->renderHal->currentTrackerIndex,
+                            &storeDataParams.pOsResource,
+                            &storeDataParams.dwResourceOffset);
     }
 
-    storeDataParams.pOsResource = &osResource;
     storeDataParams.dwValue = tag;
     eStatus = state->renderHal->pMhwMiInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams);
     return eStatus;
+}
+
+uint32_t HalCm_RegisterStream(CM_HAL_STATE *state)
+{
+    return state->osInterface->streamIndex;
 }
 
 void HalCm_OsInitInterface(
@@ -1138,6 +1157,7 @@ void HalCm_OsInitInterface(
     cmState->pfnIsWASLMinL3Cache                    = HalCm_IsWaSLMinL3Cache_Linux;
     cmState->pfnEnableTurboBoost                    = HalCm_EnableTurboBoost_Linux;
     cmState->pfnUpdateTrackerResource               = HalCm_UpdateTrackerResource_Linux;
+    cmState->pfnRegisterStream                      = HalCm_RegisterStream;
 
     HalCm_GetLibDrmVMapFnt(cmState);
     return;
@@ -1211,8 +1231,9 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &loadRegMemParams));    //R1: compared value 32bits, in coditional surface
                                                                                                   // Load current tracker tag from resource to R8
     MOS_ZeroMemory(&loadRegMemParams, sizeof(loadRegMemParams));
-    loadRegMemParams.presStoreBuffer = &state->renderHal->trackerResource.osResource;
-    loadRegMemParams.dwOffset = 0;
+    state->renderHal->trackerProducer.GetLatestTrackerResource(state->renderHal->currentTrackerIndex,
+                                &loadRegMemParams.presStoreBuffer,
+                                &loadRegMemParams.dwOffset);
     loadRegMemParams.dwRegister = offsets->gprOffset+ 8 * 8;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &loadRegMemParams));  // R8: current tracker tag
 
@@ -1395,8 +1416,9 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
 
     // Store R15 to trackerResource
     MOS_ZeroMemory(&storeRegMemParams, sizeof(storeRegMemParams));
-    storeRegMemParams.presStoreBuffer = &state->renderHal->trackerResource.osResource;
-    storeRegMemParams.dwOffset = 0;
+    state->renderHal->trackerProducer.GetLatestTrackerResource(state->renderHal->currentTrackerIndex,
+                                            &storeRegMemParams.presStoreBuffer,
+                                            &storeRegMemParams.dwOffset);
     storeRegMemParams.dwRegister = offsets->gprOffset+ 8 * 15;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegMemParams));
 
@@ -1449,25 +1471,6 @@ MOS_STATUS HalCm_SetupSipSurfaceState(
     return MOS_STATUS_SUCCESS;
 }
 
-uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE osInterface)
-{
-    int32_t freq = 0;
-    drm_i915_getparam_t gp;
-    MOS_ZeroMemory(&gp, sizeof(gp));
-    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
-    gp.value = &freq;
-    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-    if(ret == 0)
-    {
-        return freq;
-    }
-    else
-    {
-        // fail to query it from KMD
-        return 0;
-    }
-}
-
 //!
 //! \brief    Prepare virtual engine hint parametere
 //! \details  Prepare virtual engine hint parameter for CCS node
@@ -1487,3 +1490,58 @@ MOS_STATUS HalCm_PrepareVEHintParam(
     return MOS_STATUS_UNIMPLEMENTED;
 }
 
+
+//!
+//! \brief    Decompress the surface
+//! \details  Decompress the media compressed surface
+//! \param    PCM_HAL_STATE state
+//!           [in] Pointer to CM_HAL_STATE Structure
+//! \param    PCM_HAL_KERNEL_ARG_PARAM argParam
+//!           [in]Pointer to HAL cm kernel argrument parameter
+//! \param    uint32_t threadIndex
+//!           [in] is used to get index of surface array
+//! \return   MOS_STATUS
+//!
+MOS_STATUS HalCm_DecompressSurface(
+    PCM_HAL_STATE              state,
+    PCM_HAL_KERNEL_ARG_PARAM   argParam,
+    uint32_t                   threadIndex)
+{
+    MOS_STATUS                 eStatus = MOS_STATUS_SUCCESS;
+    uint32_t                   handle = 0;
+    uint8_t                    *src = nullptr;
+    PCM_HAL_SURFACE2D_ENTRY    pEntry = nullptr;
+    PMOS_RESOURCE              pOsResource = nullptr;
+    PMOS_INTERFACE             pOsInterface = nullptr;
+    GMM_RESOURCE_FLAG          GmmFlags = { 0 };
+
+    //Get the index of  surface array handle from kernel data
+    CM_ASSERT(argParam->unitSize == sizeof(handle));
+    src = argParam->firstValue + (threadIndex * argParam->unitSize);
+    handle = *((uint32_t *)src) & CM_SURFACE_MASK;
+    if (handle == CM_NULL_SURFACE)
+    {
+        eStatus = MOS_STATUS_SUCCESS;
+        goto finish;
+    }
+
+    pEntry = &state->umdSurf2DTable[handle];
+    pOsResource = &pEntry->osResource;
+    pOsInterface = state->osInterface;
+
+    if (pOsResource->pGmmResInfo)
+    {
+        GmmFlags = pOsResource->pGmmResInfo->GetResFlags();
+        if (GmmFlags.Gpu.MMC || pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0))
+        {
+            PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
+            MOS_OS_ASSERT(pOsContext);
+            MOS_OS_ASSERT(pOsContext->ppMediaMemDecompState);
+            MOS_OS_ASSERT(pOsContext->pfnMemoryDecompress);
+            pOsContext->pfnMemoryDecompress(pOsContext, pOsResource);
+        }
+    }
+
+finish:
+    return eStatus;
+}

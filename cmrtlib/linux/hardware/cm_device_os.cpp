@@ -148,7 +148,8 @@ CmDevice_RT::CmDevice_RT(
     m_printEnabled ( false),
     m_printBufferSize( 0),
     m_createOption(createOption),
-    m_driverStoreEnabled(0)
+    m_driverStoreEnabled(0),
+    m_driFileDescriptor(0)
 {
 
     // New Surface Manager

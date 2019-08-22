@@ -119,6 +119,12 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_IFRAME_RDOQ_ENABLE_ID,
+        &userFeatureData);
+    m_hevcIFrameRdoqEnabled = userFeatureData.i32Data ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -807,17 +813,23 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
 
     if (m_firstFrame)
     {
-        m_oriFrameHeight = frameHeight;
-        m_oriFrameWidth = frameWidth;
+        m_oriFrameWidth   = frameWidth;
+        m_oriFrameHeight  = frameHeight;
+        m_prevFrameWidth  = m_oriFrameWidth;       //to ensure resolution reset at frame 0 is captured
+        m_prevFrameHeight = m_oriFrameHeight;
     }
 
     // check if there is a dynamic resolution change
-    if ((m_oriFrameHeight && (m_oriFrameHeight != frameHeight)) ||
-        (m_oriFrameWidth && (m_oriFrameWidth != frameWidth)))
+    if ((m_prevFrameHeight && (m_prevFrameHeight != frameHeight)) ||
+        (m_prevFrameWidth && (m_prevFrameWidth != frameWidth)))
     {
+        if (frameHeight > m_createHeight || frameWidth > m_createWidth)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Resolution reset from lower resolution to higher resolution not supported if it is higher than the resolution of first frame.%d, %d %d, %d", m_createWidth, m_createHeight, frameWidth, frameHeight);
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            return eStatus;
+        }
         m_resolutionChanged = true;
-        m_oriFrameHeight = frameHeight;
-        m_oriFrameWidth = frameWidth;
         m_brcInit           = true;
     }
     else
@@ -826,8 +838,9 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
     }
 
     // setup internal parameters
-    m_oriFrameWidth = m_frameWidth = frameWidth;
-    m_oriFrameHeight = m_frameHeight = frameHeight;
+    m_prevFrameWidth = m_oriFrameWidth = m_frameWidth = frameWidth;
+    m_prevFrameHeight = m_oriFrameHeight = m_frameHeight = frameHeight;
+
     m_picWidthInMb = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_oriFrameWidth);
     m_picHeightInMb = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
 
@@ -1042,7 +1055,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if (!m_hevcSeqParams->scaling_list_enable_flag)
+    if (!m_hevcSeqParams->scaling_list_enable_flag || !m_hevcPicParams->scaling_list_data_present_flag)
     {
         CreateFlatScalingList();
     }
@@ -2210,7 +2223,7 @@ void CodechalEncodeHevcBase::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELE
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = m_vdencEnabled;
     pipeModeSelectParams.bVdencEnabled = m_vdencEnabled;
-    pipeModeSelectParams.bRdoqEnable                = m_hevcRdoqEnabled;
+    pipeModeSelectParams.bRdoqEnable = m_hevcRdoqEnabled ? (m_pictureCodingType == I_TYPE ? m_hevcIFrameRdoqEnabled : 1) : 0;
     pipeModeSelectParams.bAdvancedRateControlEnable = m_vdencBrcEnabled;
 
     if (m_hevcSeqParams->SAO_enabled_flag)
@@ -2354,7 +2367,7 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     picStateParams.bSAOEnable            = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
     picStateParams.bUseVDEnc = m_vdencEnabled;
     picStateParams.bNotFirstPass = m_vdencEnabled && !IsFirstPass() ;
-    picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
+    picStateParams.bHevcRdoqEnabled = m_hevcRdoqEnabled ? (m_pictureCodingType == I_TYPE ? m_hevcIFrameRdoqEnabled : 1) : 0;
     picStateParams.bRDOQIntraTUDisable   = m_hevcRdoqEnabled && (1 != m_hevcSeqParams->TargetUsage);
     picStateParams.wRDOQIntraTUThreshold = (uint16_t)m_rdoqIntraTuThreshold;
     picStateParams.bTransformSkipEnable  = m_hevcPicParams->transform_skip_enabled_flag;
@@ -2762,14 +2775,14 @@ short CodechalEncodeHevcBase::ComputeTemporalDifferent(CODEC_PICTURE  refPic)
     {
         diff_poc = m_hevcPicParams->CurrPicOrderCnt - m_hevcPicParams->RefFramePOCList[refPic.FrameIdx];
 
-        if (diff_poc < -128)
+        if (diff_poc < -16)
         {
-            diff_poc = -128;
+            diff_poc = -16;
         }
         else
-            if (diff_poc > 127)
+            if (diff_poc > 16)
             {
-                diff_poc = 127;
+                diff_poc = 16;
             }
     }
 

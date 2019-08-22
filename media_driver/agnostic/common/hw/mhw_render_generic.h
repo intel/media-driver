@@ -152,6 +152,7 @@ public:
         if (params->presIndirectObjectBuffer)
         {
             cmd.DW8_9.IndirectObjectBaseAddressModifyEnable     = true;
+            cmd.DW8_9.IndirectObjectMemoryObjectControlState    = params->mocs4IndirectObjectBuffer;
             cmd.DW14.IndirectObjectBufferSizeModifyEnable       = true;
             resourceParams.presResource                         = params->presIndirectObjectBuffer;
             resourceParams.dwOffset                             = 0;
@@ -189,6 +190,9 @@ public:
 
             cmd.DW15.InstructionBufferSize = (params->dwInstructionBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
+
+        // stateless dataport access
+        cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params->mocs4StatelessDataport;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 

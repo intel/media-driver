@@ -36,7 +36,7 @@
 #include "codechal_debug_encode_par_g11.h"
 #endif
 
-const uint8_t CodechalEncodeCscDsG11::GetBTCount()
+uint8_t CodechalEncodeCscDsG11::GetBTCount() const
 {
     return (uint8_t)cscNumSurfaces;
 }

@@ -416,8 +416,8 @@ MOS_STATUS CodechalHwInterface::GetVdencPictureSecondLevelCommandsSize(
     {
         commands += m_hcpInterface->GetHcpVp9PicStateCommandSize();
         commands += m_hcpInterface->GetHcpVp9SegmentStateCommandSize() * 8;
-        commands += 124;
-        commands += 204;
+        commands += 128;
+        commands += 220;
         commands += m_sizeOfCmdBatchBufferEnd;
     }
     else

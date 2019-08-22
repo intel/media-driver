@@ -90,6 +90,18 @@ struct CM_ARG
         isDirty = false;
         isNull = false;
         unitVmeArraySize = 0;
+        surfIndex = nullptr;
+        aliasIndex = 0;
+        unitOffsetInPayloadOrig = 0;
+        isSet = false;
+        index = 0;
+        unitKindOrig = 0;
+        nCustomValue = 0;
+        surfaceKind = DATA_PORT_SURF;
+        unitSizeOrig = 0;
+        surfArrayArg = nullptr;
+        aliasCreated = false;
+
     }
 };
 
@@ -180,9 +192,6 @@ public:
     CM_RT_API int32_t DeAssociateThreadGroupSpace(CmThreadGroupSpace *&threadGroupSpace);
 
     CM_RT_API int32_t QuerySpillSize(uint32_t &spillMemorySize);
-
-    CM_RT_API CM_RETURN_CODE
-    GetIndexForCurbeData(uint32_t curbeDataSize, SurfaceIndex *surfaceIndex);
 
     CMRT_UMD_API int32_t GetBinary(std::vector<char> &binary);
 

@@ -453,6 +453,17 @@ enum MEMORY_OBJECT_CONTROL
     MEMORY_OBJECT_CONTROL_CNL_NO_CACHE,
     MEMORY_OBJECT_CONTROL_CNL_COUNT,
 
+    // Unified memory object control type for SKL+
+    MEMORY_OBJECT_CONTROL_DEFAULT = 0x0,
+    MEMORY_OBJECT_CONTROL_NO_L3,
+    MEMORY_OBJECT_CONTROL_NO_LLC_ELLC,
+    MEMORY_OBJECT_CONTROL_NO_LLC,
+    MEMORY_OBJECT_CONTROL_NO_ELLC,
+    MEMORY_OBJECT_CONTROL_NO_LLC_L3,
+    MEMORY_OBJECT_CONTROL_NO_ELLC_L3,
+    MEMORY_OBJECT_CONTROL_NO_CACHE,
+    MEMORY_OBJECT_CONTROL_L1_ENABLED,
+
     MEMORY_OBJECT_CONTROL_UNKNOWN = 0xff
 };
 
@@ -1303,7 +1314,6 @@ public:
     CM_RT_API virtual INT DeAssociateThreadSpace(CmThreadSpace* & pTS) = 0;
     CM_RT_API virtual INT DeAssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
     CM_RT_API virtual INT QuerySpillSize(unsigned int &spillSize) = 0;
-    CM_RT_API virtual INT GetIndexForCurbeData( UINT curbe_data_size, SurfaceIndex *pSurface ) = 0;
 protected:
    ~CmKernel(){};
 };

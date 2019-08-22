@@ -24,6 +24,7 @@
 //! \brief         This modules implements simple memory pool infrastructure for MHW 
 //!
 #include "mhw_memory_pool.h"
+#include "mhw_state_heap.h"
 
 typedef struct _MHW_MEMORY_POOL_ENTRY
 {
@@ -86,6 +87,7 @@ void  *MHW_MEMORY_POOL::Allocate(uint32_t dwObjCount)
     {
         return nullptr;
     }
+    MOS_ZeroMemory(pEntry, dwSize);
 
     pObjects  = ((uint8_t*) pEntry) + sizeof(MHW_MEMORY_POOL_ENTRY);
 

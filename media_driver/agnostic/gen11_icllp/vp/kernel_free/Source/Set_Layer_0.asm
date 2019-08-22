@@ -25,7 +25,7 @@ L0:
          cmp     (1|M0)     (ne)f0.1    null.0<1>:w     r7.2<0;1,0>:uw    0x0:uw    
 (f0.1)   cmp     (1|M0)     (ne)f0.1    null.0<1>:w     r7.3<0;1,0>:uw    0x0:uw    
          mov     (1|M0)                 r24.24<1>:ub    0x1:uw            
-         mov     (1|M0)                 r24.0<1>:ub     0x1:uw            
+         mov     (1|M0)                 r24.0<1>:ub     f0.1<0;1,0>:uw    
 (W&~f0.1)jmpi    L432        
 L96:
          mov     (1|M0)                 r25.6<1>:f      r7.5<0;1,0>:f     

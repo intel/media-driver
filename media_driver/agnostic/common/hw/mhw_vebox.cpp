@@ -365,13 +365,15 @@ MhwVeboxInterface::MhwVeboxInterface(PMOS_INTERFACE pOsInterface)
 {
     MHW_FUNCTION_ENTER;
 
+    MOS_ZeroMemory(&m_veboxSettings, sizeof(m_veboxSettings));
+    pfnAddResourceToCmd = nullptr;
+
     if (pOsInterface == nullptr)
     {
         MHW_ASSERTMESSAGE("Invalid input pointers provided");
         return;
     }
     m_osInterface   = pOsInterface;
-    memset(&m_veboxSettings, 0, sizeof(m_veboxSettings));
 
     if (m_osInterface->bUsesGfxAddress)
     {

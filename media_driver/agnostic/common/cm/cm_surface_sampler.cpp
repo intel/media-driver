@@ -69,8 +69,8 @@ CmSurfaceSampler::CmSurfaceSampler(
     CmSurfaceManager* surfaceManager,
     CM_FLAG* flag):
     CmSurface(surfaceManager,false ),
-    m_indexForCurrent(indexForCurrent),
     m_handleFor2D3D( handleFor2D3D),
+    m_indexForCurrent(indexForCurrent),
     m_surfaceType(surfaceType)
 {
     if (flag != nullptr)

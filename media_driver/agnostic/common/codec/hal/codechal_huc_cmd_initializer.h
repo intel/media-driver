@@ -209,13 +209,13 @@ class CodechalCmdInitializer
 public:
     static constexpr uint32_t m_hucCmdInitializerKernelDescriptor = 14; //!< VDBox Huc cmd initializer kernel descriptoer
 
-    bool                                        m_pakOnlyPass;
-    bool                                        m_acqpEnabled;
-    bool                                        m_brcEnabled;
-    bool                                        m_streamInEnabled;
-    bool                                        m_roundingEnabled;
-    bool                                        m_panicEnabled;
-    bool                                        m_roiStreamInEnabled;
+    bool                                        m_pakOnlyPass = false;
+    bool                                        m_acqpEnabled = false;
+    bool                                        m_brcEnabled = false;
+    bool                                        m_streamInEnabled = false;
+    bool                                        m_roundingEnabled = false;
+    bool                                        m_panicEnabled = false;
+    bool                                        m_roiStreamInEnabled = false;
     int32_t                                     m_currentPass = 0;
     int32_t                                     m_cmdCount = 0 ;
 
@@ -231,14 +231,16 @@ public:
     //VP9 related changes
     Vp9CmdInitializerParams                     m_vp9Params;
 #endif
-    CodechalHwInterface*                        m_hwInterface;
+    CodechalHwInterface*                        m_hwInterface = nullptr;
     MOS_RESOURCE                                m_cmdInitializerDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3];
     MOS_RESOURCE                                m_cmdInitializerDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3];
-    MOS_RESOURCE                                m_cmdInitializerDysScalingDmemBuffer;
-    MOS_RESOURCE                                m_cmdInitializerDysScalingDataBuffer;
+    MOS_RESOURCE                                m_cmdInitializerDysScalingDmemBuffer = {0};
+    MOS_RESOURCE                                m_cmdInitializerDysScalingDataBuffer = {0};
 
     static constexpr uint32_t CODECHAL_CMD1_SIZE = 120;
     static constexpr uint32_t CODECHAL_CMD2_SIZE = 148;
+
+    bool m_hevcVisualQualityImprovementEnableFlag = false;  //!< VQI enable flag
 
 public:
     //!
@@ -338,7 +340,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, bool isLowDelayB = true, int8_t * pRefIdxMapping = nullptr)
+    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, bool isLowDelayB = true, int8_t * pRefIdxMapping = nullptr, int8_t recNotFilteredID = 0)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
         return eStatus;

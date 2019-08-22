@@ -29,18 +29,36 @@
 #ifndef __MHW_MMIO_G8_H__
 #define __MHW_MMIO_G8_H__
 
+// CS register offsets
+#define CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G8                           0x2600
+#define CS_GENERAL_PURPOSE_REGISTER0_HI_OFFSET_G8                           0x2604
+#define CS_GENERAL_PURPOSE_REGISTER4_LO_OFFSET_G8                           0x2620
+#define CS_GENERAL_PURPOSE_REGISTER4_HI_OFFSET_G8                           0x2624
+#define CS_GENERAL_PURPOSE_REGISTER11_LO_OFFSET_G8                          0x2658
+#define CS_GENERAL_PURPOSE_REGISTER11_HI_OFFSET_G8                          0x265C
+#define CS_GENERAL_PURPOSE_REGISTER12_LO_OFFSET_G8                          0x2660
+#define CS_GENERAL_PURPOSE_REGISTER12_HI_OFFSET_G8                          0x2664
 
-//Common MI 
+// Vebox register offsets
+// Used in Commen MI
 #define GP_REGISTER0_LO_OFFSET_G8                                           0x1A600
 #define GP_REGISTER0_HI_OFFSET_G8                                           0x1A604
 #define GP_REGISTER4_LO_OFFSET_G8                                           0x1A620
 #define GP_REGISTER4_HI_OFFSET_G8                                           0x1A624
+#define GP_REGISTER11_LO_OFFSET_G8                                          0x1A658
+#define GP_REGISTER11_HI_OFFSET_G8                                          0x1A65C
+#define GP_REGISTER12_LO_OFFSET_G8                                          0x1A660
+#define GP_REGISTER12_HI_OFFSET_G8                                          0x1A664
 
 //VDBOX MFX register offsets
 #define GENERAL_PURPOSE_REGISTER0_LO_OFFSET_NODE_1_INIT_G8                  0x12600
 #define GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_1_INIT_G8                  0x12604
 #define GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_1_INIT_G8                  0x12620
 #define GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_1_INIT_G8                  0x12624
+#define GENERAL_PURPOSE_REGISTER11_LO_OFFSET_NODE_1_INIT_G8                 0x12658
+#define GENERAL_PURPOSE_REGISTER11_HI_OFFSET_NODE_1_INIT_G8                 0x1265C
+#define GENERAL_PURPOSE_REGISTER12_LO_OFFSET_NODE_1_INIT_G8                 0x12660
+#define GENERAL_PURPOSE_REGISTER12_HI_OFFSET_NODE_1_INIT_G8                 0x12664
 #define MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G8                     0x128B4
 #define MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G8                     0x128B8
 #define MFC_QP_STATUS_COUNT_OFFSET_NODE_1_INIT_G8                           0x128BC
@@ -65,6 +83,10 @@
 #define GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_2_INIT_G8                  0x1C604
 #define GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_2_INIT_G8                  0x1C620
 #define GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_2_INIT_G8                  0x1C624
+#define GENERAL_PURPOSE_REGISTER11_LO_OFFSET_NODE_2_INIT_G8                 0x1C658
+#define GENERAL_PURPOSE_REGISTER11_HI_OFFSET_NODE_2_INIT_G8                 0x1C65C
+#define GENERAL_PURPOSE_REGISTER12_LO_OFFSET_NODE_2_INIT_G8                 0x1C660
+#define GENERAL_PURPOSE_REGISTER12_HI_OFFSET_NODE_2_INIT_G8                 0x1C664
 #define MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_2_INIT_G8                     0x1C8B4
 #define MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_2_INIT_G8                     0x1C8B8
 #define MFC_QP_STATUS_COUNT_OFFSET_NODE_2_INIT_G8                           0x1C8BC

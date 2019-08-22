@@ -71,8 +71,9 @@ typedef struct _CM_ENQUEUE_GPUCOPY_PARAM
 class CmQueue_RT : public CmQueue
 {
 public:
-    static int32_t Create(CmDevice_RT *device, CmQueue_RT *&queue);
-    static int32_t Create(CmDevice_RT *device, CmQueue_RT *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption);
+    static int32_t Create(CmDevice_RT *device,
+                          CmQueue_RT* &queue,
+                          CM_QUEUE_CREATE_OPTION queueCreateOption);
     static int32_t Destroy(CmQueue_RT *&queue);
 
     CM_RT_API int32_t Enqueue(CmTask *task,

@@ -241,6 +241,12 @@ public:
 
     CM_QUEUE_CREATE_OPTION &GetQueueOption();
 
+    int32_t GetOSSyncEventHandle(void *& hOSSyncEvent);
+
+    uint32_t GetFastTrackerIndex() { return m_fastTrackerIndex; }
+
+    uint32_t StreamIndex() const { return m_streamIndex; }
+
 protected:
     CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
@@ -323,6 +329,9 @@ protected:
                                 CM_GPUCOPY_DIRECTION copyDirection,
                                 CM_GPUCOPY_KERNEL* &kernelParam);
 
+    int32_t RegisterSyncEvent();
+
+
     CmDeviceRT *m_device;
     ThreadSafeQueue m_enqueuedTasks;
     ThreadSafeQueue m_flushedTasks;
@@ -346,7 +355,24 @@ protected:
     bool m_usingVirtualEngine;
     MOS_VIRTUALENGINE_HINT_PARAMS m_mosVeHintParams;
 
+    void  *m_osSyncEvent;   //KMD Notification
+
+    uint32_t m_trackerIndex;
+    uint32_t m_fastTrackerIndex;
+
 private:
+    uint32_t m_streamIndex;
+
+    MOS_STATUS CreateGpuContext(CM_HAL_STATE *halState,
+                                MOS_GPU_CONTEXT gpuContextName,
+                                MOS_GPU_NODE gpuNode,
+                                MOS_GPUCTX_CREATOPTIONS *createOptions);
+
+    // Calls CM HAL API to submit a group task to command buffer.
+    MOS_STATUS ExecuteGroupTask(CM_HAL_STATE *halState,
+                                CM_HAL_EXEC_TASK_GROUP_PARAM *taskParam,
+                                MOS_GPU_CONTEXT gpuContextName);
+
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);
 };

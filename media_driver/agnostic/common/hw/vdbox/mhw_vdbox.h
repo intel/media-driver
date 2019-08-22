@@ -79,6 +79,9 @@
 #define VP9HVDROWSTORE_BASEADDRESS                                            0
 #define VP9DFROWSTORE_BASEADDRESS_PICWIDTH_LESS_THAN_OR_EQU_TO_2K             32
 #define MHW_CACHELINE_SIZE                                                    64
+#define BYTES_PER_DWORD                                                       4
+#define NUM_PAK_DWS_PER_LCU                                                   5
+#define NUM_DWS_PER_CU                                                        8
 
 #define VP9DFROWSTORE_BASEADDRESS_8BIT_PICWIDTH_LESS_THAN_OR_EQU_TO_4K          384
 #define VP9DATROWSTORE_BASEADDRESS_8BIT_PICWIDTH_LESS_THAN_OR_EQU_TO_4K         64
@@ -519,5 +522,56 @@ struct MHW_VDBOX_STATE_CMDSIZE_PARAMS
     virtual ~MHW_VDBOX_STATE_CMDSIZE_PARAMS() {}
 };
 using PMHW_VDBOX_STATE_CMDSIZE_PARAMS = MHW_VDBOX_STATE_CMDSIZE_PARAMS * ;
+
+typedef struct _MHW_VDBOX_AVC_SLICE_STATE
+{
+    PCODEC_PIC_ID                           pAvcPicIdx;
+    PMOS_RESOURCE                           presDataBuffer;
+    uint32_t                                dwDataBufferOffset;
+    uint32_t                                dwOffset;
+    uint32_t                                dwLength;
+    uint32_t                                dwSliceIndex;
+    bool                                    bLastSlice;
+    uint32_t                                dwTotalBytesConsumed;
+
+    // Decoding Only
+    PCODEC_AVC_PIC_PARAMS                   pAvcPicParams;
+    PCODEC_MVC_EXT_PIC_PARAMS               pMvcExtPicParams;
+    PCODEC_AVC_SLICE_PARAMS                 pAvcSliceParams;
+    uint32_t                                dwNextOffset;
+    uint32_t                                dwNextLength;
+    bool                                    bIntelEntrypointInUse;
+    bool                                    bPicIdRemappingInUse;
+    bool                                    bShortFormatInUse;
+    bool                                    bPhantomSlice;
+    uint8_t                                 ucDisableDeblockingFilterIdc;
+    uint8_t                                 ucSliceBetaOffsetDiv2;
+    uint8_t                                 ucSliceAlphaC0OffsetDiv2;
+
+    // Encoding Only
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pEncodeAvcSeqParams;
+    PCODEC_AVC_ENCODE_PIC_PARAMS            pEncodeAvcPicParams;
+    PCODEC_AVC_ENCODE_SLICE_PARAMS          pEncodeAvcSliceParams;
+    PBSBuffer                               pBsBuffer;
+    PCODECHAL_NAL_UNIT_PARAMS              *ppNalUnitParams;
+    PMHW_BATCH_BUFFER                       pBatchBufferForPakSlices;
+    bool                                    bSingleTaskPhaseSupported;
+    bool                                    bFirstPass;
+    bool                                    bLastPass;
+    bool                                    bBrcEnabled;
+    bool                                    bRCPanicEnable;
+    bool                                    bInsertBeforeSliceHeaders;
+    bool                                    bAcceleratorHeaderPackingCaps;
+    uint32_t                                dwBatchBufferForPakSlicesStartOffset;
+    uint32_t                                uiSkipEmulationCheckCount;
+    uint32_t                                dwRoundingValue;
+    uint32_t                                dwRoundingIntraValue;
+    bool                                    bRoundingInterEnable;
+    uint16_t                                wFrameFieldHeightInMB;  // Frame/field Height in MB
+    bool                                    bVdencInUse;
+    bool                                    bVdencNoTailInsertion;
+    bool                                    oneOnOneMapping = false;
+    bool                                    bFullFrameData;
+} MHW_VDBOX_AVC_SLICE_STATE, *PMHW_VDBOX_AVC_SLICE_STATE;
 
 #endif

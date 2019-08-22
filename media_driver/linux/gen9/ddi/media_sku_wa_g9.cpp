@@ -37,7 +37,7 @@ static struct LinuxCodecInfo sklCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
@@ -52,7 +52,7 @@ static struct LinuxCodecInfo bxtCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 0,
@@ -70,7 +70,7 @@ static struct LinuxCodecInfo kblCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
@@ -91,7 +91,7 @@ static struct LinuxCodecInfo glkCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 0,
@@ -263,6 +263,8 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrPPGTT, drvInfo->hasPpgtt);
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
+
+    MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
 
     return true;
 }

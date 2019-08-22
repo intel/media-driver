@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,8 +25,8 @@
 //! \details  This module must not contain: - OS dependent code - HW dependent code - DDI layer dependencies
 //!
 #ifdef IGFX_GEN11_SUPPORTED
-extern const unsigned int IGVP3DLUT_GENERATION_G11_ICLLP_SIZE = 75763;
-extern const unsigned int IGVP3DLUT_GENERATION_G11_ICLLP[] = 
+unsigned int IGVP3DLUT_GENERATION_G11_ICLLP_SIZE = 75763;
+unsigned int IGVP3DLUT_GENERATION_G11_ICLLP[] =
 {
 0x41534943, 0x00010603, 0x72646809, 0x6c64335f, 0x00307475, 0xcc330000, 0x24cd0000, 0x00000000, 
 0x0a010000, 0x0000cc63, 0x00005b90, 0x00000000, 0x0000022e, 0x5f726468, 0x756c6433, 0x756e0074, 
@@ -2399,8 +2399,8 @@ extern const unsigned int IGVP3DLUT_GENERATION_G11_ICLLP[] =
 };
 
 #else
-extern const unsigned int IGVP3DLUT_GENERATION_G11_ICLLP_SIZE = 216;
-extern const unsigned int IGVP3DLUT_GENERATION_G11_ICLLP[] =
+unsigned int IGVP3DLUT_GENERATION_G11_ICLLP_SIZE = 216;
+unsigned int IGVP3DLUT_GENERATION_G11_ICLLP[] =
 {
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };

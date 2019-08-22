@@ -1818,6 +1818,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetPictureStructs()
         m_signalEnc = false;
     }
     m_pictureCodingType = m_picParams->m_pictureCodingType;
+    m_mbEncForcePictureCodingType = 0;
 
     // f_code checking.
     uint32_t fcodeX = CODECHAL_ENCODE_MPEG2_FCODE_X(m_frameWidth);
@@ -2357,7 +2358,7 @@ MOS_STATUS CodechalEncodeMpeg2::PackPicCodingExtension()
     PutBits(bsBuffer, (!m_picParams->m_fieldCodingFlag) ? 3 : ((m_picParams->m_interleavedFieldBFF) ? 2 : 1), 2);
 
     bool progressiveSequence = m_seqParams->m_progressiveSequence & 0x1;
-    bool actual_tff = !m_picParams->m_fieldCodingFlag && !progressiveSequence || (m_picParams->m_repeatFirstField != 0);
+    bool actual_tff = (!m_picParams->m_fieldCodingFlag && !progressiveSequence) || (m_picParams->m_repeatFirstField != 0);
 
     // top_field_first
     PutBit(bsBuffer, (actual_tff ) ? (!m_picParams->m_interleavedFieldBFF) : 0);
@@ -3322,6 +3323,8 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
     }
 
     PMHW_KERNEL_STATE kernelState;
+    uint8_t           codingType = m_mbEncForcePictureCodingType ?
+        m_mbEncForcePictureCodingType : (uint8_t)m_pictureCodingType;
     // Initialize DSH kernel region
     if (mbEncIFrameDistEnabled)
     {
@@ -3332,7 +3335,8 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
         // wPictureCodingType: I_TYPE = 1, P_TYPE = 2, B_TYPE = 3
         // KernelStates are I: 0, P: 1, B: 2
         // m_mbEncKernelStates: I: m_mbEncKernelStates[0], P: m_mbEncKernelStates[1], B: m_mbEncKernelStates[2]
-        uint32_t krnStateIdx = m_pictureCodingType - 1;
+        uint32_t krnStateIdx = codingType - 1;
+
         kernelState = &m_mbEncKernelStates[krnStateIdx];
     }
 
@@ -3432,7 +3436,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
 
    CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMbEncSurfaces(&cmdBuffer, mbEncIFrameDistEnabled));
 
-    if ((m_pictureCodingType != B_TYPE) && (!mbEncIFrameDistEnabled))
+    if ((codingType != B_TYPE) && (!mbEncIFrameDistEnabled))
     {
         m_prevMBCodeIdx = m_currReconstructedPic.FrameIdx;
     }
@@ -3447,12 +3451,12 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
     walkerCodecParams.dwResolutionY             = mbEncIFrameDistEnabled ?
         m_downscaledFrameFieldHeightInMb4x : (uint32_t)m_frameFieldHeightInMb;
 
-    if (m_pictureCodingType == I_TYPE )
+    if (codingType == I_TYPE)
     {
         walkerCodecParams.bUseScoreboard            = false;
         walkerCodecParams.bNoDependency             = true;     /* Enforce no dependency dispatch order for I frame */
     }
-    else if (m_pictureCodingType == P_TYPE)
+    else if (codingType == P_TYPE)
     {
         // walkerCodecParams.wPictureCodingType can be different from m_pictureCodingType
         walkerCodecParams.wPictureCodingType        = I_TYPE;   /* Enforce 45 degree dispatch order for P frame, as by default it's 26 degree */
@@ -3832,6 +3836,12 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
     // KernelStates are I: 0, P: 1, B: 2
     // m_mbEncKernelStates: I: m_mbEncKernelStates[0], P: m_mbEncKernelStates[1], B: m_mbEncKernelStates[2]
     uint32_t krnStateIdx = m_pictureCodingType - 1;
+
+    if (m_mbEncForcePictureCodingType)
+    {
+        krnStateIdx = m_mbEncForcePictureCodingType - 1;
+    }
+
     auto mbEncKernelState = &m_mbEncKernelStates[krnStateIdx];
 
     // Setup MbEnc Curbe
@@ -4894,6 +4904,11 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         // KernelStates are I: 0, P: 1, B: 2
         // m_mbEncKernelStates: I: m_mbEncKernelStates[0], P: m_mbEncKernelStates[1], B: m_mbEncKernelStates[2]
         uint32_t krnStateIdx = m_pictureCodingType - 1;
+
+        if (m_mbEncForcePictureCodingType)
+        {
+            krnStateIdx = m_mbEncForcePictureCodingType - 1;
+        }
 
         kernelState = &m_mbEncKernelStates[krnStateIdx];
     }

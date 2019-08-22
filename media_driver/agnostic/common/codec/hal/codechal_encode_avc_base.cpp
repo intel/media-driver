@@ -55,6 +55,7 @@ uint32_t CodecHalAvcEncode_GetMaxVmvR(uint8_t levelIdc)
     switch (levelIdc)
     {
     case CODEC_AVC_LEVEL_1:
+    case CODEC_AVC_LEVEL_1b:
         maxVmvR = 64 * 4;
         break;
     case CODEC_AVC_LEVEL_11:
@@ -96,6 +97,7 @@ uint32_t CodecHalAvcEncode_GetMaxMvLen(uint8_t levelIdc)
     switch (levelIdc)
     {
     case CODEC_AVC_LEVEL_1:
+    case CODEC_AVC_LEVEL_1b:
         maxMvLen = 63;
         break;
     case CODEC_AVC_LEVEL_11:
@@ -399,10 +401,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
         {
             weightOffsetParams.pAvcPicParams = params->pEncodeAvcPicParams;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcWeightsOffsetsStateCmd(cmdBuffer, &weightOffsetParams));
-
-            PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS vdencSliceStateParams = std::make_shared<MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS>();
-            vdencSliceStateParams->pAvcSlcParams = avcSlcParams;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, vdencSliceStateParams));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, params));
 
             vdencWalkerStateParams.Mode             = CODECHAL_ENCODE_MODE_AVC;
             vdencWalkerStateParams.slcIdx           = params->dwSliceIndex;
@@ -446,6 +445,7 @@ static int32_t GetMaxMBPS(uint8_t levelIdc)
     switch (levelIdc)
     {
     case CODEC_AVC_LEVEL_1:
+    case CODEC_AVC_LEVEL_1b:
         maxMBPS = 1485;
         break;
     case CODEC_AVC_LEVEL_11:

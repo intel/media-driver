@@ -31,7 +31,7 @@ class CmTracker;
 class CmISH;
 class CmDSH;
 class CmSurfaceStateBufferMgr;
-class CmSurfaceState2DMgr;
+class CmSurfaceState2Dor3DMgr;
 class CmSurfaceStateVME;
 namespace CMRT_UMD
 {
@@ -53,18 +53,22 @@ public:
     virtual CmTracker *GetTracker() {return nullptr; }
     virtual CmISH *GetISH() {return nullptr; }
     virtual CmDSH *GetDSH() {return nullptr; }
-    virtual CmSurfaceState2DMgr *Create2DStateMgr(MOS_RESOURCE *resource) {return nullptr; }
-    virtual void Delete2DStateMgr(CmSurfaceState2DMgr *stateMgr) {}
+    virtual CmSurfaceState2Dor3DMgr *Create2DStateMgr(MOS_RESOURCE *resource) {return nullptr; }
+    virtual CmSurfaceState2Dor3DMgr *Create3DStateMgr(MOS_RESOURCE *resource) {return nullptr; }
+    virtual void Delete2Dor3DStateMgr(CmSurfaceState2Dor3DMgr *stateMgr) {}
     virtual CmSurfaceStateBufferMgr *CreateBufferStateMgr(MOS_RESOURCE *resource) {return nullptr; }
     virtual void DeleteBufferStateMgr(CmSurfaceStateBufferMgr *stateMgr) {}
     virtual void DeleteSurfStateVme(CmSurfaceStateVME *state) {}
     virtual void SetBufferOrigSize(CmSurfaceStateBufferMgr *stateMgr, uint32_t size) {}
     virtual void SetBufferMemoryObjectControl(CmSurfaceStateBufferMgr *stateMgr, uint16_t mocs) {}
-    virtual void Set2DOrigFormat(CmSurfaceState2DMgr *stateMgr, MOS_FORMAT format) {}
-    virtual void Set2DRenderTarget(CmSurfaceState2DMgr *stateMgr, bool renderTarget) {}
-    virtual void Set2DMemoryObjectControl(CmSurfaceState2DMgr *stateMgr, uint16_t mocs) {}
-    virtual void Set2DFrameType(CmSurfaceState2DMgr *stateMgr, CM_FRAME_TYPE frameType) {}
-    virtual uint32_t *GetLatestFastTracker() {return nullptr; }
+    virtual void Set2Dor3DOrigFormat(CmSurfaceState2Dor3DMgr *stateMgr, MOS_FORMAT format) {}
+    virtual void Set2Dor3DOrigDimension(CmSurfaceState2Dor3DMgr *stateMgr, uint32_t width, uint32_t height, uint32_t depth) {}
+    virtual void Set2DRenderTarget(CmSurfaceState2Dor3DMgr *stateMgr, bool renderTarget) {}
+    virtual void Set2Dor3DMemoryObjectControl(CmSurfaceState2Dor3DMgr *stateMgr, uint16_t mocs) {}
+    virtual void Set2DFrameType(CmSurfaceState2Dor3DMgr *stateMgr, CM_FRAME_TYPE frameType) {}
+    virtual void SetRotationFlag(CmSurfaceState2Dor3DMgr *stateMgr, uint32_t rotation) {}
+    virtual void SetChromaSitting(CmSurfaceState2Dor3DMgr *stateMgr, uint8_t chromaSitting) {}
+    virtual FrameTrackerProducer *GetFastTrackerProducer() {return nullptr; }
     virtual CMRT_UMD::CmKernelRT *CreateKernelRT(CMRT_UMD::CmDeviceRT *device,
                 CMRT_UMD::CmProgramRT *program,
                 uint32_t kernelIndex,
@@ -84,5 +88,11 @@ public:
                 const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
                 MOS_GPU_CONTEXT gpuContext);
     virtual int WaitForAllTasksFinished() {return 0; }
+
+    virtual void SetL3Config(const L3ConfigRegisterValues *l3Config) {}
+
+    virtual int SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestConfig) {return 0; }
+
+    virtual int AssignNewTracker() {return 0; }
     
 };

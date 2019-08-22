@@ -57,10 +57,9 @@ CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
     if(ret == CM_SUCCESS)
     {
         device = deviceRT;
-        return deviceRT->RegisterSyncEvent(nullptr);
     }
 
-    return CM_FAILURE;
+    return ret;
 }
 
 //!

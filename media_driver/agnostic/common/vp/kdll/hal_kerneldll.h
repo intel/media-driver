@@ -310,6 +310,7 @@ typedef enum tagKdll_RuleID
     RID_IsProcampEnabled ,     // Match Procamp
     RID_IsSetCoeffMode   ,     // Set CSC coefficients mode
     RID_IsConstOutAlpha  ,     // Match alpha fill mode
+    RID_IsDitherNeeded   ,     // Whether dithering needed
 
     // Extended Match Rules - 0x0100 to 0x01ff
 
@@ -434,13 +435,15 @@ typedef struct tagKdll_FilterEntry
     MOS_TILE_TYPE   tiletype;         // Tiling Type
     bool            dualout;          // dual output mode
     bool            bWaEnableDscale;  // enable DScale kernels for sampler-unrom issue
+    bool            bEnableDscale;    // always enable DScale Kernels
     int32_t         chromasiting;     // chromasiting        (-1 if Chromasiting is disabled)
 
     // This flag is used to select between kernels:
     // Save_RGB         or     Save_ARGB
     // Save_R10G10B10   or     Save_R10G10B10A2
     // Save_VUYA        or     Save_SrcVUYA
-    bool                   bFillOutputAlphaWithConstant;
+    bool            bFillOutputAlphaWithConstant;
+    bool            bIsDitherNeeded;
 
     Kdll_RenderMethod      RenderMethod;
     Kdll_SetCSCCoeffMethod SetCSCCoeffMode;

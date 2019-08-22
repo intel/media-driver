@@ -20,6 +20,7 @@
 
 media_include_subdirectory(cm)
 media_include_subdirectory(codec)
+media_include_subdirectory(cp)
 media_include_subdirectory(heap_manager)
 media_include_subdirectory(hw)
 media_include_subdirectory(media_interfaces)

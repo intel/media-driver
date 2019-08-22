@@ -39,6 +39,15 @@ DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
     m_ddiDecodeAttr = ddiDecodeAttr;
     m_ddiDecodeCtx  = nullptr;
     MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    m_groupIndex = 0;
+    m_picWidthInMB = 0;
+    m_picHeightInMB = 0;
+    m_decProcessingType = 0;
+    m_width = 0;
+    m_height = 0;
+    m_streamOutEnabled = false;
+    m_sliceParamBufNum = 0;
+    m_sliceCtrlBufNum = 0;
     m_codechalSettings = CodechalSetting::CreateCodechalSetting();
 }
 
@@ -645,6 +654,13 @@ VAStatus DdiMediaDecode::EndPicture(
     VAContextID      context)
 {
     DDI_FUNCTION_ENTER();
+
+    if (m_ddiDecodeCtx->bDecodeModeReported == false)
+    {
+        ReportDecodeMode(m_ddiDecodeCtx->wMode);
+        m_ddiDecodeCtx->bDecodeModeReported = true;
+    }
+
     DDI_CHK_RET(InitDecodeParams(ctx,context),"InitDecodeParams failed!");
 
     DDI_CHK_RET(SetDecodeParams(), "SetDecodeParams failed!");
@@ -1034,3 +1050,46 @@ void DdiMediaDecode::GetDummyReferenceFromDPB(
         decoder->GetDummyReference()->OsResource = dummyReference.OsResource;
     }
 }
+
+void DdiMediaDecode::ReportDecodeMode(
+    uint16_t      wMode)
+ {
+    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+    MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+    userFeatureWriteData.Value.i32Data = wMode;
+    switch (wMode)
+    {
+        case CODECHAL_DECODE_MODE_MPEG2IDCT:
+        case CODECHAL_DECODE_MODE_MPEG2VLD:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MPEG2_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            break;
+        case CODECHAL_DECODE_MODE_VC1IT:
+        case CODECHAL_DECODE_MODE_VC1VLD:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VC1_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            break;
+        case CODECHAL_DECODE_MODE_AVCVLD:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_AVC_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            break;
+        case CODECHAL_DECODE_MODE_JPEG:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_JPEG_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            break;
+        case CODECHAL_DECODE_MODE_VP8VLD:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VP8_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            break;
+        case CODECHAL_DECODE_MODE_HEVCVLD:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_HEVC_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            break;
+        case CODECHAL_DECODE_MODE_VP9VLD:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VP9_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            break;
+        default:
+            break;
+    }
+ }

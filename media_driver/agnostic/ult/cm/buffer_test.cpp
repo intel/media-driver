@@ -109,7 +109,7 @@ TEST_F(BufferTest, MultipleSizes)
     RunEach<int32_t>(CM_SUCCESS,
                      [this]() { return CreateDestroy(64*1024*1024); });
 
-    uint32_t large_size = 0x40000001;  // 1-byte larger than maximum size.
+    uint32_t large_size = 0x80000001;  // 1-byte larger than maximum size.
     RunEach<int32_t>(
         CM_INVALID_WIDTH,
         [this, large_size]() { return CreateDestroy(large_size); });

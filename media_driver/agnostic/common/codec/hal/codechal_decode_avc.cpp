@@ -1219,7 +1219,10 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
+        if (!decProcessingParams->bIsReferenceOnlyPattern)
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
+        }
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize(
             decProcessingParams,
@@ -1231,7 +1234,8 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
                   m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
                 m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
-            m_sfcState->m_sfcPipeOut == false)
+            m_sfcState->m_sfcPipeOut == false && 
+            !decProcessingParams->bIsReferenceOnlyPattern)
         {
             eStatus = MOS_STATUS_UNKNOWN;
             CODECHAL_DECODE_ASSERTMESSAGE("Downsampling parameters are NOT supported!");
@@ -1974,6 +1978,9 @@ CodechalDecodeAvc::CodechalDecodeAvc(
     MOS_ZeroMemory(&m_resAvcDmvBuffers, (sizeof(MOS_RESOURCE) * CODEC_AVC_NUM_DMV_BUFFERS));
     MOS_ZeroMemory(&m_resInvalidRefBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_resMvcDummyDmvBuffer, (sizeof(MOS_RESOURCE) * 2));
+    MOS_ZeroMemory(&m_destSurface, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(MOS_RESOURCE));
     m_refFrameSurface = nullptr;
 
     m_vldSliceRecord = nullptr;

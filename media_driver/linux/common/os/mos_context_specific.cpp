@@ -441,19 +441,39 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             m_skuTable = pOsDriverContext->SkuTable;
             m_waTable  = pOsDriverContext->WaTable;
         }
-    
+
         m_use64BitRelocs = true;
         m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
-        m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
-    
+        if (MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
+        {
+            m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
+            if (m_intelContext)
+            {
+                m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+                if (m_intelContext->vm == nullptr)
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
+                    return MOS_STATUS_UNKNOWN;
+                }
+            }
+        }
+        else //use legacy context create ioctl for pre-gen11 platforms
+        {
+           m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
+           if (m_intelContext)
+           {
+               m_intelContext->vm = nullptr;
+           }
+        }
+
         if (m_intelContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
             return MOS_STATUS_UNKNOWN;
         }
-    
+
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
     
     #ifndef ANDROID
@@ -551,6 +571,10 @@ void OsContextSpecific::Destroy()
      #endif
         m_skuTable.reset();
         m_waTable.reset();
+        if (m_intelContext && m_intelContext->vm)
+        {
+            mos_gem_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm);
+        }
         if (m_intelContext)
         {
             mos_gem_context_destroy(m_intelContext);

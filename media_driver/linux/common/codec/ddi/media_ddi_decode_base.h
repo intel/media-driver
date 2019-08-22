@@ -387,6 +387,17 @@ protected:
     void GetDummyReferenceFromDPB(
         DDI_DECODE_CONTEXT      *decodeCtx);
 
+    //!
+    //! \brief    Report decode mode
+    //! \details  Report decode mode to UFKEY_INTERNAL
+    //!
+    //! \param    [in] wMode
+    //!           CODECHAL_MODE
+    //!
+    //! \return   void
+    void ReportDecodeMode(
+        uint16_t      wMode);
+
     //! \brief  the type of decode base class
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure
     uint32_t                    m_groupIndex;           //!<global Group

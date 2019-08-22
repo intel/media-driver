@@ -289,11 +289,11 @@ CodechalDecodeVc1G8::CodechalDecodeVc1G8(
     PCODECHAL_STANDARD_INFO standardInfo) :
     CodechalDecodeVc1(hwInterface, debugInterface, standardInfo)
 {
+    MOS_ZeroMemory(&m_olpBatchBuffer, sizeof(m_olpBatchBuffer));
+
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
 
     m_olpCurbeStaticDataLength = CODECHAL_DECODE_VC1_CURBE_SIZE_OLP_G8;
-
-    MOS_ZeroMemory(&m_olpBatchBuffer, sizeof(m_olpBatchBuffer));
 
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         (uint8_t *)IGCODECKRN_G8,

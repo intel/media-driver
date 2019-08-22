@@ -595,15 +595,16 @@ VphalState::VphalState(
         PMOS_INTERFACE          pOsInterface,
         PMOS_CONTEXT            pOsDriverContext,
         MOS_STATUS              *peStatus) :
+        m_gpuAppTaskEvent(nullptr),
         m_platform(),
         m_skuTable(nullptr),
         m_waTable(nullptr),
         m_osInterface(pOsInterface),
         m_renderHal(nullptr),
+        m_veboxInterface(nullptr),
         m_cpInterface(nullptr),
         m_sfcInterface(nullptr),
         m_renderer(nullptr),
-        m_veboxInterface(nullptr),
         m_renderGpuNode(MOS_GPU_NODE_3D),
         m_renderGpuContext(MOS_GPU_CONTEXT_RENDER),
         m_gpuAppTaskEvent(nullptr)
@@ -679,10 +680,13 @@ VphalState::~VphalState()
 
     if (m_renderHal)
     {
-        eStatus = m_renderHal->pfnDestroy(m_renderHal);
-        if (eStatus != MOS_STATUS_SUCCESS)
+        if (m_renderHal->pfnDestroy)
         {
-            VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+            eStatus = m_renderHal->pfnDestroy(m_renderHal);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+            }
         }
         MOS_FreeMemory(m_renderHal);
     }
@@ -746,7 +750,7 @@ MOS_STATUS VphalState::GetStatusReport(
 {
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
 
-#if (!EMUL && !ANDROID)        // this function is dummy for android and emul
+#if (!EMUL)        // this function is dummy for emul
     uint32_t                       i;
     uint32_t                       uiTableLen;
     PVPHAL_STATUS_TABLE            pStatusTable;
@@ -786,8 +790,7 @@ MOS_STATUS VphalState::GetStatusReport(
             pQueryReport[i].StatusFeedBackID = pStatusEntry->StatusFeedBackID;
             continue;
         }
-
-#if LINUX
+#if (LINUX || ANDROID)
         dwGpuTag           = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
         dwGpuTag           = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal, m_osInterface->streamIndex));
@@ -814,11 +817,12 @@ MOS_STATUS VphalState::GetStatusReport(
         }
         else
         {   // here we have the first not ready entry.
-#if LINUX
+#if (LINUX || ANDROID)
             uiNewHead = (uiIndex + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 #else
             uiNewHead = uiIndex;
 #endif
+
             bMarkNotReadyForRemains = true;
         }
 
@@ -859,7 +863,7 @@ MOS_STATUS VphalState::GetStatusReportEntryLength(
     uint32_t*                      puiLength)
 {
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
-#if __linux__  // this function is only for Linux now
+#if(!EMUL)        // this function is dummy for emul
     PVPHAL_STATUS_TABLE            pStatusTable;
 
     VPHAL_PUBLIC_CHK_NULL(m_renderer);

@@ -997,7 +997,7 @@ bool VphalRenderer::IsFormatSupported(
     VPHAL_RENDER_ASSERT(pcRenderParams);
 
     // Protection mechanism
-    // P010 output support from KBL+
+    // P010 output support from BXT+
     if (m_pSkuTable)
     {
         if (pcRenderParams->pTarget[0])
@@ -1075,7 +1075,7 @@ MOS_STATUS VphalRenderer::Render(
         goto finish;
     }
 
-    // Protection mechanism, Only KBL+ support P010 output.
+    // Protection mechanism, Only BXT+ support P010 output.
     if (IsFormatSupported(pcRenderParams) == false)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Invalid Render Target Output Format.");
@@ -1147,7 +1147,8 @@ MOS_STATUS VphalRenderer::Render(
     //Update GpuContext
     if (MEDIA_IS_SKU(m_pSkuTable, FtrCCSNode))
     {
-        UpdateRenderGpuContext();
+        MOS_GPU_CONTEXT currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+        UpdateRenderGpuContext(currentGpuContext);
     }
     // align rectangle and source surface
     for (uiDst = 0; uiDst < RenderParams.uDstCount; uiDst++)
@@ -1192,18 +1193,19 @@ finish:
 //!
 //! \brief    Update Render Gpu Context
 //! \details  Update Render Gpu Context
+//! \param    [in] renderGpuContext
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VphalRenderer::UpdateRenderGpuContext()
+MOS_STATUS VphalRenderer::UpdateRenderGpuContext(MOS_GPU_CONTEXT currentGpuContext)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
-    MOS_GPU_CONTEXT         renderGpuContext, currentGpuContext;
+    MOS_GPU_CONTEXT         renderGpuContext;
     MOS_GPU_NODE            renderGpuNode;
     MOS_GPUCTX_CREATOPTIONS createOption;
     PVPHAL_VEBOX_STATE      pVeboxState = nullptr;
     int                     i           = 0;
-    currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+
     if (m_pOsInterface->osCpInterface->IsCpEnabled() &&
         (m_pOsInterface->osCpInterface->IsHMEnabled() || m_pOsInterface->osCpInterface->IsSMEnabled()))
     {
@@ -1632,19 +1634,8 @@ MOS_STATUS VpHal_RndrSetYUVComponents(
 VphalRenderer::VphalRenderer(
     PRENDERHAL_INTERFACE                pRenderHal,
     MOS_STATUS                          *pStatus) :
-    m_pRenderHal(pRenderHal),
-    m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
-    m_pSkuTable(nullptr),
-    m_modifyKdllFunctionPointers(nullptr),
     Align16State(),
     Fast1toNState(),
-    uiSsdControl(0),
-    bDpRotationUsed(false),
-    bSkuDisableVpFor4K(false),
-    bSkuDisableLaceFor4K(false),
-    bSkuDisableDNFor4K(false),
-    PerfData(),
-    m_reporting(nullptr),
     VeboxExecState(),
     pRender(),
     pPrimaryFwdRef(),
@@ -1662,7 +1653,18 @@ VphalRenderer::VphalRenderer(
     m_parameterDumper(nullptr),
 #endif
     StatusTable(),
-    maxSrcRect()
+    maxSrcRect(),
+    m_pRenderHal(pRenderHal),
+    m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
+    m_pSkuTable(nullptr),
+    m_modifyKdllFunctionPointers(nullptr),
+    uiSsdControl(0),
+    bDpRotationUsed(false),
+    bSkuDisableVpFor4K(false),
+    bSkuDisableLaceFor4K(false),
+    bSkuDisableDNFor4K(false),
+    PerfData(),
+    m_reporting(nullptr)
 {
     MOS_STATUS                          eStatus;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;

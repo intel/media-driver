@@ -94,7 +94,7 @@ void MhwVeboxInterfaceG8::SetVeboxIecpStateBecsc(
     if (pCapPipeParams->bActive)
     {
         // Enable BECSC if YUV->RGB conversion is needed or RGB->BGR swap is needed
-        if (bEnableFECSC && IS_RGB_FORMAT(dstFormat) || dstFormat == Format_A8R8G8B8)
+        if ((bEnableFECSC && IS_RGB_FORMAT(dstFormat)) || dstFormat == Format_A8R8G8B8)
         {
             pVeboxIecpState->CscState.DW0.TransformEnable = true;
         }

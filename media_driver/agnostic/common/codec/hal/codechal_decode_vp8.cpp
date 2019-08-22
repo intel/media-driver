@@ -1498,6 +1498,7 @@ CodechalDecodeVp8::CodechalDecodeVp8(
                                             m_picHeightInMbLastMaxAlloced(0),
                                             m_shortFormatInUse(false),
                                             m_dataSize(0),
+                                            m_dataOffset(0),
                                             m_vp8PicParams(nullptr),
                                             m_vp8IqMatrixParams(nullptr),
                                             m_presLastRefSurface(nullptr),

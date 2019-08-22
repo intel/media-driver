@@ -96,11 +96,15 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     PCM_HAL_TASK_PARAM              taskParam = state->taskParam;
     PCM_HAL_BB_ARGS                 bbCmArgs;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
-    MOS_RESOURCE                    osResource;
+    MOS_RESOURCE                    *osResource;
     uint32_t                        tag;
+    uint32_t                        tagOffset = 0;
     bool                            slmUsed = false;
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+
+    // get the tag
+    tag = renderHal->trackerProducer.GetNextTracker(renderHal->currentTrackerIndex);
 
     // Get the task sync offset
     syncOffset     = state->pfnGetTaskSyncLocation(state, taskId);
@@ -111,7 +115,8 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     *(taskSyncLocation + 1)          = CM_INVALID_INDEX;
     if(state->cbbEnabled)
     {
-    *(taskSyncLocation + 2)      = renderHal->trackerResource.currentTrackerId;
+        *(taskSyncLocation + 2)      = tag;
+        *(taskSyncLocation + 3)      = state->renderHal->currentTrackerIndex;
     }
 
     // Update power option of this command;
@@ -149,11 +154,10 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     }
 
     // use frame tracking to write the tracker ID to CM tracker resource
-    osResource = renderHal->trackerResource.osResource;
-    tag        = renderHal->trackerResource.currentTrackerId;
-
-    renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, &osResource, tag);
-    stateHeap->pCurMediaState->dwSyncTag = tag;
+    renderHal->trackerProducer.GetLatestTrackerResource(renderHal->currentTrackerIndex, &osResource, &tagOffset);
+    renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, osResource, tagOffset, tag);
+    FrameTrackerTokenFlat_SetProducer(&stateHeap->pCurMediaState->trackerToken, &renderHal->trackerProducer);
+    FrameTrackerTokenFlat_Merge(&stateHeap->pCurMediaState->trackerToken, renderHal->currentTrackerIndex, tag);
 
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
@@ -173,7 +177,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
     // update tracker tag used with CM tracker resource
-    renderHal->pfnIncTrackerId(state->renderHal);
+    renderHal->trackerProducer.StepForward(renderHal->currentTrackerIndex);
 
     // Increment sync tag
     syncTag = renderHal->pStateHeap->dwNextTag++;

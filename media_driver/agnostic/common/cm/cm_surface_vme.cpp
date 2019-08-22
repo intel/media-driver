@@ -108,19 +108,19 @@ CmSurfaceVme::CmSurfaceVme(
     m_indexFor2DCurrent( indexFor2DCurrent ),
     m_indexFor2DForward( indexFor2DForward ),
     m_indexFor2DBackward( indexFor2DBackward ),
+    m_forwardSurfaceArray(nullptr),
+    m_backwardSurfaceArray(nullptr),
     m_cmIndexForCurrent( indexForCurrent ),
     m_cmIndexForForward( indexForForward ),
     m_cmIndexForBackward( indexForBackward ),
-    m_forwardSurfaceArray(nullptr),
-    m_backwardSurfaceArray(nullptr),
     m_forwardCmIndexArray(nullptr),
     m_backwardCmIndexArray(nullptr),
-    m_isGen75(false),
     m_surfStateWidth(0),
     m_surfStateHeight(0),
     m_argValue(nullptr),
     m_surfState(nullptr),
-    m_advExec(nullptr)
+    m_advExec(nullptr),
+    m_isGen75(false)
 {
     if (indexForForward != CM_INVALID_VME_SURFACE)
     {
@@ -155,21 +155,21 @@ CmSurfaceVme::CmSurfaceVme(
                             m_indexFor2DCurrent(indexFor2DCurSurface),
                             m_indexFor2DForward(0),
                             m_indexFor2DBackward(0),
-                            m_cmIndexForForward(0),
-                            m_cmIndexForBackward(0),
                             m_forwardSurfaceArray(forwardSurface),
                             m_backwardSurfaceArray(backwardSurface),
                             m_cmIndexForCurrent( currentIndex ),
+                            m_cmIndexForForward(0),
+                            m_cmIndexForBackward(0),
                             m_forwardCmIndexArray(forwardCmIndex),
                             m_backwardCmIndexArray(backwardCmIndex),
                             m_surfaceFCount(surfaceFCount),
                             m_surfaceBCount(surfaceBCount),
-                            m_isGen75(true),
                             m_surfStateWidth(0),
                             m_surfStateHeight(0),
                             m_argValue(nullptr),
                             m_surfState(nullptr),
-                            m_advExec(nullptr)
+                            m_advExec(nullptr),
+                            m_isGen75(true)
 {
 }
 

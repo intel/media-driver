@@ -62,6 +62,24 @@ public:
         return LoadProfileEntrypoints();
     }
 
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+
+    virtual uint32_t GetImageFormatsMaxNum();
+
+    virtual bool IsImageSupported(uint32_t fourcc);
+
+    //!
+    //! \brief    Populate the color masks info
+    //!
+    //! \param    [in,out] Image format
+    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
+    //!           structure.
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
+    //!
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+
     //!
     //! \brief    Return internal encode mode for given profile and entrypoint 
     //!
@@ -94,9 +112,12 @@ public:
     //! \param    [in] entrypoint 
     //!           Specify the entrypoint 
     //!
+    //! \param    [in] feiFunction
+    //!           Specify the feiFunction
+    //!
     //! \return   Std::string encode codec key 
     //!
-    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint) override;
+    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction) override;
 
     //!
     //! \brief convert Media Format to Gmm Format for GmmResCreate parameter.
@@ -176,13 +197,6 @@ protected:
     VAStatus LoadHevcEncLpProfileEntrypoints();
 
     //! 
-    //! \brief  Is P010 supported
-    //! 
-    //! \return true
-    //!
-    bool IsP010Supported() { return true; }
-
-    //! 
     //! \brief  Query AVC ROI maximum number
     //! 
     //! \param  [in] rcMode
@@ -198,43 +212,5 @@ protected:
     //!     if call succeeds
     //!
     VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
-
-    //! \brief    Query the suppported image formats
-    //!
-    //! \param    [in,out] formatList
-    //!           Pointer to a VAImageFormat array. The array size shouldn't be less than vaMaxNumImageFormats 
-    //!           It will return the supported image formats.
-    //!
-    //! \param    [in,out] num_formats
-    //!           Pointer to a integer that will return the real size of formatList.
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if succeed
-    //!
-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) override;
-
-    //! \brief    Return the maxinum number of supported image formats
-    //!
-    //! \return   The maxinum number of supported image formats
-    //!
-    virtual uint32_t GetImageFormatsMaxNum();
-
-    //! \brief    Return the number of supported image formats for Gen 12
-    //!
-    //! \return   The number of supported image formats for Gen 12
-    //!
-    uint32_t GetNumG11ImageFormats();
-
-    //!
-    //! \brief    Populate the color masks info
-    //!
-    //! \param    [in,out] Image format
-    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
-    //!           structure.
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if succeed
-    //!
-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
 };
 #endif

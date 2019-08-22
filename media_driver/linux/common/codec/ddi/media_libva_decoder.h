@@ -70,6 +70,7 @@ struct DDI_DECODE_CONTEXT
     uint16_t                        wMode;                  // Get the info during hand shaking
     Codechal                        *pCodecHal;
     bool                            bShortFormatInUse;
+    bool                            bDecodeModeReported;
     VASurfaceDecodeMBErrors         vaSurfDecErrOutput[2];
     DDI_CODEC_RENDER_TARGET_TABLE   RTtbl;
     DDI_CODEC_COM_BUFFER_MGR        BufMgr;

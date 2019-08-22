@@ -29,11 +29,27 @@
 #ifndef __MHW_MMIO_G11_H__
 #define __MHW_MMIO_G11_H__
 
-//Common MI
+
+// CS register offsets
+#define CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G11                                 0x2600
+#define CS_GENERAL_PURPOSE_REGISTER0_HI_OFFSET_G11                                 0x2604
+#define CS_GENERAL_PURPOSE_REGISTER4_LO_OFFSET_G11                                 0x2620
+#define CS_GENERAL_PURPOSE_REGISTER4_HI_OFFSET_G11                                 0x2624
+#define CS_GENERAL_PURPOSE_REGISTER11_LO_OFFSET_G11                                0x2658
+#define CS_GENERAL_PURPOSE_REGISTER11_HI_OFFSET_G11                                0x265C
+#define CS_GENERAL_PURPOSE_REGISTER12_LO_OFFSET_G11                                0x2660
+#define CS_GENERAL_PURPOSE_REGISTER12_HI_OFFSET_G11                                0x2664
+
+// Vebox register offsets
+// Used in Commen MI
 #define GP_REGISTER0_LO_OFFSET_G11                                                 0x1C8600
 #define GP_REGISTER0_HI_OFFSET_G11                                                 0x1C8604
 #define GP_REGISTER4_LO_OFFSET_G11                                                 0x1C8620
 #define GP_REGISTER4_HI_OFFSET_G11                                                 0x1C8624
+#define GP_REGISTER11_LO_OFFSET_G11                                                0x1C8658
+#define GP_REGISTER11_HI_OFFSET_G11                                                0x1C865C
+#define GP_REGISTER12_LO_OFFSET_G11                                                0x1C8660
+#define GP_REGISTER12_HI_OFFSET_G11                                                0x1C8664
 
 //VEBOX
 #define WATCHDOG_COUNT_CTRL_OFFSET_RCS_G11                                         0x2178
@@ -78,6 +94,10 @@
 #define GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_1_INIT_G11                        0x1C0604
 #define GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_1_INIT_G11                        0x1C0620
 #define GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_1_INIT_G11                        0x1C0624
+#define GENERAL_PURPOSE_REGISTER11_LO_OFFSET_NODE_1_INIT_G11                       0x1C0658
+#define GENERAL_PURPOSE_REGISTER11_HI_OFFSET_NODE_1_INIT_G11                       0x1C065C
+#define GENERAL_PURPOSE_REGISTER12_LO_OFFSET_NODE_1_INIT_G11                       0x1C0660
+#define GENERAL_PURPOSE_REGISTER12_HI_OFFSET_NODE_1_INIT_G11                       0x1C0664
 #define MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G11                           0x1C08B4
 #define MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G11                           0x1C08B8
 #define MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_1_INIT_G11                              0x1C0954

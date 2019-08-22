@@ -168,6 +168,11 @@ typedef struct _VP_CONFIG
     // For Deinterlace Mode - the flags reflect the content size and SKU,
     // should not be changed after initialized.
     bool       bFFDI;
+
+    //Debug enhancement to force color fill
+    //FALSE(0): no force color fill, TRUE(1): force color fill with default color,
+    //ELSE(other non-zero value): force color fill with color info from dwForceColorFill
+    uint32_t   dwForceColorFill;
 } VP_CONFIG, *PVP_CONFIG;
 
 //!

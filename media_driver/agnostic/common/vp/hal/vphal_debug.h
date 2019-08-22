@@ -48,6 +48,10 @@
 
 #define VPHAL_DBG_DUMP_OUTPUT_FOLDER                "\\vphaldump\\"
 
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET (-1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STARTED (1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STOPPED (0)
+
 //------------------------------------------------------------------------------
 // Dump macro.  Simply calls the dump function.  defined as null in production
 //------------------------------------------------------------------------------
@@ -174,6 +178,8 @@ enum VPHAL_DBG_SURF_DUMP_LOCATION
     VPHAL_DBG_DUMP_TYPE_POST_DNDI,
     VPHAL_DBG_DUMP_TYPE_PRE_COMP,
     VPHAL_DBG_DUMP_TYPE_POST_COMP,
+    VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP,
+    VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP,
     VPHAL_DBG_DUMP_TYPE_POST_ALL
 };
 
@@ -201,6 +207,7 @@ struct VPHAL_DBG_SURF_DUMP_SPEC
     uint32_t                      uiEndFrame;                                   //!< Frame to stop dumping at
     int32_t                       iNumDumpLocs;                                 //!< Number of pipe stage dump locations
     bool                          enableAuxDump;                                //!< Enable aux data dump for compressed surface
+    bool                          enablePlaneDump;                              //!< Enable surface dump by plane
 };
 
 //!
@@ -542,6 +549,8 @@ private:
     //!           Number of planes of the surface
     //! \param    [out] pdwSize
     //!           The total size of the surface
+    //! \param    [in] auxEnable
+    //!           Whether aux dump is enabled
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
@@ -550,7 +559,7 @@ private:
         VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
         uint32_t*                           pdwNumPlanes,
         uint32_t*                           pdwSize,
-        bool                                paddingNeeded);
+        bool                                auxEnable);
 
     //!
     //! \brief    Parse dump location
@@ -615,6 +624,8 @@ public:
     //!
     VphalHwStateDumper(PRENDERHAL_INTERFACE             pRenderHal)
         :   m_renderHal(pRenderHal),
+            iDebugStage(0),
+            iPhase(0),
             m_osInterface(pRenderHal->pOsInterface),
             m_hwSizes(pRenderHal->pHwSizes),
             m_stateHeap(pRenderHal->pStateHeap),

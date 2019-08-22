@@ -659,8 +659,82 @@ struct VPHAL_VEBOX_RENDER_DATA
 public:
                                         VPHAL_VEBOX_RENDER_DATA()
                                         {
-                                            m_pVeboxStateParams = nullptr;
-                                            m_pVeboxIecpParams  = nullptr;
+                                            // Flags
+                                            bRefValid      = false;
+                                            bSameSamples   = false;
+                                            bProgressive   = false;
+                                            bDenoise       = false;
+#if VEBOX_AUTO_DENOISE_SUPPORTED
+                                            bAutoDenoise   = false;
+#endif
+                                            bChromaDenoise = false;
+                                            bOutOfBound    = false;
+                                            bVDIWalker     = false;
+                                            bIECP          = false;
+                                            bColorPipe     = false;
+                                            bProcamp       = false;
+                                            // DNDI/Vebox
+                                            bDeinterlace   = false;
+                                            bSingleField   = false;
+                                            bTFF           = false;
+                                            bTopField      = false;
+                                            bBeCsc         = false;
+                                            bVeboxBypass   = false;
+                                            b60fpsDi       = false;
+                                            bQueryVariance = false;
+                                            // Surface Information
+                                            iFrame0        = 0;
+                                            iFrame1        = 0;
+                                            iCurDNIn       = 0;
+                                            iCurDNOut      = 0;
+                                            iCurHistIn     = 0;
+                                            iCurHistOut    = 0;
+                                            // Geometry
+                                            iBlocksX       = 0;
+                                            iBlocksY       = 0;
+                                            iBindingTable  = 0;
+                                            iMediaID0      = 0;
+                                            iMediaID1      = 0;
+                                            // Perf
+                                            PerfTag        = VPHAL_NONE;
+                                            // States
+                                            pMediaState        = nullptr;
+                                            pVeboxState        = nullptr;
+                                            pRenderTarget      = nullptr;
+                                            SamplerStateParams = { };
+                                            VeboxDNDIParams    = { };
+                                            pAlphaParams       = nullptr;
+                                            // Batch Buffer rendering arguments
+                                            BbArgs = { };
+                                            // Vebox output parameters
+                                            OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+                                            // Kernel Information
+                                            for (int i = 0; i < VPHAL_NUM_KERNEL_VEBOX; i++)
+                                            {
+                                                pKernelParam[i] = nullptr;
+                                                KernelEntry[i]  = { };
+                                            }
+                                            pDNUVParams          = nullptr;
+                                            iCurbeLength         = 0;
+                                            iInlineLength        = 0;
+                                            // Debug parameters
+                                            pKernelName          = nullptr;
+                                            Component            = COMPONENT_UNKNOWN;
+                                            // Memory compression flag
+                                            bEnableMMC           = false;
+
+                                            pOutputTempField     = nullptr;
+
+                                            fScaleX              = 0.0f;
+                                            fScaleY              = 0.0f;
+
+                                            bHdr3DLut            = false;
+                                            uiMaxDisplayLum      = 4000;
+                                            uiMaxContentLevelLum = 1000;
+                                            hdrMode              = VPHAL_HDR_MODE_NONE;
+
+                                            m_pVeboxStateParams  = nullptr;
+                                            m_pVeboxIecpParams   = nullptr;
                                         }
                                         VPHAL_VEBOX_RENDER_DATA(const VPHAL_VEBOX_RENDER_DATA&) = delete;
                                         VPHAL_VEBOX_RENDER_DATA& operator=(const VPHAL_VEBOX_RENDER_DATA&) = delete;
@@ -747,6 +821,9 @@ public:
     // Memory compression flag
     bool                                bEnableMMC;                             //!< Enable memory compression flag
 
+    // Temp surface for the field won't be output
+    PVPHAL_SURFACE                      pOutputTempField;
+
     // Scaling ratio from source to render target
     // Scaling ratio is needed to determine if SFC or VEBOX is used
     float                               fScaleX;                                //!< X Scaling ratio
@@ -756,6 +833,11 @@ public:
     uint32_t                            uiMaxDisplayLum       = 4000;           //!< Maximum Display Luminance
     uint32_t                            uiMaxContentLevelLum  = 1000;           //!< Maximum Content Level Luminance
     VPHAL_HDR_MODE                      hdrMode               = VPHAL_HDR_MODE_NONE;
+
+    bool                                bHdr3DLut;                              //!< Enable 3DLut to process HDR
+    uint32_t                            uiMaxDisplayLum;                        //!< Maximum Display Luminance
+    uint32_t                            uiMaxContentLevelLum;                   //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE                      hdrMode;
 
 protected:
     // Vebox State Parameters
@@ -822,6 +904,29 @@ public:
     //!           pointer to the Report data to copy data to
     //!
     void CopyResourceReporting(VphalFeatureReport *pReporting);
+
+    //!
+    //! \brief    Allocate sfc temp surface for Vebox output
+    //! \details  Allocate sfc temp surface for Vebox output
+    //! \param    VphalRenderer* pRenderer
+    //!           [in,out] VPHAL renderer pointer
+    //! \param    PCVPHAL_RENDER_PARAMS pcRenderParams
+    //!           [in] Const pointer to VPHAL render parameter
+    //! \param    PVPHAL_VEBOX_RENDER_DATA pRenderData
+    //!           [in] pointer to VPHAL VEBOX render parameter
+    //! \param    PVPHAL_SURFACE pInSurface
+    //!           [in] Pointer to input surface
+    //! \param    PVPHAL_SURFACE pOutSurface
+    //!           [in] Pointer to output surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS AllocateSfcTempSurfaces(
+        VphalRenderer                  *pRenderer,
+        PCVPHAL_RENDER_PARAMS           pcRenderParams,
+        PVPHAL_VEBOX_RENDER_DATA        pRenderData,
+        PVPHAL_SURFACE                  pInSurface,
+        PVPHAL_SURFACE                  pOutSurface);
 
     // External components
     PMHW_VEBOX_INTERFACE            m_pVeboxInterface;                            //!< Pointer to MHW Vebox Structure Interface
@@ -951,11 +1056,12 @@ public:
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
-    VPHAL_SURFACE                    Vebox3DLookUpTables = {};
+    VPHAL_SURFACE                    Vebox3DLookUpTables;
+    VPHAL_SURFACE                    SfcTempSurface;
 
-    VphalHVSDenoiser                 *m_hvsDenoiser        = nullptr;            //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
-    uint8_t                          *m_hvsKernelBinary    = nullptr;            //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
-    uint32_t                         m_hvsKernelBinarySize = 0;                  //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
+    VphalHVSDenoiser                 *m_hvsDenoiser;                             //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
+    uint8_t                          *m_hvsKernelBinary;                         //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
+    uint32_t                         m_hvsKernelBinarySize;                      //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
 
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.

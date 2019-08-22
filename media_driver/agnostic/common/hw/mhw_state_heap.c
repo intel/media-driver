@@ -628,38 +628,36 @@ MOS_STATUS Mhw_StateHeapInterface_DSH_SubmitDynamicBlock(
         PMHW_STATE_HEAP_INTERFACE            pStateHeapInterface,
         MHW_STATE_HEAP_TYPE                  StateHeapType,
         PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-        uint32_t                             dwSyncTag)
+        FrameTrackerTokenFlat                *trackerToken)
 {
     MHW_CHK_NULL_RETURN(pStateHeapInterface);
     MHW_CHK_NULL_RETURN(pStateHeapInterface->pStateHeapInterface);
 
     return pStateHeapInterface->pStateHeapInterface->SubmitDynamicBlockDyn(
-        StateHeapType,  pBlock,  dwSyncTag);
+        StateHeapType,  pBlock,  trackerToken);
 }
 
 MOS_STATUS Mhw_StateHeapInterface_DSH_FreeDynamicBlock(
         PMHW_STATE_HEAP_INTERFACE            pStateHeapInterface,
         MHW_STATE_HEAP_TYPE                  StateHeapType,
-        PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-        uint32_t                             dwSyncTag)
+        PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock)
 {
     MHW_CHK_NULL_RETURN(pStateHeapInterface);
     MHW_CHK_NULL_RETURN(pStateHeapInterface->pStateHeapInterface);
 
     return pStateHeapInterface->pStateHeapInterface->FreeDynamicBlockDyn(
-        StateHeapType,  pBlock,  dwSyncTag);
+        StateHeapType,  pBlock);
 }
 
 MOS_STATUS Mhw_StateHeapInterface_DSH_RefreshDynamicHeap (
     PMHW_STATE_HEAP_INTERFACE   pStateHeapInterface,
-    MHW_STATE_HEAP_TYPE         StateHeapType,
-    uint32_t                    dwSyncTag)
+    MHW_STATE_HEAP_TYPE         StateHeapType)
 {
     MHW_CHK_NULL_RETURN(pStateHeapInterface);
     MHW_CHK_NULL_RETURN(pStateHeapInterface->pStateHeapInterface);
 
     return pStateHeapInterface->pStateHeapInterface->RefreshDynamicHeapDyn(
-         StateHeapType,  dwSyncTag);
+         StateHeapType);
 }
 
 MOS_STATUS Mhw_StateHeapInterface_DSH_ReleaseStateHeap(
@@ -824,26 +822,26 @@ finish:
 XMHW_STATE_HEAP_INTERFACE::XMHW_STATE_HEAP_INTERFACE(
     PMOS_INTERFACE pInputOSInterface,
     int8_t         bDynamicMode):
-    m_pOsInterface(pInputOSInterface),
-    m_bDynamicMode(bDynamicMode),
     m_pWaTable(nullptr),
-    m_pSyncTags(nullptr),
     m_pdwCmdBufIdGlobal(nullptr),
     m_dwCurrCmdBufId(0),
+    m_pSyncTags(nullptr),
     m_dwCurrSyncTag(0),
     m_dwInvalidSyncTagId(0),
     m_bRegisteredBBCompleteNotifyEvent(false),
     m_pInstructionStateHeaps(nullptr),
     m_dwNumIsh(0),
-    m_pDynamicStateHeaps(nullptr),
     m_dwNumDsh(0),
-    m_wBtIdxAlignment(0),
-    m_wIdAlignment(0),
-    m_wCurbeAlignment(0),
+    m_pDynamicStateHeaps(nullptr),
+    m_bDynamicMode(bDynamicMode),
     m_pIshBlockManager(nullptr),
     m_pDshBlockManager(nullptr),
-    m_dwMaxSurfaceStateSize(0),
+    m_pOsInterface(pInputOSInterface),
+    m_wIdAlignment(0),
+    m_wBtIdxAlignment(0),
+    m_wCurbeAlignment(0),
     m_wSizeOfCmdSamplerState(0),
+    m_dwMaxSurfaceStateSize(0),
     m_pfnAddResourceToCmd(nullptr),
     m_wSizeOfCmdInterfaceDescriptorData(0)
 {
@@ -1101,7 +1099,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitMemoryBlock(
                         sizeof(MHW_STATE_HEAP_MEMORY_BLOCK));
         MHW_CHK_NULL(pMemoryBlock);
 
-        pMemoryBlock->dwSyncTagId = m_dwInvalidSyncTagId;
+        FrameTrackerTokenFlat_Invalidate(&pMemoryBlock->trackerToken);
         pMemoryBlock->dwBlockSize = dwRequestedSize;
         pMemoryBlock->pStateHeap = pStateHeap;
         pMemoryBlock->bStatic = bStatic;
@@ -1182,11 +1180,11 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ReturnSpaceMemoryBlock(
     pPrevBlock = pMemoryBlock->pPrev;
     pNextBlock = pMemoryBlock->pNext;
 
-    pMemoryBlock->dwSyncTagId = m_dwInvalidSyncTagId;
+    FrameTrackerTokenFlat_Invalidate(&pMemoryBlock->trackerToken);
 
     if (pPrevBlock && !pPrevBlock->bStatic)
     {
-        if (pPrevBlock->dwSyncTagId == m_dwInvalidSyncTagId)
+        if (!FrameTrackerTokenFlat_IsValid(&pPrevBlock->trackerToken))
         {
             pPrevBlock->dwBlockSize += pMemoryBlock->dwBlockSize;
             pPrevBlock->pNext = pNextBlock;
@@ -1201,7 +1199,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ReturnSpaceMemoryBlock(
 
     if (pNextBlock && !pNextBlock->bStatic)
     {
-        if (pNextBlock->dwSyncTagId == m_dwInvalidSyncTagId)
+        if (!FrameTrackerTokenFlat_IsValid(&pNextBlock->trackerToken))
         {
             pMemoryBlock->dwBlockSize += pNextBlock->dwBlockSize;
             pMemoryBlock->pNext = pNextBlock->pNext;
@@ -1903,7 +1901,7 @@ finish:
         for (; pMemoryBlock != nullptr; pMemoryBlock = pAuxBlock)
         {
             pAuxBlock = pMemoryBlock->pNext;            // Get next block (must be done before Mhw_BlockManager_Free)
-            pBlockManager->FreeBlock(pMemoryBlock, 0);  // Release block back to "Free" queue
+            pBlockManager->FreeBlock(pMemoryBlock);  // Release block back to "Free" queue
         }
     }
 
@@ -1913,7 +1911,7 @@ finish:
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::SubmitDynamicBlockDyn(
         MHW_STATE_HEAP_TYPE                  StateHeapType,
         PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-        uint32_t                             dwSyncTag)
+        const FrameTrackerTokenFlat          *trakcerToken)
 {
     PMHW_BLOCK_MANAGER  pBlockManager = nullptr;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
@@ -1939,7 +1937,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::SubmitDynamicBlockDyn(
 
     // Submit block
     MHW_CHK_NULL(pBlockManager);
-    MHW_CHK_STATUS(pBlockManager->SubmitBlock(pBlock, dwSyncTag));
+    MHW_CHK_STATUS(pBlockManager->SubmitBlock(pBlock, trakcerToken));
 
 finish:
     return eStatus;
@@ -1947,8 +1945,7 @@ finish:
 
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::FreeDynamicBlockDyn(
         MHW_STATE_HEAP_TYPE                  StateHeapType,
-        PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-        uint32_t                             dwSyncTag)
+        PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock)
 {
     PMHW_BLOCK_MANAGER  pBlockManager = nullptr;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
@@ -1973,15 +1970,14 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::FreeDynamicBlockDyn(
     }
 
     // Free block
-    MHW_CHK_STATUS(pBlockManager->FreeBlock(pBlock, dwSyncTag));
+    MHW_CHK_STATUS(pBlockManager->FreeBlock(pBlock));
 
 finish:
     return eStatus;
 }
 
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::RefreshDynamicHeapDyn (
-    MHW_STATE_HEAP_TYPE         StateHeapType,
-    uint32_t                    dwSyncTag)
+    MHW_STATE_HEAP_TYPE         StateHeapType)
 {
     PMHW_BLOCK_MANAGER  pBlockManager = nullptr;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
@@ -2005,7 +2001,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::RefreshDynamicHeapDyn (
 
     // Free block
     MHW_CHK_NULL(pBlockManager)
-    MHW_CHK_STATUS(pBlockManager->Refresh(dwSyncTag));
+    MHW_CHK_STATUS(pBlockManager->Refresh());
 
 finish:
     return eStatus;

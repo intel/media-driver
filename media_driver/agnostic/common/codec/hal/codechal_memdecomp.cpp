@@ -178,7 +178,8 @@ MediaMemDecompState::~MediaMemDecompState()
 }
 
 MediaMemDecompState::MediaMemDecompState() :
-    MediaMemDecompBaseState()
+    MediaMemDecompBaseState(),
+    m_currCmdBufId(0)
 {
     MHW_FUNCTION_ENTER;
     m_stateHeapSettings.m_ishBehavior = HeapManager::Behavior::clientControlled;

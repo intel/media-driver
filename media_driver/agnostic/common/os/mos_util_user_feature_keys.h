@@ -261,7 +261,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER           "MDF SURFACE STATE DUMP COUNTER"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP       "MDF Interface Descriptor Dump Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER    "MDF Interface Descriptor Dump Counter"
-
+#define __MEDIA_USER_FEATURE_VALUE_MDF_DUMPPATH_USER                        "MDF Dump Path Specified by User"
 
 //User feature key for VP
 #define __MEDIA_USER_FEATURE_VALUE_VP_3P_DUMP_UFKEY_LOCATION                "Software\\Intel\\VPPDPI"
@@ -273,5 +273,8 @@
 
 //User feature key for enable simulating random memory allocation failure
 #define __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL "Simulate Random Alloc Memory Fail"
+
+//User feature key for enable/disable UMD_OCA
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA       "Enable UMD_OCA"
 
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_H__

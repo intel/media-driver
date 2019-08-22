@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,8 @@
 
 
 //!
-//! \brief    calculate secondary cmd buffer index 
-//! \details  calculate secondary cmd buffer index to get or return secondary cmd buffer 
+//! \brief    calculate secondary cmd buffer index
+//! \details  calculate secondary cmd buffer index to get or return secondary cmd buffer
 //! \param    [in]  pScalabilityState
 //!                pointer to scalability decode state
 //! \param    [in]  pdwBufIdxPlus1
@@ -1120,7 +1120,10 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
                         pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                     }
                 }
-                else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+                else if ((!CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+                            || (CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel)))
                 {
                     pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                 }
@@ -1150,11 +1153,14 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
                 }
                 else
                 {
-                    if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT)
+                    if ((pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT))
                     {
                         pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
                     }
-                    else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+                    else if ((!CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+                            || (CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel)))
                     {
                         pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                     }
@@ -1365,6 +1371,15 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = MOS_ALIGN_CEIL(codecHalSetting->width, 8);
         initParams.u32PicHeightInPixel  = MOS_ALIGN_CEIL(codecHalSetting->height, 8);
+        if (((codecHalSetting->standard == CODECHAL_VP9) || (codecHalSetting->standard == CODECHAL_HEVC))
+                && (codecHalSetting->chromaFormat == HCP_CHROMA_FORMAT_YUV420))
+        {
+            initParams.format = Format_NV12;
+            if (codecHalSetting->lumaChromaDepth == CODECHAL_LUMA_CHROMA_DEPTH_10_BITS)
+            {
+                initParams.format = Format_P010;
+            }
+        }
         initParams.usingSFC             = false;
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
             pScalState,
@@ -1381,7 +1396,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
 MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalabilityState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams,
-    uint8_t                                   *pucDecPassNum)
+    uint16_t                                   *pucDecPassNum)
 {
     PMOS_INTERFACE                  pOsInterface;
     PMOS_VIRTUALENGINE_INTERFACE    pVEInterface;
@@ -1424,13 +1439,13 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
         // Decide pipe number
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pfnDecidePipeNum(pScalabilityState, pInitParams));
     }
-    
+
     // Decide scalable mode or single pipe mode
-    if (pScalabilityState->ucScalablePipeNum > 1)
+    if (pScalabilityState->ucScalablePipeNum > 1 && pOsInterface->frameSplit)
     {
         pScalabilityState->bScalableDecodeMode = true;
     }
-    
+
     CODECHAL_DECODE_CHK_NULL_RETURN(pucDecPassNum);
     // Decide Decode pass number - pucDecPassNum
     if (pScalabilityState->bScalableDecodeMode)
@@ -1441,7 +1456,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     {
         *pucDecPassNum = 1;
     }
-    
+
     // Add one pass for S2L conversion in short format.
     if (pScalabilityState->bShortFormatInUse)
     {
@@ -2051,8 +2066,32 @@ bool CodecHalDecodeScalabilityIsToSubmitCmdBuffer(
         return false;
     }
     else
-    { 
+    {
         return (CodecHalDecodeScalabilityIsFinalBEPhase(pScalabilityState) ||
             (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_FE && pScalabilityState->bFESeparateSubmission));
+    }
+}
+
+void CodecHalDecodeScalability_DecPhaseToSubmissionType(
+    PCODECHAL_DECODE_SCALABILITY_STATE pScalabilityState,
+    PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    switch (pScalabilityState->HcpDecPhase)
+    {
+        case CodechalDecode::CodechalHcpDecodePhaseLegacyS2L:
+            //Note: no break here, S2L and FE commands put in one secondary command buffer.
+        case CODECHAL_HCP_DECODE_PHASE_FE:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_ALONE;
+            break;
+        case CODECHAL_HCP_DECODE_PHASE_BE0:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
+            break;
+        case CODECHAL_HCP_DECODE_PHASE_BE1:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
+            break;
+        case CODECHAL_HCP_DECODE_PHASE_RESERVED:
+        default:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_ALONE;
+            break;
     }
 }

@@ -1816,6 +1816,37 @@ public:
     //!
     CM_RT_API virtual int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
                                               CmSurface2D* &surface) = 0;
+
+    //!
+    //! \brief      Creates a CmSampler8x8 surface from Surface2D alias.
+    //! \details    Creates a CmSampler8x8 surface by using the given 2D surface
+    //!             alias.
+    //!             No extra surface is actually created. A SurfaceIndex
+    //!             object is created instead, which is passed to CM kernel
+    //!             function (genx_main) as an argument to indicate the surface
+    //!             for AVS.
+    //! \param      [in] originalSurface
+    //!             Pointer to the original CmSurface2D object.
+    //! \param      [in] aliasIndex
+    //!             Surface alias upon which the output surface index is
+    //!             created.
+    //! \param      [in] addressControl
+    //!             Enumerator specifying address control mode used by AVS.
+    //! \param      [out] sampler8x8SurfaceIndex
+    //!             Sampler8x8 surface index created by this function.
+    //! \retval     CM_SUCCESS if the CmSampler8x8 surface is successfully
+    //!             created.
+    //! \retval     CM_EXCEED_SURFACE_AMOUNT if there are too many surfaces,
+    //!             exceeding the maximum limit,
+    //! \retval     CM_OUT_OF_HOST_MEMORY if out of host memory,
+    //! \retval     CM_FAILURE otherwise.
+    //!
+    CM_RT_API virtual int32_t
+    CreateSampler8x8SurfaceFromAlias(
+        CmSurface2D *originalSurface,
+        SurfaceIndex *aliasIndex,
+        CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
+        SurfaceIndex* &sampler8x8SurfaceIndex) = 0;
 };
 }; //namespace
 

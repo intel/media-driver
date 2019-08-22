@@ -123,14 +123,14 @@ void HVSDenoise::Dump()
 }
 
 VphalHVSDenoiser::VphalHVSDenoiser(PRENDERHAL_INTERFACE renderHal) : 
+    m_eventManager(nullptr),
     m_renderHal(renderHal),
     m_hvsDenoiseCmSurface(nullptr),
     m_hvsDenoiseParam(nullptr),
     m_hvsDenoise(nullptr),
     m_savedQP(0),
     m_savedStrength(0),
-    m_initHVSDenoise(false),
-    m_eventManager(nullptr)
+    m_initHVSDenoise(false)
 {
     m_eventManager = MOS_New(EventManager, "HVSEventManager");
     VPHAL_RENDER_NORMALMESSAGE("Constructor!");

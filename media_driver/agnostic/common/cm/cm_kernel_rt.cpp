@@ -293,7 +293,9 @@ CmKernelRT::CmKernelRT(CmDeviceRT *device,
     m_program( program ),
     m_options( nullptr ),
     m_binary( nullptr ),
+    m_binaryOrig(nullptr),
     m_binarySize(0),
+    m_binarySizeOrig(0),
     m_threadCount( 0 ),
     m_lastThreadCount( 0 ),
     m_sizeInCurbe( 0 ),
@@ -318,6 +320,7 @@ CmKernelRT::CmKernelRT(CmDeviceRT *device,
     m_usKernelPayloadDataSize( 0 ),
     m_kernelPayloadData( nullptr ),
     m_usKernelPayloadSurfaceCount( 0 ),
+    m_samplerBtiCount( 0 ),
     m_refcount(0),
     m_halMaxValues( nullptr ),
     m_halMaxValuesEx( nullptr ),
@@ -326,13 +329,10 @@ CmKernelRT::CmKernelRT(CmDeviceRT *device,
     m_vmeSurfaceCount( 0 ),
     m_maxSurfaceIndexAllocated(0),
     m_barrierMode(CM_LOCAL_BARRIER),
-    m_samplerBtiCount( 0 ),
     m_isClonedKernel(false),
     m_cloneKernelID(0),
     m_hasClones( false ),
     m_stateBufferBounded( CM_STATE_BUFFER_NONE ),
-    m_binaryOrig(nullptr),
-    m_binarySizeOrig(0),
     m_movInstConstructor(nullptr)
 {
     program->Acquire();
@@ -1790,6 +1790,12 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                      CmSurfaceSampler8x8* surfSampler8x8 = static_cast <CmSurfaceSampler8x8 *> (surface);
                      surfSampler8x8->GetIndexCurrent(samplerIndex);
                      surfSampler8x8->GetCmIndex(samplerCmIndex);
+                     if (samplerCmIndex > surfaceArraySize)
+                     {
+                         m_args[index].aliasIndex = samplerCmIndex;
+                         m_args[index].aliasCreated = true;
+                         samplerCmIndex %= surfaceArraySize;
+                     }
 
                      m_surfaceMgr->GetSurface(samplerCmIndex, surface);
                      if (!surface)
@@ -5074,62 +5080,6 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadGroupSpace(CmThreadGroupSpace *&thr
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose: Create a surface in the surface manager array, return the surface index
-//| Returns: Result of the operation.
-//*-----------------------------------------------------------------------------
-CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbeDataSize, SurfaceIndex *surfaceIndex )
-{
-    CM_RETURN_CODE hr = CM_SUCCESS;
-
-    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE state = cmData->cmHalState;
-    PRENDERHAL_MEDIA_STATE mediaStatePtr = nullptr;
-    void  *tempPtr = nullptr;
-    CmStateBuffer *stateBuffer = nullptr;
-
-    if ( state->dshEnabled == false )
-    {
-        // Currently only support it when dynamic state heap is enabled
-        return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-    }
-
-    CM_CHK_CMSTATUS_GOTOFINISH( m_surfaceMgr->CreateMediaStateByCurbeSize( tempPtr, curbeDataSize ) );
-    mediaStatePtr = static_cast< PRENDERHAL_MEDIA_STATE >( tempPtr );
-    CM_CHK_CMSTATUS_GOTOFINISH( m_surfaceMgr->CreateStateBuffer( CM_STATE_BUFFER_CURBE, curbeDataSize, mediaStatePtr, this, stateBuffer ) );
-
-    if ( ( stateBuffer != nullptr ) && ( mediaStatePtr != nullptr ) )
-    {
-        // Get curbe address, ideally the DSH should provide the API to get all of the GFX VA of different part of the heap
-        uint64_t curbeGfxVa = state->osInterface->pfnGetResourceGfxAddress( state->osInterface, mediaStatePtr->pDynamicState->memoryBlock.GetResource() ) +
-            mediaStatePtr->pDynamicState->memoryBlock.GetOffset() + mediaStatePtr->pDynamicState->Curbe.dwOffset;
-
-        SurfaceIndex *tempIndex = nullptr;
-        uint32_t handle = 0;
-        stateBuffer->GetIndex( tempIndex );
-        stateBuffer->GetHandle( handle );
-        if ( tempIndex != nullptr )
-        {
-            *surfaceIndex = *tempIndex;
-            state->pfnInsertToStateBufferList( state, this, handle, CM_STATE_BUFFER_CURBE, curbeDataSize, curbeGfxVa, mediaStatePtr );
-        }
-        else
-        {
-            // it means the stateBuffer was not created successfully, null pointer failure
-            return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-        }
-    }
-    else
-    {
-        // null pointer failure
-        return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-    }
-
-    m_stateBufferBounded = CM_STATE_BUFFER_CURBE;
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
 //| Purpose: Clear threadspace for kernel
 //| Returns: Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -5612,7 +5562,7 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
     //Calculate surface number and needed binding table entries
     for (uint32_t surfIndex = 0; surfIndex <= m_maxSurfaceIndexAllocated; surfIndex ++)
     {
-        if (m_surfaceArray[surfIndex])
+        if (m_surfaceArray[surfIndex%surfaceArraySize])
         {
             surf = nullptr;
             m_surfaceMgr->GetSurface(surfIndex, surf);

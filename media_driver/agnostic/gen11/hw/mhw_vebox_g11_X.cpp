@@ -30,18 +30,6 @@
 #include "mos_solo_generic.h"
 #include "mos_util_user_interface.h"
 
-const MHW_VEBOX_SETTINGS g_Vebox_Settings_g11 =
-{
-    MHW_MAX_VEBOX_STATES,                                                     //!< uiNumInstances
-    MHW_SYNC_SIZE,                                                            //!< uiSyncSize
-    MHW_PAGE_SIZE,                                                            //!< uiDndiStateSize
-    MHW_PAGE_SIZE,                                                            //!< uiIecpStateSize
-    MHW_PAGE_SIZE * 2,                                                        //!< uiGamutStateSize
-    MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
-    MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
-    MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
-    0                                                                         //!< ui3DLUTSize
-};
 
 // H2S Manual Mode Coef
 static const uint16_t g_Hdr_ColorCorrect_EOTF_SMPTE_ST2084_Input_g11[HDR_OETF_1DLUT_POINT_NUMBER] =

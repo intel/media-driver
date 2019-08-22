@@ -46,11 +46,12 @@ RenderState::RenderState(
     MOS_STATUS                  *peStatus) :
     m_pOsInterface(pOsInterface),
     m_pRenderHal(pRenderHal),
-    m_pPerfData(pPerfData),
     m_pSkuTable(nullptr),
     m_pWaTable(nullptr),
-    m_reporting(nullptr),
-    m_bDisableRender(false)
+    m_bDisableRender(false),
+    m_bSingleSlice(false),
+    m_pPerfData(pPerfData),
+    m_reporting(nullptr)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

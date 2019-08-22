@@ -168,7 +168,11 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11
     uint16_t    LowDelaySceneChangeXFrameSize_U16;  // default: 0
     int8_t      ReEncodePositiveQPDeltaThr_S8;      // default: 4
     int8_t      ReEncodeNegativeQPDeltaThr_S8;      // default: -10
-    uint8_t     RSVD[28];                           // 64 bytes aligned
+    uint32_t    NumFrameSkipped;
+    uint32_t    SkipFrameSize;
+    uint32_t    SliceHeaderSize;
+    int8_t      EnableMotionAdaptive;
+    uint8_t     RSVD[15];  // 64-byte alignment
 };
 C_ASSERT(192 == sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11));
 
@@ -245,6 +249,9 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11
         uint16_t    WeightTable_StartInBits;                // number of bits from beginning of slice header for weight table first bit, 0xffff means not awailable
         uint16_t    WeightTable_EndInBits;                  // number of bits from beginning of slice header for weight table last bit, 0xffff means not awailable
     } Slice[CODECHAL_VDENC_HEVC_MAX_SLICE_NUM];
+    // motion adaptive
+    uint8_t    QPAdaptiveWeight[52];
+    uint8_t    boostTable[52];
 };
 
 using PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11 = CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11*;

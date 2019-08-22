@@ -186,7 +186,7 @@ typedef enum _CM_RETURN_CODE
 #define CM_MIN_SURF_WIDTH       1
 #define CM_MIN_SURF_HEIGHT      1
 #define CM_MIN_SURF_DEPTH       2
-#define CM_MAX_1D_SURF_WIDTH    0X40000000 // 2^30
+#define CM_MAX_1D_SURF_WIDTH    0x80000000 // 2^31 2 GB
 
 //IVB-SKL
 #define CM_MAX_2D_SURF_WIDTH  16384

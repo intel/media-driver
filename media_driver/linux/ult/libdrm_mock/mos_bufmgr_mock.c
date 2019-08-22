@@ -1382,6 +1382,7 @@ mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time)
     bo_gem->reloc_count = 0;
     bo_gem->used_as_reloc_target = false;
     bo_gem->softpin_target_count = 0;
+    bo_gem->exec_async = false;
 
     MOS_DBG("bo_unreference final: %d (%s)\n",
         bo_gem->gem_handle, bo_gem->name);
@@ -2727,7 +2728,7 @@ mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
 drm_export int
 do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags)
+     unsigned int flags, int *fence)
 {
     if(GetDrmMode())
         return 0; //libdrm_mock
@@ -2784,12 +2785,20 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     else
         i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
     execbuf.rsvd2 = 0;
+    if(flags & I915_EXEC_FENCE_SUBMIT)
+    {
+        execbuf.rsvd2 = *fence;
+    }
+    if(flags & I915_EXEC_FENCE_OUT)
+    {
+        execbuf.rsvd2 = -1;
+    }
 
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
     ret = drmIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_EXECBUFFER2,
+               DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
                &execbuf);
     if (ret != 0) {
         ret = -errno;
@@ -2807,6 +2816,11 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     if (ctx != nullptr)
     {
         mos_update_buffer_offsets2(bufmgr_gem, ctx, bo);
+    }
+
+    if(flags & I915_EXEC_FENCE_OUT)
+    {
+        *fence = execbuf.rsvd2 >> 32;
     }
 
 skip_execution:
@@ -2834,7 +2848,7 @@ mos_gem_bo_exec2(struct mos_linux_bo *bo, int used,
                int DR4)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            I915_EXEC_RENDER);
+            I915_EXEC_RENDER, nullptr);
 }
 
 static int
@@ -2843,23 +2857,23 @@ mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
             unsigned int flags)
 {
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
-            flags);
+            flags, nullptr);
 }
 
 int
 mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
                   int used, unsigned int flags)
 {
-    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags);
+    return do_exec2(bo, used, ctx, nullptr, 0, 0, flags, nullptr);
 }
 
 int
 mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                            drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-                           unsigned int flags)
+                           unsigned int flags,int *fence)
 {
     return do_exec2(bo, used, ctx, cliprects, num_cliprects, DR4,
-                        flags);
+                        flags,fence);
 }
 
 static int
@@ -3536,6 +3550,35 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
     return context;
 }
 
+struct mos_linux_context *
+mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    struct drm_i915_gem_context_create_ext create;
+    struct mos_linux_context *context = nullptr;
+    int ret;
+
+    context = (struct mos_linux_context *)calloc(1, sizeof(*context));
+    if (!context)
+        return nullptr;
+
+    memclear(create);
+    create.flags = flags;
+    create.extensions = 0;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT, &create);
+    if (ret != 0) {
+        MOS_DBG("DRM_IOCTL_I915_GEM_CONTEXT_CREATE failed: %s\n",
+            strerror(errno));
+        free(context);
+        return nullptr;
+    }
+
+    context->ctx_id = create.ctx_id;
+    context->bufmgr = bufmgr;
+
+    return context;
+}
+
 void
 mos_gem_context_destroy(struct mos_linux_context *ctx)
 {
@@ -3643,6 +3686,32 @@ mos_set_context_param(struct mos_linux_context *ctx,
                DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM,
                &context_param);
 
+    return ret;
+}
+
+int
+mos_gem_bo_48b_address_supported(struct mos_linux_context *ctx)
+{
+    uint64_t gtt_size = 0;
+    uint64_t gtt_size_4g = (uint64_t)1 << 32;
+    struct mos_bufmgr_gem *bufmgr_gem;
+    int ret;
+
+    if (ctx == nullptr)
+        return -EINVAL;
+
+    ret = mos_get_context_param(ctx, sizeof(uint64_t),I915_CONTEXT_PARAM_GTT_SIZE,&gtt_size);
+    if(ret)
+        return -EINVAL;
+
+    if(gtt_size >= gtt_size_4g)
+    {
+        bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
+        if(bufmgr_gem)
+        {
+            bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
+        }
+    }
     return ret;
 }
 
