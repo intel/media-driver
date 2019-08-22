@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 //!
 
 #include "hwinfo_linux.h"
+#include "linux_system_info.h"
 #include "media_libva_util.h"
 #include "media_libva_vp.h"
 #include "media_libva_common.h"
@@ -3255,7 +3256,17 @@ MediaLibvaCaps * MediaLibvaCaps::CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCt
 {
     if (mediaCtx != nullptr)
     {
-        return CapsFactory::CreateCaps((uint32_t)mediaCtx->platform.eProductFamily, mediaCtx);
+
+        MediaLibvaCaps * Caps = CapsFactory::CreateCaps(
+            (uint32_t)mediaCtx->platform.eProductFamily + MEDIA_EXT_FLAG, mediaCtx);
+
+        if(Caps == nullptr)
+        {
+            Caps = CapsFactory::CreateCaps((uint32_t)mediaCtx->platform.eProductFamily, mediaCtx);
+        }
+
+        return Caps;
+
     }
     else
     {
