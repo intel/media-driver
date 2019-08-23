@@ -3012,17 +3012,6 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 Direction           = pRenderHal->pfnSetChromaDirection(pRenderHal, pRenderHalSurface);
                 break;
 
-            case Format_P016:
-                if (pParams->bVmeUse)
-                {
-                    PlaneDefinition = RENDERHAL_PLANES_P010_1PLANE_ADV;
-                }
-                else
-                {
-                    PlaneDefinition = RENDERHAL_PLANES_P016_2PLANES_ADV;
-                }
-                break;
-
             case Format_P208:
                 PlaneDefinition = RENDERHAL_PLANES_P208_1PLANE_ADV;
                 break;
@@ -3236,6 +3225,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_P010:
+            case Format_P016:
                 if (pParams->bVmeUse)
                 {
                     PlaneDefinition = RENDERHAL_PLANES_P010_1PLANE_ADV;
@@ -3369,15 +3359,12 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition = RENDERHAL_PLANES_NV12;
                 break;
 
-            case Format_P016:
-                PlaneDefinition = RENDERHAL_PLANES_P016;
-                break;
-
             case Format_P208:
                 PlaneDefinition = RENDERHAL_PLANES_P208;
                 break;
 
             case Format_P010:
+            case Format_P016:
                 if (pRenderHal->bEnableP010SinglePass &&
                     (pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET))
                 {
