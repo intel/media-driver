@@ -152,6 +152,8 @@ struct CM_HAL_GENERIC
 
 public:
     PCM_HAL_STATE m_cmState;
+    const L3ConfigRegisterValues *m_l3Plane = nullptr;
+    size_t m_l3ConfigCount = 0;
 
     CM_HAL_GENERIC(PCM_HAL_STATE cmState) : m_cmState(cmState),
                                             m_platformID(PLATFORM_INTEL_UNKNOWN),
