@@ -2294,6 +2294,8 @@ static VAStatus DdiMedia_CreateMfeContextInternal(
     VAMFContextID      *mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT mediaDrvCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaDrvCtx, "nullptr pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2347,6 +2349,8 @@ static VAStatus DdiMedia_DestoryMfeContext (
     VAMFContextID      mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT mediaCtx              = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2378,6 +2382,8 @@ static VAStatus DdiMedia_AddContextInternal(
     VAMFContextID      mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT      mediaCtx         = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2438,6 +2444,8 @@ static VAStatus DdiMedia_ReleaseContextInternal(
     VAMFContextID      mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
