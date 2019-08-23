@@ -4256,7 +4256,7 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     oss << "HighQPMvCostEnable = 1" << std::endl;
     oss << "HighQPHMECostEnable = 1" << std::endl;
     oss << "RefIDCostMode = 0" << std::endl;
-    oss << "EnableAdaptiveLambdaOffset = 0" << std::endl;
+    oss << "EnableAdaptiveLambdaOffset = 1" << std::endl;
 
     m_encodeParState->m_isConstDumped = true;
 
