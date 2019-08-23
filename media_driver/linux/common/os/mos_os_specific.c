@@ -98,17 +98,6 @@ void SetupApoMosSwitch(PLATFORM *platform)
         g_apoMosEnabled = 0;
     }
 
-    // For test perpose
-    if (platform->eProductFamily >= IGFX_ICELAKE)
-    {
-        g_apoMosEnabled = 1;
-    }
-    else
-    {
-        g_apoMosEnabled = 0;
-    }
-
-
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 
