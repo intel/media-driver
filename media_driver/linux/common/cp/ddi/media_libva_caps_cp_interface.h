@@ -28,7 +28,6 @@
 #define __MEDIA_LIBVA_CAPS_CP_INTERFACE_H__
 
 #include "media_libva.h"
-#include "cplib.h"
 
 class MediaLibvaCapsCpInterface
 {

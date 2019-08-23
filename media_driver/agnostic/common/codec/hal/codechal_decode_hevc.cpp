@@ -1134,18 +1134,6 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
         m_dataOffset    = 0;
         m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
     }
-    else
-    {
-        m_dataSize      = m_decodeParams.m_dataSize;
-        m_dataOffset    = 0;
-        m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
-    }
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitstream());
-
-    //For CENC case, the Entry has been initialized with value in SetParamsForDecode
-    PCODEC_REF_LIST destEntry = m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx];
-    MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitstream());
 

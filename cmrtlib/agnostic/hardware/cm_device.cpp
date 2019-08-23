@@ -342,7 +342,6 @@ CmDevice_RT::CreateQueueEx(CmQueue* &queue,
     INSERT_PROFILER_RECORD();
     m_criticalSectionQueue.Acquire();
 
-    m_criticalSectionQueue.Acquire();
     CmQueue_RT *queueRT = nullptr;
     if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
     {

@@ -969,8 +969,6 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
 {
     DDI_CHK_NULL(buf, "nullptr", );
-    DDI_CHK_NULL(buf->pMediaCtx, "nullptr", );
-    DDI_CHK_NULL(buf->pMediaCtx->pGmmClientContext, "nullptr", );
     // calling sequence checking
     if (buf->bMapped)
     {

@@ -135,7 +135,6 @@ CmProgramRT::CmProgramRT( CmDeviceRT* device, uint32_t programId ):
     m_refCount(0),
     m_programIndex(programId),
     m_fJITCompile(nullptr),
-    m_fJITCompile_v2(nullptr),
     m_fFreeBlock(nullptr),
     m_fJITVersion(nullptr),
     m_fJITCompile_v2(nullptr),

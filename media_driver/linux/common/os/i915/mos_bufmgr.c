@@ -2633,10 +2633,8 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     int ret = 0;
     int i;
 
-#ifndef ANDROID
     if (to_bo_gem(bo)->has_error)
         return -ENOMEM;
-#endif
 
     switch (flags & 0x7) {
     default:
@@ -2725,12 +2723,7 @@ skip_execution:
         mos_gem_dump_validation_list(bufmgr_gem);
 
     for (i = 0; i < bufmgr_gem->exec_count; i++) {
-#ifndef ANDROID
         struct mos_bo_gem *bo_gem = to_bo_gem(bufmgr_gem->exec_bos[i]);
-#else
-        struct mos_linux_bo *bo = bufmgr_gem->exec_bos[i];
-        struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
-#endif
 
         bo_gem->idle = false;
 
@@ -2749,7 +2742,6 @@ mos_gem_bo_exec2(struct mos_linux_bo *bo, int used,
                drm_clip_rect_t *cliprects, int num_cliprects,
                int DR4)
 {
-#ifndef ANDROID // TODO:biskhand: two versions of mos_gem_bo_exec2?
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
             I915_EXEC_RENDER, nullptr);
 }
@@ -2759,7 +2751,6 @@ mos_gem_bo_mrb_exec2(struct mos_linux_bo *bo, int used,
             drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
             unsigned int flags)
 {
-#ifndef ANDROID // TODO:biskhand: two versions of mos_gem_bo_mrb_exec2?
     return do_exec2(bo, used, nullptr, cliprects, num_cliprects, DR4,
             flags, nullptr);
 }

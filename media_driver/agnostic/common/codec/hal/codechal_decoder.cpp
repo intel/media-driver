@@ -253,8 +253,6 @@ CodechalDecode::CodechalDecode (
 
     m_mode              = standardInfo->Mode;
     m_isHybridDecoder   = standardInfo->bIsHybridCodec ? true : false;
-
-    MOS_ZeroMemory(&m_dummyReference, sizeof(MOS_SURFACE));
 }
 
 MOS_STATUS CodechalDecode::SetGpuCtxCreatOption(

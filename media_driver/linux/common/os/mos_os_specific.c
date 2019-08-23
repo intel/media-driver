@@ -6116,12 +6116,6 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
     return eStatus;
 }
 
-void Mos_Specific_NotifyStreamIndexSharing(
-    PMOS_INTERFACE              pOsInterface)
-{
-    MOS_UNUSED(pOsInterface);
-}
-
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface

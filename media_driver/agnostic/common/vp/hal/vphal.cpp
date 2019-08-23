@@ -606,8 +606,7 @@ VphalState::VphalState(
         m_sfcInterface(nullptr),
         m_renderer(nullptr),
         m_renderGpuNode(MOS_GPU_NODE_3D),
-        m_renderGpuContext(MOS_GPU_CONTEXT_RENDER),
-        m_gpuAppTaskEvent(nullptr)
+        m_renderGpuContext(MOS_GPU_CONTEXT_RENDER)
 {
     MOS_STATUS                  eStatus;
 

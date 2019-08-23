@@ -550,18 +550,6 @@ public:
     virtual bool IsImageSupported(uint32_t fourcc) = 0;
 
     //!
-    //! \brief    Populate the color masks info 
-    //!
-    //! \param    [in,out] Image format
-    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
-    //!           structure.
-    //!
-    //! \return   VAStatus 
-    //!           VA_STATUS_SUCCESS if succeed 
-    //!
-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
-    
-    //!
     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
     //!
     //! \param    [in] rcMode 

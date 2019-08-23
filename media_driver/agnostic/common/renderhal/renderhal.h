@@ -44,7 +44,6 @@
 #include "frame_tracker.h"
 
 
-
 class XRenderHal_Platform_Interface;
 
 //------------------------------------------------------------------------------

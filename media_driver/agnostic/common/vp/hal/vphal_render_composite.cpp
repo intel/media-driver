@@ -1632,12 +1632,6 @@ bool CompositeState::AddCompLayer(
 
     scalingMode           = pSource->ScalingMode;
 
-    // set default Scaling Model as Bilinear if AVS was not supported.
-    if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
-    {
-        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
-    }
-
     // On Gen9+, Rotation is done in sampler. Multiple phases are not required.
     if (!m_bSamplerSupportRotation)
     {
@@ -6367,11 +6361,6 @@ bool CompositeState::BuildFilter(
         else
         {
             pFilter->bWaEnableDscale = MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
-        }
-
-        if (m_bFtrComputeWalker)
-        {
-            pFilter->bWaEnableDscale = true;
         }
 
         //--------------------------------

@@ -62,7 +62,6 @@ struct CM_SET_CAPS
     };
 };
 
-extern uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE pOsInterface);
 namespace CMRT_UMD
 {
 CSync CmDeviceRTBase::m_globalCriticalSectionSurf2DUserDataLock = CSync();

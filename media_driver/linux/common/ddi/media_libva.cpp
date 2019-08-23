@@ -4030,8 +4030,6 @@ VAStatus DdiMedia_DeriveImage (
     vaimg->height                   = mediaSurface->iRealHeight;
     vaimg->format.byte_order        = VA_LSB_FIRST;
 
-    uint32_t gmmUPlaneYOffset = mediaSurface->pGmmResourceInfo->GetPlanarYOffset(GMM_PLANE_U);
-
     switch( mediaSurface->format )
     {
     case Media_Format_YV12:

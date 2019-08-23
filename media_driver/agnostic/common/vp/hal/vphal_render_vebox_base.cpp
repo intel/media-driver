@@ -2247,7 +2247,6 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
     // Flags needs to be set if the reference sample is valid
     if (pRenderData->bRefValid)
     {
-        VPHAL_RENDER_CHK_NULL_NO_STATUS(pPrvSurf);
         pRenderData->bSameSamples   =
                WITHIN_BOUNDS(
                       pCurSurf->FrameID - pVeboxState->iCurFrameID,
@@ -2278,9 +2277,6 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
 
     // Cache Render Target pointer
     pRenderData->pRenderTarget = pRenderTarget;
-
-finish:
-    return;
 }
 
 //!
@@ -3791,109 +3787,6 @@ void VPHAL_VEBOX_STATE::CopyReporting(VphalFeatureReport* pReporting)
 
     CopyFeatureReporting(pReporting);
     CopyResourceReporting(pReporting);
-}
-
-MOS_STATUS VpHal_VeboxAllocateTempSurfaces(
-    VphalRenderer                   *pRenderer,
-    PCVPHAL_RENDER_PARAMS           pcRenderParams,
-    PVPHAL_VEBOX_RENDER_DATA        pRenderData,
-    PVPHAL_SURFACE                  pInSurface,
-    PVPHAL_SURFACE                  pOutSurface,
-    PVPHAL_SURFACE                  pAllocatedSurface)
-{
-    MOS_STATUS               eStatus;
-    PMOS_INTERFACE           pOsInterface        = nullptr;
-    PVPHAL_VEBOX_STATE       pVeboxState         = nullptr;
-    bool                     bAllocated;
-    VPHAL_CSPACE             surfaceColorSpace;
-    MOS_FORMAT               surfaceFormat;
-    uint32_t                 dwSurfaceWidth;
-    uint32_t                 dwSurfaceHeight;
-
-    VPHAL_RENDER_CHK_NULL(pInSurface);
-    VPHAL_RENDER_CHK_NULL(pOutSurface);
-    VPHAL_RENDER_CHK_NULL(pRenderer);
-    VPHAL_RENDER_CHK_NULL(pcRenderParams);
-    VPHAL_RENDER_CHK_NULL(pRenderData);
-
-    pOsInterface = pRenderer->GetOsInterface();
-    VPHAL_RENDER_CHK_NULL(pOsInterface);
-
-    eStatus             = MOS_STATUS_SUCCESS;
-    dwSurfaceWidth      = pInSurface->dwWidth;
-    dwSurfaceHeight     = pInSurface->dwHeight;
-    surfaceFormat       = pOutSurface->Format;
-    surfaceColorSpace   = pOutSurface->ColorSpace;
-
-    // Hdr intermediate surface should be Y tile for best performance
-    VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
-        pOsInterface,
-        pAllocatedSurface,
-        "VeboxHdrOutputSurface",
-        surfaceFormat,
-        MOS_GFXRES_2D,
-        MOS_TILE_Y,
-        dwSurfaceWidth,
-        dwSurfaceHeight,
-        false,
-        MOS_MMC_DISABLED,
-        &bAllocated));
-
-    VPHAL_RENDER_CHK_NULL(pAllocatedSurface);
-
-    // Copy rect sizes so that if input surface state needs to adjust,
-    // output surface can be adjusted also.
-    pAllocatedSurface->rcSrc            = pInSurface->rcSrc;
-    pAllocatedSurface->rcDst            = pInSurface->rcSrc;
-    pAllocatedSurface->rcMaxSrc         = pInSurface->rcSrc;
-    pAllocatedSurface->Rotation         = pInSurface->Rotation;
-    pAllocatedSurface->SampleType       = pInSurface->SampleType;
-    pAllocatedSurface->ColorSpace       = surfaceColorSpace;
-    pAllocatedSurface->Format           = surfaceFormat;
-    pAllocatedSurface->SurfType         = pInSurface->SurfType;
-    pAllocatedSurface->SampleType       = pInSurface->SampleType;
-    pAllocatedSurface->ScalingMode      = pInSurface->ScalingMode;
-    pAllocatedSurface->bIEF             = pInSurface->bIEF;
-    pAllocatedSurface->FrameID          = pInSurface->FrameID;
-
-    if (pInSurface->pBlendingParams)
-    {
-        if (!pAllocatedSurface->pBlendingParams)
-        {
-            pAllocatedSurface->pBlendingParams = (PVPHAL_BLENDING_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_BLENDING_PARAMS));
-            VPHAL_RENDER_CHK_NULL(pAllocatedSurface->pBlendingParams);
-        }
-
-        MOS_SecureMemcpy(pAllocatedSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS),
-            pInSurface->pBlendingParams, sizeof(VPHAL_BLENDING_PARAMS));
-    }
-    else
-    {
-        MOS_FreeMemory(pAllocatedSurface->pBlendingParams);
-        pAllocatedSurface->pBlendingParams = nullptr;
-    }
-
-    if (pInSurface->pHDRParams)
-    {
-        if (!pAllocatedSurface->pHDRParams)
-        {
-            pAllocatedSurface->pHDRParams = (PVPHAL_HDR_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_HDR_PARAMS));
-            VPHAL_RENDER_CHK_NULL(pAllocatedSurface->pHDRParams);
-        }
-        if (pOutSurface->pHDRParams)
-        {
-            MOS_SecureMemcpy(pAllocatedSurface->pHDRParams, sizeof(VPHAL_HDR_PARAMS),
-                pOutSurface->pHDRParams, sizeof(VPHAL_HDR_PARAMS));
-        }
-    }
-    else
-    {
-        MOS_FreeMemory(pAllocatedSurface->pHDRParams);
-        pAllocatedSurface->pHDRParams = nullptr;
-    }
-
-finish:
-    return eStatus;
 }
 
 //!

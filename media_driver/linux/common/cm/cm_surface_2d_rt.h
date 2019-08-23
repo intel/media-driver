@@ -52,8 +52,6 @@ public:
 
     int32_t SetVaSurfaceID(VASurfaceID vaSurface, void *vaDisplay);
 
-    int32_t UpdateSurfaceProperty(uint32_t width, uint32_t height, uint32_t pitch, CM_SURFACE_FORMAT format);
-
 protected:
     CmSurface2DRT(unsigned int handle,
                   unsigned int width,
