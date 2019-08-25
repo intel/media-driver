@@ -41,9 +41,6 @@
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include "media_libva_vp_tools.h"
-#if ANDROID
-#include "media_libva_vp_tools_android.h"
-#endif
 #endif
 
 #define VP_SETTING_MAX_PHASES                           1
@@ -3508,11 +3505,6 @@ VAStatus DdiVp_EndPicture (
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpDumpProcPipelineParams(pVaDrvCtx, pVpCtx);
-
-#if ANDROID
-    VpReportFeatureMode(pVpCtx);
-#endif
-
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     // Reset primary surface count for next render call

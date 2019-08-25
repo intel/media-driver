@@ -33,7 +33,7 @@
 #include "mos_defs.h"
 #include "mos_os_cp_interface_specific.h"
 #ifdef ANDROID
-#include <utils/Log.h>
+#include <log/log.h>
 #endif
 #include "i915_drm.h"
 #include "mos_bufmgr.h"

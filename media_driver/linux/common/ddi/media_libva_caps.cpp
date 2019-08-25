@@ -547,7 +547,6 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
     attrib.type = VAConfigAttribEncInterlaced;
     attrib.value = VA_ENC_INTERLACED_NONE;
-#ifndef ANDROID
     if(IsAvcProfile(profile))
     {
         attrib.value = VA_ENC_INTERLACED_FIELD;
@@ -556,7 +555,6 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = VA_ENC_INTERLACED_FRAME;
     }
-#endif
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncMaxRefFrames;
