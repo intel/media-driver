@@ -35,8 +35,8 @@
 #include <stdlib.h>
 
 #include "mos_graphicsresource_next.h"
-#include "mos_context_specific_next.h"
-#include "mos_gpucontext_specific_next.h"
+#include "mos_context_specific.h"
+#include "mos_gpucontext_specific.h"
 #include "mos_gpucontextmgr_next.h"
 
 #if MOS_MEDIASOLO_SUPPORTED
@@ -49,7 +49,7 @@
 #include <sys/sem.h>
 #include <sys/types.h>
 
-GpuContextSpecificNext* MosOsSpecificNext::Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle)
+GpuContextSpecific * MosOsSpecificNext::Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -59,7 +59,7 @@ GpuContextSpecificNext* MosOsSpecificNext::Linux_GetGpuContext(PMOS_INTERFACE pO
         return nullptr;
     }
 
-    OsContextSpecificNext *osCxtSpecific = nullptr;
+    auto osCxtSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
 
     auto gpuContextMgr = osCxtSpecific->GetGpuContextMgr();
     if (gpuContextMgr == nullptr)
@@ -75,7 +75,7 @@ GpuContextSpecificNext* MosOsSpecificNext::Linux_GetGpuContext(PMOS_INTERFACE pO
         return nullptr;
     }
 
-    auto gpuContextSpecific = static_cast<GpuContextSpecificNext *>(gpuContext);
+    auto gpuContextSpecific = static_cast<GpuContextSpecific *>(gpuContext);
 
     return gpuContextSpecific;
 }

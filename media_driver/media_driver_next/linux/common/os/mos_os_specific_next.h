@@ -37,16 +37,13 @@
 
 #include <vector>
 
-class GraphicsResourceNext;
-class AuxTableMgrNext;
-class GpuContextSpecificNext;
-class GpuContextMgrNext;
+class GpuContextSpecific;
 
 class MosOsSpecificNext
 {
 public:
 
-    static GpuContextSpecificNext* Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle);
+    static GpuContextSpecific * Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle);
     static GMM_RESOURCE_FORMAT Mos_Specific_ConvertMosFmtToGmmFmt(MOS_FORMAT format);
 
 };
