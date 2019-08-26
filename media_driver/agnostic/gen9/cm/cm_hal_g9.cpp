@@ -1013,7 +1013,6 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     }
     else
     {
-        HalOcaInterface::OnSubLevelBBStart(mosCmdBuffer, *pOsContext, &batchBuffer->OsResource, 0, true, 0);
         // Send Start batch buffer command
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferStartCmd(
             &mosCmdBuffer,
