@@ -401,9 +401,9 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
     // RENDERHAL_PLANES_PL3_ADV
     {   3,
         {
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_U_PLANE      , 2, 2, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_V_PLANE      , 2, 2, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_U_PLANE      , 2, 2, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_V_PLANE      , 2, 2, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_NV12_ADV
@@ -501,57 +501,57 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
     // RENDERHAL_PLANES_411P_ADV
     {   3,
         {
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_U_PLANE      , 4, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_V_PLANE      , 4, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_U_PLANE      , 4, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_V_PLANE      , 4, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_411R_ADV
     {   3,
         {
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_U_PLANE      , 1, 4, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_V_PLANE      , 1, 4, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_U_PLANE      , 1, 4, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_V_PLANE      , 1, 4, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_422H_ADV
     {   3,
         {
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_U_PLANE      , 2, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_V_PLANE      , 2, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_U_PLANE      , 2, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_V_PLANE      , 2, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_422V_ADV
     {   3,
         {
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_U_PLANE      , 1, 2, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_V_PLANE      , 1, 2, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_U_PLANE      , 1, 2, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_V_PLANE      , 1, 2, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_444P_ADV
     {   3,
         {
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_U_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_V_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_U_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_V_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_RGBP_ADV
     {   3,
         {
-            { MHW_U_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_V_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_U_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_V_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_BGRP_ADV
     {   3,
         {
-            { MHW_U_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
-            { MHW_Y_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
-            { MHW_V_PLANE      , 1, 1, 2, 2, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
+            { MHW_U_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM },
+            { MHW_Y_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM },
+            { MHW_V_PLANE      , 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_R8_UNORM }
         }
     },
     // RENDERHAL_PLANES_R16_UNORM
