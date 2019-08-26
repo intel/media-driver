@@ -4451,8 +4451,8 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
                 if (gpuContextMgr)
                 {
                     GpuContextNext *gpuCtx = gpuContextMgr->GetGpuContext(gpuContextHandle);
-                
                     auto gpuContextSpecific = static_cast<GpuContextSpecificNext *>(gpuCtx);
+                    MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
                     gpuContextSpecific->SetGpuContext(mosGpuCxt);
                     return eStatus;
                 }
@@ -5773,6 +5773,7 @@ MOS_STATUS Mos_Specific_VerifyPatchListSize(
             auto gpuCtx = gpuContextMgr->GetGpuContext(streamState->currentGpuContextHandle);
 
             auto gpuCtxSpecific = static_cast<GpuContextSpecificNext *>(gpuCtx);
+            MOS_OS_CHK_NULL_RETURN(gpuCtxSpecific);
             return (gpuCtxSpecific->VerifyPatchListSize(dwRequestedSize));
         }
     }
