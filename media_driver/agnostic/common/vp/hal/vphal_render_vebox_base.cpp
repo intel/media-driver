@@ -4260,6 +4260,9 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pOutSurface->rcSrc    = rcTempOut;
             pOutSurface->dwWidth  = rcTempOut.right;
             pOutSurface->dwHeight = rcTempOut.bottom;
+            pInSurface->rcDst = rcTempOut;
+            VPHAL_RENDER_NORMALMESSAGE("x scaling ratio %f, y %f, 1st pass sfc scaling ratio %f",
+              pRenderData->fScaleX, pRenderData->fScaleY, TempfScaleX);
         }
         if (pVeboxState->m_sfcPipeState && (pRenderPassData->bSFCScalingOnly || pVeboxState->m_sfcPipeState->m_bSFC2Pass))
         {
@@ -4320,6 +4323,10 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pRenderData->bDenoise = false;
             pRenderData->bDeinterlace = false;
             pRenderData->bQueryVariance = false;
+
+            VPHAL_RENDER_NORMALMESSAGE("2nd pass sfc scaling ratio x = %f, y = %f",
+              (long)((pInSurface->rcDst.right - pInSurface->rcDst.left) / (pInSurface->rcSrc.right - pInSurface->rcSrc.left)),
+              (long)((pInSurface->rcDst.bottom - pInSurface->rcDst.top) / (pInSurface->rcSrc.bottom - pInSurface->rcSrc.top)));
 
             if (pRenderPassData->bSFCScalingOnly)
             {// only the multi-layers use the SFC 2pass need the second sfc tempsurfaces.
