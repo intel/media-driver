@@ -321,7 +321,8 @@ public:
 
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking);
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr);
 
     virtual MOS_STATUS ExecutePictureLevel();
 

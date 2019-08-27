@@ -2764,7 +2764,8 @@ MOS_STATUS CodechalVdencVp9StateG11::SubmitCommandBuffer(
 
 MOS_STATUS CodechalVdencVp9StateG11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    bool frameTrackingRequested)
+    bool frameTrackingRequested,
+    MHW_MI_MMIOREGISTERS *mmioRegister)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

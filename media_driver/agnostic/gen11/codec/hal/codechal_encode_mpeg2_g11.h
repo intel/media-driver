@@ -145,7 +145,8 @@ protected:
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking) override;
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr) override;
 
     //!
     //! \brief    Get encoder kernel header and kernel size

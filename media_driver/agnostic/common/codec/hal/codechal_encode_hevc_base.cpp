@@ -1654,7 +1654,8 @@ MOS_STATUS CodechalEncodeHevcBase::SubmitCommandBuffer(
 
 MOS_STATUS CodechalEncodeHevcBase::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTrackingRequested)
+    bool                        frameTrackingRequested,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1662,7 +1663,7 @@ MOS_STATUS CodechalEncodeHevcBase::SendPrologWithFrameTracking(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTrackingRequested));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTrackingRequested, mmioRegister));
 
     return eStatus;
 }

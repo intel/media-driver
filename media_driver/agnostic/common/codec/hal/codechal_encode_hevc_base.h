@@ -1641,7 +1641,8 @@ public:
     //!
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool frameTrackingRequested);
+        bool frameTrackingRequested,
+        MHW_MI_MMIOREGISTERS *mmioRegister = nullptr);
 
     //!
     //! \brief    Wait for dependent VDBOX to get ready

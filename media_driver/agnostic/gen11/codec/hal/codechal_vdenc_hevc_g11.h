@@ -560,7 +560,8 @@ public:
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTrackingRequested);
+        bool                        frameTrackingRequested,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr);
 
     MOS_STATUS SetSliceStructs();
 

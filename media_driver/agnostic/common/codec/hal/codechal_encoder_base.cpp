@@ -28,6 +28,7 @@
 #include "codechal_encoder_base.h"
 #include "codechal_encode_tracked_buffer_hevc.h"
 #include "mos_solo_generic.h"
+#include "hal_oca_interface.h"
 
 void CodechalEncoderState::PrepareNodes(
     MOS_GPU_NODE& videoGpuNode,
@@ -1970,6 +1971,7 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -2536,6 +2538,14 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
         MOS_ZeroMemory(&curbeLoadParams, sizeof(curbeLoadParams));
         curbeLoadParams.pKernelState = params->pKernelState;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaCurbeLoadCmd(cmdBuffer, &curbeLoadParams));
+
+        HalOcaInterface::OnIndirectState(
+            *cmdBuffer,
+            *m_osInterface->pOsContext,
+            dsh,
+            params->pKernelState->m_dshRegion.GetOffset() + params->pKernelState->dwCurbeOffset,
+            false,
+            params->pKernelState->KernelParams.iCurbeLength);
     }
 
     MHW_ID_LOAD_PARAMS idLoadParams;
@@ -2543,6 +2553,19 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     idLoadParams.pKernelState = params->pKernelState;
     idLoadParams.dwNumKernelsLoaded = 1;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaIDLoadCmd(cmdBuffer, &idLoadParams));
+
+    uint32_t InterfaceDescriptorTotalLength     = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
+    uint32_t InterfaceDescriptorDataStartOffset = MOS_ALIGN_CEIL(
+        params->pKernelState->m_dshRegion.GetOffset() + params->pKernelState->dwIdOffset,
+        m_stateHeapInterface->pStateHeapInterface->GetIdAlignment());
+
+    HalOcaInterface::OnIndirectState(
+        *cmdBuffer,
+        *m_osInterface->pOsContext,
+        dsh,
+        InterfaceDescriptorDataStartOffset,
+        false,
+        InterfaceDescriptorTotalLength);
 
     return eStatus;
 }
@@ -3487,6 +3510,7 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
 
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, nullRendering));
     }
 
@@ -4069,6 +4093,7 @@ MOS_STATUS CodechalEncoderState::SubmitCommandBuffer(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
+    HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface->pOsContext);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));
     return eStatus;
 }
@@ -4125,7 +4150,8 @@ void CodechalEncoderState::MotionEstimationDisableCheck()
 
 MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    bool frameTrackingRequested)
+    bool frameTrackingRequested,
+    MHW_MI_MMIOREGISTERS* mmioRegister)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -4164,7 +4190,7 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     genericPrologParams.pvMiInterface     = m_miInterface;
     genericPrologParams.bMmcEnabled             = CodecHalMmcState::IsMmcEnabled();
     genericPrologParams.dwStoreDataValue = m_storeData - 1;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(cmdBuffer, &genericPrologParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(cmdBuffer, &genericPrologParams, mmioRegister));
 
     return eStatus;
 }

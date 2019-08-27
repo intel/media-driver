@@ -28,6 +28,7 @@
 #include "codechal_encode_avc.h"
 #include "codechal_encode_wp.h"
 #include "codeckrnheader.h"
+#include "hal_oca_interface.h"
 
 #define CODECHAL_ENCODE_AVC_BRC_CONSTANTSURFACE_POCS_IN_DPB_LIST_SIZE       128
 #define CODECHAL_ENCODE_AVC_BRC_CONSTANTSURFACE_POCS_IN_FINAL_LIST_SIZE     128
@@ -3105,6 +3106,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcInitResetKernel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -3934,6 +3936,7 @@ MOS_STATUS CodechalEncodeAvcEnc::MbEncKernel(bool mbEncIFrameDistInUse)
 
         if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
         {
+            HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
             m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
             m_lastTaskInPhase = false;
         }
@@ -4497,6 +4500,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcFrameUpdateKernel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -4650,6 +4654,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcCopyKernel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -4825,6 +4830,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcMbUpdateKernel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -5080,6 +5086,7 @@ MOS_STATUS CodechalEncodeAvcEnc::WPKernel(bool useRefPicList1, uint32_t index)
 
     if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -5232,6 +5239,7 @@ MOS_STATUS CodechalEncodeAvcEnc::SFDKernel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -8123,6 +8131,7 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodeMeKernel(EncodeBrcBuffers* brcBuff
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -8958,9 +8967,10 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
 
 MOS_STATUS CodechalEncodeAvcEnc::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTracking)
+    bool                        frameTracking,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
-    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking, mmioRegister);
 }
 
 MOS_STATUS CodechalEncodeAvcEnc::ExecutePreEnc(EncoderParams* encodeParams)

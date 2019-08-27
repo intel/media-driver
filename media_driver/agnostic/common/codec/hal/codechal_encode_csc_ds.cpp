@@ -26,6 +26,7 @@
 
 #include "codechal_encoder_base.h"
 #include "codechal_encode_csc_ds.h"
+#include "hal_oca_interface.h"
 
 MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
 {
@@ -1506,6 +1507,7 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -1775,6 +1777,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }

@@ -1548,7 +1548,8 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     //!
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking) override;
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr) override;
 
     //!
     //! \brief  Realize the scene change report

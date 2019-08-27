@@ -26,6 +26,7 @@
 //!
 
 #include "codechal_vdenc_avc.h"
+#include "hal_oca_interface.h"
 
 #define CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE 128
 #define CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE 52
@@ -4489,6 +4490,7 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -4759,7 +4761,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     if (!m_singleTaskPhaseSupported)
     {
         bool renderingFlags = m_videoContextUsesNullHw;
-
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
     }
 
@@ -4956,7 +4958,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     if (!m_singleTaskPhaseSupported)
     {
         bool renderingFlags = m_videoContextUsesNullHw;
-
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
     }
 
@@ -5438,12 +5440,13 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
 }
 
 MOS_STATUS CodechalVdencAvcState::SendPrologWithFrameTracking(
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    bool                frameTracking)
+    PMOS_COMMAND_BUFFER   cmdBuffer,
+    bool                  frameTracking,
+    MHW_MI_MMIOREGISTERS  *mmioRegister)
 {
     // Set flag bIsMdfLoad in remote gaming scenario to boost GPU frequency for low latency
     cmdBuffer->Attributes.bFrequencyBoost = (m_avcSeqParam->ScenarioInfo == ESCENARIO_REMOTEGAMING);
-    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking, mmioRegister);
 }
 
 MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()

@@ -27,6 +27,7 @@
 #include "codechal_vdenc_avc.h"
 #include "codechal_encode_avc.h"
 #include "codechal_mmc_encode_avc.h"
+#include "hal_oca_interface.h"
 
 #define CODECHAL_ENCODE_AVC_CQP_NUM_OF_PASSES 2
 #define CODECHAL_ENCODE_AVC_ICQ_NUM_OF_PASSES 2
@@ -3055,6 +3056,7 @@ MOS_STATUS CodechalEncodeAvcBase::EncodeMeKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }

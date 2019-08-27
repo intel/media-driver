@@ -27,6 +27,7 @@
 
 #include "codechal_encode_sfc.h"
 #include "codechal_encoder_base.h"
+#include "hal_oca_interface.h"
 
 #define CODECHAL_IS_BT601_CSPACE(format)                \
         ( (format == MHW_CSpace_BT601)               || \
@@ -1225,6 +1226,8 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
         nullptr)));
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
         m_osInterface,
         &cmdBuffer,

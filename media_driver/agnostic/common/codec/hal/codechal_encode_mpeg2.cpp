@@ -5160,9 +5160,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
 
 MOS_STATUS CodechalEncodeMpeg2::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTracking)
+    bool                        frameTracking,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
-    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking, mmioRegister);
 }
 
 void CodechalEncodeMpeg2::UpdateSSDSliceCount()
