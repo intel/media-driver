@@ -429,7 +429,12 @@ void* MosUtilDevice::CreateFactory(
     PRODUCT_FAMILY productFamily)
 {
     MosUtilDevice *device = nullptr;
-    device = MosUtilFactory::CreateHal(productFamily);
+
+    device = MosUtilFactory::CreateHal(productFamily + MEDIA_EXT_FLAG);
+    if (device == nullptr)
+    {
+        device = MosUtilFactory::CreateHal(productFamily);
+    }
 
     if (device == nullptr)
     {
