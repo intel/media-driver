@@ -4238,7 +4238,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteKernelFunctions()
         if (!Mos_ResourceIsNull(&m_brcBuffers.sBrcMbQpBuffer.OsResource))
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_brcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+                &m_brcBuffers.sBrcMbQpBuffer.OsResource,
                 CodechalDbgAttr::attrOutput,
                 "MbQp",
                 m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,
