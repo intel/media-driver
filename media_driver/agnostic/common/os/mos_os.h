@@ -45,6 +45,8 @@
 #include "mos_os_specific.h"
 #include "mos_os_virtualengine_specific.h"
 
+#include "mos_oca_interface.h"
+
 #define MOS_NAL_UNIT_LENGTH                 4
 #define MOS_NAL_UNIT_STARTCODE_LENGTH       3
 #define MOS_MAX_PATH_LENGTH                 256
@@ -98,6 +100,7 @@
 #define MOS_COMMAND_BUFFER_RENDER_ENGINE   "CS"
 #define MOS_COMMAND_BUFFER_VIDEO_ENGINE    "VCS"
 #define MOS_COMMAND_BUFFER_VEBOX_ENGINE    "VECS"
+#define MOS_COMMAND_BUFFER_RTE_ENGINE      "RTE"
 #define MOS_COMMAND_BUFFER_PLATFORM_LEN    4
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
@@ -206,6 +209,7 @@ typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
     uint32_t                    dwMediaFrameTrackingAddrOffset;
     MOS_RESOURCE                resMediaFrameTrackingSurface;
     int32_t                     bUmdSSEUEnable;
+    int32_t                     bFrequencyBoost;
     void*                       pAttriVe;
 } MOS_COMMAND_BUFFER_ATTRIBUTES, *PMOS_COMMAND_BUFFER_ATTRIBUTES;
 
@@ -218,6 +222,15 @@ typedef enum _MOS_VDBOX_NODE_IND
     MOS_VDBOX_NODE_1           = 0x0,
     MOS_VDBOX_NODE_2           = 0x1
 } MOS_VDBOX_NODE_IND;
+
+#define SUBMISSION_TYPE_SINGLE_PIPE                     (1 << 0)
+#define SUBMISSION_TYPE_SINGLE_PIPE_MASK                (0xff)
+#define SUBMISSION_TYPE_MULTI_PIPE_SHIFT                8
+#define SUBMISSION_TYPE_MULTI_PIPE_ALONE                (1 << SUBMISSION_TYPE_MULTI_PIPE_SHIFT)
+#define SUBMISSION_TYPE_MULTI_PIPE_MASTER               (1 << (SUBMISSION_TYPE_MULTI_PIPE_SHIFT+1))
+#define SUBMISSION_TYPE_MULTI_PIPE_SLAVE                (1 << (SUBMISSION_TYPE_MULTI_PIPE_SHIFT+2))
+#define SUBMISSION_TYPE_MULTI_PIPE_MASK                 (0xff << SUBMISSION_TYPE_MULTI_PIPE_SHIFT)
+#define SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT    16
 
 //!
 //! \brief Structure to command buffer
@@ -234,8 +247,10 @@ typedef struct _MOS_COMMAND_BUFFER
     int32_t             iTokenOffsetInCmdBuf;       //!< Pointer to (Un)Secure token's next field Offset
     int32_t             iCmdIndex;                  //!< command buffer's index
     MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
+    int32_t             iSubmissionType;
 
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
+    MOS_OCA_BUFFER_HANDLE hOcaBuf;                  //!< Oca buffer handle for current command
 } MOS_COMMAND_BUFFER;
 
 //!
@@ -351,8 +366,8 @@ struct _MOS_GPUCTX_CREATOPTIONS
 
     _MOS_GPUCTX_CREATOPTIONS() : 
         CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
-        SSEUValue(0),
-        RAMode(0) {}
+        RAMode(0),
+        SSEUValue(0){}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };
@@ -590,6 +605,9 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnEngineWait) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_SYNC_PARAMS            pParams);
+
+    MOS_STATUS (* pfnWaitAllCmdCompletion) (
+        PMOS_INTERFACE              pOsInterface);
 
     MOS_STATUS (* pfnCreateSyncResource) (
         PMOS_INTERFACE              pOsInterface,
@@ -1059,8 +1077,12 @@ typedef struct _MOS_INTERFACE
     bool                            ctxBasedScheduling;                           //!< Flag to indicate if context based scheduling enabled for virtual engine, that is VE2.0.
     bool                            multiNodeScaling;                             //!< Flag to indicate if multi-node scaling is enabled for virtual engine, that is VE3.0.
     bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
-
+    bool                            phasedSubmission = false;                     //!< Flag to indicate if secondary command buffers are submitted together (Win) or separately (Linux)
+    bool                            frameSplit = true;                            //!< Flag to indicate if frame split is enabled
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
+
+    MOS_STATUS (*pfnCheckVirtualEngineSupported)(
+        PMOS_INTERFACE              pOsInterface);
 
 #if MOS_MEDIASOLO_SUPPORTED
     int32_t                         bSupportMediaSoloVirtualEngine;               //!< Flag to indicate if MediaSolo uses VE solution in cmdbuffer submission.

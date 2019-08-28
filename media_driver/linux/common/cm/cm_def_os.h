@@ -112,8 +112,8 @@ class SurfaceIndex
 {
 public:
     CM_NOINLINE SurfaceIndex() { index = 0; extraByte = 0; };
-    CM_NOINLINE SurfaceIndex(const SurfaceIndex& src) { index = src.index; };
-    CM_NOINLINE SurfaceIndex(const unsigned int& n) { index = n; };
+    CM_NOINLINE SurfaceIndex(const SurfaceIndex& src) { index = src.index; extraByte = src.extraByte; };
+    CM_NOINLINE SurfaceIndex(const unsigned int& n) { index = n; extraByte = 0; };
     CM_NOINLINE SurfaceIndex& operator = (const unsigned int& n) { this->index = n; return *this; };
     CM_NOINLINE SurfaceIndex& operator + (const unsigned int& n) { this->index += n; return *this; };
     CM_NOINLINE SurfaceIndex& operator= (const SurfaceIndex& other) { this->index = other.index; return *this; };
@@ -141,8 +141,8 @@ class SamplerIndex
 {
 public:
     CM_NOINLINE SamplerIndex() { index = 0; extraByte = 0;};
-    CM_NOINLINE SamplerIndex(SamplerIndex& src) { index = src.get_data(); };
-    CM_NOINLINE SamplerIndex(const unsigned int& n) { index = n; };
+    CM_NOINLINE SamplerIndex(SamplerIndex& src) { index = src.get_data(); extraByte = src.extraByte; };
+    CM_NOINLINE SamplerIndex(const unsigned int& n) { index = n; extraByte = 0; };
     CM_NOINLINE SamplerIndex& operator = (const unsigned int& n) { this->index = n; return *this; };
     virtual unsigned int get_data(void) { return index; };
     virtual ~SamplerIndex(){};

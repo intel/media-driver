@@ -33,7 +33,6 @@
 extern "C" {
 #endif
 
-#define DRM_DISPLAY_INFO_LEN	32
 #define DRM_CONNECTOR_NAME_LEN	32
 #define DRM_DISPLAY_MODE_LEN	32
 #define DRM_PROP_NAME_LEN	32
@@ -622,12 +621,36 @@ struct drm_color_ctm {
 
 struct drm_color_lut {
 	/*
-	 * Data is U0.16 fixed point format.
+	 * Values are mapped linearly to 0.0 - 1.0 range, with 0x0 == 0.0 and
+	 * 0xffff == 1.0.
 	 */
 	__u16 red;
 	__u16 green;
 	__u16 blue;
 	__u16 reserved;
+};
+
+/* HDR Metadata Infoframe as per 861.G spec */
+struct hdr_metadata_infoframe {
+	__u8 eotf;
+	__u8 metadata_type;
+	struct {
+		__u16 x, y;
+		} display_primaries[3];
+	struct {
+		__u16 x, y;
+		} white_point;
+	__u16 max_display_mastering_luminance;
+	__u16 min_display_mastering_luminance;
+	__u16 max_cll;
+	__u16 max_fall;
+};
+
+struct hdr_output_metadata {
+	__u32 metadata_type;
+	union {
+		struct hdr_metadata_infoframe hdmi_metadata_type1;
+	};
 };
 
 #define DRM_MODE_PAGE_FLIP_EVENT 0x01

@@ -333,7 +333,8 @@ typedef enum _MOS_STATUS
     MOS_STATUS_CLIENT_AR_NO_SPACE                = 28,
     MOS_STATUS_HUC_KERNEL_FAILED                 = 29,
     MOS_STATUS_NOT_ENOUGH_BUFFER                 = 30,
-    MOS_STATUS_UNKNOWN                           = 31
+    MOS_STATUS_UNINITIALIZED                     = 31,
+    MOS_STATUS_UNKNOWN                           = 32
 } MOS_STATUS;
 
 //!
@@ -418,7 +419,8 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_VIDEO6          = 19, // Encode Node 0 Split 2
     MOS_GPU_CONTEXT_VIDEO7          = 20, // Decode Node 0 Split 3
     MOS_GPU_CONTEXT_BLT             = 21,
-    MOS_GPU_CONTEXT_MAX             = 22,
+    MOS_GPU_CONTEXT_RTE             = 22, // RTE context
+    MOS_GPU_CONTEXT_MAX             = 23,
     MOS_GPU_CONTEXT_INVALID_HANDLE  = 0xFFFFA
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
 

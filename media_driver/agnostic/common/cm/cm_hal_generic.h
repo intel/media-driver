@@ -159,7 +159,8 @@ public:
                                             m_platformStr(nullptr),
                                             m_requestShutdownSubslicesForVmeUsage(false),
                                             m_overridePowerOptionPerGpuContext(false),
-                                            m_redirectRcsToCcs(false){};
+                                            m_redirectRcsToCcs(false),
+                                            m_decompress(false){};
 
     virtual ~CM_HAL_GENERIC(){};
 
@@ -634,6 +635,30 @@ public:
         return m_redirectRcsToCcs;
     }
 
+    //!
+    //! \brief    enable or disable decompression flag
+    //! \param    [in]  enabled
+    //!           true: enable decompression for surface;
+    //!           false: disable decompression
+    virtual void SetDecompressFlag(bool enabled)
+    {
+        m_decompress = enabled;
+    }
+
+    //!
+    //! \brief    return whether the decompreesion option
+    //! \return   bool
+    //!           true: need to decompress a compressed surface;
+    //!           false: no need to decompress the compressed surface
+    virtual bool GetDecompressFlag()
+    {
+        return m_decompress;
+    }
+
+    virtual MOS_STATUS RegisterResourceBeforeLock(PMOS_INTERFACE pOsInterface, PMOS_RESOURCE pResource)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 protected:
     uint32_t              m_platformID;
     uint32_t              m_genGT;
@@ -642,6 +667,7 @@ protected:
     bool                  m_requestShutdownSubslicesForVmeUsage;
     bool                  m_overridePowerOptionPerGpuContext;
     bool                  m_redirectRcsToCcs;
+    bool                  m_decompress;
 };
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_

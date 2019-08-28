@@ -85,12 +85,12 @@ CmTaskRT::CmTaskRT(CmDeviceRT *device,
                    uint32_t index,
                    uint32_t maxKernelCount):
     m_kernelArray( nullptr ),
+    m_device( device ),
     m_kernelCount(0),
     m_maxKernelCount( maxKernelCount ),
     m_indexTaskArray(index),
     m_syncBitmap( 0 ),
-    m_conditionalEndBitmap( 0 ),
-    m_device( device )
+    m_conditionalEndBitmap( 0 )
 {
     CmSafeMemSet( &m_powerOption, 0, sizeof( m_powerOption ) );
     CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));

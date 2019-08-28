@@ -106,7 +106,8 @@ CmContext::CmContext():
     mBatchTask(nullptr),
     mHasBatchedTask(false),
     mConditionalBatchBuffer(nullptr),
-    mCondParam({ 0 })
+    mCondParam({ 0 }),
+    mEventListener(nullptr)
 {
     VPHAL_RENDER_ASSERT(sOsContext);
 

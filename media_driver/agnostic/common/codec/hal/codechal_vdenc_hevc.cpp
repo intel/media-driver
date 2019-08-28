@@ -1070,7 +1070,7 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcUpdate()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
-    if (((!m_singleTaskPhaseSupported) || (m_firstTaskInPhase) && (!m_brcInit)))
+    if (!m_singleTaskPhaseSupported || (m_firstTaskInPhase && !m_brcInit))
     {
         // Send command buffer header at the beginning (OS dependent)
         bool requestFrameTracking = m_singleTaskPhaseSupported ?
@@ -2369,6 +2369,12 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
     }
 
     m_targetUsage = (uint32_t)m_hevcSeqParams->TargetUsage;
+
+    // enable motion adaptive under game streamming scenario for better quality
+    if (m_hevcSeqParams->ScenarioInfo == ESCENARIO_GAMESTREAMING)
+    {
+        m_enableMotionAdaptive = true;
+    }
 
     // ACQP is by default disabled, enable it when SSC/QpAdjust required.
     if (m_hevcSeqParams->SliceSizeControl == true ||

@@ -47,17 +47,12 @@ typedef struct mos_linux_bo MOS_LINUX_BO;
 typedef struct mos_linux_context MOS_LINUX_CONTEXT;
 typedef struct mos_bufmgr MOS_BUFMGR;
 
-#ifdef ANDROID
-typedef struct drm_i915_cmd_descriptor cmd_descriptor;
-#endif
-
-#ifndef ANDROID
 #include "mos_os_specific.h"
-#endif
 struct mos_linux_context {
     unsigned int ctx_id;
     struct mos_bufmgr *bufmgr;
     struct _MOS_OS_CONTEXT    *pOsContext;
+    struct drm_i915_gem_vm_control* vm;
 };
 
 struct mos_linux_bo {
@@ -130,11 +125,6 @@ struct mos_aub_annotation {
 
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
                  unsigned long size, unsigned int alignment);
-#ifdef ANDROID
-struct mos_linux_bo *mos_bo_alloc2(struct mos_bufmgr *bufmgr, const char *name,
-                  unsigned long size, unsigned int alignment,
-                  unsigned long flags);
-#endif
 struct mos_linux_bo *mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned long size,
@@ -238,18 +228,38 @@ int mos_get_aperture_sizes(int fd, size_t *mappable, size_t *total);
 int mos_bufmgr_gem_get_devid(struct mos_bufmgr *bufmgr);
 
 struct mos_linux_context *mos_gem_context_create(struct mos_bufmgr *bufmgr);
+struct mos_linux_context *mos_gem_context_create_ext(
+                            struct mos_bufmgr *bufmgr,
+                            __u32 flags);
+struct mos_linux_context *mos_gem_context_create_shared(
+                            struct mos_bufmgr *bufmgr,
+                            mos_linux_context* ctx,
+                            __u32 flags);
+struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr);
+void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
+
+#define MAX_ENGINE_INSTANCE_NUM 8
+
+int mos_query_engines(int fd,
+                      __u16 engine_class,
+                      __u64 caps,
+                      unsigned int *nengine,
+                      struct i915_engine_class_instance *ci);
+int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
+                         struct i915_engine_class_instance *ci,
+                         unsigned int count);
+int mos_set_context_param_bond(struct mos_linux_context *ctx,
+                        struct i915_engine_class_instance master_ci,
+                        struct i915_engine_class_instance *bond_ci,
+                        unsigned int bond_count);
+
 void mos_gem_context_destroy(struct mos_linux_context *ctx);
 int mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
                   int used, unsigned int flags);
 int
 mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                                struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-                               unsigned int flags);
-#ifdef ANDROID
-int mos_gem_bo_tag_exec(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-                        struct drm_clip_rect *cliprects, int num_cliprects,
-                        int DR4, unsigned int flags, unsigned int tag);
-#endif
+                               unsigned int flags, int *fence);
 int mos_bo_gem_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
 struct mos_linux_bo *mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr,
                         int prime_fd, int size);
@@ -317,6 +327,8 @@ int mos_set_context_param(struct mos_linux_context *ctx,
                 uint64_t param,
                 uint64_t value);
 
+int mos_gem_bo_48b_address_supported(struct mos_linux_context *ctx);
+
 int mos_get_subslice_total(int fd, unsigned int *subslice_total);
 int mos_get_eu_total(int fd, unsigned int *eu_total);
 
@@ -336,7 +348,6 @@ extern "C" {
 drm_export int mos_gem_bo_map_wc(struct mos_linux_bo *bo);
 drm_export void mos_gem_bo_clear_relocs(struct mos_linux_bo *bo, int start);
 drm_export int mos_gem_bo_wait(struct mos_linux_bo *bo, int64_t timeout_ns);
-#ifndef ANDROID
 drm_export struct mos_linux_bo *
 mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
                 const char *name,
@@ -350,9 +361,8 @@ mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
               drm_clip_rect_t * cliprects, int num_cliprects, int DR4);
 drm_export int do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags);
+     unsigned int flags, int *fence);
 
-#endif
 drm_export void mos_gem_bo_free(struct mos_linux_bo *bo);
 drm_export void mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time);
 drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable);
@@ -362,21 +372,6 @@ drm_export int mos_gem_bo_subdata(struct mos_linux_bo *bo, unsigned long offset,
              unsigned long size, const void *data);
 #if defined(__cplusplus)
 }
-#endif
-
-#ifdef ANDROID
-int mos_cmd_parser_append(int fd,
-                uint32_t ring,
-                uint32_t cmd_count,
-                cmd_descriptor *cmds,
-                uint32_t *regs,
-                uint32_t reg_count);
-
-/*
- * Interface to extended ioctl's
- * This should be used instead of calling the ioctl directly
- */
-int i915ExtIoctl(int fd, unsigned long request, void *arg);
 #endif
 
 #endif /* INTEL_BUFMGR_H */

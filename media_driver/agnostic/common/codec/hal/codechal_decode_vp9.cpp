@@ -163,17 +163,29 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecode(hwInterface, debugInterface, standardInfo),
+                                            m_usFrameWidthAlignedMinBlk(0),
+                                            m_usFrameHeightAlignedMinBlk(0),
+                                            m_vp9DepthIndicator(0),
+                                            m_chromaFormatinProfile(0),
+                                            m_dataSize(0),
+                                            m_dataOffset(0),
+                                            m_frameCtxIdx(0),
                                             m_curMvTempBufIdx(0),
                                             m_colMvTempBufIdx(0),
                                             m_copyDataBufferSize(0),
+                                            m_copyDataOffset(0),
+                                            m_copyDataBufferInUse(false),
+                                            m_hcpDecPhase(0),
                                             m_prevFrmWidth(0),
                                             m_prevFrmHeight(0),
                                             m_allocatedWidthInSb(0),
                                             m_allocatedHeightInSb(0),
                                             m_mvBufferSize(0),
+                                            m_resetSegIdBuffer(false),
                                             m_pendingResetPartial(0),
                                             m_saveInterProbs(0),
-                                            m_copyDataBufferInUse(false)
+                                            m_fullProbBufferUpdate(false),
+                                            m_dmemBufferSize(0)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -197,6 +209,15 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
     MOS_ZeroMemory(&m_resSegmentIdBuffReset, sizeof(m_resSegmentIdBuffReset));
     MOS_ZeroMemory(&m_resHucSharedBuffer, sizeof(m_resHucSharedBuffer));
     MOS_ZeroMemory(&m_picMhwParams, sizeof(m_picMhwParams));
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    MOS_ZeroMemory(&m_lastRefSurface, sizeof(m_lastRefSurface));
+    MOS_ZeroMemory(&m_goldenRefSurface, sizeof(m_goldenRefSurface));
+    MOS_ZeroMemory(&m_altRefSurface, sizeof(m_altRefSurface));
+    MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
+    MOS_ZeroMemory(&m_resCoefProbBuffer, sizeof(m_resCoefProbBuffer));
+    MOS_ZeroMemory(&m_resSyncObject, sizeof(m_resSyncObject));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
 
     m_prevFrameParams.value = 0;
 
@@ -1295,6 +1316,7 @@ MOS_STATUS CodechalDecodeVp9 :: DetermineDecodePhase()
 MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    PMOS_RESOURCE usedDummyReference = nullptr;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -1372,6 +1394,16 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     m_picMhwParams.SurfaceParams[0]->ucBitDepthChromaMinus8 = m_vp9PicParams->BitDepthMinus8;
     m_picMhwParams.SurfaceParams[0]->dwUVPlaneAlignment = 8;
 
+    if (MEDIA_IS_WA(m_waTable, WaDummyReference) &&
+        !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+    {
+        usedDummyReference = &m_dummyReference.OsResource;
+    }
+    else
+    {
+        usedDummyReference = &m_destSurface.OsResource;
+    }
+
     // Populate surface param for reference pictures
     if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
         !m_vp9PicParams->PicFlags.fields.intra_only &&
@@ -1379,6 +1411,19 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
         m_presGoldenRefSurface != nullptr &&
         m_presAltRefSurface != nullptr)
     {
+        if (Mos_ResourceIsNull(m_presLastRefSurface))
+        {
+            m_presLastRefSurface = usedDummyReference;
+        }
+        if (Mos_ResourceIsNull(m_presGoldenRefSurface))
+        {
+            m_presGoldenRefSurface = usedDummyReference;
+        }
+        if (Mos_ResourceIsNull(m_presAltRefSurface))
+        {
+            m_presAltRefSurface = usedDummyReference;
+        }
+
         //MOS_SURFACE lastRefSurface;
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &m_lastRefSurface.OsResource,
@@ -1445,15 +1490,7 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     {
         if (!m_picMhwParams.PipeBufAddrParams->presReferences[i])
         {
-            if (MEDIA_IS_WA(m_waTable, WaDummyReference) &&
-                !Mos_ResourceIsNull(&m_dummyReference.OsResource))
-            {
-                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
-            }
-            else
-            {
-                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &(m_destSurface.OsResource);
-            }
+            m_picMhwParams.PipeBufAddrParams->presReferences[i] = usedDummyReference;
         }
     }
 

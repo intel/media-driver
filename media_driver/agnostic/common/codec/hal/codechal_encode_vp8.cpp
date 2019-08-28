@@ -263,6 +263,10 @@ CodechalEncodeVp8::CodechalEncodeVp8(
     m_verticalLineStrideOffset = CODECHAL_VLINESTRIDEOFFSET_TOP_FIELD;
 
     m_codecGetStatusReportDefined = true;
+
+    m_mbEncCurbeSetInBrcUpdate = false;
+    m_mpuCurbeSetInBrcUpdate = false;
+    m_tpuCurbeSetInBrcUpdate = false;
 }
 
 CodechalEncodeVp8::~CodechalEncodeVp8()
@@ -1276,7 +1280,7 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     else
     {
         m_averagePFrameQp     = averageQp;
-        m_pFramePositionInGop = (m_storeData - 1) % m_vp8SeqParams->GopPicSize;
+        m_pFramePositionInGop = m_vp8SeqParams->RateControlMethod == RATECONTROL_CQP ? 0 : (m_storeData - 1) % m_vp8SeqParams->GopPicSize;
     }
 
     numRef = 0;
@@ -3811,8 +3815,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
         if (m_brcEnabled)
         {
-            if (m_currPass == (m_numPasses - 1) ||
-                m_currPass == (m_numPasses) &&
+            if ((m_currPass == (m_numPasses - 1) || m_currPass == (m_numPasses)) &&
                 m_signalEnc &&
                 !Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse)
                 )

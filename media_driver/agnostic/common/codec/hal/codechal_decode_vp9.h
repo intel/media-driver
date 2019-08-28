@@ -202,13 +202,13 @@ public:
     uint8_t                   m_chromaFormatinProfile;       //!< Chroma format with current profilce
     uint32_t                  m_dataSize;                    //!< Data size
     uint32_t                  m_dataOffset;                  //!< Date offset
-    PCODEC_VP9_PIC_PARAMS     m_vp9PicParams;                //!< Pointer to VP9 picture parameter
-    PCODEC_VP9_SEGMENT_PARAMS m_vp9SegmentParams;            //!< Pointer to VP9 segment parameter
-    PCODEC_VP9_SLICE_PARAMS   m_vp9SliceParams;              //!< Pointer to VP9 slice parameter
+    PCODEC_VP9_PIC_PARAMS     m_vp9PicParams = nullptr;                //!< Pointer to VP9 picture parameter
+    PCODEC_VP9_SEGMENT_PARAMS m_vp9SegmentParams = nullptr;            //!< Pointer to VP9 segment parameter
+    PCODEC_VP9_SLICE_PARAMS   m_vp9SliceParams = nullptr;              //!< Pointer to VP9 slice parameter
     MOS_SURFACE               m_destSurface;                 //!< MOS_SURFACE of render surface
-    PMOS_RESOURCE             m_presLastRefSurface;          //!< Pointer to last reference surface
-    PMOS_RESOURCE             m_presGoldenRefSurface;        //!< Pointer to golden reference surface
-    PMOS_RESOURCE             m_presAltRefSurface;           //!< Pointer to alternate reference surface
+    PMOS_RESOURCE             m_presLastRefSurface = nullptr;          //!< Pointer to last reference surface
+    PMOS_RESOURCE             m_presGoldenRefSurface = nullptr;        //!< Pointer to golden reference surface
+    PMOS_RESOURCE             m_presAltRefSurface = nullptr;           //!< Pointer to alternate reference surface
     MOS_SURFACE               m_lastRefSurface;              //!< MOS_SURFACE of last reference surface
     MOS_SURFACE               m_goldenRefSurface;            //!< MOS_SURFACE of golden reference surface
     MOS_SURFACE               m_altRefSurface;               //!< MOS_SURFACE of alternate reference surface

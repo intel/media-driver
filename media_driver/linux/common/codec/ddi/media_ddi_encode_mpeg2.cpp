@@ -903,10 +903,7 @@ void DdiEncodeMpeg2::ParseMiscParamMaxFrame(void *data)
 
     VAEncMiscParameterBufferMaxFrameSize *maxFrameSize = (VAEncMiscParameterBufferMaxFrameSize *)data;
 
-    if (VAEncMiscParameterTypeMaxFrameSize == maxFrameSize->type)
-    {
-        mpeg2SeqParams->m_userMaxFrameSize = maxFrameSize->max_frame_size;
-    }
+    mpeg2SeqParams->m_userMaxFrameSize = maxFrameSize->max_frame_size;
 }
 
 void DdiEncodeMpeg2::ParseMiscParamTypeExtension(void *data)

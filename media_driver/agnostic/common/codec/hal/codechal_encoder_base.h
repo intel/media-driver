@@ -800,7 +800,7 @@ struct EncodeBrcBuffers
 struct CODECHAL_ENCODE_BUFFER
 {
     MOS_RESOURCE    sResource;
-    uint32_t        dwSize;
+    uint32_t        dwSize = 0;
 };
 using PCODECHAL_ENCODE_BUFFER = CODECHAL_ENCODE_BUFFER*;
 
@@ -1378,6 +1378,7 @@ public:
     bool                            m_2xScalingEnabled = false;   //!< 2x Scaling kernel only used by HEVC now
     bool                            m_useRawForRef = false;       //!< Flag to indicate if using raw surface for reference
     bool                            m_disableReconMMCD = false;   //!< disable Recon surface's MMC
+    bool                            m_externalCopySync  = false;  //!< Flag to indicate if GPU polling based sync for raw surface copy is enabled
     uint8_t                         m_prevReconFrameIdx = 0;      //!< Previous reconstruct frame index
     uint8_t                         m_currReconFrameIdx = 0;      //!< Current reconstruct frame index
 
@@ -1386,6 +1387,10 @@ public:
     uint32_t                        m_frameFieldHeight = 0;       //!< Frame height in luma samples
     uint32_t                        m_oriFrameHeight = 0;         //!< Original frame height
     uint32_t                        m_oriFrameWidth = 0;          //!< Original frame width
+    uint32_t                        m_prevFrameWidth = 0;         //!< Previous frame width
+    uint32_t                        m_prevFrameHeight = 0;        //!< Previous frame height
+    uint32_t                        m_createWidth = 0;            //!< Max Frame Width for resolution reset
+    uint32_t                        m_createHeight = 0;           //!< Max Frame Height for resolution reset
     uint16_t                        m_picWidthInMb = 0;           //!< Picture Width in MB width count
     uint16_t                        m_picHeightInMb = 0;          //!< Picture Height in MB height count
     uint16_t                        m_frameFieldHeightInMb = 0;   //!< Frame/field Height in MB

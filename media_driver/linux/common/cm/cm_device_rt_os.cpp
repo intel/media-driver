@@ -36,6 +36,15 @@ extern int32_t CmFillMosResource(VASurfaceID, VADriverContext*, PMOS_RESOURCE);
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
+//| Purpose:    Constructor of CmDevice
+//| Returns:    None.
+//*-----------------------------------------------------------------------------
+CmDeviceRT::CmDeviceRT(uint32_t options) : CmDeviceRTBase(options)
+{
+    ConstructOSSpecific(options);
+}
+
+//*-----------------------------------------------------------------------------
 //| Purpose:    Destructor of CmDevice
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
@@ -48,6 +57,68 @@ CmDeviceRT::~CmDeviceRT()
 
     DestroyAuxDevice();
 };
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create Cm Device
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRT::Create(MOS_CONTEXT *umdContext,
+                           CmDeviceRT* &device,
+                           uint32_t options)
+{
+    int32_t result = CM_FAILURE;
+
+    if (device != nullptr)
+    {
+        // if the Cm Device exists
+        device->Acquire();
+        return CM_SUCCESS;
+    }
+
+    device = new (std::nothrow) CmDeviceRT(options);
+    if (device)
+    {
+        device->Acquire(); // increase ref count
+        result = device->Initialize(umdContext);
+        if (result != CM_SUCCESS)
+        {
+            CM_ASSERTMESSAGE("Error: Failed to initialzie CmDevice.");
+            CmDeviceRT::Destroy(device);
+            device = nullptr;
+        }
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Error: Failed to create CmDevice due to out of system memory.");
+        result = CM_OUT_OF_HOST_MEMORY;
+    }
+
+    return result;
+}
+
+//*-----------------------------------------------------------------------------
+//! Destroy the CmDevice_RT and kernels, samplers and the queue it created.
+//! Also destroy all surfaces it created if the surface hasn't been explicitly destroyed.
+//! Input :
+//!     Reference to the pointer to the CmDevice_RT .
+//! OUTPUT :
+//!     CM_SUCCESS if CmDevice_RT is successfully destroyed.
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRT::Destroy(CmDeviceRT* &device)
+{
+    INSERT_API_CALL_LOG();
+
+    int32_t result = CM_SUCCESS;
+
+    int32_t refCount = device->Release();
+
+    if (refCount == 0)
+    {
+        CmSafeDelete(device);
+    }
+
+    return result;
+}
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize the OS-Specific part in the Initialize() function
@@ -152,7 +223,7 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID vaSurface,
     }
 
     CmSurface2DRT *surfaceRT = nullptr;
-    hr = m_surfaceMgr->CreateSurface2D(&mosResource, false, surfaceRT);
+    hr = m_surfaceMgr->CreateSurface2DFromMosResource(&mosResource, false, surfaceRT);
     surface = surfaceRT;
     return hr;
 }
@@ -495,7 +566,7 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
     snprintf(traceFile+offset, 256-offset, "%s", "/.mdf_trace");
 
     FILE *traceFd = fopen(traceFile, "r");
-    uint flag = 0;
+    int flag = 0;
     if(traceFd )
     {
       //read data from file
@@ -513,5 +584,76 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
     cmHalState->pfnSetVtuneProfilingFlag(cmHalState, m_vtuneOn);
 
     return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create shared Surface 2D (OS agnostic)
+//| Arguments :
+//|               mosResource      [in]     Pointer to Mos resource
+//|               surface          [out]    Reference to Pointer to CmSurface2D
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmDeviceRT::CreateSurface2D(PMOS_RESOURCE mosResource,
+                                              CmSurface2D* & surface)
+{
+    INSERT_API_CALL_LOG();
+
+    if (mosResource == nullptr)
+    {
+        return CM_INVALID_MOS_RESOURCE_HANDLE;
+    }
+
+    CLock locker(m_criticalSectionSurface);
+
+    CmSurface2DRT *surfaceRT = nullptr;
+    int ret = m_surfaceMgr->CreateSurface2DFromMosResource(mosResource, false, surfaceRT);
+    surface = surfaceRT;
+    return ret;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create Surface 2D
+//| Arguments :   width             [in]     width of the  CmSurface2D
+//|               height            [in]     height of the CmSurface2D
+//|               format            [in]     format of the CmSurface2D
+//|               surface          [in/out]    Reference to Pointer to CmSurface2D
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmDeviceRT::CreateSurface2D(uint32_t width,
+                                              uint32_t height,
+                                              CM_SURFACE_FORMAT format,
+                                              CmSurface2D* & surface)
+{
+    INSERT_API_CALL_LOG();
+
+    CLock locker(m_criticalSectionSurface);
+
+    CmSurface2DRT *surfaceRT = nullptr;
+    int ret = m_surfaceMgr->CreateSurface2D(width, height, 0, true, format, surfaceRT);
+    surface = surfaceRT;
+    return ret;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create Surface 2D
+//| NOTE: Called by CM Wrapper, from CMRT Thin
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRT::CreateSurface2D(PMOS_RESOURCE mosResource,
+                                    bool isCmCreated,
+                                    CmSurface2D* & surface)
+{
+    INSERT_API_CALL_LOG();
+
+    if (mosResource == nullptr)
+    {
+        return CM_INVALID_MOS_RESOURCE_HANDLE;
+    }
+
+    CLock locker(m_criticalSectionSurface);
+
+    CmSurface2DRT *surfaceRT = nullptr;
+    int ret = m_surfaceMgr->CreateSurface2DFromMosResource(mosResource, isCmCreated, surfaceRT);
+    surface = surfaceRT;
+    return ret;
 }
 }  // namespace

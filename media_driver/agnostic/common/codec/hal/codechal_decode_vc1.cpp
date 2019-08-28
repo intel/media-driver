@@ -4799,7 +4799,8 @@ CodechalDecodeVc1::CodechalDecodeVc1(
     CodechalHwInterface   *hwInterface,
     CodechalDebugInterface* debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) :
-    CodechalDecode(hwInterface, debugInterface, standardInfo)
+    CodechalDecode(hwInterface, debugInterface, standardInfo),
+    m_huCCopyInUse(0)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -4812,6 +4813,13 @@ CodechalDecodeVc1::CodechalDecodeVc1(
     MOS_ZeroMemory(&m_itObjectBatchBuffer, sizeof(m_itObjectBatchBuffer));
     MOS_ZeroMemory(m_unequalFieldSurface, sizeof(m_unequalFieldSurface));
     MOS_ZeroMemory(m_unequalFieldRefListIdx, sizeof(m_unequalFieldRefListIdx));
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    MOS_ZeroMemory(&m_deblockSurface, sizeof(m_deblockSurface));
+    MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
+    MOS_ZeroMemory(&m_resBitplaneBuffer, sizeof(m_resBitplaneBuffer));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
+
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

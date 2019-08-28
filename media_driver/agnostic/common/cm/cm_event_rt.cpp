@@ -88,15 +88,17 @@ int32_t CmEventRT::Destroy( CmEventRT* &event )
 CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *device, bool isVisible):
     m_index( index ),
     m_taskDriverId( taskDriverId ),
+    m_osData(nullptr),
     m_status( CM_STATUS_QUEUED ),
     m_time( 0 ),
     m_ticks(0),
+    m_hwStartTimeStampInTicks( 0 ),
+    m_hwEndTimeStampInTicks( 0 ),
     m_device( device ),
     m_queue (queue),
     m_refCount(0),
     m_isVisible(isVisible),
     m_task(task),
-    m_osData(nullptr),
     m_callbackFunction(nullptr),
     m_callbackUserData(nullptr)
 {
@@ -559,6 +561,8 @@ int32_t CmEventRT::Query( void )
 
         m_time = param.taskDurationNs;
         m_ticks = param.taskDurationTicks;
+        m_hwStartTimeStampInTicks = param.taskHWStartTimeStampInTicks;
+        m_hwEndTimeStampInTicks = param.taskHWEndTimeStampInTicks;
         m_status = CM_STATUS_FINISHED;
 
         //Update the state tracking array when a task is finished
@@ -582,6 +586,7 @@ int32_t CmEventRT::Query( void )
         m_hwStartTimeStamp = param.taskHWStartTimeStamp;
         m_hwEndTimeStamp = param.taskHWEndTimeStamp;
 
+        EVENT_LOG(this);
     }
     else if( param.status == CM_TASK_IN_PROGRESS )
     {
@@ -806,4 +811,32 @@ int32_t CmEventRT:: SetCallBack(EventCallBackFunction function, void  *userData)
     m_callbackUserData = userData;
     return CM_SUCCESS;
 }
+
+#if CM_LOG_ON
+std::string CmEventRT::Log(const char *callerFuncName)
+{
+    static const char *statusStrings[] = {
+#define ENUM_STRING(e)  #e
+            ENUM_STRING(CM_STATUS_QUEUED),
+            ENUM_STRING(CM_STATUS_FLUSHED),
+            ENUM_STRING(CM_STATUS_FINISHED),
+            ENUM_STRING(CM_STATUS_STARTED),
+            ENUM_STRING(CM_STATUS_RESET),
+#undef ENUM_STRING
+    };
+
+    std::ostringstream  oss;
+    oss << callerFuncName << "():\n"
+        << "<CmEvent>:" << reinterpret_cast<uint64_t>(this) << "\n"
+        << " Status: " << statusStrings[m_status] << "\n"
+        << " Duration:" << m_time << "ns\n"
+        << " DurationInTick:" << m_ticks << "\n"
+        << " StartTimeInTick:" << m_hwStartTimeStampInTicks << "\n"
+        << " EndTimeInTick:"<< m_hwEndTimeStampInTicks << "\n"
+        << " Kernel Cnt:"<< m_kernelCount << std::endl;
+
+    return oss.str();
+}
+#endif
+
 }

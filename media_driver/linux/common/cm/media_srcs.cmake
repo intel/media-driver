@@ -23,8 +23,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_ftrace.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_os.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_os.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_os.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_task_internal_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_task_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper_os.cpp

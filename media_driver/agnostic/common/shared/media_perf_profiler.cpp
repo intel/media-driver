@@ -106,12 +106,13 @@ struct NodeHeader
 
 MediaPerfProfiler::MediaPerfProfiler()
 {
+    MOS_ZeroMemory(&m_perfStoreBuffer, sizeof(m_perfStoreBuffer));
     m_perfDataIndex = 0;
     m_ref           = 0;
     m_initialized   = false;
 
     m_profilerEnabled = 0;
-    
+
     MOS_USER_FEATURE_VALUE_DATA     userFeatureData;
     // Check whether profiler is enabled
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -168,6 +169,8 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 
     MOS_LockMutex(profiler->m_mutex);
     profiler->m_ref--;
+
+    osInterface->pfnWaitAllCmdCompletion(osInterface);
 
     profiler->m_contextIndexMap.erase(context);
 
@@ -243,13 +246,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         &userFeatureData);
     m_bufferSize = userFeatureData.u32Data;
 
-    // Read timer register addresss
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TIMER_REG,
-        &userFeatureData);
-    m_timerReg = userFeatureData.u32Data;
+    m_timerBase = Mos_Specific_GetTsFrequency(osInterface);
 
     // Read memory information register address
     int8_t regIndex = 0;
@@ -439,14 +436,14 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
         cmdBuffer, 
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, engineTag),
         GpuContextToGpuNode(gpuContext)));
-
-    if (m_timerReg != 0)
+ 
+    if (m_timerBase != 0)
     {
-        CHK_STATUS_RETURN(StoreRegister(
+        CHK_STATUS_RETURN(StoreData(
             miInterface,
             cmdBuffer, 
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, timeStampBase),
-            m_timerReg));
+            m_timerBase));
     }
 
     int8_t regIndex = 0;

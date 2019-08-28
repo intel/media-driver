@@ -47,10 +47,10 @@ LOCAL_SRC_FILES := \
     agnostic/common/cm/cm_sampler_rt.cpp \
     agnostic/common/cm/cm_state_buffer.cpp \
     agnostic/common/cm/cm_surface.cpp \
-    agnostic/common/cm/cm_surface_2d_rt.cpp \
+    agnostic/common/cm/cm_surface_2d_rt_base.cpp \
     agnostic/common/cm/cm_surface_2d_up_rt.cpp \
     agnostic/common/cm/cm_surface_3d_rt.cpp \
-    agnostic/common/cm/cm_surface_manager.cpp \
+    agnostic/common/cm/cm_surface_manager_base.cpp \
     agnostic/common/cm/cm_surface_sampler.cpp \
     agnostic/common/cm/cm_surface_sampler8x8.cpp \
     agnostic/common/cm/cm_surface_vme.cpp \
@@ -125,6 +125,7 @@ LOCAL_SRC_FILES := \
     agnostic/common/codec/hal/codechal_vdenc_avc.cpp \
     agnostic/common/codec/hal/codechal_vdenc_hevc.cpp \
     agnostic/common/codec/hal/codechal_vdenc_vp9_base.cpp \
+    agnostic/common/heap_manager/frame_tracker.cpp \
     agnostic/common/heap_manager/heap.cpp \
     agnostic/common/heap_manager/heap_manager.cpp \
     agnostic/common/heap_manager/memory_block.cpp \
@@ -429,8 +430,8 @@ LOCAL_SRC_FILES := \
     linux/common/cm/cm_ftrace.cpp \
     linux/common/cm/cm_global_api_os.cpp \
     linux/common/cm/cm_hal_os.cpp \
-    linux/common/cm/cm_surface_2d_rt_os.cpp \
-    linux/common/cm/cm_surface_manager_os.cpp \
+    linux/common/cm/cm_surface_2d_rt.cpp \
+    linux/common/cm/cm_surface_manager.cpp \
     linux/common/cm/cm_task_internal_os.cpp \
     linux/common/cm/cm_task_rt_os.cpp \
     linux/common/cm/cm_wrapper_os.cpp \
@@ -486,6 +487,7 @@ LOCAL_SRC_FILES := \
     linux/common/os/mos_util_devult_specific.cpp \
     linux/common/os/mos_util_user_interface_specific.cpp \
     linux/common/os/mos_utilities_specific.c \
+    agnostic/common/renderhal/renderhal_oca_support.cpp \
     linux/common/renderhal/renderhal_dsh_specific.c \
     linux/common/renderhal/renderhal_linux.cpp \
     linux/common/vp/ddi/media_libva_vp.c \
@@ -514,18 +516,22 @@ LOCAL_SRC_FILES := \
 
 LOCAL_SHARED_LIBRARIES := \
     libsync \
+    libbinder \
     libcutils \
     libutils \
     libdrm \
     libva \
     liblog \
     libpciaccess \
+    libcoreuinterface \
     libgmm_umd \
 
 LOCAL_CPPFLAGS = \
     -DDRV_I915 \
     -DOTC_GRALLOC \
+    -DANDROID \
     -DANDROID_VERSION=800 \
+    -DLINUX \
     -fexceptions \
     -frtti \
     -std=c++14 \
@@ -580,7 +586,6 @@ LOCAL_CPPFLAGS = \
     -Wno-parentheses \
     -Wno-bitfield-constant-conversion \
 
-
 LOCAL_CONLYFLAGS = -x c++
 LOCAL_CFLAGS = $(LOCAL_CPPFLAGS)
 
@@ -593,6 +598,7 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/agnostic/common/codec/hal \
     $(LOCAL_PATH)/agnostic/common/codec/kernel \
     $(LOCAL_PATH)/agnostic/common/codec/shared \
+    $(LOCAL_PATH)/agnostic/common/cp \
     $(LOCAL_PATH)/agnostic/common/heap_manager \
     $(LOCAL_PATH)/agnostic/common/hw/vdbox \
     $(LOCAL_PATH)/agnostic/common/hw \
@@ -692,3 +698,5 @@ LOCAL_MODULE := i965_drv_video
 LOCAL_PROPRIETARY_MODULE := true
 
 include $(BUILD_SHARED_LIBRARY)
+
+

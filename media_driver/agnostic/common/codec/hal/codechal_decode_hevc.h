@@ -501,6 +501,7 @@ public:
     // Parameters passed by application
     uint32_t                        m_minCtbSize;                                    //!< Min Luma Coding Block Size
     bool                            m_is10BitHevc;                                   //!< Indicate it is 10 bit HEVC
+    bool                            m_is12BitHevc;                                   //!< Indicate it is 12 bit HEVC
     uint8_t                         m_chromaFormatinProfile;                         //!< Chrama format in profile
     bool                            m_shortFormatInUse;                              //!< Indicate short format is inuse
     uint32_t                        m_dataSize;                                      //!< Size of bitstream
@@ -574,7 +575,7 @@ public:
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // SFC
-    CodechalHevcSfcState         *m_sfcState;                                            //!< HEVC SFC State
+    CodechalHevcSfcState         *m_sfcState = nullptr;                                            //!< HEVC SFC State
 #endif
     PIC_LONG_FORMAT_MHW_PARAMS      m_picMhwParams;                                         //!< picture parameters
 

@@ -107,6 +107,18 @@ const int8_t CodechalVdencHevcStateG11::m_lowdelayDeltaFrmszB[][8] = {
     { 64, 48, 28, 20, 16,  12,  8,  4 },
 };
 
+const uint8_t m_qpAdaptiveWeight[52] = { 6, 6, 6, 6, 6, 6, 6, 6, 6, 7,
+                                     7, 7, 7, 7, 7, 7, 8, 8, 8, 8,
+                                     8, 8, 8, 9, 9, 10, 11, 12, 13, 14,
+                                     16, 17, 18, 20, 21, 23, 24, 26, 28, 30,
+                                     32, 34, 36, 38, 40, 42, 44, 46, 48, 50,
+                                     50, 50 };
+const uint8_t m_boostTable[52] = { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+                                     3, 3, 3, 3, 3, 4, 4, 5, 5, 5,
+                                     6, 6, 6, 7, 7, 8, 8, 8, 9, 9,
+                                     9, 10,10,10,11,11,11,11,11,11,
+                                     11,11,12,12,12,12,12,12,12,12,12,12 };
+
 const uint32_t CodechalVdencHevcStateG11::m_hucConstantData[]  = {
     0x01900190, 0x01900190, 0x01900190, 0x01900190, 0x01900190, 0x012c012c, 0x012c012c, 0x012c012c,
     0x012c012c, 0x012c012c, 0x00c800c8, 0x00c800c8, 0x00c800c8, 0x00c800c8, 0x00c800c8, 0x00640064,
@@ -2295,7 +2307,17 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
     // Send HEVC_VP9_RDOQ_STATE command
     if (m_hevcRdoqEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcVp9RdoqStateCmd(&cmdBuffer, &picStateParams));
+        if (m_pictureCodingType == I_TYPE)
+        {
+            if (m_hevcIFrameRdoqEnabled)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcVp9RdoqStateCmd(&cmdBuffer, &picStateParams));
+            }
+        }
+        else
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcVp9RdoqStateCmd(&cmdBuffer, &picStateParams));
+        }
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
@@ -2673,6 +2695,13 @@ MOS_STATUS CodechalVdencHevcStateG11::EncTileLevel()
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
+
+    std::string pakPassName = "PAK_PASS[" + std::to_string(GetCurrentPass())+"]";
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN( m_debugInterface->DumpCmdBuffer(
+            &cmdBuffer,
+            CODECHAL_NUM_MEDIA_STATES,
+            pakPassName.data()));)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
 
@@ -3317,7 +3346,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->LumaBitDepth_U8   = m_hevcSeqParams->bit_depth_luma_minus8 + 8;
     hucVdencBrcInitDmem->ChromaBitDepth_U8 = m_hevcSeqParams->bit_depth_chroma_minus8 + 8;
 
-    if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))
+    if ((hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)))
     {
         MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_lowdelayDevThreshPB, 8 * sizeof(int8_t));
         MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshVBR0_S8, 8 * sizeof(int8_t), (void*)m_lowdelayDevThreshVBR, 8 * sizeof(int8_t));
@@ -3552,6 +3581,18 @@ MOS_STATUS CodechalVdencHevcStateG11::SetConstDataHuCBrcUpdate()
         currentLocation = baseLocation;
     }
 
+    // Add motion apatative settings
+    if (m_enableMotionAdaptive)
+    {
+        MOS_SecureMemcpy(hucConstData->QPAdaptiveWeight, sizeof(m_qpAdaptiveWeight), m_qpAdaptiveWeight, sizeof(m_qpAdaptiveWeight));
+        MOS_SecureMemcpy(hucConstData->boostTable, sizeof(m_boostTable), m_boostTable, sizeof(m_boostTable));
+    }
+    else
+    {
+        MOS_ZeroMemory(hucConstData->QPAdaptiveWeight, sizeof(m_qpAdaptiveWeight));
+        MOS_ZeroMemory(hucConstData->boostTable, sizeof(m_boostTable));
+    }
+
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx]);
 
     return eStatus;
@@ -3588,7 +3629,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetRegionsHuCBrcUpdate(PMHW_VDBOX_HUC_VIRT
         // In scalable-mode, use PAK Integration kernel output to get bistream size
         virtualAddrParams->regionParams[8].presRegion   = &m_resBrcDataBuffer;
     }
-    virtualAddrParams->regionParams[12].presRegion = &m_vdencGroup3BatchBuffer[m_currRecycledBufIdx][currentPass];        // Region 12 – SLB buffer for group 3 (Input)
+    virtualAddrParams->regionParams[12].presRegion = &m_vdencGroup3BatchBuffer[m_currRecycledBufIdx][currentPass];        // Region 12 - SLB buffer for group 3 (Input)
 
     return eStatus;
 }
@@ -3687,11 +3728,13 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcUpdate()
 
     hucVDEncBrcUpdateDmem->SlidingWindow_Enable_U8          = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW);
     hucVDEncBrcUpdateDmem->LOG_LCU_Size_U8                  = 6;
-    hucVDEncBrcUpdateDmem->RDOQ_Enable_U8                   = (uint8_t)m_hevcRdoqEnabled;
+    hucVDEncBrcUpdateDmem->RDOQ_Enable_U8                   = m_hevcRdoqEnabled ? (m_pictureCodingType == I_TYPE ? m_hevcIFrameRdoqEnabled : 1) : 0;
     hucVDEncBrcUpdateDmem->ReEncodePositiveQPDeltaThr_S8    = 4;
     hucVDEncBrcUpdateDmem->ReEncodeNegativeQPDeltaThr_S8    = -5;
     hucVDEncBrcUpdateDmem->SceneChgPrevIntraPctThreshold_U8 = 96;
     hucVDEncBrcUpdateDmem->SceneChgCurIntraPctThreshold_U8  = 192;
+
+    hucVDEncBrcUpdateDmem->EnableMotionAdaptive = m_enableMotionAdaptive;
 
     // reset skip frame statistics
     m_numSkipFrames = 0;
@@ -5828,7 +5871,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCBrcUpdate()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructHucCmdForBRC(&m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass]));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
-    if (((!m_singleTaskPhaseSupported) || (m_firstTaskInPhase) && (!m_brcInit)) && (m_numPipe == 1))
+    if ((!m_singleTaskPhaseSupported || (m_firstTaskInPhase && !m_brcInit)) && (m_numPipe == 1))
     {
         // Send command buffer header at the beginning (OS dependent)
         bool requestFrameTracking = m_singleTaskPhaseSupported ?

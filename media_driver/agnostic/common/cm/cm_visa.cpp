@@ -31,14 +31,13 @@
 using namespace vISA;
 
 ISAfile::ISAfile(const uint8_t *data, unsigned size) : version(0), data(data), end(data + size),
-size(size), error(0), header(0), kernel_data_loaded(false), function_data_loaded(false) { }
+size(size), error(0), header(0), kernel_data_loaded(false), function_data_loaded(false), errorIndex(0) { }
 
 ISAfile::ISAfile(const ISAfile& other) {
     version = other.version;
     data = other.data;
     end = other.end;
     size = other.size;
-    delete[] error;
     char *perror = new char[std::strlen(other.error)];
     MOS_SecureMemcpy(perror, sizeof(perror), other.error, sizeof(other.error));
     error = perror;

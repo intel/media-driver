@@ -29,6 +29,8 @@
 
 #include "memory_block_manager.h"
 
+class FrameTrackerProducer;
+
 //! \brief Client accessible manager for heaps.
 class HeapManager
 {
@@ -99,6 +101,18 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS RegisterTrackerResource(uint32_t *trackerData);
+
+    //!
+    //! \brief  Registers the tracker producer to be used for determining whether a
+    //!         memory block is available. This function has a higher priority than
+    //!         RegisterTrackerResource, so if it is called, the trackerResource will
+    //!         be useless.
+    //! \param  [in] trackerProducer
+    //!         Must be valid; pointer to trackerProducer.
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS RegisterTrackerProducer(FrameTrackerProducer *trackerProducer);
 
     //!
     //! \brief  Updates the default behavior of the heap manager

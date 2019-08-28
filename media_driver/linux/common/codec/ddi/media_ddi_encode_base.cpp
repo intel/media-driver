@@ -75,6 +75,7 @@ VAStatus DdiEncodeBase::EndPicture(
     DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     VAStatus status = EncodeInCodecHal(m_encodeCtx->dwNumSlices);
+    ClearPicParams();
     if (VA_STATUS_SUCCESS != status)
     {
         DDI_ASSERTMESSAGE("DDI:DdiEncode_EncodeInCodecHal return failure.");
@@ -211,6 +212,20 @@ VAStatus DdiEncodeBase::StatusReport(
         {
             // Only AverageQP is reported at this time. Populate other bits with relevant informaiton later;
             status = (encodeStatusReport[0].AverageQp & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
+            if(m_encodeCtx->wModeType == CODECHAL_ENCODE_MODE_AVC)
+            {
+                CodecEncodeAvcFeiPicParams *feiPicParams = (CodecEncodeAvcFeiPicParams*) m_encodeCtx->pFeiPicParams;
+                if ((feiPicParams != NULL) && (feiPicParams->dwMaxFrameSize != 0))
+                {
+                    // The reported the pass number should be multi-pass PAK caused by the MaxFrameSize.
+                    // if the suggestedQpYDelta is 0, it means that MaxFrameSize doesn't trigger multi-pass PAK.
+                    // The MaxMbSize triggers multi-pass PAK, the cases should be ignored when reporting the PAK pass.
+                    if ((encodeStatusReport[0].SuggestedQpYDelta == 0) && (encodeStatusReport[0].NumberPasses != 1))
+                    {
+                        encodeStatusReport[0].NumberPasses = 1;
+                    }
+                }
+            }
             status = status | ((encodeStatusReport[0].NumberPasses) & 0xf)<<24;
             // fill hdcp related buffer
             DDI_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReport), "fail to get hdcp2 status report!");
@@ -1339,4 +1354,8 @@ uint32_t DdiEncodeBase::getPictureParameterBufferSize()
 uint32_t DdiEncodeBase::getQMatrixBufferSize()
 {
     return 0xffffffff;
+}
+
+void DdiEncodeBase::ClearPicParams()
+{
 }

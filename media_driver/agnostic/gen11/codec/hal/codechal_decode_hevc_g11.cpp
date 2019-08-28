@@ -466,6 +466,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = m_width;
         initParams.u32PicHeightInPixel  = m_height;
+        initParams.format = m_decodeParams.m_destSurface->Format;
         initParams.usingSFC             = false;
         initParams.gpuCtxInUse          = GetVideoContext();
 
@@ -1621,14 +1622,25 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer(m_scalabilityState);
     }
 
-    if (submitCommand)
+    if (submitCommand || m_osInterface->phasedSubmission)
     {
         //command buffer to submit is the primary cmd buffer.
         if (MOS_VE_SUPPORTED(m_osInterface))
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&primCmdBuffer));
         }
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &primCmdBuffer, renderingFlags));
+
+        if(m_osInterface->phasedSubmission
+           && MOS_VE_SUPPORTED(m_osInterface)
+           && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
+        {
+            CodecHalDecodeScalability_DecPhaseToSubmissionType(m_scalabilityState,cmdBufferInUse);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBufferInUse, renderingFlags));
+        }
+        else
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &primCmdBuffer, renderingFlags));
+        }
     }
 
     CODECHAL_DEBUG_TOOL(
@@ -1791,9 +1803,9 @@ CodechalDecodeHevcG11::CodechalDecodeHevcG11(
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecodeHevc(hwInterface, debugInterface, standardInfo),
                                             m_hevcExtPicParams(nullptr),
                                             m_hevcExtSliceParams(nullptr),
-                                            m_scalabilityState(nullptr),
+                                            m_frameSizeMaxAlloced(0),
                                             m_sinlgePipeVeState(nullptr),
-                                            m_frameSizeMaxAlloced(0)
+                                            m_scalabilityState(nullptr)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 

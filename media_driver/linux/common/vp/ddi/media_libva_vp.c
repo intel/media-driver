@@ -1249,25 +1249,29 @@ DdiVp_SetProcPipelineParams(
     // add UsrPtr mode support
     if (pMediaSrcSurf->pSurfDesc)
     {
-        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
         if (pVpHalSrcSurf->bUsrPtr)
         {
             pVpHalSrcSurf->dwPitch                 = pMediaSrcSurf->iPitch;
             pVpHalSrcSurf->OsResource.iPitch       = pMediaSrcSurf->iPitch;
             pVpHalSrcSurf->OsResource.iWidth       = pMediaSrcSurf->iWidth;
             pVpHalSrcSurf->OsResource.iHeight      = pMediaSrcSurf->iHeight;
-            pVpHalSrcSurf->OsResource.bUseGmmQuery = false;
+            pVpHalSrcSurf->OsResource.bUsrPtrMode  = true;
             switch (pMediaSrcSurf->format)
             {
                 case Media_Format_NV12:
-                    pVpHalSrcSurf->YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
                     break;
                 case Media_Format_YV12:
-                    pVpHalSrcSurf->YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[2];
+                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
+                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[2];
+                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
                     break;
                 case Media_Format_A8R8G8B8:
                     break;
@@ -1277,14 +1281,13 @@ DdiVp_SetProcPipelineParams(
         }
         else
         {
-            pVpHalSrcSurf->bUsrPtr                 = false;
-            pVpHalSrcSurf->OsResource.bUseGmmQuery = true;
+            pVpHalSrcSurf->OsResource.bUsrPtrMode = false;
         }
     }
     else
     {
         pVpHalSrcSurf->bUsrPtr                 = false;
-        pVpHalSrcSurf->OsResource.bUseGmmQuery = true;
+        pVpHalSrcSurf->OsResource.bUsrPtrMode  = false;
     }
     return VA_STATUS_SUCCESS;
 }
@@ -1363,6 +1366,7 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     pVpCtx->MosDrvCtx.gtSystemInfo    = *pMediaCtx->pGtSystemInfo;
     pVpCtx->MosDrvCtx.platform        = pMediaCtx->platform;
     pVpCtx->MosDrvCtx.m_auxTableMgr   = pMediaCtx->m_auxTableMgr;
+    pVpCtx->MosDrvCtx.pGmmClientContext = pMediaCtx->pGmmClientContext;
     pVpCtx->MosDrvCtx.ppMediaMemDecompState = &pMediaCtx->pMediaMemDecompState;
     pVpCtx->MosDrvCtx.pfnMemoryDecompress   = pMediaCtx->pfnMemoryDecompress;
     pVpCtx->MosDrvCtx.pPerfData             = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
@@ -1775,6 +1779,7 @@ VPHAL_CSPACE DdiVp_GetColorSpaceFromMediaFormat(DDI_MEDIA_FORMAT format)
     case Media_Format_422H:
     case Media_Format_422V:
     case Media_Format_P010:
+    case Media_Format_IMC3:
         ColorSpace = CSpace_BT601;
         break;
     default:
@@ -3014,15 +3019,21 @@ VAStatus DdiVp_BeginPicture(
     if (pMediaTgtSurf->pSurfDesc)
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
         if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
+        }
+        else
+        {
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
         }
     }
     else
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3111,15 +3122,21 @@ VAStatus DdiVp_BeginPictureInt(
     if (pMediaTgtSurf->pSurfDesc)
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
         if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
+        }
+        else
+        {
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
         }
     }
     else
     {
         pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3982,7 +3999,7 @@ DdiVp_QueryVideoProcFilterCaps (
         case VAProcFilterHighDynamicRangeToneMapping:
         {
             PDDI_MEDIA_CONTEXT mediaDrvCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
-            if (mediaDrvCtx && GFX_IS_PRODUCT(mediaDrvCtx->platform, IGFX_ICELAKE_LP))
+            if (mediaDrvCtx)
             {
                 uExistCapsNum = 1;
                 *num_filter_caps = uExistCapsNum;

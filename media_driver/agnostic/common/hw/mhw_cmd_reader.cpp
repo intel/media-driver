@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 
 #include "mhw_cmd_reader.h"
 #include "mos_utilities.h"
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -107,7 +108,44 @@ void MhwCmdReader::SetFilePath(string path)
     }
 }
 
+void MhwCmdReader::GetFileType()
+{
+    m_fileType = FileType::BIN;
+
+    for (auto it = m_path.rbegin(); it != m_path.rend(); ++it)
+    {
+        if (*it == '.')
+        {
+            string suffix(m_path.cbegin() + (m_path.rend() - it), m_path.cend());
+            for (auto &e : suffix)
+            {
+                e = static_cast<char>(toupper(e));
+            }
+
+            if (suffix.compare("CSV") == 0)
+            {
+                m_fileType = FileType::CSV;
+            }
+            break;
+        }
+    }
+}
+
 void MhwCmdReader::PrepareCmdData()
+{
+    GetFileType();
+
+    if (m_fileType == FileType::BIN)
+    {
+        PrepareCmdDataBin();
+    }
+    else
+    {
+        PrepareCmdDataCsv();
+    }
+}
+
+void MhwCmdReader::PrepareCmdDataBin()
 {
     ifstream fs(m_path, ios::binary);
 
@@ -140,6 +178,73 @@ void MhwCmdReader::PrepareCmdData()
         if (!cmdName.empty())
         {
             m_cmdNames.push_back(std::move(cmdName));
+        }
+    }
+
+    fs.close();
+    m_ready = true;
+}
+
+void MhwCmdReader::PrepareCmdDataCsv()
+{
+    ifstream fs(m_path);
+
+    if (!fs)
+    {
+        return;
+    }
+
+    string line;
+    getline(fs, line);
+
+    set<string> names;
+    vector<pair<CmdField, string>> data;
+    while (getline(fs, line))
+    {
+        CmdField field = {};
+        string name;
+
+        size_t beg = 0;
+        size_t end = line.find(',');
+        name = line.substr(beg, end);
+        names.insert(name);
+
+        beg = end + 1;
+        end = line.find(',', beg);
+        field.info.dwordIdx = stoul(line.substr(beg, end));
+
+        beg = end + 1;
+        end = line.find(',', beg);
+        field.info.stardBit = stoul(line.substr(beg, end));
+
+        beg = end + 1;
+        end = line.find(',', beg);
+        field.info.endBit = stoul(line.substr(beg, end));
+
+        beg = end + 1;
+        end = line.find(',', beg);
+        field.info.longTermUse = stoul(line.substr(beg, end));
+
+        beg = end + 1;
+        end = line.find(',', beg);
+        field.value = stoul(line.substr(beg, end), 0, 0);
+
+        data.push_back(make_pair(field, name));
+    }
+
+    m_cmdNames.assign(names.cbegin(), names.cend());
+    sort(m_cmdNames.begin(), m_cmdNames.end());
+
+    for (auto &e : data)
+    {
+        e.first.info.cmdIdx = find(m_cmdNames.begin(), m_cmdNames.end(), e.second) - m_cmdNames.begin();
+        if (e.first.info.longTermUse)
+        {
+            m_longTermFields.push_back(e.first);
+        }
+        else
+        {
+            m_shortTermFields.push_back(e.first);
         }
     }
 

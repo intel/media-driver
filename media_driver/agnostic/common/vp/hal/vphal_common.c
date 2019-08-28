@@ -978,3 +978,26 @@ uint16_t VpHal_FloatToHalfFloat(
 
     return outFloat.value;
 }
+
+MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE pSurface)
+{
+    VPHAL_PUBLIC_ASSERT(pSurface);
+
+    MOS_SURFACE outSurface;
+    MOS_ZeroMemory(&outSurface, sizeof(MOS_SURFACE));
+    outSurface.OsResource      = pSurface->OsResource;
+    outSurface.Format          = pSurface->Format;
+    outSurface.dwWidth         = pSurface->dwWidth;
+    outSurface.dwHeight        = pSurface->dwHeight;
+    outSurface.TileType        = pSurface->TileType;
+    outSurface.dwDepth         = pSurface->dwDepth;
+    outSurface.dwPitch         = pSurface->dwPitch;
+    outSurface.dwSlicePitch    = pSurface->dwSlicePitch;
+    outSurface.dwOffset        = pSurface->dwOffset;
+    outSurface.bCompressible   = pSurface->bCompressible;
+    outSurface.bIsCompressed   = pSurface->bIsCompressed;
+    outSurface.CompressionMode = pSurface->CompressionMode;
+    outSurface.CompressionFormat = pSurface->CompressionFormat;
+
+    return outSurface;
+}

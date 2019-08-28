@@ -243,6 +243,10 @@ public:
         uint32_t                  hucPassNum,
         CodechalHucRegionDumpType dumpType);
 
+    virtual MOS_STATUS DumpBltOutput(
+        PMOS_SURFACE              surface,
+        const char *              attrName);
+
     MOS_STATUS DeleteCfgLinkNode(uint32_t frameIdx);
 
     std::string             m_ddiFileName;

@@ -130,8 +130,8 @@ typedef sem_t MEDIA_SEM_T, *PMEDIA_SEM_T;
 #define VA_FOURCC_I420        VA_FOURCC('I','4','2', '0')
 #endif
 
-#define RGB_10BIT_ALPHAMASK     0X30000
-#define RGB_8BIT_ALPHAMASK      0XFF0000
+#define RGB_10BIT_ALPHAMASK     VA_RT_FORMAT_RGB32_10BPP
+#define RGB_8BIT_ALPHAMASK      0
 
 #define MEDIAAPI_EXPORT __attribute__((visibility("default")))
 
@@ -200,6 +200,7 @@ typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR
     uintptr_t  ulBuffer;                              // buffer handle or user pointer
     uint32_t   uiSize;                                // buffer size
     uint32_t   uiFlags;                               // See "Surface external buffer descriptor flags"
+    uint32_t   uiVaMemType;                           // VA Mem type
     uint32_t   uiTile;                                // Used for user pointer
     uint32_t   uiBuffserSize;                         // Used for user pointer
     bool       bIsGralloc;                            // buffer allocated by Gralloc
@@ -444,7 +445,6 @@ struct DDI_MEDIA_CONTEXT
         PMOS_CONTEXT  pMosCtx,
         PMOS_RESOURCE pOsResource);
 
-    uint32_t            FeiFunction;
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;

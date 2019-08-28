@@ -111,146 +111,6 @@ void DdiMediaUtil_MediaPrintFps()
 }
 #endif
 
-#ifdef ANDROID
-#define GTT_SIZE_THRESHOLD  (4096*4096*3)    //use the maximum 4K resolution YUV 444 as the threshold
-// The following implemention refers to Solo_PerformManualSwizzling in mos_os_solo.c.
-static __inline int32_t SwizzleOffset(
-    // Linear Offset:
-    int32_t             OffsetX,        // Horizontal byte offset from left edge of tiled surface.
-    int32_t             OffsetY,        // Vertical offset from top of tiled surface.
-    // Swizzling Parameters:
-    int32_t             Pitch,          // Row-to-row byte stride.
-    uint32_t            TileFormat,     // Either 'x' or 'y'--for X-Major or Y-Major tiling, respectively.
-    int32_t             CsxSwizzle)     // (boolean) Additionally perform Channel Select XOR swizzling.
-{
-    int32_t LBits, LPos; // Size and swizzled position of the Line component.
-    if (TileFormat == I915_TILING_NONE)
-    {
-        return(OffsetY * Pitch + OffsetX);
-    }
-
-    if (TileFormat == I915_TILING_Y)
-    {
-        LBits = 5; // Log2(TileY.Height = 32)
-        LPos = 4;  // Log2(TileY.PseudoWidth = 16)
-    }
-    else //if (TileFormat == I915_TILING_X)
-    {
-        LBits = 3; // Log2(TileX.Height = 8)
-        LPos = 9;  // Log2(TileX.Width = 512)
-    }
-
-    int32_t row  =  OffsetY >> LBits;               // OffsetY / LinesPerTile
-    int32_t line =  OffsetY & ((1 << LBits) - 1);   // OffsetY % LinesPerTile
-    int32_t col  =  OffsetX >> LPos;                // OffsetX / BytesPerLine
-    int32_t x    =  OffsetX & ((1 << LPos) - 1);    // OffsetX % BytesPerLine
-
-    int32_t swizzledOffset =
-        (((((row * (Pitch >> LPos)) + col) << LBits) + line) << LPos) + x;
-    //                V                V                 V
-    //                / BytesPerLine   * LinesPerTile    * BytesPerLine
-
-    /// Channel Select XOR Swizzling ///////////////////////////////////////////
-    if (CsxSwizzle)
-    {
-        if (TileFormat == I915_TILING_Y) // A6 = A6 ^ A9
-        {
-            swizzledOffset ^= ((swizzledOffset >> (9 - 6)) & 0x40);
-        }
-        else //if (TileFormat == I915_TILING_X) // A6 = A6 ^ A9 ^ A10
-        {
-            swizzledOffset ^= (((swizzledOffset >> (9 - 6)) ^ (swizzledOffset >> (10 - 6))) & 0x40);
-        }
-    }
-
-    return(swizzledOffset);
-}
-
-static void SwizzleData(
-    uint8_t  *src,
-    uint8_t  *dst,
-    uint32_t  srcTiling,
-    uint32_t  dstTiling,
-    int32_t   height,
-    int32_t   pitch)
-{
-#define IS_TILED(_a)                ((_a) != I915_TILING_NONE)
-#define IS_TILED_TO_LINEAR(_a, _b)  (IS_TILED(_a) && !IS_TILED(_b))
-#define IS_LINEAR_TO_TILED(_a, _b)  (!IS_TILED(_a) && IS_TILED(_b))
-
-    DDI_CHK_NULL(src, "nullptr", );
-    DDI_CHK_NULL(dst, "nullptr", );
-
-    int32_t y,linearOffset,tileOffset;
-    // Translate from one format to another
-    for (y = 0, linearOffset = 0, tileOffset = 0; y < height; y++)
-    {
-        for (int32_t x = 0; x < pitch; x++, linearOffset++)
-        {
-            // x or y --> linear
-            if (IS_TILED_TO_LINEAR(srcTiling, dstTiling))
-            {
-                tileOffset = SwizzleOffset(
-                    x,
-                    y,
-                    pitch,
-                    srcTiling,
-                    false);
-
-                *(dst + linearOffset) = *(src + tileOffset);
-            }
-            // linear --> x or y
-            else if (IS_LINEAR_TO_TILED(srcTiling, dstTiling))
-            {
-                tileOffset = SwizzleOffset(
-                    x,
-                    y,
-                    pitch,
-                    dstTiling,
-                    false);
-
-                *(dst + tileOffset) = *(src + linearOffset);
-            }
-            else
-            {
-                MOS_OS_ASSERT(0);
-            }
-        }
-    }
-}
-
-static bool NeedSwizzleData(PDDI_MEDIA_SURFACE surface, bool lock)
-{
-    DDI_CHK_NULL(surface, "nullptr surface", false);
-    DDI_CHK_NULL(surface->pGmmResourceInfo, "nullptr pGmmResourceInfo", false);
-    uint32_t pitch = (uint32_t)surface->pGmmResourceInfo->GetRenderPitch();
-    uint32_t size  = (uint32_t)surface->pGmmResourceInfo->GetSizeSurface();
-    GMM_RESOURCE_FLAG gmmFlags = surface->pGmmResourceInfo->GetResFlags();
-
-    if (gmmFlags.Gpu.RenderTarget      &&
-        gmmFlags.Gpu.UnifiedAuxSurface &&
-        gmmFlags.Gpu.CCS)
-    {
-        size = size - (uint32_t)(surface->pGmmResourceInfo->GetSizeAuxSurface(GMM_AUX_SURF));
-    }
-
-    uint8_t *resourceBase = (uint8_t*)MOS_AllocAndZeroMemory(size);
-    DDI_CHK_NULL(resourceBase, "nullptr resourceBase", false);
-
-    if (lock)
-    {
-        SwizzleData((uint8_t*) surface->bo->virt, resourceBase, surface->TileType, I915_TILING_NONE, size / pitch, pitch);
-    }
-    else
-    {
-        SwizzleData((uint8_t*) surface->bo->virt, resourceBase, I915_TILING_NONE, surface->TileType, size / pitch, pitch);
-    }
-    MOS_SecureMemcpy((uint8_t*) surface->bo->virt, size, resourceBase, size);
-    MOS_FreeMemory(resourceBase);
-
-    return true;
-}
-#endif
 /*
  * DdiMediaUtil_IsExternalSurface
  *    Descripion: if the bo of media surface was allocated from App,
@@ -299,7 +159,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
     MOS_LINUX_BO               *bo = nullptr;
     GMM_RESCREATE_PARAMS        gmmParams;
     GMM_RESOURCE_INFO          *gmmResourceInfo = nullptr;
-    bool                        grallocAllocation;
 
     DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
@@ -326,7 +185,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  tileformat = I915_TILING_NONE;
                  break;
             }
-        case Media_Format_NV21:
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
@@ -345,6 +203,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  break;
             }
         case Media_Format_NV12:
+        case Media_Format_NV21:
         case Media_Format_444P:
         case Media_Format_422H:
         case Media_Format_411P:
@@ -387,11 +246,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
             tag = PROTECTED_SURFACE_TAG;
         }
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
-         if( (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-             || (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+         if( (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+             || (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
            )
         {
-            if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+            if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {
                 bo = mos_bo_gem_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
             }
@@ -415,7 +274,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
         }
-        else if( mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
+        else if( mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
         {
 
             pitch    = mediaSurface->pSurfDesc->uiPitches[0];
@@ -453,8 +312,15 @@ VAStatus DdiMediaUtil_AllocateSurface(
                return VA_STATUS_ERROR_ALLOCATION_FAILED;
            }
         }
-        else
+        else if( mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING )
         {
+            tileformat = I915_TILING_Y;
+        }
+        else if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
+        {
+            tileformat = I915_TILING_NONE;
+            alignedHeight = height;
+        } else {
             DDI_ASSERTMESSAGE("Input buffer descriptor (%d) is not supported by current driver.", mediaSurface->pSurfDesc->uiFlags);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
@@ -462,7 +328,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     // Create GmmResourceInfo
     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-    if (DdiMediaUtil_IsExternalSurface(mediaSurface))
+    if (DdiMediaUtil_IsExternalSurface(mediaSurface) &&
+        mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
         gmmParams.BaseWidth         = mediaSurface->iWidth;
         gmmParams.BaseHeight        = mediaSurface->iHeight;
@@ -539,7 +406,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         goto finish;
     }
 
-    if (!DdiMediaUtil_IsExternalSurface(mediaSurface))
+    if (!DdiMediaUtil_IsExternalSurface(mediaSurface) ||
+        mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
         unsigned long  ulPitch = 0;
         if ( tileformat == I915_TILING_NONE )
@@ -553,7 +421,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             pitch = ulPitch;
         }
     }
-    else if(mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+    else if(mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
     {
         gmmHeight = height;
     }
@@ -833,6 +701,8 @@ VAStatus DdiMediaUtil_CreateBuffer(DDI_MEDIA_BUFFER *buffer, MOS_BUFMGR *bufmgr)
     return hr;
 }
 
+VAStatus SwizzleSurface(PDDI_MEDIA_CONTEXT mediaCtx, PGMM_RESOURCE_INFO pGmmResInfo, void *pLockedAddr, uint32_t TileType, uint8_t* pResourceBase, bool bUpload);
+
 // add thread protection for multiple thread?
 void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
 {
@@ -842,23 +712,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
     {
         if (surface->pMediaCtx->bIsAtomSOC)
         {
-#ifdef ANDROID
-            if (surface->iWidth * surface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
-            {
-                mos_gem_bo_map_gtt(surface->bo);
-            }
-            else
-            {
-                mos_bo_map(surface->bo, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
-                if (surface->TileType != I915_TILING_NONE)
-                {
-                    if (NeedSwizzleData(surface, true) == false)
-                        return nullptr;
-                }
-            }
-#else
             mos_gem_bo_map_gtt(surface->bo);
-#endif
         }
         else
         {
@@ -866,7 +720,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
             }
-            else if (surface->pMediaCtx->m_useSwSwizzling)
+            else if ((surface->pMediaCtx->m_useSwSwizzling) && !(flag & MOS_LOCKFLAG_NO_SWIZZLE))
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
                 if (surface->pSystemShadow == nullptr)
@@ -874,25 +728,27 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                     surface->pSystemShadow = (uint8_t*)MOS_AllocMemory(surface->bo->size);
                     DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
                 }
-                if (surface->pSystemShadow)
-                {
-                    int32_t flags = surface->pMediaCtx->m_tileYFlag ? 0 : 1;
-                    uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
-                    DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
-                    DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
 
-                    Mos_SwizzleData((uint8_t*)surface->bo->virt, (uint8_t*)surface->pSystemShadow,
-                                    MOS_TILE_Y, MOS_TILE_LINEAR,
-                                    static_cast<int32_t>(surfSize / surface->iPitch), surface->iPitch, flags);
-                }
-            }
-            else if (flag & MOS_LOCKFLAG_WRITEONLY)
-            {
-                mos_gem_bo_map_gtt(surface->bo);
+                uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
+                DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
+                DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
+
+                VAStatus vaStatus = SwizzleSurface(surface->pMediaCtx,
+                                                   surface->pGmmResourceInfo,
+                                                   surface->bo->virt,
+                                                   (MOS_TILE_TYPE)surface->TileType,
+                                                   (uint8_t *)surface->pSystemShadow,
+                                                   false);
+                DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
+
             }
             else if (flag & MOS_LOCKFLAG_NO_SWIZZLE)
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_READONLY);
+            }
+            else if (flag & MOS_LOCKFLAG_WRITEONLY)
+            {
+                mos_gem_bo_map_gtt(surface->bo);
             }
             else
             {
@@ -925,21 +781,7 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
     {
         if (surface->pMediaCtx->bIsAtomSOC)
         {
-#ifdef ANDROID
-            if (surface->iWidth * surface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
-            {
-                mos_gem_bo_unmap_gtt(surface->bo);
-            }
-            else
-            {
-                if (surface->TileType != I915_TILING_NONE)
-                    NeedSwizzleData(surface, false);
-
-                mos_bo_unmap(surface->bo);
-            }
-#else
             mos_gem_bo_unmap_gtt(surface->bo);
-#endif
         }
         else
         {
@@ -949,12 +791,13 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
             }
             else if (surface->pSystemShadow)
             {
-                int32_t flags = surface->pMediaCtx->m_tileYFlag ? 0 : 1;
-                uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
+                SwizzleSurface(surface->pMediaCtx,
+                               surface->pGmmResourceInfo,
+                               surface->bo->virt,
+                               (MOS_TILE_TYPE)surface->TileType,
+                               (uint8_t *)surface->pSystemShadow,
+                               true);
 
-                Mos_SwizzleData((uint8_t*)surface->pSystemShadow, (uint8_t*)surface->bo->virt,
-                                MOS_TILE_LINEAR, MOS_TILE_Y,
-                                static_cast<int32_t>(surfSize / surface->iPitch), surface->iPitch, flags);
                 MOS_FreeMemory(surface->pSystemShadow);
                 surface->pSystemShadow = nullptr;
 
@@ -1126,8 +969,6 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
 {
     DDI_CHK_NULL(buf, "nullptr", );
-    DDI_CHK_NULL(buf->pMediaCtx, "nullptr", );
-    DDI_CHK_NULL(buf->pMediaCtx->pGmmClientContext, "nullptr", );
     // calling sequence checking
     if (buf->bMapped)
     {
@@ -1145,7 +986,7 @@ void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
         buf->bo = nullptr;
     }
 
-    if (nullptr != buf->pGmmResourceInfo)
+    if (nullptr != buf->pMediaCtx && nullptr != buf->pMediaCtx->pGmmClientContext && nullptr != buf->pGmmResourceInfo)
     {
         buf->pMediaCtx->pGmmClientContext->DestroyResInfoObject(buf->pGmmResourceInfo);
         buf->pGmmResourceInfo = nullptr;

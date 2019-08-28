@@ -203,6 +203,8 @@ public:
     //! \param    [in,out] rcMode 
     //!           Return the rcMode for the config ID. 
     //!
+    //! \param    [in,out] feiFunction
+    //!           Return the fei function type for the config ID.
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
@@ -211,7 +213,8 @@ public:
             VAConfigID configId,
             VAProfile *profile,
             VAEntrypoint *entrypoint,
-            uint32_t *rcMode);
+            uint32_t *rcMode,
+            uint32_t *feiFunction);
 
     //!
     //! \brief    Get attributes for a given decode config ID 
@@ -437,10 +440,13 @@ public:
     //! \param    [in] entrypoint 
     //!           Specify the VAEntrypoint for checking 
     //!
-    //! \return   True if the entrypoint or current FeiFuncton belong to FEI 
-    //!           False if the entrypoint and current FeiFuncton aren't FEI 
+    //! \param    [in] feiFunction
+    //!           Specify the VA_FEI_FUNCTION for checking
     //!
-    bool IsEncFei(VAEntrypoint entrypoint);
+    //! \return   True if the entrypoint or the feiFuncton belong to FEI
+    //!           False if the entrypoint and the FeiFuncton aren't FEI
+    //!
+    bool IsEncFei(VAEntrypoint entrypoint, uint32_t feiFunction);
 
     //! 
     //! \brief    Return the CODECHAL_FUNCTION type for give profile and entrypoint 
@@ -451,9 +457,12 @@ public:
     //! \param    [in] entrypoint 
     //!           Specify the VAEntrypoint 
     //!
+    //! \param    [in] feiFunction
+    //!           Specify the VA_FEI_FUNCTION
+    //!
     //! \return   Codehal function
     //!
-    CODECHAL_FUNCTION GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint);
+    CODECHAL_FUNCTION GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction);
 
     //!
     //! \brief    Return internal encode mode for given profile and entrypoint 
@@ -497,9 +506,12 @@ public:
     //! \param    [in] entrypoint 
     //!           Specify the entrypoint 
     //!
+    //! \param    [in] feiFunction 
+    //!           Specify the feiFunction 
+    //!
     //! \return   Std::string encode codec key 
     //!
-    virtual std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint);
+    virtual std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction);
 
     //!
     //! \brief    Query the suppported image formats 
@@ -514,7 +526,14 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) = 0;
+
+    //!
+    //! \brief    Return the maxinum number of supported image formats 
+    //!
+    //! \return   The maxinum number of supported image formats 
+    //!
+    virtual uint32_t GetImageFormatsMaxNum() = 0;
 
     //!
     //! \brief    Populate the color masks info 
@@ -526,8 +545,10 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
-    
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt) = 0;
+
+    virtual bool IsImageSupported(uint32_t fourcc) = 0;
+
     //!
     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
     //!
@@ -547,13 +568,6 @@ public:
     //!           VA_STATUS_SUCCESS if succeed 
     //!
     virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) = 0;
-
-    //!
-    //! \brief    Return the maxinum number of supported image formats 
-    //!
-    //! \return   The maxinum number of supported image formats 
-    //!
-    virtual uint32_t GetImageFormatsMaxNum();
 
     //!
     //! \brief    Check if the configID is a valid decode config 
@@ -640,6 +654,16 @@ public:
     virtual GMM_RESOURCE_FORMAT ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT format);
 
     //!
+    //! \brief convert FOURCC to Gmm Format.
+    //!
+    //! \param    [in] fourcc
+    //!
+    //! \return GMM_RESOURCE_FORMAT
+    //!         Pointer to gmm format type
+    //!
+    virtual GMM_RESOURCE_FORMAT ConvertFourccToGmmFmt(uint32_t fourcc);
+
+    //!
     //! \brief    Initialize the MediaLibvaCaps instance for current platform 
     //!
     //! \return   VAStatus 
@@ -674,9 +698,24 @@ protected:
     //!
     struct DecConfig
     {
-        uint32_t m_sliceMode; //!< Decode slice mode
+        uint32_t m_sliceMode;   //!< Decode slice mode
         uint32_t m_encryptType; //!< Decode entrypoint Type
         uint32_t m_processType; //!< Decode processing Type
+
+        DecConfig(const uint32_t sliceMode, const uint32_t encryptType, const uint32_t processType)
+        : m_sliceMode(sliceMode), m_encryptType(encryptType), m_processType(processType) {}
+    };
+
+    //!
+    //! \struct   EncConfig
+    //! \brief    Encode configuration
+    //!
+    struct EncConfig
+    {
+        uint32_t m_rcMode;      //!< RateControl Mode
+        uint32_t m_FeiFunction; //!< Decode entrypoint Type
+        EncConfig(const uint32_t rcMode, const uint32_t FeiFunction)
+        : m_rcMode(rcMode), m_FeiFunction(FeiFunction) {}
     };
 
     //!
@@ -723,7 +762,6 @@ protected:
     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
     static const uint32_t m_jpegSurfaceAttr[m_numJpegSurfaceAttr]; //!< Store the JPEG surface attributes
     static const uint32_t m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr]; //!< Store the JPEG encode surface attributes
-    static const VAImageFormat m_supportedImageformats[]; //!< Store all the supported image formats
 
     static const uint32_t m_decMpeg2MaxWidth = 2048; //!< Maximum width for Mpeg2 decode
     static const uint32_t m_decMpeg2MaxHeight = 2048; //!< Maximum height for Mpeg2 decode
@@ -773,9 +811,9 @@ protected:
 
     bool m_isEntryptSupported = false; //!< If decode encryption is supported on current platform
 
-    std::vector<uint32_t> m_encConfigs; //!< Store supported encode configs
+    std::vector<EncConfig> m_encConfigs; //!< Store supported encode configs
     std::vector<DecConfig> m_decConfigs; //!< Store supported decode configs
-    std::vector<uint32_t> m_vpConfigs; //!< Store supported vp configs
+    std::vector<uint32_t> m_vpConfigs;   //!< Store supported vp configs
 
     //!
     //! \brief    Check entrypoint codec type
@@ -811,11 +849,13 @@ protected:
     //!
     //! \param    [in] rcMode 
     //!           VA_RC_XXX 
+    //! \param    [in] feiFunction
+    //!           VA_FEI_FUNCTION_XXX [optional parameter]
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
     //!
-    VAStatus AddEncConfig(uint32_t rcMode);
+    VAStatus AddEncConfig(uint32_t rcMode, uint32_t feiFunction = 0);
 
     //!
     //! \brief    Add one vp configuration
@@ -1179,13 +1219,6 @@ protected:
             VAEntrypoint entrypoint,
             VAConfigAttribType type,
             uint32_t *value) = 0;
-
-    //!
-    //! \brief    Return if image format P010 supported on current platform
-    //!
-    //! \return   True if P010 is supported, otherwise false 
-    //!
-    virtual bool IsP010Supported() = 0;
 
     //!
     //! \brief    Return encode Mb processing rate on current platform

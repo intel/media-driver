@@ -133,6 +133,16 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
+    if (gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)
+    {
+        unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
+        struct i915_engine_class_instance uengines[MAX_ENGINE_INSTANCE_NUM];
+        if (mos_query_engines(fd,I915_ENGINE_CLASS_VIDEO,0,&nengine,uengines) == 0)
+        {
+            gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
+        }
+    }
+
     uint32_t platformKey = devInfo->productFamily;
     LinuxDeviceInit *devInit = getDeviceInit(platformKey);
 

@@ -598,6 +598,7 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_IsSrc1Chromasiting : return _T("IsSrc1Chromasiting");
         case RID_IsSetCoeffMode     : return _T("IsSetCoeffMode");
         case RID_IsConstOutAlpha    : return _T("IsConstOutAlpha");
+        case RID_IsDitherNeeded     : return _T("IsDitherNeeded");
         case RID_SetSrc0Procamp     : return _T("SetSrc0Procamp");
     }
 
@@ -2419,6 +2420,16 @@ bool KernelDll_FindRule(
 
                 case RID_IsConstOutAlpha:
                     if (pSearchState->pFilter->bFillOutputAlphaWithConstant == (pRuleEntry->value ? true : false))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                case RID_IsDitherNeeded:
+                    if (pSearchState->pFilter->bIsDitherNeeded == (pRuleEntry->value ? true : false))
                     {
                         continue;
                     }
@@ -4479,9 +4490,10 @@ void KernelDll_StartKernelSearch(
             // DScale Kernels are enabled for all gen9 stepping.
             //For Gen9+, kernel don't support sublayer DScale+rotation
             //Sampler_unorm does not support Y410/RGB10, we need to use sampler_16 to support Y410/RGB10
-            if (!pFilter[nLayer].bWaEnableDscale ||
+            if (!pFilter[nLayer].bEnableDscale &&
+                (!pFilter[nLayer].bWaEnableDscale ||
                 (pFilter[nLayer].layer == Layer_SubVideo &&
-                 pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY))
+                 pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY)))
             {
                 if (pFilter[nLayer].sampler == Sample_Scaling_034x)
                 {

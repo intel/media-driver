@@ -28,6 +28,10 @@ if(GEN9)
     media_include_subdirectory(gen9)
 endif()
 
+if(GEN9_CML)
+    media_include_subdirectory(gen9_cml)
+endif()
+
 if(GEN9_BXT)
     media_include_subdirectory(gen9_bxt)
 endif()

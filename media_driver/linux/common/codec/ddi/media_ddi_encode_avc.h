@@ -180,6 +180,8 @@ protected:
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *ptr);
 
+    virtual void ClearPicParams() override;
+
     //!
     //! \brief    Convert slice struct from VA to codechal
     //! \details  Convert slice struct from VA to codechal

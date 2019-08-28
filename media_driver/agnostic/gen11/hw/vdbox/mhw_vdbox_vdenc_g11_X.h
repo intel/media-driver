@@ -1070,6 +1070,13 @@ public:
         if (cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatY416Variant ||
             cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatAyuvVariant)
         {
+            /* Y410/Y416 Reconstructed format handling */
+            if (cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatY416Variant)
+                cmd.Dwords25.DW1.SurfacePitch = params->psSurface->dwPitch / 2 - 1;
+            /* AYUV Reconstructed format handling */
+            if (cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatAyuvVariant)
+                cmd.Dwords25.DW1.SurfacePitch = params->psSurface->dwPitch / 4 - 1;
+
             cmd.Dwords25.DW2.YOffsetForUCb = params->dwReconSurfHeight;
             cmd.Dwords25.DW3.YOffsetForVCr = params->dwReconSurfHeight << 1;
         }
@@ -1191,8 +1198,6 @@ public:
         cmd.DW22.Largembsizeinword                   = 0xff;
         cmd.DW27.MaxHmvR                             = 0x2000;
         cmd.DW27.MaxVmvR                             = 0x200;
-        cmd.DW33.MaxQp                               = 0x33;
-        cmd.DW33.MinQp                               = 0x0a;
         cmd.DW33.Maxdeltaqp                          = 0x0f;
 
         // initialize for P frame
@@ -1317,6 +1322,19 @@ public:
             cmd.DW21.IntraRefreshMBPos                = avcPicParams->IntraRefreshMBNum;
             cmd.DW21.IntraRefreshMBSizeMinusOne       = avcPicParams->IntraRefreshUnitinMB;
             cmd.DW21.QpAdjustmentForRollingI          = avcPicParams->IntraRefreshQPDelta;
+        }
+
+        // Setting MinMaxQP values if they are presented
+        if (avcPicParams->ucMaximumQP && avcPicParams->ucMinimumQP)
+        {
+            cmd.DW33.MaxQp = avcPicParams->ucMaximumQP;
+            cmd.DW33.MinQp = avcPicParams->ucMinimumQP;
+        }
+        else
+        {
+            // Set default values
+            cmd.DW33.MaxQp = 0x33;
+            cmd.DW33.MinQp = 0x0a;
         }
 
         // VDEnc CQP case ROI settings, BRC ROI will be handled in HuC FW
@@ -1471,7 +1489,7 @@ public:
                     uint32_t numOfLCU                = widthInLCU*(frameHeightInLCU + 1);
                     uint32_t maxNumCUInLCU           = (64 / 8)*(64 / 8); //max LCU size is 64, min Cu size is 8
 
-                    uint32_t tileLCUStreamOutByteOffset = 2 * 4 * ((numOfLCU * 5) + (numOfLCU*maxNumCUInLCU * 8));
+                    uint32_t tileLCUStreamOutByteOffset = 2 * BYTES_PER_DWORD * numOfLCU * (NUM_PAK_DWS_PER_LCU + maxNumCUInLCU * NUM_DWS_PER_CU);
                     cmd.DW9.TileLcuStreamOutOffset      = MOS_ROUNDUP_DIVIDE(tileLCUStreamOutByteOffset, MHW_CACHELINE_SIZE);
                 }
             }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -75,6 +75,24 @@
 
 #define CODECHAL_VP9_MB_CODE_SIZE                   204
 
+typedef struct tagENCODE_RECT
+{
+    uint16_t  Top;    // [0..(FrameHeight+ M-1)/M -1]
+    uint16_t  Bottom; // [0..(FrameHeight+ M-1)/M -1]
+    uint16_t  Left;   // [0..(FrameWidth+15)/16-1]
+    uint16_t  Right;  // [0..(FrameWidth+15)/16-1]
+} ENCODE_RECT;
+
+typedef struct tagMOVE_RECT
+{
+    uint32_t  SourcePointX;
+    uint32_t  SourcePointY;
+    uint32_t  DestRectTop;
+    uint32_t  DestRectBottom;
+    uint32_t  DestRectLeft;
+    uint32_t  DestRectRight;
+} MOVE_RECT;
+
 /*! \brief Defines ROI settings.
 *
 *    {Top, Bottom, Left, Right} defines the ROI boundary. The values are in unit of blocks. The block size M should use LCU size (e.g. sif LCU size is 32x32, M is 32). And its range should be within the frame boundary, so that:
@@ -131,7 +149,9 @@ typedef enum _CODEC_SCENARIO
     ESCENARIO_ARCHIVE           = 3,
     ESCENARIO_LIVESTREAMING     = 4,
     ESCENARIO_VIDEOCAPTURE      = 5,
-    ESCENARIO_VIDEOSURVEILLANCE = 6
+    ESCENARIO_VIDEOSURVEILLANCE = 6,
+    ESCENARIO_GAMESTREAMING     = 7,
+    ESCENARIO_REMOTEGAMING      = 8
 } CODEC_SCENARIO, ENCODE_SCENARIO;
 
 /*! \brief Provides a hint to encoder about the content for the encoding session.
@@ -238,6 +258,12 @@ typedef struct _CODECHAL_NAL_UNIT_PARAMS
     bool           bInsertEmulationBytes;
     uint32_t       uiSkipEmulationCheckCount;
 } CODECHAL_NAL_UNIT_PARAMS, *PCODECHAL_NAL_UNIT_PARAMS;
+
+typedef struct tagFRAMERATE
+{
+    uint32_t    Numerator;
+    uint32_t    Denominator;
+} FRAMERATE;
 
 /*********************************************************************************\
     Constants for VDENC costing look-up-tables

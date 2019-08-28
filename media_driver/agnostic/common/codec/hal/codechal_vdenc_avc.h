@@ -1109,8 +1109,17 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
         hucVDEncBrcInitDmem->INIT_GopP_U16 = (avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist;
     }
 
-    hucVDEncBrcInitDmem->INIT_MinQP_U16 = CODECHAL_VDENC_AVC_BRC_MIN_QP; // Setting values from arch spec
-    hucVDEncBrcInitDmem->INIT_MaxQP_U16 = CODECHAL_ENCODE_AVC_MAX_SLICE_QP; // Setting values from arch spec
+    if (m_minMaxQpControlEnabled)
+    {
+        // Convert range [1,51] to [10,51] for VDEnc due to HW limitation
+        hucVDEncBrcInitDmem->INIT_MinQP_U16 = MOS_MAX(m_iMinQp, 10);
+        hucVDEncBrcInitDmem->INIT_MaxQP_U16 = MOS_MAX(m_iMaxQp, 10);
+    }
+    else
+    {
+        hucVDEncBrcInitDmem->INIT_MinQP_U16 = CODECHAL_VDENC_AVC_BRC_MIN_QP;     // Setting values from arch spec
+        hucVDEncBrcInitDmem->INIT_MaxQP_U16 = CODECHAL_ENCODE_AVC_MAX_SLICE_QP;  // Setting values from arch spec
+    }
 
                                                                              //dynamic deviation thresholds
     double inputBitsPerFrame = ((double)avcSeqParams->MaxBitRate * (double)100) / (double)avcSeqParams->FramesPer100Sec;

@@ -894,6 +894,14 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     uint8_t        *pDeltaQp;
 
+    /*! \brief Specifies target frame size in TCBRC mode.
+    *
+    *    If TCBRCSupport == 1, this parameter enables "Transport Controlled BRC mode" and indicates the desired frame size in bytes.
+    *      - If the value equals 0, the BRC mode defined in RateControlMethod will take control for that certain frame.
+    *    If TCBRCSupport == 0, this parameter will be ignored and should be set to 0. The BRC mode defined in RateControlMethod will be applied.
+    */
+    uint32_t        TargetFrameSize;
+
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for AVC encoding.

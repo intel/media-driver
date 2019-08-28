@@ -112,7 +112,7 @@ typedef unsigned char byte;
 #define CM_MIN_SURF_HEIGHT      1
 #define CM_MIN_SURF_DEPTH       2
 
-#define CM_MAX_1D_SURF_WIDTH    0x40000000 // 2^30, 1024M
+#define CM_MAX_1D_SURF_WIDTH    0x80000000 // 2^31, 2 GB
 
 #define CM_PAGE_ALIGNMENT       0x1000
 #define CM_PAGE_ALIGNMENT_MASK  0x0FFF
@@ -812,9 +812,10 @@ typedef struct _CM_SURFACE2D_STATE_PARAM
     uint32_t depth;
     uint32_t pitch;
     uint16_t memory_object_control;
-    uint32_t surface_x_offset;
-    uint32_t surface_y_offset;
-    uint32_t reserved[4]; // for future usage
+    uint32_t surface_x_offset;  // Horizontal offset to the origin of the surface, in columns of pixels.
+    uint32_t surface_y_offset;  // Vertical offset to the origin of the surface, in rows of pixels.
+    uint32_t surface_offset;  // Offset to the origin of the surface, in bytes.
+    uint32_t reserved[3]; // for future usage
 } CM_SURFACE2D_STATE_PARAM;
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMDEF_H_

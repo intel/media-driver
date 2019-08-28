@@ -45,6 +45,7 @@ typedef unsigned int MOS_OS_FORMAT;
 
 class GraphicsResource;
 class AuxTableMgr;
+class MosOcaInterface;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -250,7 +251,10 @@ struct _MOS_SPECIFIC_RESOURCE
     GMM_RESOURCE_INFO   *pGmmResInfo;        //!< GMM resource descriptor
     MOS_MMAP_OPERATION  MmapOperation;
     uint8_t             *pSystemShadow;
-    bool                bUseGmmQuery;       //!< decided to use GMM to query res or not.
+    bool                bUsrPtrMode;        //!< indicate source info comes from app.
+    MOS_PLANE_OFFSET    YPlaneOffset;       //!< Y surface plane offset
+    MOS_PLANE_OFFSET    UPlaneOffset;       //!< U surface plane offset
+    MOS_PLANE_OFFSET    VPlaneOffset;       //!< V surface plane offset
 
     //!< to sync render target for multi-threading decoding mode
     struct
@@ -452,14 +456,12 @@ typedef struct _CMD_BUFFER_BO_POOL
     MOS_LINUX_BO        *pCmd_bo[MAX_CMD_BUF_NUM];
 }CMD_BUFFER_BO_POOL;
 
-#ifndef ANDROID
 struct MOS_CONTEXT_OFFSET
 {
     MOS_LINUX_CONTEXT *intel_context;
     MOS_LINUX_BO      *target_bo;
     uint64_t          offset64;
 };
-#endif
 
 typedef struct _MOS_OS_CONTEXT MOS_CONTEXT, *PMOS_CONTEXT, MOS_OS_CONTEXT, *PMOS_OS_CONTEXT, MOS_DRIVER_CONTEXT,*PMOS_DRIVER_CONTEXT;
 //!
@@ -489,6 +491,7 @@ struct _MOS_OS_CONTEXT
     // Controlled OS resources (for analysis)
     MOS_BUFMGR       *bufmgr;
     MOS_LINUX_CONTEXT   *intel_context;
+    int32_t             submit_fence;
     uint32_t            uEnablePerfTag;           //!< 0: Do not pass PerfTag to KMD, perf data collection disabled;
                                                   //!< 1: Pass PerfTag to MVP driver, perf data collection enabled;
                                                   //!< 2: Pass PerfTag to DAPC driver, perf data collection enabled;
@@ -531,9 +534,7 @@ struct _MOS_OS_CONTEXT
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 
-#ifndef ANDROID
     std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
-#endif
 
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
@@ -597,6 +598,7 @@ struct _MOS_OS_CONTEXT
     GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
         PMOS_CONTEXT               pOsContext);
 
+    MosOcaInterface* (*GetOcaInterface)();
 };
 
 //!
@@ -821,6 +823,17 @@ bool Mos_Specific_IsSetMarkerEnabled(
 //!           SetMarker resource address
 //!
 PMOS_RESOURCE Mos_Specific_GetMarkerResource(
+    PMOS_INTERFACE         pOsInterface);
+
+//!
+//! \brief    Get TimeStamp frequency base
+//! \details  Get TimeStamp frequency base from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   uint32_t
+//!           time stamp frequency base
+//!
+uint32_t Mos_Specific_GetTsFrequency(
     PMOS_INTERFACE         pOsInterface);
 
 #if (_DEBUG || _RELEASE_INTERNAL)

@@ -35,9 +35,9 @@
 static void DdiStubMessage()
 {
     MOS_NORMALMESSAGE(
-        MOS_COMPONENT_CP, 
-        MOS_CP_SUBCOMP_DDI, 
-        CP_STUB_MESSAGE);
+        MOS_COMPONENT_CP,
+        MOS_CP_SUBCOMP_DDI,
+        "This function is stubbed as CP is not enabled.");
 }
 
 DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx)
@@ -78,24 +78,6 @@ void DdiCpInterface::SetCpParams(uint32_t encryptionType, CodechalSetting *setti
     DdiStubMessage();
 }
 
-VAStatus DdiCpInterface::EndPictureCenc(
-    VADriverContextP vaDrvCtx,
-    VAContextID      contextId)
-{
-    DdiStubMessage();
-    return VA_STATUS_SUCCESS;
-}
-
-VAStatus DdiCpInterface::QueryCencStatus(
-    uint16_t            mode,
-    uint32_t            infoSize,
-    void                *info)
-
-{
-    DdiStubMessage();
-    return VA_STATUS_SUCCESS;
-}
-
 VAStatus DdiCpInterface::RenderCencPicture(
     VADriverContextP      vaDrvctx,
     VAContextID           contextId,
@@ -115,12 +97,6 @@ VAStatus DdiCpInterface::CreateBuffer(
 {
     DdiStubMessage();
     return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
-}
-
-bool DdiCpInterface::CheckSupportedBufferForCodec(VABufferType type)
-{
-    DdiStubMessage();
-    return false;
 }
 
 VAStatus DdiCpInterface::InitHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr)

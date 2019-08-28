@@ -51,6 +51,9 @@
 #include <sys/types.h>
 #endif
 
+#include "mos_os_virtualengine.h"
+#include "mos_util_user_interface.h"
+
 //!
 //! \brief DRM VMAP patch
 //!
@@ -199,6 +202,8 @@ int32_t Linux_GetCommandBuffer(
     pCmdBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
 
     MOS_ZeroMemory(pCmdBuffer->pCmdBase, cmd_bo->size);
+    pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
+    MOS_ZeroMemory(&pCmdBuffer->Attributes, sizeof(pCmdBuffer->Attributes));
     bResult = true;
 
 finish:
@@ -952,6 +957,11 @@ GMM_CLIENT_CONTEXT* Linux_GetGmmClientContext(PMOS_CONTEXT pOsContext)
     return pOsContext->pGmmClientContext;
 }
 
+MosOcaInterface* Linux_GetOcaInterface()
+{
+    return nullptr;
+}
+
 //!
 //! \brief    Get GPU tag for the given GPU context from the status buffer
 //! \details  Get GPU tag for the given GPU context from the status buffer
@@ -1085,16 +1095,19 @@ void Linux_Destroy(
         Linux_ReleaseGPUStatus(pOsContext);
     }
 
-#ifndef ANDROID
     if (pOsContext->contextOffsetList.size())
     {
          pOsContext->contextOffsetList.clear();
          pOsContext->contextOffsetList.shrink_to_fit();
     }
-#endif
 
     if (!MODSEnabled && (pOsContext->intel_context))
     {
+        if (pOsContext->intel_context->vm)
+        {
+            mos_gem_vm_destroy(pOsContext->intel_context->bufmgr,pOsContext->intel_context->vm);
+            pOsContext->intel_context->vm = nullptr;
+        }
         mos_gem_context_destroy(pOsContext->intel_context);
     }
 
@@ -1238,8 +1251,8 @@ MOS_STATUS Linux_InitContext(
     if (nullptr == pContext ||
         nullptr == pOsDriverContext ||
         nullptr == pOsDriverContext->bufmgr ||
-        nullptr == pOsDriverContext->m_gpuContextMgr && modularizedGpuCtxEnabled ||
-        nullptr == pOsDriverContext->m_cmdBufMgr && modularizedGpuCtxEnabled ||
+        (nullptr == pOsDriverContext->m_gpuContextMgr && modularizedGpuCtxEnabled) ||
+        (nullptr == pOsDriverContext->m_cmdBufMgr && modularizedGpuCtxEnabled) ||
         0 >= pOsDriverContext->fd)
     {
         MOS_OS_ASSERT(false);
@@ -1286,13 +1299,37 @@ MOS_STATUS Linux_InitContext(
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
     {
-       pContext->intel_context = mos_gem_context_create(pOsDriverContext->bufmgr);
+       pContext->intel_context = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
+       if (pContext->intel_context)
+       {
+           pContext->intel_context->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+           if (pContext->intel_context->vm == nullptr)
+           {
+               MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
+               return MOS_STATUS_UNKNOWN;
+           }
+       }
+       else //try legacy context create ioctl if DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT is not supported
+       {
+           pContext->intel_context = mos_gem_context_create(pOsDriverContext->bufmgr);
+           if (pContext->intel_context)
+           {
+               pContext->intel_context->vm = nullptr;
+           }
+       }
 
        if (pContext->intel_context == nullptr)
        {
             MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
             return MOS_STATUS_UNKNOWN;
        }
+    }
+
+    //check if gem bo 48b address supported
+    if(mos_gem_bo_48b_address_supported(pContext->intel_context))
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to check gem bo 48b address flag.");
+        return MOS_STATUS_UNKNOWN;
     }
 
     pContext->intel_context->pOsContext = pContext;
@@ -1423,6 +1460,7 @@ MOS_STATUS Linux_InitContext(
     pContext->pfnIncGpuCtxBufferTag      = Linux_IncGpuCtxBufferTag;
     pContext->GetGPUTag                  = Linux_GetGPUTag;
     pContext->GetGmmClientContext        = Linux_GetGmmClientContext;
+    pContext->GetOcaInterface            = Linux_GetOcaInterface;
 
 finish:
     if (!modularizedGpuCtxEnabled)
@@ -1667,6 +1705,10 @@ void Mos_Specific_Destroy(
         pOsInterface->pOsContext->pfnDestroy(pOsInterface->pOsContext, pOsInterface->modulizedMosEnabled, modularizedGpuCtxEnabled);
         pOsInterface->pOsContext = nullptr;
     }
+    if (pOsInterface->pVEInterf)
+    {
+        MOS_FreeMemAndSetNull(pOsInterface->pVEInterf);
+    }
 }
 
 //!
@@ -1760,7 +1802,8 @@ void Mos_Specific_ResetOsStates(
             return;
         }
 
-        return gpuContext->ResetGpuContextStatus();
+        gpuContext->ResetGpuContextStatus();
+        return;
     }
 
     pOsContext = pOsInterface->pOsContext;
@@ -2159,18 +2202,18 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     GmmFlags = pGmmResourceInfo->GetResFlags();
 
     // Get resource information
-    if (pOsResource->bUseGmmQuery)
-    {
-        pResDetails->dwWidth         = GFX_ULONG_CAST(pGmmResourceInfo->GetBaseWidth());
-        pResDetails->dwHeight        = pGmmResourceInfo->GetBaseHeight();
-        pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
-    }
-    else
+    if (pOsResource->bUsrPtrMode)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         pResDetails->dwWidth         = pOsResource->iWidth;
         pResDetails->dwHeight        = pOsResource->iHeight;
         pResDetails->dwPitch         = pOsResource->iPitch;
+    }
+    else
+    {
+        pResDetails->dwWidth         = GFX_ULONG_CAST(pGmmResourceInfo->GetBaseWidth());
+        pResDetails->dwHeight        = pGmmResourceInfo->GetBaseHeight();
+        pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
     }
     pResDetails->dwDepth         = MOS_MAX(1, pGmmResourceInfo->GetBaseDepth());
     pResDetails->dwLockPitch     = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
@@ -2223,40 +2266,54 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     pResDetails->Format   = pOsResource->Format;
 
     // Get planes
-    MOS_ZeroMemory(reqInfo, sizeof(reqInfo));
-    gmmChannel = GMM_DISPLAY_BASE;
-    // Get the base offset of the surface (plane Y)
-    reqInfo[2].ReqRender = true;
-    reqInfo[2].Plane     = GMM_PLANE_Y;
-    reqInfo[2].Frame     = gmmChannel;
-    reqInfo[2].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[2].ArrayIndex = 0;
-    pGmmResourceInfo->GetOffset(reqInfo[2]);
-    pResDetails->RenderOffset.YUV.Y.BaseOffset = reqInfo[2].Render.Offset;
+    if (pOsResource->bUsrPtrMode)
+    {
+        // if usrptr surface, do not query those values from gmm, app will configure them.
+        pResDetails->RenderOffset.YUV.Y.BaseOffset = pOsResource->YPlaneOffset.iSurfaceOffset;
+        pResDetails->RenderOffset.YUV.U.BaseOffset = pOsResource->UPlaneOffset.iSurfaceOffset;
+        pResDetails->RenderOffset.YUV.U.XOffset    = pOsResource->UPlaneOffset.iXOffset;
+        pResDetails->RenderOffset.YUV.U.YOffset    = pOsResource->UPlaneOffset.iYOffset;
+        pResDetails->RenderOffset.YUV.V.BaseOffset = pOsResource->VPlaneOffset.iSurfaceOffset;
+        pResDetails->RenderOffset.YUV.V.XOffset    = pOsResource->VPlaneOffset.iXOffset;
+        pResDetails->RenderOffset.YUV.V.YOffset    = pOsResource->VPlaneOffset.iYOffset;
+    }
+    else
+    {
+        MOS_ZeroMemory(reqInfo, sizeof(reqInfo));
+        gmmChannel = GMM_DISPLAY_BASE;
+        // Get the base offset of the surface (plane Y)
+        reqInfo[2].ReqRender = true;
+        reqInfo[2].Plane     = GMM_PLANE_Y;
+        reqInfo[2].Frame     = gmmChannel;
+        reqInfo[2].CubeFace  = __GMM_NO_CUBE_MAP;
+        reqInfo[2].ArrayIndex = 0;
+        pGmmResourceInfo->GetOffset(reqInfo[2]);
+        pResDetails->RenderOffset.YUV.Y.BaseOffset = reqInfo[2].Render.Offset;
 
-    // Get U/UV plane information (plane offset, X/Y offset)
-    reqInfo[0].ReqRender = true;
-    reqInfo[0].Plane     = GMM_PLANE_U;
-    reqInfo[0].Frame     = gmmChannel;
-    reqInfo[0].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[0].ArrayIndex = 0;
-    pGmmResourceInfo->GetOffset(reqInfo[0]);
+        // Get U/UV plane information (plane offset, X/Y offset)
+        reqInfo[0].ReqRender = true;
+        reqInfo[0].Plane     = GMM_PLANE_U;
+        reqInfo[0].Frame     = gmmChannel;
+        reqInfo[0].CubeFace  = __GMM_NO_CUBE_MAP;
+        reqInfo[0].ArrayIndex = 0;
+        pGmmResourceInfo->GetOffset(reqInfo[0]);
 
-    pResDetails->RenderOffset.YUV.U.BaseOffset = reqInfo[0].Render.Offset;
-    pResDetails->RenderOffset.YUV.U.XOffset    = reqInfo[0].Render.XOffset;
-    pResDetails->RenderOffset.YUV.U.YOffset    = reqInfo[0].Render.YOffset;
+        pResDetails->RenderOffset.YUV.U.BaseOffset = reqInfo[0].Render.Offset;
+        pResDetails->RenderOffset.YUV.U.XOffset    = reqInfo[0].Render.XOffset;
+        pResDetails->RenderOffset.YUV.U.YOffset    = reqInfo[0].Render.YOffset;
 
-    // Get V plane information (plane offset, X/Y offset)
-    reqInfo[1].ReqRender = true;
-    reqInfo[1].Plane     = GMM_PLANE_V;
-    reqInfo[1].Frame     = gmmChannel;
-    reqInfo[1].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[1].ArrayIndex = 0;
-    pGmmResourceInfo->GetOffset(reqInfo[1]);
+        // Get V plane information (plane offset, X/Y offset)
+        reqInfo[1].ReqRender = true;
+        reqInfo[1].Plane     = GMM_PLANE_V;
+        reqInfo[1].Frame     = gmmChannel;
+        reqInfo[1].CubeFace  = __GMM_NO_CUBE_MAP;
+        reqInfo[1].ArrayIndex = 0;
+        pGmmResourceInfo->GetOffset(reqInfo[1]);
 
-    pResDetails->RenderOffset.YUV.V.BaseOffset = reqInfo[1].Render.Offset;
-    pResDetails->RenderOffset.YUV.V.XOffset    = reqInfo[1].Render.XOffset;
-    pResDetails->RenderOffset.YUV.V.YOffset    = reqInfo[1].Render.YOffset;
+        pResDetails->RenderOffset.YUV.V.BaseOffset = reqInfo[1].Render.Offset;
+        pResDetails->RenderOffset.YUV.V.XOffset    = reqInfo[1].Render.XOffset;
+        pResDetails->RenderOffset.YUV.V.YOffset    = reqInfo[1].Render.YOffset;
+    }
 
 finish:
     return eStatus;
@@ -2355,7 +2412,6 @@ void Mos_Specific_FreeResource(
 
         mos_bo_unreference((MOS_LINUX_BO *)(pOsResource->bo));
 
-#ifndef ANDROID
         if ( pOsInterface->pOsContext != nullptr && pOsInterface->pOsContext->contextOffsetList.size()) 
         {
           MOS_CONTEXT *pOsCtx = pOsInterface->pOsContext;
@@ -2373,7 +2429,7 @@ void Mos_Specific_FreeResource(
              }
           }
         }
-#endif
+
         pOsResource->bo = nullptr;
         if (pOsResource->pGmmResInfo != nullptr && 
             pOsInterface->pOsContext != nullptr &&
@@ -2543,16 +2599,6 @@ void  *Mos_Specific_LockResource(
             }
             else
             {
-#ifdef ANDROID
-                if (pOsResource->TileType != MOS_TILE_LINEAR ||pLockFlags->Uncached)
-                {
-                    mos_gem_bo_map_gtt(bo);
-                }
-                else
-                {
-                    mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY&pLockFlags->WriteOnly));
-                }
-#else
                 if (pOsResource->TileType != MOS_TILE_LINEAR && !pLockFlags->TiledAsTiled)
                 {
                     if (pContext->bUseSwSwizzling)
@@ -2589,7 +2635,6 @@ void  *Mos_Specific_LockResource(
                     mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY&pLockFlags->WriteOnly));
                     pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
                 }
-#endif
             }
             pOsResource->pData   = pOsResource->pSystemShadow ? pOsResource->pSystemShadow : (uint8_t*)bo->virt;
             pOsResource->bMapped = true;
@@ -2674,16 +2719,6 @@ MOS_STATUS Mos_Specific_UnlockResource(
            }
            else
            {
-#ifdef ANDROID
-               if (pOsResource->TileType == MOS_TILE_LINEAR)
-               {
-                   mos_bo_unmap(pOsResource->bo);
-               }
-               else
-               {
-                   mos_gem_bo_unmap_gtt(pOsResource->bo);
-               }
-#else
                if (pOsResource->pSystemShadow)
                {
                    int32_t flags = pContext->bTileYFlag ? 0 : 1;
@@ -2708,7 +2743,6 @@ MOS_STATUS Mos_Specific_UnlockResource(
                         MOS_OS_ASSERTMESSAGE("Invalid mmap operation type");
                         break;
                }
-#endif
            }
            pOsResource->bo->virt = nullptr;
            pOsResource->bMapped  = false;
@@ -3522,11 +3556,9 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     drm_clip_rect_t                     *cliprects;
     int32_t                             num_cliprects;
     int32_t                             DR4, ret;
-#ifndef ANDROID
     uint64_t                            boOffset;
 
     boOffset = 0;
-#endif
     eStatus  = MOS_STATUS_SUCCESS;
     ret      = 0;
 
@@ -3578,7 +3610,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
             pCurrentPatch,
             pResource));
 
-#ifndef ANDROID
         boOffset = alloc_bo->offset64;
         if (alloc_bo != cmd_bo)
         {
@@ -3612,28 +3643,7 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
                           I915_GEM_DOMAIN_RENDER,                                              // Read domain
                           (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
                           boOffset);
-#else
-        if (pOsContext->bUse64BitRelocs)
-        {
-            *((uint64_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
-                    alloc_bo->offset64 + pCurrentPatch->AllocationOffset;
-        }
-        else
-        {
-            *((uint32_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
-                    alloc_bo->offset64 + pCurrentPatch->AllocationOffset;
-        }
 
-        // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
-        ret = mos_bo_emit_reloc(
-                          cmd_bo,                                                              // Command buffer
-                          pCurrentPatch->PatchOffset,                                          // Offset in the command buffer
-                          alloc_bo,                                                            // Allocation object for which the patch will be made.
-                          pCurrentPatch->AllocationOffset,                                     // Offset to the indirect state
-                          I915_GEM_DOMAIN_RENDER,                                              // Read domain
-                          (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0);   // Write domain
-
-#endif
         if (ret != 0)
         {
             MOS_OS_ASSERTMESSAGE("Error patching alloc_bo = 0x%x, cmd_bo = 0x%x.",
@@ -3771,37 +3781,15 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     }
     else if (bNullRendering == false)
     {
-#ifdef ANDROID
-     if (pOsContext->uEnablePerfTag == 2)
-     {
-         ret = mos_gem_bo_tag_exec(cmd_bo,
-                                        pOsGpuContext->uiCommandBufferSize,
-                                        pOsContext->intel_context,
-                                        cliprects,
-                                        num_cliprects,
-                                        0,
-                                        ExecFlag,
-                                        PerfData);
-     }
-     else
-     {
-           ret = mos_bo_mrb_exec(cmd_bo,
-                                       pOsGpuContext->uiCommandBufferSize,
-                                       cliprects,
-                                       num_cliprects,
-                                       DR4,
-                                       ExecFlag);
-     }
-#else
+
      ret = mos_gem_bo_context_exec2(cmd_bo,
                                        pOsGpuContext->uiCommandBufferSize,
                                        pOsContext->intel_context,
                                        cliprects,
                                        num_cliprects,
                                        DR4,
-                                       ExecFlag);
-#endif
-
+                                       ExecFlag,
+                                       nullptr);
       if (ret != 0) {
           eStatus = MOS_STATUS_UNKNOWN;
       }
@@ -4087,8 +4075,8 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
         {
             struct drm_i915_gem_context_param_sseu sseu;
             MOS_ZeroMemory(&sseu, sizeof(sseu));
-            sseu.engine_class = I915_ENGINE_CLASS_RENDER;
-            sseu.engine_instance = 0;
+            sseu.engine.engine_class = I915_ENGINE_CLASS_RENDER;
+            sseu.engine.engine_instance = 0;
 
             if (mos_get_context_param_sseu(pOsInterface->pOsContext->intel_context, &sseu))
             {
@@ -4117,7 +4105,7 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
             auto gpuContextSpecific  = static_cast<GpuContextSpecific *>(gpuContext);
             MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
 
-            MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext()));
+            MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), pOsInterface, GpuNode, createOption));
 
             pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextSpecific->GetGpuContextHandle());
         }
@@ -5905,13 +5893,6 @@ MOS_STATUS Mos_Specific_LoadLibrary(
     //---------------------------------
 
     *ppvModule = dlopen(pFileName, RTLD_LAZY);
-    if (!(*ppvModule))
-    {
-#ifdef ANDROID
-        error = (char *)dlerror();
-        ALOGD("%s", error);
-#endif
-    }
 
     return ((*ppvModule) ? MOS_STATUS_SUCCESS : MOS_STATUS_LOAD_LIBRARY_FAILED);
 }
@@ -6051,12 +6032,7 @@ void Mos_Specific_SetSliceCount(
 void Mos_Specific_LogData(
     char       *pData)
 {
-#ifdef Android
-    ALOGD(pData);
-#else
     MOS_UNUSED(pData);
-#endif
-
     return;
 }
 
@@ -6064,6 +6040,80 @@ void Mos_Specific_NotifyStreamIndexSharing(
     PMOS_INTERFACE              pOsInterface)
 {
     MOS_UNUSED(pOsInterface);
+}
+
+MOS_STATUS Mos_Specific_CheckVirtualEngineSupported(
+    PMOS_INTERFACE      pOsResource)
+{
+    auto skuTable = pOsResource->pfnGetSkuTable(pOsResource);
+    MOS_OS_CHK_NULL_RETURN(skuTable);
+    if (MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+    {
+        pOsResource->bSupportVirtualEngine = true;
+    }
+    else
+    {
+        pOsResource->bSupportVirtualEngine = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+static MOS_STATUS Mos_Specific_InitInterface_Ve(
+    PMOS_INTERFACE osInterface)
+{
+    PLATFORM                            Platform;
+    MOS_STATUS                          eStatus;
+    MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+    // Get platform information
+    memset(&Platform, 0, sizeof(PLATFORM));
+    if (!Mos_Solo_IsEnabled())
+    {
+        osInterface->pfnGetPlatform(osInterface, &Platform);
+    }
+
+    if (GFX_IS_GEN_11_OR_LATER(Platform) || Mos_Solo_IsEnabled())
+    {
+        //keep this as false until VE is enabled by all media components
+        osInterface->bSupportVirtualEngine = false;
+        osInterface->bUseHwSemaForResSyncInVE = false;
+        osInterface->pVEInterf = nullptr;
+        osInterface->VEEnable = false;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Read Scalable/Legacy Decode mode on Gen11+
+        //1:by default for scalable decode mode
+        //0:for legacy decode mode
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        auto eStatusUserFeature = MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
+            &userFeatureData);
+        osInterface->bHcpDecScalabilityMode = userFeatureData.u32Data ? true : false;
+
+        if (MosUtilUserInterface::IsDefaultValueChanged() &&
+           (eStatusUserFeature == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED ||
+            eStatusUserFeature == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+        {
+            osInterface->bHcpDecScalabilityMode = false;
+        }
+
+        osInterface->frameSplit                  = false;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
+            &userFeatureData);
+        osInterface->frameSplit = (uint32_t)userFeatureData.i32Data;
+#endif
+    }
+
+    return eStatus;
 }
 
 //! \brief    Unified OS Initializes OS Linux Interface
@@ -6102,7 +6152,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     MOS_OS_NORMALMESSAGE("mm:Mos_Specific_InitInterface called.");
 
     pOsInterface->modularizedGpuCtxEnabled    = true;
-    pOsInterface->veDefaultEnable             = false;
+    pOsInterface->veDefaultEnable             = true;
+    pOsInterface->phasedSubmission            = true;
 
     // Create Linux OS Context
     pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
@@ -6232,6 +6283,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnFreeLibrary                            = Mos_Specific_FreeLibrary;
     pOsInterface->pfnGetProcAddress                         = Mos_Specific_GetProcAddress;
     pOsInterface->pfnLogData                                = Mos_Specific_LogData;
+    pOsInterface->pfnCheckVirtualEngineSupported            = Mos_Specific_CheckVirtualEngineSupported;
 
     //GPU context and synchronization functions
     pOsInterface->pfnCreateGpuContext                       = Mos_Specific_CreateGpuContext;
@@ -6374,6 +6426,12 @@ MOS_STATUS Mos_Specific_InitInterface(
         __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
         &UserFeatureData);
     pOsContext->uEnablePerfTag = UserFeatureData.i32Data;
+
+    eStatus = Mos_Specific_InitInterface_Ve(pOsInterface);
+    if(eStatus != MOS_STATUS_SUCCESS)
+    {
+        goto finish;
+    }
 
     eStatus = MOS_STATUS_SUCCESS;
 
@@ -6527,6 +6585,33 @@ PMOS_RESOURCE Mos_Specific_GetMarkerResource(
     PMOS_INTERFACE         pOsInterface)
 {
     return 0;
+}
+
+//!
+//! \brief    Get TimeStamp frequency base
+//! \details  Get TimeStamp frequency base from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   uint32_t
+//!           time stamp frequency base
+//!
+uint32_t Mos_Specific_GetTsFrequency(PMOS_INTERFACE osInterface)
+{
+    int32_t freq = 0;
+    drm_i915_getparam_t gp;
+    MOS_ZeroMemory(&gp, sizeof(gp));
+    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
+    gp.value = &freq;
+    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if(ret == 0)
+    {
+        return freq;
+    }
+    else
+    {
+        // fail to query it from KMD
+        return 0;
+    }
 }
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED

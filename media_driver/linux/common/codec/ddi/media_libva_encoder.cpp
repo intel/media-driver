@@ -222,11 +222,13 @@ VAStatus DdiEncode_CreateContext(
     VAProfile profile;
     VAEntrypoint entrypoint;
     uint32_t rcMode = 0;
+    uint32_t feiFunction = 0;
     VAStatus vaStatus = mediaDrvCtx->m_caps->GetEncConfigAttr(
             config_id + DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE,
             &profile,
             &entrypoint,
-            &rcMode);
+            &rcMode,
+            &feiFunction);
     DDI_CHK_RET(vaStatus, "Invalide config_id!");
 
     vaStatus = mediaDrvCtx->m_caps->CheckEncodeResolution(
@@ -243,7 +245,7 @@ VAStatus DdiEncode_CreateContext(
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
 
-    std::string    encodeKey = mediaDrvCtx->m_caps->GetEncodeCodecKey(profile, entrypoint);
+    std::string    encodeKey = mediaDrvCtx->m_caps->GetEncodeCodecKey(profile, entrypoint, feiFunction);
     DdiEncodeBase *ddiEncode = DdiEncodeFactory::CreateCodec(encodeKey);
     DDI_CHK_NULL(ddiEncode, "nullptr ddiEncode", VA_STATUS_ERROR_UNIMPLEMENTED);
 
@@ -292,7 +294,7 @@ VAStatus DdiEncode_CreateContext(
     encCtx->vaProfile     = profile;
     encCtx->uiRCMethod    = rcMode;
     encCtx->wModeType     = mediaDrvCtx->m_caps->GetEncodeCodecMode(profile, entrypoint);
-    encCtx->codecFunction = mediaDrvCtx->m_caps->GetEncodeCodecFunction(profile, entrypoint);
+    encCtx->codecFunction = mediaDrvCtx->m_caps->GetEncodeCodecFunction(profile, entrypoint, feiFunction);
 
     if (entrypoint == VAEntrypointEncSliceLP)
     {
