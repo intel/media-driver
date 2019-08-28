@@ -4463,6 +4463,8 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             MOS_ZeroMemory(m_recycledBufStatusNum, sizeof(m_recycledBufStatusNum));
         }
 
+        m_currLaDataIdx = (m_currLaDataIdx + 1) % m_numLaDataEntry;
+
         // Flush encode eStatus buffer
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
             "Flushing encode eStatus buffer failed.");

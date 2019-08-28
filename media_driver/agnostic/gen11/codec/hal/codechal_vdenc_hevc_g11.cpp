@@ -2347,6 +2347,17 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecuteSliceLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncTileLevel());
     }
 
+    if (m_lookaheadPass)
+    {
+        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_vdencLaStatsBuffer,
+            CodechalDbgAttr::attrVdencOutput,
+            "_LookaheadStats",
+            m_brcLooaheadStatsBufferSize,
+            0,
+            CODECHAL_NUM_MEDIA_STATES)));
+    }
+
     return eStatus;
 }
 

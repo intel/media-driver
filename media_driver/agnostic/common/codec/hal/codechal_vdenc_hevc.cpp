@@ -1620,6 +1620,98 @@ MOS_STATUS CodechalVdencHevcState::ReadBrcPakStats(
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencHevcState::StoreVdencStatistics(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    uint32_t offset = sizeof(CodechalVdencHevcLaStats) * m_currLaDataIdx;
+    MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
+    MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
+    miCpyMemMemParams.presSrc = m_resVdencStatsBuffer; // 8X8 Normalized intra CU count is in m_resVdencStatsBuffer DW1
+    miCpyMemMemParams.dwSrcOffset = 4;
+    miCpyMemMemParams.presDst = &m_vdencLaStatsBuffer;
+    miCpyMemMemParams.dwDstOffset = offset + CODECHAL_OFFSETOF(CodechalVdencHevcLaStats, intraCuCount);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencHevcState::StoreLookaheadStatistics(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    if (m_vdboxIndex > m_mfxInterface->GetMaxVdboxIndex())                                                                         \
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
+    auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+
+    uint32_t offset = sizeof(CodechalVdencHevcLaStats) * m_currLaDataIdx;
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = &m_vdencLaStatsBuffer;
+    miStoreRegMemParams.dwOffset = offset + CODECHAL_OFFSETOF(CodechalVdencHevcLaStats, frameByteCount);
+    miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    // Calculate header size including LCU header
+    uint32_t headerBitSize = 0;
+    for (uint32_t i = 0; i < HEVC_MAX_NAL_UNIT_TYPE; i++)
+    {
+        headerBitSize += m_nalUnitParams[i]->uiSize * 8;
+    }
+    for (uint32_t i = 0; i < m_numSlices; i++)
+    {
+        headerBitSize += m_slcData[i].BitSize;
+    }
+
+    // Store to headerBitCount in CodechalVdencHevcLaStats
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    storeDataParams.pOsResource      = &m_vdencLaStatsBuffer;
+    storeDataParams.dwResourceOffset = offset + CODECHAL_OFFSETOF(CodechalVdencHevcLaStats, headerBitCount);
+    storeDataParams.dwValue          = headerBitSize;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    auto                            mmioRegistersMfx = m_mfxInterface->GetMmioRegisters(m_vdboxIndex);
+    MHW_MI_LOAD_REGISTER_MEM_PARAMS miLoadRegMemParams;
+    MHW_MI_FLUSH_DW_PARAMS          flushDwParams;
+    MHW_MI_ATOMIC_PARAMS            atomicParams;
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    MOS_ZeroMemory(&atomicParams, sizeof(atomicParams));
+    // VCS_GPR0_Lo = LCUHdrBits
+    miLoadRegMemParams.presStoreBuffer = &m_resFrameStatStreamOutBuffer;  // LCUHdrBits is in m_resFrameStatStreamOutBuffer DW4
+    miLoadRegMemParams.dwOffset        = 4 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegistersMfx->generalPurposeRegister0LoOffset;  // VCS_GPR0_Lo
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+        cmdBuffer,
+        &flushDwParams));
+
+    // frame headerBitCount += LCUHdrBits
+    atomicParams.pOsResource      = &m_vdencLaStatsBuffer;
+    atomicParams.dwResourceOffset = offset + CODECHAL_OFFSETOF(CodechalVdencHevcLaStats, headerBitCount);
+    atomicParams.dwDataSize       = sizeof(uint32_t);
+    atomicParams.Operation        = MHW_MI_ATOMIC_ADD;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(
+        cmdBuffer,
+        &atomicParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreVdencStatistics(cmdBuffer));
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalVdencHevcState::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -2235,6 +2327,10 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSseStatistics(&cmdBuffer));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize(&cmdBuffer));
 
+    if (m_lookaheadPass)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreLookaheadStatistics(&cmdBuffer));
+    }
 #if USE_CODECHAL_DEBUG_TOOL
     if (m_brcEnabled && m_enableFakeHrdSize)
     {
@@ -2421,6 +2517,9 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
         CODECHAL_ENCODE_ASSERT(rowStoreParams.ucLCUSize == MAX_LCU_SIZE);
         m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams);
     }
+
+    m_lookaheadDepth = m_hevcSeqParams->LookaheadDepth;
+    m_lookaheadPass  = (m_lookaheadDepth > 0) && (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP);
 
     return eStatus;
 }
@@ -3022,6 +3121,24 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
         &allocParamsForBufferLinear,
         &m_vdencOutputROIStreaminBuffer));
 
+    // Buffer to store VDEnc frame statistics for lookahead BRC
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_brcLooaheadStatsBufferSize, CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDENC Lookahead Statistics Buffer";
+
+    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_vdencLaStatsBuffer),
+        "Failed to create VDENC Lookahead Statistics Buffer");
+
+    CodechalVdencHevcLaStats *lookaheadInfo = (CodechalVdencHevcLaStats *)m_osInterface->pfnLockResource(
+        m_osInterface,
+        &m_vdencLaStatsBuffer,
+        &lockFlagsWriteOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(lookaheadInfo);
+    MOS_ZeroMemory(lookaheadInfo, allocParamsForBufferLinear.dwBytes);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaStatsBuffer);
+
     return eStatus;
 }
 
@@ -3060,6 +3177,7 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcHistoryBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcDbgBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencOutputROIStreaminBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaStatsBuffer);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -3243,6 +3361,7 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     MOS_ZeroMemory(&m_vdencBrcDbgBuffer, sizeof(m_vdencBrcDbgBuffer));
     MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));
     MOS_ZeroMemory(m_resSliceReport, sizeof(m_resSliceReport));
+    MOS_ZeroMemory(&m_vdencLaStatsBuffer, sizeof(m_vdencLaStatsBuffer));
 
 }
 

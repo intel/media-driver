@@ -41,6 +41,19 @@ struct CodechalVdencHevcPakInfo
     uint8_t   PAKPassNum;
 };
 
+//!
+//! \struct    CodechalVdencHevcLookaheadInfo
+//! \brief     Codechal Vdenc HEVC lookahead info for BRC
+//!
+struct CodechalVdencHevcLaStats
+{
+    uint32_t  sad;
+    uint32_t  frameByteCount;
+    uint32_t  headerBitCount;
+    uint32_t  intraCuCount;
+    uint32_t  reserved[4];
+};
+
 using pCodechalVdencHevcPakInfo = CodechalVdencHevcPakInfo*;
 
 //!
@@ -85,6 +98,7 @@ public:
     static constexpr uint32_t               m_weightHistSize = 1024;                  //!< Weight Histogram (part of VDEnc Statistic): 256 DWs (16CLs) of Histogram Stats = 1024
     static constexpr uint32_t               m_roiStreamInBufferSize = 65536 * CODECHAL_CACHELINE_SIZE; //!< ROI Streamin buffer size (part of BRC Update)
     static constexpr uint32_t               m_deltaQpBufferSize = 65536;              //!< DeltaQp buffer size (part of BRC Update)
+    static constexpr uint32_t               m_brcLooaheadStatsBufferSize = m_numLaDataEntry * sizeof(CodechalVdencHevcLaStats); //!< Lookahead statistics buffer size
     static constexpr uint32_t               m_vdboxHucHevcBrcInitKernelDescriptor = 8;//!< Huc HEVC Brc init kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcUpdateKernelDescriptor = 9;//!< Huc HEVC Brc update kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcLowdelayKernelDescriptor = 10;//!< Huc HEVC Brc low delay kernel descriptor
@@ -171,6 +185,9 @@ public:
     MOS_RESOURCE                            m_resDelayMinus = {0};
     uint32_t                                m_numDelay = 0;
 
+    // Lookahead
+    MOS_RESOURCE                            m_vdencLaStatsBuffer;                              //!< VDEnc statistics buffer for lookahead
+    bool                                    m_lookaheadPass = false;                           //!< Indicate if current pass is lookahead pass or encode pass
 protected:
     //!
     //! \brief    Constructor
@@ -519,6 +536,28 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS ReadBrcPakStats(PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief    Read stats from VDEnc and PAK for lookahead
+    //!
+    //! \param    [in] cmdBuffer
+    //!            Pointer to command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS StoreLookaheadStatistics(PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief    Read stats from VDEnc for lookahead
+    //!
+    //! \param    [in] cmdBuffer
+    //!            Pointer to command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS StoreVdencStatistics(PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief    Read slice size info from PAK

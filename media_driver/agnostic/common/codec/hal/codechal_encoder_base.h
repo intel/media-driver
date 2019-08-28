@@ -1164,6 +1164,7 @@ public:
     static constexpr uint32_t CODECHAL_ENCODE_BRCINIT_IGNORE_PICTURE_HEADER_SIZE = 0x2000;
     static constexpr uint32_t CODECHAL_ENCODE_BRCINIT_ISQVBR                     = 0x4000;
     static constexpr uint32_t CODECHAL_ENCODE_BRCINIT_DISABLE_MBBRC              = 0x8000;
+    static constexpr uint32_t m_numLaDataEntry                                   = 128;  //!< number of entries in lookahead data buffer and lookahead stats buffer
 
     // SearchPath Table, index [CodingType][MEMethod][]
     const uint32_t m_encodeSearchPath[2][8][16] =
@@ -1666,6 +1667,10 @@ public:
     uint32_t                        m_numSkipFrames = 0;        //!< Number of skip frame
     uint32_t                        m_sizeSkipFrames = 0;       //!< acccumulative size of skipped frames for skipflag = 2
     uint32_t                        m_sizeCurrSkipFrame = 0;    //!< size of curr skipped frame for skipflag = 2
+
+    // Lookahead
+    uint8_t                         m_lookaheadDepth = 0;       //!< Number of frames to lookahead
+    uint8_t                         m_currLaDataIdx = 0;        //!< Current lookahead data index
 
     MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
