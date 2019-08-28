@@ -42,7 +42,7 @@ struct CodechalVdencHevcPakInfo
 };
 
 //!
-//! \struct    CodechalVdencHevcLookaheadInfo
+//! \struct    CodechalVdencHevcLaStats
 //! \brief     Codechal Vdenc HEVC lookahead info for BRC
 //!
 struct CodechalVdencHevcLaStats
@@ -67,6 +67,28 @@ struct DeltaQpForROI
 };
 
 using PDeltaQpForROI = DeltaQpForROI*;
+
+//!
+//! \struct    CodechalVdencHevcLaDmem
+//! \brief     This struct is defined for Lookahead HUC kernel DMEM
+//!
+struct CodechalVdencHevcLaDmem
+{
+    uint32_t lookAheadFunc;       // 0: init, 1 update
+    // for Init, valid only when lookAheadFunc = 0
+    uint32_t lengthAhead;         // in the units of frames
+    uint32_t vbvBufferSize;       // in the units of frames
+    uint32_t vbvInitialFullness;  // in the units of frames
+    uint32_t mbCount;             // normalized 16x16 block count
+    uint32_t statsRecords;        // # of statistic records
+    // for Update, valid only when lookAheadFunc = 1
+    uint32_t validStatsRecords;   // # of valid stats records
+    uint32_t offset;              // offset in unit of entries
+
+    uint8_t RSVD[32];
+};
+
+using PCodechalVdencHevcLaDmem = CodechalVdencHevcLaDmem *;
 
 //!
 //! \class    CodechalVdencHevcState
@@ -95,6 +117,7 @@ public:
     static constexpr uint32_t               m_brcStatsBufSize = 1216;                 //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
     static constexpr uint32_t               m_brcHistoryBufSize = 1024;                //!< BRC history buffer size
     static constexpr uint32_t               m_brcDebugBufSize = 0x1000;               //!< BRC debug buffer size
+    static constexpr uint32_t               m_LaHistoryBufSize = 8192;                //!< Lookahead history buffer size
     static constexpr uint32_t               m_weightHistSize = 1024;                  //!< Weight Histogram (part of VDEnc Statistic): 256 DWs (16CLs) of Histogram Stats = 1024
     static constexpr uint32_t               m_roiStreamInBufferSize = 65536 * CODECHAL_CACHELINE_SIZE; //!< ROI Streamin buffer size (part of BRC Update)
     static constexpr uint32_t               m_deltaQpBufferSize = 65536;              //!< DeltaQp buffer size (part of BRC Update)
@@ -102,6 +125,7 @@ public:
     static constexpr uint32_t               m_vdboxHucHevcBrcInitKernelDescriptor = 8;//!< Huc HEVC Brc init kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcUpdateKernelDescriptor = 9;//!< Huc HEVC Brc update kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcLowdelayKernelDescriptor = 10;//!< Huc HEVC Brc low delay kernel descriptor
+    static constexpr uint32_t               m_vdboxHucHevcLaAnalysisKernelDescriptor = 16;//!< Huc lookahead analysis kernel descriptor
 
     //!< \cond SKIP_DOXYGEN
     // HuC tables
@@ -187,7 +211,16 @@ public:
 
     // Lookahead
     MOS_RESOURCE                            m_vdencLaStatsBuffer;                              //!< VDEnc statistics buffer for lookahead
+    MOS_RESOURCE                            m_vdencLaInitDmemBuffer;                           //!< VDEnc Lookahead Init DMEM buffer
+    MOS_RESOURCE                            m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                  //!< VDEnc Lookahead Update DMEM buffer
+    MOS_RESOURCE                            m_vdencLaHistoryBuffer;                            //!< VDEnc lookahead history buffer
     bool                                    m_lookaheadPass = false;                           //!< Indicate if current pass is lookahead pass or encode pass
+    bool                                    m_lookaheadInit = true;                            //!< Lookahead init flag
+    bool                                    m_lookaheadUpdate = false;                         //!< Lookahead update flag
+    uint32_t                                m_vdencLaInitDmemBufferSize = 0;                   //!< Offset of Lookahead init DMEM buffer
+    uint32_t                                m_vdencLaUpdateDmemBufferSize = 0;                 //!< Offset of Lookahead update DMEM buffer
+    uint32_t                                m_numValidLaRecords = 0;                           //!< Number of valid lookahead records
+
 protected:
     //!
     //! \brief    Constructor

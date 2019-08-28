@@ -3077,6 +3077,16 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
                 &m_vdencReadBatchBuffer[k][i]),
                 "Failed to allocate VDENC Read Batch Buffer");
         }
+        
+        // Lookahead Update DMEM
+        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencLaUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
+        allocParamsForBufferLinear.pBufName = "VDENC Lookahead update Dmem Buffer";
+
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_vdencLaUpdateDmemBuffer[k]),
+            "Failed to create VDENC Lookahead Update Dmem Buffer");
     }
 
     for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
@@ -3100,6 +3110,26 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
         &allocParamsForBufferLinear,
         &m_vdencBrcHistoryBuffer),
         "Failed to create VDENC BRC History Buffer");
+        
+    // Lookahead Init DMEM
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencLaInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDENC Lookahead Init DmemBuffer";
+
+    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_vdencLaInitDmemBuffer),
+        "Failed to create VDENC Lookahead Init DmemBuffer");
+
+    // Lookahead history buffer
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_LaHistoryBufSize, CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDENC Lookahead History Buffer";
+
+    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_vdencLaHistoryBuffer),
+        "Failed to create VDENC Lookahead History Buffer");
 
     // Debug buffer
     allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_brcDebugBufSize, CODECHAL_PAGE_SIZE);
@@ -3167,6 +3197,7 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcInitDmemBuffer[k]);
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcConstDataBuffer[k]);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaUpdateDmemBuffer[k]);
     }
 
     for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
@@ -3178,6 +3209,8 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcDbgBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencOutputROIStreaminBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaStatsBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaInitDmemBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaHistoryBuffer);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -3344,6 +3377,8 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     m_combinedDownScaleAndDepthConversion = false;
     m_vdencBrcStatsBufferSize = m_brcStatsBufSize;
     m_vdencBrcPakStatsBufferSize = m_brcPakStatsBufSize;
+    m_vdencLaInitDmemBufferSize = sizeof(CodechalVdencHevcLaDmem);
+    m_vdencLaUpdateDmemBufferSize = sizeof(CodechalVdencHevcLaDmem);
 
     MOS_ZeroMemory(&m_sliceCountBuffer, sizeof(m_sliceCountBuffer));
     MOS_ZeroMemory(&m_vdencModeTimerBuffer, sizeof(m_vdencModeTimerBuffer));

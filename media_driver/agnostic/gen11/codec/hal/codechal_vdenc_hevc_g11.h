@@ -575,6 +575,10 @@ public:
 
     MOS_STATUS HuCBrcInitReset();
 
+    MOS_STATUS HuCLookaheadInit();
+
+    MOS_STATUS HuCLookaheadUpdate();
+
     void SetVdencPipeBufAddrParams(
         MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams);
 
@@ -818,6 +822,14 @@ protected:
         PMOS_COMMAND_BUFFER  cmdBuffer);
 
     PCODECHAL_ENCODE_SCALABILITY_STATE              m_scalabilityState;   //!< Scalability state
+
+    //!
+    //! \brief    Lookahead analysis
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AnalyzeLookaheadStats();
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucPakIntegrate();
