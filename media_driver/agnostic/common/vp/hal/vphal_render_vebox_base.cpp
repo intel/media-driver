@@ -4755,17 +4755,18 @@ bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDE
 //!        1. User feature keys value "Bypass Composition" is enabled.
 //!        2. Single render target only
 //!        3. Src Size = Dst Size
-//!        4. Src Size = Max Src Size
-//!        5. No Colorfill
-//!        6. IEF Disabled
-//!        7. Input is progressive
-//!        8. Rotation Disabled
-//!        9. Variance Query is disabled
-//!        10. Input format is supported by Vebox
-//!        11. RT format is supported by Vebox
-//!        12. 2PassCSC is not supported by Vebox only
-//!        13. Alpha Fill is disabled or when it's enabled, it's not background Alpha Fill mode
-//!        14. Dst parameters top/left are zero.
+//!        4. Max Src Size >= Src Size
+//!        5. rcSrc's top/left are zero
+//!        6. No Colorfill
+//!        7. IEF Disabled
+//!        8. Input is progressive
+//!        9. Rotation Disabled
+//!        10. Variance Query is disabled
+//!        11. Input format is supported by Vebox
+//!        12. RT format is supported by Vebox
+//!        13. 2PassCSC is not supported by Vebox only
+//!        14. Alpha Fill is disabled or when it's enabled, it's not background Alpha Fill mode
+//!        15. Dst parameters top/left are zero.
 //!
 bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVeboxState, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface)
 {
@@ -4773,7 +4774,9 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
         "dwCompBypassMode %d, \
          _pcRenderParams->uDstCount %d, \
          SAME_SIZE_RECT(rcSrc, rcDst) %d, \
-         SAME_SIZE_RECT(rcSrc, rcMaxSrc) %d, \
+         RECT1_CONTAINS_RECT2(rcMaxSrc, rcSrc) %d, \
+         rcSrc.top %d \
+         rcSrc.left %d \
          SAME_SIZE_RECT(rcDst, pTarget[0]->rcDst) %p, \
          pIEFParams %d, \
          SampleType %d, \
@@ -4783,12 +4786,14 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
          IsRTFormatSupported %d, \
          VeboxIs2PassesCSCNeeded %d, \
          AlphaMode %p, \
-         rcDst.top %p, \
-         rcDst.left %p",
+         rcDst.top %d, \
+         rcDst.left %d",
         _pVeboxState->dwCompBypassMode,
         _pcRenderParams->uDstCount,
         SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst),
-        SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcMaxSrc),
+        RECT1_CONTAINS_RECT2(_pSrcSurface->rcMaxSrc, _pSrcSurface->rcSrc),
+        _pSrcSurface->rcSrc.top,
+        _pSrcSurface->rcSrc.left,
         SAME_SIZE_RECT(_pSrcSurface->rcDst, _pcRenderParams->pTarget[0]->rcDst),
         _pSrcSurface->pIEFParams,
         _pSrcSurface->SampleType,
@@ -4804,7 +4809,9 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
     return (_pVeboxState->dwCompBypassMode != VPHAL_COMP_BYPASS_DISABLED &&
             _pcRenderParams->uDstCount == 1 &&
             SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcDst) &&
-            SAME_SIZE_RECT(_pSrcSurface->rcSrc, _pSrcSurface->rcMaxSrc) &&
+            RECT1_CONTAINS_RECT2(_pSrcSurface->rcMaxSrc, _pSrcSurface->rcSrc) &&
+            _pSrcSurface->rcSrc.top == 0 &&
+            _pSrcSurface->rcSrc.left == 0 &&
             SAME_SIZE_RECT(_pSrcSurface->rcDst, _pcRenderParams->pTarget[0]->rcDst) &&
             _pSrcSurface->pIEFParams == nullptr &&
             _pSrcSurface->SampleType == SAMPLE_PROGRESSIVE &&
