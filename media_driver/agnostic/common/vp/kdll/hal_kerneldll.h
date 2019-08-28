@@ -65,9 +65,9 @@
 #define DL_MAX_COMBINED_KERNELS         64       // Max number of kernels in cache
 #define DL_NEW_COMBINED_KERNELS         4        // The increased number of kernels in cache each time
 #define DL_MAX_SYMBOLS                  100      // max number of import/export symbols in a combined kernels
-#define DL_COMBINED_KERNEL_CACHE_SIZE   393216   // Combined kernel size
-#define DL_CACHE_BLOCK_SIZE             131072   // Kernel allocation block size
-#define DL_MAX_KERNEL_SIZE              131072   // max output kernel size
+#define DL_CACHE_BLOCK_SIZE             (128*1024)   // Kernel allocation block size
+#define DL_MAX_KERNEL_SIZE              (128*1024)   // max output kernel size
+#define DL_COMBINED_KERNEL_CACHE_SIZE   (DL_CACHE_BLOCK_SIZE*DL_NEW_COMBINED_KERNELS) // Combined kernel size
 
 #define DL_PROCAMP_DISABLED             -1       // procamp is disabled
 #define DL_PROCAMP_MAX                   1       // 1 Procamp entry
