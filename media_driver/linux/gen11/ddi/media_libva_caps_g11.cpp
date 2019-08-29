@@ -1211,3 +1211,5 @@ static bool iclRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONT
     RegisterCaps<MediaLibvaCapsG11>((uint32_t)IGFX_ICELAKE); 
 static bool icllpRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
     RegisterCaps<MediaLibvaCapsG11>((uint32_t)IGFX_ICELAKE_LP);
+static bool ehlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
+    RegisterCaps<MediaLibvaCapsG11>((uint32_t)IGFX_ELKHARTLAKE);

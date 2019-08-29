@@ -900,3 +900,5 @@ static bool cmlDevice9bc4 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bc4, &cflGt2Info);
 static bool cmlDevice9bc2 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bc2, &cflGt2Info);
+static bool cmlDevice9bf6 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bf6, &cflGt2Info);
