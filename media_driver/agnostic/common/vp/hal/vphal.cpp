@@ -59,6 +59,7 @@ void VphalFeatureReport::InitReportValue()
     CompositionMode     =   VPHAL_NO_COMPOSITION;
     DiScdMode           =   false;
     VEFeatureInUse      =   false;
+    HDRMode             =   VPHAL_HDR_MODE_NONE;
 }
 
 //!
