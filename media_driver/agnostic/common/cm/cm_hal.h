@@ -205,6 +205,7 @@ struct CM_HAL_CREATE_PARAM
     bool disabledMidThreadPreemption;  // Flag to enable mid thread preemption for GPGPU
     bool enabledKernelDebug;           // Flag  to enable Kernel debug
     bool refactor;                     // Flag to enable the fast path
+    bool disableVebox;                 // Flag to disable VEBOX API
 };
 typedef CM_HAL_CREATE_PARAM *PCM_HAL_CREATE_PARAM;
 
@@ -1577,6 +1578,8 @@ typedef struct _CM_HAL_STATE
     bool                        refactor = false;
 
     bool                        requestCustomGpuContext = false;
+
+    bool                        veboxDisabled = false;
 
     //********************************************************************************
     // Export Interface methods called by CMRT@UMD <START>

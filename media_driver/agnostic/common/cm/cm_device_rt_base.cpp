@@ -139,7 +139,8 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
     m_notifierGroup(nullptr),
     m_hasGpuCopyKernel(false),
     m_hasGpuInitKernel(false),
-    m_kernelsLoaded(0)
+    m_kernelsLoaded(0),
+    m_preloadKernelEnabled(true)
 {
     //Initialize the structures in the class
     MOS_ZeroMemory(&m_halMaxValues, sizeof(m_halMaxValues));
@@ -383,17 +384,19 @@ int32_t CmDeviceRTBase::Initialize(MOS_CONTEXT *mosContext)
     ReadVtuneProfilingFlag();
 
     // Load Predefined Kernels
-    CmProgram* tmpProgram = nullptr;
-    int32_t ret = 0;
-    ret = LoadPredefinedCopyKernel(tmpProgram);
-    if (ret == CM_SUCCESS)
+    if (m_preloadKernelEnabled)
     {
-        m_hasGpuCopyKernel = true;
-    }
-    ret = LoadPredefinedInitKernel(tmpProgram);
-    if (ret == CM_SUCCESS)
-    {
-        m_hasGpuInitKernel = true;
+        CmProgram* tmpProgram = nullptr;
+        int32_t ret = LoadPredefinedCopyKernel(tmpProgram);
+        if (ret == CM_SUCCESS)
+        {
+            m_hasGpuCopyKernel = true;
+        }
+        ret = LoadPredefinedInitKernel(tmpProgram);
+        if (ret == CM_SUCCESS)
+        {
+            m_hasGpuInitKernel = true;
+        }
     }
 
     // get the last tracker
@@ -3353,6 +3356,12 @@ int32_t CmDeviceRTBase::InitDevCreateOption(CM_HAL_CREATE_PARAM & cmHalCreatePar
 
     kernelBinarySizeInGSH = kernelBinarySizeInGSH * CM_KERNELBINARY_BLOCKSIZE_2MB;
     cmHalCreateParam.kernelBinarySizeinGSH = kernelBinarySizeInGSH;
+
+    // [28] vebox
+    cmHalCreateParam.disableVebox = (option & CM_DEVICE_CONFIG_VEBOX_DISABLE) ? true : false;
+
+    // [29] preload kernel
+    m_preloadKernelEnabled = (option & CM_DEVICE_CONFIG_GPUCOPY_DISABLE) ? false : true;
 
     // [30] fast path
     cmHalCreateParam.refactor = (option & CM_DEVICE_CONFIG_FAST_PATH_ENABLE)?true:false;

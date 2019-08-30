@@ -594,6 +594,7 @@ protected:
 
     uint32_t       m_kernelsLoaded;
 
+    bool           m_preloadKernelEnabled;
 private:
     CmDeviceRTBase(const CmDeviceRTBase& other);
 

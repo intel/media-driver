@@ -7949,7 +7949,10 @@ MOS_STATUS HalCm_Allocate(
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitialize(renderHal, nullptr));
 
     // Initialize Vebox Interface
-    CM_CHK_MOSSTATUS_GOTOFINISH(state->veboxInterface->CreateHeap());
+    if (state->veboxInterface)
+    {
+        CM_CHK_MOSSTATUS_GOTOFINISH(state->veboxInterface->CreateHeap());
+    }
 
     // Initialize the table only in Static Mode (DSH doesn't use this table at all)
     if (!state->dshEnabled)
@@ -10397,6 +10400,7 @@ MOS_STATUS HalCm_Create(
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
     state->waTable  = state->osInterface->pfnGetWaTable (state->osInterface);
 
+    if (!param->disableVebox)
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
 
@@ -10427,24 +10431,31 @@ MOS_STATUS HalCm_Create(
     }
 
     // Allocate/Initialize VEBOX Interface
-    CmSafeMemSet(&params, 0, sizeof(params));
-    params.Flags.m_vebox = 1;
-    mhwInterfaces = MhwInterfaces::CreateFactory(params, state->osInterface);
-    if (mhwInterfaces)
+    if (!param->disableVebox)
     {
-        CM_CHK_NULL_GOTOFINISH_MOSERROR(mhwInterfaces->m_veboxInterface);
-        state->veboxInterface = mhwInterfaces->m_veboxInterface;       
-        
-        // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
-        MOS_Delete(mhwInterfaces->m_miInterface);
-        Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
-        mhwInterfaces->m_cpInterface = nullptr;
-        MOS_Delete(mhwInterfaces);
+        CmSafeMemSet(&params, 0, sizeof(params));
+        params.Flags.m_vebox = 1;
+        mhwInterfaces = MhwInterfaces::CreateFactory(params, state->osInterface);
+        if (mhwInterfaces)
+        {
+            CM_CHK_NULL_GOTOFINISH_MOSERROR(mhwInterfaces->m_veboxInterface);
+            state->veboxInterface = mhwInterfaces->m_veboxInterface;
+
+            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
+            MOS_Delete(mhwInterfaces->m_miInterface);
+            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+            mhwInterfaces->m_cpInterface = nullptr;
+            MOS_Delete(mhwInterfaces);
+        }
+        else
+        {
+            CM_ASSERTMESSAGE("Allocate MhwInterfaces failed");
+            return MOS_STATUS_NO_SPACE;
+        }
     }
     else
     {
-        CM_ASSERTMESSAGE("Allocate MhwInterfaces failed");
-        return MOS_STATUS_NO_SPACE;
+        state->veboxInterface = nullptr;
     }
 
     // set IsMDFLoad to distinguish MDF context from other Media Contexts
