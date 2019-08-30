@@ -62,7 +62,7 @@
 #endif
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
-#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       18   // Use the same value as I965
+#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       22
 #define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver - " UFO_VERSION
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
