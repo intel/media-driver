@@ -51,7 +51,7 @@
 //!
 //! \brief 16 Bytes Alignment Kernel params for Gen9 Media Walker
 //!
-static const RENDERHAL_KERNEL_PARAM g_16Align_MW_KernelParam[2] =
+static const RENDERHAL_KERNEL_PARAM g_16Align_MW_KernelParam[1] =
 {
 /*    GRF_Count
       |  BT_Count
@@ -64,8 +64,7 @@ static const RENDERHAL_KERNEL_PARAM g_16Align_MW_KernelParam[2] =
       |  |    |  |                             |   |   |    |   blocks_x
       |  |    |  |                             |   |   |    |   |   blocks_y
       |  |    |  |                             |   |   |    |   |   |*/
-    { 4, 34,  1, VPHAL_USE_MEDIA_THREADS_MAX,  0,  4,  16,  16,  1,  1 },    // NV12 and YUY2
-    { 4, 34,  1, VPHAL_USE_MEDIA_THREADS_MAX,  0,  4,  32,  8,  1,  1 },     // YV12 only
+    { 4, 34,  1, VPHAL_USE_MEDIA_THREADS_MAX,  0,  4,  16,  16,  1,  1 }    // NV12 and YUY2 and YV12
 };
 
 //!
@@ -599,7 +598,7 @@ MOS_STATUS VpHal_16AlignSetSamplerStates(
         pSamplerStateParams->Avs.AvsType             = false;
         pSamplerStateParams->Avs.bEnableIEF          = false;
         pSamplerStateParams->Avs.b8TapAdaptiveEnable = false;
-        pSamplerStateParams->Avs.bHdcDwEnable        = true;
+        pSamplerStateParams->Avs.bHdcDwEnable        = false;
         pSamplerStateParams->Avs.bEnableAVS          = true;
         pSamplerStateParams->Avs.WeakEdgeThr         = DETAIL_WEAK_EDGE_THRESHOLD;
         pSamplerStateParams->Avs.StrongEdgeThr       = DETAIL_STRONG_EDGE_THRESHOLD;
@@ -902,8 +901,7 @@ MOS_STATUS VpHal_16AlignRender(
     RenderData.pAVSParameters = &p16AlignState->AVSParameters;
     RenderData.SamplerStateParams.Avs.pMhwSamplerAvsTableParam = &RenderData.mhwSamplerAvsTableParam;
 
-    p16AlignState->pKernelParamTable =
-        (PRENDERHAL_KERNEL_PARAM)((p16AlignState->pTarget->Format != Format_YV12)?&g_16Align_MW_KernelParam[0]:&g_16Align_MW_KernelParam[1]);
+    p16AlignState->pKernelParamTable = (PRENDERHAL_KERNEL_PARAM)&g_16Align_MW_KernelParam[0];
 
     // Ensure input can be read
     pOsInterface->pfnSyncOnResource(
