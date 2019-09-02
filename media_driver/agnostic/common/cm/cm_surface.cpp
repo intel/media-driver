@@ -88,7 +88,10 @@ int32_t CmSurface::Initialize( uint32_t index )
         return CM_FAILURE;
     }
     m_lastRenderTracker.SetProducer(&cmHalState->renderHal->trackerProducer);
-    m_lastFastTracker.SetProducer(cmHalState->advExecutor->GetFastTrackerProducer());
+    if (cmHalState->advExecutor)
+    {
+        m_lastFastTracker.SetProducer(cmHalState->advExecutor->GetFastTrackerProducer());
+    }
     // using CM compiler data structure
     m_index = MOS_New(SurfaceIndex, index);
     if( m_index )

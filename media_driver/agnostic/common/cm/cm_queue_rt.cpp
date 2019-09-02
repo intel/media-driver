@@ -180,9 +180,12 @@ int32_t CmQueueRT::Initialize()
     int ret = cmHalState->renderHal->trackerProducer.AssignNewTracker();
     CM_CHK_COND_RETURN((ret < 0), CM_FAILURE, "Error: failed to assign a new tracker");
     m_trackerIndex = ret;
-    ret = cmHalState->advExecutor->AssignNewTracker();
-    CM_CHK_COND_RETURN((ret < 0), CM_FAILURE, "Error: failed to assign a new tracker");
-    m_fastTrackerIndex = ret;
+    if (cmHalState->advExecutor)
+    {
+        ret = cmHalState->advExecutor->AssignNewTracker();
+        CM_CHK_COND_RETURN((ret < 0), CM_FAILURE, "Error: failed to assign a new tracker");
+        m_fastTrackerIndex = ret;
+    }
 
     // Creates or gets GPU Context for the test
     if (m_queueOption.UserGPUContext == true)
@@ -3656,11 +3659,12 @@ CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
 {
     CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
     int32_t result = CM_SUCCESS;
-    if (state == nullptr || state->advExecutor == nullptr)
+    if (state == nullptr)
     {
         result = CM_NULL_POINTER;
     }
-    else if (state->advExecutor->SwitchToFastPath(task) == false)
+    else if (state->advExecutor == nullptr ||
+             state->advExecutor->SwitchToFastPath(task) == false)
     {
         return Enqueue(task, event, threadSpace);
     }
@@ -3701,9 +3705,13 @@ CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
 {
     CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
 
-    if (state == nullptr || state->advExecutor == nullptr)
+    if (state == nullptr)
     {
         return CM_NULL_POINTER;
+    }
+    else if (state->advExecutor == nullptr)
+    {
+        return DestroyEvent(event);
     }
     else
     {
@@ -3718,11 +3726,12 @@ CmQueueRT::EnqueueWithGroupFast(CmTask *task,
 {
     CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
     int32_t result = CM_SUCCESS;
-    if (state == nullptr || state->advExecutor == nullptr)
+    if (state == nullptr)
     {
         return CM_NULL_POINTER;
     }
-    else if (state->advExecutor->SwitchToFastPath(task) == false)
+    else if (state->advExecutor == nullptr ||
+             state->advExecutor->SwitchToFastPath(task) == false)
     {
         return EnqueueWithGroup(task, event, threadGroupSpace);
     }

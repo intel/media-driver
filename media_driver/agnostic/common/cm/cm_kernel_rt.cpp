@@ -192,7 +192,7 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
     }
     else
     {
-        return CM_FAILURE;
+        kernel = new (std::nothrow) CmKernelRT(device, program, kernelIndex, kernelSeqNum);
     }
     
     if( kernel )

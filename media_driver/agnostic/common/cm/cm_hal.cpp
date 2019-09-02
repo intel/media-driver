@@ -8048,18 +8048,18 @@ MOS_STATUS HalCm_Allocate(
     if (state->refactor)
     {
         state->advExecutor = CmExtensionCreator<CmExecutionAdv>::CreateClass();
+        if (state->advExecutor == nullptr)
+        {
+            CM_ASSERTMESSAGE("Could not allocate enough memory for state->advExecutor\n");
+            eStatus = MOS_STATUS_NO_SPACE;
+            goto finish;
+        }
+        state->advExecutor->Initialize(state);
     }
     else
     {
-        state->advExecutor = CmExtensionCreator<CmExecutionAdv>::CreateBaseClass();
+        state->advExecutor = nullptr;
     }
-    if (state->advExecutor == nullptr)
-    {
-        CM_ASSERTMESSAGE("Could not allocate enough memory for state->advExecutor\n");
-        eStatus = MOS_STATUS_NO_SPACE;
-        goto finish;
-    }
-    state->advExecutor->Initialize(state);
 
     eStatus = MOS_STATUS_SUCCESS;
 
@@ -9316,7 +9316,10 @@ MOS_STATUS HalCm_SetSurfaceReadFlag(
     if (HalCm_IsValidGpuContext(gpuContext))
     {
         entry->readSyncs[gpuContext] = readSync;
-        state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
+        if (state->advExecutor)
+        {
+            state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
+        }
     }
     else
     {
@@ -9553,23 +9556,35 @@ MOS_STATUS HalCm_SetSurfaceMOCS(
     {
         case CM_ARGUMENT_SURFACEBUFFER:
             state->bufferTable[handle].memObjCtl = mocs;
-            state->advExecutor->SetBufferMemoryObjectControl(state->bufferTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->SetBufferMemoryObjectControl(state->bufferTable[handle].surfStateMgr, mocs);
+            }
             break;
         case CM_ARGUMENT_SURFACE2D:
         case CM_ARGUMENT_SURFACE2D_SAMPLER:
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_AVS:
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_VA:
             state->umdSurf2DTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2Dor3DMemoryObjectControl(state->umdSurf2DTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->Set2Dor3DMemoryObjectControl(state->umdSurf2DTable[handle].surfStateMgr, mocs);
+            }
             break;
         case CM_ARGUMENT_SURFACE2D_UP:
         case CM_ARGUMENT_SURFACE2DUP_SAMPLER:
             state->surf2DUPTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf2DUPTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf2DUPTable[handle].surfStateMgr, mocs);
+            }
             break;
         case CM_ARGUMENT_SURFACE3D:
             state->surf3DTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf3DTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf3DTable[handle].surfStateMgr, mocs);
+            }
             break;
         default:
             eStatus = MOS_STATUS_INVALID_PARAMETER;
