@@ -1420,36 +1420,60 @@ void CmSurface2DRTBase::DumpContentToFile(const char *filename)
     CM_ASSERT(cmData);
     CM_ASSERT(cmData->cmHalState);
 
-    CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
-    CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM));
-    inParam.width = m_width;
-    inParam.height = m_height;
-    inParam.handle = m_handle;
-    inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
-    cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam);
-    if (inParam.data == nullptr)
-        return;
-    dst = (uint8_t *)&surface[0];
-    surf = (uint8_t *)(inParam.data);
-    if (m_pitch != widthInByte)
+    PCM_HAL_SURFACE2D_ENTRY pEntry = &cmData->cmHalState->umdSurf2DTable[m_handle];
+    CM_ASSERT(pEntry);
+
+    PMOS_RESOURCE           pOsResource = &pEntry->osResource;
+    CM_ASSERT(pOsResource->pGmmResInfo);
+
+    GMM_RESOURCE_FLAG gmmFlags = pOsResource->pGmmResInfo->GetResFlags();
+    if (gmmFlags.Info.NotLockable == true)
     {
-        for (uint32_t row = 0; row < updatedHeight; row++)
+        size_t alignSize = 4096;
+        unsigned char* system = (unsigned char*)MOS_AlignedAllocMemory(surfaceSize, alignSize);
+        CM_CHK_NULL_RETURN_VOID(system);
+
+        CmQueue* queue = nullptr;
+        int ret = cmDevice->CreateQueue(queue);
+        if (ret != 0)
         {
-            CmFastMemCopyFromWC(dst, surf, widthInByte, GetCpuInstructionLevel());
-            surf += m_pitch;
-            dst += widthInByte;
+            CM_ASSERTMESSAGE("Error: CreateQueue failure in dump.")
+            return;
+        }
+
+        CmSurface2D* cmSurface2D = static_cast<CmSurface2D*>(this);
+        CmQueueRT* queueRT = dynamic_cast<CmQueueRT*>(queue);
+        CmEvent* event = nullptr;
+        cmData->cmHalState->dumpSurfaceContent = false;
+        ret = queueRT->EnqueueCopyGPUToCPU(cmSurface2D, system, event);
+        if (ret != 0)
+        {
+            CM_ASSERTMESSAGE("Error: EnqueueCopyGPUToCPU failure in surface content dump.")
+        }
+        ret = event->WaitForTaskFinished();
+        if (ret != 0)
+        {
+            CM_ASSERTMESSAGE("Error: WaitForTaskFinished failure in surface content dump.")
+        }
+
+        outputFileStream.write((char*)system, surfaceSize);
+        cmData->cmHalState->dumpSurfaceContent = true;
+        MOS_AlignedFreeMemory(system);
+        if (queueRT)
+        {
+            CmQueueRT::Destroy(queueRT);
         }
     }
     else
     {
-        CmFastMemCopyFromWC((unsigned char *)&surface[0], surf, m_pitch * updatedHeight, GetCpuInstructionLevel());
+       int ret = ReadSurface((unsigned char*)&surface[0],nullptr);
+       if (ret != 0)
+       {
+           CM_ASSERTMESSAGE("Error: ReadSurface failure in surface content dump.")
+       }
+       outputFileStream.write(&surface[0], surfaceSize);
     }
-    inParam.data = nullptr;
-    cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam);
-
-    outputFileStream.write(&surface[0], surfaceSize);
     outputFileStream.close();
-
     surface2DDumpNumber++;
 #endif
 }
