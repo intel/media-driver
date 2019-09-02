@@ -287,7 +287,6 @@ protected:
             cmd.DW5.HucDataLength = params->dwDataLength >> MHW_VDBOX_HUC_GENERAL_STATE_SHIFT;
         }
 
-        OVERRIDE_CMD_DATA("HUC_DMEM_STATE", THucCmds::HUC_DMEM_STATE_CMD::dwSize, (uint32_t *)(&cmd));
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
@@ -328,7 +327,6 @@ protected:
             }
         }
 
-        OVERRIDE_CMD_DATA("HUC_VIRTUAL_ADDR_STATE", THucCmds::HUC_VIRTUAL_ADDR_STATE_CMD::dwSize, (uint32_t *)(&cmd));
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
@@ -382,7 +380,6 @@ protected:
                 &resourceParams));
         }
 
-        OVERRIDE_CMD_DATA("HUC_IND_OBJ_BASE_ADDR_STATE", THucCmds::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::dwSize, (uint32_t *)(&cmd));
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;

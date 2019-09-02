@@ -27,6 +27,7 @@
 
 #include "codechal_vdenc_avc.h"
 #include "hal_oca_interface.h"
+#include "mhw_cmd_reader.h"
 
 #define CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE 128
 #define CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE 52
@@ -5741,6 +5742,8 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, secondLevelBatchBufferUsed));
+
+                OVERRIDE_CMD_DATA((uint32_t*)secondLevelBatchBufferUsed->pData, secondLevelBatchBufferUsed->iCurrent / sizeof(uint32_t));
 
                 CODECHAL_DEBUG_TOOL(
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulatePakParam(
