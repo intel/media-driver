@@ -1249,6 +1249,7 @@ typedef struct _MOS_INTERFACE
     bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
     bool                            phasedSubmission = false;                     //!< Flag to indicate if secondary command buffers are submitted together (Win) or separately (Linux)
     bool                            frameSplit = true;                            //!< Flag to indicate if frame split is enabled
+    bool                            bSetHandleInvalid = false;
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
 
     MOS_STATUS (*pfnCheckVirtualEngineSupported)(
