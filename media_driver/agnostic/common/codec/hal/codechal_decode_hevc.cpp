@@ -1764,7 +1764,11 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
             !Mos_ResourceIsNull(&m_dummyReference.OsResource))
         {
             m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
-            m_dummyReferenceSlot[i] = true;
+
+            if (m_dummyReferenceStatus == CODECHAL_DUMMY_REFERENCE_DEST_SURFACE)
+            {
+                m_dummyReferenceSlot[i] = true;
+            }
         }
     }
 
