@@ -4890,10 +4890,13 @@ MOS_STATUS MOS_AssignUserFeatureValueData(
         pDstData->MultiStringData.uMaxSize = MOS_USER_CONTROL_MAX_DATA_SIZE;
         pDstData->MultiStringData.pStrings = (PMOS_USER_FEATURE_VALUE_STRING)MOS_AllocAndZeroMemory(sizeof(MOS_USER_FEATURE_VALUE_STRING) * __MAX_MULTI_STRING_COUNT);
         if (pDstData->MultiStringData.pStrings == nullptr)
-              {
-                    MOS_OS_ASSERTMESSAGE("Failed to allocate memory.");
-                    return MOS_STATUS_NULL_POINTER;
-              }
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to allocate memory.");
+            pDstData->MultiStringData.pMultStringData = nullptr;
+            pDstData->MultiStringData.uSize = 0;
+            pDstData->MultiStringData.uCount = 0;
+            return MOS_STATUS_NULL_POINTER;
+        }
         if ((pData != nullptr) && (strlen(pData) != 0))
         {
             MOS_SafeFreeMemory(pDstData->MultiStringData.pMultStringData);
