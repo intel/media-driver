@@ -7839,6 +7839,7 @@ MOS_STATUS CodechalEncodeVp8G10::SetMpuCurbe(struct CodechalVp8MpuCurbeParams* p
     cmd.DW1.SharpnessLevel = picParams->sharpness_level;
     cmd.DW1.LoopFilterAdjustmentOn = picParams->loop_filter_adj_enable;
     cmd.DW1.MBNoCoeffiscientSkip = picParams->mb_no_coeff_skip;
+    cmd.DW1.ForcedLFUpdateForKeyFrame = picParams->forced_lf_adjustment;
 
     // DDI spec is not mapping to codechal directly. It should be mapping as below
     if (picParams->refresh_golden_frame == 1)
