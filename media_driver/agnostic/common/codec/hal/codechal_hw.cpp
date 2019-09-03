@@ -481,6 +481,8 @@ MOS_STATUS CodechalHwInterface::Initialize(
         }
     }
 
+    m_enableCodecMmc = !MEDIA_IS_WA(GetWaTable(), WaDisableCodecMmc) && settings->enableCodecMmc;
+
     return eStatus;
 }
 
