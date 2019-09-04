@@ -516,22 +516,18 @@ LOCAL_SRC_FILES := \
 
 LOCAL_SHARED_LIBRARIES := \
     libsync \
-    libbinder \
     libcutils \
     libutils \
     libdrm \
     libva \
     liblog \
     libpciaccess \
-    libcoreuinterface \
     libgmm_umd \
 
 LOCAL_CPPFLAGS = \
     -DDRV_I915 \
     -DOTC_GRALLOC \
-    -DANDROID \
     -DANDROID_VERSION=800 \
-    -DLINUX \
     -fexceptions \
     -frtti \
     -std=c++14 \
