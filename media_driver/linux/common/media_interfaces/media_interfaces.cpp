@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -129,8 +129,15 @@ VphalState* VphalDevice::CreateFactory(
     if (vphalDevice->Initialize(osInterface, osDriverContext, eStatus) != MOS_STATUS_SUCCESS)
     {
         VPHAL_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
-        if (osInterface->bDeallocateOnExit)
+
+         // If m_vphalState has been created, osInterface should be released in VphalState::~VphalState.
+        if (osInterface->bDeallocateOnExit && nullptr == vphalDevice->m_vphalState)
         {
+            // Deallocate OS interface structure (except if externally provided)
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, true);
+            }
             MOS_FreeMemAndSetNull(osInterface);
         }
         vphalDevice->Destroy();
@@ -155,8 +162,13 @@ MhwInterfaces* MhwInterfaces::CreateFactory(
     }
     PLATFORM platform = {};
     osInterface->pfnGetPlatform(osInterface, &platform);
+    MhwInterfaces *mhw =nullptr;
 
-    MhwInterfaces *mhw = MhwFactory::CreateHal(platform.eProductFamily);
+    mhw = MhwFactory::CreateHal(platform.eProductFamily + MEDIA_EXT_FLAG);
+    if(mhw == nullptr)
+    {
+        mhw = MhwFactory::CreateHal(platform.eProductFamily);
+    }
 
     if (mhw == nullptr)
     {
@@ -186,6 +198,7 @@ void MhwInterfaces::Destroy()
     MOS_Delete(m_hcpInterface);
     MOS_Delete(m_hucInterface);
     MOS_Delete(m_vdencInterface);
+    MOS_Delete(m_bltInterface);
 }
 
 Codechal* CodechalDevice::CreateFactory(
@@ -268,7 +281,11 @@ Codechal* CodechalDevice::CreateFactory(
 
     PLATFORM platform = {};
     osInterface->pfnGetPlatform(osInterface, &platform);
-    device = CodechalFactory::CreateHal(platform.eProductFamily);
+    device = CodechalFactory::CreateHal(platform.eProductFamily + MEDIA_EXT_FLAG);
+    if(device == nullptr)
+    {
+        device = CodechalFactory::CreateHal(platform.eProductFamily);
+    }
     FAIL_CHK_NULL(device);
     device->Initialize(standardInfo, settings, mhwInterfaces, osInterface);
     FAIL_CHK_NULL(device->m_codechalDevice);
@@ -412,7 +429,12 @@ void* MosUtilDevice::CreateFactory(
     PRODUCT_FAMILY productFamily)
 {
     MosUtilDevice *device = nullptr;
-    device = MosUtilFactory::CreateHal(productFamily);
+
+    device = MosUtilFactory::CreateHal(productFamily + MEDIA_EXT_FLAG);
+    if (device == nullptr)
+    {
+        device = MosUtilFactory::CreateHal(productFamily);
+    }
 
     if (device == nullptr)
     {

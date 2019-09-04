@@ -44,7 +44,10 @@
 typedef unsigned int MOS_OS_FORMAT;
 
 class GraphicsResource;
+class GraphicsResourceNext;
 class AuxTableMgr;
+class MosOcaInterface;
+class GraphicsResourceNext;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -250,7 +253,10 @@ struct _MOS_SPECIFIC_RESOURCE
     GMM_RESOURCE_INFO   *pGmmResInfo;        //!< GMM resource descriptor
     MOS_MMAP_OPERATION  MmapOperation;
     uint8_t             *pSystemShadow;
-    bool                bUseGmmQuery;       //!< decided to use GMM to query res or not.
+    bool                bUsrPtrMode;        //!< indicate source info comes from app.
+    MOS_PLANE_OFFSET    YPlaneOffset;       //!< Y surface plane offset
+    MOS_PLANE_OFFSET    UPlaneOffset;       //!< U surface plane offset
+    MOS_PLANE_OFFSET    VPlaneOffset;       //!< V surface plane offset
 
     //!< to sync render target for multi-threading decoding mode
     struct
@@ -277,6 +283,7 @@ struct _MOS_SPECIFIC_RESOURCE
     uint64_t                user_provided_va;
     // for MODS Wrapper
     GraphicsResource*       pGfxResource;
+    GraphicsResourceNext*   pGfxResourceNext;
     bool                    bConvertedFromDDIResource;
 
 };
@@ -452,14 +459,28 @@ typedef struct _CMD_BUFFER_BO_POOL
     MOS_LINUX_BO        *pCmd_bo[MAX_CMD_BUF_NUM];
 }CMD_BUFFER_BO_POOL;
 
-#ifndef ANDROID
 struct MOS_CONTEXT_OFFSET
 {
     MOS_LINUX_CONTEXT *intel_context;
     MOS_LINUX_BO      *target_bo;
     uint64_t          offset64;
 };
-#endif
+
+// APO related
+#define FUTURE_PLATFORM_MOS_APO   1234
+void SetupApoMosSwitch(PLATFORM *platform);
+
+enum OS_SPECIFIC_RESOURCE_TYPE
+{
+    OS_SPECIFIC_RESOURCE_INVALID = 0,
+    OS_SPECIFIC_RESOURCE_SURFACE = 1,
+    OS_SPECIFIC_RESOURCE_BUFFER = 2,
+    OS_SPECIFIC_RESOURCE_MAX
+};
+
+class OsContextNext;
+typedef OsContextNext    OsDeviceContext;
+typedef OsDeviceContext *MOS_DEVICE_HANDLE;
 
 typedef struct _MOS_OS_CONTEXT MOS_CONTEXT, *PMOS_CONTEXT, MOS_OS_CONTEXT, *PMOS_OS_CONTEXT, MOS_DRIVER_CONTEXT,*PMOS_DRIVER_CONTEXT;
 //!
@@ -489,6 +510,7 @@ struct _MOS_OS_CONTEXT
     // Controlled OS resources (for analysis)
     MOS_BUFMGR       *bufmgr;
     MOS_LINUX_CONTEXT   *intel_context;
+    int32_t             submit_fence;
     uint32_t            uEnablePerfTag;           //!< 0: Do not pass PerfTag to KMD, perf data collection disabled;
                                                   //!< 1: Pass PerfTag to MVP driver, perf data collection enabled;
                                                   //!< 2: Pass PerfTag to DAPC driver, perf data collection enabled;
@@ -512,6 +534,7 @@ struct _MOS_OS_CONTEXT
     // For modulized GPU context
     void*               m_gpuContextMgr;
     void*               m_cmdBufMgr;
+    MOS_DEVICE_HANDLE   m_osDeviceContext = nullptr;
 
     //For 2VD box
     int32_t             bKMDHasVCS2;
@@ -531,9 +554,7 @@ struct _MOS_OS_CONTEXT
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 
-#ifndef ANDROID
     std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
-#endif
 
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
@@ -597,6 +618,7 @@ struct _MOS_OS_CONTEXT
     GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
         PMOS_CONTEXT               pOsContext);
 
+    MosOcaInterface* (*GetOcaInterface)();
 };
 
 //!
@@ -821,6 +843,17 @@ bool Mos_Specific_IsSetMarkerEnabled(
 //!           SetMarker resource address
 //!
 PMOS_RESOURCE Mos_Specific_GetMarkerResource(
+    PMOS_INTERFACE         pOsInterface);
+
+//!
+//! \brief    Get TimeStamp frequency base
+//! \details  Get TimeStamp frequency base from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   uint32_t
+//!           time stamp frequency base
+//!
+uint32_t Mos_Specific_GetTsFrequency(
     PMOS_INTERFACE         pOsInterface);
 
 #if (_DEBUG || _RELEASE_INTERNAL)

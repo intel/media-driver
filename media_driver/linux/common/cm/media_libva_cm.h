@@ -21,7 +21,7 @@
 */
 //!
 //! \file      media_libva_cm.h
-//! \brief     LibVA CM(C for Media) extensions interface definition
+//! \brief     LibVA CM(C for Metal) extensions interface definition
 //!
 
 #ifndef _MEDIA_LIBVA_CM_H_

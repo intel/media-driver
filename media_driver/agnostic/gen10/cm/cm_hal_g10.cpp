@@ -97,10 +97,13 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     bool                         csrEnable = renderHal->bCSRKernel ? true : false;
 
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
-    MOS_RESOURCE                 osResource;
+    MOS_RESOURCE                 *osResource;
     uint32_t                     tag;
+    uint32_t                     tagOffset = 0;
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+    // get the tag
+    tag        = renderHal->trackerProducer.GetNextTracker(renderHal->currentTrackerIndex);
 
     // Get the task sync offset
     syncOffset     = state->pfnGetTaskSyncLocation(state, taskId);
@@ -111,7 +114,8 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     *(taskSyncLocation + 1)          = CM_INVALID_INDEX;
     if(state->cbbEnabled)
     {
-        *(taskSyncLocation + 2)      = renderHal->trackerResource.currentTrackerId;
+        *(taskSyncLocation + 2)      = tag;
+        *(taskSyncLocation + 3)      = state->renderHal->currentTrackerIndex;
     }
 
     // Register batch buffer for rendering
@@ -136,11 +140,10 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     remaining = mosCmdBuffer.iRemaining;
 
     // use frame tracking to write the tracker ID to CM tracker resource
-    osResource = renderHal->trackerResource.osResource;
-    tag        = renderHal->trackerResource.currentTrackerId;
-
-    renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, &osResource, tag);
-    stateHeap->pCurMediaState->dwSyncTag = tag;
+    renderHal->trackerProducer.GetLatestTrackerResource(renderHal->currentTrackerIndex, &osResource, &tagOffset);
+    renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, osResource, tagOffset, tag);
+    FrameTrackerTokenFlat_SetProducer(&stateHeap->pCurMediaState->trackerToken, &renderHal->trackerProducer);
+    FrameTrackerTokenFlat_Merge(&stateHeap->pCurMediaState->trackerToken, renderHal->currentTrackerIndex, tag);
 
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
@@ -160,7 +163,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
     // update tracker tag used with CM tracker resource
-    renderHal->pfnIncTrackerId(state->renderHal);
+    renderHal->trackerProducer.StepForward(renderHal->currentTrackerIndex);
 
     // Increment sync tag
     syncTag = stateHeap->dwNextTag++;
@@ -582,67 +585,18 @@ MOS_STATUS CM_HAL_G10_X::HwSetSurfaceMemoryObjectControl(
 {
     PRENDERHAL_INTERFACE renderHal = m_cmState->renderHal;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CM_HAL_MEMORY_OBJECT_CONTROL_G9 cacheType;
+    MOS_HW_RESOURCE_DEF mosUsage;
     // The memory object control uint16_t is composed with cache type(8:15), memory type(4:7), ages(0:3)
-    cacheType = (CM_HAL_MEMORY_OBJECT_CONTROL_G9)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
+    mosUsage = (MOS_HW_RESOURCE_DEF)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
+    if (mosUsage >= MOS_HW_RESOURCE_DEF_MAX)
+        mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState;
 
-    if ((uint16_t)cacheType == CM_INVALID_MEMOBJCTL)
-    {
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        return eStatus;
-    }
-
-    switch (cacheType)
-    {
-    case CM_MEMORY_OBJECT_CONTROL_SKL_DEFAULT:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_ELLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_CACHE:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    default:
-        eStatus = MOS_STATUS_UNKNOWN;
-    }
+    surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(mosUsage,
+        renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
 
     return eStatus;
 }
+
 
 MOS_STATUS CM_HAL_G10_X::UpdatePlatformInfoFromPower(
     PCM_PLATFORM_INFO      platformInfo,

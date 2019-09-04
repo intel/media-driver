@@ -46,11 +46,12 @@ RenderState::RenderState(
     MOS_STATUS                  *peStatus) :
     m_pOsInterface(pOsInterface),
     m_pRenderHal(pRenderHal),
-    m_pPerfData(pPerfData),
     m_pSkuTable(nullptr),
     m_pWaTable(nullptr),
-    m_reporting(nullptr),
-    m_bDisableRender(false)
+    m_bDisableRender(false),
+    m_bSingleSlice(false),
+    m_pPerfData(pPerfData),
+    m_reporting(nullptr)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -85,6 +86,6 @@ void RenderState::SetStatusReportParams(
     bool bSurfIsRenderTarget = (pRenderParams->pTarget[0]->SurfType == SURF_OUT_RENDERTARGET);
     m_StatusTableUpdateParams.bReportStatus       = (pRenderParams->bReportStatus);
     m_StatusTableUpdateParams.bSurfIsRenderTarget = bSurfIsRenderTarget;
-    m_StatusTableUpdateParams.pStatusTable        = &pRenderer->StatusTable;
+    m_StatusTableUpdateParams.pStatusTable        = pRenderer->m_statusTable;
     m_StatusTableUpdateParams.StatusFeedBackID    = pRenderParams->StatusFeedBackID;
 }

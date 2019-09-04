@@ -59,6 +59,10 @@ typedef struct _MHW_MI_MMIOREGISTERS
     uint32_t            generalPurposeRegister0HiOffset;
     uint32_t            generalPurposeRegister4LoOffset;
     uint32_t            generalPurposeRegister4HiOffset;
+    uint32_t            generalPurposeRegister11LoOffset;       //!< __OCA_BUFFER_ADDR_LOW_MMIO
+    uint32_t            generalPurposeRegister11HiOffset;       //!< __OCA_BUFFER_ADDR_HIGH_MMIO
+    uint32_t            generalPurposeRegister12LoOffset;       //!< __OCA_BUFFER_IND_STATE_SECTION_OFFSET_MMIO
+    uint32_t            generalPurposeRegister12HiOffset;       //!< __OCA_BUFFER_BB_SECTION_OFFSET_MMIO
 } MHW_MI_MMIOREGISTERS, *PMHW_MI_MMIOREGISTERS;
 
 
@@ -107,6 +111,10 @@ struct MmioRegistersMfx
     uint32_t            generalPurposeRegister0HiOffset = 0;
     uint32_t            generalPurposeRegister4LoOffset = 0;
     uint32_t            generalPurposeRegister4HiOffset = 0;
+    uint32_t            generalPurposeRegister11LoOffset = 0;   //!< __OCA_BUFFER_ADDR_LOW_MMIO
+    uint32_t            generalPurposeRegister11HiOffset = 0;   //!< __OCA_BUFFER_ADDR_HIGH_MMIO
+    uint32_t            generalPurposeRegister12LoOffset = 0;   //!< __OCA_BUFFER_IND_STATE_SECTION_OFFSET_MMIO
+    uint32_t            generalPurposeRegister12HiOffset = 0;   //!< __OCA_BUFFER_BB_SECTION_OFFSET_MMIO
     uint32_t            mfcImageStatusMaskRegOffset = 0;
     uint32_t            mfcImageStatusCtrlRegOffset = 0;
     uint32_t            mfcAvcNumSlicesRegOffset = 0;

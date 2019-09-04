@@ -2368,7 +2368,16 @@ void CodechalEncHevcStateG11::SetHcpSliceStateCommonParams(
     sliceState.RoundingIntra         = m_roundingIntraInUse;
     sliceState.RoundingInter         = m_roundingInterInUse;
     
-    sliceState.bWeightedPredInUse    = m_useWeightedSurfaceForL0 || m_useWeightedSurfaceForL1;
+    if ((m_hevcSliceParams->slice_type == CODECHAL_HEVC_P_SLICE && m_hevcPicParams->weighted_pred_flag) ||
+        (m_hevcSliceParams->slice_type == CODECHAL_HEVC_B_SLICE && m_hevcPicParams->weighted_bipred_flag))
+    {
+        sliceState.bWeightedPredInUse = true;
+    }
+    else
+    {
+        sliceState.bWeightedPredInUse = false;
+    }
+
     static_cast<MHW_VDBOX_HEVC_SLICE_STATE_G11 &>(sliceState).dwNumPipe = m_numPipe;
 }
 
@@ -3908,7 +3917,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     curbe.DW24_DeviationThreshold6_Iframe = (uint32_t)(50 * pow(0.66, bpsRatio));
     curbe.DW24_DeviationThreshold7_Iframe = (uint32_t)(50 * pow(0.9, bpsRatio));
 
-    curbe.DW26_RandomAccess = !m_lowDelay;
+    curbe.DW26_RandomAccess = (m_hevcSeqParams->HierarchicalFlag && !m_hevcSeqParams->LowDelayMode) ? true : false;
 
     if (m_brcInit)
     {
@@ -4720,6 +4729,8 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();
     mhwHevcPicState.rhodomainRCEnable = m_brcEnabled && (m_numPipe > 1);
     mhwHevcPicState.bSAOEnable = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
+    // disable RDOQ before we get enough quality/perf data for BRC to prove its goodness
+    //mhwHevcPicState.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcPicBrcBuffer(brcHcpStateReadBuffer, &mhwHevcPicState));
 
     PMOS_SURFACE brcConstantData = &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx];
@@ -8713,7 +8724,8 @@ MOS_STATUS CodechalEncHevcStateG11::SubmitCommandBuffer(
 }
 MOS_STATUS CodechalEncHevcStateG11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTrackingRequested)
+    bool                        frameTrackingRequested,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -8723,7 +8735,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendPrologWithFrameTracking(
 
     if (UseRenderCommandBuffer())
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTrackingRequested));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTrackingRequested, mmioRegister));
         return eStatus;
     }
 
@@ -8997,7 +9009,7 @@ MOS_STATUS CodechalEncHevcStateG11::UpdateCmdBufAttribute(
 
     // should not be there. Will remove it in the next change
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    if (MOS_VE_SUPPORTED(m_osInterface))
+    if (MOS_VE_SUPPORTED(m_osInterface) && cmdBuffer->Attributes.pAttriVe)
     {
         PMOS_CMD_BUF_ATTRI_VE attriExt =
             (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);

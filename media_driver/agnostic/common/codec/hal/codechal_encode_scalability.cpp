@@ -248,3 +248,17 @@ MOS_STATUS CodechalEncodeScalability_ChkGpuCtxReCreation(
 
     return eStatus;
 }
+
+void CodecHalEncodeScalability_EncodePhaseToSubmissionType(
+    bool isFirstPipe,
+    PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    if (isFirstPipe)
+    {
+        pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
+    }
+    else
+    {
+        pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
+    }
+}

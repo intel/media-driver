@@ -154,6 +154,8 @@ typedef struct _VP_CONFIG
     uint32_t   dwTCCPreprocessInUseReported;        // Reported Vebox TCC Pre-process for HDR
     uint32_t   dwIEFPreprocessInUse;                // Vebox IEF Pre-process for HDR
     uint32_t   dwIEFPreprocessInUseReported;        // Reported Vebox IEF Pre-process for HDR
+    bool       bAdvancedScalingInUse;              // Advanced Scaling Enabled
+    bool       bAdvancedScalingInUseReported;      // Reported Advanced Scaling Enabled
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;
@@ -168,6 +170,11 @@ typedef struct _VP_CONFIG
     // For Deinterlace Mode - the flags reflect the content size and SKU,
     // should not be changed after initialized.
     bool       bFFDI;
+
+    //Debug enhancement to force color fill
+    //FALSE(0): no force color fill, TRUE(1): force color fill with default color,
+    //ELSE(other non-zero value): force color fill with color info from dwForceColorFill
+    uint32_t   dwForceColorFill;
 } VP_CONFIG, *PVP_CONFIG;
 
 //!

@@ -90,55 +90,56 @@ public:
     bool CheckSupportedFormat(PMOS_SURFACE surface) override;
 
     // Inherited virtual functions
-    MOS_STATUS InitializeState();
+    MOS_STATUS InitializeState() override;
 
     MOS_STATUS GetTrellisQuantization(
         PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS params,
-        PCODECHAL_ENCODE_AVC_TQ_PARAMS trellisQuantParams);
+        PCODECHAL_ENCODE_AVC_TQ_PARAMS trellisQuantParams) override;
 
-    MOS_STATUS HuCBrcDummyStreamObject(PMOS_COMMAND_BUFFER cmdBuffer) { return MOS_STATUS_SUCCESS; }
+    MOS_STATUS HuCBrcDummyStreamObject(PMOS_COMMAND_BUFFER cmdBuffer) override { return MOS_STATUS_SUCCESS; }
 
-    MOS_STATUS SetDmemHuCBrcInitReset();
+    MOS_STATUS SetDmemHuCBrcInitReset() override;
 
-    MOS_STATUS SetDmemHuCBrcUpdate();
+    MOS_STATUS SetDmemHuCBrcUpdate() override;
 
-    MOS_STATUS LoadMvCost(uint8_t qp);
+    MOS_STATUS LoadMvCost(uint8_t qp) override;
 
-    MOS_STATUS LoadHmeMvCost(uint8_t qp);
+    MOS_STATUS LoadHmeMvCost(uint8_t qp) override;
 
     MOS_STATUS LoadHmeMvCostTable(
         PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams,
-        uint8_t hmeMvCostTable[8][42]);
+        uint8_t hmeMvCostTable[8][42]) override;
 
-    MOS_STATUS InitKernelStateSFD();
+    MOS_STATUS InitKernelStateSFD() override;
 
     MOS_STATUS AddVdencWalkerStateCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer);
+        PMOS_COMMAND_BUFFER cmdBuffer) override;
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking);
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr) override;
 
     //!
     //! \brief    Create MHW_VDBOX_STATE_CMDSIZE_PARAMS
     //!
     //! \return   PMHW_VDBOX_STATE_CMDSIZE_PARAMS
     //!
-    PMHW_VDBOX_STATE_CMDSIZE_PARAMS CreateMhwVdboxStateCmdsizeParams();
+    PMHW_VDBOX_STATE_CMDSIZE_PARAMS CreateMhwVdboxStateCmdsizeParams() override;
 
     //!
     //! \brief    Create PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS.
     //!
     //! \return   PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS
     //!
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams();
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams() override;
 
     //!
     //! \brief    Create PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS.
     //!
     //! \return   PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS
     //!
-    PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CreateMhwVdboxVdencWalkerStateParams();
+    PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CreateMhwVdboxVdencWalkerStateParams() override;
 
     MOS_STATUS InitKernelStateMe() override;
 
@@ -152,7 +153,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetGpuCtxCreatOption();
+    MOS_STATUS SetGpuCtxCreatOption() override;
     //!
     //! \brief    Set And Populate VE Hint parameters
     //! \details  Set Virtual Engine hint parameter and populate it to primary cmd buffer attributes
@@ -186,7 +187,7 @@ public:
 
 protected:
 
-    MOS_STATUS CalculateVdencPictureStateCommandSize();
+    MOS_STATUS CalculateVdencPictureStateCommandSize() override;
 
 private:
     static const uint32_t m_mvCostSkipBiasQPel[3][8];

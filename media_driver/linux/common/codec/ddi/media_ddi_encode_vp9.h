@@ -322,5 +322,7 @@ private:
 
     uint32_t lastPackedHeaderType = 0;
 
-    uint8_t vp9TargetUsage;
+    uint8_t vp9TargetUsage = 0;
+
+    bool isSegParamsChanged = false;
 };

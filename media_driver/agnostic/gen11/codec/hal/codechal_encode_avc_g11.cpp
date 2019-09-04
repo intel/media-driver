@@ -30,6 +30,7 @@
 #include "codechal_encode_wp_g11.h"
 #include "codechal_kernel_header_g11.h"
 #include "codechal_kernel_hme_g11.h"
+#include "hal_oca_interface.h"
 #ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g11.h"
 #endif
@@ -4586,6 +4587,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::MbEncKernel(bool mbEncIFrameDistInUse)
 
         if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
         {
+            HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
             m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
             m_lastTaskInPhase = false;
         }
@@ -4902,6 +4904,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteSliceLevel()
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
 
         CODECHAL_DEBUG_TOOL(
@@ -5367,7 +5370,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
             if (!Mos_ResourceIsNull(&BrcBuffers.sBrcMbQpBuffer.OsResource))
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                    &BrcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+                    &BrcBuffers.sBrcMbQpBuffer.OsResource,
                     CodechalDbgAttr::attrOutput,
                     "MbQp",
                     BrcBuffers.dwBrcMbQpBottomFieldOffset,
@@ -8130,7 +8133,8 @@ MOS_STATUS CodechalEncodeAvcEncG11::SetupROISurface()
 
 MOS_STATUS CodechalEncodeAvcEncG11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTracking)
+    bool                        frameTracking,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
     if (MOS_VE_SUPPORTED(m_osInterface))
     {
@@ -8143,7 +8147,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::SendPrologWithFrameTracking(
         }
     }
 
-    return CodechalEncodeAvcEnc::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+    return CodechalEncodeAvcEnc::SendPrologWithFrameTracking(cmdBuffer, frameTracking, mmioRegister);
 }
 
 MOS_STATUS CodechalEncodeAvcEncG11::InitKernelStateMe()

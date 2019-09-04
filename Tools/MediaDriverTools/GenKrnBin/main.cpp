@@ -22,11 +22,11 @@ using namespace std;
 #define KERNEL                      "kernel"
 #define KERNEL_HEADER_FILE_NAME     "krnheader.h"
 
-char KERNEL_COMPONENT_DIR[MAX_STRING_SIZE]		= "";
-char KERNEL_HEADER_FILE[MAX_STRING_SIZE]		= "";
-char KERNEL_TEMP_HEADER_FILE[MAX_STRING_SIZE]	= "";
-char KERNEL_BINARY_FILE[MAX_STRING_SIZE]		= "";
-char KERNEL_SEARCH_DIR[MAX_STRING_SIZE]		    = "";
+char KERNEL_COMPONENT_DIR[MAX_STRING_SIZE]        = "";
+char KERNEL_HEADER_FILE[MAX_STRING_SIZE]        = "";
+char KERNEL_TEMP_HEADER_FILE[MAX_STRING_SIZE]    = "";
+char KERNEL_BINARY_FILE[MAX_STRING_SIZE]        = "";
+char KERNEL_SEARCH_DIR[MAX_STRING_SIZE]            = "";
 
 char  KERNEL_HEADER_PREFIX[8]       = "";
 char  KERNEL_HEADER_PREFIX_UPPER[8] = "";
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 #else
     sprintf(KernelNameFull, "%s", KERNEL_COMPONENT_DIR);
 #endif
-	CreateLinkFile(KernelNameFull, KernelList);
+    CreateLinkFile(KernelNameFull, KernelList);
 
     // for every kernel in the superset list
     g_dwCurrentKernel = 0;
@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
     sprintf(KernelNameFull, "%s", KERNEL_COMPONENT_DIR);
 #endif
 
-	DeleteLinkFile(KernelNameFull);
+    DeleteLinkFile(KernelNameFull);
 
     // free offset table
     if (g_pOffsetTable)
@@ -377,7 +377,7 @@ void ConcatenateKernelBinary(char *pKernelName, bool bVerbose)
 
     if (hKernel == NULL)
     {
-		fclose(hKernel);
+        fclose(hKernel);
         g_pOffsetTable[g_dwCurrentKernel + 1] = dwBinaryPos;
         return;
     }
@@ -394,7 +394,7 @@ void ConcatenateKernelBinary(char *pKernelName, bool bVerbose)
         fprintf(stderr, "%s\n", pKernelName);
     }
 
-	// .hex file
+    // .hex file
     iLength = strlen(pKernelName);
     if (StrCmp(&pKernelName[iLength-4], ".hex", 4) == 0)
     {
@@ -497,6 +497,6 @@ void ConcatenateKernelBinary(char *pKernelName, bool bVerbose)
     dwBinaryPos = ftell(g_hKernelBinary) - g_dwOffsetTableSize;
     g_pOffsetTable[g_dwCurrentKernel+1] = dwBinaryPos;
 
-	// close kernel file
-	if (hKernel != NULL) fclose(hKernel);
+    // close kernel file
+    if (hKernel != NULL) fclose(hKernel);
 }

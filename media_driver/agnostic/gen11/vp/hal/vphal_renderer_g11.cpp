@@ -42,8 +42,8 @@ void VphalRendererG11::GetCacheCntl(
     {
         pSettings->Composite.bL3CachingEnabled = true;
 
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.PrimaryInputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_EDRAM_AGE3_SurfaceState);
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.InputSurfMemObjCtl,           MOS_MP_RESOURCE_USAGE_EDRAM_AGE3_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.PrimaryInputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_AGE3_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.InputSurfMemObjCtl,           MOS_MP_RESOURCE_USAGE_AGE3_SurfaceState);
         VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.TargetSurfMemObjCtl,          MOS_MP_RESOURCE_USAGE_DEFAULT);
     }
     if (pSettings->bDnDi)

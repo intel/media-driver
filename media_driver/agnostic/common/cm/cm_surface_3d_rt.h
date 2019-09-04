@@ -78,12 +78,15 @@ public:
     CM_RT_API int32_t
     SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl);
 
+    CMRT_UMD_API int32_t SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage);
+
     void Log(std::ostringstream &oss);
 
     void DumpContent(uint32_t kernelNumber,
                      char *kernelName,
                      int32_t taskId,
-                     uint32_t argIndex);
+                     uint32_t argIndex,
+                     uint32_t vectorIndex);
 
 protected:
     CmSurface3DRT(uint32_t handle,

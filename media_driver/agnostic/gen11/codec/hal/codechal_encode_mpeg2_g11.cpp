@@ -1881,17 +1881,21 @@ MOS_STATUS CodechalEncodeMpeg2G11::SendMbEncSurfaces(
 
 MOS_STATUS CodechalEncodeMpeg2G11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTracking)
+    bool                        frameTracking,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
     if (MOS_VE_SUPPORTED(m_osInterface))
     {
         PMOS_CMD_BUF_ATTRI_VE attriExt =
                 (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);
-        attriExt->bUseVirtualEngineHint = true;
-        attriExt->VEngineHintParams.NeedSyncWithPrevious = 1;
+        if (attriExt)
+        {
+            attriExt->bUseVirtualEngineHint = true;
+            attriExt->VEngineHintParams.NeedSyncWithPrevious = 1;
+        }
     }
 
-    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking, mmioRegister);
 }
 
 MOS_STATUS CodechalEncodeMpeg2G11::ExecuteKernelFunctions()
@@ -2094,7 +2098,7 @@ MOS_STATUS CodechalEncodeMpeg2G11::ExecuteKernelFunctions()
         if (!Mos_ResourceIsNull(&m_brcBuffers.sBrcMbQpBuffer.OsResource))
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_brcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+                &m_brcBuffers.sBrcMbQpBuffer.OsResource,
                 CodechalDbgAttr::attrOutput,
                 "MbQp",
                 m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,
@@ -2163,9 +2167,12 @@ MOS_STATUS CodechalEncodeMpeg2G11::UpdateCmdBufAttribute(
         PMOS_CMD_BUF_ATTRI_VE attriExt =
             (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);
 
-        memset(attriExt, 0, sizeof(MOS_CMD_BUF_ATTRI_VE));
-        attriExt->bUseVirtualEngineHint =
-            attriExt->VEngineHintParams.NeedSyncWithPrevious = !renderEngineInUse;
+        if (attriExt)
+        {
+            memset(attriExt, 0, sizeof(MOS_CMD_BUF_ATTRI_VE));
+            attriExt->bUseVirtualEngineHint =
+                attriExt->VEngineHintParams.NeedSyncWithPrevious = !renderEngineInUse;
+        }
     }
 
     return eStatus;

@@ -40,6 +40,11 @@
 #include <time.h>
 #endif
 
+#if MOS_MEDIASOLO_SUPPORTED
+#include "mos_os_solo.h"
+#endif // MOS_MEDIASOLO_SUPPORTED
+#include "mos_solo_generic.h"
+
 #include "mos_context_specific.h"
 #include "mos_gpucontextmgr.h"
 #include "mos_cmdbufmgr.h"
@@ -441,23 +446,39 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             m_skuTable = pOsDriverContext->SkuTable;
             m_waTable  = pOsDriverContext->WaTable;
         }
-    
+
         m_use64BitRelocs = true;
         m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
-    #ifndef ANDROID
-        m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
-    
+        if (!Mos_Solo_IsEnabled() && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
+        {
+            m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
+            if (m_intelContext)
+            {
+                m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+                if (m_intelContext->vm == nullptr)
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
+                    return MOS_STATUS_UNKNOWN;
+                }
+            }
+        }
+        else //use legacy context create ioctl for pre-gen11 platforms
+        {
+           m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
+           if (m_intelContext)
+           {
+               m_intelContext->vm = nullptr;
+           }
+        }
+
         if (m_intelContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
             return MOS_STATUS_UNKNOWN;
         }
-    #else
-        m_intelContext                   = nullptr;
-    #endif
-    
+
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
     
     #ifndef ANDROID
@@ -527,22 +548,26 @@ void OsContextSpecific::Destroy()
 
     if (GetOsContextValid() == true)
     {
-        for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+        // APO MOS will destory each stream's GPU context at different place
+        if (!g_apoMosEnabled)
         {
-            if (m_GpuContextHandle[i] != MOS_GPU_CONTEXT_INVALID_HANDLE)
+            for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
             {
-                if (m_gpuContextMgr == nullptr)
+                if (m_GpuContextHandle[i] != MOS_GPU_CONTEXT_INVALID_HANDLE)
                 {
-                    MOS_OS_ASSERTMESSAGE("GpuContextMgr is null when destroy GpuContext");
-                    break;
+                    if (m_gpuContextMgr == nullptr)
+                    {
+                        MOS_OS_ASSERTMESSAGE("GpuContextMgr is null when destroy GpuContext");
+                        break;
+                    }
+                    auto gpuContext = m_gpuContextMgr->GetGpuContext(m_GpuContextHandle[i]);
+                    if (gpuContext == nullptr)
+                    {
+                        MOS_OS_ASSERTMESSAGE("cannot find the gpuContext corresponding to the active gpuContextHandle");
+                        continue;
+                    }
+                    m_gpuContextMgr->DestroyGpuContext(gpuContext);
                 }
-                auto gpuContext = m_gpuContextMgr->GetGpuContext(m_GpuContextHandle[i]);
-                if (gpuContext == nullptr)
-                {
-                    MOS_OS_ASSERTMESSAGE("cannot find the gpuContext corresponding to the active gpuContextHandle");
-                    continue;
-                }
-                m_gpuContextMgr->DestroyGpuContext(gpuContext);
             }
         }
     
@@ -555,6 +580,10 @@ void OsContextSpecific::Destroy()
      #endif
         m_skuTable.reset();
         m_waTable.reset();
+        if (m_intelContext && m_intelContext->vm)
+        {
+            mos_gem_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm);
+        }
         if (m_intelContext)
         {
             mos_gem_context_destroy(m_intelContext);

@@ -86,6 +86,10 @@ typedef struct _MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS
     uint8_t     ucList;
     char        LumaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
     int16_t     LumaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
+    char        ChromaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
+    int16_t     ChromaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
+    uint32_t    dwChromaDenom;
+    bool        isLowDelay = true;
 } MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS, *PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS;
 
 typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
@@ -93,11 +97,15 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     uint32_t                                Mode;
     PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
     PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;;
     uint8_t                                *pucVdencMvCosts;
     uint8_t                                *pucVdencRdMvCosts;
     uint8_t                                *pucVdencHmeMvCosts;
     uint8_t                                *pucVdencModeCosts;
     void                                   *pInputParams;
+    uint16_t                                usSADQPLambda = 0;
+    uint16_t                                usRDQPLambda = 0;
+    bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
 } MHW_VDBOX_VDENC_CMD1_PARAMS, *PMHW_VDBOX_VDENC_CMD1_PARAMS;
 
 struct MHW_VDBOX_VDENC_CMD2_STATE
@@ -115,6 +123,8 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bUseDefaultQpDeltas = false;
     bool                                    bPanicEnabled = false;
     bool                                    bPartialFrameUpdateEnable = false;
+    uint32_t                                roundInterValue = 0;
+    uint32_t                                roundIntraValue = 0;
 
     // VP9
     PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
@@ -122,18 +132,20 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState = nullptr;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams = nullptr;
     bool                                    bPrevFrameSegEnabled;
-    uint8_t                                 temporalMVpEnable = 0;
-    uint8_t                                 ucNumRefIdxL0ActiveMinus1 = 0;
     bool                                    bDynamicScalingEnabled = false;
+    bool                                    temporalMVpEnable = false;
 
     // Common
+    uint8_t                                 ucNumRefIdxL0ActiveMinus1 = 0;
+    uint8_t                                 ucNumRefIdxL1ActiveMinus1 = 0;
     uint16_t                                usSADQPLambda = 0;
     uint16_t                                usRDQPLambda = 0;
     bool                                    bPakOnlyMultipassEnable = false;
     void                                    *pInputParams = nullptr;
+    bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
     virtual ~MHW_VDBOX_VDENC_CMD2_STATE() {}
 };
-using PMHW_VDBOX_VDENC_CMD2_STATE = MHW_VDBOX_VDENC_CMD2_STATE *;
+using PMHW_VDBOX_VDENC_CMD2_STATE = std::shared_ptr<MHW_VDBOX_VDENC_CMD2_STATE>;
 
 struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 {
@@ -149,13 +161,6 @@ struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
     virtual ~MHW_VDBOX_VDENC_WALKER_STATE_PARAMS() {}
 };
 using PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS = MHW_VDBOX_VDENC_WALKER_STATE_PARAMS * ;
-
-
-struct MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS
-{
-    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams = nullptr;
-};
-using PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS = std::shared_ptr<MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS>;
 
 //!  MHW Vdbox Vdenc interface
 /*!
@@ -526,8 +531,8 @@ public:
         PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS   params) = 0;
 
     virtual MOS_STATUS AddVdencSliceStateCmd(
-        PMOS_COMMAND_BUFFER                     cmdBuffer,
-        PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS params)
+        PMOS_COMMAND_BUFFER        cmdBuffer,
+        PMHW_VDBOX_AVC_SLICE_STATE params)
     {
         return MOS_STATUS_SUCCESS;
     }

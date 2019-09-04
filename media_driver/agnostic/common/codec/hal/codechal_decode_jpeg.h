@@ -140,7 +140,7 @@ public:
 #endif
 
     MOS_SURFACE               m_destSurface;    //!< Pointer to MOS_SURFACE of render surface
-    CodecDecodeJpegPicParams *m_jpegPicParams;  //!< Picture parameter for JPEG
+    CodecDecodeJpegPicParams *m_jpegPicParams = nullptr;  //!< Picture parameter for JPEG
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpIQParams(
@@ -224,8 +224,8 @@ protected:
 protected:
     uint32_t                            m_dataSize;          //!< Data size of the bitstream
     uint32_t                            m_dataOffset;        //!< Data offset of the bitstream
-    CodecDecodeJpegScanParameter *      m_jpegScanParams;    //!< Scan parameter for JPEG
-    CodecJpegQuantMatrix *              m_jpegQMatrix;       //!< QMatrix for JPEG
+    CodecDecodeJpegScanParameter *      m_jpegScanParams = nullptr;    //!< Scan parameter for JPEG
+    CodecJpegQuantMatrix *              m_jpegQMatrix = nullptr;       //!< QMatrix for JPEG
     PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE m_jpegHuffmanTable;  //!< Huffman table for JPEG
 
     MOS_RESOURCE m_resDataBuffer;          //!< Handle of bitstream buffer

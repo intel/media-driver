@@ -39,11 +39,122 @@
 #endif
 #endif
 
+extern PerfUtility *g_perfutility;
+
+#define PERF_DECODE "DECODE"
+#define PERF_ENCODE "ENCODE"
+#define PERF_VP "VP"
+#define PERF_CP "CP"
+#define PERF_MOS "MOS"
+
+#define PERF_LEVEL_DDI "DDI"
+#define PERF_LEVEL_HAL "HAL"
+
+#define DECODE_DDI (1)
+#define DECODE_HAL (1 << 1)
+#define ENCODE_DDI (1 << 4)
+#define ENCODE_HAL (1 << 5)
+#define VP_DDI     (1 << 8)
+#define VP_HAL     (1 << 9)
+#define CP_DDI     (1 << 12)
+#define CP_HAL     (1 << 13)
+#define MOS_DDI    (1 << 16)
+#define MOS_HAL    (1 << 17)
+
+#define PERFUTILITY_IS_ENABLED(sCOMP,sLEVEL)                                                              \
+    (((sCOMP == "DECODE" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & DECODE_DDI)) ||  \
+     ((sCOMP == "DECODE" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & DECODE_HAL)) ||  \
+     ((sCOMP == "ENCODE" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & ENCODE_DDI)) ||  \
+     ((sCOMP == "ENCODE" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & ENCODE_HAL)) ||  \
+     ((sCOMP == "VP" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & VP_DDI)) ||          \
+     ((sCOMP == "VP" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & VP_HAL)) ||          \
+     ((sCOMP == "CP" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & CP_DDI)) ||          \
+     ((sCOMP == "CP" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & CP_HAL)) ||          \
+     ((sCOMP == "MOS" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & MOS_DDI)) ||        \
+     ((sCOMP == "MOS" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & MOS_HAL)))
+
+#if _RELEASE_INTERNAL
+#define PERF_UTILITY_START(TAG,COMP,LEVEL)                                 \
+    do                                                                     \
+    {                                                                      \
+        if (PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+            g_perfutility->startTick(TAG);                                 \
+        }                                                                  \
+    } while(0)
+
+#define PERF_UTILITY_STOP(TAG, COMP, LEVEL)                                \
+    do                                                                     \
+    {                                                                      \
+        if (PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+            g_perfutility->stopTick(TAG);                                  \
+        }                                                                  \
+    } while (0)
+
+static int perf_count_start = 0;
+static int perf_count_stop = 0;
+
+#define PERF_UTILITY_START_ONCE(TAG, COMP,LEVEL)                           \
+    do                                                                     \
+    {                                                                      \
+        if (perf_count_start == 0                                          \
+            && PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+                g_perfutility->startTick(TAG);                             \
+        }                                                                  \
+        perf_count_start++;                                                \
+    } while(0)
+
+#define PERF_UTILITY_STOP_ONCE(TAG, COMP, LEVEL)                           \
+    do                                                                     \
+    {                                                                      \
+        if (perf_count_stop == 0                                           \
+            && PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+            g_perfutility->stopTick(TAG);                                  \
+        }                                                                  \
+        perf_count_stop++;                                                 \
+    } while (0)
+
+#define PERF_UTILITY_AUTO(TAG,COMP,LEVEL) AutoPerfUtility apu(TAG,COMP,LEVEL)
+
+#define PERF_UTILITY_PRINT                         \
+    do                                             \
+    {                                              \
+        if (g_perfutility->dwPerfUtilityIsEnabled) \
+        {                                          \
+            g_perfutility->savePerfData();         \
+        }                                          \
+    } while(0)
+
+#else
+#define PERF_UTILITY_START(TAG, COMP,LEVEL) do {} while(0)
+#define PERF_UTILITY_STOP(TAG, COMP,LEVEL) do {} while(0)
+#define PERF_UTILITY_START_ONCE(TAG, COMP,LEVEL) do {} while(0)
+#define PERF_UTILITY_STOP_ONCE(TAG, COMP,LEVEL) do {} while(0)
+#define PERF_UTILITY_AUTO(TAG,COMP,LEVEL) do {} while(0)
+#define PERF_UTILITY_PRINT do {} while(0)
+#endif
+
+class AutoPerfUtility
+{
+public:
+    AutoPerfUtility(std::string tag, std::string comp, std::string level);
+    ~AutoPerfUtility();
+
+private:
+    bool bEnable = false;
+    std::string autotag ="intialized";
+};
+
 //!
 //! \brief OS specific includes and definitions
 //!
 #include "mos_os_specific.h"
 #include "mos_os_virtualengine_specific.h"
+
+#include "mos_oca_interface.h"
 
 #define MOS_NAL_UNIT_LENGTH                 4
 #define MOS_NAL_UNIT_STARTCODE_LENGTH       3
@@ -98,6 +209,7 @@
 #define MOS_COMMAND_BUFFER_RENDER_ENGINE   "CS"
 #define MOS_COMMAND_BUFFER_VIDEO_ENGINE    "VCS"
 #define MOS_COMMAND_BUFFER_VEBOX_ENGINE    "VECS"
+#define MOS_COMMAND_BUFFER_RTE_ENGINE      "RTE"
 #define MOS_COMMAND_BUFFER_PLATFORM_LEN    4
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
@@ -206,6 +318,7 @@ typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
     uint32_t                    dwMediaFrameTrackingAddrOffset;
     MOS_RESOURCE                resMediaFrameTrackingSurface;
     int32_t                     bUmdSSEUEnable;
+    int32_t                     bFrequencyBoost;
     void*                       pAttriVe;
 } MOS_COMMAND_BUFFER_ATTRIBUTES, *PMOS_COMMAND_BUFFER_ATTRIBUTES;
 
@@ -218,6 +331,31 @@ typedef enum _MOS_VDBOX_NODE_IND
     MOS_VDBOX_NODE_1           = 0x0,
     MOS_VDBOX_NODE_2           = 0x1
 } MOS_VDBOX_NODE_IND;
+
+//!
+//! \brief VEBOX indices
+//!
+typedef enum _MOS_VEBOX_NODE_IND
+{
+    MOS_VEBOX_NODE_INVALID     = -1,
+    MOS_VEBOX_NODE_1           = 0x0,
+    MOS_VEBOX_NODE_2           = 0x1,
+    MOS_VEBOX_NODE_3           = 0x2,
+    MOS_VEBOX_NODE_4           = 0x3
+} MOS_VEBOX_NODE_IND;
+
+#define SUBMISSION_TYPE_SINGLE_PIPE                     (1 << 0)
+#define SUBMISSION_TYPE_SINGLE_PIPE_MASK                (0xff)
+#define SUBMISSION_TYPE_MULTI_PIPE_SHIFT                8
+#define SUBMISSION_TYPE_MULTI_PIPE_ALONE                (1 << SUBMISSION_TYPE_MULTI_PIPE_SHIFT)
+#define SUBMISSION_TYPE_MULTI_PIPE_MASTER               (1 << (SUBMISSION_TYPE_MULTI_PIPE_SHIFT+1))
+#define SUBMISSION_TYPE_MULTI_PIPE_SLAVE                (1 << (SUBMISSION_TYPE_MULTI_PIPE_SHIFT+2))
+#define SUBMISSION_TYPE_MULTI_PIPE_MASK                 (0xff << SUBMISSION_TYPE_MULTI_PIPE_SHIFT)
+#define SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT    16
+#define SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_MASK     (0xff << SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT)
+#define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT          24
+#define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_MASK           (0xff << SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT)
+#define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE      (1 << SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT)
 
 //!
 //! \brief Structure to command buffer
@@ -234,6 +372,8 @@ typedef struct _MOS_COMMAND_BUFFER
     int32_t             iTokenOffsetInCmdBuf;       //!< Pointer to (Un)Secure token's next field Offset
     int32_t             iCmdIndex;                  //!< command buffer's index
     MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
+    MOS_VEBOX_NODE_IND  iVeboxNodeIndex;            //!< Which VEBOX buffer is binded to
+    int32_t             iSubmissionType;
 
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
 } MOS_COMMAND_BUFFER;
@@ -333,26 +473,27 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
 typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
 struct _MOS_GPUCTX_CREATOPTIONS
 {
-    uint32_t  CmdBufferNumScale;
-    uint32_t  RAMode;
+    uint32_t CmdBufferNumScale;
+    uint32_t RAMode;
+    uint32_t gpuNode;
     //For slice shutdown
     union
     {
         struct
         {
             uint8_t SliceCount;
-            uint8_t SubSliceCount;          //Subslice count per slice
+            uint8_t SubSliceCount;  //Subslice count per slice
             uint8_t MaxEUcountPerSubSlice;
             uint8_t MinEUcountPerSubSlice;
-        }packed;
+        } packed;
 
         uint32_t SSEUValue;
     };
 
-    _MOS_GPUCTX_CREATOPTIONS() : 
-        CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
-        SSEUValue(0),
-        RAMode(0) {}
+    _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
+        RAMode(0),
+        gpuNode(0),
+        SSEUValue(0){}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };
@@ -397,12 +538,55 @@ private:
 };
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
+class OsContextNext;
+typedef OsContextNext OsDeviceContext;
+typedef _MOS_GPUCTX_CREATOPTIONS GpuContextCreateOption;
+struct _MOS_INTERFACE;
+    
+struct MosStreamState
+{
+    OsDeviceContext *  osDeviceContext         = nullptr;
+    GPU_CONTEXT_HANDLE currentGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    MOS_COMPONENT      component;
+
+    PMOS_VIRTUALENGINE_INTERFACE virtualEngineInterface = nullptr;
+    MosCpInterface *osCpInterface = nullptr;
+
+    bool mediaReset    = false;
+    uint32_t GpuResetCount = 0;
+
+    bool simIsActive = false;  //!< Flag to indicate if Simulation is enabled
+    MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable; //!< To indicate which components to enable Null HW support
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    // Command buffer dump
+    bool  dumpCommandBuffer = false;                      //!< Flag to indicate if Dump command buffer is enabled
+    bool  dumpCommandBufferToFile = false;                //!< Indicates that the command buffer should be dumped to a file
+    bool  dumpCommandBufferAsMessages = false;            //!< Indicates that the command buffer should be dumped via MOS normal messages
+#endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+    _MOS_INTERFACE *osInterfaceLegacy = nullptr;
+};
+
+typedef OsDeviceContext *MOS_DEVICE_HANDLE;
+typedef MosStreamState  *MOS_STREAM_HANDLE;
+//typedef uint32_t             GPU_CONTEXT_HANDLE;
+typedef MOS_COMMAND_BUFFER *COMMAND_BUFFER_HANDLE;
+typedef MOS_RESOURCE       *MOS_RESOURCE_HANDLE;
+typedef void *              OsSpecificRes;
+typedef void *              OS_HANDLE;
+typedef MOS_SURFACE         MosResourceInfo;
+typedef void *              DDI_DEVICE_CONTEXT;
+
 class GpuContextMgr;
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
 typedef struct _MOS_INTERFACE
 {
+    //APO WRAPPER
+    MOS_STREAM_HANDLE osStreamState = MOS_INVALID_HANDLE; 
+
     // Saved OS context
     PMOS_CONTEXT                    pOsContext;
     MOS_GPU_CONTEXT                 CurrentGpuContextOrdinal;
@@ -591,6 +775,9 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_SYNC_PARAMS            pParams);
 
+    MOS_STATUS (* pfnWaitAllCmdCompletion) (
+        PMOS_INTERFACE              pOsInterface);
+
     MOS_STATUS (* pfnCreateSyncResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pOsResource);
@@ -745,7 +932,8 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS(*pfnDoubleBufferCopyResource) (
         PMOS_INTERFACE        pOsInterface,
         PMOS_RESOURCE         pInputOsResource,
-        PMOS_RESOURCE         pOutputOsResource);
+        PMOS_RESOURCE         pOutputOsResource,
+        bool                  bOutputCompressed);
 
     MOS_STATUS (* pfnFillResource) (
         PMOS_INTERFACE              pOsInterface,
@@ -1059,8 +1247,13 @@ typedef struct _MOS_INTERFACE
     bool                            ctxBasedScheduling;                           //!< Flag to indicate if context based scheduling enabled for virtual engine, that is VE2.0.
     bool                            multiNodeScaling;                             //!< Flag to indicate if multi-node scaling is enabled for virtual engine, that is VE3.0.
     bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
-
+    bool                            phasedSubmission = false;                     //!< Flag to indicate if secondary command buffers are submitted together (Win) or separately (Linux)
+    bool                            frameSplit = true;                            //!< Flag to indicate if frame split is enabled
+    bool                            bSetHandleInvalid = false;
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
+
+    MOS_STATUS (*pfnCheckVirtualEngineSupported)(
+        PMOS_INTERFACE              pOsInterface);
 
 #if MOS_MEDIASOLO_SUPPORTED
     int32_t                         bSupportMediaSoloVirtualEngine;               //!< Flag to indicate if MediaSolo uses VE solution in cmdbuffer submission.
@@ -1073,6 +1266,8 @@ typedef struct _MOS_INTERFACE
     int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
     int32_t                         bSoftReset;                                   //!< trigger soft reset
 #endif // (_DEBUG || _RELEASE_INTERNAL)
+    //!< os interface extension
+    void                            *pOsExt;
 } MOS_INTERFACE;
 
 #ifdef __cplusplus

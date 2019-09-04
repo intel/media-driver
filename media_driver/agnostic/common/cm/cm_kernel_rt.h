@@ -80,6 +80,7 @@ struct CM_ARG
 
     uint16_t *surfIndex;
     SURFACE_ARRAY_ARG *surfArrayArg; // record each arg kind and address control mode for media sampler in surface array
+    bool isStatelessBuffer;
     CM_ARG()
     {
         unitKind = 0;
@@ -90,6 +91,18 @@ struct CM_ARG
         isDirty = false;
         isNull = false;
         unitVmeArraySize = 0;
+        surfIndex = nullptr;
+        aliasIndex = 0;
+        unitOffsetInPayloadOrig = 0;
+        isSet = false;
+        index = 0;
+        unitKindOrig = 0;
+        nCustomValue = 0;
+        surfaceKind = DATA_PORT_SURF;
+        unitSizeOrig = 0;
+        surfArrayArg = nullptr;
+        aliasCreated = false;
+        isStatelessBuffer = false;
     }
 };
 
@@ -160,6 +173,10 @@ public:
                                    size_t size,
                                    const void *value);
 
+    CM_RT_API virtual int32_t SetKernelArgPointer(uint32_t index,
+                                                  size_t size,
+                                                  const void *value);
+
     CM_RT_API int32_t SetThreadArg(uint32_t threadId,
                                    uint32_t index,
                                    size_t size,
@@ -180,9 +197,6 @@ public:
     CM_RT_API int32_t DeAssociateThreadGroupSpace(CmThreadGroupSpace *&threadGroupSpace);
 
     CM_RT_API int32_t QuerySpillSize(uint32_t &spillMemorySize);
-
-    CM_RT_API CM_RETURN_CODE
-    GetIndexForCurbeData(uint32_t curbeDataSize, SurfaceIndex *surfaceIndex);
 
     CMRT_UMD_API int32_t GetBinary(std::vector<char> &binary);
 

@@ -97,6 +97,7 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* sysMem,
                                                 CmEvent* event,
                                                 uint64_t sysMemSize )
 {
+    INSERT_API_CALL_LOG();
     CM_RETURN_CODE  hr              = CM_SUCCESS;
     uint64_t        uSizeInBytes    = 0;
     uint32_t        uWidthInBytes   = 0;
@@ -227,6 +228,7 @@ finish:
 
 CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
 {
+    INSERT_API_CALL_LOG();
     CM_RETURN_CODE  hr              = CM_SUCCESS;
     uint64_t        uSizeInBytes    = 0;
     uint32_t        uWidthInBytes   = 0;
@@ -389,6 +391,7 @@ int32_t CmSurface3DRT::SetProperties( uint32_t width,  uint32_t height, uint32_t
 
 CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* event)
 {
+    INSERT_API_CALL_LOG();
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint32_t        uSizeInBytes = 0;
     uint32_t        uWidthInBytes = 0;
@@ -517,6 +520,26 @@ CM_RT_API int32_t CmSurface3DRT::SelectMemoryObjectControlSetting(MEMORY_OBJECT_
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
 }
 
+CMRT_UMD_API int32_t CmSurface3DRT::SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage)
+{
+    int32_t  hr = CM_SUCCESS;
+    uint16_t mocs = 0;
+    hr = CmSurface::SetResourceUsage(mosUsage);
+
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type << 4) | m_memObjCtrl.age;
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_3D));
+finish:
+    return hr;
+}
+
+
 void CmSurface3DRT::Log(std::ostringstream &oss)
 {
 #if CM_LOG_ON
@@ -532,18 +555,19 @@ void CmSurface3DRT::Log(std::ostringstream &oss)
 #endif
 }
 
-void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex)
+void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex, uint32_t vectorIndex)
 {
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream outputFileName;
     static uint32_t    surface3DDumpNumber = 0;
-    char               fileNamePrefix[MAX_PATH];
+    char               fileNamePrefix[MAX_PATH] = { 0 };
     std::ofstream      outputFileStream;
 
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_" << kernelName
         << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex
         << "_surf2d_surfi_" << m_index->get_data()
         << "_w_" << m_width
         << "_h_" << m_height

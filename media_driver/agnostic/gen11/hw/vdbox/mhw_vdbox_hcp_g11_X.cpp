@@ -607,6 +607,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                     4 * mhw_mi_g11_X::MI_ATOMIC_CMD::byteSize +                       // used to reset semaphore in BEs
                     2 * mhw_mi_g11_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize + // 1 Conditional BB END for FE hang, 1 for streamout buffer writing over allocated size
                     3 * mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize +             // for FE & BE0, BEs sync
+                    15 * mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +              // for placeholder cmds to resolve the hazard between BEs sync
                     3 * mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +               // for FE status set and clear
                     3 * mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize +            // for FE status set
                     2 * mhw_mi_g11_X::MI_FLUSH_DW_CMD::byteSize +                     // 2 needed for command flush in slice level
@@ -664,8 +665,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                 mhw_vdbox_hcp_g11_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize * 2 +
                 mhw_vdbox_hcp_g11_X::HCP_TILE_CODING_CMD::byteSize +
                 mhw_mi_g11_X::MI_BATCH_BUFFER_START_CMD::byteSize +
-                mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize * 2 +   // Use HW wait command for each VDBOX, one for second pass only
-                mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize * 5;                    // One is for reset and another one for set per VDBOX, three for wait
+                mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize * 3 + // Use HW wait command for each pass(3) level barrier and after huc probability update
+                mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize +     // Use HW wait command before pak integration kernel
+                mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize * 50; // One is for reset and another one for set per VDBOX, 15 for semaphore wait in pass(3) level barrier
 
 
             patchListMaxSize +=
@@ -679,7 +681,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                 PATCH_LIST_COMMAND(HCP_PAK_INSERT_OBJECT_CMD) * 2 +
                 PATCH_LIST_COMMAND(HCP_TILE_CODING_COMMAND) +
                 PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) +
-                PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) * 2;
+                PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) * 50;
         }
         else
         {
@@ -694,6 +696,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                     mhw_mi_g11_X::MI_ATOMIC_CMD::byteSize * 4 +   // used to reset semaphore in BEs
                     mhw_mi_g11_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize +   // for streamout buffer writing over allocated size
                     mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize * 3 +   // for FE & BE0, BEs sync
+                    mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize * 15 +   // for placeholder cmds to resolve the hazard between BEs sync
                     mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +   // for FE status set
                     mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 3 +   // for FE status set
                     mhw_mi_g11_X::MI_FLUSH_DW_CMD::byteSize +   // for command flush in partition level
@@ -1308,7 +1311,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSurfaceStateCmd(
     mhw_vdbox_hcp_g11_X::HCP_SURFACE_STATE_CMD  *cmd =
         (mhw_vdbox_hcp_g11_X::HCP_SURFACE_STATE_CMD*)cmdBuffer->pCmdPtr;
 
-    MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g11_X>::AddHcpDecodeSurfaceStateCmd(cmdBuffer, params));
+    MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g11_X>::AddHcpEncodeSurfaceStateCmd(cmdBuffer, params));
 
     bool surf10bit= (params->psSurface->Format == Format_P010) ||
                    (params->psSurface->Format == Format_P210) ||

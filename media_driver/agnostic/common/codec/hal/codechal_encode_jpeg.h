@@ -152,27 +152,27 @@ public:
     virtual ~CodechalEncodeJpegState() {};
 
     //derived from base class
-    MOS_STATUS Initialize(CodechalSetting *settings);
+    MOS_STATUS Initialize(CodechalSetting *settings) override;
 
-    MOS_STATUS AllocateResources();
+    MOS_STATUS AllocateResources() override;
 
-    void FreeResources();
+    void FreeResources() override;
 
-    MOS_STATUS InitializePicture(const EncoderParams& params);
+    MOS_STATUS InitializePicture(const EncoderParams& params) override;
 
     virtual MOS_STATUS CheckResChangeAndCsc() override;
 
-    MOS_STATUS ExecutePictureLevel();
+    MOS_STATUS ExecutePictureLevel() override;
 
-    MOS_STATUS ExecuteSliceLevel();
+    MOS_STATUS ExecuteSliceLevel() override;
 
-    uint32_t CalculateCommandBufferSize();
+    uint32_t CalculateCommandBufferSize() override;
 
     MOS_STATUS GetStatusReport(
             EncodeStatus*       encodeStatus,
-            EncodeStatusReport* encodeStatusReport) { return MOS_STATUS_SUCCESS;};
+            EncodeStatusReport* encodeStatusReport) override { return MOS_STATUS_SUCCESS;};
 
-    MOS_STATUS ExecuteKernelFunctions() { return MOS_STATUS_SUCCESS;};
+    MOS_STATUS ExecuteKernelFunctions() override { return MOS_STATUS_SUCCESS;};
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpQuantTables(

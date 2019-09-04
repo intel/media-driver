@@ -144,12 +144,13 @@ CodechalVdencVp9StateG11::CodechalVdencVp9StateG11(
     }
     MOS_ZeroMemory(&m_hucPakIntDummyBuffer, sizeof(m_hucPakIntDummyBuffer));
     MOS_ZeroMemory(&m_hucPakIntBrcDataBuffer, sizeof(m_hucPakIntBrcDataBuffer));
+    MOS_ZeroMemory(&m_resPipeStartSync, sizeof(m_resPipeStartSync));
+    MOS_ZeroMemory(&m_resDelayMinus, sizeof(m_resDelayMinus));
     for (auto i = 0; i < m_maxNumPipes; i++)
     {
         MOS_ZeroMemory(&m_stitchWaitSemaphoreMem[i], sizeof(m_stitchWaitSemaphoreMem[i]));
-        MOS_ZeroMemory(&m_hucDoneSemaphoreMem[i], sizeof(m_hucDoneSemaphoreMem[i]));
     }
-    MOS_ZeroMemory(&m_pakIntDoneSemaphoreMem, sizeof(m_pakIntDoneSemaphoreMem));
+
     for (auto i = 0; i < 3; i++)
     {
         MOS_ZeroMemory(&m_refPicList0[i], sizeof(m_refPicList0[i]));
@@ -173,7 +174,8 @@ MOS_STATUS CodechalVdencVp9StateG11::GetSystemPipeNumberCommon()
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
         &userFeatureData);
 
-    bool disableScalability = false;
+    //Disable scalability temporarily
+    bool disableScalability = true;
     if (statusKey == MOS_STATUS_SUCCESS)
     {
         disableScalability = userFeatureData.i32Data ? true : false;
@@ -823,7 +825,7 @@ MOS_STATUS CodechalVdencVp9StateG11::SendMeSurfaces(
 
     // Reference height and width information should be taken from the current scaled surface rather
     // than from the reference scaled surface in the case of PAFF.
-    MOS_SURFACE refScaledSurface = *currScaledSurface;
+
 
     uint32_t width  = MOS_ALIGN_CEIL(params->dwDownscaledWidthInMb * 32, 64);
     uint32_t height = params->dwDownscaledHeightInMb * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER;
@@ -956,26 +958,26 @@ MOS_STATUS CodechalVdencVp9StateG11::SendMeSurfaces(
                 refPicIdx                           = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
                 uint8_t  scaledIdx                  = params->ppRefList[refPicIdx]->ucScalingIdx;
                 uint32_t refScaledBottomFieldOffset = 0;
+                MOS_SURFACE *refScaledSurface;
                 if (params->b32xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get32xDsSurface(scaledIdx);
                 }
                 else if (params->b16xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get16xDsSurface(scaledIdx);
                 }
                 else
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get4xDsSurface(scaledIdx);
                 }
+                refScaledBottomFieldOffset          = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                
 
                 // L0 Reference Picture Y - VME
                 MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
                 surfaceParams.bUseAdvState          = true;
-                surfaceParams.psSurface             = &refScaledSurface;
+                surfaceParams.psSurface             = refScaledSurface;
                 surfaceParams.dwOffset              = isRefBottomField ? refScaledBottomFieldOffset : 0;
                 surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;
                 surfaceParams.dwBindingTableOffset  = meBindingTable->dwMEFwdRefPicIdx[refIdx];
@@ -1025,26 +1027,26 @@ MOS_STATUS CodechalVdencVp9StateG11::SendMeSurfaces(
                 refPicIdx                           = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
                 uint8_t  scaledIdx                  = params->ppRefList[refPicIdx]->ucScalingIdx;
                 uint32_t refScaledBottomFieldOffset = 0;
+                MOS_SURFACE *refScaledSurface;
                 if (params->b32xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get32xDsSurface(scaledIdx);
                 }
                 else if (params->b16xMeInUse)
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get16xDsSurface(scaledIdx);
                 }
                 else
                 {
-                    refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
-                    refScaledBottomFieldOffset  = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                    refScaledSurface                = m_trackedBuf->Get4xDsSurface(scaledIdx);
                 }
+                refScaledBottomFieldOffset          = isRefBottomField ? currScaledBottomFieldOffset : 0;
+                
 
                 // L1 Reference Picture Y - VME
                 MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
                 surfaceParams.bUseAdvState          = true;
-                surfaceParams.psSurface             = &refScaledSurface;
+                surfaceParams.psSurface             = refScaledSurface;
                 surfaceParams.dwOffset              = isRefBottomField ? refScaledBottomFieldOffset : 0;
                 surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;
                 surfaceParams.dwBindingTableOffset  = meBindingTable->dwMEBwdRefPicIdx[refIdx];
@@ -1367,6 +1369,10 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteMeKernel(
             kernelState));)
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
+    }
     SendKernelCmdsParams sendKernelCmdsParams;
     sendKernelCmdsParams                 = SendKernelCmdsParams();
     sendKernelCmdsParams.EncFunctionType = encFunctionType;
@@ -1508,6 +1514,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteMeKernel(
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
             m_stateHeapInterface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
@@ -2262,6 +2269,11 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteTileLevel()
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
+    if (!Mos_ResourceIsNull(&m_stitchWaitSemaphoreMem[currentPipe].sResource))
+    {
+        flushDwParams.pOsResource = &m_stitchWaitSemaphoreMem[currentPipe].sResource;
+        flushDwParams.dwDataDW1 = currentPass + 1;
+    }
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
     if (IsFirstPipe())
@@ -2274,7 +2286,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteTileLevel()
                 {
                     // This semaphore waits for all pipes except pipe 1 vdenc+pak to finish processing before stitching bitstream
                     SendHWWaitCommand(&m_stitchWaitSemaphoreMem[i].sResource, &cmdBuffer, (currentPass + 1));
-                    SetSemaphoreMem(&m_stitchWaitSemaphoreMem[i].sResource, &cmdBuffer, 0); // Reset above semaphore
                 }
             }
 
@@ -2294,11 +2305,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteTileLevel()
         if (m_scalableMode && m_hucEnabled && m_isTilingSupported && IsFirstPipe())
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCVp9PakInt(&cmdBuffer));
-            // Signal pak int done semaphore here for next pass to proceed
-            if (!IsLastPass())
-            {
-                SetSemaphoreMem(&m_pakIntDoneSemaphoreMem.sResource, &cmdBuffer, (currentPass + 1));
-            }
         }
 
         if (m_scalableMode && IsLastPass())
@@ -2313,14 +2319,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteTileLevel()
         if (!m_scalableMode) // single pipe mode can read the info from MMIO register. Otherwise, we have to use the tile size statistic buffer
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadHcpStatus(&cmdBuffer));
-        }
-    }
-    else // 2nd Pipe
-    {
-        // Signal stitch command to proceed because vdenc+pak is done in this pipe and we can stitch bs
-        if (m_hucEnabled && m_isTilingSupported && !Mos_ResourceIsNull(&m_stitchWaitSemaphoreMem[currentPipe].sResource))
-        {
-            SetSemaphoreMem(&m_stitchWaitSemaphoreMem[currentPipe].sResource, &cmdBuffer, (currentPass + 1));
         }
     }
 
@@ -2569,7 +2567,15 @@ MOS_STATUS CodechalVdencVp9StateG11::VerifyCommandBufferSize()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
         }
         uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-        PMOS_COMMAND_BUFFER cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][(uint32_t)currentPipe][passIndex];
+        PMOS_COMMAND_BUFFER cmdBuffer;
+        if (m_osInterface->phasedSubmission)
+        {
+            cmdBuffer = &m_realCmdBuffer;
+        }
+        else
+        {
+            cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][(uint32_t)currentPipe][passIndex];
+        }
 
         if (Mos_ResourceIsNull(&cmdBuffer->OsResource) ||
             m_sizeOfVEBatchBuffer < requestedSize)
@@ -2635,16 +2641,24 @@ MOS_STATUS CodechalVdencVp9StateG11::GetCommandBuffer(
     }
     else    // virtual engine
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_realCmdBuffer, 0));
-
-        int currentPipe = GetCurrentPipe();
-        int currentPass = GetCurrentPass();
-        if (currentPipe < 0 || currentPipe >= m_numPipe)
+        if (m_osInterface->phasedSubmission)
         {
-            return MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_realCmdBuffer, 0));
+            *cmdBuffer = m_realCmdBuffer;
         }
-        uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-        *cmdBuffer = m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex];
+        else
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_realCmdBuffer, 0));
+
+            int currentPipe = GetCurrentPipe();
+            int currentPass = GetCurrentPass();
+            if (currentPipe < 0 || currentPipe >= m_numPipe)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
+            *cmdBuffer = m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex];
+        }
     }
 
     return eStatus;
@@ -2665,18 +2679,26 @@ MOS_STATUS CodechalVdencVp9StateG11::ReturnCommandBuffer(
     }
     else    // virtual engine
     {
-        int currentPipe = GetCurrentPipe();
-        int currentPass = GetCurrentPass();
-        if (currentPipe < 0 || currentPipe >= m_numPipe)
+        if (m_osInterface->phasedSubmission)
         {
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-
-        if (eStatus == MOS_STATUS_SUCCESS)
-        {
-            uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-            m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex] = *cmdBuffer;
+            m_realCmdBuffer = *cmdBuffer;
             m_osInterface->pfnReturnCommandBuffer(m_osInterface, &m_realCmdBuffer, 0);
+        }
+        else
+        {
+            int currentPipe = GetCurrentPipe();
+            int currentPass = GetCurrentPass();
+            if (currentPipe < 0 || currentPipe >= m_numPipe)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+
+            if (eStatus == MOS_STATUS_SUCCESS)
+            {
+                uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
+                m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex] = *cmdBuffer;
+                m_osInterface->pfnReturnCommandBuffer(m_osInterface, &m_realCmdBuffer, 0);
+            }
         }
     }
 
@@ -2703,29 +2725,37 @@ MOS_STATUS CodechalVdencVp9StateG11::SubmitCommandBuffer(
     }
     else // virtual engine
     {
-        if (!IsLastPipe())
+        if (m_osInterface->phasedSubmission)
         {
-            return eStatus;
+            CodecHalEncodeScalability_EncodePhaseToSubmissionType(IsFirstPipe(),&m_realCmdBuffer);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, nullRendering));
         }
-        int currentPass = GetCurrentPass();
-        for (auto i = 0; i < m_numPipe; i++)
+        else
         {
-            uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-            PMOS_COMMAND_BUFFER cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][i][passIndex];
-
-            if (cmdBuffer->pCmdBase)
+            if (!IsLastPipe())
             {
-                m_osInterface->pfnUnlockResource(m_osInterface, &cmdBuffer->OsResource);
+                return eStatus;
+            }
+            int currentPass = GetCurrentPass();
+            for (auto i = 0; i < m_numPipe; i++)
+            {
+                uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
+                PMOS_COMMAND_BUFFER cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][i][passIndex];
+
+                if (cmdBuffer->pCmdBase)
+                {
+                    m_osInterface->pfnUnlockResource(m_osInterface, &cmdBuffer->OsResource);
+                }
+
+                cmdBuffer->pCmdBase = 0;
+                cmdBuffer->iOffset = cmdBuffer->iRemaining = 0;
             }
 
-            cmdBuffer->pCmdBase = 0;
-            cmdBuffer->iOffset = cmdBuffer->iRemaining = 0;
-        }
-
-        if (eStatus == MOS_STATUS_SUCCESS)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&m_realCmdBuffer));
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, nullRendering));
+            if (eStatus == MOS_STATUS_SUCCESS)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&m_realCmdBuffer));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, nullRendering));
+            }
         }
     }
 
@@ -2734,7 +2764,8 @@ MOS_STATUS CodechalVdencVp9StateG11::SubmitCommandBuffer(
 
 MOS_STATUS CodechalVdencVp9StateG11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    bool frameTrackingRequested)
+    bool frameTrackingRequested,
+    MHW_MI_MMIOREGISTERS *mmioRegister)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -3163,6 +3194,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
 
     if ((!m_singleTaskPhaseSupported || m_firstTaskInPhase) && !m_scalableMode)
     {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         // Send command buffer header at the beginning (OS dependent)
         // frame tracking tag is only added in the last command buffer header
         bool requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : 0;
@@ -3170,21 +3202,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
         m_firstTaskInPhase = false;
     }
     int currPass = GetCurrentPass();
-    if (m_scalableMode && m_isTilingSupported)
-    {
-        // Define huc done semaphore to be empty at the start
-        for (auto i = 0; i < m_numPipe; i++)
-        {
-            SetSemaphoreMem(&m_hucDoneSemaphoreMem[i].sResource, &cmdBuffer, 0);
-        }
-        // Wait here for pak int done from previous pass
-        if (IsLastPass())
-        {
-            SendHWWaitCommand(&m_pakIntDoneSemaphoreMem.sResource, &cmdBuffer, currPass);
-            SetSemaphoreMem(&m_pakIntDoneSemaphoreMem.sResource, &cmdBuffer, 0);
-        }
-    }
-
+    
     // load kernel from WOPCM into L2 storage RAM
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;
     MOS_ZeroMemory(&imemParams, sizeof(imemParams));
@@ -3292,23 +3310,6 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
     storeRegParams.dwRegister = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1)->hucStatusRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
 
-    // In case of other pipes running other tiles, signal the vdenc/pak hw commands there to proceed because huc done
-    if (m_scalableMode && m_isTilingSupported)
-    {
-        for (auto i = 1; i < m_numPipe; i++)
-        {
-            if (!Mos_ResourceIsNull(&m_hucDoneSemaphoreMem[i].sResource))
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                    SetSemaphoreMem(
-                        &m_hucDoneSemaphoreMem[i].sResource,
-                        &cmdBuffer,
-                        (currPass + 1))
-                );
-            }
-        }
-    }
-
     // For superframe pass, after HuC executes, write the updated size (combined frame size) to status report
     // So app knows total size instead of just the showframe size
     if (m_superFrameHucPass)
@@ -3333,6 +3334,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
 
     if ((!m_singleTaskPhaseSupported && !m_scalableMode) || m_superFrameHucPass)
     {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
@@ -3504,18 +3506,12 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
 
     if ((!m_singleTaskPhaseSupported || (m_firstTaskInPhase && !m_brcInit)) && !m_scalableMode)
     {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         // Send command buffer header at the beginning (OS dependent)
         bool requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : 0;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
 
         m_firstTaskInPhase = false;
-    }
-
-    // For Scalability, wait here for previous pass PAK int done
-    if (m_scalableMode && !IsFirstPass() && m_isTilingSupported && !m_brcInit && !m_brcReset)
-    {
-        SendHWWaitCommand(&m_pakIntDoneSemaphoreMem.sResource, &cmdBuffer, currPass);
-        SetSemaphoreMem(&m_pakIntDoneSemaphoreMem.sResource, &cmdBuffer, 0);
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer, m_pictureCodingType));
@@ -3631,6 +3627,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
@@ -3751,6 +3748,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcInitReset()
 
     if ((!m_singleTaskPhaseSupported || m_firstTaskInPhase) && !m_scalableMode)
     {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         // Send command buffer header at the beginning (OS dependent)
         bool requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : 0;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
@@ -3811,6 +3809,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcInitReset()
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
@@ -3921,7 +3920,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
     }
 
-    if (IsFirstPass())
+    if (IsFirstPass() && IsFirstPipe())
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPakInsertObjBatchBuf(&m_resHucPakInsertUncompressedHeaderReadBuffer));
     }
@@ -4151,8 +4150,14 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
                 //Reset earlier set PAK perf tag
                 m_osInterface->pfnResetPerfBufferID(m_osInterface);
                 // Add Hpu tag here after updated
+                CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_8X8_PU);
             }
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCVp9Prob());
+            if (!m_singleTaskPhaseSupported)
+            {
+                //reset performance buffer used for HPU update
+                m_osInterface->pfnResetPerfBufferID(m_osInterface);
+            }
         }
     }
     else
@@ -4247,16 +4252,46 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
 
     // Place hw semaphore on all other pipe to wait for first pipe HUC to finish. Apply for all passes after extend the Dmen HPU buffer size
     int currPipe = GetCurrentPipe();
-    if (m_scalableMode && m_hucEnabled && m_isTilingSupported)
+    if (m_scalableMode)
     {
-        if (!IsFirstPipe())
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
+
+        //HW Semaphore cmd to make sure all pipes start encode at the same time
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resPipeStartSync, 1, MHW_MI_ATOMIC_INC, &cmdBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(
+            &m_resPipeStartSync,
+            &cmdBuffer,
+            m_numPipe));
+
+        // Program some placeholder cmds to resolve the hazard between pipe sync
+        MHW_MI_STORE_DATA_PARAMS dataParams;
+        dataParams.pOsResource = &m_resDelayMinus;
+        dataParams.dwResourceOffset = 0;
+        dataParams.dwValue = 0xDE1A;
+        for (uint32_t i = 0; i < m_numDelay; i++)
         {
-            if (!Mos_ResourceIsNull(&m_hucDoneSemaphoreMem[currPipe].sResource))
-            {
-                // On second pipe, wait here for huc to finish on first pipe
-                SendHWWaitCommand(&m_hucDoneSemaphoreMem[currPipe].sResource, &cmdBuffer, (currPass + 1));
-                SetSemaphoreMem(&m_hucDoneSemaphoreMem[currPipe].sResource, &cmdBuffer, 0);
-            }
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+                &cmdBuffer,
+                &dataParams));
+        }
+
+        //clean HW semaphore memory
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resPipeStartSync, 1, MHW_MI_ATOMIC_DEC, &cmdBuffer));
+
+        //Start Watchdog Timer
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStartCmd(&cmdBuffer));
+    }
+
+    // clean-up per VDBOX semaphore memory, only in the first BRC pass. Same semaphore is re-used across BRC passes for stitch command
+    if (IsFirstPass())
+    {
+        if (!Mos_ResourceIsNull(&m_stitchWaitSemaphoreMem[currPipe].sResource))
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(
+                SetSemaphoreMem(
+                    &m_stitchWaitSemaphoreMem[currPipe].sResource,
+                    &cmdBuffer,
+                    false));
         }
     }
 
@@ -4693,23 +4728,6 @@ MOS_STATUS CodechalVdencVp9StateG11::AllocateResources()
             MOS_ZeroMemory(data, allocParamsForBufferLinear.dwBytes);
             m_osInterface->pfnUnlockResource(m_osInterface, &m_hucPakIntBrcDataBuffer);
 
-            // Allocate Semaphore memory for HUC to signal other pipe VDENC/PAK to continue
-            MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-            allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
-            allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-            allocParamsForBufferLinear.Format = Format_Buffer;
-            allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
-            allocParamsForBufferLinear.pBufName = "GEN11 HUC done Semaphore Memory";
-
-            for (auto i = 0; i < m_numPipe; i++)
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN((MOS_STATUS)m_osInterface->pfnAllocateResource(
-                    m_osInterface,
-                    &allocParamsForBufferLinear,
-                    &m_hucDoneSemaphoreMem[i].sResource));
-                m_hucDoneSemaphoreMem[i].dwSize = allocParamsForBufferLinear.dwBytes;
-            }
-
             // Allocate Semaphore memory for VDEnc/PAK on all pipes to signal stitch command to stop waiting
             MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
             allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
@@ -4720,27 +4738,109 @@ MOS_STATUS CodechalVdencVp9StateG11::AllocateResources()
 
             for (auto i = 0; i < m_numPipe; i++)
             {
+                uint32_t* data = nullptr;
+
                 CODECHAL_ENCODE_CHK_STATUS_RETURN((MOS_STATUS)m_osInterface->pfnAllocateResource(
                     m_osInterface,
                     &allocParamsForBufferLinear,
                     &m_stitchWaitSemaphoreMem[i].sResource));
+
                 m_stitchWaitSemaphoreMem[i].dwSize = allocParamsForBufferLinear.dwBytes;
+
+                data = (uint32_t*)m_osInterface->pfnLockResource(
+                    m_osInterface,
+                    &m_stitchWaitSemaphoreMem[i].sResource,
+                    &lockFlags);
+
+                CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+                *data = 1;
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+                    m_osInterface,
+                    &m_stitchWaitSemaphoreMem[i].sResource));
             }
 
-            // Allocate semaphore memory for HUC HPU or BRC to wait on previous pass' PAK Integration command to finish
-            MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-            allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
-            allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-            allocParamsForBufferLinear.Format = Format_Buffer;
-            allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
-            allocParamsForBufferLinear.pBufName = "GEN11 VDEnc PAK Int done Semaphore Memory";
-
-            CODECHAL_ENCODE_CHK_STATUS_RETURN((MOS_STATUS)m_osInterface->pfnAllocateResource(
-                m_osInterface,
-                &allocParamsForBufferLinear,
-                &m_pakIntDoneSemaphoreMem.sResource));
-            m_pakIntDoneSemaphoreMem.dwSize = allocParamsForBufferLinear.dwBytes;
         }
+        uint32_t* data = nullptr;
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+        allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+        allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+        allocParamsForBufferLinear.Format = Format_Buffer;
+        allocParamsForBufferLinear.pBufName = "Pipe Start Sync memory";
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_resPipeStartSync));
+
+        data = (uint32_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resPipeStartSync,
+            &lockFlagsWriteOnly);
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+            m_osInterface,
+            &m_resPipeStartSync));
+
+        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+        allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+        allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+        allocParamsForBufferLinear.Format = Format_Buffer;
+        allocParamsForBufferLinear.pBufName = "Frame Start Sync memory";
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_resFrameStartSync));
+
+        data = (uint32_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resFrameStartSync,
+            &lockFlagsWriteOnly);
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+            m_osInterface,
+            &m_resFrameStartSync));
+
+        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+        allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+        allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+        allocParamsForBufferLinear.Format = Format_Buffer;
+        allocParamsForBufferLinear.pBufName = "DelayMinusMemory";
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_resDelayMinus));
+
+        data = (uint32_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resDelayMinus,
+            &lockFlagsWriteOnly);
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+            m_osInterface,
+            &m_resDelayMinus));
     }
 
     return eStatus;
@@ -4848,16 +4948,6 @@ void CodechalVdencVp9StateG11::FreeResources()
             }
         }
 
-        for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_hucDoneSemaphoreMem); i++)
-        {
-            if (!Mos_ResourceIsNull(&m_hucDoneSemaphoreMem[i].sResource))
-            {
-                m_osInterface->pfnFreeResource(
-                    m_osInterface,
-                    &m_hucDoneSemaphoreMem[i].sResource);
-            }
-        }
-
         for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_stitchWaitSemaphoreMem); i++)
         {
             if (!Mos_ResourceIsNull(&m_stitchWaitSemaphoreMem[i].sResource))
@@ -4868,15 +4958,52 @@ void CodechalVdencVp9StateG11::FreeResources()
             }
         }
 
-        if (!Mos_ResourceIsNull(&m_pakIntDoneSemaphoreMem.sResource))
+        if (!Mos_ResourceIsNull(&m_resPipeStartSync))
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &m_pakIntDoneSemaphoreMem.sResource);
+                &m_resPipeStartSync);
+        }
+
+        if (!Mos_ResourceIsNull(&m_resFrameStartSync))
+        {
+            m_osInterface->pfnFreeResource(
+                m_osInterface,
+                &m_resFrameStartSync);
+        }
+
+        if (!Mos_ResourceIsNull(&m_resDelayMinus))
+        {
+            m_osInterface->pfnFreeResource(
+                m_osInterface,
+                &m_resDelayMinus);
         }
     }
 
     return;
+}
+
+MOS_STATUS CodechalVdencVp9StateG11::SendMIAtomicCmd(
+    PMOS_RESOURCE               semaMem,
+    uint32_t                    immData,
+    MHW_COMMON_MI_ATOMIC_OPCODE opCode,
+    PMOS_COMMAND_BUFFER         cmdBuffer
+)
+{
+    MHW_MI_ATOMIC_PARAMS       atomicParams;
+    MOS_STATUS                 eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_ZeroMemory((&atomicParams), sizeof(atomicParams));
+    atomicParams.pOsResource = semaMem;
+    atomicParams.dwDataSize = sizeof(uint32_t);
+    atomicParams.Operation = opCode;
+    atomicParams.bInlineData = true;
+    atomicParams.dwOperand1Data[0] = immData;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(cmdBuffer, &atomicParams));
+
+    return eStatus;
 }
 
 MOS_STATUS CodechalVdencVp9StateG11::Initialize(CodechalSetting * settings)

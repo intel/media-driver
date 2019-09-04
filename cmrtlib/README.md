@@ -1,4 +1,4 @@
-# Intel(R) C for Media Runtime
+# Intel(R) C for Metal Runtime
 
 
 ## Introduction
@@ -7,7 +7,7 @@ cmrtlib is a runtime library needed when user wants to execute their own GPU ker
 
 ## License
 
-The Intel(R) C for Media Runtime is distributed under the MIT license.
+The Intel(R) C for Metal Runtime is distributed under the MIT license.
 You may obtain a copy of the License at:
 
 https://opensource.org/licenses/MIT

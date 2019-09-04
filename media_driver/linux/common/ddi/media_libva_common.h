@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,10 @@
 #include "mos_context.h"
 #include "mos_gpucontextmgr.h"
 #include "mos_cmdbufmgr.h"
+
+#include "mos_context_next.h"
+#include "mos_gpucontextmgr_next.h"
+#include "mos_cmdbufmgr_next.h"
 
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
@@ -130,8 +134,8 @@ typedef sem_t MEDIA_SEM_T, *PMEDIA_SEM_T;
 #define VA_FOURCC_I420        VA_FOURCC('I','4','2', '0')
 #endif
 
-#define RGB_10BIT_ALPHAMASK     0X30000
-#define RGB_8BIT_ALPHAMASK      0XFF0000
+#define RGB_10BIT_ALPHAMASK     VA_RT_FORMAT_RGB32_10BPP
+#define RGB_8BIT_ALPHAMASK      0
 
 #define MEDIAAPI_EXPORT __attribute__((visibility("default")))
 
@@ -170,6 +174,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_P010        ,
     Media_Format_R8G8B8      ,
     Media_Format_RGBP        ,
+    Media_Format_BGRP        ,
 
     Media_Format_P016        ,
     Media_Format_Y210        ,
@@ -177,7 +182,13 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_AYUV        ,
     Media_Format_Y410        ,
     Media_Format_Y416        ,
-
+    Media_Format_Y8          ,
+    Media_Format_Y16S        ,
+    Media_Format_Y16U        ,
+    Media_Format_VYUY        ,
+    Media_Format_YVYU        ,
+    Media_Format_A16R16G16B16,
+    Media_Format_A16B16G16R16,
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
 
@@ -200,6 +211,7 @@ typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR
     uintptr_t  ulBuffer;                              // buffer handle or user pointer
     uint32_t   uiSize;                                // buffer size
     uint32_t   uiFlags;                               // See "Surface external buffer descriptor flags"
+    uint32_t   uiVaMemType;                           // VA Mem type
     uint32_t   uiTile;                                // Used for user pointer
     uint32_t   uiBuffserSize;                         // Used for user pointer
     bool       bIsGralloc;                            // buffer allocated by Gralloc
@@ -423,6 +435,9 @@ struct DDI_MEDIA_CONTEXT
     GpuContextMgr      *m_gpuContextMgr;
     CmdBufMgr          *m_cmdBufMgr;
 
+    // Apogeio MOS module
+    MOS_DEVICE_HANDLE   m_osDeviceContext = MOS_INVALID_HANDLE;
+
     // mutexs to protect the shared resource among multiple context
     MEDIA_MUTEX_T       SurfaceMutex;
     MEDIA_MUTEX_T       BufferMutex;
@@ -444,7 +459,6 @@ struct DDI_MEDIA_CONTEXT
         PMOS_CONTEXT  pMosCtx,
         PMOS_RESOURCE pOsResource);
 
-    uint32_t            FeiFunction;
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;

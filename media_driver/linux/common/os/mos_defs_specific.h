@@ -43,6 +43,8 @@ typedef VAStatus                            MOS_OSRESULT;
 #include <stdarg.h>
 #define MOS_FUNC_EXPORT                     __attribute__((visibility("default")))
 #define MOS_DATA_EXPORT                     __attribute__((visibility("default")))
+#define MOS_FUNC_PRIVATE                    __attribute__((visibility("hidden")))
+#define MOS_DATA_PRIVATE                    __attribute__((visibility("hidden")))
 #define MOS_EXPORT_DECL
 
 #ifndef __UFO_PORTABLE_DATATYPE_DEFINED__
@@ -81,7 +83,8 @@ typedef struct _TP_CALLBACK_INSTANCE TP_CALLBACK_INSTANCE, *PTP_CALLBACK_INSTANC
 /* compile-time ASSERT */
 
 #ifndef C_ASSERT
-    #define __UNIQUENAME( a1, a2 )  __CONCAT( a1, a2 )
+    #define __CONCATING( a1, a2 )   a1 ## a2
+    #define __UNIQUENAME( a1, a2 )  __CONCATING( a1, a2 )
     #define UNIQUENAME( __text )    __UNIQUENAME( __text, __COUNTER__ )
     #define C_ASSERT(e) typedef char UNIQUENAME(STATIC_ASSERT_)[(e)?1:-1]
 #endif
@@ -108,5 +111,12 @@ typedef struct _TP_CALLBACK_INSTANCE TP_CALLBACK_INSTANCE, *PTP_CALLBACK_INSTANC
 
 #define vsprintf_s(pBuffer, size, format, arg)              vsnprintf(pBuffer, size, format, arg)
 #define sprintf_s(pBuffer, size, format, ...)               snprintf(pBuffer, size, format, ##__VA_ARGS__)
+
+enum SYNC_HAZARD
+{
+    SYNC_RAW_HAZARD,
+    SYNC_WAR_HAZARD,
+    SYNC_WAW_HAZARD
+};
 
 #endif // __MOS_DEFS_SPECIFIC_H__

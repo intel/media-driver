@@ -131,17 +131,18 @@ enum CM_BUFFER_TYPE
 {
     CM_BUFFER_N   = 0,
     CM_BUFFER_UP  = 1,
-    CM_BUFFER_SVM = 2
+    CM_BUFFER_SVM = 2,
+    CM_BUFFER_STATELESS = 5
 };
 
 struct CM_CREATEBUFFER_PARAM
 {
-    uint32_t size;              // [in]  buffer size in byte
-    CM_BUFFER_TYPE bufferType;  // [in]  Buffer type (Buffer, BufferUP, or Buffer SVM)
+    size_t size;              // [in]  buffer size in byte
+    CM_BUFFER_TYPE bufferType;  // [in]  Buffer type (Buffer, BufferUP, Buffer SVM, Buffer Stateless)
     void *sysMem;               // [in]  Address of system memory
     void *cmBufferHandle;       // [out] pointer to CmBuffer object in CMRT@UMD
     int32_t returnValue;        // [out] the return value from CMRT@UMD
-    uint32_t reserved;          // Reserved field to ensure sizeof(CM_CREATEBUFFER_PARAM_V2) is different from sizeof(CM_CREATEBUFFER_PARAM_V1) in x64 mode
+    uint32_t option;
 };
 
 struct CM_DESTROYCMDEVICE_PARAM
@@ -294,6 +295,12 @@ struct CM_DEVICE_INIT_PRINT_BUFFER_PARAM
     uint32_t printBufferSize;   // [in] print buffer's size
     void *printBufferMem;       // [out] print buffer's memory
     int32_t returnValue;        //[out] return value
+};
+
+struct CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM
+{
+    const char          *fileName;                //[in] target file name
+    int32_t             returnValue;              //[out] return value
 };
 
 struct CM_CREATEVEBOX_PARAM

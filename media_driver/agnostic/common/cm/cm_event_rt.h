@@ -30,6 +30,7 @@
 #include "cm_event.h"
 #include "cm_csync.h"
 #include "cm_hal.h"
+#include "cm_log.h"
 
 namespace CMRT_UMD
 {
@@ -118,6 +119,14 @@ public:
 
     int32_t GetQueue(CmQueueRT *&queue);
 
+    int32_t Query();
+
+    CM_STATUS GetStatusWithoutFlush();
+
+#if CM_LOG_ON
+    std::string Log(const char *callerFuncName);
+#endif
+
 protected:
     CmEventRT(uint32_t index,
               CmQueueRT *queue,
@@ -130,8 +139,6 @@ protected:
 
     int32_t Initialize();
 
-    int32_t Query();
-
     void UnreferenceIfNeeded(void *pdata);
 
     uint32_t m_index;
@@ -141,6 +148,8 @@ protected:
     CM_STATUS m_status;
     uint64_t m_time;
     uint64_t m_ticks;
+    uint64_t m_hwStartTimeStampInTicks;
+    uint64_t m_hwEndTimeStampInTicks;
 
     LARGE_INTEGER m_globalSubmitTimeCpu; // The CM task submission time in CPU
     LARGE_INTEGER m_submitTimeGpu;       // The CM task submission time in GPU

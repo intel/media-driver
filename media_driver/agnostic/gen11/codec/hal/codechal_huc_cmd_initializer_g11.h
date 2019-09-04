@@ -175,14 +175,14 @@ public:
 
     //! Inherited virtual functions
     virtual MOS_STATUS CmdInitializerAllocateResources(
-        CodechalHwInterface*    m_hwInterface);
+        CodechalHwInterface*    m_hwInterface) override;
 
-    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled);
+    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled) override;
 
     //!
     //! \brief    Free Resources
     //!
-    virtual void CmdInitializerFreeResources();
+    virtual void CmdInitializerFreeResources() override;
 
     //!
     //! \brief    Add copy commands of command initializer HuC FW
@@ -267,7 +267,7 @@ protected:
 
     MOS_RESOURCE    m_cmdInitializerCopyDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];      //!< Dmem buffer for huc cmd initialization copy
     MOS_RESOURCE    m_cmdInitializerCopyDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];      //!< Data buffer for huc cmd initialization copy
-    MHW_BATCH_BUFFER    m_vdencCopyBatchBuffer;             //!< SLB for huc cmd initialization copy
+    MHW_BATCH_BUFFER    m_vdencCopyBatchBuffer = {};             //!< SLB for huc cmd initialization copy
 
     //!
     //! \brief    Set dmem buffer for huc cmd initialization copy

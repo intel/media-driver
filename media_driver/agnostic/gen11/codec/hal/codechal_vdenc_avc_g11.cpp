@@ -30,6 +30,7 @@
 #include "codechal_kernel_hme_g11.h"
 #include "mhw_vdbox_vdenc_g11_X.h"
 #include "mhw_vdbox_g11_X.h"
+#include "hal_oca_interface.h"
 #include "mos_util_user_interface.h"
 #if defined(ENABLE_KERNELS)
 #include "igcodeckrn_g11.h"
@@ -142,7 +143,8 @@ struct CodechalVdencAvcStateG11::BrcInitDmem
     uint8_t     INIT_ICQReEncode_U8;                  // 0: disabled, 1: enabled
     uint8_t     Reserved_u8;                          // must be zero
     uint8_t     INIT_SinglePassOnly;                  // 0: disabled, 1: enabled
-    uint8_t     RSVD2[56];                            // must be zero
+    uint8_t     INIT_New_DeltaQP_Adaptation_U8;       // = 1 to enable new delta QP adaption
+    uint8_t     RSVD2[55];                            // must be zero
 };
 
 struct CodechalVdencAvcStateG11::BrcUpdateDmem
@@ -1140,6 +1142,7 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
         }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
 
         CODECHAL_DEBUG_TOOL(
@@ -1345,6 +1348,24 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcInitReset()
 
     dmem->INIT_SinglePassOnly = m_vdencSinglePassEnable;
 
+    if (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING)
+    {
+        if (m_avcSeqParam->RateControlMethod == RATECONTROL_VBR)
+        {
+            m_avcSeqParam->MaxBitRate = m_avcSeqParam->TargetBitRate;
+        }
+
+        // Disable delta QP adaption for non-VCM/ICQ/LowDelay until we have better algorithm
+        if ((m_avcSeqParam->RateControlMethod != RATECONTROL_VCM) &&
+            (m_avcSeqParam->RateControlMethod != RATECONTROL_ICQ) &&
+            (m_avcSeqParam->FrameSizeTolerance != EFRAMESIZETOL_EXTREMELY_LOW))
+        {
+            dmem->INIT_DeltaQP_Adaptation_U8 = 0;
+        }
+
+        dmem->INIT_New_DeltaQP_Adaptation_U8 = 1;
+    }
+
     if (((m_avcSeqParam->TargetUsage & 0x07) == TARGETUSAGE_BEST_SPEED) &&
         (m_avcSeqParam->FrameWidth >= m_singlePassMinFrameWidth) &&
         (m_avcSeqParam->FrameHeight >= m_singlePassMinFrameHeight) &&
@@ -1414,7 +1435,7 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcUpdate()
     dmem->UPD_WidthInMB_U16 = m_picWidthInMb;
     dmem->UPD_HeightInMB_U16 = m_picHeightInMb;
 
-    dmem->MOTION_ADAPTIVE_G4 = 0;
+    dmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING);
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(
@@ -1554,7 +1575,8 @@ MOS_STATUS CodechalVdencAvcStateG11::CalculateVdencPictureStateCommandSize()
 
 MOS_STATUS CodechalVdencAvcStateG11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTracking)
+    bool                        frameTracking,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
     if (MOS_VE_SUPPORTED(m_osInterface) && cmdBuffer->Attributes.pAttriVe)
     {
@@ -1564,7 +1586,7 @@ MOS_STATUS CodechalVdencAvcStateG11::SendPrologWithFrameTracking(
         attriExt->VEngineHintParams.NeedSyncWithPrevious = 1;
     }
 
-    return CodechalVdencAvcState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+    return CodechalVdencAvcState::SendPrologWithFrameTracking(cmdBuffer, frameTracking, mmioRegister);
 }
 
 PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxStateCmdsizeParams()

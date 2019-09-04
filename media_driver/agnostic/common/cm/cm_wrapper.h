@@ -411,6 +411,12 @@ typedef struct _CM_DEVICE_INIT_PRINT_BUFFER_PARAM
     int32_t             returnValue;                   //[out] return value
 }CM_DEVICE_INIT_PRINT_BUFFER_PARAM, *PCM_DEVICE_INIT_PRINT_BUFFER_PARAM;
 
+typedef struct _CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM
+{
+    const char          *fileName;                     //[in] target file name
+    int32_t             returnValue;                   //[out] return value
+}CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM, *PCM_DEVICE_FLUSH_PRINT_BUFFER_PARAM;
+
 typedef struct _CM_CREATEVEBOX_PARAM
 {
     void                    *veboxHandle;         // [out] CmVeboxG75's handle
@@ -530,6 +536,8 @@ enum CM_FUNCTION_ID
     CM_FN_CMDEVICE_CREATEHEVCVMESURFACEG10    = 0x113F,
     CM_FN_CMDEVICE_GETVISAVERSION             = 0x1140,
     CM_FN_CMDEVICE_CREATEQUEUEEX              = 0x1141,
+    CM_FN_CMDEVICE_FLUSH_PRINT_BUFFER         = 0x1142,
+    CM_FN_CMDEVICE_DESTROYBUFFERSTATELESS     = 0x1143,
 
     CM_FN_CMQUEUE_ENQUEUE           = 0x1500,
     CM_FN_CMQUEUE_DESTROYEVENT      = 0x1501,

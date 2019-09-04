@@ -35,6 +35,7 @@
 #include <memory>
 #include <string>
 #include "heap.h"
+#include "frame_tracker.h"
 
 //! \brief   Describes a block of memory in a heap.
 //! \details For internal use by the MemoryBlockManager only.
@@ -120,6 +121,12 @@ public:
     //! \return This block's tracker ID \see m_trackerId
     //!
     uint32_t GetTrackerId() { return m_trackerId; }
+
+    //!
+    //! \brief  Gets the tracker Producer
+    //! \return This block's tracker producer \see m_trackerProducer
+    //!
+    FrameTrackerToken *GetTrackerToken() { return &m_trackerToken; }
 
     //!
     //! \brief  Indicates whether or not the memory block is static
@@ -226,6 +233,13 @@ protected:
     MOS_STATUS Allocate(uint32_t trackerId);
 
     //!
+    //! \brief  Indicates that the block may be edited
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS Allocate(uint32_t index, uint32_t trackerId, FrameTrackerProducer *producer = nullptr);
+
+    //!
     //! \brief  Indicates that the client is done editing the memory block.
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
@@ -299,6 +313,8 @@ private:
     bool m_static = false;
     //! \brief Software tag used to determine whether or not a memory block is still in use.
     uint32_t m_trackerId = m_invalidTrackerId;
+    //! \brief Multiple software tags used to determine whether or not a memory block is still in use.
+    FrameTrackerToken m_trackerToken;
 
     //! \brief   The previous block in memory, this block is adjacent in heap memory.
     //! \details Due to the way that the memory manager handles heap memory block lists--by having

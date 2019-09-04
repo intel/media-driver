@@ -135,6 +135,8 @@ typedef struct _MHW_STATE_BASE_ADDR_PARAMS
     uint32_t                mocs4GeneralState;
     uint32_t                mocs4DynamicState;
     uint32_t                mocs4SurfaceState;
+    uint32_t                mocs4IndirectObjectBuffer;
+    uint32_t                mocs4StatelessDataport;
 } MHW_STATE_BASE_ADDR_PARAMS, *PMHW_STATE_BASE_ADDR_PARAMS;
 
 typedef struct _MHW_VFE_SCOREBOARD_DELTA
@@ -264,7 +266,6 @@ typedef struct _MHW_WALKER_PARAMS
 
     bool                    bAddMediaFlush;
     bool                    bRequestSingleSlice;
-    bool                    bForceNoneCpWorkload;
 
     uint32_t                IndirectDataLength;
     uint32_t                IndirectDataStartAddress;
@@ -578,6 +579,14 @@ public:
     //! \return   void
     //!
     void SetOsInterface(PMOS_INTERFACE osInterface) { m_osInterface = osInterface;}
+
+    //!
+    //! \brief    Get mmio registers address
+    //! \details  Get mmio registers address
+    //! \return   [out] PMHW_MI_MMIOREGISTERS*
+    //!           mmio registers got.
+    //!
+    virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters() = 0;
 
 protected:
     //!

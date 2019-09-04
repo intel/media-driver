@@ -33,7 +33,7 @@
 
 // The below definitions will prevent other files from redefining types.
 #define BASIC_TYPES_DEFINED 1
-#define BOOL_DEF            1
+#define BOOL_DEF            1  
 
 #include <stdio.h>       // FILE
 #include <stdint.h>
@@ -333,7 +333,9 @@ typedef enum _MOS_STATUS
     MOS_STATUS_CLIENT_AR_NO_SPACE                = 28,
     MOS_STATUS_HUC_KERNEL_FAILED                 = 29,
     MOS_STATUS_NOT_ENOUGH_BUFFER                 = 30,
-    MOS_STATUS_UNKNOWN                           = 31
+    MOS_STATUS_UNINITIALIZED                     = 31,
+    MOS_STATUS_GPU_CONTEXT_ERROR                 = 32,
+    MOS_STATUS_UNKNOWN                           = 33
 } MOS_STATUS;
 
 //!
@@ -418,7 +420,8 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_VIDEO6          = 19, // Encode Node 0 Split 2
     MOS_GPU_CONTEXT_VIDEO7          = 20, // Decode Node 0 Split 3
     MOS_GPU_CONTEXT_BLT             = 21,
-    MOS_GPU_CONTEXT_MAX             = 22,
+    MOS_GPU_CONTEXT_RTE             = 22, // RTE context
+    MOS_GPU_CONTEXT_MAX             = 23,
     MOS_GPU_CONTEXT_INVALID_HANDLE  = 0xFFFFA
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
 
@@ -481,6 +484,10 @@ enum MOS_MEMCOMP_STATE
 typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
 typedef uint32_t               GPU_CONTEXT_HANDLE;
 
-#define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   4
+#define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   8
+
+//APO wrapper
+extern uint32_t g_apoMosEnabled;
+#define MOS_INVALID_HANDLE 0
 
 #endif // __MOS_DEFS_H__

@@ -26,6 +26,7 @@
 #include "mhw_utilities.h"
 #include "mhw_render.h"
 #include "mhw_state_heap.h"
+#include "hal_oca_interface.h"
 
 #define MHW_NS_PER_TICK_RENDER_ENGINE 80  // 80 nano seconds per tick in render engine
 
@@ -330,7 +331,8 @@ finish:
 //!
 MOS_STATUS Mhw_SendGenericPrologCmd (
     PMOS_COMMAND_BUFFER         pCmdBuffer,
-    PMHW_GENERIC_PROLOG_PARAMS  pParams)
+    PMHW_GENERIC_PROLOG_PARAMS  pParams,
+    MHW_MI_MMIOREGISTERS       *pMmioReg)
 {
     PMOS_INTERFACE                  pOsInterface;
     MhwMiInterface                  *pMiInterface;
@@ -441,6 +443,16 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
     }
 
     MHW_CHK_STATUS(pMiInterface->AddProtectedProlog(pCmdBuffer));
+
+    if (pMmioReg)
+    {
+        HalOcaInterface::On1stLevelBBStart(
+            *pCmdBuffer,
+            *pOsInterface->pOsContext,
+            pOsInterface->CurrentGpuContextHandle,
+            *pMiInterface,
+            *pMmioReg);
+    }
 
 finish:
     return eStatus;

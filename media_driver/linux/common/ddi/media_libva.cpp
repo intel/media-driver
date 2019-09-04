@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #include "mos_util_user_interface.h"
 #include "cplib_utils.h"
 #include "media_interfaces.h"
+#include "mos_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -439,6 +440,8 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_444P;
         case Media_Format_RGBP:
             return VA_FOURCC_RGBP;
+        case Media_Format_BGRP:
+            return VA_FOURCC_BGRP;
         case Media_Format_Buffer:
             return VA_FOURCC_P208;
         case Media_Format_P010:
@@ -455,6 +458,21 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_Y410;
         case Media_Format_Y416:
             return VA_FOURCC_Y416;
+        case Media_Format_Y8:
+            return VA_FOURCC_Y8;
+        case Media_Format_Y16S:
+            return VA_FOURCC_Y16;
+        case Media_Format_Y16U:
+            return VA_FOURCC_Y16;
+        case Media_Format_VYUY:
+            return VA_FOURCC_VYUY;
+        case Media_Format_YVYU:
+            return VA_FOURCC_YVYU;
+        case Media_Format_A16R16G16B16:
+            return VA_FOURCC_ARGB64;
+        case Media_Format_A16B16G16R16:
+            return VA_FOURCC_ABGR64;
+
         default:
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
@@ -475,6 +493,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
 {
     switch (fourcc)
     {
+        case VA_FOURCC_A2R10G10B10:
+            return Media_Format_B10G10R10A2;
         case VA_FOURCC_BGRA:
         case VA_FOURCC_ARGB:
 #ifdef VA_RT_FORMAT_RGB32_10BPP
@@ -536,8 +556,9 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
         case VA_FOURCC_IMC3:
             return Media_Format_IMC3;
         case VA_FOURCC_444P:
-        case VA_FOURCC_BGRP:
             return Media_Format_444P;
+        case VA_FOURCC_BGRP:
+            return Media_Format_BGRP;
         case VA_FOURCC_RGBP:
             return Media_Format_RGBP;
         case VA_FOURCC_P208:
@@ -556,98 +577,19 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
             return Media_Format_Y410;
         case VA_FOURCC_Y416:
             return Media_Format_Y416;
-        default:
-            return Media_Format_Count;
-    }
-}
+        case VA_FOURCC_Y8:
+            return Media_Format_Y8;
+        case VA_FOURCC_Y16:
+            return Media_Format_Y16S;
+        case VA_FOURCC_VYUY:
+            return Media_Format_VYUY;
+        case VA_FOURCC_YVYU:
+            return Media_Format_YVYU;
+        case VA_FOURCC_ARGB64:
+            return Media_Format_A16R16G16B16;
+        case VA_FOURCC_ABGR64:
+            return Media_Format_A16B16G16R16;
 
-//!
-//! \brief  Apply Os format alpha mask to media format 
-//! 
-//! \param  [in] fourcc
-//!         FourCC
-//! \param  [in] alphaMask
-//!         Alpha mask
-//!
-//! \return DDI_MEDIA_FORMAT
-//!     Ddi media format
-//!
-DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t alphaMask)
-{
-    switch (fourcc)
-    {
-        case VA_FOURCC_BGRA:
-        case VA_FOURCC_ARGB:
-            if(RGB_10BIT_ALPHAMASK == alphaMask)
-            {
-                return Media_Format_B10G10R10A2;
-            }
-            else
-            {
-                return Media_Format_A8R8G8B8;
-            }
-        case VA_FOURCC_RGBA:
-            if(RGB_10BIT_ALPHAMASK == alphaMask)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-            else
-            {
-                return Media_Format_R8G8B8A8;
-            }
-        case VA_FOURCC_ABGR:
-            if(RGB_10BIT_ALPHAMASK == alphaMask)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-            else
-            {
-                return Media_Format_A8B8G8R8;
-            }
-        case VA_FOURCC_BGRX:
-        case VA_FOURCC_XRGB:
-            return Media_Format_X8R8G8B8;
-        case VA_FOURCC_XBGR:
-        case VA_FOURCC_RGBX:
-            return Media_Format_X8B8G8R8;
-        case VA_FOURCC_R5G6B5:
-            return Media_Format_R5G6B5;
-        case VA_FOURCC_R8G8B8:
-            return Media_Format_R8G8B8;
-        case VA_FOURCC_NV12:
-            return Media_Format_NV12;
-        case VA_FOURCC_NV21:
-            return Media_Format_NV21;
-        case VA_FOURCC_YUY2:
-            return Media_Format_YUY2;
-        case VA_FOURCC_YV12:
-            return Media_Format_YV12;
-        case VA_FOURCC_IYUV:
-            return Media_Format_IYUV;
-        case VA_FOURCC_I420:
-            return Media_Format_I420;
-        case VA_FOURCC_422H:
-            return Media_Format_422H;
-        case VA_FOURCC_422V:
-            return Media_Format_422V;
-        case VA_FOURCC('4','0','0','P'):
-        case VA_FOURCC_Y800:
-            return Media_Format_400P;
-        case VA_FOURCC_411P:
-            return Media_Format_411P;
-        case VA_FOURCC_IMC3:
-            return Media_Format_IMC3;
-        case VA_FOURCC_444P:
-        case VA_FOURCC_BGRP:
-            return Media_Format_444P;
-        case VA_FOURCC_RGBP:
-            return Media_Format_RGBP;
-        case VA_FOURCC_P208:
-            return Media_Format_Buffer;
-        case VA_FOURCC('P','0','1','0'):
-            return Media_Format_P010;
-        case VA_FOURCC_AYUV:
-            return Media_Format_AYUV;
         default:
             return Media_Format_Count;
     }
@@ -780,12 +722,14 @@ static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx)
         return;
 
     int32_t bufNums = mediaCtx->uiNumBufs;
-    for (int32_t elementId = 0; elementId < bufNums; ++elementId)
+    for (int32_t elementId = 0; bufNums > 0; ++elementId)
     {
         PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
         if (nullptr == mediaBufferHeapElmt->pBuffer)
             continue;
         DdiMedia_DestroyBuffer(ctx,mediaBufferHeapElmt->uiVaBufferID);
+        //Ensure the non-empty buffer to be destroyed.
+        --bufNums;
     }
 }
 
@@ -1032,8 +976,8 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
 
     if (!mediaMemDecompState)
     {
-        mediaMemDecompState =
-            static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
+        mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
+        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
     }
 
     if (mediaMemDecompState)
@@ -1096,9 +1040,11 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
-        mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
         mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+        mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
+
+        mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
 
         pCpDdiInterface = Create_DdiCpInterface(mosCtx);
 
@@ -1106,8 +1052,7 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        
-        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+
         DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
         DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
 
@@ -1232,6 +1177,41 @@ VAStatus DdiMedia__Initialize (
     }
 
     MOS_utilities_init();
+
+    //Read user feature key here for Per Utility Tool Enabling
+#if _RELEASE_INTERNAL
+    if(!g_perfutility->bPerfUtilityKey)
+    {
+        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+            &UserFeatureData);
+        g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
+
+        char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+        MOS_USER_FEATURE_VALUE_DATA perfFilePath;
+        MOS_STATUS                  eStatus_Perf = MOS_STATUS_SUCCESS;
+
+        MOS_ZeroMemory(&perfFilePath, sizeof(perfFilePath));
+        perfFilePath.StringData.pStringData = sFilePath;
+        eStatus_Perf = MOS_UserFeature_ReadValue_ID(
+                       nullptr,
+                       __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
+                       &perfFilePath);
+        if (eStatus_Perf == MOS_STATUS_SUCCESS)
+        {
+            g_perfutility->setupFilePath(sFilePath);
+        }
+        else
+        {
+            g_perfutility->setupFilePath();
+        }
+
+        g_perfutility->bPerfUtilityKey = true;
+    }
+#endif
 
     mediaCtx = DdiMedia_CreateMediaDriverContext();
     if (nullptr == mediaCtx)
@@ -1464,11 +1444,36 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr,
         &mediaCtx->SkuTable, &mediaCtx->WaTable);
 
-    mediaCtx->m_useSwSwizzling = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrSimulationMode);
+    mediaCtx->m_useSwSwizzling = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrSimulationMode) || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
     mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
     mediaCtx->modularizedGpuCtxEnabled = true;
 
-    if (mediaCtx->modularizedGpuCtxEnabled)
+    SetupApoMosSwitch(&mediaCtx->platform);
+    using FuncType = bool (*)(uint32_t);
+    CPLibUtils::InvokeCpFunc<FuncType>(CPLibUtils::FUNC_SETUP_MOS_APO_SWITCH, g_apoMosEnabled);
+
+    if (g_apoMosEnabled)
+    {
+        MOS_CONTEXT mosCtx           = {};
+        mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
+        mosCtx.fd                    = mediaCtx->fd;
+        mosCtx.iDeviceId             = mediaCtx->iDeviceId;
+        mosCtx.SkuTable              = mediaCtx->SkuTable;
+        mosCtx.WaTable               = mediaCtx->WaTable;
+        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+        mosCtx.platform              = mediaCtx->platform;
+        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+        mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
+
+        if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to create MOS device context.");
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+    }
+    else if (mediaCtx->modularizedGpuCtxEnabled)
     {
         // prepare m_osContext
         mediaCtx->m_osContext = OsContext::GetOsContextObject();
@@ -1490,6 +1495,7 @@ VAStatus DdiMedia__Initialize (
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+        mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
         eStatus = mediaCtx->m_osContext->Init(&mosCtx);
         if (MOS_STATUS_SUCCESS != eStatus)
@@ -1571,6 +1577,11 @@ static VAStatus DdiMedia_Terminate (
     DdiMedia_FreeContextHeapElements(ctx);
     DdiMedia_FreeContextCMElements(ctx);
 
+    if (g_apoMosEnabled)
+    {
+        MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
+        mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
+    }
     if (mediaCtx->modularizedGpuCtxEnabled)
     {
         if (mediaCtx->m_gpuContextMgr)
@@ -1710,6 +1721,8 @@ static VAStatus DdiMedia_QueryConfigEntrypoints(
 )
 {
     DDI_FUNCTION_ENTER();
+
+    PERF_UTILITY_START_ONCE("First Frame Time", PERF_MOS, PERF_LEVEL_DDI);
 
     DDI_CHK_NULL(ctx, "nullptr Ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
@@ -1962,9 +1975,9 @@ static VAStatus DdiMedia_DestroySurfaces (
 
         DdiMediaUtil_UnRegisterRTSurfaces(ctx, surface);
 
+        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         DdiMediaUtil_FreeSurface(surface);
         MOS_FreeMemory(surface);
-        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaCtx->pSurfaceHeap, (uint32_t)surfaces[i]);
         mediaCtx->uiNumSurfaces--;
         DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
@@ -2122,7 +2135,8 @@ DdiMedia_CreateSurfaces2(
     VASurfaceAttribExternalBuffers *externalBufDesc = &externalBufDescripor;
     MOS_ZeroMemory(&externalBufDescripor, sizeof(externalBufDescripor));
 
-    int32_t  memTypeFlag      = 0;
+    int32_t  memTypeFlag      = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
+    int32_t  descFlag         = 0;
     uint32_t surfaceUsageHint = VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC;
     bool     surfDescProvided = false;
     bool     surfIsUserPtr    = false;
@@ -2145,7 +2159,8 @@ DdiMedia_CreateSurfaces2(
                       DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
                       if (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
                       {
-                          // Default memory type - no effect.
+                          memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
+                          surfIsUserPtr = false;
                       }
                       else if ( (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
                                 ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
@@ -2181,9 +2196,15 @@ DdiMedia_CreateSurfaces2(
                      if( (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )
                          || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
                          || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
+                         || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING)
                          )
                       {
-                          memTypeFlag       = externalBufDesc->flags;
+                          if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+                              memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM;
+                          else if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+                              memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+
+                          descFlag      = (externalBufDesc->flags & ~(VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME));
                           surfIsUserPtr = false;
                       }
 
@@ -2202,11 +2223,6 @@ DdiMedia_CreateSurfaces2(
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
 
-    if ( surfDescProvided == true && memTypeFlag == 0) {
-        DDI_ASSERTMESSAGE("Not supported external buffer type.");
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
-
     for(uint32_t i = 0; i < num_surfaces; i++)
     {
         PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = nullptr;
@@ -2220,24 +2236,27 @@ DdiMedia_CreateSurfaces2(
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
             memset(surfDesc,0,sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
+            surfDesc->uiFlags        = descFlag;
+            surfDesc->uiVaMemType    = memTypeFlag;
 
-            surfDesc->uiPlanes       = externalBufDesc->num_planes;
-            surfDesc->ulBuffer       = externalBufDesc->buffers[i];
-            surfDesc->uiFlags        = memTypeFlag;
-            surfDesc->uiSize         = externalBufDesc->data_size;
-            surfDesc->uiBuffserSize  = externalBufDesc->data_size;
+            if (memTypeFlag != VA_SURFACE_ATTRIB_MEM_TYPE_VA) {
+                surfDesc->uiPlanes       = externalBufDesc->num_planes;
+                surfDesc->ulBuffer       = externalBufDesc->buffers[i];
+                surfDesc->uiSize         = externalBufDesc->data_size;
+                surfDesc->uiBuffserSize  = externalBufDesc->data_size;
 
-            eStatus = MOS_SecureMemcpy(surfDesc->uiPitches, sizeof(surfDesc->uiPitches), externalBufDesc->pitches, sizeof(externalBufDesc->pitches));
-            if (eStatus != MOS_STATUS_SUCCESS)
-            {
-                DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
-                return VA_STATUS_ERROR_OPERATION_FAILED;
-            }
-            eStatus = MOS_SecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), externalBufDesc->offsets, sizeof(externalBufDesc->offsets));
-            if (eStatus != MOS_STATUS_SUCCESS)
-            {
-                DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
-                return VA_STATUS_ERROR_OPERATION_FAILED;
+                eStatus = MOS_SecureMemcpy(surfDesc->uiPitches, sizeof(surfDesc->uiPitches), externalBufDesc->pitches, sizeof(externalBufDesc->pitches));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
+                    return VA_STATUS_ERROR_OPERATION_FAILED;
+                }
+                eStatus = MOS_SecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), externalBufDesc->offsets, sizeof(externalBufDesc->offsets));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
+                    return VA_STATUS_ERROR_OPERATION_FAILED;
+                }
             }
 
             if( surfIsUserPtr )
@@ -2245,6 +2264,7 @@ DdiMedia_CreateSurfaces2(
                 surfDesc->uiTile = I915_TILING_NONE;
                 if (surfDesc->ulBuffer % 4096 != 0)
                 {
+                    MOS_FreeMemory(surfDesc);
                     DDI_VERBOSEMESSAGE("Buffer Address is invalid");
                     return VA_STATUS_ERROR_INVALID_PARAMETER;
                 }
@@ -2274,6 +2294,8 @@ static VAStatus DdiMedia_CreateMfeContextInternal(
     VAMFContextID      *mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT mediaDrvCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaDrvCtx, "nullptr pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2327,6 +2349,8 @@ static VAStatus DdiMedia_DestoryMfeContext (
     VAMFContextID      mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT mediaCtx              = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2358,6 +2382,8 @@ static VAStatus DdiMedia_AddContextInternal(
     VAMFContextID      mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT      mediaCtx         = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2418,6 +2444,8 @@ static VAStatus DdiMedia_ReleaseContextInternal(
     VAMFContextID      mfe_context
 )
 {
+    DDI_FUNCTION_ENTER();
+
     PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2864,8 +2892,21 @@ VAStatus DdiMedia_MapBufferInternal (
             }
             break;
 
-        case VABufferTypeMax:
-            if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
+        case VAProbabilityBufferType:
+            *pbuf = (void *)(buf->pData + buf->uiOffset);
+
+            break;
+
+        case VAEncMacroblockDisableSkipMapBufferType:
+            if(buf->bo)
+            {
+                *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
+            }
+            break;
+
+        case VAImageBufferType:
+        default:
+            if((buf->format != Media_Format_CPU) && (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT))
             {
                 DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
 
@@ -2885,23 +2926,10 @@ VAStatus DdiMedia_MapBufferInternal (
                     return VA_STATUS_SUCCESS;
                 }
             }
-            return VA_STATUS_ERROR_INVALID_BUFFER;
-
-        case VAProbabilityBufferType:
-            *pbuf = (void *)(buf->pData + buf->uiOffset);
-
-            break;
-
-        case VAEncMacroblockDisableSkipMapBufferType:
-            if(buf->bo)
+            else
             {
-                *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
+                *pbuf = (void *)(buf->pData + buf->uiOffset);
             }
-            break;
-
-        case VAImageBufferType:
-        default:
-            *pbuf = (void *)(buf->pData + buf->uiOffset);
             break;
     }
 
@@ -2998,16 +3026,6 @@ VAStatus DdiMedia_UnmapBuffer (
                 DdiMediaUtil_UnlockBuffer(buf);
             }
             break;
-
-        case VABufferTypeMax:
-            if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
-            {
-                DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
-                DdiMediaUtil_UnlockBuffer(buf);
-                DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
-                return VA_STATUS_SUCCESS;
-            }
-            return VA_STATUS_ERROR_INVALID_BUFFER;
         case VAEncMacroblockDisableSkipMapBufferType:
             if(buf->bo)
             {
@@ -3016,7 +3034,13 @@ VAStatus DdiMedia_UnmapBuffer (
             break;
 
         case VAImageBufferType:
-         default:
+        default:
+            if((buf->format != Media_Format_CPU) &&(DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT))
+            {
+                DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
+                DdiMediaUtil_UnlockBuffer(buf);
+                DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+            }
             break;
     }
 
@@ -3090,7 +3114,15 @@ VAStatus DdiMedia_DestroyBuffer (
         case VAPictureParameterBufferType:
             break;
         case VAImageBufferType:
-            MOS_FreeMemory(buf->pData);
+            if(buf->format == Media_Format_CPU)
+            {
+                MOS_FreeMemory(buf->pData);
+            }
+            else
+            {
+                DdiMediaUtil_UnRefBufObjInMediaBuffer(buf);
+            }
+            break;
             break;
         case VAProcPipelineParameterBufferType:
         case VAProcFilterParameterBufferType:
@@ -3105,9 +3137,6 @@ VAStatus DdiMedia_DestroyBuffer (
         case VAEncPackedHeaderDataBufferType:
         case VAEncPackedHeaderParameterBufferType:
             MOS_FreeMemory(buf->pData);
-            break;
-        case VABufferTypeMax:
-            DdiMediaUtil_UnRefBufObjInMediaBuffer(buf);
             break;
         case VAEncMacroblockMapBufferType:
             DdiMediaUtil_FreeBuffer(buf);
@@ -3317,20 +3346,27 @@ static VAStatus DdiMedia_EndPicture (
 
     uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
     void     *ctxPtr = DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
-
+    VAStatus  vaStatus = VA_STATUS_SUCCESS;
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
         case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
-            return DdiDecode_EndPicture(ctx, context);
+            vaStatus = DdiDecode_EndPicture(ctx, context);
+            break;
         case DDI_MEDIA_CONTEXT_TYPE_ENCODER:
-            return DdiEncode_EndPicture(ctx, context);
+            vaStatus = DdiEncode_EndPicture(ctx, context);
+            break;
         case DDI_MEDIA_CONTEXT_TYPE_VP:
-            return DdiVp_EndPicture(ctx, context);
+            vaStatus = DdiVp_EndPicture(ctx, context);
+            break;
         default:
             DDI_ASSERTMESSAGE("DDI: unsupported context in DdiCodec_EndPicture.");
-            return VA_STATUS_ERROR_INVALID_CONTEXT;
+            vaStatus = VA_STATUS_ERROR_INVALID_CONTEXT;
     }
+
+    PERF_UTILITY_STOP_ONCE("First Frame Time", PERF_MOS, PERF_LEVEL_DDI);
+
+    return vaStatus;
 }
 
 /*
@@ -3343,6 +3379,8 @@ static VAStatus DdiMedia_SyncSurface (
     VASurfaceID         render_target
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -3373,6 +3411,8 @@ static VAStatus DdiMedia_SyncSurface (
     PDDI_DECODE_CONTEXT decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
     if (decCtx && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
     {
+        DdiMediaUtil_LockGuard guard(&mediaCtx->SurfaceMutex);
+
         Codechal *codecHal = decCtx->pCodecHal;
         DDI_CHK_NULL(codecHal, "nullptr decCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -3419,7 +3459,6 @@ static VAStatus DdiMedia_SyncSurface (
 
                     if ((tempNewReport.m_codecStatus == CODECHAL_STATUS_SUCCESSFUL) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_ERROR) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_INCOMPLETE))
                     {
-                        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
                         PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
                         uint32_t j = 0;
@@ -3439,10 +3478,8 @@ static VAStatus DdiMedia_SyncSurface (
 
                         if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
                         {
-                            DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
                             return VA_STATUS_ERROR_OPERATION_FAILED;
                         }
-                        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
                     }
                     else
                     {
@@ -3827,108 +3864,66 @@ VAStatus DdiMedia_CreateImage(
 
     VAImage *vaimg           = (VAImage*)MOS_AllocAndZeroMemory(sizeof(VAImage));
     DDI_CHK_NULL(vaimg,  "Insufficient to allocate an VAImage.",  VA_STATUS_ERROR_ALLOCATION_FAILED);
-    
+
     GMM_RESCREATE_PARAMS        gmmParams;
     GMM_RESOURCE_INFO          *gmmResourceInfo;
     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
 
-    gmmParams.BaseWidth             = width;
-    gmmParams.BaseHeight            = height;
-    gmmParams.ArraySize             = 1;
-    gmmParams.Type                  = RESOURCE_2D;
-    gmmParams.Flags.Gpu.Video       = true;
-
     switch(format->fourcc)
     {
         case VA_FOURCC_RGBA:
-            gmmParams.Format = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
         case VA_FOURCC_BGRA:
-            gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
         case VA_FOURCC_ARGB:
-            gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
         case VA_FOURCC_ABGR:
-            gmmParams.Format = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
-        case VA_FOURCC_RGBX:
-            gmmParams.Format = GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
         case VA_FOURCC_BGRX:
-            gmmParams.Format = GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
-        case VA_FOURCC_I420:
-            gmmParams.Format = GMM_FORMAT_I420_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
-        case VA_FOURCC_YV12:
-            gmmParams.Format = GMM_FORMAT_YV12_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
-        case VA_FOURCC_NV21:
-            gmmParams.Format = GMM_FORMAT_NV21_TYPE;
-            gmmParams.Flags.Info.Linear = true;
-            break;
+        case VA_FOURCC_RGBX:
+        case VA_FOURCC_XRGB:
+        case VA_FOURCC_XBGR:
+        case VA_FOURCC_R8G8B8:
+        case VA_FOURCC_RGB565:
         case VA_FOURCC_RGBP:
-            gmmParams.Format = GMM_FORMAT_RGBP;
+        case VA_FOURCC_BGRP:
+        case VA_FOURCC_YV12:
+        case VA_FOURCC_I420:
+        case VA_FOURCC_IYUV:
+        case VA_FOURCC_UYVY:
+        case VA_FOURCC_A2R10G10B10:
+        case VA_FOURCC_A2B10G10R10:
+            gmmParams.BaseHeight        = height;
             gmmParams.Flags.Info.Linear = true;
             break;
         case VA_FOURCC_YUY2:
-            gmmParams.Format = GMM_FORMAT_YUY2;
-#if UFO_GRALLOC_NEW_FORMAT
-            //Planar type surface align 64 to improve performance.
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
-#else
-            //Planar type surface align 32 to improve performance.
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
-#endif
-            break;
+        case VA_FOURCC_AYUV:
+        case VA_FOURCC_Y210:
+        case VA_FOURCC_Y410:
+        case VA_FOURCC_Y416:
         case VA_FOURCC_NV12:
-            gmmParams.Format = GMM_FORMAT_NV12_TYPE;
-#if UFO_GRALLOC_NEW_FORMAT
-            //Planar type surface align 64 to improve performance.
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
-#else
-            //Planar type surface align 32 to improve performance.
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
-#endif
-            break;
+        case VA_FOURCC_NV21:
         case VA_FOURCC_P010:
-            gmmParams.Format = GMM_FORMAT_P010_TYPE;
-#if UFO_GRALLOC_NEW_FORMAT
-            //Planar type surface align 64 to improve performance.
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
-#else
-            //Planar type surface align 32 to improve performance.
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
-#endif
-            break;
-        case VA_FOURCC_444P:
-            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
-            break;
+        case VA_FOURCC_P016:
+        case VA_FOURCC_411P:
         case VA_FOURCC_422H:
-            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
-            break;
+        case VA_FOURCC_444P:
         case VA_FOURCC_422V:
-            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
+        case VA_FOURCC_IMC3:
+        case VA_FOURCC_Y800:
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
-            break;
-        case VA_FOURCC_UYVY:
-            gmmParams.Format = GMM_FORMAT_UYVY;
-            gmmParams.Flags.Info.TiledY = true;
             break;
         default:
             MOS_FreeMemory(vaimg);
             return VA_STATUS_ERROR_UNIMPLEMENTED;
+    }
+
+    gmmParams.BaseWidth       = width;
+    gmmParams.ArraySize       = 1;
+    gmmParams.Type            = RESOURCE_2D;
+    gmmParams.Flags.Gpu.Video = true;
+    gmmParams.Format          = mediaCtx->m_caps->ConvertFourccToGmmFmt(format->fourcc);
+
+    if (gmmParams.Format == GMM_FORMAT_INVALID)
+    {
+        MOS_FreeMemory(vaimg);
+        return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
 
     gmmResourceInfo = mediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
@@ -3939,94 +3934,108 @@ VAStatus DdiMedia_CreateImage(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    uint32_t    gmmPitch;
-    uint32_t    gmmSize;
-    uint32_t    gmmHeight;
-    gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
-    gmmHeight   = (uint32_t)gmmResourceInfo->GetBaseHeight();
+    uint32_t    gmmPitch  = (uint32_t)gmmResourceInfo->GetRenderPitch();
+    uint32_t    gmmHeight = (uint32_t)gmmResourceInfo->GetBaseHeight();
 
-    vaimg->format                   = *format;
-    vaimg->format.byte_order        = VA_LSB_FIRST;
-    vaimg->width                    = width;
-    vaimg->height                   = height;
-    vaimg->data_size                = gmmSize;
-    vaimg->format.bits_per_pixel    = format->bits_per_pixel;
+    vaimg->format                = *format;
+    vaimg->format.byte_order     = VA_LSB_FIRST;
+    vaimg->width                 = width;
+    vaimg->height                = height;
+    vaimg->data_size             = (uint32_t)gmmResourceInfo->GetSizeSurface();
+    vaimg->format.bits_per_pixel = gmmResourceInfo->GetBitsPerPixel();
 
     switch(format->fourcc)
     {
         case VA_FOURCC_RGBA:
         case VA_FOURCC_BGRA:
-        case VA_FOURCC_BGRX:
-        case VA_FOURCC_RGBX:
         case VA_FOURCC_ARGB:
         case VA_FOURCC_ABGR:
-            vaimg->format.bits_per_pixel = 32;
+        case VA_FOURCC_BGRX:
+        case VA_FOURCC_RGBX:
+        case VA_FOURCC_XRGB:
+        case VA_FOURCC_XBGR:
+        case VA_FOURCC_R8G8B8:
+        case VA_FOURCC_RGB565:
+        case VA_FOURCC_A2R10G10B10:
+        case VA_FOURCC_A2B10G10R10:
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
+            vaimg->offsets[0] = 0;
             break;
-        case VA_FOURCC_YV12:
-        case VA_FOURCC_I420:
+        case VA_FOURCC_RGBP:
+        case VA_FOURCC_BGRP:
             vaimg->num_planes = 3;
             vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = gmmPitch / 2;
-            vaimg->pitches[2] = gmmPitch / 2;
+            vaimg->pitches[1] = gmmPitch;
+            vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[0] = 0;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 4;
+            vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
             break;
+        case VA_FOURCC_Y800:
         case VA_FOURCC_UYVY:
         case VA_FOURCC_YUY2:
+        case VA_FOURCC_AYUV:
+        case VA_FOURCC_Y210:
+        case VA_FOURCC_Y410:
+        case VA_FOURCC_Y416:
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
+            vaimg->offsets[0] = 0;
             break;
         case VA_FOURCC_NV12:
         case VA_FOURCC_NV21:
             vaimg->num_planes = 2;
             vaimg->pitches[0] = gmmPitch;
             vaimg->pitches[1] = gmmPitch;
-            vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[0] = 0;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = vaimg->offsets[1] + 1;
             break;
         case VA_FOURCC_P010:
-            vaimg->format.bits_per_pixel = 24;
+        case VA_FOURCC_P016:
             vaimg->num_planes = 2;
             vaimg->pitches[0] = gmmPitch;
             vaimg->pitches[1] = gmmPitch;
-            vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[0] = 0;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = vaimg->offsets[1] + 2;
             break;
-        case VA_FOURCC_444P:
-            vaimg->format.bits_per_pixel = 24;
-            vaimg->num_planes = 3;
-            vaimg->pitches[0] = vaimg->pitches[1] =  vaimg->pitches[2] = gmmPitch;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight;
-            break;
-        case VA_FOURCC_422H:
-            vaimg->format.bits_per_pixel = 16;
+        case VA_FOURCC_YV12:
+        case VA_FOURCC_I420:
+        case VA_FOURCC_IYUV:
             vaimg->num_planes = 3;
             vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch / 2;
+            vaimg->pitches[1] = gmmPitch / 2;
+            vaimg->pitches[2] = gmmPitch / 2;
+            vaimg->offsets[0] = 0;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 4;
             break;
-        case VA_FOURCC_422V:
-            vaimg->format.bits_per_pixel = 16;
-            vaimg->num_planes = 3;
-            vaimg->pitches[0] = vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
-        case VA_FOURCC_RGBP:
-            vaimg->format.bits_per_pixel = 24;
+        case VA_FOURCC_411P:
+        case VA_FOURCC_422H:
+        case VA_FOURCC_444P:
             vaimg->num_planes = 3;
             vaimg->pitches[0] = gmmPitch;
             vaimg->pitches[1] = gmmPitch;
             vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[0] = 0;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
+            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight;
             break;
+        case VA_FOURCC_422V:
+        case VA_FOURCC_IMC3:
+            vaimg->num_planes = 3;
+            vaimg->pitches[0] = gmmPitch;
+            vaimg->pitches[1] = gmmPitch;
+            vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[0] = 0;
+            vaimg->offsets[1] = gmmPitch * gmmHeight;
+            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+            break;
+        default:
+            MOS_FreeMemory(vaimg);
+            return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
 
     mediaCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
@@ -4219,6 +4228,7 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_444P:
     case Media_Format_RGBP:
+    case Media_Format_BGRP:
         vaimg->format.bits_per_pixel    = 24;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3;
         vaimg->num_planes               = 3;
@@ -4259,6 +4269,7 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[2]               = mediaSurface->iPitch;
         break;
     case Media_Format_P010:
+    case Media_Format_P016:
         vaimg->format.bits_per_pixel    = 24;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3 / 2;
         vaimg->num_planes               = 2;
@@ -4266,7 +4277,21 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
         break;
-    default:
+    case Media_Format_Y410:
+    case Media_Format_AYUV:
+    case Media_Format_Y210:
+        vaimg->format.bits_per_pixel    = 32;
+        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
+        vaimg->num_planes               = 1;
+        vaimg->pitches[0]               = mediaSurface->iPitch;
+        break;
+    case Media_Format_Y416:
+        vaimg->format.bits_per_pixel    = 64; // packed format [alpha, Y, U, V], 16 bits per channel
+        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
+        vaimg->num_planes               = 1;
+        vaimg->pitches[0]               = mediaSurface->iPitch;
+        break;
+     default:
         vaimg->format.bits_per_pixel    = 12;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3 / 2;
         vaimg->num_planes               = 2;
@@ -4276,7 +4301,7 @@ VAStatus DdiMedia_DeriveImage (
         break;
     }
 
-    if (mediaSurface->pSurfDesc != nullptr && mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+    if (mediaSurface->pSurfDesc != nullptr && mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
     {
         switch( mediaSurface->format )
         {
@@ -4287,6 +4312,7 @@ VAStatus DdiMedia_DeriveImage (
             break;
         case Media_Format_444P:
         case Media_Format_RGBP:
+        case Media_Format_BGRP:
         case Media_Format_411P:
         case Media_Format_422H:
             vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
@@ -4325,6 +4351,7 @@ VAStatus DdiMedia_DeriveImage (
             break;
         case Media_Format_444P:
         case Media_Format_RGBP:
+        case Media_Format_BGRP:
         case Media_Format_411P:
         case Media_Format_422H:
         case Media_Format_IMC3:
@@ -4354,7 +4381,7 @@ VAStatus DdiMedia_DeriveImage (
     }
     buf->uiNumElements = 1;
     buf->iSize         = vaimg->data_size;
-    buf->uiType        = VABufferTypeMax;
+    buf->uiType        = VAImageBufferType;
     buf->format        = mediaSurface->format;
     buf->uiOffset      = 0;
 
@@ -4544,7 +4571,7 @@ VAStatus DdiMedia_GetImage(
     VASurfaceID     output_surface = surface;
 
     //VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (inputSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+    if (inputSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
         width != vaimg->width || height != vaimg->height)
     {
         VAContextID context = VA_INVALID_ID;
@@ -4667,6 +4694,38 @@ VAStatus DdiMedia_GetImage(
 }
 
 //!
+//! \brief  Copy plane from src to dst row by row when src and dst strides are different
+//!
+//! \param  [in] dst
+//!         Destination plane
+//! \param  [in] dstPitch
+//!         Destination plane pitch
+//! \param  [in] src
+//!         Source plane
+//! \param  [in] srcPitch
+//!         Source plane pitch
+//! \param  [in] height
+//!         Plane hight
+//!
+static void DdiMedia_CopyPlane(
+    uint8_t *dst,
+    uint32_t dstPitch,
+    uint8_t *src,
+    uint32_t srcPitch,
+    uint32_t height)
+{
+    uint32_t rowSize = std::min(dstPitch, srcPitch);
+    for (int y = 0; y < height; y += 1)
+    {
+        memcpy(dst, src, rowSize);
+        dst += dstPitch;
+        src += srcPitch;
+    }
+}
+
+static uint32_t DdiMedia_GetChromaPitchHeight(PDDI_MEDIA_SURFACE mediaSurface, uint32_t *chromaWidth, uint32_t *chromaPitch, uint32_t *chromaHeight);
+
+//!
 //! \brief  Copy data from a VAImage to a surface
 //! \details    Image must be in a format supported by the implementation
 //!
@@ -4746,8 +4805,9 @@ VAStatus DdiMedia_PutImage(
     DDI_CHK_NULL(imageData, "nullptr imageData.", VA_STATUS_ERROR_INVALID_IMAGE);
 
     // VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (mediaSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc,vaimg->format.alpha_mask) ||
-        mediaSurface->iWidth != vaimg->width || mediaSurface->iHeight != vaimg->height)
+    if (mediaSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+        dest_width != src_width || dest_height != src_height ||
+        src_x != 0 || dest_x != 0 || src_y != 0 || dest_y != 0)
     {
         VAContextID context     = VA_INVALID_ID;
 
@@ -4839,9 +4899,45 @@ VAStatus DdiMedia_PutImage(
             return VA_STATUS_ERROR_SURFACE_BUSY;
         }
 
-        //Copy data from image to surface
-        MOS_STATUS eStatus = MOS_SecureMemcpy(surfData, vaimg->data_size, imageData, vaimg->data_size);
-        DDI_CHK_CONDITION((eStatus != MOS_STATUS_SUCCESS), "Failed to copy image to surface buffer.", VA_STATUS_ERROR_OPERATION_FAILED);
+        if (src_width == dest_width && src_height == dest_height &&
+            src_width == vaimg->width && src_height == vaimg->height &&
+            src_width == mediaSurface->iWidth && src_height == mediaSurface->iHeight &&
+            mediaSurface->data_size == vaimg->data_size)
+        {
+            //Copy data from image to surface
+            MOS_STATUS eStatus = MOS_SecureMemcpy(surfData, vaimg->data_size, imageData, vaimg->data_size);
+            DDI_CHK_CONDITION((eStatus != MOS_STATUS_SUCCESS), "Failed to copy image to surface buffer.", VA_STATUS_ERROR_OPERATION_FAILED);
+        }
+        else
+        {
+            uint8_t *ySrc = (uint8_t *)imageData + vaimg->offsets[0];
+            uint8_t *yDst = (uint8_t *)surfData;
+            DdiMedia_CopyPlane(yDst, mediaSurface->iPitch, ySrc, vaimg->pitches[0], src_height);
+
+            if (vaimg->num_planes > 1)
+            {
+                DDI_MEDIA_SURFACE uPlane = *mediaSurface;
+
+                uPlane.iWidth              = src_width;
+                uPlane.iRealHeight         = src_height;
+                uPlane.iHeight             = src_height;
+                uint32_t chromaWidth       = 0;
+                uint32_t chromaHeight      = 0;
+                uint32_t chromaPitch       = 0;
+                uint32_t surfacePlaneCount = DdiMedia_GetChromaPitchHeight(&uPlane, &chromaWidth, &chromaPitch, &chromaHeight);
+                DDI_CHK_CONDITION((surfacePlaneCount != vaimg->num_planes), "DDI:Failed to copy image to surface buffer, diffrent number of planes.", VA_STATUS_ERROR_OPERATION_FAILED);
+
+                uint8_t *uSrc = (uint8_t *)imageData + vaimg->offsets[1];
+                uint8_t *uDst = yDst + mediaSurface->iPitch * mediaSurface->iHeight;
+                DdiMedia_CopyPlane(uDst, chromaPitch, uSrc, vaimg->pitches[1], chromaHeight);
+                if (vaimg->num_planes > 2)
+                {
+                    uint8_t *vSrc = (uint8_t *)imageData + vaimg->offsets[2];
+                    uint8_t *vDst = uDst + chromaPitch * chromaHeight;
+                    DdiMedia_CopyPlane(vDst, chromaPitch, vSrc, vaimg->pitches[2], chromaHeight);
+                }
+            }
+        } 
 
         vaStatus = DdiMedia_UnmapBuffer(ctx, vaimg->buf);
         if (vaStatus != VA_STATUS_SUCCESS)
@@ -5875,10 +5971,11 @@ static uint32_t DdiMedia_GetChromaPitchHeight(PDDI_MEDIA_SURFACE mediaSurface, u
             *chromaPitch = mediaSurface->iPitch / 2;
             return 3;
         case VA_FOURCC_P010:
+        case VA_FOURCC_P016:
             *chromaWidth = mediaSurface->iWidth ;
             *chromaHeight = mediaSurface->iHeight/2;
             *chromaPitch = mediaSurface->iPitch;
-            return 3;
+            return 2;
         case VA_FOURCC_I010:
             *chromaWidth = mediaSurface->iWidth / 2;
             *chromaHeight = mediaSurface->iHeight/2;
@@ -5974,6 +6071,7 @@ static uint32_t DdiMedia_GetDrmFormatOfCompositeObject(uint32_t fourcc)
     case VA_FOURCC_Y800:
         return DRM_FORMAT_R8;
     case VA_FOURCC_P010:
+        return DRM_FORMAT_P010;
     case VA_FOURCC_I010:
         // These currently have no composite DRM format - they are usable
         // only as separate planes.

@@ -31,7 +31,6 @@
 #include <dlfcn.h>
 #include <unordered_map>
 
-#define CP_STUB_MESSAGE "This function is stubbed as CP is not enabled."
 #define REQUIRED_CPLIB_MAJOR_VERSION 1
 
 #define CPLIB_NORMALMESSAGE(_message, ...)                                    \
@@ -100,6 +99,7 @@ public:
     static const char* FUNC_DELETE_MEDIALIBVACAPSCP;
     static const char* FUNC_CREATE_SECUREDECODE;
     static const char* FUNC_DELETE_SECUREDECODE;
+    static const char* FUNC_SETUP_MOS_APO_SWITCH;
 
     static std::unordered_map<const char*, void*> m_symbols;
 

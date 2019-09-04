@@ -66,7 +66,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AllocateResources();
+    MOS_STATUS AllocateResources() override;
 
     //!
     //! \brief    Free encoder resources
@@ -75,7 +75,7 @@ public:
     //!
     //! \return   void
     //!
-    void FreeResources();
+    void FreeResources() override;
 
     //!
     //! \brief    Initialize encoder at picture level
@@ -86,7 +86,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS InitializePicture(const EncoderParams& params);
+    MOS_STATUS InitializePicture(const EncoderParams& params) override;
 
     //!
     //! \brief    Encode kernel functions
@@ -94,7 +94,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS ExecuteKernelFunctions();
+    virtual MOS_STATUS ExecuteKernelFunctions() override;
 
     //!
     //! \brief    Encode command at picture level
@@ -102,7 +102,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ExecutePictureLevel();
+    MOS_STATUS ExecutePictureLevel() override;
 
     //!
     //! \brief    Encode command at slice level
@@ -110,7 +110,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ExecuteSliceLevel();
+    MOS_STATUS ExecuteSliceLevel() override;
 
     //!
     //! \brief    Copy skip frame
@@ -118,7 +118,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS EncodeCopySkipFrame();
+    MOS_STATUS EncodeCopySkipFrame() override;
 
     //!
     //! \brief    Initialize encoder instance
@@ -129,7 +129,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
+    virtual MOS_STATUS Initialize(CodechalSetting * codecHalSettings) override;
 
     //!
     //! \brief  Inserts the generic prologue command for a command buffer
@@ -142,7 +142,8 @@ public:
     //!
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking);
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr) override;
 
     //!
     //! \brief    Initialize MMC state
@@ -158,7 +159,7 @@ public:
     // Codec to define its own GetStatusReport
     MOS_STATUS GetStatusReport(
         EncodeStatus       *encodeStatus,
-        EncodeStatusReport *encodeStatusReport)  { return MOS_STATUS_SUCCESS; }
+        EncodeStatusReport *encodeStatusReport) override { return MOS_STATUS_SUCCESS; }
 
     MOS_STATUS AddMediaVfeCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
@@ -711,6 +712,7 @@ protected:
     MOS_SURFACE                            m_mbQpDataSurface;                                   //!< MOS_SURFACE of Mb Qp data surface
     uint32_t                               m_frameNumB     = 0;                                 //!< The num of the successive B frames
     uint32_t                               m_prevMBCodeIdx = 0;                                 //!< Previous MB Code index                                                                                    // MbEnc
+    uint8_t                                m_mbEncForcePictureCodingType = 0;                   //!< force I, P, or B for MbEnc kernel only
     MHW_KERNEL_STATE                       m_mbEncKernelStates[mbEncKernelIdxNum];              //!< MbEnc kernel state
     BindingTableMbEnc                      m_mbEncBindingTable;                                 //!< MbEnc binding table
 

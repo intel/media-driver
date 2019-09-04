@@ -501,6 +501,7 @@ public:
     // Parameters passed by application
     uint32_t                        m_minCtbSize;                                    //!< Min Luma Coding Block Size
     bool                            m_is10BitHevc;                                   //!< Indicate it is 10 bit HEVC
+    bool                            m_is12BitHevc;                                   //!< Indicate it is 12 bit HEVC
     uint8_t                         m_chromaFormatinProfile;                         //!< Chrama format in profile
     bool                            m_shortFormatInUse;                              //!< Indicate short format is inuse
     uint32_t                        m_dataSize;                                      //!< Size of bitstream
@@ -537,7 +538,8 @@ public:
     MOS_RESOURCE     m_resSaoTileColumnBuffer;                          //!< Handle of SAO Tile Column data buffer
     bool             m_mvBufferProgrammed;                              //!< Indicate mv buffer is programmed
     MOS_RESOURCE     m_resMvTemporalBuffer[CODEC_NUM_HEVC_MV_BUFFERS];  //!< Handles of MV Temporal data buffer
-    MHW_BATCH_BUFFER m_secondLevelBatchBuffer;                          //!< Handle of second level batch buffer
+    uint32_t         m_secondLevelBatchBufferIndex;
+    MHW_BATCH_BUFFER m_secondLevelBatchBuffer[CODEC_HEVC_NUM_SECOND_BB];//!< Handle of second level batch buffer
     uint32_t         m_dmemBufferIdx;                                   //!< Indicate current idx of DMEM buffer to program
     MOS_RESOURCE     m_resDmemBuffer[CODECHAL_HEVC_NUM_DMEM_BUFFERS];   //!< Handles of DMEM buffer
     uint32_t         m_dmemBufferSize;                                  //!< Size of DMEM buffer
@@ -574,7 +576,7 @@ public:
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // SFC
-    CodechalHevcSfcState         *m_sfcState;                                            //!< HEVC SFC State
+    CodechalHevcSfcState         *m_sfcState = nullptr;                                            //!< HEVC SFC State
 #endif
     PIC_LONG_FORMAT_MHW_PARAMS      m_picMhwParams;                                         //!< picture parameters
 

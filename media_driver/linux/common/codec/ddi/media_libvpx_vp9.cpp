@@ -461,17 +461,12 @@ bool Vp9WriteUncompressHeader(struct _DDI_ENCODE_CONTEXT *ddiEncContext,
         }
 
         /* write the segment_data info */
-        if (segParams == NULL)
-        {
-            vp9_wb_write_bit(wb, 0);
-        }
-        else
+        vp9_wb_write_bit(wb, picParam->PicFlags.fields.seg_update_data);
+        if (picParam->PicFlags.fields.seg_update_data)
         {
             CODEC_VP9_ENCODE_SEG_PARAMS *seg_data;
             int seg_delta;
 
-            /* update_data */
-            vp9_wb_write_bit(wb, 1);
             /* abs_delta should be zero */
             vp9_wb_write_bit(wb, 0);
             for (i = 0; i < 8; i++)

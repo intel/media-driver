@@ -211,6 +211,11 @@ extern "C" {
 #define VPHAL_MAX_TARGETS               8        //!< multi output support
 #define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
 
+#define VPHAL_TOP_FIELD           0
+#define VPHAL_BOTTOM_FIELD        1
+#define VPHAL_TOP_FIELD_FIRST     0
+#define VPHAL_BOTTOM_FIELD_FIRST  1
+
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
 {
     bool                           bL3CachingEnabled;
@@ -266,6 +271,15 @@ typedef struct _VPHAL_FAST1TON_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
 }VPHAL_FAST1TON_CACHE_CNTL, *PVPHAL_FAST1TON_CACHE_CNTL;
 
+typedef struct _VPHAL_HDR_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    Lut2DSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    Lut3DSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    CoeffSurfMemObjCtl;
+} VPHAL_HDR_CACHE_CNTL, *PVPHAL_HDR_CACHE_CNTL;
 
 //!
 //! \brief  Feature specific cache control settings
@@ -488,6 +502,29 @@ typedef enum _VPHAL_SAMPLE_TYPE
 C_ASSERT(SAMPLE_INVALID == 7);      //!< When adding, update assert & vphal_solo_scenario.cpp
 
 //!
+//! \brief Frame Format enum
+//!
+typedef enum _VPHAL_FRAME_FORMAT
+{
+    FRAME_FORMAT_PROGRESSIVE,
+    FRAME_FORMAT_INTERLEAVED,
+    FRAME_FORMAT_FIELD
+} VPHAL_FRAME_FORMAT;
+
+//!
+//! \brief Interlaced Scaling Mode enum
+//!
+typedef enum _VPHAL_ISCALING_TYPE
+{
+    ISCALING_NONE,
+    ISCALING_INTERLEAVED_TO_INTERLEAVED,
+    ISCALING_INTERLEAVED_TO_FIELD,
+    ISCALING_FIELD_TO_INTERLEAVED,
+    ISCALING_FIELD_TO_FIELD
+} VPHAL_ISCALING_TYPE;
+C_ASSERT(ISCALING_FIELD_TO_FIELD == 4);
+
+//!
 //! \brief DI Mode enum
 //!
 typedef enum _VPHAL_DI_MODE
@@ -568,7 +605,9 @@ typedef enum _VPHAL_DI_REPORT_MODE
 //!
 typedef enum _VPHAL_COLORPACK
 {
-    VPHAL_COLORPACK_420 = 0,
+    VPHAL_COLORPACK_400 = 0,
+    VPHAL_COLORPACK_420,
+    VPHAL_COLORPACK_411,
     VPHAL_COLORPACK_422,
     VPHAL_COLORPACK_444,
     VPHAL_COLORPACK_UNKNOWN
@@ -590,7 +629,11 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
 //! \def SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)
 //! Set the output pipe
 //!
-#define SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)              (_a->OutputPipe =  _Pipe)
+#define SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)                           \
+    {                                                              \
+        (_a->OutputPipe = _Pipe);                                  \
+        VPHAL_RENDER_NORMALMESSAGE("VPHAL_OUTPUT_PIPE %d", _Pipe); \
+    }
 
 //!
 //! \def IS_VPHAL_OUTPUT_PIPE_INVALID(_a)
@@ -921,13 +964,16 @@ struct VPHAL_SURFACE
     PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
     PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
     bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
-    bool                        bInterlacedScaling; //!< Interlaced scaling
-    bool                        bFieldWeaving;      //!< Field Weaving
     bool                        bQueryVariance;     //!< enable variance query
     bool                        bDirectionalScalar; //!< Vebox Directional Scalar
     bool                        bFastColorFill;     //!< enable fast color fill without copy surface
     bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
     bool                        bUsrPtr;            //!< is system linear memory.
+
+    // Interlaced Scaling
+    bool                        bInterlacedScaling;    //!< Interlaced scaling
+    bool                        bFieldWeaving;         //!< Field Weaving
+    VPHAL_ISCALING_TYPE         InterlacedScalingType; //!< Interlaced scaling type for new interlaced scaling mode
 
     // Advanced Processing
     PVPHAL_DI_PARAMS            pDeinterlaceParams;
@@ -988,7 +1034,6 @@ struct VPHAL_SURFACE
 
     bool                        bUseSampleUnorm;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
     bool                        bUseSamplerLumakey; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
-
     //------------------------------------------
     // HDR related parameters, provided by DDI
     //------------------------------------------
@@ -1136,6 +1181,8 @@ struct VPHAL_RENDER_PARAMS
                                                                         // extension parameters
     void                                    *pExtensionData;            //!< Extension data
 
+    bool                                    bPathKernel;                // HDR path config if use kernel
+
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
         pSrc(),
@@ -1156,7 +1203,8 @@ struct VPHAL_RENDER_PARAMS
         bTriggerGPUHang(false),
 #endif
         bCalculatingAlpha(false),
-        pExtensionData(nullptr)
+        pExtensionData(nullptr),
+        bPathKernel(false)
     {
     }
 
@@ -1450,6 +1498,9 @@ void VpHal_AllocParamsInitType(
     PVPHAL_SURFACE              pSurface,
     MOS_GFXRES_TYPE             DefaultResType,
     MOS_TILE_TYPE               DefaultTileType);
+
+MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(
+    PVPHAL_SURFACE pSurface);
 
 #ifdef __cplusplus
 }

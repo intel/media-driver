@@ -33,6 +33,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_interface.cpp
 )
 
 set(TMP_HEADERS_

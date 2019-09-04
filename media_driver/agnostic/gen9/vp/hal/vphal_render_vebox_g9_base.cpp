@@ -283,9 +283,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::GetFFDISurfParams(
     // output surface's SampleType should be same to input's. Bob is being
     // done in Composition part
     if (pRenderData->bIECP &&
-        (m_currentSurface->pDeinterlaceParams                         &&
+        ((m_currentSurface->pDeinterlaceParams                         &&
          m_currentSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB) ||
-         m_currentSurface->bInterlacedScaling)
+         m_currentSurface->bInterlacedScaling))
     {
         SampleType = m_currentSurface->SampleType;
     }
@@ -476,6 +476,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDI surfaces
+        for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
+        {
+            if (pVeboxState->FFDISurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDISurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // When DI switch to DNDI, the first FFDN surface pitch doesn't match with
     // the input surface pitch and cause the flicker issue
@@ -555,6 +568,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDN surfaces
+        for (i = 0; i < VPHAL_NUM_FFDN_SURFACES; i++)
+        {
+            if (pVeboxState->FFDNSurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDNSurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // Adjust the rcMaxSrc of pRenderTarget when Vebox output is enabled
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
@@ -599,6 +625,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
                 m_reporting->STMMCompressible = bSurfCompressed;
                 m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
             }
+        }
+    }
+    else
+    {
+        // Free DI history buffers (STMM = Spatial-temporal motion measure)
+        for (i = 0; i < VPHAL_NUM_STMM_SURFACES; i++)
+        {
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &pVeboxState->STMMSurfaces[i].OsResource);
         }
     }
 
@@ -1548,6 +1584,17 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G9_BASE::GetOutputPipe(
         goto finish;
     }
 
+    //Let Kernel to cover the DI cases VEBOX cannot handle.
+    if (pSrcSurface->pDeinterlaceParams &&
+        pSrcSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB &&
+        ((IS_VEBOX_SURFACE_HEIGHT_UNALIGNED(pSrcSurface, 4) &&
+          pSrcSurface->Format == Format_NV12) ||
+         !this->IsDiFormatSupported(pSrcSurface)))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
     if (bOutputPipeVeboxFeasible)
     {
@@ -2075,9 +2122,13 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsFormatSupported(
     // Vebox only support P016 format, P010 format can be supported by faking it as P016
     if (pSrcSurface->Format != Format_NV12 &&
         pSrcSurface->Format != Format_AYUV &&
-        pSrcSurface->Format != Format_Y416 &&
         pSrcSurface->Format != Format_P010 &&
         pSrcSurface->Format != Format_P016 &&
+        pSrcSurface->Format != Format_P210 &&
+        pSrcSurface->Format != Format_P216 &&
+        pSrcSurface->Format != Format_Y8   &&
+        pSrcSurface->Format != Format_Y16U &&
+        pSrcSurface->Format != Format_Y16S &&
         !IS_PA_FORMAT(pSrcSurface->Format))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
@@ -2109,8 +2160,16 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsRTFormatSupported(
     bRet = false;
 
     // Check if RT Format is supported by Vebox
-    if (IS_PA_FORMAT(pRTSurface->Format) ||
-        pRTSurface->Format == Format_NV12)
+    if (IS_PA_FORMAT(pRTSurface->Format)  ||
+        pRTSurface->Format == Format_NV12 ||
+        pRTSurface->Format == Format_AYUV ||
+        pRTSurface->Format == Format_P010 ||
+        pRTSurface->Format == Format_P016 ||
+        pRTSurface->Format == Format_P210 ||
+        pRTSurface->Format == Format_P216 ||
+        pRTSurface->Format == Format_Y8   ||
+        pRTSurface->Format == Format_Y16U ||
+        pRTSurface->Format == Format_Y16S)
     {
         // Supported Vebox Render Target format. Vebox Pipe Output can be selected.
         bRet = true;

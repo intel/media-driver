@@ -56,6 +56,10 @@ MOS_STATUS VphalStateG8::CreateRenderer()
             m_renderer = nullptr;
             return eStatus;
         }
+        else
+        {
+            m_renderer->SetStatusReportTable(&m_statusTable);
+        }
     }
 
     eStatus = m_renderer->InitKdllParam();

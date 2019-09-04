@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2018, Intel Corporation
+* Copyright (c) 2012-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -165,6 +165,19 @@ bool VphalSfcState::IsOutputCapable(
     PVPHAL_SURFACE  renderTarget)
 {
     bool isOutputCapable = false;
+
+    VPHAL_RENDER_NORMALMESSAGE(
+        "isColorFill %d, \
+         src->rcDst.top %d, \
+         src->rcDst.left %d, \
+         renderTarget->TileType %d, \
+         renderTarget->Format %d",
+        isColorFill,
+        src->rcDst.top,
+        src->rcDst.left,
+        renderTarget->TileType,
+        renderTarget->Format);
+
     // H/W does not support ColorFill, the (OffsetX, OffsetY)
     // of scaled region not being (0, 0) or the tile type not being
     // Tile_Y on NV12/P010/P016 output surface. Disable SFC even if other
@@ -233,6 +246,28 @@ bool VphalSfcState::IsOutputPipeSfcFeasible(
     PVPHAL_SURFACE              pSrcSurface,
     PVPHAL_SURFACE              pRenderTarget)
 {
+    VPHAL_RENDER_NORMALMESSAGE(
+        "IsDisabled %d, \
+         uDstCount %d, \
+         Rotation %d, \
+         pTarget[0]->TileType %d, \
+         IsFormatSupported %d, \
+         InputFormat %d, \
+         OutputFormat %d, \
+         pCompAlpha %p, \
+         pDeinterlaceParams %p, \
+         bQueryVariance %d",
+        IsDisabled(),
+        pcRenderParams->uDstCount,
+        pSrcSurface->Rotation,
+        pcRenderParams->pTarget[0]->TileType,
+        IsFormatSupported(pSrcSurface, pcRenderParams->pTarget[0], pcRenderParams->pCompAlpha),
+        pSrcSurface->Format,
+        pcRenderParams->pTarget[0]->Format,
+        pcRenderParams->pCompAlpha,
+        pSrcSurface->pDeinterlaceParams,
+        pSrcSurface->bQueryVariance);
+
     //!
     //! \brief SFC can be the output pipe when the following conditions are all met
     //!        1.  User feature keys value "SFC Disable" is false
@@ -252,6 +287,12 @@ bool VphalSfcState::IsOutputPipeSfcFeasible(
          (pSrcSurface->Format != Format_A8R8G8B8 && pSrcSurface->Format != Format_A8B8G8R8))    &&
         pSrcSurface->bQueryVariance             == false)
     {
+        // For platforms with VEBOX disabled but procamp enabled, go Render path
+        if (MEDIA_IS_SKU(m_renderHal->pSkuTable, FtrDisableVEBoxFeatures) && pSrcSurface->pProcampParams != nullptr)
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -567,7 +608,7 @@ void VphalSfcState::SetRenderingFlags(
     m_renderData.bScaling   = ((fScaleX == 1.0F) && (fScaleY == 1.0F)) ?
                                  false : true;
 
-    m_renderData.bColorFill = (pColorFillParams &&
+    m_renderData.bColorFill = (pColorFillParams && pSrc->InterlacedScalingType == ISCALING_NONE &&
                                   (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst))) ?
                                  true : false;
 
@@ -636,6 +677,16 @@ void VphalSfcState::SetRenderingFlags(
     // Cache Render Target pointer
     pRenderData->pRenderTarget = pRenderTarget;
 
+    VPHAL_RENDER_NORMALMESSAGE(
+        "RenderData: bScaling %d, bColorFill %d, bIEF %d, SfcInputFormat %d, SfcRotation %d, SfcScalingMode %d, SfcSrcChromaSiting %d",
+        m_renderData.bScaling,
+        m_renderData.bColorFill,
+        m_renderData.bIEF,
+        m_renderData.SfcInputFormat,
+        m_renderData.SfcRotation,
+        m_renderData.SfcScalingMode,
+        m_renderData.SfcSrcChromaSiting);
+
 finish:
     return;
 }
@@ -682,16 +733,19 @@ bool VphalSfcState::IsFormatSupported(
     // Check if the input/output combination is supported, given certain alpha fill mode.
     // So far SFC only supports filling constant alpha.
     if (pAlphaParams &&
-        (pAlphaParams->AlphaMode == VPHAL_ALPHA_FILL_MODE_NONE ||
-         pAlphaParams->AlphaMode == VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM))
+        pAlphaParams->AlphaMode == VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM)
     {
         if ((pOutSurface->Format == Format_A8R8G8B8    ||
              pOutSurface->Format == Format_A8B8G8R8    ||
              pOutSurface->Format == Format_R10G10B10A2 ||
              pOutSurface->Format == Format_B10G10R10A2 ||
+             pOutSurface->Format == Format_Y410        ||
+             pOutSurface->Format == Format_Y416        ||
              pOutSurface->Format == Format_AYUV)       &&
             (pSrcSurface->Format == Format_A8B8G8R8    ||
              pSrcSurface->Format == Format_A8R8G8B8    ||
+             pSrcSurface->Format == Format_Y410        ||
+             pSrcSurface->Format == Format_Y416        ||
              pSrcSurface->Format == Format_AYUV))
         {
             ret = false;
@@ -919,6 +973,11 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             break;
     }
 
+    VPHAL_RENDER_NORMALMESSAGE("SfcStateParams: dwInputChromaSubSampling %d, b8tapChromafiltering %d, dwChromaDownSamplingMode %d.",
+        pSfcStateParams->dwInputChromaSubSampling,
+        pSfcStateParams->b8tapChromafiltering,
+        pSfcStateParams->dwChromaDownSamplingMode);
+
     SetSfcStateInputOrderingMode(pRenderData, pSfcStateParams);
 
     pSfcStateParams->OutputFrameFormat = pOutSurface->Format;
@@ -1051,6 +1110,11 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
         pSfcStateParams->bMirrorEnable = true;
     }
 
+    VPHAL_RENDER_NORMALMESSAGE("SfcStateParams: dwMirrorType %d, RotationMode %d, bMirrorEnable %d.",
+        pSfcStateParams->dwMirrorType,
+        pSfcStateParams->RotationMode,
+        pSfcStateParams->bMirrorEnable);
+
     // ColorFill params
     if (m_renderData.bColorFill)
     {
@@ -1129,7 +1193,19 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
 
     // CSC params
     pSfcStateParams->bCSCEnable      = m_renderData.bCSC;
-    pSfcStateParams->bRGBASwapEnable = pSfcStateParams->bCSCEnable;
+
+    // ARGB8,ABGR10 output format need to enable swap
+    if (pOutSurface->Format == Format_X8R8G8B8 ||
+        pOutSurface->Format == Format_A8R8G8B8 ||
+        pOutSurface->Format == Format_R10G10B10A2)
+    {
+        pSfcStateParams->bRGBASwapEnable = true;
+    }
+    else
+    {
+        pSfcStateParams->bRGBASwapEnable = false;
+    }
+
     if (IS_RGB_CSPACE(pSrcSurface->ColorSpace))
     {
         pSfcStateParams->bInputColorSpace = true;
@@ -1138,6 +1214,11 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     {
         pSfcStateParams->bInputColorSpace = false;
     }
+
+    VPHAL_RENDER_NORMALMESSAGE("SfcStateParams: bCSCEnable %d, bRGBASwapEnable %d, bMirrorEnable %d.",
+        pSfcStateParams->bCSCEnable,
+        pSfcStateParams->bRGBASwapEnable,
+        pSfcStateParams->bMirrorEnable);
 
     // Set MMC status
     VPHAL_RENDER_CHK_STATUS(SetSfcMmcStatus(
@@ -1202,6 +1283,10 @@ MOS_STATUS VphalSfcState::SetSfcMmcStatus(
             sfcStateParams->bMMCEnable = false;
             sfcStateParams->MMCMode    = MOS_MMC_DISABLED;
         }
+
+        VPHAL_RENDER_NORMALMESSAGE("SfcStateParams: bMMCEnable %d, MMCMode %d.",
+            sfcStateParams->bMMCEnable,
+            sfcStateParams->MMCMode);
 
         // Set mmc status output surface for output surface
         m_osInterface->pfnSetMemoryCompressionMode(m_osInterface, &outSurface->OsResource, MOS_MEMCOMP_STATE(sfcStateParams->MMCMode));

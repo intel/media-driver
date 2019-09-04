@@ -85,7 +85,7 @@ bool strEndsWith(
     const std::string &str,
     const std::string &substr)
 {
-	size_t i = str.rfind(substr);
+    size_t i = str.rfind(substr);
     return (i != std::string::npos) && (i == (str.length() - substr.length()));
 }
 

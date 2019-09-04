@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,8 @@
 #include "mhw_memory_pool.h"
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
+
+#include "frame_tracker.h"
 
 
 class XRenderHal_Platform_Interface;
@@ -470,6 +472,7 @@ typedef enum _RENDERHAL_COMPONENT
     RENDERHAL_COMPONENT_CM,
     RENDERHAL_COMPONENT_16ALIGN,
     RENDERHAL_COMPONENT_FAST1TON,
+    RENDERHAL_COMPONENT_HDR,
     RENDERHAL_COMPONENT_COUNT_BASE,
     RENDERHAL_COMPONENT_RESERVED_NUM = 15,
     RENDERHAL_COMPONENT_COUNT
@@ -705,6 +708,7 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_P208_1PLANE_ADV,
     RENDERHAL_PLANES_Y416_RT,
     RENDERHAL_PLANES_R32G32B32A32F,
+    RENDERHAL_PLANES_Y8_ADV,
 
     RENDERHAL_PLANES_DEFINITION_COUNT
 } RENDERHAL_PLANE_DEFINITION, *PRENDERHAL_PLANE_DEFINITION;
@@ -756,6 +760,7 @@ typedef struct _RENDERHAL_KRN_ALLOCATION
     int32_t                      iKUID;                                         // Kernel Unique ID
     int32_t                      iKCID;                                         // Kernel Cache ID
     uint32_t                     dwSync;                                        // Kernel last sync (used to determine whether the kernel may be unloaded)
+    FrameTrackerTokenFlat        trackerToken;                                  // Kernel last sync with multiple trackers
     uint32_t                     dwOffset;                                      // Kernel offset in GSH (from GSH base, 0 is KAC entry is available)
     int32_t                      iSize;                                         // Kernel block size in GSH (0 if not loaded)
     uint32_t                     dwFlags : 4;                                   // Kernel allocation flag
@@ -795,6 +800,7 @@ typedef struct _RENDERHAL_MEDIA_STATE
 
     // set at runtime
     uint32_t            dwSyncTag;                                              // Sync Tag
+    FrameTrackerTokenFlat trackerToken;
     uint32_t            dwSyncCount;                                            // Number of sync tags
     int32_t             iCurbeOffset;                                           // Current CURBE Offset
     uint32_t            bBusy   : 1;                                            // 1 if the state is in use (must sync before use)
@@ -876,6 +882,8 @@ typedef struct _RENDERHAL_STATE_HEAP
     uint32_t                dwOffsetMediaID;                                    // Offset to Media IDs from Media State Base
     uint32_t                dwSizeMediaID;                                      // Size of each Media ID
 
+    MHW_ID_ENTRY_PARAMS     CurIDEntryParams = {};                              // Parameters for current Interface Descriptor Entry
+
     // Performance capture
     uint32_t                dwOffsetStartTime;                                  // Offset to the start time of the media state
     uint32_t                dwStartTimeSize;                                    // Size of Start time
@@ -948,6 +956,7 @@ typedef struct _RENDERHAL_STATE_HEAP
     int32_t                 iKernelUsed;                                        // Kernel heap used size
     uint8_t                 *pKernelLoadMap;                                     // Kernel load map
     uint32_t                dwAccessCounter;                                    // Incremented when a kernel is loaded/used, for dynamic allocation
+    int32_t                 iKernelUsedForDump;                                 // The kernel size to be dumped in oca buffer.
 
     // Kernel Spill Area
     uint32_t                dwScratchSpaceSize;                                 // Size of the Scratch Area
@@ -1222,8 +1231,9 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bDynamicStateHeap;        //!< Indicates that DSH is in use
 
 
-    RENDERHAL_TR_RESOURCE       trackerResource;        // Resource to mark command buffer completion
+    FrameTrackerProducer        trackerProducer;        // Resource to mark command buffer completion
     RENDERHAL_TR_RESOURCE       veBoxTrackerRes;        // Resource to mark command buffer completion
+    uint32_t                    currentTrackerIndex;    // Record the tracker index
 
     HeapManager                 *dgsheapManager;        // Dynamic general state heap manager
 
@@ -1231,6 +1241,9 @@ typedef struct _RENDERHAL_INTERFACE
     // Dump state for VP debugging
     void                        *pStateDumper;
 #endif
+
+    // Pointer to vphal oca dumper object to dump vphal parameters.
+    void                        *pVphalOcaDumper;
 
     // Predication
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
@@ -1472,7 +1485,8 @@ typedef struct _RENDERHAL_INTERFACE
     // New Dynamic State Heap interfaces
     //---------------------------
     MOS_STATUS(*pfnAssignSpaceInStateHeap)(
-        RENDERHAL_TR_RESOURCE *trackerInfo,
+        uint32_t              trackerIndex,
+        FrameTrackerProducer  *trackerProducer,
         HeapManager           *heapManager,
         MemoryBlock           *block,
         uint32_t               size);
@@ -1598,19 +1612,11 @@ typedef struct _RENDERHAL_INTERFACE
                 PMOS_RESOURCE               presCscCoeff,
                 Kdll_CacheEntry             *pKernelEntry);
 
-    void       (* pfnIncTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
-    uint32_t   (* pfnGetNextTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
-    uint32_t   (* pfnGetCurrentTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
     void       (* pfnSetupPrologParams) (
                 PRENDERHAL_INTERFACE             renderHal,
                 RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
                 PMOS_RESOURCE                    osResource,
+                uint32_t                         offset,
                 uint32_t                         tag);
 
     // Samplers and other states

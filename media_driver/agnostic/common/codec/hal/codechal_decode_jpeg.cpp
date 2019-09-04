@@ -27,6 +27,7 @@
 
 #include "codechal_decode_jpeg.h"
 #include "codechal_mmc_decode_jpeg.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
 #include "codechal_debug.h"
@@ -67,11 +68,23 @@ CodechalDecodeJpeg::CodechalDecodeJpeg(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecode(hwInterface, debugInterface, standardInfo),
-                                            m_copiedDataBufferSize(0)
+                                            m_dataSize(0),
+                                            m_dataOffset(0),
+                                            m_copiedDataBufferSize(0),
+                                            m_nextCopiedDataOffset(0),
+                                            m_totalDataLength(0),
+                                            m_preNumScans(0),
+                                            m_copiedDataBufferInUse(false)
+
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     MOS_ZeroMemory(&m_resCopiedDataBuffer, sizeof(m_resCopiedDataBuffer));
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    MOS_ZeroMemory(&m_jpegHuffmanTable, sizeof(m_jpegHuffmanTable));
+    MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
 }
 
 MOS_STATUS CodechalDecodeJpeg::InitializeBeginFrame()
@@ -640,6 +653,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
         &cmdBuffer,
         0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer, true));
 
@@ -671,7 +687,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
     // Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
     pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
+#endif
 
     // Set MFX_IND_OBJ_BASE_ADDR_STATE_CMD
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
@@ -961,6 +979,8 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             &syncParams));
     }
 
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
         m_osInterface,
         &cmdBuffer,
@@ -993,8 +1013,10 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
 
 MOS_STATUS CodechalDecodeJpeg::InitMmcState()
 {
+#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeJpeg, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

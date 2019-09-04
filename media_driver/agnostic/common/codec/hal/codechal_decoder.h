@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -647,6 +647,18 @@ public:
     CodechalDecodeHistogram* GetDecodeHistogram() { return m_decodeHistogram; }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
+    //!
+    //! \brief  Indicates whether or not the vd sfc is supported
+    //! \return If vd sfc is supported \see m_vdSfcSupported
+    //!
+    bool IsVdSfcSupported() { return m_vdSfcSupported; }
+
+    //!
+    //! \brief  Set if vd sfc supported
+    //! \return No return
+    //!
+    void SetVdSfcSupportedFlag(bool isVdSfcSpported) { m_vdSfcSupported = isVdSfcSpported; }
+
     //! \brief Field scaling interface
     FieldScalingInterface       *m_fieldScalingInterface = nullptr;
 #endif
@@ -902,10 +914,10 @@ private:
         uint32_t allocHeight,
         MOS_FORMAT format);
     //!
-    //! \brief    Resize specific reference surfaces 
+    //! \brief    Resize specific reference surfaces
     //! \details  Resize specific reference surfaces for decode downsampling for all codec types
     //! \param    frameIdx
-    //!           [in] index of surfaces array 
+    //!           [in] index of surfaces array
     //! \param    width
     //!           [in] Width of the surfaces to be allocated
     //! \param    height
@@ -921,7 +933,7 @@ private:
         uint32_t     height,
         MOS_FORMAT   format);
     //!
-    //! \brief    Deallocate specific reference surfaces 
+    //! \brief    Deallocate specific reference surfaces
     //! \details  Deallocate specific reference surfaces for decode downsampling for all codec types
     //! \param    frameIdx
     //!           [in] index of surfaces array
@@ -1014,6 +1026,11 @@ protected:
     //! \brief Flag to indicate if UMD Perf Profiler FE BE timing measurement is enabled
     bool                        m_perfFEBETimingEnabled = false;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    //! \brief Flag to indicate if vd sfc is supported
+    bool                        m_vdSfcSupported = false;
+#endif
+
     //! \brief Stores all the status_query related data
     CodechalDecodeStatusBuffer  m_decodeStatusBuf;
     //! \brief The feedback number reported by app in picparams call
@@ -1046,9 +1063,9 @@ protected:
     bool                        m_disableLockForTranscode = false;
 
     //! \brief Indicate how many passes is needed to finish decoding a picture
-    //! \details Initialize decode pass number to 1, for those decoder need more than 1 decoding pass, 
+    //! \details Initialize decode pass number to 1, for those decoder need more than 1 decoding pass,
     //!          modify this value in specific decoder files.
-    uint8_t                     m_decodePassNum     = 1;
+    uint16_t                     m_decodePassNum     = 1;
 
     //! \brief MMIO Hcp Frame CRC report offset
     uint32_t                    m_hcpFrameCrcRegOffset = 0;

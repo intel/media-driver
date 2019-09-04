@@ -2126,15 +2126,17 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMbEnc(
             (uint16_t)m_downscaledWidthInMb4x : m_picWidthInMb;
     uint16_t fieldFrameHeightInMb   = mbEncIFrameDistEnabled ?
             (uint16_t)m_downscaledFrameFieldHeightInMb4x : m_frameFieldHeightInMb;
+    uint8_t codingType = m_mbEncForcePictureCodingType ?
+        m_mbEncForcePictureCodingType : (uint8_t)m_pictureCodingType;
 
-    MbEncCurbeG9 cmd(m_picParams->m_pictureCodingType);
+    MbEncCurbeG9 cmd(codingType);
 
     // Set CURBE data as per
     cmd.m_curbeData.DW0.m_isInterlacedFrameFlag =
         (CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic)) ? (m_picParams->m_fieldCodingFlag || m_picParams->m_fieldFrameCodingFlag) : 0;
     cmd.m_curbeData.DW0.m_isTopFieldFirst = cmd.m_curbeData.DW0.m_isInterlacedFrameFlag ? !m_picParams->m_interleavedFieldBFF : 0;
     cmd.m_curbeData.DW0.m_forceToSkip = 0;
-    cmd.m_curbeData.DW4.m_pictureType = m_picParams->m_pictureCodingType;
+    cmd.m_curbeData.DW4.m_pictureType = codingType;
     cmd.m_curbeData.DW4.m_fieldFlag = (CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic)) ? 0 : 1;
     cmd.m_curbeData.DW4.m_picWidth = picWidthInMb;
     cmd.m_curbeData.DW4.m_picHeightMinus1 = fieldFrameHeightInMb - 1;
@@ -2172,7 +2174,7 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMbEnc(
     cmd.m_curbeData.DW15.m_backwardHorizontalSearchRange = 4 << m_picParams->m_fcode10;
     cmd.m_curbeData.DW15.m_backwardVerticalSearchRange = 4 << m_picParams->m_fcode11;
 
-    if (m_picParams->m_pictureCodingType == I_TYPE)
+    if (codingType == I_TYPE)
     {
         cmd.m_curbeData.DW2.m_value = 0;
         cmd.m_curbeData.DW4.m_pictureType = 0;
@@ -2191,7 +2193,7 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMbEnc(
             cmd.m_curbeData.DW4.m_iFrameMBDistortionDumpEnable = false;
         }
     }
-    else if (m_picParams->m_pictureCodingType == P_TYPE)
+    else if (codingType == P_TYPE)
     {
         cmd.m_curbeData.DW1.m_uniMixDisable = 0;
         cmd.m_curbeData.DW1.m_biWeight = 32;
@@ -2294,7 +2296,7 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMbEnc(
     }
 
     //ModeCost for P/B pictures
-    if (m_picParams->m_pictureCodingType != I_TYPE)
+    if (codingType != I_TYPE)
     {
         cmd.m_curbeData.VmeSPath0.DW30.m_value = 0x83; // Setting mode 0 cost to 0x83 (131)
         cmd.m_curbeData.VmeSPath0.DW31.m_value = 0x41414141; // Set mode 4, 5, 6, 7 costs to 0x41 (67)
@@ -2321,7 +2323,7 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMbEnc(
         // wPictureCodingType: I_TYPE = 1, P_TYPE = 2, B_TYPE = 3
         // KernelStates are I: 0, P: 1, B: 2
         // m_mbEncKernelStates: I: m_mbEncKernelStates[0], P: m_mbEncKernelStates[1], B: m_mbEncKernelStates[2]
-        uint32_t krnStateIdx = m_pictureCodingType - 1;
+        uint32_t krnStateIdx = codingType - 1;
         kernelState = &m_mbEncKernelStates[krnStateIdx];
     }
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernelState->m_dshRegion.AddData(
@@ -2331,4 +2333,25 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMbEnc(
 
     return eStatus;
 
+}
+
+MOS_STATUS CodechalEncodeMpeg2G9::ExecuteKernelFunctions()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_picParams);
+
+    m_mbEncForcePictureCodingType = 0;
+
+    // use P_TYPE in G9 MbEnc kernel for B with invalid backward reference
+    if (m_pictureCodingType == B_TYPE && CodecHal_PictureIsInvalid(m_picParams->m_refFrameList[1]))
+    {
+        m_mbEncForcePictureCodingType = P_TYPE;
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeMpeg2::ExecuteKernelFunctions());
+
+    return eStatus;
 }

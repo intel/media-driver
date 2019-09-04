@@ -434,9 +434,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::GetFFDISurfParams(
     // output surface's SampleType should be same to input's. Bob is being
     // done in Composition part
     if (pRenderData->bIECP &&
-        (m_currentSurface->pDeinterlaceParams                         &&
+        ((m_currentSurface->pDeinterlaceParams                         &&
          m_currentSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB) ||
-         m_currentSurface->bInterlacedScaling)
+         m_currentSurface->bInterlacedScaling))
     {
         SampleType = m_currentSurface->SampleType;
     }
@@ -538,6 +538,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::AllocateResources()
             pVeboxState->FFDISurfaces[i]->ColorSpace = ColorSpace;
         }
     }
+    else
+    {
+        // Free FFDI surfaces
+        for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
+        {
+            if (pVeboxState->FFDISurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDISurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // Allocate FFDN surfaces---------------------------------------------------
     if (IsFFDNSurfNeeded())
@@ -590,6 +603,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::AllocateResources()
             pVeboxState->FFDNSurfaces[i]->pDenoiseParams     = pVeboxState->m_currentSurface->pDenoiseParams;
         }
     }
+    else
+    {
+        // Free FFDN surfaces
+        for (i = 0; i < VPHAL_NUM_FFDN_SURFACES; i++)
+        {
+            if (pVeboxState->FFDNSurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDNSurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // Adjust the rcMaxSrc of pRenderTarget when Vebox output is enabled
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
@@ -619,6 +645,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::AllocateResources()
             {
                 VPHAL_RENDER_CHK_STATUS(VeboxInitSTMMHistory(i));
             }
+        }
+    }
+    else
+    {
+        // Free DI history buffers (STMM = Spatial-temporal motion measure)
+        for (i = 0; i < VPHAL_NUM_STMM_SURFACES; i++)
+        {
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &pVeboxState->STMMSurfaces[i].OsResource);
         }
     }
 

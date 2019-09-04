@@ -322,3 +322,40 @@ int32_t CmSurfaceManager::DestroyBufferSVM(CmBufferSVM *&buffer)
 
     return hr;
 }
+
+int32_t CmSurfaceManager::CreateBufferStateless(size_t size,
+                                                uint32_t option,
+                                                void *sysMem,
+                                                CmBufferStateless *&buffer)
+{
+    CM_CREATEBUFFER_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.size = size;
+    inParam.bufferType = CM_BUFFER_STATELESS;
+    inParam.sysMem = sysMem;
+    inParam.option = option;
+    int32_t hr = m_device->OSALExtensionExecute(CM_FN_CMDEVICE_CREATEBUFFER,
+                                                &inParam, sizeof(inParam));
+    CHK_FAILURE_RETURN(hr);
+    CHK_FAILURE_RETURN(inParam.returnValue);
+
+    buffer = (CmBufferStateless *)inParam.cmBufferHandle;
+
+    return hr;
+}
+
+int32_t CmSurfaceManager::DestroyBufferStateless(CmBufferStateless *&buffer)
+{
+    CM_DESTROYBUFFER_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(CM_DESTROYBUFFER_PARAM));
+    inParam.cmBufferHandle = buffer;
+
+    int32_t hr = m_device->OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYBUFFERSTATELESS,
+                                                &inParam,
+                                                sizeof(inParam));
+    CHK_FAILURE_RETURN(hr);
+    CHK_FAILURE_RETURN(inParam.returnValue);
+
+    buffer = nullptr;
+    return hr;
+}

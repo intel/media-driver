@@ -62,7 +62,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CheckAndInitialize(
+    virtual MOS_STATUS CheckAndInitialize(
         PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
         PCODEC_AVC_PIC_PARAMS               picParams,
         uint32_t                            width,

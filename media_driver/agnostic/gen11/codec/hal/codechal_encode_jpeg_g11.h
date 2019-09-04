@@ -51,7 +51,7 @@ public:
     ~CodechalEncodeJpegStateG11();
 
     //derived from base class
-    MOS_STATUS Initialize(CodechalSetting *settings);
+    MOS_STATUS Initialize(CodechalSetting *settings) override;
 
     //!
     //! \brief    Encode frame in slice level.
@@ -88,7 +88,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetGpuCtxCreatOption();
+    MOS_STATUS SetGpuCtxCreatOption() override;
 
 };
 #endif //__CODECHAL_ENCODER_JPEG_G11_H__

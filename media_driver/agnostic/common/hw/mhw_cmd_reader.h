@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,19 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <set>
 
 class MhwCmdReader final
 {
 private:
+    enum SPECIAL_OPCODES
+    {
+        MI_NOOP             = 0x00000000,
+        MI_BATCH_BUFFER_END = 0x05000000,
+        MI_STORE_DATA_IMM   = 0x10000000,
+        MI_FLUSH_DW         = 0x13000000,
+        MFX_WAIT            = 0x68000000,
+    };
 
     struct CmdField
     {
@@ -46,54 +55,56 @@ private:
         {
             struct
             {
-                uint32_t cmdIdx      : 8;
-                uint32_t dwordIdx    : 8;
-                uint32_t stardBit    : 5;
-                uint32_t endBit      : 5;
-                uint32_t longTermUse : 1;
-                uint32_t reserved    : 5;
+                uint32_t opcode;
+
+                uint32_t dwordIdx : 21;
+                uint32_t stardBit : 5;
+                uint32_t endBit : 5;
+                uint32_t longTerm : 1;
             };
-            uint32_t value;
+            uint64_t value;
         } info;
 
-        uint32_t value;
+        uint32_t overrideData;
     };
 
 public:
-
     static std::shared_ptr<MhwCmdReader> GetInstance();
 
     MhwCmdReader() = default;
 
     ~MhwCmdReader() = default;
 
-    void OverrideCmdDataFromFile(std::string cmdName, uint32_t cmdLen, uint32_t *cmd);
+    void OverrideCmdBuf(uint32_t *cmdBuf, uint32_t dwLen);
 
 private:
+    static std::string TrimSpace(const std::string &str);
 
     void SetFilePath(std::string path);
 
     void PrepareCmdData();
 
+    void ParseCmdHeader(uint32_t cmdHdr, uint32_t &opcode, uint32_t &dwSize) const;
+
     void AssignField(uint32_t *cmd, const CmdField &field) const;
 
-private:
+    void OverrideOneCmd(uint32_t *cmd, uint32_t opcode, uint32_t dwLen);
 
+private:
     static std::shared_ptr<MhwCmdReader> m_instance;
 
-    bool                     m_ready = false;
-    std::string              m_path;
-    std::vector<CmdField>    m_longTermFields;
-    std::list<CmdField>      m_shortTermFields;
-    std::vector<std::string> m_cmdNames;
+    bool                  m_ready = false;
+    std::string           m_path;
+    std::vector<CmdField> m_longTermFields;
+    std::list<CmdField>   m_shortTermFields;
 };
 
-#define OVERRIDE_CMD_DATA(cmdName, dwordSize, cmd) MhwCmdReader::GetInstance()->OverrideCmdDataFromFile(cmdName, dwordSize, cmd)
+#define OVERRIDE_CMD_DATA(cmdBuf, dwLen) MhwCmdReader::GetInstance()->OverrideCmdBuf(cmdBuf, dwLen)
 
-#else // _RELEASE
+#else  // _RELEASE
 
-#define OVERRIDE_CMD_DATA(cmdName, dwordSize, cmd)
+#define OVERRIDE_CMD_DATA(cmdBuf, dwLen)
 
-#endif // _DEBUG || _RELEASE_INTERNAL
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
-#endif //__MHW_CMD_READER_H__
+#endif  //__MHW_CMD_READER_H__

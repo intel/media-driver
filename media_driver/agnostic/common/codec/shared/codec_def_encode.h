@@ -63,6 +63,7 @@ struct EncoderParams
     PMOS_SURFACE                    psMbDisableSkipMapSurface;  //!< [AVC] MB disable skip map provided by framework
     PMOS_SURFACE                    psCoeffSurface;             //!< [VP9]
     PMOS_RESOURCE                   presCoeffProbabilityBuffer; //!< [VP9] Coefficient probabilities provided by framework.
+    PMOS_RESOURCE                   psLaDataBuffer;             //!< Lookahead data buffer
     bool                            bNewSeq;                    //!< Indicates the start of a new sequence.
     bool                            bPicQuant;                  //!< Indicates whether the scaling list is for SPS (0) or PPS (1).
     bool                            bNewQmatrixData;            //!< Indicates that new QM data was provided by framework.
@@ -90,6 +91,7 @@ struct EncoderParams
     bool                            newSeqHeader;               //!< [AVC] Flag for new Sequence Header.
     bool                            newPpsHeader;               //!< [AVC] Flag for new PPS Header.
     bool                            arbitraryNumMbsInSlice;     //!< [AVC] Flag to indicate if the sliceMapSurface needs to be programmed or not.
+    bool                            bLaDataEnabled;             //!< [AVC & HEVC] Indicates that psLaDataSurface is present.
 
     void                            *pSeqParams;                 //!< Sequence parameter set structure defined per standard.
     void                            *pPicParams;                 //!< Picture parameter set structure defined per standard.

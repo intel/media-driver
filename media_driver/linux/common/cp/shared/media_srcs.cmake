@@ -19,7 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/cplib.h
     ${CMAKE_CURRENT_LIST_DIR}/cplib_utils.h
 )
 

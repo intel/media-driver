@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -55,9 +55,6 @@
 //!
 //! \brief  Sampler State Indices
 //!
-#define VPHAL_SAMPLER_Y                 1
-#define VPHAL_SAMPLER_U                 2
-#define VPHAL_SAMPLER_V                 3
 #define VPHAL_SAMPLER_8x8_AVS_Y         4
 #define VPHAL_SAMPLER_8x8_AVS_U         8
 #define VPHAL_SAMPLER_8x8_AVS_V         12
@@ -1281,7 +1278,7 @@ VPHAL_CSPACE CompositeState::PrepareCSC(
     PVPHAL_SURFACE                  pTarget;
     PVPHAL_SURFACE                  pSrc;
     int32_t                         i, j;
-    int32_t                         csc_count;
+    int32_t                         csc_count = 0;
     int32_t                         csc_min = iSources + 1;
     int32_t                         cspace_in_use[CSpace_Count];
     bool                            bYUVTarget;
@@ -1383,6 +1380,12 @@ VPHAL_CSPACE CompositeState::PrepareCSC(
     }
 
 finish:
+
+    VPHAL_RENDER_NORMALMESSAGE("Main_ColorSpace %d, Temp_ColorSpace %d, csc_count %d.",
+        Main_ColorSpace,
+        Temp_ColorSpace,
+        csc_count);
+
     return Temp_ColorSpace;
 }
 
@@ -1635,12 +1638,6 @@ bool CompositeState::AddCompLayer(
 
     scalingMode           = pSource->ScalingMode;
 
-    // set default Scaling Model as Bilinear if AVS was not supported.
-    if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
-    {
-        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
-    }
-
     // On Gen9+, Rotation is done in sampler. Multiple phases are not required.
     if (!m_bSamplerSupportRotation)
     {
@@ -1779,6 +1776,8 @@ bool CompositeState::AddCompLayer(
     pComposite->pSource[pComposite->uSourceCount] = pSource;
     pComposite->uSourceCount++;
     bResult = true;
+
+    VPHAL_RENDER_NORMALMESSAGE("ScalingMode %d, nSampler %d", pSource->ScalingMode, pComposite->nSampler);
 
 finish:
     return bResult;
@@ -2141,7 +2140,7 @@ MOS_STATUS CompositeState::Render(
 
     eStatus = MOS_STATUS_UNKNOWN;
 
-    VPHAL_RENDER_NORMALMESSAGE("enter CComposite::Render()");
+    VPHAL_RENDER_FUNCTION_ENTER;
 
     VPHAL_RENDER_CHK_NULL(pcRenderParams);
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
@@ -2389,6 +2388,8 @@ finish:
         pRenderHal->pfnSetSliceShutdownMode(pRenderHal, false);
     }
 
+    VPHAL_RENDER_EXITMESSAGE("eStatus %d", eStatus);
+
     return eStatus;
 }
 
@@ -2475,6 +2476,14 @@ void CompositeState::SetScalingMode(
     {
         pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
     }
+
+    // WA for multilayer P010 AVS+3D one single pass corruption hw issue
+    if (uSourceCount > 1 &&
+        pSource->Format == Format_P010)
+    {
+        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
+    }
+
 }
 
 //!
@@ -2750,9 +2759,7 @@ void CompositeState::SetSurfaceParams(
     }
 
     // Set surface type based on scaling mode
-    // If m_bFallbackIefPatch is on, fallback IEF patch from AVS to SFC
-    if (pSource->ScalingMode == VPHAL_SCALING_AVS || (pSource->bIEF &&
-        !m_bFallbackIefPatch))
+    if (pSource->ScalingMode == VPHAL_SCALING_AVS)
     {
         pSurfaceParams->Type = m_pRenderHal->SurfaceTypeAdvanced;
         pSurfaceParams->bAVS = true;
@@ -2786,6 +2793,11 @@ void CompositeState::SetSurfaceParams(
     {
         pSurfaceParams->b2PlaneNV12NeededByKernel = true;
     }
+
+     VPHAL_RENDER_NORMALMESSAGE("SurfaceTYpe %d, bAVS %d, b2PlaneNV12NeededByKernel %d",
+        pSurfaceParams->Type,
+        pSurfaceParams->bAVS,
+        pSurfaceParams->b2PlaneNV12NeededByKernel);
 }
 
 //!
@@ -3334,6 +3346,10 @@ int32_t CompositeState::SetLayer(
     //-----------------------------------
     if (pSource->pLumaKeyParams != nullptr)
     {
+        VPHAL_RENDER_NORMALMESSAGE("LumaLow %d, LumaHigh %d",
+            pSource->pLumaKeyParams->LumaLow,
+            pSource->pLumaKeyParams->LumaHigh);
+
         pStatic->DW14.LumakeyLowThreshold  = pSource->pLumaKeyParams->LumaLow;
         pStatic->DW14.LumakeyHighThreshold = pSource->pLumaKeyParams->LumaHigh;
     }
@@ -3388,8 +3404,18 @@ int32_t CompositeState::SetLayer(
             }
             else
             {
-                fShiftX  = VPHAL_HW_LINEAR_SHIFT;   // Bilinear scaling shift
-                fShiftY  = VPHAL_HW_LINEAR_SHIFT;
+                //For Y210 with AVS(Y)+3D(U/V) sampler, the shift is not needed.
+                if (pSource->Format == Format_Y210 && pSurfaceEntries[0]->bAVS)
+                {
+                    fShiftX = 0.0f;
+                    fShiftY = 0.0f;
+                }
+                else
+                {
+                    fShiftX = VPHAL_HW_LINEAR_SHIFT;  // Bilinear scaling shift
+                    fShiftY = VPHAL_HW_LINEAR_SHIFT;
+                }
+
                 pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
             }
             pSamplerStateParams->Unorm.AddressU = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
@@ -3475,6 +3501,10 @@ int32_t CompositeState::SetLayer(
          (pSource->pBlendingParams->BlendType == BLEND_CONSTANT_PARTIAL)))
     {
         float fAlpha = pSource->pBlendingParams->fAlpha;
+
+        VPHAL_RENDER_NORMALMESSAGE("BlendType %d, fAlpha %d",
+            pSource->pBlendingParams->BlendType,
+            pSource->pBlendingParams->fAlpha);
 
         // Don't render layer with alpha <= 0.0f
         if (fAlpha <= 0.0f)
@@ -3902,6 +3932,8 @@ int32_t CompositeState::SetLayer(
     pRenderingData->BbArgs.Rotation[iLayer] = pSource->Rotation;
     pRenderingData->BbArgs.iLayers++;
 
+    VPHAL_RENDER_NORMALMESSAGE("Layer %d, SamplerType:%d, Scaling Model %d,  SamplerIndex %d",
+                               iLayer, SamplerType, pSource->ScalingMode, iSamplerID);
     iResult = 1;
 
 finish:
@@ -4561,6 +4593,7 @@ bool CompositeState::SubmitStates(
     }
 
     // Set flag to swap R and B in Save_RGB/ARGB if target format is Format_A8B8G8R8/Format_X8B8G8R8/Format_B10G10R10A2.
+    // No need for RGBP/BGRP, since they are 3 plane format, kenel change the RB channel by different plane order
     pStatic->DW09.ChannelSwap = ((pTarget->Format == Format_A8B8G8R8) ||
                                  (pTarget->Format == Format_X8B8G8R8) ||
                                  (pTarget->Format == Format_B10G10R10A2)) ? 1 : 0;
@@ -5534,13 +5567,11 @@ bool CompositeState::RenderBufferComputeWalker(
     uint32_t*                           pdwDestXYTopLeft;
     uint32_t*                           pdwDestXYBottomRight;
     RECT                                AlignedRect;
-    bool                                bVerticalPattern;
 
     MOS_UNUSED(pBatchBuffer);
 
     bResult          = false;
     pRenderHal       = m_pRenderHal;
-    bVerticalPattern = false;
     pBbArgs          = &pRenderingData->BbArgs;
     pWalkerStatic    = &pRenderingData->WalkerStatic;
 
@@ -5593,7 +5624,6 @@ bool CompositeState::RenderBufferComputeWalker(
 
     // Get media walker kernel block size
     uiMediaWalkerBlockSize = pRenderHal->pHwSizes->dwSizeMediaWalkerBlock;
-    bVerticalPattern       = MediaWalkerVertical(pRenderingData);
 
     // Calculate aligned output area in order to determine the total # blocks
     // to process in case of non-16x16 aligned target.
@@ -5607,26 +5637,17 @@ bool CompositeState::RenderBufferComputeWalker(
     // Set walker cmd params - Rasterscan
     pWalkerParams->InterfaceDescriptorOffset    = pRenderingData->iMediaID;
 
-    if(bVerticalPattern)
-    {
-        pWalkerParams->GroupStartingX = (AlignedRect.top / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupStartingY = (AlignedRect.left / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupWidth     = pRenderingData->iBlocksY;
-        pWalkerParams->GroupHeight    = pRenderingData->iBlocksX;
-    }
-    else
-    {
-        pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
-        pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
-        pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
-    }
+    pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
+    pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
+    pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
+    pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
 
     pWalkerParams->ThreadWidth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH;
     pWalkerParams->ThreadHeight = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
     pWalkerParams->ThreadDepth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_DEPTH;
     pWalkerParams->IndirectDataStartAddress = pRenderingData->iCurbeOffset;
-    pWalkerParams->IndirectDataLength       = MOS_ROUNDUP_SHIFT(pRenderingData->iCurbeLength, MHW_COMPUTE_INDIRECT_SHIFT);
+    // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
+    pWalkerParams->IndirectDataLength       = MOS_ALIGN_CEIL(pRenderingData->iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);
     pWalkerParams->BindingTableID = pRenderingData->iBindingTable;
 
     bResult = true;
@@ -5656,6 +5677,7 @@ void CompositeState::CalculateRenderData(
     if ((pCompParams->pColorFillParams != nullptr) &&
         (!RECT1_CONTAINS_RECT2(pSource->rcDst, pCompParams->Target[0].rcDst)))
     {
+        VPHAL_RENDER_NORMALMESSAGE("bColorfill enabled");
         *pbColorfill = true;
     }
 
@@ -5673,6 +5695,7 @@ void CompositeState::CalculateRenderData(
         pSource->pBlendingParams == nullptr                                     &&  // No Blending
         m_bKernelSupportHdcDW)                                                      // if HDC direct write is supported
     {
+        VPHAL_RENDER_NORMALMESSAGE("bHdcDwEnable enabled");
         pRenderingData->bHdcDwEnable = true;
     }
 }
@@ -5765,6 +5788,7 @@ MOS_STATUS CompositeState::RenderPhase(
         // Check Scaling mode for 3D Sampler use case
         if (m_need3DSampler && pSource->ScalingMode == VPHAL_SCALING_AVS)
         {
+            VPHAL_RENDER_NORMALMESSAGE("Modify ScalingMode to BILINREA from AVS due to 3D Sampler enabled");
             pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
         }
 
@@ -5907,6 +5931,23 @@ MOS_STATUS CompositeState::RenderPhase(
         goto finish;
     }
 
+    //Log for debug
+    for (int32_t i = 0; i < iFilterSize; i++)
+    {
+        Kdll_FilterEntry *pTempFilter = (pFilter + i);
+        
+        if (pTempFilter == nullptr)
+            continue;
+
+        VPHAL_RENDER_NORMALMESSAGE("Kernel Search Filter %d: layer %d, format %d, cspace %d, \
+                                   bEnableDscale %d, bIsDitherNeeded %d, chromasiting %d, colorfill %d, dualout %d, \
+                                   lumakey %d, procamp %d, RenderMethod %d, sampler %d, samplerlumakey %d ", 
+                                   i, pTempFilter->layer, pTempFilter->format, pTempFilter->cspace, 
+                                   pTempFilter->bEnableDscale, pTempFilter->bIsDitherNeeded, 
+                                   pTempFilter->chromasiting, pTempFilter->colorfill,  pTempFilter->dualout, 
+                                   pTempFilter->lumakey, pTempFilter->procamp, pTempFilter->RenderMethod, pTempFilter->sampler, pTempFilter->samplerlumakey);
+    }
+
     //============================
     // KERNEL SEARCH
     //============================
@@ -5975,6 +6016,10 @@ MOS_STATUS CompositeState::RenderPhase(
             eStatus = MOS_STATUS_UNKNOWN;
             goto finish;
         }
+    }
+    else
+    {
+        VPHAL_RENDER_NORMALMESSAGE("Use previous kernel list.");
     }
 
     RenderingData.bCmFcEnable  = pKernelDllState->bEnableCMFC ? true : false;
@@ -6146,6 +6191,8 @@ MOS_STATUS CompositeState::RenderPhase(
         pComputeWalkerParams,
         &m_StatusTableUpdateParams,
         kernelCombinedFc,
+        m_KernelSearch.KernelCount,
+        m_KernelSearch.KernelID,
         m_bLastPhase));
 
 finish:
@@ -6288,7 +6335,7 @@ bool CompositeState::BuildFilter(
 
         // Y_Uoffset(Height*2 + Height/2) of RENDERHAL_PLANES_YV12 define Bitfield_Range(0, 13) on gen9+.
         // The max value is 16383. So use PL3 kernel to avoid out of range when Y_Uoffset is larger than 16383.
-        // Use PL3 plane to avoid YV12 bleeding issue with DI enabled
+        // Use PL3 plane to avoid YV12 blending issue with DI enabled and U channel shift issue with not 4-aligned height
         if ((pFilter->format   == Format_YV12)           &&
             (pSrc->ScalingMode != VPHAL_SCALING_AVS)     &&
             (pSrc->bIEF        != true)                  &&
@@ -6296,6 +6343,7 @@ bool CompositeState::BuildFilter(
             m_pRenderHal->bEnableYV12SinglePass          &&
             !pSrc->pDeinterlaceParams                    &&
             !pSrc->bInterlacedScaling                    &&
+            MOS_IS_ALIGNED(pSrc->dwHeight, 4)            &&
             ((pSrc->dwHeight * 2 + pSrc->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9))
         {
             pFilter->format = Format_YV12_Planar;
@@ -6359,16 +6407,20 @@ bool CompositeState::BuildFilter(
             pSrc->Format == Format_Y410        ||
             pSrc->Format == Format_Y416)
         {
-            pFilter->bWaEnableDscale = true;
+            pFilter->bEnableDscale = true;
         }
         else
         {
-            pFilter->bWaEnableDscale = MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
+            pFilter->bEnableDscale = false;
         }
 
         if (m_bFtrComputeWalker)
         {
             pFilter->bWaEnableDscale = true;
+        }
+        else
+        {
+            pFilter->bWaEnableDscale = MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
         }
 
         //--------------------------------
@@ -6505,6 +6557,16 @@ bool CompositeState::BuildFilter(
     pFilter->procamp  = DL_PROCAMP_DISABLED;
     pFilter->matrix   = DL_CSC_DISABLED;
     pFilter->bFillOutputAlphaWithConstant = true;
+
+    if(pCompParams->pSource[0] != nullptr &&
+       pCompParams->pSource[0]->Format == Format_R5G6B5 &&
+       pCompParams->Target[0].Format == Format_R5G6B5)
+    {
+        pFilter->bIsDitherNeeded = false;
+    }else
+    {
+        pFilter->bIsDitherNeeded = true;
+    }
 
     if (pFilter->format == Format_A8R8G8B8    ||
         pFilter->format == Format_A8B8G8R8    ||
@@ -6895,6 +6957,13 @@ CompositeState::CompositeState(
     : RenderState(pOsInterface, pRenderHal, pPerfData, peStatus),
     m_iMaxProcampEntries(0),
     m_iProcampVersion(0),
+    m_bNullHwRenderComp(false),
+    m_b8TapAdaptiveEnable(false),
+    m_pKernelDllState(nullptr),
+    m_ThreadCountPrimary(0),
+    m_iBatchBufferCount(0),
+    m_iCallID(0),
+    m_bLastPhase(false),
     m_fSamplerLinearBiasX(0),
     m_fSamplerLinearBiasY(0),
     m_bFtrMediaWalker(false),
@@ -6907,18 +6976,11 @@ CompositeState::CompositeState(
     m_bKernelSupportDualOutput(false),
     m_bKernelSupportHdcDW(false),
     m_bApplyTwoLayersCompOptimize(false),
-    m_bAvsTableCoeffExtraEnabled(false),
-    m_bAvsTableBalancedFilter(false),
-    m_bNullHwRenderComp(false),
-    m_b8TapAdaptiveEnable(false),
-    m_pKernelDllState(nullptr),
-    m_ThreadCountPrimary(0),
-    m_iBatchBufferCount(0),
-    m_iCallID(0),
     m_need3DSampler(false),
     m_bEnableSamplerLumakey(false),
     m_bYV12iAvsScaling(false),
-    m_bLastPhase(false)
+    m_bAvsTableCoeffExtraEnabled(false),
+    m_bAvsTableBalancedFilter(false)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;

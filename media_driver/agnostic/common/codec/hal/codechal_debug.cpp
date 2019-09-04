@@ -506,11 +506,13 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     // Always use MOS swizzle instead of GMM Cpu blit
     uint32_t sizeMain = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
     uint8_t *surfBaseAddr = (uint8_t*)MOS_AllocMemory(sizeMain);
+
     CODECHAL_DEBUG_CHK_NULL(surfBaseAddr);
     Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch, 0);
 
-    surfBaseAddr += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
-    uint8_t *data   = surfBaseAddr;
+    uint8_t *data = surfBaseAddr;
+    data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
+    
     uint32_t width  = surface->dwWidth;
     uint32_t height = surface->dwHeight;
 
@@ -525,6 +527,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case Format_Y216:
     case Format_Y210:  //422 10bit -- Y0[15:0]:U[15:0]:Y1[15:0]:V[15:0] = 32bits per pixel = 4Bytes per pixel
     case Format_Y410:  //444 10bit -- A[31:30]:V[29:20]:Y[19:10]:U[9:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_R10G10B10A2:
     case Format_AYUV:  //444 8bit  -- A[31:24]:Y[23:16]:U[15:8]:V[7:0] = 32bits per pixel = 4Bytes per pixel
         width = width << 2;
         break;
@@ -573,9 +576,9 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         height >>= 1;
         break;
     case  Format_Y416:
-    case  Format_AYUV:
     case  Format_AUYV:
     case  Format_Y410: //444 10bit
+    case  Format_R10G10B10A2:
         height *= 2;
         break;
     case  Format_YUY2:
@@ -593,6 +596,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case Format_IMC3:
         height = height / 2;
         break;
+    case  Format_AYUV:
     default:
         height = 0;
         break;
@@ -757,16 +761,17 @@ MOS_STATUS CodechalDebugInterface::DumpSurface(
     lockFlags.ReadOnly = 1;
     uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
     CODECHAL_DEBUG_CHK_NULL(data);
-
+    
+    std::string bufName  = std::string(surfaceName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
     const char *fileName;
     if (mediaState == CODECHAL_NUM_MEDIA_STATES)
     {
-        fileName = CreateFileName(surfaceName, nullptr, extType);
+        fileName = CreateFileName(bufName.c_str(), nullptr, extType);
     }
     else
     {
         std::string kernelName = m_configMgr->GetMediaStateStr(mediaState);
-        fileName               = CreateFileName(kernelName.c_str(), surfaceName, extType);
+        fileName               = CreateFileName(kernelName.c_str(), bufName.c_str(), extType);
     }
 
     MOS_STATUS status;
@@ -875,6 +880,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     case hucRegionDumpHpu:
         funcName = funcName + dmemName + "_HpuPass" + passName;
         break;
+    case hucRegionDumpBackAnnotation:
+        funcName = funcName + dmemName + "_BackAnnotationPass" + passName;
+        break;
     default:
         funcName = funcName + dmemName + "_Pass" + passName;
         break;
@@ -945,12 +953,22 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
     case hucRegionDumpHpu:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_HpuPass" + passName;
         break;
+    case hucRegionDumpBackAnnotation:
+        funcName = funcName + inputName + bufName + regionNumName + regionName + "_BackAnnotationPass" + passName;
+        break;
     default:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_Pass" + passName;
         break;
     }
 
     return DumpBuffer(region, nullptr, funcName.c_str(), regionSize, regionOffset);
+}
+
+MOS_STATUS CodechalDebugInterface::DumpBltOutput(
+    PMOS_SURFACE              surface,
+    const char *              attrName)
+{
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalDebugInterface::DeleteCfgLinkNode(uint32_t frameIdx)

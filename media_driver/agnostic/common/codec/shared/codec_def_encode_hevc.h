@@ -326,14 +326,28 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             */
             uint32_t        EnableStreamingBufferDDR : 1;
 
-            uint32_t        ReservedBit              : 1;
+            /*! \brief Low Delay Mode
+            *
+            *        \n - 0 : Random Access B.
+            *        \n - 1 : Low delay encoding with P or LDB.
+            */
+            uint32_t        LowDelayMode            : 1;
+
             /*! \brief Disable HRD conformance
             *
             *        \n - 0 : HRD conformance is enabled.
             *        \n - 1 : HRD conformance is disabled (aka no panic mode).
             */
             uint32_t        DisableHRDConformance    : 1;
-            uint32_t        ReservedBits             : 4;
+
+            /*! \brief Hierarchical Mini GOP
+            *
+            *        \n - 0 : Flat GOP (No Hierarchical Mini GOP).
+            *        \n - 1 : Hierarchical Mini GOP.
+            */
+            uint32_t        HierarchicalFlag         : 1;
+
+            uint32_t        ReservedBits             : 3;
         };
         uint32_t    SeqFlags;
     };
@@ -456,11 +470,23 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     */
     ENCODE_INPUT_COLORSPACE     InputColorSpace;
 
+    /*! \brief Provides a hint to encoder about the scenario for the encoding session.
+    *
+    *   BRC algorithm may tune differently based on this info.
+    */
+    ENCODE_SCENARIO             ScenarioInfo;
+
     /*! \brief Indicates the tolerance the application has to variations in the frame size.
     *
     *   It affects the BRC algorithm used, but may or may not have an effect based on the combination of other BRC parameters.  Only valid when the driver reports support for FrameSizeToleranceSupport.
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
+
+    /*! \brief Indicates number of frames to lookahead.
+    *
+    *    Range is [0~127]. Default is 0 which means lookahead disabled. Valid only when LookaheadBRCSupport is 1. When not 0, application should send LOOKAHEADDATA to driver.
+    */
+    uint8_t     LookaheadDepth;
 
     uint32_t palette_mode_enabled_flag;
     uint32_t motion_vector_resolution_control_idc;

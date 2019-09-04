@@ -72,9 +72,9 @@ int32_t CmVeboxRT::Destroy( CmVeboxRT* & cmVebox )
 
 CmVeboxRT::CmVeboxRT( CmDeviceRT* device, uint32_t index ):
             m_device( device ),
+            m_maxSurfaceIndex(VEBOX_MAX_SURFACE_COUNT),
             m_paramBuffer( nullptr ),
-            m_indexInVeboxArray( index ),
-            m_maxSurfaceIndex(VEBOX_MAX_SURFACE_COUNT)
+            m_indexInVeboxArray( index )
 {
     MOS_ZeroMemory(&m_veboxState, sizeof(m_veboxState));
     MOS_ZeroMemory(&m_surface2D, sizeof(m_surface2D));

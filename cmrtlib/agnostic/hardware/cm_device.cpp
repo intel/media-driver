@@ -35,6 +35,7 @@
 class CmBuffer;
 class CmBufferUP;
 class CmBufferSVM;
+class CmBufferStateless;
 
 #if MDF_PROFILER_ENABLED
 CmPerfStatistics gCmPerfStatistics;  // global instance to record API's perf
@@ -321,40 +322,12 @@ CM_RT_API int32_t CmDevice_RT::DestroyTask( CmTask*& task)
 //!     CM_OUT_OF_HOST_MEMORY if out of system memory;
 //!     CM_FAILURE otherwise;
 //!
-CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
+CM_RT_API int32_t CmDevice_RT::CreateQueue(CmQueue* &queue)
 {
     INSERT_PROFILER_RECORD();
 
-    // For legacy CreateQueue API, we will only return the same queue
-    m_criticalSectionQueue.Acquire();
-    for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)
-    {
-        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-        if (queueType == CM_QUEUE_TYPE_RENDER)
-        {
-            queue = (*iter);
-            m_criticalSectionQueue.Release();
-            return CM_SUCCESS;
-        }
-    }
-
-    CmQueue_RT *queueRT = nullptr;
-    int32_t result = CmQueue_RT::Create(this, queueRT);
-    if (result != CM_SUCCESS)
-    {
-        CmAssert(0);
-        CmDebugMessage(("Failed to create queue!"));
-        m_criticalSectionQueue.Release();
-        return result;
-    }
-
-    m_queue.push_back(queueRT);
-    m_criticalSectionQueue.Release();
-
-    if (queueRT != nullptr)
-    {
-        queue = static_cast< CmQueue* >(queueRT);
-    }
+    CM_QUEUE_CREATE_OPTION option = CM_DEFAULT_QUEUE_CREATE_OPTION;
+    int32_t result = CreateQueueEx(queue, option);
 
 #if USE_EXTENSION_CODE
     GTPIN_MAKER_FUNCTION(CmrtCodeMarkerForGTPin_CreateQueue(this, queue));
@@ -363,28 +336,42 @@ CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
     return result;
 }
 
-CM_RT_API int32_t CmDevice_RT::CreateQueueEx(CmQueue *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption)
+CM_RT_API int32_t
+CmDevice_RT::CreateQueueEx(CmQueue* &queue,
+                           CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_PROFILER_RECORD();
-
     m_criticalSectionQueue.Acquire();
+
     CmQueue_RT *queueRT = nullptr;
+    if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
+    {
+        for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+        {
+            CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+            unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
+            if (queueType == CM_QUEUE_TYPE_RENDER
+                && gpuContext == queueCreateOption.GPUContext)
+            {
+                queue = (*iter);
+                m_criticalSectionQueue.Release();
+                return CM_SUCCESS;
+            }
+        }
+    }
+
     int32_t result = CmQueue_RT::Create(this, queueRT, queueCreateOption);
-    if (result != CM_SUCCESS)
+    if (CM_SUCCESS != result || nullptr == queueRT)
     {
         CmAssert(0);
         CmDebugMessage(("Failed to create queue!"));
         m_criticalSectionQueue.Release();
         return result;
     }
-
     m_queue.push_back(queueRT);
+    queue = queueRT;
     m_criticalSectionQueue.Release();
 
-    if (queueRT != nullptr)
-    {
-        queue = static_cast< CmQueue* >(queueRT);
-    }
     return result;
 }
 
@@ -929,10 +916,6 @@ CM_RT_API int32_t CmDevice_RT::InitPrintBuffer(size_t size)
     CHK_FAILURE_RETURN(hr);
     CHK_FAILURE_RETURN(initPrintBufferParam.returnValue);
 
-    m_printBuffer = (unsigned char *)initPrintBufferParam.printBufferMem;
-    m_printEnabled   = true;
-    m_printBufferSize = size;
-
     return CM_SUCCESS;
 }
 
@@ -964,46 +947,18 @@ CM_RT_API int32_t CmDevice_RT::FlushPrintBuffer()
 //*-----------------------------------------------------------------------------
  int32_t CmDevice_RT::FlushPrintBufferInternal(const char *filename)
 {
-    FILE * streamout = nullptr;
+    INSERT_PROFILER_RECORD();
 
-    if (filename == nullptr)
-    {
-        streamout = stdout;
-    }
-    else
-    {
-        CM_FOPEN(streamout, filename, "wb");
-        if (streamout == nullptr)
-        {
-            //Open file Failed
-            CmAssert(0);
-            return CM_FAILURE;
-        }
-    }
+    CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM flushPrintBufferParam;
+    CmSafeMemSet(&flushPrintBufferParam, 0, sizeof(CM_DEVICE_FLUSH_PRINT_BUFFER_PARAM));
+    flushPrintBufferParam.fileName = filename;
 
-    if( m_printBuffer == nullptr ||
-        m_printBufferSize == 0      ||
-        m_printEnabled == false    )
-    {
-        CmAssert(0);
-        if (filename)
-        {
-            fclose(streamout);
-        }
-        return CM_FAILURE;
-    }
+    int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_FLUSH_PRINT_BUFFER,
+                                      &flushPrintBufferParam,
+                                      sizeof(flushPrintBufferParam));
 
-    //Dump memory on the screen.
-    DumpAllThreadOutput(streamout, m_printBuffer, m_printBufferSize);
-
-    //Flush and close stream
-    fflush(streamout);
-    if (filename)
-        fclose(streamout);
-
-    //clean memory
-    CmSafeMemSet(m_printBuffer, 0, m_printBufferSize);
-    *(unsigned int*)m_printBuffer = sizeof(CM_PRINT_HEADER);
+    CHK_FAILURE_RETURN(hr);
+    CHK_FAILURE_RETURN(flushPrintBufferParam.returnValue);
 
     return CM_SUCCESS;
 }
@@ -1053,6 +1008,23 @@ CM_RT_API int32_t CmDevice_RT::DestroyBufferSVM( CmBufferSVM* &buffer)
     INSERT_PROFILER_RECORD();
 
     return m_surfaceManager->DestroyBufferSVM(buffer);
+}
+
+CM_RT_API int32_t CmDevice_RT::CreateBufferStateless(size_t size,
+                                                     uint32_t option,
+                                                     void *sysMem,
+                                                     CmBufferStateless *&buffer)
+{
+    INSERT_PROFILER_RECORD();
+
+    return m_surfaceManager->CreateBufferStateless(size, option, sysMem, buffer);
+}
+
+CM_RT_API int32_t CmDevice_RT::DestroyBufferStateless(CmBufferStateless* &buffer)
+{
+    INSERT_PROFILER_RECORD();
+
+    return m_surfaceManager->DestroyBufferStateless(buffer);
 }
 
 CM_RT_API int32_t CmDevice_RT::CreateSurface2DAlias(CmSurface2D* originalSurface, SurfaceIndex* &aliasIndex)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 
 #include "codechal_encode_sfc.h"
 #include "codechal_encoder_base.h"
+#include "hal_oca_interface.h"
 
 #define CODECHAL_IS_BT601_CSPACE(format)                \
         ( (format == MHW_CSpace_BT601)               || \
@@ -904,7 +905,22 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
     params->fAlphaPixel                    = 1.0F;
     params->bColorFillEnable               = m_colorFill;
     params->bCSCEnable                     = m_CSC;
-    params->bRGBASwapEnable                = params->bCSCEnable;
+
+    // ARGB8,ABGR10,A16B16G16R16,VYUY and YVYU output format need to enable swap
+    if (m_sfcOutputSurface->Format == Format_X8R8G8B8     ||
+        m_sfcOutputSurface->Format == Format_A8R8G8B8     ||
+        m_sfcOutputSurface->Format == Format_R10G10B10A2  ||
+        m_sfcOutputSurface->Format == Format_A16B16G16R16 ||
+        m_sfcOutputSurface->Format == Format_VYUY         ||
+        m_sfcOutputSurface->Format == Format_YVYU)
+    {
+        params->bRGBASwapEnable = true;
+    }
+    else
+    {
+        params->bRGBASwapEnable = false;
+    }
+
 
     // CodecHal does not support SFC rotation
     params->RotationMode                   = MHW_ROTATION_IDENTITY;
@@ -1119,6 +1135,7 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     MHW_VEBOX_IECP_PARAMS               veboxIecpParams;
     MhwVeboxInterface                   *veboxInterface;
     PMHW_SFC_INTERFACE                  sfcInterface;
+    MhwMiInterface                      *miInterface;
     MOS_COMMAND_BUFFER                  cmdBuffer;
     bool                                requestFrameTracking;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
@@ -1130,6 +1147,7 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     CODECHAL_ENCODE_CHK_NULL_RETURN(encoder);
     CODECHAL_ENCODE_CHK_NULL_RETURN(sfcInterface = m_hwInterface->GetSfcInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(veboxInterface = m_hwInterface->GetVeboxInterface());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(miInterface = m_hwInterface->GetMiInterface());
 
     // Switch GPU context to VEBOX
     m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
@@ -1143,6 +1161,23 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     // the first task?
     requestFrameTracking = false;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(encoder->SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
+
+    // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external
+    // raw surface processing to complete, before start CSC. Once the marker in
+    // raw surface is overwritten by external operation, HW semaphore will be
+    // signalled and CSC will start. This is to reduce SW latency between 
+    // external raw surface processing and CSC, in usages like remote gaming.
+    if (encoder->m_pollingSyncEnabled)
+    {
+        MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
+        MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
+        miSemaphoreWaitParams.presSemaphoreMem = &m_inputSurface->OsResource;
+        miSemaphoreWaitParams.dwResourceOffset = encoder->m_syncMarkerOffset;
+        miSemaphoreWaitParams.bPollingWaitMode = true;
+        miSemaphoreWaitParams.dwSemaphoreData  = encoder->m_syncMarkerValue;
+        miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_NOT_EQUAL_SDD;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
+    }
 
     // Setup cmd prameters
     MOS_ZeroMemory(&veboxStateCmdParams, sizeof(veboxStateCmdParams));
@@ -1171,6 +1206,16 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(veboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
 
+    // If m_pollingSyncEnabled is set, write the marker to source surface for next MI_SEMAPHORE_WAIT to check.
+    if (encoder->m_pollingSyncEnabled)
+    {
+        MHW_MI_STORE_DATA_PARAMS storeDataParams;
+        storeDataParams.pOsResource      = &m_inputSurface->OsResource;
+        storeDataParams.dwResourceOffset = encoder->m_syncMarkerOffset;
+        storeDataParams.dwValue          = encoder->m_syncMarkerValue;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &storeDataParams));
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -1181,6 +1226,8 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
         nullptr)));
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
         m_osInterface,
         &cmdBuffer,

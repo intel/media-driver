@@ -54,6 +54,8 @@
 #define SURFACE_FLAG_ASSUME_NOT_IN_USE 1
 #define CM_THREADSPACE_MAX_COLOR_COUNT 16
 
+static const uint32_t INVALID_STREAM_INDEX = 0xFFFFFFFF;
+
 //*-----------------------------------------------------------------------------
 //| Macro unsets bitPos bit in value
 //*-----------------------------------------------------------------------------
@@ -203,6 +205,7 @@ struct CM_HAL_CREATE_PARAM
     bool disabledMidThreadPreemption;  // Flag to enable mid thread preemption for GPGPU
     bool enabledKernelDebug;           // Flag  to enable Kernel debug
     bool refactor;                     // Flag to enable the fast path
+    bool disableVebox;                 // Flag to disable VEBOX API
 };
 typedef CM_HAL_CREATE_PARAM *PCM_HAL_CREATE_PARAM;
 
@@ -370,6 +373,8 @@ struct CM_HAL_QUERY_TASK_PARAM
     CM_HAL_TASK_STATUS status;             // [out] Task Status
     uint64_t taskDurationNs;               // [out] Task Duration
     uint64_t taskDurationTicks;            // [out] Task Duration in Ticks
+    uint64_t taskHWStartTimeStampInTicks;  // [out] Task Start Time Stamp in Ticks
+    uint64_t taskHWEndTimeStampInTicks;    // [out] Task End Time Stamp in Ticks
     LARGE_INTEGER taskGlobalSubmitTimeCpu; // [out] The CM task submission time in CPU
     LARGE_INTEGER taskSubmitTimeGpu;       // [out] The CM task submission time in GPU
     LARGE_INTEGER taskHWStartTimeStamp;    // [out] The task start execution time in GPU
@@ -601,7 +606,8 @@ enum CM_BUFFER_TYPE
     CM_BUFFER_UP            = 1,
     CM_BUFFER_SVM           = 2,
     CM_BUFFER_GLOBAL        = 3,
-    CM_BUFFER_STATE         = 4
+    CM_BUFFER_STATE         = 4,
+    CM_BUFFER_STATELESS     = 5
 };
 
 //------------------------------------------------------------------------------
@@ -699,7 +705,7 @@ typedef CM_HAL_SAMPLER_BTI_PARAM *PCM_HAL_SAMPLER_BTI_PARAM;
 struct CM_HAL_CLONED_KERNEL_PARAM
 {
     bool isClonedKernel;
-    uint32_t kernelID;
+    int32_t kernelID;
     bool hasClones;
 };
 
@@ -794,13 +800,14 @@ typedef CM_HAL_MAX_SET_CAPS_PARAM *PCM_HAL_MAX_SET_CAPS_PARAM;
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_BUFFER_PARAM
 {
-    uint32_t                    size;                                          // [in]         Buffer Size
+    size_t                      size;                                          // [in]         Buffer Size
     CM_BUFFER_TYPE              type;                                          // [in]         Buffer type: Buffer, UP, SVM
-    void                        *data;                                         // [in/out]     Pointer to data
+    void                        *data;                                         // [in/out]     System address of this buffer
     uint32_t                    handle;                                        // [in/out]     Handle
     uint32_t                    lockFlag;                                      // [in]         Lock flag
     PMOS_RESOURCE               mosResource;                                   // [in]         Mos resource
     bool                        isAllocatedbyCmrtUmd;                          // [in]         Flag for Cmrt@umd Created Buffer
+    uint64_t                    gfxAddress;                                    // [out]        GFX address of this buffer
 } CM_HAL_BUFFER_PARAM, *PCM_HAL_BUFFER_PARAM;
 
 //------------------------------------------------------------------------------
@@ -808,7 +815,7 @@ typedef struct _CM_HAL_BUFFER_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_BUFFER_SURFACE_STATE_PARAM
 {
-    uint32_t                    size;                                          // [in]         Surface State Size
+    size_t                      size;                                          // [in]         Surface State Size
     uint32_t                    offset;                                        // [in]         Surface State Base Address Offset
     uint16_t                    mocs;                                          // [in]         Surface State mocs settings
     uint32_t                    aliasIndex;                                    // [in]         Surface Alias Index
@@ -865,6 +872,7 @@ typedef struct _CM_HAL_SURFACE2D_SURFACE_STATE_PARAM
     uint16_t memoryObjectControl;
     uint32_t surfaceXOffset;
     uint32_t surfaceYOffset;
+    uint32_t surfaceOffset;
 } CM_HAL_SURFACE2D_SURFACE_STATE_PARAM, *PCM_HAL_SURFACE2D_SURFACE_STATE_PARAM;
 
 //------------------------------------------------------------------------------
@@ -874,6 +882,7 @@ typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
 {
     uint32_t                    width;                                       // [in]         Surface Width
     uint32_t                    height;                                      // [in]         Surface Height
+    uint32_t                    size;                                        // [in]         Surface total size
     MOS_FORMAT                  format;                                      // [in]         Surface Format
     void                        *data;                                       // [in/out]     Pointer to data
     uint32_t                    pitch;                                       // [out]        Pitch
@@ -882,6 +891,7 @@ typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
     MOS_PLANE_OFFSET            VSurfaceOffset;                              // [out]        V plane Offset
     uint32_t                    lockFlag;                                    // [out]        lock flag
     uint32_t                    handle;                                      // [in/out]     Handle
+    bool                        useGmmOffset;                                // [in/out]     Only use Gmm offset in Linux
 } CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM, *PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM;
 
 //*-----------------------------------------------------------------------------
@@ -1162,7 +1172,7 @@ typedef struct _CM_HAL_SAMPLER_8X8_ENTRY{
 
 typedef struct _CM_HAL_BUFFER_SURFACE_STATE_ENTRY
 {
-    uint32_t surfaceStateSize;
+    size_t surfaceStateSize;
     uint32_t surfaceStateOffset;
     uint16_t surfaceStateMOCS;
 } CM_HAL_BUFFER_SURFACE_STATE_ENTRY, *PCM_HAL_BUFFER_SURFACE_STATE_ENTRY;
@@ -1174,7 +1184,7 @@ class CmSurfaceStateBufferMgr;
 typedef struct _CM_HAL_BUFFER_ENTRY
 {
     MOS_RESOURCE                        osResource;                                         // [in] Pointer to OS Resource
-    uint32_t                            size;                                              // [in] Size of Buffer
+    size_t                              size;                                              // [in] Size of Buffer
     void                                *address;                                           // [in] SVM address
     void                                *gmmResourceInfo;                                   // [out] GMM resource info
     bool                                isAllocatedbyCmrtUmd;                               // [in] Whether Surface allocated by CMRT
@@ -1187,7 +1197,7 @@ typedef struct _CM_HAL_BUFFER_ENTRY
 //------------------------------------------------------------------------------
 //| HAL CM 2D UP Table
 //------------------------------------------------------------------------------
-class CmSurfaceState2DMgr;
+class CmSurfaceState2Dor3DMgr;
 typedef struct _CM_HAL_SURFACE2D_UP_ENTRY
 {
     MOS_RESOURCE                osResource;                                     // [in] Pointer to OS Resource
@@ -1196,7 +1206,7 @@ typedef struct _CM_HAL_SURFACE2D_UP_ENTRY
     MOS_FORMAT                  format;                                         // [in] Format of Surface
     void                        *gmmResourceInfo;                               // [out] GMM resource info
     uint16_t                    memObjCtl;                                      // [in] MOCS value set from CMRT
-    CmSurfaceState2DMgr         *surfStateMgr;
+    CmSurfaceState2Dor3DMgr     *surfStateMgr;
 } CM_HAL_SURFACE2D_UP_ENTRY, *PCM_HAL_SURFACE2D_UP_ENTRY;
 
 typedef struct _CM_HAL_SURFACE_STATE_ENTRY
@@ -1243,7 +1253,7 @@ inline uint32_t getSurfNumFromArgArraySize(uint32_t argArraySize, uint32_t argNu
 //------------------------------------------------------------------------------
 //| HAL CM 2D Table
 //------------------------------------------------------------------------------
-class CmSurfaceState2DMgr;
+class CmSurfaceState2Dor3DMgr;
 typedef struct _CM_HAL_SURFACE2D_ENTRY
 {
     MOS_RESOURCE                osResource;                                    // [in] Pointer to OS Resource
@@ -1260,7 +1270,7 @@ typedef struct _CM_HAL_SURFACE2D_ENTRY
     int32_t                     chromaSiting;
     CM_FRAME_TYPE               frameType;
     uint16_t                    memObjCtl;                                      // [in] MOCS value set from CMRT
-    CmSurfaceState2DMgr         *surfStateMgr;
+    CmSurfaceState2Dor3DMgr     *surfStateMgr;
     bool                        surfStateSet;
 } CM_HAL_SURFACE2D_ENTRY, *PCM_HAL_SURFACE2D_ENTRY;
 
@@ -1275,6 +1285,7 @@ typedef struct _CM_HAL_3DRESOURCE_ENTRY
     uint32_t               depth;                                         // [in] Depth of Surface
     MOS_FORMAT             format;                                        // [in] Format of Surface
     uint16_t               memObjCtl;                                     // [in] MOCS value set from CMRT
+    CmSurfaceState2Dor3DMgr *surfStateMgr;
 } CM_HAL_3DRESOURCE_ENTRY, *PCM_HAL_3DRESOURCE_ENTRY;
 
 //*-----------------------------------------------------------------------------
@@ -1287,11 +1298,12 @@ typedef struct _CM_HAL_TS_RESOURCE
     uint8_t                     *data;                                          // [in] Linear Data
 } CM_HAL_TS_RESOURCE, *PCM_HAL_TS_RESOURCE;
 
+class FrameTrackerProducer;
 struct CM_HAL_HEAP_PARAM
 {
     uint32_t initialSizeGSH;
     uint32_t extendSizeGSH;
-    uint32_t *trackerResourceGSH;
+    FrameTrackerProducer *trackerProducer;
     HeapManager::Behavior behaviorGSH;
 };
 
@@ -1553,9 +1565,11 @@ typedef struct _CM_HAL_STATE
 
     bool                        svmBufferUsed;
 
+    bool                        statelessBufferUsed;
+
     CMRT_UMD::CSync             *criticalSectionDSH;
 
-    uint64_t                    tsFrequency;
+    uint32_t                    tsFrequency;
 
     bool                        forceKernelReload;
 
@@ -1564,6 +1578,8 @@ typedef struct _CM_HAL_STATE
     bool                        refactor = false;
 
     bool                        requestCustomGpuContext = false;
+
+    bool                        veboxDisabled = false;
 
     //********************************************************************************
     // Export Interface methods called by CMRT@UMD <START>
@@ -1796,16 +1812,6 @@ typedef struct _CM_HAL_STATE
 
     bool (*pfnIsWASLMinL3Cache)(  );
 
-    MOS_STATUS( *pfnInsertToStateBufferList )
-        (
-        PCM_HAL_STATE               state,
-        void                        *kernelPtr,
-        uint32_t                    stateBufferIndex,
-        CM_STATE_BUFFER_TYPE        stateBufferType,
-        uint32_t                    stateBufferSize,
-        uint64_t                    stateBufferVaPtr,
-        PRENDERHAL_MEDIA_STATE      mediaStatePtr );
-
     MOS_STATUS( *pfnDeleteFromStateBufferList )
         (
         PCM_HAL_STATE               state,
@@ -1893,6 +1899,8 @@ typedef struct _CM_HAL_STATE
         (
         PCM_HAL_STATE               state,
         uint64_t                    kernelId);
+
+    uint32_t (*pfnRegisterStream) (PCM_HAL_STATE state);
 } CM_HAL_STATE, *PCM_HAL_STATE;
 
 typedef struct _CM_HAL_MI_REG_OFFSETS
@@ -2273,6 +2281,16 @@ MOS_STATUS HalCm_PrepareVEHintParam(
     PCM_HAL_STATE                  state,
     bool                           bScalable,
     PMOS_VIRTUALENGINE_HINT_PARAMS pVeHintParam);
+
+MOS_STATUS HalCm_DecompressSurface(
+    PCM_HAL_STATE              state,
+    PCM_HAL_KERNEL_ARG_PARAM   argParam,
+    uint32_t                   threadIndex);
+
+MOS_STATUS HalCm_SurfaceSync(
+    PCM_HAL_STATE                pState,
+    PMOS_SURFACE                 pSurface,
+    bool                         bReadSync);
 
 //*-----------------------------------------------------------------------------
 //| Helper functions for EnqueueWithHints

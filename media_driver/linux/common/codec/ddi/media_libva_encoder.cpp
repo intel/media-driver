@@ -155,6 +155,8 @@ VAStatus DdiEncode_StatusReport(
     DDI_MEDIA_BUFFER    *mediaBuf,
     void                **buf)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
+
     DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(mediaBuf, "nullptr mediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -213,6 +215,8 @@ VAStatus DdiEncode_CreateContext(
     int32_t          num_render_targets,
     VAContextID     *context)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
+
     DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(ctx->pDriverData, "nullptr ctx->pDriverData", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -222,11 +226,13 @@ VAStatus DdiEncode_CreateContext(
     VAProfile profile;
     VAEntrypoint entrypoint;
     uint32_t rcMode = 0;
+    uint32_t feiFunction = 0;
     VAStatus vaStatus = mediaDrvCtx->m_caps->GetEncConfigAttr(
             config_id + DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE,
             &profile,
             &entrypoint,
-            &rcMode);
+            &rcMode,
+            &feiFunction);
     DDI_CHK_RET(vaStatus, "Invalide config_id!");
 
     vaStatus = mediaDrvCtx->m_caps->CheckEncodeResolution(
@@ -243,7 +249,7 @@ VAStatus DdiEncode_CreateContext(
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
 
-    std::string    encodeKey = mediaDrvCtx->m_caps->GetEncodeCodecKey(profile, entrypoint);
+    std::string    encodeKey = mediaDrvCtx->m_caps->GetEncodeCodecKey(profile, entrypoint, feiFunction);
     DdiEncodeBase *ddiEncode = DdiEncodeFactory::CreateCodec(encodeKey);
     DDI_CHK_NULL(ddiEncode, "nullptr ddiEncode", VA_STATUS_ERROR_UNIMPLEMENTED);
 
@@ -280,6 +286,9 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
+    mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
+
+    mosCtx.m_osDeviceContext     = mediaDrvCtx->m_osDeviceContext;
 
     if (nullptr == mosCtx.pPerfData)
     {
@@ -292,7 +301,7 @@ VAStatus DdiEncode_CreateContext(
     encCtx->vaProfile     = profile;
     encCtx->uiRCMethod    = rcMode;
     encCtx->wModeType     = mediaDrvCtx->m_caps->GetEncodeCodecMode(profile, entrypoint);
-    encCtx->codecFunction = mediaDrvCtx->m_caps->GetEncodeCodecFunction(profile, entrypoint);
+    encCtx->codecFunction = mediaDrvCtx->m_caps->GetEncodeCodecFunction(profile, entrypoint, feiFunction);
 
     if (entrypoint == VAEntrypointEncSliceLP)
     {
@@ -532,6 +541,8 @@ VAStatus DdiEncode_BeginPicture(
     VAContextID      context,
     VASurfaceID      render_target)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
+
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx, "nullptr context in vpgEncodeBeginPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -556,6 +567,8 @@ VAStatus DdiEncode_RenderPicture(
     VABufferID      *buffers,
     int32_t          num_buffers)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
+
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx, "nullptr context in vpgEncodeRenderPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -572,6 +585,8 @@ VAStatus DdiEncode_RenderPicture(
 
 VAStatus DdiEncode_EndPicture(VADriverContextP ctx, VAContextID context)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
+
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx, "nullptr context in vpgEncodeEndPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);

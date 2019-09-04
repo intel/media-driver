@@ -28,6 +28,8 @@
 #include "mhw_render_hwcmd_g9_X.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
+#include "hal_oca_interface.h"
+
 #if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g9.h"
 #include "cm_gpuinit_kernel_g9.h"
@@ -501,68 +503,19 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
 {
     PRENDERHAL_INTERFACE renderHal = m_cmState->renderHal;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CM_HAL_MEMORY_OBJECT_CONTROL_G9 cacheType;
-
+    MOS_HW_RESOURCE_DEF mosUsage;
     // The memory object control uint16_t is composed with cache type(8:15), memory type(4:7), ages(0:3)
-    cacheType = (CM_HAL_MEMORY_OBJECT_CONTROL_G9)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
+    mosUsage = (MOS_HW_RESOURCE_DEF)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
+    if (mosUsage >= MOS_HW_RESOURCE_DEF_MAX)
+        mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState;
 
-    if ((uint16_t)cacheType == CM_INVALID_MEMOBJCTL)
-    {
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        return eStatus;
-    }
-
-    switch (cacheType)
-    {
-    case CM_MEMORY_OBJECT_CONTROL_SKL_DEFAULT:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_ELLC_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    case CM_MEMORY_OBJECT_CONTROL_SKL_NO_CACHE:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
-        break;
-    default:
-        eStatus = MOS_STATUS_UNKNOWN;
-    }
+    surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(mosUsage,
+        renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
 
     return eStatus;
 }
+
+
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined (CM_DIRECT_GUC_SUPPORT)
 MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
@@ -746,8 +699,9 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     bool                         csrEnable = renderHal->bCSRKernel? true: false;
     PCM_HAL_BB_ARGS              bbCmArgs;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
-    MOS_RESOURCE                 osResource;
+    MOS_RESOURCE                 *osResource;
     uint32_t                     tag;
+    uint32_t                     tagOffset = 0;
     CM_HAL_MI_REG_OFFSETS  miRegG9 = { REG_TIMESTAMP_BASE_G9, REG_GPR_BASE_G9 };
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined (CM_DIRECT_GUC_SUPPORT)
@@ -755,7 +709,13 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #endif
 #endif
 
+    MOS_CONTEXT               *pOsContext = renderHal->pOsInterface->pOsContext;
+    PMHW_MI_MMIOREGISTERS     pMmioRegisters = renderHal->pMhwRenderInterface->GetMmioRegisters();
+
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+
+    // get the tag
+    tag = renderHal->trackerProducer.GetNextTracker(renderHal->currentTrackerIndex);
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
@@ -766,7 +726,8 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     *(taskSyncLocation + 1)          = CM_INVALID_INDEX;
     if(state->cbbEnabled)
     {
-        *(taskSyncLocation + 2)      = renderHal->trackerResource.currentTrackerId;
+        *(taskSyncLocation + 2)      = tag;
+        *(taskSyncLocation + 3)      = state->renderHal->currentTrackerIndex;
     }
 
     // Register batch buffer for rendering
@@ -803,11 +764,10 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     CM_CHK_MOSSTATUS_GOTOFINISH( state->pfnUpdatePowerOption( state, &state->powerOption ) );
 
     // use frame tracking to write the tracker ID to CM tracker resource
-    osResource = renderHal->trackerResource.osResource;
-    tag = renderHal->trackerResource.currentTrackerId;
-
-    renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, &osResource, tag);
-    stateHeap->pCurMediaState->dwSyncTag = tag;
+    renderHal->trackerProducer.GetLatestTrackerResource(renderHal->currentTrackerIndex, &osResource, &tagOffset);
+    renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, osResource, tagOffset, tag);
+    FrameTrackerTokenFlat_SetProducer(&stateHeap->pCurMediaState->trackerToken, &renderHal->trackerProducer);
+    FrameTrackerTokenFlat_Merge(&stateHeap->pCurMediaState->trackerToken, renderHal->currentTrackerIndex, tag);
 
     // Record registers by unified media profiler in the beginning
     if (state->perfProfiler != nullptr)
@@ -825,9 +785,12 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
-    
+
+    HalOcaInterface::On1stLevelBBStart(mosCmdBuffer, *pOsContext, osInterface->CurrentGpuContextHandle,
+        *renderHal->pMhwMiInterface, *pMmioRegisters);
+
     // update tracker tag used with CM tracker resource
-    renderHal->pfnIncTrackerId(state->renderHal);
+    renderHal->trackerProducer.StepForward(renderHal->currentTrackerIndex);
 
     // Increment sync tag
     syncTag = stateHeap->dwNextTag++;
@@ -854,16 +817,11 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         // Same reg offset and value for gpgpu pipe and media pipe
         if ( enableGpGpu )
         {
-            if (MEDIA_IS_SKU(state->skuTable, FtrGpGpuMidThreadLevelPreempt))
+            if ( MEDIA_IS_SKU(state->skuTable, FtrGpGpuThreadGroupLevelPreempt )
+                || MEDIA_IS_SKU(state->skuTable, FtrGpGpuMidThreadLevelPreempt))
             {
-                if (csrEnable)
-                    loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
-                else
-                    loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
-
-            }
-            else if ( MEDIA_IS_SKU(state->skuTable, FtrGpGpuThreadGroupLevelPreempt ))
-            {
+                //if FtrGpGpuThreadGroupLevelPreempt is true, still program the
+                //it to MID_THREAD_GROUP.Gen9 doesn't support MID_THREAD level
                 loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
                 state->renderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( state->renderHal );
             }
@@ -880,12 +838,11 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         }
         else
         {
-            if ( MEDIA_IS_SKU(state->skuTable, FtrMediaMidThreadLevelPreempt))
+            if ( MEDIA_IS_SKU(state->skuTable, FtrMediaThreadGroupLevelPreempt)
+                || MEDIA_IS_SKU(state->skuTable, FtrMediaMidThreadLevelPreempt))
             {
-                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
-            }
-            else if ( MEDIA_IS_SKU(state->skuTable, FtrMediaThreadGroupLevelPreempt) )
-            {
+                //if FtrMediaMidThreadLevelPreempt is true, still program the
+                //it to MID_THREAD_GROUP.Gen9 doesn't support MID_THREAD.
                 loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
             }
             else if ( MEDIA_IS_SKU(state->skuTable, FtrMediaMidBatchPreempt))
@@ -992,6 +949,8 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     idLoadParams.pKernelState = nullptr;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaIDLoadCmd(&mosCmdBuffer, &idLoadParams));
 
+    HalOcaInterface::OnDispatch(mosCmdBuffer, *pOsContext, *renderHal->pMhwMiInterface, *pMmioRegisters);
+
     if (enableWalker)
     {
         // send media walker command, if required
@@ -1090,19 +1049,30 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pipeCtlParams.dwFlushMode   = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
-    if (state->svmBufferUsed)
+    if (state->svmBufferUsed || state->statelessBufferUsed)
     {
-        // Find the SVM slot, patch it into this dummy pipe_control
+        // Find the SVM/statelessBuffer slot, patch it into this dummy pipe_control
         for (uint32_t i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++)
         {
-            //Only register SVM resource here
+            //register resource here
             if (state->bufferTable[i].address)
             {
                 CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnRegisterResource(
+                    osInterface,
+                    &state->bufferTable[i].osResource,
+                    true,
+                    false));
+
+                // sync resource
+                MOS_SURFACE mosSurface;
+                MOS_ZeroMemory(&mosSurface, sizeof(mosSurface));
+                CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnGetResourceInfo(
                         osInterface,
                         &state->bufferTable[i].osResource,
-                        true,
-                        false));
+                        &mosSurface));
+                mosSurface.OsResource = state->bufferTable[i].osResource;
+
+                CM_CHK_HRESULT_GOTOFINISH_MOSERROR(HalCm_SurfaceSync(state, &mosSurface, false));
             }
         }
     }
@@ -1144,6 +1114,8 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         vfeStateParams.dwNumberofURBEntries = 1;
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
     }
+
+    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *pOsContext);
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));

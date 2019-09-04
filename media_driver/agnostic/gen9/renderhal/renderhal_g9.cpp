@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2018, Intel Corporation
+* Copyright (c) 2012-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -285,7 +285,7 @@ MOS_STATUS XRenderHal_Interface_g9::SetupSurfaceState (
                     {
                         SurfStateParams.bSeperateUVPlane = false;
                         SurfStateParams.dwXOffsetForU    = 0;
-                        SurfStateParams.dwYOffsetForU    = pSurface->dwHeight;
+                        SurfStateParams.dwYOffsetForU    = (uint32_t)((pSurface->UPlaneOffset.iSurfaceOffset - pSurface->YPlaneOffset.iSurfaceOffset) / pSurface->dwPitch) + pSurface->UPlaneOffset.iYOffset;
                         SurfStateParams.dwXOffsetForV    = 0;
                         SurfStateParams.dwYOffsetForV    = 0;
                     }

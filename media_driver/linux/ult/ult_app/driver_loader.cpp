@@ -25,9 +25,24 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "driver_loader.h"
+#include "mos_util_debug.h"
 #include "memory_leak_detector.h"
 
 using namespace std;
+
+#if MOS_MESSAGES_ENABLED
+extern "C" void MOS_Message(
+    MOS_MESSAGE_LEVEL level,
+    const PCCHAR      logtag,
+    MOS_COMPONENT_ID  compID,
+    uint8_t           subCompID,
+    const PCCHAR      functionName,
+    int32_t           lineNum,
+    const PCCHAR      message,
+    ...)
+{
+}
+#endif
 
 void UltGetCmdBuf(PMOS_COMMAND_BUFFER pCmdBuffer);
 

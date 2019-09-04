@@ -63,15 +63,18 @@ public:
     //! \brief    Media memory decompression
     //! \details  Entry point to decompress media memory
     //! \param    [in] inputSurface
-    //!            The surface resource will be decompressed
+    //!            The source surface resource
     //! \param    [out] outputSurface
-    //!            The target uncompressed surface resource will be copied to
+    //!            The target surface resource will be copied to
+    //! \param    [in] bOutputCompressed
+    //!            true means apply compression on output surface, else output uncompressed surface
     //!
     //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
     //!
-    virtual MOS_STATUS MemoryDecompressCopy(
+    virtual MOS_STATUS MediaMemoryCopy(
         PMOS_RESOURCE inputResource,
-        PMOS_RESOURCE outputResource)
+        PMOS_RESOURCE outputResource,
+        bool          bOutputCompressed)
     {
         return MOS_STATUS_SUCCESS;
     }

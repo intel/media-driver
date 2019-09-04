@@ -61,6 +61,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //-----------------------------------
     CM_CHK_NULL_RETURN_MOSERROR(state);
     CM_CHK_NULL_RETURN_MOSERROR(state->osInterface);
+    CM_CHK_NULL_RETURN_MOSERROR(state->veboxInterface);
     CM_CHK_NULL_RETURN_MOSERROR(veboxTaskParam);
     //-----------------------------------
 
@@ -68,6 +69,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
     veboxInterface = state->veboxInterface;
+
     veboxHeap = veboxInterface->m_veboxHeap;
     osInterface = state->osInterface;
     remaining = 0;
@@ -195,7 +197,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     osResource = state->renderHal->veBoxTrackerRes.osResource;
     tag = state->renderHal->veBoxTrackerRes.currentTrackerId;
-    state->renderHal->pfnSetupPrologParams(state->renderHal, &genericPrologParams, &osResource, tag);
+    state->renderHal->pfnSetupPrologParams(state->renderHal, &genericPrologParams, &osResource, 0, tag);
 
     //---------------------------------
     // send command buffer header at the beginning (OS dependent)
@@ -222,7 +224,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     // update tracker tag
     //---------------------------------
-    state->renderHal->pfnIncTrackerId(state->renderHal);
+    renderHal->veBoxTrackerRes.currentTrackerId++;
 
     //---------------------------------
     // send vebox state commands
@@ -422,6 +424,8 @@ MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
     uint32_t                 height;
     bool                     dienable;
     MHW_VEBOX_SURFACE_PARAMS surfInput;
+
+    CM_CHK_NULL_RETURN_MOSERROR(state->veboxInterface);
 
     // DN only, will add other support later
     dienable = false;

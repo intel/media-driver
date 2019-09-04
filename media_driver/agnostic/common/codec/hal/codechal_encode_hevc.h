@@ -81,6 +81,7 @@ public:
         BRCINIT_FIELD_PIC                  = 0x0100,
         BRCINIT_ISICQ                      = 0x0200,
         BRCINIT_ISVCM                      = 0x0400,
+        BRCINIT_PANIC_MODE_ISENABLED       = 0x1000,
         BRCINIT_IGNORE_PICTURE_HEADER_SIZE = 0x2000,
         BRCINIT_ISCQP                      = 0x4000,
         BRCINIT_DISABLE_MBBRC              = 0x8000
@@ -155,7 +156,7 @@ public:
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_brcKernelBindingTable = nullptr;              //!< BRC kernel binding table
     PMOS_SURFACE                                m_brcDistortion         = nullptr;              //!< Pointer to BRC distortion surface
     HevcEncBrcBuffers                           m_brcBuffers;                                   //!< BRC buffers
-    uint32_t                                    m_numBrcKrnStates;                              //!< Number of BRC kernel states
+    uint32_t                                    m_numBrcKrnStates = 0;                              //!< Number of BRC kernel states
     uint8_t                                     m_slidingWindowSize = 0;                        //!< Sliding window size in number of frames
     bool                                        m_roiRegionSmoothEnabled = false;               //!< ROI region smooth transition enable flag
     HEVC_BRC_FRAME_TYPE                         m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;    //!< frame brc level
@@ -166,8 +167,8 @@ public:
     uint32_t                                    m_numMbEncEncKrnStates    = 0;        //!< Number of MbEnc kernel states
     EncStatsBuffers                             m_encStatsBuffers;
     uint8_t                                     m_mbCodeIdxForTempMVP     = 0xFF;     //!< buf index for current frame temporal mvp 
-    uint8_t                                     m_roundingIntraInUse = 0;             //!< rounding intra actually used
-    uint8_t                                     m_roundingInterInUse = 0;             //!< rounding inter actually used
+    uint8_t                                     m_roundingIntraInUse = 10;             //!< rounding intra actually used
+    uint8_t                                     m_roundingInterInUse = 4;             //!< rounding inter actually used
 
     // ScalingAndConversion
     PMHW_KERNEL_STATE                      m_scalingAndConversionKernelState        = nullptr;  //!< Pointer to ScalingAndConversion kernel state
@@ -527,6 +528,6 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS GetRoundingIntraInterToUse();
+    virtual MOS_STATUS GetRoundingIntraInterToUse();
 };
 #endif  // __CODECHAL_ENCODE_HEVC_H__

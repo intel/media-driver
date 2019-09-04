@@ -159,7 +159,7 @@ public:
     PCM_POWER_OPTION GetPowerOption();
     int32_t GetTaskStatus(CM_STATUS & taskStatus);
     int32_t SetProperty(CM_TASK_CONFIG * taskConfig);
-    PCM_TASK_CONFIG GetTaskConfig();
+    int32_t GetProperty(CM_TASK_CONFIG &taskConfig);
     const CM_EXECUTION_CONFIG* GetKernelExecuteConfig() { return m_krnExecCfg; };
     void  *GetMediaStatePtr();
 #if CM_LOG_ON

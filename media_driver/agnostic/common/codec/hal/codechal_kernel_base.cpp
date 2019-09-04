@@ -28,6 +28,7 @@
 
 #include "codechal_kernel_base.h"
 #include "codeckrnheader.h"
+#include "hal_oca_interface.h"
 
 CodechalKernelBase::CodechalKernelBase(CodechalEncoderState *encoder) :
         m_encoder(encoder),
@@ -259,6 +260,7 @@ MOS_STATUS CodechalKernelBase::Run()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }

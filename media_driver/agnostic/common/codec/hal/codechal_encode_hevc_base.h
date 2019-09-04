@@ -65,7 +65,7 @@
 #define ENCODE_HEVC_4K_PIC_WIDTH     3840
 #define ENCODE_HEVC_4K_PIC_HEIGHT    2160
 
-#define ENCODE_HEVC_5K_PIC_WIDTH     5210
+#define ENCODE_HEVC_5K_PIC_WIDTH     5120
 #define ENCODE_HEVC_5K_PIC_HEIGHT    2880
 
 #define ENCODE_HEVC_8K_PIC_WIDTH     7680
@@ -185,18 +185,18 @@ struct MultiPassConfig
         SliceMinQPOffset1(0),
         SliceMinQPOffset2(0), // Set this to Default Max Limit as per Spec.,
         SliceMinQPOffset3(0),
-        FrameRateCtrlFlag(0),
-        MbRateCtrlFlag(0),
         MaxIntraConformanceLimit(3180),
         MaxInterConformanceLimit(3180),
-        FrameSzOverFlag(0),
-        FrameSzUnderFlag(0),
+        FrameRateCtrlFlag(0),
         InterMbMaxBitFlag(0),
         IntraMbMaxBitFlag(0),
-        FrameMaxBitRateUnit(0),
-        FrameMinBitRateUnit(0),
         MinFrameRateDelta(0),
         MaxFrameRateDelta(0),
+        MbRateCtrlFlag(0),
+        FrameSzOverFlag(0),
+        FrameSzUnderFlag(0),
+        FrameMinBitRateUnit(0),
+        FrameMaxBitRateUnit(0),
         StreamOutEnable(0)
     {}
 };
@@ -1436,6 +1436,7 @@ public:
     bool          m_encode4KSequence                      = false;                        //!< Flag to specify if input sequence is 4k size
     bool          m_hevcRdoqEnabled                       = false;                        //!< RDOQ enable flag
     uint32_t      m_rdoqIntraTuThreshold                  = 0;                            //!< RDOQ intra threshold
+    bool          m_hevcIFrameRdoqEnabled                 = true;                        //!< Control intra frame RDOQ enable/disable
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool          m_rdoqIntraTuOverride                   = false;                        //!< Override RDOQ intra TU or not
     bool          m_rdoqIntraTuDisableOverride            = false;                        //!< Override RDOQ intra TU disable 
@@ -1484,6 +1485,10 @@ public:
     bool     m_roiValueInDeltaQp                  = true;   //!< ROI Value in deltaQP or priority flag
 
     CODECHAL_ENCODE_BUFFER m_resPakcuLevelStreamoutData;  //!< PAK LCU level stream out data buffer
+
+    // Mb Qp Data
+    bool            m_mbQpDataEnabled = false;      //!< Mb Qp Data Enable Flag.
+    MOS_SURFACE     m_mbQpDataSurface;              //!< Pointer to MOS_SURFACE of Mb Qp data surface, provided by DDI.
 
 protected:
     //!
@@ -1636,7 +1641,8 @@ public:
     //!
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool frameTrackingRequested);
+        bool frameTrackingRequested,
+        MHW_MI_MMIOREGISTERS *mmioRegister = nullptr);
 
     //!
     //! \brief    Wait for dependent VDBOX to get ready
@@ -1866,6 +1872,13 @@ public:
     //! \return   void
     //!
     void CreateFlatScalingList();
+
+    //!
+    //! \brief    Help function to create a default scaling list (when scaling list data is not presented in picture parameter)
+    //!
+    //! \return   void
+    //!
+    void CreateDefaultScalingList();
 
     //!
     //! \brief    Validate low delay mode for B frame

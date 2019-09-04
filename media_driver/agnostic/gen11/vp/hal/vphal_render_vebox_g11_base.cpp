@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,9 @@
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
 #include "vphal_common_hdr.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#include "igvpkrn_isa_g11_icllp.h"
+#endif
 
 #define MAX_INPUT_PREC_BITS         16
 #define DOWNSHIFT_WITH_ROUND(x, n)  (((x) + (((n) > 0) ? (1 << ((n) - 1)) : 0)) >> (n))
@@ -283,9 +286,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::GetFFDISurfParams(
     // output surface's SampleType should be same to input's. Bob is being
     // done in Composition part
     if (pRenderData->bIECP &&
-        (m_currentSurface->pDeinterlaceParams                         &&
+        ((m_currentSurface->pDeinterlaceParams                         &&
          m_currentSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB) ||
-        m_currentSurface->bInterlacedScaling)
+         m_currentSurface->bInterlacedScaling))
     {
         SampleType = m_currentSurface->SampleType;
     }
@@ -484,6 +487,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDI surfaces
+        for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
+        {
+            if (pVeboxState->FFDISurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDISurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // When DI switch to DNDI, the first FFDN surface pitch doesn't match with
     // the input surface pitch and cause the flicker issue
@@ -563,6 +579,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDN surfaces
+        for (i = 0; i < VPHAL_NUM_FFDN_SURFACES; i++)
+        {
+            if (pVeboxState->FFDNSurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDNSurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // Adjust the rcMaxSrc of pRenderTarget when Vebox output is enabled
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
@@ -607,6 +636,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
                 m_reporting->STMMCompressible = bSurfCompressed;
                 m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
             }
+        }
+    }
+    else
+    {
+        // Free DI history buffers (STMM = Spatial-temporal motion measure)
+        for (i = 0; i < VPHAL_NUM_STMM_SURFACES; i++)
+        {
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &pVeboxState->STMMSurfaces[i].OsResource);
         }
     }
 
@@ -750,9 +789,20 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
 
         if (nullptr == m_hdr3DLutGenerator)
         {
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
-            m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal);
+            m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_G11_ICLLP, IGVP3DLUT_GENERATION_G11_ICLLP_SIZE);
+#endif
         }
+    }
+    else
+    {
+        // Free 3DLook Up table surface for VEBOX
+        pOsInterface->pfnFreeResource(
+            pOsInterface,
+            &pVeboxState->Vebox3DLookUpTables.OsResource);
+
+        MOS_Delete(m_hdr3DLutGenerator);
     }
 
 finish:
@@ -2090,7 +2140,8 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
     PVPHAL_VEBOX_STATE_G11_BASE     pVeboxState                     = this;
     bool                            bHDRToneMappingNeed             = false;
 
-    OutputPipe  = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    pTarget    = pcRenderParams->pTarget[0];
 
     bCompBypassFeasible = IS_COMP_BYPASS_FEASIBLE(*pbCompNeeded, pcRenderParams, pSrcSurface);
 
@@ -2100,14 +2151,42 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
         goto finish;
     }
 
+    //Let Kernel to cover the DI cases VEBOX cannot handle.
+    if (pSrcSurface->pDeinterlaceParams &&
+        pSrcSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB &&
+        ((IS_VEBOX_SURFACE_HEIGHT_UNALIGNED(pSrcSurface, 4) &&
+         (pSrcSurface->Format == Format_P010 ||
+          pSrcSurface->Format == Format_P016 ||
+          pSrcSurface->Format == Format_NV12)) ||
+         !this->IsDiFormatSupported(pSrcSurface)))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
+
+    // If No VEBOX, filter procamp case and csc case here.
+    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrDisableVEBoxFeatures))
+    {
+        if (pSrcSurface->pProcampParams)
+        {
+            bOutputPipeVeboxFeasible = false;
+        }
+        else if (pSrcSurface->Format != pTarget->Format         ||
+                 pSrcSurface->ColorSpace != pTarget->ColorSpace ||
+                 pSrcSurface->TileType != pTarget->TileType)
+        {
+            bOutputPipeVeboxFeasible = false;
+        }
+    }
+
     if (bOutputPipeVeboxFeasible)
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_VEBOX;
         goto finish;
     }
 
-    pTarget    = pcRenderParams->pTarget[0];
     bHDRToneMappingNeed = (pSrcSurface->pHDRParams || pTarget->pHDRParams);
     // Check if SFC can be the output pipe
     if (m_sfcPipeState && !bHDRToneMappingNeed)
@@ -2610,9 +2689,13 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsFormatSupported(
     // Vebox only support P016 format, P010 format can be supported by faking it as P016
     if (pSrcSurface->Format != Format_NV12 &&
         pSrcSurface->Format != Format_AYUV &&
-        pSrcSurface->Format != Format_Y416 &&
         pSrcSurface->Format != Format_P010 &&
         pSrcSurface->Format != Format_P016 &&
+        pSrcSurface->Format != Format_P210 &&
+        pSrcSurface->Format != Format_P216 &&
+        pSrcSurface->Format != Format_Y8   &&
+        pSrcSurface->Format != Format_Y16U &&
+        pSrcSurface->Format != Format_Y16S &&
         !IS_PA_FORMAT(pSrcSurface->Format))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
@@ -2648,8 +2731,16 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsRTFormatSupported(
     }
 
     // Check if RT Format is supported by Vebox
-    if (IS_PA_FORMAT(pRTSurface->Format) ||
-        pRTSurface->Format == Format_NV12)
+    if (IS_PA_FORMAT(pRTSurface->Format)  ||
+        pRTSurface->Format == Format_NV12 ||
+        pRTSurface->Format == Format_AYUV ||
+        pRTSurface->Format == Format_P010 ||
+        pRTSurface->Format == Format_P016 ||
+        pRTSurface->Format == Format_P210 ||
+        pRTSurface->Format == Format_P216 ||
+        pRTSurface->Format == Format_Y8   ||
+        pRTSurface->Format == Format_Y16U ||
+        pRTSurface->Format == Format_Y16S)
     {
         // Supported Vebox Render Target format. Vebox Pipe Output can be selected.
         bRet = true;
@@ -2660,11 +2751,6 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsRTFormatSupported(
         (pSrcSurface->Format == Format_P016))      &&
         // YuvChannelSwap is no longer supported from GEN10+, so we only accept 32-bits no swapped format.
         (IS_RGB32_FORMAT(pRTSurface->Format) && IS_RGB_NO_SWAP(pRTSurface->Format)))
-    {
-        bRet = true;
-    }
-
-    if (pRTSurface->Format == Format_P010)
     {
         bRet = true;
     }
@@ -2695,7 +2781,6 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsDnFormatSupported(
         (pSrcSurface->Format != Format_YUY2) &&
         (pSrcSurface->Format != Format_Y8) &&
         (pSrcSurface->Format != Format_NV12) &&
-        (pSrcSurface->Format != Format_AYUV) &&
         (pSrcSurface->Format != Format_Y216) &&
         (pSrcSurface->Format != Format_Y210) &&
         (pSrcSurface->Format != Format_Y416) &&

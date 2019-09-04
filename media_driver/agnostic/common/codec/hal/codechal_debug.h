@@ -135,13 +135,14 @@ static const char *bufEncodePar     = "EncodePar";
 
 enum CodechalHucRegionDumpType
 {
-    hucRegionDumpDefault      = 0,
-    hucRegionDumpInit         = 1,
-    hucRegionDumpUpdate       = 2,
-    hucRegionDumpRegionLocked = 3,
+    hucRegionDumpDefault        = 0,
+    hucRegionDumpInit           = 1,
+    hucRegionDumpUpdate         = 2,
+    hucRegionDumpRegionLocked   = 3,
     hucRegionDumpCmdInitializer = 4,
-    hucRegionDumpPakIntegrate = 5,
-    hucRegionDumpHpu          = 6
+    hucRegionDumpPakIntegrate   = 5,
+    hucRegionDumpHpu            = 6,
+    hucRegionDumpBackAnnotation = 7
 };
 
 struct _CODECHAL_DEBUG_INTERFACE;
@@ -242,6 +243,10 @@ public:
         bool                      inputBuffer,
         uint32_t                  hucPassNum,
         CodechalHucRegionDumpType dumpType);
+
+    virtual MOS_STATUS DumpBltOutput(
+        PMOS_SURFACE              surface,
+        const char *              attrName);
 
     MOS_STATUS DeleteCfgLinkNode(uint32_t frameIdx);
 

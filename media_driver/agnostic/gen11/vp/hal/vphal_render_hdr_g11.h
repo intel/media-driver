@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -77,7 +77,7 @@ public:
         uint16_t                            hdr3DLutSurfaceHeight;
     };
 
-    Hdr3DLutCmRender();
+    Hdr3DLutCmRender(uint32_t* kernelBinary, uint32_t kernelSize);
     Hdr3DLutCmRender(const Hdr3DLutCmRender&) = delete;
     Hdr3DLutCmRender& operator=(const Hdr3DLutCmRender&) = delete;
     virtual ~Hdr3DLutCmRender();
@@ -96,7 +96,7 @@ private:
 class Hdr3DLutGenerator
 {
 public:
-    explicit Hdr3DLutGenerator(PRENDERHAL_INTERFACE vphalRenderer);
+    explicit Hdr3DLutGenerator(PRENDERHAL_INTERFACE vphalRenderer, uint32_t* kernelBinary, uint32_t kernelSize);
     Hdr3DLutGenerator(const Hdr3DLutGenerator &) = delete;
     Hdr3DLutGenerator &operator=(const Hdr3DLutGenerator &) = delete;
     virtual ~Hdr3DLutGenerator();
@@ -128,13 +128,22 @@ private:
     const uint32_t    m_segSize  = 65;
     const uint32_t    m_mulSize  = 128;
     const uint32_t    m_lutSizeInBytes = m_segSize * m_segSize * m_mulSize * 4 * 2;
+
+    uint32_t*         m_kernelBinary = nullptr;
+    uint32_t          m_kernelSize   = 0;
 };
 #else
 #include "vphal_render_hdr.h"
 class Hdr3DLutGenerator
 {
 public:
-    explicit Hdr3DLutGenerator(PRENDERHAL_INTERFACE vphalRenderer) { MOS_UNUSED(vphalRenderer); };
+    explicit Hdr3DLutGenerator(PRENDERHAL_INTERFACE vphalRenderer, uint32_t* kernelBinary, uint32_t kernelSize)
+    {
+        MOS_UNUSED(vphalRenderer);
+        MOS_UNUSED(kernelBinary);
+        MOS_UNUSED(kernelSize);
+    };
+
     Hdr3DLutGenerator(const Hdr3DLutGenerator &) = delete;
     Hdr3DLutGenerator &operator=(const Hdr3DLutGenerator &) = delete;
     virtual ~Hdr3DLutGenerator() {};

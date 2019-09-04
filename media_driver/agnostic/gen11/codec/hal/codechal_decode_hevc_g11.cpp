@@ -33,6 +33,7 @@
 #include "mhw_vdbox_mfx_g11_X.h"
 #include "mhw_vdbox_g11_X.h"
 #include "codechal_hw_g11_X.h"
+#include "hal_oca_interface.h"
 
 //==<Functions>=======================================================
 MOS_STATUS CodechalDecodeHevcG11::AllocateResourcesVariableSizes ()
@@ -238,6 +239,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
@@ -466,6 +468,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = m_width;
         initParams.u32PicHeightInPixel  = m_height;
+        initParams.format = m_decodeParams.m_destSurface->Format;
         initParams.usingSFC             = false;
         initParams.gpuCtxInUse          = GetVideoContext();
 
@@ -761,6 +764,7 @@ MOS_STATUS CodechalDecodeHevcG11::DecodeStateLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     //HCP Decode Phase State Machine
@@ -903,6 +907,9 @@ MOS_STATUS CodechalDecodeHevcG11::SendPictureLongFormat()
 
     MOS_COMMAND_BUFFER primCmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &primCmdBuffer, 0));
+
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
 
     bool sendPrologWithFrameTracking = false;
     CODECHAL_DECODE_CHK_STATUS_RETURN(DetermineSendProlgwithFrmTracking(&sendPrologWithFrameTracking));
@@ -1300,12 +1307,12 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
         if (m_enableSf2DmaSubmits)
         {
             #if (_DEBUG || _RELEASE_INTERNAL)
-            m_secondLevelBatchBuffer.iLastCurrent = m_secondLevelBatchBuffer.iSize;
+            m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].iLastCurrent = m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].iSize;
             #endif
 
             CODECHAL_DEBUG_TOOL(
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
-                    &m_secondLevelBatchBuffer,
+                    &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex],
                     CODECHAL_NUM_MEDIA_STATES,
                     "_DEC"));)
         }
@@ -1313,7 +1320,7 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
         //S2L conversion
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
             cmdBufferInUse,
-            &m_secondLevelBatchBuffer));
+            &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex]));
     }
     else
     {
@@ -1621,14 +1628,27 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer(m_scalabilityState);
     }
 
-    if (submitCommand)
+    HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
+
+    if (submitCommand || m_osInterface->phasedSubmission)
     {
         //command buffer to submit is the primary cmd buffer.
         if (MOS_VE_SUPPORTED(m_osInterface))
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&primCmdBuffer));
         }
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &primCmdBuffer, renderingFlags));
+
+        if(m_osInterface->phasedSubmission
+           && MOS_VE_SUPPORTED(m_osInterface)
+           && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
+        {
+            CodecHalDecodeScalability_DecPhaseToSubmissionType(m_scalabilityState,cmdBufferInUse);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBufferInUse, renderingFlags));
+        }
+        else
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &primCmdBuffer, renderingFlags));
+        }
     }
 
     CODECHAL_DEBUG_TOOL(
@@ -1791,9 +1811,9 @@ CodechalDecodeHevcG11::CodechalDecodeHevcG11(
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecodeHevc(hwInterface, debugInterface, standardInfo),
                                             m_hevcExtPicParams(nullptr),
                                             m_hevcExtSliceParams(nullptr),
-                                            m_scalabilityState(nullptr),
+                                            m_frameSizeMaxAlloced(0),
                                             m_sinlgePipeVeState(nullptr),
-                                            m_frameSizeMaxAlloced(0)
+                                            m_scalabilityState(nullptr)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
