@@ -523,7 +523,7 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
         // Prepare the command buffer manager
         m_cmdBufMgr = CmdBufMgrNext::GetObject();
         MOS_OS_CHK_NULL_RETURN(m_cmdBufMgr);
-        MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, COMMAND_BUFFER_SIZE));
+        MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, COMMAND_BUFFER_SIZE/2));
 
         // Prepare the gpu Context manager
         m_gpuContextMgr = GpuContextMgrNext::GetObject(&m_gtSystemInfo, this);
