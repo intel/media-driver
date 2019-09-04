@@ -71,7 +71,7 @@ void MhwCmdReader::OverrideCmdBuf(uint32_t *cmdBuf, uint32_t dwLen)
     {
         ParseCmdHeader(cmdBuf[offset], opcode, len);
 
-        if (opcode == 0x05000000)  // MI_BATCH_BUFFER_END
+        if (opcode == MI_BATCH_BUFFER_END)
         {
             break;
         }
