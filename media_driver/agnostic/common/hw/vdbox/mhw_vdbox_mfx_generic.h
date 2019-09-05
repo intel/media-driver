@@ -763,9 +763,17 @@ protected:
             cmd.DW3.WeightedPredictionIndicator = picParams->weighted_bipred_idc;
             if (picParams->weighted_bipred_idc == IMPLICIT_WEIGHTED_INTER_PRED_MODE)
             {
-                // SNB requirement
-                cmd.DW2.Log2WeightDenomLuma = 5;
-                cmd.DW2.Log2WeightDenomChroma = 5;
+                if (avcSliceState->bVdencInUse)
+                {
+                    cmd.DW2.Log2WeightDenomLuma = 0;
+                    cmd.DW2.Log2WeightDenomChroma = 0;
+                }
+                else
+                {
+                    // SNB requirement
+                    cmd.DW2.Log2WeightDenomLuma = 5;
+                    cmd.DW2.Log2WeightDenomChroma = 5;
+                }
             }
 
             cmd.DW9.Roundinterenable = avcSliceState->bRoundingInterEnable;
