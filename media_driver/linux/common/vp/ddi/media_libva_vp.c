@@ -115,6 +115,39 @@ PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextI
     return (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vaCtxID, &uiCtxType);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//! \purpose judge whether the pitch size match 16aligned usrptr path require or not
+//! \params
+//! [in]  pitch: surface pitch size.
+//! [in]  format : surface foramt
+//! \returns true if matched
+//! for YV12 format, if pitch aligned with 128, go legacy path; if aligned with 16/32/64, go 16usrptr path
+//! for other formats, legcy path for aligned with 64, 16usrpt path for aligned with 16/32
+////////////////////////////////////////////////////////////////////////////////
+bool VpIs16UsrPtrPitch(uint32_t pitch, DDI_MEDIA_FORMAT format)
+{
+    uint32_t PitchAligned = 64;
+    bool status = false;
+
+    if (Media_Format_YV12 == format)
+    {
+        PitchAligned = 128;
+    }
+
+    if (!(pitch % 16) && (pitch % PitchAligned))
+    {
+        status = true;
+    }
+    else
+    {
+        status = false;
+    }
+
+    VP_DDI_NORMALMESSAGE("[VP] 16Usrptr check, surface pitch is %d, go to %s path.", pitch, status?"16Usrptr":"legacy");
+
+    return status;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //! \purpose map from media format to vphal format
 //! \params
@@ -1398,17 +1431,17 @@ DdiVp_SetProcPipelineParams(
         DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
     }
 
-    // add UsrPtr mode support
-    if (pMediaSrcSurf->pSurfDesc)
+    // add 16aligned UsrPtr mode support
+    if (pMediaSrcSurf->pSurfDesc && (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
     {
-        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalSrcSurf->bUsrPtr)
+        pVpHalSrcSurf->b16UsrPtr = VpIs16UsrPtrPitch(pMediaSrcSurf->iPitch, pMediaSrcSurf->format);
+        if (pVpHalSrcSurf->b16UsrPtr)
         {
-            pVpHalSrcSurf->dwPitch                 = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iPitch       = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iWidth       = pMediaSrcSurf->iWidth;
-            pVpHalSrcSurf->OsResource.iHeight      = pMediaSrcSurf->iHeight;
-            pVpHalSrcSurf->OsResource.bUsrPtrMode  = true;
+            pVpHalSrcSurf->dwPitch                   = pMediaSrcSurf->iPitch;
+            pVpHalSrcSurf->OsResource.iPitch         = pMediaSrcSurf->iPitch;
+            pVpHalSrcSurf->OsResource.iWidth         = pMediaSrcSurf->iWidth;
+            pVpHalSrcSurf->OsResource.iHeight        = pMediaSrcSurf->iHeight;
+            pVpHalSrcSurf->OsResource.b16UsrPtrMode  = true;
             switch (pMediaSrcSurf->format)
             {
                 case Media_Format_NV12:
@@ -1433,13 +1466,13 @@ DdiVp_SetProcPipelineParams(
         }
         else
         {
-            pVpHalSrcSurf->OsResource.bUsrPtrMode = false;
+            pVpHalSrcSurf->OsResource.b16UsrPtrMode = false;
         }
     }
     else
     {
-        pVpHalSrcSurf->bUsrPtr                 = false;
-        pVpHalSrcSurf->OsResource.bUsrPtrMode  = false;
+        pVpHalSrcSurf->b16UsrPtr                 = false;
+        pVpHalSrcSurf->OsResource.b16UsrPtrMode  = false;
     }
     return VA_STATUS_SUCCESS;
 }
@@ -3181,24 +3214,23 @@ VAStatus DdiVp_BeginPicture(
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
-    if (pMediaTgtSurf->pSurfDesc)
+    if (pMediaTgtSurf->pSurfDesc && (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = VpIs16UsrPtrPitch(pMediaTgtSurf->iPitch, pMediaTgtSurf->format);
+        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = true;
         }
         else
         {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
         }
     }
     else
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3284,24 +3316,23 @@ VAStatus DdiVp_BeginPictureInt(
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
-    if (pMediaTgtSurf->pSurfDesc)
+    if (pMediaTgtSurf->pSurfDesc && (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = VpIs16UsrPtrPitch(pMediaTgtSurf->iPitch, pMediaTgtSurf->format);
+        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = true;
         }
         else
         {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
         }
     }
     else
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;

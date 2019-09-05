@@ -2400,7 +2400,7 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     GmmFlags = pGmmResourceInfo->GetResFlags();
 
     // Get resource information
-    if (pOsResource->bUsrPtrMode)
+    if (pOsResource->b16UsrPtrMode)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         pResDetails->dwWidth         = pOsResource->iWidth;
@@ -2464,7 +2464,7 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     pResDetails->Format   = pOsResource->Format;
 
     // Get planes
-    if (pOsResource->bUsrPtrMode)
+    if (pOsResource->b16UsrPtrMode)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         pResDetails->RenderOffset.YUV.Y.BaseOffset = pOsResource->YPlaneOffset.iSurfaceOffset;

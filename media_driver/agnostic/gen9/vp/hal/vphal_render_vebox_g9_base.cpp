@@ -1689,8 +1689,8 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
         goto finish;
     }
 
-    // check if UserPtr enabling.
-    if (pSrcSurface->bUsrPtr || pRenderTarget->bUsrPtr)
+    // check if 16aligned UserPtr enabling.
+    if (pSrcSurface->b16UsrPtr || pRenderTarget->b16UsrPtr)
     {
         pRenderPassData->bCompNeeded = true;
         goto finish;

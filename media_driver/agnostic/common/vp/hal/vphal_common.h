@@ -968,7 +968,7 @@ struct VPHAL_SURFACE
     bool                        bDirectionalScalar; //!< Vebox Directional Scalar
     bool                        bFastColorFill;     //!< enable fast color fill without copy surface
     bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
-    bool                        bUsrPtr;            //!< is system linear memory.
+    bool                        b16UsrPtr;          //!< is 16 byte aligned system linear memory.
 
     // Interlaced Scaling
     bool                        bInterlacedScaling;    //!< Interlaced scaling

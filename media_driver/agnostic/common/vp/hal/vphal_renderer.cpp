@@ -734,7 +734,7 @@ MOS_STATUS VphalRenderer::RenderPass(
                 }
                 // update the first target point
                 pRenderParams->pTarget[0]                = StoreRenderParams.pTarget[uiIndex_out];
-                pRenderParams->pTarget[0]->bUsrPtr       = StoreRenderParams.pTarget[uiIndex_out]->bUsrPtr;
+                pRenderParams->pTarget[0]->b16UsrPtr     = StoreRenderParams.pTarget[uiIndex_out]->b16UsrPtr;
                 if (StoreRenderParams.uDstCount > 1)
                 {
                     // for multi output, support different scaling ratio but doesn't support cropping.
@@ -767,7 +767,7 @@ MOS_STATUS VphalRenderer::RenderPass(
             }
             // restore render pointer and count.
             pRenderParams->pTarget[0]            = StoreRenderParams.pTarget[0];
-            pRenderParams->pTarget[0]->bUsrPtr   = StoreRenderParams.pTarget[0]->bUsrPtr;
+            pRenderParams->pTarget[0]->b16UsrPtr = StoreRenderParams.pTarget[0]->b16UsrPtr;
             pRenderParams->uDstCount             = StoreRenderParams.uDstCount;
         }
     }
@@ -919,24 +919,17 @@ MOS_STATUS VphalRenderer::RenderComposite(
         pRenderParams->uSrcCount, VPHAL_DBG_DUMP_TYPE_PRE_COMP);
     //------------------------------------------
 
-    if (pRenderPassData->pSrcSurface && 
-        (pRenderPassData->pSrcSurface->bUsrPtr ||
-        pRenderParams->pTarget[0]->bUsrPtr))
+    if (pRenderPassData->pSrcSurface &&
+        (pRenderPassData->pSrcSurface->b16UsrPtr ||
+        pRenderParams->pTarget[0]->b16UsrPtr) &&
+        (VpHal_RndrIs16Align(&Align16State, pRenderParams)))
     {
-        if (VpHal_RndrIs16Align(pRenderParams))
-        {
-            eStatus = Align16State.pfnRender(&Align16State, pRenderParams);
-        }
-        else
-        {
-            // if doesn't support format under UserPtr mode, return error
-            VPHAL_RENDER_ASSERTMESSAGE("Invalid UserPtr parameters!");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            goto finish;
-        }
+        // process 16aligned usrptr mode.
+        VPHAL_RENDER_CHK_STATUS(Align16State.pfnRender(&Align16State, pRenderParams));
     }
     else
     {
+        // fallback to legacy path
         VPHAL_RENDER_CHK_STATUS(pRender[VPHAL_RENDER_ID_COMPOSITE]->Render(pRenderParams, nullptr));
     }
 

@@ -1276,7 +1276,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     gmmFlags = gmmResourceInfo->GetResFlags();
 
     // Get resource information
-    if (resource->bUsrPtrMode)
+    if (resource->b16UsrPtrMode)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         details.dwWidth         = resource->iWidth;
@@ -1334,7 +1334,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     details.Format   = resource->Format;
 
     // Get planes
-    if (resource->bUsrPtrMode)
+    if (resource->b16UsrPtrMode)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         details.RenderOffset.YUV.Y.BaseOffset = resource->YPlaneOffset.iSurfaceOffset;
