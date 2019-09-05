@@ -22,6 +22,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_g9_kbl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_hwcmd_g9_kbl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_hwcmd_g9_kbl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_g9_kbl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_g9_kbl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_hwcmd_g9_kbl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_g9_kbl.cpp
@@ -32,6 +33,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_g9_kbl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_hwcmd_g9_kbl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_hwcmd_g9_kbl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_g9_kbl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_g9_kbl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_hwcmd_g9_kbl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_g9_kbl.h

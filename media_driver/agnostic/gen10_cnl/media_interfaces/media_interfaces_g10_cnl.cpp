@@ -334,13 +334,11 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_codechalDevice);
-        if (decoder == nullptr)
+        if (m_codechalDevice == nullptr)
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decoder device creation failed!");
             return MOS_STATUS_NO_SPACE;
         }
-        decoder->SetHuCProductFamily(HUC_CANNONLAKE);
     }
     else if (CodecHalIsEncode(CodecFunction))
     {

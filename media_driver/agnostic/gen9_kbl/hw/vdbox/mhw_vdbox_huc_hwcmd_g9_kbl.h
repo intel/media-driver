@@ -208,7 +208,9 @@ public:
             {
                 uint32_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0,  3)    ; //!< Reserved
                 uint32_t                 IndirectStreamOutEnable                          : __CODEGEN_BITFIELD( 4,  4)    ; //!< INDIRECT_STREAM_OUT_ENABLE
-                uint32_t                 Reserved37                                       : __CODEGEN_BITFIELD( 5, 31)    ; //!< Reserved
+                uint32_t                 Reserved37                                       : __CODEGEN_BITFIELD( 5,  9)    ; //!< Reserved
+                uint32_t                 HucStreamObjectEnable                            : __CODEGEN_BITFIELD(10, 10)    ; //!< HUC Stream Object Enable
+                uint32_t                 Reserved43                                       : __CODEGEN_BITFIELD(11, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW1;

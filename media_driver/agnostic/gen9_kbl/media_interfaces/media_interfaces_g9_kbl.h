@@ -45,7 +45,7 @@
 #include "mhw_vebox_g9_X.h"
 #include "mhw_vdbox_mfx_g9_kbl.h"
 #include "mhw_vdbox_hcp_g9_kbl.h"
-#include "mhw_vdbox_huc_g9_bxt.h"
+#include "mhw_vdbox_huc_g9_kbl.h"
 #include "mhw_vdbox_vdenc_g9_kbl.h"
 
 #include "codechal_hw_g9_kbl.h"
@@ -122,7 +122,7 @@ public:
     using StateHeap = MHW_STATE_HEAP_INTERFACE_G9_X;
     using Mfx = MhwVdboxMfxInterfaceG9Kbl;
     using Hcp = MhwVdboxHcpInterfaceG9Kbl;
-    using Huc = MhwVdboxHucInterfaceG9Bxt;
+    using Huc = MhwVdboxHucInterfaceG9Kbl;
     using Vdenc = MhwVdboxVdencInterfaceG9Kbl;
     using Vebox = MhwVeboxInterfaceG9;
 

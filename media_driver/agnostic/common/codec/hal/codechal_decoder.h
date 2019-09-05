@@ -623,18 +623,6 @@ public:
     bool GetRenderContextUsesNullHw() { return m_renderContextUsesNullHw; }
 
     //!
-    //! \brief  Get Huc product family
-    //! \return Huc prodoct family
-    //!
-    uint32_t GetHuCProductFamily() { return m_huCProductFamily; }
-
-    //!
-    //! \brief  Set Huc product family
-    //! \return N/A
-    //!
-    void SetHuCProductFamily(uint32_t huCProductFamily) { m_huCProductFamily = huCProductFamily; }
-
-    //!
     //! \brief  Set decode histogram
     //! \return No return
     //!
@@ -1092,9 +1080,6 @@ protected:
     //! \brief Downsampled surfaces
     PMOS_SURFACE                m_downsampledSurfaces = nullptr;
 #endif
-
-    //! \brief Huc product family
-    uint32_t                    m_huCProductFamily = HUC_UNKNOWN;
 
     //! \brief    Decode histogram interface
     //! \details  Support YUV Luma histogram.

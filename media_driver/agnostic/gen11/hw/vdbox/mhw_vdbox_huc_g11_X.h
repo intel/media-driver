@@ -59,6 +59,19 @@ public:
     //!
     virtual ~MhwVdboxHucInterfaceG11() { MHW_FUNCTION_ENTER; }
 
+    //!
+    //! \brief    Get huc product family
+    //!
+    //! \return   uint32_t
+    //!           Huc product family.
+    //!
+    uint32_t GetHucProductFamily() override
+    {
+        return m_hucFamilyIcelake;
+    }
+
+    static const uint32_t m_hucFamilyIcelake = 6;
+
 protected:
     MOS_STATUS AddHucPipeModeSelectCmd(
         MOS_COMMAND_BUFFER                  *cmdBuffer,

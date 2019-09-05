@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,30 +20,30 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mhw_vdbox_huc_g9_bxt.h
-//! \brief    Defines functions for constructing Vdbox HUC commands on Gen8-based platforms
+//! \file     mhw_vdbox_huc_g9_kbl.h
+//! \brief    Defines functions for constructing Vdbox HUC commands on Gen9 Kbl platforms
 //!
 
-#ifndef __MHW_VDBOX_HUC_G10_X_H__
-#define __MHW_VDBOX_HUC_G10_X_H__
+#ifndef __MHW_VDBOX_HUC_G9_KBL_H__
+#define __MHW_VDBOX_HUC_G9_KBL_H__
 
 #include "mhw_vdbox_huc_generic.h"
-#include "mhw_vdbox_huc_hwcmd_g10_X.h"
-#include "mhw_mi_hwcmd_g10_X.h"
+#include "mhw_vdbox_huc_hwcmd_g9_kbl.h"
+#include "mhw_mi_hwcmd_g9_X.h"
 
-//!  MHW Vdbox Huc interface for Gen10
+//!  MHW Vdbox Huc interface for Gen9 KBL platforms
 /*!
-This class defines the Huc command construction functions for Gen10 platform
+This class defines the Huc command construction functions for Gen9 KBL platform
 */
 
-class MhwVdboxHucInterfaceG10 : public MhwVdboxHucInterfaceGeneric<mhw_vdbox_huc_g10_X, mhw_mi_g10_X>
+class MhwVdboxHucInterfaceG9Kbl : public MhwVdboxHucInterfaceGeneric<mhw_vdbox_huc_g9_kbl, mhw_mi_g9_X>
 {
 
 public:
     //!
     //! \brief  Constructor
     //!
-    MhwVdboxHucInterfaceG10(
+    MhwVdboxHucInterfaceG9Kbl(
         PMOS_INTERFACE osInterface,
         MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface) :
@@ -57,7 +57,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~MhwVdboxHucInterfaceG10() { MHW_FUNCTION_ENTER; }
+    virtual ~MhwVdboxHucInterfaceG9Kbl() { MHW_FUNCTION_ENTER; }
 
     //!
     //! \brief    Get huc product family
@@ -67,10 +67,10 @@ public:
     //!
     uint32_t GetHucProductFamily() override
     {
-        return m_hucFamilyCannonlake;
+        return m_hucFamilyKabylake;
     }
 
-    static const uint32_t m_hucFamilyCannonlake = 5;
+    static const uint32_t m_hucFamilyKabylake = 4;
 
 protected:
 

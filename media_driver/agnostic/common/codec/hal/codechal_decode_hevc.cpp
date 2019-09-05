@@ -832,7 +832,7 @@ MOS_STATUS CodechalDecodeHevc::SetHucDmemParams(
     auto hucHevcS2LBss = (PHUC_HEVC_S2L_BSS)DmemLock.Lock(CodechalResLock::writeOnly);
 
     CODECHAL_DECODE_CHK_NULL_RETURN(hucHevcS2LBss);
-    hucHevcS2LBss->ProductFamily = m_huCProductFamily;
+    hucHevcS2LBss->ProductFamily = m_hucInterface->GetHucProductFamily();
     hucHevcS2LBss->RevId = m_hwInterface->GetPlatform().usRevId;
     hucHevcS2LBss->DummyRefIdxState = 
         MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive;
