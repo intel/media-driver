@@ -1788,6 +1788,16 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "Path where command info will be dumped, for example: ./"),
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 #if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_MHW_BASE_VDENC_INTERFACE_ID,
+        "Use Mhw Base Vdenc Interface",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Mhw Base Vdenc Interface Active Flag"),
+
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE_ID,
         "Media Preemption Enable",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
