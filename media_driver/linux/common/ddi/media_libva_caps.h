@@ -664,6 +664,15 @@ public:
     virtual GMM_RESOURCE_FORMAT ConvertFourccToGmmFmt(uint32_t fourcc);
 
     //!
+    //! \brief    Check if MFE is supported on the platform
+    //!
+    //! \param    [in] PLATFORM
+    //!
+    //! \return   true if supported, otherwise false
+    //!
+    virtual bool IsMfeSupportedOnPlatform(const PLATFORM &platform);
+
+    //!
     //! \brief    Initialize the MediaLibvaCaps instance for current platform 
     //!
     //! \return   VAStatus 

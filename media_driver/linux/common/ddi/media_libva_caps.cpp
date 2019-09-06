@@ -3132,6 +3132,11 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
     }
 }
 
+bool MediaLibvaCaps::IsMfeSupportedOnPlatform(const PLATFORM &platform)
+{
+    return (GFX_IS_PRODUCT(platform, IGFX_SKYLAKE));
+}
+
 VAStatus MediaLibvaCaps::GetMbProcessingRateDec(
         MEDIA_FEATURE_TABLE *skuTable,
         uint32_t *mbProcessingRatePerSec)

@@ -2302,7 +2302,7 @@ static VAStatus DdiMedia_CreateMfeContextInternal(
     DDI_CHK_NULL(mfe_context, "nullptr mfe_context", VA_STATUS_ERROR_INVALID_PARAMETER);
     *mfe_context        = DDI_MEDIA_INVALID_VACONTEXTID;
 
-    if (!GFX_IS_PRODUCT(mediaDrvCtx->platform, IGFX_SKYLAKE))
+    if (!mediaDrvCtx->m_caps->IsMfeSupportedOnPlatform(mediaDrvCtx->platform))
     {
         DDI_VERBOSEMESSAGE("MFE is not supported on the platform!");
         return VA_STATUS_ERROR_UNIMPLEMENTED;
