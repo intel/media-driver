@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -904,7 +904,22 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
     params->fAlphaPixel                    = 1.0F;
     params->bColorFillEnable               = m_colorFill;
     params->bCSCEnable                     = m_CSC;
-    params->bRGBASwapEnable                = params->bCSCEnable;
+
+    // ARGB8,ABGR10,A16B16G16R16,VYUY and YVYU output format need to enable swap
+    if (m_sfcOutputSurface->Format == Format_X8R8G8B8     ||
+        m_sfcOutputSurface->Format == Format_A8R8G8B8     ||
+        m_sfcOutputSurface->Format == Format_R10G10B10A2  ||
+        m_sfcOutputSurface->Format == Format_A16B16G16R16 ||
+        m_sfcOutputSurface->Format == Format_VYUY         ||
+        m_sfcOutputSurface->Format == Format_YVYU)
+    {
+        params->bRGBASwapEnable = true;
+    }
+    else
+    {
+        params->bRGBASwapEnable = false;
+    }
+
 
     // CodecHal does not support SFC rotation
     params->RotationMode                   = MHW_ROTATION_IDENTITY;
@@ -994,11 +1009,23 @@ MOS_STATUS CodecHalEncodeSfc::Initialize(
 
     // Create VEBOX Context
     MOS_GPUCTX_CREATOPTIONS createOption;
+    //
+    // VeboxgpuContext could be created from both VP and Codec.
+    // If there is no such as a GPU context it will create a new one and set the GPU component ID. 
+    // If there has been a valid GPU context it won’t create another one anymore and the component ID won’t be updated either.
+    // Therefore if a codec veboxgpu context creation happens earlier than a vp veboxgpu context creation and set its component ID to MOS_GPU_COMPONENT_ENCODE,
+    // VPBLT callstack would index a GpuAppTaskEvent of MOS_GPU_COMPONENT_ENCODE.
+    //
+    MOS_COMPONENT originalComponent = m_osInterface->Component;
+    m_osInterface->Component        = COMPONENT_VPCommon;
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         MOS_GPU_CONTEXT_VEBOX,
         MOS_GPU_NODE_VE,
         &createOption));
+
+    m_osInterface->Component        = originalComponent;
 
     // Register Vebox GPU context with the Batch Buffer completion event
     // Ignore if creation fails

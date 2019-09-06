@@ -30,6 +30,9 @@
 #include "vphal_render_sfc_g9_base.h"
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#include "igvpkrn_isa_g9.h"
+#endif
 
 #define MAX_INPUT_PREC_BITS         16
 #define DOWNSHIFT_WITH_ROUND(x, n)  (((x) + (((n) > 0) ? (1 << ((n) - 1)) : 0)) >> (n))
@@ -280,9 +283,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::GetFFDISurfParams(
     // output surface's SampleType should be same to input's. Bob is being
     // done in Composition part
     if (pRenderData->bIECP &&
-        (m_currentSurface->pDeinterlaceParams                         &&
+        ((m_currentSurface->pDeinterlaceParams                         &&
          m_currentSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB) ||
-         m_currentSurface->bInterlacedScaling)
+         m_currentSurface->bInterlacedScaling))
     {
         SampleType = m_currentSurface->SampleType;
     }
@@ -1249,6 +1252,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetDNDIParams(
     eStatus             = MOS_STATUS_SUCCESS;
     pDNParams           = pSrcSurface->pDenoiseParams;
 
+    VPHAL_RENDER_ASSERT(pDNParams);
+
     // Set Luma DN params
     if (pRenderData->bDenoise)
     {
@@ -1332,6 +1337,11 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetDNDIParams(
             pChromaParams->dwSTADThresholdU =
             pChromaParams->dwSTADThresholdV = dwSTADThresholdUV[dwDenoiseFactor];
         }
+    }
+
+    if (pDNParams && pDNParams->bEnableHVSDenoise)
+    {
+        VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(pSrcSurface);
     }
 
     return eStatus;
@@ -1622,10 +1632,18 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
     pSrcSurface   = pRenderPassData->pSrcSurface;
 
     VPHAL_RENDER_CHK_NULL(pSrcSurface);
+    VPHAL_RENDER_CHK_NULL(pRenderTarget);
 
     // Check whether VEBOX is available
     // VTd doesn't support VEBOX
     if (!MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrVERing))
+    {
+        pRenderPassData->bCompNeeded = true;
+        goto finish;
+    }
+
+    // check if UserPtr enabling.
+    if (pSrcSurface->bUsrPtr || pRenderTarget->bUsrPtr)
     {
         pRenderPassData->bCompNeeded = true;
         goto finish;
@@ -2057,9 +2075,13 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsFormatSupported(
     // Vebox only support P016 format, P010 format can be supported by faking it as P016
     if (pSrcSurface->Format != Format_NV12 &&
         pSrcSurface->Format != Format_AYUV &&
-        pSrcSurface->Format != Format_Y416 &&
         pSrcSurface->Format != Format_P010 &&
         pSrcSurface->Format != Format_P016 &&
+        pSrcSurface->Format != Format_P210 &&
+        pSrcSurface->Format != Format_P216 &&
+        pSrcSurface->Format != Format_Y8   &&
+        pSrcSurface->Format != Format_Y16U &&
+        pSrcSurface->Format != Format_Y16S &&
         !IS_PA_FORMAT(pSrcSurface->Format))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
@@ -2091,8 +2113,16 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsRTFormatSupported(
     bRet = false;
 
     // Check if RT Format is supported by Vebox
-    if (IS_PA_FORMAT(pRTSurface->Format) ||
-        pRTSurface->Format == Format_NV12)
+    if (IS_PA_FORMAT(pRTSurface->Format)  ||
+        pRTSurface->Format == Format_NV12 ||
+        pRTSurface->Format == Format_AYUV ||
+        pRTSurface->Format == Format_P010 ||
+        pRTSurface->Format == Format_P016 ||
+        pRTSurface->Format == Format_P210 ||
+        pRTSurface->Format == Format_P216 ||
+        pRTSurface->Format == Format_Y8   ||
+        pRTSurface->Format == Format_Y16U ||
+        pRTSurface->Format == Format_Y16S)
     {
         // Supported Vebox Render Target format. Vebox Pipe Output can be selected.
         bRet = true;
@@ -2161,9 +2191,16 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsDiFormatSupported(
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrc);
 
     if (pSrc->Format != Format_AYUV &&
+        pSrc->Format != Format_Y410 &&
         pSrc->Format != Format_Y416 &&
         pSrc->Format != Format_P010 &&
-        pSrc->Format != Format_P016)
+        pSrc->Format != Format_P016 &&
+        pSrc->Format != Format_A8B8G8R8 &&
+        pSrc->Format != Format_A8R8G8B8 &&
+        pSrc->Format != Format_B10G10R10A2 &&
+        pSrc->Format != Format_R10G10B10A2 &&
+        pSrc->Format != Format_A16B16G16R16 &&
+        pSrc->Format != Format_A16R16G16B16)
     {
         bRet = true;
     }
@@ -2202,5 +2239,9 @@ VPHAL_VEBOX_STATE_G9_BASE::VPHAL_VEBOX_STATE_G9_BASE(
     pKernelParamTable                   = (PRENDERHAL_KERNEL_PARAM)g_Vebox_KernelParam_g9;
     iNumFFDISurfaces                    = 2;  // PE on: 4 used. PE off: 2 used
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    m_hvsKernelBinary                   = (uint8_t *)IGVP_HVS_DENOISE_G900;
+    m_hvsKernelBinarySize               = IGVP_HVS_DENOISE_G900_SIZE;
+#endif
 }
 

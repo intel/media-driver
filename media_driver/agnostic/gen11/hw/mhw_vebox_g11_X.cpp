@@ -30,18 +30,6 @@
 #include "mos_solo_generic.h"
 #include "mos_util_user_interface.h"
 
-const MHW_VEBOX_SETTINGS g_Vebox_Settings_g11 =
-{
-    MHW_MAX_VEBOX_STATES,                                                     //!< uiNumInstances
-    MHW_SYNC_SIZE,                                                            //!< uiSyncSize
-    MHW_PAGE_SIZE,                                                            //!< uiDndiStateSize
-    MHW_PAGE_SIZE,                                                            //!< uiIecpStateSize
-    MHW_PAGE_SIZE * 2,                                                        //!< uiGamutStateSize
-    MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
-    MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
-    MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
-    0                                                                         //!< ui3DLUTSize
-};
 
 // H2S Manual Mode Coef
 static const uint16_t g_Hdr_ColorCorrect_EOTF_SMPTE_ST2084_Input_g11[HDR_OETF_1DLUT_POINT_NUMBER] =
@@ -208,7 +196,7 @@ MhwVeboxInterfaceG11::MhwVeboxInterfaceG11(
     : MhwVeboxInterfaceGeneric(pInputInterface)
 {
     MHW_FUNCTION_ENTER;
-    MEDIA_SYSTEM_INFO *pGtSystemInfo;
+    MEDIA_SYSTEM_INFO *pGtSystemInfo = nullptr;
 
     m_veboxSettings             = g_Vebox_Settings_g11;
     m_vebox0InUse               = false;
@@ -220,8 +208,9 @@ MhwVeboxInterfaceG11::MhwVeboxInterfaceG11(
     MOS_SecureMemcpy(m_BT2020InvGammaLUT, sizeof(uint32_t)* 256, g_Vebox_BT2020_Inverse_Gamma_LUT_g11, sizeof(uint32_t)* 256);
     MOS_SecureMemcpy(m_BT2020FwdGammaLUT, sizeof(uint32_t)* 256, g_Vebox_BT2020_Forward_Gamma_LUT_g11, sizeof(uint32_t)* 256);
 
+    MHW_CHK_NULL_NO_STATUS_RETURN(pInputInterface);
     pGtSystemInfo = pInputInterface->pfnGetGtSystemInfo(pInputInterface);
-    MHW_ASSERT(pGtSystemInfo);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pGtSystemInfo);
 
     if (pGtSystemInfo->VEBoxInfo.IsValid &&
         pGtSystemInfo->VEBoxInfo.Instances.Bits.VEBox0Enabled &&
@@ -247,13 +236,14 @@ void MhwVeboxInterfaceG11::SetVeboxIecpStateBecsc(
     PMHW_VEBOX_IECP_PARAMS                 pVeboxIecpParams,
     bool                                   bEnableFECSC)
 {
-    PMHW_CAPPIPE_PARAMS pCapPipeParams;
+    PMHW_CAPPIPE_PARAMS pCapPipeParams = nullptr;
     MOS_FORMAT          dstFormat;
 
-    MHW_ASSERT(pVeboxIecpState);
-    MHW_ASSERT(pVeboxIecpParams);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
 
     pCapPipeParams = &pVeboxIecpParams->CapPipeParams;
+    MHW_CHK_NULL_NO_STATUS_RETURN(pCapPipeParams);
     dstFormat      = pVeboxIecpParams->dstFormat;
 
 #define SET_COEFS(_c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8) \
@@ -422,10 +412,13 @@ void MhwVeboxInterfaceG11::SetVeboxSurfaces(
 
     mhw_vebox_g11_X::VEBOX_SURFACE_STATE_CMD VeboxSurfaceState;
 
-    MHW_ASSERT(pSurfaceParam);
-    MHW_ASSERT(pVeboxSurfaceState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pSurfaceParam);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceState);
 
     // Initialize
+    dwSurfaceWidth       = 0;
+    dwSurfaceHeight      = 0;
+    dwSurfacePitch       = 0;
     bHalfPitchForChroma  = false;
     bInterleaveChroma    = false;
     wUXOffset            = 0;
@@ -901,6 +894,10 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxState(
             &ResourceParams));
     }
 
+    MHW_CHK_NULL(pVeboxMode);
+    MHW_CHK_NULL(pLUT3D);
+    MHW_CHK_NULL(pChromaSampling);
+
     cmd.DW1.ColorGamutExpansionEnable    = pVeboxMode->ColorGamutExpansionEnable;
     cmd.DW1.ColorGamutCompressionEnable  = pVeboxMode->ColorGamutCompressionEnable;
     cmd.DW1.GlobalIecpEnable             = pVeboxMode->GlobalIECPEnable;
@@ -1218,8 +1215,8 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxGamutState(
                                                                   pVeboxHeap->uiGamutStateOffset +
                                                                   uiOffset);
 
-    MHW_ASSERT(pIecpState);
-    MHW_ASSERT(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL(pIecpState);
+    MHW_CHK_NULL(pVeboxGEGammaCorrection);
 
     // Must initialize VeboxIecpState even if it is not used because GCE
     // requires GlobalIECP enable bit to be turned on
@@ -1600,7 +1597,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxScalarState(
         (mhw_vebox_g11_X::VEBOX_Scalar_State_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                     pVeboxHeap->uiDndiStateOffset +
                                                     uiOffset);
-    MHW_ASSERT(pVeboxScalarState);
+    MHW_CHK_NULL(pVeboxScalarState);
     *pVeboxScalarState = ScalarState;
 
     // Initialize the values to default for media driver.
@@ -1711,7 +1708,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxDndiState(
         (mhw_vebox_g11_X::VEBOX_DNDI_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                   pVeboxHeap->uiDndiStateOffset +
                                                   uiOffset);
-    MHW_ASSERT(pVeboxDndiState);
+    MHW_CHK_NULL(pVeboxDndiState);
     *pVeboxDndiState = mVeboxDndiState;
 
     pVeboxDndiState->DW0.DenoiseMaximumHistory                         = pVeboxDndiParams->dwDenoiseMaximumHistory;
@@ -1909,7 +1906,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxIecpState(
     pVeboxIecpState = (mhw_vebox_g11_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                 pVeboxHeap->uiIecpStateOffset +
                                                                 uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
     IecpStateInitialization(pVeboxIecpState);
 
     if (pVeboxIecpParams->ColorPipeParams.bActive)
@@ -2008,6 +2005,8 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxIecpState(
             (PMHW_FORWARD_GAMMA_SEG)(pVeboxHeap->pLockedDriverResourceMem +
                                      pVeboxHeap->uiGammaCorrectionStateOffset +
                                      uiOffset);
+        
+        MHW_CHK_NULL(pFwdGammaSeg);
 
         MOS_SecureMemcpy(
             pFwdGammaSeg,
@@ -2040,7 +2039,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxIecpAceState(
     pVeboxIecpState = (mhw_vebox_g11_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                 pVeboxHeap->uiIecpStateOffset +
                                                                 uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
 
     MhwVeboxInterfaceGeneric<mhw_vebox_g11_X>::SetVeboxAceLaceState(pVeboxIecpParams, pVeboxIecpState);
 
@@ -2255,8 +2254,8 @@ MOS_STATUS MhwVeboxInterfaceG11::VeboxInterface_H2SManualMode(
         + pVeboxHeap->uiGamutStateOffset + uiOffset);
     fMaxCLL = (65535 * (float)pVeboxGamutParams->uiMaxCLL) / 10000;
 
-    MHW_ASSERT(pIecpState);
-    MHW_ASSERT(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL(pIecpState);
+    MHW_CHK_NULL(pVeboxGEGammaCorrection);
 
     // Must initialize VeboxIecpState even if it is not used because GCE
     // requires GlobalIECP enable bit to be turned on
@@ -2351,7 +2350,7 @@ finish:
 
 void MhwVeboxInterfaceG11::IecpStateInitialization(mhw_vebox_g11_X::VEBOX_IECP_STATE_CMD    *pVeboxIecpState)
 {
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
 
     mhw_vebox_g11_X::VEBOX_IECP_STATE_CMD IecpState;
     *pVeboxIecpState = IecpState;
@@ -2459,7 +2458,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxSurfaceControlBits(
     PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams,
     uint32_t                       *pSurfCtrlBits)
 {
-    PLATFORM   Platform;
+    PLATFORM   Platform = {};
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     mhw_vebox_g11_X::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD *pVeboxSurfCtrlBits;

@@ -38,6 +38,7 @@ MOS_STATUS MhwMiInterfaceG10::AddMiSemaphoreWaitCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g10_X::MI_SEMAPHORE_WAIT_CMD *cmd =
         (mhw_mi_g10_X::MI_SEMAPHORE_WAIT_CMD*)cmdBuffer->pCmdPtr;
@@ -140,9 +141,13 @@ void MhwMiInterfaceG10::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G10;
     mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G10;
     mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GP_REGISTER11_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GP_REGISTER11_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GP_REGISTER12_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GP_REGISTER12_HI_OFFSET_G10;
 }
 
-MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight)
+MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder)
 {
     MHW_FUNCTION_ENTER;
 
@@ -152,21 +157,24 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uin
         return MOS_STATUS_SUCCESS;
     }
 
-    if ((frameWidth * frameHeight) >= (7680 * 4320))
+    if (isEncoder)
     {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS;
-    }
-    else if ((frameWidth * frameHeight) >= (3840 * 2160))
-    {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS;
-    }
-    else if ((frameWidth * frameHeight) >= (1920 * 1080))
-    {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS;
-    }
-    else
-    {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS;
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (3840 * 2160))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (1920 * 1080))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS;
+        }
     }
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -191,12 +199,6 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerRegisterOffset(
     MOS_GPU_CONTEXT                 gpuContext)
 {
     MHW_FUNCTION_ENTER;
-
-    if (m_osInterface->bMediaReset == false ||
-        m_osInterface->umdMediaResetEnable == false)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
 
     switch (gpuContext)
     {
@@ -239,6 +241,8 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerRegisterOffset(
 MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStartCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -248,6 +252,10 @@ MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStartCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     // Send Stop before Start is to help recover from incorrect wdt state if previous submission
     // cause hang and not have a chance to execute the stop cmd in the end of batch buffer.
@@ -278,6 +286,8 @@ MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStartCmd(
 MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStopCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -287,6 +297,10 @@ MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStopCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     //Stop Watchdog Timer
     MHW_MI_LOAD_REGISTER_IMM_PARAMS registerImmParams;

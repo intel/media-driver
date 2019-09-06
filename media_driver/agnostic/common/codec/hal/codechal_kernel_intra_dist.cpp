@@ -162,8 +162,8 @@ CODECHAL_MEDIA_STATE_TYPE CodechalKernelIntraDist::GetMediaStateType()
 
 MOS_STATUS CodechalKernelIntraDist::Execute( CurbeParam &curbeParam, SurfaceParams &surfaceParam )
 {
-    memcpy_s(&m_curbeParam, sizeof(m_curbeParam), &curbeParam, sizeof(m_curbeParam));
-    memcpy_s(&m_surfaceParam, sizeof(m_surfaceParam), &surfaceParam, sizeof(m_surfaceParam));
+    MOS_SecureMemcpy(&m_curbeParam, sizeof(m_curbeParam), &curbeParam, sizeof(m_curbeParam));
+    MOS_SecureMemcpy(&m_surfaceParam, sizeof(m_surfaceParam), &surfaceParam, sizeof(m_surfaceParam));
 
     return Run();
 }

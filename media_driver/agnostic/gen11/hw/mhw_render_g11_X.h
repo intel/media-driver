@@ -56,7 +56,9 @@ public:
         // L3 Cache size per bank = 384 KB.
         // {SLM,    URB,     DC,      RO(I/S, C, T),   L3 Client Pool}
         // {  0,     64,      0,                  0,         320     }
-        m_l3CacheCntlRegisterValueDefault = 0xA0000420;
+        m_l3CacheCntlRegisterValueDefault = 0xA0000620;
+
+        InitMmioRegisters();
     }
 
     virtual ~MhwRenderInterfaceG11() { MHW_FUNCTION_ENTER; }
@@ -90,11 +92,21 @@ public:
 
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() { return &m_l3CacheConfig; }
 
+    virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters()
+    {
+        return &m_mmioRegisters;
+    }
+
 protected:
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG_G11   m_l3CacheConfig;
 
     uint32_t    m_l3CacheTcCntlRegisterOffset = 0xB0A4;
     uint32_t    m_l3CacheTcCntlRegisterValueDefault = 0x0000000D;
+
+private:
+    //! \brief Mmio registers address
+    MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
+    void InitMmioRegisters();
 };
 
 

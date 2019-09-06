@@ -170,7 +170,7 @@ enum CODECHAL_MODE
     CODECHAL_DECODE_RESERVED_2              = 10,   // formerly AVS
     CODECHAL_DECODE_MODE_MVCVLD             = 11,   // Needed for CP. Not in use by Codec HAL.
     CODECHAL_DECODE_MODE_VP9VLD             = 12,
-    CODECHAL_DECODE_MODE_CENC            = 13,   // Only for getting HuC-based DRM command size. Not an actual mode.
+    CODECHAL_DECODE_MODE_CENC               = 13,   // Only for getting HuC-based DRM command size. Not an actual mode.
     CODECHAL_NUM_DECODE_MODES               = 14,
 
     CODECHAL_ENCODE_MODE_AVC                = 16,   // Must be a power of 2 to match perf report expectations
@@ -179,11 +179,12 @@ enum CODECHAL_MODE
     CODECHAL_ENCODE_MODE_JPEG               = 20,
     CODECHAL_ENCODE_MODE_HEVC               = 22,
     CODECHAL_ENCODE_MODE_VP9                = 23,
+    CODECHAL_ENCODE_RESERVED_0              = 24,
     CODECHAL_NUM_ENCODE_MODES               = 8,
 
-    CODECHAL_NUM_MODES                      = 24,   // Use the value for the last encode mode to determine this
-    CODECHAL_UNSUPPORTED_MODE               = 24,
-    CODECHAL_MODE_MAX                       = 24
+    CODECHAL_NUM_MODES                      = 25,   // Use the value for the last encode mode to determine this
+    CODECHAL_UNSUPPORTED_MODE               = 25,
+    CODECHAL_MODE_MAX                       = 25
 };
 
 // Slice group mask
@@ -512,6 +513,21 @@ static __inline uint8_t Map44LutValue(uint32_t v, uint8_t max)
     ret = (ret & 0xf) == 0 ? (ret | 8) : ret;
 
     return ret;
+}
+
+static __inline uint8_t GetU62ModeCost(double mcost)
+{
+    return (uint8_t)(mcost * 4 + 0.5);
+}
+
+static __inline uint8_t GetU71ModeCost(double mcost)
+{
+    return (uint8_t)(mcost * 2 + 0.5);
+}
+
+static __inline uint8_t GetU44ModeCost(double mcost)
+{
+    return (uint8_t)(mcost * 16 + 0.5);
 }
 
 static __inline uint32_t CodecHal_GetStandardFromMode(uint32_t mode)

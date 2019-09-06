@@ -35,6 +35,10 @@ void MhwVdboxMfxInterfaceG11::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_1_INIT_G11;
     mmioRegisters->generalPurposeRegister4LoOffset            = GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_1_INIT_G11;
     mmioRegisters->generalPurposeRegister4HiOffset            = GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_1_INIT_G11;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GENERAL_PURPOSE_REGISTER11_LO_OFFSET_NODE_1_INIT_G11;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GENERAL_PURPOSE_REGISTER11_HI_OFFSET_NODE_1_INIT_G11;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GENERAL_PURPOSE_REGISTER12_LO_OFFSET_NODE_1_INIT_G11;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GENERAL_PURPOSE_REGISTER12_HI_OFFSET_NODE_1_INIT_G11;
     mmioRegisters->mfcImageStatusMaskRegOffset                = MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G11;
     mmioRegisters->mfcImageStatusCtrlRegOffset                = MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G11;
     mmioRegisters->mfcAvcNumSlicesRegOffset                   = MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_1_INIT_G11;
@@ -313,11 +317,25 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::CheckScalabilityOverrideValidity()
 MOS_STATUS MhwVdboxMfxInterfaceG11::FindGpuNodeToUse(
     PMHW_VDBOX_GPUNODE_LIMIT       gpuNodeLimit)
 {
-    MOS_GPU_NODE videoGpuNode = MOS_GPU_NODE_VIDEO;
+    bool setVideoNode = false;
     MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
 
-    //KMD Virtual Engine, use virtual GPU NODE-- MOS_GPU_NODE_VIDEO
-    gpuNodeLimit->dwGpuNodeToUse = videoGpuNode;
+    MOS_GPU_NODE videoGpuNode = MOS_GPU_NODE_VIDEO;
+
+    if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface))
+    {
+        if (GetNumVdbox() == 1)
+        {
+            videoGpuNode = MOS_GPU_NODE_VIDEO;
+        }
+        else
+        {
+            MHW_MI_CHK_STATUS(m_osInterface->pfnCreateVideoNodeAssociation(
+                m_osInterface,
+                setVideoNode,
+                &videoGpuNode));
+        }
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface != nullptr && m_osInterface->bEnableDbgOvrdInVE &&
@@ -333,6 +351,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::FindGpuNodeToUse(
         MHW_MI_CHK_STATUS(CheckScalabilityOverrideValidity());
     }
 #endif
+
+    gpuNodeLimit->dwGpuNodeToUse = videoGpuNode;
 
     return eStatus;
 }
@@ -1737,8 +1757,16 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::AddMfdAvcSliceAddrCmd(
 
     mhw_vdbox_mfx_g11_X::MFD_AVC_SLICEADDR_CMD cmd;
 
-    cmd.DW1.IndirectBsdDataLength = (avcSliceState->dwNextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded);
-    cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded);
+    if (avcSliceState->bFullFrameData)
+    {
+        cmd.DW1.IndirectBsdDataLength       = avcSliceState->dwNextLength;
+        cmd.DW2.IndirectBsdDataStartAddress = avcSliceState->dwNextOffset;
+    }
+    else
+    {
+        cmd.DW1.IndirectBsdDataLength       = (avcSliceState->dwNextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded);
+        cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded);
+    }
 
     MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
     sliceInfoParam.presDataBuffer = avcSliceState->presDataBuffer;
@@ -1782,9 +1810,17 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::AddMfdAvcBsdObjectCmd(
 
     if (avcSliceState->bShortFormatInUse)
     {
-        cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
-        cmd.DW2.IndirectBsdDataStartAddress =
-            sliceParams->slice_data_offset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
+        if (avcSliceState->bFullFrameData)
+        {
+            cmd.DW1.IndirectBsdDataLength       = avcSliceState->dwLength;
+            cmd.DW2.IndirectBsdDataStartAddress = sliceParams->slice_data_offset;
+        }
+        else
+        {
+            cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
+            cmd.DW2.IndirectBsdDataStartAddress =
+                sliceParams->slice_data_offset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
+        }
         cmd.DW4.FirstMbByteOffsetOfSliceDataOrSliceHeader = 0;
     }
     else

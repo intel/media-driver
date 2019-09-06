@@ -115,7 +115,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
     CODECHAL_DECODE_VERBOSEMESSAGE("m_width = %d, Max Width = %d, m_height %d, Max Height = %d",
         m_width, widthMax, m_height, heightMax);
 
-    uint8_t maxBitDepth     = (m_is10BitHevc) ? 10 : 8;
+    uint8_t maxBitDepth     = (m_is12BitHevc) ? 12 :((m_is10BitHevc) ? 10 : 8);
     uint8_t chromaFormatPic = m_hevcPicParams->chroma_format_idc;
     uint8_t chromaFormat    = m_chromaFormatinProfile;
     CODECHAL_DECODE_ASSERT(chromaFormat >= chromaFormatPic);
@@ -387,7 +387,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
         // Metadata Tile Column buffer
         hcpBufSizeParam.dwPicHeight = heightMax;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->GetHevcBufferSize(
-            MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_TILE_COL,
+            MHW_VDBOX_HCP_INTERNAL_BUFFER_META_TILE_COL,
             &hcpBufSizeParam));
 
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
@@ -573,7 +573,7 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
 
     CodecHalFreeDataList(m_hevcRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
-    if (!m_hcpInterface->IsHevcDfRowstoreCacheEnabled())
+    if (!Mos_ResourceIsNull(&m_resMfdDeblockingFilterRowStoreScratchBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -588,7 +588,7 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
         m_osInterface,
         &m_resDeblockingFilterColumnRowStoreScratchBuffer);
 
-    if (!m_hcpInterface->IsHevcDatRowstoreCacheEnabled())
+    if (!Mos_ResourceIsNull(&m_resMetadataLineBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -603,7 +603,7 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
         m_osInterface,
         &m_resMetadataTileColumnBuffer);
 
-    if (!m_hcpInterface->IsHevcSaoRowstoreCacheEnabled())
+    if (!Mos_ResourceIsNull(&m_resSaoLineBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -827,6 +827,8 @@ MOS_STATUS CodechalDecodeHevc::SetHucDmemParams(
     CODECHAL_DECODE_CHK_NULL_RETURN(hucHevcS2LBss);
     hucHevcS2LBss->ProductFamily = m_huCProductFamily;
     hucHevcS2LBss->RevId = m_hwInterface->GetPlatform().usRevId;
+    hucHevcS2LBss->DummyRefIdxState = 
+        MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LPictureBss(&hucHevcS2LBss->PictureBss));
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LSliceBss(&hucHevcS2LBss->SliceBss[0]));
@@ -1471,6 +1473,11 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(cmdBufferInUse);
 
+    if (m_statusQueryReportingEnabled)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(cmdBufferInUse));
+    }
+
     // Load HuC FW Kernel from WOPCM.
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS hucImemStateParams;
     MOS_ZeroMemory(&hucImemStateParams, sizeof(hucImemStateParams));
@@ -1481,7 +1488,6 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
 
     // Pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode               = m_mode;
     pipeModeSelectParams.bStreamOutEnabled  = m_streamOutEnabled;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(
@@ -1532,11 +1538,6 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
         cmdBufferInUse,
         &hucDmemStateParams));
 
-    if (m_statusQueryReportingEnabled)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(cmdBufferInUse));
-    }
-
     return eStatus;
 }
 
@@ -1575,12 +1576,12 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Reset all pic Mhw Params
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS ));
+    *m_picMhwParams.PipeModeSelectParams = {};
+    *m_picMhwParams.PipeBufAddrParams = {};
+    *m_picMhwParams.HevcPicState = {};
     MOS_ZeroMemory(m_picMhwParams.SurfaceParams,        sizeof(MHW_VDBOX_SURFACE_PARAMS          ));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams,    sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS    ));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.QmParams,             sizeof(MHW_VDBOX_QM_PARAMS               ));
-    MOS_ZeroMemory(m_picMhwParams.HevcPicState,         sizeof(MHW_VDBOX_HEVC_PIC_STATE          ));
     MOS_ZeroMemory(m_picMhwParams.HevcTileState,        sizeof(MHW_VDBOX_HEVC_TILE_STATE         ));
 
     PMOS_SURFACE destSurface = nullptr;
@@ -1631,6 +1632,7 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
     m_picMhwParams.PipeBufAddrParams->presCurMvTempBuffer          = &m_resMvTemporalBuffer[m_hevcMvBufferIndex];
 
     MOS_ZeroMemory(m_presReferences, sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_HEVC);
+    MOS_ZeroMemory(m_dummyReferenceSlot, sizeof(m_dummyReferenceSlot));
 
     if (!m_curPicIntra)
     {
@@ -1682,6 +1684,38 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         CODECHAL_DECODE_ASSERT(k <= 8);
         CODECHAL_DECODE_ASSERT(m <= 8);
 
+        // Return error if reference surface's pitch * height is less than dest surface.
+        MOS_SURFACE destSurfaceDetails;
+        MOS_SURFACE refSurfaceDetails;
+
+        MOS_ZeroMemory(&destSurfaceDetails, sizeof(destSurfaceDetails));
+        destSurfaceDetails.Format = Format_Invalid;
+        MOS_ZeroMemory(&refSurfaceDetails, sizeof(refSurfaceDetails));
+        refSurfaceDetails.Format = Format_Invalid;
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+            m_osInterface,
+            &destSurface->OsResource,
+            &destSurfaceDetails));
+
+        for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+        {
+            if (m_picMhwParams.PipeBufAddrParams->presReferences[i] != nullptr)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+                    m_osInterface,
+                    m_picMhwParams.PipeBufAddrParams->presReferences[i],
+                    &refSurfaceDetails));
+
+                if ((refSurfaceDetails.dwPitch * refSurfaceDetails.dwHeight) <
+                    (destSurfaceDetails.dwPitch * destSurfaceDetails.dwHeight))
+                {
+                    CODECHAL_DECODE_ASSERTMESSAGE("Reference surface's pitch * height is less than Dest surface.");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+        }
+
         if (firstValidFrame == nullptr)
         {
             firstValidFrame = &destSurface->OsResource;
@@ -1708,6 +1742,18 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
             {
                 m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] = &m_resMvTemporalBuffer[n];
             }
+        }
+    }
+
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+    {
+        if (m_picMhwParams.PipeBufAddrParams->presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
+            m_dummyReferenceSlot[i] = true;
         }
     }
 
@@ -2019,6 +2065,16 @@ MOS_STATUS CodechalDecodeHevc::SendSliceLongFormat(
                 &refIdxParams));
         }
     }
+    else if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive)
+    {
+        MHW_VDBOX_HEVC_REF_IDX_PARAMS refIdxParams;
+        MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_HEVC_REF_IDX_PARAMS));
+        refIdxParams.bDummyReference = true;
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpRefIdxStateCmd(
+            cmdBuffer,
+            nullptr,
+            &refIdxParams));
+    }
 
     if ((m_hevcPicParams->weighted_pred_flag &&
             m_hcpInterface->IsHevcPSlice(slc->LongSliceFlags.fields.slice_type)) ||
@@ -2166,7 +2222,6 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
     {
         // Setup static slice state parameters
         MHW_VDBOX_HEVC_SLICE_STATE hevcSliceState;
-        MOS_ZeroMemory(&hevcSliceState, sizeof(hevcSliceState));
         hevcSliceState.presDataBuffer = m_copyDataBufferInUse ? &m_resCopyDataBuffer : &m_resDataBuffer;
         hevcSliceState.pHevcPicParams = m_hevcPicParams;
         hevcSliceState.pRefIdxMapping = &m_refIdxMapping[0];
@@ -2476,26 +2531,24 @@ MOS_STATUS CodechalDecodeHevc::CalcDownsamplingParams(
 
     PCODEC_HEVC_PIC_PARAMS hevcPicParams = (PCODEC_HEVC_PIC_PARAMS)picParams;
 
-    *refSurfWidth   = 0;
-    *refSurfHeight  = 0;
-    *format   = Format_NV12;
-    *frameIdx        = hevcPicParams->CurrPic.FrameIdx;
+    *refSurfWidth = 0;
+    *refSurfHeight = 0;
+    *format = Format_NV12;
+    *frameIdx = hevcPicParams->CurrPic.FrameIdx;
 
-    if (m_refSurfaces == nullptr)
+    uint32_t                         widthInPix, heightInPix;
+
+    widthInPix = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicWidthInMinCbsY);
+    heightInPix = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicHeightInMinCbsY);
+
+    *refSurfWidth = MOS_ALIGN_CEIL(widthInPix, 64);
+    *refSurfHeight = MOS_ALIGN_CEIL(heightInPix, 64);
+
+    if (m_is10BitHevc)
     {
-        uint32_t                         widthInPix, heightInPix;
-
-        widthInPix      = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicWidthInMinCbsY);
-        heightInPix     = (1 << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (hevcPicParams->PicHeightInMinCbsY);
-
-        *refSurfWidth  = MOS_ALIGN_CEIL(widthInPix, 64);
-        *refSurfHeight = MOS_ALIGN_CEIL(heightInPix, 64);
-
-        if (m_is10BitHevc)
-        {
-            *format = Format_P010;
-        }
+        *format = Format_P010;
     }
+
 
     return eStatus;
 }
@@ -2523,6 +2576,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     m_width                         = settings->width;
     m_height                        = settings->height;
     m_is10BitHevc                   = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
+    m_is12BitHevc                   = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS) ? true : false;
     m_chromaFormatinProfile         = settings->chromaFormat;
     m_shortFormatInUse              = settings->shortFormatInUse;
 
@@ -2554,7 +2608,6 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     }
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bShortFormat    = m_shortFormatInUse;
     stateCmdSizeParams.bHucDummyStream = (m_secureDecoder ? m_secureDecoder->IsDummyStreamEnabled() : false);
 
@@ -2583,12 +2636,9 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     m_picMhwParams.HevcPicState         = MOS_New(MHW_VDBOX_HEVC_PIC_STATE);
     m_picMhwParams.HevcTileState        = MOS_New(MHW_VDBOX_HEVC_TILE_STATE);
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.SurfaceParams, sizeof(MHW_VDBOX_SURFACE_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.QmParams, sizeof(MHW_VDBOX_QM_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.HevcPicState, sizeof(MHW_VDBOX_HEVC_PIC_STATE));
     MOS_ZeroMemory(m_picMhwParams.HevcTileState, sizeof(MHW_VDBOX_HEVC_TILE_STATE));
 
     return eStatus;
@@ -2598,20 +2648,37 @@ CodechalDecodeHevc::CodechalDecodeHevc(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecode(hwInterface, debugInterface, standardInfo),
+                                            m_minCtbSize(0),
+                                            m_is10BitHevc(false),
+                                            m_is12BitHevc(false),
+                                            m_chromaFormatinProfile(0),
+                                            m_shortFormatInUse(false),
+                                            m_dataSize(0),
+                                            m_dataOffset(0),
+                                            m_numSlices(0),
                                             m_is8BitFrameIn10BitHevc(false),
                                             m_internalNv12RtIndexMapInitilized(false),
                                             m_mfdDeblockingFilterRowStoreScratchBufferPicWidth(0),
                                             m_metadataLineBufferPicWidth(0),
                                             m_saoLineBufferPicWidth(0),
-                                            m_dmemBufferIdx(0),
-                                            m_copyDataBufferSize(0),
-                                            m_copyDataBufferInUse(false),
-                                            m_mvBufferSize(0),
                                             m_mvBufferProgrammed(false),
+                                            m_dmemBufferIdx(0),
+                                            m_dmemBufferSize(0),
+                                            m_dmemTransferSize(0),
+                                            m_dmemBufferProgrammed(false),
+                                            m_copyDataBufferSize(0),
+                                            m_copyDataOffset(0),
+                                            m_copyDataBufferInUse(false),
+                                            m_estiBytesInBitstream(0),
+                                            m_curPicIntra(false),
+                                            m_mvBufferSize(0),
+                                            m_hevcMvBufferIndex(0),
+                                            m_frameIdx(0),
                                             m_enableSf2DmaSubmits(false),
                                             m_widthLastMaxAlloced(0),
                                             m_heightLastMaxAlloced(0),
-                                            m_ctbLog2SizeYMax(0)
+                                            m_ctbLog2SizeYMax(0),
+                                            m_hcpDecPhase(0)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -2630,7 +2697,12 @@ CodechalDecodeHevc::CodechalDecodeHevc(
     MOS_ZeroMemory(m_resDmemBuffer, sizeof(m_resDmemBuffer));
     MOS_ZeroMemory(&m_resCopyDataBuffer, sizeof(m_resCopyDataBuffer));
     MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
-    MOS_ZeroMemory(&m_picMhwParams,                                 sizeof(m_picMhwParams));
+    MOS_ZeroMemory(&m_picMhwParams,sizeof(m_picMhwParams));
+    MOS_ZeroMemory(&m_hevcPicParams,sizeof(m_hevcPicParams));
+    MOS_ZeroMemory(&m_hevcSliceParams,sizeof(m_hevcSliceParams));
+    MOS_ZeroMemory(&m_hevcIqMatrixParams,sizeof(m_hevcIqMatrixParams));
+    MOS_ZeroMemory(&m_destSurface,sizeof(m_destSurface));
+    MOS_ZeroMemory(&m_currPic,sizeof(m_currPic));
 
     m_hcpInUse = true;
 }

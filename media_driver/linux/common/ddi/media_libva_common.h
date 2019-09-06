@@ -130,8 +130,8 @@ typedef sem_t MEDIA_SEM_T, *PMEDIA_SEM_T;
 #define VA_FOURCC_I420        VA_FOURCC('I','4','2', '0')
 #endif
 
-#define RGB_10BIT_ALPHAMASK     0X30000
-#define RGB_8BIT_ALPHAMASK      0XFF0000
+#define RGB_10BIT_ALPHAMASK     VA_RT_FORMAT_RGB32_10BPP
+#define RGB_8BIT_ALPHAMASK      0
 
 #define MEDIAAPI_EXPORT __attribute__((visibility("default")))
 
@@ -200,6 +200,7 @@ typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR
     uintptr_t  ulBuffer;                              // buffer handle or user pointer
     uint32_t   uiSize;                                // buffer size
     uint32_t   uiFlags;                               // See "Surface external buffer descriptor flags"
+    uint32_t   uiVaMemType;                           // VA Mem type
     uint32_t   uiTile;                                // Used for user pointer
     uint32_t   uiBuffserSize;                         // Used for user pointer
     bool       bIsGralloc;                            // buffer allocated by Gralloc
@@ -228,6 +229,15 @@ typedef union _DDI_MEDIA_SURFACE_STATUS_REPORT
         uint32_t                   crcValue;  // indicate the CRC value of the decoded data
     } decode;
     //!
+    //! \struct _DDI_MEDIA_SURFACE_CENC_STATUS
+    //! \brief  Ddi media surface cenc status
+    //! 
+    struct _DDI_MEDIA_SURFACE_CENC_STATUS
+    {
+        uint32_t                   status;    // indicate latest cenc status for current surface, refer to CODECHAL_STATUS in CodechalDecodeStatusReport.
+        uint32_t                   reserved;  // reserved
+    } cenc;
+    //!
     //! \struct _DDI_MEDIA_SURFACE_VPP_STATUS
     //! \brief  Ddi media surface vpp status
     //!
@@ -252,6 +262,7 @@ typedef struct _DDI_MEDIA_SURFACE
     uint32_t                uiLockedImageID;
     int32_t                 iRefCount;
     uint8_t                *pData;
+    uint32_t                data_size;
     uint32_t                isTiled;
     uint32_t                TileType;
     uint32_t                bMapped;
@@ -274,15 +285,17 @@ typedef struct _DDI_MEDIA_SURFACE
     PMEDIA_SEM_T            pReferenceFrameSemaphore; // to sync reference frame surface. when this semaphore is posted, the surface is not used as reference frame, and safe to be destroied
 
     uint8_t                 *pSystemShadow;           // Shadow surface in system memory
+
+    uint32_t                uiMapFlag;
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
 {
     uint32_t               iSize;
-    int32_t                iWidth;
-    int32_t                iHeight;
-    int32_t                iPitch;
-    int32_t                iNumElements;
+    uint32_t               uiWidth;
+    uint32_t               uiHeight;
+    uint32_t               uiPitch;
+    uint32_t               uiNumElements;
     uint32_t               uiOffset;
     // vaBuffer type
     uint32_t               uiType;
@@ -432,7 +445,6 @@ struct DDI_MEDIA_CONTEXT
         PMOS_CONTEXT  pMosCtx,
         PMOS_RESOURCE pOsResource);
 
-    uint32_t            FeiFunction;
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;
@@ -445,8 +457,9 @@ struct DDI_MEDIA_CONTEXT
     AuxTableMgr         *m_auxTableMgr;
 
     bool                m_useSwSwizzling;
+    bool                m_tileYFlag;
 
-#ifndef ANDROID
+#if !defined(ANDROID) && defined(X11_FOUND)
     // X11 Func table, for vpgPutSurface (Linux)
     PDDI_X11_FUNC_TABLE X11FuncTable;
 
@@ -545,6 +558,19 @@ VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface);
 //!     Pointer to ddi media buffer
 //!
 DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
+
+//!
+//! \brief  Get context from VA buffer ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] bufferID
+//!     VA buffer ID
+//!
+//! \return void*
+//!     Pointer to context
+//!
+void* DdiMedia_GetContextFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
 
 //!
 //! \brief  Destroy buffer from VA buffer ID

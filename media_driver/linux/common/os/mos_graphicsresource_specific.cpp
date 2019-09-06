@@ -92,6 +92,9 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_422V        : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
         case Format_IMC3        : return GMM_FORMAT_IMC3_TYPE;
         case Format_411P        : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
+        case Format_411R        : return GMM_FORMAT_MFX_JPEG_YUV411R_TYPE;
+        case Format_RGBP        : return GMM_FORMAT_RGBP_TYPE;
+        case Format_BGRP        : return GMM_FORMAT_BGRP_TYPE;
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
@@ -102,6 +105,9 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
         case Format_Y210        : return GMM_FORMAT_Y210_TYPE;
         case Format_Y410        : return GMM_FORMAT_Y410_TYPE;
+        case Format_R10G10B10A2 : return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
+        case Format_A16B16G16R16F: return GMM_FORMAT_R16G16B16A16_FLOAT;
+        case Format_R32G32B32A32F: return GMM_FORMAT_R32G32B32A32_FLOAT;
         default                 : return GMM_FORMAT_INVALID;
     }
 }
@@ -123,6 +129,11 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     }
 
     OsContextSpecific *pOsContextSpecific  = static_cast<OsContextSpecific *>(osContextPtr);
+    if (pOsContextSpecific == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Convert OsContextSpecific failed.");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
 
     MOS_STATUS         status          = MOS_STATUS_SUCCESS;
     uint32_t           tileFormatLinux = I915_TILING_NONE;
@@ -136,6 +147,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     switch (params.m_type)
     {
         case MOS_GFXRES_BUFFER:
+        case MOS_GFXRES_SCRATCH:
           gmmParams.Type = RESOURCE_BUFFER;
           gmmParams.Flags.Gpu.State = true;
           alignedHeight = 1;
@@ -172,7 +184,6 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     switch (tileformat)
     {
         case MOS_TILE_Y:
-            gmmParams.Flags.Info.TiledY   = true;
             gmmParams.Flags.Gpu.MMC       = params.m_isCompressed;
             tileFormatLinux               = I915_TILING_Y;
             if (params.m_isCompressed && pOsContextSpecific->GetAuxTableMgr())
@@ -215,11 +226,16 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         pOsContextSpecific->GetGmmClientContext()
                 ->DestroyResInfoObject(tmpGmmResInfoPtr);
     }
+    else
+    {
+        gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrLocalMemory);
+    }
 
     GMM_RESOURCE_INFO*  gmmResourceInfoPtr = pOsContextSpecific->GetGmmClientContext()->CreateResInfoObject(&gmmParams);
 
     if (gmmResourceInfoPtr == nullptr)
     {
+        MOS_OS_ASSERTMESSAGE("Get gmmResourceInfoPtr failed.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -234,9 +250,12 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
             tileFormatLinux = I915_TILING_Y;
             break;
         case GMM_NOT_TILED:
-        default:
             tileformat      = MOS_TILE_LINEAR;
             tileFormatLinux = I915_TILING_NONE;
+            break;
+        default:
+            tileformat      = MOS_TILE_Y;
+            tileFormatLinux = I915_TILING_Y;
             break;
     }
 
@@ -254,56 +273,25 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     char bufName[m_maxBufNameLength];
     MOS_SecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str());
 
-#if defined(I915_PARAM_CREATE_VERSION)
-    drm_i915_getparam_t gp;
-    int32_t gpvalue;
-    int32_t ret;
-    gpvalue = 0;
-    ret = -1;
-    memset( &gp, 0, sizeof(gp) );
-    gp.value = &gpvalue;
-    gp.param = I915_PARAM_CREATE_VERSION;
-
-    ret = drmIoctl(pOsContextSpecific->m_fd, DRM_IOCTL_I915_GETPARAM, &gp );
-
-    if ((0 == ret) && ( tileFormatLinux != I915_TILING_NONE))
+    if (nullptr != params.m_pSystemMemory)
     {
-        boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1,
-                 &tileFormatLinux, &linuxPitch, BO_ALLOC_STOLEN);
-        if (nullptr == boPtr)
-        {
-            boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
-        }
-        else
-        {
-            MOS_OS_VERBOSEMESSAGE("Stolen memory is created sucessfully on Mos");
-        }
-        bufPitch = (uint32_t)linuxPitch;
+        boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
+                                      bufName,
+                                      params.m_pSystemMemory,
+                                      tileFormatLinux,
+                                      bufPitch,
+                                      bufSize,
+                                      0);
+    }
+    // Only Linear and Y TILE supported
+    else if (tileFormatLinux == I915_TILING_NONE)
+    {
+        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096);
     }
     else
-#endif
     {
-        if (nullptr != params.m_pSystemMemory)
-        {
-            boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
-                                         bufName,
-                                         params.m_pSystemMemory,
-                                         tileFormatLinux,
-                                         bufPitch,
-                                         bufSize,
-                                         0);
-        }
-        // Only Linear and Y TILE supported
-        else if (tileFormatLinux == I915_TILING_NONE)
-        {
-            boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096);
-        }
-        else
-        {
-            boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
-            bufPitch = (uint32_t)linuxPitch;
-        }
-
+        boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
+        bufPitch = (uint32_t)linuxPitch;
     }
 
     m_mapped = false;
@@ -468,16 +456,6 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
             }
             else
             {
-#ifdef ANDROID
-                if (m_tileType != MOS_TILE_LINEAR ||params.m_uncached)
-                {
-                    mos_gem_bo_map_gtt(boPtr);
-                }
-                else
-                {
-                    mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
-                }
-#else
                 if (m_tileType != MOS_TILE_LINEAR && !params.m_tileAsTiled)
                 {
                     if (pOsContextSpecific->UseSwSwizzling())
@@ -491,10 +469,13 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                         }
                         if (m_systemShadow)
                         {
+                            int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
+                            uint64_t surfSize = m_gmmResInfo->GetSizeMainSurface();
                             MOS_OS_CHECK_CONDITION((m_tileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
                             MOS_OS_CHECK_CONDITION((boPtr->size <= 0 || m_pitch <= 0), "Invalid BO size or pitch", nullptr);
-                            Mos_SwizzleData((uint8_t*)boPtr->virt, m_systemShadow, 
-                                    MOS_TILE_Y, MOS_TILE_LINEAR, boPtr->size / m_pitch, m_pitch);
+                            Mos_SwizzleData((uint8_t*)boPtr->virt, m_systemShadow,
+                                            MOS_TILE_Y, MOS_TILE_LINEAR,
+                                            (int32_t)(surfSize / m_pitch), m_pitch, flags);
                         }
                     }
                     else
@@ -513,13 +494,12 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                     mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
                     m_mmapOperation = MOS_MMAP_OPERATION_MMAP;
                 }
-#endif
             }
             m_mapped = true;
             m_pData  = m_systemShadow ? m_systemShadow : (uint8_t *)boPtr->virt;
         }
 
-        dataPtr = boPtr->virt;
+        dataPtr = m_pData;
     }
 
     MOS_OS_ASSERT(dataPtr);
@@ -555,21 +535,13 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
            }
            else
            {
-#ifdef ANDROID
-
-               if (m_tileType == MOS_TILE_LINEAR)
-               {
-                   mos_bo_unmap(boPtr);
-               }
-               else
-               {
-                   mos_gem_bo_unmap_gtt(boPtr);
-               }
-#else
                if (m_systemShadow)
                {
-                   Mos_SwizzleData(m_systemShadow, (uint8_t*)boPtr->virt, 
-                           MOS_TILE_LINEAR, MOS_TILE_Y, boPtr->size / m_pitch, m_pitch);
+                   int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
+                   uint64_t surfSize = m_gmmResInfo->GetSizeMainSurface();
+                   Mos_SwizzleData(m_systemShadow, (uint8_t*)boPtr->virt,
+                                   MOS_TILE_LINEAR, MOS_TILE_Y,
+                                   (int32_t)(surfSize / m_pitch), m_pitch, flags);
                    MOS_FreeMemory(m_systemShadow);
                    m_systemShadow = nullptr;
                }
@@ -589,7 +561,6 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
                         MOS_OS_ASSERTMESSAGE("Invalid mmap operation type");
                         break;
                }
-#endif
             }
 
             m_mapped           = false;

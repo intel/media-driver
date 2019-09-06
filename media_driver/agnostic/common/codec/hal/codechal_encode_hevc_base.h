@@ -58,22 +58,28 @@
 #define CODECHAL_ENCODE_HEVC_MAX_NUM_WEIGHTED_PRED_L1 1
 
 #define CODECHAL_HEVC_MAX_NUM_HCP_PIPE      8
-#define CODECHAL_HEVC_MAX_NUM_BRC_PASSES    4
+#define CODECHAL_HEVC_MAX_NUM_BRC_PASSES    4 // It doesn't include the 5th PAK pass for the BRC panic mode
 
 #define CODECHAL_HEVC_SAO_STRMOUT_SIZE_PERLCU   16
 
 #define ENCODE_HEVC_4K_PIC_WIDTH     3840
 #define ENCODE_HEVC_4K_PIC_HEIGHT    2160
 
+#define ENCODE_HEVC_5K_PIC_WIDTH     5210
+#define ENCODE_HEVC_5K_PIC_HEIGHT    2880
+
+#define ENCODE_HEVC_8K_PIC_WIDTH     7680
+#define ENCODE_HEVC_8K_PIC_HEIGHT    4320
+
 // Max supported resolution for HEVC encode is 4K X 2K
 #define ENCODE_HEVC_MAX_4K_PIC_WIDTH     4096
 #define ENCODE_HEVC_MAX_4K_PIC_HEIGHT    2176
 
-#define ENCODE_HEVC_8K_PIC_WIDTH     8192
-#define ENCODE_HEVC_8K_PIC_HEIGHT    8192
+#define ENCODE_HEVC_MAX_8K_PIC_WIDTH     8192
+#define ENCODE_HEVC_MAX_8K_PIC_HEIGHT    8192
 
-#define ENCODE_HEVC_16K_PIC_WIDTH     16384
-#define ENCODE_HEVC_16K_PIC_HEIGHT    16384
+#define ENCODE_HEVC_MAX_16K_PIC_WIDTH    16384
+#define ENCODE_HEVC_MAX_16K_PIC_HEIGHT   16384
 
 // HEVC has only 3 target usage modes
 #define CODECHAL_ENCODE_HEVC_TARGET_USAGE_MODE_PERFORMANCE  0
@@ -134,7 +140,6 @@
 #define CODECHAL_HEVC_P_SLICE          1
 #define CODECHAL_HEVC_B_SLICE          0
 #define CODECHAL_HEVC_NUM_SLICE_TYPES  3
-#define CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE       64
 
 #define CODECHAL_HEVC_NUM_MODE_MV_COSTS             171
 #define CODECHAL_HEVC_MAX_BSTRUCTRUE_GOP_SIZE       16
@@ -180,18 +185,18 @@ struct MultiPassConfig
         SliceMinQPOffset1(0),
         SliceMinQPOffset2(0), // Set this to Default Max Limit as per Spec.,
         SliceMinQPOffset3(0),
-        FrameRateCtrlFlag(0),
-        MbRateCtrlFlag(0),
         MaxIntraConformanceLimit(3180),
         MaxInterConformanceLimit(3180),
-        FrameSzOverFlag(0),
-        FrameSzUnderFlag(0),
+        FrameRateCtrlFlag(0),
         InterMbMaxBitFlag(0),
         IntraMbMaxBitFlag(0),
-        FrameMaxBitRateUnit(0),
-        FrameMinBitRateUnit(0),
         MinFrameRateDelta(0),
         MaxFrameRateDelta(0),
+        MbRateCtrlFlag(0),
+        FrameSzOverFlag(0),
+        FrameSzUnderFlag(0),
+        FrameMinBitRateUnit(0),
+        FrameMaxBitRateUnit(0),
         StreamOutEnable(0)
     {}
 };
@@ -716,8 +721,9 @@ enum
     CODECHAL_HEVC_32x32_PU_BRC_Input = CODECHAL_HEVC_32x32_PU_BEGIN + 6,
     CODECHAL_HEVC_32x32_PU_LCU_QP = CODECHAL_HEVC_32x32_PU_BEGIN + 7,
     CODECHAL_HEVC_32x32_PU_BRC_DATA = CODECHAL_HEVC_32x32_PU_BEGIN + 8,
-    CODECHAL_HEVC_32x32_PU_DEBUG = CODECHAL_HEVC_32x32_PU_BEGIN + 9,
-    CODECHAL_HEVC_32x32_PU_END = CODECHAL_HEVC_32x32_PU_BEGIN + 10,
+    CODECHAL_HEVC_32x32_PU_STATS_DATA = CODECHAL_HEVC_32x32_PU_BEGIN + 9,
+    CODECHAL_HEVC_32x32_PU_DEBUG = CODECHAL_HEVC_32x32_PU_BEGIN + 10,
+    CODECHAL_HEVC_32x32_PU_END = CODECHAL_HEVC_32x32_PU_BEGIN + 11,
 
     // 16x16 SAD computation kernel
     CODECHAL_HEVC_16x16_PU_SAD_BEGIN = CODECHAL_HEVC_32x32_PU_END,
@@ -773,8 +779,11 @@ enum
     CODECHAL_HEVC_8x8_PU_FMODE_Simplest_Intra = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 7,
     CODECHAL_HEVC_8x8_PU_FMODE_LCU_QP = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 8,
     CODECHAL_HEVC_8x8_PU_FMODE_BRC_Data = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 9,
-    CODECHAL_HEVC_8x8_PU_FMODE_DEBUG = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 10,
-    CODECHAL_HEVC_8x8_PU_FMODE_END = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 11,
+    CODECHAL_HEVC_8x8_PU_FMODE_HAAR_DIST16x16 = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 10,
+    CODECHAL_HEVC_8x8_PU_FMODE_STATS_DATA = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 11,
+    CODECHAL_HEVC_8x8_PU_FMODE_FRAME_STATS_DATA = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 12,
+    CODECHAL_HEVC_8x8_PU_FMODE_DEBUG = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 13,
+    CODECHAL_HEVC_8x8_PU_FMODE_END = CODECHAL_HEVC_8x8_PU_FMODE_BEGIN + 14,
 
     // B 32x32 PU intra check kernel
     CODECHAL_HEVC_B_32x32_PU_BEGIN = CODECHAL_HEVC_8x8_PU_FMODE_END,
@@ -841,9 +850,12 @@ enum
     CODECHAL_HEVC_B_MBENC_CONCURRENT_THD_MAP = CODECHAL_HEVC_B_MBENC_BEGIN + 42,
     CODECHAL_HEVC_B_MBENC_MV_IDX = CODECHAL_HEVC_B_MBENC_BEGIN + 43,
     CODECHAL_HEVC_B_MBENC_MVP_IDX = CODECHAL_HEVC_B_MBENC_BEGIN + 44,
-    CODECHAL_HEVC_B_MBENC_DEBUG = CODECHAL_HEVC_B_MBENC_BEGIN + 45,
+    CODECHAL_HEVC_B_MBENC_HAAR_DIST16x16 = CODECHAL_HEVC_B_MBENC_BEGIN + 45,
+    CODECHAL_HEVC_B_MBENC_STATS_DATA = CODECHAL_HEVC_B_MBENC_BEGIN + 46,
+    CODECHAL_HEVC_B_MBENC_FRAME_STATS_DATA = CODECHAL_HEVC_B_MBENC_BEGIN + 47,
+    CODECHAL_HEVC_B_MBENC_DEBUG = CODECHAL_HEVC_B_MBENC_BEGIN + 48,
     //
-    CODECHAL_HEVC_B_MBENC_END = CODECHAL_HEVC_B_MBENC_BEGIN + 46,
+    CODECHAL_HEVC_B_MBENC_END = CODECHAL_HEVC_B_MBENC_BEGIN + 49,
 
     //Coarse Intra distortion
     CODECHAL_HEVC_COARSE_INTRA_BEGIN = CODECHAL_HEVC_B_MBENC_END,
@@ -862,8 +874,10 @@ enum
     CODECHAL_HEVC_B_PAK_BRC_DATA = CODECHAL_HEVC_B_PAK_BEGIN + 5,
     CODECHAL_HEVC_B_PAK_MB_DATA = CODECHAL_HEVC_B_PAK_BEGIN + 6,
     CODECHAL_HEVC_B_PAK_MVP_DATA = CODECHAL_HEVC_B_PAK_BEGIN + 7,
-    CODECHAL_HEVC_B_PAK_DEBUG = CODECHAL_HEVC_B_PAK_BEGIN + 8,
-    CODECHAL_HEVC_B_PAK_END = CODECHAL_HEVC_B_PAK_BEGIN + 9,
+    CODECHAL_HEVC_B_PAK_WA_PAK_DATA = CODECHAL_HEVC_B_PAK_BEGIN + 8,
+    CODECHAL_HEVC_B_PAK_WA_PAK_OBJ = CODECHAL_HEVC_B_PAK_BEGIN + 9,
+    CODECHAL_HEVC_B_PAK_DEBUG = CODECHAL_HEVC_B_PAK_BEGIN + 10,
+    CODECHAL_HEVC_B_PAK_END = CODECHAL_HEVC_B_PAK_BEGIN + 11,
 
     //HEVC FORMAT CONVERSION AND DOWNSCALING KERNEL
     CODECHAL_HEVC_DS_COMBINED_BEGIN = CODECHAL_HEVC_B_PAK_END,
@@ -1422,6 +1436,7 @@ public:
     bool          m_encode4KSequence                      = false;                        //!< Flag to specify if input sequence is 4k size
     bool          m_hevcRdoqEnabled                       = false;                        //!< RDOQ enable flag
     uint32_t      m_rdoqIntraTuThreshold                  = 0;                            //!< RDOQ intra threshold
+    bool          m_hevcIFrameRdoqEnabled                 = true;                        //!< Control intra frame RDOQ enable/disable
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool          m_rdoqIntraTuOverride                   = false;                        //!< Override RDOQ intra TU or not
     bool          m_rdoqIntraTuDisableOverride            = false;                        //!< Override RDOQ intra TU disable 
@@ -1953,6 +1968,15 @@ public:
     virtual MOS_STATUS SetPictureStructs();
 
     //!
+    //! \brief    Calculate maximum bitsize allowed for LCU
+    //! \details  Calculate LCU max coding size according to log2_max_coding_block_size_minus3
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CalcLCUMaxCodingSize();
+
+    //!
     //! \brief    Setup/configure encoder based on slice parameter set
     //! \details  It is invoked for every picture and and it would set up and configure the
     //            encoder state that used for current picture and slices
@@ -2409,6 +2433,8 @@ public:
     //! \brief    Update the slice count according to the slice shutdown policy
     //!
     virtual void UpdateSSDSliceCount() { return; };
+
+    void MotionEstimationDisableCheck();
 
     //!
     //! \brief    Allocate 4x ME resources

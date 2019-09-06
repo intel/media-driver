@@ -137,7 +137,6 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
     MHW_RENDERHAL_ASSERT(pRenderHalSurface->Rotation >= 0 && pRenderHalSurface->Rotation < 8);
     //-----------------------------------------
 
-    pSurface      = &pRenderHalSurface->OsSurface;
     dwSurfaceSize = pRenderHal->pHwSizes->dwSizeSurfaceState;
 
     MOS_ZeroMemory(&SurfStateParams, sizeof(SurfStateParams));
@@ -154,6 +153,8 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
     {
         // Pointer to surface state entry for current plane
         pSurfaceEntry = ppSurfaceEntries[i];
+
+        pSurface = pSurfaceEntry->pSurface;
 
         // Set the Surface State Offset from base of SSH
         pSurfaceEntry->dwSurfStateOffset = pRenderHal->pStateHeap->iSurfaceStateOffset +                // Offset to Base Of Current Surface State Area
@@ -283,7 +284,7 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
                     {
                         SurfStateParams.bSeperateUVPlane = false;
                         SurfStateParams.dwXOffsetForU    = 0;
-                        SurfStateParams.dwYOffsetForU    = (uint32_t)pSurface->UPlaneOffset.iSurfaceOffset / pSurface->dwPitch;
+                        SurfStateParams.dwYOffsetForU    = (uint32_t)((pSurface->UPlaneOffset.iSurfaceOffset - pSurface->YPlaneOffset.iSurfaceOffset) / pSurface->dwPitch) + pSurface->UPlaneOffset.iYOffset;
                         SurfStateParams.dwXOffsetForV    = 0;
                         SurfStateParams.dwYOffsetForV    = 0;
                     }
@@ -294,7 +295,7 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
                 {
                     SurfStateParams.bSeperateUVPlane = false;
                     SurfStateParams.dwXOffsetForU    = 0;
-                    SurfStateParams.dwYOffsetForU    = (uint32_t)pSurface->UPlaneOffset.iSurfaceOffset / pSurface->dwPitch;
+                    SurfStateParams.dwYOffsetForU    = (uint32_t)((pSurface->UPlaneOffset.iSurfaceOffset - pSurface->YPlaneOffset.iSurfaceOffset) / pSurface->dwPitch) + pSurface->UPlaneOffset.iYOffset;
                     SurfStateParams.dwXOffsetForV    = 0;
                     SurfStateParams.dwYOffsetForV    = 0;
                 }
@@ -305,7 +306,7 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStateOs(pRenderHal, pRenderHalSurface, pParams, pSurfaceEntry));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStatesOs(pRenderHal, pParams, pSurfaceEntry));
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -494,7 +495,7 @@ MOS_STATUS XRenderHal_Interface_g11::EnableL3Caching(
     PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
 {
     MOS_STATUS                           eStatus;
-    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig;
+    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
 
@@ -510,8 +511,7 @@ MOS_STATUS XRenderHal_Interface_g11::EnableL3Caching(
 
     // customize the cache config for renderhal and let mhw_render overwrite it
     pCacheConfig = &mHwL3CacheConfig;
-    MOS_ZeroMemory(pCacheConfig, sizeof(MHW_RENDER_ENGINE_L3_CACHE_SETTINGS));
-
+    
     pCacheConfig->dwCntlReg  = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G11_RENDERHAL;
 
     // Override L3 cache configuration
@@ -661,55 +661,8 @@ MOS_STATUS XRenderHal_Interface_g11::SetPowerOptionStatus(
     PRENDERHAL_INTERFACE         pRenderHal,
     PMOS_COMMAND_BUFFER          pCmdBuffer)
 {
-    PMOS_INTERFACE              pOsInterface;
-    MOS_STATUS                  eStatus;
-    MEDIA_SYSTEM_INFO           *pGtSystemInfo;
-
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-
-    eStatus         = MOS_STATUS_SUCCESS;
-    pOsInterface    = pRenderHal->pOsInterface;
-    pGtSystemInfo   = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pGtSystemInfo);
-
-    // Check if Slice Shutdown can be enabled
-    if (pRenderHal->bRequestSingleSlice)
-    {
-        pCmdBuffer->Attributes.dwNumRequestedEUSlices = 1;
-    }
-    else if (pRenderHal->bEUSaturationNoSSD)
-    {
-        pCmdBuffer->Attributes.dwNumRequestedEUSlices = 2;
-    }
-
-    if ((pRenderHal->pSkuTable) && (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrSSEUPowerGating) || MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrSSEUPowerGatingControlByUMD)))
-    {
-        // VP does not request subslice shutdown according to the array VpHalDefaultSSEUTableGxx
-        if (((pRenderHal->PowerOption.nSlice != 0) || (pRenderHal->PowerOption.nSubSlice != 0) || (pRenderHal->PowerOption.nEU != 0)) &&
-            ((pGtSystemInfo->SliceCount != 0) && (pGtSystemInfo->SubSliceCount != 0)))
-        {
-            if ((pRenderHal->PowerOption.nSubSlice > ((pGtSystemInfo->SubSliceCount / pGtSystemInfo->SliceCount) / 2)) && (pGtSystemInfo->SubSliceCount > 1))
-            {
-                // Treated 1-slice model as 2-slice model in SSEU power gating control register programming
-                pCmdBuffer->Attributes.dwNumRequestedEUSlices    = 2;
-                pCmdBuffer->Attributes.dwNumRequestedSubSlices   = MOS_MIN(pRenderHal->PowerOption.nSubSlice, (pGtSystemInfo->SubSliceCount / pGtSystemInfo->SliceCount));
-                pCmdBuffer->Attributes.dwNumRequestedSubSlices   = pCmdBuffer->Attributes.dwNumRequestedSubSlices / 2;
-            }
-            else
-            {
-                pCmdBuffer->Attributes.dwNumRequestedEUSlices    = MOS_MIN(pRenderHal->PowerOption.nSlice, pGtSystemInfo->SliceCount);
-                pCmdBuffer->Attributes.dwNumRequestedSubSlices   = MOS_MIN(pRenderHal->PowerOption.nSubSlice, (pGtSystemInfo->SubSliceCount / pGtSystemInfo->SliceCount));
-            }
-            pCmdBuffer->Attributes.dwNumRequestedEUs         = MOS_MIN(pRenderHal->PowerOption.nEU, (pGtSystemInfo->EUCount / pGtSystemInfo->SubSliceCount));
-            pCmdBuffer->Attributes.bValidPowerGatingRequest  = true;
-            pCmdBuffer->Attributes.bUmdSSEUEnable            = true;
-        }
-    }
-
-finish:
-    return eStatus;
+    // deprecated after enabled per-context SSEU. 
+    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -767,36 +720,39 @@ MOS_STATUS XRenderHal_Interface_g11::IsOvrdNeeded(
     eStatus      = MOS_STATUS_SUCCESS;
     pOsInterface = pRenderHal->pOsInterface;
     pAttriVe    = (PMOS_CMD_BUF_ATTRI_VE)(pCmdBuffer->Attributes.pAttriVe);
-    pGenericPrologParamsG11 = static_cast<PRENDERHAL_GENERIC_PROLOG_PARAMS_G11>(pGenericPrologParams);
+    pGenericPrologParamsG11 = dynamic_cast<PRENDERHAL_GENERIC_PROLOG_PARAMS_G11>(pGenericPrologParams);
 
-    if (pGenericPrologParamsG11)
+    if (pAttriVe)
     {
-        // Split Frame
-        if (pGenericPrologParamsG11->VEngineHintParams.BatchBufferCount == 2 && pOsInterface->VEEnable)
+        if (pGenericPrologParamsG11)
         {
-            pAttriVe->bUseVirtualEngineHint = true;
-            pAttriVe->VEngineHintParams = pGenericPrologParamsG11->VEngineHintParams;
+            // Split Frame
+            if (pGenericPrologParamsG11->VEngineHintParams.BatchBufferCount == 2 && pOsInterface->VEEnable)
+            {
+                pAttriVe->bUseVirtualEngineHint = true;
+                pAttriVe->VEngineHintParams = pGenericPrologParamsG11->VEngineHintParams;
+            }
         }
-    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    if (pOsInterface->bEnableDbgOvrdInVE)
-    {
-        if (pOsInterface->bVeboxScalabilityMode)
+        if (pOsInterface->bEnableDbgOvrdInVE)
         {
-            pAttriVe->VEngineHintParams.DebugOverride     = true;
-            pAttriVe->VEngineHintParams.BatchBufferCount  = 2;
-            pAttriVe->VEngineHintParams.EngineInstance[0] = 0;
-            pAttriVe->VEngineHintParams.EngineInstance[1] = 1;
+            if (pOsInterface->bVeboxScalabilityMode)
+            {
+                pAttriVe->VEngineHintParams.DebugOverride     = true;
+                pAttriVe->VEngineHintParams.BatchBufferCount  = 2;
+                pAttriVe->VEngineHintParams.EngineInstance[0] = 0;
+                pAttriVe->VEngineHintParams.EngineInstance[1] = 1;
+            }
+            else if (pOsInterface->eForceVebox)
+            {
+                pAttriVe->VEngineHintParams.DebugOverride     = true;
+                pAttriVe->VEngineHintParams.BatchBufferCount  = 1;
+                pAttriVe->VEngineHintParams.EngineInstance[0] = pOsInterface->eForceVebox - 1;
+            }
         }
-        else if (pOsInterface->eForceVebox)
-        {
-            pAttriVe->VEngineHintParams.DebugOverride     = true;
-            pAttriVe->VEngineHintParams.BatchBufferCount  = 1;
-            pAttriVe->VEngineHintParams.EngineInstance[0] = pOsInterface->eForceVebox - 1;
-        }
-    }
 #endif
+    }
 
 finish:
     return eStatus;

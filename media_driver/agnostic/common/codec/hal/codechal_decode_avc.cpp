@@ -77,8 +77,8 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
         if (!m_mfxInterface->IsAvcISlice(slc->slice_type))
         {
             refIdxParams.CurrPic = avcPicParams->CurrPic;
-            refIdxParams.uiList = 0;
-            refIdxParams.uiNumRefForList = slc->num_ref_idx_l0_active_minus1 + 1;
+            refIdxParams.uiList = LIST_0;
+            refIdxParams.uiNumRefForList[LIST_0] = slc->num_ref_idx_l0_active_minus1 + 1;
 
             CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(
                 &refIdxParams.RefPicList,
@@ -112,8 +112,8 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
 
             if (m_mfxInterface->IsAvcBSlice(slc->slice_type))
             {
-                refIdxParams.uiList = 1;
-                refIdxParams.uiNumRefForList = slc->num_ref_idx_l1_active_minus1 + 1;
+                refIdxParams.uiList = LIST_1;
+                refIdxParams.uiNumRefForList[LIST_1] = slc->num_ref_idx_l1_active_minus1 + 1;
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBuffer, nullptr, &refIdxParams));
 
                 if (avcPicParams->pic_fields.weighted_bipred_idc == 1)
@@ -131,6 +131,13 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
                     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcWeightOffset(cmdBuffer, nullptr, &weightOffsetParams));
                 }
             }
+        }
+        else if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive)
+        {
+            MHW_VDBOX_AVC_REF_IDX_PARAMS refIdxParams;
+            MOS_ZeroMemory(&refIdxParams, sizeof(MHW_VDBOX_AVC_REF_IDX_PARAMS));
+            refIdxParams.bDummyReference = true;
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBuffer, nullptr, &refIdxParams));
         }
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcSlice(cmdBuffer, nullptr, avcSliceState));
@@ -363,7 +370,8 @@ MOS_STATUS CodechalDecodeAvc::SetAndAllocateDmvBufferIndex(
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
             &avcDmvBuffers[index],
             avcDmvBufferSize,
-            "MvBuffer"),
+            "MvBuffer",
+            true),
             "Failed to allocate MV Buffer.");
     }
 
@@ -911,7 +919,8 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesVariableSizes()
             CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
                                                           &m_resAvcDmvBuffers[ctr],
                                                           m_avcDmvBufferSize,
-                                                          "MvBuffer"),
+                                                          "MvBuffer",
+                                                          true),
                 "Failed to allocate Linux WA AVC BSD MV Buffer.");
         }
     }
@@ -946,9 +955,9 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesFixedSizes()
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_avcRefList,
-        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
+        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
 
     m_currPic.PicFlags = PICTURE_INVALID;
     m_currPic.FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
@@ -1151,6 +1160,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     m_picIdRemappingInUse = (m_decodeParams.m_picIdRemappingInUse) ? true : false;
 
     m_cencBuf = m_decodeParams.m_cencBuf;
+    m_fullFrameData = m_decodeParams.m_bFullFrameData;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcPicParams);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcIqMatrixParams);
@@ -1209,7 +1219,10 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
+        if (!decProcessingParams->bIsReferenceOnlyPattern)
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
+        }
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize(
             decProcessingParams,
@@ -1221,7 +1234,8 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
                   m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
                 m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
-            m_sfcState->m_sfcPipeOut == false)
+            m_sfcState->m_sfcPipeOut == false && 
+            !decProcessingParams->bIsReferenceOnlyPattern)
         {
             eStatus = MOS_STATUS_UNKNOWN;
             CODECHAL_DECODE_ASSERTMESSAGE("Downsampling parameters are NOT supported!");
@@ -1268,11 +1282,34 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
      MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
-    PMOS_RESOURCE firstValidFrame = &(m_destSurface.OsResource);
+    PMOS_RESOURCE firstValidFrame = nullptr;
+
+    if (MEDIA_IS_WA(m_waTable, WaDummyReference) && !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+    {
+        firstValidFrame = &m_dummyReference.OsResource;
+    }
+    else
+    {
+        firstValidFrame = &m_destSurface.OsResource;
+    }
 
     CODECHAL_DECODE_CHK_NULL_RETURN(picMhwParams);
 
-    MOS_ZeroMemory(picMhwParams, sizeof(*picMhwParams));
+    picMhwParams->PipeModeSelectParams = {};
+    picMhwParams->PipeBufAddrParams = {};
+    picMhwParams->ImgParams = {};
+    MOS_ZeroMemory(&picMhwParams->SurfaceParams, 
+        sizeof(picMhwParams->SurfaceParams));
+    MOS_ZeroMemory(&picMhwParams->IndObjBaseAddrParams, 
+        sizeof(picMhwParams->IndObjBaseAddrParams));
+    MOS_ZeroMemory(&picMhwParams->BspBufBaseAddrParams, 
+        sizeof(picMhwParams->BspBufBaseAddrParams));
+    MOS_ZeroMemory(&picMhwParams->QmParams, 
+        sizeof(picMhwParams->QmParams));
+    MOS_ZeroMemory(&picMhwParams->PicIdParams, 
+        sizeof(picMhwParams->PicIdParams));
+    MOS_ZeroMemory(&picMhwParams->AvcDirectmodeParams, 
+        sizeof(picMhwParams->AvcDirectmodeParams));
 
     picMhwParams->PipeModeSelectParams.Mode = CODECHAL_DECODE_MODE_AVCVLD;
     //enable decodestreamout if either app or codechal dump need it
@@ -1668,6 +1705,7 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
         avcSliceState.dwNextLength = length;
         avcSliceState.dwSliceIndex = slcCount;
         avcSliceState.bLastSlice = (slcCount == lastValidSlice);
+        avcSliceState.bFullFrameData = m_fullFrameData;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(SendSlice(&avcSliceState, cmdBuf));
 
@@ -1895,11 +1933,9 @@ MOS_STATUS CodechalDecodeAvc::CalcDownsamplingParams(
     *format = Format_NV12;
     *frameIdx = avcPicParams->CurrPic.FrameIdx;
 
-    if (m_refSurfaces == nullptr)
-    {
-        *refSurfWidth = (avcPicParams->pic_width_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_WIDTH;
-        *refSurfHeight = (avcPicParams->pic_height_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_HEIGHT;
-    }
+    *refSurfWidth = (avcPicParams->pic_width_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_WIDTH;
+    *refSurfHeight = (avcPicParams->pic_height_in_mbs_minus1 + 1) * CODECHAL_MACROBLOCK_HEIGHT;
+
 
     return eStatus;
 }
@@ -1939,6 +1975,9 @@ CodechalDecodeAvc::CodechalDecodeAvc(
     MOS_ZeroMemory(&m_resAvcDmvBuffers, (sizeof(MOS_RESOURCE) * CODEC_AVC_NUM_DMV_BUFFERS));
     MOS_ZeroMemory(&m_resInvalidRefBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_resMvcDummyDmvBuffer, (sizeof(MOS_RESOURCE) * 2));
+    MOS_ZeroMemory(&m_destSurface, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(MOS_RESOURCE));
     m_refFrameSurface = nullptr;
 
     m_vldSliceRecord = nullptr;
@@ -1967,6 +2006,8 @@ CodechalDecodeAvc::CodechalDecodeAvc(
 
     //Currently, crc calculation is only supported in AVC decoder
     m_reportFrameCrc = true;
+
+    m_fullFrameData = false;
 
 };
 

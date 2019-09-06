@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_wrapper.cpp 
+//! \file      cm_wrapper.cpp
 //! \brief     Contains implementations of OS-agnostic functions for executing
 //!            commands from cmrtlib.
 //!
@@ -506,10 +506,31 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         CM_CREATEQUEUE_PARAM *cmCreateQueParam;
         cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
 
-        CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
-        queueCreateOption.QueueType = (CM_QUEUE_TYPE)cmCreateQueParam->queueType;
-        queueCreateOption.RunAloneMode = cmCreateQueParam->runAloneMode;
-        cmRet = device->CreateQueueEx(cmQueue, queueCreateOption);
+        cmRet = device->CreateQueue(cmQueue);
+
+        if (cmRet == CM_SUCCESS && cmQueue != nullptr)
+        {
+            // Sync queue option and handle to thin layer.
+            CmQueueRT *cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
+            cmCreateQueParam->createOption  = cmQueueRT->GetQueueOption();
+            cmCreateQueParam->queueHandle   = (cmQueue);
+            cmCreateQueParam->returnValue   = CM_SUCCESS;
+        }
+        else
+        {
+            cmCreateQueParam->queueHandle   = nullptr;
+            cmCreateQueParam->returnValue   = cmRet;
+        }
+        break;
+    }
+
+    case CM_FN_CMDEVICE_CREATEQUEUEEX:
+    {
+        CM_CREATEQUEUE_PARAM *cmCreateQueParam;
+        cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
+        CM_ASSERT(cmCreateQueParam);
+
+        cmRet = device->CreateQueueEx(cmQueue, cmCreateQueParam->createOption);
 
         cmCreateQueParam->returnValue = cmRet;
         cmCreateQueParam->queueHandle = (cmQueue);
@@ -517,6 +538,7 @@ int32_t CmThinExecuteInternal(CmDevice *device,
     }
 
     case CM_FN_CMQUEUE_ENQUEUE:
+    {
         PCM_ENQUEUE_PARAM cmEnqueueParam;
         cmEnqueueParam = (PCM_ENQUEUE_PARAM)(cmPrivateInputData);
         cmQueue        = (CmQueue *)cmEnqueueParam->queueHandle;
@@ -531,6 +553,26 @@ int32_t CmThinExecuteInternal(CmDevice *device,
 
         cmEnqueueParam->eventHandle = cmEvent;
         cmEnqueueParam->returnValue = cmRet;
+    }
+        break;
+
+     case CM_FN_CMQUEUE_ENQUEUEFAST:
+     {
+        PCM_ENQUEUE_PARAM cmEnqueueParam;
+        cmEnqueueParam = (PCM_ENQUEUE_PARAM)(cmPrivateInputData);
+        cmQueue        = (CmQueue *)cmEnqueueParam->queueHandle;
+        cmTask         = (CmTask  *)cmEnqueueParam->taskHandle;
+        cmThreadSpace           = (CmThreadSpace *)cmEnqueueParam->threadSpaceHandle;
+        cmEvent        = (CmEvent*)cmEnqueueParam->eventHandle; // used as input
+
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmTask);
+
+        cmRet = cmQueue->EnqueueFast(cmTask,cmEvent,cmThreadSpace);
+
+        cmEnqueueParam->eventHandle = cmEvent;
+        cmEnqueueParam->returnValue = cmRet;
+     }
         break;
 
      case CM_FN_CMQUEUE_ENQUEUEWITHHINTS:
@@ -550,18 +592,35 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         break;
 
     case CM_FN_CMQUEUE_DESTROYEVENT:
+    {
         PCM_DESTROYEVENT_PARAM cmDestroyEventParam;
         cmDestroyEventParam = (PCM_DESTROYEVENT_PARAM)(cmPrivateInputData);
         cmQueue        = (CmQueue *)cmDestroyEventParam->queueHandle;
         cmEvent        = (CmEvent *)cmDestroyEventParam->eventHandle;
         CM_ASSERT(cmQueue);
         CM_ASSERT(cmEvent);
-
+        
         cmRet = cmQueue->DestroyEvent(cmEvent);
 
         cmDestroyEventParam->returnValue = cmRet;
+    }
         break;
 
+    case CM_FN_CMQUEUE_DESTROYEVENTFAST:
+    {
+        PCM_DESTROYEVENT_PARAM cmDestroyEventParam;
+        cmDestroyEventParam = (PCM_DESTROYEVENT_PARAM)(cmPrivateInputData);
+        cmQueue        = (CmQueue *)cmDestroyEventParam->queueHandle;
+        cmEvent        = (CmEvent *)cmDestroyEventParam->eventHandle;
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmEvent);
+        
+        cmRet = cmQueue->DestroyEventFast(cmEvent);
+
+        cmDestroyEventParam->returnValue = cmRet;
+    }
+        break;
+        
     case CM_FN_CMDEVICE_CREATETHREADSPACE:
         PCM_CREATETHREADSPACE_PARAM cmCreateTsParam;
         cmCreateTsParam = (PCM_CREATETHREADSPACE_PARAM)(cmPrivateInputData);
@@ -702,19 +761,39 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         break;
 
     case CM_FN_CMQUEUE_ENQUEUEWITHGROUP:
+    {
         PCM_ENQUEUEGROUP_PARAM enqueueGroupParam;
         enqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(cmPrivateInputData);
-        cmQueue    = (CmQueue *)enqueueGroupParam->queueHandle;
+        cmQueue = (CmQueue *)enqueueGroupParam->queueHandle;
         threadGrpSpace = (CmThreadGroupSpace *)enqueueGroupParam->threadGroupSpaceHandle;
-        cmTask     = (CmTask *)enqueueGroupParam->taskHandle;
-        cmEvent    = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
+        cmTask = (CmTask *)enqueueGroupParam->taskHandle;
+        cmEvent = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
 
         cmRet = cmQueue->EnqueueWithGroup(cmTask,
-                                        cmEvent,
-                                        threadGrpSpace);
+            cmEvent,
+            threadGrpSpace);
 
         enqueueGroupParam->eventHandle = cmEvent;
         enqueueGroupParam->returnValue = cmRet;
+    }
+        break;
+
+    case CM_FN_CMQUEUE_ENQUEUEWITHGROUPFAST:
+    {
+        PCM_ENQUEUEGROUP_PARAM enqueueGroupParam;
+        enqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(cmPrivateInputData);
+        cmQueue = (CmQueue *)enqueueGroupParam->queueHandle;
+        threadGrpSpace = (CmThreadGroupSpace *)enqueueGroupParam->threadGroupSpaceHandle;
+        cmTask = (CmTask *)enqueueGroupParam->taskHandle;
+        cmEvent = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
+
+        cmRet = cmQueue->EnqueueWithGroupFast(cmTask,
+            cmEvent,
+            threadGrpSpace);
+
+        enqueueGroupParam->eventHandle = cmEvent;
+        enqueueGroupParam->returnValue = cmRet;
+    }
         break;
 
     case CM_FN_CMDEVICE_GETCAPS:

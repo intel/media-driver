@@ -46,6 +46,8 @@ public:
         // {SLM,    URB,     DC,      RO(I/S, C, T),   L3 Client Pool}
         // {  0,     64,      0,                  0,         192     }
         m_l3CacheCntlRegisterValueDefault = 0xC0000040;
+
+        InitMmioRegisters();
     }
 
     virtual ~MhwRenderInterfaceG10() { MHW_FUNCTION_ENTER; }
@@ -82,6 +84,15 @@ public:
         PMOS_COMMAND_BUFFER             cmdBuffer );
 
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() { return &m_l3CacheConfig; }
+
+    virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters()
+    {
+        return &m_mmioRegisters;
+    }
+private:
+    //! \brief Mmio registers address
+    MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
+    void InitMmioRegisters();
 };
 
 #endif

@@ -30,7 +30,7 @@
 
 #if CM_LOG_ON
 
-CmTimer::CmTimer(std::string FunctionName)
+CmTimer::CmTimer(const std::string FunctionName)
 {
     uint32_t success = MOS_QueryPerformanceFrequency((uint64_t*)&m_freq.QuadPart);
     CM_ASSERT(success);

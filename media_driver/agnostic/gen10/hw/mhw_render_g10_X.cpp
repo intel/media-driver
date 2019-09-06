@@ -28,6 +28,7 @@
 
 #include "mhw_render_g10_X.h"
 #include "mhw_render_hwcmd_g10_X.h"
+#include "mhw_mmio_g10.h"
 
 MOS_STATUS MhwRenderInterfaceG10::AddMediaVfeCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
@@ -289,4 +290,17 @@ MOS_STATUS MhwRenderInterfaceG10::AddGpgpuCsrBaseAddrCmd(
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
+}
+
+void MhwRenderInterfaceG10::InitMmioRegisters()
+{
+    MHW_MI_MMIOREGISTERS *mmioRegisters = &m_mmioRegisters;
+    mmioRegisters->generalPurposeRegister0LoOffset  = CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister0HiOffset  = CS_GENERAL_PURPOSE_REGISTER0_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister4LoOffset  = CS_GENERAL_PURPOSE_REGISTER4_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister4HiOffset  = CS_GENERAL_PURPOSE_REGISTER4_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11LoOffset = CS_GENERAL_PURPOSE_REGISTER11_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister11HiOffset = CS_GENERAL_PURPOSE_REGISTER11_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12LoOffset = CS_GENERAL_PURPOSE_REGISTER12_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister12HiOffset = CS_GENERAL_PURPOSE_REGISTER12_HI_OFFSET_G10;
 }

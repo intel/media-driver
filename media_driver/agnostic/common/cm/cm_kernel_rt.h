@@ -90,6 +90,18 @@ struct CM_ARG
         isDirty = false;
         isNull = false;
         unitVmeArraySize = 0;
+        surfIndex = nullptr;
+        aliasIndex = 0;
+        unitOffsetInPayloadOrig = 0;
+        isSet = false;
+        index = 0;
+        unitKindOrig = 0;
+        nCustomValue = 0;
+        surfaceKind = DATA_PORT_SURF;
+        unitSizeOrig = 0;
+        surfArrayArg = nullptr;
+        aliasCreated = false;
+
     }
 };
 
@@ -100,6 +112,7 @@ enum CM_KERNEL_INTERNAL_ARG_TYPE
 };
 
 struct CM_KERNEL_INFO;
+class CmExecutionAdv;
 
 namespace CMRT_UMD
 {
@@ -179,9 +192,6 @@ public:
     CM_RT_API int32_t DeAssociateThreadGroupSpace(CmThreadGroupSpace *&threadGroupSpace);
 
     CM_RT_API int32_t QuerySpillSize(uint32_t &spillMemorySize);
-
-    CM_RT_API CM_RETURN_CODE
-    GetIndexForCurbeData(uint32_t curbeDataSize, SurfaceIndex *surfaceIndex);
 
     CMRT_UMD_API int32_t GetBinary(std::vector<char> &binary);
 
@@ -290,12 +300,13 @@ public:
     void SurfaceDump(uint32_t kernelNumber, int32_t taskId);
 
 protected:
+    friend CmExecutionAdv;
     CmKernelRT(CmDeviceRT *device,
                CmProgramRT *program,
                uint32_t kernelIndex,
                uint32_t kernelSeqNum);
 
-    ~CmKernelRT();
+    virtual ~CmKernelRT();
 
     int32_t SetArgsInternal(CM_KERNEL_INTERNAL_ARG_TYPE nArgType,
                             uint32_t index,
@@ -303,7 +314,7 @@ protected:
                             const void *value,
                             uint32_t nThreadID = 0);
 
-    int32_t Initialize(const char *kernelName, const char *options);
+    virtual int32_t Initialize(const char *kernelName, const char *options);
 
     int32_t DestroyArgs();
 

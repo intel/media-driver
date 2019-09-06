@@ -957,7 +957,8 @@ public:
 
     MOS_STATUS SetWatchdogTimerThreshold(
         uint32_t frameWidth,
-        uint32_t frameHeight)
+        uint32_t frameHeight,
+        bool isEncoder)
     {
         MHW_FUNCTION_ENTER;
 

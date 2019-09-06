@@ -127,6 +127,16 @@ public:
     //!
     MOS_STATUS ResizeOneCmdBuf(CommandBuffer *cmdBufToResize, uint32_t newSize);
 
+    //!
+    //! \brief    Get the validity flag
+    //! \return   bool
+    //!           Get the validity flag of cmdBufMgr
+    //!
+    bool IsInitialized()
+    {
+        return m_initialized;
+    }
+
 private:
     //!
     //! \brief    Self define compare method as std:sort input 
@@ -160,13 +170,13 @@ private:
     std::vector<CommandBuffer *> m_availableCmdBufPool;
 
     //! \brief   Mutex for available command buffer pool
-    PMOS_MUTEX m_availablePoolMutex;
+    PMOS_MUTEX m_availablePoolMutex = nullptr;
 
     //! \brief   List of in used command buffer pool
     std::vector<CommandBuffer *> m_inUseCmdBufPool;
 
     //! \brief   Mutex for in-use command buffer pool
-    PMOS_MUTEX m_inUsePoolMutex;
+    PMOS_MUTEX m_inUsePoolMutex = nullptr;
 
     //! \brief   Flag to indicate cmd buf mgr initialized or not
     bool m_initialized = false;

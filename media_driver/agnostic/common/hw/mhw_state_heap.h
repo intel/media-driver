@@ -205,7 +205,7 @@ struct _MHW_STATE_HEAP_MEMORY_BLOCK
     //!        memory block is not in use and some or all of it may be used
     //!        for a new kernel state region.
     //!
-    uint32_t            dwSyncTagId;
+    FrameTrackerTokenFlat trackerToken;
 
     uint32_t            dwBlockSize;
     PMHW_STATE_HEAP     pStateHeap;
@@ -338,6 +338,7 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    bVerticalLineStrideOffset : 1;
     uint32_t    bCompressionEnabled       : 1;
     uint32_t    bCompressionMode          : 1;
+    uint32_t    MmcState                  : 3;
     uint32_t    bInterleaveChroma         : 1;
     uint32_t    bHalfPitchChroma          : 1;
     uint32_t    bSeperateUVPlane          : 1;
@@ -345,12 +346,14 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    UVPixelOffsetVDirection   : 2;
     uint32_t    RotationMode              : 3;
     uint32_t    bSurfaceArraySpacing      : 1;
+    uint32_t    bBoardColorOGL            : 1;
     int32_t     iXOffset;
     int32_t     iYOffset;
     uint32_t    dwXOffsetForU; // U or UV
     uint32_t    dwYOffsetForU; // U or UV
     uint32_t    dwXOffsetForV;
     uint32_t    dwYOffsetForV;
+    uint32_t    dwCompressionFormat;    // Memory Compression Format
 
     uint32_t    *pdwCmd;                // [out] Pointer for patching
     uint32_t    dwLocationInCmd;       // [out] Offset in command for patching
@@ -425,7 +428,7 @@ typedef struct _MHW_ID_ENTRY_PARAMS
     bool                bBarrierEnable;                 //! Enable Barrier
     bool                bGlobalBarrierEnable;           //! Enable Global Barrier (SKL+)
     uint32_t            dwNumberofThreadsInGPGPUGroup;  //! Number of threads per group
-    uint32_t            dwSharedLocalMemorySize;        //! Size of Shared Local Memory (SLM)
+    uint32_t            dwSharedLocalMemorySize;        //! Size of SharedLocalMemory (SLM)
     int32_t             iCrsThdConDataRdLn;             //!
     PMHW_STATE_HEAP     pGeneralStateHeap;              //! General state heap in use
     MemoryBlock         *memoryBlock;                   //! Memory block associated with the state heap
@@ -1268,7 +1271,7 @@ public:
     MOS_STATUS SubmitDynamicBlockDyn(
             MHW_STATE_HEAP_TYPE                  StateHeapType,
             PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-            uint32_t                             dwSyncTag);
+            const FrameTrackerTokenFlat          *trackerToken);
 
     //!
     //! \brief    Frees a dynamic block
@@ -1279,15 +1282,12 @@ public:
     //!           [in] State heap type (DSH/ISH)
     //! \param    PMHW_STATE_HEAP_MEMORY_BLOCK pBlock
     //!           [in] Pointer to memory block to be freed
-    //! \param    uint32_t dwSyncTag
-    //!           [in] Sync Tag
     //! \return   MOS_STATUS
     //!           SUCCESS    if operation was successful
     //!
     MOS_STATUS FreeDynamicBlockDyn(
             MHW_STATE_HEAP_TYPE                  StateHeapType,
-            PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-            uint32_t                             dwSyncTag);
+            PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock);
 
     //!
     //! \brief    Refresh the dynamic heap
@@ -1302,8 +1302,7 @@ public:
     //!           SUCCESS    if operation was successful
     //!
     MOS_STATUS RefreshDynamicHeapDyn (
-        MHW_STATE_HEAP_TYPE         StateHeapType,
-        uint32_t                    dwSyncTag);
+        MHW_STATE_HEAP_TYPE         StateHeapType);
 
 private:
 
@@ -1562,18 +1561,16 @@ struct _MHW_STATE_HEAP_INTERFACE
         PMHW_STATE_HEAP_INTERFACE            pStateHeapInterface,
         MHW_STATE_HEAP_TYPE                  StateHeapType,
         PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-        uint32_t                             dwSyncTag);
+        FrameTrackerTokenFlat                *trackerToken);
 
     MOS_STATUS (*pfnFreeDynamicBlock) (
         PMHW_STATE_HEAP_INTERFACE            pStateHeapInterface,
         MHW_STATE_HEAP_TYPE                  StateHeapType,
-        PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
-        uint32_t                             dwSyncTag);
+        PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock);
 
     MOS_STATUS (*pfnRefreshDynamicHeap) (
         PMHW_STATE_HEAP_INTERFACE            pStateHeapInterface,
-        MHW_STATE_HEAP_TYPE                  StateHeapType,
-        uint32_t                             dwSyncTag);
+        MHW_STATE_HEAP_TYPE                  StateHeapType);
 
     MOS_STATUS (*pfnReleaseStateHeap) (
         PMHW_STATE_HEAP_INTERFACE            pStateHeapInterface,

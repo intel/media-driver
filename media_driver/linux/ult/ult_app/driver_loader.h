@@ -124,9 +124,9 @@ public:
 
 public:
 
-    VADriverContext             m_ctx;
-    VADriverVTable              m_vtable;
-    VADriverVTableVPP           m_vtable_vpp;
+    VADriverContext             m_ctx        = {};
+    VADriverVTable              m_vtable     = {};
+    VADriverVTableVPP           m_vtable_vpp = {};
 
 private:
 

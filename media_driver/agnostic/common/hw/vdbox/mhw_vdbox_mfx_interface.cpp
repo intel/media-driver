@@ -291,7 +291,7 @@ uint32_t MhwVdboxMfxInterface::GetViewOrder(
     auto avcRefList = params->ppAvcRefList;
 
     // No need to check if bottom field since only progressive is supported
-    uint32_t currPOC = avcPicParams->CurrFieldOrderCnt[0];
+    int32_t  currPOC = avcPicParams->CurrFieldOrderCnt[0];
     uint32_t numRefs = (list == LIST_0) ? mvcExtPicParams->NumInterViewRefsL0 : mvcExtPicParams->NumInterViewRefsL1;
     uint32_t viewOrder = 0xF;
     uint32_t currRef = params->pAvcPicIdx[currIdx].ucPicIdx;

@@ -302,6 +302,18 @@ public:
     {
         return false;
     }
+
+    //! \brief    Combine the Bitstream Before decoding execution
+    //! \details  Help to refine and combine the decoded input bitstream if
+    //!           required. It is decided by the flag of IsSliceOverSize.
+    //! \param    [in] mediaCtx
+    //!           DDI_MEDIA_CONTEXT * type
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx);
+
 protected:
     //! \brief    the decode_config_attr related with Decode_CONTEXT
     DDI_DECODE_CONFIG_ATTR *m_ddiDecodeAttr = nullptr;
@@ -344,17 +356,6 @@ protected:
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *bufAddr);
 
-    //! \brief    Combine the Bitstream Before decoding execution
-    //! \details  Help to refine and combine the decoded input bitstream if
-    //!           required. It is decided by the flag of IsSliceOverSize.
-    //! \param    [in] mediaCtx
-    //!           DDI_MEDIA_CONTEXT * type
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    VAStatus DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx);
-
     //!
     //! \brief    Create the back-end CodecHal of DdiMediaDecode
     //! \details  Create the back-end CodecHal of DdiMediaDecode base on
@@ -374,6 +375,28 @@ protected:
         DDI_MEDIA_CONTEXT       *mediaCtx,
         void                    *ptr,
         _CODECHAL_STANDARD_INFO *standardInfo);
+
+    //!
+    //! \brief    Get dummy reference from DPB
+    //! \details  Get dummy reference from DPB for error concealment
+    //!
+    //! \param    [in] decodeCtx
+    //!           DDI_DECODE_CONTEXT * type
+    //!
+    //! \return   void
+    void GetDummyReferenceFromDPB(
+        DDI_DECODE_CONTEXT      *decodeCtx);
+
+    //!
+    //! \brief    Report decode mode
+    //! \details  Report decode mode to UFKEY_INTERNAL
+    //!
+    //! \param    [in] wMode
+    //!           CODECHAL_MODE
+    //!
+    //! \return   void
+    void ReportDecodeMode(
+        uint16_t      wMode);
 
     //! \brief  the type of decode base class
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure

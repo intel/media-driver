@@ -153,13 +153,30 @@ public:
 
     //!
     //! \brief      Expose bitfield for task related property.
-    //! \details    Currently this function can be used to expose the 
+    //! \details    Currently this function can be used to expose the
     //!             bitfield for turbo boost.
     //! \param      [out] taskConfig
     //!             specify which bitfield will be exposed.
     //! \returns    CM_SUCCESS.
     //!
     CM_RT_API virtual int32_t SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;
+
+    //!
+    //! \brief      Add a CmKernel pointer to CmTask with customized execution
+    //!             configure.
+    //! \details    Same kernel can appear in the task multiple times as long
+    //!             as all the value of its arguments are the same for multiple
+    //!             copies of the kernel.
+    //! \param      [in] kernel
+    //!             A pointer to CmKernel object.
+    //! \param      [in] config
+    //!             A Pointer to customized kernel execution configure.
+    //! \retval     CM_SUCCESS if kernel is added.
+    //! \retval     CM_EXCEED_MAX_KERNEL_PER_ENQUEUE trying to add more kernels
+    //!             than CAP_KERNEL_COUNT_PER_TASK.
+    //! \retval     CM_INVALID_ARG_VALUE if kernel is NULL.
+    //!
+    CM_RT_API virtual int32_t AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
 };
 }; //namespace
 

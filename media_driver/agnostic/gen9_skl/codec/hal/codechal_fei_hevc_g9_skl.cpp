@@ -6184,7 +6184,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::AllocateEncResources()
 
     uiWidth = sizeof(CODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION);
     uiHeight = HEVC_CONCURRENT_SURFACE_HEIGHT;
-    for (auto i = 0; i < NUM_CONCURRENT_THREAD; i++)
+    for (uint32_t i = 0; i < NUM_CONCURRENT_THREAD; i++)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
             &m_concurrentThreadSurface[i],
@@ -6226,7 +6226,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::AllocateEncResources()
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))
     {
         // adding 10 bit support for KBL : output surface for format conversion from 10bit to 8 bit
-        for (auto i = 0; i < NUM_FORMAT_CONV_FRAMES; i++)
+        for (uint32_t i = 0; i < NUM_FORMAT_CONV_FRAMES; i++)
         {
             if (Mos_ResourceIsNull(&m_formatConvertedSurface[i].OsResource))
             {
@@ -6356,7 +6356,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::FreeEncResources()
         m_osInterface,
         &m_lcuQP.OsResource);
 
-    for (auto i = 0; i < NUM_CONCURRENT_THREAD; i++)
+    for (uint32_t i = 0; i < NUM_CONCURRENT_THREAD; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -6660,7 +6660,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
         false));
 
     m_concurrentThreadIndex = 0;
-    for (auto i = 0; i < NUM_CONCURRENT_THREAD; i++)
+    for (uint32_t i = 0; i < NUM_CONCURRENT_THREAD; i++)
     {
         param = &m_surfaceParams[SURFACE_CONCURRENT_THREAD + i];
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams2D(

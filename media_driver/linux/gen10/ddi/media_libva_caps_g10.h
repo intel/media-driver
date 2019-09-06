@@ -49,6 +49,15 @@ public:
         LoadProfileEntrypoints();
         return VA_STATUS_SUCCESS;
     }
+
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+
+    virtual uint32_t GetImageFormatsMaxNum();
+
+    virtual bool IsImageSupported(uint32_t fourcc);
+
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+
 protected:
     static const uint32_t m_maxHevcEncWidth =
         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for HEVC encode
@@ -105,6 +114,6 @@ protected:
     //! \return VAStatus
     //!     Return VA_STATUS_SUCCESS if call success, else fail reason
     //!
-    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP);
+    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
 };
 #endif

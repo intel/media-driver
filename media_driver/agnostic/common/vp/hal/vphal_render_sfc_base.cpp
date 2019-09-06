@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2018, Intel Corporation
+* Copyright (c) 2012-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,7 @@ MOS_STATUS VpHal_InitMhwOutSurfParams(
     pMhwOutSurfParams->pOsResource                 = &(pSfcPipeOutSurface->OsResource);
     pMhwOutSurfParams->Format                      = pSfcPipeOutSurface->Format;
     pMhwOutSurfParams->bCompressible               = pSfcPipeOutSurface->bCompressible;
+    pMhwOutSurfParams->dwCompressionFormat         = pSfcPipeOutSurface->CompressionFormat;
     pMhwOutSurfParams->dwSurfaceXOffset            = pSfcPipeOutSurface->YPlaneOffset.iXOffset;
     pMhwOutSurfParams->dwSurfaceYOffset            = pSfcPipeOutSurface->YPlaneOffset.iYOffset;
 
@@ -566,7 +567,7 @@ void VphalSfcState::SetRenderingFlags(
     m_renderData.bScaling   = ((fScaleX == 1.0F) && (fScaleY == 1.0F)) ?
                                  false : true;
 
-    m_renderData.bColorFill = (pColorFillParams &&
+    m_renderData.bColorFill = (pColorFillParams && pSrc->InterlacedScalingType == ISCALING_NONE &&
                                   (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst))) ?
                                  true : false;
 
@@ -632,6 +633,9 @@ void VphalSfcState::SetRenderingFlags(
 
     m_renderData.bForcePolyPhaseCoefs = VpHal_IsChromaUpSamplingNeeded(pSrc, pRenderTarget);
 
+    // Cache Render Target pointer
+    pRenderData->pRenderTarget = pRenderTarget;
+
 finish:
     return;
 }
@@ -685,9 +689,13 @@ bool VphalSfcState::IsFormatSupported(
              pOutSurface->Format == Format_A8B8G8R8    ||
              pOutSurface->Format == Format_R10G10B10A2 ||
              pOutSurface->Format == Format_B10G10R10A2 ||
+             pOutSurface->Format == Format_Y410        ||
+             pOutSurface->Format == Format_Y416        ||
              pOutSurface->Format == Format_AYUV)       &&
             (pSrcSurface->Format == Format_A8B8G8R8    ||
              pSrcSurface->Format == Format_A8R8G8B8    ||
+             pSrcSurface->Format == Format_Y410        ||
+             pSrcSurface->Format == Format_Y416        ||
              pSrcSurface->Format == Format_AYUV))
         {
             ret = false;
@@ -1125,7 +1133,19 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
 
     // CSC params
     pSfcStateParams->bCSCEnable      = m_renderData.bCSC;
-    pSfcStateParams->bRGBASwapEnable = pSfcStateParams->bCSCEnable;
+
+    // ARGB8,ABGR10 output format need to enable swap
+    if (pOutSurface->Format == Format_X8R8G8B8 ||
+        pOutSurface->Format == Format_A8R8G8B8 ||
+        pOutSurface->Format == Format_R10G10B10A2)
+    {
+        pSfcStateParams->bRGBASwapEnable = true;
+    }
+    else
+    {
+        pSfcStateParams->bRGBASwapEnable = false;
+    }
+
     if (IS_RGB_CSPACE(pSrcSurface->ColorSpace))
     {
         pSfcStateParams->bInputColorSpace = true;

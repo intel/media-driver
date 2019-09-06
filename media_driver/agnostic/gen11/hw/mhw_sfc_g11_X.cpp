@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -87,15 +87,11 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcState(
             break;
         case Format_X8R8G8B8:
         case Format_A8R8G8B8:
-            // RGBASwapEnable is true only when CSC is enabled.
-            // The OutputSurfaceFormatType is set as A8B8G8R8 for X8R8G8B8 and A8R8G8B8 output.
-            cmd.DW3.RgbaChannelSwapEnable = pSfcStateParams->bRGBASwapEnable;
         case Format_X8B8G8R8:
         case Format_A8B8G8R8:
             cmd.DW3.OutputSurfaceFormatType = cmd.OUTPUT_SURFACE_FORMAT_TYPE_A8B8G8R8;
             break;
         case Format_R10G10B10A2:
-            cmd.DW3.RgbaChannelSwapEnable = pSfcStateParams->bRGBASwapEnable;
         case Format_B10G10R10A2:
             cmd.DW3.OutputSurfaceFormatType = cmd.OUTPUT_SURFACE_FORMAT_TYPE_A2R10G10B10;
             break;
@@ -128,6 +124,10 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcState(
             return MOS_STATUS_UNKNOWN;
     }
 
+    // RGBASwapEnable is true when the OutputSurfaceFormatType is set as A8B8G8R8 for X8R8G8B8 and A8R8G8B8 output,
+    // the OutputSurfaceFormatType is set as A2R10G10B10 for R10G10B10A2 output,
+    cmd.DW3.RgbaChannelSwapEnable = pSfcStateParams->bRGBASwapEnable;
+
     // Set DW4
     cmd.DW4.IefEnable                    = pSfcStateParams->bIEFEnable;
     cmd.DW4.SkinToneTunedIefEnable       = pSfcStateParams->bSkinToneTunedIEFEnable;
@@ -154,12 +154,12 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcState(
     cmd.DW5.SourceRegionHeight           = pSfcStateParams->dwSourceRegionHeight - 1;
     cmd.DW6.SourceRegionHorizontalOffset = pSfcStateParams->dwSourceRegionHorizontalOffset;
     cmd.DW6.SourceRegionVerticalOffset   = pSfcStateParams->dwSourceRegionVerticalOffset;
-    cmd.DW7.OutputFrameWidth             = pSfcStateParams->dwOutputFrameWidth - 1;
-    cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight - 1;
+    cmd.DW7.OutputFrameWidth             = pSfcStateParams->dwOutputFrameWidth + pOutSurface->dwSurfaceXOffset - 1;
+    cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight + pOutSurface->dwSurfaceYOffset - 1;
     cmd.DW8.ScaledRegionSizeWidth        = pSfcStateParams->dwScaledRegionWidth - 1;
     cmd.DW8.ScaledRegionSizeHeight       = pSfcStateParams->dwScaledRegionHeight - 1;
-    cmd.DW9.ScaledRegionHorizontalOffset = pSfcStateParams->dwScaledRegionHorizontalOffset;
-    cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset;
+    cmd.DW9.ScaledRegionHorizontalOffset = pSfcStateParams->dwScaledRegionHorizontalOffset + pOutSurface->dwSurfaceXOffset;
+    cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset + pOutSurface->dwSurfaceYOffset;
 
     // Set DW10
     cmd.DW10.GrayBarPixelUG              = MOS_CLAMP_MIN_MAX(MOS_F_ROUND(pSfcStateParams->fColorFillUGPixel * 1024.0F), 0, 1023); // U10
@@ -472,6 +472,12 @@ MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
 
 MhwSfcInterfaceG11::MhwSfcInterfaceG11(PMOS_INTERFACE pOsInterface) : MhwSfcInterfaceGeneric(pOsInterface)
 {
+    if (m_osInterface == nullptr)
+    {
+         MHW_ASSERTMESSAGE("Invalid Input Paramete: m_osInterface is nullptr");
+        return;
+    }
+
     // Get Memory control object directly from MOS.
     // If any override is needed, something like pfnOverrideMemoryObjectCtrl() / pfnComposeSurfaceCacheabilityControl()
     // will need to be implemented.

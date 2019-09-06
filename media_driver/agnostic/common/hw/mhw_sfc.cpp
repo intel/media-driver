@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,11 @@ MhwSfcInterface::MhwSfcInterface(PMOS_INTERFACE pOsInterface)
 {
     MHW_FUNCTION_ENTER;
 
+    MOS_ZeroMemory(&m_outputSurfCtrl, sizeof(m_outputSurfCtrl));
+    MOS_ZeroMemory(&m_avsLineBufferCtrl, sizeof(m_avsLineBufferCtrl));
+    MOS_ZeroMemory(&m_iefLineBufferCtrl, sizeof(m_iefLineBufferCtrl));
+    pfnAddResourceToCmd = nullptr;
+
     if (pOsInterface == nullptr)
     {
         MHW_ASSERTMESSAGE("Invalid input pointers provided");
@@ -44,9 +49,6 @@ MhwSfcInterface::MhwSfcInterface(PMOS_INTERFACE pOsInterface)
     }
 
     m_osInterface = pOsInterface;
-    memset(&m_outputSurfCtrl, 0, sizeof(m_outputSurfCtrl));
-    memset(&m_avsLineBufferCtrl, 0, sizeof(m_avsLineBufferCtrl));
-    memset(&m_iefLineBufferCtrl, 0, sizeof(m_iefLineBufferCtrl));
 
     if (m_osInterface->bUsesGfxAddress)
     {
@@ -65,9 +67,9 @@ void MhwSfcInterface::SetSfcAVSChromaTable(
 {
     int32_t i;
 
-    MHW_ASSERT(pUVCoeffTable);
-    MHW_ASSERT(piUVCoefsX);
-    MHW_ASSERT(piUVCoefsY);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pUVCoeffTable);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piUVCoefsX);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piUVCoefsY);
 
     for (i = 0; i < NUM_HW_POLYPHASE_TABLES; i++, pUVCoeffTable++)
     {
@@ -92,9 +94,9 @@ void MhwSfcInterface::SetSfcAVSLumaTable(
 {
     int32_t i;
 
-    MHW_ASSERT(pCoeffTable);
-    MHW_ASSERT(piYCoefsX);
-    MHW_ASSERT(piYCoefsY);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pCoeffTable);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piYCoefsX);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piYCoefsY);
 
     for (i = 0; i < NUM_HW_POLYPHASE_TABLES; i++, pCoeffTable++)
     {

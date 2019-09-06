@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+execprefix=${prefix}
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@/igfxcmrt
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+
+Name: igfxcmrt
+Description: Intel(R) C for Media Runtime
+Version: @CMRT_VERSION@
+Cflags: -I${includedir}
+Libs: -L${libdir} -ligfxcmrt

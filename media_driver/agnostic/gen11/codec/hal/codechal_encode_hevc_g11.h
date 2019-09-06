@@ -358,6 +358,7 @@ public:
         Log2TUMaxDepthIntraTuParam,
         MaxNumIMESearchCenterTuParam,
         Fake32EnableTuParam,
+        Dynamic64Min32,
         TotalTuParams
     };
 
@@ -472,10 +473,10 @@ public:
 
         // DWORD 8
         uint32_t   DW8_BRCFlag : MOS_BITFIELD_RANGE(0, 15);
-        uint32_t   DW8_BRC_Param_A : MOS_BITFIELD_RANGE(16, 31);
+        uint32_t   DW8_BRCGopP : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 9
-        uint32_t   DW9_BRC_Param_B : MOS_BITFIELD_RANGE(0, 15);
+        uint32_t   DW9_BRCGopB : MOS_BITFIELD_RANGE(0, 15);
         uint32_t   DW9_FrameWidth : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 10
@@ -492,10 +493,10 @@ public:
 
         // DWORD 13
         uint32_t   DW13_Reserved_0 : MOS_BITFIELD_RANGE(0, 15);
-        uint32_t   DW13_BRC_Param_C : MOS_BITFIELD_RANGE(16, 31);
+        uint32_t   DW13_BRCGopB1 : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 14
-        uint32_t   DW14_BRC_Param_D : MOS_BITFIELD_RANGE(0, 15);
+        uint32_t   DW14_BRCGopB2 : MOS_BITFIELD_RANGE(0, 15);
         uint32_t   DW14_MaxBRCLevel : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 15
@@ -1141,7 +1142,7 @@ public:
     static const double m_modeBitsScale[46][3];                 //!< Mode bits LUT based on [mode][SliceType]
 
     MOS_SURFACE             m_currPicWithReconBoundaryPix;      //!< Current Picture with Reconstructed boundary pixels
-    MOS_SURFACE             m_lcuLevelInputDataSurface;         //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
+    MOS_SURFACE             m_lcuLevelInputDataSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]; //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
     MOS_SURFACE             m_intermediateCuRecordSurfaceLcu32; //!< Intermediate CU Record surface for I and B kernel
     MOS_SURFACE             m_scratchSurface;                   //!< Scratch surface for I-kernel
     CODECHAL_ENCODE_BUFFER  m_debugSurface[4];                  //!< Debug surface used in MBENC kernels
@@ -1194,7 +1195,7 @@ public:
     CODECHAL_ENCODE_BUFFER                m_resHcpScalabilitySyncBuffer;    //!< Hcp sync buffer for scalability
     CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer;
-    CODECHAL_ENCODE_BUFFER                m_resHucTileSizeStreamoutBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
+    CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset;       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
     HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset;      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
     HEVC_TILE_STATS_INFO                  m_hevcStatsSize;             //!< HEVC Statistics size
@@ -1219,6 +1220,8 @@ public:
     MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
     MOS_RESOURCE           m_resPipeCompleteSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
     PCODECHAL_ENCODE_SCALABILITY_STATE  m_scalabilityState = nullptr;                                                                                  //!< Scalability state
+    MOS_RESOURCE           m_resDelayMinus;
+    uint32_t               m_numDelay;
 
     // the following constant integers and tables are from the kernel for score board computation
     static uint32_t const m_ct = 3;
@@ -1786,6 +1789,13 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS LoadPakCommandAndCuRecordFromFile();
+
+    //!
+    //! \brief   Re-calculate buffer size and offets during resolution reset
+    //!
+    //! \return   void
+    //!
+    void ResizeBufferOffset();
 
     //!
     //! \brief    Set HCP_SLICE_STATE parameters that are different at slice level

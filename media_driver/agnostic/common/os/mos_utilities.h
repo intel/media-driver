@@ -184,6 +184,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
     __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_FE_BE_TIMING,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TIMER_REG,
@@ -197,6 +198,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_8,
     __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
     __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_AUX_TABLE_16K_GRANULAR_ID,
     __MEDIA_USER_FEATURE_VALUE_MFE_MBENC_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_RC_PANIC_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_ENABLE_ID,
@@ -242,6 +244,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_PREFETCH_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_ALLOCATION_WA_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_SINGLE_PASS_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VDENC_BRC_MOTION_ADAPTIVE_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_0_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_1_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMIO_MFX_LRA_2_OVERRIDE_ID,
@@ -268,6 +271,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_MULTIPASS_BRC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_SINGLE_PASS_DYS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_CMD_INIT_HUC_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_ID,
@@ -286,12 +290,14 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_WP_SUPPORT_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_MEDIARESET_TEST_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_IFRAME_RDOQ_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MULTIPASS_BRC_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MULTIPASS_BRC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_PATH_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_VQI_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ROUNDING_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_PAKOBJCMD_STREAMOUT_ENABLE_ID,
@@ -304,6 +310,13 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_MPEG2_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_VC1_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_AVC_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_JPEG_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_VP8_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_HEVC_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_VP9_MODE_ID,
     __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_FROM_VEBOX_ID,
     __MEDIA_USER_FEATURE_VALUE_DECODE_EXTENDED_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID,
@@ -343,6 +356,9 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
 #if (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_GROUP_ID_ID,
     __MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_OVERRIDE_L3TCCNTRL_REG,
+    __MEDIA_USER_FEATURE_VALUE_MDF_OVERRIDE_MOCS_INDEX,
+    __MEDIA_USER_FEATURE_VALUE_MDF_OVERRIDE_L3ALLOC_REG,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_SCALING_ID,
     __MEDIA_USER_FEATURE_VALUE_AVC_FTQ_IN_USE_ID,
@@ -372,7 +388,10 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_BREAK_IN_CODECHAL_CREATE_ID,
     __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_STREAM_OUT_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECOMPRESS_DECODE_OUTPUT_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECOMPRESS_DECODE_SFC_OUTPUT_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_DUMP_OUTPUT_DIRECTORY_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_CFG_GENERATION_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_DISABLE_ID,
@@ -380,7 +399,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_FAKE_HEADER_SIZE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
-
+    __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION_ID,
@@ -419,6 +438,12 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
     __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID,
+    __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_MESSAGE_BLT_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_BLT_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_BLT_TAG_ID,
 #endif // MOS_MESSAGES_ENABLED
     __MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVCDATROWSTORECACHE_DISABLE_ID,
@@ -434,7 +459,16 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MDF_UMD_ULT_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_DUMPPATH_USER_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_DEFAULT_CM_QUEUE_TYPE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_INTERFACE,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_DEBUG_OVERRIDE,
     __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
     __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,
     __VPHAL_VEBOX_FEATURE_INUSE_ID,
@@ -444,8 +478,11 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
 #if (_DEBUG || _RELEASE_INTERNAL)
     __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME_ID,
     __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME_ID,
+    __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME_ID,
     __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME_ID,
+    __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP,
+    __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP_ID,
     __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK_ID,
     __VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME_ID,
     __VPHAL_DBG_STATE_DUMP_LOCATION_KEY_NAME_ID,
@@ -454,15 +491,20 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID,
     __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME_ID,
+    __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID,
 #endif
     __VPHAL_SET_SINGLE_SLICE_VEBOX_ID,
     __VPHAL_BYPASS_COMPOSITION_ID,
     __VPHAL_VEBOX_DISABLE_SFC_ID,
     __VPHAL_ENABLE_MMC_ID,
+    __VPHAL_ENABLE_MMC_IN_USE_ID,
     __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS_ID,
     __VPHAL_VEBOX_DISABLE_TEMPORAL_DENOISE_FILTER_ID,
+    __VPHAL_ENABLE_SUPER_RESOLUTION_ID,
+    __VPHAL_SUPER_RESOLUTION_MODE_ID,
 #if (_DEBUG || _RELEASE_INTERNAL)
     __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE_ID,
+    __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT_ID,
 #endif
 #if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
     __VPHAL_RNDR_VEBOX_MODE_0_ID,
@@ -494,6 +536,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_WATCHDOG_TIMER_THRESHOLD,
     __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
     __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID,
     __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
@@ -502,10 +545,19 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB,
     __MEDIA_USER_FEATURE_VALUE_SCALABILITY_FE_SEPARATE_SUBMISSION_ENABLED_ID,
     __MEDIA_USER_FEATURE_VALUE_SCALABILITY_FE_SEPARATE_SUBMISSION_IN_USE_ID,
-    __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_DISABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_INTERVAL_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VME_FORCE_SCALABILITY_ID,
     __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
+    __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_SEMA_RESET_DELAY_ID,
+    __MEDIA_USER_FEATURE_VALUE_SET_CMD_DEFAULT_PARS_FROM_FILES_ID,
+    __MEDIA_USER_FEATURE_VALUE_CMD_PARS_FILES_DIRECORY_ID,
+    __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_SUPER_RESOLUTION_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_SUPER_RESOLUTION_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL_ID,
+    __MEDIA_USER_FEATURE_VALUE_EXTERNAL_COPY_SYNC_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 
@@ -752,6 +804,10 @@ typedef struct
 } MOS_USER_FEATURE_NOTIFY_DATA_COMMON, *PMOS_USER_FEATURE_NOTIFY_DATA_COMMON;
 
 #ifdef __cplusplus
+
+extern "C" int32_t MOS_AtomicIncrement(int32_t *pValue);   // forward declaration
+extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaration
+
 //template<class _Ty, class... _Types> inline
 //std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
 //{
@@ -778,8 +834,12 @@ _Ty* MOS_NewUtil(_Types&&... _Args)
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
-            MosMemAllocCounter++;
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Fail to create class.");
         }
         return ptr;
 }
@@ -797,7 +857,7 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
         if (ptr != nullptr)
         {
-            MosMemAllocCounter++;
+            MOS_AtomicIncrement(&MosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
         }
         return ptr;
@@ -825,7 +885,7 @@ void MOS_DeleteUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
         delete(ptr);
         ptr = nullptr;
@@ -846,8 +906,7 @@ void MOS_DeleteArrayUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosMemAllocCounter--;
-
+        MOS_AtomicDecrement(&MosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         delete[](ptr);
@@ -1639,6 +1698,33 @@ MOS_STATUS MOS_UserFeature_WriteValues(
     PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
     uint32_t                                 uiNumOfValues);
 
+
+// User Feature Report Writeout
+#define WriteUserFeature64(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i64Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeature(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i32Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define WriteUserFeatureString(key, value, len)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.StringData.pStringData = (value);\
+    UserFeatureWriteData.Value.StringData.uSize = (len);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
 //!
 //! \brief    Lookup the user feature value name associated with the ID
 //! \details  Lookup the user feature value name associated with the ID
@@ -2384,6 +2470,26 @@ uint32_t MOS_WaitForMultipleObjects(
     uint32_t                    uiMilliseconds);
 
 //!
+//! \brief    Increments (increases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be incremented.
+//! \return   int32_t
+//!           The function returns the resulting incremented value.
+//!
+int32_t MOS_AtomicIncrement(
+    int32_t *pValue);
+
+//!
+//! \brief    Decrements (decreases by one) the value of the specified int32_t variable as an atomic operation.
+//! \param    [in] pValue
+//!           A pointer to the variable to be decremented.
+//! \return   int32_t
+//!           The function returns the resulting decremented value.
+//!
+int32_t MOS_AtomicDecrement(
+    int32_t *pValue);
+
+//!
 //! \brief      Convert MOS_STATUS to OS dependent RESULT/Status
 //! \param      [in] eStatus
 //!             MOS_STATUS that will be converted
@@ -2475,6 +2581,34 @@ MOS_STATUS MOS_GetLocalTime(
     struct tm* tm);
 
 //!
+//! \brief    Swizzles the given linear offset via the specified tiling params.
+//! \details  Swizzles the given linear offset via the specified tiling parameters. 
+//!           Used to provide linear access to raw, tiled data.
+//! \param    [in] OffsetX
+//!           Horizontal byte offset from left edge of tiled surface.
+//! \param    [in] OffsetY
+//!           Vertical offset from top of tiled surface.
+//! \param    [in] Pitch
+//!           Row-to-row byte stride.
+//! \param    [in] TileFormat
+//!           Either 'x' or 'y'--for X-Major or Y-Major tiling, respectively.
+//! \param    [in] CsxSwizzle
+//!           (Boolean) Additionally perform Channel Select XOR swizzling.
+//! \param    [in] flags
+//!           More flags to indicate different tileY.
+//! \return   int32_t
+//!           Return SwizzleOffset
+//!    
+int32_t __Mos_SwizzleOffset(
+    int32_t         OffsetX,
+    int32_t         OffsetY,
+    int32_t         Pitch,
+    MOS_TILE_TYPE   TileFormat,
+    int32_t         CsxSwizzle,
+    int32_t         flags);
+#define Mos_SwizzleOffset __Mos_SwizzleOffset
+
+//!
 //! \brief    Wrapper function for SwizzleOffset
 //! \details  Wrapper function for SwizzleOffset in Mos 
 //! \param    [in] pSrc
@@ -2489,6 +2623,8 @@ MOS_STATUS MOS_GetLocalTime(
 //!           Height
 //! \param    [in] iPitch
 //!           Pitch
+//! \param    [in] extended flags
+//!           Pitch
 //! \return   void
 //!
 void Mos_SwizzleData(
@@ -2497,7 +2633,8 @@ void Mos_SwizzleData(
     MOS_TILE_TYPE   SrcTiling,
     MOS_TILE_TYPE   DstTiling,
     int32_t         iHeight,
-    int32_t         iPitch);
+    int32_t         iPitch,
+    int32_t         extFlags);
 
 //!
 //! \brief    MOS trace event initialize
@@ -2542,6 +2679,29 @@ void MOS_TraceEvent(
     uint32_t         dwSize2);
 
 //!
+//! \brief    MOS log trace event Msg
+//! \details  log trace event msg w/ level/compID/functionname/lineNum arguments
+//!           arguments are in raw data format, need match data structure in manifest.
+//! \param    [in] level
+//!           Indicates msg level
+//! \param    [in] compID
+//!           Indicates compID
+//! \param    [in] message
+//!           event msg
+//! \param    [in] functionName
+//!           func name
+//! \param    [in] lineNum
+//!           event line number
+//! \return   void
+//!
+void MOS_TraceEventMsg(
+    uint8_t          level,
+    uint8_t          compID,
+    void*            message,
+    void*            functionName,
+    uint32_t         lineNum);
+
+//!
 //! \brief    MOS gfx info initialize
 //! \details  Load igdinfoXX.dll library and get gfx info function pointer
 //! \param    void
@@ -2570,9 +2730,21 @@ void MOS_GfxInfoClose();
 //!           Feature ID, an unique identifier for each component.
 //! \param    [in] ErrorCode
 //!           Error code that will be recorded.
+//! \param    [in] num_of_triples
+//!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+//! \param    [in] ...
+//!           Triples (name, type, value), for example
+//!             int8_t i = 3;
+//!             "Name1", GFXINFO_PTYPE_UINT8, &i
+//!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
 //! \return   void
 //!
-void MOS_GfxInfo_RTErr(uint8_t ver, uint16_t compId, uint16_t FtrId, uint32_t ErrorCode);
+void MOS_GfxInfo_RTErr(uint8_t ver,
+    uint16_t    compId,
+    uint16_t    FtrId,
+    uint32_t    ErrorCode,
+    uint8_t     num_of_triples,
+    ...);
 
 //!
 //! \brief    MOS_GfxInfo

@@ -164,8 +164,6 @@ finish:
 
 void* CmHashTable::Search(int32_t UniqID, int32_t CacheID, uint16_t &wSearchIndex)
 {
-    uint16_t                    wHash;
-    uint16_t                    wEntry = 0;
     PCM_HAL_HASH_TABLE_ENTRY    pEntry = nullptr;
     void                        *pData = nullptr;
     bool                        bFound;
@@ -174,7 +172,7 @@ void* CmHashTable::Search(int32_t UniqID, int32_t CacheID, uint16_t &wSearchInde
     if (wSearchIndex == 0 ||
         wSearchIndex >= m_hashTable.wSize)
     {
-        wHash = SimpleHash(UniqID);
+        uint16_t wHash = SimpleHash(UniqID);
         wSearchIndex = m_hashTable.wHead[wHash];
     }
 
@@ -183,7 +181,6 @@ void* CmHashTable::Search(int32_t UniqID, int32_t CacheID, uint16_t &wSearchInde
         // Search for UniqID/CacheID
         for (bFound = false; (wSearchIndex > 0) && (!bFound); wSearchIndex = pEntry->wNext)
         {
-            wEntry = wSearchIndex;
             pEntry = m_hashTable.pHashEntries + wSearchIndex;
             bFound = (pEntry->UniqID == UniqID) && (pEntry->CacheID == CacheID);
         }
@@ -193,7 +190,6 @@ void* CmHashTable::Search(int32_t UniqID, int32_t CacheID, uint16_t &wSearchInde
         // Search for UniqID (don't care about CacheID)
         for (bFound = false; (wSearchIndex > 0) && (!bFound); wSearchIndex = pEntry->wNext)
         {
-            wEntry = wSearchIndex;
             pEntry = m_hashTable.pHashEntries + wSearchIndex;
             bFound = (pEntry->UniqID == UniqID);
         }
@@ -203,7 +199,6 @@ void* CmHashTable::Search(int32_t UniqID, int32_t CacheID, uint16_t &wSearchInde
     if (bFound)
     {
         pData = pEntry->pData;
-        wEntry = pEntry->wNext;
     }
 
     return pData;

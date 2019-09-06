@@ -6499,9 +6499,9 @@ void CodechalEncodeAvcEncG8::UpdateSSDSliceCount()
     CodechalEncodeAvcBase::UpdateSSDSliceCount();
 
     uint32_t sliceCount;
-    if (m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4 ||
-        m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 2 ||
-        m_frameHeight * m_frameWidth >= 3840*2160)
+    if ((m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4) ||
+        (m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 2) ||
+        (m_frameHeight * m_frameWidth >= 3840*2160))
     {
         sliceCount = 2;
     }

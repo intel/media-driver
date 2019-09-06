@@ -396,49 +396,60 @@ protected:
 
         typename TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD cmd;
 
-        CODEC_REF_LIST** avcRefList = (CODEC_REF_LIST**)params->avcRefList;
-        AvcRefListWrite *cmdAvcRefListWrite = (AvcRefListWrite *)&(cmd.ReferenceListEntry);
-
-        cmd.DW1.RefpiclistSelect = params->uiList;
-
-        uint8_t picIDOneOnOneMapping = 0;
-        for (uint32_t i = 0; i < params->uiNumRefForList; i++)
+        // Need to add an empty MFX_AVC_REF_IDX_STATE_CMD for dummy reference on I-Frame
+        if (!params->bDummyReference)
         {
-            uint8_t idx = params->RefPicList[params->uiList][i].FrameIdx;
+            auto uiList = params->uiList;
 
-            if (!params->bIntelEntrypointInUse)
+            cmd.DW1.RefpiclistSelect = uiList;
+
+            CODEC_REF_LIST  **avcRefList        = (CODEC_REF_LIST **)params->avcRefList;
+            AvcRefListWrite *cmdAvcRefListWrite = (AvcRefListWrite *)&(cmd.ReferenceListEntry);
+
+            uint8_t picIDOneOnOneMapping = 0;
+            if (params->bVdencInUse && uiList == LIST_1)
             {
-                if (idx >= CODEC_MAX_NUM_REF_FRAME)
+                picIDOneOnOneMapping += params->uiNumRefForList[LIST_0] << 1;
+            }
+
+            for (uint32_t i = 0; i < params->uiNumRefForList[uiList]; i++)
+            {
+                uint8_t idx = params->RefPicList[uiList][i].FrameIdx;
+
+                if (!params->bIntelEntrypointInUse)
                 {
-                    MHW_ASSERT(false); // Idx must be within 0 to 15
-                    idx = 0;
+                    if (idx >= CODEC_MAX_NUM_REF_FRAME)
+                    {
+                        MHW_ASSERT(false); // Idx must be within 0 to 15
+                        idx = 0;
+                    }
+
+                    idx = params->pAvcPicIdx[idx].ucPicIdx;
                 }
 
-                idx = params->pAvcPicIdx[idx].ucPicIdx;
+                uint8_t picID = params->bPicIdRemappingInUse ?
+                    params->RefPicList[uiList][i].FrameIdx : avcRefList[idx]->ucFrameId;
+
+                // When one on one ref idx mapping is enabled, program picID count from 0, 2 ...
+                if (params->oneOnOneMapping)
+                {
+                    picID = picIDOneOnOneMapping;
+                    picIDOneOnOneMapping += 2;
+                }
+                cmdAvcRefListWrite->UC[i].frameStoreID = picID;
+                cmdAvcRefListWrite->UC[i].bottomField =
+                    CodecHal_PictureIsBottomField(params->RefPicList[uiList][i]);
+                cmdAvcRefListWrite->UC[i].fieldPicFlag =
+                    CodecHal_PictureIsField(params->RefPicList[uiList][i]);
+                cmdAvcRefListWrite->UC[i].longTermFlag =
+                    CodecHal_PictureIsLongTermRef(avcRefList[idx]->RefPic);
+                cmdAvcRefListWrite->UC[i].nonExisting = 0;
             }
 
-            uint8_t picID = params->bPicIdRemappingInUse ?
-                params->RefPicList[params->uiList][i].FrameIdx : avcRefList[idx]->ucFrameId;
-
-            // When one on one ref idx mapping is enabled, program picID count from 0, 2 ...
-            if (params->oneOnOneMapping)
+            for (auto i = params->uiNumRefForList[uiList]; i < 32; i++)
             {
-                picID = picIDOneOnOneMapping;
-                picIDOneOnOneMapping += 2;
+                cmdAvcRefListWrite->UC[i].value = 0x80;
             }
-            cmdAvcRefListWrite->UC[i].frameStoreID = picID;
-            cmdAvcRefListWrite->UC[i].bottomField =
-                CodecHal_PictureIsBottomField(params->RefPicList[params->uiList][i]);
-            cmdAvcRefListWrite->UC[i].fieldPicFlag =
-                CodecHal_PictureIsField(params->RefPicList[params->uiList][i]);
-            cmdAvcRefListWrite->UC[i].longTermFlag =
-                CodecHal_PictureIsLongTermRef(avcRefList[idx]->RefPic);
-            cmdAvcRefListWrite->UC[i].nonExisting = 0;
-        }
-
-        for (auto i = params->uiNumRefForList; i < 32; i++)
-        {
-            cmdAvcRefListWrite->UC[i].value = 0x80;
         }
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
@@ -764,6 +775,7 @@ protected:
         cmd.DW9.Roundintra = avcSliceState->dwRoundingIntraValue;
         cmd.DW9.Roundintraenable = 1;
 
+        OVERRIDE_CMD_DATA("MFX_AVC_SLICE_STATE", TMfxCmds::MFX_AVC_SLICE_STATE_CMD::dwSize, (uint32_t *)(&cmd));
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
@@ -2821,61 +2833,61 @@ protected:
         cmd.DW1.Partition0CpbacEntropyCount = vp8PicParams->ucP0EntropyCount;
         cmd.DW2.Partition0CpbacEntropyValue = vp8PicParams->ucP0EntropyValue;
 
-        cmd.DW3.IndirectPartition0DataLength = vp8PicParams->uiPartitionSize[0];
+        cmd.DW3.IndirectPartition0DataLength = vp8PicParams->uiPartitionSize[0] + 1;
         cmd.DW4.IndirectPartition0DataStartOffset = vp8PicParams->uiFirstMbByteOffset;
 
-        cmd.DW5.IndirectPartition1DataLength = vp8PicParams->uiPartitionSize[1];
+        cmd.DW5.IndirectPartition1DataLength = vp8PicParams->uiPartitionSize[1] + 1;
         cmd.DW6.IndirectPartition1DataStartOffset = cmd.DW4.IndirectPartition0DataStartOffset +
-            cmd.DW3.IndirectPartition0DataLength +
+            vp8PicParams->uiPartitionSize[0] +
             (numPartitions - 1) * 3;      // Account for P Sizes: 3 bytes per partition
                                             // excluding partition 0 and last partition.
 
         int32_t i = 2;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW7.IndirectPartition2DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW7.IndirectPartition2DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW8.IndirectPartition2DataStartOffset = cmd.DW6.IndirectPartition1DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 3;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW9.IndirectPartition3DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW9.IndirectPartition3DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW10.IndirectPartition3DataStartOffset = cmd.DW8.IndirectPartition2DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 4;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW11.IndirectPartition4DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW11.IndirectPartition4DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW12.IndirectPartition4DataStartOffset = cmd.DW10.IndirectPartition3DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 5;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW13.IndirectPartition5DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW13.IndirectPartition5DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW14.IndirectPartition5DataStartOffset = cmd.DW12.IndirectPartition4DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 6;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW15.IndirectPartition6DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW15.IndirectPartition6DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW16.IndirectPartition6DataStartOffset = cmd.DW14.IndirectPartition5DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 7;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW17.IndirectPartition7DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW17.IndirectPartition7DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW18.IndirectPartition7DataStartOffset = cmd.DW16.IndirectPartition6DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
         i = 8;
         if (i < ((1 + numPartitions)))
         {
-            cmd.DW19.IndirectPartition8DataLength = vp8PicParams->uiPartitionSize[i];
+            cmd.DW19.IndirectPartition8DataLength = vp8PicParams->uiPartitionSize[i] + 1;
             cmd.DW20.IndirectPartition8DataStartOffset = cmd.DW18.IndirectPartition7DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 

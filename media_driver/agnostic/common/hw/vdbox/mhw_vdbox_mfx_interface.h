@@ -321,56 +321,6 @@ typedef struct _MHW_VDBOX_MPEG2_PIC_STATE
     uint32_t                                dwFrameBitRateMaxUnit;
 } MHW_VDBOX_MPEG2_PIC_STATE, *PMHW_VDBOX_MPEG2_PIC_STATE;
 
-typedef struct _MHW_VDBOX_AVC_SLICE_STATE
-{
-    PCODEC_PIC_ID                           pAvcPicIdx;
-    PMOS_RESOURCE                           presDataBuffer;
-    uint32_t                                dwDataBufferOffset;
-    uint32_t                                dwOffset;
-    uint32_t                                dwLength;
-    uint32_t                                dwSliceIndex;
-    bool                                    bLastSlice;
-    uint32_t                                dwTotalBytesConsumed;
-
-    // Decoding Only
-    PCODEC_AVC_PIC_PARAMS                   pAvcPicParams;
-    PCODEC_MVC_EXT_PIC_PARAMS               pMvcExtPicParams;
-    PCODEC_AVC_SLICE_PARAMS                 pAvcSliceParams;
-    uint32_t                                dwNextOffset;
-    uint32_t                                dwNextLength;
-    bool                                    bIntelEntrypointInUse;
-    bool                                    bPicIdRemappingInUse;
-    bool                                    bShortFormatInUse;
-    bool                                    bPhantomSlice;
-    uint8_t                                 ucDisableDeblockingFilterIdc;
-    uint8_t                                 ucSliceBetaOffsetDiv2;
-    uint8_t                                 ucSliceAlphaC0OffsetDiv2;
-
-    // Encoding Only
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pEncodeAvcSeqParams;
-    PCODEC_AVC_ENCODE_PIC_PARAMS            pEncodeAvcPicParams;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS          pEncodeAvcSliceParams;
-    PBSBuffer                               pBsBuffer;
-    PCODECHAL_NAL_UNIT_PARAMS              *ppNalUnitParams;
-    PMHW_BATCH_BUFFER                       pBatchBufferForPakSlices;
-    bool                                    bSingleTaskPhaseSupported;
-    bool                                    bFirstPass;
-    bool                                    bLastPass;
-    bool                                    bBrcEnabled;
-    bool                                    bRCPanicEnable;
-    bool                                    bInsertBeforeSliceHeaders;
-    bool                                    bAcceleratorHeaderPackingCaps;
-    uint32_t                                dwBatchBufferForPakSlicesStartOffset;
-    uint32_t                                uiSkipEmulationCheckCount;
-    uint32_t                                dwRoundingValue;
-    uint32_t                                dwRoundingIntraValue;
-    bool                                    bRoundingInterEnable;
-    uint16_t                                wFrameFieldHeightInMB;  // Frame/field Height in MB
-    bool                                    bVdencInUse;
-    bool                                    bVdencNoTailInsertion;
-    bool                                    oneOnOneMapping = false;
-} MHW_VDBOX_AVC_SLICE_STATE, *PMHW_VDBOX_AVC_SLICE_STATE;
-
 typedef struct _MHW_VDBOX_AVC_DPB_PARAMS
 {
     PCODEC_AVC_PIC_PARAMS                   pAvcPicParams;
@@ -398,16 +348,18 @@ typedef struct _MHW_VDBOX_AVC_DIRECTMODE_PARAMS
 
 typedef struct _MHW_VDBOX_AVC_REF_IDX_PARAMS
 {
-    CODEC_PICTURE                   CurrPic;
-    bool                            isEncode;
-    uint32_t                        uiList;
-    uint32_t                        uiNumRefForList;
-    CODEC_PICTURE                   RefPicList[2][32];
-    PCODEC_PIC_ID                   pAvcPicIdx;
-    void                            **avcRefList;
-    bool                            bIntelEntrypointInUse;
-    bool                            bPicIdRemappingInUse;
-    bool                            oneOnOneMapping = false;
+    CODEC_PICTURE                   CurrPic               = {};
+    uint32_t                        uiNumRefForList[2]    = {};
+    CODEC_PICTURE                   RefPicList[2][32]     = {};
+    PCODEC_PIC_ID                   pAvcPicIdx            = {};
+    uint32_t                        uiList                = 0;
+    void                            **avcRefList          = nullptr;
+    bool                            isEncode              = false;
+    bool                            bVdencInUse           = false;
+    bool                            bIntelEntrypointInUse = false;
+    bool                            bPicIdRemappingInUse  = false;
+    bool                            oneOnOneMapping       = false;
+    bool                            bDummyReference       = false;
 } MHW_VDBOX_AVC_REF_IDX_PARAMS, *PMHW_VDBOX_AVC_REF_IDX_PARAMS;
 
 typedef struct _MHW_VDBOX_PIC_ID_PARAMS

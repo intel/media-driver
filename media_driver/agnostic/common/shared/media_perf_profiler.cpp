@@ -106,12 +106,13 @@ struct NodeHeader
 
 MediaPerfProfiler::MediaPerfProfiler()
 {
+    MOS_ZeroMemory(&m_perfStoreBuffer, sizeof(m_perfStoreBuffer));
     m_perfDataIndex = 0;
     m_ref           = 0;
     m_initialized   = false;
 
     m_profilerEnabled = 0;
-    
+
     MOS_USER_FEATURE_VALUE_DATA     userFeatureData;
     // Check whether profiler is enabled
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -130,7 +131,7 @@ MediaPerfProfiler::MediaPerfProfiler()
 
     // m_mutex is destroyed after MemNinja report, this will cause fake memory leak,
     // the following 2 lines is to circumvent Memninja counter validation and log parser
-    MosMemAllocCounter--;
+    MOS_AtomicDecrement(&MosMemAllocCounter);
     MOS_MEMNINJA_FREE_MESSAGE(m_mutex, __FUNCTION__, __FILE__, __LINE__);
 }
 
@@ -168,6 +169,8 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 
     MOS_LockMutex(profiler->m_mutex);
     profiler->m_ref--;
+
+    osInterface->pfnWaitAllCmdCompletion(osInterface);
 
     profiler->m_contextIndexMap.erase(context);
 
@@ -243,13 +246,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         &userFeatureData);
     m_bufferSize = userFeatureData.u32Data;
 
-    // Read timer register addresss
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TIMER_REG,
-        &userFeatureData);
-    m_timerReg = userFeatureData.u32Data;
+    m_timerBase = Mos_Specific_GetTsFrequency(osInterface);
 
     // Read memory information register address
     int8_t regIndex = 0;
@@ -439,14 +436,14 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
         cmdBuffer, 
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, engineTag),
         GpuContextToGpuNode(gpuContext)));
-
-    if (m_timerReg != 0)
+ 
+    if (m_timerBase != 0)
     {
-        CHK_STATUS_RETURN(StoreRegister(
+        CHK_STATUS_RETURN(StoreData(
             miInterface,
             cmdBuffer, 
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, timeStampBase),
-            m_timerReg));
+            m_timerBase));
     }
 
     int8_t regIndex = 0;
@@ -586,16 +583,21 @@ PerfGPUNode MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
         case MOS_GPU_OVERLAY_CONTEXT:
+        case MOS_GPU_CONTEXT_RENDER_RA:
             node = PERF_GPU_NODE_3D;
             break;
         case MOS_GPU_CONTEXT_COMPUTE:
         case MOS_GPU_CONTEXT_CM_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
             node = PERF_GPU_NODE_3D;
             break;
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
         case MOS_GPU_CONTEXT_VIDEO3:
         case MOS_GPU_CONTEXT_VIDEO4:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
             node = PERF_GPU_NODE_VIDEO;
             break;
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:

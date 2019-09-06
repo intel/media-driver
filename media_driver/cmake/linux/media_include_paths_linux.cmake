@@ -36,5 +36,4 @@ else()
     endif()
 endif()
 
-
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_include_paths_linux_ext.cmake OPTIONAL)
+include(${MEDIA_EXT_CMAKE}/ext/linux/media_include_paths_linux_ext.cmake OPTIONAL)

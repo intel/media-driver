@@ -81,10 +81,34 @@ MOS_STATUS CodechalDecodeAvcG11::SetGpuCtxCreatOption(
     {
         m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
 
+        bool sfcInUse = IsSfcInUse(codecHalSetting);
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(    
             m_veState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
-            false));
+            sfcInUse));
+
+        if (sfcInUse)
+        {
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO4;
+
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                m_videoContext,
+                MOS_GPU_NODE_VIDEO,
+                m_gpuCtxCreatOpt));
+
+            MOS_GPUCTX_CREATOPTIONS createOption;
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                MOS_GPU_CONTEXT_VIDEO,
+                MOS_GPU_NODE_VIDEO,
+                &createOption));
+        }
+        else
+        {
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO;
+        }
     }
         
     return eStatus;
@@ -166,6 +190,8 @@ MOS_STATUS CodechalDecodeAvcG11::DecodeStateLevel()
 MOS_STATUS CodechalDecodeAvcG11::DecodePrimitiveLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    CODECHAL_DECODE_PROCESSING_PARAMS *decProcessingParams = nullptr;
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcPicParams);
@@ -200,6 +226,20 @@ MOS_STATUS CodechalDecodeAvcG11::DecodePrimitiveLevel()
         // Update the resource tag (s/w tag) for On-Demand Sync
         m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
     }
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
+    if (decProcessingParams != nullptr && decProcessingParams->bIsReferenceOnlyPattern)
+    {
+        HucCopy(&cmdBuffer, 
+            &m_destSurface.OsResource, 
+            &decProcessingParams->pOutputSurface->OsResource, 
+            decProcessingParams->pOutputSurface->dwSize,
+            m_destSurface.dwOffset,
+            decProcessingParams->pOutputSurface->dwOffset
+        );
+    }
+#endif
 
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
@@ -292,7 +332,7 @@ MOS_STATUS CodechalDecodeAvcG11::DecodePrimitiveLevel()
     CODECHAL_DEBUG_TOOL(
         m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
+    decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(

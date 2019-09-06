@@ -132,7 +132,6 @@
 #define CM_NO_EVENT  ((CmEvent *)(-1))  //NO Event
 
 // Cm Device Create Option
-#define CM_DEVICE_CREATE_OPTION_DEFAULT                     0
 #define CM_DEVICE_CREATE_OPTION_SCRATCH_SPACE_DISABLE       1
 #define CM_DEVICE_CREATE_OPTION_TDR_DISABLE                 64
 
@@ -143,6 +142,10 @@
 #define CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_DISENABLE         (1 << CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_OFFSET)    
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET                  23
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_ENABLE               (1 << CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET)
+#define CM_DEVICE_CONFIG_FAST_PATH_OFFSET                  30
+#define CM_DEVICE_CONFIG_FAST_PATH_ENABLE                  (1 << CM_DEVICE_CONFIG_FAST_PATH_OFFSET)
+
+#define CM_DEVICE_CREATE_OPTION_DEFAULT                    CM_DEVICE_CONFIG_FAST_PATH_ENABLE
 
 #define CM_MAX_DEPENDENCY_COUNT         8
 #define CM_NUM_DWORD_FOR_MW_PARAM       16
@@ -450,6 +453,17 @@ enum MEMORY_OBJECT_CONTROL
     MEMORY_OBJECT_CONTROL_CNL_NO_CACHE,
     MEMORY_OBJECT_CONTROL_CNL_COUNT,
 
+    // Unified memory object control type for SKL+
+    MEMORY_OBJECT_CONTROL_DEFAULT = 0x0,
+    MEMORY_OBJECT_CONTROL_NO_L3,
+    MEMORY_OBJECT_CONTROL_NO_LLC_ELLC,
+    MEMORY_OBJECT_CONTROL_NO_LLC,
+    MEMORY_OBJECT_CONTROL_NO_ELLC,
+    MEMORY_OBJECT_CONTROL_NO_LLC_L3,
+    MEMORY_OBJECT_CONTROL_NO_ELLC_L3,
+    MEMORY_OBJECT_CONTROL_NO_CACHE,
+    MEMORY_OBJECT_CONTROL_L1_ENABLED,
+
     MEMORY_OBJECT_CONTROL_UNKNOWN = 0xff
 };
 
@@ -557,8 +571,13 @@ enum CM_QUEUE_TYPE
 {
     CM_QUEUE_TYPE_NONE = 0,
     CM_QUEUE_TYPE_RENDER = 1,
-    CM_QUEUE_TYPE_COMPUTE = 2,
-    CM_QUEUE_TYPE_VEBOX = 3
+    CM_QUEUE_TYPE_COMPUTE = 2
+};
+
+enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
+{
+    CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
+    CM_QUEUE_SSEU_USAGE_HINT_VME     = 1
 };
 
 //**********************************************************************
@@ -1150,11 +1169,23 @@ struct CM_FLAG {
 };
 
 struct _CM_TASK_CONFIG {
-    uint32_t turboBoostFlag;        //CM_TURBO_BOOST_DISABLE----disabled, CM_TURBO_BOOST_ENABLE--------enabled.
+    bool     turboBoostFlag     : 1;
+    uint32_t reserved_bits      :31;
     uint32_t reserved0;
     uint32_t reserved1;
     uint32_t reserved2;
 };
+
+typedef enum _CM_KERNEL_EXEC_MODE {
+    CM_KERNEL_EXECUTION_MODE_MONOPOLIZED =  0, // Kernel can occupy all DSS for execution */
+    CM_KERNEL_EXECUTION_MODE_CONCURRENT,       // Kernel can occupy part of DSS  and concurrently execute together with other workloads.
+} CM_KERNEL_EXEC_MODE;
+
+struct CM_EXECUTION_CONFIG {
+    CM_KERNEL_EXEC_MODE kernelExecutionMode = CM_KERNEL_EXECUTION_MODE_MONOPOLIZED;
+    int                 concurrentPolicy    = 0; // Reserve for future extension.
+};
+
 #define CM_TASK_CONFIG _CM_TASK_CONFIG
 
 // parameters used to set the surface state of the buffer
@@ -1184,14 +1215,18 @@ typedef struct _CM_SURFACE2D_STATE_PARAM
     UINT reserved[4]; // for future usage
 } CM_SURFACE2D_STATE_PARAM;
 
-struct CM_QUEUE_CREATE_OPTION
+struct _CM_QUEUE_CREATE_OPTION
 {
-    CM_QUEUE_TYPE QueueType : 3;
-    bool RunAloneMode       : 1;
-    unsigned int Reserved0  : 4;
-    unsigned int Reserved1  : 8;
-    unsigned int Reserved2  : 16;
+    CM_QUEUE_TYPE                 QueueType               : 3;
+    bool                          RAMode                  : 1;
+    unsigned int                  Reserved0               : 3;
+    bool                          UserGPUContext          : 1; // Is the user-provided GPU Context already created externally
+    unsigned int                  GPUContext              : 8; // user-provided GPU Context ordinal
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint           : 3;
+    unsigned int                  Reserved1               : 1;
+    unsigned int                  Reserved2               : 12;
 };
+#define CM_QUEUE_CREATE_OPTION _CM_QUEUE_CREATE_OPTION
 
 typedef enum _CM_CONDITIONAL_END_OPERATOR_CODE {
     MAD_GREATER_THAN_IDD = 0,
@@ -1208,11 +1243,6 @@ struct CM_CONDITIONAL_END_PARAM {
     bool  opMask;
     bool  opLevel;
 };
-
-//**********************************************************************
-// Constants
-//**********************************************************************
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0x0, 0x0, 0x0 };
 
 //**********************************************************************
 // Classes forward declarations
@@ -1240,6 +1270,11 @@ class SamplerIndex;
 // Extended definitions if any
 //**********************************************************************
 #include "cm_rt_extension.h"
+
+//**********************************************************************
+// Constants
+//**********************************************************************
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0, 0 };
 
 //**********************************************************************
 // Classes
@@ -1279,7 +1314,6 @@ public:
     CM_RT_API virtual INT DeAssociateThreadSpace(CmThreadSpace* & pTS) = 0;
     CM_RT_API virtual INT DeAssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
     CM_RT_API virtual INT QuerySpillSize(unsigned int &spillSize) = 0;
-    CM_RT_API virtual INT GetIndexForCurbeData( UINT curbe_data_size, SurfaceIndex *pSurface ) = 0;
 protected:
    ~CmKernel(){};
 };
@@ -1292,7 +1326,8 @@ public:
     CM_RT_API virtual INT AddSync(void) = 0;
     CM_RT_API virtual INT SetPowerOption( PCM_POWER_OPTION pCmPowerOption ) = 0;
     CM_RT_API virtual INT AddConditionalEnd(SurfaceIndex* pSurface, UINT offset, CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
-    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0; 
+    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;
+    CM_RT_API virtual INT AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
 protected:
    ~CmTask(){};
 }; 
@@ -1429,6 +1464,14 @@ public:
     
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
+
+    CM_RT_API virtual INT EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr) = 0;
+    CM_RT_API virtual INT DestroyEventFast(CmEvent *&event) = 0;
+    CM_RT_API virtual INT EnqueueWithGroupFast(CmTask *task,
+                                  CmEvent *&event,
+                                  const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
 protected:
     ~CmQueue(){};
 };
@@ -1457,5 +1500,6 @@ EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 #include "cm_rt_g8.h"
 #include "cm_rt_g9.h"
 #include "cm_rt_g10.h"
+#include "cm_rt_g11.h"
 
 #endif //__CM_RT_H__

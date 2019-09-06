@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -96,14 +96,39 @@ public:
         PMOS_COMMAND_BUFFER      cmdBuffer) = 0;
 
     //!
+    //! \brief Encrypt default cdf table buffer through HuC copy
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ProtectDefaultCdfTableBuffer(
+        void            *state,
+        uint32_t        bufIndex) = 0;
+
+    //!
+    //! \brief Return the temp cdf table buffer
+    //! \return PMOS_RESOURCE
+    //!
+    virtual PMOS_RESOURCE GetTempCdfTableBuffer() = 0;
+
+    //!
     //! \brief  Is Dummy SteamOut Enabled
     //!
     virtual bool IsDummyStreamEnabled() = 0;
 
     //!
+    //! \brief  Is secure decode is enabled
+    //!
+    virtual bool IsSecureDecodeEnabled() = 0;
+
+    //!
     //! \brief  Destructor
     //!
     virtual ~CodechalSecureDecodeInterface(){} 
+
+    //!
+    //! \brief  Update huc streamout buffer index
+    //!
+    virtual MOS_STATUS UpdateHuCStreamoutBufferIndex() = 0;
 };
 
 

@@ -535,8 +535,8 @@ MOS_STATUS CodechalKernelHme::Execute(CurbeParam &curbeParam, SurfaceParams &sur
     m_16xMeInUse = Is16xMeEnabled() ? (hmeLevel & HmeLevel::hmeLevel16x) != 0  : false;
     m_32xMeInUse = Is32xMeEnabled() ? (hmeLevel & HmeLevel::hmeLevel32x) != 0 : false;
 
-    memcpy_s(&m_curbeParam, sizeof(m_curbeParam), &curbeParam, sizeof(m_curbeParam));
-    memcpy_s(&m_surfaceParam, sizeof(m_surfaceParam), &surfaceParam, sizeof(m_surfaceParam));
+    MOS_SecureMemcpy(&m_curbeParam, sizeof(m_curbeParam), &curbeParam, sizeof(m_curbeParam));
+    MOS_SecureMemcpy(&m_surfaceParam, sizeof(m_surfaceParam), &surfaceParam, sizeof(m_surfaceParam));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Run());
     return MOS_STATUS_SUCCESS;

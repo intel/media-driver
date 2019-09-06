@@ -269,8 +269,8 @@ void Mhw_BlockManager_ReverseMergeSort(uint32_t *pdwSizes, int32_t iCount)
 }
 
 MHW_BLOCK_MANAGER::MHW_BLOCK_MANAGER(PMHW_BLOCK_MANAGER_PARAMS pParams):
-    m_pStateHeap(nullptr),
-    m_MemoryPool(sizeof(MHW_STATE_HEAP_MEMORY_BLOCK), sizeof(void *))
+    m_MemoryPool(sizeof(MHW_STATE_HEAP_MEMORY_BLOCK), sizeof(void *)),
+    m_pStateHeap(nullptr)
 {
     //Init Parameters
     if(pParams != nullptr)
@@ -336,7 +336,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::RegisterStateHeap(
     pBlock->pHeapNext           = nullptr;                 // Last Block in current heap
     pBlock->dwOffsetInStateHeap = 0;                    // Offset is 0 = base of state heap
     pBlock->dwBlockSize         = pStateHeap->dwSize;   // Size of the entire state heap
-    pBlock->dwSyncTagId         = MHW_BLOCK_MANAGER_INVALID_TAG;
+    FrameTrackerTokenFlat_Validate(&pBlock->trackerToken);
     pBlock->bStatic             = 0;
 
     // Set first/last memory block in state heap
@@ -688,7 +688,7 @@ void MHW_BLOCK_MANAGER::ReturnBlockToPool(PMHW_STATE_HEAP_MEMORY_BLOCK pBlock)
     return;
 }
 
-MOS_STATUS MHW_BLOCK_MANAGER::Refresh(uint32_t dwSyncTag)
+MOS_STATUS MHW_BLOCK_MANAGER::Refresh()
 {
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlock, pNext;
     PMHW_BLOCK_LIST              pList;
@@ -711,7 +711,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::Refresh(uint32_t dwSyncTag)
 
         // Check if block is still in use, if so, continue search
         // NOTE - the following expression avoids sync tag wrapping around MAX_INT -> 0
-        if ((int32_t)(dwSyncTag - pBlock->dwSyncTagId) < 0)
+        if (!FrameTrackerTokenFlat_IsExpired(&pBlock->trackerToken))
         {
             continue;
         }
@@ -719,7 +719,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::Refresh(uint32_t dwSyncTag)
         // Block is flagged for deletion
         if (pBlock->bDelete)
         {
-            BLOCK_MANAGER_CHK_STATUS(FreeBlock(pBlock, dwSyncTag));
+            BLOCK_MANAGER_CHK_STATUS(FreeBlock(pBlock));
         }
         // Block is static -> move back to allocated list
         else if (pBlock->bStatic)
@@ -730,7 +730,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::Refresh(uint32_t dwSyncTag)
         else
         // Block is non-static  -> free block
         {
-            FreeBlock(pBlock, dwSyncTag);
+            FreeBlock(pBlock);
         }
     }
 
@@ -1101,7 +1101,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::ResizeBlock(
         else
         {
             // Free block - block is in allocated state
-            FreeBlock(pBlock, MHW_INVALID_SYNC_TAG);
+            FreeBlock(pBlock);
         }
 
         // Success!
@@ -1295,7 +1295,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateWithScratchSpace(
                 //       If in use, it just clears the bStatic flag, so it will be freed when no longer in use.
                 if (pStateHeap->pScratchSpace)
                 {
-                    FreeBlock(pStateHeap->pScratchSpace, 0);
+                    FreeBlock(pStateHeap->pScratchSpace);
                 }
 
                 // Setup new heap scratch space and size
@@ -1409,7 +1409,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateBlock(
 
     // Reset some fields
     pBlock->bDelete       = false;
-    pBlock->dwSyncTagId   = 0;
+    FrameTrackerTokenFlat_Validate(&pBlock->trackerToken);
 
     // Setup aligned offset, size and data
     pBlock->dwDataOffset = MOS_ALIGN_CEIL(pBlock->dwOffsetInStateHeap, dwAlignment);
@@ -1422,8 +1422,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateBlock(
 }
 
 MOS_STATUS MHW_BLOCK_MANAGER::FreeBlock(
-    PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
-    uint32_t dwSyncTag)
+    PMHW_STATE_HEAP_MEMORY_BLOCK pBlock)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1433,7 +1432,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::FreeBlock(
     if (pBlock->BlockState == MHW_BLOCK_STATE_SUBMITTED)
     {
         // sync tag not provided or block still in use - flag it for automatic release when complete
-        if (dwSyncTag == MHW_INVALID_SYNC_TAG || (int32_t)(dwSyncTag - pBlock->dwSyncTagId) < 0)
+        if (!FrameTrackerTokenFlat_IsExpired(&pBlock->trackerToken))
         {
             pBlock->bStatic  = false;
             return eStatus;
@@ -1581,7 +1580,7 @@ uint32_t MHW_BLOCK_MANAGER::CalculateSpaceNeeded(
 
 MOS_STATUS MHW_BLOCK_MANAGER::SubmitBlock(
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
-    uint32_t                     dwSyncTag)
+    const FrameTrackerTokenFlat  *trackerToken)
 {
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
 
@@ -1600,7 +1599,8 @@ MOS_STATUS MHW_BLOCK_MANAGER::SubmitBlock(
     BLOCK_MANAGER_CHK_NULL(pBlock);
 
     // Set block sync tag - used for refreshing the block status
-    pBlock->dwSyncTagId = dwSyncTag;
+    FrameTrackerTokenFlat_Merge(&pBlock->trackerToken, trackerToken);
+
     BLOCK_MANAGER_CHK_STATUS(AttachBlock(MHW_BLOCK_STATE_SUBMITTED, pBlock, MHW_BLOCK_POSITION_TAIL));
 
     return eStatus;
@@ -1693,7 +1693,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateMultiple(
             // One of the block allocations failed - free all blocks already allocated (try another heap)
             for (j = 0; j < i; j++)
             {
-                FreeBlock(pBlockArray[SortedIndex[j]], 0);
+                FreeBlock(pBlockArray[SortedIndex[j]]);
             }
 
             // Clear the output

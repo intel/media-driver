@@ -280,6 +280,7 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
     ofs << "#" << CodechalDbgAttr::attrSegId << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrDecodeOutputSurface << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrDecodeAuxSurface << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDecodeBltOutput << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrDecodeProcParams << ":0" << std::endl;
     ofs << std::endl;
 
@@ -452,7 +453,7 @@ std::string CodechalDebugConfigMgr::GetMediaStateStr(CODECHAL_MEDIA_STATE_TYPE m
         return it->second;
     }
 
-    return nullptr;
+    return "";
 }
 
 bool CodechalDebugConfigMgr::AttrIsEnabled(std::string attrName)

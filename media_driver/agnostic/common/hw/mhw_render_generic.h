@@ -80,6 +80,7 @@ public:
         {
             cmd.DW1_2.GeneralStateBaseAddressModifyEnable    = true;
             cmd.DW12.GeneralStateBufferSizeModifyEnable      = true;
+            cmd.DW1_2.GeneralStateMemoryObjectControlState   = params->mocs4GeneralState;
             resourceParams.presResource                      = params->presGeneralState;
             resourceParams.dwOffset                          = 0;
             resourceParams.pdwCmd                            = cmd.DW1_2.Value;
@@ -108,6 +109,7 @@ public:
             // command need to have the modify
             // bit associated with it set to 1.
             cmd.DW4_5.SurfaceStateBaseAddressModifyEnable    = true;
+            cmd.DW4_5.SurfaceStateMemoryObjectControlState   = params->mocs4SurfaceState;
             resourceParams.presResource                      = &cmdBuffer->OsResource;
             resourceParams.dwOffset                          = indirectStateOffset;
             resourceParams.pdwCmd                            = cmd.DW4_5.Value;
@@ -125,6 +127,7 @@ public:
         if (params->presDynamicState)
         {
             cmd.DW6_7.DynamicStateBaseAddressModifyEnable    = true;
+            cmd.DW6_7.DynamicStateMemoryObjectControlState   = params->mocs4DynamicState;
             cmd.DW13.DynamicStateBufferSizeModifyEnable      = true;
             resourceParams.presResource                      = params->presDynamicState;
             resourceParams.dwOffset                          = 0;
@@ -149,6 +152,7 @@ public:
         if (params->presIndirectObjectBuffer)
         {
             cmd.DW8_9.IndirectObjectBaseAddressModifyEnable     = true;
+            cmd.DW8_9.IndirectObjectMemoryObjectControlState    = params->mocs4IndirectObjectBuffer;
             cmd.DW14.IndirectObjectBufferSizeModifyEnable       = true;
             resourceParams.presResource                         = params->presIndirectObjectBuffer;
             resourceParams.dwOffset                             = 0;
@@ -186,6 +190,9 @@ public:
 
             cmd.DW15.InstructionBufferSize = (params->dwInstructionBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
+
+        // stateless dataport access
+        cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params->mocs4StatelessDataport;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -54,9 +54,9 @@ CodechalDecodeVp9G11::CodechalDecodeVp9G11(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecodeVp9(hwInterface, debugInterface, standardInfo),
-                                            m_scalabilityState(nullptr),
+                                            m_frameSizeMaxAlloced(0),
                                             m_sinlgePipeVeState(nullptr),
-                                            m_frameSizeMaxAlloced(0)
+                                            m_scalabilityState(nullptr)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -87,6 +87,45 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 m_scalabilityState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
                 codecHalSetting));
+
+            if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 2)
+            {
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO5 : MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    m_videoContext,
+                    MOS_GPU_NODE_VIDEO,
+                    m_gpuCtxCreatOpt));
+
+                MOS_GPUCTX_CREATOPTIONS createOption;
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    MOS_GPU_CONTEXT_VIDEO,
+                    m_videoGpuNode,
+                    &createOption));
+            }
+            else if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 3)
+            {
+                m_videoContext = MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VIDEO7 : MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    m_videoContext,
+                    MOS_GPU_NODE_VIDEO,
+                    m_gpuCtxCreatOpt));
+
+                MOS_GPUCTX_CREATOPTIONS createOption;
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    MOS_GPU_CONTEXT_VIDEO,
+                    m_videoGpuNode,
+                    &createOption));
+            }
+            else
+            {
+                m_videoContext = MOS_GPU_CONTEXT_VIDEO;
+            }
         }
         else
         {
@@ -94,6 +133,8 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 m_sinlgePipeVeState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
                 false));
+
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO;
         }
     }
 
@@ -159,6 +200,7 @@ MOS_STATUS CodechalDecodeVp9G11 :: InitializeDecodeMode ()
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel  = m_usFrameWidthAlignedMinBlk;
         initParams.u32PicHeightInPixel = m_usFrameHeightAlignedMinBlk;
+        initParams.format = m_decodeParams.m_destSurface->Format;
         initParams.usingSFC            = false;
         initParams.gpuCtxInUse         = GetVideoContext();
 
@@ -254,6 +296,8 @@ MOS_STATUS CodechalDecodeVp9G11::EndStatusReport(
 
     CodechalDecodeStatus *decodeStatus = &m_decodeStatusBuf.m_decodeStatus[m_decodeStatusBuf.m_currIndex];
     MOS_ZeroMemory(decodeStatus, sizeof(CodechalDecodeStatus));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, cmdBuffer));
 
     if (!m_osInterface->bEnableKmdMediaFrameTracking && m_osInterface->bInlineCodecStatusUpdate)
     {
@@ -479,8 +523,13 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
         }
     }
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11));
+    auto pipeModeSelectParams =
+        static_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(m_picMhwParams.PipeModeSelectParams);
+    *pipeModeSelectParams = {}; 
+    auto pipeBufAddrParams =
+        static_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11>(m_picMhwParams.PipeBufAddrParams);
+    *pipeBufAddrParams = {};
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicStateMhwParams());
 
     bool drmStartStatusFlag = true;
@@ -488,12 +537,7 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
     {
         // Put all DRM/Start Status related cmd into FE VDBOX
         drmStartStatusFlag = CodecHalDecodeScalabilityIsFEPhase(m_scalabilityState);
-        ;
 
-        PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11 pipeModeSelectParams =
-            static_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(m_picMhwParams.PipeModeSelectParams);
-        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11 pipeBufAddrParams =
-            static_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11>(m_picMhwParams.PipeBufAddrParams);
         CodecHalDecodeScalablity_DecPhaseToHwWorkMode(
             pipeModeSelectParams->MultiEngineMode,
             pipeModeSelectParams->PipeWorkMode);
@@ -522,6 +566,10 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_FEBESync(
             m_scalabilityState,
             cmdBufferInUse));
+        if (m_perfFEBETimingEnabled && CodecHalDecodeScalabilityIsLastCompletePhase(m_scalabilityState))
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+        }
     }
 
     if (CodecHalDecodeScalabilityIsBEPhase(m_scalabilityState))
@@ -644,6 +692,10 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
         if (m_statusQueryReportingEnabled)
         {
             EndStatusReportForFE(cmdBufferInUse);
+            if (m_perfFEBETimingEnabled)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
+            }
         }
     }
 
@@ -884,7 +936,6 @@ MOS_STATUS CodechalDecodeVp9G11 :: AllocateStandard (
     m_chromaFormatinProfile = settings->chromaFormat;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11      stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bHucDummyStream = false;
     stateCmdSizeParams.bScalableMode   = static_cast<MhwVdboxMfxInterfaceG11*>(m_mfxInterface)->IsScalabilitySupported();
     //FE has more commands than BE.
@@ -934,8 +985,6 @@ MOS_STATUS CodechalDecodeVp9G11 :: AllocateStandard (
     m_picMhwParams.Vp9PicState = MOS_New(MHW_VDBOX_VP9_PIC_STATE);
     m_picMhwParams.Vp9SegmentState = MOS_New(MHW_VDBOX_VP9_SEGMENT_STATE);
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.Vp9PicState, sizeof(MHW_VDBOX_VP9_PIC_STATE));
     MOS_ZeroMemory(m_picMhwParams.Vp9SegmentState, sizeof(MHW_VDBOX_VP9_SEGMENT_STATE));
@@ -947,5 +996,66 @@ MOS_STATUS CodechalDecodeVp9G11 :: AllocateStandard (
     }
 
     return eStatus;
+}
+
+MOS_STATUS CodechalDecodeVp9G11::SetCencBatchBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_DECODE_CHK_NULL_RETURN(cmdBuffer);
+
+    MHW_BATCH_BUFFER        batchBuffer;
+    MOS_ZeroMemory(&batchBuffer, sizeof(MHW_BATCH_BUFFER));
+    MOS_RESOURCE *resHeap = nullptr;
+    CODECHAL_DECODE_CHK_NULL_RETURN(resHeap = m_cencBuf->secondLvlBbBlock->GetResource());
+
+    batchBuffer.OsResource   = *resHeap;
+    batchBuffer.dwOffset     = m_cencBuf->secondLvlBbBlock->GetOffset() + VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+    batchBuffer.iSize        = m_cencBuf->secondLvlBbBlock->GetSize() - VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+    batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+        cmdBuffer,
+        &batchBuffer));
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+            &batchBuffer,
+            CODECHAL_NUM_MEDIA_STATES,
+            "_2ndLvlBatch_Pic_Cmd"));)
+
+    // Primitive level cmds should not be in BE phases
+    if (!(CodecHalDecodeScalabilityIsBEPhase(m_scalabilityState) && MOS_VE_SUPPORTED(m_osInterface)))
+    {
+        batchBuffer.dwOffset = m_cencBuf->secondLvlBbBlock->GetOffset();
+        batchBuffer.iSize = VP9_CENC_PRIMITIVE_CMD_OFFSET_IN_DW * 4;
+        batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+            cmdBuffer,
+            &batchBuffer));
+
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+                &batchBuffer,
+                CODECHAL_NUM_MEDIA_STATES,
+                "_2ndLvlBatch_Primitive_Cmd"));)
+    }
+
+    // Update GlobalCmdBufId
+    MHW_MI_STORE_DATA_PARAMS miStoreDataParams;
+    MOS_ZeroMemory(&miStoreDataParams, sizeof(miStoreDataParams));
+    miStoreDataParams.pOsResource = m_cencBuf->resTracker;
+    miStoreDataParams.dwValue     = m_cencBuf->trackerId;
+    CODECHAL_DECODE_VERBOSEMESSAGE("dwCmdBufId = %d", miStoreDataParams.dwValue);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &miStoreDataParams));
+    return MOS_STATUS_SUCCESS;
 }
 

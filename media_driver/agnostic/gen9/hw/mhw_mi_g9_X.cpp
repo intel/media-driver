@@ -38,6 +38,7 @@ MOS_STATUS MhwMiInterfaceG9::AddMiSemaphoreWaitCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g9_X::MI_SEMAPHORE_WAIT_CMD *cmd =
         (mhw_mi_g9_X::MI_SEMAPHORE_WAIT_CMD*)cmdBuffer->pCmdPtr;
@@ -179,4 +180,8 @@ void MhwMiInterfaceG9::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G9;
     mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G9;
     mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G9;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GP_REGISTER11_LO_OFFSET_G9;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GP_REGISTER11_HI_OFFSET_G9;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GP_REGISTER12_LO_OFFSET_G9;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GP_REGISTER12_HI_OFFSET_G9;
 }

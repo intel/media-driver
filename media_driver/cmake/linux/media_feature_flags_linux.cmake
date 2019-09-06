@@ -23,13 +23,13 @@ bs_set_if_undefined(Encode_VME_Supported "yes")
 # global flag for encode AVC_VDENC/HEVC_VDENC/VP9_VDENC/JPEG
 bs_set_if_undefined(Encode_VDEnc_Supported "yes")
 
-# Full-open-source means only using open source EU kernels and fixed function hardware
-# which is controlled by Full_Open_Source_Support flag.
-# The opposite is full-feature which permits some features only have binaries.
-# The default build is full-feature build so set Full_Open_Source_Support as "no".
-bs_set_if_undefined(Full_Open_Source_Support "no")
-
-if(${Full_Open_Source_Support} STREQUAL "yes")
+# Some features can't be supported if shaders (kernels) are not
+# available. So, we switch such features off explicitly. That's
+# possible either if user requested a build entirely without
+# shaders or a build with free only shaders. The list of switched
+# off features correspnds to the free kernels case, but we can
+# reuse the full list for enable kernels as well.
+if(NOT ENABLE_KERNELS OR NOT ENABLE_NONFREE_KERNELS)
     # full-open-source
     bs_set_if_undefined(AVC_Encode_VME_Supported "no")
     bs_set_if_undefined(HEVC_Encode_VME_Supported "no")
@@ -158,8 +158,12 @@ else()
     add_definitions(-D__VPHAL_SFC_SUPPORTED=0)
 endif()
 
-if(${Full_Open_Source_Support} STREQUAL "yes")
+if(ENABLE_KERNELS)
+    add_definitions(-DENABLE_KERNELS)
+endif()
+
+if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
 endif()
 
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)
+include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)

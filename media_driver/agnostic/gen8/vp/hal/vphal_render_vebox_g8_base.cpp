@@ -434,9 +434,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::GetFFDISurfParams(
     // output surface's SampleType should be same to input's. Bob is being
     // done in Composition part
     if (pRenderData->bIECP &&
-        (m_currentSurface->pDeinterlaceParams                         &&
+        ((m_currentSurface->pDeinterlaceParams                         &&
          m_currentSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB) ||
-         m_currentSurface->bInterlacedScaling)
+         m_currentSurface->bInterlacedScaling))
     {
         SampleType = m_currentSurface->SampleType;
     }
@@ -1573,9 +1573,16 @@ bool VPHAL_VEBOX_STATE_G8_BASE::IsDiFormatSupported(
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrc);
 
     if (pSrc->Format != Format_AYUV &&
+        pSrc->Format != Format_Y410 &&
         pSrc->Format != Format_Y416 &&
         pSrc->Format != Format_P010 &&
-        pSrc->Format != Format_P016)
+        pSrc->Format != Format_P016 &&
+        pSrc->Format != Format_A8B8G8R8 &&
+        pSrc->Format != Format_A8R8G8B8 &&
+        pSrc->Format != Format_B10G10R10A2 &&
+        pSrc->Format != Format_R10G10B10A2 &&
+        pSrc->Format != Format_A16B16G16R16 &&
+        pSrc->Format != Format_A16R16G16B16)
     {
         bRet = true;
     }

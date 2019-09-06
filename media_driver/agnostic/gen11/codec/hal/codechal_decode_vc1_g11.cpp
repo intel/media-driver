@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -74,12 +74,12 @@ MOS_STATUS CodechalDecodeVc1G11::SetGpuCtxCreatOption(
     {
         m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(    
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
             m_veState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
             false));
-    }
-        
+        m_videoContext = MOS_GPU_CONTEXT_VIDEO; // Move functionality to CodecHalDecodeMapGpuNodeToGpuContex
+    } 
     return eStatus;
 }
 
@@ -183,7 +183,6 @@ MOS_STATUS CodechalDecodeVc1G11::DecodeStateLevel()
     }
 
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = m_streamOutEnabled;
     pipeModeSelectParams.bPostDeblockOutEnable = m_deblockingEnabled;
@@ -197,7 +196,6 @@ MOS_STATUS CodechalDecodeVc1G11::DecodeStateLevel()
     surfaceParams.psSurface = destSurface;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS  pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     if (m_deblockingEnabled)
     {
@@ -232,6 +230,17 @@ MOS_STATUS CodechalDecodeVc1G11::DecodeStateLevel()
         {
             m_presReferences[CodechalDecodeFwdRefBottom] =
                 &destSurface->OsResource;
+        }
+    }
+
+    // set all ref pic addresses to valid addresses for error concealment purpose
+    for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
+    {
+        if (m_presReferences[i] == nullptr && 
+            MEDIA_IS_WA(m_waTable, WaDummyReference) && 
+            !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        {
+            m_presReferences[i] = &m_dummyReference.OsResource;
         }
     }
 
@@ -448,6 +457,33 @@ MOS_STATUS CodechalDecodeVc1G11::DecodePrimitiveLevelVLD()
             int32_t lLength = slc->slice_data_size >> 3;
             int32_t lOffset = slc->macroblock_offset >> 3;
 
+            CodechalResLock ResourceLock(m_osInterface, &m_resDataBuffer);
+            auto buf = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
+            buf += slc->slice_data_offset;
+            if (lOffset > 3 && buf != nullptr &&
+                m_vc1PicParams->sequence_fields.AdvancedProfileFlag)
+            {
+                int i = 0;
+                int j = 0;
+                for (i = 0, j = 0; i < lOffset - 1; i++, j++)
+                {
+                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4)
+                    {
+                        i++, j += 2;
+                    }
+                }
+                if (i == lOffset - 1)
+                {
+                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4)
+                    {
+                        buf[j + 2] = 0;
+                        j++;
+                    }
+                    j++;
+                }
+                lOffset = (8 * j + slc->macroblock_offset % 8)>>3;
+            }
+
             // Check that the slice data does not overrun the bitstream buffer size
             if (((uintptr_t)(slc->slice_data_offset) + lLength) > m_dataSize)
             {
@@ -522,6 +558,7 @@ MOS_STATUS CodechalDecodeVc1G11::DecodePrimitiveLevelVLD()
                         lOffset = CODECHAL_DECODE_VC1_STUFFING_BYTES - 1;
                         lLength += CODECHAL_DECODE_VC1_STUFFING_BYTES;
                         slc->macroblock_offset += CODECHAL_DECODE_VC1_STUFFING_BYTES << 3;
+                        slc->macroblock_offset &= (~0x7); // Clear bit offset of first MB for short format
                     }
                 }
             }
@@ -1297,8 +1334,7 @@ MOS_STATUS CodechalDecodeVc1G11::PerformVc1Olp()
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState = kernelState;
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddMediaVfeCmd(&cmdBuffer, &vfeParams));
 

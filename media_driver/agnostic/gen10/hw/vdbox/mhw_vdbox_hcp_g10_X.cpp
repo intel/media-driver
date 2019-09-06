@@ -1025,11 +1025,22 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeBufAddrCmd(
         resourceParams.pdwCmd = cmd.DecodedPicture.DW0_1.Value;
         resourceParams.dwLocationInCmd = 1;
         resourceParams.bIsWritable = true;
-
-        MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-            m_osInterface,
-            cmdBuffer,
-            &resourceParams));
+        
+        if (m_osInterface->bAllowExtraPatchToSameLoc)
+        {
+            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
+                m_osInterface,
+                cmdBuffer,
+                &resourceParams));
+        }
+        else //if not allowed to patch another OsResource to same location in cmd, just register resource here
+        {
+            MHW_MI_CHK_STATUS(m_osInterface->pfnRegisterResource(
+                m_osInterface,
+                resourceParams.presResource,
+                resourceParams.bIsWritable,
+                resourceParams.bIsWritable));
+        }
     }
 
     resourceParams.presResource = &(params->psPreDeblockSurface->OsResource);
@@ -2353,8 +2364,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateEncCmd(
     auto vp9PicParams = params->pVp9PicParams;
     auto vp9RefList  = params->ppVp9RefList;
 
-    cmd.DW1.FrameWidthInPixelsMinus1        = MOS_ALIGN_CEIL(vp9PicParams->DstFrameWidthMinus1 , CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
-    cmd.DW1.FrameHeightInPixelsMinus1       = MOS_ALIGN_CEIL(vp9PicParams->DstFrameHeightMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameWidthInPixelsMinus1        = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1 , CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameHeightInPixelsMinus1       = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
 
     cmd.DW2.FrameType                       = vp9PicParams->PicFlags.fields.frame_type;
     cmd.DW2.AdaptProbabilitiesFlag          = !vp9PicParams->PicFlags.fields.error_resilient_mode && !vp9PicParams->PicFlags.fields.frame_parallel_decoding_mode;
@@ -2384,8 +2395,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateEncCmd(
 
     if (vp9PicParams->PicFlags.fields.frame_type && !vp9PicParams->PicFlags.fields.intra_only)
     {
-        uint32_t curFrameWidth                     = vp9PicParams->DstFrameWidthMinus1 + 1;
-        uint32_t curFrameHeight                    = vp9PicParams->DstFrameHeightMinus1 + 1;
+        uint32_t curFrameWidth                     = vp9PicParams->SrcFrameWidthMinus1 + 1;
+        uint32_t curFrameHeight                    = vp9PicParams->SrcFrameHeightMinus1 + 1;
 
         PCODEC_PICTURE refFrameList                       = &(vp9PicParams->RefFrameList[0]);
 

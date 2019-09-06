@@ -61,7 +61,10 @@ static __inline MOS_STATUS CodecHalDecodeSinglePipeVE_SetHintParams(
 
     if(!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pVEInterface->pOsInterface))
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, pVESetParams));
+        if(pVEInterface->pfnVESetHintParams)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, pVESetParams));
+        }
     }
 
     return eStatus;
@@ -88,19 +91,23 @@ static __inline MOS_STATUS CodecHalDecodeSinglePipeVE_PopulateHintParams(
     PMOS_CMD_BUF_ATTRI_VE         pAttriVe;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pPrimCmdBuf);
-    CODECHAL_DECODE_CHK_NULL_RETURN(pPrimCmdBuf->Attributes.pAttriVe);
 
-    pAttriVe = (PMOS_CMD_BUF_ATTRI_VE)(pPrimCmdBuf->Attributes.pAttriVe);
-
-    if (bUseVirtualEngineHint)
+    if (pPrimCmdBuf->Attributes.pAttriVe)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(pVEState);
-        CODECHAL_DECODE_CHK_NULL_RETURN(pVEState->pHintParms);
 
-        pAttriVe->VEngineHintParams = *(pVEState->pHintParms);
+        pAttriVe = (PMOS_CMD_BUF_ATTRI_VE)(pPrimCmdBuf->Attributes.pAttriVe);
+
+        if (bUseVirtualEngineHint)
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(pVEState);
+            if(pVEState->pHintParms)
+            {
+                pAttriVe->VEngineHintParams = *(pVEState->pHintParms);
+            }
+        }
+
+        pAttriVe->bUseVirtualEngineHint = bUseVirtualEngineHint;
     }
-
-    pAttriVe->bUseVirtualEngineHint = bUseVirtualEngineHint;
 
     return eStatus;
 }

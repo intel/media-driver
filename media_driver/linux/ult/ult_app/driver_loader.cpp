@@ -25,9 +25,24 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "driver_loader.h"
+#include "mos_util_debug.h"
 #include "memory_leak_detector.h"
 
 using namespace std;
+
+#if MOS_MESSAGES_ENABLED
+extern "C" void MOS_Message(
+    MOS_MESSAGE_LEVEL level,
+    const PCCHAR      logtag,
+    MOS_COMPONENT_ID  compID,
+    uint8_t           subCompID,
+    const PCCHAR      functionName,
+    int32_t           lineNum,
+    const PCCHAR      message,
+    ...)
+{
+}
+#endif
 
 void UltGetCmdBuf(PMOS_COMMAND_BUFFER pCmdBuffer);
 
@@ -38,7 +53,6 @@ const char *g_platformName[] = {
     "SKL",
     "BXT",
     "BDW",
-    "CNL",
 };
 
 DriverDllLoader::DriverDllLoader()
@@ -61,9 +75,6 @@ DriverDllLoader::DriverDllLoader()
 #endif
 #ifdef IGFX_GEN8_BDW_SUPPORTED
         igfxBROADWELL,
-#endif
-#ifdef IGFX_GEN10_CNL_SUPPORTED
-        igfxCANNONLAKE,
 #endif
     };
 
@@ -110,6 +121,7 @@ VAStatus DriverDllLoader::InitDriver(Platform_t platform_id)
     m_ctx.vtable_vpp     = &m_vtable_vpp;
     m_ctx.drm_state      = &m_drmstate;
     m_currentPlatform    = platform_id;
+    m_ctx.vtable_tpi     = nullptr;
 
     if (LoadDriverSymbols() != VA_STATUS_SUCCESS)
     {

@@ -83,8 +83,8 @@ CmSurface2DUPRT::CmSurface2DUPRT( uint32_t handle, uint32_t width, uint32_t heig
     m_handle( handle ),
     m_width( width ),
     m_height( height ),
-    m_format ( format ),
     m_frameType(CM_FRAME),
+    m_format ( format ),
     m_sysMem(sysMem)
 {
     CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_UNKNOW, CM_USE_PTE, 0);
@@ -145,15 +145,15 @@ int32_t CmSurface2DUPRT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, 
 
     CmDeviceRT *cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
-    CMCHK_NULL_AND_RETURN(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
     
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D_UP));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D_UP));
 
 finish:
     return hr;

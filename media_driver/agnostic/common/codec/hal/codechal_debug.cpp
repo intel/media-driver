@@ -32,6 +32,10 @@
 #include <sstream>
 #include <iomanip>
 
+#if !defined(LINUX) && !defined(ANDROID)
+#include "UmdStateSeparation.h"
+#endif
+
 CodechalDebugInterface::CodechalDebugInterface()
 {
     memset(&m_currPic, 0, sizeof(CODEC_PICTURE));
@@ -50,8 +54,10 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     CodechalHwInterface *hwInterface,
     CODECHAL_FUNCTION      codecFunction)
 {
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    char                        stringData[MOS_MAX_PATH_LENGTH + 1];
+    MOS_USER_FEATURE_VALUE_DATA       userFeatureData;
+    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+    char                              stringData[MOS_MAX_PATH_LENGTH + 1];
+    std::string                       codechalDumpFilePath;
 
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -96,9 +102,29 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         }
         else
         {
+#if defined(LINUX) || defined(ANDROID)
             m_outputFilePath = MOS_DEBUG_DEFAULT_OUTPUT_LOCATION;
+#else
+            // Use state separation APIs to obtain appropriate storage location
+            if (SUCCEEDED(GetDriverPersistentStorageLocation(codechalDumpFilePath)))
+            {
+                m_outputFilePath = codechalDumpFilePath.c_str();
+                m_outputFilePath.append(MOS_CODECHAL_DUMP_OUTPUT_FOLDER);
+
+                MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+                userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
+                userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
+                userFeatureWriteData.ValueID                      = __MEDIA_USER_FEATURE_VALUE_CODECHAL_DUMP_OUTPUT_DIRECTORY_ID;
+                MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+            }
+            else
+            {
+                return MOS_STATUS_UNKNOWN;
+            }
+#endif
         }
     }
+
     m_codecFunction = codecFunction;
     m_configMgr = MOS_New(CodechalDebugConfigMgr, this, codecFunction, m_outputFilePath);
     CODECHAL_DEBUG_CHK_NULL(m_configMgr);
@@ -473,8 +499,15 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.ReadOnly = 1;
+    lockFlags.TiledAsTiled = 1; // Bypass GMM CPU blit due to some issues in GMM CpuBlt function
 
-    uint8_t *surfBaseAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
+    uint8_t *lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
+
+    // Always use MOS swizzle instead of GMM Cpu blit
+    uint32_t sizeMain = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
+    uint8_t *surfBaseAddr = (uint8_t*)MOS_AllocMemory(sizeMain);
+    CODECHAL_DEBUG_CHK_NULL(surfBaseAddr);
+    Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch, 0);
 
     surfBaseAddr += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
     uint8_t *data   = surfBaseAddr;
@@ -540,7 +573,6 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         height >>= 1;
         break;
     case  Format_Y416:
-    case  Format_AYUV:
     case  Format_AUYV:
     case  Format_Y410: //444 10bit
         height *= 2;
@@ -556,15 +588,32 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case  Format_Y210: //422 10bit
     case  Format_P208: //422 8bit
         break;
+    case Format_422V:
+    case Format_IMC3:
+        height = height / 2;
+        break;
+    case  Format_AYUV:
     default:
         height = 0;
         break;
     }
 
+uint8_t *vPlaneData = surfBaseAddr;
 #ifdef LINUX
     data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
+    {
+        vPlaneData = surfBaseAddr + surface->VPlaneOffset.iSurfaceOffset;
+    }
 #else
     data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
+    {
+        vPlaneData = surfBaseAddr + surface->VPlaneOffset.iLockSurfaceOffset;
+    }
+
 #endif
 
     // write chroma data to file
@@ -574,11 +623,23 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         data += pitch;
     }
 
+    // write v planar data to file
+    if (surface->Format == Format_422V
+        || surface->Format == Format_IMC3)
+    {
+        for (uint32_t h = 0; h < height; h++)
+        {
+            ofs.write((char *)vPlaneData, width);
+            vPlaneData += pitch;
+        }
+    }
+
     ofs.close();
 
     if (surfBaseAddr)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
+        MOS_FreeMemory(surfBaseAddr);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -696,16 +757,17 @@ MOS_STATUS CodechalDebugInterface::DumpSurface(
     lockFlags.ReadOnly = 1;
     uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
     CODECHAL_DEBUG_CHK_NULL(data);
-
+    
+    std::string bufName  = std::string(surfaceName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
     const char *fileName;
     if (mediaState == CODECHAL_NUM_MEDIA_STATES)
     {
-        fileName = CreateFileName(surfaceName, nullptr, extType);
+        fileName = CreateFileName(bufName.c_str(), nullptr, extType);
     }
     else
     {
         std::string kernelName = m_configMgr->GetMediaStateStr(mediaState);
-        fileName               = CreateFileName(kernelName.c_str(), surfaceName, extType);
+        fileName               = CreateFileName(kernelName.c_str(), bufName.c_str(), extType);
     }
 
     MOS_STATUS status;
@@ -890,6 +952,13 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
     }
 
     return DumpBuffer(region, nullptr, funcName.c_str(), regionSize, regionOffset);
+}
+
+MOS_STATUS CodechalDebugInterface::DumpBltOutput(
+    PMOS_SURFACE              surface,
+    const char *              attrName)
+{
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalDebugInterface::DeleteCfgLinkNode(uint32_t frameIdx)

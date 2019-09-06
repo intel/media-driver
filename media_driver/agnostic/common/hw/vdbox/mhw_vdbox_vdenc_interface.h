@@ -97,51 +97,63 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     uint8_t                                *pucVdencRdMvCosts;
     uint8_t                                *pucVdencHmeMvCosts;
     uint8_t                                *pucVdencModeCosts;
+    void                                   *pInputParams;
+    uint16_t                                usSADQPLambda = 0;
+    uint16_t                                usRDQPLambda = 0;
+    bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
 } MHW_VDBOX_VDENC_CMD1_PARAMS, *PMHW_VDBOX_VDENC_CMD1_PARAMS;
 
-typedef struct _MHW_VDBOX_VDENC_CMD2_STATE
+struct MHW_VDBOX_VDENC_CMD2_STATE
 {
-    uint32_t                                Mode;
+    uint32_t                                Mode = 0;
 
     // HEVC
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams;
-    bool                                    bSAOEnable;
-    bool                                    bRoundingEnabled;
-    bool                                    bStreamInEnabled;
-    bool                                    bROIStreamInEnabled;
-    bool                                    bUseDefaultQpDeltas;
-    bool                                    bPanicEnabled;
-    bool                                    bPartialFrameUpdateEnable;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams = nullptr;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams = nullptr;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams = nullptr;
+    bool                                    bSAOEnable = false;
+    bool                                    bRoundingEnabled = false;
+    bool                                    bStreamInEnabled = false;
+    bool                                    bROIStreamInEnabled = false;
+    bool                                    bUseDefaultQpDeltas = false;
+    bool                                    bPanicEnabled = false;
+    bool                                    bPartialFrameUpdateEnable = false;
 
     // VP9
-    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams;
-    bool                                    bSegmentationEnabled;
-    PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState;
-    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
+    bool                                    bSegmentationEnabled = false;
+    PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState = nullptr;
+    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams = nullptr;
     bool                                    bPrevFrameSegEnabled;
-    uint8_t                                 temporalMVpEnable;
-    uint8_t                                 ucNumRefIdxL0ActiveMinus1;
-    bool                                    bDynamicScalingEnabled;
+    bool                                    bDynamicScalingEnabled = false;
+    bool                                    temporalMVpEnable = false;
 
     // Common
-    uint16_t                                usSADQPLambda;
-    uint16_t                                usRDQPLambda;
-    bool                                    bPakOnlyMultipassEnable;
-} MHW_VDBOX_VDENC_CMD2_STATE, *PMHW_VDBOX_VDENC_CMD2_STATE;
+    uint8_t                                 ucNumRefIdxL0ActiveMinus1 = 0;
+    uint8_t                                 ucNumRefIdxL1ActiveMinus1 = 0;
+    uint16_t                                usSADQPLambda = 0;
+    uint16_t                                usRDQPLambda = 0;
+    bool                                    bPakOnlyMultipassEnable = false;
+    void                                    *pInputParams = nullptr;
+    bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
+    virtual ~MHW_VDBOX_VDENC_CMD2_STATE() {}
+};
+using PMHW_VDBOX_VDENC_CMD2_STATE = std::shared_ptr<MHW_VDBOX_VDENC_CMD2_STATE>;
 
-typedef struct _MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
+struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 {
-    uint32_t                                Mode;
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pAvcSeqParams;
-    PCODEC_AVC_ENCODE_PIC_PARAMS            pAvcPicParams;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams;
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams;
-    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams;
-} MHW_VDBOX_VDENC_WALKER_STATE_PARAMS, *PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS;
+    uint32_t                                Mode = 0;
+    uint32_t                                slcIdx = 0;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pAvcSeqParams = nullptr;
+    PCODEC_AVC_ENCODE_PIC_PARAMS            pAvcPicParams = nullptr;
+    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams = nullptr;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams = nullptr;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams = nullptr;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams = nullptr;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
+    virtual ~MHW_VDBOX_VDENC_WALKER_STATE_PARAMS() {}
+};
+using PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS = MHW_VDBOX_VDENC_WALKER_STATE_PARAMS * ;
 
 //!  MHW Vdbox Vdenc interface
 /*!
@@ -271,6 +283,14 @@ public:
     //!           Vdenc img state size got
     //!
     virtual uint32_t GetVdencAvcImgStateSize() = 0;
+
+    //!
+    //! \brief    get Vdenc cost state size
+    //!
+    //! \return   uint32_t
+    //!           Vdenc cost state size got
+    //!
+    virtual uint32_t GetVdencAvcCostStateSize() = 0;
 
     //!
     //! \brief    get cmd1
@@ -418,8 +438,10 @@ public:
         PMHW_VDBOX_SURFACE_PARAMS            params,
         uint8_t                              numSurfaces) = 0;
 
-    virtual MOS_STATUS AddVdencCostStateCmd(
-        PMHW_BATCH_BUFFER batchBuffer)
+    virtual MOS_STATUS AddVdencAvcCostStateCmd(
+        PMOS_COMMAND_BUFFER       cmdBuffer,
+        PMHW_BATCH_BUFFER         batchBuffer,
+        PMHW_VDBOX_AVC_IMG_PARAMS params)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -502,6 +524,13 @@ public:
         PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS   params) = 0;
 
     virtual MOS_STATUS AddVdencSliceStateCmd(
+        PMOS_COMMAND_BUFFER        cmdBuffer,
+        PMHW_VDBOX_AVC_SLICE_STATE params)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS AddVdencControlStateCmd(
         PMOS_COMMAND_BUFFER cmdBuffer)
     {
         return MOS_STATUS_SUCCESS;

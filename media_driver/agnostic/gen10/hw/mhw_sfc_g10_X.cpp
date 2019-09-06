@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,30 +57,15 @@ MhwSfcInterfaceG10::MhwSfcInterfaceG10(PMOS_INTERFACE pOsInterface)
     // If any override is needed, something like pfnOverrideMemoryObjectCtrl() / pfnComposeSurfaceCacheabilityControl()
     // will need to be implemented.
     // Caching policy if any of below modes are true
+    if (m_osInterface == nullptr)
+    {
+        MHW_ASSERTMESSAGE("Invalid Input Parameter: m_osInterface");
+        return;
+    }
 
-    if (m_osInterface->osCpInterface != nullptr)
-    {
-        if (m_osInterface->osCpInterface->IsHMEnabled() ||
-            m_osInterface->osCpInterface->IsIDMEnabled() ||
-            m_osInterface->osCpInterface->IsSMEnabled())
-        {
-            m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
-                MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,
-                m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
-        }
-        else
-        {
-            m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
-                MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
-                m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
-        }
-    }
-    else
-    {
-        m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
-            MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
-    }
+    m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
 
     m_avsLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,

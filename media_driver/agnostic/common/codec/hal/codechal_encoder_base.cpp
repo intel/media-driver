@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,9 @@ void CodechalEncoderState::PrepareNodes(
     MOS_GPU_NODE& videoGpuNode,
     bool&         setVideoNode)
 {
+    if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface))
+        return;
+
     if (m_vdboxOneDefaultUsed)
     {
         setVideoNode = true;
@@ -69,7 +72,8 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         bool setVideoNode = false;
 
         // Create Video Context
-        if (MEDIA_IS_SKU(m_skuTable, FtrVcs2))
+        if (MEDIA_IS_SKU(m_skuTable, FtrVcs2) || 
+            (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) && m_numVdbox > 1))   // Eventually move this functionality to Mhw
         {
             setVideoNode = false;
 
@@ -86,7 +90,8 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetGpuCtxCreatOption());
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_gpuCtxCreatOpt);
 
-        MOS_GPU_CONTEXT gpuContext = ((videoGpuNode == MOS_GPU_NODE_VIDEO2) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO3 : MOS_GPU_CONTEXT_VIDEO3);
+        MOS_GPU_CONTEXT gpuContext = (videoGpuNode == MOS_GPU_NODE_VIDEO2) && !MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO3 : MOS_GPU_CONTEXT_VIDEO3;
+
         eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(
             m_osInterface,
             gpuContext,
@@ -198,6 +203,9 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         if (m_hwInterface->m_slicePowerGate)
         {
             createOption.packed.SubSliceCount = (m_gtSystemInfo->SubSliceCount / m_gtSystemInfo->SliceCount) >> 1;
+            createOption.packed.SliceCount = (uint8_t)m_gtSystemInfo->SliceCount;
+            createOption.packed.MaxEUcountPerSubSlice = (uint8_t)(m_gtSystemInfo->EUCount / m_gtSystemInfo->SubSliceCount);
+            createOption.packed.MinEUcountPerSubSlice = (uint8_t)(m_gtSystemInfo->EUCount / m_gtSystemInfo->SubSliceCount);
         }
 
         eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(m_osInterface, gpuContext, renderGpuNode, &createOption);
@@ -837,6 +845,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
     m_picHeightInMb   = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
     m_frameWidth      = m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH;
     m_frameHeight     = m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
+    m_createWidth     = m_frameWidth;
+    m_createHeight    = m_frameHeight;
 
     // HME Scaling WxH
     m_downscaledWidthInMb4x               =
@@ -893,11 +903,6 @@ MOS_STATUS CodechalEncoderState::Initialize(
     else
     {
         m_frameTrackingEnabled = m_osInterface->bEnableKmdMediaFrameTracking ? true: false;
-    }
-
-    if (m_standard == CODECHAL_VP9)
-    {
-        m_frameTrackingEnabled = false;
     }
 
     if (m_standard == CODECHAL_AVC)
@@ -1206,26 +1211,30 @@ MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()
     {
         ResizeOnResChange();
     }
-#ifndef _FULL_OPEN_SOURCE
-    // check recon surface's alignment meet HW requirement
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
 
-    if (!m_cscDsState->IsEnabled() ||
-        CodecHal_PictureIsField(m_currOriginalPic) ||
-        CodecHal_PictureIsInterlacedFrame(m_currOriginalPic))
+    if (m_cscDsState)
     {
-        // CSC disabled for interlaced frame
-        m_cscDsState->ResetCscFlag();
+        // check recon surface's alignment meet HW requirement
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
 
-        // check raw surface's alignment meet HW requirement
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckRawSurfaceAlignment(m_rawSurfaceToEnc));
+        if (!m_cscDsState->IsEnabled() ||
+            CodecHal_PictureIsField(m_currOriginalPic) ||
+            CodecHal_PictureIsInterlacedFrame(m_currOriginalPic))
+        {
+            // CSC disabled for interlaced frame
+            m_cscDsState->ResetCscFlag();
+
+            // check raw surface's alignment meet HW requirement
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckRawSurfaceAlignment(m_rawSurfaceToEnc));
+        }
+        else
+        {
+            // check if we need to do CSC or copy non-aligned surface
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckCondition());
+        }
     }
-    else
-    {
-        // check if we need to do CSC or copy non-aligned surface
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckCondition());
-    }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2070,14 +2079,14 @@ void CodechalEncoderState::FreeResources()
             }
         }
     }
-#ifndef _FULL_OPEN_SOURCE
+
     // release CSC Downscaling kernel resources
     if (m_cscDsState)
     {
         MOS_Delete(m_cscDsState);
         m_cscDsState = nullptr;
     }
-#endif
+
     if (m_encoderGenState)
     {
         MOS_Delete(m_encoderGenState);
@@ -2380,8 +2389,7 @@ MOS_STATUS CodechalEncoderState::AddMediaVfeCmd(
 {
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState                      = params->pKernelState;
     vfeParams.eVfeSliceDisable                  = MHW_VFE_SLICE_ALL;
     vfeParams.Scoreboard.ScoreboardEnable       = m_useHwScoreboard;
@@ -2507,7 +2515,11 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     stateBaseAddrParams.dwDynamicStateSize = params->pKernelState->m_dshRegion.GetHeapSize();
     stateBaseAddrParams.presInstructionBuffer = ish;
     stateBaseAddrParams.dwInstructionBufferSize = params->pKernelState->m_ishRegion.GetHeapSize();
-    stateBaseAddrParams.mocs4InstructionCache = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
+
+    if (m_standard == CODECHAL_HEVC)
+    {
+        stateBaseAddrParams.mocs4InstructionCache = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddStateBaseAddrCmd(cmdBuffer, &stateBaseAddrParams));
 
@@ -2626,7 +2638,7 @@ MOS_STATUS CodechalEncoderState::ReadImageStatus(
         // Need a dummy MFX_PIPE_MODE_SELECT to decoder and read this register.
         if (m_waReadVDEncOverflowStatus)
         {
-            MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
+            pipeModeSelectParams = {};
             pipeModeSelectParams.Mode               = CODECHAL_DECODE_MODE_AVCVLD;
             m_hwInterface->GetMfxInterface()->SetDecodeInUse(true);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMfxInterface()->AddMfxPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
@@ -2647,7 +2659,7 @@ MOS_STATUS CodechalEncoderState::ReadImageStatus(
         // Restore MFX_PIPE_MODE_SELECT to encode mode
         if (m_waReadVDEncOverflowStatus)
         {
-            MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
+            pipeModeSelectParams = {};
             pipeModeSelectParams.Mode               = m_mode;
             pipeModeSelectParams.bVdencEnabled      = true;
             m_hwInterface->GetMfxInterface()->SetDecodeInUse(false);
@@ -2984,9 +2996,7 @@ MOS_STATUS CodechalEncoderState::EndStatusReport(
 
         if (MEDIA_IS_WA(m_waTable, WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS vfeStateParams;
-
-            MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+            MHW_VFE_PARAMS vfeStateParams = {};
             vfeStateParams.dwNumberofURBEntries = 1;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaVfeCmd(cmdBuffer, &vfeStateParams));
         }
@@ -3518,6 +3528,60 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
     return eStatus;
 }
 
+MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusReport* encodeStatusReport)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport);
+    uint64_t *address2Counter = nullptr;
+
+    // Report out counter read from HW
+    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+    {
+        address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
+
+        if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(
+                m_osInterface->osCpInterface->ReadCtrNounceRegister(
+                    true,
+                    (uint32_t *)&m_regHwCount[index]));
+            address2Counter = (uint64_t *)&m_regHwCount[index];
+            CODECHAL_ENCODE_NORMALMESSAGE("MMIO returns end ctr is %llx", *address2Counter);
+            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
+
+            // Here gets the end counter of current bit stream, which should minus counter increment.
+            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
+        }
+    }
+
+    // KBL- cann't read counter from HW
+    else
+    {
+        uint32_t ctr[4] = { 0 };
+        eStatus = m_hwInterface->GetCpInterface()->GetCounterValue(ctr);
+        if (MOS_STATUS_SUCCESS == eStatus)
+        {
+            address2Counter = (uint64_t *)ctr;
+        }
+        else
+        {
+            return eStatus;
+        }
+    }
+    encodeStatusReport->HWCounterValue.Count = *address2Counter;
+    //Report back in Big endian
+    encodeStatusReport->HWCounterValue.Count = SwapEndianness(encodeStatusReport->HWCounterValue.Count);
+    //IV value computation
+    encodeStatusReport->HWCounterValue.IV = *(++address2Counter); 
+    encodeStatusReport->HWCounterValue.IV = SwapEndianness(encodeStatusReport->HWCounterValue.IV);
+    CODECHAL_ENCODE_NORMALMESSAGE(
+        "encodeStatusReport->HWCounterValue.Count = 0x%llx, encodeStatusReport->HWCounterValue.IV = 0x%llx",
+        encodeStatusReport->HWCounterValue.Count,
+        encodeStatusReport->HWCounterValue.IV);
+    return eStatus;
+}
+
 //------------------------------------------------------------------------------
 //| Purpose:    Gets available eStatus report data
 //| Return:     N/A
@@ -3696,7 +3760,6 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             }
             else
             {
-                HwCounter hwCounterValue;
                 if (m_codecGetStatusReportDefined)
                 {
                     // Call corresponding CODEC's status report function if existing
@@ -3706,19 +3769,13 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         return eStatus;
                     }
 
-                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
+                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
                     {
-                        //Report out counter read from HW
-                        uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
-
-                        hwCounterValue.Count = *address2Counter;
-                        hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
-
-                        hwCounterValue.IV = *(++address2Counter);          //IV value computation
-                        hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
-
-                        encodeStatusReport->HWCounterValue = hwCounterValue;
-                        CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx", hwCounterValue.Count, hwCounterValue.IV);
+                        eStatus = ReadCounterValue(index, encodeStatusReport);
+                        if (MOS_STATUS_SUCCESS != eStatus)
+                        {
+                            return eStatus;
+                        }
                     }
                 }
                 else
@@ -3738,19 +3795,13 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_skuTable);
 
-                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
+                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
                     {
-                        //Report out counter read from HW
-                        uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount))+(index*sizeof(HwCounter)));
-
-                        hwCounterValue.Count     = *address2Counter;
-                        hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
-
-                        //IV value computation:
-                        hwCounterValue.IV        = *(++address2Counter);
-                        hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
-
-                        encodeStatusReport->HWCounterValue = hwCounterValue;
+                        eStatus = ReadCounterValue(index, encodeStatusReport);
+                        if (MOS_STATUS_SUCCESS != eStatus)
+                        {
+                            return eStatus;
+                        }
                     }
 
                     if (m_picWidthInMb != 0 && m_frameFieldHeightInMb != 0)
@@ -3776,7 +3827,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     return MOS_STATUS_NOT_ENOUGH_BUFFER;
                 }
 
-                if(refList->bMADEnabled)
+                if(refList && refList->bMADEnabled)
                 {
                     // set lock flag to READ_ONLY
                     MOS_LOCK_PARAMS lockFlags;
@@ -3977,7 +4028,6 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-#ifndef _FULL_OPEN_SOURCE
     // report encode CSC method
     if (m_cscDsState)
     {
@@ -3996,9 +4046,28 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_FORMAT_ID;
         MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
-#endif
+
+    // Encode compute context Reporting
+    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    userFeatureWriteData.Value.i32Data = m_computeContextEnabled;
+    userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID;
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 #endif
 
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncoderState::SubmitCommandBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    int32_t         nullRendering)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));
     return eStatus;
 }
 
@@ -4211,10 +4280,19 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             }
         }
 
-        // Check if source surface needs to be synchronized and should wait for decode or VPP or any other context
         MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
-        syncParams.presSyncResource = &m_rawSurface.OsResource;
         syncParams.bReadOnly = true;
+
+        // Synchronize MB QP data surface resource if any.
+        if (encodeParams->bMbQpDataEnabled)
+        {
+            syncParams.presSyncResource = &encodeParams->psMbQpDataSurface->OsResource;
+            syncParams.GpuContext       = m_renderContext;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
+        }
+
+        // Check if source surface needs to be synchronized and should wait for decode or VPP or any other context
+        syncParams.presSyncResource = &m_rawSurface.OsResource;
 
         if (CodecHalUsesRenderEngine(m_codecFunction, m_standard) &&
             m_firstField)

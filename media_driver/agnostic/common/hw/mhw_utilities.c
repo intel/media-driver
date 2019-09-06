@@ -56,6 +56,7 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     uint8_t                 *pbCmdBufBase = nullptr;
 
     MHW_CHK_NULL(pOsInterface);
+    MHW_CHK_NULL(pParams);
     MHW_CHK_NULL(pParams->presResource);
     MHW_CHK_NULL(pCmdBuffer);
     MHW_CHK_NULL(pCmdBuffer->pCmdBase);
@@ -65,8 +66,8 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
         pParams->presResource,
-        pParams->bIsWritable,
-        pParams->bIsWritable));
+        pParams->bIsWritable ? true : false,
+        pParams->bIsWritable ? true : false));
 
     dwAlign = ( 1 << pParams->dwLsbNum);
     dwMask  = (-1 << pParams->dwLsbNum);
@@ -172,13 +173,15 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     MHW_CHK_NULL(pOsInterface);
+    MHW_CHK_NULL(pParams);
     MHW_CHK_NULL(pParams->presResource);
+    MHW_CHK_NULL(pCmdBuffer);
 
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
         pParams->presResource,
-        pParams->bIsWritable,
-        pParams->bIsWritable));
+        pParams->bIsWritable ? true : false,
+        pParams->bIsWritable ? true : false));
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
     iAllocationIndex = pOsInterface->pfnGetResourceAllocationIndex(pOsInterface, pParams->presResource);
@@ -194,7 +197,6 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     }
     else
     {
-        MHW_CHK_NULL(pCmdBuffer);
         // Calculate the patch offset to command buffer
         uiPatchOffset = pCmdBuffer->iOffset + (pParams->dwLocationInCmd * sizeof(uint32_t));
     }
@@ -288,6 +290,7 @@ MOS_STATUS Mhw_SurfaceFormatToType(
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(psSurface);
+    MHW_CHK_NULL(pdwSurfaceType);
 
     switch ( dwForceSurfaceFormat )
     {
@@ -349,6 +352,7 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
 
     MHW_CHK_NULL(pParams->pvMiInterface);
     pMiInterface = (MhwMiInterface *)pParams->pvMiInterface;
+    MHW_CHK_NULL(pMiInterface);
 
     pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
     MHW_CHK_NULL(pSkuTable);
@@ -359,21 +363,22 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
 
     if ( pOsInterface->Component != COMPONENT_CM )
     {
-        if ( GpuContext == MOS_GPU_CONTEXT_RENDER        ||
-             GpuContext == MOS_GPU_CONTEXT_RENDER2       ||
-             GpuContext == MOS_GPU_CONTEXT_RENDER3       ||
-             GpuContext == MOS_GPU_CONTEXT_RENDER4       ||
-             GpuContext == MOS_GPU_CONTEXT_VIDEO         ||
-             GpuContext == MOS_GPU_CONTEXT_VIDEO2        ||
-             GpuContext == MOS_GPU_CONTEXT_VIDEO3        ||
-             GpuContext == MOS_GPU_CONTEXT_VIDEO4        ||
-             GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO  ||
-             GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO2 ||
-             GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO3 ||
-             GpuContext == MOS_GPU_CONTEXT_VEBOX)
+        if (    GpuContext == MOS_GPU_CONTEXT_RENDER        ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER2       ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER3       ||
+                GpuContext == MOS_GPU_CONTEXT_RENDER4       ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO         ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO2        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO3        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO4        ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO  ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO2 ||
+                GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO3 ||
+                GpuContext == MOS_GPU_CONTEXT_VEBOX         ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO5        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO6        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO7        )
         {
-            MHW_CHK_STATUS(pMiInterface->SetWatchdogTimerRegisterOffset(GpuContext));
-
             MHW_CHK_STATUS(pMiInterface->AddWatchdogTimerStartCmd(pCmdBuffer));
         }
     }

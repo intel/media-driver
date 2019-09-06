@@ -105,6 +105,7 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_L16                  =  81,
     VA_CM_FMT_A16B16G16R16F        = 113,
     VA_CM_FMT_R32F                 = 114,
+    VA_CM_FMT_R32G32B32A32F        = 115,
     VA_CM_FMT_NV12                 = VA_FOURCC_NV12,
     VA_CM_FMT_UYVY                 = VA_FOURCC_UYVY,
     VA_CM_FMT_YUY2                 = VA_FOURCC_YUY2,
@@ -112,11 +113,17 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_411P                 = VA_FOURCC_411P,
     VA_CM_FMT_422H                 = VA_FOURCC_422H,
     VA_CM_FMT_422V                 = VA_FOURCC_422V,
+    VA_CM_FMT_411R                 = VA_FOURCC_411R,
+    VA_CM_FMT_RGBP                 = VA_FOURCC_RGBP,
+    VA_CM_FMT_BGRP                 = VA_FOURCC_BGRP,
     VA_CM_FMT_IMC3                 = VA_FOURCC_IMC3,
     VA_CM_FMT_YV12                 = VA_FOURCC_YV12,
     VA_CM_FMT_P010                 = VA_FOURCC_P010,
     VA_CM_FMT_P016                 = VA_FOURCC_P016,
     VA_CM_FMT_P208                 = VA_FOURCC_P208,
+    VA_CM_FMT_AYUV                 = VA_FOURCC_AYUV,
+    VA_CM_FMT_Y210                 = VA_FOURCC_Y210,
+    VA_CM_FMT_Y410                 = VA_FOURCC_Y410,
     VA_CM_FMT_Y216                 = VA_FOURCC_Y216,
     VA_CM_FMT_Y416                 = VA_FOURCC_Y416,
 
@@ -145,18 +152,26 @@ typedef enum _VA_CM_FORMAT {
 #define CM_SURFACE_FORMAT_A16B16G16R16          VA_CM_FMT_A16B16G16R16
 #define CM_SURFACE_FORMAT_R10G10B10A2           VA_CM_FMT_A2B10G10R10
 #define CM_SURFACE_FORMAT_A16B16G16R16F         VA_CM_FMT_A16B16G16R16F
+#define CM_SURFACE_FORMAT_R32G32B32A32F         VA_CM_FMT_R32G32B32A32F
 
 #define CM_SURFACE_FORMAT_444P                  VA_CM_FMT_444P
 #define CM_SURFACE_FORMAT_422H                  VA_CM_FMT_422H
 #define CM_SURFACE_FORMAT_422V                  VA_CM_FMT_422V
 #define CM_SURFACE_FORMAT_411P                  VA_CM_FMT_411P
+#define CM_SURFACE_FORMAT_411R                  VA_CM_FMT_411R
+#define CM_SURFACE_FORMAT_RGBP                  VA_CM_FMT_RGBP
+#define CM_SURFACE_FORMAT_BGRP                  VA_CM_FMT_BGRP
 #define CM_SURFACE_FORMAT_IMC3                  VA_CM_FMT_IMC3
 #define CM_SURFACE_FORMAT_YV12                  VA_CM_FMT_YV12
 #define CM_SURFACE_FORMAT_P010                  VA_CM_FMT_P010
 #define CM_SURFACE_FORMAT_P016                  VA_CM_FMT_P016
 #define CM_SURFACE_FORMAT_P208                  VA_CM_FMT_P208
+#define CM_SURFACE_FORMAT_AYUV                  VA_CM_FMT_AYUV
+#define CM_SURFACE_FORMAT_Y210                  VA_CM_FMT_Y210
+#define CM_SURFACE_FORMAT_Y410                  VA_CM_FMT_Y410
 #define CM_SURFACE_FORMAT_Y216                  VA_CM_FMT_Y216
 #define CM_SURFACE_FORMAT_Y416                  VA_CM_FMT_Y416
+
 
 #define CM_TEXTURE_ADDRESS_TYPE                 VACMTEXTUREADDRESS
 #define CM_TEXTURE_ADDRESS_WRAP                 VACMTADDRESS_WRAP

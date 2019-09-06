@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2085,7 +2085,7 @@ MOS_STATUS CodechalEncHevcStateG10::AllocateEncResources()
     if (m_is10BitHevc)
     {
         //Output surface for format conversion from 10bit to 8 bit
-        for(auto i = 0 ; i < NUM_FORMAT_CONV_FRAMES ; i++)
+        for(uint32_t i = 0 ; i < NUM_FORMAT_CONV_FRAMES ; i++)
         {
             if (Mos_ResourceIsNull(&m_formatConvertedSurface[i].OsResource))
             {
@@ -2281,7 +2281,7 @@ MOS_STATUS CodechalEncHevcStateG10::FreeEncResources()
         &m_residualDataScratchSurfaceForBLcu64.OsResource);
 
     // Release Output surfaces for format conversion from 10bit to 8 bit
-    for(auto i = 0 ; i < NUM_FORMAT_CONV_FRAMES; i++)
+    for(uint32_t i = 0 ; i < NUM_FORMAT_CONV_FRAMES; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -5554,7 +5554,6 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeBrcFrameUpdateKernel()
 
     // Fill HCP_IMG_STATE so that BRC kernel can use it to generate the write buffer for PAK
     MHW_VDBOX_HEVC_PIC_STATE mhwHevcPicState;
-    MOS_ZeroMemory(&mhwHevcPicState, sizeof(mhwHevcPicState));
     mhwHevcPicState.pHevcEncSeqParams = m_hevcSeqParams;
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.bUseVDEnc = false;
@@ -6488,7 +6487,7 @@ MOS_STATUS CodechalEncHevcStateG10::GetCustomDispatchPattern(
 
             walkerParams->LocalOutLoopStride.x = 1;
             walkerParams->LocalOutLoopStride.y = 0;
-            walkerParams->LocalInnerLoopUnit.x = -Mw_26zx_H_Factor * 2;
+            walkerParams->LocalInnerLoopUnit.x = 0xFFFF - Mw_26zx_H_Factor * 2 + 1;
             walkerParams->LocalInnerLoopUnit.y = walkerCodecParams->usTotalThreadNumPerLcu;
             walkerParams->MiddleLoopExtraSteps = walkerCodecParams->usTotalThreadNumPerLcu - 1;
             walkerParams->MidLoopUnitX = 0;

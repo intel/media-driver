@@ -180,6 +180,16 @@ public:
                                                     const uint32_t option,
                                                     CmEvent *&event);
 
+    CM_RT_API int32_t EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr);
+
+    CM_RT_API int32_t DestroyEventFast(CmEvent *&event);
+
+    CM_RT_API int32_t EnqueueWithGroupFast(CmTask *task,
+                                      CmEvent *&event,
+                                      const CmThreadGroupSpace *threadGroupSpace = nullptr);
+
     int32_t EnqueueCopyInternal_1Plane(CmSurface2DRT *surface,
                                        unsigned char *sysMem,
                                        CM_SURFACE_FORMAT format,
@@ -216,8 +226,7 @@ public:
                                          unsigned char *sysMem,
                                          const uint32_t widthStride,
                                          const uint32_t heightStride,
-                                         CM_GPUCOPY_DIRECTION direction,
-                                         CmEvent *&event);
+                                         CM_GPUCOPY_DIRECTION direction);
 
     int32_t FlushTaskWithoutSync(bool flushBlocked = false);
 
@@ -231,6 +240,12 @@ public:
     int32_t CleanQueue();
 
     CM_QUEUE_CREATE_OPTION &GetQueueOption();
+
+    int32_t GetOSSyncEventHandle(void *& hOSSyncEvent);
+
+    uint32_t GetFastTrackerIndex() { return m_fastTrackerIndex; }
+
+    uint32_t StreamIndex() const { return m_streamIndex; }
 
 protected:
     CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
@@ -260,7 +275,8 @@ protected:
                        PCM_POWER_OPTION powerOption = nullptr,
                        const uint64_t conditionalEndBitmap = 0,
                        PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo = nullptr,
-                       CM_TASK_CONFIG *taskConfig = nullptr);
+                       CM_TASK_CONFIG *taskConfig = nullptr,
+                       const CM_EXECUTION_CONFIG* krnExecCfg = nullptr);
 
     int32_t Enqueue_RT(CmKernelRT *kernelArray[],
                        CmEventRT *&event,
@@ -313,6 +329,9 @@ protected:
                                 CM_GPUCOPY_DIRECTION copyDirection,
                                 CM_GPUCOPY_KERNEL* &kernelParam);
 
+    int32_t RegisterSyncEvent();
+
+
     CmDeviceRT *m_device;
     ThreadSafeQueue m_enqueuedTasks;
     ThreadSafeQueue m_flushedTasks;
@@ -333,7 +352,27 @@ protected:
     CM_HAL_MAX_VALUES *m_halMaxValues;
     CM_QUEUE_CREATE_OPTION m_queueOption;
 
+    bool m_usingVirtualEngine;
+    MOS_VIRTUALENGINE_HINT_PARAMS m_mosVeHintParams;
+
+    void  *m_osSyncEvent;   //KMD Notification
+
+    uint32_t m_trackerIndex;
+    uint32_t m_fastTrackerIndex;
+
 private:
+    uint32_t m_streamIndex;
+
+    MOS_STATUS CreateGpuContext(CM_HAL_STATE *halState,
+                                MOS_GPU_CONTEXT gpuContextName,
+                                MOS_GPU_NODE gpuNode,
+                                MOS_GPUCTX_CREATOPTIONS *createOptions);
+
+    // Calls CM HAL API to submit a group task to command buffer.
+    MOS_STATUS ExecuteGroupTask(CM_HAL_STATE *halState,
+                                CM_HAL_EXEC_TASK_GROUP_PARAM *taskParam,
+                                MOS_GPU_CONTEXT gpuContextName);
+
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);
 };

@@ -33,6 +33,9 @@ MhwMiInterface::MhwMiInterface(
 {
     MHW_FUNCTION_ENTER;
 
+    MOS_ZeroMemory(&UseGlobalGtt, sizeof(UseGlobalGtt));
+    MOS_ZeroMemory(&MediaResetParam, sizeof(MediaResetParam));
+
     if (cpInterface == nullptr || osInterface == nullptr)
     {
         MHW_ASSERTMESSAGE("Invalid input pointers provided");

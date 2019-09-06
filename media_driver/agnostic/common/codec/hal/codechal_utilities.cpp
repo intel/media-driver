@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -210,7 +210,8 @@ MOS_STATUS CodecHalGetKernelBinaryAndSize(
     uint8_t**  kernelBinary,
     uint32_t*  size)
 {
-#ifndef _FULL_OPEN_SOURCE
+#ifdef ENABLE_KERNELS
+
     CODECHAL_PUBLIC_CHK_NULL_RETURN(kernelBase);
     CODECHAL_PUBLIC_CHK_NULL_RETURN(kernelBinary);
     CODECHAL_PUBLIC_CHK_NULL_RETURN(size);

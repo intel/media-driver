@@ -262,22 +262,23 @@ public:
     };
     C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds4xKernelCurbeData)) == 12);
 
-    const uint8_t IsEnabled() { return m_cscDsConvEnable; }
-    const uint32_t GetRawSurfWidth() { return m_cscRawSurfWidth; }
-    const uint32_t GetRawSurfHeight() { return m_cscRawSurfHeight; }
-    const bool RequireCsc() { return m_cscFlag != 0; }
-    const bool UseSfc() { return m_cscUsingSfc != 0; }
-    const bool IsSfcEnabled() { return m_cscEnableSfc != 0; }
-    const bool RenderConsumesCscSurface() { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar; }
-    const bool VdboxConsumesCscSurface() { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireMmc; }
+    uint8_t IsEnabled() const { return m_cscDsConvEnable; }
+    uint32_t GetRawSurfWidth() const { return m_cscRawSurfWidth; }
+    uint32_t GetRawSurfHeight() const { return m_cscRawSurfHeight; }
+    bool RequireCsc() const { return m_cscFlag != 0; }
+    bool UseSfc() const { return m_cscUsingSfc != 0; }
+    bool IsSfcEnabled() const { return m_cscEnableSfc != 0; }
+    bool RenderConsumesCscSurface() const { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar; }
+    bool VdboxConsumesCscSurface() const { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireMmc; }
     // 0 for native HW support; 1 for CSC kernel; 2 for VEBOX
-    const uint8_t CscMethod() { return (m_cscRequireColor ? (m_cscUsingSfc ? 2 : 1) : 0); }
+    uint8_t CscMethod() const { return (m_cscRequireColor ? (m_cscUsingSfc ? 2 : 1) : 0); }
 
     void DisableCsc() { m_cscDsConvEnable = 0; }
     void EnableCopy() { m_cscEnableCopy = 1; }
     void EnableColor() { m_cscEnableColor = 1; }
     void EnableMmc() { m_cscEnableMmc = 1; }
     void EnableSfc() { m_cscEnableSfc = 1; }
+    void DisableSfc() { m_cscEnableSfc = 0; }
     void ResetCscFlag() { m_cscFlag = 0; }
     //! \endcond
 
@@ -301,7 +302,7 @@ public:
     //!
     //! \return   Number of BTI
     //!
-    virtual const uint8_t GetBTCount();
+    virtual uint8_t GetBTCount() const;
 
     //!
     //! \brief    Get CSC surface allocation width/height/format
@@ -487,6 +488,8 @@ protected:
     {
         bool                        bFlatnessCheckEnabled = false;
         bool                        bMBVProcStatsEnabled = false;
+        bool                        bScalingInUses16UnormSurfFmt = false;
+        bool                        bScalingInUses32UnormSurfFmt = false;
         PMOS_SURFACE                psInputSurface = nullptr;
         PMOS_SURFACE                psOutput4xDsSurface = nullptr;
         PMOS_SURFACE                psOutput2xDsSurface = nullptr;
@@ -520,6 +523,7 @@ protected:
         uint32_t                dwMBVProcStatsBottomFieldOffset = 0;
         bool                    bCurrPicIsFrame = false;
         bool                    bPreEncInUse = false;
+        bool                    bEnable8x8Statistics = false;
     };
 
     //!
@@ -542,6 +546,17 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS InitKernelStateDS();
+
+    //!
+    //! \brief    Set SurfaceParamsDS for DS kernel
+    //!
+    //! \param    params
+    //!           KernelParams pointer from caller
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetSurfaceParamsDS(KernelParams* params);
 
     //!
     //! \brief    Setup Curbe for DS kernel
@@ -637,6 +652,7 @@ protected:
     bool&                       m_singleTaskPhaseSupported;
     bool&                       m_firstTaskInPhase;
     bool&                       m_lastTaskInPhase;
+    bool&                       m_externalCopySync;
     uint8_t&                    m_groupId;
     uint8_t&                    m_outputChromaFormat;
     uint32_t&                   m_standard;

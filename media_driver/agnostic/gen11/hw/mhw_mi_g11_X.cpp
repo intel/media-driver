@@ -38,6 +38,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiSemaphoreWaitCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD *cmd =
         (mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD*)cmdBuffer->pCmdPtr;
@@ -140,6 +141,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiStoreRegisterMemCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD *cmd =
         (mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
@@ -163,6 +165,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterMemCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_MEM_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
@@ -186,6 +189,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterImmCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD*)cmdBuffer->pCmdPtr;
@@ -209,6 +213,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterRegCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_REG_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_REG_CMD*)cmdBuffer->pCmdPtr;
@@ -229,7 +234,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterRegCmd(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight)
+MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder)
 {
     MHW_FUNCTION_ENTER;
 
@@ -239,21 +244,36 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerThreshold(uint32_t frameWidth, uin
         return MOS_STATUS_SUCCESS;
     }
 
-    if ((frameWidth * frameHeight) >= (7680 * 4320))
+    if (isEncoder)
     {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS;
-    }
-    else if ((frameWidth * frameHeight) >= (3840 * 2160))
-    {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS;
-    }
-    else if ((frameWidth * frameHeight) >= (1920 * 1080))
-    {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS;
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (3840 * 2160))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (1920 * 1080))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS;
+        }
     }
     else
     {
-        MediaResetParam.watchdogCountThreshold = MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS;
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_16K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else
+        {
+            // 60ms should be enough for decoder with resolution smaller than 8k
+            MediaResetParam.watchdogCountThreshold = MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
+        }
     }
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -279,12 +299,6 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerRegisterOffset(
 {
     MHW_FUNCTION_ENTER;
 
-    if (m_osInterface->bMediaReset == false ||
-        m_osInterface->umdMediaResetEnable == false)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
     switch (gpuContext)
     {
         // RCS
@@ -300,6 +314,9 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerRegisterOffset(
     case MOS_GPU_CONTEXT_VIDEO2:
     case MOS_GPU_CONTEXT_VIDEO3:
     case MOS_GPU_CONTEXT_VIDEO4:
+    case MOS_GPU_CONTEXT_VIDEO5:
+    case MOS_GPU_CONTEXT_VIDEO6:
+    case MOS_GPU_CONTEXT_VIDEO7:
         MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VCS0_G11;
         MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS0_G11;
         break;
@@ -326,6 +343,8 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerRegisterOffset(
 MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStartCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT     gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -335,6 +354,10 @@ MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStartCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     // Send Stop before Start is to help recover from incorrect wdt state if previous submission 
     // cause hang and not have a chance to execute the stop cmd in the end of batch buffer. 
@@ -365,6 +388,8 @@ MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStartCmd(
 MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStopCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -374,6 +399,10 @@ MOS_STATUS MhwMiInterfaceG11::AddWatchdogTimerStopCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     //Stop Watchdog Timer
     MHW_MI_LOAD_REGISTER_IMM_PARAMS registerImmParams;
@@ -395,4 +424,8 @@ void MhwMiInterfaceG11::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G11;
     mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G11;
     mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GP_REGISTER11_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GP_REGISTER11_HI_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GP_REGISTER12_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GP_REGISTER12_HI_OFFSET_G11;
 }

@@ -290,9 +290,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
     PMHW_RCS_SURFACE_PARAMS     pParams)
 {
     PMOS_INTERFACE              pOsInterface;
-    uint8_t                     *pIndirectState;
+    uint8_t                     *pIndirectState = nullptr;
     MHW_RESOURCE_PARAMS         ResourceParams;
-    uint32_t                    uiIndirectStateOffset, uiIndirectStateSize;
+    uint32_t                    uiIndirectStateOffset = 0, uiIndirectStateSize = 0;
     PMHW_STATE_HEAP             pStateHeap;
     uint32_t                    dwSurfaceType = GFX3DSTATE_SURFACETYPE_NULL;                // GFX3DSTATE_SURFACETYPE
     uint32_t                    i; // Plane Index
@@ -314,6 +314,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
     pOsInterface    = m_pOsInterface;
     pStateHeap      = &m_SurfaceStateHeap;
 
+    MHW_MI_CHK_NULL(pOsInterface);
     MHW_MI_CHK_STATUS(pOsInterface->pfnGetIndirectStatePointer(pOsInterface, &pIndirectState));
     MHW_MI_CHK_STATUS(pOsInterface->pfnGetIndirectState(pOsInterface, &uiIndirectStateOffset, &uiIndirectStateSize));
 
@@ -323,6 +324,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
     for ( i = 0; i < pParams->dwNumPlanes; i++)
     {
         MHW_ASSERT_INVALID_BINDING_TABLE_IDX(pParams->dwBindingTableOffset[i]);
+        MHW_MI_CHK_NULL(pKernelState);
         uint32_t u32SurfaceOffsetInSsh =
             pKernelState->dwSshOffset + pKernelState->dwBindingTableSize + // offset within SSH to start of surfaces for this kernel
             (m_HwSizes.dwMaxSizeSurfaceState * pParams->dwBindingTableOffset[i]); // offset to the current surface
@@ -338,6 +340,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
         {
             mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD *pCmd =
                 (mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD*)pLocationOfSurfaceInSsh;
+            MHW_MI_CHK_NULL(pCmd);
 
             *pCmd = mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD();
 
@@ -430,6 +433,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
         {
             mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD *pCmd =
                 (mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD*)pLocationOfSurfaceInSsh;
+            MHW_MI_CHK_NULL(pCmd);
 
             mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD CmdInit;
             // Add additional defaults specific to media
@@ -613,7 +617,6 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSamplerState(
         Cmd.DW0.MinModeFilter = Cmd.MIN_MODE_FILTER_LINEAR;
         Cmd.DW0.MagModeFilter = Cmd.MAG_MODE_FILTER_LINEAR;
         Cmd.DW0.TextureBorderColorMode = Cmd.TEXTURE_BORDER_COLOR_MODE_8BIT;
-        Cmd.DW0.SamplerDisable = true;
         Cmd.DW1.ShadowFunction = Cmd.SHADOW_FUNCTION_PREFILTEROPNEVER;
         Cmd.DW3.TczAddressControlMode = Cmd.TCZ_ADDRESS_CONTROL_MODE_CLAMP;
         Cmd.DW3.TcyAddressControlMode = Cmd.TCY_ADDRESS_CONTROL_MODE_CLAMP;
@@ -658,7 +661,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSamplerState(
             UnormSamplerInit.DW0.MinModeFilter = UnormSamplerInit.MIN_MODE_FILTER_LINEAR;
             UnormSamplerInit.DW0.MagModeFilter = UnormSamplerInit.MAG_MODE_FILTER_LINEAR;
             UnormSamplerInit.DW0.TextureBorderColorMode = UnormSamplerInit.TEXTURE_BORDER_COLOR_MODE_8BIT;
-            UnormSamplerInit.DW0.SamplerDisable = true;
+            UnormSamplerInit.DW0.SamplerDisable = false;
             UnormSamplerInit.DW1.ShadowFunction = UnormSamplerInit.SHADOW_FUNCTION_PREFILTEROPNEVER;
             UnormSamplerInit.DW3.TczAddressControlMode = UnormSamplerInit.TCZ_ADDRESS_CONTROL_MODE_CLAMP;
             UnormSamplerInit.DW3.TcyAddressControlMode = UnormSamplerInit.TCY_ADDRESS_CONTROL_MODE_CLAMP;
@@ -671,8 +674,6 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSamplerState(
             UnormSamplerInit.DW3.UAddressMagFilterRoundingEnable = true;
 
             *pUnormSampler = UnormSamplerInit;
-
-            pUnormSampler->DW0.SamplerDisable = false;
 
             if (pParam->Unorm.SamplerFilterMode == MHW_SAMPLER_FILTER_NEAREST)
             {
@@ -917,6 +918,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::AddSamplerStateData(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    MHW_MI_CHK_NULL(memoryBlock);
+    MHW_MI_CHK_NULL(pParam);
+
     if (pParam->SamplerType == MHW_SAMPLER_TYPE_3D)
     {
         mhw_state_heap_g10_X::SAMPLER_STATE_CMD          unormSampler;
@@ -1026,6 +1030,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::LoadSamplerAvsTable(
         PMHW_AVS_COEFFICIENT_PARAM   pCoeffParam = &pMhwSamplerAvsTableParam->paMhwAvsCoeffParam[u32CoeffTableIdx];
         mhw_state_heap_g10_X::SAMPLER_STATE_8x8_AVS_COEFFICIENTS_CMD *pCoeffTable =
             &pSampler8x8Avs->FilterCoefficient016[u32CoeffTableIdx];
+        MHW_MI_CHK_NULL(pCoeffParam);
+        MHW_MI_CHK_NULL(pCoeffTable);
 
         pCoeffTable->DW0.Table0XFilterCoefficientN0 = pCoeffParam->ZeroXFilterCoefficient[0];
         pCoeffTable->DW0.Table0YFilterCoefficientN0 = pCoeffParam->ZeroYFilterCoefficient[0];
@@ -1078,6 +1084,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::LoadSamplerAvsTable(
         PMHW_AVS_COEFFICIENT_PARAM   pCoeffParamExtra = &pMhwSamplerAvsTableParam->paMhwAvsCoeffParamExtra[u32CoeffTableIdx];
         mhw_state_heap_g10_X::SAMPLER_STATE_8x8_AVS_COEFFICIENTS_CMD *pCoeffTableExtra =
             &pSampler8x8Avs->FilterCoefficient1731[u32CoeffTableIdx];
+        MHW_MI_CHK_NULL(pCoeffParamExtra);
+        MHW_MI_CHK_NULL(pCoeffTableExtra);
 
         pCoeffTableExtra->DW0.Table0XFilterCoefficientN0 = pCoeffParamExtra->ZeroXFilterCoefficient[0];
         pCoeffTableExtra->DW0.Table0YFilterCoefficientN0 = pCoeffParamExtra->ZeroYFilterCoefficient[0];

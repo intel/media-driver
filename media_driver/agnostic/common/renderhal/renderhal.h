@@ -39,6 +39,9 @@
 #include "mhw_memory_pool.h"
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
+#include "renderhal_oca_support.h"
+
+#include "frame_tracker.h"
 
 
 class XRenderHal_Platform_Interface;
@@ -468,8 +471,10 @@ typedef enum _RENDERHAL_COMPONENT
     RENDERHAL_COMPONENT_DNDI,
     RENDERHAL_COMPONENT_VEBOX,
     RENDERHAL_COMPONENT_CM,
+    RENDERHAL_COMPONENT_16ALIGN,
+    RENDERHAL_COMPONENT_FAST1TON,
     RENDERHAL_COMPONENT_COUNT_BASE,
-    RENDERHAL_COMPONENT_RESERVED_NUM = 13,
+    RENDERHAL_COMPONENT_RESERVED_NUM = 15,
     RENDERHAL_COMPONENT_COUNT
 } RENDERHAL_COMPONENT;
 
@@ -702,6 +707,7 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_P208,
     RENDERHAL_PLANES_P208_1PLANE_ADV,
     RENDERHAL_PLANES_Y416_RT,
+    RENDERHAL_PLANES_R32G32B32A32F,
 
     RENDERHAL_PLANES_DEFINITION_COUNT
 } RENDERHAL_PLANE_DEFINITION, *PRENDERHAL_PLANE_DEFINITION;
@@ -753,6 +759,7 @@ typedef struct _RENDERHAL_KRN_ALLOCATION
     int32_t                      iKUID;                                         // Kernel Unique ID
     int32_t                      iKCID;                                         // Kernel Cache ID
     uint32_t                     dwSync;                                        // Kernel last sync (used to determine whether the kernel may be unloaded)
+    FrameTrackerTokenFlat        trackerToken;                                  // Kernel last sync with multiple trackers
     uint32_t                     dwOffset;                                      // Kernel offset in GSH (from GSH base, 0 is KAC entry is available)
     int32_t                      iSize;                                         // Kernel block size in GSH (0 if not loaded)
     uint32_t                     dwFlags : 4;                                   // Kernel allocation flag
@@ -792,6 +799,7 @@ typedef struct _RENDERHAL_MEDIA_STATE
 
     // set at runtime
     uint32_t            dwSyncTag;                                              // Sync Tag
+    FrameTrackerTokenFlat trackerToken;
     uint32_t            dwSyncCount;                                            // Number of sync tags
     int32_t             iCurbeOffset;                                           // Current CURBE Offset
     uint32_t            bBusy   : 1;                                            // 1 if the state is in use (must sync before use)
@@ -873,6 +881,8 @@ typedef struct _RENDERHAL_STATE_HEAP
     uint32_t                dwOffsetMediaID;                                    // Offset to Media IDs from Media State Base
     uint32_t                dwSizeMediaID;                                      // Size of each Media ID
 
+    MHW_ID_ENTRY_PARAMS     CurIDEntryParams = {};                              // Parameters for current Interface Descriptor Entry
+
     // Performance capture
     uint32_t                dwOffsetStartTime;                                  // Offset to the start time of the media state
     uint32_t                dwStartTimeSize;                                    // Size of Start time
@@ -945,6 +955,7 @@ typedef struct _RENDERHAL_STATE_HEAP
     int32_t                 iKernelUsed;                                        // Kernel heap used size
     uint8_t                 *pKernelLoadMap;                                     // Kernel load map
     uint32_t                dwAccessCounter;                                    // Incremented when a kernel is loaded/used, for dynamic allocation
+    int32_t                 iKernelUsedForDump;                                 // Kernel heap used size without alignment data in tail.
 
     // Kernel Spill Area
     uint32_t                dwScratchSpaceSize;                                 // Size of the Scratch Area
@@ -1059,11 +1070,12 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
 //!
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS
 {
-    bool                            bMmcEnabled;
-    bool                            bEnableMediaFrameTracking;
-    uint32_t                        dwMediaFrameTrackingTag;
-    uint32_t                        dwMediaFrameTrackingAddrOffset;
-    PMOS_RESOURCE                   presMediaFrameTrackingSurface;
+    bool                            bMmcEnabled = 0;
+    bool                            bEnableMediaFrameTracking = 0;
+    uint32_t                        dwMediaFrameTrackingTag = 0;
+    uint32_t                        dwMediaFrameTrackingAddrOffset = 0;
+    PMOS_RESOURCE                   presMediaFrameTrackingSurface = nullptr;
+    virtual ~_RENDERHAL_GENERIC_PROLOG_PARAMS() {}
 } RENDERHAL_GENERIC_PROLOG_PARAMS, *PRENDERHAL_GENERIC_PROLOG_PARAMS;
 
 //!
@@ -1173,6 +1185,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bEUSaturationNoSSD;                             // No slice shutdown, must request 2 slices [CM EU saturation on]
     bool                        bEnableGpgpuMidBatchPreEmption;                 // Middle Batch Buffer Preemption
     bool                        bEnableGpgpuMidThreadPreEmption;                // Middle Thread Preemption
+    bool                        bComputeContextInUse;                           // Compute Context use for media
 
     uint32_t                    dwMaskCrsThdConDataRdLn;                        // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
     uint32_t                    dwMinNumberThreadsInGroup;                      // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
@@ -1217,8 +1230,9 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bDynamicStateHeap;        //!< Indicates that DSH is in use
 
 
-    RENDERHAL_TR_RESOURCE       trackerResource;        // Resource to mark command buffer completion
+    FrameTrackerProducer        trackerProducer;        // Resource to mark command buffer completion
     RENDERHAL_TR_RESOURCE       veBoxTrackerRes;        // Resource to mark command buffer completion
+    uint32_t                    currentTrackerIndex;    // Record the tracker index
 
     HeapManager                 *dgsheapManager;        // Dynamic general state heap manager
 
@@ -1241,6 +1255,8 @@ typedef struct _RENDERHAL_INTERFACE
 
     // Indicates whether it's AVS or not
     bool                        bIsAVS;
+
+    bool                        isMMCEnabled;
 
     MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
 
@@ -1339,9 +1355,8 @@ typedef struct _RENDERHAL_INTERFACE
     //---------------------------
     // State Setup - HW + OS Specific
     //---------------------------
-    MOS_STATUS (* pfnSetupSurfaceStateOs) (
+    MOS_STATUS (* pfnSetupSurfaceStatesOs) (
                 PRENDERHAL_INTERFACE            pRenderHal,
-                PRENDERHAL_SURFACE              pRenderHalSurface,
                 PRENDERHAL_SURFACE_STATE_PARAMS pParams,
                 PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceStateEntry);
 
@@ -1466,7 +1481,8 @@ typedef struct _RENDERHAL_INTERFACE
     // New Dynamic State Heap interfaces
     //---------------------------
     MOS_STATUS(*pfnAssignSpaceInStateHeap)(
-        RENDERHAL_TR_RESOURCE *trackerInfo,
+        uint32_t              trackerIndex,
+        FrameTrackerProducer  *trackerProducer,
         HeapManager           *heapManager,
         MemoryBlock           *block,
         uint32_t               size);
@@ -1592,19 +1608,11 @@ typedef struct _RENDERHAL_INTERFACE
                 PMOS_RESOURCE               presCscCoeff,
                 Kdll_CacheEntry             *pKernelEntry);
 
-    void       (* pfnIncTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
-    uint32_t   (* pfnGetNextTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
-    uint32_t   (* pfnGetCurrentTrackerId) (
-                PRENDERHAL_INTERFACE        renderHal);
-
     void       (* pfnSetupPrologParams) (
                 PRENDERHAL_INTERFACE             renderHal,
                 RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
                 PMOS_RESOURCE                    osResource,
+                uint32_t                         offset,
                 uint32_t                         tag);
 
     // Samplers and other states
@@ -1705,6 +1713,8 @@ typedef struct _RENDERHAL_INTERFACE
 
     bool(*pfnPerThreadScratchSpaceStart2K) (
                 PRENDERHAL_INTERFACE        pRenderHal);
+
+    RenderhalOcaSupport &(* pfnGetOcaSupport)();
 
     //---------------------------
     // Overwrite L3 Cache control register
@@ -1876,6 +1886,12 @@ MOS_STATUS RenderHal_SendTimingData(
     PRENDERHAL_INTERFACE         pRenderHal,
     PMOS_COMMAND_BUFFER          pCmdBuffer,
     bool                         bStartTime);
+
+//!
+//! \brief    Get Oca support object
+//! \return   RenderhalOcaSupport&
+//!
+RenderhalOcaSupport &RenderHal_GetOcaSupport();
 
 // Constants defined in RenderHal interface
 extern const MHW_PIPE_CONTROL_PARAMS      g_cRenderHal_InitPipeControlParams;

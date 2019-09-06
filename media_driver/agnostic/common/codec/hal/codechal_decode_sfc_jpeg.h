@@ -41,7 +41,11 @@ public:
     //!
     //! \brief    Constructor
     //!
-    CodechalJpegSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
+    CodechalJpegSfcState()
+    {
+        CODECHAL_HW_FUNCTION_ENTER;
+        MOS_ZeroMemory(&m_sfcInSurface, sizeof(m_sfcInSurface));
+    };
     //!
     //! \brief    Destructor
     //!
@@ -56,7 +60,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CheckAndInitialize(
+    virtual MOS_STATUS CheckAndInitialize(
         PMOS_SURFACE            destSurface,
         CodecDecodeJpegPicParams*  picParams);
 

@@ -1887,8 +1887,11 @@ MOS_STATUS CodechalEncodeMpeg2G11::SendPrologWithFrameTracking(
     {
         PMOS_CMD_BUF_ATTRI_VE attriExt =
                 (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);
-        attriExt->bUseVirtualEngineHint = true;
-        attriExt->VEngineHintParams.NeedSyncWithPrevious = 1;
+        if (attriExt)
+        {
+            attriExt->bUseVirtualEngineHint = true;
+            attriExt->VEngineHintParams.NeedSyncWithPrevious = 1;
+        }
     }
 
     return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
@@ -2163,9 +2166,12 @@ MOS_STATUS CodechalEncodeMpeg2G11::UpdateCmdBufAttribute(
         PMOS_CMD_BUF_ATTRI_VE attriExt =
             (PMOS_CMD_BUF_ATTRI_VE)(cmdBuffer->Attributes.pAttriVe);
 
-        memset(attriExt, 0, sizeof(MOS_CMD_BUF_ATTRI_VE));
-        attriExt->bUseVirtualEngineHint =
-            attriExt->VEngineHintParams.NeedSyncWithPrevious = !renderEngineInUse;
+        if (attriExt)
+        {
+            memset(attriExt, 0, sizeof(MOS_CMD_BUF_ATTRI_VE));
+            attriExt->bUseVirtualEngineHint =
+                attriExt->VEngineHintParams.NeedSyncWithPrevious = !renderEngineInUse;
+        }
     }
 
     return eStatus;

@@ -32,9 +32,8 @@
 //! \brief Forward declarations
 //!
 typedef struct _MHW_PIPE_CONTROL_PARAMS        *PMHW_PIPE_CONTROL_PARAMS;
-typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS;
 typedef struct _MHW_VDBOX_SURFACE_PARAMS       *PMHW_VDBOX_SURFACE_PARAMS;
-
+using PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS = MHW_VDBOX_PIPE_BUF_ADDR_PARAMS * ;
 //! \class CodecHalMmcState
 //! \brief Media memory compression state. This class defines the member fields
 //!        functions etc used by memory compression. 
@@ -222,6 +221,17 @@ public:
     MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
 #endif
 
+    //!
+    //! \brief    Is extension MMC
+    //! \details  Report if is extension MMC
+    //!
+    //! \return   bool
+    //!
+    bool IsMmcExtensionEnabled()
+    {
+        return m_mmcExtensionEnabled;
+    }
+
 protected:
 
     static bool             m_mmcEnabled;                           //!< Indicate if media memory compression is enabled
@@ -235,6 +245,7 @@ protected:
     uint32_t                m_compressibleId  = 0;
     uint32_t                m_compressModeId  = 0;
 #endif
+    bool                    m_mmcExtensionEnabled = false;          //!< Indicate if extension MMC
 };
 
 #endif  // __CODECHAL_MMC_H__

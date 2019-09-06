@@ -128,6 +128,9 @@ typedef struct {
     uint32_t                    ProductFamily;
     uint16_t                    RevId;
 
+    // Flag to indicate if create dummy HCP_REF_IDX_STATE or not
+    uint32_t                    DummyRefIdxState;
+
     // Picture level DMEM data
     HUC_HEVC_S2L_PIC_BSS        PictureBss;
 
@@ -498,6 +501,7 @@ public:
     // Parameters passed by application
     uint32_t                        m_minCtbSize;                                    //!< Min Luma Coding Block Size
     bool                            m_is10BitHevc;                                   //!< Indicate it is 10 bit HEVC
+    bool                            m_is12BitHevc;                                   //!< Indicate it is 12 bit HEVC
     uint8_t                         m_chromaFormatinProfile;                         //!< Chrama format in profile
     bool                            m_shortFormatInUse;                              //!< Indicate short format is inuse
     uint32_t                        m_dataSize;                                      //!< Size of bitstream
@@ -571,9 +575,11 @@ public:
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // SFC
-    CodechalHevcSfcState         *m_sfcState;                                            //!< HEVC SFC State
+    CodechalHevcSfcState         *m_sfcState = nullptr;                                            //!< HEVC SFC State
 #endif
     PIC_LONG_FORMAT_MHW_PARAMS      m_picMhwParams;                                         //!< picture parameters
+
+    bool                         m_dummyReferenceSlot[CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC];
 };
 
 #endif  // __CODECHAL_DECODER_HEVC_H__

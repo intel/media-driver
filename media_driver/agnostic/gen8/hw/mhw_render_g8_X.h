@@ -56,6 +56,8 @@ struct MhwRenderInterfaceG8 : public MhwRenderInterfaceGeneric<mhw_render_g8_X>
         // SLM     URB     DC      RO     Rest
         // 0      256      0       0      512 (KB chunks based on GT2)
         m_l3CacheCntlRegisterValueDefault = 0x80000040;
+
+        InitMmioRegisters();
     }
 
     virtual ~MhwRenderInterfaceG8() { MHW_FUNCTION_ENTER; }
@@ -88,6 +90,16 @@ struct MhwRenderInterfaceG8 : public MhwRenderInterfaceGeneric<mhw_render_g8_X>
         PMOS_COMMAND_BUFFER             cmdBuffer );
 
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() { return &m_l3CacheConfig; }
+
+    virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters()
+    {
+        return &m_mmioRegisters;
+    }
+
+private:
+    //! \brief Mmio registers address
+    MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
+    void InitMmioRegisters();
 };
 
 #endif

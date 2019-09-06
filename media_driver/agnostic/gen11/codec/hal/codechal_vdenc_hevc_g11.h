@@ -122,7 +122,7 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11
     uint32_t    Ref_L1_FrameID_U32[8];
     uint16_t    startGAdjFrame_U16[4];          // 10, 50, 100, 150
     uint16_t    TargetSliceSize_U16;
-    uint16_t    SLB_Data_SizeInBytes;
+    uint16_t    SLB_Data_SizeInBytes;           // Region12 group 3 batch buffer data size
     uint16_t    PIC_STATE_StartInBytes;         // PIC_STATE starts in byte. 0xFFFF means not available in SLB
     uint16_t    CMD2_StartInBytes;
     uint16_t    CMD1_StartInBytes;
@@ -168,7 +168,11 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11
     uint16_t    LowDelaySceneChangeXFrameSize_U16;  // default: 0
     int8_t      ReEncodePositiveQPDeltaThr_S8;      // default: 4
     int8_t      ReEncodeNegativeQPDeltaThr_S8;      // default: -10
-    uint8_t     RSVD[28];                           // 64 bytes aligned
+    uint32_t    NumFrameSkipped;
+    uint32_t    SkipFrameSize;
+    uint32_t    SliceHeaderSize;
+    int8_t      EnableMotionAdaptive;
+    uint8_t     RSVD[15];  // 64-byte alignment
 };
 C_ASSERT(192 == sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11));
 
@@ -245,6 +249,9 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11
         uint16_t    WeightTable_StartInBits;                // number of bits from beginning of slice header for weight table first bit, 0xffff means not awailable
         uint16_t    WeightTable_EndInBits;                  // number of bits from beginning of slice header for weight table last bit, 0xffff means not awailable
     } Slice[CODECHAL_VDENC_HEVC_MAX_SLICE_NUM];
+    // motion adaptive
+    uint8_t    QPAdaptiveWeight[52];
+    uint8_t    boostTable[52];
 };
 
 using PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11 = CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11*;
@@ -306,7 +313,7 @@ class CodechalVdencHevcStateG11 : public CodechalVdencHevcState
 {
 public:
     static const uint32_t       m_minScaledSurfaceSize = 64;           //!< Minimum scaled surface size
-    static const uint32_t       m_brcPakStatsBufSize = 464;            //!< Pak statistic buffer size
+    static const uint32_t       m_brcPakStatsBufSize = 512;            //!< Pak statistic buffer size
     static const uint32_t       m_brcStatsBufSize = 1216;              //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
     static const uint32_t       m_brcConstantSurfaceWidth = 64;        //!< BRC constant surface width
     static const uint32_t       m_brcConstantSurfaceHeight = 35;       //!< BRC constant surface height
@@ -366,10 +373,11 @@ public:
     CODECHAL_ENCODE_BUFFER                m_resPakSliceLevelStreamoutData;  //!< Surface for slice level stream out data from PAK
     CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride;                   //!< KMD override virtual engine index
     uint32_t                              m_numTiles = 1;                   //!< Number of tiles
+    uint32_t                              m_numLcu = 1;                     //!< LCU number
     CODECHAL_ENCODE_BUFFER                m_resHcpScalabilitySyncBuffer;    //!< Hcp sync buffer for scalability
     CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
+    CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer;
-    CODECHAL_ENCODE_BUFFER                m_resHucTileSizeStreamoutBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset;       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
     HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset;      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
     HEVC_TILE_STATS_INFO                  m_hevcStatsSize;             //!< HEVC Statistics size
@@ -507,6 +515,7 @@ public:
     MOS_STATUS ExecuteSliceLevel();
     MOS_STATUS ConstructBatchBufferHuCCQP(PMOS_RESOURCE batchBuffer);
     MOS_STATUS ConstructBatchBufferHuCBRC(PMOS_RESOURCE batchBuffer);
+    MOS_STATUS ConstructBatchBufferHuCBRCForGroup3(PMOS_RESOURCE batchBuffer);
     MOS_STATUS ConstructHucCmdForBRC(PMOS_RESOURCE batchBuffer);
     MOS_STATUS SetDmemHuCBrcInitReset();
     MOS_STATUS SetConstDataHuCBrcUpdate();
@@ -813,6 +822,7 @@ protected:
     virtual MOS_STATUS DumpHucPakIntegrate();
     virtual MOS_STATUS DumpVdencOutputs();
     virtual MOS_STATUS DumpHucCqp();
+    virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
 #endif
 
 };

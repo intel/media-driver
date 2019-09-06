@@ -368,6 +368,7 @@ MOS_STATUS MemoryBlockInternal::Pool()
     m_size = 0;
     m_static = false;
     m_trackerId = m_invalidTrackerId;
+    m_trackerToken.Clear();
     m_prev = m_next = nullptr;
     m_statePrev = m_stateNext = nullptr;
     m_stateListType = State::stateCount;
@@ -403,6 +404,7 @@ MOS_STATUS MemoryBlockInternal::Free()
 
     m_state = State::free;
     m_trackerId = m_invalidTrackerId;
+    m_trackerToken.Clear();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -436,6 +438,41 @@ MOS_STATUS MemoryBlockInternal::Allocate(uint32_t trackerId)
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS MemoryBlockInternal::Allocate(uint32_t index, uint32_t trackerId, FrameTrackerProducer *producer)
+{
+    HEAP_FUNCTION_ENTER_VERBOSE;
+
+    if (m_state != State::free)
+    {
+        HEAP_ASSERTMESSAGE("Only free blocks may be moved to allocated");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    if (m_stateListType != State::stateCount)
+    {
+        HEAP_ASSERTMESSAGE("Blocks must be removed from sorted list before changing state");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if (trackerId == m_invalidTrackerId && !m_static)
+    {
+        HEAP_ASSERTMESSAGE("Only static blocks may have invalid tracker IDs");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // Reflect the change in state from free space to used state.
+    HEAP_CHK_STATUS(m_heap->AdjustUsedSpace(m_size));
+
+    m_state = State::allocated;
+    if (producer)
+    {
+        m_trackerToken.SetProducer(producer);
+    }
+    m_trackerToken.Merge(index, trackerId);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 
 MOS_STATUS MemoryBlockInternal::Submit()
 {
@@ -497,6 +534,7 @@ MOS_STATUS MemoryBlockInternal::Delete()
 
     m_state = State::deleted;
     m_trackerId = m_invalidTrackerId;
+    m_trackerToken.Clear();
 
     return MOS_STATUS_SUCCESS;
 }

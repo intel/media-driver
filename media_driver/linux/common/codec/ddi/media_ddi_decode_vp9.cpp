@@ -112,7 +112,7 @@ VAStatus DdiDecodeVP9::ParsePicParams(
 
     int32_t frameIdx;
     frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, m_ddiDecodeCtx->RTtbl.pCurrentRT);
-    if (frameIdx == DDI_CODEC_INVALID_FRAME_INDEX)
+    if (frameIdx == (int32_t)DDI_CODEC_INVALID_FRAME_INDEX)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -175,8 +175,8 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     picVp9Params->subsampling_x = picParam->pic_fields.bits.subsampling_x;
     picVp9Params->subsampling_y = picParam->pic_fields.bits.subsampling_y;
 
-    memcpy_s(picVp9Params->SegTreeProbs, 7, picParam->mb_segment_tree_probs, 7);
-    memcpy_s(picVp9Params->SegPredProbs, 3, picParam->segment_pred_probs, 3);
+    MOS_SecureMemcpy(picVp9Params->SegTreeProbs, 7, picParam->mb_segment_tree_probs, 7);
+    MOS_SecureMemcpy(picVp9Params->SegPredProbs, 3, picParam->segment_pred_probs, 3);
 
     return VA_STATUS_SUCCESS;
 }
@@ -264,7 +264,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
                 DDI_NORMALMESSAGE("SliceParamBufferVP9 is already rendered\n");
                 break;
             }
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
@@ -419,7 +419,7 @@ VAStatus DdiDecodeVP9::AllocSliceControlBuffer(
     buf->pData    = (uint8_t*)bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9;
     buf->uiOffset = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferVP9);
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }

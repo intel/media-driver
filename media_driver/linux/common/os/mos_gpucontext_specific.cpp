@@ -30,6 +30,8 @@
 #include "mos_commandbuffer_specific.h"
 #include "mos_util_devult_specific.h"
 #include "mos_cmdbufmgr.h"
+#include "mos_os_virtualengine.h"
+#include <unistd.h>
 
 #define MI_BATCHBUFFER_END 0x05000000
 static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -42,18 +44,15 @@ GpuContextSpecific::GpuContextSpecific(
 {
     MOS_OS_FUNCTION_ENTER;
 
-    MOS_OS_ASSERT(gpuNode != MOS_GPU_NODE_MAX);
-    MOS_OS_ASSERT(mosGpuCtx != MOS_GPU_CONTEXT_INVALID_HANDLE);
-    MOS_OS_ASSERT(cmdBufMgr);
-
     m_nodeOrdinal          = gpuNode;
     m_cmdBufMgr            = cmdBufMgr;
     m_gpuContext           = mosGpuCtx;
     m_statusBufferResource = nullptr;
+    m_maxPatchLocationsize = PATCHLOCATIONLIST_SIZE;
 
     if (reusedContext)
     {
-        MOS_OS_NORMALMESSAGE("gpucontex reusing not enabled on Linux");
+        MOS_OS_NORMALMESSAGE("gpucontex reusing not enabled on Linux.");
     }
 }
 
@@ -64,11 +63,27 @@ GpuContextSpecific::~GpuContextSpecific()
     Clear();
 }
 
-MOS_STATUS GpuContextSpecific::Init(OsContext *osContext)
+MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
+                    PMOS_INTERFACE osInterface,
+                    MOS_GPU_NODE GpuNode,
+                    PMOS_GPUCTX_CREATOPTIONS createOption)
 {
     MOS_OS_FUNCTION_ENTER;
 
+    MOS_OS_CHK_NULL_RETURN(osContext);
+
+    if (m_cmdBufPoolMutex == nullptr)
+    {
+        m_cmdBufPoolMutex = MOS_CreateMutex();
+    }
+
+    MOS_OS_CHK_NULL_RETURN(m_cmdBufPoolMutex);
+
+    MOS_LockMutex(m_cmdBufPoolMutex);
+
     m_cmdBufPool.clear();
+
+    MOS_UnlockMutex(m_cmdBufPoolMutex);
 
     m_commandBufferSize = COMMAND_BUFFER_SIZE;
 
@@ -81,6 +96,8 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext)
     MOS_OS_CHK_STATUS_RETURN(AllocateGPUStatusBuf());
 
     m_commandBuffer = (PMOS_COMMAND_BUFFER)MOS_AllocAndZeroMemory(sizeof(MOS_COMMAND_BUFFER));
+
+    MOS_OS_CHK_NULL_RETURN(m_commandBuffer);
 
     m_IndirectHeapSize = 0;
 
@@ -101,6 +118,144 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext)
 
     m_GPUStatusTag = 1;
 
+    m_createOptionEnhanced = (MOS_GPUCTX_CREATOPTIONS_ENHANCED*)MOS_AllocAndZeroMemory(sizeof(MOS_GPUCTX_CREATOPTIONS_ENHANCED));
+    MOS_OS_CHK_NULL_RETURN(m_createOptionEnhanced);
+    m_createOptionEnhanced->SSEUValue = createOption->SSEUValue;
+
+    if (typeid(*createOption) == typeid(MOS_GPUCTX_CREATOPTIONS_ENHANCED))
+    {
+        PMOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionEnhanced = static_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(createOption);
+        m_createOptionEnhanced->UsingSFC = createOptionEnhanced->UsingSFC;
+    }
+
+    for (int i=0; i<MAX_ENGINE_INSTANCE_NUM+1; i++)
+    {
+        m_i915Context[i] = nullptr;
+    }
+
+    if (osInterface->ctxBasedScheduling)
+    {
+        m_i915Context[0] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
+                                             osInterface->pOsContext->intel_context,
+                                             I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+        if (m_i915Context[0] == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
+            return MOS_STATUS_UNKNOWN;
+        }
+        m_i915Context[0]->pOsContext = osInterface->pOsContext;
+
+        m_i915ExecFlag = I915_EXEC_DEFAULT;
+        if (GpuNode == MOS_GPU_NODE_3D || GpuNode == MOS_GPU_NODE_COMPUTE)
+        {
+            struct i915_engine_class_instance engine_map;
+            engine_map.engine_class = I915_ENGINE_CLASS_RENDER;
+            engine_map.engine_instance = 0;
+
+            if (mos_set_context_param_load_balance(m_i915Context[0],&engine_map, 1))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
+                return MOS_STATUS_UNKNOWN;
+            }
+
+            if (createOption->SSEUValue != 0)
+            {
+                struct drm_i915_gem_context_param_sseu sseu;
+                MOS_ZeroMemory(&sseu, sizeof(sseu));
+                sseu.flags = I915_CONTEXT_SSEU_FLAG_ENGINE_INDEX;
+                sseu.engine.engine_instance = m_i915ExecFlag;
+
+                if (mos_get_context_param_sseu(m_i915Context[0], &sseu))
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to get sseu configuration.");
+                    return MOS_STATUS_UNKNOWN;
+                }
+
+                if (mos_hweight8(sseu.subslice_mask) > createOption->packed.SubSliceCount)
+                {
+                    sseu.subslice_mask = mos_switch_off_n_bits(sseu.subslice_mask,
+                            mos_hweight8(sseu.subslice_mask)-createOption->packed.SubSliceCount);
+                }
+
+                if (mos_set_context_param_sseu(m_i915Context[0], sseu))
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
+                    return MOS_STATUS_UNKNOWN;
+                }
+            }
+        }
+        else if (GpuNode == MOS_GPU_NODE_VIDEO || GpuNode == MOS_GPU_NODE_VIDEO2
+                 || GpuNode == MOS_GPU_NODE_VE)
+        {
+            unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
+            struct i915_engine_class_instance engine_map[MAX_ENGINE_INSTANCE_NUM];
+            __u16 engine_class = (GpuNode == MOS_GPU_NODE_VE)? I915_ENGINE_CLASS_VIDEO_ENHANCE : I915_ENGINE_CLASS_VIDEO;
+            __u64 caps = 0;
+
+            if (m_createOptionEnhanced->UsingSFC)
+            {
+                caps |= I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC;
+            }
+
+            MOS_ZeroMemory(engine_map, sizeof(engine_map));
+            if (mos_query_engines(osInterface->pOsContext->fd,engine_class,caps,&nengine,engine_map))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
+                return MOS_STATUS_UNKNOWN;
+            }
+
+            if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
+                return MOS_STATUS_UNKNOWN;
+            }
+
+            if (nengine >= 2)
+            {
+                //master queue
+                m_i915Context[1] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
+                                                                 osInterface->pOsContext->intel_context,
+                                                                 I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                if (m_i915Context[1] == nullptr)
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
+                    return MOS_STATUS_UNKNOWN;
+                }
+                m_i915Context[1]->pOsContext = osInterface->pOsContext;
+
+                if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
+                {
+                    MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
+                    return MOS_STATUS_UNKNOWN;
+                }
+
+                //slave queue
+                for (int i=1; i<nengine; i++)
+                {
+                    m_i915Context[i+1] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
+                                                                     osInterface->pOsContext->intel_context,
+                                                                     I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                    if (m_i915Context[i+1] == nullptr)
+                    {
+                        MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
+                        return MOS_STATUS_UNKNOWN;
+                    }
+                    m_i915Context[i+1]->pOsContext = osInterface->pOsContext;
+
+                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0],&engine_map[i], 1))
+                    {
+                        MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension.\n");
+                        return MOS_STATUS_UNKNOWN;
+                    }
+                }
+            }
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Unknown engine class.\n");
+            return MOS_STATUS_UNKNOWN;
+        }
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -119,20 +274,40 @@ void GpuContextSpecific::Clear()
         MOS_Delete(m_statusBufferResource);
     }
 
-    for (auto& curCommandBuffer : m_cmdBufPool)
+    MOS_LockMutex(m_cmdBufPoolMutex);
+
+    if (m_cmdBufMgr)
     {
-        auto curCommandBufferSpecific = static_cast<CommandBufferSpecific *>(curCommandBuffer);
-        curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
-        m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+        for (auto& curCommandBuffer : m_cmdBufPool)
+        {
+            auto curCommandBufferSpecific = static_cast<CommandBufferSpecific *>(curCommandBuffer);
+            if (curCommandBufferSpecific == nullptr)
+                continue;
+            curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
+            m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+        }
     }
 
     m_cmdBufPool.clear();
 
+    MOS_UnlockMutex(m_cmdBufPoolMutex);
+    MOS_DestroyMutex(m_cmdBufPoolMutex);
+    m_cmdBufPoolMutex = nullptr;
     MOS_SafeFreeMemory(m_commandBuffer);
     MOS_SafeFreeMemory(m_allocationList);
     MOS_SafeFreeMemory(m_patchLocationList);
     MOS_SafeFreeMemory(m_attachedResources);
     MOS_SafeFreeMemory(m_writeModeList);
+    MOS_SafeFreeMemory(m_createOptionEnhanced);
+
+    for (int i=0; i<MAX_ENGINE_INSTANCE_NUM; i++)
+    {
+        if (m_i915Context[i])
+        {
+            mos_gem_context_destroy(m_i915Context[i]);
+            m_i915Context[i] = nullptr;
+        }
+    }
 }
 
 MOS_STATUS GpuContextSpecific::RegisterResource(
@@ -166,6 +341,12 @@ MOS_STATUS GpuContextSpecific::RegisterResource(
         }
 
         // Set allocation
+        if (m_gpuContext >= MOS_GPU_CONTEXT_MAX)
+        {
+            MOS_OS_ASSERTMESSAGE("Gpu context exceeds max.");
+            return MOS_STATUS_UNKNOWN; 
+        }
+
         osResource->iAllocationIndex[m_gpuContext] = (allocationIndex);
         m_attachedResources[allocationIndex]           = *osResource;
         m_writeModeList[allocationIndex] |= writeFlag;
@@ -195,18 +376,21 @@ MOS_STATUS GpuContextSpecific::SetPatchEntry(
     m_patchLocationList[m_currentNumPatchLocations].AllocationIndex  = params->uiAllocationIndex;
     m_patchLocationList[m_currentNumPatchLocations].AllocationOffset = params->uiResourceOffset;
     m_patchLocationList[m_currentNumPatchLocations].PatchOffset      = params->uiPatchOffset;
-    m_patchLocationList[m_currentNumPatchLocations].uiWriteOperation = params->bWrite;
+    m_patchLocationList[m_currentNumPatchLocations].uiWriteOperation = params->bWrite ? true: false;
 
     if (osInterface->osCpInterface &&
         osInterface->osCpInterface->IsHMEnabled())
     {
-        osInterface->osCpInterface->RegisterPatchForHM(
+        if (MOS_STATUS_SUCCESS != osInterface->osCpInterface->RegisterPatchForHM(
             (uint32_t *)(params->cmdBufBase + params->uiPatchOffset),
             params->bWrite,
             params->HwCommandType,
             params->forceDwordOffset,
             params->presResource,
-            &m_patchLocationList[m_currentNumPatchLocations]);
+            &m_patchLocationList[m_currentNumPatchLocations]))
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to RegisterPatchForHM.");
+        }
     }
 
     m_currentNumPatchLocations++;
@@ -221,33 +405,69 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(comamndBuffer);
+    MOS_OS_CHK_NULL_RETURN(m_cmdBufMgr);
+    MOS_OS_CHK_NULL_RETURN(m_commandBuffer);
 
+    MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
     CommandBuffer* cmdBuf = nullptr;
 
     if (m_cmdBufFlushed)
     {
+        MOS_LockMutex(m_cmdBufPoolMutex);
         if (m_cmdBufPool.size() < MAX_CMD_BUF_NUM)
         {
             cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
-            MOS_OS_CHK_NULL_RETURN(cmdBuf);
-            MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
+            if (cmdBuf == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return MOS_STATUS_NULL_POINTER;
+            }
+            if ((eStatus = cmdBuf->BindToGpuContext(this)) != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid status of BindToGpuContext.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return eStatus;
+            }
             m_cmdBufPool.push_back(cmdBuf);
         }
-        else
+        else if (m_cmdBufPool.size() == MAX_CMD_BUF_NUM && m_nextFetchIndex < m_cmdBufPool.size())
         {
-            MOS_OS_ASSERT(m_cmdBufPool.size() == MAX_CMD_BUF_NUM);
             auto cmdBufOld = m_cmdBufPool[m_nextFetchIndex];
             auto cmdBufSpecificOld = static_cast<CommandBufferSpecific *>(cmdBufOld);
+            if (cmdBufSpecificOld == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return MOS_STATUS_NULL_POINTER;
+            }
             cmdBufSpecificOld->waitReady();
             cmdBufSpecificOld->UnBindToGpuContext();
             m_cmdBufMgr->ReleaseCmdBuf(cmdBufOld);  // here just return old command buffer to available pool
 
             //pick up new comamnd buffer
             cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
-            MOS_OS_CHK_NULL_RETURN(cmdBuf);
-            MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
+            if (cmdBuf == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return MOS_STATUS_NULL_POINTER;
+            }
+            if ((eStatus = cmdBuf->BindToGpuContext(this)) != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid status of BindToGpuContext.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return eStatus;
+            }
             m_cmdBufPool[m_nextFetchIndex] = cmdBuf;
         }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Command buffer bool size exceed max.");
+            MOS_UnlockMutex(m_cmdBufPoolMutex);
+            return MOS_STATUS_UNKNOWN;
+        }
+        MOS_UnlockMutex(m_cmdBufPoolMutex);
 
         // util now, we got new command buffer from CmdBufMgr, next step to fill in the input command buffer
         MOS_OS_CHK_STATUS_RETURN(cmdBuf->GetResource()->ConvertToMosResource(&comamndBuffer->OsResource));
@@ -257,9 +477,12 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
         comamndBuffer->iRemaining = cmdBuf->GetCmdBufSize();
         comamndBuffer->iCmdIndex  = m_nextFetchIndex;
         comamndBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
+        comamndBuffer->Attributes.pAttriVe = nullptr;
 
         // zero comamnd buffer
         MOS_ZeroMemory(comamndBuffer->pCmdBase, comamndBuffer->iRemaining);
+        comamndBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
+        MOS_ZeroMemory(&comamndBuffer->Attributes,sizeof(comamndBuffer->Attributes));
 
         // update command buffer relared filed in GPU context
         m_cmdBufFlushed = false;
@@ -293,6 +516,7 @@ void GpuContextSpecific::ReturnCommandBuffer(
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_ASSERT(cmdBuffer);
+    MOS_OS_ASSERT(m_commandBuffer);
 
     m_commandBuffer->iOffset    = cmdBuffer->iOffset;
     m_commandBuffer->iRemaining = cmdBuffer->iRemaining;
@@ -390,6 +614,13 @@ uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
                             PMOS_COMMAND_BUFFER cmdBuffer,
                             MOS_GPU_NODE gpuNode)
 {
+    if (osInterface == 0 ||
+        cmdBuffer == 0)
+    {
+        MOS_OS_ASSERTMESSAGE("Input invalid(null) parameter.");
+        return I915_EXEC_DEFAULT;
+    }
+
     uint32_t vcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
 
     if (MOS_VDBOX_NODE_INVALID == cmdBuffer->iVdboxNodeIndex)
@@ -419,23 +650,25 @@ uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
 
 MOS_STATUS GpuContextSpecific::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
 {
+    MOS_OS_CHK_NULL_RETURN(cmd_bo);
+
     OsContextSpecific *osCtx = static_cast<OsContextSpecific*>(m_osContext);
+    MOS_OS_CHK_NULL_RETURN(osCtx);
+
     AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
     if (auxTableMgr)
     {
         // Map compress allocations to aux table if it is not mapped.
-        for (int i = 0; i < m_numAllocations; i++)
+        for (uint32_t i = 0; i < m_numAllocations; i++)
         {
             auto res = (PMOS_RESOURCE)m_allocationList[i].hAllocation;
             MOS_OS_CHK_NULL_RETURN(res);
-            
             MOS_OS_CHK_STATUS_RETURN(auxTableMgr->MapResource(res->pGmmResInfo, res->bo));
         }
         MOS_OS_CHK_STATUS_RETURN(auxTableMgr->EmitAuxTableBOList(cmd_bo));
     }
     return MOS_STATUS_SUCCESS;
 }
-
 
 MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     PMOS_INTERFACE      osInterface,
@@ -452,10 +685,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 
     MOS_GPU_NODE gpuNode  = OSKMGetGpuNode(m_gpuContext);
     uint32_t     execFlag = gpuNode;
-    uint32_t     addCb2   = 0xffffffff;
     MOS_STATUS   eStatus  = MOS_STATUS_SUCCESS;
     int32_t      ret      = 0;
-    PLATFORM     platform;
+    int          fence = -1;
+    unsigned int fence_flag = 0;
 
     // Command buffer object DRM pointer
     m_cmdBufFlushed = true;
@@ -470,12 +703,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
         auto currentPatch = &m_patchLocationList[patchIndex];
         MOS_OS_CHK_NULL_RETURN(currentPatch);
 
-        auto allocationIndex = currentPatch->AllocationIndex;
-        auto resourceOffset  = currentPatch->AllocationOffset;
-        auto patchOffset     = currentPatch->PatchOffset;
-
         // This is the resource for which patching will be done
-        auto resource = (PMOS_RESOURCE)m_allocationList[allocationIndex].hAllocation;
+        auto resource = (PMOS_RESOURCE)m_allocationList[currentPatch->AllocationIndex].hAllocation;
         MOS_OS_CHK_NULL_RETURN(resource);
 
         // For now, we'll assume the system memory's DRM bo pointer
@@ -491,7 +720,6 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             currentPatch,
             resource));
 
-#ifndef ANDROID
         uint64_t boOffset = alloc_bo->offset64;
         if (alloc_bo != cmd_bo)
         {
@@ -507,41 +735,30 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
         }
         if (osContext->bUse64BitRelocs)
         {
-            *((uint64_t *)((uint8_t *)cmd_bo->virt + patchOffset)) = boOffset + resourceOffset;
+            *((uint64_t *)((uint8_t *)cmd_bo->virt + currentPatch->PatchOffset)) =
+                    boOffset + currentPatch->AllocationOffset;
         }
         else
         {
-            *((uint32_t *)((uint8_t *)cmd_bo->virt + patchOffset)) = boOffset + resourceOffset;
+            *((uint32_t *)((uint8_t *)cmd_bo->virt + currentPatch->PatchOffset)) =
+                    boOffset + currentPatch->AllocationOffset;
+        }
+
+        if (cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+        {
+            mos_bo_set_exec_object_async(alloc_bo);
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
         ret = mos_bo_emit_reloc2(
-            cmd_bo,                                                              // Command buffer
-            patchOffset,                                                         // Offset in the command buffer
-            alloc_bo,                                                            // Allocation object for which the patch will be made.
-            resourceOffset,                                                      // Offset to the indirect state
-            I915_GEM_DOMAIN_RENDER,                                              // Read domain
+            cmd_bo,                                                            // Command buffer
+            currentPatch->PatchOffset,                                         // Offset in the command buffer
+            alloc_bo,                                                          // Allocation object for which the patch will be made.
+            currentPatch->AllocationOffset,                                    // Offset to the indirect state
+            I915_GEM_DOMAIN_RENDER,                                            // Read domain
             (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
             boOffset);
-#else
-            if (osContext->bUse64BitRelocs)
-            {
-                *((uint64_t*)((uint8_t*)cmd_bo->virt + patchOffset)) = alloc_bo->offset64 + resourceOffset;
-            }
-            else
-            {
-                *((uint32_t*)((uint8_t*)cmd_bo->virt + patchOffset)) = alloc_bo->offset64 + resourceOffset;
-            }
 
-        // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
-        ret = mos_bo_emit_reloc(
-            cmd_bo,  // Command buffer
-            patchOffset,  // Offset in the command buffer
-            alloc_bo,  // Allocation object for which the patch will be made.
-            resourceOffset,  // Offset to the indirect state
-            I915_GEM_DOMAIN_RENDER,  // Read domain
-            (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0);  // Write domain
-#endif
         if (ret != 0)
         {
             MOS_OS_ASSERTMESSAGE("Error patching alloc_bo = 0x%x, cmd_bo = 0x%x.",
@@ -580,19 +797,9 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     int32_t          num_cliprects = 0;
     int32_t          DR4           = osContext->uEnablePerfTag ? perfData : 0;
 
-    if (gpuNode == I915_EXEC_RENDER)
-    {
-        if (true == osInterface->osCpInterface->IsHMEnabled())
-        {
-            osInterface->pfnGetPlatform(osInterface,&platform);
-            if (platform.eProductFamily < IGFX_BROXTON)
-            {
-                cliprects     = (drm_clip_rect *)(&addCb2);
-                num_cliprects = sizeof(addCb2);
-            }
-        }
-    }
-    else
+    //Since CB2 command is not supported, remove it and set cliprects to nullprt as default.
+    if ((gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2) &&
+        (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_SINGLE_PIPE_MASK))
     {
         if (osContext->bKMDHasVCS2)
         {
@@ -608,6 +815,14 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             {
                 execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
+            else if ((gpuNode == MOS_GPU_NODE_BLT))
+            {
+                execFlag = I915_EXEC_BLT;
+            }
+            else
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid gpuNode.");
+            }
         }
 	else
 	{
@@ -622,13 +837,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
-    MOS_LINUX_BO *bad_cmd_bo;
-    MOS_LINUX_BO *nop_cmd_bo;
-    uint32_t      dwComponentTag;
-    uint32_t      dwCallType;
-
-    // trigger GPU HANG if bTriggerCodecHang is set
-    bad_cmd_bo = nullptr;
+    MOS_LINUX_BO *bad_cmd_bo = nullptr;
+    MOS_LINUX_BO *nop_cmd_bo = nullptr;
+    uint32_t      dwComponentTag = 0;
+    uint32_t      dwCallType = 0;
 
     //dwComponentTag 3: decode,5: vpp,6: encode
     //dwCallType     8: PAK(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE)
@@ -652,6 +864,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 0,
                 execFlag);
         }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Mos_GetBadCommandBuffer_Linux failed!");
+        }
     }
     else if (osInterface->bTriggerVPHang == true)
     {
@@ -665,6 +881,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 0,
                 0,
                 execFlag);
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Mos_GetBadCommandBuffer_Linux failed!");
         }
 
         osInterface->bTriggerVPHang = false;
@@ -684,6 +904,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 0,
                 execFlag);
         }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Mos_GetNopCommandBuffer_Linux failed!");
+        }
     }
 
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
@@ -696,37 +920,69 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     }
     else if (nullRendering == false)
     {
-#ifdef ANDROID
-        if (osContext->uEnablePerfTag == 2)
+        if (osInterface->ctxBasedScheduling && m_i915Context[0] != nullptr)
         {
-            ret = mos_gem_bo_tag_exec(cmd_bo,
+            if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASK)
+            {
+                MOS_LINUX_CONTEXT *queue = m_i915Context[0];
+                if (execFlag == MOS_GPU_NODE_VIDEO || execFlag == MOS_GPU_NODE_VIDEO2)
+                {
+                    execFlag = I915_EXEC_DEFAULT;
+                }
+                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+                {
+                    fence = osContext->submit_fence;
+                    fence_flag = I915_EXEC_FENCE_SUBMIT;
+                    int slave_index = cmdBuffer->iSubmissionType >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
+                    queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
+                }
+                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+                {
+                    fence_flag = I915_EXEC_FENCE_OUT;
+                    queue = m_i915Context[1];
+                }
+
+                ret = mos_gem_bo_context_exec2(cmd_bo,
+                                              cmd_bo->size,
+                                              queue,
+                                              cliprects,
+                                              num_cliprects,
+                                              DR4,
+                                              execFlag | fence_flag,
+                                              &fence);
+
+                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+                {
+                    osContext->submit_fence = fence;
+                }
+                if(cmdBuffer->iSubmissionType == SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+                {
+                    close(fence);
+                }
+            }
+            else
+            {
+                ret = mos_gem_bo_context_exec2(cmd_bo,
+                    m_commandBufferSize,
+                    m_i915Context[0],
+                    cliprects,
+                    num_cliprects,
+                    DR4,
+                    m_i915ExecFlag,
+                    nullptr);
+            }
+        }
+        else
+        {
+            ret = mos_gem_bo_context_exec2(cmd_bo,
                 m_commandBufferSize,
                 osContext->intel_context,
                 cliprects,
                 num_cliprects,
-                0,
-                execFlag,
-                perfData);
-        }
-        else
-        {
-            ret = mos_bo_mrb_exec(cmd_bo,
-                m_commandBufferSize,
-                cliprects,
-                num_cliprects,
                 DR4,
-                execFlag);
+                execFlag,
+                nullptr);
         }
-#else
-        ret = mos_gem_bo_context_exec2(cmd_bo,
-            m_commandBufferSize,
-            osContext->intel_context,
-            cliprects,
-            num_cliprects,
-            DR4,
-            execFlag);
-#endif
-
         if (ret != 0)
         {
             eStatus = MOS_STATUS_UNKNOWN;

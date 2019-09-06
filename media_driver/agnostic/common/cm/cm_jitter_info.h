@@ -64,6 +64,9 @@ typedef struct _CM_JIT_INFO {
 
     // number of spill/fill, weighted by loop
     unsigned int numGRFSpillFill;
+
+    void* freeGRFInfo;
+    unsigned int freeGRFInfoSize;
 } FINALIZER_INFO;
 
 #define MAX_ERROR_MSG_LEN               511

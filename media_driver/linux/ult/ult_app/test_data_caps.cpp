@@ -33,9 +33,7 @@ void CapsTestData::InitRefFeatureIDMap()
     #include "RefCapsTable_SKL.h"
     #include "RefCapsTable_BXT.h"
     #include "RefCapsTable_BDW.h"
-    #include "RefCapsTable_CNL.h"
     m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxSKLAKE]]     = refFeatureIDTable_SKL;
     m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxBROXTON]]    = refFeatureIDTable_BXT;
     m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxBROADWELL]]  = refFeatureIDTable_BDW;
-    m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxCANNONLAKE]] = refFeatureIDTable_CNL;
 }

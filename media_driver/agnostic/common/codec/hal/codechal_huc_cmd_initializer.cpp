@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -445,8 +445,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucImemStateCmd(cmdBuffer, &imemParams));
 
-    // HUC_PIPE_MODE_SELECT
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
+    // HUC_PIPE_MODE_SELECT    
     pipeModeSelectParams.Mode = m_encoder->m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
@@ -532,7 +531,7 @@ MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencV
     m_vp9Params.segmentMapProvided           = state->m_segmentMapProvided;
     m_vp9Params.prevFrameSegEnabled          = state->m_prevFrameSegEnabled;
     m_vp9Params.numRefFrames                 = state->m_numRefFrames;
-    m_vp9Params.hmeEnabled                   = state->m_hmeEnabled;
+    m_vp9Params.me16Enabled                  = state->m_16xMeEnabled;
     m_vp9Params.dysVdencMultiPassEnabled     = state->m_dysVdencMultiPassEnabled;
     m_vp9Params.vdencPakOnlyMultipassEnabled = state->m_vdencPakonlyMultipassEnabled;
     m_vp9Params.pictureCodingType            = state->m_pictureCodingType;
@@ -574,7 +573,6 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucImemStateCmd(cmdBuffer, &imemParams));
 
     // HUC_PIPE_MODE_SELECT
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_vp9Params.mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
@@ -685,16 +683,16 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
 
     HucInputCmd1  hucInputCmd1;
     MOS_ZeroMemory(&hucInputCmd1, sizeof(hucInputCmd1));
-    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
-    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
+    hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
+    hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.me16Enabled;
     hucInputCmd1.PakOnlyMultipassEnable = m_vp9Params.vdencPakOnlyMultipassEnabled;
     hucInputCmd1.num_ref_idx_l0_active_minus1 = (m_vp9Params.picParams->PicFlags.fields.frame_type) ? m_vp9Params.numRefFrames - 1 : 0;
 
     hucInputCmd1.SADQPLambda = (uint16_t)(lambda * 4 + 0.5);
     hucInputCmd1.RDQPLambda = (uint16_t)(lambda * lambda * 4 + 0.5); //U14.2
 
-    hucInputCmd1.DstFrameHeightMinus1 = m_vp9Params.picParams->DstFrameHeightMinus1;
-    hucInputCmd1.DstFrameWidthMinus1 = m_vp9Params.picParams->DstFrameWidthMinus1;
+    hucInputCmd1.SrcFrameHeightMinus1 = m_vp9Params.picParams->SrcFrameHeightMinus1;
+    hucInputCmd1.SrcFrameWidthMinus1 = m_vp9Params.picParams->SrcFrameWidthMinus1;
     hucInputCmd1.SegmentationEnabled = m_vp9Params.segmentationEnabled;
     hucInputCmd1.PrevFrameSegEnabled = m_vp9Params.prevFrameSegEnabled;
     hucInputCmd1.LumaACQIndex = m_vp9Params.picParams->LumaACQIndex;
@@ -788,7 +786,7 @@ MOS_STATUS CodechalCmdInitializer::DumpHucCmdInit(PMOS_RESOURCE secondlevelBB)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetDebugInterface()->DumpHucRegion(
         secondlevelBB,
         0,
-        sizeof(HucComDmem),
+        m_hwInterface->m_vdencReadBatchBufferSize,
         1,
         "",
         false,

@@ -62,6 +62,24 @@ public:
         return LoadProfileEntrypoints();
     }
 
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+
+    virtual uint32_t GetImageFormatsMaxNum();
+
+    virtual bool IsImageSupported(uint32_t fourcc);
+
+    //!
+    //! \brief    Populate the color masks info
+    //!
+    //! \param    [in,out] Image format
+    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
+    //!           structure.
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
+    //!
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+
     //!
     //! \brief    Return internal encode mode for given profile and entrypoint 
     //!
@@ -94,9 +112,12 @@ public:
     //! \param    [in] entrypoint 
     //!           Specify the entrypoint 
     //!
+    //! \param    [in] feiFunction
+    //!           Specify the feiFunction
+    //!
     //! \return   Std::string encode codec key 
     //!
-    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint) override;
+    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction) override;
 
     //!
     //! \brief convert Media Format to Gmm Format for GmmResCreate parameter.
@@ -141,6 +162,8 @@ protected:
         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for VP9 encode
     static const uint32_t m_maxVp9EncHeight =
         CODEC_8K_MAX_PIC_HEIGHT; //!< maxinum height for VP9 encode
+    static const VAImageFormat m_G11ImageFormats[]; //!< Gen11 supported image formats
+    static const VAConfigAttribValEncRateControlExt m_encVp9RateControlExt; //!< External enc rate control caps for VP9 encode
 
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,
@@ -160,6 +183,11 @@ protected:
             uint32_t width,
             uint32_t height);
 
+    virtual VAStatus CreateDecAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList);
+
     //!
     //! \brief    Initialize HEVC low-power encode profiles, entrypoints and attributes
     //!
@@ -167,13 +195,6 @@ protected:
     //!     if call succeeds
     //!
     VAStatus LoadHevcEncLpProfileEntrypoints();
-
-    //! 
-    //! \brief  Is P010 supported
-    //! 
-    //! \return true
-    //!
-    bool IsP010Supported() { return true; }
 
     //! 
     //! \brief  Query AVC ROI maximum number
@@ -190,6 +211,6 @@ protected:
     //! \return VAStatus
     //!     if call succeeds
     //!
-    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP);
+    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
 };
 #endif

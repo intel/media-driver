@@ -32,6 +32,8 @@
 #include "vphal_common_tools.h"
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
+#include "mhw_vebox.h"
+#include "mhw_sfc.h"
 
 //*-----------------------------------------------------------------------------
 //| DEFINITIONS
@@ -42,7 +44,11 @@
 // YUV input ranges
 #define YUV_RANGE_16_235                1
 #define YUV_RANGE_0_255                 2
-#define YUV_RANGE_FROM_DDI              4
+#define YUV_RANGE_FROM_DDI              3
+
+// RGB input ranges
+#define RGB_RANGE_16_235                1
+#define RGB_RANGE_0_255                 0
 
 // Media Features height
 #define VPHAL_RNDR_2K_HEIGHT  1080
@@ -240,6 +246,11 @@ enum VpKernelID
     kernelVeboxSecureBlockCopy,
     kernelVeboxUpdateDnState,
 
+    // User Ptr
+    kernelUserPtr,
+    // Fast 1toN
+    kernelFast1toN,
+
     baseKernelMaxNumID
 };
 
@@ -288,6 +299,9 @@ struct VphalSettings
     uint32_t               veboxParallelExecution;                               //!< Control VEBox parallel execution with render engine
 };
 
+#pragma pack(push)
+#pragma pack(1)
+
 //!
 //! Structure VphalFeatureReport
 //! \brief    Vphal Feature Report Structure
@@ -334,6 +348,9 @@ struct VphalFeatureReport
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
     bool                            DiScdMode;          //!< Scene change detection
 };
+
+#pragma pack(pop)
+
 
 //!
 //! Class VphalState
@@ -391,7 +408,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS Allocate(
+    virtual MOS_STATUS Allocate(
         const VphalSettings     *pVpHalSettings);
 
     //!
@@ -412,7 +429,7 @@ public:
     //! \return   VphalFeatureReport*
     //!           Pointer to VPHAL_FEATURE_REPOR: rendering features reported
     //!
-    VphalFeatureReport*       GetRenderFeatureReport();
+    virtual VphalFeatureReport*       GetRenderFeatureReport();
 
     //!
     //! \brief    Get Status Report
@@ -455,11 +472,38 @@ public:
 
     void SetMhwVeboxInterface(MhwVeboxInterface* veboxInterface)
     {
+        if (veboxInterface == nullptr)
+        {
+            return;
+        }
+
+        if (m_veboxInterface != nullptr)
+        {
+            MOS_STATUS eStatus = m_veboxInterface->DestroyHeap();
+            MOS_Delete(m_veboxInterface);
+            m_veboxInterface = nullptr;
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+            }
+        }
+
         m_veboxInterface = veboxInterface;
     }
 
     void SetMhwSfcInterface(MhwSfcInterface* sfcInterface)
     {
+        if (sfcInterface == nullptr)
+        {
+            return;
+        }
+
+        if (m_sfcInterface != nullptr)
+        {
+            MOS_Delete(m_sfcInterface);
+            m_sfcInterface = nullptr;
+        }
+
         m_sfcInterface = sfcInterface;
     }
 

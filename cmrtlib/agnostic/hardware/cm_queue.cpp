@@ -28,11 +28,9 @@
 
 struct CM_CREATEQUEUE_PARAM
 {
-    unsigned int cmQueueType;   // [in]
-    bool cmRunAloneMode;        // [in]
-    unsigned int cmGPUContext;  // [in]
-    void *cmQueueHandle;        // [out]
-    int32_t returnValue;        // [out]
+    CM_QUEUE_CREATE_OPTION createOption; // [in/out]
+    void *cmQueueHandle;                 // [out]
+    int32_t returnValue;                 // [out]
 };
 
 struct CM_ENQUEUE_PARAM
@@ -147,15 +145,27 @@ CmQueue_RT::CmQueue_RT(CmDevice_RT *device, CM_QUEUE_CREATE_OPTION queueCreateOp
 
 CmQueue_RT::~CmQueue_RT() {}
 
+int32_t CmQueue_RT::Initialize()
+{
+    CM_CREATEQUEUE_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMDEVICE_CREATEQUEUE,
+                                                &inParam, sizeof(inParam));
+    CHK_FAILURE_RETURN(hr);
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    m_cmQueueHandle = inParam.cmQueueHandle;
+    m_queueOption   = inParam.createOption;
+    return CM_SUCCESS;
+}
+
 int32_t CmQueue_RT::Initialize(CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     CM_CREATEQUEUE_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.cmQueueType = queueCreateOption.QueueType;
-    inParam.cmRunAloneMode = queueCreateOption.RunAloneMode;
-    inParam.cmGPUContext = CM_DEFAULT_QUEUE_CREATE_OPTION.Reserved1;
+    inParam.createOption = queueCreateOption;
 
-    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMDEVICE_CREATEQUEUE,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMDEVICE_CREATEQUEUEEX,
                                                 &inParam, sizeof(inParam));
     CHK_FAILURE_RETURN(hr);
     CHK_FAILURE_RETURN(inParam.returnValue);
@@ -742,3 +752,106 @@ CM_QUEUE_CREATE_OPTION CmQueue_RT::GetQueueOption()
 {
     return m_queueOption;
 }
+
+CM_RT_API int32_t CmQueue_RT::EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace)
+{
+    INSERT_PROFILER_RECORD();
+    if (task == nullptr)
+    {
+        CmAssert(0);
+        CmDebugMessage(("Kernel array is NULL."));
+        return CM_INVALID_ARG_VALUE;
+    }
+    m_criticalSection.Acquire();
+
+    CM_ENQUEUE_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.cmTaskHandle = task;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmThreadSpaceHandle = (void *)threadSpace;
+    inParam.cmEventHandle = event;  // to support invisiable event, this field is used for input/output.
+
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEFAST,
+                                                &inParam, sizeof(inParam));
+    if (FAILED(hr))
+    {
+        CmAssert(0);
+        m_criticalSection.Release();
+        return hr;
+    }
+    if (inParam.returnValue != CM_SUCCESS)
+    {
+        m_criticalSection.Release();
+        return inParam.returnValue;
+    }
+
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
+    m_criticalSection.Release();
+    return CM_SUCCESS;
+}
+
+CM_RT_API int32_t CmQueue_RT::EnqueueWithGroupFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadGroupSpace *threadGroupSpace)
+{
+    INSERT_PROFILER_RECORD();
+    if (task == nullptr)
+    {
+        CmAssert(0);
+        CmDebugMessage(("Kernel array is NULL."));
+        return CM_INVALID_ARG_VALUE;
+    }
+    m_criticalSection.Acquire();
+
+    CM_ENQUEUEGROUP_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.cmTaskHandle = task;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmTGrpSpaceHandle = (void *)threadGroupSpace;
+    inParam.cmEventHandle = event;  // to support invisiable event, this field is used for input/output.
+
+    int32_t hr =
+        m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEWITHGROUPFAST,
+                                       &inParam, sizeof(inParam));
+    if (FAILED(hr))
+    {
+        CmAssert(0);
+        m_criticalSection.Release();
+        return hr;
+    }
+    if (inParam.returnValue != CM_SUCCESS)
+    {
+        m_criticalSection.Release();
+        return inParam.returnValue;
+    }
+
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
+    m_criticalSection.Release();
+    return CM_SUCCESS;
+
+}
+
+
+CM_RT_API int32_t CmQueue_RT::DestroyEventFast(CmEvent *&event)
+{
+    INSERT_PROFILER_RECORD();
+    if (event == nullptr)
+    {
+        return CM_INVALID_ARG_VALUE;
+    }
+
+    CM_DESTROYEVENT_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmEventHandle = event;
+
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_DESTROYEVENTFAST,
+                                                &inParam, sizeof(inParam));
+    CHK_FAILURE_RETURN(hr);
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    event = nullptr;
+    return CM_SUCCESS;
+}
+

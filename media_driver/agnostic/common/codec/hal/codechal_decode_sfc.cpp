@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -353,7 +353,17 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     sfcStateParams->fAlphaPixel                    = 1.0F;
     sfcStateParams->bColorFillEnable               = m_colorFill;
     sfcStateParams->bCSCEnable                     = m_csc;
-    sfcStateParams->bRGBASwapEnable                = sfcStateParams->bCSCEnable;
+    // ARGB8,ABGR10 output format need to enable swap
+    if (m_sfcOutputSurface->Format == Format_X8R8G8B8 ||
+        m_sfcOutputSurface->Format == Format_A8R8G8B8 ||
+        m_sfcOutputSurface->Format == Format_R10G10B10A2)
+    {
+        sfcStateParams->bRGBASwapEnable = true;
+    }
+    else
+    {
+        sfcStateParams->bRGBASwapEnable = false;
+    }
 
     // CodecHal does not support SFC rotation
     sfcStateParams->RotationMode                   = MHW_ROTATION_IDENTITY;

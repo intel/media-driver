@@ -37,10 +37,10 @@ static struct LinuxCodecInfo sklCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
-    .mpeg2Encoding      = 1,
+    .mpeg2Encoding      = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .hevcDecoding       = 1,
     .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
@@ -52,7 +52,7 @@ static struct LinuxCodecInfo bxtCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 0,
@@ -70,10 +70,10 @@ static struct LinuxCodecInfo kblCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
-    .mpeg2Encoding      = 1,
+    .mpeg2Encoding      = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .hevcDecoding       = 1,
     .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
@@ -81,7 +81,9 @@ static struct LinuxCodecInfo kblCodecInfo =
     .vp9Decoding        = 1,
     .hevc10Decoding     = 1,
     .vp9b10Decoding     = 1,
-    .hevc10Encoding     = 1,
+    .hevc10Encoding     = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .hevc12Encoding     = 0,
+    .vp8Encoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static struct LinuxCodecInfo glkCodecInfo =
@@ -89,7 +91,7 @@ static struct LinuxCodecInfo glkCodecInfo =
     .avcDecoding        = 1,
     .mpeg2Decoding      = 1,
     .vp8Decoding        = 1,
-    .vc1Decoding        = 1,
+    .vc1Decoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding       = 1,
     .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 0,
@@ -184,6 +186,8 @@ static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrTileY, 1);
+
     return true;
 }
 
@@ -209,6 +213,8 @@ static bool InitSklMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
 
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
+
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     return true;
 }
 
@@ -258,6 +264,8 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
+
     return true;
 }
 
@@ -289,6 +297,8 @@ static bool InitBxtMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
 
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
+
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     return true;
 }
 
@@ -322,8 +332,12 @@ static bool InitKblMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrEncodeAVCVdenc, codecInfo->avcVdenc);
         MEDIA_WR_SKU(skuTable, FtrVP9VLDDecoding, codecInfo->vp9Decoding);
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile0Decoding8bit420, codecInfo->vp9Decoding);
+        MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding10bit420, codecInfo->vp9b10Decoding);
         MEDIA_WR_SKU(skuTable, FtrVP9VLD10bProfile2Decoding, codecInfo->vp9b10Decoding);
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding, codecInfo->vp9b10Decoding);
+
+        /* VP8 enc */
+        MEDIA_WR_SKU(skuTable, FtrEncodeVP8, codecInfo->vp8Encoding);
 
     }
 
@@ -410,6 +424,8 @@ static bool InitKblMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
 
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
+
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     return true;
 }
 
@@ -495,6 +511,8 @@ static bool InitGlkMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
 
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
+
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     return true;
 }
 

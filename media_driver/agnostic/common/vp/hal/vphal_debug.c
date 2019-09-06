@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,8 @@
 #define VPHAL_DBG_SURF_DUMP_LOC_POSTDNDI            "postdndi"
 #define VPHAL_DBG_SURF_DUMP_LOC_PRECOMP             "precomp"
 #define VPHAL_DBG_SURF_DUMP_LOC_POSTCOMP            "postcomp"
+#define VPHAL_DBG_SURF_DUMP_LOC_PREMEMDECOMP        "prememdecomp"
+#define VPHAL_DBG_SURF_DUMP_LOC_POSTMEMDECOMP       "postmemdecomp"
 #define VPHAL_DBG_SURF_DUMP_LOC_POSTALL             "postall"
 
 #define VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME        "outfileLocation"
@@ -99,334 +101,339 @@ void VphalDumperTool::GetOsFilePath(
 }
 
 MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
-    PVPHAL_SURFACE                      pSurface,
-    VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
-    uint32_t*                           pdwNumPlanes,
-    uint32_t*                           pdwSize)
+    PVPHAL_SURFACE                    pSurface,
+    VPHAL_DBG_SURF_DUMP_SURFACE_DEF  *pPlanes,
+    uint32_t                         *pdwNumPlanes,
+    uint32_t                         *pdwSize,
+    bool                              auxEnable)
 {
     MOS_STATUS      eStatus;
     uint32_t        i;
+    bool            PaddingEnable = false;
 
     eStatus = MOS_STATUS_SUCCESS;
 
     // Caller should supply this much!
     MOS_ZeroMemory(pPlanes, sizeof(VPHAL_DBG_SURF_DUMP_SURFACE_DEF) * 3);
 
-    switch(pSurface->Format)
+    switch (pSurface->Format)
     {
-        case Format_AI44:
-        case Format_IA44:
-        case Format_A4L4:
-        case Format_P8:
-        case Format_L8:
-        case Format_A8:
-        case Format_Buffer:
-        case Format_STMM:
-        case Format_IRW4:
-        case Format_IRW5:
-        case Format_IRW6:
-        case Format_IRW7:
-        case Format_RAW:
-            *pdwNumPlanes       = 1;
+    case Format_AI44:
+    case Format_IA44:
+    case Format_A4L4:
+    case Format_P8:
+    case Format_L8:
+    case Format_A8:
+    case Format_Buffer:
+    case Format_STMM:
+    case Format_IRW4:
+    case Format_IRW5:
+    case Format_IRW6:
+    case Format_IRW7:
+    case Format_RAW:
+    case Format_Y8:
+        *pdwNumPlanes = 1;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_R5G6B5:
-        case Format_A8P8:
-        case Format_A8L8:
-        case Format_YUY2:
-        case Format_YUYV:
-        case Format_YVYU:
-        case Format_UYVY:
-        case Format_VYUY:
-        case Format_IRW0:
-        case Format_IRW1:
-        case Format_IRW2:
-        case Format_IRW3:
-        case Format_V8U8:
-        case Format_R16F:
-            *pdwNumPlanes       = 1;
+    case Format_R5G6B5:
+    case Format_A8P8:
+    case Format_A8L8:
+    case Format_YUY2:
+    case Format_YUYV:
+    case Format_YVYU:
+    case Format_UYVY:
+    case Format_VYUY:
+    case Format_IRW0:
+    case Format_IRW1:
+    case Format_IRW2:
+    case Format_IRW3:
+    case Format_V8U8:
+    case Format_R16F:
+    case Format_Y16S:
+    case Format_Y16U:
+        *pdwNumPlanes = 1;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth * 2;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[0].dwWidth  = pSurface->dwWidth * 2;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_R32U:
-        case Format_R32F:
-        case Format_A8R8G8B8:
-        case Format_X8R8G8B8:
-        case Format_A8B8G8R8:
-        case Format_X8B8G8R8:
-        case Format_R8G8B8:
-        case Format_AYUV:
-        case Format_AUYV:
-        case Format_R10G10B10A2:
-        case Format_B10G10R10A2:
-        case Format_Y410:
-            *pdwNumPlanes       = 1;
+    case Format_R32U:
+    case Format_R32F:
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+    case Format_A8B8G8R8:
+    case Format_X8B8G8R8:
+    case Format_R8G8B8:
+    case Format_AYUV:
+    case Format_AUYV:
+    case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
+    case Format_Y410:
+        *pdwNumPlanes = 1;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth * 4;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[0].dwWidth  = pSurface->dwWidth * 4;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_Y416:
-        case Format_A16B16G16R16:
-        case Format_A16R16G16B16:
-        case Format_A16B16G16R16F:
-        case Format_A16R16G16B16F:
-            *pdwNumPlanes       = 1;
+    case Format_Y416:
+    case Format_A16B16G16R16:
+    case Format_A16R16G16B16:
+    case Format_A16B16G16R16F:
+    case Format_A16R16G16B16F:
+        *pdwNumPlanes = 1;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth * 8;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[0].dwWidth  = pSurface->dwWidth * 8;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_NV12:
-            *pdwNumPlanes           = 2;
+    case Format_NV12:
+        *pdwNumPlanes = 2;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/2;
-            pPlanes[1].dwPitch      = pPlanes[1].dwWidth;
-            break;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[1].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_P010:
-        case Format_P016:
-            *pdwNumPlanes           = 2;
+    case Format_P010:
+    case Format_P016:
+        *pdwNumPlanes = 2;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth * 2;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth * 2;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/2;
-            pPlanes[1].dwPitch      = pPlanes[1].dwWidth;
-            break;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[1].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_IMC2:
-        case Format_IMC4:
-            *pdwNumPlanes           = 2;
+    case Format_IMC2:
+    case Format_IMC4:
+        *pdwNumPlanes = 2;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/2;
-            pPlanes[1].dwPitch      = pPlanes[1].dwWidth;
-            break;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_YVU9:
-            *pdwNumPlanes           = 3;
+    case Format_YVU9:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth/4;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/4;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 4;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 4;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth/4;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight/4;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 4;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight / 4;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_I420:
-        case Format_IYUV:
-        case Format_IMC1:
-        case Format_IMC3:
-            *pdwNumPlanes           = 3;
+    case Format_IMC1:
+    case Format_IMC3:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth/2;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/2;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth/2;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight/2;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_YV12:
-            *pdwNumPlanes           = 3;
+    case Format_I420:
+    case Format_IYUV:
+    case Format_YV12:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/4;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch / 2;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight/4;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
-        case Format_400P:
-            *pdwNumPlanes           = 1;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch / 2;
+        break;
+    case Format_400P:
+        *pdwNumPlanes = 1;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_411P:
-            *pdwNumPlanes           = 3;
+    case Format_411P:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth/4;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 4;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth/4;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 4;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_411R:
-            *pdwNumPlanes           = 3;
+    case Format_411R:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/4;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 4;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight/4;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight / 4;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_422H:
-            *pdwNumPlanes           = 3;
+    case Format_422H:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth/2;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth/2;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth / 2;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_422V:
-            *pdwNumPlanes           = 3;
+    case Format_422V:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight/2;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight/2;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight / 2;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_444P:
-        case Format_RGBP:
-        case Format_BGRP:
-            *pdwNumPlanes           = 3;
+    case Format_444P:
+    case Format_RGBP:
+    case Format_BGRP:
+        *pdwNumPlanes = 3;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[1].dwHeight     = pPlanes[0].dwHeight;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[1].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[1].dwHeight = pPlanes[0].dwHeight;
+        pPlanes[1].dwPitch  = pPlanes[0].dwPitch;
 
-            pPlanes[2].dwWidth      = pPlanes[0].dwWidth;
-            pPlanes[2].dwHeight     = pPlanes[0].dwHeight;
-            pPlanes[2].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[2].dwWidth  = pPlanes[0].dwWidth;
+        pPlanes[2].dwHeight = pPlanes[0].dwHeight;
+        pPlanes[2].dwPitch  = pPlanes[0].dwPitch;
+        break;
 
-        case Format_Y210:
-        case Format_Y216:
-            *pdwNumPlanes           = 1;
+    case Format_Y210:
+    case Format_Y216:
+        *pdwNumPlanes = 1;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth * 4;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[0].dwWidth  = pSurface->dwWidth * 4;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
+        break;
 
-        case Format_P210:
-        case Format_P216:
-            *pdwNumPlanes           = 2;
+    case Format_P210:
+    case Format_P216:
+        *pdwNumPlanes = 2;
 
-            pPlanes[0].dwWidth      = pSurface->dwWidth * 2;
-            pPlanes[0].dwHeight     = pSurface->dwHeight;
-            pPlanes[0].dwPitch      = pPlanes[0].dwWidth;
+        pPlanes[0].dwWidth  = pSurface->dwWidth * 2;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
 
-            pPlanes[1].dwWidth      = pSurface->dwWidth * 2;
-            pPlanes[1].dwHeight     = pSurface->dwHeight;
-            pPlanes[1].dwPitch      = pPlanes[0].dwWidth;
-            break;
+        pPlanes[1].dwWidth  = pSurface->dwWidth * 2;
+        pPlanes[1].dwHeight = pSurface->dwHeight;
+        pPlanes[1].dwPitch  = pSurface->dwPitch;
+        break;
 
-        default:
-            VPHAL_DEBUG_ASSERTMESSAGE("Format '%d' not supported.", pSurface->Format);
-            eStatus = MOS_STATUS_UNKNOWN;
-            goto finish;
+    default:
+        VPHAL_DEBUG_ASSERTMESSAGE("Format '%d' not supported.", pSurface->Format);
+        eStatus = MOS_STATUS_UNKNOWN;
+        goto finish;
     }
 
     for (i = 0; i < *pdwNumPlanes; i++)
     {
-        switch(i)
+        switch (i)
         {
         case 0:
             pPlanes[i].dwOffset = pSurface->YPlaneOffset.iSurfaceOffset +
-                                  (pSurface->YPlaneOffset.iYOffset * pSurface->dwPitch) +
-                                  pSurface->YPlaneOffset.iXOffset;
+                (pSurface->YPlaneOffset.iYOffset * pSurface->dwPitch) +
+                pSurface->YPlaneOffset.iXOffset;
             break;
         case 1:
             if (pSurface->Format == Format_YV12)
             {
                 pPlanes[i].dwOffset = pSurface->VPlaneOffset.iSurfaceOffset +
-                                      (pSurface->VPlaneOffset.iYOffset * pSurface->dwPitch) +
-                                      pSurface->VPlaneOffset.iXOffset;
+                    (pSurface->VPlaneOffset.iYOffset * pSurface->dwPitch) +
+                    pSurface->VPlaneOffset.iXOffset;
             }
             else
             {
                 pPlanes[i].dwOffset = pSurface->UPlaneOffset.iSurfaceOffset +
-                                      (pSurface->UPlaneOffset.iYOffset * pSurface->dwPitch) +
-                                      pSurface->UPlaneOffset.iXOffset;
+                    (pSurface->UPlaneOffset.iYOffset * pSurface->dwPitch) +
+                    pSurface->UPlaneOffset.iXOffset;
             }
             break;
         case 2:
             if (pSurface->Format == Format_YV12)
             {
                 pPlanes[i].dwOffset = pSurface->UPlaneOffset.iSurfaceOffset +
-                                      (pSurface->UPlaneOffset.iYOffset * pSurface->dwPitch) +
-                                      pSurface->UPlaneOffset.iXOffset;
+                    (pSurface->UPlaneOffset.iYOffset * pSurface->dwPitch) +
+                    pSurface->UPlaneOffset.iXOffset;
             }
             else
             {
                 pPlanes[i].dwOffset = pSurface->VPlaneOffset.iSurfaceOffset +
-                                      (pSurface->VPlaneOffset.iYOffset * pSurface->dwPitch) +
-                                      pSurface->VPlaneOffset.iXOffset;
+                    (pSurface->VPlaneOffset.iYOffset * pSurface->dwPitch) +
+                    pSurface->VPlaneOffset.iXOffset;
             }
             break;
         default:
@@ -434,10 +441,28 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
         }
     }
 
-    // Total raw Size of the frame without row padding
-    *pdwSize = (pPlanes[0].dwPitch * pPlanes[0].dwHeight) +
-               (pPlanes[1].dwPitch * pPlanes[1].dwHeight) +
-               (pPlanes[2].dwPitch * pPlanes[2].dwHeight);
+    //compressed surface need 32 align on height
+    if (auxEnable)
+    {
+        for (i = 0; i < *pdwNumPlanes; i++)
+        {
+            pPlanes[i].dwHeight = MOS_ALIGN_CEIL(pPlanes[i].dwHeight, 32);
+        }
+    }
+
+    // For uncompressed surface, padding data is not needed. For compressed surface, padding data is needed for offline check
+    if (auxEnable)
+    {
+        *pdwSize = (pPlanes[0].dwPitch * pPlanes[0].dwHeight) +
+                   (pPlanes[1].dwPitch * pPlanes[1].dwHeight) +
+                   (pPlanes[2].dwPitch * pPlanes[2].dwHeight);
+    }
+    else
+    {
+        *pdwSize = (pPlanes[0].dwWidth * pPlanes[0].dwHeight) +
+                   (pPlanes[1].dwWidth * pPlanes[1].dwHeight) +
+                   (pPlanes[2].dwWidth * pPlanes[2].dwHeight);
+    }
 
 finish:
     return eStatus;
@@ -457,55 +482,80 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
     uint8_t                             *pDst, *pTmpSrc, *pTmpDst;
     uint32_t                            dwNumPlanes, dwSize, j, i;
     VPHAL_DBG_SURF_DUMP_SURFACE_DEF     planes[3];
+    uint32_t                            dstPlaneOffset[3] = {0};
     MOS_LOCK_PARAMS                     LockFlags;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
+    bool                                hasAuxSurf;
+    bool                                enableAuxDump;
+    bool                                enablePlaneDump = false;
 
-    //------------------------------------
+#if !EMUL
+    GMM_RESOURCE_FLAG                   gmmFlags;
+#endif
+
+    VPHAL_DEBUG_ASSERT(pSurface);
     VPHAL_DEBUG_ASSERT(pOsInterface);
     VPHAL_DEBUG_ASSERT(psPathPrefix);
-    //------------------------------------
 
     eStatus         = MOS_STATUS_SUCCESS;
     isSurfaceLocked = false;
+    hasAuxSurf      = false;
     pDst            = nullptr;
+    enableAuxDump   = m_dumpSpec.enableAuxDump;
     MOS_ZeroMemory(sPath,   MAX_PATH);
     MOS_ZeroMemory(sOsPath, MAX_PATH);
+    dwNumPlanes = 0;
+    enablePlaneDump = m_dumpSpec.enablePlaneDump;
 
     if (pSurface->dwDepth == 0)
     {
         pSurface->dwDepth = 1;
     }
 
+#if !EMUL
+    MOS_ZeroMemory(&gmmFlags, sizeof(gmmFlags));
+    gmmFlags   = pSurface->OsResource.pGmmResInfo->GetResFlags();
+    hasAuxSurf = (gmmFlags.Gpu.MMC && gmmFlags.Gpu.UnifiedAuxSurface ) ||
+                 (gmmFlags.Gpu.CCS && gmmFlags.Gpu.UnifiedAuxSurface && gmmFlags.Info.MediaCompressed);
+#endif
+
     // get plane definitions
     VPHAL_DEBUG_CHK_STATUS(GetPlaneDefs(
         pSurface,
         planes,
         &dwNumPlanes,
-        &dwSize));
+        &dwSize,
+        (hasAuxSurf && enableAuxDump)));
 
     if (bLockSurface)
     {
         LockFlags.Value     = 0;
         LockFlags.ReadOnly  = 1;
 
+        // If aux data exist and enable aux dump, no swizzle and no decompress
+        if (hasAuxSurf && enableAuxDump)
+        {
+            LockFlags.TiledAsTiled = 1;
+            LockFlags.NoDecompress = 1;
+        }
+
         pData = (uint8_t*)pOsInterface->pfnLockResource(
-                            pOsInterface,
-                            &pSurface->OsResource,
-                            &LockFlags);
+            pOsInterface,
+            &pSurface->OsResource,
+            &LockFlags);
+        VPHAL_DEBUG_CHK_NULL(pData);
 
         // Write error to user feauture key
         MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data  = 1;
-        UserFeatureWriteData.ValueID        =
-            __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK_ID;
+        UserFeatureWriteData.ValueID        = __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK_ID;
+
         eStatus = MOS_UserFeature_WriteValues_ID(
             nullptr,
             &UserFeatureWriteData,
             1);
+
         VPHAL_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
-
-        VPHAL_DEBUG_CHK_NULL(pData);
-
         isSurfaceLocked = true;
     }
 
@@ -525,6 +575,7 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
 
     pDst = (uint8_t*)MOS_AllocAndZeroMemory(dwSize);
     VPHAL_DEBUG_CHK_NULL(pDst);
+    VPHAL_DEBUG_CHK_NULL(pData);
     pTmpSrc = pData;
     pTmpDst = pDst;
 
@@ -533,17 +584,159 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         pTmpSrc = pData + planes[j].dwOffset;
         for (i = 0; i < planes[j].dwHeight; i++)
         {
-            MOS_SecureMemcpy(
-                pTmpDst,
-                planes[j].dwWidth,
-                pTmpSrc,
-                planes[j].dwWidth);
+            if (hasAuxSurf && enableAuxDump)
+            {
+                MOS_SecureMemcpy(
+                    pTmpDst,
+                    planes[j].dwPitch,
+                    pTmpSrc,
+                    planes[j].dwPitch);
 
-            pTmpSrc += pSurface->dwPitch;
-            pTmpDst += planes[j].dwPitch;
+                pTmpSrc += planes[j].dwPitch;
+                pTmpDst += planes[j].dwPitch;
+
+                dstPlaneOffset[j+1] += planes[j].dwPitch;
+            }
+            else
+            {
+                MOS_SecureMemcpy(
+                    pTmpDst,
+                    planes[j].dwWidth,
+                    pTmpSrc,
+                    planes[j].dwWidth);
+
+                pTmpSrc += planes[j].dwPitch;
+                pTmpDst += planes[j].dwWidth;
+
+                dstPlaneOffset[j+1] += planes[j].dwWidth;
+            }
+        }
+
+        //if more than 1 plane, dump each plane's surface for offline analysis
+        if (enablePlaneDump)
+        {
+            if ((dwNumPlanes > 1) && (dwNumPlanes <= 3))
+            {
+                char sPlanePath[MAX_PATH], sPlaneOsPath[MAX_PATH];
+                MOS_ZeroMemory(sPlanePath, MAX_PATH);
+                MOS_ZeroMemory(sPlaneOsPath, MAX_PATH);
+
+                MOS_SecureStringPrint(
+                    sPlanePath,
+                    MAX_PATH,
+                    sizeof(sPlanePath),
+                    "%s_f[%03lld]_w[%d]_h[%d]_p[%d].%s",
+                    psPathPrefix,
+                    iCounter,
+                    planes[j].dwWidth,
+                    planes[j].dwHeight,
+                    planes[j].dwPitch,
+                    (j == 0 ? "Y" : ((dwNumPlanes == 2) ? "UV" : ((j == 1) ? "U" : "V"))));
+
+                VphalDumperTool::GetOsFilePath(sPlanePath, sPlaneOsPath);
+
+                VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sPlaneOsPath, pDst + dstPlaneOffset[j], dstPlaneOffset[j + 1]));
+            }
+            else
+            {
+                VPHAL_DEBUG_ASSERTMESSAGE("More than 3 planes not supported during plane dump.");
+            }
         }
     }
+
     VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDst, dwSize));
+
+#if !EMUL
+    // Dump Aux surface data
+    if (hasAuxSurf && enableAuxDump)
+    {
+        uint32_t    resourceIndex;
+        bool        isPlanar;
+        uint8_t    *auxDataY;
+        uint8_t    *auxDataUV;
+        uint32_t    auxSizeY;
+        uint32_t    auxSizeUV;
+        uint8_t    *pSurfaceBase;
+
+        resourceIndex = 0;
+        pSurfaceBase  = pData;
+        isPlanar      = (pOsInterface->pfnGetGmmClientContext(pOsInterface)->IsPlanar(pSurface->OsResource.pGmmResInfo->GetResourceFormat()) != 0);
+        auxDataY      = (uint8_t*)pSurfaceBase + pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_Y_CCS);
+        auxDataUV     = (uint8_t*)pSurfaceBase + pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_UV_CCS);
+        if (isPlanar)
+        {
+            auxSizeY = (uint32_t)(pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_UV_CCS) -
+                pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_Y_CCS));
+        }else
+        {
+            auxSizeY = (uint32_t)(pSurface->OsResource.pGmmResInfo->GetSizeAuxSurface(GMM_AUX_CCS));
+        }
+
+        auxSizeUV = (uint32_t)(pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_COMP_STATE) -
+            pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_UV_CCS));
+
+        if (auxSizeUV == 0)
+        {
+            auxSizeUV = (uint32_t)(pSurface->OsResource.pGmmResInfo->GetSizeAuxSurface(GMM_AUX_SURF)) /
+                (pSurface->OsResource.pGmmResInfo)->GetArraySize() - auxSizeY;
+        }
+
+        // Dump Y Aux data
+        MOS_SecureStringPrint(
+            sPath,
+            MAX_PATH,
+            sizeof(sPath),
+            "%s_f[%03lld]_w[%d]_h[%d]_p[%d].Yaux",
+            psPathPrefix,
+            iCounter,
+            pSurface->dwWidth,
+            pSurface->dwHeight,
+            pSurface->dwPitch);
+
+        VphalDumperTool::GetOsFilePath(sPath, sOsPath);
+
+        uint8_t  *pDstAux = (uint8_t*)MOS_AllocAndZeroMemory(auxSizeY);
+        VPHAL_DEBUG_CHK_NULL(pDstAux);
+
+        MOS_SecureMemcpy(
+            pDstAux,
+            auxSizeY,
+            auxDataY,
+            auxSizeY);
+
+        VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDstAux, auxSizeY));
+        MOS_SafeFreeMemory(pDstAux);
+
+        if (auxSizeUV && isPlanar)
+        {
+            // Dump UV Aux data
+            MOS_SecureStringPrint(
+                sPath,
+                MAX_PATH,
+                sizeof(sPath),
+                "%s_f[%03lld]_w[%d]_h[%d]_p[%d].UVaux",
+                psPathPrefix,
+                iCounter,
+                pSurface->dwWidth,
+                pSurface->dwHeight,
+                pSurface->dwPitch);
+
+            VphalDumperTool::GetOsFilePath(sPath, sOsPath);
+
+            uint8_t  *pDstUVAux = (uint8_t*)MOS_AllocAndZeroMemory(auxSizeUV);
+            VPHAL_DEBUG_CHK_NULL(pDstUVAux);
+
+            MOS_SecureMemcpy(
+                pDstUVAux,
+                auxSizeUV,
+                auxDataUV,
+                auxSizeUV);
+
+            VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDstUVAux, auxSizeUV));
+            MOS_SafeFreeMemory(pDstUVAux);
+        }
+    }
+#endif
 
 finish:
     MOS_SafeFreeMemory(pDst);
@@ -1566,6 +1759,14 @@ MOS_STATUS VphalSurfaceDumper::LocStringToEnum(
     {
         *pLocation = VPHAL_DBG_DUMP_TYPE_POST_COMP;
     }
+    else if (strcmp(pcLocString, VPHAL_DBG_SURF_DUMP_LOC_PREMEMDECOMP) == 0)
+    {
+        *pLocation = VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP;
+    }
+    else if (strcmp(pcLocString, VPHAL_DBG_SURF_DUMP_LOC_POSTMEMDECOMP) == 0)
+    {
+        *pLocation = VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP;
+    }
     else if (strcmp(pcLocString, VPHAL_DBG_SURF_DUMP_LOC_POSTALL)  == 0)
     {
         *pLocation = VPHAL_DBG_DUMP_TYPE_POST_ALL;
@@ -1613,6 +1814,12 @@ MOS_STATUS VphalSurfaceDumper::EnumToLocString(
             break;
         case VPHAL_DBG_DUMP_TYPE_POST_COMP:
             MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_POSTCOMP);
+            break;
+        case VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP:
+            MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_PREMEMDECOMP);
+            break;
+        case VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP:
+            MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_POSTMEMDECOMP);
             break;
         case VPHAL_DBG_DUMP_TYPE_POST_ALL:
             MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_DBG_SURF_DUMP_LOC_POSTALL);
@@ -1863,10 +2070,11 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
     UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
     UserFeatureData.StringData.uSize       = 0;    //set the default value. 0 is empty buffer.
 
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME_ID,
         &UserFeatureData));
+
     if (UserFeatureData.StringData.uSize > 0)
     {
         // Copy the Output path
@@ -1876,6 +2084,36 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
             UserFeatureData.StringData.pStringData,
             UserFeatureData.StringData.uSize);
     }
+#if !defined(LINUX) && !defined(ANDROID)
+    else
+    {
+        std::string vphalDumpFilePath;
+
+        // Use state separation APIs to obtain appropriate storage location
+        if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
+        {
+            std::string m_outputFilePath;
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+
+            m_outputFilePath = vphalDumpFilePath.c_str();
+            m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
+
+            // Copy the Output path
+            MOS_SecureMemcpy(
+                pDumpSpec->pcOutputPath,
+                MAX_PATH,
+                m_outputFilePath.c_str(),
+                m_outputFilePath.size());
+
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.StringData.pStringData = cStringData;
+            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
+            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
+            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
+            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+        }
+    }
+#endif
 
     // Get dump locations
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -1898,6 +2136,22 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
         VPHAL_DEBUG_CHK_STATUS(ProcessDumpLocations(
             UserFeatureData.StringData.pStringData));
     }
+
+    // Get enableAuxDump
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP_ID,
+        &UserFeatureData));
+    pDumpSpec->enableAuxDump = UserFeatureData.u32Data;
+
+    // Get plane dump enabled flag
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP,
+        &UserFeatureData));
+    pDumpSpec->enablePlaneDump = UserFeatureData.u32Data;
 
 finish:
     if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled))
@@ -2170,7 +2424,7 @@ void VphalHwStateDumper::GetStateDumpSpec()
     UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
     UserFeatureData.StringData.uSize       = 0;    // set the default value. 0 is empty buffer.
 
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME_ID,
         &UserFeatureData));
@@ -2184,6 +2438,36 @@ void VphalHwStateDumper::GetStateDumpSpec()
             pUserFeatureData->StringData.pStringData,
             pUserFeatureData->StringData.uSize);
     }
+#if !defined(LINUX) && !defined(ANDROID)
+    else
+    {
+        std::string vphalDumpFilePath;
+
+        // Use state separation APIs to obtain appropriate storage location
+        if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
+        {
+            std::string m_outputFilePath;
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+
+            m_outputFilePath = vphalDumpFilePath.c_str();
+            m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
+
+            // Copy the Output path
+            MOS_SecureMemcpy(
+                pDumpSpec->pcOutputPath,
+                MAX_PATH,
+                m_outputFilePath.c_str(),
+                m_outputFilePath.size());
+
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.StringData.pStringData = cStringData;
+            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
+            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
+            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
+            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+        }
+    }
+#endif
 
     // Get dump locations
     UserFeatureData.StringData.pStringData = cStringData;
@@ -2257,6 +2541,8 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
     // Called frequently, so avoid repeated stack resizing with static
     static char pcDumpPrefix[MAX_PATH];
     static char pcDumpLoc[MAX_PATH];
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    int32_t VphalSurfDumpManualTrigger = VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET;
 
     MOS_STATUS  eStatus;
     int32_t     i;
@@ -2265,8 +2551,49 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
     eStatus = MOS_STATUS_SUCCESS;
     i       = 0;
 
-    if (pDumpSpec->uiStartFrame <= uiFrameNumber &&
-        uiFrameNumber <= pDumpSpec->uiEndFrame)
+    // Get if manual triggered build
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME_ID,
+        &UserFeatureData);
+    VphalSurfDumpManualTrigger = UserFeatureData.u32Data;
+
+    if (VphalSurfDumpManualTrigger != VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET)
+    {
+        if (VphalSurfDumpManualTrigger == VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STARTED)
+        {
+            VPHAL_DEBUG_NORMALMESSAGE("Dump manaul trigger enabled, dump started: %d \n", VphalSurfDumpManualTrigger);
+
+            for (i = 0; i < pDumpSpec->iNumDumpLocs; i++)
+            {
+                if (pDumpSpec->pDumpLocations[i].DumpLocation == Location &&      // should dump at this pipeline location AND
+                    (pDumpSpec->pDumpLocations[i].SurfType == pSurf->SurfType ||  // should dump for this surface type OR
+                        pDumpSpec->pDumpLocations[i].SurfType == SURF_NONE))      // should dump for any surface type
+                {
+                    VPHAL_DEBUG_CHK_STATUS(EnumToLocString(Location, pcDumpLoc));
+                    MOS_SecureStringPrint(pcDumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, pcDumpLoc, uiCounter);
+                    DumpSurfaceToFile(
+                        m_osInterface,
+                        pSurf,
+                        pcDumpPrefix,
+                        uiFrameNumber,
+                        true);
+                    break;
+                }
+            }
+        }
+        else if (VphalSurfDumpManualTrigger == VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STOPPED)
+        {
+            VPHAL_DEBUG_NORMALMESSAGE("Dump manaul trigger enabled, dump stopped: %d \n", VphalSurfDumpManualTrigger);
+        }
+        else
+        {
+            VPHAL_DEBUG_NORMALMESSAGE("Dump manaul trigger flag: %d \n", VphalSurfDumpManualTrigger);
+        }
+    }
+    else if (pDumpSpec->uiStartFrame <= uiFrameNumber &&
+             uiFrameNumber <= pDumpSpec->uiEndFrame)
     {
         for (i = 0; i < pDumpSpec->iNumDumpLocs; i++)
         {
@@ -2286,6 +2613,10 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
                 break;
             }
         }
+    }
+    else
+    {
+        VPHAL_DEBUG_VERBOSEMESSAGE("surface dumpped disabled, VphalSurfDumpManualTrigger: %d, uiStartFrame: %d,  uiEndFrame: %d\n", VphalSurfDumpManualTrigger, pDumpSpec->uiStartFrame, pDumpSpec->uiEndFrame);
     }
 
 finish:
@@ -2664,7 +2995,7 @@ void VphalParameterDumper::GetParametersDumpSpec()
     UserFeatureData.StringData.uMaxSize = MOS_USER_CONTROL_MAX_DATA_SIZE;
     UserFeatureData.StringData.uSize = 0;    //set the default value. 0 is empty buffer.
 
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID,
         &UserFeatureData));
@@ -2678,8 +3009,39 @@ void VphalParameterDumper::GetParametersDumpSpec()
             UserFeatureData.StringData.uSize);
         bDumpEnabled = true;
     }
+#if !defined(LINUX) && !defined(ANDROID)
+    else
+    {
+        std::string vphalDumpFilePath;
 
-finish:
+        // Use state separation APIs to obtain appropriate storage location
+        if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
+        {
+            std::string m_outputFilePath;
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+
+            m_outputFilePath = vphalDumpFilePath.c_str();
+            m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
+
+            // Copy the Output path
+            MOS_SecureMemcpy(
+                pDumpSpec->outFileLocation,
+                MAX_PATH,
+                m_outputFilePath.c_str(),
+                m_outputFilePath.size());
+
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.StringData.pStringData = cStringData;
+            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
+            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
+            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
+            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+
+            bDumpEnabled = true;
+        }
+    }
+#endif
+
     if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled))
     {
         pDumpSpec->uiStartFrame = 1;

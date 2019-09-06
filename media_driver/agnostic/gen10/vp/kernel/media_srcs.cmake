@@ -22,7 +22,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g10.c
 )
 
-
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g10.h
 )

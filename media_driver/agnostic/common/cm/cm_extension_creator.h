@@ -57,6 +57,16 @@ public:
         }
         return nullptr;
     }
+
+    static T* CreateBaseClass()
+    {
+        Creator *c = GetCreators();
+        if (c[0] != nullptr)
+        {
+            return c[0]();
+        }
+        return MOS_New(T);
+    }
     
 private:
     static Creator* GetCreators()

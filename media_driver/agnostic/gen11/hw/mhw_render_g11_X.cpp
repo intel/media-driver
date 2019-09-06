@@ -28,6 +28,7 @@
 
 #include "mhw_render_g11_X.h"
 #include "mhw_render_hwcmd_g11_X.h"
+#include "mhw_mmio_g11.h"
 
 MOS_STATUS MhwRenderInterfaceG11::AddMediaVfeCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
@@ -153,13 +154,18 @@ MOS_STATUS MhwRenderInterfaceG11::EnableL3Caching(
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS    cacheSettings )
 {
     // L3 Caching enabled by default
-    PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 cacheSettingsG11 = static_cast< PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 >( cacheSettings );
     m_l3CacheConfig.bL3CachingEnabled = true;
     m_l3CacheConfig.dwL3CacheCntlReg_Register = m_l3CacheCntlRegisterOffset;
     m_l3CacheConfig.dwL3CacheTcCntlReg_Register = m_l3CacheTcCntlRegisterOffset;
 
-    if ( cacheSettingsG11 )
+    if ( cacheSettings )
     {
+        PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 cacheSettingsG11 = dynamic_cast< PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 >( cacheSettings );
+        if (cacheSettingsG11 == nullptr)
+        {
+            MHW_ASSERTMESSAGE("Gen11-Specific Params are needed.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         m_l3CacheConfig.dwL3CacheCntlReg_Setting = cacheSettingsG11->dwCntlReg;
         m_l3CacheConfig.dwL3CacheTcCntlReg_Setting = cacheSettingsG11->dwTcCntlReg;
     }
@@ -229,4 +235,17 @@ MOS_STATUS MhwRenderInterfaceG11::AddGpgpuCsrBaseAddrCmd(
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
+}
+
+void MhwRenderInterfaceG11::InitMmioRegisters()
+{
+    MHW_MI_MMIOREGISTERS *mmioRegisters = &m_mmioRegisters;
+    mmioRegisters->generalPurposeRegister0LoOffset  = CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister0HiOffset  = CS_GENERAL_PURPOSE_REGISTER0_HI_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister4LoOffset  = CS_GENERAL_PURPOSE_REGISTER4_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister4HiOffset  = CS_GENERAL_PURPOSE_REGISTER4_HI_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister11LoOffset = CS_GENERAL_PURPOSE_REGISTER11_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister11HiOffset = CS_GENERAL_PURPOSE_REGISTER11_HI_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister12LoOffset = CS_GENERAL_PURPOSE_REGISTER12_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister12HiOffset = CS_GENERAL_PURPOSE_REGISTER12_HI_OFFSET_G11;
 }

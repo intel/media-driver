@@ -123,7 +123,6 @@ MOS_STATUS XRenderHal_Interface_g8::SetupSurfaceState(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
     //-----------------------------------------
 
-    pSurface      = &pRenderHalSurface->OsSurface;
     dwSurfaceSize = pRenderHal->pHwSizes->dwSizeSurfaceState;
 
     MOS_ZeroMemory(&SurfStateParams, sizeof(SurfStateParams));
@@ -140,6 +139,8 @@ MOS_STATUS XRenderHal_Interface_g8::SetupSurfaceState(
     {
         // Pointer to surface state entry for current plane
         pSurfaceEntry = ppSurfaceEntries[i];
+
+        pSurface = pSurfaceEntry->pSurface;
 
         // Set the Surface State Offset from base of SSH
         pSurfaceEntry->dwSurfStateOffset = pRenderHal->pStateHeap->iSurfaceStateOffset +               // Offset to Base Of Current Surface State Area
@@ -276,7 +277,7 @@ MOS_STATUS XRenderHal_Interface_g8::SetupSurfaceState(
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStateOs(pRenderHal, pRenderHalSurface, pParams, pSurfaceEntry));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStatesOs(pRenderHal, pParams, pSurfaceEntry));
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -427,7 +428,7 @@ MOS_STATUS XRenderHal_Interface_g8::EnableL3Caching(
 {
     MOS_STATUS                           eStatus;
     PLATFORM                             Platform;
-    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig;
+    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
 
@@ -443,7 +444,6 @@ MOS_STATUS XRenderHal_Interface_g8::EnableL3Caching(
 
     // customize the cache config for renderhal and let mhw_render overwrite it
     pCacheConfig = &mHwL3CacheConfig;
-    MOS_ZeroMemory(pCacheConfig, sizeof(MHW_RENDER_ENGINE_L3_CACHE_SETTINGS));
 
     pRenderHal->pOsInterface->pfnGetPlatform(pRenderHal->pOsInterface, &Platform);
 

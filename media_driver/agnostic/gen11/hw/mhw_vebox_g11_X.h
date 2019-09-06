@@ -48,6 +48,19 @@ do\
 }while(0)
 #endif
 
+const MHW_VEBOX_SETTINGS g_Vebox_Settings_g11 =
+{
+    MHW_MAX_VEBOX_STATES,                                                     //!< uiNumInstances
+    MHW_SYNC_SIZE,                                                            //!< uiSyncSize
+    MHW_PAGE_SIZE,                                                            //!< uiDndiStateSize
+    MHW_PAGE_SIZE,                                                            //!< uiIecpStateSize
+    MHW_PAGE_SIZE * 2,                                                        //!< uiGamutStateSize
+    MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
+    MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
+    MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
+    0                                                                         //!< ui3DLUTSize
+};
+
 class MhwVeboxInterfaceG11 : public MhwVeboxInterfaceGeneric<mhw_vebox_g11_X>
 {
 public:
@@ -179,6 +192,12 @@ public:
         MOS_GPU_CONTEXT VeboxGpuContext,
         MOS_GPU_NODE    VeboxGpuNode);
 
+    virtual MOS_STATUS AdjustBoundary(
+        PMHW_VEBOX_SURFACE_PARAMS pSurfaceParam,
+        uint32_t                  *pdwSurfaceWidth,
+        uint32_t                  *pdwSurfaceHeight,
+        bool                      bDIEnable);
+
 private:
     uint32_t m_BT2020InvPixelValue[256];
     uint32_t m_BT2020FwdPixelValue[256];
@@ -244,12 +263,6 @@ private:
     //!
     void IecpStateInitialization(
         mhw_vebox_g11_X::VEBOX_IECP_STATE_CMD    *pVeboxIecpState);
-
-    MOS_STATUS AdjustBoundary(
-        PMHW_VEBOX_SURFACE_PARAMS pSurfaceParam,
-        uint32_t                  *pdwSurfaceWidth,
-        uint32_t                  *pdwSurfaceHeight,
-        bool                      bDIEnable);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS ValidateVeboxScalabilityConfig();

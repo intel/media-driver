@@ -62,7 +62,7 @@
 #endif
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
-#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       17   // Use the same value as I965
+#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       18   // Use the same value as I965
 #define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver - " UFO_VERSION
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
@@ -73,9 +73,9 @@
 #define DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1          16
 
 /* Number of supported input color formats */
-#define DDI_VP_NUM_INPUT_COLOR_STD    4
+#define DDI_VP_NUM_INPUT_COLOR_STD    5
 /* Number of supported output color formats */
-#define DDI_VP_NUM_OUT_COLOR_STD      4
+#define DDI_VP_NUM_OUT_COLOR_STD      5
 /* Number of forward references */
 #define DDI_CODEC_NUM_FWD_REF         0
 /* Number of backward references */
@@ -107,7 +107,7 @@
 #define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE   1024 // Enc config_id starts at this value
 
 /* Some filters in va_private.h */
-#define DDI_VP_MAX_NUM_FILTERS  6
+#define DDI_VP_MAX_NUM_FILTERS  8
 
 #define DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE    2048 // VP config_id starts at this value
 

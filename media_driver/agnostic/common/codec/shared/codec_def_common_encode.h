@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -52,6 +52,10 @@
 
 #define CODEC_MAX_PIC_WIDTH            1920
 #define CODEC_MAX_PIC_HEIGHT           1920                // Tablet usage in portrait mode, image resolution = 1200x1920, so change MAX_HEIGHT to 1920
+
+#define CODEC_2K_MAX_PIC_WIDTH         2048
+#define CODEC_2K_MAX_PIC_HEIGHT        2048
+
 #define CODEC_4K_MAX_PIC_WIDTH         4096
 #define CODEC_4K_MAX_PIC_HEIGHT        4096
 
@@ -70,6 +74,24 @@
 #define SCALE_FACTOR_32x    32
 
 #define CODECHAL_VP9_MB_CODE_SIZE                   204
+
+typedef struct tagENCODE_RECT
+{
+    uint16_t  Top;    // [0..(FrameHeight+ M-1)/M -1]
+    uint16_t  Bottom; // [0..(FrameHeight+ M-1)/M -1]
+    uint16_t  Left;   // [0..(FrameWidth+15)/16-1]
+    uint16_t  Right;  // [0..(FrameWidth+15)/16-1]
+} ENCODE_RECT;
+
+typedef struct tagMOVE_RECT
+{
+    uint32_t  SourcePointX;
+    uint32_t  SourcePointY;
+    uint32_t  DestRectTop;
+    uint32_t  DestRectBottom;
+    uint32_t  DestRectLeft;
+    uint32_t  DestRectRight;
+} MOVE_RECT;
 
 /*! \brief Defines ROI settings.
 *
@@ -127,7 +149,9 @@ typedef enum _CODEC_SCENARIO
     ESCENARIO_ARCHIVE           = 3,
     ESCENARIO_LIVESTREAMING     = 4,
     ESCENARIO_VIDEOCAPTURE      = 5,
-    ESCENARIO_VIDEOSURVEILLANCE = 6
+    ESCENARIO_VIDEOSURVEILLANCE = 6,
+    ESCENARIO_GAMESTREAMING     = 7,
+    ESCENARIO_REMOTEGAMING      = 8
 } CODEC_SCENARIO, ENCODE_SCENARIO;
 
 /*! \brief Provides a hint to encoder about the content for the encoding session.
@@ -234,6 +258,12 @@ typedef struct _CODECHAL_NAL_UNIT_PARAMS
     bool           bInsertEmulationBytes;
     uint32_t       uiSkipEmulationCheckCount;
 } CODECHAL_NAL_UNIT_PARAMS, *PCODECHAL_NAL_UNIT_PARAMS;
+
+typedef struct tagFRAMERATE
+{
+    uint32_t    Numerator;
+    uint32_t    Denominator;
+} FRAMERATE;
 
 /*********************************************************************************\
     Constants for VDENC costing look-up-tables
@@ -408,6 +438,10 @@ typedef enum _CODEC_SLICE_STRUCTS
 
 #define CodecHalUsesVdencEngine(codecFunction)   \
         (codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK)
+
+#define CodecHalUsesPakEngine(codecFunction)   \
+    (codecFunction == CODECHAL_FUNCTION_PAK       ||  \
+     codecFunction == CODECHAL_FUNCTION_ENC_PAK)
 
 #define CodecHalIsRateControlBrc(rateControl, standard) (\
     (rateControl == RATECONTROL_CBR)                || \

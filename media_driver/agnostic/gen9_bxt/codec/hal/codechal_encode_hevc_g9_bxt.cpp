@@ -160,6 +160,11 @@ MOS_STATUS CodechalEncHevcStateG9Bxt::GetKernelHeaderAndSize(
             currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_PB_Adv;
             break;
 
+        case CODECHAL_HEVC_MBENC_DS_COMBINED:
+            // Ignore this kernel on BXT.
+            *krnSize = 0;
+            return eStatus;
+
         case CODECHAL_HEVC_MBENC_PENC:
             currKrnHeader = &kernelHeaderTable->HEVC_LCUEnc_P_MB;
             break;

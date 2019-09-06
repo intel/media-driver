@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,18 @@
 #include "mhw_vebox.h"
 #include "vphal_common.h"       // Common interfaces and structures
 
+#if !defined(LINUX) && !defined(ANDROID)
+#include "UmdStateSeparation.h"
+#endif
+
 //==<DEFINITIONS>===============================================================
 #define MAX_NAME_LEN            100
+
+#define VPHAL_DBG_DUMP_OUTPUT_FOLDER                "\\vphaldump\\"
+
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET (-1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STARTED (1)
+#define VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_STOPPED (0)
 
 //------------------------------------------------------------------------------
 // Dump macro.  Simply calls the dump function.  defined as null in production
@@ -168,6 +178,8 @@ enum VPHAL_DBG_SURF_DUMP_LOCATION
     VPHAL_DBG_DUMP_TYPE_POST_DNDI,
     VPHAL_DBG_DUMP_TYPE_PRE_COMP,
     VPHAL_DBG_DUMP_TYPE_POST_COMP,
+    VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP,
+    VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP,
     VPHAL_DBG_DUMP_TYPE_POST_ALL
 };
 
@@ -194,6 +206,8 @@ struct VPHAL_DBG_SURF_DUMP_SPEC
     uint32_t                      uiStartFrame;                                 //!< Frame to start dumping at
     uint32_t                      uiEndFrame;                                   //!< Frame to stop dumping at
     int32_t                       iNumDumpLocs;                                 //!< Number of pipe stage dump locations
+    bool                          enableAuxDump;                                //!< Enable aux data dump for compressed surface
+    bool                          enablePlaneDump;                              //!< Enable surface dump by plane
 };
 
 //!
@@ -418,7 +432,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS DumpSurfaceToFile(
+    MOS_STATUS DumpSurfaceToFile(
         PMOS_INTERFACE              pOsInterface,
         PVPHAL_SURFACE              pSurface,
         const char                  *psPathPrefix,
@@ -535,14 +549,17 @@ private:
     //!           Number of planes of the surface
     //! \param    [out] pdwSize
     //!           The total size of the surface
+    //! \param    [in] auxEnable
+    //!           Whether aux dump is enabled
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS GetPlaneDefs(
+    MOS_STATUS GetPlaneDefs(
         PVPHAL_SURFACE                      pSurface,
         VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
         uint32_t*                           pdwNumPlanes,
-        uint32_t*                           pdwSize);
+        uint32_t*                           pdwSize,
+        bool                                auxEnable);
 
     //!
     //! \brief    Parse dump location
@@ -607,6 +624,8 @@ public:
     //!
     VphalHwStateDumper(PRENDERHAL_INTERFACE             pRenderHal)
         :   m_renderHal(pRenderHal),
+            iDebugStage(0),
+            iPhase(0),
             m_osInterface(pRenderHal->pOsInterface),
             m_hwSizes(pRenderHal->pHwSizes),
             m_stateHeap(pRenderHal->pStateHeap),

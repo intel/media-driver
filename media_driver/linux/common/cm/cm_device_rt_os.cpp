@@ -36,6 +36,15 @@ extern int32_t CmFillMosResource(VASurfaceID, VADriverContext*, PMOS_RESOURCE);
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
+//| Purpose:    Constructor of CmDevice
+//| Returns:    None.
+//*-----------------------------------------------------------------------------
+CmDeviceRT::CmDeviceRT(uint32_t options) : CmDeviceRTBase(options)
+{
+    ConstructOSSpecific(options);
+}
+
+//*-----------------------------------------------------------------------------
 //| Purpose:    Destructor of CmDevice
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
@@ -48,6 +57,68 @@ CmDeviceRT::~CmDeviceRT()
 
     DestroyAuxDevice();
 };
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create Cm Device
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRT::Create(MOS_CONTEXT *umdContext,
+                           CmDeviceRT* &device,
+                           uint32_t options)
+{
+    int32_t result = CM_FAILURE;
+
+    if (device != nullptr)
+    {
+        // if the Cm Device exists
+        device->Acquire();
+        return CM_SUCCESS;
+    }
+
+    device = new (std::nothrow) CmDeviceRT(options);
+    if (device)
+    {
+        device->Acquire(); // increase ref count
+        result = device->Initialize(umdContext);
+        if (result != CM_SUCCESS)
+        {
+            CM_ASSERTMESSAGE("Error: Failed to initialzie CmDevice.");
+            CmDeviceRT::Destroy(device);
+            device = nullptr;
+        }
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Error: Failed to create CmDevice due to out of system memory.");
+        result = CM_OUT_OF_HOST_MEMORY;
+    }
+
+    return result;
+}
+
+//*-----------------------------------------------------------------------------
+//! Destroy the CmDevice_RT and kernels, samplers and the queue it created.
+//! Also destroy all surfaces it created if the surface hasn't been explicitly destroyed.
+//! Input :
+//!     Reference to the pointer to the CmDevice_RT .
+//! OUTPUT :
+//!     CM_SUCCESS if CmDevice_RT is successfully destroyed.
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRT::Destroy(CmDeviceRT* &device)
+{
+    INSERT_API_CALL_LOG();
+
+    int32_t result = CM_SUCCESS;
+
+    int32_t refCount = device->Release();
+
+    if (refCount == 0)
+    {
+        CmSafeDelete(device);
+    }
+
+    return result;
+}
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize the OS-Specific part in the Initialize() function
@@ -85,20 +156,20 @@ int32_t CmDeviceRT::CreateAuxDevice(MOS_CONTEXT *mosContext)  //VADriverContextP
 
     m_mosContext = mosContext;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(HalCm_Create(mosContext, &m_cmHalCreateOption, &cmHalState ));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(HalCm_Create(mosContext, &m_cmHalCreateOption, &cmHalState ));
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
 
     // allocate cmContext
     cmContext = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
-    CMCHK_NULL(cmContext);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmContext);
     cmContext->mosCtx     = *mosContext; // mos context
     cmContext->cmHalState = cmHalState;
 
     m_accelData =  (void *)cmContext;
 
-    CMCHK_HR_MESSAGE(GetMaxValueFromCaps(m_halMaxValues, m_halMaxValuesEx), "Failed to get Max values.");
-    CMCHK_HR_MESSAGE(GetGenPlatform(m_platform), "Failed to get GPU type.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetMaxValueFromCaps(m_halMaxValues, m_halMaxValuesEx), "Failed to get Max values.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetGenPlatform(m_platform), "Failed to get GPU type.");
 
     //  Get version from Driver
     m_ddiVersion = CM_VERSION;
@@ -152,7 +223,7 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID vaSurface,
     }
 
     CmSurface2DRT *surfaceRT = nullptr;
-    hr = m_surfaceMgr->CreateSurface2D(&mosResource, false, surfaceRT);
+    hr = m_surfaceMgr->CreateSurface2DFromMosResource(&mosResource, false, surfaceRT);
     surface = surfaceRT;
     return hr;
 }
@@ -178,6 +249,25 @@ int32_t CmDeviceRT::GetJITCompileFnt(pJITCompile &jitCompile)
     }
     return CM_SUCCESS;
 }
+
+int32_t CmDeviceRT::GetJITCompileFntV2(pJITCompile_v2 &jitCompile_v2)
+{
+    if (m_fJITCompile_v2)
+    {
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    else
+    {
+        int ret = LoadJITDll();
+        if (ret != CM_SUCCESS)
+        {
+            return ret;
+        }
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    return CM_SUCCESS;
+}
+
 
 //*----------------------------------------------------------------------------
 //| Purpose:    Get JIT Free Block function from igfxcmjit64/32.dll
@@ -254,14 +344,15 @@ int32_t CmDeviceRT::LoadJITDll()
             CM_ASSERTMESSAGE("Error: Failed to load either IGC or JIT library.");
             return result;
         }
-        if (nullptr == m_fJITCompile || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
         {
             m_fJITCompile = (pJITCompile)MOS_GetProcAddress(m_hJITDll, JITCOMPILE_FUNCTION_STR);
+            m_fJITCompile_v2 = (pJITCompile_v2)MOS_GetProcAddress(m_hJITDll, JITCOMPILEV2_FUNCTION_STR);
             m_fFreeBlock = (pFreeBlock)MOS_GetProcAddress(m_hJITDll, FREEBLOCK_FUNCTION_STR);
             m_fJITVersion = (pJITVersion)MOS_GetProcAddress(m_hJITDll, JITVERSION_FUNCTION_STR);
         }
 
-        if ((NULL==m_fJITCompile) || (NULL==m_fFreeBlock) || (NULL==m_fJITVersion))
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || (nullptr == m_fFreeBlock) || (nullptr == m_fJITVersion))
         {
             result = CM_JITDLL_LOAD_FAILURE;
             CM_ASSERTMESSAGE("Error: Failed to get JIT functions.");
@@ -283,10 +374,10 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS queryCaps)
     CM_RETURN_CODE          hr = CM_SUCCESS;
 
     cmData = (PCM_CONTEXT_DATA)GetAccelData();
-    CMCHK_NULL(cmData);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmData);
 
     cmHalState = cmData->cmHalState;
-    CMCHK_NULL(cmHalState);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmHalState);
 
     switch(queryCaps->type)
     {
@@ -311,7 +402,7 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS queryCaps)
             break;
 
         case CM_QUERY_GPU_FREQ:
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnGetGPUCurrentFrequency(cmHalState, &queryCaps->gpuCurrentFreq));
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetGPUCurrentFrequency(cmHalState, &queryCaps->gpuCurrentFreq));
             break;
 
         default:
@@ -352,7 +443,10 @@ CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS queryCaps)
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
-            CM_SURFACE_FORMAT_P208
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
         CmSafeMemCopy( queryCaps->surface2DFormats, formats, CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL  * sizeof( GMM_RESOURCE_FORMAT ) );
     }
@@ -390,13 +484,19 @@ int32_t CmDeviceRT::QuerySurface2DFormats(void *capValue,
             CM_SURFACE_FORMAT_UYVY,
             CM_SURFACE_FORMAT_IMC3,
             CM_SURFACE_FORMAT_411P,
+            CM_SURFACE_FORMAT_411R,
             CM_SURFACE_FORMAT_422H,
             CM_SURFACE_FORMAT_422V,
             CM_SURFACE_FORMAT_444P,
+            CM_SURFACE_FORMAT_RGBP,
+            CM_SURFACE_FORMAT_BGRP,
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
-            CM_SURFACE_FORMAT_P208
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
         CmSafeMemCopy( capValue, formats, capValueSize );
         return CM_SUCCESS;
@@ -466,7 +566,7 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
     snprintf(traceFile+offset, 256-offset, "%s", "/.mdf_trace");
 
     FILE *traceFd = fopen(traceFile, "r");
-    uint flag = 0;
+    int flag = 0;
     if(traceFd )
     {
       //read data from file
@@ -484,5 +584,76 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
     cmHalState->pfnSetVtuneProfilingFlag(cmHalState, m_vtuneOn);
 
     return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create shared Surface 2D (OS agnostic)
+//| Arguments :
+//|               mosResource      [in]     Pointer to Mos resource
+//|               surface          [out]    Reference to Pointer to CmSurface2D
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmDeviceRT::CreateSurface2D(PMOS_RESOURCE mosResource,
+                                              CmSurface2D* & surface)
+{
+    INSERT_API_CALL_LOG();
+
+    if (mosResource == nullptr)
+    {
+        return CM_INVALID_MOS_RESOURCE_HANDLE;
+    }
+
+    CLock locker(m_criticalSectionSurface);
+
+    CmSurface2DRT *surfaceRT = nullptr;
+    int ret = m_surfaceMgr->CreateSurface2DFromMosResource(mosResource, false, surfaceRT);
+    surface = surfaceRT;
+    return ret;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create Surface 2D
+//| Arguments :   width             [in]     width of the  CmSurface2D
+//|               height            [in]     height of the CmSurface2D
+//|               format            [in]     format of the CmSurface2D
+//|               surface          [in/out]    Reference to Pointer to CmSurface2D
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmDeviceRT::CreateSurface2D(uint32_t width,
+                                              uint32_t height,
+                                              CM_SURFACE_FORMAT format,
+                                              CmSurface2D* & surface)
+{
+    INSERT_API_CALL_LOG();
+
+    CLock locker(m_criticalSectionSurface);
+
+    CmSurface2DRT *surfaceRT = nullptr;
+    int ret = m_surfaceMgr->CreateSurface2D(width, height, 0, true, format, surfaceRT);
+    surface = surfaceRT;
+    return ret;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create Surface 2D
+//| NOTE: Called by CM Wrapper, from CMRT Thin
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRT::CreateSurface2D(PMOS_RESOURCE mosResource,
+                                    bool isCmCreated,
+                                    CmSurface2D* & surface)
+{
+    INSERT_API_CALL_LOG();
+
+    if (mosResource == nullptr)
+    {
+        return CM_INVALID_MOS_RESOURCE_HANDLE;
+    }
+
+    CLock locker(m_criticalSectionSurface);
+
+    CmSurface2DRT *surfaceRT = nullptr;
+    int ret = m_surfaceMgr->CreateSurface2DFromMosResource(mosResource, isCmCreated, surfaceRT);
+    surface = surfaceRT;
+    return ret;
 }
 }  // namespace

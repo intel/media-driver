@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,12 @@
 #include "codechal_decoder.h"
 #include "codechal_decode_scalability.h"
 #include "mos_util_user_interface.h"
+#include "mos_solo_generic.h"
 
 
 //!
-//! \brief    calculate secondary cmd buffer index 
-//! \details  calculate secondary cmd buffer index to get or return secondary cmd buffer 
+//! \brief    calculate secondary cmd buffer index
+//! \details  calculate secondary cmd buffer index to get or return secondary cmd buffer
 //! \param    [in]  pScalabilityState
 //!                pointer to scalability decode state
 //! \param    [in]  pdwBufIdxPlus1
@@ -1083,7 +1084,7 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
 
     pVEInterface = pScalState->pVEInterface;
 
-    pScalState->ucScalablePipeNum  = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+    pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
     if (pInitParams->usingSFC)
     {
         //using SFC can only work in single pipe mode.
@@ -1093,39 +1094,76 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (pScalState->bAlwaysFrameSplit)
     {
-        if (pScalState->ucNumVdbox == 2)
+        if (pScalState->ucNumVdbox != 1)
         {
-            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
-        }
-        else
-        {
-            CODECHAL_DECODE_ASSERTMESSAGE("Decode scalability only support platform with 2 Vdbox for now.");
-            return MOS_STATUS_INVALID_PARAMETER;
+            if (pScalState->ucNumVdbox == 2)
+            {
+                pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+            }
+            else
+            {
+                pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+            }
         }
     }
     else
 #endif
     {
-        if (pScalState->ucNumVdbox == 2)
+        if (pScalState->ucNumVdbox != 1)
         {
-            if (pScalState->dwHcpDecModeSwtichTh1Width != 0)
+            if (pScalState->ucNumVdbox == 2)
             {
-                if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh1Width)
+                if (pScalState->dwHcpDecModeSwtichTh1Width != 0)
                 {
-                    pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh1Width)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    }
+                }
+                else if ((!CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+                            || (CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel)))
+                {
+                    pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                }
+
+                if (pScalState->bIsEvenSplit == false)
+                {
+                    // disable scalability for clips with width less than split condition when MMC is on
+                    if (pInitParams->u32PicWidthInPixel <= CODEC_SCALABILITY_FIRST_TILE_WIDTH_4K)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+                    }
                 }
             }
-            else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+            else
             {
-                pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
-            }
-
-            if (pScalState->bIsEvenSplit == false)
-            {
-                // disable scalability for clips with width less than split condition when MMC is on
-                if (pInitParams->u32PicWidthInPixel <= CODEC_SCALABILITY_FIRST_TILE_WIDTH_4K)
+                if (pScalState->dwHcpDecModeSwtichTh1Width != 0 &&
+                    pScalState->dwHcpDecModeSwtichTh2Width != 0)
                 {
-                    pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+                    if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh2Width)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+                    }
+                    else if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh1Width)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    }
+                }
+                else
+                {
+                    if ((pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT))
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+                    }
+                    else if ((!CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+                            || (CodechalDecodeNonRextFormat(pInitParams->format)
+                                && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel)))
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    }
                 }
             }
         }
@@ -1149,16 +1187,19 @@ MOS_STATUS CodechalDecodeScalability_MapPipeNumToLRCACount(
 
     switch (pScalState->ucScalablePipeNum)
     {
-        case CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2:
-            // on GT2 or debug override enabled, FE separate submission = false, FE run on the same engine of BEs;
-            // on GT3, FE separate submission = true, scalability submission includes only BEs.
-            *LRCACount = 2;
-            break;
-        case CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1:
-            *LRCACount = 1;
-            break;
-        default:
-            CODECHAL_DECODE_ASSERTMESSAGE("invalid pipe number.")
+    case CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED:
+        *LRCACount = pScalState->bFESeparateSubmission ? 3 : 4;
+        break;
+    case CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2:
+        // on GT2 or debug override enabled, FE separate submission = false, FE run on the same engine of BEs;
+        // on GT3, FE separate submission = true, scalability submission includes only BEs.
+        *LRCACount = 2;
+        break;
+    case CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1:
+        *LRCACount = 1;
+        break;
+    default:
+        CODECHAL_DECODE_ASSERTMESSAGE("invalid pipe number.")
             return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -1213,32 +1254,32 @@ MOS_STATUS CodechalDecodeScalability_ChkGpuCtxReCreation(
 
     if (changed)
     {
-        // Temp code here. will remove it after gpu context refactor is done
-        if (pScalabilityState->VideoContextForSP == MOS_GPU_CONTEXT_INVALID_HANDLE ||
-            pScalabilityState->VideoContextForMP == MOS_GPU_CONTEXT_INVALID_HANDLE)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
-                pOsInterface,
-                MOS_GPU_CONTEXT_VIDEO4,
-                MOS_GPU_NODE_VIDEO,
-                CurgpuCtxCreatOpts));
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnRegisterBBCompleteNotifyEvent(
-                pOsInterface,
-                MOS_GPU_CONTEXT_VIDEO4));
-            if (NewLRCACount > PreLRCACount)
-            {
-                pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_VIDEO4;
-                pScalabilityState->VideoContextForSP = pScalabilityState->VideoContext;
-            }
-            else
-            {
-                pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO4;
-                pScalabilityState->VideoContextForMP = pScalabilityState->VideoContext;
-            }
-        }
+         auto contextToCreate = MOS_GPU_CONTEXT_VIDEO;
+
+         switch (NewLRCACount)
+         {
+         case 2:
+             contextToCreate = pScalabilityState->VideoContextForMP;
+             break;
+         case 3:
+             contextToCreate = pScalabilityState->VideoContextFor3P;
+             break;
+         default:
+             contextToCreate = pScalabilityState->VideoContextForSP;
+             break;
+         }
+
+         CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
+             pOsInterface,
+             contextToCreate,
+             MOS_GPU_NODE_VIDEO,
+             CurgpuCtxCreatOpts));
+         CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnRegisterBBCompleteNotifyEvent(
+             pOsInterface,
+             contextToCreate));
 
         // Switch across single pipe/ scalable mode gpu contexts
-        MOS_GPU_CONTEXT GpuContext = (pScalabilityState->ucScalablePipeNum == 1) ? pScalabilityState->VideoContextForSP : pScalabilityState->VideoContextForMP;
+        MOS_GPU_CONTEXT GpuContext = contextToCreate;
         CODECHAL_DECODE_VERBOSEMESSAGE("Change Decode GPU Ctxt to %d.", GpuContext);
         CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnSetGpuContext(pOsInterface, GpuContext));
         // Reset allocation list and house keeping
@@ -1265,12 +1306,19 @@ MOS_STATUS CodechalDecodeScalability_DebugOvrdDecidePipeNum(
     // debug override for virtual tile
     if (pVEInterface->ucEngineCount == 1)
     {
-        pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
     }
     else if (pVEInterface->ucEngineCount == 2)
     {
         //engine count = 2, only support FE run on the same engine as one of BE for now.
-        pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+    }
+    else if (pVEInterface->ucEngineCount == 4 &&
+        pVEInterface->EngineLogicId[3] != pVEInterface->EngineLogicId[0] &&
+        pVEInterface->EngineLogicId[3] != pVEInterface->EngineLogicId[1] &&
+        pVEInterface->EngineLogicId[3] != pVEInterface->EngineLogicId[2])
+    {
+        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
     }
     else
     {
@@ -1323,6 +1371,15 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = MOS_ALIGN_CEIL(codecHalSetting->width, 8);
         initParams.u32PicHeightInPixel  = MOS_ALIGN_CEIL(codecHalSetting->height, 8);
+        if (((codecHalSetting->standard == CODECHAL_VP9) || (codecHalSetting->standard == CODECHAL_HEVC))
+                && (codecHalSetting->chromaFormat == HCP_CHROMA_FORMAT_YUV420))
+        {
+            initParams.format = Format_NV12;
+            if (codecHalSetting->lumaChromaDepth == CODECHAL_LUMA_CHROMA_DEPTH_10_BITS)
+            {
+                initParams.format = Format_P010;
+            }
+        }
         initParams.usingSFC             = false;
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
             pScalState,
@@ -1339,7 +1396,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
 MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalabilityState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams,
-    uint8_t                                   *pucDecPassNum)
+    uint16_t                                   *pucDecPassNum)
 {
     PMOS_INTERFACE                  pOsInterface;
     PMOS_VIRTUALENGINE_INTERFACE    pVEInterface;
@@ -1382,13 +1439,13 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
         // Decide pipe number
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pfnDecidePipeNum(pScalabilityState, pInitParams));
     }
-    
+
     // Decide scalable mode or single pipe mode
-    if (pScalabilityState->ucScalablePipeNum > 1)
+    if (pScalabilityState->ucScalablePipeNum > 1 && pOsInterface->frameSplit)
     {
         pScalabilityState->bScalableDecodeMode = true;
     }
-    
+
     CODECHAL_DECODE_CHK_NULL_RETURN(pucDecPassNum);
     // Decide Decode pass number - pucDecPassNum
     if (pScalabilityState->bScalableDecodeMode)
@@ -1399,7 +1456,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     {
         *pucDecPassNum = 1;
     }
-    
+
     // Add one pass for S2L conversion in short format.
     if (pScalabilityState->bShortFormatInUse)
     {
@@ -1447,17 +1504,26 @@ MOS_STATUS CodecHalDecodeScalability_SetHintParams(
         {
             //set Hint parameter for FE submission
             VEParams.bScalableMode = false;
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+            if (pVEInterface->pfnVESetHintParams)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+            }
         }
 
         VEParams.bScalableMode = true;
         VEParams.bHaveFrontEndCmds = (pScalabilityState->bFESeparateSubmission ? false : true);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        if (pVEInterface->pfnVESetHintParams)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        }
     }
     else
     {
         VEParams.bScalableMode = false;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        if (pVEInterface->pfnVESetHintParams)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVESetHintParams(pVEInterface, &VEParams));
+        }
     }
 
     return eStatus;
@@ -1520,21 +1586,24 @@ MOS_STATUS CodecHalDecodeScalability_PopulateHintParams(
     CODECHAL_DECODE_CHK_NULL_RETURN(pPrimCmdBuf);
     pAttriVe = (PMOS_CMD_BUF_ATTRI_VE)(pPrimCmdBuf->Attributes.pAttriVe);
 
-    if ((CodecHalDecodeScalabilityIsScalableMode(pScalabilityState) &&
-         !CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState)) ||
-        (CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState) &&
-         CodecHalDecodeScalabilityIsBEPhase(pScalabilityState)))
+    if (pAttriVe)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pScalHintParms);
-        pAttriVe->VEngineHintParams = *(pScalabilityState->pScalHintParms);
-    }
-    else
-    {
-        CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pSingleHintParms);
-        pAttriVe->VEngineHintParams = *(pScalabilityState->pSingleHintParms);
-    }
+        if ((CodecHalDecodeScalabilityIsScalableMode(pScalabilityState) &&
+             !CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState)) ||
+            (CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState) &&
+             CodecHalDecodeScalabilityIsBEPhase(pScalabilityState)))
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pScalHintParms);
+            pAttriVe->VEngineHintParams = *(pScalabilityState->pScalHintParms);
+        }
+        else
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pSingleHintParms);
+            pAttriVe->VEngineHintParams = *(pScalabilityState->pSingleHintParms);
+        }
 
-    pAttriVe->bUseVirtualEngineHint = true;
+        pAttriVe->bUseVirtualEngineHint = true;
+    }
 
     return eStatus;
 }
@@ -1659,6 +1728,13 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
             0,
             true,
             pCmdBufferInUse));
+
+        if (pOsInterface->osCpInterface &&
+            pOsInterface->osCpInterface->IsHMEnabled() &&
+            pScalabilityState->pHwInterface->GetCpInterface())
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetCpInterface()->AddConditionalBatchBufferEndForEarlyExit(pOsInterface, pCmdBufferInUse));
+        }
     }
 
     return eStatus;
@@ -1841,8 +1917,9 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
         return eStatus;
     }
 
-    pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO;
+    pScalabilityState->VideoContextForMP = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO5 : MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+    pScalabilityState->VideoContextFor3P = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO7 : MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
 
     pScalabilityState->numDelay = 15;
 
@@ -1889,7 +1966,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    if (osInterface->bEnableDbgOvrdInVE)
+    if (osInterface->bEnableDbgOvrdInVE || Mos_Solo_IsInUse(osInterface))
     {
         //if DbgOverride is enabled, FE separate submission is not supported
         pScalabilityState->bFESeparateSubmission = false;
@@ -1898,16 +1975,19 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
 
     if (pScalabilityState->bFESeparateSubmission)
     {
-        MOS_GPU_CONTEXT         GpuContext = MOS_GPU_CONTEXT_VIDEO4;
-        MOS_GPUCTX_CREATOPTIONS createOpts;
-        MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
+        MOS_GPU_CONTEXT         GpuContext = MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO : MOS_GPU_CONTEXT_VIDEO4;
+        GpuContext = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO4 : GpuContext;
 
+        MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
         CODECHAL_DECODE_CHK_STATUS_RETURN(vdboxMfxInterface->FindGpuNodeToUse(
             &gpuNodeLimit));
+        MOS_GPU_NODE videoGpuNode = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
+
+        MOS_GPUCTX_CREATOPTIONS createOpts;
         CODECHAL_DECODE_CHK_STATUS_RETURN(osInterface->pfnCreateGpuContext(
             osInterface,
             GpuContext,
-            (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse),
+            videoGpuNode,
             &createOpts));
         pScalabilityState->VideoContextForFE = GpuContext;
     }
@@ -1928,8 +2008,14 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(osInterface, &VEInitParms));
     pScalabilityState->pVEInterface = pVEInterface = osInterface->pVEInterf;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, true, &pScalabilityState->pScalHintParms));
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, false, &pScalabilityState->pSingleHintParms));
+    if (pVEInterface->pfnVEGetHintParams)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, true, &pScalabilityState->pScalHintParms));
+    }
+    if (pVEInterface->pfnVEGetHintParams)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(pVEInterface->pfnVEGetHintParams(pVEInterface, false, &pScalabilityState->pSingleHintParms));
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -1980,8 +2066,32 @@ bool CodecHalDecodeScalabilityIsToSubmitCmdBuffer(
         return false;
     }
     else
-    { 
+    {
         return (CodecHalDecodeScalabilityIsFinalBEPhase(pScalabilityState) ||
             (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_FE && pScalabilityState->bFESeparateSubmission));
+    }
+}
+
+void CodecHalDecodeScalability_DecPhaseToSubmissionType(
+    PCODECHAL_DECODE_SCALABILITY_STATE pScalabilityState,
+    PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    switch (pScalabilityState->HcpDecPhase)
+    {
+        case CodechalDecode::CodechalHcpDecodePhaseLegacyS2L:
+            //Note: no break here, S2L and FE commands put in one secondary command buffer.
+        case CODECHAL_HCP_DECODE_PHASE_FE:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_ALONE;
+            break;
+        case CODECHAL_HCP_DECODE_PHASE_BE0:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
+            break;
+        case CODECHAL_HCP_DECODE_PHASE_BE1:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
+            break;
+        case CODECHAL_HCP_DECODE_PHASE_RESERVED:
+        default:
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_ALONE;
+            break;
     }
 }

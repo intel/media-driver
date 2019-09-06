@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -125,8 +125,9 @@ CodechalHwInterfaceG11::CodechalHwInterfaceG11(
         + 148
         + mhw_mi_g11_X::MI_BATCH_BUFFER_END_CMD::byteSize;
     m_vdencReadBatchBufferSize =
-        m_vdenc2ndLevelBatchBufferSize = m_vdencBatchBuffer1stGroupSize
-        + m_vdencBatchBuffer2ndGroupSize
+        m_vdencBatchBuffer1stGroupSize
+        + m_vdencBatchBuffer2ndGroupSize;
+    m_vdencGroup3BatchBufferSize =
         + ENCODE_HEVC_VDENC_NUM_MAX_SLICES
         * (2 * mhw_vdbox_hcp_g11_X::HCP_WEIGHTOFFSET_STATE_CMD::byteSize
             + mhw_vdbox_hcp_g11_X::HCP_SLICE_STATE_CMD::byteSize
@@ -134,6 +135,9 @@ CodechalHwInterfaceG11::CodechalHwInterfaceG11(
             + mhw_vdbox_vdenc_g11_X::VDENC_WEIGHTSOFFSETS_STATE_CMD::byteSize
             + mhw_mi_g11_X::MI_BATCH_BUFFER_END_CMD::byteSize
             + 4 * ENCODE_VDENC_HEVC_PADDING_DW_SIZE);
+
+    m_vdenc2ndLevelBatchBufferSize = m_vdencReadBatchBufferSize + m_vdencGroup3BatchBufferSize;
+
     m_HucStitchCmdBatchBufferSize = 7 * 4 
                                     + 14 * 4 
                                     + mhw_mi_g11_X::MI_BATCH_BUFFER_END_CMD::byteSize;
@@ -238,7 +242,6 @@ MOS_STATUS CodechalHwInterfaceG11::GetStreamoutCommandSize(
     CODECHAL_HW_FUNCTION_ENTER;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11));
 
     stateCmdSizeParams.bShortFormat = false;
     stateCmdSizeParams.bHucDummyStream = MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable);

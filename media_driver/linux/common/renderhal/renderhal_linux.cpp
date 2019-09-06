@@ -27,56 +27,11 @@
 #include "mos_os.h"
 #include "renderhal.h"
 
-void RenderHal_IncTrackerId(PRENDERHAL_INTERFACE renderHal)
-{
-    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
-
-
-    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
-    {
-        renderHal->veBoxTrackerRes.currentTrackerId++;
-    }
-    else
-    {
-        renderHal->trackerResource.currentTrackerId++;
-    }
-}
-
-uint32_t RenderHal_GetNextTrackerId(PRENDERHAL_INTERFACE renderHal)
-{
-    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
-
-    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
-    {
-        return renderHal->veBoxTrackerRes.currentTrackerId;
-    }
-    else
-    {
-        return renderHal->trackerResource.currentTrackerId;
-    }
-}
-
-uint32_t RenderHal_GetCurrentTrackerId(PRENDERHAL_INTERFACE renderHal)
-{
-    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
-    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
-
-    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
-    {
-        return *(renderHal->veBoxTrackerRes.data);
-    }
-    else
-    {
-        return *(renderHal->trackerResource.data);
-    }
-}
-
 void RenderHal_SetupPrologParams(
     PRENDERHAL_INTERFACE              renderHal,
     RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
     PMOS_RESOURCE                     osResource,
+    uint32_t                          offset,
     uint32_t                          tag)
 {
     return;
@@ -116,83 +71,63 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
     ResDetails.Format       = pSurface->Format;
     MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetResourceInfo(pOsInterface, &pSurface->OsResource, &ResDetails));
 
+    if (ResDetails.Format == Format_420O)
+    {
+        ResDetails.Format = Format_NV12;
+    }
+
     // Get resource information
     pSurface->dwWidth         = ResDetails.dwWidth;
     pSurface->dwHeight        = ResDetails.dwHeight;
     pSurface->dwPitch         = ResDetails.dwPitch;
+    pSurface->dwSlicePitch    = ResDetails.dwSlicePitch;
     pSurface->dwQPitch        = ResDetails.dwQPitch;
-    pSurface->TileType        = ResDetails.TileType;
     pSurface->dwDepth         = ResDetails.dwDepth;
+    pSurface->TileType        = ResDetails.TileType;
+    pSurface->bOverlay        = ResDetails.bOverlay;
+    pSurface->bFlipChain      = ResDetails.bFlipChain;
     pSurface->Format          = ResDetails.Format;
     pSurface->bCompressible   = ResDetails.bCompressible;
     pSurface->bIsCompressed   = ResDetails.bIsCompressed;
     pSurface->CompressionMode = ResDetails.CompressionMode;
 
-    // Get planes
-    pSurface->UPlaneOffset.iSurfaceOffset = 0;
-    pSurface->UPlaneOffset.iYOffset       = 0;
-    pSurface->UPlaneOffset.iXOffset       = 0;
-    pSurface->VPlaneOffset.iSurfaceOffset = 0;
-    pSurface->VPlaneOffset.iXOffset       = 0;
-    pSurface->VPlaneOffset.iYOffset       = 0;
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetMemoryCompressionMode(pOsInterface,
+        &pSurface->OsResource, &pSurface->MmcState));
 
-    switch (pResource->Format)
+        MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetMemoryCompressionFormat(pOsInterface,
+        &pSurface->OsResource, &pSurface->CompressionFormat));
+
+    if (IS_RGB32_FORMAT(pSurface->Format) ||
+        IS_RGB16_FORMAT(pSurface->Format) ||
+        IS_RGB128_FORMAT(pSurface->Format)||
+        pSurface->Format == Format_RGB    ||
+        pSurface->Format == Format_Y410)
     {
-        case Format_NV12:
-            pSurface->UPlaneOffset.iSurfaceOffset     = ResDetails.RenderOffset.YUV.U.BaseOffset;
-            pSurface->UPlaneOffset.iYOffset           = ResDetails.RenderOffset.YUV.U.YOffset;
-            break;
-        case Format_P010:
-        case Format_P016:
-        case Format_P208:
-            pSurface->UPlaneOffset.iSurfaceOffset = (pSurface->dwHeight - pSurface->dwHeight % 32) * pSurface->dwPitch;
-            pSurface->UPlaneOffset.iYOffset       = pSurface->dwHeight % 32;
-            break;
-        case Format_NV21:
-            pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
-            break;
-        case Format_YV12:
-            pSurface->VPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
-            pSurface->VPlaneOffset.iYOffset       = 0;
-            pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch * 5 / 4;
-            pSurface->UPlaneOffset.iYOffset       = 0;
-            break;
-        case Format_422H:
-            // Calculation methods are derived from Gmm's result.
-            pSurface->UPlaneOffset.iSurfaceOffset = (pSurface->dwHeight - pSurface->dwHeight % 32) * pSurface->dwPitch;
-            pSurface->UPlaneOffset.iYOffset       = pSurface->dwHeight % 32;
-            pSurface->VPlaneOffset.iSurfaceOffset = (pSurface->dwHeight * 2 - (pSurface->dwHeight * 2) % 32) * pSurface->dwPitch;
-            pSurface->VPlaneOffset.iYOffset       = (pSurface->dwHeight * 2) % 32;
-            break;
-        case Format_IMC3:
-        case Format_422V:
-            // Calculation methods are derived from Gmm's result.
-            pSurface->UPlaneOffset.iSurfaceOffset = (pSurface->dwHeight - pSurface->dwHeight % 32) * pSurface->dwPitch;
-            pSurface->UPlaneOffset.iYOffset       = pSurface->dwHeight % 32;
-            pSurface->VPlaneOffset.iSurfaceOffset = (pSurface->dwHeight * 3 / 2 - (pSurface->dwHeight * 3 / 2) % 32) * pSurface->dwPitch;
-            pSurface->VPlaneOffset.iYOffset       = (pSurface->dwHeight * 3 / 2) % 32;
-            break;
-        case Format_IMC4:
-            pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
-            pSurface->UPlaneOffset.iYOffset       = pSurface->dwHeight;
-            pSurface->VPlaneOffset.iYOffset       = pSurface->dwHeight * 3 / 2;
-            break;
-        case Format_411P:
-            pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
-            pSurface->UPlaneOffset.iYOffset       = 0;
-            pSurface->VPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch * 2;
-            pSurface->VPlaneOffset.iYOffset       = 0;
-            break;
-        case Format_444P:
-        case Format_RGBP:
-            pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
-            pSurface->UPlaneOffset.iYOffset       = 0;
-            pSurface->VPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch * 2;
-            pSurface->VPlaneOffset.iYOffset       = 0;
-            break;
+        pSurface->dwOffset                    = ResDetails.RenderOffset.RGB.BaseOffset;
+        pSurface->YPlaneOffset.iSurfaceOffset = ResDetails.RenderOffset.RGB.BaseOffset;
+        pSurface->YPlaneOffset.iXOffset       = ResDetails.RenderOffset.RGB.XOffset;
+        pSurface->YPlaneOffset.iYOffset       = ResDetails.RenderOffset.RGB.YOffset;
+    }
+    else // YUV or PL3_RGB
+    {
+        // Get Y plane information (plane offset, X/Y offset)
+        pSurface->dwOffset                        = ResDetails.RenderOffset.YUV.Y.BaseOffset;
+        pSurface->YPlaneOffset.iSurfaceOffset     = ResDetails.RenderOffset.YUV.Y.BaseOffset;
+        pSurface->YPlaneOffset.iXOffset           = ResDetails.RenderOffset.YUV.Y.XOffset;
+        pSurface->YPlaneOffset.iYOffset           = ResDetails.RenderOffset.YUV.Y.YOffset;
+        pSurface->YPlaneOffset.iLockSurfaceOffset = ResDetails.LockOffset.YUV.Y;
 
-        default:
-            break;
+        // Get U/UV plane information (plane offset, X/Y offset)
+        pSurface->UPlaneOffset.iSurfaceOffset     = ResDetails.RenderOffset.YUV.U.BaseOffset;
+        pSurface->UPlaneOffset.iXOffset           = ResDetails.RenderOffset.YUV.U.XOffset;
+        pSurface->UPlaneOffset.iYOffset           = ResDetails.RenderOffset.YUV.U.YOffset;
+        pSurface->UPlaneOffset.iLockSurfaceOffset = ResDetails.LockOffset.YUV.U;
+
+        // Get V plane information (plane offset, X/Y offset)
+        pSurface->VPlaneOffset.iSurfaceOffset     = ResDetails.RenderOffset.YUV.V.BaseOffset;
+        pSurface->VPlaneOffset.iXOffset           = ResDetails.RenderOffset.YUV.V.XOffset;
+        pSurface->VPlaneOffset.iYOffset           = ResDetails.RenderOffset.YUV.V.YOffset;
+        pSurface->VPlaneOffset.iLockSurfaceOffset = ResDetails.LockOffset.YUV.V;
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -531,4 +466,13 @@ MOS_STATUS RenderHal_SendTimingData(
     bool                         bStartTime)
 {
     return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Get Oca support object
+//! \return   RenderhalOcaSupport&
+//!
+RenderhalOcaSupport &RenderHal_GetOcaSupport()
+{
+    return RenderhalOcaSupport::GetInstance();
 }

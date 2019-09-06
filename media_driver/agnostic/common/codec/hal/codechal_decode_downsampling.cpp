@@ -655,8 +655,8 @@ MOS_STATUS FieldScalingInterface::SetupMediaVfe(
     PMOS_COMMAND_BUFFER  cmdBuffer,
     MHW_KERNEL_STATE     *kernelState)
 {
-    MHW_VFE_PARAMS vfeParams;
-    memset(&vfeParams, 0, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
+
     vfeParams.pKernelState = kernelState;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(cmdBuffer, &vfeParams));
 
@@ -741,7 +741,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     memset(&samplerParams[0], 0, sizeof(MHW_SAMPLER_STATE_PARAM) * m_samplerNum);
     samplerParams[0].bInUse                 = false;
     samplerParams[0].pKernelState           = kernelState;
-    for (auto index = 1; index < m_samplerNum - 1; index++)
+    for (uint32_t index = 1; index < m_samplerNum - 1; index++)
     {
         samplerParams[index].bInUse       = true;
         samplerParams[index].pKernelState = kernelState;

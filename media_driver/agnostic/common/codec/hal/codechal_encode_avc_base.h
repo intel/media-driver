@@ -203,6 +203,34 @@ struct EncodeAvcPar
     bool                        VDEncPerfMode;
     bool                        VdencExtPakObjDisable;
     bool                        PPMVDisable;
+    uint8_t                     LeftNbrPelMode;
+    uint8_t                     DisPSubPartMask;
+    uint8_t                     DisPSubMbMask;
+    uint8_t                     DisBSubPartMask;
+    uint8_t                     DisBSubMbMask;
+    uint8_t                     ImePredOverlapThr;
+    uint8_t                     MBSizeEstScalingRatioINTRA;
+    bool                        IntraMBHdrScaleFactor;
+    uint8_t                     MBSizeEstScalingRatioINTER;
+    bool                        InterMBHdrScaleFactor;
+    uint8_t                     PFrameMaxNumImePred;
+    uint8_t                     BFrameMaxNumImePred;
+    uint8_t                     HMERefWindowSize;
+    uint8_t                     IMELeftPredDep;
+    uint8_t                     NumFMECandCheck;
+    uint8_t                     PFrameImePredLargeSW;
+    uint8_t                     BFrameImePredLargeSW;
+    bool                        RdoChromaEnable;
+    uint16_t                    Intra4x4ModeMask;
+    uint16_t                    Intra8x8ModeMask;
+    bool                        RdoIntraChromaSearch;
+    uint8_t                     Intra16x16ModeMask;
+    uint8_t                     InitMBBudgetTr4x4;
+    bool                        ROIEnable;
+    uint8_t                     PFrameZeroCbfEn;
+    uint8_t                     BFrameZeroCbfEn;
+    uint8_t                     ForceIPCMMinQP;
+    uint8_t                     IntraTr4x4Percent;
 
     // PAK Params
     uint8_t                     RoundingIntra;
@@ -1403,8 +1431,17 @@ public:
     //!
     virtual MOS_STATUS Initialize();
 
+
     //!
-    //! \brief    AVC Resource Allocation.
+    //! \brief    AVC Resource Allocation for ENC.
+    //! 
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success
+    //!
+    virtual MOS_STATUS AllocateEncResources();
+
+    //!
+    //! \brief    AVC Resource Allocation for Encoder.
     //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
@@ -1791,6 +1828,14 @@ protected:
     MOS_STATUS PopulateConstParam();
 
     //!
+    //! \brief    Populate target usage as the first parameter of dumped par file
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS PopulateTargetUsage();
+
+    //!
     //! \brief    Set MHW_VDBOX_AVC_IMG_STATE parameter
     //!
     //! \param    [in] avcSeqParams
@@ -1910,7 +1955,8 @@ protected:
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER   secondLevelBatchBuffer) { return MOS_STATUS_SUCCESS; }
 
-    EncodeAvcPar *m_avcPar = nullptr;  //!< AVC PAR parameters
+    EncodeAvcPar *m_avcPar             = nullptr;  //!< AVC PAR parameters
+    bool         m_populateTargetUsage = false;
 #endif
 
     //!

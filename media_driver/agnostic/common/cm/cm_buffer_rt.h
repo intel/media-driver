@@ -82,6 +82,8 @@ public:
     SetSurfaceStateParam(SurfaceIndex *surfIndex,
                          const CM_BUFFER_STATE_PARAM *bufferStateParam);
 
+    int32_t UpdateResource(MOS_RESOURCE *resource);
+
     int32_t  GetSize(uint32_t &size);
 
     int32_t  SetSize(uint32_t size);
@@ -110,6 +112,8 @@ public:
                      char *kernelName,
                      int32_t taskId,
                      uint32_t argIndex);
+
+    int32_t UpdateProperty(uint32_t size);
 
 protected:
     CmBuffer_RT(uint32_t handle,

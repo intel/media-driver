@@ -56,10 +56,19 @@ public:
     //! \details  Linux specific initialize for gpu context
     //! \param    [out] osContext
     //!           Os context pointer
+    //! \param    [in] osInterface
+    //!           OS interface
+    //! \param    [in] GpuNode
+    //!           GPU node
+    //! \param    [in] createOption
+    //!           Context option
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS Init(OsContext *osContext);
+    MOS_STATUS Init(OsContext *osContext,
+                    PMOS_INTERFACE osInterface,
+                    MOS_GPU_NODE GpuNode,
+                    PMOS_GPUCTX_CREATOPTIONS createOption);
 
     void Clear(void);
 
@@ -191,11 +200,14 @@ private:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBuffer *> m_cmdBufPool;
 
+    //! \brief    internal command buffer pool per gpu context
+    PMOS_MUTEX m_cmdBufPoolMutex = nullptr;
+
     //! \brief    next fetch index of m_cmdBufPool
-    uint32_t m_nextFetchIndex;
+    uint32_t m_nextFetchIndex = 0;
 
     //! \brief    initialized comamnd buffer size
-    uint32_t m_commandBufferSize;
+    uint32_t m_commandBufferSize = 0;
 
     //! \brief    Flag to indicate current command buffer flused or not, if not
     //!           re-use it
@@ -207,7 +219,7 @@ private:
     //! \brief    Allcoation List related struct
     ALLOCATION_LIST *m_allocationList = nullptr;
     uint32_t         m_numAllocations = 0;  //!< number of registered allocation list
-    uint32_t         m_maxNumAllocations;  //!< max number of allocation list
+    uint32_t         m_maxNumAllocations = 0;  //!< max number of allocation list
 
     //! \brief    Pathc List related struct
     PATCHLOCATIONLIST *m_patchLocationList = nullptr;
@@ -220,10 +232,14 @@ private:
     bool         *m_writeModeList     = nullptr;  //!< Write mode
 
     //! \brief    GPU Status tag
-    uint32_t m_GPUStatusTag;
+    uint32_t m_GPUStatusTag = 0;
 
     //! \brief    Os context
-    OsContext *m_osContext;
+    OsContext *m_osContext = nullptr;
+
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED *m_createOptionEnhanced = nullptr;
+    MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];
+    uint32_t     m_i915ExecFlag = 0;
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
     std::vector<const void *> m_cmdResPtrs; //!< Command OS resource pointers registered by pfnRegisterResource

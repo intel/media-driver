@@ -35,6 +35,10 @@ void MhwVdboxMfxInterfaceG10::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_1_INIT_G10;
     mmioRegisters->generalPurposeRegister4LoOffset            = GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_1_INIT_G10;
     mmioRegisters->generalPurposeRegister4HiOffset            = GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_1_INIT_G10;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GENERAL_PURPOSE_REGISTER11_LO_OFFSET_NODE_1_INIT_G10;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GENERAL_PURPOSE_REGISTER11_HI_OFFSET_NODE_1_INIT_G10;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GENERAL_PURPOSE_REGISTER12_LO_OFFSET_NODE_1_INIT_G10;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GENERAL_PURPOSE_REGISTER12_HI_OFFSET_NODE_1_INIT_G10;
     mmioRegisters->mfcImageStatusMaskRegOffset                = MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G10;
     mmioRegisters->mfcImageStatusCtrlRegOffset                = MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G10;
     mmioRegisters->mfcAvcNumSlicesRegOffset                   = MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_1_INIT_G10;
@@ -65,6 +69,10 @@ void MhwVdboxMfxInterfaceG10::InitMmioRegisters()
     mmioRegisters->generalPurposeRegister0HiOffset            = GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_2_INIT_G10;
     mmioRegisters->generalPurposeRegister4LoOffset            = GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_2_INIT_G10;
     mmioRegisters->generalPurposeRegister4HiOffset            = GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_2_INIT_G10;
+    mmioRegisters->generalPurposeRegister11LoOffset           = GENERAL_PURPOSE_REGISTER11_LO_OFFSET_NODE_2_INIT_G10;
+    mmioRegisters->generalPurposeRegister11HiOffset           = GENERAL_PURPOSE_REGISTER11_HI_OFFSET_NODE_2_INIT_G10;
+    mmioRegisters->generalPurposeRegister12LoOffset           = GENERAL_PURPOSE_REGISTER12_LO_OFFSET_NODE_2_INIT_G10;
+    mmioRegisters->generalPurposeRegister12HiOffset           = GENERAL_PURPOSE_REGISTER12_HI_OFFSET_NODE_2_INIT_G10;
     mmioRegisters->mfcImageStatusMaskRegOffset                = MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_2_INIT_G10;
     mmioRegisters->mfcImageStatusCtrlRegOffset                = MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_2_INIT_G10;
     mmioRegisters->mfcAvcNumSlicesRegOffset                   = MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_2_INIT_G10;
@@ -1690,8 +1698,16 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdAvcSliceAddrCmd(
 
     mhw_vdbox_mfx_g10_X::MFD_AVC_SLICEADDR_CMD cmd;
 
-    cmd.DW1.IndirectBsdDataLength = (avcSliceState->dwNextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded);
-    cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded);
+    if (avcSliceState->bFullFrameData)
+    {
+        cmd.DW1.IndirectBsdDataLength       = avcSliceState->dwNextLength;
+        cmd.DW2.IndirectBsdDataStartAddress = avcSliceState->dwNextOffset;
+    }
+    else
+    {
+        cmd.DW1.IndirectBsdDataLength       = (avcSliceState->dwNextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded);
+        cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded);
+    }
 
     MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
     sliceInfoParam.presDataBuffer = avcSliceState->presDataBuffer;
@@ -1735,9 +1751,17 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdAvcBsdObjectCmd(
 
     if (avcSliceState->bShortFormatInUse)
     {
-        cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
-        cmd.DW2.IndirectBsdDataStartAddress =
-            sliceParams->slice_data_offset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
+        if (avcSliceState->bFullFrameData)
+        {
+            cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength;
+            cmd.DW2.IndirectBsdDataStartAddress = sliceParams->slice_data_offset;
+        }
+        else
+        {
+            cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
+            cmd.DW2.IndirectBsdDataStartAddress =
+                sliceParams->slice_data_offset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
+        }
         cmd.DW4.FirstMbByteOffsetOfSliceDataOrSliceHeader = 0;
     }
     else
@@ -2518,12 +2542,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdVp8BsdObjectCmd(
     mhw_vdbox_mfx_g10_X::MFD_VP8_BSD_OBJECT_CMD cmd;
 
     MHW_MI_CHK_STATUS(MhwVdboxMfxInterfaceGeneric::AddMfdVp8BsdObjectCmd(cmdBuffer, params));
-
-    cmd.DW3.IndirectPartition0DataLength += 1;
-    if (cmd.DW3.IndirectPartition0DataLength == 0)
-    {
-        cmd.DW3.IndirectPartition0DataLength -= 1;
-    }
 
     return eStatus;
 }

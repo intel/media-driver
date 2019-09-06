@@ -30,10 +30,11 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_render_hwcmd_g11_X.h" 
 #include "mhw_state_heap_hwcmd_g11_X.h"
+#include "mhw_render_g11_X.h"
 
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_G11 : _RENDERHAL_GENERIC_PROLOG_PARAMS
 {
-    MOS_VIRTUALENGINE_HINT_PARAMS          VEngineHintParams;
+    MOS_VIRTUALENGINE_HINT_PARAMS          VEngineHintParams = {{0}, 0, {{0},{0},{0},{0}}, {0,0,0,0}};
 }RENDERHAL_GENERIC_PROLOG_PARAMS_G11, *PRENDERHAL_GENERIC_PROLOG_PARAMS_G11;
 
 //! \brief      for Gen11 VP and MDF
@@ -290,6 +291,16 @@ public:
     //! \return     size_t
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() {return mhw_state_heap_g11_X::BINDING_TABLE_STATE_CMD::byteSize;}
+
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   true of false
+    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal)
+    {
+        MOS_UNUSED(pRenderHal);
+        return false;
+    }
 protected:
     MHW_VFE_PARAMS               m_vfeStateParams;
     mhw_render_g11_X::PALETTE_ENTRY_CMD

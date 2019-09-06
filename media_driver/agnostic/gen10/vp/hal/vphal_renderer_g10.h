@@ -46,7 +46,7 @@ class VphalRendererG10 : public VphalRenderer
 {
 public:
     //!
-    //! \brief    VphalRendererG8 constructor
+    //! \brief    VphalRendererG10 constructor
     //! \details  Based on the HW and OS info, initialize the renderer interfaces
     //! \param    [in,out] pRenderHal
     //!           Pointer to RenderHal Interface Structure

@@ -33,7 +33,7 @@ static void CapsStubMessage()
     MOS_NORMALMESSAGE(
         MOS_COMPONENT_CP, 
         MOS_CP_SUBCOMP_CAPS, 
-        CP_STUB_MESSAGE);
+        "This function is stubbed as CP is not enabled.");
 }
 
 MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCpInterface()

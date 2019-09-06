@@ -63,10 +63,10 @@
 #define MAP_FAILED ((void *)-1)
 #endif
 
-#include "xf86drm_mock.h"
+#include "xf86drm.h"
 //#include "xf86drmCSC.h"
-#include "libdrm_macros_mock.h"
-#include "i915_drm_mock.h"
+#include "libdrm_macros.h"
+#include "i915_drm.h"
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 #define DRM_MAJOR 145
@@ -242,6 +242,10 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
                     *(int *)(gp->value) = DeviceConfigTable[DevIdx].has_exec_softpin;
                     ret = 0;
                     break;
+                case I915_PARAM_HAS_EXEC_ASYNC:
+                    *(int *)(gp->value) = DeviceConfigTable[DevIdx].has_exec_async;
+                    ret = 0;
+                    break;
                 case I915_PARAM_NUM_FENCES_AVAIL:
                     *(int *)(gp->value) = DeviceConfigTable[DevIdx].num_fences_avail;
                     ret = 0;
@@ -313,6 +317,15 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
             ret = 0;
         }
             break;
+        case DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT:
+        {
+            typedef struct drm_i915_gem_context_create_ext create_t;
+            create_t* create = (create_t *)arg;
+            create->ctx_id = 1;
+            ret = 0;
+        }
+            break;
+
         case DRM_IOCTL_I915_GEM_USERPTR:
         case DRM_IOCTL_I915_GEM_CONTEXT_DESTROY:
         case DRM_IOCTL_GEM_CLOSE:
@@ -339,9 +352,30 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
         }
         break;
         case DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM:
+        {
+            struct drm_i915_gem_context_param* context_param = (struct drm_i915_gem_context_param *)arg;
+            if(context_param->param == I915_CONTEXT_PARAM_GTT_SIZE)
+            {
+                context_param->value = (uint64_t)1 << 32;
+            }
+            ret = 0;
+        }
+        break;
         case DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM:
         {
             ret = -1;
+        }
+        break;
+        case DRM_IOCTL_I915_GEM_VM_CREATE:
+        {
+            struct drm_i915_gem_vm_control * vm = (struct drm_i915_gem_vm_control *)arg;
+            vm->vm_id = 1;
+            ret = 0;
+        }
+        break;
+        case DRM_IOCTL_I915_GEM_VM_DESTROY:
+        {
+            ret = 0;
         }
         break;
         default:

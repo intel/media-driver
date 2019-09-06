@@ -90,14 +90,14 @@ protected:
     //! \param   [in] *slcParam
     //!          VASliceParameterBufferHEVC
     //! \param   [in] numSlices
-    //!             int32_t
+    //!             uint32_t
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     virtual VAStatus ParseSliceParams(
         DDI_MEDIA_CONTEXT           *mediaCtx,
         VASliceParameterBufferHEVC  *slcParam,
-        int32_t                     numSlices);
+        uint32_t                     numSlices);
 
     //!
     //! \brief   ParseIQMatrixParam for HEVC
@@ -132,12 +132,12 @@ protected:
     //! \details Alloc/resize SlicePram content for HEVC decoding
     //!
     //! \param   [in] numSlices
-    //!          int32_t the required number of slices
+    //!          uint32_t the required number of slices
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     virtual VAStatus AllocSliceParamContext(
-        int32_t numSlices);
+        uint32_t numSlices);
 
     //! \brief   Init Resource buffer for HEVC
     //! \details Initialize and allocate the Resource buffer for HEVC

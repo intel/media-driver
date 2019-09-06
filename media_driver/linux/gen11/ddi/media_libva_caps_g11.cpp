@@ -34,6 +34,105 @@
 #include "media_ddi_decode_const_g11.h"
 #include "media_libva_vp.h"
 
+const VAImageFormat m_supportedImageformatsG11[] =
+{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
+    {VA_FOURCC_BGRP,   VA_LSB_FIRST,   24, 24, 0x0000ff,   0x00ff00,   0xff0000,    0},
+    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
+    {VA_FOURCC_AYUV,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
+    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0},
+    {VA_FOURCC_Y210,   VA_LSB_FIRST,   32, 0,0,0,0,0},
+    {VA_FOURCC_Y410,   VA_LSB_FIRST,   32, 0,0,0,0,0}
+};
+
+const VAConfigAttribValEncRateControlExt MediaLibvaCapsG11::m_encVp9RateControlExt =
+{
+    {CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS - 1, 1, 0}
+};
+
+VAStatus MediaLibvaCapsG11::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
+{
+    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    int32_t num = 0;
+    uint32_t maxNum = GetImageFormatsMaxNum();
+
+    memset(formatList, 0,  sizeof(m_supportedImageformatsG11));
+    for (uint32_t idx = 0; idx < maxNum; idx++)
+    {
+        formatList[num].fourcc           = m_supportedImageformatsG11[idx].fourcc;
+        formatList[num].byte_order       = m_supportedImageformatsG11[idx].byte_order;
+        formatList[num].bits_per_pixel   = m_supportedImageformatsG11[idx].bits_per_pixel;
+        formatList[num].depth            = m_supportedImageformatsG11[idx].depth;
+        formatList[num].red_mask         = m_supportedImageformatsG11[idx].red_mask;
+        formatList[num].green_mask       = m_supportedImageformatsG11[idx].green_mask;
+        formatList[num].blue_mask        = m_supportedImageformatsG11[idx].blue_mask;
+        formatList[num].alpha_mask       = m_supportedImageformatsG11[idx].alpha_mask;
+        num++;
+    }
+    *numFormats = num;
+
+    return VA_STATUS_SUCCESS;
+}
+
+uint32_t MediaLibvaCapsG11::GetImageFormatsMaxNum()
+{
+    return sizeof(m_supportedImageformatsG11)/sizeof(m_supportedImageformatsG11[0]);
+}
+
+bool MediaLibvaCapsG11::IsImageSupported(uint32_t fourcc)
+{
+    uint32_t maxNum = GetImageFormatsMaxNum();
+    for (int32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (m_supportedImageformatsG11[idx].fourcc == fourcc)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+VAStatus MediaLibvaCapsG11::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+{
+    uint32_t maxNum = GetImageFormatsMaxNum();
+
+    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    for (int32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (m_supportedImageformatsG11[idx].fourcc == vaImgFmt->fourcc)
+        {
+            vaImgFmt->red_mask   = m_supportedImageformatsG11[idx].red_mask;
+            vaImgFmt->green_mask = m_supportedImageformatsG11[idx].green_mask;
+            vaImgFmt->blue_mask  = m_supportedImageformatsG11[idx].blue_mask;
+            vaImgFmt->alpha_mask = m_supportedImageformatsG11[idx].alpha_mask;
+
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
+}
+
 CODECHAL_MODE MediaLibvaCapsG11::GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint)
 {
     if (entrypoint == VAEntrypointStats)
@@ -109,14 +208,14 @@ std::string MediaLibvaCapsG11::GetDecodeCodecKey(VAProfile profile)
     }
 }
 
-std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint)
+std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction)
 {
     switch (profile)
     {
         case VAProfileH264High:
         case VAProfileH264Main:
         case VAProfileH264ConstrainedBaseline:
-            if (IsEncFei(entrypoint))
+            if (IsEncFei(entrypoint, feiFunction))
             {
                 return ENCODE_ID_AVCFEI;
             }
@@ -140,7 +239,7 @@ std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
         case VAProfileHEVCMain10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
-            if (IsEncFei(entrypoint))
+            if (IsEncFei(entrypoint, feiFunction))
             {
                 return ENCODE_ID_HEVCFEI;
             }
@@ -149,7 +248,7 @@ std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
                 return ENCODE_ID_HEVC;
             }
         case VAProfileNone:
-            if (IsEncFei(entrypoint))
+            if (IsEncFei(entrypoint, feiFunction))
             {
                 return ENCODE_ID_AVCFEI;
             }
@@ -217,16 +316,19 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
             }
             else if (IsAvcProfile(profile))
             {
-                // the capacity is differnt for CQP and BRC mode, set it as larger one here
-                uint32_t roiBRCPriorityLevelSupport = 1;
-                uint32_t roiBRCQpDeltaSupport = 1;
-                *value = (roiBRCPriorityLevelSupport << 9)
-                    | (roiBRCQpDeltaSupport << 8)
-                    | ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                VAConfigAttribValEncROI roi_attrib = {0};
+                roi_attrib.bits.num_roi_regions = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                roi_attrib.bits.roi_rc_priority_support = 1;
+                roi_attrib.bits.roi_rc_qp_delta_support = 1;
+                *value = roi_attrib.value;
             }
-            else
+            else if (IsHevcProfile(profile))
             {
-                *value = 0;
+                VAConfigAttribValEncROI roi_attrib = {0};
+                roi_attrib.bits.num_roi_regions = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
+                roi_attrib.bits.roi_rc_priority_support = 0;
+                roi_attrib.bits.roi_rc_qp_delta_support = 1;
+                *value = roi_attrib.value;
             }
             break;
         }
@@ -355,6 +457,8 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         (*attributeList)[VAConfigAttribMaxPictureWidth] = m_maxVp9EncWidth;
         (*attributeList)[VAConfigAttribMaxPictureHeight] = m_maxVp9EncHeight;
+        (*attributeList)[VAConfigAttribEncTileSupport] = 1;
+        (*attributeList)[VAConfigAttribEncRateControlExt] = m_encVp9RateControlExt.value;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
@@ -437,9 +541,10 @@ VAStatus MediaLibvaCapsG11::LoadProfileEntrypoints()
     DDI_CHK_RET(status, "Failed to initialize Caps!");
     status = LoadVp9EncProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
+#ifdef ENABLE_KERNELS
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
-
+#endif
     return status;
 }
 
@@ -449,6 +554,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
         uint32_t height)
 {
     uint32_t maxWidth, maxHeight;
+
     switch (profile)
     {
         case VAProfileJPEGBaseline:
@@ -479,9 +585,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
             if ((width > m_maxVp9EncWidth) ||
                 (width < m_encMinWidth) ||
                 (height > m_maxVp9EncHeight) ||
-                (height < m_encMinHeight) ||
-                (width % 8) ||
-                (height % 8))
+                (height < m_encMinHeight))
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -554,7 +658,7 @@ VAStatus MediaLibvaCapsG11::CheckDecodeResolution(
     }
 }
 
-VAStatus MediaLibvaCapsG11::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP)
+VAStatus MediaLibvaCapsG11::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP)
 {  
     DDI_CHK_NULL(maxNum, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);  
     DDI_CHK_NULL(isRoiInDeltaQP, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -693,17 +797,10 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         attribs[i].type = VASurfaceAttribMemoryType;
         attribs[i].value.type = VAGenericValueTypeInteger;
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
-#ifdef ANDROID
         attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
             VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
             VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
             VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
-#else
-        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
-            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
-            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
-            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
-#endif
         i++;
 
         attribs[i].type = VASurfaceAttribExternalBufferDescriptor;
@@ -836,6 +933,11 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         {
             maxWidth = m_decJpegMaxWidth;
             maxHeight = m_decJpegMaxHeight;
+        }
+        else if(IsVp9Profile(profile))
+        {
+            maxWidth = m_decVp9MaxWidth;
+            maxHeight = m_decVp9MaxHeight;
         }
 
         attribs[i].type = VASurfaceAttribMaxWidth;
@@ -1005,6 +1107,38 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
     MOS_SecureMemcpy(attribList, i * sizeof(*attribs), attribs, i * sizeof(*attribs));
 
     MOS_FreeMemory(attribs);
+    return status;
+}
+
+VAStatus MediaLibvaCapsG11::CreateDecAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList)
+{
+    VAStatus status = MediaLibvaCaps::CreateDecAttributes(profile, entrypoint, attributeList);
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    auto attribList = *attributeList;
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAConfigAttrib attrib;
+    attrib.type = VAConfigAttribRTFormat;
+    if(profile == VAProfileHEVCMain444)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+    else if(profile == VAProfileHEVCMain444_10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        attrib.value |= VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV444_10;
+        (*attribList)[attrib.type] = attrib.value;
+    } else if(profile == VAProfileNone)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32 | VA_RT_FORMAT_YUV444;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+
     return status;
 }
 

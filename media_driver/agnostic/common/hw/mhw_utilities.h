@@ -133,6 +133,9 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define MHW_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
 
+#define MHW_CHK_NULL_NO_STATUS_RETURN(_ptr) \
+    MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+
 #define MHW_CHK_COND(_condition,  _message, ...)                                \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, (_condition),  (_message),  ##__VA_ARGS__)
 
@@ -379,6 +382,8 @@ enum GFX3DSTATE_SURFACETYPE
     GFX3DSTATE_SURFACETYPE_3D      = 2,
     GFX3DSTATE_SURFACETYPE_CUBE    = 3,
     GFX3DSTATE_SURFACETYPE_BUFFER  = 4,
+    GFX3DSTATE_SURFACETYPE_SREBUF  = 5,  // Structured buffer surface.
+    GFX3DSTATE_SURFACETYPE_SCRATCH = 6,  // Scratch space buffer.
     GFX3DSTATE_SURFACETYPE_NULL    = 7
 };
 
@@ -422,7 +427,8 @@ enum MEDIASTATE_SFC_CHROMA_SUBSAMPLING_MODE
     MEDIASTATE_SFC_CHROMA_SUBSAMPLING_400  = 0,
     MEDIASTATE_SFC_CHROMA_SUBSAMPLING_420  = 1,
     MEDIASTATE_SFC_CHROMA_SUBSAMPLING_422H = 2,
-    MEDIASTATE_SFC_CHROMA_SUBSAMPLING_444  = 4
+    MEDIASTATE_SFC_CHROMA_SUBSAMPLING_444  = 4,
+    MEDIASTATE_SFC_CHROMA_SUBSAMPLING_411  = 5
 };
 
 enum MEDIASTATE_SFC_INPUT_ORDERING_MODE
@@ -576,6 +582,12 @@ typedef struct _MHW_BATCH_BUFFER_LIST
     uint32_t                dwSize;                         //!< Total BB memory in this list
 } MHW_BATCH_BUFFER_LIST,*PMHW_BATCH_BUFFER_LIST;
 
+enum WRITE_FLAG
+{
+    WRITE     = 0x1,
+    WRITE_WA  = 0x2,
+};
+
 typedef struct _MHW_RESOURCE_PARAMS
 {
     PMOS_RESOURCE                       presResource;
@@ -593,7 +605,7 @@ typedef struct _MHW_RESOURCE_PARAMS
 
     MOS_HW_COMMAND                      HwCommandType;
     uint32_t                            dwSharedMocsOffset;
-    bool                                bIsWritable;
+    uint32_t                            bIsWritable;
 
     // If the patching location does not start at bit 0 then the value to be patched needs to be shifted
     uint32_t                            shiftAmount;

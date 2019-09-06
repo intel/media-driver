@@ -45,6 +45,7 @@
 #include "cm_sampler8x8_state_rt.h"
 #include "cm_visa.h"
 #include "cm_extension_creator.h"
+#include "cm_execution_adv.h"
 
 #define GENERATE_GLOBAL_SURFACE_INDEX
 
@@ -89,7 +90,8 @@ typedef CM_ARG* PCM_ARG;
 #define CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY (1 << 3)  // indirect payload data size changes
 #define CM_KERNEL_DATA_GLOBAL_SURFACE_DIRTY    (1 << 4)  // global surface dirty
 #define CM_KERNEL_DATA_THREAD_COUNT_DIRTY      (1 << 5)  // thread count dirty, reset() be called
-#define cMKERNELDATASAMPLERBTIDIRTY       (1 << 6)  // sampler bti dirty
+#define cMKERNELDATASAMPLERBTIDIRTY            (1 << 6)  // sampler bti dirty
+#define CM_KERNEL_DATA_THREAD_GROUP_SPACE_DIRTY      (1 << 7)       // threadgroupspace dirty
 
 int32_t Partition( PCM_ARG* args, int32_t p, int32_t r )
 {
@@ -182,7 +184,17 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
                            const char *options)
 {
     int32_t result = CM_SUCCESS;
-    kernel = new (std::nothrow) CmKernelRT( device, program, kernelIndex, kernelSeqNum );
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)device->GetAccelData())->cmHalState;
+
+    if (state && state->advExecutor)
+    {
+        kernel = state->advExecutor->CreateKernelRT(device, program, kernelIndex, kernelSeqNum);
+    }
+    else
+    {
+        return CM_FAILURE;
+    }
+    
     if( kernel )
     {
         kernel->Acquire();
@@ -281,7 +293,9 @@ CmKernelRT::CmKernelRT(CmDeviceRT *device,
     m_program( program ),
     m_options( nullptr ),
     m_binary( nullptr ),
+    m_binaryOrig(nullptr),
     m_binarySize(0),
+    m_binarySizeOrig(0),
     m_threadCount( 0 ),
     m_lastThreadCount( 0 ),
     m_sizeInCurbe( 0 ),
@@ -306,6 +320,7 @@ CmKernelRT::CmKernelRT(CmDeviceRT *device,
     m_usKernelPayloadDataSize( 0 ),
     m_kernelPayloadData( nullptr ),
     m_usKernelPayloadSurfaceCount( 0 ),
+    m_samplerBtiCount( 0 ),
     m_refcount(0),
     m_halMaxValues( nullptr ),
     m_halMaxValuesEx( nullptr ),
@@ -314,13 +329,10 @@ CmKernelRT::CmKernelRT(CmDeviceRT *device,
     m_vmeSurfaceCount( 0 ),
     m_maxSurfaceIndexAllocated(0),
     m_barrierMode(CM_LOCAL_BARRIER),
-    m_samplerBtiCount( 0 ),
     m_isClonedKernel(false),
     m_cloneKernelID(0),
     m_hasClones( false ),
     m_stateBufferBounded( CM_STATE_BUFFER_NONE ),
-    m_binaryOrig(nullptr),
-    m_binarySizeOrig(0),
     m_movInstConstructor(nullptr)
 {
     program->Acquire();
@@ -456,7 +468,7 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
                 return CM_OUT_OF_HOST_MEMORY;
 
             }
-            CmFastMemCopy( m_options, options, length);
+            CmSafeMemCopy( m_options, options, length);
             m_options[ length ] = '\0';
 
             char* tmp = strstr( m_options, "nocurbe" );
@@ -533,7 +545,7 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
                     CM_ASSERTMESSAGE("Error: Out of system memory.");
                     return CM_OUT_OF_HOST_MEMORY;
                 }
-                CmFastMemCopy(string, globalString->getString(), stringLength);
+                CmSafeMemCopy(string, globalString->getString(), stringLength);
                 string[stringLength] = '\0';
                 m_kernelInfo->globalStrings[i] = string;
                 i++;
@@ -731,11 +743,11 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
             {
                 if (useVisaApi)
                 {
-                    CmFastMemCopy(m_kernelInfo->kernelASMName, attribute->getValue(), size);
+                    CmSafeMemCopy(m_kernelInfo->kernelASMName, attribute->getValue(), size);
                 }
                 else
                 {
-                    CmFastMemCopy(m_kernelInfo->kernelASMName, &buf[bytePosition], size);
+                    CmSafeMemCopy(m_kernelInfo->kernelASMName, &buf[bytePosition], size);
                     bytePosition += size;
                 }
             }
@@ -920,7 +932,7 @@ CmSurface* CmKernelRT::GetSurfaceFromSurfaceArray( SurfaceIndex* value, uint32_t
     SurfaceIndex* surfaceIndex     = nullptr;
 
     surfaceIndex = value + indexSurfaceArray;
-    CMCHK_NULL(surfaceIndex);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(surfaceIndex);
 
     if (surfaceIndex->get_data() == CM_NULL_SURFACE
         || surfaceIndex->get_data() == 0)
@@ -981,7 +993,7 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t ar
         else
         {
             surfVme = static_cast<CmSurfaceVme*>(GetSurfaceFromSurfaceArray((SurfaceIndex*)value, i));
-            CMCHK_NULL(surfVme);
+            CM_CHK_NULL_GOTOFINISH_CMERROR(surfVme);
             tempVmeArgValueSize = surfVme->GetVmeCmArgSize();
             totalVmeArgValueSize += tempVmeArgValueSize;
             totalSurfacesInVme += surfVme->GetTotalSurfacesCount();
@@ -1007,9 +1019,9 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t ar
         arg.surfIndex = MOS_NewArray(uint16_t, totalSurfacesInVme);
     }
 
-    CMCHK_NULL(arg.value);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(arg.value);
     CmSafeMemSet(arg.value, 0, totalVmeArgValueSize);
-    CMCHK_NULL(arg.surfIndex);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(arg.surfIndex);
     CmSafeMemSet(arg.surfIndex, 0, totalSurfacesInVme * sizeof(uint16_t));
 
     //Set each Vme Surface
@@ -1029,7 +1041,7 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t ar
         else
         {
             surfVme = static_cast<CmSurfaceVme*>(GetSurfaceFromSurfaceArray((SurfaceIndex*)value, i));
-            CMCHK_NULL(surfVme);
+            CM_CHK_NULL_GOTOFINISH_CMERROR(surfVme);
             SetArgsSingleVme(surfVme, arg.value + vmeArgValueOffset, arg.surfIndex + lastVmeSurfCount);
             tempVmeArgValueSize = surfVme->GetVmeCmArgSize();
             vmeArgValueOffset += tempVmeArgValueSize;
@@ -1105,9 +1117,9 @@ int32_t CmKernelRT::SetArgsSingleVme(CmSurfaceVme* vmeSurface, uint8_t *vmeArgVa
     CmSurface *surface = nullptr;
     PCM_HAL_VME_ARG_VALUE vmeArg = (PCM_HAL_VME_ARG_VALUE)vmeArgValueArray;
 
-    CMCHK_NULL(vmeSurface);
-    CMCHK_NULL(vmeArg);
-    CMCHK_NULL(cmSufacesArray);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(vmeSurface);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(vmeArg);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmSufacesArray);
 
     if(vmeSurface == (CmSurfaceVme *)CM_NULL_SURFACE)
     {
@@ -1139,7 +1151,7 @@ int32_t CmKernelRT::SetArgsSingleVme(CmSurfaceVme* vmeSurface, uint8_t *vmeArgVa
 
     // Set Current Vme Surface
     m_surfaceMgr->GetSurface(vmeCurrentCmIndex, surface);
-    CMCHK_NULL(surface);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(surface);
 
     vmeArg->curSurface = vmeCurrentSurfaceIndex;
 
@@ -1778,6 +1790,12 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                      CmSurfaceSampler8x8* surfSampler8x8 = static_cast <CmSurfaceSampler8x8 *> (surface);
                      surfSampler8x8->GetIndexCurrent(samplerIndex);
                      surfSampler8x8->GetCmIndex(samplerCmIndex);
+                     if (samplerCmIndex > surfaceArraySize)
+                     {
+                         m_args[index].aliasIndex = samplerCmIndex;
+                         m_args[index].aliasCreated = true;
+                         samplerCmIndex %= surfaceArraySize;
+                     }
 
                      m_surfaceMgr->GetSurface(samplerCmIndex, surface);
                      if (!surface)
@@ -1918,7 +1936,7 @@ finish:
 
             arg.unitCount = 1;
 
-            CmFastMemCopy((void *)arg.value, value, size);
+            CmSafeMemCopy((void *)arg.value, value, size);
 
             if((( m_args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
                  ( m_args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
@@ -1946,7 +1964,7 @@ finish:
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)arg.surfIndex, surfIndexValue, size / sizeof(int32_t) * sizeof(uint16_t));
+                CmSafeMemCopy((void *)arg.surfIndex, surfIndexValue, size / sizeof(int32_t) * sizeof(uint16_t));
             }
 
             if (m_args[index].unitKind == ARG_KIND_SAMPLER)
@@ -1969,7 +1987,7 @@ finish:
             }
             if( memcmp( (void *)arg.value, value, size ) != 0 )
             {
-                CmFastMemCopy((void *)arg.value, value, size);
+                CmSafeMemCopy((void *)arg.value, value, size);
                 m_dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
                 arg.isDirty = true;
             }
@@ -1992,7 +2010,7 @@ finish:
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)arg.surfIndex, surfIndexValue, size/sizeof(int32_t) * sizeof(uint16_t));
+                CmSafeMemCopy((void *)arg.surfIndex, surfIndexValue, size/sizeof(int32_t) * sizeof(uint16_t));
             }
 
             if (m_args[index].unitKind == ARG_KIND_SAMPLER)
@@ -2031,7 +2049,7 @@ finish:
             uint8_t *threadValue = ( uint8_t *)arg.value;
             threadValue += offset;
 
-            CmFastMemCopy(threadValue, value, size);
+            CmSafeMemCopy(threadValue, value, size);
             if((( m_args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
                  ( m_args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
                  ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
@@ -2058,7 +2076,7 @@ finish:
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
+                CmSafeMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
             }
             m_perThreadArgExists = true;
         }
@@ -2076,7 +2094,7 @@ finish:
 
             if( memcmp( threadValue, value, size ) != 0 )
             {
-                CmFastMemCopy(threadValue, value, size);
+                CmSafeMemCopy(threadValue, value, size);
                 m_dirty |= CM_KERNEL_DATA_THREAD_ARG_DIRTY;
                 arg.isDirty = true;
             }
@@ -2098,7 +2116,7 @@ finish:
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
+                CmSafeMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
             }
         }
     }
@@ -2188,7 +2206,6 @@ CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * value
         CM_ASSERTMESSAGE("Error: StaticBuffer doesn't allow alias index.");
         return CM_INVALID_ARG_INDEX;
     }
-    uint32_t handle = 0; // for 1D surf
 
     CmSurface* surface  = nullptr;
     m_surfaceMgr->GetSurface( surfIndexData, surface );
@@ -2201,7 +2218,8 @@ CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * value
     CmBuffer_RT* surf1D = nullptr;
     if ( surface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT )
     {
-        CM_SURFACE_MEM_OBJ_CTRL memCtl;
+        uint32_t handle = 0; // for 1D surf
+
         surf1D = static_cast< CmBuffer_RT* >( surface );
         surf1D->GetHandle( handle );
 
@@ -2534,14 +2552,14 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&codeD
         {
             movInst->ClearDebug();
         }
-        CmFastMemCopy(codeDst + j * CM_MOVE_INSTRUCTION_SIZE, movInst->GetBinary(), CM_MOVE_INSTRUCTION_SIZE);
+        CmSafeMemCopy(codeDst + j * CM_MOVE_INSTRUCTION_SIZE, movInst->GetBinary(), CM_MOVE_INSTRUCTION_SIZE);
         CmSafeDelete(movInst); // delete each element in movInsts
     }
     movInsts.Delete();
 
     if(addInstNum != 0)
     {
-       CmFastMemCopy(codeDst + movInstNum * CM_MOVE_INSTRUCTION_SIZE, addInstDW, CM_MOVE_INSTRUCTION_SIZE);
+       CmSafeMemCopy(codeDst + movInstNum * CM_MOVE_INSTRUCTION_SIZE, addInstDW, CM_MOVE_INSTRUCTION_SIZE);
 
        movInstNum += addInstNum; // take add Y instruction into consideration
     }
@@ -2613,7 +2631,7 @@ int32_t CmKernelRT::CreateThreadArgData(
     {
         if (cmArgs[threadArgIndex].value)
         {
-            CmFastMemCopy(kernelArg->firstValue, cmArgs[threadArgIndex].value, threadArgCount * threadArgSize);
+            CmSafeMemCopy(kernelArg->firstValue, cmArgs[threadArgIndex].value, threadArgCount * threadArgSize);
         }
         goto finish;
     }
@@ -2636,17 +2654,17 @@ int32_t CmKernelRT::CreateThreadArgData(
                 uint32_t offset = threadSpaceUnit[boardOrder[index]].threadId;
                 uint8_t *argSrc = (uint8_t*)cmArgs[threadArgIndex].value + offset * threadArgSize;
                 uint8_t *argDst = kernelArg->firstValue + index * threadArgSize;
-                CmFastMemCopy(argDst, argSrc, threadArgSize);
+                CmSafeMemCopy(argDst, argSrc, threadArgSize);
             }
         }
         else
         {
-           CmFastMemCopy(kernelArg->firstValue, cmArgs[ threadArgIndex ].value, threadArgCount * threadArgSize);
+           CmSafeMemCopy(kernelArg->firstValue, cmArgs[ threadArgIndex ].value, threadArgCount * threadArgSize);
         }
     }
     else
     {
-        CmFastMemCopy(kernelArg->firstValue, cmArgs[ threadArgIndex ].value, threadArgCount * threadArgSize);
+        CmSafeMemCopy(kernelArg->firstValue, cmArgs[ threadArgIndex ].value, threadArgCount * threadArgSize);
     }
 
 finish:
@@ -2661,7 +2679,7 @@ int32_t CmKernelRT::SortThreadSpace( CmThreadSpaceRT*  threadSpace )
     int32_t                   hr = CM_SUCCESS;
     CM_DEPENDENCY_PATTERN dependencyPatternType = CM_NONE_DEPENDENCY;
 
-    CMCHK_NULL(threadSpace);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpace);
 
     threadSpace->GetDependencyPatternType(dependencyPatternType);
 
@@ -2757,7 +2775,7 @@ int32_t CmKernelRT::CreateTempArgs(
     }
 
     tempArgs = MOS_NewArray(CM_ARG, numArgs);
-    CMCHK_NULL_RETURN(tempArgs, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(tempArgs, CM_OUT_OF_HOST_MEMORY);
     CmSafeMemSet(tempArgs, 0, numArgs* sizeof(CM_ARG) );
 
     for( uint32_t j = 0; j < m_argCount; j++ )
@@ -2804,7 +2822,7 @@ int32_t CmKernelRT::CreateTempArgs(
                 else
                 {
                     uint32_t *surfaces = (uint32_t *)MOS_NewArray(uint8_t, ((sizeof(int32_t) * m_args[j].unitCount)));
-                    CMCHK_NULL_RETURN(surfaces, CM_OUT_OF_HOST_MEMORY);
+                    CM_CHK_NULL_GOTOFINISH(surfaces, CM_OUT_OF_HOST_MEMORY);
                     for (int32_t k = 0; k < numSurfaces; k++)
                     {
                         tempArgs[j + increasedArgs + k] = m_args[j];
@@ -2822,7 +2840,7 @@ int32_t CmKernelRT::CreateTempArgs(
                         {
                             surfaces[s] = *(uint32_t *)((uint32_t *)m_args[j].value + k + numSurfaces * s);
                         }
-                        CmFastMemCopy(tempArgs[j + increasedArgs + k].value, surfaces, sizeof(int32_t) * m_args[j].unitCount);
+                        CmSafeMemCopy(tempArgs[j + increasedArgs + k].value, surfaces, sizeof(int32_t) * m_args[j].unitCount);
                         tempArgs[j + increasedArgs + k].unitOffsetInPayload = m_args[j].unitOffsetInPayload + 4 * k;
                         tempArgs[j + increasedArgs + k].unitOffsetInPayloadOrig = (uint16_t)-1;
                     }
@@ -2923,8 +2941,6 @@ finish:
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &argSize, uint32_t & argCountPlus)
 {
-    unsigned int extraArgs = 0;
-
     argCountPlus = m_argCount;
     argSize      = 0;
 
@@ -2949,6 +2965,8 @@ int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &argSize, uint32_t & argCo
 
         if(m_perThreadArgExists || m_perKernelArgExists)
         {
+            unsigned int extraArgs = 0;
+            
             for( uint32_t j = 0; j < m_argCount; j ++ )
             {
                 //Sanity checking for every argument setting
@@ -3032,13 +3050,13 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
 
     if(dependency != nullptr)
     {
-        CmFastMemCopy(&kernelThreadSpaceParam->dependencyInfo, dependency, sizeof(CM_HAL_DEPENDENCY));
+        CmSafeMemCopy(&kernelThreadSpaceParam->dependencyInfo, dependency, sizeof(CM_HAL_DEPENDENCY));
     }
 
     if( threadSpace->CheckWalkingParametersSet( ) )
     {
         kernelThreadSpaceParam->walkingParamsValid = 1;
-        CMCHK_HR(threadSpace->GetWalkingParameters(kernelThreadSpaceParam->walkingParams));
+        CM_CHK_CMSTATUS_GOTOFINISH(threadSpace->GetWalkingParameters(kernelThreadSpaceParam->walkingParams));
     }
     else
     {
@@ -3048,7 +3066,7 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
     if( threadSpace->CheckDependencyVectorsSet( ) )
     {
         kernelThreadSpaceParam->dependencyVectorsValid = 1;
-        CMCHK_HR(threadSpace->GetDependencyVectors(kernelThreadSpaceParam->dependencyVectors));
+        CM_CHK_CMSTATUS_GOTOFINISH(threadSpace->GetDependencyVectors(kernelThreadSpaceParam->dependencyVectors));
     }
     else
     {
@@ -3060,12 +3078,12 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
     if(threadSpaceUnit)
     {
         kernelThreadSpaceParam->threadCoordinates = MOS_NewArray(CM_HAL_SCOREBOARD, (threadSpaceWidth * threadSpaceHeight));
-        CMCHK_NULL_RETURN(kernelThreadSpaceParam->threadCoordinates , CM_OUT_OF_HOST_MEMORY);
+        CM_CHK_NULL_GOTOFINISH(kernelThreadSpaceParam->threadCoordinates , CM_OUT_OF_HOST_MEMORY);
         CmSafeMemSet(kernelThreadSpaceParam->threadCoordinates, 0, threadSpaceHeight * threadSpaceWidth * sizeof(CM_HAL_SCOREBOARD));
 
         uint32_t *boardOrder = nullptr;
         threadSpace->GetBoardOrder(boardOrder);
-        CMCHK_NULL(boardOrder);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(boardOrder);
 
         kernelThreadSpaceParam->reuseBBUpdateMask  = 0;
         for(uint32_t i=0; i< threadSpaceWidth * threadSpaceHeight ; i++)
@@ -3087,8 +3105,8 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
 
             kernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
             kernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
-            CMCHK_NULL_RETURN(kernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
-            CmFastMemCopy(kernelThreadSpaceParam->dispatchInfo.numThreadsInWave,
+            CM_CHK_NULL_GOTOFINISH(kernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
+            CmSafeMemCopy(kernelThreadSpaceParam->dispatchInfo.numThreadsInWave,
                 dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
 
          }
@@ -3408,9 +3426,9 @@ int32_t CmKernelRT::CreateKernelData(
 
     if(m_lastKernelData == nullptr)
     {
-        CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
-        CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-        CMCHK_HR(UpdateLastKernelData(kernelData));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel/program's ref count
+        CM_CHK_CMSTATUS_GOTOFINISH(UpdateLastKernelData(kernelData));
     }
     else
     {
@@ -3418,14 +3436,14 @@ int32_t CmKernelRT::CreateKernelData(
         {
             // nothing changed; Reuse m_lastKernelData
             kernelData = m_lastKernelData;
-            CMCHK_HR(AcquireKernelData(kernelData));
-            CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
+            CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelData(kernelData));
+            CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel and program's ref count
             kernelDataSize = kernelData->GetKernelDataSize();
 
             if (m_threadSpace)
             {
                 halKernelParam = kernelData->GetHalCmKernelData();
-                CMCHK_NULL(halKernelParam);
+                CM_CHK_NULL_GOTOFINISH_CMERROR(halKernelParam);
                 // need to set to clean here because CmThreadSpaceParam.BBdirtyStatus is only set in CreateKernelDataInternal
                 // flag used to re-use batch buffer, don't care if BB is busy if it is "clean"
                 halKernelParam->kernelThreadSpaceParam.bbDirtyStatus = CM_HAL_BB_CLEAN;
@@ -3435,31 +3453,31 @@ int32_t CmKernelRT::CreateKernelData(
         {
             if(m_lastKernelData->IsInUse())
             { // Need to Create a new one , if the kernel data is in use
-                CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
-                CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-                CMCHK_HR(UpdateLastKernelData(kernelData));
+                CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
+                CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel/program's ref count
+                CM_CHK_CMSTATUS_GOTOFINISH(UpdateLastKernelData(kernelData));
             }
             else if(threadSpace && threadSpace->IsThreadAssociated() && (threadSpace->GetDirtyStatus() != CM_THREAD_SPACE_CLEAN))
             { // if thread space is assocaited , don't support reuse
-                CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
-                CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-                CMCHK_HR(UpdateLastKernelData(kernelData));
+                CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
+                CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel/program's ref count
+                CM_CHK_CMSTATUS_GOTOFINISH(UpdateLastKernelData(kernelData));
             }
             else if(m_dirty < CM_KERNEL_DATA_THREAD_COUNT_DIRTY || // Kernel arg or thread arg dirty
                 (m_threadSpace && m_threadSpace->GetDirtyStatus() == CM_THREAD_SPACE_DEPENDENCY_MASK_DIRTY))
             {
-                CMCHK_HR(UpdateKernelData(m_lastKernelData,threadSpace));
+                CM_CHK_CMSTATUS_GOTOFINISH(UpdateKernelData(m_lastKernelData,threadSpace));
                 kernelData = m_lastKernelData;
-                CMCHK_HR(AcquireKernelData(kernelData));
-                CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
+                CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelData(kernelData));
+                CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel and program's ref count
                 kernelDataSize = kernelData->GetKernelDataSize();
 
             }
             else
             {
-               CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
-               CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-               CMCHK_HR(UpdateLastKernelData(kernelData));
+               CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
+               CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel/program's ref count
+               CM_CHK_CMSTATUS_GOTOFINISH(UpdateLastKernelData(kernelData));
             }
         }
     }
@@ -3504,35 +3522,35 @@ int32_t CmKernelRT::CreateKernelData(
 
     if(m_lastKernelData == nullptr)
     {
-        CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, usedThreadGroupSpace));
-        CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-        CMCHK_HR(UpdateLastKernelData(kernelData));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelDataInternal(kernelData, kernelDataSize, usedThreadGroupSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel/program's ref count
+        CM_CHK_CMSTATUS_GOTOFINISH(UpdateLastKernelData(kernelData));
     }
     else
     {
-        if(!(m_dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY))
+        if (!((m_dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY) || (m_dirty & CM_KERNEL_DATA_THREAD_GROUP_SPACE_DIRTY)))
         {
             // nothing changed; Reuse m_lastKernelData
             kernelData = m_lastKernelData;
-            CMCHK_HR(AcquireKernelData(kernelData));
-            CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
+            CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelData(kernelData));
+            CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel and program's ref count
             kernelDataSize = kernelData->GetKernelDataSize();
         }
         else
         {
             if(m_lastKernelData->IsInUse())
             { // Need to Clone a new one
-                CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, usedThreadGroupSpace));
-                CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-                CMCHK_HR(UpdateLastKernelData(kernelData));
+                CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelDataInternal(kernelData, kernelDataSize, usedThreadGroupSpace));
+                CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel/program's ref count
+                CM_CHK_CMSTATUS_GOTOFINISH(UpdateLastKernelData(kernelData));
             }
             else
             {
                 // change happend -> Reuse m_lastKernelData but need to change its content accordingly
-                CMCHK_HR(UpdateKernelData(m_lastKernelData, usedThreadGroupSpace));
+                CM_CHK_CMSTATUS_GOTOFINISH(UpdateKernelData(m_lastKernelData, usedThreadGroupSpace));
                 kernelData = m_lastKernelData;
-                CMCHK_HR(AcquireKernelData(kernelData));
-                CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
+                CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelData(kernelData));
+                CM_CHK_CMSTATUS_GOTOFINISH(AcquireKernelProgram()); // increase kernel and program's ref count
                 kernelDataSize = kernelData->GetKernelDataSize();
             }
         }
@@ -3616,20 +3634,20 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     uint32_t              minKernelPlayloadOffset = 0;
     bool                  adjustLocalIdPayloadOffset = false;
 
-    CMCHK_HR(CmKernelData::Create(this, kernelData));
+    CM_CHK_CMSTATUS_GOTOFINISH(CmKernelData::Create(this, kernelData));
     halKernelParam = kernelData->GetHalCmKernelData();
-    CMCHK_NULL(halKernelParam);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(halKernelParam);
 
     //Get Num of args with surface array
-    CMCHK_HR(GetArgCountPlusSurfArray(argSize, numArgs));
+    CM_CHK_CMSTATUS_GOTOFINISH(GetArgCountPlusSurfArray(argSize, numArgs));
 
     //Create Temp args
-    CMCHK_HR(CreateTempArgs(numArgs, tempArgs));
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateTempArgs(numArgs, tempArgs));
 
     //Create move instructions
-    CMCHK_HR(CreateMovInstructions(movInstNum, halKernelParam->movInsData, tempArgs, numArgs));
-    CMCHK_HR(CalcKernelDataSize(movInstNum, numArgs, argSize, kernelDataSize));
-    CMCHK_HR(kernelData->SetKernelDataSize(kernelDataSize));
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateMovInstructions(movInstNum, halKernelParam->movInsData, tempArgs, numArgs));
+    CM_CHK_CMSTATUS_GOTOFINISH(CalcKernelDataSize(movInstNum, numArgs, argSize, kernelDataSize));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernelData->SetKernelDataSize(kernelDataSize));
 
     halKernelParam->clonedKernelParam.isClonedKernel = m_isClonedKernel;
     halKernelParam->clonedKernelParam.kernelID       = m_cloneKernelID;
@@ -3651,7 +3669,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
 
     halKernelParam->kernelBinary = (uint8_t*)m_binary;
 
-    CMCHK_HR(kernelData->GetCmKernel(cmKernel));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernelData->GetCmKernel(cmKernel));
     if (cmKernel == nullptr)
     {
         return CM_NULL_POINTER;
@@ -3691,22 +3709,24 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         halKernelParam->argParams[i].payloadOffset = tempArgs[i].unitOffsetInPayload;
         halKernelParam->argParams[i].perThread = false;
         halKernelParam->argParams[i].nCustomValue = tempArgs[i].nCustomValue;
-        halKernelParam->argParams[i].isNull = tempArgs[ i ].isNull;
+        halKernelParam->argParams[i].aliasIndex = tempArgs[i].aliasIndex;
+        halKernelParam->argParams[i].aliasCreated = tempArgs[i].aliasCreated;
+        halKernelParam->argParams[i].isNull = tempArgs[i].isNull;
 
         if (tempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_LOCALSIZE) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
+            CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
             *(uint32_t *)halKernelParam->argParams[i].firstValue = thrdSpaceWidth;
             *(uint32_t *)(halKernelParam->argParams[i].firstValue + 4) = thrdSpaceHeight;
             *(uint32_t *)(halKernelParam->argParams[i].firstValue + 8) = thrdSpaceDepth;
         }
         else if (tempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_GROUPSIZE) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
+            CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
             *(uint32_t *)halKernelParam->argParams[i].firstValue = grpSpaceWidth;
             *(uint32_t *)(halKernelParam->argParams[i].firstValue + 4) = grpSpaceHeight;
             *(uint32_t *)(halKernelParam->argParams[i].firstValue + 8) = grpSpaceDepth;
         }
         else if (tempArgs[i].unitKind == ARG_KIND_IMPLICIT_LOCALID) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
+            CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
             halKernelParam->localIdIndex = i;
         }
         else
@@ -3764,12 +3784,12 @@ int32_t CmKernelRT::CreateKernelDataInternal(
             halKernelParam->argParams[i].perThread = false;
         }
 
-        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 0].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 1].firstValue, thrdSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 2].firstValue, grpSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 3].firstValue, grpSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 4].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 5].firstValue, thrdSpaceHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 0].firstValue, thrdSpaceWidth));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 1].firstValue, thrdSpaceHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 2].firstValue, grpSpaceWidth));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 3].firstValue, grpSpaceHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 4].firstValue, thrdSpaceWidth));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 5].firstValue, thrdSpaceHeight));
         halKernelParam->localIdIndex = halKernelParam->numArgs - 2;
     }
     halKernelParam->gpgpuWalkerParams.gpgpuEnabled = true;
@@ -3822,11 +3842,11 @@ int32_t CmKernelRT::CreateKernelDataInternal(
 
     m_sizeInCurbe = GetAlignedCurbeSize(halKernelParam->totalCurbeSize);
 
-    CMCHK_HR(CreateKernelIndirectData(&halKernelParam->indirectDataParam));
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelIndirectData(&halKernelParam->indirectDataParam));
 
     if (m_samplerBtiCount != 0)
     {
-        CmFastMemCopy((void*)halKernelParam->samplerBTIParam.samplerInfo, (void*)m_samplerBtiEntry, sizeof(m_samplerBtiEntry));
+        CmSafeMemCopy((void*)halKernelParam->samplerBTIParam.samplerInfo, (void*)m_samplerBtiEntry, sizeof(m_samplerBtiEntry));
         halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
         CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
@@ -3847,7 +3867,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     }
     MosSafeDeleteArray(tempArgs);
 
-    CMCHK_HR(UpdateSamplerHeap(kernelData));
+    CM_CHK_CMSTATUS_GOTOFINISH(UpdateSamplerHeap(kernelData));
 finish:
     if (hr != CM_SUCCESS)
     {
@@ -3999,23 +4019,23 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         cmThreadSpace = const_cast<CmThreadSpaceRT*>(threadSpace);
     }
 
-    CMCHK_HR(CmKernelData::Create( this, kernelData ));
+    CM_CHK_CMSTATUS_GOTOFINISH(CmKernelData::Create( this, kernelData ));
     halKernelParam = kernelData->GetHalCmKernelData();
-    CMCHK_NULL(halKernelParam);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(halKernelParam);
 
     //Get Num of args with surface array
-    CMCHK_HR(GetArgCountPlusSurfArray(argSize, numArgs));
+    CM_CHK_CMSTATUS_GOTOFINISH(GetArgCountPlusSurfArray(argSize, numArgs));
 
     if( numArgs > 0)
     {
         //Create Temp args
-        CMCHK_HR(CreateTempArgs(numArgs, tempArgs));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateTempArgs(numArgs, tempArgs));
         //Create move instructions
-        CMCHK_HR(CreateMovInstructions(movInstNum,   halKernelParam->movInsData, tempArgs, numArgs));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateMovInstructions(movInstNum,   halKernelParam->movInsData, tempArgs, numArgs));
     }
 
-    CMCHK_HR(CalcKernelDataSize(movInstNum, numArgs, argSize, kernelDataSize));
-    CMCHK_HR(kernelData->SetKernelDataSize(kernelDataSize));
+    CM_CHK_CMSTATUS_GOTOFINISH(CalcKernelDataSize(movInstNum, numArgs, argSize, kernelDataSize));
+    CM_CHK_CMSTATUS_GOTOFINISH(kernelData->SetKernelDataSize(kernelDataSize));
 
     if(!IsBatchBufferReusable(const_cast<CmThreadSpaceRT *>(threadSpace)))
     {
@@ -4052,7 +4072,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
 
     halKernelParam->kernelBinary        = (uint8_t*)m_binary;
 
-    CMCHK_HR( kernelData->GetCmKernel( cmKernel ) );
+    CM_CHK_CMSTATUS_GOTOFINISH( kernelData->GetCmKernel( cmKernel ) );
     if ( cmKernel == nullptr )
     {
         return CM_NULL_POINTER;
@@ -4061,7 +4081,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
 
     if ( cmThreadSpace )
     {// either from per kernel thread space or per task thread space
-        CMCHK_HR(SortThreadSpace(cmThreadSpace)); // must be called before CreateThreadArgData
+        CM_CHK_CMSTATUS_GOTOFINISH(SortThreadSpace(cmThreadSpace)); // must be called before CreateThreadArgData
     }
 
     for(uint32_t i =0 ; i< numArgs; i++)
@@ -4149,11 +4169,11 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     }
 
     //Create indirect data
-    CMCHK_HR(CreateKernelIndirectData(&halKernelParam->indirectDataParam));
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelIndirectData(&halKernelParam->indirectDataParam));
 
     if ( m_samplerBtiCount != 0 )
     {
-        CmFastMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
+        CmSafeMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
         halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
         CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
@@ -4165,7 +4185,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     //Create thread space param: only avaliable if per kernel ts exists
     if(m_threadSpace)
     {
-        CMCHK_HR(CreateThreadSpaceParam(&halKernelParam->kernelThreadSpaceParam, m_threadSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateThreadSpaceParam(&halKernelParam->kernelThreadSpaceParam, m_threadSpace));
     }
 
     //Get SLM size
@@ -4177,7 +4197,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     //Set Barrier mode
     halKernelParam->barrierMode = m_barrierMode;
 
-    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
+    CM_CHK_CMSTATUS_GOTOFINISH(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
 
     //Destroy Temp Args
     for (uint32_t j = 0; j < numArgs; j++)
@@ -4189,7 +4209,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     }
     MosSafeDeleteArray( tempArgs );
 
-    CMCHK_HR(UpdateSamplerHeap(kernelData));
+    CM_CHK_CMSTATUS_GOTOFINISH(UpdateSamplerHeap(kernelData));
 finish:
     if(hr != CM_SUCCESS)
     {
@@ -4248,11 +4268,11 @@ int32_t CmKernelRT::UpdateKernelData(
         cmThreadSpace = const_cast<CmThreadSpaceRT*>(threadSpace);
     }
 
-    CMCHK_NULL(kernelData);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(kernelData);
     CM_ASSERT(kernelData->IsInUse() == false);
 
     halKernelParam = kernelData->GetHalCmKernelData();
-    CMCHK_NULL(halKernelParam);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(halKernelParam);
 
     if(!IsBatchBufferReusable(const_cast<CmThreadSpaceRT *>(threadSpace)))
     {
@@ -4314,7 +4334,7 @@ int32_t CmKernelRT::UpdateKernelData(
                         for (uint32_t kk = 0; kk < numSurfaces; kk++)
                         {
                             CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
-                            CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                            CmSafeMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
                                 m_args[orgArgIndex].value + kk*sizeof(uint32_t), sizeof(uint32_t));
                             halKernelParam->argParams[argIndex + kk].aliasIndex = m_args[orgArgIndex].aliasIndex;
                             halKernelParam->argParams[argIndex + kk].aliasCreated = m_args[orgArgIndex].aliasCreated;
@@ -4335,7 +4355,7 @@ int32_t CmKernelRT::UpdateKernelData(
                     else
                     {
                         CM_ASSERT(halKernelParam->argParams[argIndex].firstValue != nullptr);
-                        CmFastMemCopy(halKernelParam->argParams[argIndex].firstValue,
+                        CmSafeMemCopy(halKernelParam->argParams[argIndex].firstValue,
                                 m_args[ orgArgIndex ].value, sizeof(uint32_t));
                         halKernelParam->argParams[argIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[ orgArgIndex ].unitKind;
                         halKernelParam->argParams[argIndex].aliasIndex   = m_args[orgArgIndex].aliasIndex;
@@ -4348,14 +4368,14 @@ int32_t CmKernelRT::UpdateKernelData(
                  {
                     uint32_t numSurfaces = m_args[orgArgIndex].unitSize/sizeof(int); // Surface array
                     uint32_t *surfaces = (uint32_t *)MOS_NewArray(uint8_t, (sizeof(uint32_t) * m_args[orgArgIndex].unitCount));
-                    CMCHK_NULL_RETURN(surfaces, CM_OUT_OF_HOST_MEMORY);
+                    CM_CHK_NULL_GOTOFINISH(surfaces, CM_OUT_OF_HOST_MEMORY);
                     for (uint32_t kk=0;  kk< numSurfaces ; kk++)
                     {
                         for (uint32_t s = 0; s < m_args[orgArgIndex].unitCount; s++)
                         {
                             surfaces[s] = *(uint32_t *)((uint32_t *)m_args[orgArgIndex].value + kk + numSurfaces * s);
                         }
-                        CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                        CmSafeMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
                             surfaces, sizeof(uint32_t) * m_args[orgArgIndex].unitCount);
 
                         halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[ orgArgIndex ].unitKind;
@@ -4384,7 +4404,7 @@ int32_t CmKernelRT::UpdateKernelData(
                         MosSafeDeleteArray(halKernelParam->argParams[argIndex + kk].firstValue);
                         halKernelParam->argParams[argIndex + kk].firstValue = MOS_NewArray(uint8_t, vmeSize);
                         CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
-                        CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                        CmSafeMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
                             m_args[orgArgIndex].value + vmeSurfOffset, vmeSize);
 
                         halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
@@ -4399,7 +4419,7 @@ int32_t CmKernelRT::UpdateKernelData(
             }
             else
             {
-                CMCHK_HR(CreateThreadArgData(&halKernelParam->argParams[argIndex ], orgArgIndex, cmThreadSpace, m_args));
+                CM_CHK_CMSTATUS_GOTOFINISH(CreateThreadArgData(&halKernelParam->argParams[argIndex ], orgArgIndex, cmThreadSpace, m_args));
             }
         }
         argIndex += argIndexStep;
@@ -4409,7 +4429,7 @@ int32_t CmKernelRT::UpdateKernelData(
     if(m_threadSpace && m_threadSpace->GetDirtyStatus())
     {
 
-        CMCHK_HR(SortThreadSpace(m_threadSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(SortThreadSpace(m_threadSpace));
 
         uint32_t threadSpaceWidth = 0, threadSpaceHeight = 0;
         PCM_HAL_KERNEL_THREADSPACE_PARAM  cmKernelThreadSpaceParam = &halKernelParam->kernelThreadSpaceParam;
@@ -4426,28 +4446,28 @@ int32_t CmKernelRT::UpdateKernelData(
 
         if(dependency != nullptr)
         {
-            CmFastMemCopy(&cmKernelThreadSpaceParam->dependencyInfo, dependency, sizeof(CM_HAL_DEPENDENCY));
+            CmSafeMemCopy(&cmKernelThreadSpaceParam->dependencyInfo, dependency, sizeof(CM_HAL_DEPENDENCY));
         }
 
         if( m_threadSpace->CheckWalkingParametersSet() )
         {
-            CMCHK_HR(m_threadSpace->GetWalkingParameters(cmKernelThreadSpaceParam->walkingParams));
+            CM_CHK_CMSTATUS_GOTOFINISH(m_threadSpace->GetWalkingParameters(cmKernelThreadSpaceParam->walkingParams));
         }
 
         if( m_threadSpace->CheckDependencyVectorsSet() )
         {
-            CMCHK_HR(m_threadSpace->GetDependencyVectors(cmKernelThreadSpaceParam->dependencyVectors));
+            CM_CHK_CMSTATUS_GOTOFINISH(m_threadSpace->GetDependencyVectors(cmKernelThreadSpaceParam->dependencyVectors));
         }
 
         if(m_threadSpace->IsThreadAssociated())
         {// media object only
             uint32_t *boardOrder = nullptr;
             m_threadSpace->GetBoardOrder(boardOrder);
-            CMCHK_NULL(boardOrder);
+            CM_CHK_NULL_GOTOFINISH_CMERROR(boardOrder);
 
             CM_THREAD_SPACE_UNIT *threadSpaceUnit = nullptr;
             m_threadSpace->GetThreadSpaceUnit(threadSpaceUnit);
-            CMCHK_NULL(threadSpaceUnit);
+            CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpaceUnit);
 
             cmKernelThreadSpaceParam->reuseBBUpdateMask = 0;
             for(uint32_t i=0; i< threadSpaceWidth * threadSpaceHeight ; i++)
@@ -4470,15 +4490,15 @@ int32_t CmKernelRT::UpdateKernelData(
                 if (cmKernelThreadSpaceParam->dispatchInfo.numWaves >= dispatchInfo.numWaves)
                 {
                     cmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
-                    CmFastMemCopy(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
+                    CmSafeMemCopy(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
                 }
                 else
                 {
                     cmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
                     MosSafeDeleteArray(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave);
                     cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
-                    CMCHK_NULL_RETURN(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
-                    CmFastMemCopy(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
+                    CM_CHK_NULL_GOTOFINISH(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
+                    CmSafeMemCopy(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
                 }
             }
         }
@@ -4496,9 +4516,9 @@ int32_t CmKernelRT::UpdateKernelData(
             { // size change, need to reallocate
                 MosSafeDeleteArray(halKernelParam->indirectDataParam.indirectData);
                 halKernelParam->indirectDataParam.indirectData = MOS_NewArray(uint8_t, m_usKernelPayloadDataSize);
-                CMCHK_NULL_RETURN(halKernelParam->indirectDataParam.indirectData, CM_OUT_OF_HOST_MEMORY);
+                CM_CHK_NULL_GOTOFINISH(halKernelParam->indirectDataParam.indirectData, CM_OUT_OF_HOST_MEMORY);
             }
-            CmFastMemCopy(halKernelParam->indirectDataParam.indirectData, (void *)m_kernelPayloadData, m_usKernelPayloadDataSize);
+            CmSafeMemCopy(halKernelParam->indirectDataParam.indirectData, (void *)m_kernelPayloadData, m_usKernelPayloadDataSize);
         }
 
         if(m_usKernelPayloadSurfaceCount != 0)
@@ -4507,10 +4527,10 @@ int32_t CmKernelRT::UpdateKernelData(
             { // size change, need to reallocate
                 MosSafeDeleteArray(halKernelParam->indirectDataParam.surfaceInfo);
                 halKernelParam->indirectDataParam.surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, m_usKernelPayloadSurfaceCount);
-                CMCHK_NULL_RETURN(halKernelParam->indirectDataParam.surfaceInfo, CM_OUT_OF_HOST_MEMORY);
+                CM_CHK_NULL_GOTOFINISH(halKernelParam->indirectDataParam.surfaceInfo, CM_OUT_OF_HOST_MEMORY);
 
             }
-            CmFastMemCopy((void*)halKernelParam->indirectDataParam.surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
+            CmSafeMemCopy((void*)halKernelParam->indirectDataParam.surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
                              m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
             //clear m_IndirectSurfaceInfoArray every enqueue
             CmSafeMemSet(m_IndirectSurfaceInfoArray, 0, m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
@@ -4522,18 +4542,18 @@ int32_t CmKernelRT::UpdateKernelData(
     {
         if ( m_samplerBtiCount != 0 )
         {
-            CmFastMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
+            CmSafeMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
             halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
             CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
             m_samplerBtiCount = 0;
         }
     }
-    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
+    CM_CHK_CMSTATUS_GOTOFINISH(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
 
-    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces));
+    CM_CHK_CMSTATUS_GOTOFINISH(CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces));
 
-    CMCHK_HR(UpdateSamplerHeap(kernelData));
+    CM_CHK_CMSTATUS_GOTOFINISH(UpdateSamplerHeap(kernelData));
 
 finish:
     if( hr != CM_SUCCESS)
@@ -4562,13 +4582,13 @@ int32_t CmKernelRT::UpdateKernelData(
     uint32_t              surfNum                 = 0;
     auto getVersionAsInt = [](int major, int minor) { return major * 100 + minor; };
 
-    CMCHK_NULL(kernelData);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(kernelData);
     CM_ASSERT(kernelData->IsInUse() == false);
 
     halKernelParam = kernelData->GetHalCmKernelData();
-    CMCHK_NULL(halKernelParam);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(halKernelParam);
 
-    CMCHK_NULL(threadGroupSpace);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(threadGroupSpace);
 
     //Update arguments
     for(uint32_t orgArgIndex =0 ; orgArgIndex< m_argCount; orgArgIndex++)
@@ -4625,7 +4645,7 @@ int32_t CmKernelRT::UpdateKernelData(
                         for(uint32_t kk=0;  kk< numSurfaces ; kk++)
                         {
                             CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
-                            CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                            CmSafeMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
                             m_args[ orgArgIndex ].value + kk*sizeof(uint32_t), sizeof(uint32_t));
 
                             if (!m_args[orgArgIndex].surfIndex[kk])
@@ -4644,13 +4664,24 @@ int32_t CmKernelRT::UpdateKernelData(
                     else
                     {
                         CM_ASSERT(halKernelParam->argParams[argIndex].firstValue != nullptr);
-                        CmFastMemCopy(halKernelParam->argParams[argIndex].firstValue,
-                            m_args[orgArgIndex].value, sizeof(uint32_t));
-
-                        halKernelParam->argParams[argIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
-                        halKernelParam->argParams[argIndex].isNull = m_args[orgArgIndex].isNull;
+                        halKernelParam->argParams[argIndex].kind
+                                = (CM_HAL_KERNEL_ARG_KIND)
+                                m_args[orgArgIndex].unitKind;
+                        halKernelParam->argParams[argIndex].isNull
+                                = m_args[orgArgIndex].isNull;
+                        if (halKernelParam->argParams[argIndex].isNull)
+                        {
+                            *(halKernelParam->argParams[argIndex].firstValue)
+                                    = 0;
+                        }
+                        else
+                        {
+                            CmSafeMemCopy(
+                                halKernelParam->argParams[argIndex].firstValue,
+                                m_args[orgArgIndex].value, sizeof(uint32_t));
+                        }
                     }
-                 }
+                }
             }
             else if (CHECK_SURFACE_TYPE(m_args[orgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
             {
@@ -4667,7 +4698,7 @@ int32_t CmKernelRT::UpdateKernelData(
                         MosSafeDeleteArray(halKernelParam->argParams[argIndex + kk].firstValue);
                         halKernelParam->argParams[argIndex + kk].firstValue = MOS_NewArray(uint8_t, vmeSize);
                         CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
-                        CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                        CmSafeMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
                             m_args[orgArgIndex].value + vmeSurfOffset, vmeSize);
 
                         halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
@@ -4682,7 +4713,7 @@ int32_t CmKernelRT::UpdateKernelData(
             }
             else
             {
-                CMCHK_HR(CreateThreadArgData(&halKernelParam->argParams[argIndex ], orgArgIndex, nullptr, m_args));
+                CM_CHK_CMSTATUS_GOTOFINISH(CreateThreadArgData(&halKernelParam->argParams[argIndex ], orgArgIndex, nullptr, m_args));
             }
         }
         argIndex += argIndexStep;
@@ -4692,7 +4723,7 @@ int32_t CmKernelRT::UpdateKernelData(
     {
         if ( m_samplerBtiCount != 0 )
         {
-            CmFastMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
+            CmSafeMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
             halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
             CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
@@ -4700,25 +4731,32 @@ int32_t CmKernelRT::UpdateKernelData(
         }
     }
 
-    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
+    CM_CHK_CMSTATUS_GOTOFINISH(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
 
-    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces));
+    CM_CHK_CMSTATUS_GOTOFINISH(CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces));
 
     // GPGPU walker - implicit args
     uint32_t thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth;
     threadGroupSpace->GetThreadGroupSpaceSize(thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);
 
+    halKernelParam->gpgpuWalkerParams.groupDepth = grpSpaceDepth;
+    halKernelParam->gpgpuWalkerParams.groupHeight = grpSpaceHeight;
+    halKernelParam->gpgpuWalkerParams.groupWidth  = grpSpaceWidth;
+    halKernelParam->gpgpuWalkerParams.threadDepth = thrdSpaceDepth;
+    halKernelParam->gpgpuWalkerParams.threadWidth  = thrdSpaceWidth;
+    halKernelParam->gpgpuWalkerParams.threadHeight = thrdSpaceHeight;
+
     if (getVersionAsInt(m_program->m_cisaMajorVersion, m_program->m_cisaMinorVersion) < getVersionAsInt(3, 3))
     {
-        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 0].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 1].firstValue, thrdSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 2].firstValue, grpSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 3].firstValue, grpSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 4].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 5].firstValue, thrdSpaceHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 0].firstValue, thrdSpaceWidth));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 1].firstValue, thrdSpaceHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 2].firstValue, grpSpaceWidth));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 3].firstValue, grpSpaceHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 4].firstValue, thrdSpaceWidth));
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 5].firstValue, thrdSpaceHeight));
     }
 
-    CMCHK_HR(UpdateSamplerHeap(kernelData));
+    CM_CHK_CMSTATUS_GOTOFINISH(UpdateSamplerHeap(kernelData));
 finish:
     return hr;
 }
@@ -4738,24 +4776,24 @@ int32_t CmKernelRT::CreateKernelIndirectData(
     if( halIndirectData->indirectData == nullptr &&  m_usKernelPayloadDataSize != 0)
     {
         halIndirectData->indirectData = MOS_NewArray(uint8_t, halIndirectData->indirectDataSize);
-        CMCHK_NULL_RETURN(halIndirectData->indirectData, CM_OUT_OF_HOST_MEMORY);
+        CM_CHK_NULL_GOTOFINISH(halIndirectData->indirectData, CM_OUT_OF_HOST_MEMORY);
     }
 
     // For future kernel data, pKbyte is starting point
     if( halIndirectData->surfaceInfo == nullptr &&  m_usKernelPayloadSurfaceCount != 0)
     {
         halIndirectData->surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, halIndirectData->surfaceCount);
-        CMCHK_NULL_RETURN(halIndirectData->surfaceInfo, CM_OUT_OF_HOST_MEMORY);
+        CM_CHK_NULL_GOTOFINISH(halIndirectData->surfaceInfo, CM_OUT_OF_HOST_MEMORY);
     }
 
     if(m_usKernelPayloadDataSize != 0)
     {
-        CmFastMemCopy(halIndirectData->indirectData, (void *)m_kernelPayloadData, m_usKernelPayloadDataSize);
+        CmSafeMemCopy(halIndirectData->indirectData, (void *)m_kernelPayloadData, m_usKernelPayloadDataSize);
     }
 
     if(m_usKernelPayloadSurfaceCount != 0)
     {
-        CmFastMemCopy((void*)halIndirectData->surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
+        CmSafeMemCopy((void*)halIndirectData->surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
                     m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
         //clear m_IndirectSurfaceInfoArray every enqueue
         CmSafeMemSet(m_IndirectSurfaceInfoArray, 0, m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
@@ -5036,65 +5074,9 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadGroupSpace(CmThreadGroupSpace *&thr
         return CM_INVALID_KERNEL_THREADGROUPSPACE;
     }
 
-    m_threadGroupSpace = threadGroupSpace;
+    m_threadGroupSpace = threadGroupSpace;   
 
     return CM_SUCCESS;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose: Create a surface in the surface manager array, return the surface index
-//| Returns: Result of the operation.
-//*-----------------------------------------------------------------------------
-CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbeDataSize, SurfaceIndex *surfaceIndex )
-{
-    CM_RETURN_CODE hr = CM_SUCCESS;
-
-    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE state = cmData->cmHalState;
-    PRENDERHAL_MEDIA_STATE mediaStatePtr = nullptr;
-    void  *tempPtr = nullptr;
-    CmStateBuffer *stateBuffer = nullptr;
-
-    if ( state->dshEnabled == false )
-    {
-        // Currently only support it when dynamic state heap is enabled
-        return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-    }
-
-    CMCHK_HR( m_surfaceMgr->CreateMediaStateByCurbeSize( tempPtr, curbeDataSize ) );
-    mediaStatePtr = static_cast< PRENDERHAL_MEDIA_STATE >( tempPtr );
-    CMCHK_HR( m_surfaceMgr->CreateStateBuffer( CM_STATE_BUFFER_CURBE, curbeDataSize, mediaStatePtr, this, stateBuffer ) );
-
-    if ( ( stateBuffer != nullptr ) && ( mediaStatePtr != nullptr ) )
-    {
-        // Get curbe address, ideally the DSH should provide the API to get all of the GFX VA of different part of the heap
-        uint64_t curbeGfxVa = state->osInterface->pfnGetResourceGfxAddress( state->osInterface, mediaStatePtr->pDynamicState->memoryBlock.GetResource() ) +
-            mediaStatePtr->pDynamicState->memoryBlock.GetOffset() + mediaStatePtr->pDynamicState->Curbe.dwOffset;
-
-        SurfaceIndex *tempIndex = nullptr;
-        uint32_t handle = 0;
-        stateBuffer->GetIndex( tempIndex );
-        stateBuffer->GetHandle( handle );
-        if ( tempIndex != nullptr )
-        {
-            *surfaceIndex = *tempIndex;
-            state->pfnInsertToStateBufferList( state, this, handle, CM_STATE_BUFFER_CURBE, curbeDataSize, curbeGfxVa, mediaStatePtr );
-        }
-        else
-        {
-            // it means the stateBuffer was not created successfully, null pointer failure
-            return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-        }
-    }
-    else
-    {
-        // null pointer failure
-        return CM_FAILED_TO_CREATE_CURBE_SURFACE;
-    }
-
-    m_stateBufferBounded = CM_STATE_BUFFER_CURBE;
-finish:
-    return hr;
 }
 
 //*-----------------------------------------------------------------------------
@@ -5181,6 +5163,7 @@ int32_t CmKernelRT::DeAssociateThreadGroupSpace(CmThreadGroupSpace * &threadGrou
         return CM_INVALID_ARG_VALUE;
     }
     m_threadGroupSpace = nullptr;
+    m_dirty            = CM_KERNEL_DATA_THREAD_GROUP_SPACE_DIRTY;
 
     return CM_SUCCESS;
 }
@@ -5195,7 +5178,7 @@ bool CmKernelRT::IsThreadArgExisted()
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get the size of Shared Local Memory
+//| Purpose:    Get the size of SharedLocalMemory
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelRT::GetSLMSize()
@@ -5579,7 +5562,7 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
     //Calculate surface number and needed binding table entries
     for (uint32_t surfIndex = 0; surfIndex <= m_maxSurfaceIndexAllocated; surfIndex ++)
     {
-        if (m_surfaceArray[surfIndex])
+        if (m_surfaceArray[surfIndex%surfaceArraySize])
         {
             surf = nullptr;
             m_surfaceMgr->GetSurface(surfIndex, surf);
@@ -5969,7 +5952,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
                 state->cmHalInterface->GetSamplerParamInfoForSamplerType(&state->samplerTable[sampler.samplerTableIndex], sampler);
 
                 // Guarantees each user-defined BTI has a spacing between each other user-defined BTIs larger than the stepping
-                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                 {
                     if (iter->elementType == sampler.elementType)
                     {
@@ -5983,7 +5966,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
                 }
 
                 // Inserts by the order
-                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                 {
                     if (iter->elementType > sampler.elementType)
                     {
@@ -6031,7 +6014,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
 
                     // if the sampler is already in the heap, skip
                     bool isDuplicate = false;
-                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                     {
                         if (iter->samplerTableIndex == sampler.samplerTableIndex)
                         {
@@ -6047,7 +6030,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
 
                     // insert the new sampler to the heap
                     heapOffset = 0;
-                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
+                    for (iter = sampler_heap->begin(); iter != sampler_heap->end(); ++iter)
                     {
                         if (iter->elementType == sampler.elementType)
                         {

@@ -82,8 +82,9 @@ typedef enum
 //!
 typedef enum
 {
-    VPDDI_SCALING = 0,         //!< Bilinear scaling
-    VPDDI_ADVANCEDSCALING = 1  //!< AVS scaling
+    VPDDI_SCALING = 0,                //!< Bilinear scaling
+    VPDDI_ADVANCEDSCALING = 1,        //!< AVS scaling
+    VPDDI_SUPERRESOLUTIONSCALING = 2  //!< Super scaling
 } SCALING_MODE;
 
 //!

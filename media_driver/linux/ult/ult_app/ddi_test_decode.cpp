@@ -146,10 +146,6 @@ void MediaDecodeDdiTest::DecodeExecute(DecTestData *pDecData, Platform_t platfor
 
 DecodeTestConfig::DecodeTestConfig()
 {
-    m_mapPlatformFeatureID[DeviceConfigTable[igfxCANNONLAKE]] = {
-        TEST_Intel_Decode_HEVC,
-        TEST_Intel_Decode_AVC ,
-    };
     m_mapPlatformFeatureID[DeviceConfigTable[igfxSKLAKE]]     = {
         TEST_Intel_Decode_HEVC,
         TEST_Intel_Decode_AVC ,

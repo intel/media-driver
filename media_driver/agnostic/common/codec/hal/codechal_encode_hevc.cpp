@@ -1428,6 +1428,8 @@ bool CodechalEncHevcState::CheckSupportedFormat(PMOS_SURFACE surface)
     case Format_NV12:
         isColorFormatSupported = IS_Y_MAJOR_TILE_FORMAT(surface->TileType);
         break;
+    case Format_P010:
+        isColorFormatSupported = true;
     case Format_YUY2:
     case Format_YUYV:
     case Format_A8R8G8B8:
@@ -1469,30 +1471,85 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (m_pictureCodingType == I_TYPE)
+    if (m_lowDelay)
     {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
-    }
-    else if (m_pictureCodingType == B_TYPE)
-    {
-        m_currFrameBrcLevel = (m_lowDelay) ? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
-    }
-    else if (m_pictureCodingType == B1_TYPE)
-    {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
-    }
-    else if (m_pictureCodingType == B2_TYPE)
-    {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
-    }
-    else if (m_pictureCodingType == P_TYPE)
-    {
-        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+        // LDB
+        if (m_pictureCodingType == I_TYPE)
+        {
+            if (m_hevcPicParams->FrameLevel == 0)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel can only be 0 for I type for LDB\n");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+        else if ((m_pictureCodingType == P_TYPE) || (m_pictureCodingType == B_TYPE))
+        {
+            if (m_hevcPicParams->FrameLevel == 0)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+            }
+            else if (m_hevcPicParams->FrameLevel == 1)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B;
+            }
+            else if (m_hevcPicParams->FrameLevel == 2)
+            {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
+            }
+            else if (m_hevcPicParams->FrameLevel == 3)
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel 3 is not supported for LDB\n");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERT(false);
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+        else if ((m_pictureCodingType == B1_TYPE) || (m_pictureCodingType == B2_TYPE))
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("B1 & B2 Type is not supported for LDB\n");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        else
+        {
+            CODECHAL_ENCODE_ASSERT(false);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
     }
     else
     {
-        CODECHAL_ENCODE_ASSERT(false);
-        return MOS_STATUS_INVALID_PARAMETER;
+        // HB
+        if (m_pictureCodingType == I_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
+        }
+        else if (m_pictureCodingType == B_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B;
+        }
+        else if (m_pictureCodingType == B1_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
+        }
+        else if (m_pictureCodingType == B2_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
+        }
+        else if (m_pictureCodingType == P_TYPE)
+        {
+                m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+        }
+        else
+        {
+                CODECHAL_ENCODE_ASSERT(false);
+                return MOS_STATUS_INVALID_PARAMETER;
+        }
     }
 
     return eStatus;
@@ -1741,3 +1798,71 @@ MOS_STATUS CodechalEncHevcState::SetupROISurface()
 
     return eStatus;
 }
+
+MOS_STATUS CodechalEncHevcState::GetRoundingIntraInterToUse()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingIntra)
+    {
+        m_roundingIntraInUse = m_hevcPicParams->CustomRoundingOffsetsParams.fields.RoundingOffsetIntra;
+    }
+    else
+    {
+        if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
+        {
+            //Hierachical B GOP
+            if (m_hevcPicParams->CodingType == I_TYPE || 
+                m_hevcPicParams->CodingType == P_TYPE)
+            {
+                m_roundingIntraInUse = 4;
+            }
+            else if (m_hevcPicParams->CodingType == B_TYPE)
+            {
+                m_roundingIntraInUse = 3;
+            }
+            else
+            {
+                m_roundingIntraInUse = 2;
+            }
+        }
+        else
+        {
+            m_roundingIntraInUse = 10;
+        }
+    }
+
+    if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingInter)
+    {
+        m_roundingInterInUse = m_hevcPicParams->CustomRoundingOffsetsParams.fields.RoundingOffsetInter;
+    }
+    else
+    {
+        if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
+        {
+            //Hierachical B GOP 
+            if (m_hevcPicParams->CodingType == I_TYPE || 
+                m_hevcPicParams->CodingType == P_TYPE)
+            {
+                m_roundingInterInUse = 4;
+            }
+            else if (m_hevcPicParams->CodingType == B_TYPE)
+            {
+                m_roundingInterInUse = 3;
+            }
+            else
+            {
+                m_roundingInterInUse = 2;
+            }
+        }
+        else
+        {
+            m_roundingInterInUse = 4;
+        }
+    }
+
+    return eStatus;
+}
+

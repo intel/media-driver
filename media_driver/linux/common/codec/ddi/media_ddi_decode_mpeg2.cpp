@@ -41,7 +41,7 @@ void DdiDecodeMPEG2::ParseNumMbsForSlice(
 
     CodecDecodeMpeg2SliceParams *sliceParam = (CodecDecodeMpeg2SliceParams *)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
 
-    int16_t widthInMB, heightInMB, numMBInSlc;
+    uint16_t widthInMB, heightInMB, numMBInSlc;
     widthInMB  = m_picWidthInMB;
     heightInMB = m_picHeightInMB;
 
@@ -74,7 +74,7 @@ void DdiDecodeMPEG2::ParseNumMbsForSlice(
 VAStatus DdiDecodeMPEG2::ParseSliceParams(
     DDI_MEDIA_CONTEXT            *mediaCtx,
     VASliceParameterBufferMPEG2  *slcParam,
-    int32_t                      numSlices)
+    uint32_t                      numSlices)
 {
     CodecDecodeMpeg2PicParams *picParams = (CodecDecodeMpeg2PicParams *)(m_ddiDecodeCtx->DecodeParams.m_picParams);
     CodecDecodeMpeg2SliceParams *codecSlcParams = (CodecDecodeMpeg2SliceParams *)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
@@ -99,7 +99,7 @@ VAStatus DdiDecodeMPEG2::ParseSliceParams(
     }
 
     uint32_t sliceBaseOffset = GetBsBufOffset(m_groupIndex);
-    int32_t slcCount;
+    uint32_t slcCount;
     for (slcCount = 0; slcCount < numSlices; slcCount++)
     {
         codecSlcParams->m_sliceHorizontalPosition = slcParam->slice_horizontal_position;
@@ -138,19 +138,19 @@ VAStatus DdiDecodeMPEG2::ParseIQMatrix(
     iqMatrix->m_loadChromaIntraQuantiserMatrix    = matrix->load_chroma_intra_quantiser_matrix;
     iqMatrix->m_loadChromaNonIntraQuantiserMatrix = matrix->load_chroma_non_intra_quantiser_matrix;
 
-    memcpy_s(iqMatrix->m_intraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_intraQuantiserMatrix,
         64,
         matrix->intra_quantiser_matrix,
         64);
-    memcpy_s(iqMatrix->m_nonIntraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_nonIntraQuantiserMatrix,
         64,
         matrix->non_intra_quantiser_matrix,
         64);
-    memcpy_s(iqMatrix->m_chromaIntraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_chromaIntraQuantiserMatrix,
         64,
         matrix->chroma_intra_quantiser_matrix,
         64);
-    memcpy_s(iqMatrix->m_chromaNonIntraQuantiserMatrix,
+    MOS_SecureMemcpy(iqMatrix->m_chromaNonIntraQuantiserMatrix,
         64,
         matrix->chroma_non_intra_quantiser_matrix,
         64);
@@ -373,14 +373,14 @@ VAStatus DdiDecodeMPEG2::RenderPicture(
         }
         case VASliceParameterBufferType:
         {
-            if (buf->iNumElements == 0)
+            if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
 
             VASliceParameterBufferMPEG2 *slcInfoMpeg2 =
                 (VASliceParameterBufferMPEG2 *)data;
-            int32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->uiNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
             DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoMpeg2, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
@@ -425,7 +425,7 @@ VAStatus DdiDecodeMPEG2::SetDecodeParams()
 }
 
 VAStatus DdiDecodeMPEG2::AllocSliceParamContext(
-    int32_t numSlices)
+    uint32_t numSlices)
 {
     uint32_t baseSize = sizeof(CodecDecodeMpeg2SliceParams);
 
@@ -433,7 +433,7 @@ VAStatus DdiDecodeMPEG2::AllocSliceParamContext(
     {
         // in order to avoid that the buffer is reallocated multi-times,
         // extra 10 slices are added.
-        int32_t extraSlices = numSlices + 10;
+        uint32_t extraSlices = numSlices + 10;
 
         m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
             baseSize * (m_sliceParamBufNum + extraSlices));
@@ -473,21 +473,21 @@ VAStatus DdiDecodeMPEG2::AllocSliceControlBuffer(
 
     bufMgr     = &(m_ddiDecodeCtx->BufMgr);
     availSize  = m_sliceCtrlBufNum - bufMgr->dwNumSliceControl;
-    if(availSize < buf->iNumElements)
+    if(availSize < buf->uiNumElements)
     {
-        newSize   = sizeof(VASliceParameterBufferMPEG2) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
+        newSize   = sizeof(VASliceParameterBufferMPEG2) * (m_sliceCtrlBufNum - availSize + buf->uiNumElements);
         bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 = (VASliceParameterBufferMPEG2 *)realloc(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2, newSize);
         if(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 == nullptr)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferMPEG2) * (buf->iNumElements - availSize));
-        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->iNumElements;
+        MOS_ZeroMemory(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2 + m_sliceCtrlBufNum, sizeof(VASliceParameterBufferMPEG2) * (buf->uiNumElements - availSize));
+        m_sliceCtrlBufNum = m_sliceCtrlBufNum - availSize + buf->uiNumElements;
     }
     buf->pData      = (uint8_t*)bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2;
     buf->uiOffset   = sizeof(VASliceParameterBufferMPEG2) * bufMgr->dwNumSliceControl;
 
-    bufMgr->dwNumSliceControl += buf->iNumElements;
+    bufMgr->dwNumSliceControl += buf->uiNumElements;
 
     return VA_STATUS_SUCCESS;
 }

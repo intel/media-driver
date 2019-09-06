@@ -307,6 +307,14 @@ protected:
         void *             ptr) = 0;
 
     //!
+    //! \brief    Clear picture params
+    //! \details  Clear picture params called by EndPicture
+    //!
+    //! \return   void
+    //!
+    virtual void ClearPicParams();
+
+    //!
     //! \brief    get Slice Parameter Buffer Size
     //!
     //! \return   uint32_t
@@ -474,6 +482,24 @@ protected:
         DDI_ENCODE_PRE_ENC_BUFFER_TYPE typeIdx,
         uint32_t                       *status,
         int32_t                        *index);
+
+    //!
+    //! \brief    Report extra encode status for completed coded buffer.
+    //!
+    //! \param    [in] encodeStatusReport
+    //!           Pointer to encode status reported by Codechal
+    //! \param    [out] codedBufferSegment
+    //!           Pointer to coded buffer segment
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual VAStatus ReportExtraStatus(
+        EncodeStatusReport   *encodeStatusReport,
+        VACodedBufferSegment *codedBufferSegment)
+    {
+        return VA_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief    Clean Up Buffer and Return

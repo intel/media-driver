@@ -31,6 +31,7 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Wno-narrowing
     -Wno-overflow
     -Wno-parentheses
+    -Wno-delete-incomplete
     -Werror=implicit-function-declaration
     -Werror=address
     -Werror=format-security
@@ -49,6 +50,7 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -msse4
     -mfpmath=sse
     -finline-functions
+    -funswitch-loops
     -fno-short-enums
     -Wa,--noexecstack
     -fno-strict-aliasing
@@ -62,9 +64,11 @@ set(MEDIA_COMPILER_FLAGS_COMMON
 
     # Other common flags
     -fmessage-length=0
+    -fvisibility=hidden
     -fstack-protector
     -fdata-sections
     -ffunction-sections
+    -Wl,--gc-sections
 
     # -m32 or -m64
     -m${ARCH}
@@ -77,17 +81,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -DINTEL_NOT_PUBLIC
     -g
 )
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    list(APPEND MEDIA_COMPILER_FLAGS_COMMON
-        #this not a real gcc only option, but with this,
-        #the dll export will failed on clang
-        -fvisibility=hidden
-
-        -funswitch-loops
-        -Wl,--gc-sections
-    )
-endif()
 
 
 if(${UFO_MARCH} STREQUAL "slm")
@@ -111,17 +104,11 @@ if(NOT ${PLATFORM} STREQUAL "android")
     set(MEDIA_COMPILER_FLAGS_COMMON
         ${MEDIA_COMPILER_FLAGS_COMMON}
         -D__linux__
-        -fPIC
-
-    )
-    #for gcc only flag
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        list(APPEND MEDIA_COMPILER_FLAGS_COMMON
             -fno-tree-pre
+        -fPIC
             -Wl,--no-as-needed
         )
     endif()
-endif()
 
 set(MEDIA_COMPILER_CXX_FLAGS_COMMON
     # for cpp
@@ -157,12 +144,10 @@ endif()
 
 if(NOT ${PLATFORM} STREQUAL "android")
     if(${UFO_VARIANT} STREQUAL "default")
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
             set(MEDIA_COMPILER_FLAGS_RELEASE
                 ${MEDIA_COMPILER_FLAGS_RELEASE}
                 -finline-limit=100
             )
-        endif()
     elseif(${UFO_VARIANT} STREQUAL "nano")
         set(MEDIA_COMPILER_FLAGS_RELEASE
             ${MEDIA_COMPILER_FLAGS_RELEASE}
@@ -181,22 +166,22 @@ set(MEDIA_COMPILER_FLAGS_RELEASEINTERNAL
 )
 
 if(NOT ${PLATFORM} STREQUAL "android")
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(MEDIA_COMPILER_FLAGS_RELEASEINTERNAL
             ${MEDIA_COMPILER_FLAGS_RELEASEINTERNAL}
             -finline-limit=100
         )
     endif()
-endif()
 
 set(MEDIA_COMPILER_FLAGS_DEBUG
     -O0
     -DINSTR_GTUNE_EXT
 )
 
+if(X11_FOUND)
+    add_definitions(-DX11_FOUND)
+endif()
 
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_compile_flags_linux_ext.cmake OPTIONAL)
-
+include(${MEDIA_EXT_CMAKE}/ext/linux/media_compile_flags_linux_ext.cmake OPTIONAL)
 
 if(${PLATFORM} STREQUAL "linux")
     #set predefined compiler flags set

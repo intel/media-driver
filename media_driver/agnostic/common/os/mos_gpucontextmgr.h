@@ -145,6 +145,20 @@ public:
         return m_gpuContextArray.size();
     }
 
+        //!
+    //! \brief    Get the validity flag
+    //! \return   bool
+    //!           Get the validity flag of GpuContextMgr
+    //!
+    bool IsInitialized()
+    {
+        return m_initialized;
+    }
+
+    //! \brief   Indicate whether new gpu context is inserted into the first slot w/ null ctx handle 
+    //!          or always at the end of the gpucontext array
+    bool m_noCycledGpuCxtMgmt = false;
+
 protected:
     //! \brief    Gt system info 
     //! \detail   reserve to reuse gpu context
@@ -161,6 +175,9 @@ protected:
 
     //! \brief    Maintained gpu context array
     std::vector<GpuContext *> m_gpuContextArray;
+
+    //! \brief   Flag to indicate gpu context mgr initialized or not
+    bool m_initialized = false;
 };
 
 #endif  // #ifndef __MOS_GPU_CONTEXT_MGR_H__

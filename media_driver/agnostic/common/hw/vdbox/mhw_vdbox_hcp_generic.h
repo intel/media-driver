@@ -115,6 +115,15 @@ protected:
         cmd.DW1.SurfaceId = params->ucSurfaceStateId;
         cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch - 1;
 
+        /* Handling of reconstructed surface is different for Y410 & AYUV formats */
+        if ((params->ucSurfaceStateId != CODECHAL_HCP_SRC_SURFACE_ID) &&
+            (params->psSurface->Format == Format_Y410))
+            cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch / 2 - 1;
+
+        if ((params->ucSurfaceStateId != CODECHAL_HCP_SRC_SURFACE_ID) &&
+            (params->psSurface->Format == Format_AYUV))
+            cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch / 4 - 1;
+
         cmd.DW2.YOffsetForUCbInPixel = params->psSurface->UPlaneOffset.iYOffset;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -469,41 +478,46 @@ protected:
 
         MHW_MI_CHK_NULL(params);
 
-        MHW_ASSERT(params->CurrPic.FrameIdx != 0x7F);
-
         typename THcpCmds::HCP_REF_IDX_STATE_CMD cmd;
 
-        cmd.DW1.Refpiclistnum = params->ucList;
-        cmd.DW1.NumRefIdxLRefpiclistnumActiveMinus1 = params->ucNumRefForList - 1;
-
-        for (uint8_t i = 0; i < params->ucNumRefForList; i++)
+        // Need to add an empty HCP_REF_IDX_STATE_CMD for dummy reference on I-Frame
+        // ucNumRefForList could be 0 for encode
+        if (!params->bDummyReference)
         {
-            uint8_t refFrameIDx = params->RefPicList[params->ucList][i].FrameIdx;
-            if (refFrameIDx < CODEC_MAX_NUM_REF_FRAME_HEVC)
-            {
-                MHW_ASSERT(*(params->pRefIdxMapping + refFrameIDx) >= 0);
+            MHW_ASSERT(params->CurrPic.FrameIdx != 0x7F);
 
-                cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = *(params->pRefIdxMapping + refFrameIDx);
-                int32_t pocDiff = params->poc_curr_pic - params->poc_list[refFrameIDx];
-                cmd.Entries[i].DW0.ReferencePictureTbValue = CodecHal_Clip3(-128, 127, pocDiff);
-                CODEC_REF_LIST** refList = (CODEC_REF_LIST**)params->hevcRefList;
-                cmd.Entries[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(refList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
-                cmd.Entries[i].DW0.FieldPicFlag = (params->RefFieldPicFlag >> refFrameIDx) & 0x01;
-                cmd.Entries[i].DW0.BottomFieldFlag = ((params->RefBottomFieldFlag >> refFrameIDx) & 0x01) ? 0 : 1;
-            }
-            else
-            {
-                cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = 0;
-                cmd.Entries[i].DW0.ReferencePictureTbValue = 0;
-                cmd.Entries[i].DW0.Longtermreference = false;
-                cmd.Entries[i].DW0.FieldPicFlag = 0;
-                cmd.Entries[i].DW0.BottomFieldFlag = 0;
-            }
-        }
+            cmd.DW1.Refpiclistnum = params->ucList;
+            cmd.DW1.NumRefIdxLRefpiclistnumActiveMinus1 = params->ucNumRefForList - 1;
 
-        for (uint8_t i = (uint8_t)params->ucNumRefForList; i < 16; i++)
-        {
-            cmd.Entries[i].DW0.Value = 0x00;
+            for (uint8_t i = 0; i < params->ucNumRefForList; i++)
+            {
+                uint8_t refFrameIDx = params->RefPicList[params->ucList][i].FrameIdx;
+                if (refFrameIDx < CODEC_MAX_NUM_REF_FRAME_HEVC)
+                {
+                    MHW_ASSERT(*(params->pRefIdxMapping + refFrameIDx) >= 0);
+
+                    cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = *(params->pRefIdxMapping + refFrameIDx);
+                    int32_t pocDiff = params->poc_curr_pic - params->poc_list[refFrameIDx];
+                    cmd.Entries[i].DW0.ReferencePictureTbValue = CodecHal_Clip3(-128, 127, pocDiff);
+                    CODEC_REF_LIST** refList = (CODEC_REF_LIST**)params->hevcRefList;
+                    cmd.Entries[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(refList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
+                    cmd.Entries[i].DW0.FieldPicFlag = (params->RefFieldPicFlag >> refFrameIDx) & 0x01;
+                    cmd.Entries[i].DW0.BottomFieldFlag = ((params->RefBottomFieldFlag >> refFrameIDx) & 0x01) ? 0 : 1;
+                }
+                else
+                {
+                    cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = 0;
+                    cmd.Entries[i].DW0.ReferencePictureTbValue = 0;
+                    cmd.Entries[i].DW0.Longtermreference = false;
+                    cmd.Entries[i].DW0.FieldPicFlag = 0;
+                    cmd.Entries[i].DW0.BottomFieldFlag = 0;
+                }
+            }
+
+            for (uint8_t i = (uint8_t)params->ucNumRefForList; i < 16; i++)
+            {
+                cmd.Entries[i].DW0.Value = 0x00;
+            }
         }
 
         if (cmdBuffer == nullptr && batchBuffer == nullptr)

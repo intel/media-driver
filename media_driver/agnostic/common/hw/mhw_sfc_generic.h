@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -211,6 +211,7 @@ public:
        MHW_RESOURCE_PARAMS         ResourceParams;
        MEDIA_WA_TABLE              *pWaTable = nullptr;
        typename TSfcCmds::SFC_STATE_CMD cmd;
+       MHW_MEMORY_OBJECT_CONTROL_PARAMS outputSurfCtrl;
 
        MHW_CHK_NULL_RETURN(pCmdBuffer);
        MHW_CHK_NULL_RETURN(pSfcStateParams);
@@ -228,6 +229,14 @@ public:
        wUYOffset           = 0;
        wVXOffset           = 0;
        wVYOffset           = 0;
+
+       outputSurfCtrl.Value = m_outputSurfCtrl.Value;
+       if (pOsInterface->osCpInterface && pOsInterface->osCpInterface->IsHMEnabled())
+       {
+           outputSurfCtrl.Value = pOsInterface->pfnCachePolicyGetMemoryObject(
+               MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,
+               pOsInterface->pfnGetGmmClientContext(pOsInterface)).DwordValue;
+       }
 
        // Check input/output size
        MHW_ASSERT(pSfcStateParams->dwInputFrameWidth   >= MHW_SFC_MIN_WIDTH);
@@ -250,15 +259,11 @@ public:
                break;
            case Format_X8R8G8B8:
            case Format_A8R8G8B8:
-               // RGBASwapEnable is true only when CSC is enabled.
-               // The OutputSurfaceFormatType is set as A8B8G8R8 for X8R8G8B8 and A8R8G8B8 output.
-               cmd.DW3.RgbaChannelSwapEnable = pSfcStateParams->bRGBASwapEnable;
            case Format_X8B8G8R8:
            case Format_A8B8G8R8:
                cmd.DW3.OutputSurfaceFormatType = cmd.OUTPUT_SURFACE_FORMAT_TYPE_A8B8G8R8;
                break;
            case Format_R10G10B10A2:
-               cmd.DW3.RgbaChannelSwapEnable = pSfcStateParams->bRGBASwapEnable;
            case Format_B10G10R10A2:
                cmd.DW3.OutputSurfaceFormatType = cmd.OUTPUT_SURFACE_FORMAT_TYPE_A2R10G10B10;
                break;
@@ -281,6 +286,9 @@ public:
                return MOS_STATUS_UNKNOWN;
        }
 
+       // RGBASwapEnable is true when the OutputSurfaceFormatType is set as A8B8G8R8 for X8R8G8B8 and A8R8G8B8 output,
+       // the OutputSurfaceFormatType is set as A2R10G10B10 for R10G10B10A2 output,
+       cmd.DW3.RgbaChannelSwapEnable = pSfcStateParams->bRGBASwapEnable;
        // Set DW4
        cmd.DW4.IefEnable                    = pSfcStateParams->bIEFEnable;
        cmd.DW4.SkinToneTunedIefEnable       = pSfcStateParams->bSkinToneTunedIEFEnable;
@@ -351,7 +359,7 @@ public:
 
        // Set DW19
        cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionEnable                   = pSfcStateParams->bMMCEnable;
-       cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = m_outputSurfCtrl.Gen9.Index;
+       cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = outputSurfCtrl.Gen9.Index;
 
        if (pSfcStateParams->MMCMode == MOS_MMC_VERTICAL)
        {

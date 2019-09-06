@@ -60,6 +60,8 @@ public:
 
     CM_RT_API int32_t SetProperty(const CM_TASK_CONFIG &taskConfig);
 
+    CM_RT_API int32_t AddKernelWithConfig(CmKernel *kernel, const CM_EXECUTION_CONFIG *config);
+
     uint32_t GetKernelCount();
 
     CmKernelRT *GetKernelPointer(uint32_t index);
@@ -81,6 +83,10 @@ public:
     PCM_POWER_OPTION GetPowerOption();
 
     PCM_TASK_CONFIG GetTaskConfig();
+
+    int32_t AddKernelInternal( CmKernel *kernel,  const CM_EXECUTION_CONFIG *config);
+
+    const CM_EXECUTION_CONFIG* GetKernelExecuteConfig() { return m_kernelExecuteConfig; };
 
 #if CM_LOG_ON
     std::string Log();
@@ -125,6 +131,8 @@ protected:
     CM_POWER_OPTION m_powerOption;
 
     CM_TASK_CONFIG m_taskConfig;
+
+    CM_EXECUTION_CONFIG m_kernelExecuteConfig[CM_MAX_KERNELS_PER_TASK]; // replace numOfWalkers in CM_TASK_CONFIG.
 
 private:
     CmTaskRT(const CmTaskRT &other);

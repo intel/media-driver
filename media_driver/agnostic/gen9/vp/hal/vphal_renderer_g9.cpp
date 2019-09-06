@@ -25,7 +25,9 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_g9.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_g9.h"
+#endif
 #include "vphal_render_vebox_g9_base.h"
 #include "vphal_render_composite_g9.h"
 
@@ -167,9 +169,11 @@ MOS_STATUS VphalRendererG9::InitKdllParam()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     pKernelDllRules     = g_KdllRuleTable_g9;
     pcKernelBin         = (const void*)IGVPKRN_G9;
     dwKernelBinSize     = IGVPKRN_G9_SIZE;
+#endif
 
     return eStatus;
 }

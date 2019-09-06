@@ -78,9 +78,9 @@ public:
 
     static constexpr uint8_t                m_numMaxVdencL0Ref = 3;                   //!< Max number of reference frame list0
     static constexpr uint8_t                m_numMaxVdencL1Ref = 3;                   //!< Max number of reference frame list1
-    static constexpr uint32_t               m_brcPakStatsBufSize = 464;               //!< Pak statistic buffer size
+    static constexpr uint32_t               m_brcPakStatsBufSize = 512;               //!< Pak statistic buffer size
     static constexpr uint32_t               m_brcStatsBufSize = 1216;                 //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
-    static constexpr uint32_t               m_brcHistoryBufSize = 964;                //!< BRC history buffer size
+    static constexpr uint32_t               m_brcHistoryBufSize = 1024;                //!< BRC history buffer size
     static constexpr uint32_t               m_brcDebugBufSize = 0x1000;               //!< BRC debug buffer size
     static constexpr uint32_t               m_weightHistSize = 1024;                  //!< Weight Histogram (part of VDEnc Statistic): 256 DWs (16CLs) of Histogram Stats = 1024
     static constexpr uint32_t               m_roiStreamInBufferSize = 65536 * CODECHAL_CACHELINE_SIZE; //!< ROI Streamin buffer size (part of BRC Update)
@@ -107,6 +107,7 @@ public:
     static const uint32_t                   m_hucModeCostsIFrame[364];
     static const uint32_t                   m_hucModeCostsPbFrame[364];
     static const uint16_t                   m_sadQpLambdaI[52];
+    static const uint16_t                   m_sadQpLambdaI_VQI[52];
     static const uint16_t                   m_sadQpLambdaP[52];
     static const uint16_t                   m_rdQpLambdaI[52];
     static const uint16_t                   m_rdQpLambdaP[52];
@@ -121,6 +122,8 @@ public:
     bool                                    m_vdencHuCConditional2ndPass = false;              //!< HuC conditional 2nd pass enable flag
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only
+    bool                                    m_hevcVisualQualityImprovement = false;            //!< VQI enable flag
+    bool                                    m_enableMotionAdaptive = false;                    //!< Motion adaptive enable flag
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
@@ -140,9 +143,10 @@ public:
     MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                         //!< VDEnc brc constant data buffer
     MOS_RESOURCE                            m_vdencBrcHistoryBuffer;                           //!< VDEnc brc history buffer
     MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer
+    MOS_RESOURCE                            m_vdencGroup3BatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer for Group3
     MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
-    uint32_t                                m_deltaQpRoiBufferSize;                            //!< VDEnc DeltaQp for ROI buffer size
-    uint32_t                                m_brcRoiBufferSize;                                //!< BRC ROI input buffer size
+    uint32_t                                m_deltaQpRoiBufferSize = 0;                            //!< VDEnc DeltaQp for ROI buffer size
+    uint32_t                                m_brcRoiBufferSize = 0;                                //!< BRC ROI input buffer size
 
     // Batch Buffer for VDEnc
     MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< VDEnc 2nd level batch buffer
@@ -163,6 +167,9 @@ public:
     uint32_t                                m_maxTileNumber = 1;                               //!< max tile number, equal to 1 for Gen10
 
     PCODECHAL_CMD_INITIALIZER               m_hucCmdInitializer = nullptr;
+
+    MOS_RESOURCE                            m_resDelayMinus = {0};
+    uint32_t                                m_numDelay = 0;
 
 protected:
     //!
@@ -621,7 +628,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SendHwSliceEncodeCommand(PMOS_COMMAND_BUFFER cmdBuffer, PMHW_VDBOX_HEVC_SLICE_STATE params);
+    virtual MOS_STATUS SendHwSliceEncodeCommand(PMOS_COMMAND_BUFFER cmdBuffer, PMHW_VDBOX_HEVC_SLICE_STATE params);
 
     //!
     //! \brief    Sort and set distinct delta QPs
@@ -656,13 +663,15 @@ public:
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE params);
 
-    void MotionEstimationDisableCheck();
-
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
     virtual MOS_STATUS DumpVdencOutputs();
     virtual MOS_STATUS DumpSeqParFile();
+    MOS_STATUS PopulateDdiParam(
+        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
+        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  hevcPicParams,
+        PCODEC_HEVC_ENCODE_SLICE_PARAMS    hevcSlcParams) override;
 
     //!
     //! \brief  Modify the frame size with fake header size

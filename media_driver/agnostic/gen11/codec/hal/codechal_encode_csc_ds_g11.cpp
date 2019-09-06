@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,17 +25,18 @@
 //!
 
 #include "codechal_encoder_base.h"
+#include "codechal_encode_sfc_g11.h"
 #include "codechal_encode_csc_ds_g11.h"
 #include "codechal_kernel_header_g11.h"
 #include "codeckrnheader.h"
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS)
 #include "igcodeckrn_g11.h"
 #endif
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g11.h"
 #endif
 
-const uint8_t CodechalEncodeCscDsG11::GetBTCount()
+uint8_t CodechalEncodeCscDsG11::GetBTCount() const
 {
     return (uint8_t)cscNumSurfaces;
 }
@@ -92,7 +93,7 @@ MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format)
         break;
     case Format_A8R8G8B8:
         m_colorRawSurface = cscColorARGB;
-        m_cscUsingSfc = 0;// IsSfcEnabled() ? 1 : 0;
+        m_cscUsingSfc = IsSfcEnabled() ? 1 : 0;
         m_cscRequireColor = 1;
         //Use EU for better performance in big resolution cases
         if (m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088)
@@ -103,6 +104,12 @@ MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format)
     case Format_A8B8G8R8:
         m_colorRawSurface = cscColorABGR;
         m_cscRequireColor = 1;
+        m_cscUsingSfc     = IsSfcEnabled() ? 1 : 0;
+        // Use EU for better performance in big resolution cases or TU1
+        if (m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088)
+        {
+            m_cscUsingSfc = 0;
+        }
         break;
     case Format_P010:
         m_colorRawSurface = cscColorP010;
@@ -200,6 +207,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             m_curbeParams.downscaleStage = dsStage2x4x;
             m_currRefList->b4xScalingUsed =
             m_currRefList->b2xScalingUsed = true;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = false;
         }
         else if (m_2xScalingEnabled)
         {
@@ -207,12 +216,16 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             m_currRefList->b2xScalingUsed = true;
             output4xDsSurface = nullptr;
             mbStatsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = true;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = false;
         }
         else if (m_scalingEnabled)
         {
             m_curbeParams.downscaleStage = dsStage4x;
             m_currRefList->b4xScalingUsed = true;
             output2xDsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = true;
         }
         else
         {
@@ -221,6 +234,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             output4xDsSurface = nullptr;
             output2xDsSurface = nullptr;
             mbStatsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = false;
         }
 
         // history sum to be enabled only for the 4x stage
@@ -235,8 +250,6 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
     else
     {
         // do 16x/32x downscaling
-        inputFrameWidth = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameWidth);
-        inputFrameHeight = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameHeight);
         m_curbeParams.bConvertFlag = false;
         mbStatsSurface = nullptr;
 
@@ -245,20 +258,27 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             m_currRefList->b16xScalingUsed = true;
             m_lastTaskInPhase = params->bLastTaskInPhase16xDS;
             m_curbeParams.downscaleStage = dsStage16x;
+            inputFrameWidth = m_encoder->m_downscaledWidth4x << 2;
+            inputFrameHeight = m_encoder->m_downscaledHeight4x << 2;
+            
             inputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output4xDsSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output2xDsSurface = nullptr;
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = false;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = true;
         }
         else if (dsStage32x == params->stageDsConversion)
         {
             m_currRefList->b32xScalingUsed = true;
             m_lastTaskInPhase = params->bLastTaskInPhase32xDS;
             m_curbeParams.downscaleStage = dsStage2x;
-            inputFrameWidth = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameWidth);
-            inputFrameHeight = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameHeight);
+            inputFrameWidth = m_encoder->m_downscaledWidth16x;
+            inputFrameHeight = m_encoder->m_downscaledHeight16x;
             inputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output4xDsSurface = nullptr;
             output2xDsSurface = m_encoder->m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+            m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt = true;
+            m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt = false;
         }
     }
 
@@ -274,10 +294,18 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
     m_surfaceParamsCsc.presMBVProcStatsBuffer = mbStatsSurface;
     m_surfaceParamsCsc.hevcExtParams = params->hevcExtParams;
 
+    if (dsStage16x == params->stageDsConversion)
+    {
+        // here to calculate the walkder resolution, we need to use the input surface resolution.
+        // it is inputFrameWidth/height / 4 in 16xStage, becasue kernel internally will do this.
+        inputFrameWidth = inputFrameWidth >> 2;
+        inputFrameHeight = inputFrameHeight >> 2;
+    }
+    
     // setup walker param
     m_walkerResolutionX = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameWidth) >> 3;
     m_walkerResolutionY = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameHeight) >> 3;
-
+    
     return eStatus;
 }
 
@@ -397,17 +425,32 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         cscColorP210 == m_colorRawSurface ||
         cscColorNv12Linear == m_colorRawSurface);
     surfaceParams.bMediaBlockRW = true;
-    /*
-    * Unify surface format to avoid mismatches introduced by DS kernel between MMC on and off cases.
-    * bUseCommonKernel        | FormatIsNV12 | MmcdOn | SurfaceFormatToUse
-    *            1            |       1      |  0/1   |        R8
-    *            1            |       0      |  0/1   |        R16
-    *            0            |       1      |  0/1   |        R8
-    *            0            |       0      |   1    |        R8
-    *            0            |       0      |   0    |        R32
-    */
-    surfaceParams.bUse16UnormSurfaceFormat = !(cscColorNv12TileY == m_colorRawSurface ||
-        cscColorNv12Linear == m_colorRawSurface);
+
+    // Configure to R16/32 for input surface
+    if (m_surfaceParamsCsc.bScalingInUses16UnormSurfFmt)
+    {
+        // 32x scaling requires R16_UNROM
+        surfaceParams.bUse16UnormSurfaceFormat = true;
+    }
+    else if (m_surfaceParamsCsc.bScalingInUses32UnormSurfFmt)
+    {
+        surfaceParams.bUse32UnormSurfaceFormat = true;
+    }
+    else
+    {
+        /*
+        * Unify surface format to avoid mismatches introduced by DS kernel between MMC on and off cases.
+        * bUseCommonKernel        | FormatIsNV12 | MmcdOn | SurfaceFormatToUse
+        *            1            |       1      |  0/1   |        R8
+        *            1            |       0      |  0/1   |        R16
+        *            0            |       1      |  0/1   |        R8
+        *            0            |       0      |   1    |        R8
+        *            0            |       0      |   0    |        R32
+        */
+        surfaceParams.bUse16UnormSurfaceFormat = !(cscColorNv12TileY == m_colorRawSurface ||
+                                                   cscColorNv12Linear == m_colorRawSurface);
+    }
+
     surfaceParams.psSurface = m_surfaceParamsCsc.psInputSurface;
     if (cscColorNv12Linear == m_colorRawSurface)
     {
@@ -470,7 +513,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
     if (m_surfaceParamsCsc.presMBVProcStatsBuffer)
     {
         MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-        surfaceParams.dwSize = m_hwInterface->m_avcMbStatBufferSize;
+        surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(m_hwInterface->m_avcMbStatBufferSize);
         surfaceParams.bIsWritable = true;
         surfaceParams.presBuffer = m_surfaceParamsCsc.presMBVProcStatsBuffer;
         surfaceParams.dwCacheabilityControl = m_hwInterface->ComposeSurfaceCacheabilityControl(
@@ -511,7 +554,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         if (hevcExtParams->presHistoryBuffer)
         {
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-            surfaceParams.dwSize = hevcExtParams->dwSizeHistoryBuffer;
+            surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(hevcExtParams->dwSizeHistoryBuffer);
             surfaceParams.dwOffset = hevcExtParams->dwOffsetHistoryBuffer;
             surfaceParams.bIsWritable = true;
             surfaceParams.presBuffer = hevcExtParams->presHistoryBuffer;
@@ -530,7 +573,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         if (hevcExtParams->presHistorySumBuffer)
         {
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-            surfaceParams.dwSize = hevcExtParams->dwSizeHistorySumBuffer;
+            surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(hevcExtParams->dwSizeHistorySumBuffer);
             surfaceParams.dwOffset = hevcExtParams->dwOffsetHistorySumBuffer;
             surfaceParams.bIsWritable = true;
             surfaceParams.presBuffer = hevcExtParams->presHistorySumBuffer;
@@ -549,7 +592,7 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         if (hevcExtParams->presMultiThreadTaskBuffer)
         {
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
-            surfaceParams.dwSize = hevcExtParams->dwSizeMultiThreadTaskBuffer;
+            surfaceParams.dwSize = MOS_BYTES_TO_DWORDS(hevcExtParams->dwSizeMultiThreadTaskBuffer);
             surfaceParams.dwOffset = hevcExtParams->dwOffsetMultiThreadTaskBuffer;
             surfaceParams.bIsWritable = true;
             surfaceParams.presBuffer = hevcExtParams->presMultiThreadTaskBuffer;
@@ -720,15 +763,30 @@ MOS_STATUS CodechalEncodeCscDsG11::SetCurbeDS4x()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalEncodeCscDsG11::InitSfcState()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (!m_sfcState)
+    {
+        m_sfcState = (CodecHalEncodeSfc*)MOS_New(CodecHalEncodeSfcG11);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfcState);
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->Initialize(m_hwInterface, m_osInterface));
+
+        m_sfcState->SetInputColorSpace(MHW_CSpace_sRGB);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+
 CodechalEncodeCscDsG11::CodechalEncodeCscDsG11(CodechalEncoderState* encoder)
     : CodechalEncodeCscDs(encoder)
 {
     m_cscKernelUID = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS)
     m_kernelBase = (uint8_t*)IGCODECKRN_G11;
-#else
-    m_kernelBase = nullptr;
 #endif
 }
 

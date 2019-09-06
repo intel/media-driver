@@ -31,815 +31,869 @@
 #define IDR_VP_LINKFILE_VERSION 65536
 #define IDR_VP_LINKFILE_HEADER 16
 
-#define IDR_VP_3DLUT 0
-#define IDR_VP_AlphaSrcBlendG 1
-#define IDR_VP_ByteCopy 2
-#define IDR_VP_ByteCopy_MediaWalker 3
-#define IDR_VP_CSC_444_16 4
-#define IDR_VP_CSC_Premultiplied_444_16 5
-#define IDR_VP_Call_AlphaSrcBlendG 6
-#define IDR_VP_Call_CSC 7
-#define IDR_VP_Call_CSC_Premultiplied 8
-#define IDR_VP_Call_ColorE 9
-#define IDR_VP_Call_Composite 10
-#define IDR_VP_Call_ConstBlend 11
-#define IDR_VP_Call_ConstSrcBlend 12
-#define IDR_VP_Call_GammaC 13
-#define IDR_VP_Call_Mirror_H_YUV 14
-#define IDR_VP_Call_Mirror_H_YUVA 15
-#define IDR_VP_Call_PartBlend 16
-#define IDR_VP_Call_SrcBlend 17
-#define IDR_VP_Call_SrcBlend_4bits 18
-#define IDR_VP_ColorE 19
-#define IDR_VP_Colorfill_444AVS16 20
-#define IDR_VP_Colorfill_444AVS16_ConstBlend 21
-#define IDR_VP_Colorfill_444AVS16_ConstSrcBlend 22
-#define IDR_VP_Colorfill_444AVS16_PartBlend 23
-#define IDR_VP_Colorfill_444AVS16_SrcBlend 24
-#define IDR_VP_Colorfill_444Scale16 25
-#define IDR_VP_Colorfill_444Scale16_ConstBlend 26
-#define IDR_VP_Colorfill_444Scale16_ConstSrcBlend 27
-#define IDR_VP_Colorfill_444Scale16_PartBlend 28
-#define IDR_VP_Colorfill_444Scale16_SrcBlend 29
-#define IDR_VP_Composite_444_16 30
-#define IDR_VP_Compute_Lumakey 31
-#define IDR_VP_Compute_Lumakey_Buf0123 32
-#define IDR_VP_ConstBlend_444_16 33
-#define IDR_VP_ConstSrcBlend_444_16 34
-#define IDR_VP_EOT 35
-#define IDR_VP_FMD_Summation 36
-#define IDR_VP_FRC_Clean_Map 37
-#define IDR_VP_FRC_GMV_Detection 38
-#define IDR_VP_FRC_GMV_Sanity_Check 39
-#define IDR_VP_FRC_GradUV 40
-#define IDR_VP_FRC_GradY 41
-#define IDR_VP_FRC_MC 42
-#define IDR_VP_FRC_ME_Level1 43
-#define IDR_VP_FRC_ME_Level2 44
-#define IDR_VP_FRC_ME_Level3 45
-#define IDR_VP_FRC_MV_Level1 46
-#define IDR_VP_FRC_MV_Level2 47
-#define IDR_VP_FRC_MV_Level3 48
-#define IDR_VP_FRC_PS 49
-#define IDR_VP_FRC_SPD_Map 50
-#define IDR_VP_FRC_TempDiff 51
-#define IDR_VP_FRC_TempDiff_HD 52
-#define IDR_VP_FRC_WSD 53
-#define IDR_VP_GammaC 54
-#define IDR_VP_GeoCorrection 55
-#define IDR_VP_HDR_mandatory 56
-#define IDR_VP_HDR_per_frame_stat 57
-#define IDR_VP_IS_DS 58
-#define IDR_VP_IS_FW 59
-#define IDR_VP_IS_GMC 60
-#define IDR_VP_IS_ME 61
-#define IDR_VP_Interlace_420_16_Buf_0 62
-#define IDR_VP_Interlace_420_16_Buf_1 63
-#define IDR_VP_Interlace_420_16_Buf_2 64
-#define IDR_VP_Interlace_420_16_Buf_3 65
-#define IDR_VP_Interlace_444AVS16_Buf_0 66
-#define IDR_VP_Interlace_444AVS16_Buf_1 67
-#define IDR_VP_Interlace_444AVS16_Buf_2 68
-#define IDR_VP_Interlace_444AVS16_Buf_3 69
-#define IDR_VP_Interlace_444_16_Buf_0 70
-#define IDR_VP_Interlace_444_16_Buf_1 71
-#define IDR_VP_Interlace_444_16_Buf_2 72
-#define IDR_VP_Interlace_444_16_Buf_3 73
-#define IDR_VP_LACE_HIST_SUM 74
-#define IDR_VP_LACE_LUT 75
-#define IDR_VP_LACE_PWLF 76
-#define IDR_VP_LACE_STD 77
-#define IDR_VP_LinkFile 78
-#define IDR_VP_Mirror_AVS_H_L0 79
-#define IDR_VP_Mirror_AVS_V_L0 80
-#define IDR_VP_Mirror_H_YUV 81
-#define IDR_VP_Mirror_H_YUVA 82
-#define IDR_VP_Mirror_scale_H_L0 83
-#define IDR_VP_Mirror_scale_V_L0 84
-#define IDR_VP_NV12_DP_rotation_avg 85
-#define IDR_VP_NV12_DP_rotation_nv12 86
-#define IDR_VP_NV12_DP_rotation_rep 87
-#define IDR_VP_P010_444Dscale16_Buf_0 88
-#define IDR_VP_P010_444Dscale16_Buf_0_Rot_180 89
-#define IDR_VP_P010_444Dscale16_Buf_0_Rot_270 90
-#define IDR_VP_P010_444Dscale16_Buf_0_Rot_90 91
-#define IDR_VP_P010_444Dscale16_Buf_1 92
-#define IDR_VP_P010_444Dscale16_Buf_1_Rot_180 93
-#define IDR_VP_P010_444Dscale16_Buf_1_Rot_270 94
-#define IDR_VP_P010_444Dscale16_Buf_1_Rot_90 95
-#define IDR_VP_P010_444Dscale16_Buf_2 96
-#define IDR_VP_P010_444Dscale16_Buf_2_Rot_180 97
-#define IDR_VP_P010_444Dscale16_Buf_2_Rot_270 98
-#define IDR_VP_P010_444Dscale16_Buf_2_Rot_90 99
-#define IDR_VP_P010_444Dscale16_Buf_3 100
-#define IDR_VP_P010_444Dscale16_Buf_3_Rot_180 101
-#define IDR_VP_P010_444Dscale16_Buf_3_Rot_270 102
-#define IDR_VP_P010_444Dscale16_Buf_3_Rot_90 103
-#define IDR_VP_PA_444AVS16_Buf_0 104
-#define IDR_VP_PA_444AVS16_Buf_0_Rot_180 105
-#define IDR_VP_PA_444AVS16_Buf_0_Rot_270 106
-#define IDR_VP_PA_444AVS16_Buf_0_Rot_90 107
-#define IDR_VP_PA_444AVS16_Buf_1 108
-#define IDR_VP_PA_444AVS16_Buf_1_Rot_180 109
-#define IDR_VP_PA_444AVS16_Buf_1_Rot_270 110
-#define IDR_VP_PA_444AVS16_Buf_1_Rot_90 111
-#define IDR_VP_PA_444AVS16_Buf_2 112
-#define IDR_VP_PA_444AVS16_Buf_2_Rot_180 113
-#define IDR_VP_PA_444AVS16_Buf_2_Rot_270 114
-#define IDR_VP_PA_444AVS16_Buf_2_Rot_90 115
-#define IDR_VP_PA_444AVS16_Buf_3 116
-#define IDR_VP_PA_444AVS16_Buf_3_Rot_180 117
-#define IDR_VP_PA_444AVS16_Buf_3_Rot_270 118
-#define IDR_VP_PA_444AVS16_Buf_3_Rot_90 119
-#define IDR_VP_PA_444AVS16_Buf_4 120
-#define IDR_VP_PA_444AVS16_Buf_4_Rot_180 121
-#define IDR_VP_PA_444AVS16_Buf_4_Rot_270 122
-#define IDR_VP_PA_444AVS16_Buf_4_Rot_90 123
-#define IDR_VP_PA_444AVS16_Buf_5 124
-#define IDR_VP_PA_444AVS16_Buf_5_Rot_180 125
-#define IDR_VP_PA_444AVS16_Buf_5_Rot_270 126
-#define IDR_VP_PA_444AVS16_Buf_5_Rot_90 127
-#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_0 128
-#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_1 129
-#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_2 130
-#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_3 131
-#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_0 132
-#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_1 133
-#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_2 134
-#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_3 135
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_0 136
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_1 137
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_2 138
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_3 139
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_0 140
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_1 141
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_2 142
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_3 143
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_0 144
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_1 145
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_2 146
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_3 147
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_0 148
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_1 149
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_2 150
-#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_3 151
-#define IDR_VP_PA_444DScale16_Buf_0 152
-#define IDR_VP_PA_444DScale16_Buf_1 153
-#define IDR_VP_PA_444DScale16_Buf_2 154
-#define IDR_VP_PA_444DScale16_Buf_3 155
-#define IDR_VP_PA_444DScale16_Buf_4 156
-#define IDR_VP_PA_444DScale16_Buf_5 157
-#define IDR_VP_PA_444Dscale16_Buf_0_Rot_180 158
-#define IDR_VP_PA_444Dscale16_Buf_0_Rot_270 159
-#define IDR_VP_PA_444Dscale16_Buf_0_Rot_90 160
-#define IDR_VP_PA_444Dscale16_Buf_1_Rot_180 161
-#define IDR_VP_PA_444Dscale16_Buf_1_Rot_270 162
-#define IDR_VP_PA_444Dscale16_Buf_1_Rot_90 163
-#define IDR_VP_PA_444Dscale16_Buf_2_Rot_180 164
-#define IDR_VP_PA_444Dscale16_Buf_2_Rot_270 165
-#define IDR_VP_PA_444Dscale16_Buf_2_Rot_90 166
-#define IDR_VP_PA_444Dscale16_Buf_3_Rot_180 167
-#define IDR_VP_PA_444Dscale16_Buf_3_Rot_270 168
-#define IDR_VP_PA_444Dscale16_Buf_3_Rot_90 169
-#define IDR_VP_PA_444Scale16_Buf_0 170
-#define IDR_VP_PA_444Scale16_Buf_0_Rot_180 171
-#define IDR_VP_PA_444Scale16_Buf_0_Rot_270 172
-#define IDR_VP_PA_444Scale16_Buf_0_Rot_90 173
-#define IDR_VP_PA_444Scale16_Buf_1 174
-#define IDR_VP_PA_444Scale16_Buf_1_Rot_180 175
-#define IDR_VP_PA_444Scale16_Buf_1_Rot_270 176
-#define IDR_VP_PA_444Scale16_Buf_1_Rot_90 177
-#define IDR_VP_PA_444Scale16_Buf_2 178
-#define IDR_VP_PA_444Scale16_Buf_2_Rot_180 179
-#define IDR_VP_PA_444Scale16_Buf_2_Rot_270 180
-#define IDR_VP_PA_444Scale16_Buf_2_Rot_90 181
-#define IDR_VP_PA_444Scale16_Buf_3 182
-#define IDR_VP_PA_444Scale16_Buf_3_Rot_180 183
-#define IDR_VP_PA_444Scale16_Buf_3_Rot_270 184
-#define IDR_VP_PA_444Scale16_Buf_3_Rot_90 185
-#define IDR_VP_PA_444Scale16_Buf_4 186
-#define IDR_VP_PA_444Scale16_Buf_4_Rot_180 187
-#define IDR_VP_PA_444Scale16_Buf_4_Rot_270 188
-#define IDR_VP_PA_444Scale16_Buf_4_Rot_90 189
-#define IDR_VP_PA_444Scale16_Buf_5 190
-#define IDR_VP_PA_444Scale16_Buf_5_Rot_180 191
-#define IDR_VP_PA_444Scale16_Buf_5_Rot_270 192
-#define IDR_VP_PA_444Scale16_Buf_5_Rot_90 193
-#define IDR_VP_PA_444iAVS16_Buf_0 194
-#define IDR_VP_PA_444iAVS16_Buf_1 195
-#define IDR_VP_PA_444iAVS16_Buf_2 196
-#define IDR_VP_PA_444iAVS16_Buf_3 197
-#define IDR_VP_PA_444iDScale16_Buf_0 198
-#define IDR_VP_PA_444iDScale16_Buf_1 199
-#define IDR_VP_PA_444iDScale16_Buf_2 200
-#define IDR_VP_PA_444iDScale16_Buf_3 201
-#define IDR_VP_PA_444iScale16_Buf_0 202
-#define IDR_VP_PA_444iScale16_Buf_0_Rot_180 203
-#define IDR_VP_PA_444iScale16_Buf_0_Rot_270 204
-#define IDR_VP_PA_444iScale16_Buf_0_Rot_90 205
-#define IDR_VP_PA_444iScale16_Buf_1 206
-#define IDR_VP_PA_444iScale16_Buf_1_Rot_180 207
-#define IDR_VP_PA_444iScale16_Buf_1_Rot_270 208
-#define IDR_VP_PA_444iScale16_Buf_1_Rot_90 209
-#define IDR_VP_PA_444iScale16_Buf_2 210
-#define IDR_VP_PA_444iScale16_Buf_2_Rot_180 211
-#define IDR_VP_PA_444iScale16_Buf_2_Rot_270 212
-#define IDR_VP_PA_444iScale16_Buf_2_Rot_90 213
-#define IDR_VP_PA_444iScale16_Buf_3 214
-#define IDR_VP_PA_444iScale16_Buf_3_Rot_180 215
-#define IDR_VP_PA_444iScale16_Buf_3_Rot_270 216
-#define IDR_VP_PA_444iScale16_Buf_3_Rot_90 217
-#define IDR_VP_PA_AVS_Mirror_H_L0 218
-#define IDR_VP_PA_AVS_Mirror_V_L0 219
-#define IDR_VP_PA_AVS_Rotate_90_Mirror_H_L0 220
-#define IDR_VP_PA_AVS_Rotate_90_Mirror_V_L0 221
-#define IDR_VP_PA_AVS_Rotate_L0_180 222
-#define IDR_VP_PA_AVS_Rotate_L0_270 223
-#define IDR_VP_PA_AVS_Rotate_L0_90 224
-#define IDR_VP_PA_Copy 225
-#define IDR_VP_PA_Scale_Mirror_H_L0 226
-#define IDR_VP_PA_Scale_Mirror_V_L0 227
-#define IDR_VP_PA_Scale_Rotate90_Mirror_H_L0 228
-#define IDR_VP_PA_Scale_Rotate90_Mirror_V_L0 229
-#define IDR_VP_PA_Scale_Rotate_L0_180 230
-#define IDR_VP_PA_Scale_Rotate_L0_270 231
-#define IDR_VP_PA_Scale_Rotate_L0_90 232
-#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_0 233
-#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_1 234
-#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_2 235
-#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_3 236
-#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_4 237
-#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_5 238
-#define IDR_VP_PL2_444AVS16_Buf_0 239
-#define IDR_VP_PL2_444AVS16_Buf_0_Rot_180 240
-#define IDR_VP_PL2_444AVS16_Buf_0_Rot_270 241
-#define IDR_VP_PL2_444AVS16_Buf_0_Rot_90 242
-#define IDR_VP_PL2_444AVS16_Buf_1 243
-#define IDR_VP_PL2_444AVS16_Buf_1_Rot_180 244
-#define IDR_VP_PL2_444AVS16_Buf_1_Rot_270 245
-#define IDR_VP_PL2_444AVS16_Buf_1_Rot_90 246
-#define IDR_VP_PL2_444AVS16_Buf_2 247
-#define IDR_VP_PL2_444AVS16_Buf_2_Rot_180 248
-#define IDR_VP_PL2_444AVS16_Buf_2_Rot_270 249
-#define IDR_VP_PL2_444AVS16_Buf_2_Rot_90 250
-#define IDR_VP_PL2_444AVS16_Buf_3 251
-#define IDR_VP_PL2_444AVS16_Buf_3_Rot_180 252
-#define IDR_VP_PL2_444AVS16_Buf_3_Rot_270 253
-#define IDR_VP_PL2_444AVS16_Buf_3_Rot_90 254
-#define IDR_VP_PL2_444AVS16_Buf_4 255
-#define IDR_VP_PL2_444AVS16_Buf_4_Rot_180 256
-#define IDR_VP_PL2_444AVS16_Buf_4_Rot_270 257
-#define IDR_VP_PL2_444AVS16_Buf_4_Rot_90 258
-#define IDR_VP_PL2_444AVS16_Buf_5 259
-#define IDR_VP_PL2_444AVS16_Buf_5_Rot_180 260
-#define IDR_VP_PL2_444AVS16_Buf_5_Rot_270 261
-#define IDR_VP_PL2_444AVS16_Buf_5_Rot_90 262
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4 263
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4_Rot_180 264
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4_Rot_270 265
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4_Rot_90 266
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5 267
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5_Rot_180 268
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5_Rot_270 269
-#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5_Rot_90 270
-#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_0 271
-#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_1 272
-#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_2 273
-#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_3 274
-#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_4 275
-#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_5 276
-#define IDR_VP_PL2_444Dscale16_Buf_0 277
-#define IDR_VP_PL2_444Dscale16_Buf_0_Rot_180 278
-#define IDR_VP_PL2_444Dscale16_Buf_0_Rot_270 279
-#define IDR_VP_PL2_444Dscale16_Buf_0_Rot_90 280
-#define IDR_VP_PL2_444Dscale16_Buf_1 281
-#define IDR_VP_PL2_444Dscale16_Buf_1_Rot_180 282
-#define IDR_VP_PL2_444Dscale16_Buf_1_Rot_270 283
-#define IDR_VP_PL2_444Dscale16_Buf_1_Rot_90 284
-#define IDR_VP_PL2_444Dscale16_Buf_2 285
-#define IDR_VP_PL2_444Dscale16_Buf_2_Rot_180 286
-#define IDR_VP_PL2_444Dscale16_Buf_2_Rot_270 287
-#define IDR_VP_PL2_444Dscale16_Buf_2_Rot_90 288
-#define IDR_VP_PL2_444Dscale16_Buf_3 289
-#define IDR_VP_PL2_444Dscale16_Buf_3_Rot_180 290
-#define IDR_VP_PL2_444Dscale16_Buf_3_Rot_270 291
-#define IDR_VP_PL2_444Dscale16_Buf_3_Rot_90 292
-#define IDR_VP_PL2_444Dscale16_Buf_4 293
-#define IDR_VP_PL2_444Dscale16_Buf_5 294
-#define IDR_VP_PL2_444Dscale16_Buf_Sep_Alpha_4 295
-#define IDR_VP_PL2_444Dscale16_Buf_Sep_Alpha_5 296
-#define IDR_VP_PL2_444Scale16_Buf_0 297
-#define IDR_VP_PL2_444Scale16_Buf_0_Rot_180 298
-#define IDR_VP_PL2_444Scale16_Buf_0_Rot_270 299
-#define IDR_VP_PL2_444Scale16_Buf_0_Rot_90 300
-#define IDR_VP_PL2_444Scale16_Buf_1 301
-#define IDR_VP_PL2_444Scale16_Buf_1_Rot_180 302
-#define IDR_VP_PL2_444Scale16_Buf_1_Rot_270 303
-#define IDR_VP_PL2_444Scale16_Buf_1_Rot_90 304
-#define IDR_VP_PL2_444Scale16_Buf_2 305
-#define IDR_VP_PL2_444Scale16_Buf_2_Rot_180 306
-#define IDR_VP_PL2_444Scale16_Buf_2_Rot_270 307
-#define IDR_VP_PL2_444Scale16_Buf_2_Rot_90 308
-#define IDR_VP_PL2_444Scale16_Buf_3 309
-#define IDR_VP_PL2_444Scale16_Buf_3_Rot_180 310
-#define IDR_VP_PL2_444Scale16_Buf_3_Rot_270 311
-#define IDR_VP_PL2_444Scale16_Buf_3_Rot_90 312
-#define IDR_VP_PL2_444Scale16_Buf_4 313
-#define IDR_VP_PL2_444Scale16_Buf_4_Rot_180 314
-#define IDR_VP_PL2_444Scale16_Buf_4_Rot_270 315
-#define IDR_VP_PL2_444Scale16_Buf_4_Rot_90 316
-#define IDR_VP_PL2_444Scale16_Buf_5 317
-#define IDR_VP_PL2_444Scale16_Buf_5_Rot_180 318
-#define IDR_VP_PL2_444Scale16_Buf_5_Rot_270 319
-#define IDR_VP_PL2_444Scale16_Buf_5_Rot_90 320
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4 321
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4_Rot_180 322
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4_Rot_270 323
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4_Rot_90 324
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5 325
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5_Rot_180 326
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5_Rot_270 327
-#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5_Rot_90 328
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0 329
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0_Rot_180 330
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0_Rot_270 331
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0_Rot_90 332
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1 333
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1_Rot_180 334
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1_Rot_270 335
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1_Rot_90 336
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2 337
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2_Rot_180 338
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2_Rot_270 339
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2_Rot_90 340
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3 341
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3_Rot_180 342
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3_Rot_270 343
-#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3_Rot_90 344
-#define IDR_VP_PL2_444iDScale16_Buf_0 345
-#define IDR_VP_PL2_444iDScale16_Buf_1 346
-#define IDR_VP_PL2_444iDScale16_Buf_2 347
-#define IDR_VP_PL2_444iDScale16_Buf_3 348
-#define IDR_VP_PL2_444iScale16_Buf_0 349
-#define IDR_VP_PL2_444iScale16_Buf_0_Rot_180 350
-#define IDR_VP_PL2_444iScale16_Buf_0_Rot_270 351
-#define IDR_VP_PL2_444iScale16_Buf_0_Rot_90 352
-#define IDR_VP_PL2_444iScale16_Buf_1 353
-#define IDR_VP_PL2_444iScale16_Buf_1_Rot_180 354
-#define IDR_VP_PL2_444iScale16_Buf_1_Rot_270 355
-#define IDR_VP_PL2_444iScale16_Buf_1_Rot_90 356
-#define IDR_VP_PL2_444iScale16_Buf_2 357
-#define IDR_VP_PL2_444iScale16_Buf_2_Rot_180 358
-#define IDR_VP_PL2_444iScale16_Buf_2_Rot_270 359
-#define IDR_VP_PL2_444iScale16_Buf_2_Rot_90 360
-#define IDR_VP_PL2_444iScale16_Buf_3 361
-#define IDR_VP_PL2_444iScale16_Buf_3_Rot_180 362
-#define IDR_VP_PL2_444iScale16_Buf_3_Rot_270 363
-#define IDR_VP_PL2_444iScale16_Buf_3_Rot_90 364
-#define IDR_VP_PL2_AVS_Mirror_H_L0 365
-#define IDR_VP_PL2_AVS_Mirror_H_L0_DualOutput 366
-#define IDR_VP_PL2_AVS_Mirror_V_L0 367
-#define IDR_VP_PL2_AVS_Rotate90_Mirror_H_L0 368
-#define IDR_VP_PL2_AVS_Rotate90_Mirror_V_L0 369
-#define IDR_VP_PL2_AVS_Rotate_L0_180 370
-#define IDR_VP_PL2_AVS_Rotate_L0_270 371
-#define IDR_VP_PL2_AVS_Rotate_L0_90 372
-#define IDR_VP_PL2_Copy 373
-#define IDR_VP_PL2_Scale_Mirror_H_L0 374
-#define IDR_VP_PL2_Scale_Mirror_H_L0_DualOutput 375
-#define IDR_VP_PL2_Scale_Mirror_V_L0 376
-#define IDR_VP_PL2_Scale_Rotate90_Mirror_H_L0 377
-#define IDR_VP_PL2_Scale_Rotate90_Mirror_V_L0 378
-#define IDR_VP_PL2_Scale_Rotate_L0_180 379
-#define IDR_VP_PL2_Scale_Rotate_L0_270 380
-#define IDR_VP_PL2_Scale_Rotate_L0_90 381
-#define IDR_VP_PL3_444AVS16_Buf_0 382
-#define IDR_VP_PL3_444AVS16_Buf_0_Rot_180 383
-#define IDR_VP_PL3_444AVS16_Buf_0_Rot_270 384
-#define IDR_VP_PL3_444AVS16_Buf_0_Rot_90 385
-#define IDR_VP_PL3_444AVS16_Buf_1 386
-#define IDR_VP_PL3_444AVS16_Buf_1_Rot_180 387
-#define IDR_VP_PL3_444AVS16_Buf_1_Rot_270 388
-#define IDR_VP_PL3_444AVS16_Buf_1_Rot_90 389
-#define IDR_VP_PL3_444AVS16_Buf_2 390
-#define IDR_VP_PL3_444AVS16_Buf_2_Rot_180 391
-#define IDR_VP_PL3_444AVS16_Buf_2_Rot_270 392
-#define IDR_VP_PL3_444AVS16_Buf_2_Rot_90 393
-#define IDR_VP_PL3_444AVS16_Buf_3 394
-#define IDR_VP_PL3_444AVS16_Buf_3_Rot_180 395
-#define IDR_VP_PL3_444AVS16_Buf_3_Rot_270 396
-#define IDR_VP_PL3_444AVS16_Buf_3_Rot_90 397
-#define IDR_VP_PL3_444AVS16_Buf_4 398
-#define IDR_VP_PL3_444AVS16_Buf_4_Rot_180 399
-#define IDR_VP_PL3_444AVS16_Buf_4_Rot_270 400
-#define IDR_VP_PL3_444AVS16_Buf_4_Rot_90 401
-#define IDR_VP_PL3_444AVS16_Buf_5 402
-#define IDR_VP_PL3_444AVS16_Buf_5_Rot_180 403
-#define IDR_VP_PL3_444AVS16_Buf_5_Rot_270 404
-#define IDR_VP_PL3_444AVS16_Buf_5_Rot_90 405
-#define IDR_VP_PL3_444DScale16_Buf_0 406
-#define IDR_VP_PL3_444DScale16_Buf_1 407
-#define IDR_VP_PL3_444DScale16_Buf_2 408
-#define IDR_VP_PL3_444DScale16_Buf_3 409
-#define IDR_VP_PL3_444DScale16_Buf_4 410
-#define IDR_VP_PL3_444DScale16_Buf_5 411
-#define IDR_VP_PL3_444Dscale16_Buf_0_Rot_180 412
-#define IDR_VP_PL3_444Dscale16_Buf_0_Rot_270 413
-#define IDR_VP_PL3_444Dscale16_Buf_0_Rot_90 414
-#define IDR_VP_PL3_444Dscale16_Buf_1_Rot_180 415
-#define IDR_VP_PL3_444Dscale16_Buf_1_Rot_270 416
-#define IDR_VP_PL3_444Dscale16_Buf_1_Rot_90 417
-#define IDR_VP_PL3_444Dscale16_Buf_2_Rot_180 418
-#define IDR_VP_PL3_444Dscale16_Buf_2_Rot_270 419
-#define IDR_VP_PL3_444Dscale16_Buf_2_Rot_90 420
-#define IDR_VP_PL3_444Dscale16_Buf_3_Rot_180 421
-#define IDR_VP_PL3_444Dscale16_Buf_3_Rot_270 422
-#define IDR_VP_PL3_444Dscale16_Buf_3_Rot_90 423
-#define IDR_VP_PL3_444Scale16_Buf_0 424
-#define IDR_VP_PL3_444Scale16_Buf_0_Rot_180 425
-#define IDR_VP_PL3_444Scale16_Buf_0_Rot_270 426
-#define IDR_VP_PL3_444Scale16_Buf_0_Rot_90 427
-#define IDR_VP_PL3_444Scale16_Buf_1 428
-#define IDR_VP_PL3_444Scale16_Buf_1_Rot_180 429
-#define IDR_VP_PL3_444Scale16_Buf_1_Rot_270 430
-#define IDR_VP_PL3_444Scale16_Buf_1_Rot_90 431
-#define IDR_VP_PL3_444Scale16_Buf_2 432
-#define IDR_VP_PL3_444Scale16_Buf_2_Rot_180 433
-#define IDR_VP_PL3_444Scale16_Buf_2_Rot_270 434
-#define IDR_VP_PL3_444Scale16_Buf_2_Rot_90 435
-#define IDR_VP_PL3_444Scale16_Buf_3 436
-#define IDR_VP_PL3_444Scale16_Buf_3_Rot_180 437
-#define IDR_VP_PL3_444Scale16_Buf_3_Rot_270 438
-#define IDR_VP_PL3_444Scale16_Buf_3_Rot_90 439
-#define IDR_VP_PL3_444Scale16_Buf_4 440
-#define IDR_VP_PL3_444Scale16_Buf_4_Rot_180 441
-#define IDR_VP_PL3_444Scale16_Buf_4_Rot_270 442
-#define IDR_VP_PL3_444Scale16_Buf_4_Rot_90 443
-#define IDR_VP_PL3_444Scale16_Buf_5 444
-#define IDR_VP_PL3_444Scale16_Buf_5_Rot_180 445
-#define IDR_VP_PL3_444Scale16_Buf_5_Rot_270 446
-#define IDR_VP_PL3_444Scale16_Buf_5_Rot_90 447
-#define IDR_VP_PL3_444iDScale16_Buf_0 448
-#define IDR_VP_PL3_444iDScale16_Buf_1 449
-#define IDR_VP_PL3_444iDScale16_Buf_2 450
-#define IDR_VP_PL3_444iDScale16_Buf_3 451
-#define IDR_VP_PL3_444iScale16_Buf_0 452
-#define IDR_VP_PL3_444iScale16_Buf_0_Rot_180 453
-#define IDR_VP_PL3_444iScale16_Buf_0_Rot_270 454
-#define IDR_VP_PL3_444iScale16_Buf_0_Rot_90 455
-#define IDR_VP_PL3_444iScale16_Buf_1 456
-#define IDR_VP_PL3_444iScale16_Buf_1_Rot_180 457
-#define IDR_VP_PL3_444iScale16_Buf_1_Rot_270 458
-#define IDR_VP_PL3_444iScale16_Buf_1_Rot_90 459
-#define IDR_VP_PL3_444iScale16_Buf_2 460
-#define IDR_VP_PL3_444iScale16_Buf_2_Rot_180 461
-#define IDR_VP_PL3_444iScale16_Buf_2_Rot_270 462
-#define IDR_VP_PL3_444iScale16_Buf_2_Rot_90 463
-#define IDR_VP_PL3_444iScale16_Buf_3 464
-#define IDR_VP_PL3_444iScale16_Buf_3_Rot_180 465
-#define IDR_VP_PL3_444iScale16_Buf_3_Rot_270 466
-#define IDR_VP_PL3_444iScale16_Buf_3_Rot_90 467
-#define IDR_VP_PL3_AVS_Rotate_L0_180 468
-#define IDR_VP_PL3_AVS_Rotate_L0_270 469
-#define IDR_VP_PL3_AVS_Rotate_L0_90 470
-#define IDR_VP_PL3_Scale_Rotate_L0_180 471
-#define IDR_VP_PL3_Scale_Rotate_L0_270 472
-#define IDR_VP_PL3_Scale_Rotate_L0_90 473
-#define IDR_VP_PLY_444DScale16_2f_Buf_0 474
-#define IDR_VP_PLY_444DScale16_2f_Buf_1 475
-#define IDR_VP_PLY_444DScale16_2f_Buf_2 476
-#define IDR_VP_PLY_444DScale16_2f_Buf_3 477
-#define IDR_VP_PLY_444DScale16_Buf_0 478
-#define IDR_VP_PLY_444DScale16_Buf_0_Rot_180 479
-#define IDR_VP_PLY_444DScale16_Buf_0_Rot_270 480
-#define IDR_VP_PLY_444DScale16_Buf_0_Rot_90 481
-#define IDR_VP_PLY_444DScale16_Buf_1 482
-#define IDR_VP_PLY_444DScale16_Buf_1_Rot_180 483
-#define IDR_VP_PLY_444DScale16_Buf_1_Rot_270 484
-#define IDR_VP_PLY_444DScale16_Buf_1_Rot_90 485
-#define IDR_VP_PLY_444DScale16_Buf_2 486
-#define IDR_VP_PLY_444DScale16_Buf_2_Rot_180 487
-#define IDR_VP_PLY_444DScale16_Buf_2_Rot_270 488
-#define IDR_VP_PLY_444DScale16_Buf_2_Rot_90 489
-#define IDR_VP_PLY_444DScale16_Buf_3 490
-#define IDR_VP_PLY_444DScale16_Buf_3_Rot_180 491
-#define IDR_VP_PLY_444DScale16_Buf_3_Rot_270 492
-#define IDR_VP_PLY_444DScale16_Buf_3_Rot_90 493
-#define IDR_VP_PartBlend_444_16 494
-#define IDR_VP_Prepare_LumaKey_SampleUnorm 495
-#define IDR_VP_RGB2sRGB 496
-#define IDR_VP_Rotate_90_Mirror_AVS_H_L0 497
-#define IDR_VP_Rotate_90_Mirror_AVS_V_L0 498
-#define IDR_VP_Rotate_90_Mirror_H_scale_L0 499
-#define IDR_VP_Rotate_90_Mirror_V_scale_L0 500
-#define IDR_VP_Rotate_AVS_L0_180 501
-#define IDR_VP_Rotate_AVS_L0_270 502
-#define IDR_VP_Rotate_AVS_L0_90 503
-#define IDR_VP_Rotate_Scale_L0_180 504
-#define IDR_VP_Rotate_Scale_L0_270 505
-#define IDR_VP_Rotate_Scale_L0_90 506
-#define IDR_VP_SIP_Debug 507
-#define IDR_VP_Save_444AVS16_ARGB 508
-#define IDR_VP_Save_444AVS16_ARGB_64Byte 509
-#define IDR_VP_Save_444AVS16_NV12 510
-#define IDR_VP_Save_444AVS16_NV21 511
-#define IDR_VP_Save_444AVS16_PA 512
-#define IDR_VP_Save_444AVS16_PL3 513
-#define IDR_VP_Save_444AVS16_R10G10B10 514
-#define IDR_VP_Save_444AVS16_R10G10B10A2 515
-#define IDR_VP_Save_444AVS16_R10G10B10X2 516
-#define IDR_VP_Save_444AVS16_RGB 517
-#define IDR_VP_Save_444AVS16_RGB16 518
-#define IDR_VP_Save_444AVS16_RGB_64Byte 519
-#define IDR_VP_Save_444AVS16_SrcAYUV 520
-#define IDR_VP_Save_444AVS16_XRGB 521
-#define IDR_VP_Save_444AVS16_XRGB_64Byte 522
-#define IDR_VP_Save_444SCALE16_ARGB_64Byte 523
-#define IDR_VP_Save_444SCALE16_NV21 524
-#define IDR_VP_Save_444SCALE16_RGB_64Byte 525
-#define IDR_VP_Save_444SCALE16_XRGB_64Byte 526
-#define IDR_VP_Save_444Scale16_ARGB 527
-#define IDR_VP_Save_444Scale16_ARGB_64Byte 528
-#define IDR_VP_Save_444Scale16_Dither_NV12 529
-#define IDR_VP_Save_444Scale16_Dither_NV21 530
-#define IDR_VP_Save_444Scale16_Dither_PA 531
-#define IDR_VP_Save_444Scale16_Dither_PA_32X16 532
-#define IDR_VP_Save_444Scale16_Dither_PL3 533
-#define IDR_VP_Save_444Scale16_Dither_RGB 534
-#define IDR_VP_Save_444Scale16_Dither_RGB_64Byte 535
-#define IDR_VP_Save_444Scale16_Dither_VUYA 536
-#define IDR_VP_Save_444Scale16_Dither_XRGB 537
-#define IDR_VP_Save_444Scale16_Dither_XRGB_64Byte 538
-#define IDR_VP_Save_444Scale16_NV12 539
-#define IDR_VP_Save_444Scale16_NV21 540
-#define IDR_VP_Save_444Scale16_P010 541
-#define IDR_VP_Save_444Scale16_PA 542
-#define IDR_VP_Save_444Scale16_PA_32X16 543
-#define IDR_VP_Save_444Scale16_PL3 544
-#define IDR_VP_Save_444Scale16_PLY 545
-#define IDR_VP_Save_444Scale16_R10G10B10 546
-#define IDR_VP_Save_444Scale16_R10G10B10A2 547
-#define IDR_VP_Save_444Scale16_R10G10B10X2 548
-#define IDR_VP_Save_444Scale16_R10G10B10XR 549
-#define IDR_VP_Save_444Scale16_R10G10B10XRA2 550
-#define IDR_VP_Save_444Scale16_R10G10B10XRX2 551
-#define IDR_VP_Save_444Scale16_RGB 552
-#define IDR_VP_Save_444Scale16_RGB16 553
-#define IDR_VP_Save_444Scale16_RGBP 554
-#define IDR_VP_Save_444Scale16_RGB_64Byte 555
-#define IDR_VP_Save_444Scale16_SrcVUYA 556
-#define IDR_VP_Save_444Scale16_VUYA 557
-#define IDR_VP_Save_444Scale16_XRGB 558
-#define IDR_VP_Save_444Scale16_XRGB_64Byte 559
-#define IDR_VP_Save_444Scale16_Y210 560
-#define IDR_VP_Save_444Scale16_Y216 561
-#define IDR_VP_Save_444Scale16_Y410 562
-#define IDR_VP_Save_444Scale16_Y416 563
-#define IDR_VP_Secure_Block_Copy 564
-#define IDR_VP_Set_Buf0_Buf4 565
-#define IDR_VP_Set_Buf1_Buf5 566
-#define IDR_VP_Set_Buf2_Buf4 567
-#define IDR_VP_Set_Buf3_Buf5 568
-#define IDR_VP_Set_CSC_Src_Buf0 569
-#define IDR_VP_Set_CSC_Src_Buf1 570
-#define IDR_VP_Set_CSC_Src_Buf2 571
-#define IDR_VP_Set_CSC_Src_Buf3 572
-#define IDR_VP_Set_CSC_Src_Buf4 573
-#define IDR_VP_Set_CSC_Src_Buf5 574
-#define IDR_VP_Set_CURBE_CSC_Coeff 575
-#define IDR_VP_Set_ColorE_Src_Buf0 576
-#define IDR_VP_Set_ColorE_Src_Buf1 577
-#define IDR_VP_Set_ColorE_Src_Buf2 578
-#define IDR_VP_Set_ColorE_Src_Buf3 579
-#define IDR_VP_Set_Dest_Surf_Indexes_Primary 580
-#define IDR_VP_Set_Dest_Surf_Indexes_Secondary 581
-#define IDR_VP_Set_GammaC_Src_Buf0 582
-#define IDR_VP_Set_GammaC_Src_Buf1 583
-#define IDR_VP_Set_GammaC_Src_Buf2 584
-#define IDR_VP_Set_GammaC_Src_Buf3 585
-#define IDR_VP_Set_Layer_0 586
-#define IDR_VP_Set_Layer_1 587
-#define IDR_VP_Set_Layer_1_AVS 588
-#define IDR_VP_Set_Layer_2 589
-#define IDR_VP_Set_Layer_3 590
-#define IDR_VP_Set_Layer_4 591
-#define IDR_VP_Set_Layer_5 592
-#define IDR_VP_Set_Layer_6 593
-#define IDR_VP_Set_Layer_7 594
-#define IDR_VP_Set_Patched_CSC_Coeff 595
-#define IDR_VP_Set_Scale_Buf_0123_Colorfill 596
-#define IDR_VP_Set_Sec_Half_Buf45 597
-#define IDR_VP_Shuffle_444AVS16_Buf_0 598
-#define IDR_VP_Shuffle_444AVS16_Buf_1 599
-#define IDR_VP_Shuffle_444AVS16_Buf_2 600
-#define IDR_VP_Shuffle_444AVS16_Buf_3 601
-#define IDR_VP_Shuffle_444AVS16_Buf_4 602
-#define IDR_VP_Shuffle_444AVS16_Buf_5 603
-#define IDR_VP_SrcBlend_444_16 604
-#define IDR_VP_SrcBlend_4bits_444_16 605
-#define IDR_VP_UpdateDNState 606
-#define IDR_VP_VP_Setup 607
-#define IDR_VP_VP_Setup_MediaWalker 608
-#define IDR_VP_VP_Setup_MediaWalker_32X16_Design 609
-#define IDR_VP_VP_Setup_MediaWalker_32x32_Color 610
-#define IDR_VP_Y210_444DScale16_Buf_0 611
-#define IDR_VP_Y210_444DScale16_Buf_0_Rot_180 612
-#define IDR_VP_Y210_444DScale16_Buf_0_Rot_270 613
-#define IDR_VP_Y210_444DScale16_Buf_0_Rot_90 614
-#define IDR_VP_Y210_444DScale16_Buf_1 615
-#define IDR_VP_Y210_444DScale16_Buf_1_Rot_180 616
-#define IDR_VP_Y210_444DScale16_Buf_1_Rot_270 617
-#define IDR_VP_Y210_444DScale16_Buf_1_Rot_90 618
-#define IDR_VP_Y210_444DScale16_Buf_2 619
-#define IDR_VP_Y210_444DScale16_Buf_2_Rot_180 620
-#define IDR_VP_Y210_444DScale16_Buf_2_Rot_270 621
-#define IDR_VP_Y210_444DScale16_Buf_2_Rot_90 622
-#define IDR_VP_Y210_444DScale16_Buf_3 623
-#define IDR_VP_Y210_444DScale16_Buf_3_Rot_180 624
-#define IDR_VP_Y210_444DScale16_Buf_3_Rot_270 625
-#define IDR_VP_Y210_444DScale16_Buf_3_Rot_90 626
-#define IDR_VP_Y210_444DScale16_Buf_4 627
-#define IDR_VP_Y210_444DScale16_Buf_4_Rot_180 628
-#define IDR_VP_Y210_444DScale16_Buf_4_Rot_270 629
-#define IDR_VP_Y210_444DScale16_Buf_4_Rot_90 630
-#define IDR_VP_Y210_444DScale16_Buf_5 631
-#define IDR_VP_Y210_444DScale16_Buf_5_Rot_180 632
-#define IDR_VP_Y210_444DScale16_Buf_5_Rot_270 633
-#define IDR_VP_Y210_444DScale16_Buf_5_Rot_90 634
-#define IDR_VP_Y210_444Scale16_Buf_0 635
-#define IDR_VP_Y210_444Scale16_Buf_0_Rot_180 636
-#define IDR_VP_Y210_444Scale16_Buf_0_Rot_270 637
-#define IDR_VP_Y210_444Scale16_Buf_0_Rot_90 638
-#define IDR_VP_Y210_444Scale16_Buf_1 639
-#define IDR_VP_Y210_444Scale16_Buf_1_Rot_180 640
-#define IDR_VP_Y210_444Scale16_Buf_1_Rot_270 641
-#define IDR_VP_Y210_444Scale16_Buf_1_Rot_90 642
-#define IDR_VP_Y210_444Scale16_Buf_2 643
-#define IDR_VP_Y210_444Scale16_Buf_2_Rot_180 644
-#define IDR_VP_Y210_444Scale16_Buf_2_Rot_270 645
-#define IDR_VP_Y210_444Scale16_Buf_2_Rot_90 646
-#define IDR_VP_Y210_444Scale16_Buf_3 647
-#define IDR_VP_Y210_444Scale16_Buf_3_Rot_180 648
-#define IDR_VP_Y210_444Scale16_Buf_3_Rot_270 649
-#define IDR_VP_Y210_444Scale16_Buf_3_Rot_90 650
-#define IDR_VP_Y210_444Scale16_Buf_4 651
-#define IDR_VP_Y210_444Scale16_Buf_4_Rot_180 652
-#define IDR_VP_Y210_444Scale16_Buf_4_Rot_270 653
-#define IDR_VP_Y210_444Scale16_Buf_4_Rot_90 654
-#define IDR_VP_Y210_444Scale16_Buf_5 655
-#define IDR_VP_Y210_444Scale16_Buf_5_Rot_180 656
-#define IDR_VP_Y210_444Scale16_Buf_5_Rot_270 657
-#define IDR_VP_Y210_444Scale16_Buf_5_Rot_90 658
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0 659
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0_Rot_180 660
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0_Rot_270 661
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0_Rot_90 662
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1 663
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1_Rot_180 664
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1_Rot_270 665
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1_Rot_90 666
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2 667
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2_Rot_180 668
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2_Rot_270 669
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2_Rot_90 670
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3 671
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3_Rot_180 672
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3_Rot_270 673
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3_Rot_90 674
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4 675
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_180 676
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_270 677
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_90 678
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5 679
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_180 680
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_270 681
-#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_90 682
-#define IDR_VP_Y410_444AVS16_Buf_0 683
-#define IDR_VP_Y410_444AVS16_Buf_0_Rot_180 684
-#define IDR_VP_Y410_444AVS16_Buf_0_Rot_270 685
-#define IDR_VP_Y410_444AVS16_Buf_0_Rot_90 686
-#define IDR_VP_Y410_444AVS16_Buf_1 687
-#define IDR_VP_Y410_444AVS16_Buf_1_Rot_180 688
-#define IDR_VP_Y410_444AVS16_Buf_1_Rot_270 689
-#define IDR_VP_Y410_444AVS16_Buf_1_Rot_90 690
-#define IDR_VP_Y410_444AVS16_Buf_2 691
-#define IDR_VP_Y410_444AVS16_Buf_2_Rot_180 692
-#define IDR_VP_Y410_444AVS16_Buf_2_Rot_270 693
-#define IDR_VP_Y410_444AVS16_Buf_2_Rot_90 694
-#define IDR_VP_Y410_444AVS16_Buf_3 695
-#define IDR_VP_Y410_444AVS16_Buf_3_Rot_180 696
-#define IDR_VP_Y410_444AVS16_Buf_3_Rot_270 697
-#define IDR_VP_Y410_444AVS16_Buf_3_Rot_90 698
-#define IDR_VP_Y410_444AVS16_Buf_4 699
-#define IDR_VP_Y410_444AVS16_Buf_4_Rot_180 700
-#define IDR_VP_Y410_444AVS16_Buf_4_Rot_270 701
-#define IDR_VP_Y410_444AVS16_Buf_4_Rot_90 702
-#define IDR_VP_Y410_444AVS16_Buf_5 703
-#define IDR_VP_Y410_444AVS16_Buf_5_Rot_180 704
-#define IDR_VP_Y410_444AVS16_Buf_5_Rot_270 705
-#define IDR_VP_Y410_444AVS16_Buf_5_Rot_90 706
-#define IDR_VP_Y410_444DScale16_Buf_0 707
-#define IDR_VP_Y410_444DScale16_Buf_0_Rot_180 708
-#define IDR_VP_Y410_444DScale16_Buf_0_Rot_270 709
-#define IDR_VP_Y410_444DScale16_Buf_0_Rot_90 710
-#define IDR_VP_Y410_444DScale16_Buf_1 711
-#define IDR_VP_Y410_444DScale16_Buf_1_Rot_180 712
-#define IDR_VP_Y410_444DScale16_Buf_1_Rot_270 713
-#define IDR_VP_Y410_444DScale16_Buf_1_Rot_90 714
-#define IDR_VP_Y410_444DScale16_Buf_2 715
-#define IDR_VP_Y410_444DScale16_Buf_2_Rot_180 716
-#define IDR_VP_Y410_444DScale16_Buf_2_Rot_270 717
-#define IDR_VP_Y410_444DScale16_Buf_2_Rot_90 718
-#define IDR_VP_Y410_444DScale16_Buf_3 719
-#define IDR_VP_Y410_444DScale16_Buf_3_Rot_180 720
-#define IDR_VP_Y410_444DScale16_Buf_3_Rot_270 721
-#define IDR_VP_Y410_444DScale16_Buf_3_Rot_90 722
-#define IDR_VP_Y410_444DScale16_Buf_4 723
-#define IDR_VP_Y410_444DScale16_Buf_4_Rot_180 724
-#define IDR_VP_Y410_444DScale16_Buf_4_Rot_270 725
-#define IDR_VP_Y410_444DScale16_Buf_4_Rot_90 726
-#define IDR_VP_Y410_444DScale16_Buf_5 727
-#define IDR_VP_Y410_444DScale16_Buf_5_Rot_180 728
-#define IDR_VP_Y410_444DScale16_Buf_5_Rot_270 729
-#define IDR_VP_Y410_444DScale16_Buf_5_Rot_90 730
-#define IDR_VP_Y410_444Scale16_Buf_0 731
-#define IDR_VP_Y410_444Scale16_Buf_0_Rot_180 732
-#define IDR_VP_Y410_444Scale16_Buf_0_Rot_270 733
-#define IDR_VP_Y410_444Scale16_Buf_0_Rot_90 734
-#define IDR_VP_Y410_444Scale16_Buf_1 735
-#define IDR_VP_Y410_444Scale16_Buf_1_Rot_180 736
-#define IDR_VP_Y410_444Scale16_Buf_1_Rot_270 737
-#define IDR_VP_Y410_444Scale16_Buf_1_Rot_90 738
-#define IDR_VP_Y410_444Scale16_Buf_2 739
-#define IDR_VP_Y410_444Scale16_Buf_2_Rot_180 740
-#define IDR_VP_Y410_444Scale16_Buf_2_Rot_270 741
-#define IDR_VP_Y410_444Scale16_Buf_2_Rot_90 742
-#define IDR_VP_Y410_444Scale16_Buf_3 743
-#define IDR_VP_Y410_444Scale16_Buf_3_Rot_180 744
-#define IDR_VP_Y410_444Scale16_Buf_3_Rot_270 745
-#define IDR_VP_Y410_444Scale16_Buf_3_Rot_90 746
-#define IDR_VP_Y410_444Scale16_Buf_4 747
-#define IDR_VP_Y410_444Scale16_Buf_4_Rot_180 748
-#define IDR_VP_Y410_444Scale16_Buf_4_Rot_270 749
-#define IDR_VP_Y410_444Scale16_Buf_4_Rot_90 750
-#define IDR_VP_Y410_444Scale16_Buf_5 751
-#define IDR_VP_Y410_444Scale16_Buf_5_Rot_180 752
-#define IDR_VP_Y410_444Scale16_Buf_5_Rot_270 753
-#define IDR_VP_Y410_444Scale16_Buf_5_Rot_90 754
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0 755
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0_Rot_180 756
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0_Rot_270 757
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0_Rot_90 758
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1 759
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1_Rot_180 760
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1_Rot_270 761
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1_Rot_90 762
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2 763
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2_Rot_180 764
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2_Rot_270 765
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2_Rot_90 766
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3 767
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3_Rot_180 768
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3_Rot_270 769
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3_Rot_90 770
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4 771
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4_Rot_180 772
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4_Rot_270 773
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4_Rot_90 774
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5 775
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5_Rot_180 776
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5_Rot_270 777
-#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5_Rot_90 778
-#define IDR_VP_camera_pipe_CalcParams 779
-#define IDR_VP_return 780
-#define IDR_VP_zzz_preproduction 781
-#define IDR_VP_zzz_preproduction_ALLPL2Copy_Gen 782
-#define IDR_VP_zzz_preproduction_HDR_mandatory_Gen 783
-#define IDR_VP_zzz_preproduction_HDR_per_frame_stat_Gen 784
-#define IDR_VP_zzz_preproduction_gcBltPS_32_To_128_Mirror_Gen 785
-#define IDR_VP_zzz_preproduction_gcBltPS_64_To_128_Mirror_Gen 786
-#define IDR_VP_zzz_preproduction_gcBltPS_Gen 787
-#define IDR_VP_zzz_preproduction_gcClearNoReplicatePS_Gen 788
-#define IDR_VP_zzz_preproduction_gcClearReplicatePS_Gen 789
-#define IDR_VP_zzz_preproduction_gcColorFillNoReplicatePS_Gen 790
-#define IDR_VP_zzz_preproduction_gcColorFillReplicatePS_Gen 791
-#define IDR_VP_zzz_preproduction_gcFastClearReplicatePS_Gen 792
-#define IDR_VP_zzz_production 793
-#define IDR_VP_zzz_production_ALLPL2Copy_Gen 794
-#define IDR_VP_zzz_production_HDR_mandatory_Gen 795
-#define IDR_VP_zzz_production_HDR_per_frame_stat_Gen 796
-#define IDR_VP_zzz_production_gcBltPS_32_To_128_Mirror_Gen 797
-#define IDR_VP_zzz_production_gcBltPS_64_To_128_Mirror_Gen 798
-#define IDR_VP_zzz_production_gcBltPS_Gen 799
-#define IDR_VP_zzz_production_gcClearNoReplicatePS_Gen 800
-#define IDR_VP_zzz_production_gcClearReplicatePS_Gen 801
-#define IDR_VP_zzz_production_gcColorFillNoReplicatePS_Gen 802
-#define IDR_VP_zzz_production_gcColorFillReplicatePS_Gen 803
-#define IDR_VP_zzz_production_gcFastClearReplicatePS_Gen 804
-#define IDR_VP_TOTAL_NUM_KERNELS 805
+#define IDR_VP_1_1_16aligned 0
+#define IDR_VP_3DLUT 1
+#define IDR_VP_AlphaSrcBlendG 2
+#define IDR_VP_ByteCopy 3
+#define IDR_VP_ByteCopy_MediaWalker 4
+#define IDR_VP_CSC_444_16 5
+#define IDR_VP_CSC_Premultiplied_444_16 6
+#define IDR_VP_Call_AlphaSrcBlendG 7
+#define IDR_VP_Call_CSC 8
+#define IDR_VP_Call_CSC_Premultiplied 9
+#define IDR_VP_Call_ColorE 10
+#define IDR_VP_Call_Composite 11
+#define IDR_VP_Call_ConstBlend 12
+#define IDR_VP_Call_ConstSrcBlend 13
+#define IDR_VP_Call_GammaC 14
+#define IDR_VP_Call_Mirror_H_YUV 15
+#define IDR_VP_Call_Mirror_H_YUVA 16
+#define IDR_VP_Call_PartBlend 17
+#define IDR_VP_Call_SrcBlend 18
+#define IDR_VP_Call_SrcBlend_4bits 19
+#define IDR_VP_ColorE 20
+#define IDR_VP_Colorfill_444AVS16 21
+#define IDR_VP_Colorfill_444AVS16_ConstBlend 22
+#define IDR_VP_Colorfill_444AVS16_ConstSrcBlend 23
+#define IDR_VP_Colorfill_444AVS16_PartBlend 24
+#define IDR_VP_Colorfill_444AVS16_SrcBlend 25
+#define IDR_VP_Colorfill_444Scale16 26
+#define IDR_VP_Colorfill_444Scale16_ConstBlend 27
+#define IDR_VP_Colorfill_444Scale16_ConstSrcBlend 28
+#define IDR_VP_Colorfill_444Scale16_PartBlend 29
+#define IDR_VP_Colorfill_444Scale16_SrcBlend 30
+#define IDR_VP_Composite_444_16 31
+#define IDR_VP_Compute_Lumakey 32
+#define IDR_VP_Compute_Lumakey_Buf0123 33
+#define IDR_VP_ConstBlend_444_16 34
+#define IDR_VP_ConstSrcBlend_444_16 35
+#define IDR_VP_EOT 36
+#define IDR_VP_FMD_Summation 37
+#define IDR_VP_FRC_Clean_Map 38
+#define IDR_VP_FRC_GMV_Detection 39
+#define IDR_VP_FRC_GMV_Sanity_Check 40
+#define IDR_VP_FRC_GradUV 41
+#define IDR_VP_FRC_GradY 42
+#define IDR_VP_FRC_MC 43
+#define IDR_VP_FRC_ME_Level1 44
+#define IDR_VP_FRC_ME_Level2 45
+#define IDR_VP_FRC_ME_Level3 46
+#define IDR_VP_FRC_MV_Level1 47
+#define IDR_VP_FRC_MV_Level2 48
+#define IDR_VP_FRC_MV_Level3 49
+#define IDR_VP_FRC_PS 50
+#define IDR_VP_FRC_SPD_Map 51
+#define IDR_VP_FRC_TempDiff 52
+#define IDR_VP_FRC_TempDiff_HD 53
+#define IDR_VP_FRC_WSD 54
+#define IDR_VP_GammaC 55
+#define IDR_VP_GeoCorrection 56
+#define IDR_VP_HDR_mandatory 57
+#define IDR_VP_HDR_per_frame_stat 58
+#define IDR_VP_IS_DS 59
+#define IDR_VP_IS_FW 60
+#define IDR_VP_IS_GMC 61
+#define IDR_VP_IS_ME 62
+#define IDR_VP_Interlace_420_16_Buf_0 63
+#define IDR_VP_Interlace_420_16_Buf_1 64
+#define IDR_VP_Interlace_420_16_Buf_2 65
+#define IDR_VP_Interlace_420_16_Buf_3 66
+#define IDR_VP_Interlace_444AVS16_Buf_0 67
+#define IDR_VP_Interlace_444AVS16_Buf_1 68
+#define IDR_VP_Interlace_444AVS16_Buf_2 69
+#define IDR_VP_Interlace_444AVS16_Buf_3 70
+#define IDR_VP_Interlace_444_16_Buf_0 71
+#define IDR_VP_Interlace_444_16_Buf_1 72
+#define IDR_VP_Interlace_444_16_Buf_2 73
+#define IDR_VP_Interlace_444_16_Buf_3 74
+#define IDR_VP_LACE_HIST_SUM 75
+#define IDR_VP_LACE_LUT 76
+#define IDR_VP_LACE_PWLF 77
+#define IDR_VP_LACE_STD 78
+#define IDR_VP_LinkFile 79
+#define IDR_VP_Mirror_AVS_H_L0 80
+#define IDR_VP_Mirror_AVS_V_L0 81
+#define IDR_VP_Mirror_H_YUV 82
+#define IDR_VP_Mirror_H_YUVA 83
+#define IDR_VP_Mirror_scale_H_L0 84
+#define IDR_VP_Mirror_scale_V_L0 85
+#define IDR_VP_NV12_DP_rotation_avg 86
+#define IDR_VP_NV12_DP_rotation_nv12 87
+#define IDR_VP_NV12_DP_rotation_rep 88
+#define IDR_VP_P010_444Dscale16_Buf_0 89
+#define IDR_VP_P010_444Dscale16_Buf_0_Rot_180 90
+#define IDR_VP_P010_444Dscale16_Buf_0_Rot_270 91
+#define IDR_VP_P010_444Dscale16_Buf_0_Rot_90 92
+#define IDR_VP_P010_444Dscale16_Buf_1 93
+#define IDR_VP_P010_444Dscale16_Buf_1_Rot_180 94
+#define IDR_VP_P010_444Dscale16_Buf_1_Rot_270 95
+#define IDR_VP_P010_444Dscale16_Buf_1_Rot_90 96
+#define IDR_VP_P010_444Dscale16_Buf_2 97
+#define IDR_VP_P010_444Dscale16_Buf_2_Rot_180 98
+#define IDR_VP_P010_444Dscale16_Buf_2_Rot_270 99
+#define IDR_VP_P010_444Dscale16_Buf_2_Rot_90 100
+#define IDR_VP_P010_444Dscale16_Buf_3 101
+#define IDR_VP_P010_444Dscale16_Buf_3_Rot_180 102
+#define IDR_VP_P010_444Dscale16_Buf_3_Rot_270 103
+#define IDR_VP_P010_444Dscale16_Buf_3_Rot_90 104
+#define IDR_VP_PA_444AVS16_Buf_0 105
+#define IDR_VP_PA_444AVS16_Buf_0_Rot_180 106
+#define IDR_VP_PA_444AVS16_Buf_0_Rot_270 107
+#define IDR_VP_PA_444AVS16_Buf_0_Rot_90 108
+#define IDR_VP_PA_444AVS16_Buf_1 109
+#define IDR_VP_PA_444AVS16_Buf_1_Rot_180 110
+#define IDR_VP_PA_444AVS16_Buf_1_Rot_270 111
+#define IDR_VP_PA_444AVS16_Buf_1_Rot_90 112
+#define IDR_VP_PA_444AVS16_Buf_2 113
+#define IDR_VP_PA_444AVS16_Buf_2_Rot_180 114
+#define IDR_VP_PA_444AVS16_Buf_2_Rot_270 115
+#define IDR_VP_PA_444AVS16_Buf_2_Rot_90 116
+#define IDR_VP_PA_444AVS16_Buf_3 117
+#define IDR_VP_PA_444AVS16_Buf_3_Rot_180 118
+#define IDR_VP_PA_444AVS16_Buf_3_Rot_270 119
+#define IDR_VP_PA_444AVS16_Buf_3_Rot_90 120
+#define IDR_VP_PA_444AVS16_Buf_4 121
+#define IDR_VP_PA_444AVS16_Buf_4_Rot_180 122
+#define IDR_VP_PA_444AVS16_Buf_4_Rot_270 123
+#define IDR_VP_PA_444AVS16_Buf_4_Rot_90 124
+#define IDR_VP_PA_444AVS16_Buf_5 125
+#define IDR_VP_PA_444AVS16_Buf_5_Rot_180 126
+#define IDR_VP_PA_444AVS16_Buf_5_Rot_270 127
+#define IDR_VP_PA_444AVS16_Buf_5_Rot_90 128
+#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_0 129
+#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_1 130
+#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_2 131
+#define IDR_VP_PA_444AVS16_HDC_DW_PLANAR_420_8_Buf_3 132
+#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_0 133
+#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_1 134
+#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_2 135
+#define IDR_VP_PA_444AVS16_HDC_DW_Y8_UNORM_Buf_3 136
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_0 137
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_1 138
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_2 139
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_NORMAL_Buf_3 140
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_0 141
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_1 142
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_2 143
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUVY_Buf_3 144
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_0 145
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_1 146
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_2 147
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPUV_Buf_3 148
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_0 149
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_1 150
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_2 151
+#define IDR_VP_PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_3 152
+#define IDR_VP_PA_444DScale16_Buf_0 153
+#define IDR_VP_PA_444DScale16_Buf_0_Rot_180 154
+#define IDR_VP_PA_444DScale16_Buf_0_Rot_270 155
+#define IDR_VP_PA_444DScale16_Buf_0_Rot_90 156
+#define IDR_VP_PA_444DScale16_Buf_1 157
+#define IDR_VP_PA_444DScale16_Buf_1_Rot_180 158
+#define IDR_VP_PA_444DScale16_Buf_1_Rot_270 159
+#define IDR_VP_PA_444DScale16_Buf_1_Rot_90 160
+#define IDR_VP_PA_444DScale16_Buf_2 161
+#define IDR_VP_PA_444DScale16_Buf_2_Rot_180 162
+#define IDR_VP_PA_444DScale16_Buf_2_Rot_270 163
+#define IDR_VP_PA_444DScale16_Buf_2_Rot_90 164
+#define IDR_VP_PA_444DScale16_Buf_3 165
+#define IDR_VP_PA_444DScale16_Buf_3_Rot_180 166
+#define IDR_VP_PA_444DScale16_Buf_3_Rot_270 167
+#define IDR_VP_PA_444DScale16_Buf_3_Rot_90 168
+#define IDR_VP_PA_444DScale16_Buf_4 169
+#define IDR_VP_PA_444DScale16_Buf_4_Rot_180 170
+#define IDR_VP_PA_444DScale16_Buf_4_Rot_270 171
+#define IDR_VP_PA_444DScale16_Buf_4_Rot_90 172
+#define IDR_VP_PA_444DScale16_Buf_5 173
+#define IDR_VP_PA_444DScale16_Buf_5_Rot_180 174
+#define IDR_VP_PA_444DScale16_Buf_5_Rot_270 175
+#define IDR_VP_PA_444DScale16_Buf_5_Rot_90 176
+#define IDR_VP_PA_444Scale16_Buf_0 177
+#define IDR_VP_PA_444Scale16_Buf_0_Rot_180 178
+#define IDR_VP_PA_444Scale16_Buf_0_Rot_270 179
+#define IDR_VP_PA_444Scale16_Buf_0_Rot_90 180
+#define IDR_VP_PA_444Scale16_Buf_1 181
+#define IDR_VP_PA_444Scale16_Buf_1_Rot_180 182
+#define IDR_VP_PA_444Scale16_Buf_1_Rot_270 183
+#define IDR_VP_PA_444Scale16_Buf_1_Rot_90 184
+#define IDR_VP_PA_444Scale16_Buf_2 185
+#define IDR_VP_PA_444Scale16_Buf_2_Rot_180 186
+#define IDR_VP_PA_444Scale16_Buf_2_Rot_270 187
+#define IDR_VP_PA_444Scale16_Buf_2_Rot_90 188
+#define IDR_VP_PA_444Scale16_Buf_3 189
+#define IDR_VP_PA_444Scale16_Buf_3_Rot_180 190
+#define IDR_VP_PA_444Scale16_Buf_3_Rot_270 191
+#define IDR_VP_PA_444Scale16_Buf_3_Rot_90 192
+#define IDR_VP_PA_444Scale16_Buf_4 193
+#define IDR_VP_PA_444Scale16_Buf_4_Rot_180 194
+#define IDR_VP_PA_444Scale16_Buf_4_Rot_270 195
+#define IDR_VP_PA_444Scale16_Buf_4_Rot_90 196
+#define IDR_VP_PA_444Scale16_Buf_5 197
+#define IDR_VP_PA_444Scale16_Buf_5_Rot_180 198
+#define IDR_VP_PA_444Scale16_Buf_5_Rot_270 199
+#define IDR_VP_PA_444Scale16_Buf_5_Rot_90 200
+#define IDR_VP_PA_444iAVS16_Buf_0 201
+#define IDR_VP_PA_444iAVS16_Buf_1 202
+#define IDR_VP_PA_444iAVS16_Buf_2 203
+#define IDR_VP_PA_444iAVS16_Buf_3 204
+#define IDR_VP_PA_444iDScale16_Buf_0 205
+#define IDR_VP_PA_444iDScale16_Buf_1 206
+#define IDR_VP_PA_444iDScale16_Buf_2 207
+#define IDR_VP_PA_444iDScale16_Buf_3 208
+#define IDR_VP_PA_444iScale16_Buf_0 209
+#define IDR_VP_PA_444iScale16_Buf_0_Rot_180 210
+#define IDR_VP_PA_444iScale16_Buf_0_Rot_270 211
+#define IDR_VP_PA_444iScale16_Buf_0_Rot_90 212
+#define IDR_VP_PA_444iScale16_Buf_1 213
+#define IDR_VP_PA_444iScale16_Buf_1_Rot_180 214
+#define IDR_VP_PA_444iScale16_Buf_1_Rot_270 215
+#define IDR_VP_PA_444iScale16_Buf_1_Rot_90 216
+#define IDR_VP_PA_444iScale16_Buf_2 217
+#define IDR_VP_PA_444iScale16_Buf_2_Rot_180 218
+#define IDR_VP_PA_444iScale16_Buf_2_Rot_270 219
+#define IDR_VP_PA_444iScale16_Buf_2_Rot_90 220
+#define IDR_VP_PA_444iScale16_Buf_3 221
+#define IDR_VP_PA_444iScale16_Buf_3_Rot_180 222
+#define IDR_VP_PA_444iScale16_Buf_3_Rot_270 223
+#define IDR_VP_PA_444iScale16_Buf_3_Rot_90 224
+#define IDR_VP_PA_AVS_Mirror_H_L0 225
+#define IDR_VP_PA_AVS_Mirror_V_L0 226
+#define IDR_VP_PA_AVS_Rotate_90_Mirror_H_L0 227
+#define IDR_VP_PA_AVS_Rotate_90_Mirror_V_L0 228
+#define IDR_VP_PA_AVS_Rotate_L0_180 229
+#define IDR_VP_PA_AVS_Rotate_L0_270 230
+#define IDR_VP_PA_AVS_Rotate_L0_90 231
+#define IDR_VP_PA_Copy 232
+#define IDR_VP_PA_Scale_Mirror_H_L0 233
+#define IDR_VP_PA_Scale_Mirror_V_L0 234
+#define IDR_VP_PA_Scale_Rotate90_Mirror_H_L0 235
+#define IDR_VP_PA_Scale_Rotate90_Mirror_V_L0 236
+#define IDR_VP_PA_Scale_Rotate_L0_180 237
+#define IDR_VP_PA_Scale_Rotate_L0_270 238
+#define IDR_VP_PA_Scale_Rotate_L0_90 239
+#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_0 240
+#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_1 241
+#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_2 242
+#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_3 243
+#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_4 244
+#define IDR_VP_PL2_422AVS16_ChromaSiting_Buf_5 245
+#define IDR_VP_PL2_444AVS16_Buf_0 246
+#define IDR_VP_PL2_444AVS16_Buf_0_Rot_180 247
+#define IDR_VP_PL2_444AVS16_Buf_0_Rot_270 248
+#define IDR_VP_PL2_444AVS16_Buf_0_Rot_90 249
+#define IDR_VP_PL2_444AVS16_Buf_1 250
+#define IDR_VP_PL2_444AVS16_Buf_1_Rot_180 251
+#define IDR_VP_PL2_444AVS16_Buf_1_Rot_270 252
+#define IDR_VP_PL2_444AVS16_Buf_1_Rot_90 253
+#define IDR_VP_PL2_444AVS16_Buf_2 254
+#define IDR_VP_PL2_444AVS16_Buf_2_Rot_180 255
+#define IDR_VP_PL2_444AVS16_Buf_2_Rot_270 256
+#define IDR_VP_PL2_444AVS16_Buf_2_Rot_90 257
+#define IDR_VP_PL2_444AVS16_Buf_3 258
+#define IDR_VP_PL2_444AVS16_Buf_3_Rot_180 259
+#define IDR_VP_PL2_444AVS16_Buf_3_Rot_270 260
+#define IDR_VP_PL2_444AVS16_Buf_3_Rot_90 261
+#define IDR_VP_PL2_444AVS16_Buf_4 262
+#define IDR_VP_PL2_444AVS16_Buf_4_Rot_180 263
+#define IDR_VP_PL2_444AVS16_Buf_4_Rot_270 264
+#define IDR_VP_PL2_444AVS16_Buf_4_Rot_90 265
+#define IDR_VP_PL2_444AVS16_Buf_5 266
+#define IDR_VP_PL2_444AVS16_Buf_5_Rot_180 267
+#define IDR_VP_PL2_444AVS16_Buf_5_Rot_270 268
+#define IDR_VP_PL2_444AVS16_Buf_5_Rot_90 269
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4 270
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4_Rot_180 271
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4_Rot_270 272
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_4_Rot_90 273
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5 274
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5_Rot_180 275
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5_Rot_270 276
+#define IDR_VP_PL2_444AVS16_Buf_Sep_Alpha_5_Rot_90 277
+#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_0 278
+#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_1 279
+#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_2 280
+#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_3 281
+#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_4 282
+#define IDR_VP_PL2_444AVS16_ChromaSiting_Buf_5 283
+#define IDR_VP_PL2_444DScale16_Buf_0 284
+#define IDR_VP_PL2_444DScale16_Buf_0_Rot_180 285
+#define IDR_VP_PL2_444DScale16_Buf_0_Rot_270 286
+#define IDR_VP_PL2_444DScale16_Buf_0_Rot_90 287
+#define IDR_VP_PL2_444DScale16_Buf_1 288
+#define IDR_VP_PL2_444DScale16_Buf_1_Rot_180 289
+#define IDR_VP_PL2_444DScale16_Buf_1_Rot_270 290
+#define IDR_VP_PL2_444DScale16_Buf_1_Rot_90 291
+#define IDR_VP_PL2_444DScale16_Buf_2 292
+#define IDR_VP_PL2_444DScale16_Buf_2_Rot_180 293
+#define IDR_VP_PL2_444DScale16_Buf_2_Rot_270 294
+#define IDR_VP_PL2_444DScale16_Buf_2_Rot_90 295
+#define IDR_VP_PL2_444DScale16_Buf_3 296
+#define IDR_VP_PL2_444DScale16_Buf_3_Rot_180 297
+#define IDR_VP_PL2_444DScale16_Buf_3_Rot_270 298
+#define IDR_VP_PL2_444DScale16_Buf_3_Rot_90 299
+#define IDR_VP_PL2_444DScale16_Buf_4 300
+#define IDR_VP_PL2_444DScale16_Buf_4_Rot_180 301
+#define IDR_VP_PL2_444DScale16_Buf_4_Rot_270 302
+#define IDR_VP_PL2_444DScale16_Buf_4_Rot_90 303
+#define IDR_VP_PL2_444DScale16_Buf_5 304
+#define IDR_VP_PL2_444DScale16_Buf_5_Rot_180 305
+#define IDR_VP_PL2_444DScale16_Buf_5_Rot_270 306
+#define IDR_VP_PL2_444DScale16_Buf_5_Rot_90 307
+#define IDR_VP_PL2_444DScale16_Buf_Sep_Alpha_4 308
+#define IDR_VP_PL2_444DScale16_Buf_Sep_Alpha_5 309
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_0 310
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_0_Rot_180 311
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_0_Rot_270 312
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_0_Rot_90 313
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_1 314
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_1_Rot_180 315
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_1_Rot_270 316
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_1_Rot_90 317
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_2 318
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_2_Rot_180 319
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_2_Rot_270 320
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_2_Rot_90 321
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_3 322
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_3_Rot_180 323
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_3_Rot_270 324
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_3_Rot_90 325
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_4 326
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_4_Rot_180 327
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_4_Rot_270 328
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_4_Rot_90 329
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_5 330
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_5_Rot_180 331
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_5_Rot_270 332
+#define IDR_VP_PL2_444DScale16_ChromaSiting_Buf_5_Rot_90 333
+#define IDR_VP_PL2_444Scale16_Buf_0 334
+#define IDR_VP_PL2_444Scale16_Buf_0_Rot_180 335
+#define IDR_VP_PL2_444Scale16_Buf_0_Rot_270 336
+#define IDR_VP_PL2_444Scale16_Buf_0_Rot_90 337
+#define IDR_VP_PL2_444Scale16_Buf_1 338
+#define IDR_VP_PL2_444Scale16_Buf_1_Rot_180 339
+#define IDR_VP_PL2_444Scale16_Buf_1_Rot_270 340
+#define IDR_VP_PL2_444Scale16_Buf_1_Rot_90 341
+#define IDR_VP_PL2_444Scale16_Buf_2 342
+#define IDR_VP_PL2_444Scale16_Buf_2_Rot_180 343
+#define IDR_VP_PL2_444Scale16_Buf_2_Rot_270 344
+#define IDR_VP_PL2_444Scale16_Buf_2_Rot_90 345
+#define IDR_VP_PL2_444Scale16_Buf_3 346
+#define IDR_VP_PL2_444Scale16_Buf_3_Rot_180 347
+#define IDR_VP_PL2_444Scale16_Buf_3_Rot_270 348
+#define IDR_VP_PL2_444Scale16_Buf_3_Rot_90 349
+#define IDR_VP_PL2_444Scale16_Buf_4 350
+#define IDR_VP_PL2_444Scale16_Buf_4_Rot_180 351
+#define IDR_VP_PL2_444Scale16_Buf_4_Rot_270 352
+#define IDR_VP_PL2_444Scale16_Buf_4_Rot_90 353
+#define IDR_VP_PL2_444Scale16_Buf_5 354
+#define IDR_VP_PL2_444Scale16_Buf_5_Rot_180 355
+#define IDR_VP_PL2_444Scale16_Buf_5_Rot_270 356
+#define IDR_VP_PL2_444Scale16_Buf_5_Rot_90 357
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4 358
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4_Rot_180 359
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4_Rot_270 360
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_4_Rot_90 361
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5 362
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5_Rot_180 363
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5_Rot_270 364
+#define IDR_VP_PL2_444Scale16_Buf_Sep_Alpha_5_Rot_90 365
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0 366
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0_Rot_180 367
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0_Rot_270 368
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_0_Rot_90 369
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1 370
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1_Rot_180 371
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1_Rot_270 372
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_1_Rot_90 373
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2 374
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2_Rot_180 375
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2_Rot_270 376
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_2_Rot_90 377
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3 378
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3_Rot_180 379
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3_Rot_270 380
+#define IDR_VP_PL2_444Scale16_Chromasiting_Buf_3_Rot_90 381
+#define IDR_VP_PL2_444iDScale16_Buf_0 382
+#define IDR_VP_PL2_444iDScale16_Buf_1 383
+#define IDR_VP_PL2_444iDScale16_Buf_2 384
+#define IDR_VP_PL2_444iDScale16_Buf_3 385
+#define IDR_VP_PL2_444iScale16_Buf_0 386
+#define IDR_VP_PL2_444iScale16_Buf_0_Rot_180 387
+#define IDR_VP_PL2_444iScale16_Buf_0_Rot_270 388
+#define IDR_VP_PL2_444iScale16_Buf_0_Rot_90 389
+#define IDR_VP_PL2_444iScale16_Buf_1 390
+#define IDR_VP_PL2_444iScale16_Buf_1_Rot_180 391
+#define IDR_VP_PL2_444iScale16_Buf_1_Rot_270 392
+#define IDR_VP_PL2_444iScale16_Buf_1_Rot_90 393
+#define IDR_VP_PL2_444iScale16_Buf_2 394
+#define IDR_VP_PL2_444iScale16_Buf_2_Rot_180 395
+#define IDR_VP_PL2_444iScale16_Buf_2_Rot_270 396
+#define IDR_VP_PL2_444iScale16_Buf_2_Rot_90 397
+#define IDR_VP_PL2_444iScale16_Buf_3 398
+#define IDR_VP_PL2_444iScale16_Buf_3_Rot_180 399
+#define IDR_VP_PL2_444iScale16_Buf_3_Rot_270 400
+#define IDR_VP_PL2_444iScale16_Buf_3_Rot_90 401
+#define IDR_VP_PL2_AVS_Mirror_H_L0 402
+#define IDR_VP_PL2_AVS_Mirror_H_L0_DualOutput 403
+#define IDR_VP_PL2_AVS_Mirror_V_L0 404
+#define IDR_VP_PL2_AVS_Rotate90_Mirror_H_L0 405
+#define IDR_VP_PL2_AVS_Rotate90_Mirror_V_L0 406
+#define IDR_VP_PL2_AVS_Rotate_L0_180 407
+#define IDR_VP_PL2_AVS_Rotate_L0_270 408
+#define IDR_VP_PL2_AVS_Rotate_L0_90 409
+#define IDR_VP_PL2_Copy 410
+#define IDR_VP_PL2_Scale_Mirror_H_L0 411
+#define IDR_VP_PL2_Scale_Mirror_H_L0_DualOutput 412
+#define IDR_VP_PL2_Scale_Mirror_V_L0 413
+#define IDR_VP_PL2_Scale_Rotate90_Mirror_H_L0 414
+#define IDR_VP_PL2_Scale_Rotate90_Mirror_V_L0 415
+#define IDR_VP_PL2_Scale_Rotate_L0_180 416
+#define IDR_VP_PL2_Scale_Rotate_L0_270 417
+#define IDR_VP_PL2_Scale_Rotate_L0_90 418
+#define IDR_VP_PL3_444AVS16_Buf_0 419
+#define IDR_VP_PL3_444AVS16_Buf_0_Rot_180 420
+#define IDR_VP_PL3_444AVS16_Buf_0_Rot_270 421
+#define IDR_VP_PL3_444AVS16_Buf_0_Rot_90 422
+#define IDR_VP_PL3_444AVS16_Buf_1 423
+#define IDR_VP_PL3_444AVS16_Buf_1_Rot_180 424
+#define IDR_VP_PL3_444AVS16_Buf_1_Rot_270 425
+#define IDR_VP_PL3_444AVS16_Buf_1_Rot_90 426
+#define IDR_VP_PL3_444AVS16_Buf_2 427
+#define IDR_VP_PL3_444AVS16_Buf_2_Rot_180 428
+#define IDR_VP_PL3_444AVS16_Buf_2_Rot_270 429
+#define IDR_VP_PL3_444AVS16_Buf_2_Rot_90 430
+#define IDR_VP_PL3_444AVS16_Buf_3 431
+#define IDR_VP_PL3_444AVS16_Buf_3_Rot_180 432
+#define IDR_VP_PL3_444AVS16_Buf_3_Rot_270 433
+#define IDR_VP_PL3_444AVS16_Buf_3_Rot_90 434
+#define IDR_VP_PL3_444AVS16_Buf_4 435
+#define IDR_VP_PL3_444AVS16_Buf_4_Rot_180 436
+#define IDR_VP_PL3_444AVS16_Buf_4_Rot_270 437
+#define IDR_VP_PL3_444AVS16_Buf_4_Rot_90 438
+#define IDR_VP_PL3_444AVS16_Buf_5 439
+#define IDR_VP_PL3_444AVS16_Buf_5_Rot_180 440
+#define IDR_VP_PL3_444AVS16_Buf_5_Rot_270 441
+#define IDR_VP_PL3_444AVS16_Buf_5_Rot_90 442
+#define IDR_VP_PL3_444DScale16_Buf_0 443
+#define IDR_VP_PL3_444DScale16_Buf_0_Rot_180 444
+#define IDR_VP_PL3_444DScale16_Buf_0_Rot_270 445
+#define IDR_VP_PL3_444DScale16_Buf_0_Rot_90 446
+#define IDR_VP_PL3_444DScale16_Buf_1 447
+#define IDR_VP_PL3_444DScale16_Buf_1_Rot_180 448
+#define IDR_VP_PL3_444DScale16_Buf_1_Rot_270 449
+#define IDR_VP_PL3_444DScale16_Buf_1_Rot_90 450
+#define IDR_VP_PL3_444DScale16_Buf_2 451
+#define IDR_VP_PL3_444DScale16_Buf_2_Rot_180 452
+#define IDR_VP_PL3_444DScale16_Buf_2_Rot_270 453
+#define IDR_VP_PL3_444DScale16_Buf_2_Rot_90 454
+#define IDR_VP_PL3_444DScale16_Buf_3 455
+#define IDR_VP_PL3_444DScale16_Buf_3_Rot_180 456
+#define IDR_VP_PL3_444DScale16_Buf_3_Rot_270 457
+#define IDR_VP_PL3_444DScale16_Buf_3_Rot_90 458
+#define IDR_VP_PL3_444DScale16_Buf_4 459
+#define IDR_VP_PL3_444DScale16_Buf_4_Rot_180 460
+#define IDR_VP_PL3_444DScale16_Buf_4_Rot_270 461
+#define IDR_VP_PL3_444DScale16_Buf_4_Rot_90 462
+#define IDR_VP_PL3_444DScale16_Buf_5 463
+#define IDR_VP_PL3_444DScale16_Buf_5_Rot_180 464
+#define IDR_VP_PL3_444DScale16_Buf_5_Rot_270 465
+#define IDR_VP_PL3_444DScale16_Buf_5_Rot_90 466
+#define IDR_VP_PL3_444Scale16_Buf_0 467
+#define IDR_VP_PL3_444Scale16_Buf_0_Rot_180 468
+#define IDR_VP_PL3_444Scale16_Buf_0_Rot_270 469
+#define IDR_VP_PL3_444Scale16_Buf_0_Rot_90 470
+#define IDR_VP_PL3_444Scale16_Buf_1 471
+#define IDR_VP_PL3_444Scale16_Buf_1_Rot_180 472
+#define IDR_VP_PL3_444Scale16_Buf_1_Rot_270 473
+#define IDR_VP_PL3_444Scale16_Buf_1_Rot_90 474
+#define IDR_VP_PL3_444Scale16_Buf_2 475
+#define IDR_VP_PL3_444Scale16_Buf_2_Rot_180 476
+#define IDR_VP_PL3_444Scale16_Buf_2_Rot_270 477
+#define IDR_VP_PL3_444Scale16_Buf_2_Rot_90 478
+#define IDR_VP_PL3_444Scale16_Buf_3 479
+#define IDR_VP_PL3_444Scale16_Buf_3_Rot_180 480
+#define IDR_VP_PL3_444Scale16_Buf_3_Rot_270 481
+#define IDR_VP_PL3_444Scale16_Buf_3_Rot_90 482
+#define IDR_VP_PL3_444Scale16_Buf_4 483
+#define IDR_VP_PL3_444Scale16_Buf_4_Rot_180 484
+#define IDR_VP_PL3_444Scale16_Buf_4_Rot_270 485
+#define IDR_VP_PL3_444Scale16_Buf_4_Rot_90 486
+#define IDR_VP_PL3_444Scale16_Buf_5 487
+#define IDR_VP_PL3_444Scale16_Buf_5_Rot_180 488
+#define IDR_VP_PL3_444Scale16_Buf_5_Rot_270 489
+#define IDR_VP_PL3_444Scale16_Buf_5_Rot_90 490
+#define IDR_VP_PL3_444iDScale16_Buf_0 491
+#define IDR_VP_PL3_444iDScale16_Buf_1 492
+#define IDR_VP_PL3_444iDScale16_Buf_2 493
+#define IDR_VP_PL3_444iDScale16_Buf_3 494
+#define IDR_VP_PL3_444iScale16_Buf_0 495
+#define IDR_VP_PL3_444iScale16_Buf_0_Rot_180 496
+#define IDR_VP_PL3_444iScale16_Buf_0_Rot_270 497
+#define IDR_VP_PL3_444iScale16_Buf_0_Rot_90 498
+#define IDR_VP_PL3_444iScale16_Buf_1 499
+#define IDR_VP_PL3_444iScale16_Buf_1_Rot_180 500
+#define IDR_VP_PL3_444iScale16_Buf_1_Rot_270 501
+#define IDR_VP_PL3_444iScale16_Buf_1_Rot_90 502
+#define IDR_VP_PL3_444iScale16_Buf_2 503
+#define IDR_VP_PL3_444iScale16_Buf_2_Rot_180 504
+#define IDR_VP_PL3_444iScale16_Buf_2_Rot_270 505
+#define IDR_VP_PL3_444iScale16_Buf_2_Rot_90 506
+#define IDR_VP_PL3_444iScale16_Buf_3 507
+#define IDR_VP_PL3_444iScale16_Buf_3_Rot_180 508
+#define IDR_VP_PL3_444iScale16_Buf_3_Rot_270 509
+#define IDR_VP_PL3_444iScale16_Buf_3_Rot_90 510
+#define IDR_VP_PL3_AVS_Rotate_L0_180 511
+#define IDR_VP_PL3_AVS_Rotate_L0_270 512
+#define IDR_VP_PL3_AVS_Rotate_L0_90 513
+#define IDR_VP_PL3_Scale_Rotate_L0_180 514
+#define IDR_VP_PL3_Scale_Rotate_L0_270 515
+#define IDR_VP_PL3_Scale_Rotate_L0_90 516
+#define IDR_VP_PLY_444DScale16_2f_Buf_0 517
+#define IDR_VP_PLY_444DScale16_2f_Buf_1 518
+#define IDR_VP_PLY_444DScale16_2f_Buf_2 519
+#define IDR_VP_PLY_444DScale16_2f_Buf_3 520
+#define IDR_VP_PLY_444DScale16_Buf_0 521
+#define IDR_VP_PLY_444DScale16_Buf_0_Rot_180 522
+#define IDR_VP_PLY_444DScale16_Buf_0_Rot_270 523
+#define IDR_VP_PLY_444DScale16_Buf_0_Rot_90 524
+#define IDR_VP_PLY_444DScale16_Buf_1 525
+#define IDR_VP_PLY_444DScale16_Buf_1_Rot_180 526
+#define IDR_VP_PLY_444DScale16_Buf_1_Rot_270 527
+#define IDR_VP_PLY_444DScale16_Buf_1_Rot_90 528
+#define IDR_VP_PLY_444DScale16_Buf_2 529
+#define IDR_VP_PLY_444DScale16_Buf_2_Rot_180 530
+#define IDR_VP_PLY_444DScale16_Buf_2_Rot_270 531
+#define IDR_VP_PLY_444DScale16_Buf_2_Rot_90 532
+#define IDR_VP_PLY_444DScale16_Buf_3 533
+#define IDR_VP_PLY_444DScale16_Buf_3_Rot_180 534
+#define IDR_VP_PLY_444DScale16_Buf_3_Rot_270 535
+#define IDR_VP_PLY_444DScale16_Buf_3_Rot_90 536
+#define IDR_VP_PartBlend_444_16 537
+#define IDR_VP_Prepare_LumaKey_SampleUnorm 538
+#define IDR_VP_RGB2sRGB 539
+#define IDR_VP_Rotate_90_Mirror_AVS_H_L0 540
+#define IDR_VP_Rotate_90_Mirror_AVS_V_L0 541
+#define IDR_VP_Rotate_90_Mirror_H_scale_L0 542
+#define IDR_VP_Rotate_90_Mirror_V_scale_L0 543
+#define IDR_VP_Rotate_AVS_L0_180 544
+#define IDR_VP_Rotate_AVS_L0_270 545
+#define IDR_VP_Rotate_AVS_L0_90 546
+#define IDR_VP_Rotate_Scale_L0_180 547
+#define IDR_VP_Rotate_Scale_L0_270 548
+#define IDR_VP_Rotate_Scale_L0_90 549
+#define IDR_VP_SIP_Debug 550
+#define IDR_VP_Save_444AVS16_ARGB 551
+#define IDR_VP_Save_444AVS16_ARGB_64Byte 552
+#define IDR_VP_Save_444AVS16_NV12 553
+#define IDR_VP_Save_444AVS16_NV21 554
+#define IDR_VP_Save_444AVS16_PA 555
+#define IDR_VP_Save_444AVS16_PL3 556
+#define IDR_VP_Save_444AVS16_R10G10B10 557
+#define IDR_VP_Save_444AVS16_R10G10B10A2 558
+#define IDR_VP_Save_444AVS16_R10G10B10X2 559
+#define IDR_VP_Save_444AVS16_RGB 560
+#define IDR_VP_Save_444AVS16_RGB16 561
+#define IDR_VP_Save_444AVS16_RGB_64Byte 562
+#define IDR_VP_Save_444AVS16_SrcAYUV 563
+#define IDR_VP_Save_444AVS16_XRGB 564
+#define IDR_VP_Save_444AVS16_XRGB_64Byte 565
+#define IDR_VP_Save_444Scale16_ARGB 566
+#define IDR_VP_Save_444Scale16_ARGB_64Byte 567
+#define IDR_VP_Save_444Scale16_Dither_NV12 568
+#define IDR_VP_Save_444Scale16_Dither_NV21 569
+#define IDR_VP_Save_444Scale16_Dither_PA 570
+#define IDR_VP_Save_444Scale16_Dither_PA_32X16 571
+#define IDR_VP_Save_444Scale16_Dither_PL3 572
+#define IDR_VP_Save_444Scale16_Dither_RGB 573
+#define IDR_VP_Save_444Scale16_Dither_RGB16 574
+#define IDR_VP_Save_444Scale16_Dither_RGB_64Byte 575
+#define IDR_VP_Save_444Scale16_Dither_VUYA 576
+#define IDR_VP_Save_444Scale16_Dither_XRGB 577
+#define IDR_VP_Save_444Scale16_Dither_XRGB_64Byte 578
+#define IDR_VP_Save_444Scale16_NV12 579
+#define IDR_VP_Save_444Scale16_NV21 580
+#define IDR_VP_Save_444Scale16_P010 581
+#define IDR_VP_Save_444Scale16_P016 582
+#define IDR_VP_Save_444Scale16_PA 583
+#define IDR_VP_Save_444Scale16_PA_32X16 584
+#define IDR_VP_Save_444Scale16_PL3 585
+#define IDR_VP_Save_444Scale16_PLY 586
+#define IDR_VP_Save_444Scale16_R10G10B10 587
+#define IDR_VP_Save_444Scale16_R10G10B10A2 588
+#define IDR_VP_Save_444Scale16_R10G10B10X2 589
+#define IDR_VP_Save_444Scale16_R10G10B10XR 590
+#define IDR_VP_Save_444Scale16_R10G10B10XRA2 591
+#define IDR_VP_Save_444Scale16_R10G10B10XRX2 592
+#define IDR_VP_Save_444Scale16_RGB 593
+#define IDR_VP_Save_444Scale16_RGB16 594
+#define IDR_VP_Save_444Scale16_RGBP 595
+#define IDR_VP_Save_444Scale16_RGB_64Byte 596
+#define IDR_VP_Save_444Scale16_SrcVUYA 597
+#define IDR_VP_Save_444Scale16_SrcY416 598
+#define IDR_VP_Save_444Scale16_VUYA 599
+#define IDR_VP_Save_444Scale16_XRGB 600
+#define IDR_VP_Save_444Scale16_XRGB_64Byte 601
+#define IDR_VP_Save_444Scale16_Y210 602
+#define IDR_VP_Save_444Scale16_Y216 603
+#define IDR_VP_Save_444Scale16_Y410 604
+#define IDR_VP_Save_444Scale16_Y416 605
+#define IDR_VP_Secure_Block_Copy 606
+#define IDR_VP_Set_Buf0_Buf4 607
+#define IDR_VP_Set_Buf1_Buf5 608
+#define IDR_VP_Set_Buf2_Buf4 609
+#define IDR_VP_Set_Buf3_Buf5 610
+#define IDR_VP_Set_CSC_Src_Buf0 611
+#define IDR_VP_Set_CSC_Src_Buf1 612
+#define IDR_VP_Set_CSC_Src_Buf2 613
+#define IDR_VP_Set_CSC_Src_Buf3 614
+#define IDR_VP_Set_CSC_Src_Buf4 615
+#define IDR_VP_Set_CSC_Src_Buf5 616
+#define IDR_VP_Set_CURBE_CSC_Coeff 617
+#define IDR_VP_Set_ColorE_Src_Buf0 618
+#define IDR_VP_Set_ColorE_Src_Buf1 619
+#define IDR_VP_Set_ColorE_Src_Buf2 620
+#define IDR_VP_Set_ColorE_Src_Buf3 621
+#define IDR_VP_Set_Dest_Surf_Indexes_Primary 622
+#define IDR_VP_Set_Dest_Surf_Indexes_Secondary 623
+#define IDR_VP_Set_GammaC_Src_Buf0 624
+#define IDR_VP_Set_GammaC_Src_Buf1 625
+#define IDR_VP_Set_GammaC_Src_Buf2 626
+#define IDR_VP_Set_GammaC_Src_Buf3 627
+#define IDR_VP_Set_Layer_0 628
+#define IDR_VP_Set_Layer_1 629
+#define IDR_VP_Set_Layer_1_AVS 630
+#define IDR_VP_Set_Layer_2 631
+#define IDR_VP_Set_Layer_3 632
+#define IDR_VP_Set_Layer_4 633
+#define IDR_VP_Set_Layer_5 634
+#define IDR_VP_Set_Layer_6 635
+#define IDR_VP_Set_Layer_7 636
+#define IDR_VP_Set_Patched_CSC_Coeff 637
+#define IDR_VP_Set_Scale_Buf_0123_Colorfill 638
+#define IDR_VP_Set_Sec_Half_Buf45 639
+#define IDR_VP_Shuffle_444AVS16_Buf_0 640
+#define IDR_VP_Shuffle_444AVS16_Buf_1 641
+#define IDR_VP_Shuffle_444AVS16_Buf_2 642
+#define IDR_VP_Shuffle_444AVS16_Buf_3 643
+#define IDR_VP_Shuffle_444AVS16_Buf_4 644
+#define IDR_VP_Shuffle_444AVS16_Buf_5 645
+#define IDR_VP_SrcBlend_444_16 646
+#define IDR_VP_SrcBlend_4bits_444_16 647
+#define IDR_VP_UpdateDNState 648
+#define IDR_VP_VP_Setup 649
+#define IDR_VP_VP_Setup_MediaWalker 650
+#define IDR_VP_VP_Setup_MediaWalker_32X16_Design 651
+#define IDR_VP_VP_Setup_MediaWalker_32x32_Color 652
+#define IDR_VP_Y210_444DScale16_Buf_0 653
+#define IDR_VP_Y210_444DScale16_Buf_0_Rot_180 654
+#define IDR_VP_Y210_444DScale16_Buf_0_Rot_270 655
+#define IDR_VP_Y210_444DScale16_Buf_0_Rot_90 656
+#define IDR_VP_Y210_444DScale16_Buf_1 657
+#define IDR_VP_Y210_444DScale16_Buf_1_Rot_180 658
+#define IDR_VP_Y210_444DScale16_Buf_1_Rot_270 659
+#define IDR_VP_Y210_444DScale16_Buf_1_Rot_90 660
+#define IDR_VP_Y210_444DScale16_Buf_2 661
+#define IDR_VP_Y210_444DScale16_Buf_2_Rot_180 662
+#define IDR_VP_Y210_444DScale16_Buf_2_Rot_270 663
+#define IDR_VP_Y210_444DScale16_Buf_2_Rot_90 664
+#define IDR_VP_Y210_444DScale16_Buf_3 665
+#define IDR_VP_Y210_444DScale16_Buf_3_Rot_180 666
+#define IDR_VP_Y210_444DScale16_Buf_3_Rot_270 667
+#define IDR_VP_Y210_444DScale16_Buf_3_Rot_90 668
+#define IDR_VP_Y210_444DScale16_Buf_4 669
+#define IDR_VP_Y210_444DScale16_Buf_4_Rot_180 670
+#define IDR_VP_Y210_444DScale16_Buf_4_Rot_270 671
+#define IDR_VP_Y210_444DScale16_Buf_4_Rot_90 672
+#define IDR_VP_Y210_444DScale16_Buf_5 673
+#define IDR_VP_Y210_444DScale16_Buf_5_Rot_180 674
+#define IDR_VP_Y210_444DScale16_Buf_5_Rot_270 675
+#define IDR_VP_Y210_444DScale16_Buf_5_Rot_90 676
+#define IDR_VP_Y210_444Scale16_Buf_0 677
+#define IDR_VP_Y210_444Scale16_Buf_0_Rot_180 678
+#define IDR_VP_Y210_444Scale16_Buf_0_Rot_270 679
+#define IDR_VP_Y210_444Scale16_Buf_0_Rot_90 680
+#define IDR_VP_Y210_444Scale16_Buf_1 681
+#define IDR_VP_Y210_444Scale16_Buf_1_Rot_180 682
+#define IDR_VP_Y210_444Scale16_Buf_1_Rot_270 683
+#define IDR_VP_Y210_444Scale16_Buf_1_Rot_90 684
+#define IDR_VP_Y210_444Scale16_Buf_2 685
+#define IDR_VP_Y210_444Scale16_Buf_2_Rot_180 686
+#define IDR_VP_Y210_444Scale16_Buf_2_Rot_270 687
+#define IDR_VP_Y210_444Scale16_Buf_2_Rot_90 688
+#define IDR_VP_Y210_444Scale16_Buf_3 689
+#define IDR_VP_Y210_444Scale16_Buf_3_Rot_180 690
+#define IDR_VP_Y210_444Scale16_Buf_3_Rot_270 691
+#define IDR_VP_Y210_444Scale16_Buf_3_Rot_90 692
+#define IDR_VP_Y210_444Scale16_Buf_4 693
+#define IDR_VP_Y210_444Scale16_Buf_4_Rot_180 694
+#define IDR_VP_Y210_444Scale16_Buf_4_Rot_270 695
+#define IDR_VP_Y210_444Scale16_Buf_4_Rot_90 696
+#define IDR_VP_Y210_444Scale16_Buf_5 697
+#define IDR_VP_Y210_444Scale16_Buf_5_Rot_180 698
+#define IDR_VP_Y210_444Scale16_Buf_5_Rot_270 699
+#define IDR_VP_Y210_444Scale16_Buf_5_Rot_90 700
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0 701
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0_Rot_180 702
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0_Rot_270 703
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_0_Rot_90 704
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1 705
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1_Rot_180 706
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1_Rot_270 707
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_1_Rot_90 708
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2 709
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2_Rot_180 710
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2_Rot_270 711
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_2_Rot_90 712
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3 713
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3_Rot_180 714
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3_Rot_270 715
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_3_Rot_90 716
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4 717
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_180 718
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_270 719
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_4_Rot_90 720
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5 721
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_180 722
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_270 723
+#define IDR_VP_Y210_444_AVS16_Y_Scale16_UV_Buf_5_Rot_90 724
+#define IDR_VP_Y410_444AVS16_Buf_0 725
+#define IDR_VP_Y410_444AVS16_Buf_0_Rot_180 726
+#define IDR_VP_Y410_444AVS16_Buf_0_Rot_270 727
+#define IDR_VP_Y410_444AVS16_Buf_0_Rot_90 728
+#define IDR_VP_Y410_444AVS16_Buf_1 729
+#define IDR_VP_Y410_444AVS16_Buf_1_Rot_180 730
+#define IDR_VP_Y410_444AVS16_Buf_1_Rot_270 731
+#define IDR_VP_Y410_444AVS16_Buf_1_Rot_90 732
+#define IDR_VP_Y410_444AVS16_Buf_2 733
+#define IDR_VP_Y410_444AVS16_Buf_2_Rot_180 734
+#define IDR_VP_Y410_444AVS16_Buf_2_Rot_270 735
+#define IDR_VP_Y410_444AVS16_Buf_2_Rot_90 736
+#define IDR_VP_Y410_444AVS16_Buf_3 737
+#define IDR_VP_Y410_444AVS16_Buf_3_Rot_180 738
+#define IDR_VP_Y410_444AVS16_Buf_3_Rot_270 739
+#define IDR_VP_Y410_444AVS16_Buf_3_Rot_90 740
+#define IDR_VP_Y410_444AVS16_Buf_4 741
+#define IDR_VP_Y410_444AVS16_Buf_4_Rot_180 742
+#define IDR_VP_Y410_444AVS16_Buf_4_Rot_270 743
+#define IDR_VP_Y410_444AVS16_Buf_4_Rot_90 744
+#define IDR_VP_Y410_444AVS16_Buf_5 745
+#define IDR_VP_Y410_444AVS16_Buf_5_Rot_180 746
+#define IDR_VP_Y410_444AVS16_Buf_5_Rot_270 747
+#define IDR_VP_Y410_444AVS16_Buf_5_Rot_90 748
+#define IDR_VP_Y410_444DScale16_Buf_0 749
+#define IDR_VP_Y410_444DScale16_Buf_0_Rot_180 750
+#define IDR_VP_Y410_444DScale16_Buf_0_Rot_270 751
+#define IDR_VP_Y410_444DScale16_Buf_0_Rot_90 752
+#define IDR_VP_Y410_444DScale16_Buf_1 753
+#define IDR_VP_Y410_444DScale16_Buf_1_Rot_180 754
+#define IDR_VP_Y410_444DScale16_Buf_1_Rot_270 755
+#define IDR_VP_Y410_444DScale16_Buf_1_Rot_90 756
+#define IDR_VP_Y410_444DScale16_Buf_2 757
+#define IDR_VP_Y410_444DScale16_Buf_2_Rot_180 758
+#define IDR_VP_Y410_444DScale16_Buf_2_Rot_270 759
+#define IDR_VP_Y410_444DScale16_Buf_2_Rot_90 760
+#define IDR_VP_Y410_444DScale16_Buf_3 761
+#define IDR_VP_Y410_444DScale16_Buf_3_Rot_180 762
+#define IDR_VP_Y410_444DScale16_Buf_3_Rot_270 763
+#define IDR_VP_Y410_444DScale16_Buf_3_Rot_90 764
+#define IDR_VP_Y410_444DScale16_Buf_4 765
+#define IDR_VP_Y410_444DScale16_Buf_4_Rot_180 766
+#define IDR_VP_Y410_444DScale16_Buf_4_Rot_270 767
+#define IDR_VP_Y410_444DScale16_Buf_4_Rot_90 768
+#define IDR_VP_Y410_444DScale16_Buf_5 769
+#define IDR_VP_Y410_444DScale16_Buf_5_Rot_180 770
+#define IDR_VP_Y410_444DScale16_Buf_5_Rot_270 771
+#define IDR_VP_Y410_444DScale16_Buf_5_Rot_90 772
+#define IDR_VP_Y410_444Scale16_Buf_0 773
+#define IDR_VP_Y410_444Scale16_Buf_0_Rot_180 774
+#define IDR_VP_Y410_444Scale16_Buf_0_Rot_270 775
+#define IDR_VP_Y410_444Scale16_Buf_0_Rot_90 776
+#define IDR_VP_Y410_444Scale16_Buf_1 777
+#define IDR_VP_Y410_444Scale16_Buf_1_Rot_180 778
+#define IDR_VP_Y410_444Scale16_Buf_1_Rot_270 779
+#define IDR_VP_Y410_444Scale16_Buf_1_Rot_90 780
+#define IDR_VP_Y410_444Scale16_Buf_2 781
+#define IDR_VP_Y410_444Scale16_Buf_2_Rot_180 782
+#define IDR_VP_Y410_444Scale16_Buf_2_Rot_270 783
+#define IDR_VP_Y410_444Scale16_Buf_2_Rot_90 784
+#define IDR_VP_Y410_444Scale16_Buf_3 785
+#define IDR_VP_Y410_444Scale16_Buf_3_Rot_180 786
+#define IDR_VP_Y410_444Scale16_Buf_3_Rot_270 787
+#define IDR_VP_Y410_444Scale16_Buf_3_Rot_90 788
+#define IDR_VP_Y410_444Scale16_Buf_4 789
+#define IDR_VP_Y410_444Scale16_Buf_4_Rot_180 790
+#define IDR_VP_Y410_444Scale16_Buf_4_Rot_270 791
+#define IDR_VP_Y410_444Scale16_Buf_4_Rot_90 792
+#define IDR_VP_Y410_444Scale16_Buf_5 793
+#define IDR_VP_Y410_444Scale16_Buf_5_Rot_180 794
+#define IDR_VP_Y410_444Scale16_Buf_5_Rot_270 795
+#define IDR_VP_Y410_444Scale16_Buf_5_Rot_90 796
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0 797
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0_Rot_180 798
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0_Rot_270 799
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_0_Rot_90 800
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1 801
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1_Rot_180 802
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1_Rot_270 803
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_1_Rot_90 804
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2 805
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2_Rot_180 806
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2_Rot_270 807
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_2_Rot_90 808
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3 809
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3_Rot_180 810
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3_Rot_270 811
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_3_Rot_90 812
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4 813
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4_Rot_180 814
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4_Rot_270 815
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_4_Rot_90 816
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5 817
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5_Rot_180 818
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5_Rot_270 819
+#define IDR_VP_YUY2_444Scale16_Chromasiting_Buf_5_Rot_90 820
+#define IDR_VP_camera_pipe_CalcParams 821
+#define IDR_VP_fast_avs_1_to_n 822
+#define IDR_VP_return 823
+#define IDR_VP_zzz_preproduction 824
+#define IDR_VP_zzz_preproduction_ALLPL2Copy_Gen 825
+#define IDR_VP_zzz_preproduction_HDR_mandatory_Gen 826
+#define IDR_VP_zzz_preproduction_HDR_per_frame_stat_Gen 827
+#define IDR_VP_zzz_preproduction_gcBltPS_32_To_128_Mirror_Gen 828
+#define IDR_VP_zzz_preproduction_gcBltPS_64_To_128_Mirror_Gen 829
+#define IDR_VP_zzz_preproduction_gcBltPS_Gen 830
+#define IDR_VP_zzz_preproduction_gcBlt_D11 831
+#define IDR_VP_zzz_preproduction_gcClearNoReplicatePS_Gen 832
+#define IDR_VP_zzz_preproduction_gcClearReplicatePS_Gen 833
+#define IDR_VP_zzz_preproduction_gcClear_NoReplicate_D11 834
+#define IDR_VP_zzz_preproduction_gcClear_Replicate_D11 835
+#define IDR_VP_zzz_preproduction_gcColorFillNoReplicatePS_Gen 836
+#define IDR_VP_zzz_preproduction_gcColorFillReplicatePS_Gen 837
+#define IDR_VP_zzz_preproduction_gcFastClearReplicatePS_Gen 838
+#define IDR_VP_zzz_preproduction_gcFastClear_Replicate_D11 839
+#define IDR_VP_zzz_preproduction_gcResourceCopy_D11 840
+#define IDR_VP_zzz_production 841
+#define IDR_VP_zzz_production_ALLPL2Copy_Gen 842
+#define IDR_VP_zzz_production_HDR_mandatory_Gen 843
+#define IDR_VP_zzz_production_HDR_per_frame_stat_Gen 844
+#define IDR_VP_zzz_production_gcBltPS_32_To_128_Mirror_Gen 845
+#define IDR_VP_zzz_production_gcBltPS_64_To_128_Mirror_Gen 846
+#define IDR_VP_zzz_production_gcBltPS_Gen 847
+#define IDR_VP_zzz_production_gcBlt_D11 848
+#define IDR_VP_zzz_production_gcClearNoReplicatePS_Gen 849
+#define IDR_VP_zzz_production_gcClearReplicatePS_Gen 850
+#define IDR_VP_zzz_production_gcClear_NoReplicate_D11 851
+#define IDR_VP_zzz_production_gcClear_Replicate_D11 852
+#define IDR_VP_zzz_production_gcColorFillNoReplicatePS_Gen 853
+#define IDR_VP_zzz_production_gcColorFillReplicatePS_Gen 854
+#define IDR_VP_zzz_production_gcFastClearReplicatePS_Gen 855
+#define IDR_VP_zzz_production_gcFastClear_Replicate_D11 856
+#define IDR_VP_zzz_production_gcResourceCopy_D11 857
+#define IDR_VP_TOTAL_NUM_KERNELS 858
 
 #if _DEBUG || _RELEASE_INTERNAL
 #define IDR_VP_KERNEL_NAMES   \
+    _T("1_1_16aligned"),\
     _T("3DLUT"),\
     _T("AlphaSrcBlendG"),\
     _T("ByteCopy"),\
@@ -993,23 +1047,29 @@
     _T("PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_2"),\
     _T("PA_444AVS16_HDC_DW_YCRCB_SWAPY_Buf_3"),\
     _T("PA_444DScale16_Buf_0"),\
+    _T("PA_444DScale16_Buf_0_Rot_180"),\
+    _T("PA_444DScale16_Buf_0_Rot_270"),\
+    _T("PA_444DScale16_Buf_0_Rot_90"),\
     _T("PA_444DScale16_Buf_1"),\
+    _T("PA_444DScale16_Buf_1_Rot_180"),\
+    _T("PA_444DScale16_Buf_1_Rot_270"),\
+    _T("PA_444DScale16_Buf_1_Rot_90"),\
     _T("PA_444DScale16_Buf_2"),\
+    _T("PA_444DScale16_Buf_2_Rot_180"),\
+    _T("PA_444DScale16_Buf_2_Rot_270"),\
+    _T("PA_444DScale16_Buf_2_Rot_90"),\
     _T("PA_444DScale16_Buf_3"),\
+    _T("PA_444DScale16_Buf_3_Rot_180"),\
+    _T("PA_444DScale16_Buf_3_Rot_270"),\
+    _T("PA_444DScale16_Buf_3_Rot_90"),\
     _T("PA_444DScale16_Buf_4"),\
+    _T("PA_444DScale16_Buf_4_Rot_180"),\
+    _T("PA_444DScale16_Buf_4_Rot_270"),\
+    _T("PA_444DScale16_Buf_4_Rot_90"),\
     _T("PA_444DScale16_Buf_5"),\
-    _T("PA_444Dscale16_Buf_0_Rot_180"),\
-    _T("PA_444Dscale16_Buf_0_Rot_270"),\
-    _T("PA_444Dscale16_Buf_0_Rot_90"),\
-    _T("PA_444Dscale16_Buf_1_Rot_180"),\
-    _T("PA_444Dscale16_Buf_1_Rot_270"),\
-    _T("PA_444Dscale16_Buf_1_Rot_90"),\
-    _T("PA_444Dscale16_Buf_2_Rot_180"),\
-    _T("PA_444Dscale16_Buf_2_Rot_270"),\
-    _T("PA_444Dscale16_Buf_2_Rot_90"),\
-    _T("PA_444Dscale16_Buf_3_Rot_180"),\
-    _T("PA_444Dscale16_Buf_3_Rot_270"),\
-    _T("PA_444Dscale16_Buf_3_Rot_90"),\
+    _T("PA_444DScale16_Buf_5_Rot_180"),\
+    _T("PA_444DScale16_Buf_5_Rot_270"),\
+    _T("PA_444DScale16_Buf_5_Rot_90"),\
     _T("PA_444Scale16_Buf_0"),\
     _T("PA_444Scale16_Buf_0_Rot_180"),\
     _T("PA_444Scale16_Buf_0_Rot_270"),\
@@ -1117,26 +1177,56 @@
     _T("PL2_444AVS16_ChromaSiting_Buf_3"),\
     _T("PL2_444AVS16_ChromaSiting_Buf_4"),\
     _T("PL2_444AVS16_ChromaSiting_Buf_5"),\
-    _T("PL2_444Dscale16_Buf_0"),\
-    _T("PL2_444Dscale16_Buf_0_Rot_180"),\
-    _T("PL2_444Dscale16_Buf_0_Rot_270"),\
-    _T("PL2_444Dscale16_Buf_0_Rot_90"),\
-    _T("PL2_444Dscale16_Buf_1"),\
-    _T("PL2_444Dscale16_Buf_1_Rot_180"),\
-    _T("PL2_444Dscale16_Buf_1_Rot_270"),\
-    _T("PL2_444Dscale16_Buf_1_Rot_90"),\
-    _T("PL2_444Dscale16_Buf_2"),\
-    _T("PL2_444Dscale16_Buf_2_Rot_180"),\
-    _T("PL2_444Dscale16_Buf_2_Rot_270"),\
-    _T("PL2_444Dscale16_Buf_2_Rot_90"),\
-    _T("PL2_444Dscale16_Buf_3"),\
-    _T("PL2_444Dscale16_Buf_3_Rot_180"),\
-    _T("PL2_444Dscale16_Buf_3_Rot_270"),\
-    _T("PL2_444Dscale16_Buf_3_Rot_90"),\
-    _T("PL2_444Dscale16_Buf_4"),\
-    _T("PL2_444Dscale16_Buf_5"),\
-    _T("PL2_444Dscale16_Buf_Sep_Alpha_4"),\
-    _T("PL2_444Dscale16_Buf_Sep_Alpha_5"),\
+    _T("PL2_444DScale16_Buf_0"),\
+    _T("PL2_444DScale16_Buf_0_Rot_180"),\
+    _T("PL2_444DScale16_Buf_0_Rot_270"),\
+    _T("PL2_444DScale16_Buf_0_Rot_90"),\
+    _T("PL2_444DScale16_Buf_1"),\
+    _T("PL2_444DScale16_Buf_1_Rot_180"),\
+    _T("PL2_444DScale16_Buf_1_Rot_270"),\
+    _T("PL2_444DScale16_Buf_1_Rot_90"),\
+    _T("PL2_444DScale16_Buf_2"),\
+    _T("PL2_444DScale16_Buf_2_Rot_180"),\
+    _T("PL2_444DScale16_Buf_2_Rot_270"),\
+    _T("PL2_444DScale16_Buf_2_Rot_90"),\
+    _T("PL2_444DScale16_Buf_3"),\
+    _T("PL2_444DScale16_Buf_3_Rot_180"),\
+    _T("PL2_444DScale16_Buf_3_Rot_270"),\
+    _T("PL2_444DScale16_Buf_3_Rot_90"),\
+    _T("PL2_444DScale16_Buf_4"),\
+    _T("PL2_444DScale16_Buf_4_Rot_180"),\
+    _T("PL2_444DScale16_Buf_4_Rot_270"),\
+    _T("PL2_444DScale16_Buf_4_Rot_90"),\
+    _T("PL2_444DScale16_Buf_5"),\
+    _T("PL2_444DScale16_Buf_5_Rot_180"),\
+    _T("PL2_444DScale16_Buf_5_Rot_270"),\
+    _T("PL2_444DScale16_Buf_5_Rot_90"),\
+    _T("PL2_444DScale16_Buf_Sep_Alpha_4"),\
+    _T("PL2_444DScale16_Buf_Sep_Alpha_5"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_0"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_0_Rot_180"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_0_Rot_270"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_0_Rot_90"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_1"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_1_Rot_180"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_1_Rot_270"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_1_Rot_90"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_2"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_2_Rot_180"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_2_Rot_270"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_2_Rot_90"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_3"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_3_Rot_180"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_3_Rot_270"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_3_Rot_90"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_4"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_4_Rot_180"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_4_Rot_270"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_4_Rot_90"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_5"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_5_Rot_180"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_5_Rot_270"),\
+    _T("PL2_444DScale16_ChromaSiting_Buf_5_Rot_90"),\
     _T("PL2_444Scale16_Buf_0"),\
     _T("PL2_444Scale16_Buf_0_Rot_180"),\
     _T("PL2_444Scale16_Buf_0_Rot_270"),\
@@ -1247,23 +1337,29 @@
     _T("PL3_444AVS16_Buf_5_Rot_270"),\
     _T("PL3_444AVS16_Buf_5_Rot_90"),\
     _T("PL3_444DScale16_Buf_0"),\
+    _T("PL3_444DScale16_Buf_0_Rot_180"),\
+    _T("PL3_444DScale16_Buf_0_Rot_270"),\
+    _T("PL3_444DScale16_Buf_0_Rot_90"),\
     _T("PL3_444DScale16_Buf_1"),\
+    _T("PL3_444DScale16_Buf_1_Rot_180"),\
+    _T("PL3_444DScale16_Buf_1_Rot_270"),\
+    _T("PL3_444DScale16_Buf_1_Rot_90"),\
     _T("PL3_444DScale16_Buf_2"),\
+    _T("PL3_444DScale16_Buf_2_Rot_180"),\
+    _T("PL3_444DScale16_Buf_2_Rot_270"),\
+    _T("PL3_444DScale16_Buf_2_Rot_90"),\
     _T("PL3_444DScale16_Buf_3"),\
+    _T("PL3_444DScale16_Buf_3_Rot_180"),\
+    _T("PL3_444DScale16_Buf_3_Rot_270"),\
+    _T("PL3_444DScale16_Buf_3_Rot_90"),\
     _T("PL3_444DScale16_Buf_4"),\
+    _T("PL3_444DScale16_Buf_4_Rot_180"),\
+    _T("PL3_444DScale16_Buf_4_Rot_270"),\
+    _T("PL3_444DScale16_Buf_4_Rot_90"),\
     _T("PL3_444DScale16_Buf_5"),\
-    _T("PL3_444Dscale16_Buf_0_Rot_180"),\
-    _T("PL3_444Dscale16_Buf_0_Rot_270"),\
-    _T("PL3_444Dscale16_Buf_0_Rot_90"),\
-    _T("PL3_444Dscale16_Buf_1_Rot_180"),\
-    _T("PL3_444Dscale16_Buf_1_Rot_270"),\
-    _T("PL3_444Dscale16_Buf_1_Rot_90"),\
-    _T("PL3_444Dscale16_Buf_2_Rot_180"),\
-    _T("PL3_444Dscale16_Buf_2_Rot_270"),\
-    _T("PL3_444Dscale16_Buf_2_Rot_90"),\
-    _T("PL3_444Dscale16_Buf_3_Rot_180"),\
-    _T("PL3_444Dscale16_Buf_3_Rot_270"),\
-    _T("PL3_444Dscale16_Buf_3_Rot_90"),\
+    _T("PL3_444DScale16_Buf_5_Rot_180"),\
+    _T("PL3_444DScale16_Buf_5_Rot_270"),\
+    _T("PL3_444DScale16_Buf_5_Rot_90"),\
     _T("PL3_444Scale16_Buf_0"),\
     _T("PL3_444Scale16_Buf_0_Rot_180"),\
     _T("PL3_444Scale16_Buf_0_Rot_270"),\
@@ -1363,10 +1459,6 @@
     _T("Save_444AVS16_SrcAYUV"),\
     _T("Save_444AVS16_XRGB"),\
     _T("Save_444AVS16_XRGB_64Byte"),\
-    _T("Save_444SCALE16_ARGB_64Byte"),\
-    _T("Save_444SCALE16_NV21"),\
-    _T("Save_444SCALE16_RGB_64Byte"),\
-    _T("Save_444SCALE16_XRGB_64Byte"),\
     _T("Save_444Scale16_ARGB"),\
     _T("Save_444Scale16_ARGB_64Byte"),\
     _T("Save_444Scale16_Dither_NV12"),\
@@ -1375,6 +1467,7 @@
     _T("Save_444Scale16_Dither_PA_32X16"),\
     _T("Save_444Scale16_Dither_PL3"),\
     _T("Save_444Scale16_Dither_RGB"),\
+    _T("Save_444Scale16_Dither_RGB16"),\
     _T("Save_444Scale16_Dither_RGB_64Byte"),\
     _T("Save_444Scale16_Dither_VUYA"),\
     _T("Save_444Scale16_Dither_XRGB"),\
@@ -1382,6 +1475,7 @@
     _T("Save_444Scale16_NV12"),\
     _T("Save_444Scale16_NV21"),\
     _T("Save_444Scale16_P010"),\
+    _T("Save_444Scale16_P016"),\
     _T("Save_444Scale16_PA"),\
     _T("Save_444Scale16_PA_32X16"),\
     _T("Save_444Scale16_PL3"),\
@@ -1397,6 +1491,7 @@
     _T("Save_444Scale16_RGBP"),\
     _T("Save_444Scale16_RGB_64Byte"),\
     _T("Save_444Scale16_SrcVUYA"),\
+    _T("Save_444Scale16_SrcY416"),\
     _T("Save_444Scale16_VUYA"),\
     _T("Save_444Scale16_XRGB"),\
     _T("Save_444Scale16_XRGB_64Byte"),\
@@ -1620,6 +1715,7 @@
     _T("YUY2_444Scale16_Chromasiting_Buf_5_Rot_270"),\
     _T("YUY2_444Scale16_Chromasiting_Buf_5_Rot_90"),\
     _T("camera_pipe_CalcParams"),\
+    _T("fast_avs_1_to_n"),\
     _T("return"),\
     _T("zzz_preproduction"),\
     _T("zzz_preproduction_ALLPL2Copy_Gen"),\
@@ -1628,11 +1724,16 @@
     _T("zzz_preproduction_gcBltPS_32_To_128_Mirror_Gen"),\
     _T("zzz_preproduction_gcBltPS_64_To_128_Mirror_Gen"),\
     _T("zzz_preproduction_gcBltPS_Gen"),\
+    _T("zzz_preproduction_gcBlt_D11"),\
     _T("zzz_preproduction_gcClearNoReplicatePS_Gen"),\
     _T("zzz_preproduction_gcClearReplicatePS_Gen"),\
+    _T("zzz_preproduction_gcClear_NoReplicate_D11"),\
+    _T("zzz_preproduction_gcClear_Replicate_D11"),\
     _T("zzz_preproduction_gcColorFillNoReplicatePS_Gen"),\
     _T("zzz_preproduction_gcColorFillReplicatePS_Gen"),\
     _T("zzz_preproduction_gcFastClearReplicatePS_Gen"),\
+    _T("zzz_preproduction_gcFastClear_Replicate_D11"),\
+    _T("zzz_preproduction_gcResourceCopy_D11"),\
     _T("zzz_production"),\
     _T("zzz_production_ALLPL2Copy_Gen"),\
     _T("zzz_production_HDR_mandatory_Gen"),\
@@ -1640,13 +1741,18 @@
     _T("zzz_production_gcBltPS_32_To_128_Mirror_Gen"),\
     _T("zzz_production_gcBltPS_64_To_128_Mirror_Gen"),\
     _T("zzz_production_gcBltPS_Gen"),\
+    _T("zzz_production_gcBlt_D11"),\
     _T("zzz_production_gcClearNoReplicatePS_Gen"),\
     _T("zzz_production_gcClearReplicatePS_Gen"),\
+    _T("zzz_production_gcClear_NoReplicate_D11"),\
+    _T("zzz_production_gcClear_Replicate_D11"),\
     _T("zzz_production_gcColorFillNoReplicatePS_Gen"),\
     _T("zzz_production_gcColorFillReplicatePS_Gen"),\
     _T("zzz_production_gcFastClearReplicatePS_Gen"),\
+    _T("zzz_production_gcFastClear_Replicate_D11"),\
+    _T("zzz_production_gcResourceCopy_D11"),\
     _T("")
-#else // !(_DEBUG || _RELEASE_INTERNAL)
+#else // !_DEBUG
 #define IDR_VP_KERNEL_NAMES   \
     _T("000"),\
     _T("001"),\
@@ -2453,6 +2559,59 @@
     _T("802"),\
     _T("803"),\
     _T("804"),\
+    _T("805"),\
+    _T("806"),\
+    _T("807"),\
+    _T("808"),\
+    _T("809"),\
+    _T("810"),\
+    _T("811"),\
+    _T("812"),\
+    _T("813"),\
+    _T("814"),\
+    _T("815"),\
+    _T("816"),\
+    _T("817"),\
+    _T("818"),\
+    _T("819"),\
+    _T("820"),\
+    _T("821"),\
+    _T("822"),\
+    _T("823"),\
+    _T("824"),\
+    _T("825"),\
+    _T("826"),\
+    _T("827"),\
+    _T("828"),\
+    _T("829"),\
+    _T("830"),\
+    _T("831"),\
+    _T("832"),\
+    _T("833"),\
+    _T("834"),\
+    _T("835"),\
+    _T("836"),\
+    _T("837"),\
+    _T("838"),\
+    _T("839"),\
+    _T("840"),\
+    _T("841"),\
+    _T("842"),\
+    _T("843"),\
+    _T("844"),\
+    _T("845"),\
+    _T("846"),\
+    _T("847"),\
+    _T("848"),\
+    _T("849"),\
+    _T("850"),\
+    _T("851"),\
+    _T("852"),\
+    _T("853"),\
+    _T("854"),\
+    _T("855"),\
+    _T("856"),\
+    _T("857"),\
     _T("")
 #endif // _DEBUG
 

@@ -325,7 +325,29 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1 : streaming buffer by DDR is enabled.
             */
             uint32_t        EnableStreamingBufferDDR : 1;
-            uint32_t        ReservedBits             : 6;
+
+            /*! \brief Low Delay Mode
+            *
+            *        \n - 0 : Random Access B.
+            *        \n - 1 : Low delay encoding with P or LDB.
+            */
+            uint32_t        LowDelayMode            : 1;
+
+            /*! \brief Disable HRD conformance
+            *
+            *        \n - 0 : HRD conformance is enabled.
+            *        \n - 1 : HRD conformance is disabled (aka no panic mode).
+            */
+            uint32_t        DisableHRDConformance    : 1;
+
+            /*! \brief Hierarchical Mini GOP
+            *
+            *        \n - 0 : Flat GOP (No Hierarchical Mini GOP).
+            *        \n - 1 : Hierarchical Mini GOP.
+            */
+            uint32_t        HierarchicalFlag         : 1;
+
+            uint32_t        ReservedBits             : 3;
         };
         uint32_t    SeqFlags;
     };
@@ -447,6 +469,12 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     *    Valid only when input is ARGB format.
     */
     ENCODE_INPUT_COLORSPACE     InputColorSpace;
+
+    /*! \brief Provides a hint to encoder about the scenario for the encoding session.
+    *
+    *   BRC algorithm may tune differently based on this info.
+    */
+    ENCODE_SCENARIO             ScenarioInfo;
 
     /*! \brief Indicates the tolerance the application has to variations in the frame size.
     *
@@ -616,7 +644,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *
     *    If the value is set 0, no bit size limit is checked.
     */
-    uint16_t                LcuMaxBitsizeAllowed;
+    uint32_t                LcuMaxBitsizeAllowed;
     /*! \brief Indicates the column or row location in block unit which is dictated by IntraRefreshBlockUnitSize from encoding capability.
     *
     *    Ignored if bEnableRollingIntraRefresh is 0.
@@ -683,6 +711,20 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    Applies only to BRC case.
     */
     char                    MinDeltaQp;
+    
+    union
+    {
+        struct
+        {
+            uint32_t        EnableCustomRoudingIntra : 1;
+            uint32_t        RoundingOffsetIntra : 7;
+            uint32_t        EnableCustomRoudingInter : 1;
+            uint32_t        RoundingOffsetInter : 7;
+            uint32_t        reservedbits : 16;
+        } fields;
+        
+        uint32_t            value;
+    } CustomRoundingOffsetsParams;
 
     /*! \brief Specifies skip frames.
     *

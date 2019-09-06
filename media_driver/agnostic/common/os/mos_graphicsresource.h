@@ -264,16 +264,6 @@ public:
     int32_t GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle);
 
     //!
-    //! \brief  Set allocation index of resource
-    //! \param  [in] gpuContextHandle
-    //!         Gpu context handle corresponding to the alloc index to set
-    //! \param  [in] allocationIndex
-    //!         Alloc index value to set
-    //! \return void
-    //!
-    void SetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle, int32_t allocationIndex);
-
-    //!
     //! \brief  Dump the content of the graphic resource into a specific file
     //! \param  [in] osContextPtr
     //!         Pointer to the osContext handle
@@ -519,6 +509,9 @@ protected:
     //! \brief  Array of Gpu context and alloctaion index tuple.
     //!
     std::vector <std::tuple<GPU_CONTEXT_HANDLE, int32_t>>  m_allocationIndexArray;
+
+    //! \brief   Mutex for allocation index array
+    PMOS_MUTEX m_allocationIndexMutex = nullptr;
 };
 #endif // #ifndef __MOS_GRAPHICS_RESOURCE_H__
 

@@ -74,8 +74,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "xf86drm_mock.h"
-#include "xf86drmRandom_mock.h"
+#include "xf86drm.h"
+#include "xf86drmRandom.h"
 
 #define RANDOM_MAGIC 0xfeedbeef
 

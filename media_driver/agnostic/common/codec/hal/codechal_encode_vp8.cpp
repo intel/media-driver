@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -263,6 +263,10 @@ CodechalEncodeVp8::CodechalEncodeVp8(
     m_verticalLineStrideOffset = CODECHAL_VLINESTRIDEOFFSET_TOP_FIELD;
 
     m_codecGetStatusReportDefined = true;
+
+    m_mbEncCurbeSetInBrcUpdate = false;
+    m_mpuCurbeSetInBrcUpdate = false;
+    m_tpuCurbeSetInBrcUpdate = false;
 }
 
 CodechalEncodeVp8::~CodechalEncodeVp8()
@@ -1276,7 +1280,7 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     else
     {
         m_averagePFrameQp     = averageQp;
-        m_pFramePositionInGop = (m_storeData - 1) % m_vp8SeqParams->GopPicSize;
+        m_pFramePositionInGop = m_vp8SeqParams->RateControlMethod == RATECONTROL_CQP ? 0 : (m_storeData - 1) % m_vp8SeqParams->GopPicSize;
     }
 
     numRef = 0;
@@ -3264,7 +3268,6 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     // set MFX_PIPE_MODE_SELECT values
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = false;
     deblockingEnable                       = ((m_vp8PicParams->version == 0) || (m_vp8PicParams->version == 1)) ? 1 : 0;
@@ -3274,7 +3277,6 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     pipeModeSelectParams.bPostDeblockOutEnable = deblockingEnable && !suppressReconPic;
 
     // set MFX_PIPE_BUF_ADDR_STATE values
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     pipeBufAddrParams.psPreDeblockSurface = &m_reconSurface;
     pipeBufAddrParams.psPostDeblockSurface = &m_reconSurface;
@@ -3813,8 +3815,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
         if (m_brcEnabled)
         {
-            if (m_currPass == (m_numPasses - 1) ||
-                m_currPass == (m_numPasses) &&
+            if ((m_currPass == (m_numPasses - 1) || m_currPass == (m_numPasses)) &&
                 m_signalEnc &&
                 !Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse)
                 )
@@ -5610,4 +5611,30 @@ MOS_STATUS CodechalEncodeVp8::DumpVp8EncodeSeqParams(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS CodechalEncodeVp8::DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(currRefList);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(debugInterface);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+            &currRefList->resRefMbCodeBuffer,
+            CodechalDbgAttr::attrOutput,
+            "MbCode",
+            m_picWidthInMb * m_picHeightInMb * 16 * 4,
+            0,
+            CODECHAL_MEDIA_STATE_ENC_NORMAL));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+            &currRefList->resRefMbCodeBuffer,
+            CodechalDbgAttr::attrOutput,
+            "MVData",
+            m_picWidthInMb * m_picHeightInMb * 16 * 4,
+            m_mvOffset,
+            CODECHAL_MEDIA_STATE_ENC_NORMAL));
+    
+    return MOS_STATUS_SUCCESS;
+}
+
 #endif
