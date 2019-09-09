@@ -293,7 +293,7 @@ MOS_STATUS CodechalDecodeJpeg::CheckAndCopyIncompleteBitStream()
             m_preNumScans     = m_jpegScanParams->NumScans;
 
             // judge whether the bitstream is complete in the first execute() call
-            if (m_firstExecuteCall &&
+            if (IsFirstExecuteCall() &&
                 m_dataSize <= m_jpegScanParams->ScanHeader[0].DataOffset + m_jpegScanParams->ScanHeader[0].DataLength)
             {
                 CODECHAL_DECODE_CHK_COND_RETURN(
@@ -439,7 +439,7 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
 
     m_hwInterface->GetCpInterface()->SetCpSecurityType();
 
-    if (m_firstExecuteCall)
+    if (IsFirstExecuteCall())
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(InitializeBeginFrame());
     }

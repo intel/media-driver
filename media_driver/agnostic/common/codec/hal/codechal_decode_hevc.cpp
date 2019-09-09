@@ -1030,7 +1030,7 @@ MOS_STATUS CodechalDecodeHevc::CheckAndCopyBitstream()
         return eStatus;
     }
 
-    if (m_firstExecuteCall)    // first exec to decide allocate a larger buf or not
+    if (IsFirstExecuteCall())    // first exec to decide allocate a larger buf or not
     {
         if (m_estiBytesInBitstream > MOS_ALIGN_CEIL(m_dataOffset + m_dataSize, 64))  // bitstream contains more bytes than current data.
         {
@@ -1115,7 +1115,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
 
     m_cencBuf = m_decodeParams.m_cencBuf;
     
-    if (m_firstExecuteCall)    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
+    if (IsFirstExecuteCall())    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
     {
         m_dataSize   = m_decodeParams.m_dataSize;
         m_dataOffset = m_decodeParams.m_dataOffset;
@@ -1326,7 +1326,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize((CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams, m_hevcPicParams));
 #endif
     CODECHAL_DEBUG_TOOL(
-        if (!m_incompletePicture && !m_firstExecuteCall) {
+        if (!m_incompletePicture && !IsFirstExecuteCall()) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 &m_resCopyDataBuffer,
                 CodechalDbgAttr::attrBitstream,

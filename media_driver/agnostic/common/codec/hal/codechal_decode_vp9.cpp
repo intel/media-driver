@@ -1074,7 +1074,7 @@ MOS_STATUS CodechalDecodeVp9 :: CheckAndCopyBitStream()
             (m_vp9PicParams->FrameWidthMinus1 + 1) * (m_vp9PicParams->FrameHeightMinus1 + 1) * 6;
     }
 
-    if (m_firstExecuteCall) // first exec call
+    if (IsFirstExecuteCall()) // first exec call
     {
         if (m_dataSize < m_vp9PicParams->BSBytesInBuffer)  // Current bitstream buffer is not big enough
         {
@@ -1165,7 +1165,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
         m_resCoefProbBuffer = *(m_decodeParams.m_coefProbBuffer);
     }
 
-    if (m_firstExecuteCall)
+    if (IsFirstExecuteCall())
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(InitializeBeginFrame());
     }

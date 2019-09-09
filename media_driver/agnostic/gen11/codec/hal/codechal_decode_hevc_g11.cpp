@@ -262,7 +262,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
 
     m_cencBuf = m_decodeParams.m_cencBuf;
     
-    if (m_firstExecuteCall)    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
+    if (IsFirstExecuteCall())    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
     {
         m_dataSize   = m_decodeParams.m_dataSize;
         m_dataOffset = m_decodeParams.m_dataOffset;
@@ -451,7 +451,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize((CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams, m_hevcPicParams));
 #endif
     CODECHAL_DEBUG_TOOL(
-        if (!m_incompletePicture && !m_firstExecuteCall) {
+        if (!m_incompletePicture && !IsFirstExecuteCall()) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 &m_resCopyDataBuffer,
                 CodechalDbgAttr::attrBitstream,

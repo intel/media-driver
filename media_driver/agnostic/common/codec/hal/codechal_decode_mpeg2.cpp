@@ -546,7 +546,7 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
 
     MOS_ZeroMemory(m_vldSliceRecord, (m_numSlices * sizeof(CODECHAL_VLD_SLICE_RECORD)));
 
-    if (m_firstExecuteCall)
+    if (IsFirstExecuteCall())
     {
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(InitializeBeginFrame(),
             "Initial Beginframe in CodecHal failed.");

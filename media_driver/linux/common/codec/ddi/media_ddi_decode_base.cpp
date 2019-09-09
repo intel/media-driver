@@ -221,6 +221,7 @@ VAStatus DdiMediaDecode::BeginPicture(
     m_ddiDecodeCtx->DecodeParams.m_numSlices       = 0;
     m_ddiDecodeCtx->DecodeParams.m_dataSize        = 0;
     m_ddiDecodeCtx->DecodeParams.m_deblockDataSize = 0;
+    m_ddiDecodeCtx->DecodeParams.m_executeCallIndex = 0;
     m_groupIndex                                   = 0;
 
     // register render targets
@@ -800,6 +801,8 @@ VAStatus DdiMediaDecode::EndPicture(
         DDI_ASSERTMESSAGE("DDI:DdiDecode_DecodeInCodecHal return failure.");
         return VA_STATUS_ERROR_DECODING_ERROR;
     }
+
+    m_ddiDecodeCtx->DecodeParams.m_executeCallIndex++;
 
     (&(m_ddiDecodeCtx->RTtbl))->pCurrentRT = nullptr;
 

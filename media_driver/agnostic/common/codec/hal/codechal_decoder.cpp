@@ -872,15 +872,6 @@ MOS_STATUS CodechalDecode::VerifySpaceAvailable ()
     return eStatus;
 }
 
-MOS_STATUS CodechalDecode::BeginFrame ()
-{
-    CODECHAL_DECODE_FUNCTION_ENTER;
-
-    m_firstExecuteCall = true;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS CodechalDecode::EndFrame ()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1112,6 +1103,8 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     CODECHAL_DECODE_CHK_STATUS_RETURN(Codechal::Execute(params));
 
     CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
+    m_executeCallIndex = decodeParams->m_executeCallIndex;
+
     // MSDK event handling
     Mos_Solo_SetGpuAppTaskEvent(m_osInterface, decodeParams->m_gpuAppTaskEvent);
 
@@ -1128,12 +1121,9 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_DisableAubcaptureOptimizations(
             m_osInterface,
-            m_firstExecuteCall));
+            IsFirstExecuteCall()));
     }
 
-    // For multiple execution call, this function will be entered by multple times,
-    // so clear bFirstExecuteCall flag when this function exit.
-    CodechalDecodeRestoreData<bool> FirstExecuteCallRestore(&(m_firstExecuteCall), false);
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (decodeParams->m_refFrameCnt != 0)
     {
@@ -1248,7 +1238,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
         if (decodeParams->m_dataBuffer &&
             (m_standard != CODECHAL_JPEG && m_cencBuf == nullptr) &&
             !(m_standard == CODECHAL_HEVC && m_isHybridDecoder) &&
-            !(m_standard == CODECHAL_HEVC && (m_incompletePicture || !m_firstExecuteCall)))
+            !(m_standard == CODECHAL_HEVC && (m_incompletePicture || !IsFirstExecuteCall())))
         {
             if (m_mode == CODECHAL_DECODE_MODE_MPEG2VLD ||
                 m_mode == CODECHAL_DECODE_MODE_VC1VLD   ||

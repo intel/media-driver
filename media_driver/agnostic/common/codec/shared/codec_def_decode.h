@@ -159,6 +159,8 @@ struct CodechalDecodeParams
     bool                    m_bFullFrameData = false;
     //! \brief MSDK event handling
     HANDLE                  m_gpuAppTaskEvent;
+    //! \brief execution call index in multiple execution call mode
+    uint32_t                m_executeCallIndex = 0;
 };
 
 

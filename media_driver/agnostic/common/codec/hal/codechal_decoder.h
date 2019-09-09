@@ -416,13 +416,6 @@ public:
     MOS_STATUS Allocate(CodechalSetting * codecHalSettings) override;
 
     //!
-    //! \brief  The handle at the begining of each frame.
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS BeginFrame() override;
-
-    //!
     //! \brief  The handle at the end of each frame.
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
@@ -582,9 +575,9 @@ public:
 
     //!
     //! \brief  Indicates whether or not the first execute call
-    //! \return If first execute call \see m_firstExecuteCall
+    //! \return If first execute call \see m_executeCallIndex
     //!
-    bool IsFirstExecuteCall() { return m_firstExecuteCall; }
+    inline bool IsFirstExecuteCall() { return (m_executeCallIndex == 0); }
 
     //!
     //! \brief  Indicates whether or not the decoder is inuse
@@ -1002,8 +995,8 @@ protected:
     uint32_t                    m_standardDecodePatchListSizeNeeded = 0;
     //! \brief Indicates if current input bitstream is incomplete
     bool                        m_incompletePicture = false;
-    //! \brief Indicates if current is frist execution call in multiple execution call mode
-    bool                        m_firstExecuteCall  = false;
+    //! \brief The index of execution call in multiple execution call mode
+    bool                        m_executeCallIndex  = 0;
     //! \brief Indicates if current is frist execution call in multiple execution call mode
     bool                        m_consecutiveMbErrorConcealmentInUse = false;
     //! \brief Indicates if phantom MBs is required for MPEG2 decode
