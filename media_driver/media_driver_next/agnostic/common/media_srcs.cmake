@@ -20,3 +20,4 @@
 
 media_include_subdirectory(shared)
 media_include_subdirectory(os)
+media_include_subdirectory(vp)
