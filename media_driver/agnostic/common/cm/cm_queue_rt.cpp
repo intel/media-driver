@@ -617,7 +617,7 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
                         PCM_TASK_CONFIG  taskConfig,
                         const CM_EXECUTION_CONFIG* krnExecCfg)
 {
-    CM_ASSERTMESSAGE("================ in origin path, gpgpu walker===================");
+    CM_NORMALMESSAGE("================ in origin path, gpgpu walker===================");
     if(kernelArray == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Kernel array is NULL.");

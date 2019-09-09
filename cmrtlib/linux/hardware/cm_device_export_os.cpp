@@ -208,7 +208,7 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 //! \retval     CM_FAILURE otherwise
 //!
 extern "C"
-CM_RT_API int32_t CreateCmDeviceEx(CmDevice* &device, uint32_t & version, VADisplay vaDisplay , uint32_t createOption = 0 )
+CM_RT_API int32_t CreateCmDeviceEx(CmDevice* &device, uint32_t & version, VADisplay vaDisplay , uint32_t createOption = CM_DEVICE_CREATE_OPTION_DEFAULT )
 {
     INSERT_PROFILER_RECORD();
 
