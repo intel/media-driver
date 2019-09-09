@@ -143,6 +143,13 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bPakOnlyMultipassEnable = false;
     void                                    *pInputParams = nullptr;
     bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
+    
+    bool                                    bTileReplayEnable = false;
+    bool                                    bCaptureModeEnable = false;
+    uint8_t                                 m_WirelessSessionID = 0;
+    bool                                    bIsLowDelayB = false;
+    int8_t                                  *pRefIdxMapping = nullptr;
+    uint8_t                                 recNotFilteredID = 0;
     virtual ~MHW_VDBOX_VDENC_CMD2_STATE() {}
 };
 using PMHW_VDBOX_VDENC_CMD2_STATE = std::shared_ptr<MHW_VDBOX_VDENC_CMD2_STATE>;
