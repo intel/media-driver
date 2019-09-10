@@ -598,6 +598,7 @@ uint32_t DdiEncodeJpeg::ConvertMediaFormatToInputSurfaceFormat(DDI_MEDIA_FORMAT 
     case Media_Format_X8B8G8R8:
     case Media_Format_R8G8B8A8:
     case Media_Format_A8B8G8R8:
+    case Media_Format_B8G8R8A8:
     case Media_Format_444P:
         return DDI_ENCODE_JPEG_INPUTFORMAT_RGB;
     default:
