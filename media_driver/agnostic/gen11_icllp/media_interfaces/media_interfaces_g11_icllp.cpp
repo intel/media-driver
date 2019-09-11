@@ -34,7 +34,9 @@ extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
 extern template class MediaInterfacesFactory<MosUtilDevice>;
 extern template class MediaInterfacesFactory<CodechalDevice>;
+#if !__BSD__
 extern template class MediaInterfacesFactory<CMHalDevice>;
+#endif
 extern template class MediaInterfacesFactory<VphalDevice>;
 extern template class MediaInterfacesFactory<RenderHalDevice>;
 extern template class MediaInterfacesFactory<Nv12ToP010Device>;
@@ -606,6 +608,7 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
+#if !__BSD__
 static bool icllpRegisteredCMHal =
     MediaInterfacesFactory<CMHalDevice>::
     RegisterHal<CMHalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
@@ -633,6 +636,7 @@ MOS_STATUS CMHalInterfacesG11Icllp::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetDecompressFlag(true);
     return MOS_STATUS_SUCCESS;
 }
+#endif
 
 static bool icllpRegisteredMosUtil =
     MediaInterfacesFactory<MosUtilDevice>::

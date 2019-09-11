@@ -30,7 +30,9 @@
 #include "media_interfaces_mhw.h"
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
+#if !__BSD__
 #include "media_interfaces_cmhal.h"
+#endif
 #include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
@@ -112,8 +114,9 @@
 #ifdef _VP8_ENCODE_SUPPORTED
 #include "codechal_encode_vp8_g11.h"
 #endif
-
+#if !__BSD__
 #include "cm_hal_g11.h"
+#endif
 #include "mos_util_user_interface.h"
 #include "vphal_g11_icllp.h"
 
@@ -231,6 +234,7 @@ public:
         PMOS_INTERFACE osInterface) override;
 };
 
+#if !__BSD__
 class CMHalInterfacesG11Icllp : public CMHalDevice
 {
 protected:
@@ -238,6 +242,7 @@ protected:
     MOS_STATUS Initialize(
         CM_HAL_STATE *pCmState);
 };
+#endif
 
 class MosUtilDeviceG11Icllp : public MosUtilDevice
 {
