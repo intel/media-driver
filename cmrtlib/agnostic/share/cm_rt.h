@@ -1250,6 +1250,11 @@ struct CM_CONDITIONAL_END_PARAM {
     bool  opLevel;
 };
 
+struct CM_KERNEL_SYNC_CONFIG {
+    bool     dataCacheFlush   : 1; // true: cache will be flushed;
+    uint32_t reserved         : 31;
+};
+
 //**********************************************************************
 // Classes forward declarations
 //**********************************************************************
@@ -1338,6 +1343,7 @@ public:
     CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;
     CM_RT_API virtual INT AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
     CM_RT_API virtual INT GetProperty(CM_TASK_CONFIG &taskConfig) = 0;
+    CM_RT_API virtual INT AddSyncEx(const CM_KERNEL_SYNC_CONFIG *config) = 0;
 protected:
    ~CmTask(){};
 }; 

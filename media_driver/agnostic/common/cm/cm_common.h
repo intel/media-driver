@@ -552,6 +552,11 @@ struct CM_EXECUTION_CONFIG
     int                 concurrentPolicy    = 0; //Reserve for future extension.
 };
 
+struct CM_KERNEL_SYNC_CONFIG {
+    bool     dataCacheFlush   : 1; // true: cache will be flushed;
+    uint32_t reserved         : 31;
+};
+
 struct L3ConfigRegisterValues
 {
     unsigned int config_register0;
