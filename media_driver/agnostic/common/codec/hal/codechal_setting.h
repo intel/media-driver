@@ -65,6 +65,8 @@ public:
     // Decode SFC enabling
     bool                    sfcEnablingHinted = false;     //!< Applies to decode only, application may request field sfc.
 
+    bool                    enableCodecMmc = false;        //!< Applies to both of decode and encode, to indicate if codec MMC could be enabled by default
+
     //!
     //! \brief    Destructor 
     //!

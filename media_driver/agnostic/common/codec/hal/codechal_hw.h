@@ -430,6 +430,8 @@ public:
 
     bool                        m_slicePowerGate = false;                       //!> Slice power gate
 
+    bool                        m_enableCodecMmc = false;                       //!> Flag to indicate if enable codec MMC by default or not
+
     //!
     //! \brief    Constructor
     //!
