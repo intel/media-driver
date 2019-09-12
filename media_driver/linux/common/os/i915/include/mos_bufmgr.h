@@ -368,6 +368,8 @@ drm_export int map_gtt(struct mos_linux_bo *bo);
 drm_export int mos_gem_bo_unmap(struct mos_linux_bo *bo);
 drm_export int mos_gem_bo_subdata(struct mos_linux_bo *bo, unsigned long offset,
              unsigned long size, const void *data);
+
+drm_export bool mos_gem_bo_is_softpin(struct mos_linux_bo *bo);
 #if defined(__cplusplus)
 }
 #endif
