@@ -18,11 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-
-# empty here as we don't have cpp file in this folder
-# if one cpp file is add, please follow this pattern:
-
-#set(CMRT_SOURCES
-#    ${CMRT_SOURCES}
-#    ${CMAKE_CURRENT_LIST_DIR}/<filename1>.cpp
-#    ${CMAKE_CURRENT_LIST_DIR}/<filename2>.cpp)
+set(CMRT_SOURCES
+    ${CMRT_SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/cm_performance.cpp)
