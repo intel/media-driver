@@ -1824,8 +1824,7 @@ void Mos_Specific_Destroy(
 
     if (pOsInterface &&
         pOsInterface->pOsContext &&
-        pOsInterface->pOsContext->bFreeContext &&
-        !Mos_Solo_IsEnabled())
+        pOsInterface->pOsContext->bFreeContext)
     {
         pOsInterface->pOsContext->SkuTable.reset();
         pOsInterface->pOsContext->WaTable.reset();
