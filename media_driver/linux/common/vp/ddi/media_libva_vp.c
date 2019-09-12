@@ -4072,15 +4072,15 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCap* baseCap     = (VAProcFilterCap*) filter_caps;
 
-                baseCap->range.min_value     = NOISEREDUCTION_MIN;
-                baseCap->range.max_value     = NOISEREDUCTION_MAX;
-                baseCap->range.default_value = NOISEREDUCTION_DEFAULT;
-                baseCap->range.step          = NOISEREDUCTION_STEP;
-
                 if (uQueryCapsNum < uExistCapsNum)
                 {
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
+
+                baseCap->range.min_value     = NOISEREDUCTION_MIN;
+                baseCap->range.max_value     = NOISEREDUCTION_MAX;
+                baseCap->range.default_value = NOISEREDUCTION_DEFAULT;
+                baseCap->range.step          = NOISEREDUCTION_STEP;
             }
             break;
 
@@ -4094,13 +4094,13 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCapDeinterlacing* diCap = (VAProcFilterCapDeinterlacing*) filter_caps;
 
-                diCap[0].type                         = VAProcDeinterlacingBob;
-                diCap[1].type                         = VAProcDeinterlacingMotionAdaptive;
-
                 if (uQueryCapsNum < uExistCapsNum)
                 {
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
+
+                diCap[0].type                         = VAProcDeinterlacingBob;
+                diCap[1].type                         = VAProcDeinterlacingMotionAdaptive;
             }
             break;
 
@@ -4114,16 +4114,16 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCap* baseCap;
 
+                if (uQueryCapsNum < uExistCapsNum)
+                {
+                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                }
+
                 baseCap                      = (VAProcFilterCap*) filter_caps;
                 baseCap->range.min_value     = EDGEENHANCEMENT_MIN;
                 baseCap->range.max_value     = EDGEENHANCEMENT_MAX;
                 baseCap->range.default_value = EDGEENHANCEMENT_DEFAULT;
                 baseCap->range.step          = EDGEENHANCEMENT_STEP;
-
-                if (uQueryCapsNum < uExistCapsNum)
-                {
-                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
-                }
             }
             break;
 
@@ -4136,6 +4136,11 @@ DdiVp_QueryVideoProcFilterCaps (
             if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
             {
                 VAProcFilterCapColorBalance* ColorBalCap;
+
+                if (uQueryCapsNum < uExistCapsNum)
+                {
+                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                }
 
                 for (uCnt=0 ; uCnt<uQueryCapsNum ; uCnt++)
                 {
@@ -4152,18 +4157,19 @@ DdiVp_QueryVideoProcFilterCaps (
                     ColorBalCap->range.min_value        = VpColorBalCap[uCnt].range.min_value;
                     ColorBalCap->range.step             = VpColorBalCap[uCnt].range.step;
                 }
+            }
+            break;
+        case VAProcFilterSkinToneEnhancement:
+            uExistCapsNum  = 1;
+            *num_filter_caps = uExistCapsNum;
+            if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
+            {
+                VAProcFilterCap* baseCap     = (VAProcFilterCap *)filter_caps;
 
                 if (uQueryCapsNum < uExistCapsNum)
                 {
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
-            }
-            break;
-        case VAProcFilterSkinToneEnhancement:
-            *num_filter_caps = 1;
-            if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
-            {
-                VAProcFilterCap* baseCap     = (VAProcFilterCap *)filter_caps;
 
                 baseCap->range.min_value     = STE_MIN;
                 baseCap->range.max_value     = STE_MAX;
@@ -4179,6 +4185,11 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCapTotalColorCorrection* TccCap;
 
+                if (uQueryCapsNum < uExistCapsNum)
+                {
+                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                }
+
                 for (uCnt = 0; uCnt < uQueryCapsNum; uCnt++)
                 {
                     if (uCnt >= uExistCapsNum)
@@ -4191,9 +4202,6 @@ DdiVp_QueryVideoProcFilterCaps (
                     TccCap->range.default_value = TCC_DEFAULT;
                     TccCap->range.step          = TCC_STEP;
                 }
-
-                if (uQueryCapsNum < uExistCapsNum)
-                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
             }
             break;
         case VAProcFilterHighDynamicRangeToneMapping:
@@ -4206,6 +4214,12 @@ DdiVp_QueryVideoProcFilterCaps (
                 if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
                 {
                     VAProcFilterCapHighDynamicRange *HdrTmCap = (VAProcFilterCapHighDynamicRange *)filter_caps;
+
+                    if (uQueryCapsNum < uExistCapsNum)
+                    {
+                        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                    }
+
                     if (HdrTmCap)
                     {
                         HdrTmCap->metadata_type = VAProcHighDynamicRangeMetadataHDR10;
