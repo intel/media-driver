@@ -96,18 +96,31 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_A8                   =  28,
     VA_CM_FMT_A2B10G10R10          =  31,
     VA_CM_FMT_A8B8G8R8             =  32,
+    VA_CM_FMT_R16G16UN             =  35,
     VA_CM_FMT_A16B16G16R16         =  36,
+    VA_CM_FMT_A8P8                 =  40,
     VA_CM_FMT_P8                   =  41,
+    VA_CM_FMT_R32U                 =  42,
+    VA_CM_FMT_R8G8UN               =  49,
     VA_CM_FMT_L8                   =  50,
     VA_CM_FMT_A8L8                 =  51,
+    VA_CM_FMT_R16UN                =  56,
     VA_CM_FMT_R16U                 =  57,
     VA_CM_FMT_V8U8                 =  60,
+    VA_CM_FMT_R8UN                 =  61,
     VA_CM_FMT_R8U                  =  62,
+    VA_CM_FMT_R32S                 =  71,
     VA_CM_FMT_D16                  =  80,
     VA_CM_FMT_L16                  =  81,
+    VA_CM_FMT_R16F                 = 111,
+    VA_CM_FMT_IA44                 = 112,
     VA_CM_FMT_A16B16G16R16F        = 113,
     VA_CM_FMT_R32F                 = 114,
     VA_CM_FMT_R32G32B32A32F        = 115,
+    VA_CM_FMT_I420                 =  VA_FOURCC('I','4','2','0'),
+    VA_CM_FMT_P216                 =  VA_FOURCC('P','2','1','6'),
+    VA_CM_FMT_400P                 =  VA_FOURCC('4','0','0','P'),
+    VA_CM_FMT_Y8UN                 =  VA_FOURCC('Y','8','U','N'),
     VA_CM_FMT_NV12                 =  VA_FOURCC_NV12,
     VA_CM_FMT_UYVY                 =  VA_FOURCC_UYVY,
     VA_CM_FMT_YUY2                 =  VA_FOURCC_YUY2,
@@ -128,6 +141,7 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_Y410                 =  VA_FOURCC_Y410,
     VA_CM_FMT_Y216                 =  VA_FOURCC_Y216,
     VA_CM_FMT_Y416                 =  VA_FOURCC_Y416,
+    VA_CM_FMT_AI44                 =  VA_FOURCC_AI44,
 
     VA_CM_FMT_MAX                  =  0xFFFFFFFF
 } VA_CM_FORMAT;
@@ -226,6 +240,21 @@ inline int CM_THREAD_JOIN(THREAD_HANDLE *handle_array, int thread_cnt)
 #define CM_SURFACE_FORMAT_Y410                  VA_CM_FMT_Y410
 #define CM_SURFACE_FORMAT_Y216                  VA_CM_FMT_Y216
 #define CM_SURFACE_FORMAT_Y416                  VA_CM_FMT_Y416
+
+#define CM_SURFACE_FORMAT_IA44                  VA_CM_FMT_IA44
+#define CM_SURFACE_FORMAT_AI44                  VA_CM_FMT_AI44
+#define CM_SURFACE_FORMAT_I420                  VA_CM_FMT_I420
+#define CM_SURFACE_FORMAT_P216                  VA_CM_FMT_P216
+#define CM_SURFACE_FORMAT_400P                  VA_CM_FMT_400P
+#define CM_SURFACE_FORMAT_R16_FLOAT             VA_CM_FMT_R16F
+#define CM_SURFACE_FORMAT_Y8_UNORM              VA_CM_FMT_Y8UN
+#define CM_SURFACE_FORMAT_A8P8                  VA_CM_FMT_A8P8
+#define CM_SURFACE_FORMAT_R32_SINT              VA_CM_FMT_R32S
+#define CM_SURFACE_FORMAT_R32_UINT              VA_CM_FMT_R32U
+#define CM_SURFACE_FORMAT_R8G8_UNORM            VA_CM_FMT_R8G8UN
+#define CM_SURFACE_FORMAT_R8_UNORM              VA_CM_FMT_R8UN
+#define CM_SURFACE_FORMAT_R16G16_UNORM          VA_CM_FMT_R16G16UN
+#define CM_SURFACE_FORMAT_R16_UNORM             VA_CM_FMT_R16UN
 
 
 #define CM_TEXTURE_ADDRESS_TYPE                 VACMTEXTUREADDRESS
