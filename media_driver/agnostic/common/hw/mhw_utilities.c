@@ -224,6 +224,7 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     PatchEntryParams.shiftAmount      = pParams->shiftAmount;
     PatchEntryParams.shiftDirection   = pParams->shiftDirection;
     PatchEntryParams.offsetInSSH      = pParams->dwOffsetInSSH;
+    PatchEntryParams.cmdBuffer        = pCmdBuffer;
 
     // Add patch entry to patch the address field for this command
     MHW_CHK_STATUS(pOsInterface->pfnSetPatchEntry(
@@ -252,6 +253,7 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
         PatchEntryParams.shiftAmount      = pParams->shiftAmount;
         PatchEntryParams.shiftDirection   = pParams->shiftDirection;
         PatchEntryParams.offsetInSSH      = pParams->dwOffsetInSSH;
+        PatchEntryParams.cmdBuffer        = pCmdBuffer;
 
         if(dwLsbNum)
         {

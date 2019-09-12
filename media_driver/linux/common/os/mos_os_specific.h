@@ -202,6 +202,10 @@ static inline MOS_GPU_NODE OSKMGetGpuNode(MOS_GPU_CONTEXT uiGpuContext)
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
         case MOS_GPU_CONTEXT_VIDEO3:
+        case MOS_GPU_CONTEXT_VIDEO4:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
             return MOS_GPU_NODE_VIDEO;
             break;
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
@@ -366,6 +370,7 @@ typedef struct _PATCHLOCATIONLIST
     uint32_t                    cpCmdProps;
     int32_t                     uiRelocFlag;
     uint32_t                    uiWriteOperation;
+    MOS_LINUX_BO                *cmdBo;
 } PATCHLOCATIONLIST, *PPATCHLOCATIONLIST;
 
 //#define PATCHLOCATIONLIST_SIZE 25

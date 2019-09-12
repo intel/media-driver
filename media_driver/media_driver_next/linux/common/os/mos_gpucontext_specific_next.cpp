@@ -374,6 +374,8 @@ MOS_STATUS GpuContextSpecificNext::SetPatchEntry(
     m_patchLocationList[m_currentNumPatchLocations].AllocationOffset = params->uiResourceOffset;
     m_patchLocationList[m_currentNumPatchLocations].PatchOffset      = params->uiPatchOffset;
     m_patchLocationList[m_currentNumPatchLocations].uiWriteOperation = params->bWrite ? true: false;
+    m_patchLocationList[m_currentNumPatchLocations].cmdBo            =
+                params->cmdBuffer != nullptr ? params->cmdBuffer->OsResource.bo : nullptr;
 
     if (osInterface->osCpInterface &&
         osInterface->osCpInterface->IsHMEnabled())
@@ -408,7 +410,15 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
     MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
     CommandBufferNext* cmdBuf = nullptr;
 
-    if (m_cmdBufFlushed)
+    uint32_t secondaryIdx = flags;
+    bool isPrimaryCmdBuffer = (secondaryIdx == 0);
+    bool hasSecondaryCmdBuffer = (!isPrimaryCmdBuffer &&
+                               (m_secondaryCmdBufs.count(secondaryIdx) != 0));
+
+    bool needToAlloc = ((isPrimaryCmdBuffer && m_cmdBufFlushed) ||
+                        (!isPrimaryCmdBuffer && !hasSecondaryCmdBuffer));
+
+    if (needToAlloc)
     {
         MOS_LockMutex(m_cmdBufPoolMutex);
         if (m_cmdBufPool.size() < MAX_CMD_BUF_NUM)
@@ -482,11 +492,21 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
         comamndBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
         MOS_ZeroMemory(&comamndBuffer->Attributes,sizeof(comamndBuffer->Attributes));
 
-        // update command buffer relared filed in GPU context
-        m_cmdBufFlushed = false;
+        if (isPrimaryCmdBuffer)
+        {
+            // update command buffer relared filed in GPU context
+            m_cmdBufFlushed = false;
 
-        // keep a copy in GPU context
-        MosUtilities::MOS_SecureMemcpy(m_commandBuffer, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
+            // keep a copy in GPU context
+            MosUtilities::MOS_SecureMemcpy(m_commandBuffer, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
+        }
+        else
+        {
+            PMOS_COMMAND_BUFFER tempCmdBuf = (PMOS_COMMAND_BUFFER)MOS_AllocAndZeroMemory(sizeof(MOS_COMMAND_BUFFER));
+            MOS_OS_CHK_NULL_RETURN(tempCmdBuf);
+            m_secondaryCmdBufs[secondaryIdx] = tempCmdBuf;
+            MOS_SecureMemcpy(tempCmdBuf, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
+        }
 
         // Command buffers are treated as cyclical buffers, the CB after the just submitted one
         // has the minimal fence value that we should wait
@@ -499,10 +519,24 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
     else
     {
         // current command buffer still active, directly copy to comamndBuffer
-        MosUtilities::MOS_SecureMemcpy(comamndBuffer, sizeof(MOS_COMMAND_BUFFER), m_commandBuffer, sizeof(MOS_COMMAND_BUFFER));
+        if (isPrimaryCmdBuffer)
+        {
+            MosUtilities::MOS_SecureMemcpy(comamndBuffer, sizeof(MOS_COMMAND_BUFFER), m_commandBuffer, sizeof(MOS_COMMAND_BUFFER));
+        }
+        else
+        {
+            MosUtilities::MOS_SecureMemcpy(comamndBuffer, sizeof(MOS_COMMAND_BUFFER), m_secondaryCmdBufs[secondaryIdx], sizeof(MOS_COMMAND_BUFFER));
+        }
     }
 
-    MOS_OS_CHK_STATUS_RETURN(RegisterResource(&m_commandBuffer->OsResource, false));
+    if (isPrimaryCmdBuffer)
+    {
+        MOS_OS_CHK_STATUS_RETURN(RegisterResource(&m_commandBuffer->OsResource, false));
+    }
+    else
+    {
+        MOS_OS_CHK_STATUS_RETURN(RegisterResource(&m_secondaryCmdBufs[secondaryIdx]->OsResource, false));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -516,16 +550,35 @@ void GpuContextSpecificNext::ReturnCommandBuffer(
     MOS_OS_ASSERT(cmdBuffer);
     MOS_OS_ASSERT(m_commandBuffer);
 
-    m_commandBuffer->iOffset    = cmdBuffer->iOffset;
-    m_commandBuffer->iRemaining = cmdBuffer->iRemaining;
-    m_commandBuffer->pCmdPtr    = cmdBuffer->pCmdPtr;
-    m_commandBuffer->iVdboxNodeIndex = cmdBuffer->iVdboxNodeIndex;
-    m_commandBuffer->iVeboxNodeIndex = cmdBuffer->iVeboxNodeIndex;
+    bool isPrimaryCmdBuf = (flags == 0);
+
+    if (isPrimaryCmdBuf)
+    {
+        m_commandBuffer->iOffset    = cmdBuffer->iOffset;
+        m_commandBuffer->iRemaining = cmdBuffer->iRemaining;
+        m_commandBuffer->pCmdPtr    = cmdBuffer->pCmdPtr;
+        m_commandBuffer->iVdboxNodeIndex = cmdBuffer->iVdboxNodeIndex;
+        m_commandBuffer->iVeboxNodeIndex = cmdBuffer->iVeboxNodeIndex;
+    }
+    else
+    {
+        uint32_t secondaryIdx = flags;
+        MOS_OS_ASSERT(m_secondaryCmdBufs.count(secondaryIdx));
+
+        MosUtilities::MOS_SecureMemcpy(m_secondaryCmdBufs[secondaryIdx], sizeof(MOS_COMMAND_BUFFER), cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+    }
 }
 
 MOS_STATUS GpuContextSpecificNext::ResetCommandBuffer()
 {
     m_cmdBufFlushed = true;
+    auto it = m_secondaryCmdBufs.begin();
+    while(it != m_secondaryCmdBufs.end())
+    {
+        MOS_FreeMemory(it->second);
+        it++;
+    }
+    m_secondaryCmdBufs.clear();
     return MOS_STATUS_SUCCESS;
 }
 
@@ -679,8 +732,8 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
     uint32_t     execFlag = gpuNode;
     MOS_STATUS   eStatus  = MOS_STATUS_SUCCESS;
     int32_t      ret      = 0;
-    int          fence = -1;
-    unsigned int fence_flag = 0;
+    bool         scalaEnabled = false;
+    auto         it           = m_secondaryCmdBufs.begin();
 
     // Command buffer object DRM pointer
     m_cmdBufFlushed = true;
@@ -689,11 +742,54 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
     // Map Resource to Aux if needed
     MapResourcesToAuxTable(cmd_bo);
 
+    if (m_secondaryCmdBufs.size() >= 2)
+    {
+        scalaEnabled = true;
+        cmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
+    }
+    else if(m_secondaryCmdBufs.size() == 1)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    std::vector<PMOS_RESOURCE> mappedResList;
+
     // Now, the patching will be done, based on the patch list.
     for (uint32_t patchIndex = 0; patchIndex < m_currentNumPatchLocations; patchIndex++)
     {
         auto currentPatch = &m_patchLocationList[patchIndex];
         MOS_OS_CHK_NULL_RETURN(currentPatch);
+
+        auto tempCmdBo = currentPatch->cmdBo == nullptr ? cmd_bo : currentPatch->cmdBo;
+
+        // Following are for Nested BB buffer, if it's nested BB, we need to ensure it's locked.
+        if (tempCmdBo != cmd_bo)
+        {
+            bool isSecondaryCmdBuf = false;
+            it = m_secondaryCmdBufs.begin();
+            while(it != m_secondaryCmdBufs.end())
+            {
+                if (it->second->OsResource.bo == tempCmdBo)
+                {
+                    isSecondaryCmdBuf = true;
+                    break;
+                }
+                it++;
+            }
+
+            for(auto allocIdx = 0; allocIdx < m_numAllocations && (!isSecondaryCmdBuf); allocIdx++)
+            {
+                auto tempRes = (PMOS_RESOURCE)m_allocationList[allocIdx].hAllocation;
+                if (tempCmdBo == tempRes->bo)
+                {
+                    GraphicsResourceNext::LockParams param;
+                    param.m_writeRequest = true;
+                    tempRes->pGfxResourceNext->Lock(m_osContext, param);
+                    mappedResList.push_back(tempRes);
+                    break;
+                }
+            }
+        }
 
         // This is the resource for which patching will be done
         auto resource = (PMOS_RESOURCE)m_allocationList[currentPatch->AllocationIndex].hAllocation;
@@ -705,15 +801,15 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         // We'll simply set alloc_bo to the command buffer's bo pointer.
         MOS_OS_ASSERT(resource->bo);
 
-        auto alloc_bo = (resource->bo) ? resource->bo : cmd_bo;
+        auto alloc_bo = (resource->bo) ? resource->bo : tempCmdBo;
 
         MOS_OS_CHK_STATUS_RETURN(osInterface->osCpInterface->PermeatePatchForHM(
-            cmd_bo->virt,
+            tempCmdBo->virt,
             currentPatch,
             resource));
 
         uint64_t boOffset = alloc_bo->offset64;
-        if (alloc_bo != cmd_bo)
+        if (alloc_bo != tempCmdBo)
         {
             auto item_ctx = osContext->contextOffsetList.begin();
             for (; item_ctx != osContext->contextOffsetList.end(); item_ctx++)
@@ -727,23 +823,37 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         }
         if (osContext->bUse64BitRelocs)
         {
-            *((uint64_t *)((uint8_t *)cmd_bo->virt + currentPatch->PatchOffset)) =
+            *((uint64_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =
                     boOffset + currentPatch->AllocationOffset;
         }
         else
         {
-            *((uint32_t *)((uint8_t *)cmd_bo->virt + currentPatch->PatchOffset)) =
+            *((uint32_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =
                     boOffset + currentPatch->AllocationOffset;
         }
 
-        if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+        if (scalaEnabled)
+        {
+            it = m_secondaryCmdBufs.begin();
+            while(it != m_secondaryCmdBufs.end())
+            {
+                if (it->second->OsResource.bo == tempCmdBo &&
+                    it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+                {
+                    mos_bo_set_exec_object_async(alloc_bo);
+                    break;
+                }
+                it++;
+            }
+        }
+        else if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
         {
             mos_bo_set_exec_object_async(alloc_bo);
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
         ret = mos_bo_emit_reloc2(
-            cmd_bo,                                                            // Command buffer
+            tempCmdBo,                                                            // Command buffer
             currentPatch->PatchOffset,                                         // Offset in the command buffer
             alloc_bo,                                                          // Allocation object for which the patch will be made.
             currentPatch->AllocationOffset,                                    // Offset to the indirect state
@@ -755,9 +865,14 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         {
             MOS_OS_ASSERTMESSAGE("Error patching alloc_bo = 0x%x, cmd_bo = 0x%x.",
                 (uintptr_t)alloc_bo,
-                (uintptr_t)cmd_bo);
+                (uintptr_t)tempCmdBo);
             return MOS_STATUS_UNKNOWN;
         }
+    }
+
+    for(auto res: mappedResList)
+    {
+        res->pGfxResourceNext->Unlock(m_osContext);
     }
 
     //Add Batch buffer End Command
@@ -775,6 +890,15 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
     MOS_OS_CHK_NULL_RETURN(cmdBuffer->OsResource.pGfxResourceNext);
 
     cmdBuffer->OsResource.pGfxResourceNext->Unlock(m_osContext);
+
+    it = m_secondaryCmdBufs.begin();
+    while(it != m_secondaryCmdBufs.end())
+    {
+        MOS_OS_CHK_NULL_RETURN(it->second->OsResource.pGfxResourceNext);
+        it->second->OsResource.pGfxResourceNext->Unlock(m_osContext);
+
+        it++;
+    }
 
     int32_t perfData;
     if (osContext->pPerfData != nullptr)
@@ -908,58 +1032,32 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         {
             if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASK)
             {
-                MOS_LINUX_CONTEXT *queue = m_i915Context[0];
-                bool isVeboxSubmission   = false;
-
-                if (execFlag == MOS_GPU_NODE_VIDEO || execFlag == MOS_GPU_NODE_VIDEO2)
+                if (scalaEnabled)
                 {
-                    execFlag = I915_EXEC_DEFAULT;
-                }
-                if (execFlag == MOS_GPU_NODE_VE)
-                {
-                    execFlag = I915_EXEC_DEFAULT;
-                    isVeboxSubmission = true;
-                }
-                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
-                {
-                    fence = osContext->submit_fence;
-                    fence_flag = I915_EXEC_FENCE_SUBMIT;
-                    int slave_index = (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_MASK) >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
-                    if(slave_index < 7)
+                    uint32_t secondaryIndex = 0;
+                    it = m_secondaryCmdBufs.begin();
+                    while(it != m_secondaryCmdBufs.end())
                     {
-                        queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
-                    }
-                    else
-                    {
-                        MOS_OS_ASSERTMESSAGE("slave_index value: %s is invalid!", slave_index);
-                        eStatus = MOS_STATUS_UNKNOWN;
-                        goto finish;
-                    }
-                    if (isVeboxSubmission)
-                    {
-                        queue = m_i915Context[cmdBuffer->iVeboxNodeIndex + 1];
+                        if (it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+                        {
+                            it->second->iSubmissionType |= (secondaryIndex << SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT);
+                            secondaryIndex++;
+                        }
+                        ret = SubmitPipeCommands(it->second,
+                                                 it->second->OsResource.bo,
+                                                 osContext,
+                                                 execFlag,
+                                                 DR4);
+                        it++;
                     }
                 }
-                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+                else
                 {
-                    fence_flag = I915_EXEC_FENCE_OUT;
-                    queue = m_i915Context[1];
-                }
-                ret = mos_gem_bo_context_exec2(cmd_bo,
-                                              cmd_bo->size,
-                                              queue,
-                                              cliprects,
-                                              num_cliprects,
-                                              DR4,
-                                              execFlag | fence_flag,
-                                              &fence);
-                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
-                {
-                    osContext->submit_fence = fence;
-                }
-                if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)
-                {
-                    close(fence);
+                    ret = SubmitPipeCommands(cmdBuffer,
+                                             cmd_bo,
+                                             osContext,
+                                             execFlag,
+                                             DR4);
                 }
             }
             else
@@ -1023,6 +1121,14 @@ if (osInterface->bDumpCommandBuffer)
 
     //clear command buffer relocations to fix memory leak issue
     mos_gem_bo_clear_relocs(cmd_bo, 0);
+    it = m_secondaryCmdBufs.begin();
+    while(it != m_secondaryCmdBufs.end())
+    {
+        mos_gem_bo_clear_relocs(it->second->OsResource.bo, 0);
+        MOS_FreeMemory(it->second);
+        it++;
+    }
+    m_secondaryCmdBufs.clear();
 
     // Reset resource allocation
     m_numAllocations = 0;
@@ -1034,6 +1140,78 @@ if (osInterface->bDumpCommandBuffer)
     MOS_ZeroMemory(m_writeModeList, sizeof(bool) * m_maxNumAllocations);
 finish:
     return eStatus;
+}
+
+int32_t GpuContextSpecificNext::SubmitPipeCommands(
+    MOS_COMMAND_BUFFER *cmdBuffer,
+    MOS_LINUX_BO *cmdBo,
+    PMOS_CONTEXT osContext,
+    uint32_t execFlag,
+    int32_t dr4)
+{
+    int32_t      ret        = 0;
+    int          fence      = -1;
+    unsigned int fence_flag = 0;
+
+    MOS_LINUX_CONTEXT *queue = m_i915Context[0];
+    bool isVeboxSubmission   = false;
+
+    if (execFlag == MOS_GPU_NODE_VIDEO || execFlag == MOS_GPU_NODE_VIDEO2)
+    {
+        execFlag = I915_EXEC_DEFAULT;
+    }
+    if (execFlag == MOS_GPU_NODE_VE)
+    {
+        execFlag = I915_EXEC_DEFAULT;
+        isVeboxSubmission = true;
+    }
+
+    if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+    {
+        fence = osContext->submit_fence;
+        fence_flag = I915_EXEC_FENCE_SUBMIT;
+        int slave_index = (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_MASK) >> SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT;
+        if(slave_index < 7)
+        {
+            queue = m_i915Context[2 + slave_index]; //0 is for single pipe, 1 is for master, slave starts from 2
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("slave_index value: %s is invalid!", slave_index);
+            return -1;
+        }
+
+        if (isVeboxSubmission)
+        {
+            queue = m_i915Context[cmdBuffer->iVeboxNodeIndex + 1];
+        }
+    }
+
+    if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+    {
+        fence_flag = I915_EXEC_FENCE_OUT;
+        queue = m_i915Context[1];
+    }
+
+    ret = mos_gem_bo_context_exec2(cmdBo,
+                                  cmdBo->size,
+                                  queue,
+                                  nullptr,
+                                  0,
+                                  dr4,
+                                  execFlag | fence_flag,
+                                  &fence);
+
+    if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+    {
+        osContext->submit_fence = fence;
+    }
+    if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)
+    {
+        close(fence);
+    }
+
+    return ret;
 }
 
 void GpuContextSpecificNext::IncrementGpuStatusTag()

@@ -468,6 +468,7 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
     uint32_t                    shiftAmount; //!< shift amount for patch
     uint32_t                    shiftDirection; //!< shift direction for patch
     MOS_PATCH_TYPE              patchType;   //!< patch type
+    MOS_COMMAND_BUFFER          *cmdBuffer;  //!< command buffer
 } MOS_PATCH_ENTRY_PARAMS, *PMOS_PATCH_ENTRY_PARAMS;
 
 typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
