@@ -145,6 +145,8 @@ public:
                                                 CmBufferStateless *&pBufferStateless) = 0;
     CM_RT_API virtual INT DestroyBufferStateless(CmBufferStateless *&pSurface) = 0;
 
+    CM_RT_API virtual int32_t DispatchTask() = 0;
+
     //adding new functions in the bottom is a must 
 protected:
     ~CmDevice(){}

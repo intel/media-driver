@@ -133,6 +133,8 @@ public:
                                             CmBufferStateless *&pBufferStateless);
     CM_RT_API int32_t DestroyBufferStateless(CmBufferStateless *&buffer);
 
+    CM_RT_API int32_t DispatchTask() { return CM_SUCCESS; }
+
     int32_t CheckDdiVersionSupported(const uint32_t ddiVersion);
 
     int32_t OSALExtensionExecute(uint32_t functionId,

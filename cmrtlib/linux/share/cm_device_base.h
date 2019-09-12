@@ -1803,6 +1803,8 @@ public:
     //!
     CM_RT_API virtual int32_t DestroyBufferStateless(CmBufferStateless* &buffer) = 0;
 
+    CM_RT_API virtual int32_t DispatchTask() = 0;
+
 protected:
     virtual ~CmDevice() = default;
 };
