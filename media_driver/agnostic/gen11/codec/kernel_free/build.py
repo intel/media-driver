@@ -103,7 +103,8 @@ class GenSource2Bin(object):
         count6   = ((count5 + 63) >> 6) << 6
         byteremain6 = count6 - count5
 
-        output.write(chr(0)*36);
+        zerofill = chr(0)*36
+        output.write(zerofill.encode(encoding = "utf-8"));
 
         filepath = os.path.join('./Binary', 'DS4x_Frame.krn')
         fileobj  = open(filepath, 'rb')
@@ -113,7 +114,8 @@ class GenSource2Bin(object):
 
             if not filebytes:
                 byteremain = count1 - os.path.getsize(filepath)
-                output.write(chr(0)*byteremain1)
+                zerofill = chr(0)*byteremain1
+                output.write(zerofill.encode(encoding = "utf-8"))
                 break
 
             output.write(filebytes)
@@ -126,7 +128,8 @@ class GenSource2Bin(object):
             filebytes = fileobj.read()
 
             if not filebytes:
-                output.write(chr(0)*byteremain2)
+                zerofill = chr(0)*byteremain2
+                output.write(zerofill.encode(encoding = "utf-8"))
                 break
 
             output.write(filebytes)
@@ -139,7 +142,8 @@ class GenSource2Bin(object):
             filebytes = fileobj.read()
 
             if not filebytes:
-                output.write(chr(0)*byteremain3)
+                zerofill = chr(0)*byteremain3
+                output.write(zerofill.encode(encoding = "utf-8"))
                 break
 
             output.write(filebytes)
@@ -152,7 +156,8 @@ class GenSource2Bin(object):
             filebytes = fileobj.read()
 
             if not filebytes:
-                output.write(chr(0)*byteremain4)
+                zerofill = chr(0)*byteremain4
+                output.write(zerofill.encode(encoding = "utf-8"))
                 break
 
             output.write(filebytes)
@@ -165,7 +170,8 @@ class GenSource2Bin(object):
             filebytes = fileobj.read()
 
             if not filebytes:
-                output.write(chr(0)*byteremain5)
+                zerofill = chr(0)*byteremain5
+                output.write(zerofill.encode(encoding = "utf-8"))
                 break
 
             output.write(filebytes)
@@ -178,7 +184,8 @@ class GenSource2Bin(object):
             filebytes = fileobj.read()
 
             if not filebytes:
-                output.write(chr(0)*128)
+                zerofill = chr(0)*128
+                output.write(zerofill.encode(encoding = "utf-8"))
                 break
 
             output.write(filebytes)

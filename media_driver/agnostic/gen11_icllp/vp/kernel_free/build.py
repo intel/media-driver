@@ -25,7 +25,7 @@ class WinKernel2Source(object):
                 command += ' -o '
                 command += newfp;
                 os.system(command)
- 
+
                 command_Hex = '.\\compile\\KrnToHex_IGA.exe '
                 command_Hex += newfp;
                 os.system(command_Hex)
@@ -33,23 +33,23 @@ class WinKernel2Source(object):
                 hexfilename  = os.path.splitext(filename)[0]
                 hexfilename += '.hex'
                 hexfp = os.path.join(".\\Source", hexfilename)
- 
+
                 isExists=os.path.exists("component_release")
- 
+
                 if not isExists:
                     os.mkdir("component_release")
 
                 shutil.copy(hexfp, "component_release")
- 
+
                 os.remove(newfp)
                 os.remove(hexfp)
- 
+
                 print("Compiled %s" % fp);
 
     def kernel2bin(self):
         cmd = '.\\compile\\GenKrnBin.exe component_release vp'
         os.system(cmd)
-    
+
     def bin2source(self):
         cmd = '.\\compile\\KernelBinToSource.exe -i .\\component_release\\igvpkrn_g11_icllp.bin -o .\\'
         os.system(cmd)
@@ -78,33 +78,33 @@ class LinuxKernel2Source(object):
                 command += ' -o '
                 command += newfp;
                 os.system(command)
- 
+
                 command_Hex = './compile/KrnToHex_IGA '
                 command_Hex += newfp;
                 os.system(command_Hex)
 
-        print 'test'
+        print ('test')
 
-                hexfilename  = os.path.splitext(filename)[0]
-                hexfilename += '.hex'
-                hexfp = os.path.join("./Source", hexfilename)
- 
-                isExists=os.path.exists("component_release")
- 
-                if not isExists:
-                    os.mkdir("component_release")
+        hexfilename  = os.path.splitext(filename)[0]
+        hexfilename += '.hex'
+        hexfp = os.path.join("./Source", hexfilename)
 
-                shutil.copy(hexfp, "component_release")
- 
-                os.remove(newfp)
-                os.remove(hexfp)
- 
-                print("Compiled %s" % fp);
-        
+        isExists=os.path.exists("component_release")
+
+        if not isExists:
+            os.mkdir("component_release")
+
+        shutil.copy(hexfp, "component_release")
+
+        os.remove(newfp)
+        os.remove(hexfp)
+
+        print("Compiled %s" % fp);
+
     def kernel2bin(self):
         cmd = './compile/GenKrnBin component_release vp'
         os.system(cmd)
-    
+
     def bin2source(self):
         cmd = './compile/KernelBinToSource -i ./component_release/igvpkrn_g11_icllp.bin -o ./'
         os.system(cmd)
