@@ -416,6 +416,16 @@ protected:
             VADriverContextP         ctx,
             VAContextID              context);
 
+    //! \brief    Init dummy reference
+    //! \details  Init dummy reference for decode
+    //!
+    //! \param    [in/out] decoder
+    //!           Codechal decoder
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    VAStatus InitDummyReference(CodechalDecode& decoder);
+
     //! \brief  the type of decode base class
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure
     uint32_t                    m_groupIndex;           //!<global Group
