@@ -540,6 +540,7 @@ private:
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
 class OsContextNext;
+typedef void *     OS_PER_STREAM_PARAMETERS;
 typedef OsContextNext OsDeviceContext;
 typedef _MOS_GPUCTX_CREATOPTIONS GpuContextCreateOption;
 struct _MOS_INTERFACE;
@@ -565,6 +566,9 @@ struct MosStreamState
     bool  dumpCommandBufferToFile = false;                //!< Indicates that the command buffer should be dumped to a file
     bool  dumpCommandBufferAsMessages = false;            //!< Indicates that the command buffer should be dumped via MOS normal messages
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+    bool  ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
+    OS_PER_STREAM_PARAMETERS  perStreamParameters = nullptr; //!< Parameters of OS specific per stream
 
     _MOS_INTERFACE *osInterfaceLegacy = nullptr;
 };

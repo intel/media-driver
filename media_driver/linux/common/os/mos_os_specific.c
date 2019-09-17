@@ -4426,6 +4426,9 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
 
         if (g_apoMosEnabled)
         {
+            // Update ctxBasedScheduling from legacy OsInterface
+            pOsInterface->osStreamState->ctxBasedScheduling = pOsInterface->ctxBasedScheduling;
+
             // Only wrapper will contain re-creation check based on stream Index and MOS_GPU_CONTEXT
             createOption->gpuNode = GpuNode;
             MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

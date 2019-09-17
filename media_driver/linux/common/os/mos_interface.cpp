@@ -172,8 +172,9 @@ MOS_STATUS MosInterface::CreateGpuContext(
     auto cmdBufMgr = osDeviceContext->GetCmdBufferMgr();
     MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
 
-    auto pOsInterface = streamState->osInterfaceLegacy;
-    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    MOS_OS_CHK_NULL_RETURN(osParameters);
+
     if (createOption.gpuNode == MOS_GPU_NODE_3D && createOption.SSEUValue != 0)
     {
         struct drm_i915_gem_context_param_sseu sseu;
@@ -181,7 +182,7 @@ MOS_STATUS MosInterface::CreateGpuContext(
         sseu.engine.engine_class    = I915_ENGINE_CLASS_RENDER;
         sseu.engine.engine_instance = 0;
 
-        if (mos_get_context_param_sseu(pOsInterface->pOsContext->intel_context, &sseu))
+        if (mos_get_context_param_sseu(osParameters->intel_context, &sseu))
         {
             MOS_OS_ASSERTMESSAGE("Failed to get sseu configuration.");
             return MOS_STATUS_UNKNOWN;
@@ -193,7 +194,7 @@ MOS_STATUS MosInterface::CreateGpuContext(
                 mos_hweight8(sseu.subslice_mask) - createOption.packed.SubSliceCount);
         }
 
-        if (mos_set_context_param_sseu(pOsInterface->pOsContext->intel_context, sseu))
+        if (mos_set_context_param_sseu(osParameters->intel_context, sseu))
         {
             MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
             return MOS_STATUS_UNKNOWN;
@@ -209,7 +210,7 @@ MOS_STATUS MosInterface::CreateGpuContext(
     auto gpuContextSpecific = static_cast<GpuContextSpecificNext *>(gpuContext);
     MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
 
-    MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), pOsInterface, gpuNode, &createOption));
+    MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), streamState, &createOption));
 
     gpuContextHandle = gpuContextSpecific->GetGpuContextHandle();
 
@@ -311,9 +312,31 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     char     sFileName[MOS_MAX_HLT_FILENAME_LEN];
     // Maximum length of engine name is 6
     char sEngName[6];
+    size_t nSizeFileNamePrefix   = 0;
 
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(cmdBuffer);
+
+    // Set the name of the engine that is going to be used.
+    auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
+    MOS_OS_CHK_NULL_RETURN(gpuContext);
+    MOS_GPU_NODE gpuNode = gpuContext->GetContextNode();
+    switch (gpuNode)
+    {
+    case MOS_GPU_NODE_VIDEO:
+    case MOS_GPU_NODE_VIDEO2:
+        MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
+        break;
+    case MOS_GPU_NODE_COMPUTE:
+        MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
+        break;
+    case MOS_GPU_NODE_VE:
+        MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VEBOX_ENGINE);
+        break;
+    default:
+        MOS_OS_ASSERTMESSAGE("Unsupported GPU context.");
+        return eStatus;
+    }
 
     dwNumberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t);
 
@@ -342,12 +365,12 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
             return eStatus;
         }
 
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MosUtilities::MOS_SecureStringPrint(
-            sFileName,
-            sizeof(sFileName),
-            sizeof(sFileName),
-            "%s%c%s%c%s_%d.txt",
-            sFileName,
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s%c%s_%d.txt",
             MOS_DIR_SEPERATOR,
             MOS_COMMAND_BUFFER_OUT_DIR,
             MOS_DIR_SEPERATOR,
@@ -407,6 +430,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     eStatus = MOS_STATUS_SUCCESS;
 
     return eStatus;
+
 }
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
@@ -454,9 +478,7 @@ MOS_STATUS MosInterface::SubmitCommandBuffer(
     auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-    MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy)
-
-    return (gpuContext->SubmitCommandBuffer(streamState->osInterfaceLegacy, cmdBuffer, nullRendering));
+    return (gpuContext->SubmitCommandBuffer(streamState, cmdBuffer, nullRendering));
 }
 
 MOS_STATUS MosInterface::ResetCommandBuffer(
@@ -526,7 +548,7 @@ MOS_STATUS MosInterface::SetPatchEntry(
     auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-    MOS_OS_CHK_STATUS_RETURN(gpuContext->SetPatchEntry(streamState->osInterfaceLegacy, params));
+    MOS_OS_CHK_STATUS_RETURN(gpuContext->SetPatchEntry(streamState, params));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1017,12 +1039,12 @@ MOS_STATUS MosInterface::AllocateResource(
 
     MosUtilities::MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
 
-    MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy);
-    auto pOsInterface = streamState->osInterfaceLegacy;
+    MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
+    auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
 
-    if (nullptr == pOsInterface->pOsContext)
+    if (nullptr == perStreamParameters)
     {
-        MOS_OS_ASSERTMESSAGE("input parameter pOsInterface->pOsContext is NULL.");
+        MOS_OS_ASSERTMESSAGE("input parameter perStreamParameters is NULL.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
     switch (params->Format)
@@ -1110,9 +1132,9 @@ MOS_STATUS MosInterface::AllocateResource(
         gmmParams.Flags.Info.Linear = true;
         tileformat_linux            = I915_TILING_NONE;
     }
-    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrLocalMemory);
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&perStreamParameters->SkuTable, FtrLocalMemory);
 
-    resource->pGmmResInfo = gmmResourceInfo = pOsInterface->pOsContext->pGmmClientContext->CreateResInfoObject(&gmmParams);
+    resource->pGmmResInfo = gmmResourceInfo = perStreamParameters->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     MOS_OS_CHK_NULL_RETURN(gmmResourceInfo);
 
@@ -1148,11 +1170,11 @@ MOS_STATUS MosInterface::AllocateResource(
     // Only Linear and Y TILE supported
     if (tileformat_linux == I915_TILING_NONE)
     {
-        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096);
+        bo = mos_bo_alloc(perStreamParameters->bufmgr, bufname, iSize, 4096);
     }
     else
     {
-        bo     = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize / iPitch, 1, &tileformat_linux, &ulPitch, 0);
+        bo     = mos_bo_alloc_tiled(perStreamParameters->bufmgr, bufname, iPitch, iSize / iPitch, 1, &tileformat_linux, &ulPitch, 0);
         iPitch = (int32_t)ulPitch;
     }
 
@@ -1227,11 +1249,12 @@ MOS_STATUS MosInterface::FreeResource(
 
         mos_bo_unreference((MOS_LINUX_BO *)(resource->bo));
 
-        MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy);
-        auto pOsInterface = streamState->osInterfaceLegacy;
-        if (pOsInterface->pOsContext != nullptr && pOsInterface->pOsContext->contextOffsetList.size())
+        MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
+        auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+        if (perStreamParameters != nullptr && perStreamParameters->contextOffsetList.size())
         {
-            MOS_CONTEXT *pOsCtx   = pOsInterface->pOsContext;
+            MOS_CONTEXT *pOsCtx   = perStreamParameters;
             auto         item_ctx = pOsCtx->contextOffsetList.begin();
 
             for (; item_ctx != pOsCtx->contextOffsetList.end();)
@@ -1428,13 +1451,12 @@ void *MosInterface::LockMosResource(
         return pData;
     }
 
-    if (streamState->osInterfaceLegacy == nullptr)
+    if (streamState->perStreamParameters == nullptr)
     {
-        MOS_OS_ASSERTMESSAGE("osInterfaceLegacy is nullptr, skip lock");
+        MOS_OS_ASSERTMESSAGE("perStreamParameters is nullptr, skip lock");
         return nullptr;
     }
-    auto pOsInterface = streamState->osInterfaceLegacy;
-    auto pContext = pOsInterface->pOsContext;
+    auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
     if (resource && resource->bo && resource->pGmmResInfo)
     {
         MOS_LINUX_BO *bo = resource->bo;
@@ -1443,7 +1465,7 @@ void *MosInterface::LockMosResource(
         if (!flags->NoDecompress &&
             resource->pGmmResInfo->IsMediaMemoryCompressed(0))
         {
-            PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
+            PMOS_CONTEXT pOsContext = perStreamParameters;
 
             MOS_OS_ASSERT(pOsContext);
             MOS_OS_ASSERT(pOsContext->ppMediaMemDecompState);
@@ -1453,7 +1475,7 @@ void *MosInterface::LockMosResource(
 
         if (false == resource->bMapped)
         {
-            if (pContext->bIsAtomSOC)
+            if (perStreamParameters->bIsAtomSOC)
             {
                 mos_gem_bo_map_gtt(bo);
             }
@@ -1461,7 +1483,7 @@ void *MosInterface::LockMosResource(
             {
                 if (resource->TileType != MOS_TILE_LINEAR && !flags->TiledAsTiled)
                 {
-                    if (pContext->bUseSwSwizzling)
+                    if (perStreamParameters->bUseSwSwizzling)
                     {
                         mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY & flags->WriteOnly));
                         resource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
@@ -1472,7 +1494,7 @@ void *MosInterface::LockMosResource(
                         }
                         if (resource->pSystemShadow)
                         {
-                            int32_t swizzleflags = pContext->bTileYFlag ? 0 : 1;
+                            int32_t swizzleflags = perStreamParameters->bTileYFlag ? 0 : 1;
                             MOS_OS_CHECK_CONDITION((resource->TileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
                             MOS_OS_CHECK_CONDITION((bo->size <= 0 || resource->iPitch <= 0), "Invalid BO size or pitch", nullptr);
                             Mos_SwizzleData((uint8_t *)bo->virt, resource->pSystemShadow, MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / resource->iPitch, resource->iPitch, swizzleflags);
@@ -1531,15 +1553,14 @@ MOS_STATUS MosInterface::UnlockMosResource(
         return eStatus;
     }
 
-    MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy);
-    auto pOsInterface = streamState->osInterfaceLegacy;
-    auto pContext = pOsInterface->pOsContext;
+    MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
+    auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
 
     if (resource->bo)
     {
         if (true == resource->bMapped)
         {
-            if (pContext->bIsAtomSOC)
+            if (perStreamParameters->bIsAtomSOC)
             {
                 mos_gem_bo_unmap_gtt(resource->bo);
             }
@@ -1547,7 +1568,7 @@ MOS_STATUS MosInterface::UnlockMosResource(
             {
                 if (resource->pSystemShadow)
                 {
-                    int32_t flags = pContext->bTileYFlag ? 0 : 1;
+                    int32_t flags = perStreamParameters->bTileYFlag ? 0 : 1;
                     Mos_SwizzleData(resource->pSystemShadow, (uint8_t *)resource->bo->virt, MOS_TILE_LINEAR, MOS_TILE_Y, resource->bo->size / resource->iPitch, resource->iPitch, flags);
                     MOS_FreeMemory(resource->pSystemShadow);
                     resource->pSystemShadow = nullptr;

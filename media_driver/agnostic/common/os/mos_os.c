@@ -811,6 +811,8 @@ MOS_STATUS Mos_InitInterface(
         pOsInterface->osStreamState->dumpCommandBufferToFile  = pOsInterface->bDumpCommandBufferToFile;
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
+        pOsInterface->osStreamState->ctxBasedScheduling       = pOsInterface->ctxBasedScheduling;
+        pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
         pOsInterface->osStreamState->osInterfaceLegacy = pOsInterface;
     }
 

@@ -136,8 +136,8 @@ public:
     //!
     //! \brief    Submit command buffer
     //! \details  Submit the command buffer
-    //! \param    [in] osInterface
-    //!           Pointer to OS interface structure
+    //! \param    [in] streamState
+    //!           OS stream state
     //! \param    [in] cmdBuffer
     //!           Pointer to Command Buffer control structure
     //! \param    [in] nullRendering
@@ -146,7 +146,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SubmitCommandBuffer(
-        PMOS_INTERFACE      osInterface,
+        MOS_STREAM_HANDLE   streamState,
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool                nullRendering) = 0;
 
