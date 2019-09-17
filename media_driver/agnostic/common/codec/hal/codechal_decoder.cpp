@@ -686,30 +686,34 @@ MOS_STATUS CodechalDecode::SetDummyReference()
         if (Mos_ResourceIsNull(&m_dummyReference.OsResource))
         {
             // If MMC enabled
-            if (m_mmc != nullptr && m_mmc->IsMmcEnabled() && 
-                !m_mmc->IsMmcExtensionEnabled() && 
-                m_decodeParams.m_destSurface->bIsCompressed)
+            MOS_MEMCOMP_STATE mmcState = MOS_MEMCOMP_DISABLED;
+            if (m_mmc != nullptr && m_mmc->IsMmcEnabled())
             {
-                if (m_mode == CODECHAL_DECODE_MODE_HEVCVLD)
-                {
-                    eStatus = AllocateSurface(
-                        &m_dummyReference,
-                        m_decodeParams.m_destSurface->dwWidth,
-                        m_decodeParams.m_destSurface->dwHeight,
-                        "dummy reference resource",
-                        m_decodeParams.m_destSurface->Format,
-                        m_decodeParams.m_destSurface->bIsCompressed);
+                CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
+                    m_osInterface,
+                    &m_decodeParams.m_destSurface->OsResource,
+                    &mmcState));
+            }
 
-                    if (eStatus != MOS_STATUS_SUCCESS)
-                    {
-                        CODECHAL_DECODE_ASSERTMESSAGE("Failed to create dummy reference!");
-                        return eStatus;
-                    }
-                    else
-                    {
-                        m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_ALLOCATED;
-                        CODECHAL_DECODE_VERBOSEMESSAGE("Dummy reference is created!");
-                    }
+            if (mmcState != MOS_MEMCOMP_DISABLED)
+            {
+                eStatus = AllocateSurface(
+                    &m_dummyReference,
+                    m_decodeParams.m_destSurface->dwWidth,
+                    m_decodeParams.m_destSurface->dwHeight,
+                    "dummy reference resource",
+                    m_decodeParams.m_destSurface->Format,
+                    false);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    CODECHAL_DECODE_ASSERTMESSAGE("Failed to create dummy reference!");
+                    return eStatus;
+                }
+                else
+                {
+                    m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_ALLOCATED;
+                    CODECHAL_DECODE_VERBOSEMESSAGE("Dummy reference is created!");
                 }
             }
             else    // Use decode output surface as dummy reference
