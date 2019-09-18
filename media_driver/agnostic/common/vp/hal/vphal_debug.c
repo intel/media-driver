@@ -3496,7 +3496,10 @@ const char * VphalDumperTool::GetFormatStr(MOS_FORMAT format)
         case Format_P016        : return _T("p016");
         case Format_R16F        : return _T("r16f");
         case Format_Y210        : return _T("y210");
+        case Format_Y216        : return _T("y216");
         case Format_Y410        : return _T("y410");
+        case Format_P210        : return _T("p210");
+        case Format_P216        : return _T("p216");
         default                 : return _T("Err");
     }
 
@@ -3549,6 +3552,10 @@ MOS_STATUS VphalDumperTool::GetSurfaceSize(
         case Format_V8U8:
         case Format_R10G10B10A2:
         case Format_B10G10R10A2:
+        case Format_Y210:
+        case Format_Y216:
+        case Format_Y410:
+        case Format_Y416:
             iWidthInBytes = pSurface->dwWidth * iBpp / 8;
             iHeightInRows = pSurface->dwHeight;
             break;
@@ -3825,6 +3832,11 @@ MOS_STATUS VphalDumperTool::GetSurfaceSize(
             iWidthInBytes = pSurface->dwWidth * 8;
             iHeightInRows = pSurface->dwHeight;
             break;
+
+        case Format_P210:
+        case Format_P216:
+            iWidthInBytes = pSurface->dwWidth * 2;
+            iHeightInRows = pSurface->dwHeight * 2;
 
         default:
             VPHAL_DEBUG_ASSERTMESSAGE("Format %d not supported.", pSurface->Format);
@@ -4124,8 +4136,11 @@ const char * VphalParameterDumper::GetWholeFormatStr(MOS_FORMAT format)
     case Format_P016:               return _T("Format_P016");
     case Format_P010:               return _T("Format_P010");
     case Format_Y210:               return _T("Format_Y210");
+    case Format_Y216:               return _T("Fomrat_Y216");
     case Format_Y410:               return _T("Format_Y410");
     case Format_YV12_Planar:        return _T("Format_YV12_Planar");
+    case Format_P210:               return _T("Format_P210");
+    case Format_P216:               return _T("Format_P216");
     case Format_Count:              return _T("Format_Count");
     default:                        return _T("Err");
     }
