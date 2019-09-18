@@ -885,7 +885,7 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
                 }
             } // if (! bFirst )
 
-            if (fscanf(File, "%x\n", &iCurId) <= 0)
+            if (fscanf(File, "%x\n", (uint32_t*)&iCurId) <= 0)
             {
                 break;
             }
@@ -1431,7 +1431,7 @@ MOS_STATUS MOS_CheckMountStatus(char  *pKeyWord)
     MOS_OS_CHK_NULL(file);
     MOS_OS_CHK_NULL(pKeyWord);
 
-    while( fscanf( file, "%s %s %s %s %s %s\n", sPartitionPath, sMountPoint, sSystemType, sTemp0, sTemp1, sTemp2 ) > 0 )
+    while( fscanf( file, "%255s %255s %255s %255s %255s %255s\n", sPartitionPath, sMountPoint, sSystemType, sTemp0, sTemp1, sTemp2 ) > 0 )
     {
         if( strcmp(sSystemType, pKeyWord) == 0 )
         {
