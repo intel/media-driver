@@ -813,10 +813,6 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         scalaEnabled = true;
         cmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
     }
-    else if(m_secondaryCmdBufs.size() == 1)
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
 
     std::vector<PMOS_RESOURCE> mappedResList;
 
