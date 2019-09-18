@@ -1308,16 +1308,17 @@ MOS_STATUS VphalRenderer::Initialize(
     Kdll_KernelCache                    *pKernelCache;
     Kdll_CacheEntry                     *pCacheEntryTable;
 
+    eStatus         = MOS_STATUS_UNKNOWN;
+    pOsInterface    = m_pOsInterface;
+    pRenderHal      = m_pRenderHal;
+    pKernelBin      = nullptr;
+    pFcPatchBin     = nullptr;
+
     //---------------------------------------
     VPHAL_RENDER_CHK_NULL(pSettings);
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
     VPHAL_RENDER_CHK_NULL(m_pRenderHal);
     //---------------------------------------
-
-    eStatus         = MOS_STATUS_UNKNOWN;
-    pOsInterface    = m_pOsInterface;
-    pRenderHal      = m_pRenderHal;
-    pFcPatchBin     = nullptr;
 
     Align16State.pPerfData   = &PerfData;
     Fast1toNState.pPerfData  = &PerfData;
@@ -1431,6 +1432,18 @@ MOS_STATUS VphalRenderer::Initialize(
     eStatus = MOS_STATUS_SUCCESS;
 
 finish:
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        if (pKernelBin)
+        {
+            MOS_SafeFreeMemory(pKernelBin);
+        }
+
+        if (pFcPatchBin)
+        {
+            MOS_SafeFreeMemory(pFcPatchBin);
+        }
+    }
     return eStatus;
 }
 
