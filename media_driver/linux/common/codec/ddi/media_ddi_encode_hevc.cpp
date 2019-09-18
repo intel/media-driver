@@ -585,6 +585,10 @@ VAStatus DdiEncodeHevc::ParsePicParams(
     hevcPicParams->slice_pic_parameter_set_id       = picParams->slice_pic_parameter_set_id;
     hevcPicParams->nal_unit_type                    = picParams->nal_unit_type;
     hevcPicParams->no_output_of_prior_pics_flag     = picParams->pic_fields.bits.no_output_of_prior_pics_flag;
+    hevcPicParams->bDisplayFormatSwizzle            = NeedDisapayFormatSwizzle(rtTbl->pCurrentRT, rtTbl->pCurrentReconTarget);
+
+    // Correct Input color space of Sequence parameter here
+    hevcSeqParams->InputColorSpace                  = hevcPicParams->bDisplayFormatSwizzle ? ECOLORSPACE_P601 : ECOLORSPACE_P709;
 
     if (hevcPicParams->tiles_enabled_flag)
     {

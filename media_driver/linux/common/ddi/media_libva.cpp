@@ -406,8 +406,9 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
         case Media_Format_R8G8B8A8:
             return VA_FOURCC_RGBA;
         case Media_Format_A8R8G8B8:
-        case Media_Format_B10G10R10A2:
             return VA_FOURCC_ARGB;
+        case Media_Format_B10G10R10A2:
+            return VA_FOURCC_A2R10G10B10;
         case Media_Format_R5G6B5:
             return VA_FOURCC_R5G6B5;
         case Media_Format_R8G8B8:
@@ -495,6 +496,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
     {
         case VA_FOURCC_A2R10G10B10:
             return Media_Format_B10G10R10A2;
+        case VA_FOURCC_A2B10G10R10:
+            return Media_Format_R10G10B10A2;
         case VA_FOURCC_BGRA:
         case VA_FOURCC_ARGB:
 #ifdef VA_RT_FORMAT_RGB32_10BPP
@@ -4364,6 +4367,11 @@ VAStatus DdiMedia_DeriveImage (
         case Media_Format_P010:
             vaimg->offsets[1]               = UPlaneYOffset * mediaSurface->iPitch;
             vaimg->offsets[2]               = vaimg->offsets[1] + 2;
+            break;
+        case Media_Format_R10G10B10A2:
+        case Media_Format_B10G10R10A2:
+            vaimg->offsets[1]               = vaimg->data_size;
+            vaimg->offsets[2]               = vaimg->offsets[1] + 1;
             break;
         default:
             vaimg->offsets[1]               = UPlaneYOffset * mediaSurface->iPitch;

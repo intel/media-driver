@@ -262,5 +262,36 @@ private:
         bool                          picReference,
         bool                          sliceReference);
 
+    //!
+    //! \brief    Check whether swizzle needed
+    //!
+    //! \param    [in] rawSurface
+    //!           Pointer of Raw Surface
+    //! \param    [in] reconSurface
+    //!           Pointer of Recon Surface
+    //!
+    //! \return   bool, true if need, otherwise false
+    //!
+    inline bool NeedDisapayFormatSwizzle(
+        DDI_MEDIA_SURFACE *rawSurface,
+        DDI_MEDIA_SURFACE *reconSurface)
+    {
+        bool ret = false;
+
+        if (Media_Format_A8R8G8B8 == rawSurface->format ||
+           Media_Format_B10G10R10A2 == rawSurface->format)
+        {
+            ret = true;
+        }
+
+        if (ret && 
+            (Media_Format_A8R8G8B8 == reconSurface->format ||
+            Media_Format_B10G10R10A2 == reconSurface->format))
+        {
+            ret = false;
+        }
+
+        return ret;
+    }
 };
 #endif  //__MEDIA_LIBVA_ENCODER_HEVC_H__
