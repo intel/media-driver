@@ -3447,8 +3447,15 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
     else
     {
         int err = MOS_SecureFileOpen(&streamOutFile, filename, "wb");
-        if (err || streamOutFile == nullptr)
+        if (streamOutFile == nullptr)
         {
+            CM_ASSERTMESSAGE("Error: Failed to open kernel print dump file.");
+            return CM_FAILURE;
+        }
+        if (err)
+        {
+            fclose(streamOutFile);
+            streamOutFile = nullptr;
             CM_ASSERTMESSAGE("Error: Failed to open kernel print dump file.");
             return CM_FAILURE;
         }
