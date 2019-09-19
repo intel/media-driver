@@ -137,6 +137,7 @@ typedef struct _MHW_STATE_BASE_ADDR_PARAMS
     uint32_t                mocs4SurfaceState;
     uint32_t                mocs4IndirectObjectBuffer;
     uint32_t                mocs4StatelessDataport;
+    uint32_t                l1CacheConfig;
 } MHW_STATE_BASE_ADDR_PARAMS, *PMHW_STATE_BASE_ADDR_PARAMS;
 
 typedef struct _MHW_VFE_SCOREBOARD_DELTA
