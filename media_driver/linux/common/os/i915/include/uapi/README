@@ -13,24 +13,17 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit :
 
-commit 16065fcdd19ddb9e093192914ac863884f308766
-Author: Gerd Hoffmann <kraxel@redhat.com>
-Date:   Fri Feb 8 15:04:09 2019 +0100
+commit 945b584c94f8c665b2df3834a8a6a8faf256cd5f
+Merge: 023941cf28bd b568db62c5c4
+Author: Dave Airlie <airlied@redhat.com>
+Date:   Tue Sep 17 16:31:30 2019 +1000
 
-    drm/virtio: do NOT reuse resource ids
+    Merge branch 'linux-5.4' of git://github.com/skeggsb/linux into drm-next
 
-    Bisected guest kernel changes crashing qemu.  Landed at
-    "6c1cd97bda drm/virtio: fix resource id handling".  Looked again, and
-    noticed we where not only leaking *some* ids, but *all* ids.  The old
-    code never ever called virtio_gpu_resource_id_put().
+    A couple of fixes from Thierry fixing issues as a result of the
+    reservation object rework in this cycle, as well as a fix from Lyude
+    to allow the driver to load on Thinkpad P71.
 
-    So, commit 6c1cd97bda effectively makes the linux kernel starting
-    re-using IDs after releasing them, and apparently virglrenderer can't
-    deal with that.  Oops.
-
-    This patch puts a temporary stopgap into place for the 5.0 release.
-
-    Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-    Reviewed-by: Dave Airlie <airlied@redhat.com>
     Signed-off-by: Dave Airlie <airlied@redhat.com>
-    Link: https://patchwork.freedesktop.org/patch/msgid/20190208140409.15280-1-kraxel@redhat.com
+    From: Ben Skeggs <skeggsb@gmail.com>
+    Link: https://patchwork.freedesktop.org/patch/msgid/CACAvsv5bLthhq7kh04A0JKxGnBdOTCxiu0hs7FZ1x3_9Rc9YoA@mail.gmail.com
