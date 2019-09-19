@@ -2815,10 +2815,15 @@ void  *Mos_Specific_LockResource(
     if (pOsResource && pOsResource->bo && pOsResource->pGmmResInfo)
     {
         MOS_LINUX_BO *bo = pOsResource->bo;
+        GMM_RESOURCE_FLAG GmmFlags;
+
+        MOS_ZeroMemory(&GmmFlags, sizeof(GmmFlags));
+        GmmFlags = pOsResource->pGmmResInfo->GetResFlags();
 
         // Do decompression for a compressed surface before lock
         if (!pLockFlags->NoDecompress &&
-             pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0))
+            (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Gpu.UnifiedAuxSurface)||
+             pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0)))
         {
             PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
 
