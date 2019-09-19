@@ -6324,6 +6324,23 @@ MEMORY_OBJECT_CONTROL_STATE Mos_Specific_CachePolicyGetMemoryObject(
     return Mos_CachePolicyGetMemoryObject(MosUsage, pGmmClientContext);
 }
 
+//!
+//! \brief    Get the L1 config
+//! \details  Get the L1 config for cache policy
+//! \param    MOS_HW_RESOURCE_DEF MosUsage
+//!           [in] HW resource
+//!           [in] Gmm client context
+//! \return   uint8_t
+//!           L1_CACHE_CONTROL
+//!
+uint8_t Mos_Specific_CachePolicyGetL1Config(
+    MOS_HW_RESOURCE_DEF         MosUsage,
+    GMM_CLIENT_CONTEXT          *pGmmClientContext)
+{
+    return 0;
+}
+
+
 //*-----------------------------------------------------------------------------
 //| Purpose   : Loads library
 //| Returns   : Instance to handle
@@ -6816,6 +6833,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnRegisterBBCompleteNotifyEvent          = Mos_Specific_RegisterBBCompleteNotifyEvent;
     pOsInterface->pfnWaitForBBCompleteNotifyEvent           = Mos_Specific_WaitForBBCompleteNotifyEvent;
     pOsInterface->pfnCachePolicyGetMemoryObject             = Mos_Specific_CachePolicyGetMemoryObject;
+    pOsInterface->pfnCachePolicyGetL1Config                 = Mos_Specific_CachePolicyGetL1Config;
     pOsInterface->pfnSetCpuCacheability                     = Mos_Specific_SetCpuCacheability;
     pOsInterface->pfnSkipResourceSync                       = Mos_Specific_SkipResourceSync;
     pOsInterface->pfnIsGPUHung                              = Mos_Specific_IsGPUHung;

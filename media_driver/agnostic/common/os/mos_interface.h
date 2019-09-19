@@ -591,7 +591,25 @@ public:
     static MEMORY_OBJECT_CONTROL_STATE GetCachePolicyMemoryObject(
         MOS_STREAM_HANDLE streamState,
         MOS_HW_RESOURCE_DEF mosUsage);
-    
+
+    //!
+    //! \brief    Get Cache Policy L1 Config
+    //! \details  [Resource Interface] Get L1 Cache Config in GMM corresponding to the resource usage
+    //!           Caller: HAL & MHW
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] mosUsage
+    //!           Resource usage as index to the memory object table
+    //!           If prociding unknown usage, default state will be returned
+    //!
+    //! \return   uint8_t
+    //!           The L1_Cache_Config got from MOS interface
+    //! 
+    static uint8_t GetCachePolicyL1Config(
+        MOS_STREAM_HANDLE streamState,
+        MOS_HW_RESOURCE_DEF mosUsage);
+
     //!
     //! \brief    Convert Resource From Ddi
     //! \details  [Resource Interface] Convert Resource structure From OS/API specific to MOS reource.

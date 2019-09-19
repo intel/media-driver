@@ -691,6 +691,10 @@ typedef struct _MOS_INTERFACE
         MOS_HW_RESOURCE_DEF         Usage,
         GMM_CLIENT_CONTEXT          *pGmmClientContext);
 
+    uint8_t (* pfnCachePolicyGetL1Config) (
+            MOS_HW_RESOURCE_DEF         Usage,
+            GMM_CLIENT_CONTEXT          *pGmmClientContext);
+
     MOS_STATUS (* pfnCreateGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext,
@@ -1322,6 +1326,7 @@ MOS_STATUS Mos_AddCommand(
 MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
     MOS_HW_RESOURCE_DEF MosUsage,
     GMM_CLIENT_CONTEXT  *pGmmClientContext);
+
 #endif
 
 #ifdef __cplusplus
