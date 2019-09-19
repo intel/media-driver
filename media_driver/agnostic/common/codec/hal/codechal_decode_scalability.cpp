@@ -1381,6 +1381,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
             }
         }
         initParams.usingSFC             = false;
+        initParams.usingSecureDecode    = codecHalSetting->DecodeEncType();
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
             pScalState,
             &initParams));
