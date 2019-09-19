@@ -401,8 +401,9 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
         case Media_Format_X8B8G8R8:
             return VA_FOURCC_XBGR;
         case Media_Format_A8B8G8R8:
-        case Media_Format_R10G10B10A2:
             return VA_FOURCC_ABGR;
+        case Media_Format_R10G10B10A2:
+            return VA_FOURCC_A2B10G10R10;
         case Media_Format_R8G8B8A8:
             return VA_FOURCC_RGBA;
         case Media_Format_A8R8G8B8:
