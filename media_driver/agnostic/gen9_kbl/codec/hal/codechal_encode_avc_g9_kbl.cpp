@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2411,8 +2411,8 @@ MOS_STATUS CodechalEncodeAvcEncG9Kbl::SetCurbeAvcMbEnc(
     auto seqParams = params->pSeqParams;
     auto slcParams = params->pSlcParams;
 
-    MHW_VDBOX_AVC_SLICE_STATE           sliceState;
-
+    MHW_VDBOX_AVC_SLICE_STATE sliceState;
+    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.pEncodeAvcSeqParams = seqParams;
     sliceState.pEncodeAvcPicParams = picParams;
     sliceState.pEncodeAvcSliceParams = slcParams;
@@ -3544,7 +3544,8 @@ MOS_STATUS CodechalEncodeAvcEncG9Kbl::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE
     auto picParams = m_avcPicParam;
     auto slcParams = m_avcSliceParams;
 
-    MHW_VDBOX_AVC_SLICE_STATE                       sliceState;
+    MHW_VDBOX_AVC_SLICE_STATE sliceState;
+    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.pEncodeAvcSeqParams = seqParams;
     sliceState.pEncodeAvcPicParams = picParams;
     sliceState.pEncodeAvcSliceParams = slcParams;
