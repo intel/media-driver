@@ -561,7 +561,7 @@ typedef struct _MHW_1DLUT_PARAMS
 {
     uint32_t bActive;
     uint32_t *p1DLUT;
-    uint32_t *LUTSize;
+    uint32_t LUTSize;
     int32_t *pCCM;
     uint32_t *CCMSize;
 } MHW_1DLUT_PARAMS, *PMHW_1DLUT_PARAMS;
