@@ -1207,7 +1207,7 @@ public:
     MOS_RESOURCE                                m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_DP_MAX_NUM_BRC_PASSES];
     MOS_RESOURCE                                m_resBrcDataBuffer;                                           //!< Resource of bitrate control data buffer
     MOS_RESOURCE                                m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  // data buffer for huc input cmd generation
-    MHW_BATCH_BUFFER                            m_HucStitchCmdBatchBuffer;             //!< SLB for huc stitch cmd
+    MHW_BATCH_BUFFER                            m_HucStitchCmdBatchBuffer = {};             //!< SLB for huc stitch cmd
 
     // virtual engine
     bool                   m_useVirtualEngine = false;                                                                                                 //!< Virtual engine enable flag
@@ -1220,7 +1220,7 @@ public:
     MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
     MOS_RESOURCE           m_resPipeCompleteSemaMem;                                                                                                   //!< HW semaphore for scalability pipe start at the same time
     PCODECHAL_ENCODE_SCALABILITY_STATE  m_scalabilityState = nullptr;                                                                                  //!< Scalability state
-    MOS_RESOURCE           m_resDelayMinus;
+    MOS_RESOURCE           m_resDelayMinus = {};
     uint32_t               m_numDelay = 0;
 
     // the following constant integers and tables are from the kernel for score board computation
