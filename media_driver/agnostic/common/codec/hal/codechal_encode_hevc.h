@@ -383,14 +383,14 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS FreeEncStatsResources();
-    
+
     //!
-    //! \brief    Get Current Frame BRC Level 
+    //! \brief    Get Current Frame BRC Level
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS GetFrameBrcLevel();
+    virtual MOS_STATUS GetFrameBrcLevel();
 
     //! Inherited virtual functions
     virtual bool CheckSupportedFormat(PMOS_SURFACE surface);
