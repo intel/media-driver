@@ -262,6 +262,95 @@ public:
     };
     C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds4xKernelCurbeData)) == 12);
 
+    //!
+    //! \brief    2xDS kernel Curbe data
+    //!
+    struct Ds2xKernelCurbeData
+    {
+        Ds2xKernelCurbeData()
+        {
+            DW0 =
+            DW1_Reserved =
+            DW2_Reserved =
+            DW3_Reserved =
+            DW4_Reserved =
+            DW5_Reserved =
+            DW6_Reserved =
+            DW7_Reserved = 0;
+            DW8 = ds2xSrcYPlane;
+            DW9 = ds2xDstYPlane;
+            DW10_InputYBTIBottomField =
+            DW11_OutputYBTIBottomField = 0;
+        }
+
+        // uint32_t 0 - GRF R1.0
+        union
+        {
+            struct
+            {
+                uint32_t   DW0_InputPictureWidth : MOS_BITFIELD_RANGE(0, 15);
+                uint32_t   DW0_InputPictureHeight : MOS_BITFIELD_RANGE(16, 31);
+            };
+            uint32_t DW0;
+        };
+
+        // DW1
+        uint32_t DW1_Reserved;
+
+        // DW2
+        uint32_t DW2_Reserved;
+
+        // DW3
+        uint32_t DW3_Reserved;
+
+        // DW4
+        uint32_t DW4_Reserved;
+
+        // DW5
+        uint32_t DW5_Reserved;
+
+        // DW6
+        uint32_t DW6_Reserved;
+
+        // DW7
+        uint32_t DW7_Reserved;
+
+        // DW8
+        union
+        {
+            struct
+            {
+                uint32_t   DW8_InputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
+            };
+            struct
+            {
+                uint32_t   DW8_InputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
+            };
+            uint32_t DW8;
+        };
+
+        // DW9
+        union
+        {
+            struct
+            {
+                uint32_t   DW9_OutputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
+            };
+            struct
+            {
+                uint32_t   DW9_OutputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
+            };
+            uint32_t DW9;
+        };
+
+        // DW10
+        uint32_t DW10_InputYBTIBottomField;
+
+        // DW11
+        uint32_t DW11_OutputYBTIBottomField;
+    };
+    C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds2xKernelCurbeData)) == 12);
+
     uint8_t IsEnabled() const { return m_cscDsConvEnable; }
     uint32_t GetRawSurfWidth() const { return m_cscRawSurfWidth; }
     uint32_t GetRawSurfHeight() const { return m_cscRawSurfHeight; }
@@ -740,95 +829,6 @@ private:
         ds2xDstYPlaneBtmField = 3,
         ds2xNumSurfaces = 4
     };
-
-    //!
-    //! \brief    2xDS kernel Curbe data
-    //!
-    struct Ds2xKernelCurbeData
-    {
-        Ds2xKernelCurbeData()
-        {
-            DW0 =
-            DW1_Reserved =
-            DW2_Reserved =
-            DW3_Reserved =
-            DW4_Reserved =
-            DW5_Reserved =
-            DW6_Reserved =
-            DW7_Reserved = 0;
-            DW8 = ds2xSrcYPlane;
-            DW9 = ds2xDstYPlane;
-            DW10_InputYBTIBottomField =
-            DW11_OutputYBTIBottomField = 0;
-        }
-
-        // uint32_t 0 - GRF R1.0
-        union
-        {
-            struct
-            {
-                uint32_t   DW0_InputPictureWidth : MOS_BITFIELD_RANGE(0, 15);
-                uint32_t   DW0_InputPictureHeight : MOS_BITFIELD_RANGE(16, 31);
-            };
-            uint32_t DW0;
-        };
-
-        // DW1
-        uint32_t DW1_Reserved;
-
-        // DW2
-        uint32_t DW2_Reserved;
-
-        // DW3
-        uint32_t DW3_Reserved;
-
-        // DW4
-        uint32_t DW4_Reserved;
-
-        // DW5
-        uint32_t DW5_Reserved;
-
-        // DW6
-        uint32_t DW6_Reserved;
-
-        // DW7
-        uint32_t DW7_Reserved;
-
-        // DW8
-        union
-        {
-            struct
-            {
-                uint32_t   DW8_InputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
-            };
-            struct
-            {
-                uint32_t   DW8_InputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
-            };
-            uint32_t DW8;
-        };
-
-        // DW9
-        union
-        {
-            struct
-            {
-                uint32_t   DW9_OutputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
-            };
-            struct
-            {
-                uint32_t   DW9_OutputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
-            };
-            uint32_t DW9;
-        };
-
-        // DW10
-        uint32_t DW10_InputYBTIBottomField;
-
-        // DW11
-        uint32_t DW11_OutputYBTIBottomField;
-    };
-    C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds2xKernelCurbeData)) == 12);
 
     //!
     //! \brief    DS kernel Curbe data
