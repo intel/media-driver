@@ -3984,7 +3984,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                             m_statusReportDebugInterface->m_hybridPakP1 = false;
                         }
 
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpYUVSurface(
                             &currRefList.sRefReconBuffer,
                             CodechalDbgAttr::attrReconstructedSurface,
                             "ReconSurf"))

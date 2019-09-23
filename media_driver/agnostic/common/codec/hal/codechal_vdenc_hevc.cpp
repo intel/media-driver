@@ -3620,8 +3620,17 @@ MOS_STATUS CodechalVdencHevcState::DumpVdencOutputs()
         m_resVdencPakObjCmdStreamOutBuffer,
         CodechalDbgAttr::attrVdencOutput,
         "_MbCode",
-        m_mbCodeSize,
+        m_mvOffset,
         0,
+        CODECHAL_NUM_MEDIA_STATES));
+
+    // Dump CU Record Cmd Buffer
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        m_resVdencPakObjCmdStreamOutBuffer,
+        CodechalDbgAttr::attrVdencOutput,
+        "_CURecord",
+        m_mbCodeSize - m_mvOffset,
+        m_mvOffset,
         CODECHAL_NUM_MEDIA_STATES));
 
     // Slice Size Conformance
