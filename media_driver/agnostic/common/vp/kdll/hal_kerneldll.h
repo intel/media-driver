@@ -234,6 +234,7 @@ typedef enum tagKdll_ParserState
     Parser_DualOutput      ,        // dual output
     Parser_Rotation        ,        // apply post composition rotation
     Parser_DestSurfIndex   ,        // destination surface index
+    Parser_Colorfill       ,        // applying colorfill
     Parser_WriteOutput     ,        // write output
     Parser_End             ,        // end dynamic linking
 
@@ -608,6 +609,9 @@ typedef struct tagKdll_State
 
     Kdll_Procamp            *pProcamp;              // Array of Procamp parameters
     int32_t                 iProcampSize;           // Size of the array of Procamp parameters
+
+    // Colorfill
+    VPHAL_CSPACE            colorfill_cspace;       // Selected colorfill Color Space by Kdll
 
     // Start kernel search
     void                 (* pfnStartKernelSearch)(PKdll_State       pState,

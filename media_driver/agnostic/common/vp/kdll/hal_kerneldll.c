@@ -505,6 +505,7 @@ const char    *KernelDll_GetParserStateString(Kdll_ParserState state)
         case Parser_DualOutput              : return _T("DualOutput");
         case Parser_Rotation                : return _T("Rotation");
         case Parser_DestSurfIndex           : return _T("DestSurfIndex");
+        case Parser_Colorfill               : return _T("Colorfill");
         case Parser_WriteOutput             : return _T("WriteOutput");
         case Parser_End                     : return _T("End");
         default                             : return _T("Invalid parser state");
@@ -2369,7 +2370,6 @@ bool KernelDll_FindRule(
                     {
                         break;
                     }
-
                 // Undefined search rule will fail
                 default:
                     VPHAL_RENDER_ASSERTMESSAGE("Invalid rule %d @ layer %d, state %d.", pRuleEntry->id, pSearchState->layer_number, pSearchState->state);
@@ -4502,8 +4502,8 @@ bool KernelDll_SetupCSC(
 
     bool bCoeffID_0_Used = false;
 
-    VPHAL_CSPACE     cspace;                         // Current ColorSpace
-    VPHAL_CSPACE     out_cspace;                     // Render Target CS
+    VPHAL_CSPACE     cspace      = CSpace_None;      // Current ColorSpace
+    VPHAL_CSPACE     out_cspace  = CSpace_None;      // Render Target CS
     VPHAL_CSPACE     main_cspace = CSpace_None;      // Main video CS
     VPHAL_CSPACE     sel_cspace  = CSpace_Any;       // Selected CS
 
@@ -4640,6 +4640,10 @@ bool KernelDll_SetupCSC(
             }
         }
     }
+
+    // Due to put the colorfill behind CSC, so Src0 cspace needs to change
+    // to selspace in order to fill colorfill values correctly.
+    pState->colorfill_cspace = sel_cspace;
 
     // color space is selected by now... setup CSC matrices
     matrix_count  = 0;

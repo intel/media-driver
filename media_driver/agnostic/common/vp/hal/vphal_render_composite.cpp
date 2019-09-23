@@ -4403,9 +4403,16 @@ bool CompositeState::SubmitStates(
                 goto finish;
             }
         }
-        else // use cspace of first layer
+        else // use selected cspace by kdll
         {
-            dst_cspace = pFilter->cspace;
+            if (GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform))
+            {
+                dst_cspace = pKernelDllState->colorfill_cspace;
+            }
+            else
+            {
+                dst_cspace = pFilter->cspace;
+            }
         }
 
         // Convert BG color only if not done so before. CSC is expensive!
