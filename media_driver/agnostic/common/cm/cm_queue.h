@@ -322,7 +322,7 @@ public:
     //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
     //!           its value returned by runtime is NULL.
     //! \retval   CM_SUCCESS if the task is successfully enqueued
-    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surface’s width in bytes.
+    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surface's width in bytes.
     //! \retval   CM_GPUCOPY_INVALID_SYSMEM if sysMem is not 16-Byte aligned.
     //! \retval   CM_GPUCOPY_INVALID_SIZE if surface's height is more than CM_MAX_GPUCOPY_SURFACE_HEIGHT
     //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources
