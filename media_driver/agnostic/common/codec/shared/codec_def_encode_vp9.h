@@ -112,7 +112,7 @@ typedef struct _CODEC_VP9_ENCODE_SEQUENCE_PARAMS
     uint16_t     reserved3;
     FRAME_RATE   FrameRate[CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS];
     uint8_t      NumTemporalLayersMinus1;
-    uint8_t      ICQQualityFactor;
+    uint8_t      QualityFactor;
 
     ENCODE_INPUT_COLORSPACE         InputColorSpace;
     ENCODE_SCENARIO                 ScenarioInfo;

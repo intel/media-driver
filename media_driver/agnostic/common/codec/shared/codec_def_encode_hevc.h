@@ -366,7 +366,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     *
     *    The range is from 1 – 51, with 1 being the best quality.
     */
-    uint8_t   ICQQualityFactor;
+    uint8_t   QualityFactor;
 
     union
     {

@@ -626,7 +626,7 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
         }
         else if (VA_RC_ICQ == m_encodeCtx->uiRCMethod || (VA_RC_ICQ | VA_RC_PARALLEL) == m_encodeCtx->uiRCMethod)
         {
-            seqParams->ICQQualityFactor  = vaEncMiscParamRC->ICQ_quality_factor;
+            seqParams->QualityFactor  = vaEncMiscParamRC->quality_factor;
             seqParams->RateControlMethod = RATECONTROL_ICQ;
             seqParams->MBBRC             = 1;
         }

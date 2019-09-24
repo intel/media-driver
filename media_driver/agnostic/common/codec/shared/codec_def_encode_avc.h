@@ -470,7 +470,7 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *
     *    The range is from 1 – 51, with 1 being the best quality.
     */
-    uint16_t           ICQQualityFactor;
+    uint16_t           QualityFactor;
     /*! \brief Indicates the bitrate accuracy for AVBR
     *
     *    The range is [1, 100], 1 means one percent, and so on.

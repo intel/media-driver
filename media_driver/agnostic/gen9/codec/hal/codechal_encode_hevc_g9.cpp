@@ -5691,7 +5691,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeBrcInitResetKernel()
     else if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ)
     {
         curbe->DW8.BRCFlag           |= curbe->DW8.BRCFlag | BRCINIT_ISICQ;
-        curbe->DW25.ACQPBuffer = m_hevcSeqParams->ICQQualityFactor;
+        curbe->DW25.ACQPBuffer = m_hevcSeqParams->QualityFactor;
     }
     else if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM)
     {

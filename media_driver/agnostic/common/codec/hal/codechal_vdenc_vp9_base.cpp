@@ -1456,7 +1456,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCBrcInitReset()
         break;
     case RATECONTROL_CQL:
         dmem->BRCFlag           = CODECHAL_ENCODE_BRCINIT_ISCQL;
-        dmem->LevelQP           = m_vp9SeqParams->ICQQualityFactor;
+        dmem->LevelQP           = m_vp9SeqParams->QualityFactor;
         break;
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("BRCInit: Invalid rate control provided (%d)", m_vp9SeqParams->RateControlMethod);

@@ -3783,7 +3783,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     else if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ)
     {
         curbe.DW8_BRCFlag |= BRCINIT_ISICQ;
-        curbe.DW25_ACQPBuffer = m_hevcSeqParams->ICQQualityFactor;
+        curbe.DW25_ACQPBuffer = m_hevcSeqParams->QualityFactor;
     }
     else if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM)
     {
@@ -3801,8 +3801,8 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
             curbe.DW4_MaximumBitRate = curbe.DW3_TargetBitRate; // Use max bit rate for HRD compliance
         }
         curbe.DW8_BRCFlag = curbe.DW8_BRCFlag | BRCINIT_ISQVBR | BRCINIT_ISVBR; // We need to make sure that VBR is used for QP determination.
-        // use ICQQualityFactor to determine the larger Qp for each MB
-        curbe.DW25_ACQPBuffer = m_hevcSeqParams->ICQQualityFactor;
+        // use QualityFactor to determine the larger Qp for each MB
+        curbe.DW25_ACQPBuffer = m_hevcSeqParams->QualityFactor;
     }
 
     curbe.DW9_FrameWidth = m_oriFrameWidth;

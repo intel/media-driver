@@ -4045,12 +4045,12 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         m_brcReset = seqParams->bResetBRC;
     }
 
-    if (seqParams->RateControlMethod == RATECONTROL_ICQ)
+    if (seqParams->RateControlMethod == RATECONTROL_ICQ || seqParams->RateControlMethod == RATECONTROL_QVBR)
     {
-        if (seqParams->ICQQualityFactor < CODECHAL_ENCODE_AVC_MIN_ICQ_QUALITYFACTOR ||
-            seqParams->ICQQualityFactor > CODECHAL_ENCODE_AVC_MAX_ICQ_QUALITYFACTOR)
+        if (seqParams->QualityFactor < CODECHAL_ENCODE_AVC_MIN_QUALITYFACTOR ||
+            seqParams->QualityFactor > CODECHAL_ENCODE_AVC_MAX_QUALITYFACTOR)
         {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid ICQ Quality Factor input\n");
+            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid Quality Factor input\n");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             return eStatus;
         }

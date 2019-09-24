@@ -1086,7 +1086,7 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
         hucVDEncBrcInitDmem->INIT_BRCFlag_U16 |= BRCFLAG_ISVBR;
         break;
     case RATECONTROL_QVBR:
-        // QVBR will use VBR BRCFlag, triggered when ICQQualityFactor > 10
+        // QVBR will use VBR BRCFlag, triggered when QualityFactor > 10
         hucVDEncBrcInitDmem->INIT_BRCFlag_U16 |= BRCFLAG_ISVBR;
         break;
         // Temp solution using AVBR for low delay case, before the BRC flag is added to DDI
@@ -1216,11 +1216,11 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
     hucVDEncBrcInitDmem->INIT_QPSelectForFirstPass_U8 = 1;
     hucVDEncBrcInitDmem->INIT_MBHeaderCompensation_U8 = 1;
     hucVDEncBrcInitDmem->INIT_DeltaQP_Adaptation_U8 = 1;
-    hucVDEncBrcInitDmem->INIT_MaxCRFQualityFactor_U8 = CODECHAL_ENCODE_AVC_MAX_ICQ_QUALITYFACTOR + 1;
+    hucVDEncBrcInitDmem->INIT_MaxCRFQualityFactor_U8 = CODECHAL_ENCODE_AVC_MAX_QUALITYFACTOR + 1;
 
     if (RATECONTROL_QVBR == avcSeqParams->RateControlMethod || RATECONTROL_ICQ == avcSeqParams->RateControlMethod)
     {
-        hucVDEncBrcInitDmem->INIT_CRFQualityFactor_U8 = (uint8_t)avcSeqParams->ICQQualityFactor;
+        hucVDEncBrcInitDmem->INIT_CRFQualityFactor_U8 = (uint8_t)avcSeqParams->QualityFactor;
         hucVDEncBrcInitDmem->INIT_ScenarioInfo_U8 = (RATECONTROL_QVBR == avcSeqParams->RateControlMethod) ? 1 : 0;
     }
 

@@ -889,10 +889,10 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ || m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR)
     {
-        if (m_hevcSeqParams->ICQQualityFactor < CODECHAL_ENCODE_HEVC_MIN_ICQ_QUALITYFACTOR ||
-            m_hevcSeqParams->ICQQualityFactor > CODECHAL_ENCODE_HEVC_MAX_ICQ_QUALITYFACTOR)
+        if (m_hevcSeqParams->QualityFactor < CODECHAL_ENCODE_HEVC_MIN_QUALITYFACTOR ||
+            m_hevcSeqParams->QualityFactor > CODECHAL_ENCODE_HEVC_MAX_QUALITYFACTOR)
         {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid ICQ Quality Factor input (%d)\n", m_hevcSeqParams->ICQQualityFactor);
+            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid Quality Factor input (%d)\n", m_hevcSeqParams->QualityFactor);
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             return eStatus;
         }
@@ -3295,7 +3295,7 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "NumB2 = " << +seqParams->NumOfBInGop[2] << std::endl;
     oss << "UserMaxIFrameSize = " << +seqParams->UserMaxIFrameSize << std::endl;
     oss << "UserMaxPBFrameSize = " << +seqParams->UserMaxPBFrameSize << std::endl;
-    oss << "ICQQualityFactor = " << +seqParams->ICQQualityFactor << std::endl;
+    oss << "QualityFactor = " << +seqParams->QualityFactor << std::endl;
     oss << "scaling_list_enable_flag = " << +seqParams->scaling_list_enable_flag << std::endl;
     oss << "sps_temporal_mvp_enable_flag = " << +seqParams->sps_temporal_mvp_enable_flag << std::endl;
     oss << "strong_intra_smoothing_enable_flag = " << +seqParams->strong_intra_smoothing_enable_flag << std::endl;
@@ -3916,7 +3916,7 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
             }
         }
 
-        m_hevcPar->CRFQualityFactor                     = hevcSeqParams->ICQQualityFactor;
+        m_hevcPar->CRFQualityFactor                     = hevcSeqParams->QualityFactor;
         m_hevcPar->BRCMethod                            = brcMethod;
         m_hevcPar->BRCType                              = brcType;
         m_hevcPar->SAOEnabledFlag                       = hevcSlcParams->slice_sao_luma_flag | hevcSlcParams->slice_sao_chroma_flag;
