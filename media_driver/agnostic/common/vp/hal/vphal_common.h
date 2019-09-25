@@ -1039,6 +1039,7 @@ struct VPHAL_SURFACE
     //------------------------------------------
     PVPHAL_HDR_PARAMS           pHDRParams = nullptr;
     VPHAL_GAMMA_TYPE            GammaType;          //!<Gamma Type
+    bool                        bPreAPGWorkloadEnable;   //!< Previous Surface Execution Path
 };
 
 //!
@@ -1182,6 +1183,7 @@ struct VPHAL_RENDER_PARAMS
     void                                    *pExtensionData;            //!< Extension data
 
     bool                                    bPathKernel;                // HDR path config if use kernel
+    bool                                    bAPGWorkloadEnable = false;         //!< Identify Whether APG workload Enabled or not
 
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
