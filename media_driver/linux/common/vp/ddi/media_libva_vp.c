@@ -3509,9 +3509,7 @@ VAStatus DdiVp_EndPicture (
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpDumpProcPipelineParams(pVaDrvCtx, pVpCtx);
 
-#if ANDROID
     VpReportFeatureMode(pVpCtx);
-#endif
 
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 

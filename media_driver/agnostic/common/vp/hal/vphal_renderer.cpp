@@ -1184,6 +1184,15 @@ MOS_STATUS VphalRenderer::Render(
 
         VPHAL_RENDER_CHK_STATUS(RenderPass(&RenderParams));
     }
+
+#if defined(LINUX)
+    if (m_reporting)
+    {
+        WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID, m_reporting->OutputPipeMode);
+        WriteUserFeature(__VPHAL_VEBOX_FEATURE_INUSE_ID, m_reporting->VEFeatureInUse);
+    }
+#endif
+
 finish:
     uiFrameCounter++;
     return eStatus;
@@ -1455,54 +1464,6 @@ finish:
 VphalRenderer::~VphalRenderer()
 {
     VPHAL_RENDER_CHK_NULL_NO_STATUS(m_pOsInterface);
-
-#ifdef LINUX
-    if(m_reporting)
-    {
-        MOS_USER_FEATURE_VALUE_WRITE_DATA   userFeatureWriteData;
-
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.i32Data  = m_reporting->OutputPipeMode;
-        userFeatureWriteData.ValueID        = __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.bData  = m_reporting->VEFeatureInUse;
-        userFeatureWriteData.ValueID        = __VPHAL_VEBOX_FEATURE_INUSE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-#ifdef _MMC_SUPPORTED
-        //VP MMC In Use
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.bData  = m_reporting->VPMMCInUse;
-        userFeatureWriteData.ValueID        = __VPHAL_ENABLE_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-
-        //VP Primary Surface Compress Mode
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.bData  = m_reporting->PrimaryCompressMode;
-        userFeatureWriteData.ValueID        = __VPHAL_PRIMARY_SURFACE_COMPRESS_MODE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-
-        //VP Primary Surface Compressible
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.bData  = m_reporting->PrimaryCompressible;
-        userFeatureWriteData.ValueID        = __VPHAL_PRIMARY_SURFACE_COMPRESSIBLE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-
-        //VP RT Compress Mode
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.bData  = m_reporting->RTCompressMode;
-        userFeatureWriteData.ValueID        = __VPHAL_RT_COMPRESS_MODE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-
-        //VP RT Compressible
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.bData  = m_reporting->RTCompressible;
-        userFeatureWriteData.ValueID        = __VPHAL_RT_COMPRESSIBLE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-#endif
-    }
-#endif
 
     FreeIntermediateSurfaces();
 

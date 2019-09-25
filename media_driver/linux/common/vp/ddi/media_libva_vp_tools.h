@@ -30,6 +30,8 @@
 #include "media_libva_common.h"
 #include <va/va_vpp.h>
 
+#define LIBVA_VP_CONFIG_NOT_REPORTED  0xffffffff
+
 //!
 //! \brief   allocate and initialize DDI Dump parameters
 //! \param   [in] pVpCtx
@@ -56,6 +58,31 @@ void        VpDestoryDumpConfig(PDDI_VP_CONTEXT pVpCtx);
 //!          return VA_STATUS_SUCCESS, if params is dumped to file.
 //!
 VAStatus    VpDumpProcPipelineParams(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx);
+
+//!
+//! \brief   dump feature mode parameters for Android 
+//! \param   [in] pVpCtx
+//!          vp context
+//! \return  VAStatus
+//!          return VA_STATUS_SUCCESS if params is dumped to file.
+//!
+VAStatus    VpReportFeatureMode(PDDI_VP_CONTEXT pVpCtx);
+
+//!
+//! \brief   initialize configuration values for Android 
+//! \param   [in] pConfigValues
+//!          vp config values
+//!
+void VpConfigValuesInit(
+    PVP_CONFIG           pConfigValues);
+
+//!
+//! \brief   dump config values for Android 
+//! \param   [in] pConfig
+//!          vp config values
+//!
+void VpFeatureReport(
+    PVP_CONFIG         pConfig);
 
 #endif //_MEDIA_LIBVA_VP_TOOLS_H_
 
