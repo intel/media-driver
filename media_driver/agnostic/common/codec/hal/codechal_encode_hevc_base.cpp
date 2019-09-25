@@ -3290,17 +3290,6 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "SourceBitDepth = " << +seqParams->SourceBitDepth << std::endl;
     oss << "QpAdjustment = " << +seqParams->QpAdjustment << std::endl;
     oss << "ROIValueInDeltaQP = " << +seqParams->ROIValueInDeltaQP << std::endl;
-    oss << "BlockQPforNonRectROI = " << +seqParams->BlockQPforNonRectROI << std::endl;
-    oss << "EnableTileBasedEncode = " << +seqParams->EnableTileBasedEncode << std::endl;
-    oss << "bAutoMaxPBFrameSizeForSceneChange = " << +seqParams->bAutoMaxPBFrameSizeForSceneChange << std::endl;
-    oss << "EnableStreamingBufferLLC = " << +seqParams->EnableStreamingBufferLLC << std::endl;
-    oss << "EnableStreamingBufferDDR  = " << +seqParams->EnableStreamingBufferDDR << std::endl;
-    oss << "LowDelayMode = " << +seqParams->LowDelayMode << std::endl;
-    oss << "DisableHRDConformance = " << +seqParams->DisableHRDConformance << std::endl;
-    oss << "HierarchicalFlag = " << +seqParams->HierarchicalFlag << std::endl;
-    oss << "UserMaxIFrameSize = " << +seqParams->UserMaxIFrameSize << std::endl;
-    oss << "UserMaxPBFrameSize = " << +seqParams->UserMaxPBFrameSize << std::endl;
-    oss << "ICQQualityFactor = " << +seqParams->ICQQualityFactor << std::endl;
     oss << "NumB = " << +seqParams->NumOfBInGop[0] << std::endl;
     oss << "NumB1 = " << +seqParams->NumOfBInGop[1] << std::endl;
     oss << "NumB2 = " << +seqParams->NumOfBInGop[2] << std::endl;
@@ -3316,11 +3305,6 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "pcm_loop_filter_disable_flag = " << +seqParams->pcm_loop_filter_disable_flag << std::endl;
     oss << "chroma_format_idc = " << +seqParams->chroma_format_idc << std::endl;
     oss << "separate_colour_plane_flag = " << +seqParams->separate_colour_plane_flag << std::endl;
-    oss << "palette_mode_enabled_flag = " << +seqParams->palette_mode_enabled_flag << std::endl;
-    oss << "RGBEncodingEnable = " << +seqParams->RGBEncodingEnable << std::endl;
-    oss << "PrimaryChannelForRGBEncoding = " << +seqParams->PrimaryChannelForRGBEncoding << std::endl;
-    oss << "SecondaryChannelForRGBEncoding = " << +seqParams->SecondaryChannelForRGBEncoding << std::endl;
-
     oss << "log2_max_coding_block_size_minus3 = " << +seqParams->log2_max_coding_block_size_minus3 << std::endl;
     oss << "log2_min_coding_block_size_minus3 = " << +seqParams->log2_min_coding_block_size_minus3 << std::endl;
     oss << "log2_max_transform_block_size_minus2 = " << +seqParams->log2_max_transform_block_size_minus2 << std::endl;
@@ -3392,7 +3376,6 @@ MOS_STATUS CodechalEncodeHevcBase::DumpPicParams(
     }
 
     oss << "CodingType = " << +picParams->CodingType << std::endl;
-    oss << "HierarchLevelPlus1 = " << +picParams->HierarchLevelPlus1 << std::endl; 
     oss << "NumSlices = " << +picParams->NumSlices << std::endl;
     oss << "tiles_enabled_flag = " << +picParams->tiles_enabled_flag << std::endl;
 
