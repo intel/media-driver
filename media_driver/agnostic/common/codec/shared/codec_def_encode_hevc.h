@@ -368,6 +368,23 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     */
     uint8_t   ICQQualityFactor;
 
+        /*! \brief Specigy session that IPU and GPU communicate on.
+    *
+    *    It is for streaming buffer.
+    */
+    uint8_t StreamBufferSessionID;
+
+    uint8_t Reserved16b;
+
+    /*! \brief Number of B frames per level in BGOP (between each two consecutive anchor frames).
+    *
+    *   \n NumOfBInGop[0] – regular B, or no reference to other B frames.
+    *   \n NumOfBInGop[1] – B1, reference to only I, P or regular B frames.
+    *   \n NumOfBInGop[2] – B2, references include B1.
+    *   \n Invalid when ParallelBRC is disabled (value 0).
+    */
+    uint32_t NumOfBInGop[3];  // depricated
+
     union
     {
         struct
@@ -394,7 +411,11 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             uint32_t    reserved                            : 1;
             uint32_t    chroma_format_idc                   : 2;    //!< Same as HEVC syntax element
             uint32_t    separate_colour_plane_flag          : 1;    //!< Same as HEVC syntax element
-            uint32_t                                        : 21;
+            uint32_t    palette_mode_enabled_flag           : 1;
+            uint32_t    RGBEncodingEnable                   : 1;
+            uint32_t    PrimaryChannelForRGBEncoding        : 2;
+            uint32_t    SecondaryChannelForRGBEncoding      : 2;
+            uint32_t                                        : 15;  // [0]
         };
         uint32_t    EncodeTools;
     };
@@ -447,14 +468,6 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     uint8_t    bit_depth_chroma_minus8;               //!< Same as HEVC syntax element
     uint8_t    pcm_sample_bit_depth_luma_minus1;      //!< Same as HEVC syntax element
     uint8_t    pcm_sample_bit_depth_chroma_minus1;    //!< Same as HEVC syntax element
-    /*! \brief Number of B frames per level in BGOP (between each two consecutive anchor frames).
-    *
-    *   \n NumOfBInGop[0] – regular B, or no reference to other B frames.
-    *   \n NumOfBInGop[1] – B1, reference to only I, P or regular B frames.
-    *   \n NumOfBInGop[2] – B2, references include B1.
-    *   \n Invalid when ParallelBRC is disabled (value 0).
-    */
-    uint32_t   NumOfBInGop[3];
 
     uint8_t    bVideoSurveillance;
 
@@ -476,19 +489,25 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     */
     ENCODE_SCENARIO             ScenarioInfo;
 
+    ENCODE_CONTENT              contentInfo;
+
     /*! \brief Indicates the tolerance the application has to variations in the frame size.
     *
     *   It affects the BRC algorithm used, but may or may not have an effect based on the combination of other BRC parameters.  Only valid when the driver reports support for FrameSizeToleranceSupport.
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
 
+
+    uint16_t                   SlidingWindowSize;
+    uint32_t                   MaxBitRatePerSlidingWindow;
+    uint32_t                   MinBitRatePerSlidingWindow;
+
     /*! \brief Indicates number of frames to lookahead.
     *
     *    Range is [0~127]. Default is 0 which means lookahead disabled. Valid only when LookaheadBRCSupport is 1. When not 0, application should send LOOKAHEADDATA to driver.
     */
-    uint8_t     LookaheadDepth;
+    uint8_t                   LookaheadDepth;
 
-    uint32_t palette_mode_enabled_flag;
     uint32_t motion_vector_resolution_control_idc;
     uint32_t intra_boundary_filtering_disabled_flag;
     uint8_t     palette_max_size;
@@ -540,7 +559,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    \n For B1 and B2 explanation refer to NumOfBInGop[]
     */
     uint8_t                 CodingType;
-    uint8_t                 FrameLevel;
+    uint8_t                 HierarchLevelPlus1;
     uint16_t                NumSlices;
 
     union
@@ -617,8 +636,12 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
             *        \n - AYUV, 0, AYUV
             *        \n - AYUV, 1, YUXV
             */
-            uint32_t            bDisplayFormatSwizzle               : 1;
-            uint32_t            reservedbits                        : 7;
+            uint32_t            bDisplayFormatSwizzle                   : 1;
+            uint32_t            deblocking_filter_override_enabled_flag : 1;
+            uint32_t            pps_deblocking_filter_disabled_flag     : 1;
+            uint32_t            bEnableCTULevelReport                   : 1;  // [0..1]
+            uint32_t            bEnablePartialFrameUpdate               : 1;
+            uint32_t            reservedbits                            : 3;        
         };
         uint32_t                PicFlags;
     };
@@ -802,6 +825,8 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *   Hint is of the format CODEC_CONTENT.
     */
     uint32_t                bScreenContent;
+
+    uint16_t                LcuMaxBitsizeAllowedHigh16b;
 
     /*! \brief Picture parameter, Same as syntax element.
     *

@@ -1476,7 +1476,7 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
         // LDB
         if (m_pictureCodingType == I_TYPE)
         {
-            if (m_hevcPicParams->FrameLevel == 0)
+            if (m_hevcPicParams->HierarchLevelPlus1 == 0)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
             }
@@ -1488,19 +1488,19 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
         }
         else if ((m_pictureCodingType == P_TYPE) || (m_pictureCodingType == B_TYPE))
         {
-            if (m_hevcPicParams->FrameLevel == 0)
+            if (m_hevcPicParams->HierarchLevelPlus1 == 0)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
             }
-            else if (m_hevcPicParams->FrameLevel == 1)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B;
             }
-            else if (m_hevcPicParams->FrameLevel == 2)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 2)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
             }
-            else if (m_hevcPicParams->FrameLevel == 3)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 3)
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel 3 is not supported for LDB\n");
                 return MOS_STATUS_INVALID_PARAMETER;
