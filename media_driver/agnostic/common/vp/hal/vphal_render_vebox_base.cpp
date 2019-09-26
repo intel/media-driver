@@ -3272,7 +3272,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0(
     // Set up reference surfaces
     pRefSurface = VeboxSetReference(pSrcSurface);
 
-    if (pSrcSurface->bPreAPGWorkloadEnable)
+    if (pSrcSurface->bPreAPGWorkloadEnable && pRefSurface != nullptr)
     {
         pRefSurface->bPreAPGWorkloadEnable = false;
         pRenderData->bRefValid = false;
