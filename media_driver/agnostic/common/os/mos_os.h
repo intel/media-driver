@@ -258,19 +258,17 @@ typedef struct _MOS_SYNC_PARAMS
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 //!
-//! \brief Enum for forcing VDBOX
+//! \brief for forcing VDBOX
 //!
-typedef enum _MOS_FORCE_VDBOX
-{
-    MOS_FORCE_VDBOX_NONE    = 0,
-    MOS_FORCE_VDBOX_1       = 0x0001,
-    MOS_FORCE_VDBOX_2       = 0x0002,
-    //below is for scalability case,
-    //format is FE vdbox is specified as lowest 4 bits; BE0 is 2nd low 4 bits; BE1 is 3rd low 4bits.
-    MOS_FORCE_VDBOX_1_1_2   = 0x0211,
-    //FE-VDBOX2, BE0-VDBOX1, BE2-VDBOX2
-    MOS_FORCE_VDBOX_2_1_2   = 0x0212,
-} MOS_FORCE_VDBOX;
+
+#define    MOS_FORCE_VDBOX_NONE     0
+#define    MOS_FORCE_VDBOX_1        0x0001
+#define    MOS_FORCE_VDBOX_2        0x0002
+//below is for scalability case,
+//format is FE vdbox is specified as lowest 4 bits; BE0 is 2nd low 4 bits; BE1 is 3rd low 4bits.
+#define    MOS_FORCE_VDBOX_1_1_2    0x0211
+//FE-VDBOX2, BE0-VDBOX1, BE2-VDBOX2
+#define    MOS_FORCE_VDBOX_2_1_2    0x0212
 
 //!
 //! \brief Enum for forcing VEBOX
@@ -684,7 +682,7 @@ typedef struct _MOS_INTERFACE
     bool                            bEnableVdboxBalancing;                            //!< Enable per BB VDBox balancing
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_FORCE_VDBOX                 eForceVdbox;                                  //!< Force select Vdbox
+    int                             eForceVdbox;                                  //!< Force select Vdbox
     uint32_t                        dwForceTileYfYs;                              // force to allocate Yf (=1) or Ys (=2), remove after full validation
     int32_t                         bTriggerCodecHang;                            // trigger GPU HANG in codec
     int32_t                         bTriggerVPHang;                               //!< trigger GPU HANG in VP
