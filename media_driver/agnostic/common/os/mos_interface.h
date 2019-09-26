@@ -808,9 +808,7 @@ public:
     static MOS_STATUS RegisterResource(
         MOS_STREAM_HANDLE streamState,
         MOS_RESOURCE_HANDLE resource,
-        bool write,
-        uint32_t streamIndex = 0,
-        uint32_t gpuContextOrdinal = 0);
+        bool write);
         
     //!
     //! \brief    Get Resource Gfx Address
@@ -872,6 +870,33 @@ public:
     //!
     static MOS_STATUS SkipResourceSync(
         MOS_RESOURCE_HANDLE resource);
+
+    //!
+    //! \brief    Sync on resource
+    //! \details  [Resource Interface] Explicit sync on resource
+    //! \details  Caller: HAL only
+    //! \details  Resource is shared by different cmd buffers on different GPU contexts.
+    //!           Adding sync object into requestor GPU context queue to resolve the hazard if necessary.
+    //!           This func is called by hal to declare the resource to consider the sync explicitly.
+    //!           It is a strong sync request for the resource.
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] resource
+    //!           MOS Resource handle for the resource contain hazard of sync
+    //! \param    [in] writeOperation
+    //!           Indicate the current programming is to write resource or not
+    //! \param    [in] requsetorGpuContext
+    //!           GpuContext which programming the resource. Recommand not setting it and use current GPU context.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS SyncOnResource(
+        MOS_STREAM_HANDLE streamState,
+        MOS_RESOURCE_HANDLE resource,
+        bool writeOperation,
+        GPU_CONTEXT_HANDLE requsetorGpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE);
         
     //!
     //! \brief    Resource Sync
@@ -882,7 +907,7 @@ public:
     //!           If there is a hazard, one cmd buffer in requestor GPU context queue will wait for the other cmd buffer in busy GPU context.
     //!           
     //! \param    [in] resource
-    //!           MOS Resource handle for the resource contain hazard of sync
+    //!           OS specific resource handle for the resource contain hazard of sync
     //! \param    [in] deviceContext
     //!           Handle of Os Device Context
     //! \param    [in] index
@@ -900,7 +925,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS ResourceSync(    
-        MOS_RESOURCE_HANDLE    resource,
+        OsSpecificRes          resource,
         MOS_DEVICE_HANDLE      deviceContext,
         uint32_t               index,
         SYNC_HAZARD            hazardType,
@@ -917,7 +942,7 @@ public:
     //!           If there is a hazard, CPU side will wait for the cmd buffer in busy GPU context.
     //!           
     //! \param    [in] resource
-    //!           MOS Resource handle for the resource contain hazard of sync
+    //!           OS specific resource handle for the resource contain hazard of sync
     //! \param    [in] deviceContext
     //!           Handle of Os Device Context
     //! \param    [in] index
@@ -927,18 +952,36 @@ public:
     //! \param    [in] busyCtx
     //!           GPU Context handle of the queue being waiting for.
     //! \param    [in] doNotWait
-    //!           Indicate this is blocking call or not.
+    //!           Indicate this is blocking call or not. When set to true, possibly return MOS_STATUS_STILL_DRAWING
     //!
     //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!           Return MOS_STATUS_SUCCESS if successful, MOS_STATUS_STILL_DRAWING if doNotWait
+    //!           is set to true and resoure is still being used in HW, otherwise failed
     //!        
     static MOS_STATUS LockSync(    
-        MOS_RESOURCE_HANDLE     resource,
+        OsSpecificRes           resource,
         MOS_DEVICE_HANDLE       deviceContext,
         uint32_t                index,
         SYNC_HAZARD             hazardType,
         GPU_CONTEXT_HANDLE      busyCtx,
         bool                    doNotWait);
+
+    //!
+    //! \brief    Wait For cmd Completion
+    //! \details  [GPU Context Interface] Waiting for the completion of cmd in provided GPU context
+    //! \details  Caller: HAL only
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] gpuCtx
+    //!           GpuContext handle of the gpu context to wait cmd completion
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS WaitForCmdCompletion(
+        MOS_STREAM_HANDLE streamState,
+        GPU_CONTEXT_HANDLE gpuCtx);
     
     //!
     //! \brief    Trim Residency

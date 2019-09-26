@@ -573,15 +573,18 @@ struct MosStreamState
     _MOS_INTERFACE *osInterfaceLegacy = nullptr;
 };
 
+// OS agnostic MOS objects
 typedef OsDeviceContext *MOS_DEVICE_HANDLE;
 typedef MosStreamState  *MOS_STREAM_HANDLE;
 //typedef uint32_t             GPU_CONTEXT_HANDLE;
 typedef MOS_COMMAND_BUFFER *COMMAND_BUFFER_HANDLE;
 typedef MOS_RESOURCE       *MOS_RESOURCE_HANDLE;
-typedef void *              OsSpecificRes;
-typedef void *              OS_HANDLE;
+
+// OS specific MOS objects
+typedef void *              OsSpecificRes;       //!< stand for different os specific resource structure (or info)
+typedef void *              OS_HANDLE;           //!< stand for different os handles
 typedef MOS_SURFACE         MosResourceInfo;
-typedef void *              DDI_DEVICE_CONTEXT;
+typedef void *              DDI_DEVICE_CONTEXT;  //!< stand for different os specific device context
 
 class GpuContextMgr;
 //!

@@ -362,7 +362,7 @@ void OsContextSpecificNext::SetSliceCount(uint32_t *pSliceCount)
         MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
 }
 
-MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
+MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 {
     uint32_t      iDeviceId = 0;
     MOS_STATUS    eStatus;
@@ -371,26 +371,28 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
     MOS_OS_FUNCTION_ENTER;
 
     eStatus = MOS_STATUS_SUCCESS;
+    
+    PMOS_CONTEXT osDriverContext = (PMOS_CONTEXT)ddiDriverContext;
 
     if (GetOsContextValid() == false)
     {
-        if( nullptr == pOsDriverContext         ||
-            nullptr == pOsDriverContext->bufmgr ||
-            0 >= pOsDriverContext->fd )
+        if( nullptr == osDriverContext         ||
+            nullptr == osDriverContext->bufmgr ||
+            0 >= osDriverContext->fd )
         {
             MOS_OS_ASSERT(false);
             return MOS_STATUS_INVALID_HANDLE;
         }
     
-        m_bufmgr        = pOsDriverContext->bufmgr;
-        m_fd            = pOsDriverContext->fd;
-        MosUtilities::MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
-        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
-        m_gmmClientContext = pOsDriverContext->pGmmClientContext;
-        m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
+        m_bufmgr        = osDriverContext->bufmgr;
+        m_fd            = osDriverContext->fd;
+        MosUtilities::MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), osDriverContext->pPerfData, sizeof(PERF_DATA));
+        mos_bufmgr_gem_enable_reuse(osDriverContext->bufmgr);
+        m_gmmClientContext = osDriverContext->pGmmClientContext;
+        m_auxTableMgr = osDriverContext->m_auxTableMgr;
     
         // DDI layer can pass over the DeviceID.
-        iDeviceId = pOsDriverContext->iDeviceId;
+        iDeviceId = osDriverContext->iDeviceId;
         if (0 == iDeviceId)
         {
             PLATFORM           platformInfo;
@@ -402,7 +404,7 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
             MosUtilities::MOS_ZeroMemory(&skuTable, sizeof(skuTable));
             MosUtilities::MOS_ZeroMemory(&waTable, sizeof(waTable));
             MosUtilities::MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
-            eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
+            eStatus = HWInfo_GetGfxInfo(osDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
@@ -412,26 +414,26 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
             MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
             MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
     
-            pOsDriverContext->iDeviceId      = platformInfo.usDeviceID;
+            osDriverContext->iDeviceId      = platformInfo.usDeviceID;
             m_skuTable = skuTable;
             m_waTable  = waTable;
     
-            pOsDriverContext->SkuTable       = skuTable;
-            pOsDriverContext->WaTable        = waTable;
-            pOsDriverContext->gtSystemInfo   = gtSystemInfo;
-            pOsDriverContext->platform       = platformInfo;
+            osDriverContext->SkuTable       = skuTable;
+            osDriverContext->WaTable        = waTable;
+            osDriverContext->gtSystemInfo   = gtSystemInfo;
+            osDriverContext->platform       = platformInfo;
     
             MOS_OS_NORMALMESSAGE("DeviceID was created DeviceID = %d, platform product %d", iDeviceId, platformInfo.eProductFamily);
         }
         else
         {
-            // pOsDriverContext's parameters were passed by CmCreateDevice.
+            // osDriverContext's parameters were passed by CmCreateDevice.
             // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
-            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->platform), sizeof(PLATFORM));
-            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
+            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(osDriverContext->platform), sizeof(PLATFORM));
+            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(osDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
     
-            m_skuTable = pOsDriverContext->SkuTable;
-            m_waTable  = pOsDriverContext->WaTable;
+            m_skuTable = osDriverContext->SkuTable;
+            m_waTable  = osDriverContext->WaTable;
         }
     
         m_use64BitRelocs = true;
@@ -440,10 +442,10 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
     
         if (!Mos_Solo_IsEnabled() && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
-            m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
+            m_intelContext = mos_gem_context_create_ext(osDriverContext->bufmgr,0);
             if (m_intelContext)
             {
-                m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+                m_intelContext->vm = mos_gem_vm_create(osDriverContext->bufmgr);
                 if (m_intelContext->vm == nullptr)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
@@ -453,7 +455,7 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
         }
         else //use legacy context create ioctl for pre-gen11 platforms
         {
-           m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
+           m_intelContext = mos_gem_context_create(osDriverContext->bufmgr);
            if (m_intelContext)
            {
                m_intelContext->vm = nullptr;
@@ -499,9 +501,9 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
         m_transcryptedKernelsSize   = 0;
     
         // For Media Memory compression
-        m_mediaMemDecompState       = pOsDriverContext->ppMediaMemDecompState;
-        m_memoryDecompress       = pOsDriverContext->pfnMemoryDecompress;
-        m_mosContext                = pOsDriverContext;
+        m_mediaMemDecompState       = osDriverContext->ppMediaMemDecompState;
+        m_memoryDecompress          = osDriverContext->pfnMemoryDecompress;
+        m_mosContext                = osDriverContext;
     
         m_noParsingAssistanceInKmd  = true;
         m_numNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;

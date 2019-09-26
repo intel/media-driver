@@ -97,10 +97,10 @@ public:
     //!
     //! \brief  Initialize the MOS Context
     //! \param  [in] pOsDriverContext
-    //!         ptr to MOS_CONTEXT created inside DDI 
+    //!         ptr to DDI_DEVICE_CONTEXT created inside DDI 
     //! \return MOS_Success in pass case, MOS error status in fail cases
     //!
-    MOS_STATUS Init(PMOS_CONTEXT osDriverContext);
+    MOS_STATUS Init(DDI_DEVICE_CONTEXT osDriverContext);
 
     //!
     //! \brief  Destroy the os specific MOS context

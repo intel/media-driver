@@ -3143,9 +3143,7 @@ MOS_STATUS Mos_Specific_RegisterResource (
         return MosInterface::RegisterResource(
             pOsInterface->osStreamState,
             pOsResource,
-            bWrite,
-            pOsInterface->streamIndex,
-            pOsInterface->CurrentGpuContextOrdinal);
+            bWrite);
     }
 
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())

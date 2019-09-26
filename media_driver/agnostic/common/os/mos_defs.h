@@ -335,7 +335,8 @@ typedef enum _MOS_STATUS
     MOS_STATUS_NOT_ENOUGH_BUFFER                 = 30,
     MOS_STATUS_UNINITIALIZED                     = 31,
     MOS_STATUS_GPU_CONTEXT_ERROR                 = 32,
-    MOS_STATUS_UNKNOWN                           = 33
+    MOS_STATUS_STILL_DRAWING                     = 33,
+    MOS_STATUS_UNKNOWN                           = 34
 } MOS_STATUS;
 
 //!

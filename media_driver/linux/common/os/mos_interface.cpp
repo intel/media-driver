@@ -1610,9 +1610,7 @@ MOS_STATUS MosInterface::UnlockMosResource(
 MOS_STATUS MosInterface::RegisterResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,
-    bool                write,
-    uint32_t            streamIndex,
-    uint32_t            gpuContextOrdinal)
+    bool                write)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -1656,8 +1654,21 @@ MOS_STATUS MosInterface::SkipResourceSync(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::ResourceSync(
+MOS_STATUS SyncOnResource(
+    MOS_STREAM_HANDLE streamState,
     MOS_RESOURCE_HANDLE resource,
+    bool writeOperation,
+    GPU_CONTEXT_HANDLE requsetorGpuContext)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // No need to do sync on resource
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::ResourceSync(
+    OsSpecificRes       resource,
     MOS_DEVICE_HANDLE   deviceContext,
     uint32_t            index,
     SYNC_HAZARD         hazardType,
@@ -1673,7 +1684,7 @@ MOS_STATUS MosInterface::ResourceSync(
 }
 
 MOS_STATUS MosInterface::LockSync(
-    MOS_RESOURCE_HANDLE resource,
+    OsSpecificRes       resource,
     MOS_DEVICE_HANDLE   deviceContext,
     uint32_t            index,
     SYNC_HAZARD         hazardType,

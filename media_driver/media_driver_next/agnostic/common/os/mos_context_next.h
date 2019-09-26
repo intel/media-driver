@@ -49,7 +49,7 @@ public:
     //! \brief  Initialzie the OS ContextNext Object
     //! \return MOS_STATUS_SUCCESS on success case, MOS error status on fail cases
     //!
-    virtual MOS_STATUS Init(MOS_CONTEXT* osDriverContextNext) = 0;
+    virtual MOS_STATUS Init(DDI_DEVICE_CONTEXT osDriverContextNext) = 0;
 
 private:
     //!
