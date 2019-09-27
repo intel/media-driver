@@ -1341,6 +1341,8 @@ MOS_STATUS Linux_InitContext(
     pContext->m_cmdBufMgr     = pOsDriverContext->m_cmdBufMgr;
     pContext->fd              = pOsDriverContext->fd;
     pContext->pPerfData       = pOsDriverContext->pPerfData;
+    pContext->m_auxTableMgr   = pOsDriverContext->m_auxTableMgr;
+
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
 
     // DDI layer can pass over the DeviceID.
