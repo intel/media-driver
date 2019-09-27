@@ -5965,6 +5965,7 @@ MOS_STATUS CompositeState::RenderPhase(
     {
         pCscParams = pKernelEntry->pCscParams;
         pMatrix    = &pCscParams->Matrix[pCscParams->MatrixID[0]];
+        pKernelDllState->colorfill_cspace = pKernelEntry->colorfill_cspace;
 
         if ((pMatrix->iProcampID != DL_PROCAMP_DISABLED) &&
             (pMatrix->iProcampID < m_iMaxProcampEntries))

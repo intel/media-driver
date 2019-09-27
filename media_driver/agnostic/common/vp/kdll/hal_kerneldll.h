@@ -532,6 +532,7 @@ typedef struct tagKdll_CacheEntry
     int               iFilterSize;       // kernel filter size
     Kdll_FilterEntry *pFilter;           // kernel filter description
     Kdll_CSC_Params  *pCscParams;        // kernel CSC parameters
+    VPHAL_CSPACE      colorfill_cspace;  // intermediate color space for colorfill
 
     // Cache control
     int               iKCID;             // kernel cache id (dynamically linked kernel)

@@ -4235,7 +4235,8 @@ KernelDll_AddKernel(Kdll_State       *pState,           // Kernel Dll state
     // allocate space in kernel cache to store the kernel, filter, CSC parameters
     size  = pSearchState->KernelSize +                                  // Kernel
             pSearchState->iFilterSize * sizeof(Kdll_FilterEntry) * 2 +  // Original + Modified Filter
-            sizeof(Kdll_CSC_Params);                                    // CSC parameters
+            sizeof(Kdll_CSC_Params) +                                   // CSC parameters
+            sizeof(VPHAL_CSPACE);                                       // Intermediate Color Space for colorfill
 
     // Run garbage collection, create space for new kernel and metadata
     KernelDll_GarbageCollection(pState, size);
@@ -4278,6 +4279,9 @@ KernelDll_AddKernel(Kdll_State       *pState,           // Kernel Dll state
     pCacheEntry->pCscParams = (Kdll_CSC_Params *) (ptr);
     MOS_SecureMemcpy(ptr, sizeof(Kdll_CSC_Params), (void *)&pSearchState->CscParams, sizeof(Kdll_CSC_Params));
     ptr += sizeof(Kdll_CSC_Params);
+    // Save intermediate color space for colorfill
+    pCacheEntry->colorfill_cspace = pState->colorfill_cspace;
+    ptr += sizeof(VPHAL_CSPACE);
 
     // increment KCID (Range = 0x00010000 - 0x7fffffff)
     pState->KernelCache.iCacheID = 0x00010000 + (pState->KernelCache.iCacheID - 0x0000ffff) % 0x7fff0000;
