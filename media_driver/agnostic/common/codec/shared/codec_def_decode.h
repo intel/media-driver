@@ -169,6 +169,13 @@ struct CodechalDecodeParams
     uint32_t                m_executeCallIndex = 0;
 };
 
+typedef enum _CODECHAL_DUMMY_REFERENCE_STATUS
+{
+    CODECHAL_DUMMY_REFERENCE_INVALID,
+    CODECHAL_DUMMY_REFERENCE_DPB,
+    CODECHAL_DUMMY_REFERENCE_DEST_SURFACE,
+    CODECHAL_DUMMY_REFERENCE_ALLOCATED
+} CODECHAL_DUMMY_REFERENCE_STATUS;
 
 //!
 //! \class CodechalDecodeRestoreData
