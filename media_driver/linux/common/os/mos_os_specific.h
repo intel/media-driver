@@ -360,20 +360,6 @@ struct MOS_SURFACE
 typedef MOS_SURFACE *PMOS_SURFACE;
 
 //!
-//! \brief Structure to MOS_BUFFER
-//!
-struct MOS_BUFFER
-{
-    MOS_RESOURCE    OsResource; //!< Buffer resource
-    uint32_t        size;       //!< Buffer size
-    const char*     name;           //!< Buffer name
-    bool            initOnAllocate; //!< Flag to indicate whether initialize when allocate
-    uint8_t         initValue;      //!< Initialize value when initOnAllocate is set
-    bool            bPersistent;    //!< Persistent flag
-};
-typedef MOS_BUFFER *PMOS_BUFFER;
-
-//!
 //! \brief Structure to patch location list
 //!
 typedef struct _PATCHLOCATIONLIST
