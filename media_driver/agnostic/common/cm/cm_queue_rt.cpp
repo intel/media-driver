@@ -2915,7 +2915,7 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
 
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    cmData->cmHalState->osInterface->pfnSetGpuContext(cmData->cmHalState->osInterface, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    cmData->cmHalState->osInterface->pfnSetGpuContext(cmData->cmHalState->osInterface, MOS_GPU_CONTEXT_VEBOX);
     RegisterSyncEvent();
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnExecuteVeboxTask( cmData->cmHalState, &param ) );

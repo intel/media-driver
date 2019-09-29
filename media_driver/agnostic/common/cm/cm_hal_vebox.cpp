@@ -282,10 +282,13 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     // Make sure copy kernel and update kernels are finished before submitting
     // VEBOX commands
     //---------------------------------
-    osInterface->pfnSyncGpuContext(
-        osInterface,
-        (MOS_GPU_CONTEXT)veboxTaskParam->queueOption.GPUContext,
-        MOS_GPU_CONTEXT_VEBOX);
+    if ((MOS_GPU_CONTEXT)veboxTaskParam->queueOption.GPUContext != MOS_GPU_CONTEXT_CM_COMPUTE)
+    {
+        osInterface->pfnSyncGpuContext(
+            osInterface,
+            (MOS_GPU_CONTEXT)veboxTaskParam->queueOption.GPUContext,
+            MOS_GPU_CONTEXT_VEBOX);
+    }
 
     osInterface->pfnResetPerfBufferID(osInterface);
     if (!(osInterface->pfnIsPerfTagSet(osInterface)))
