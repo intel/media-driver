@@ -4607,6 +4607,7 @@ MOS_STATUS CodechalVdencHevcStateG11::Initialize(CodechalSetting * settings)
     // as a result, increase the height by 1 for allocation purposes
     m_numLcu = MOS_ROUNDUP_DIVIDE(m_frameWidth, MAX_LCU_SIZE) * (MOS_ROUNDUP_DIVIDE(m_frameHeight, MAX_LCU_SIZE) + 1);
     m_mbCodeSize = MOS_ALIGN_CEIL(2 * sizeof(uint32_t) * (m_numLcu * 5 + m_numLcu * 64 * 8), CODECHAL_PAGE_SIZE);
+    m_mbCodeSize += m_mvOffset;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetSystemPipeNumberCommon());
 
