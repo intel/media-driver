@@ -297,23 +297,6 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
         osInterface->pfnSetPerfTag(osInterface, VEBOX_TASK_PERFTAG_INDEX);
     }
 
-    // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
-    MHW_PIPE_CONTROL_PARAMS pipeControlParams;
-
-    MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
-    pipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-    pipeControlParams.bGenericMediaStateClear = true;
-    pipeControlParams.bIndirectStatePointersDisable = true;
-    pipeControlParams.bDisableCSStall = false;
-    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
-
-    if (MEDIA_IS_WA(renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
-    {
-        MHW_VFE_PARAMS vfeStateParams = {};
-        vfeStateParams.dwNumberofURBEntries = 1;
-        CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwRenderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
-    }
-
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
