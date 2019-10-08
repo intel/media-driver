@@ -73,8 +73,8 @@ public:
     void setupFilePath(char *perfFilePath);
     void setupFilePath();
     bool bPerfUtilityKey;
-    char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
-    char sDetailsFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+    char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
+    char sDetailsFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
     int32_t dwPerfUtilityIsEnabled;
 
 private:
