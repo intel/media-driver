@@ -94,6 +94,7 @@ MOS_STATUS MhwVeboxInterface::AssignVeboxState()
     PMOS_INTERFACE          pOsInterface;
     PMHW_VEBOX_HEAP_STATE   pVeboxCurState;
     PMHW_VEBOX_HEAP         pVeboxHeap;
+    uint32_t                uiOffset;
 
     MHW_FUNCTION_ENTER;
     MHW_CHK_NULL(m_veboxHeap);
@@ -164,6 +165,10 @@ MOS_STATUS MhwVeboxInterface::AssignVeboxState()
     pVeboxHeap->uiCurState  = pVeboxHeap->uiNextState;
     pVeboxHeap->uiNextState = (pVeboxHeap->uiNextState + 1) %
                               (m_veboxSettings.uiNumInstances);
+
+    //Clean the memory of current veboxheap to avoid the history states
+    uiOffset = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
+    MOS_ZeroMemory(pVeboxHeap->pLockedDriverResourceMem + uiOffset, pVeboxHeap->uiInstanceSize);
 
 finish:
     return eStatus;
