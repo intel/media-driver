@@ -231,10 +231,17 @@ int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_
 
     if (platform > IGFX_GEN8_CORE)
     {
+        MOS_HW_RESOURCE_DEF defaultMocs = MOS_CM_RESOURCE_USAGE_SurfaceState;
+        PCM_HAL_STATE  cmHalState = ((PCM_CONTEXT_DATA)cmDevice->GetAccelData())->cmHalState;
+        if (cmHalState && cmHalState->cmHalInterface)
+        {
+            defaultMocs = cmHalState->cmHalInterface->GetDefaultMOCS();
+        }
+
         switch (memCtrl)
         {
         case CM_MEMORY_OBJECT_CONTROL_DEFAULT:
-            m_memObjCtrl.mem_ctrl = (unsigned int)MOS_CM_RESOURCE_USAGE_SurfaceState;
+            m_memObjCtrl.mem_ctrl = (unsigned int)defaultMocs;
             break;
 
         case CM_MEMORY_OBJECT_CONTROL_NO_L3:
@@ -271,7 +278,7 @@ int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_
 
         default:
             // any invalid CM_HAL_MEMORY_OBJECT_CONTROL value is converted to default
-            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_SurfaceState;
+            m_memObjCtrl.mem_ctrl = (unsigned int)defaultMocs;
             break;
         }
     }

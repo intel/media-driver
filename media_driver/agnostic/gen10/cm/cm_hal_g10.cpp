@@ -589,7 +589,7 @@ MOS_STATUS CM_HAL_G10_X::HwSetSurfaceMemoryObjectControl(
     // The memory object control uint16_t is composed with cache type(8:15), memory type(4:7), ages(0:3)
     mosUsage = (MOS_HW_RESOURCE_DEF)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
     if (mosUsage >= MOS_HW_RESOURCE_DEF_MAX)
-        mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState;
+        mosUsage = GetDefaultMOCS();
 
     surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(mosUsage,
         renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;

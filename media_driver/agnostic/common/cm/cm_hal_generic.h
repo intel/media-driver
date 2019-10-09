@@ -163,7 +163,8 @@ public:
                                             m_overridePowerOptionPerGpuContext(false),
                                             m_redirectRcsToCcs(false),
                                             m_decompress(false),
-                                            m_fastpathDefault(false){};
+                                            m_fastpathDefault(false),
+                                            m_defaultMocs(MOS_CM_RESOURCE_USAGE_SurfaceState){};
 
     virtual ~CM_HAL_GENERIC(){};
 
@@ -700,6 +701,24 @@ public:
         return 1;
     }
 
+    //!
+    //! \brief    Set the default MOCS for this platform
+    //! \return   void
+    //!
+    inline void SetDefaultMOCS(MOS_HW_RESOURCE_DEF mocs)
+    {
+        m_defaultMocs = mocs;
+    }
+
+    //!
+    //! \brief    Get the default MOCS for this platform
+    //! \return   the default MOCS
+    //!
+    inline MOS_HW_RESOURCE_DEF GetDefaultMOCS()
+    {
+        return m_defaultMocs;
+    }
+
 protected:
     uint32_t              m_platformID;
     uint32_t              m_genGT;
@@ -710,6 +729,7 @@ protected:
     bool                  m_redirectRcsToCcs;
     bool                  m_decompress;
     bool                  m_fastpathDefault;
+    MOS_HW_RESOURCE_DEF   m_defaultMocs;
 };
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_

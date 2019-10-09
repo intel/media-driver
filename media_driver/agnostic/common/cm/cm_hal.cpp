@@ -9666,7 +9666,7 @@ MOS_STATUS HalCm_AllocateSurface2D(
         HalCm_OsResource_Reference(&entry->osResource);
     }
     // set default CM MOS usage
-    entry->memObjCtl = MOS_CM_RESOURCE_USAGE_SurfaceState << 8;
+    entry->memObjCtl = (state->cmHalInterface->GetDefaultMOCS()) << 8;
 
     if (state->advExecutor)
     {
