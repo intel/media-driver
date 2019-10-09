@@ -218,7 +218,7 @@ MOS_STATUS CodechalEncHevcState::SetPictureStructs()
         // Set min/max QP values based on frame type if atleast one of them is non-zero
     if (m_hevcPicParams->BRCMinQp || m_hevcPicParams->BRCMaxQp)
     {
-        //m_minMaxQpControlEnabled = true; // disabled in this first check-in
+        m_minMaxQpControlEnabled = true;
         if (m_hevcPicParams->CodingType == I_TYPE)
         {
             m_maxQpForI = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMaxQp, 1), 51);           // Clamp to the max QP to [1, 51] . Zero is not used by our Kernel.
