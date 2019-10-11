@@ -469,6 +469,8 @@ VAStatus DdiEncodeHevc::ParseSeqParams(void *ptr)
     hevcSeqParams->SAO_enabled_flag                   = seqParams->seq_fields.bits.sample_adaptive_offset_enabled_flag;
     hevcSeqParams->pcm_enabled_flag                   = seqParams->seq_fields.bits.pcm_enabled_flag;
     hevcSeqParams->pcm_loop_filter_disable_flag       = seqParams->seq_fields.bits.pcm_loop_filter_disabled_flag;
+    hevcSeqParams->LowDelayMode                       = seqParams->seq_fields.bits.low_delay_seq;
+    hevcSeqParams->HierarchicalFlag                   = seqParams->seq_fields.bits.hierachical_flag;
 
     hevcSeqParams->log2_max_coding_block_size_minus3 = seqParams->log2_diff_max_min_luma_coding_block_size +
                                                        seqParams->log2_min_luma_coding_block_size_minus3;
@@ -553,6 +555,8 @@ VAStatus DdiEncodeHevc::ParsePicParams(
 
     /* picParams->coding_type; App is always setting this to 0 */
     hevcPicParams->CodingType = picParams->pic_fields.bits.coding_type;
+
+    hevcPicParams->HierarchLevelPlus1 = picParams->hierarchical_level_plus1;
 
     /* Reset it to zero now */
     hevcPicParams->NumSlices = 0;
