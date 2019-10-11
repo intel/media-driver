@@ -393,7 +393,6 @@ public:
     MOS_COMMAND_BUFFER     m_veBatchBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC][CODECHAL_HEVC_MAX_NUM_HCP_PIPE][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  //!< Virtual engine batch buffers
     MOS_COMMAND_BUFFER     m_realCmdBuffer;                                                                                                            //!< Virtual engine command buffer
     uint32_t               m_sizeOfVeBatchBuffer  = 0;                                                                                                 //!< Virtual engine batch buffer size
-    unsigned char          m_virtualEngineBbIndex = 0;                                                                                                 //!< Virtual engine batch buffer index
     CODECHAL_ENCODE_BUFFER m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                       //!< BRC HW semaphore
     CODECHAL_ENCODE_BUFFER m_resVdBoxSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                     //!< VDBox HW semaphore
     CODECHAL_ENCODE_BUFFER m_resBrcPakSemaphoreMem;                                                                                                    //!< BRC PAK HW semaphore

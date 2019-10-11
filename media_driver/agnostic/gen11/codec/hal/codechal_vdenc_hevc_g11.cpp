@@ -1386,8 +1386,6 @@ MOS_STATUS CodechalVdencHevcStateG11::SetPictureStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::SetPictureStructs());
 
-    m_virtualEngineBbIndex = m_currOriginalPic.FrameIdx;
-
     if ((uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_chromaFormat &&
         (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
     {

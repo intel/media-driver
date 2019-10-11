@@ -2532,6 +2532,8 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::SetPictureStructs());
 
+    m_virtualEngineBbIndex = m_currOriginalPic.FrameIdx;
+
     //Enable only for TU1
     if (m_hevcSeqParams->TargetUsage != 1)
     {

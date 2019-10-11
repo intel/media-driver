@@ -200,6 +200,7 @@ public:
     uint32_t                                m_vdencBrcInitDmemBufferSize = 0;                  //!< Offset of BRC init DMEM buffer
     uint32_t                                m_vdencBrcUpdateDmemBufferSize = 0;                //!< Offset of BRC update DMEM buffer
     uint32_t                                m_vdencBrcConstDataBufferSize = 0;                 //!< Offset of BRC const data buffer
+    unsigned char                           m_virtualEngineBbIndex = 0;                        //!< Virtual engine batch buffer index
 
     // Tile related
     uint32_t                                m_maxTileNumber = 1;                               //!< max tile number, equal to 1 for Gen10
