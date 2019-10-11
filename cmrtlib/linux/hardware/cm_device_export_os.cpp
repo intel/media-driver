@@ -24,6 +24,72 @@
 #include "cm_timer.h"
 
 //!
+//! \brief      Get CM supported Intel GPU adapter number from Linux system in hardware mode
+//! \details    This API is supported from Cm 4.0. The function generates a adapter info list internally
+//!
+//! \param      [out] count
+//!             Reference to the count number of CM supported GPU adaptors
+//! \retval     CM_SUCCESS if the intel GPU is found
+//! \retval     CM_FAILURE otherwise.
+//!
+extern "C"
+CM_RT_API int32_t GetCmSupportedAdapters(uint32_t& count)
+{
+    INSERT_PROFILER_RECORD();
+    return CmDevice_RT::GetSupportedRenders(count);
+}
+
+
+//!
+//! \brief      Creates CM Device according to user specified GPU adapter in hardware mode.
+//! \details    This API is supported from Cm 4.0. The DevCreateOption is supported
+//!
+//! \param      [out] pCmDev
+//!             Reference to the pointer to the CmDevice to be created
+//! \param      [out] version
+//!             Reference to CM API version supported by the runtime library
+//! \param      [in] AdapterIndex
+//!             Specify an index number of the GPU adapter to use from the supported GPU adapter list
+//! \param      [in] DevCreateOption
+//!             Device creation option flag
+//! \retval     CM_SUCCESS if the CmDevice is successfully created.
+//! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
+//! \retval     CM_FAILURE otherwise.
+//!
+extern "C"
+CM_RT_API int32_t CreateCmDeviceFromAdapter(CmDevice* &pCmDev, uint32_t& version, int32_t AdapterIndex, uint32_t CreateOption = 0)
+{
+    INSERT_PROFILER_RECORD();
+
+    int32_t result = CM_FAILURE;
+    uint32_t count = 0;
+    CmDevice_RT* pDev = NULL;
+    if (GetCmSupportedAdapters(count) == CM_SUCCESS)
+    {
+        if (AdapterIndex <= count)
+        {
+            result = CmDevice_RT::CreateCmDeviceFromDrm(pDev, AdapterIndex, CreateOption);
+
+            pCmDev = static_cast<CmDevice*>(pDev);
+            if (result == CM_SUCCESS)
+            {
+                version = CURRENT_CM_VERSION;
+            }
+            else
+            {
+                version = 0;
+            }
+        }
+        else
+        {
+            result = CM_INVALID_ARG_VALUE;
+        }
+    }
+    return result;
+}
+
+
+//!
 //! \brief      Creates CM Device for hardware mode in linux
 //! \details    Creates a CmDevice from scratch or creates a CmDevice based on the input 
 //!             vaDisplay interface. If CmDevice is created from scratch, an 
@@ -49,28 +115,35 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 
     CmDevice_RT* p=NULL;
     int32_t result = CM_FAILURE;
+    uint32_t count = 0;
 
-    if ( vaDisplay == nullptr)
+    if (GetCmSupportedAdapters(count) == CM_SUCCESS)
     {
-        result = CmDevice_RT::Create(p, CM_DEVICE_CREATE_OPTION_DEFAULT);
-    }
-    else
-    {
-        result = CmDevice_RT::Create(vaDisplay, p, CM_DEVICE_CREATE_OPTION_DEFAULT);
-    }
+        if (count > 0)
+        {
+            if (vaDisplay == nullptr)
+            {
+                result = CmDevice_RT::Create(p, CM_DEVICE_CREATE_OPTION_DEFAULT);
+            }
+            else
+            {
+                result = CmDevice_RT::Create(vaDisplay, p, CM_DEVICE_CREATE_OPTION_DEFAULT);
+            }
 
-    device = static_cast< CmDevice* >(p);
-    if( result == CM_SUCCESS )
-    {
-        version = CURRENT_CM_VERSION;
+            device = static_cast<CmDevice*>(p);
+            if (result == CM_SUCCESS)
+            {
+                version = CURRENT_CM_VERSION;
+            }
+            else
+            {
+                version = 0;
+            }
+        }
     }
-    else
-    {
-        version = 0;
-    }
-
     return result;
 }
+
 
 //!
 //! \brief      Creates CM Device according to user specified config for hardware mode in linux
@@ -157,12 +230,12 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 //!                    <TD> 1: DSH disable; 0: DSH enable (default) </TD>
 //!                </TR>
 //!                <TR>
-//!                    <TD> Disable mid-thread level preemption </TD>
+//!                    <TD> Preemption disable    </TD>
 //!                    <TD> [22] </TD>
 //!                    <TD> 1    </TD>
-//!                    <TD> 1: disable mid-thread preemption; 0: enable (default) </TD>
+//!                    <TD> 1: disable preemption; 0: enable (default) </TD>
 //!                </TR>
-//!                <TR>
+//!             <TR>
 //!                    <TD> kernel debug enable </TD>
 //!                    <TD> [23] </TD>
 //!                 <TD> 1 </TD>
@@ -170,28 +243,10 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 //!                </TR>
 //!                <TR>
 //!                    <TD> Reserved </TD>
-//!                    <TD> [24:27] </TD>
-//!                    <TD> 4 </TD>
+//!                    <TD> [24:31] </TD>
+//!                    <TD> 8 </TD>
 //!                    <TD> Must to be set as Zero </TD>
-//!                </TR>
-//!                <TR>
-//!                    <TD> Disable VEBOX interfaces in CM </TD>
-//!                    <TD> [28] </TD>
-//!                    <TD> 1 </TD>
-//!                    <TD> 1: disable VEBOX interfaces; 0: enable (default) </TD>
-//!                </TR>
-//!                <TR>
-//!                    <TD> Disable FastCopy interfaces in CM </TD>
-//!                    <TD> [29] </TD>
-//!                    <TD> 1 </TD>
-//!                    <TD> 1: disable FastCopy interfaces; 0: enable (default) </TD>
-//!                </TR>
-//!                <TR>
-//!                    <TD> Enabel Fast Path in CM </TD>
-//!                    <TD> [30] </TD>
-//!                    <TD> 1 </TD>
-//!                    <TD> 1: enable fast path; 0: disable (default) </TD>
-//!                </TR>
+//!             </TR>
 //!       </table>
 //! 
 //! \param      [out] device
@@ -208,32 +263,73 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 //! \retval     CM_FAILURE otherwise
 //!
 extern "C"
-CM_RT_API int32_t CreateCmDeviceEx(CmDevice* &device, uint32_t & version, VADisplay vaDisplay , uint32_t createOption = CM_DEVICE_CREATE_OPTION_DEFAULT )
+CM_RT_API int32_t CreateCmDeviceEx(CmDevice* &device, uint32_t & version, VADisplay vaDisplay , uint32_t createOption = 0 )
 {
     INSERT_PROFILER_RECORD();
 
     CmDevice_RT* p=NULL;
     int32_t result = CM_FAILURE;
+    uint32_t count = 0;
 
-    if ( vaDisplay == nullptr)
+    if (GetCmSupportedAdapters(count) == CM_SUCCESS)
     {
-        result = CmDevice_RT::Create(p, createOption);
-    }
-    else
-    {
-        result = CmDevice_RT::Create(vaDisplay, p, createOption);
-    }
+        if (count > 0)
+        {
+            if (vaDisplay == nullptr)
+            {
+                result = CmDevice_RT::Create(p, createOption);
+            }
+            else
+            {
+                result = CmDevice_RT::Create(vaDisplay, p, createOption);
+            }
 
-    device = static_cast< CmDevice* >(p);
-    if( result == CM_SUCCESS )
-    {
-        version = CURRENT_CM_VERSION;
+            device = static_cast<CmDevice*>(p);
+            if (result == CM_SUCCESS)
+            {
+                version = CURRENT_CM_VERSION;
+            }
+            else
+            {
+                version = 0;
+            }
+        }
     }
-    else
-    {
-        version = 0;
-    }
-
     return result;
 }
 
+
+//!
+//! \brief      Query the GPU adapter information by adapter index from supported adapter list in hardware mode
+//! \details    This API is supported from Cm 4.0.  give caller a copy of requested GPU adapter hardware info.
+//!
+//! \param      [in] AdapterIndex
+//!             Adapter index number from supported GPU adapter list
+//! \param      [in] infoName
+//!             Adapter hardware information type
+//! \param      [in/out] *info
+//!             pointer to info from caller to get a copy of specified adapter infomation content
+//!
+//! \param      [in] infoSize
+//!             provide the memroy size of the variable info from the caller
+//! \param      [out] OutInfoSize
+//!             pointer to caller provided variable to return actual memroy size of the returned information element
+//! \retval     CM_SUCCESS if the adapter exists
+//! \retval     CM_FAILURE otherwise.
+//!
+extern "C"
+CM_RT_API int32_t QueryCmAdapterInfo(uint32_t AdapterIndex, AdapterInfoType infoName, void *info, uint32_t infoSize, uint32_t *OutInfoSize)
+{
+    INSERT_PROFILER_RECORD();
+    uint32_t count = 0;
+    int32_t result = CM_FAILURE;
+
+    if (GetCmSupportedAdapters(count) == CM_SUCCESS)
+    {
+        if (AdapterIndex <= count)
+        {
+            result = CmDevice_RT::QueryDrmDeviceInfo(AdapterIndex, infoName, info, infoSize, OutInfoSize);
+        }
+    }
+    return result;
+}
