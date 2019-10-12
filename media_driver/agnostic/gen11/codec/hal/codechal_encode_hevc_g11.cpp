@@ -1980,7 +1980,11 @@ MOS_STATUS CodechalEncHevcStateG11::GetStatusReport(
         m_osInterface,
         &currRefList.resBitstreamBuffer,
         &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(bitstream);
+    if (bitstream == nullptr)
+    {
+        MOS_SafeFreeMemory(tempBsBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(nullptr);
+    }
 
     for(uint32_t i = 0; i < encodeStatusReport->NumberTilesInFrame; i++)
     {
