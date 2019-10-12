@@ -662,6 +662,7 @@ public:
                                             }
                                             pDNUVParams          = nullptr;
                                             iCurbeLength         = 0;
+                                            iCurbeOffset         = 0;
                                             iInlineLength        = 0;
                                             // Debug parameters
                                             pKernelName          = nullptr;
