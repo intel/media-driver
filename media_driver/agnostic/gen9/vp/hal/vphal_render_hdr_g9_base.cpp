@@ -3581,6 +3581,7 @@ MOS_STATUS VpHal_HdrPreprocessLoadStaticData_g9(
         HDRStatic.uiMaxCLL[i] = uiMaxCLL[i];
         HDRStatic.uiMaxDLL[i] = uiMaxDLL[0];
         HDRStatic.uiTMMode[i] = tmMode[i];
+        VPHAL_RENDER_NORMALMESSAGE("StreamIndex: %d, maxCLL: %d, maxDLL: %d, TMMode: %d", i, HDRStatic.uiMaxCLL[i], HDRStatic.uiMaxDLL[i], HDRStatic.uiTMMode[i]);
     }
     HDRStatic.OutputCoeffIndex = 16; 
 
