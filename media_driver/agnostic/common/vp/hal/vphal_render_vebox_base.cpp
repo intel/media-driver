@@ -3508,6 +3508,11 @@ MOS_STATUS VPHAL_VEBOX_STATE::Render(
 
     VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_STAGE(VPHAL_DBG_STAGE_VEBOX);
 
+    if (MEDIA_IS_WA(pVeboxState->m_pWaTable, WaClearCcsVe) && bEnableMMC)
+    {
+        pOsInterface->pfnDecompResource(pOsInterface, &pcRenderParams->pTarget[0]->OsResource);
+    }
+
     // Check bSameSamples only when reference is avaliable, DI, Variance Query is enabled
     if (pRenderData->bRefValid     &&
         pRenderData->bSameSamples  &&
