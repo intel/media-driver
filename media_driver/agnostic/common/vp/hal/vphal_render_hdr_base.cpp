@@ -37,11 +37,6 @@
 
 static bool sForceSplitFrame = false;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-static bool sEnableKernelDump = false;
-static std::string sDumpDirectory("C:\\vpdump\\");
-#endif
-
 //!
 //! \brief    Initialize HDR state
 //! \details  Initialize HDR state
@@ -1574,15 +1569,6 @@ MOS_STATUS VpHal_HdrPreprocess(
         0,
         nullptr,
         bLastSummit));
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (sEnableKernelDump)
-    {
-        VphalSurfaceDumper surfaceDumper(pOsInterface);
-        std::string fileName(sDumpDirectory + "Preprocessed_HDRMandatory_coefficient_8x98");
-        surfaceDumper.DumpSurfaceToFile(pOsInterface, &pHdrState->CoeffSurface, fileName.c_str(), 0, true);
-    }
-#endif
 
     eStatus = MOS_STATUS_SUCCESS;
 

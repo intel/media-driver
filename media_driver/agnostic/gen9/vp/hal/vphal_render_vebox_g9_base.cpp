@@ -1756,15 +1756,6 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
         pRenderPassData->bCompNeeded = true;
     }
 
-    if (pRenderPassData->bHdrNeeded && IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))
-    {
-        // The comp bypass check is skipped for SFC feasibiliy to allow HDR support,
-        // if still HdrSfc path is not enabled, need to switch back to composition (HDR render path)
-        // otherwise, traditional SFC path will direct output to render target and not compatible with HDR render path.
-        pRenderData->OutputPipe         = VPHAL_OUTPUT_PIPE_MODE_COMP;
-        pRenderPassData->bCompNeeded    = true;
-    }
-
     // Check if we want to enable SFC processing
     if (IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))
     {
