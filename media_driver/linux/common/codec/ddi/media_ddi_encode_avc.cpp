@@ -1926,8 +1926,13 @@ MOS_STATUS DdiEncodeAvc::CheckPackedSlcHeaderData(
     AvcInBits InBits((uint8_t*)pInSlcHdr, InBitSize);
 
     // Skip start code
-    InBits.SkipBits(32);
-    HdrBitSize += 32;
+    uint8_t StartCode = 0;
+    while (1 != StartCode) {
+        StartCode = InBits.GetBits(8);
+        HdrBitSize += 8;
+    }
+
+    uint32_t StartBitSize = HdrBitSize;
 
     // Check NAL Unit type
     HdrBitSize += 8;
@@ -1954,7 +1959,7 @@ MOS_STATUS DdiEncodeAvc::CheckPackedSlcHeaderData(
     AvcOutBits OutBits((uint8_t*)(*ppOutSlcHdr), OutBitSize);
 
     InBits.ResetBitOffset();
-    OutBits.PutBits(InBits.GetBits(32), 32);
+    OutBits.PutBits(InBits.GetBits(StartBitSize), StartBitSize);
     OutBits.PutBits(InBits.GetBits(8), 8);
     if (20 == nalUnitType)
         OutBits.PutBits(InBits.GetBits(24), 24);
