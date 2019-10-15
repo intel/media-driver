@@ -581,7 +581,6 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
 
     for (j = 0; j < dwNumPlanes; j++)
     {
-        pTmpSrc = pData + planes[j].dwOffset;
         for (i = 0; i < planes[j].dwHeight; i++)
         {
             if (hasAuxSurf && enableAuxDump)
