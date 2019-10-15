@@ -457,6 +457,19 @@ protected:
     //!
     virtual MOS_STATUS AllocateDebugDumper();
 
+    //!
+    //! \brief    Get Hdr path needed flag
+    //! \details  Get Hdr path needed flag
+    //! \param    pRenderParams
+    //!           [in] Pointer to VPHAL render parameter
+    //! \param    pRenderPassData
+    //!           [in,out] Pointer to the VPHAL render pass data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS GetHdrPathNeededFlag(
+        PVPHAL_RENDER_PARAMS    pRenderParams,
+        RenderpassData          *pRenderPassData);
 };
 
 #define VPHAL_RENDERER_GET_CACHE_CNTL(obj, pOsInterface, pPlatform, pSkuTable, pSettings)   \

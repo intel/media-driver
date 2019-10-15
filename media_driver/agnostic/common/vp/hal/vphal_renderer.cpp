@@ -567,6 +567,13 @@ MOS_STATUS VphalRenderer::ProcessRenderParameter(
     pRender[VPHAL_RENDER_ID_COMPOSITE]->SetStatusReportParams(this, pRenderParams);
     pRender[VPHAL_RENDER_ID_VEBOX+uiCurrentChannel]->SetStatusReportParams(this, pRenderParams);
 
+    // Decide whether Hdr path should be chosen.
+    VPHAL_RENDER_CHK_STATUS(GetHdrPathNeededFlag(pRenderParams, pRenderPassData));
+    if (pRenderPassData->bHdrNeeded)
+    {
+        VPHAL_RNDR_SET_STATUS_REPORT_PARAMS(pHdrState, this, pRenderParams);
+    }
+
     VPHAL_RNDR_SET_STATUS_REPORT_PARAMS(&Align16State, this, pRenderParams);
     // Loop through the sources
     for (uiIndex = 0;
@@ -642,6 +649,7 @@ MOS_STATUS VphalRenderer::ProcessRenderParameter(
         // Check if Slice Shutdown can be enabled
         // Vebox performance is not impacted by slice shutdown
         if (!(pPrimarySurface == nullptr ||                                      // Valid Layer
+            pRenderPassData->bHdrNeeded  ||                                      // HDR Disabled
             pRenderParams->Component == COMPONENT_VPreP))                        // VpostP usage
         {
             bSliceReconfig = true;
@@ -686,7 +694,10 @@ MOS_STATUS VphalRenderer::RenderPass(
     VPHAL_RENDER_ASSERT(m_pRenderHal);
 
     eStatus                 = MOS_STATUS_SUCCESS;
+    uiIndex_in              = 0;
+    uiIndex_out             = 0;
     pVeboxExecState         = &VeboxExecState[uiCurrentChannel];
+    MOS_ZeroMemory(&RenderPassData, sizeof(RenderPassData));
 
     RenderPassData.AllocateTempOutputSurfaces();
     RenderPassData.bCompNeeded      = true;
@@ -763,6 +774,10 @@ MOS_STATUS VphalRenderer::RenderPass(
                      pRenderParams->uSrcCount == 0))             // fast color fill
                 {
                     VPHAL_RENDER_CHK_STATUS(RenderComposite(pRenderParams, &RenderPassData));
+                }
+                else if (VpHal_RndrIsHdrPathNeeded(this, pRenderParams, &RenderPassData) && !pHdrState->bBypassHdrKernelPath)
+                {
+                    VPHAL_RENDER_CHK_STATUS(VpHal_RndrRenderHDR(this, pRenderParams, &RenderPassData));
                 }
             }
             // restore render pointer and count.
@@ -856,9 +871,14 @@ MOS_STATUS VphalRenderer::RenderSingleStream(
             this, pRenderPassData->uiSrcIndex, VPHAL_DBG_DUMP_TYPE_POST_DNDI, pRenderPassData->pSrcSurface);
 
         // We'll continue even if Advanced render fails
-        if ((eStatus == MOS_STATUS_SUCCESS) && (pRenderPassData->bCompNeeded))
+        if ((eStatus == MOS_STATUS_SUCCESS) && (pRenderPassData->bCompNeeded || pRenderPassData->bHdrNeeded))
         {
             pRenderParams->pSrc[pRenderPassData->uiSrcIndex] = pRenderPassData->pSrcSurface;
+        }
+
+        if (pRenderPassData->bHdrNeeded && !pHdrState->bBypassHdrKernelPath)
+        {
+            pRenderPassData->bCompNeeded = false;
         }
     }
 
@@ -1317,11 +1337,16 @@ MOS_STATUS VphalRenderer::Initialize(
     Kdll_KernelCache                    *pKernelCache;
     Kdll_CacheEntry                     *pCacheEntryTable;
 
+    pKernelBin      = nullptr;
+    pFcPatchBin     = nullptr;
     eStatus         = MOS_STATUS_UNKNOWN;
     pOsInterface    = m_pOsInterface;
     pRenderHal      = m_pRenderHal;
+    iResult         = 0;
     pKernelBin      = nullptr;
     pFcPatchBin     = nullptr;
+
+    MOS_ZeroMemory(&MhwKernelParam, sizeof(MHW_KERNEL_PARAM));
 
     //---------------------------------------
     VPHAL_RENDER_CHK_NULL(pSettings);
@@ -1436,6 +1461,15 @@ MOS_STATUS VphalRenderer::Initialize(
     else
     {
         bSkuDisableVpFor4K = false;
+    }
+
+    // Initialize Hdr renderer
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrHDR) && pHdrState)
+    {
+        VPHAL_RENDER_CHK_STATUS(pHdrState->pfnInitialize(
+            pHdrState,
+            pSettings,
+            pKernelDllState));
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -2090,5 +2124,102 @@ finish:
 
     }
 
+    return eStatus;
+}
+
+//!
+//! \brief    Get Hdr path needed flag
+//! \details  Get Hdr path needed flag
+//! \param    pRenderParams
+//!           [in] Pointer to VPHAL render parameter
+//! \param    pRenderPassData
+//!           [in,out] Pointer to the VPHAL render pass data
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRenderer::GetHdrPathNeededFlag(
+    PVPHAL_RENDER_PARAMS    pRenderParams,
+    RenderpassData          *pRenderPassData)
+{
+    MOS_STATUS              eStatus;
+    uint32_t                uiIndex;
+    PVPHAL_SURFACE          pSrcSurface;
+    PVPHAL_SURFACE          pTargetSurface;
+    bool                    bToneMapping;
+    bool                    bBt2020Output;
+    bool                    bMultiLayerBt2020;
+
+    //--------------------------------------------
+    VPHAL_RENDER_CHK_NULL(pRenderParams);
+    VPHAL_RENDER_CHK_NULL(pRenderPassData);
+    VPHAL_RENDER_CHK_NULL(pRenderParams->pTarget[0]);
+    //--------------------------------------------
+
+    eStatus                     = MOS_STATUS_SUCCESS;
+    uiIndex                     = 0;
+    pSrcSurface                 = nullptr;
+    pTargetSurface              = nullptr;
+    bToneMapping                = false;
+    bBt2020Output               = false;
+    bMultiLayerBt2020           = false;
+
+    // Loop through the sources
+    for (uiIndex = 0;
+        uiIndex < VPHAL_MAX_SOURCES && uiIndex < pRenderParams->uSrcCount;
+        uiIndex++)
+    {
+        pSrcSurface = pRenderParams->pSrc[uiIndex];
+        if (pSrcSurface == nullptr)
+        {
+            continue;
+        }
+        pTargetSurface = pRenderParams->pTarget[0];
+
+        // Need to use HDR to process BT601/BT709->BT2020
+        if (IS_COLOR_SPACE_BT2020(pRenderParams->pTarget[0]->ColorSpace) &&
+            !IS_COLOR_SPACE_BT2020(pSrcSurface->ColorSpace))
+        {
+            bBt2020Output = true;
+        }
+
+        if ((pSrcSurface->pHDRParams && (pSrcSurface->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR)) ||
+            (pTargetSurface->pHDRParams && (pTargetSurface->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR)))
+        {
+            bToneMapping = true;
+        }
+
+        if (IS_COLOR_SPACE_BT2020(pSrcSurface->ColorSpace) && pRenderParams->uSrcCount > 1)
+        {
+            bMultiLayerBt2020 = true;
+        }
+    }
+
+    pRenderPassData->bHdrNeeded = bBt2020Output || bToneMapping || bMultiLayerBt2020;
+
+    // Error handling for illegal Hdr cases on unsupported m_Platform
+    if ((pRenderPassData->bHdrNeeded) && (!MEDIA_IS_SKU(m_pSkuTable, FtrHDR)))
+    {
+        eStatus = MOS_STATUS_SUCCESS;
+        VPHAL_RENDER_ASSERTMESSAGE("Illegal Hdr cases on unsupported m_Platform, turn off HDR.");
+        pRenderPassData->bHdrNeeded = false;
+    }
+
+    if (pRenderPassData->bHdrNeeded)
+    {
+        pRenderPassData->bCompNeeded = false;
+    }
+
+    if (!pRenderPassData->bHdrNeeded &&
+        pRenderParams->pSrc[0] &&
+        pRenderParams->pTarget[0] &&
+        IS_COLOR_SPACE_BT2020(pRenderParams->pSrc[0]->ColorSpace) &&
+        !IS_COLOR_SPACE_BT2020(pRenderParams->pTarget[0]->ColorSpace) &&
+        MEDIA_IS_SKU(m_pSkuTable, FtrDisableVEBoxFeatures))
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid Params for This Platform.");
+    }
+
+finish:
     return eStatus;
 }
