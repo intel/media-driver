@@ -804,12 +804,16 @@ MOS_STATUS Mos_InitInterface(
         pOsInterface->osStreamState->osCpInterface            = pOsInterface->osCpInterface;
         pOsInterface->osStreamState->osDeviceContext          = (OsDeviceContext *)pOsInterface->pOsContext->m_osDeviceContext;
         pOsInterface->osStreamState->simIsActive              = pOsInterface->bSimIsActive;
-        pOsInterface->osStreamState->virtualEngineInterface   = pOsInterface->pVEInterf;
+        pOsInterface->osStreamState->virtualEngineInterface   = nullptr; // Will be updated by HAL on demand
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
         pOsInterface->osStreamState->dumpCommandBuffer        = pOsInterface->bDumpCommandBuffer;
         pOsInterface->osStreamState->dumpCommandBufferAsMessages = pOsInterface->bDumpCommandBufferAsMessages;
         pOsInterface->osStreamState->dumpCommandBufferToFile  = pOsInterface->bDumpCommandBufferToFile;
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+#if _DEBUG || _RELEASE_INTERNAL
+        pOsInterface->osStreamState->enableDbgOvrdInVirtualEngine = pOsInterface->bEnableDbgOvrdInVE;
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
         pOsInterface->osStreamState->ctxBasedScheduling       = pOsInterface->ctxBasedScheduling;
         pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
@@ -1079,6 +1083,12 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
     }
 
+    if (g_apoMosEnabled)
+    {
+        // Update ctx based scheduling flag also in APO MOS stream state
+        MOS_OS_CHK_NULL_RETURN(osInterface->osStreamState);
+        osInterface->osStreamState->ctxBasedScheduling = osInterface->ctxBasedScheduling;
+    }
     MOS_OS_VERBOSEMESSAGE("Virtual Engine Context based SCheduling enabled:%d.\n", osInterface->ctxBasedScheduling);
     MOS_OS_VERBOSEMESSAGE("Virtual Engine Multi-node Scaling enabled:%d.\n", osInterface->multiNodeScaling);
 

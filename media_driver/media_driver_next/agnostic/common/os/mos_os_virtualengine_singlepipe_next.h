@@ -29,30 +29,37 @@
 #define __MOS_OS_VIRTUALENGINE_SINGLEPIPE_NEXT_H__
 
 #include "mos_os_virtualengine_next.h"
-class MosOsVeSinglePipe
+class MosOsVeSinglePipe : public MosVeInterface
 {
 public:
     //!
+    //! \brief    Construct
+    //!
+    MosOsVeSinglePipe() {}
+
+    //!
+    //! \brief    Deconstruct
+    //!
+    ~MosOsVeSinglePipe() {}
+
+    //!
     //! \brief    Destroy resources allocated for virtual engine single pipe
-    //! \param    [in]  pVEInterface
-    //!                      Virtual Engine Single Pipe Interface
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    static void Mos_VirtualEngine_SinglePipe_Destroy(
-        PMOS_VIRTUALENGINE_INTERFACE    pVEInterface);
+    void Destroy();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief    populate debug override parameters for single pipe virtual engine
     //! \details  populate debug override parameters used in single pipe virtual engine for debug override or Linux target submission
-    //! \param    [in]  pVEInterface
-    //!                virtual engine interface
+    //! \param    [in]  stream
+    //!           MOS stream state
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    static MOS_STATUS Mos_VirtualEngine_SinglePipe_PopulateDbgOvrdParams(
-        PMOS_VIRTUALENGINE_INTERFACE  pVEInterface);
+    MOS_STATUS PopulateDbgOvrdParams(
+        MOS_STREAM_HANDLE stream);
 #endif
 };
 #endif //__MOS_OS_VIRTUALENGINE_SINGLEPIPE_NEXT_H__

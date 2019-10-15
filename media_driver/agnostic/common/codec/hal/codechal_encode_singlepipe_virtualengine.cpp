@@ -25,6 +25,7 @@
 //! \details  Implements all functions required by CodecHal for single pipe encoding with virtual engine interface.
 //!
 #include "codechal_encode_singlepipe_virtualengine.h"
+#include "mos_os_virtualengine_next.h"
 
 MOS_STATUS CodecHalEncodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
     PCODECHAL_ENCODE_SINGLEPIPE_VIRTUALENGINE_STATE pVEState,
@@ -48,9 +49,18 @@ MOS_STATUS CodecHalEncodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (pOsInterface->bEnableDbgOvrdInVE)
     {
-            gpuCtxCreatOpts->DebugOverride      = true;
+        gpuCtxCreatOpts->DebugOverride      = true;
+        if (g_apoMosEnabled)
+        {
+            CODECHAL_ENCODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+            CODECHAL_ENCODE_ASSERT(pVEInterface->veInterface->GetEngineCount() == 1);
+            gpuCtxCreatOpts->EngineInstance[0] = pVEInterface->veInterface->GetEngineLogicId(0);
+        }
+        else
+        {
             CODECHAL_ENCODE_ASSERT(pVEInterface->ucEngineCount == 1);
-            gpuCtxCreatOpts->EngineInstance[0]  = pVEInterface->EngineLogicId[0];
+            gpuCtxCreatOpts->EngineInstance[0] = pVEInterface->EngineLogicId[0];
+        }
     }
 #endif
 

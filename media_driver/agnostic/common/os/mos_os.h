@@ -542,14 +542,15 @@ typedef void *     OS_PER_STREAM_PARAMETERS;
 typedef OsContextNext OsDeviceContext;
 typedef _MOS_GPUCTX_CREATOPTIONS GpuContextCreateOption;
 struct _MOS_INTERFACE;
-    
+class MosVeInterface;
+
 struct MosStreamState
 {
-    OsDeviceContext *  osDeviceContext         = nullptr;
+    OsDeviceContext   *osDeviceContext = nullptr;
     GPU_CONTEXT_HANDLE currentGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
     MOS_COMPONENT      component;
 
-    PMOS_VIRTUALENGINE_INTERFACE virtualEngineInterface = nullptr;
+    MosVeInterface *virtualEngineInterface = nullptr;
     MosCpInterface *osCpInterface = nullptr;
 
     bool mediaReset    = false;
@@ -564,6 +565,10 @@ struct MosStreamState
     bool  dumpCommandBufferToFile = false;                //!< Indicates that the command buffer should be dumped to a file
     bool  dumpCommandBufferAsMessages = false;            //!< Indicates that the command buffer should be dumped via MOS normal messages
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+#if _DEBUG || _RELEASE_INTERNAL
+    bool  enableDbgOvrdInVirtualEngine = false;
+#endif // _DEBUG || _RELEASE_INTERNAL
 
     bool  ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
     OS_PER_STREAM_PARAMETERS  perStreamParameters = nullptr; //!< Parameters of OS specific per stream

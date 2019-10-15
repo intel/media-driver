@@ -28,6 +28,8 @@
 #include "mos_util_debug.h"
 #include "mos_os_virtualengine_singlepipe_specific.h"
 #include "mos_os_virtualengine_scalability_specific.h"
+#include "mos_os_virtualengine_singlepipe_specific_next.h"
+#include "mos_os_virtualengine_scalability_specific_next.h"
 
 inline MOS_STATUS Mos_VirtualEngine_IsScalabilitySupported(
     PMOS_VIRTUALENGINE_INTERFACE   pVEInterface,
@@ -91,6 +93,22 @@ MOS_STATUS Mos_VirtualEngineInterface_Initialize(
     else
     {
         MOS_OS_CHK_STATUS(Mos_Specific_VirtualEngine_SinglePipe_Initialize(pVEInterf, pVEInitParms));
+    }
+
+    if (g_apoMosEnabled)
+    {
+        if (pVEInitParms->bScalabilitySupported)
+        {
+            pVEInterf->veInterface = MOS_New(MosOsVeScalabilitySpecific);
+        }
+        else
+        {
+            pVEInterf->veInterface = MOS_New(MosOsVeSinglePipeSpecific);
+        }
+        MOS_OS_CHK_NULL(pVEInterf->veInterface);
+        MOS_OS_CHK_NULL(pOsInterface->osStreamState);
+        pVEInterf->veInterface->Initialize(pOsInterface->osStreamState, pVEInitParms);
+        pOsInterface->osStreamState->virtualEngineInterface = pVEInterf->veInterface;
     }
 
 finish:

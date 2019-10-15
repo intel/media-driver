@@ -28,20 +28,18 @@
 #include "mos_os_virtualengine_scalability_next.h"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-MOS_STATUS MosOsVeScalability::Mos_VirtualEngine_Scalability_PopulateDbgOvrdParams(
-    PMOS_VIRTUALENGINE_INTERFACE pVEInterface)
+MOS_STATUS MosOsVeScalability::PopulateDbgOvrdParams(
+    MOS_STREAM_HANDLE stream)
 {
-    PMOS_INTERFACE          pOsInterface = nullptr;
-    uint8_t                 ucMaxEngineCnt = 0;
-    uint8_t                 ui8EngineId = 0;
-    int32_t                 iForceEngine = 0;
     MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
+
     MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(stream);
 
-    MOS_OS_CHK_NULL(pVEInterface);
-    MOS_OS_CHK_NULL(pVEInterface->pOsInterface);
-
-    pOsInterface = pVEInterface->pOsInterface;
+    PMOS_INTERFACE pOsInterface   = stream->osInterfaceLegacy;
+    uint8_t        ucMaxEngineCnt = 0;
+    uint8_t        ui8EngineId    = 0;
+    int32_t        iForceEngine   = 0;
 
     iForceEngine = MOS_INVALID_FORCEENGINE_VALUE;
 
@@ -49,28 +47,28 @@ MOS_STATUS MosOsVeScalability::Mos_VirtualEngine_Scalability_PopulateDbgOvrdPara
     {
         case COMPONENT_Decode:
             iForceEngine   = pOsInterface->eForceVdbox;
-            ucMaxEngineCnt = pVEInterface->ucMaxNumPipesInUse + 1;
+            ucMaxEngineCnt = ucMaxNumPipesInUse + 1;
             break;
         case COMPONENT_VPCommon:
             iForceEngine   = pOsInterface->eForceVebox;
-            ucMaxEngineCnt = pVEInterface->ucMaxNumPipesInUse;
+            ucMaxEngineCnt = ucMaxNumPipesInUse;
             break;
         case COMPONENT_Encode:
             iForceEngine   = pOsInterface->eForceVdbox;
-            ucMaxEngineCnt = pVEInterface->ucMaxNumPipesInUse;
+            ucMaxEngineCnt = ucMaxNumPipesInUse;
             break;
         default:
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MOS_OS_ASSERTMESSAGE("Not supported MOS Component.")
-            goto finish;
+            return eStatus;
     }
 
-    MOS_ZeroMemory(pVEInterface->EngineLogicId, sizeof(pVEInterface->EngineLogicId));
-    pVEInterface->ucEngineCount = 0;
+    MosUtilities::MOS_ZeroMemory(EngineLogicId, sizeof(EngineLogicId));
+    ucEngineCount = 0;
     if (iForceEngine == 0)
     {
-        pVEInterface->EngineLogicId[0] = 0;
-        pVEInterface->ucEngineCount    = 1;
+        EngineLogicId[0] = 0;
+        ucEngineCount    = 1;
     }
     else
     {
@@ -93,37 +91,36 @@ MOS_STATUS MosOsVeScalability::Mos_VirtualEngine_Scalability_PopulateDbgOvrdPara
                 default:
                     eStatus = MOS_STATUS_INVALID_PARAMETER;
                     MOS_OS_ASSERTMESSAGE("Invalid force engine value.");
-                    goto finish;
+                    return eStatus;
             }
-            if (pVEInterface->ucEngineCount >= MOS_MAX_ENGINE_INSTANCE_PER_CLASS)
+            if (ucEngineCount >= MOS_MAX_ENGINE_INSTANCE_PER_CLASS)
             {
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 MOS_OS_ASSERTMESSAGE("number of engine exceeds the max value.");
-                goto finish;
+                return eStatus;
             }
-            pVEInterface->EngineLogicId[pVEInterface->ucEngineCount] = ui8EngineId;
+            EngineLogicId[ucEngineCount] = ui8EngineId;
             iForceEngine >>= MOS_FORCEENGINE_ENGINEID_BITSNUM;
-            pVEInterface->ucEngineCount++;
+            ucEngineCount++;
         }
     }
 
-    if (pVEInterface->ucEngineCount == 0)
+    if (ucEngineCount == 0)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         MOS_OS_ASSERTMESSAGE("number of engine specified can not be zero.");
-        goto finish;
+        return eStatus;
     }
 
-    if (pVEInterface->ucEngineCount > ucMaxEngineCnt)
+    if (ucEngineCount > ucMaxEngineCnt)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         MOS_OS_ASSERTMESSAGE("number of engine specified exceeds HW engine number.");
-        goto finish;
+        return eStatus;
     }
 
     eStatus = MOS_STATUS_SUCCESS;
 
-finish:
     return eStatus;
 }
 #endif //(_DEBUG || _RELEASE_INTERNAL)

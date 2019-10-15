@@ -29,7 +29,9 @@
 #define __MOS_OS_VIRTUALENGINE_SCALABILITY_SPECIFIC_NEXT_H__
 
 #include "mos_os_virtualengine_next.h"
-class MosOsVeScalabilitySpecific
+#include "mos_os_virtualengine_scalability_next.h"
+
+class MosOsVeScalabilitySpecific : public MosOsVeScalability
 {
 public:
     //!
@@ -44,6 +46,35 @@ public:
     static MOS_STATUS Mos_Specific_VirtualEngine_Scalability_Initialize(
         PMOS_VIRTUALENGINE_INTERFACE      pVEInterface,
         PMOS_VIRTUALENGINE_INIT_PARAMS    pVEInitParms);
+        
+    void ResetSecdryCmdBufStates() {}
+
+    MOS_STATUS VerifySecdryCmdBufSize(
+        uint32_t dwNewRequestSize) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS ResizeSecdryCmdBuf(
+        uint32_t dwNewRequestSize) { return MOS_STATUS_SUCCESS; }
+        
+    MOS_STATUS GetSecdryCmdBuf(
+        PMOS_COMMAND_BUFFER pScdryCmdBuf,
+        uint32_t dwBufIdxPlus1) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS ReturnSecdryCmdBuf(
+        PMOS_COMMAND_BUFFER pScdryCmdBuf,
+        uint32_t dwBufIdxPlus1) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS DoneSecdryCmdBuf() { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS SetHintParams(
+        PMOS_VIRTUALENGINE_SET_PARAMS pVEParams) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS GetHintParams(
+        bool                           bScalableMode,
+        PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS CheckHintParamsValidity() { return MOS_STATUS_SUCCESS; }
+
+    void Destroy() {}
 };
 
 #endif //__MOS_OS_VIRTUALENGINE_SCALABILITY_SPECIFIC_NEXT_H__

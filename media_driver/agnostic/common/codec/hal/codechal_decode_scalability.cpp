@@ -29,7 +29,7 @@
 #include "codechal_decode_scalability.h"
 #include "mos_util_user_interface.h"
 #include "mos_solo_generic.h"
-
+#include "mos_os_virtualengine_next.h"
 
 //!
 //! \brief    calculate secondary cmd buffer index
@@ -1303,6 +1303,35 @@ MOS_STATUS CodechalDecodeScalability_DebugOvrdDecidePipeNum(
 
     pVEInterface = pScalState->pVEInterface;
 
+    if (g_apoMosEnabled)
+    {
+        CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+        auto veInterface = pVEInterface->veInterface;
+        if (veInterface->GetEngineCount() == 1)
+        {
+            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+        }
+        else if (veInterface->GetEngineCount() == 2)
+        {
+            //engine count = 2, only support FE run on the same engine as one of BE for now.
+            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+        }
+        else if (veInterface->GetEngineCount() == 4 &&
+                 veInterface->GetEngineLogicId(3) != veInterface->GetEngineLogicId(0) &&
+                 veInterface->GetEngineLogicId(3) != veInterface->GetEngineLogicId(1) &&
+                 veInterface->GetEngineLogicId(3) != veInterface->GetEngineLogicId(2))
+        {
+            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+        }
+        else
+        {
+            CODECHAL_DECODE_ASSERTMESSAGE("invalid parameter settings in debug override.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        return eStatus;
+    }
+
     // debug override for virtual tile
     if (pVEInterface->ucEngineCount == 1)
     {
@@ -1358,9 +1387,20 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
         gpuCtxCreatOpts->UsingSFC           = false; // this param ignored when dbgoverride enabled
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDebugOvrdDecidePipeNum(pScalState));
 
-        for (uint32_t i = 0; i < pVEInterface->ucEngineCount; i++)
+        if (g_apoMosEnabled)
         {
-            gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->EngineLogicId[i];
+            CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+            for (uint32_t i = 0; i < pVEInterface->veInterface->GetEngineCount(); i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->veInterface->GetEngineLogicId(i);
+            }
+        }
+        else
+        {
+            for (uint32_t i = 0; i < pVEInterface->ucEngineCount; i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->EngineLogicId[i];
+            }
         }
     }
     else
@@ -1426,7 +1466,15 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     {
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
         {
-            pScalabilityState->ucScalablePipeNum = pVEInterface->ucEngineCount - 1;
+            if (g_apoMosEnabled)
+            {
+                CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+                pScalabilityState->ucScalablePipeNum = pVEInterface->veInterface->GetEngineCount() - 1;
+            }
+            else
+            {
+                pScalabilityState->ucScalablePipeNum = pVEInterface->ucEngineCount - 1;
+            }
             pScalabilityState->bScalableDecodeMode = true;
         }
         else

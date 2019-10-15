@@ -28,6 +28,7 @@
 #include "codechal_encoder_base.h"
 #include "codechal_encode_scalability.h"
 #include "mos_util_user_interface.h"
+#include "mos_os_virtualengine_next.h"
 
 MOS_STATUS CodecHalEncodeScalability_InitializeState (
     PCODECHAL_ENCODE_SCALABILITY_STATE  pScalabilityState,
@@ -100,10 +101,22 @@ MOS_STATUS CodechalEncodeScalability_ConstructParmsForGpuCtxCreation(
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(pVEInterface);
         gpuCtxCreatOpts->DebugOverride      = true;
-        for (uint32_t i = 0; i < pVEInterface->ucEngineCount; i++)
+        if (g_apoMosEnabled)
         {
-            gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->EngineLogicId[i];
+            CODECHAL_ENCODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+            for (uint32_t i = 0; i < pVEInterface->veInterface->GetEngineCount(); i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->veInterface->GetEngineLogicId(i);
+            }
         }
+        else
+        {
+            for (uint32_t i = 0; i < pVEInterface->ucEngineCount; i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->EngineLogicId[i];
+            }
+        }
+
     }
 #endif
     return eStatus;

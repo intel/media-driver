@@ -29,70 +29,44 @@
 #include "mos_os_virtualengine_singlepipe_specific_next.h"
 #include "mos_os_virtualengine_scalability_specific_next.h"
 
-MOS_STATUS MosVeInterface::Mos_VirtualEngine_IsScalabilitySupported(
-    PMOS_VIRTUALENGINE_INTERFACE   pVEInterface,
+MOS_STATUS MosVeInterface::IsScalabilitySupported(
     bool                          *pbScalabilitySupported)
 {
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
 
-    MOS_OS_CHK_NULL(pVEInterface);
-    MOS_OS_CHK_NULL(pbScalabilitySupported);
+    MOS_OS_CHK_NULL_RETURN(pbScalabilitySupported);
 
-    *pbScalabilitySupported = pVEInterface->bScalabilitySupported;
+    *pbScalabilitySupported = bScalabilitySupported;
 
-finish:
     return eStatus;
 }
 
-MOS_STATUS MosVeInterface::Mos_VirtualEngineInterface_Initialize(
-    PMOS_INTERFACE                    pOsInterface,
+MOS_STATUS MosVeInterface::Initialize(
+    MOS_STREAM_HANDLE                 stream,
     PMOS_VIRTUALENGINE_INIT_PARAMS    pVEInitParms)
 {
-    PMOS_VIRTUALENGINE_INTERFACE  pVEInterf = nullptr;
-    uint32_t                      i = 0;
-    MOS_STATUS                    eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    MOS_OS_CHK_NULL(pOsInterface);
-    MOS_OS_CHK_NULL(pVEInitParms);
+    MOS_OS_CHK_NULL_RETURN(pVEInitParms);
+    MOS_OS_CHK_NULL_RETURN(stream);
 
-    if (!MOS_VE_SUPPORTED(pOsInterface))
+    m_stream = stream;
+    m_contextBasedScheduling = stream->ctxBasedScheduling;
+    bScalabilitySupported   = pVEInitParms->bScalabilitySupported;
+    ucMaxNumPipesInUse      = pVEInitParms->ucMaxNumPipesInUse;
+#if _DEBUG || _RELEASE_INTERNAL
+    m_enableDbgOvrdInVirtualEngine = stream->enableDbgOvrdInVirtualEngine;
+#endif  // _DEBUG || _RELEASE_INTERNAL
+
+    if (bScalabilitySupported &&
+        (ucMaxNumPipesInUse > MOS_MAX_ENGINE_INSTANCE_PER_CLASS ||
+         ucMaxNumPipesInUse  == 0))
     {
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
-        MOS_OS_ASSERTMESSAGE("virtual engine is not supported.\n");
-        goto finish;
-    }
-
-    pVEInterf = (PMOS_VIRTUALENGINE_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MOS_VIRTUALENGINE_INTERFACE));
-    MOS_OS_CHK_NULL(pVEInterf);
-
-    pVEInterf->pOsInterface            = pOsInterface;
-    pVEInterf->bScalabilitySupported   = pVEInitParms->bScalabilitySupported;
-    pVEInterf->ucMaxNumPipesInUse      = pVEInitParms->ucMaxNumPipesInUse;
-
-    if (pVEInterf->bScalabilitySupported &&
-        (pVEInterf->ucMaxNumPipesInUse > MOS_MAX_ENGINE_INSTANCE_PER_CLASS ||
-         pVEInterf->ucMaxNumPipesInUse  == 0))
-    {
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
         MOS_OS_ASSERTMESSAGE("invalid max pipe number in use for scalability");
-        goto finish;
+        return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    pVEInterf->pfnVEIsScalabilitySupported = MosVeInterface::Mos_VirtualEngine_IsScalabilitySupported;
-
-    pOsInterface->pVEInterf = pVEInterf;
-
-    if (pVEInitParms->bScalabilitySupported)
-    {
-        MOS_OS_CHK_STATUS(MosOsVeScalabilitySpecific::Mos_Specific_VirtualEngine_Scalability_Initialize(pVEInterf, pVEInitParms));
-    }
-    else
-    {
-        /*MOS_OS_CHK_STATUS*/(MosOsVeSinglePipeSpecific::Mos_Specific_VirtualEngine_SinglePipe_Initialize(pVEInterf, pVEInitParms));
-    }
-
-finish:
     return eStatus;
 }
