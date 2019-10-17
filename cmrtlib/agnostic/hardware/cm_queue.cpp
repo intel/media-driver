@@ -855,3 +855,8 @@ CM_RT_API int32_t CmQueue_RT::DestroyEventFast(CmEvent *&event)
     return CM_SUCCESS;
 }
 
+CM_RT_API int32_t CmQueue_RT::SetResidentGroupAndParallelThreadNum(uint32_t residentGroupNum, uint32_t parallelThreadNum)
+{
+    return CM_NOT_IMPLEMENTED;
+}
+

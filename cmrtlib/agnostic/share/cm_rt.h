@@ -1503,6 +1503,8 @@ public:
     CM_RT_API virtual INT EnqueueWithGroupFast(CmTask *task,
                                   CmEvent *&event,
                                   const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
+
+    CM_RT_API virtual INT SetResidentGroupAndParallelThreadNum(uint32_t residentGroupNum, uint32_t parallelThreadNum) = 0;
 protected:
     ~CmQueue(){};
 };

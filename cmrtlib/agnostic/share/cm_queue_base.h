@@ -526,6 +526,18 @@ public:
                                   CmEvent *&event,
                                   const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
 
+    //!
+    //! \brief    [Only In Emu Mode] set the resident group number and parallel thread number
+    //! \details
+    //! \param    [in] residentGroupNum
+    //!           number of resident groups running on device
+    //! \param    [in] parallelThreadNum
+    //!           number of threads run in parallel
+    //! \retval   CM_SUCCESS if the parameter is successfully set.
+    //! \retval   CM_NOT_IMPLEMENTED if in sim or emu mode
+    //!
+    CM_RT_API virtual int32_t SetResidentGroupAndParallelThreadNum(uint32_t residentGroupNum, uint32_t parallelThreadNum) = 0;
+
 protected:
     virtual ~CmQueue() = default;
 };

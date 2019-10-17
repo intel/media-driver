@@ -154,6 +154,8 @@ public:
                               CmEvent *&event,
                               const CmThreadGroupSpace *threadGroupSpace = nullptr);
 
+    CM_RT_API int32_t SetResidentGroupAndParallelThreadNum(uint32_t residentGroupNum, uint32_t parallelThreadNum);
+
     CM_QUEUE_CREATE_OPTION GetQueueOption();
 
 protected:
