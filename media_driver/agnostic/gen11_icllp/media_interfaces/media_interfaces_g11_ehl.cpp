@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,15 +20,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_interfaces_g11_icllp.cpp
-//! \brief    Helps with ICLLP factory creation.
+//! \file     media_interfaces_g11_ehl.cpp
+//! \brief    Helps with ehl factory creation.
 //!
 
 #include "media_interfaces_g11_icllp.h"
+#include "media_interfaces_g11_ehl.h"
 #include "codechal_encoder_base.h"
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#include "codechal_debug.h"
 #include "igcodeckrn_g11.h"
-#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -40,11 +40,11 @@ extern template class MediaInterfacesFactory<RenderHalDevice>;
 extern template class MediaInterfacesFactory<Nv12ToP010Device>;
 extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
 
-static bool icllpRegisteredVphal =
+static bool ehlRegisteredVphal =
 MediaInterfacesFactory<VphalDevice>::
-RegisterHal<VphalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+RegisterHal<VphalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
 
-MOS_STATUS VphalInterfacesG11Icllp::Initialize(
+MOS_STATUS VphalInterfacesG11Ehl::Initialize(
     PMOS_INTERFACE  osInterface,
     PMOS_CONTEXT    osDriverContext,
     MOS_STATUS      *eStatus)
@@ -58,14 +58,14 @@ MOS_STATUS VphalInterfacesG11Icllp::Initialize(
     return *eStatus;
 }
 
-static bool icllpRegisteredMhw =
+static bool ehlRegisteredMhw =
     MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+    RegisterHal<MhwInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
 
-#define PLATFORM_INTEL_ICLLP 13
-#define GENX_ICLLP           10
+#define PLATFORM_INTEL_EHL 18
+#define GENX_ICLLP         10
 
-MOS_STATUS MhwInterfacesG11Icllp::Initialize(
+MOS_STATUS MhwInterfacesG11Ehl::Initialize(
     CreateParams params,
     PMOS_INTERFACE osInterface)
 {
@@ -89,221 +89,56 @@ MOS_STATUS MhwInterfacesG11Icllp::Initialize(
     }
 
     // MHW_CP and MHW_MI must always be created
-    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_STATUS status;
     m_cpInterface = Create_MhwCpInterface(osInterface);
-    if(m_cpInterface == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("new osInterface failed");
-        status = MOS_STATUS_NULL_POINTER;
-        goto finish;
-    }
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
-    if (m_miInterface == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("new MI interface failed");
-        status = MOS_STATUS_NULL_POINTER;
-        goto finish;
-    }
 
     if (params.Flags.m_render)
     {
         m_renderInterface =
             MOS_New(Render, m_miInterface, osInterface, gtSystemInfo, params.m_heapMode);
-        if (m_renderInterface == nullptr  || m_renderInterface->m_stateHeapInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_renderInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
     if (params.Flags.m_stateHeap)
     {
         m_stateHeapInterface =
             MOS_New(StateHeap, osInterface, params.m_heapMode);
-        if (m_stateHeapInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_stateHeapInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
     if (params.Flags.m_sfc)
     {
         m_sfcInterface = MOS_New(Sfc, osInterface);
-        if (m_sfcInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_sfcInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
     if (params.Flags.m_vebox)
     {
         m_veboxInterface = MOS_New(Vebox, osInterface);
-        if (m_veboxInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_veboxInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
 
     if (params.Flags.m_vdboxAll || params.Flags.m_mfx)
     {
         m_mfxInterface =
             MOS_New(Mfx, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
-        if (m_mfxInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_mfxInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_hcp)
     {
         m_hcpInterface =
             MOS_New(Hcp, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
-        if (m_hcpInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_hcpInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_huc)
     {
         m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
-        if (m_hucInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_hucInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
-        if (m_vdencInterface == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("new m_vdencInterface failed");
-            status = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
-
-finish:
-    if (status != MOS_STATUS_SUCCESS)
-    {
-        if (m_cpInterface)
-        {
-            MOS_FreeMemory(m_cpInterface);
-            m_cpInterface = nullptr;
-        }
-        if (m_miInterface)
-        {
-            MOS_FreeMemory(m_miInterface);
-            m_miInterface = nullptr;
-        }
-        if (m_renderInterface)
-        {
-            MOS_FreeMemory(m_renderInterface);
-            m_renderInterface = nullptr;
-        }
-        if (m_stateHeapInterface)
-        {
-            MOS_FreeMemory(m_stateHeapInterface);
-            m_stateHeapInterface = nullptr;
-        }
-        if (m_sfcInterface)
-        {
-            MOS_FreeMemory(m_sfcInterface);
-            m_sfcInterface = nullptr;
-        }
-        if (m_veboxInterface)
-        {
-            MOS_FreeMemory(m_veboxInterface);
-            m_veboxInterface = nullptr;
-        }
-        if (m_mfxInterface)
-        {
-            MOS_FreeMemory(m_mfxInterface);
-            m_mfxInterface = nullptr;
-        }
-        if (m_hcpInterface)
-        {
-            MOS_FreeMemory(m_hcpInterface);
-            m_hcpInterface = nullptr;
-        }
-        if (m_hucInterface)
-        {
-            MOS_FreeMemory(m_hucInterface);
-            m_hucInterface = nullptr;
-        }
-    }
-    return status;
-}
-
-#ifdef _MMC_SUPPORTED
-static bool icllpRegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
-
-MOS_STATUS MmdDeviceG11Icllp::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfaces *mhwInterfaces)
-{
-#define MMD_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-    MHW_FUNCTION_ENTER;
-
-    MhwMiInterface          *miInterface = nullptr;
-    MhwRenderInterface *renderInterface = nullptr;
-    Mmd *device = nullptr;
-
-    if (mhwInterfaces->m_miInterface == nullptr)
-    {
-        MMD_FAILURE();
-    }
-    miInterface = mhwInterfaces->m_miInterface;
-
-    if (mhwInterfaces->m_renderInterface == nullptr)
-    {
-        MMD_FAILURE();
-    }
-    renderInterface = mhwInterfaces->m_renderInterface;
-
-    device = MOS_New(Mmd);
-
-    if (device == nullptr)
-    {
-        MMD_FAILURE();
-    }
-
-    if (device->Initialize(
-        osInterface,
-        mhwInterfaces->m_cpInterface,
-        miInterface,
-        renderInterface) != MOS_STATUS_SUCCESS)
-    {
-        MMD_FAILURE();
-    }
-
-    m_mmdDevice = device;
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
-static bool icllpRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
 
-MOS_STATUS Nv12ToP010DeviceG11Icllp::Initialize(
+static bool ehlRegisteredNv12ToP010 =
+    MediaInterfacesFactory<Nv12ToP010Device>::
+    RegisterHal<Nv12ToP010DeviceG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+
+MOS_STATUS Nv12ToP010DeviceG11Ehl::Initialize(
     PMOS_INTERFACE            osInterface)
 {
     CODECHAL_PUBLIC_ASSERTMESSAGE("Not support Nv12 to P010 interfaces.")
@@ -311,11 +146,11 @@ MOS_STATUS Nv12ToP010DeviceG11Icllp::Initialize(
     return MOS_STATUS_INVALID_PARAMETER;
 }
 
-static bool icllpRegisteredCodecHal =
+static bool ehlhpRegisteredCodecHal =
     MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+    RegisterHal<CodechalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
 
-MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
+MOS_STATUS CodechalInterfacesG11Ehl::Initialize(
     void *standardInfo,
     void *settings,
     MhwInterfaces *mhwInterfaces,
@@ -338,8 +173,6 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
         CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
-    hwInterface->m_slicePowerGate = true;
-
 #if USE_CODECHAL_DEBUG_TOOL
     CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterface);
     if (debugInterface == nullptr)
@@ -457,12 +290,6 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
                 encoder = MOS_New(Encode::AvcVdenc, hwInterface, debugInterface, info);
             #endif
             }
-            else
-            {
-            #ifdef _AVC_ENCODE_VME_SUPPORTED
-                encoder = MOS_New(Encode::AvcEnc, hwInterface, debugInterface, info);
-            #endif
-            }
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -509,39 +336,16 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
         }
         else
 #endif
-#ifdef _MPEG2_ENCODE_VME_SUPPORTED
-        if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
-        {
-            // Setup encode interface functions
-            encoder = MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
-            if (encoder == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            else
-            {
-                m_codechalDevice = encoder;
-            }
-
-            encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G11;
-        }
-        else
-#endif
-#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
+#ifdef _HEVC_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
-            #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
                 encoder = MOS_New(Encode::HevcVdenc, hwInterface, debugInterface, info);
-            #endif
             }
             else
             {
-            #ifdef _HEVC_ENCODE_VME_SUPPORTED
-                encoder = MOS_New(Encode::HevcEnc, hwInterface, debugInterface, info);
-            #endif
+                return MOS_STATUS_INVALID_PARAMETER;
             }
 
             if (encoder == nullptr)
@@ -554,25 +358,7 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
                 m_codechalDevice = encoder;
             }
 
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G11;
-#endif
-        }
-        else
-#endif
-#ifdef _VP8_ENCODE_SUPPORTED
-        if (info->Mode == CODECHAL_ENCODE_MODE_VP8)
-        {
-            encoder = MOS_New(Encode::Vp8, hwInterface, debugInterface, info);
-            if (encoder == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("VP8 Encode allocation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            else
-            {
-                m_codechalDevice = encoder;
-            }
         }
         else
 #endif
@@ -581,13 +367,7 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-#if defined(ENABLE_KERNELS)
-
-    #if defined(_FULL_OPEN_SOURCE)
-        if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
-    #else
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
-    #endif
         {
             // Create CSC and Downscaling interface
             if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
@@ -595,7 +375,6 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
-#endif
     }
     else
     {
@@ -606,11 +385,11 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-static bool icllpRegisteredCMHal =
+static bool ehlRegisteredCMHal =
     MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+    RegisterHal<CMHalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
 
-MOS_STATUS CMHalInterfacesG11Icllp::Initialize(CM_HAL_STATE *pCmState)
+MOS_STATUS CMHalInterfacesG11Ehl::Initialize(CM_HAL_STATE *pCmState)
 {
     if (pCmState == nullptr)
     {
@@ -625,20 +404,19 @@ MOS_STATUS CMHalInterfacesG11Icllp::Initialize(CM_HAL_STATE *pCmState)
         return MOS_STATUS_NO_SPACE;
     }
 
-    m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_ICLLP, PLATFORM_INTEL_GT2, "ICLLP");
+    m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_EHL, PLATFORM_INTEL_GT2, "ICLLP");
     uint32_t cisaID = GENX_ICLLP;
     m_cmhalDevice->AddSupportedCisaIDs(&cisaID);
     m_cmhalDevice->SetOverridePowerOptionPerGpuContext(true);
-    m_cmhalDevice->SetRequestShutdownSubslicesForVmeUsage(true);
     m_cmhalDevice->SetDecompressFlag(true);
     return MOS_STATUS_SUCCESS;
 }
 
-static bool icllpRegisteredMosUtil =
+static bool ehlRegisteredMosUtil =
     MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+    RegisterHal<MosUtilDeviceG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
 
-MOS_STATUS MosUtilDeviceG11Icllp::Initialize()
+MOS_STATUS MosUtilDeviceG11Ehl::Initialize()
 {
 #define MOSUTIL_FAILURE()                                       \
 {                                                           \
@@ -668,11 +446,11 @@ MOS_STATUS MosUtilDeviceG11Icllp::Initialize()
     return MOS_STATUS_SUCCESS;
 }
 
-static bool icllpRegisteredRenderHal =
+static bool ehlRegisteredRenderHal =
     MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+    RegisterHal<RenderHalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
 
-MOS_STATUS RenderHalInterfacesG11Icllp::Initialize()
+MOS_STATUS RenderHalInterfacesG11Ehl::Initialize()
 {
     m_renderhalDevice = MOS_New(XRenderHal);
     if (m_renderhalDevice == nullptr)
@@ -683,11 +461,11 @@ MOS_STATUS RenderHalInterfacesG11Icllp::Initialize()
     return MOS_STATUS_SUCCESS;
 }
 
-static bool icllpRegisteredDecodeHistogram =
+static bool ehlRegisteredDecodeHistogram =
 MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+RegisterHal<DecodeHistogramDeviceG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
 
-MOS_STATUS DecodeHistogramDeviceG11Icllp::Initialize(
+MOS_STATUS DecodeHistogramDeviceG11Ehl::Initialize(
     CodechalHwInterface       *hwInterface,
     PMOS_INTERFACE            osInterface)
 {
@@ -701,36 +479,4 @@ MOS_STATUS DecodeHistogramDeviceG11Icllp::Initialize(
 
     return MOS_STATUS_SUCCESS;
 }
-
-static bool ehlRegisteredVphal =
-      MediaInterfacesFactory<VphalDevice>::
-      RegisterHal<VphalInterfacesG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
-
-static bool ehlRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
-
-static bool ehlRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
-
-static bool ehlhpRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
-
-static bool ehlRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
-
-static bool ehlRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
-
-static bool ehlRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
-
-static bool ehlRegisteredDecodeHistogram =
-    MediaInterfacesFactory<DecodeHistogramDevice>::
-    RegisterHal<DecodeHistogramDeviceG11Icllp>((uint32_t)IGFX_ELKHARTLAKE);
 
