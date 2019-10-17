@@ -1102,7 +1102,7 @@ MOS_STATUS CodechalDecodeVc1G11::HandleSkipFrame()
     MHW_GENERIC_PROLOG_PARAMS           genericPrologParams;
     MOS_SURFACE                         srcSurface;
     uint8_t                             fwdRefIdx;
-    uint16_t                            surfaceHeight;
+    uint32_t                            surfaceSize;
     MOS_SYNC_PARAMS                     syncParams;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
@@ -1119,17 +1119,20 @@ MOS_STATUS CodechalDecodeVc1G11::HandleSkipFrame()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceMmcMode(&m_destSurface, &srcSurface));
 #endif
 
-    surfaceHeight = MOS_ALIGN_CEIL(((srcSurface.dwHeight * 3) / 2), MOS_YTILE_H_ALIGNMENT);
+        surfaceSize = ((srcSurface.OsResource.pGmmResInfo->GetArraySize()) > 1) ?
+            ((uint32_t)(srcSurface.OsResource.pGmmResInfo->GetQPitchPlanar(GMM_PLANE_Y) *
+                        srcSurface.OsResource.pGmmResInfo->GetRenderPitch())) :
+            (uint32_t)(srcSurface.OsResource.pGmmResInfo->GetSizeMainSurface());
 
     if (m_hwInterface->m_noHuC)
     {
         CodechalDataCopyParams dataCopyParams;
         MOS_ZeroMemory(&dataCopyParams, sizeof(CodechalDataCopyParams));
         dataCopyParams.srcResource = &srcSurface.OsResource;
-        dataCopyParams.srcSize     = surfaceHeight * m_destSurface.dwPitch;
+        dataCopyParams.srcSize     = surfaceSize;
         dataCopyParams.srcOffset = srcSurface.dwOffset;
         dataCopyParams.dstResource = &m_destSurface.OsResource;
-        dataCopyParams.dstSize     = surfaceHeight * m_destSurface.dwPitch;
+        dataCopyParams.dstSize     = surfaceSize;
         dataCopyParams.dstOffset   = m_destSurface.dwOffset;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->CopyDataSourceWithDrv(&dataCopyParams));
@@ -1162,7 +1165,7 @@ MOS_STATUS CodechalDecodeVc1G11::HandleSkipFrame()
             &cmdBuffer,                             // pCmdBuffer
             &srcSurface.OsResource,                 // presSrc
             &m_destSurface.OsResource,              // presDst
-            surfaceHeight * m_destSurface.dwPitch,  // u32CopyLength
+            surfaceSize,                            // u32CopyLength
             srcSurface.dwOffset,                    // u32CopyInputOffset
             m_destSurface.dwOffset));               // u32CopyOutputOffset
 
