@@ -675,6 +675,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bDumpCommandBufferToFile;                          //!< Indicates that the command buffer should be dumped to a file
     int32_t                         bDumpCommandBufferAsMessages;                      //!< Indicates that the command buffer should be dumped via MOS normal messages
     char                            sPlatformName[MOS_COMMAND_BUFFER_PLATFORM_LEN];    //!< Platform name - maximum 4 bytes length
+    char                            sDirName[MOS_MAX_HLT_FILENAME_LEN];                //!< Dump Directory name - maximum 260 bytes length
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 #if (_RELEASE_INTERNAL||_DEBUG)

@@ -473,13 +473,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
     if (pOsInterface->bDumpCommandBufferToFile)
     {
         // Set the file name.
-        eStatus = MOS_LogFileNamePrefix(sFileName);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
-            goto finish;
-        }
-
+        memcpy(sFileName, pOsInterface->sDirName, MOS_MAX_HLT_FILENAME_LEN);
         nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MOS_SecureStringPrint(
             sFileName + nSizeFileNamePrefix,
@@ -583,13 +577,14 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     if (pOsInterface->bDumpCommandBufferToFile)
     {
         // Create output directory.
-        eStatus = MOS_LogFileNamePrefix(sFileName);
+        eStatus = MOS_LogFileNamePrefix(pOsInterface->sDirName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
             goto finish;
         }
 
+        memcpy(sFileName, pOsInterface->sDirName, MOS_MAX_HLT_FILENAME_LEN);
         nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MOS_SecureStringPrint(
             sFileName + nSizeFileNamePrefix,
