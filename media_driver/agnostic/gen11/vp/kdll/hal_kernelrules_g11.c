@@ -1810,7 +1810,9 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
     // Interlaced scaling, intermix the top and bottom fields
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0Mix              , Kdll_None },
-    { RID_IsTargetFormat   , Format_NV12                         , Kdll_None },
+    { RID_IsTargetFormat   , Format_NV12                         , Kdll_Or   },
+    { RID_IsTargetFormat   , Format_P016                         , Kdll_Or   },
+    { RID_IsTargetFormat   , Format_P010                         , Kdll_None },
     { RID_IsSrc0Sampling   , Sample_iScaling                     , Kdll_Or   },
     { RID_IsSrc0Sampling   , Sample_iScaling_AVS                 , Kdll_Or   },
     { RID_IsSrc0Sampling   , Sample_iScaling_034x                , Kdll_None },
