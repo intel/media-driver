@@ -2081,7 +2081,7 @@ MOS_STATUS CodechalEncodeMpeg2G11::ExecuteKernelFunctions()
                 CODECHAL_MEDIA_STATE_ENC_QUALITY));
         }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+            &m_brcBuffers.resBrcImageStatesWriteBuffer,
             CodechalDbgAttr::attrOutput,
             "ImgStateWrite",
             BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),

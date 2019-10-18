@@ -5353,7 +5353,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
         if (bBrcEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &BrcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+                &BrcBuffers.resBrcImageStatesWriteBuffer,
                 CodechalDbgAttr::attrOutput,
                 "ImgStateWrite",
                 BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),
