@@ -3150,7 +3150,6 @@ int32_t CompositeState::SetLayer(
     // Check whether sampler lumakey is needed. It will be used in SetSurfaceParams
     // when IsNV12SamplerLumakeyNeeded being called.
     pSource->bUseSamplerLumakey = IsSamplerLumakeySupported(pSource);
-
     //-------------------------------------------
     // Setup surface states
     //-------------------------------------------
@@ -5857,6 +5856,16 @@ MOS_STATUS CompositeState::RenderPhase(
                 pOsInterface->CurrentGpuContextOrdinal))
         {
             pSource->SampleType         = SAMPLE_PROGRESSIVE;
+            pSource->bInterlacedScaling = false;
+        }
+
+        // If there is no scaling used for interlace surface on 10bit PA formats, force to progressive due to no supoort for kernel.
+        if (pSource->bInterlacedScaling &&
+            (pSource->rcSrc.right - pSource->rcSrc.left) == (pSource->rcDst.right - pSource->rcDst.left) &&
+            (pSource->rcSrc.bottom - pSource->rcSrc.top) == (pSource->rcDst.bottom - pSource->rcDst.top) &&
+            (pSource->Format == Format_Y210 || pSource->Format == Format_Y410))
+        {
+            pSource->SampleType = SAMPLE_PROGRESSIVE;
             pSource->bInterlacedScaling = false;
         }
 
