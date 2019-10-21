@@ -1158,6 +1158,14 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             CODECHAL_DECODE_CHK_STATUS_RETURN(CalcDownsamplingParams(
                 decodeParams->m_picParams, &allocWidth, &allocHeight, &format, &frameIdx));
 
+            if (procParams->rcOutputSurfaceRegion.Width == 0)
+            {
+                procParams->rcOutputSurfaceRegion.X = 0;
+                procParams->rcOutputSurfaceRegion.Y = 0;
+                procParams->rcOutputSurfaceRegion.Width = allocWidth;
+                procParams->rcOutputSurfaceRegion.Height = allocHeight;
+            }
+
             if (frameIdx >= decodeParams->m_refFrameCnt)
             {
                 CODECHAL_DECODE_ASSERTMESSAGE("Invalid Downsampling Reference Frame Index !");
