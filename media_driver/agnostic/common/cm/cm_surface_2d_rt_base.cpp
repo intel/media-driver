@@ -552,7 +552,7 @@ CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceFullStride(
         {
             offsetn = offset1;
             //  Limit the Gmm offset usage to after Gen11
-            if ((platform <= IGFX_GEN11LP_CORE) || !inParam.useGmmOffset)
+            if (!inParam.useGmmOffset)
             {
                 offsetn = (planeHeight * pitch);
             }
@@ -571,7 +571,7 @@ CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceFullStride(
         {
             offsetn = offset2;
             //  Limit the Gmm offset usage to after Gen11
-            if ((platform <= IGFX_GEN11LP_CORE) || !inParam.useGmmOffset)
+            if (!inParam.useGmmOffset)
             {
                 offsetn = (planeHeight * pitch) + (UVHeight * UVpitch);
             }
@@ -872,7 +872,7 @@ CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceFullStride( unsigned char* sysMe
         {
             int offsetn = offset1;
             //  Limit the Gmm offset usage to after Gen11
-            if ((platform <= IGFX_GEN11LP_CORE) || !inParam.useGmmOffset)
+            if (!inParam.useGmmOffset)
             {
                 offsetn = planeHeight * pitch;
             }
@@ -891,7 +891,7 @@ CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceFullStride( unsigned char* sysMe
         {
             int offsetn = offset2;
             //  Limit the Gmm offset usage to after Gen11
-            if ((platform <= IGFX_GEN11LP_CORE) || !inParam.useGmmOffset)
+            if (!inParam.useGmmOffset)
             {
                 offsetn = (planeHeight * pitch) + (UVHeight * UVpitch);
             }
