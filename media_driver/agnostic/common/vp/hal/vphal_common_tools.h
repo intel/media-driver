@@ -97,7 +97,6 @@ typedef enum _VPREP_STATUS
 //!
 typedef struct _VP_CONFIG
 {
-    bool       bSettingReadDone;           // Settings have been read
     bool       bVpComponentReported;       // Vp Component has been reported
     uint32_t   dwVpPath;                   // Video Processing path
     uint32_t   dwVpComponent;              // Video Processing Component
