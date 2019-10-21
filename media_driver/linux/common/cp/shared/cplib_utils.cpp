@@ -102,22 +102,21 @@ bool CPLibUtils::LoadCPLib(VADriverContextP ctx)
                 UnloadCPLib(ctx);
                 return false;
             }
-
-            using FuncTypeInitCplib   = bool (*)(VADriverContextP ctx);
-            bool initialized = false;
-            InvokeCpFunc<FuncTypeInitCplib>(initialized, FUNC_INIT_CPLIB, ctx);
-            if (!initialized)
-            {
-                CPLIB_ASSERTMESSAGE("Failed to initialized CPLIB");
-                m_referenceMutex.unlock();
-                UnloadCPLib(ctx);
-                return false;
-            }
         }
+
+        using FuncTypeInitCplib = bool (*)(VADriverContextP ctx);
+        bool initialized = false;
+        InvokeCpFunc<FuncTypeInitCplib>(initialized, FUNC_INIT_CPLIB, ctx);
+        if (!initialized)
+        {
+            CPLIB_ASSERTMESSAGE("Failed to initialized CPLIB");
+            m_referenceMutex.unlock();
+            UnloadCPLib(ctx);
+            return false;
+         }
     }
 
     m_referenceMutex.unlock();
-
     CPLIB_NORMALMESSAGE("CPLIB Loaded Successfully");
     return true;
 }
@@ -130,25 +129,24 @@ void CPLibUtils::UnloadCPLib(VADriverContextP ctx)
     if(m_referenceCount < 0)
     {
         CPLIB_ASSERTMESSAGE("Invalid m_referenceCount");
+        m_referenceMutex.unlock();
+        return;
     }
-    else if(0 == m_referenceCount)
+    if(m_symbols.empty())
     {
-        if(m_symbols.empty())
-        {
-            CPLIB_ASSERTMESSAGE("m_symbols is empty");
-            m_referenceMutex.unlock();
-            return;
-        }
+        CPLIB_ASSERTMESSAGE("m_symbols is empty");
+        m_referenceMutex.unlock();
+        return;
+    }
 
-        using FuncType = void (*)(VADriverContextP ctx);
-        InvokeCpFunc<FuncType>(FUNC_RELEASE_CPLIB, ctx);
+    using FuncType = void (*)(VADriverContextP ctx);
+    InvokeCpFunc<FuncType>(FUNC_RELEASE_CPLIB, ctx);
 
-        if(nullptr != m_phandle)
-        {
-            m_symbols.clear();
-            if(0 != dlclose(m_phandle)) // dlclose will return 0 if execution sucecceed
-                CPLIB_ASSERTMESSAGE("Failed to close CPLIB %s", dlerror());
-        }
+    if((0 == m_referenceCount) && (nullptr != m_phandle))
+    {
+        m_symbols.clear();
+        if(0 != dlclose(m_phandle)) // dlclose will return 0 if execution sucecceed
+            CPLIB_ASSERTMESSAGE("Failed to close CPLIB %s", dlerror());
     }
     m_referenceMutex.unlock();
 }
