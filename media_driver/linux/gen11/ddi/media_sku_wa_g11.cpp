@@ -358,6 +358,8 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrPPGTT, drvInfo->hasPpgtt);
     MEDIA_WR_SKU(skuTable, FtrEDram, devInfo->hasERAM);
 
+    MEDIA_WR_SKU(skuTable, FtrDisableVEBoxFeatures, 1);
+
     /* Virtual VDBOX ring is used on Gen11 */
     MEDIA_WR_SKU(skuTable, FtrVcs2,  0);
 
