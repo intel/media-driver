@@ -50,8 +50,6 @@
 #define MHW_VDBOX_PAK_BITSTREAM_OVERFLOW_SIZE             400
 #define MHW_VDBOX_VDENC_DYNAMIC_SLICE_WA_COUNT            1500
 
-#define MHW_VDBOX_NODE_MAX                                2
-
 // Rowstore Cache values
 #define MHW_VDBOX_PICWIDTH_1K                                                 1024
 #define MHW_VDBOX_PICWIDTH_2K                                                 2048
@@ -103,6 +101,7 @@ typedef enum _MHW_VDBOX_NODE_IND
 {
     MHW_VDBOX_NODE_1           = 0x0,
     MHW_VDBOX_NODE_2           = 0x1,
+    MHW_VDBOX_NODE_MAX
 } MHW_VDBOX_NODE_IND;
 
 typedef struct _MHW_VDBOX_AVC_QM_PARAMS

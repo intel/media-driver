@@ -62,11 +62,11 @@ public:
         return LoadProfileEntrypoints();
     }
 
-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) override;
 
-    virtual uint32_t GetImageFormatsMaxNum();
+    virtual uint32_t GetImageFormatsMaxNum() override;
 
-    virtual bool IsImageSupported(uint32_t fourcc);
+    virtual bool IsImageSupported(uint32_t fourcc) override;
 
     //!
     //! \brief    Populate the color masks info
@@ -78,7 +78,7 @@ public:
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if succeed
     //!
-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt) override;
 
     //!
     //! \brief    Return internal encode mode for given profile and entrypoint 
@@ -212,6 +212,6 @@ protected:
     //! \return VAStatus
     //!     if call succeeds
     //!
-    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
+    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) override;
 };
 #endif

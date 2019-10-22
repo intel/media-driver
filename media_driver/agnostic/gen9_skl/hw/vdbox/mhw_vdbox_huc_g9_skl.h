@@ -77,7 +77,7 @@ protected:
         uint32_t                        mode,
         uint32_t                        *commandsSize,
         uint32_t                        *patchListSize,
-        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) override;
 
     void InitMmioRegisters();
 };

@@ -75,16 +75,16 @@ public:
 protected:
     MOS_STATUS AddHucPipeModeSelectCmd(
         MOS_COMMAND_BUFFER                  *cmdBuffer,
-        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   *params);
+        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   *params) override;
     MOS_STATUS AddHucImemStateCmd(
         MOS_COMMAND_BUFFER                  *cmdBuffer,
-        MHW_VDBOX_HUC_IMEM_STATE_PARAMS     *params);
+        MHW_VDBOX_HUC_IMEM_STATE_PARAMS     *params) override;
 
     MOS_STATUS GetHucStateCommandSize(
         uint32_t                        mode,
         uint32_t                        *commandsSize,
         uint32_t                        *patchListSize,
-        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) override;
 
     void InitMmioRegisters();
 };
