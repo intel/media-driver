@@ -5061,8 +5061,16 @@ MOS_STATUS CodechalEncHevcStateG11::GetCustomDispatchPattern(
 
     if (concurGroupNum > 1)
     {
-        maxThreadWidth = threadSpaceWidth;
-        maxThreadHeight = threadSpaceWidth + (threadSpaceWidth + threadSpaceHeight + concurGroupNum - 2) / concurGroupNum;
+        if (m_degree45Needed)
+        {
+            maxThreadWidth  = threadSpaceWidth;
+            maxThreadHeight = threadSpaceWidth + (threadSpaceWidth + threadSpaceHeight + concurGroupNum - 2) / concurGroupNum;
+        }
+        else //for tu4 we ensure threadspace width and height is even or a multiple of 4
+        {
+            maxThreadWidth  = (threadSpaceWidth + 1) & 0xfffe; //ensuring width is even
+            maxThreadHeight = ((threadSpaceWidth + 1) >> 1) + (threadSpaceWidth + 2 * (((threadSpaceHeight + 3) & 0xfffc) - 1) + (2 * concurGroupNum - 1)) / (2 * concurGroupNum);
+        }
         maxThreadHeight *= threadScaleV;
         maxThreadHeight += 1;
     }
