@@ -149,6 +149,8 @@ public:
     static const uint16_t                   m_sadQpLambdaP[52];
     static const uint16_t                   m_rdQpLambdaI[52];
     static const uint16_t                   m_rdQpLambdaP[52];
+    static const uint8_t                    m_penaltyForIntraNonDC32x32PredMode[52];
+    static const uint8_t                    m_penaltyForIntraNonDC32x32PredMode_VQI[52];
     //! \endcond
 
     bool                                    m_hevcVdencAcqpEnabled = false;                    //!< ACQP enable flag
