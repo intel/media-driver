@@ -363,19 +363,22 @@ struct MfeParams
 //!
 struct MfeSharedState
 {
-    CodechalHwInterface             *pHwInterface;
+    CodechalHwInterface             *pHwInterface = nullptr;
     PMOS_INTERFACE                  pOsInterface;
-    PMHW_KERNEL_STATE               pMfeMbEncKernelState;     //!< Set in the first stream, Used by the rest streams
-    uint32_t                        dwPicWidthInMB;           //!< Keep the maximum width
-    uint32_t                        dwPicHeightInMB;          //!< Keep the maximum height
-    uint16_t                        sliceHeight;              //!< Keep the maximum slice height
+    PMHW_KERNEL_STATE               pMfeMbEncKernelState;            //!< Set in the first stream, Used by the rest streams
+    uint32_t                        dwPicWidthInMB;                  //!< Keep the maximum width
+    uint32_t                        dwPicHeightInMB;                 //!< Keep the maximum height
+    uint16_t                        sliceHeight;                     //!< Keep the maximum slice height
+    uint32_t                        maxTheadWidth = 0;               //!< Keep the maximum width of the threadspace
+    uint32_t                        maxTheadHeight = 0;              //!< Keep the maximum Height of the threadspace
+    uint32_t                        *maxThreadWidthFrames = nullptr; //!< Keep the thread space width for all frames
 
-    CmDevice                                *pCmDev;          //!< Set in the first stream, Used by the rest streams
-    CmTask                                  *pCmTask;
-    CmQueue                                 *pCmQueue;
-    CodechalEncodeMdfKernelResource         *resMbencKernel;
-    SurfaceIndex                            *vmeSurface;
-    SurfaceIndex                            *commonSurface;
+    CmDevice                                *pCmDev = nullptr;       //!< Set in the first stream, Used by the rest streams
+    CmTask                                  *pCmTask = nullptr;
+    CmQueue                                 *pCmQueue = nullptr;
+    CodechalEncodeMdfKernelResource         *resMbencKernel = nullptr;
+    SurfaceIndex                            *vmeSurface = nullptr;
+    SurfaceIndex                            *commonSurface = nullptr;
     std::vector<CodechalEncoderState*>      encoders;
 };
 
