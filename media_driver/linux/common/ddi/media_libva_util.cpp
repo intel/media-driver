@@ -183,8 +183,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_B10G10R10A2:
         case Media_Format_A16R16G16B16:
         case Media_Format_A16B16G16R16:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -192,8 +191,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -202,8 +200,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_BGRP:
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER) &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
             {
                  tileformat = I915_TILING_NONE;
                  break;
