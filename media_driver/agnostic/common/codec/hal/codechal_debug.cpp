@@ -489,7 +489,9 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     PMOS_SURFACE              surface,
     const char *              attrName,
     const char *              surfName,
-    CODECHAL_MEDIA_STATE_TYPE mediaState)
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    uint32_t                  width_in,
+    uint32_t                  height_in)
 {
     if (!DumpIsEnabled(attrName, mediaState))
     {
@@ -512,9 +514,9 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
 
     uint8_t *data = surfBaseAddr;
     data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
-    
-    uint32_t width  = surface->dwWidth;
-    uint32_t height = surface->dwHeight;
+
+    uint32_t width  = width_in ? width_in : surface->dwWidth;
+    uint32_t height = height_in? height_in : surface->dwHeight;
 
     switch (surface->Format)
     {

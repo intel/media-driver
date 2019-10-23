@@ -206,7 +206,9 @@ public:
         PMOS_SURFACE              surface,
         const char *              attrName,
         const char *              surfName,
-        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
+        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
+        uint32_t                  width_in = 0,
+        uint32_t                  height_in = 0);
 
     MOS_STATUS DumpBuffer(
         PMOS_RESOURCE             resource,
