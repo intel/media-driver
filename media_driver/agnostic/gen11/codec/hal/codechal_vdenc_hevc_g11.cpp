@@ -6218,9 +6218,8 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCBrcUpdate()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetConstDataHuCBrcUpdate());
 
     // Add Virtual addr
-    MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRegionsHuCBrcUpdate(&virtualAddrParams));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRegionsHuCBrcUpdate(&m_virtualAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &m_virtualAddrParams));
 
     // Store HUC_STATUS2 register bit 6 before HUC_Start command
     // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload
@@ -6512,29 +6511,6 @@ MOS_STATUS CodechalVdencHevcStateG11::DumpVdencOutputs()
                 CODECHAL_NUM_MEDIA_STATES));
         }
     }
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS CodechalVdencHevcStateG11::DumpHucBrcUpdate(bool isInput)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-    int32_t currentPass = GetCurrentPass();
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::DumpHucBrcUpdate(isInput));
-    if (isInput)
-    {
-        // Region 12 - Input SLB Buffer
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-            &m_vdencGroup3BatchBuffer[m_currRecycledBufIdx][currentPass],
-            0,
-            m_hwInterface->m_vdencGroup3BatchBufferSize,
-            12,
-            "_Slb",
-            true,
-            currentPass,
-            hucRegionDumpUpdate));
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 #endif

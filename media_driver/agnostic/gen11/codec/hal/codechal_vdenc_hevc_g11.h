@@ -834,7 +834,6 @@ protected:
     virtual MOS_STATUS DumpHucPakIntegrate();
     virtual MOS_STATUS DumpVdencOutputs();
     virtual MOS_STATUS DumpHucCqp();
-    virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
 #endif
 
 };

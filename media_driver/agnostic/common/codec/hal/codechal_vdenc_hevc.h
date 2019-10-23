@@ -187,6 +187,7 @@ public:
     MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
     uint32_t                                m_deltaQpRoiBufferSize = 0;                            //!< VDEnc DeltaQp for ROI buffer size
     uint32_t                                m_brcRoiBufferSize = 0;                                //!< BRC ROI input buffer size
+    MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS       m_virtualAddrParams = {};                              //!< BRC virtual address parameter
 
     // Batch Buffer for VDEnc
     MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< VDEnc 2nd level batch buffer
