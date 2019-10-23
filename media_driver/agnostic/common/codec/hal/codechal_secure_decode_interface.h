@@ -112,6 +112,15 @@ public:
     virtual PMOS_RESOURCE GetTempCdfTableBuffer() = 0;
 
     //!
+    //! \brief Encrypt aux buffer through partial copy
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitAuxSurface(
+        PMOS_RESOURCE res,
+        PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
+    //!
     //! \brief  Is Dummy SteamOut Enabled
     //!
     virtual bool IsDummyStreamEnabled() = 0;
