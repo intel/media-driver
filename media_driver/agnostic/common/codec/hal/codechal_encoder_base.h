@@ -2236,6 +2236,18 @@ public:
     virtual MOS_STATUS DestroyMDFResources();
 
     //!
+    //! \brief    Function to set MFE Shared State
+    //!
+    //! \details  Pointer on passed object will be saved in the local field,
+    //!           content of source object might be changed later
+    //!           (for example, CmDevice might be set or chagned)
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetMfeSharedState(MfeSharedState *pMfeSharedState);
+
+    //!
     //! \brief  Function to add MDF kernel
     //!
     //! \param  [in] device

@@ -2435,7 +2435,18 @@ static VAStatus DdiMedia_AddContextInternal(
     encoder->m_mfeEnabled = true;
     // Assign one unique id to this sub context/stream
     encoder->m_mfeEncodeParams.streamId = encodeMfeContext->currentStreamId;
-    encoder->m_mfeEncodeSharedState     = encodeMfeContext->mfeEncodeSharedState;
+
+    MOS_STATUS eStatus = encoder->SetMfeSharedState(encodeMfeContext->mfeEncodeSharedState);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        DDI_ASSERTMESSAGE(
+            "Failed to set MFE Shared State for encoder #%d",
+            encodeMfeContext->currentStreamId);
+
+        encoder->m_mfeEnabled = false;
+
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
 
     encodeMfeContext->currentStreamId++;
     DdiMediaUtil_UnLockMutex(&encodeMfeContext->encodeMfeMutex);

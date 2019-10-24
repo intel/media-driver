@@ -989,6 +989,18 @@ MOS_STATUS CodechalEncoderState::DestroyMDFResources()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalEncoderState::SetMfeSharedState(MfeSharedState *pMfeSharedState)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pMfeSharedState);
+
+    m_mfeEncodeSharedState = pMfeSharedState;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+
 MOS_STATUS CodechalEncoderState::AddKernelMdf(
     CmDevice *     device,
     CmQueue *      queue,
