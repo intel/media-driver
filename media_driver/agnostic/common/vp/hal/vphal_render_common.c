@@ -1684,6 +1684,17 @@ MOS_STATUS VpHal_RndrUpdateStatusTableAfterSubmit(
     pStatusEntry->dwStatus          = (eLastStatus == MOS_STATUS_SUCCESS)? VPREP_NOTREADY : VPREP_ERROR;
     pStatusTable->uiCurrent         = (pStatusTable->uiCurrent + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 
+    // CM may use a different streamIndex, record it here
+    if (pStatusTableUpdateParams->bUpdateStreamIndex)
+    {
+        pStatusEntry->isStreamIndexSet = true;
+        pStatusEntry->streamIndex = (uint16_t)pOsInterface->streamIndex;
+    }
+    else
+    {
+        pStatusEntry->isStreamIndexSet = false;
+    }
+
 finish:
     return eStatus;
 }

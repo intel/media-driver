@@ -787,6 +787,13 @@ MOS_STATUS VphalState::GetStatusReport(
         uiIndex            = (pStatusTable->uiHead + i) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
         pStatusEntry       = &pStatusTable->aTableEntries[uiIndex];
 
+        // for tasks using CM, different streamIndexes may be used
+        uint32_t oldStreamIndex = m_osInterface->streamIndex;
+        if (pStatusEntry->isStreamIndexSet)
+        {
+            m_osInterface->streamIndex = pStatusEntry->streamIndex;
+        }
+
         if (bMarkNotReadyForRemains)
         {
             // the status is set as VPREP_NOTREADY while submitting commands
@@ -794,6 +801,7 @@ MOS_STATUS VphalState::GetStatusReport(
             pQueryReport[i].StatusFeedBackID = pStatusEntry->StatusFeedBackID;
             continue;
         }
+
 #if (LINUX || ANDROID)
         dwGpuTag           = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
@@ -837,6 +845,11 @@ MOS_STATUS VphalState::GetStatusReport(
 
         pQueryReport[i].dwStatus         = pStatusEntry->dwStatus;
         pQueryReport[i].StatusFeedBackID = pStatusEntry->StatusFeedBackID;
+
+        if (pStatusEntry->isStreamIndexSet)
+        {
+            m_osInterface->streamIndex = oldStreamIndex;
+        }
     }
     pStatusTable->uiHead = uiNewHead;
 

@@ -42,6 +42,8 @@ typedef struct _VPHAL_STATUS_ENTRY
     MOS_GPU_CONTEXT GpuContextOrdinal;
     uint32_t        dwTag;          // software tag, updated by driver for every command submit.
     uint32_t        dwStatus;       // 0:OK; 1:Not Ready; 2:Not Available; 3:Error;
+    uint16_t        streamIndex;    // stream index corresponding to the gpucontext
+    bool            isStreamIndexSet;
  } VPHAL_STATUS_ENTRY, *PVPHAL_STATUS_ENTRY;
 
 //!
@@ -67,6 +69,7 @@ typedef struct _STATUS_TABLE_UPDATE_PARAMS
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool                bTriggerGPUHang;
 #endif
+    bool                bUpdateStreamIndex;
  } STATUS_TABLE_UPDATE_PARAMS, *PSTATUS_TABLE_UPDATE_PARAMS;
 
 //!
