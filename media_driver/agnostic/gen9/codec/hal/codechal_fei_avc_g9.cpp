@@ -6828,7 +6828,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
         {
             m_mfeEncodeSharedState->sliceHeight = m_sliceHeight;
         }
-        m_mfeEncodeSharedState->encoders.push_back(this);
     }
 
     auto kernelRes = m_resMbencKernel;
@@ -7096,11 +7095,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
 
         kernelRes->e = CM_NO_EVENT;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AddKernelMdf(m_cmDev, m_cmQueue, kernelRes->ppKernel[0], m_cmTask, kernelRes->pTS, kernelRes->e, true));
-        if (IsMfeMbEncEnabled())
-        {
-            m_mfeEncodeSharedState->encoders.clear();
-            m_mfeEncodeSharedState->encoders.shrink_to_fit();
-        }
 
         m_cmDev->DestroyThreadSpace(kernelRes->pTS);
 

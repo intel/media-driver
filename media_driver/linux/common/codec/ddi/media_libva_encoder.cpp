@@ -664,6 +664,8 @@ VAStatus DdiEncode_MfeSubmit(
     encodeMfeContext->mfeEncodeSharedState->vmeSurface     = vmeSurface;
     encodeMfeContext->mfeEncodeSharedState->commonSurface  = commonSurface;
 
+    encodeMfeContext->mfeEncodeSharedState->encoders.clear();
+
     // Call Enc functions for all the sub contexts
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     for (int32_t i = 0; i < validContextNumber; i++)
@@ -679,6 +681,8 @@ VAStatus DdiEncode_MfeSubmit(
         }
 
         CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
+
+        encodeMfeContext->mfeEncodeSharedState->encoders.push_back(encoder);
 
         status = encoder->Execute(&encodeContext->EncodeParams);
         if (MOS_STATUS_SUCCESS != status)
