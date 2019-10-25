@@ -66,11 +66,19 @@ public:
     //! \return No return
     //!
     virtual void setHistogramComponent(uint8_t component);
+
     //!
     //! \brief  Get surface to hold input histogram buffer
     //! \return PMOS_SURFACE
     //!
     virtual PMOS_SURFACE GetHistogramSurface();
+
+    //!
+    //! \brief  Set source surface to hold internal histogram buffer
+    //! \return No Return
+    //!
+    virtual void SetSrcHistogramSurface(PMOS_SURFACE refSurface) {};
+
     //!
     //! \brief  Render and output the histogram
     //! \param  [in] codechalDecoder
