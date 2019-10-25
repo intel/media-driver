@@ -72,6 +72,33 @@ script:
       -e CCACHE_DIR=/opt/ccache
       intelmediadriver/media-driver-docker
       cmake ../media-driver
+      -DCMAKE_C_COMPILER=clang-8
+      -DCMAKE_CXX_COMPILER=clang++-8
+      -DMEDIA_BUILD_FATAL_WARNINGS=OFF ..
+      -DBYPASS_MEDIA_ULT=yes
+      -DCMAKE_INSTALL_PREFIX=/usr
+      -DLIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      -DLIBVA_INSTALL_PATH=/opt/src/libva-install/usr/include
+      -DBUILD_TYPE=Release
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}/..:/opt/src
+      -w /opt/src/build
+      -e CCACHE_DIR=/opt/ccache
+      intelmediadriver/media-driver-docker
+      make -j8
+  - ccache -s
+  - ccache -z
+  - sudo rm -rf ${TRAVIS_BUILD_DIR}/../build && mkdir ${TRAVIS_BUILD_DIR}/../build
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}/../:/opt/src
+      -w /opt/src/build
+      -e CCACHE_DIR=/opt/ccache
+      intelmediadriver/media-driver-docker
+      cmake ../media-driver
       -DCMAKE_INSTALL_PREFIX=/usr
       -DLIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
       -DLIBVA_INSTALL_PATH=/opt/src/libva-install/usr/include
