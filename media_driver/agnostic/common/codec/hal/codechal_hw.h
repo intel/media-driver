@@ -848,6 +848,83 @@ public:
         bool                            modeSpecific);
 
     //!
+    //! \brief    Calculates the maximum size for HCP picture level commands
+    //! \details  Client facing function to calculate the maximum size for HCP picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           Indicate the command size parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHcpStateCommandSize(
+        uint32_t                        mode,
+        uint32_t *                      commandsSize,
+        uint32_t *                      patchListSize,
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+
+    //!
+    //! \brief    Calculates maximum size for HCP slice/MB level commands
+    //! \details  Client facing function to calculate maximum size for HCP slice/MB level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!            The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] modeSpecific
+    //!           Indicate the long or short format
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHcpPrimitiveCommandSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      modeSpecific);
+
+    //!
+    //! \brief    Calculates the maximum size for Huc picture level commands
+    //! \details  Client facing function to calculate the maximum size for HUC picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           Indicate the command size parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHucStateCommandSize(
+        uint32_t mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+
+    //!
+    //! \brief    Calculates maximum size for Huc slice/MB level commands
+    //! \details  Client facing function to calculate maximum size for Huc slice/MB level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!            The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHucPrimitiveCommandSize(
+        uint32_t mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize);
+
+    //!
     //! \brief    Calculates the maximum size for Vdenc state level commands
     //! \details  Client facing function to calculate the maximum size for Vdenc state level commands
     //! \param    [in] mode

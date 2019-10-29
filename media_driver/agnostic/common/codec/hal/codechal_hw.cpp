@@ -346,6 +346,126 @@ MOS_STATUS CodechalHwInterface::GetHxxPrimitiveCommandSize(
     return eStatus;
 }
 
+MOS_STATUS CodechalHwInterface::GetHcpStateCommandSize(
+    uint32_t                        mode,
+    uint32_t *                      commandsSize,
+    uint32_t *                      patchListSize,
+    PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard = CodecHal_GetStandardFromMode(mode);
+
+    uint32_t hcpCommandsSize  = 0;
+    uint32_t hcpPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hcpInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_VP9))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hcpInterface->GetHcpStateCommandSize(
+            mode, &hcpCommandsSize, &hcpPatchListSize, params));
+
+        m_cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hcpCommandsSize + cpCmdsize;
+    *patchListSize = hcpPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::GetHcpPrimitiveCommandSize(
+    uint32_t                        mode,
+    uint32_t                       *commandsSize,
+    uint32_t                       *patchListSize,
+    bool                            modeSpecific)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard = CodecHal_GetStandardFromMode(mode);
+
+    uint32_t hcpCommandsSize  = 0;
+    uint32_t hcpPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hcpInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_VP9))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hcpInterface->GetHcpPrimitiveCommandSize(
+            mode, &hcpCommandsSize, &hcpPatchListSize, modeSpecific ? true : false));
+
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hcpCommandsSize + cpCmdsize;
+    *patchListSize = hcpPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::GetHucStateCommandSize(
+    uint32_t                        mode,
+    uint32_t *                      commandsSize,
+    uint32_t *                      patchListSize,
+    PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard         = CodecHal_GetStandardFromMode(mode);
+    uint32_t hucCommandsSize  = 0;
+    uint32_t hucPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hucInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_CENC || standard == CODECHAL_VP9 || standard == CODECHAL_AVC))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucStateCommandSize(
+            mode, &hucCommandsSize, &hucPatchListSize, params));
+
+        m_cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hucCommandsSize + cpCmdsize;
+    *patchListSize = hucPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::GetHucPrimitiveCommandSize(
+    uint32_t                        mode,
+    uint32_t                       *commandsSize,
+    uint32_t                       *patchListSize)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard         = CodecHal_GetStandardFromMode(mode);
+    uint32_t hucCommandsSize  = 0;
+    uint32_t hucPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hucInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_CENC || standard == CODECHAL_VP9))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucPrimitiveCommandSize(
+            mode, &hucCommandsSize, &hucPatchListSize));
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hucCommandsSize + cpCmdsize;
+    *patchListSize = hucPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalHwInterface::GetVdencStateCommandsDataSize(
     uint32_t                    mode,
     uint32_t                   *commandsSize,
