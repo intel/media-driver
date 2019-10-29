@@ -714,36 +714,36 @@ public:
     virtual void ProcessRoiDeltaQp();
 
     // Inherited virtual function
-    MOS_STATUS Initialize(CodechalSetting * settings);
-    MOS_STATUS AllocatePakResources();
-    MOS_STATUS FreePakResources();
-    MOS_STATUS AllocateEncResources();
-    MOS_STATUS FreeEncResources();
-    MOS_STATUS AllocateBrcResources();
-    MOS_STATUS FreeBrcResources();
-    MOS_STATUS InitializePicture(const EncoderParams& params);
-    MOS_STATUS SetSequenceStructs();
-    MOS_STATUS SetPictureStructs();
-    MOS_STATUS CalcScaledDimensions();
-    MOS_STATUS ValidateRefFrameData(PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams);
-    MOS_STATUS ExecutePictureLevel();
-    MOS_STATUS ExecuteSliceLevel();
-    MOS_STATUS ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer);
-    MOS_STATUS UserFeatureKeyReport();
+    MOS_STATUS Initialize(CodechalSetting * settings)  override;
+    MOS_STATUS AllocatePakResources() override;
+    MOS_STATUS FreePakResources() override;
+    MOS_STATUS AllocateEncResources() override;
+    MOS_STATUS FreeEncResources() override;
+    MOS_STATUS AllocateBrcResources() override;
+    MOS_STATUS FreeBrcResources() override;
+    MOS_STATUS InitializePicture(const EncoderParams& params) override;
+    MOS_STATUS SetSequenceStructs() override;
+    MOS_STATUS SetPictureStructs() override;
+    MOS_STATUS CalcScaledDimensions() override;
+    MOS_STATUS ValidateRefFrameData(PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams) override;
+    MOS_STATUS ExecutePictureLevel() override;
+    MOS_STATUS ExecuteSliceLevel() override;
+    MOS_STATUS ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer) override;
+    MOS_STATUS UserFeatureKeyReport() override;
     MOS_STATUS GetStatusReport(
         EncodeStatus *encodeStatus,
-        EncodeStatusReport *encodeStatusReport);
-    void SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_STATE& sliceStateParams);
+        EncodeStatusReport *encodeStatusReport) override;
+    void SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_STATE& sliceStateParams) override;
     MOS_STATUS AddHcpPakInsertSliceHeader(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER batchBuffer,
-        PMHW_VDBOX_HEVC_SLICE_STATE params);
+        PMHW_VDBOX_HEVC_SLICE_STATE params) override;
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
     virtual MOS_STATUS DumpVdencOutputs();
-    virtual MOS_STATUS DumpSeqParFile();
+    virtual MOS_STATUS DumpSeqParFile() override;
     MOS_STATUS PopulateDdiParam(
         PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
         PCODEC_HEVC_ENCODE_PICTURE_PARAMS  hevcPicParams,

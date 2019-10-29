@@ -3541,7 +3541,7 @@ MOS_STATUS CodechalEncodeAvcBase::DumpSeqParams(
     // Conditionally printed (only when pic_order_cnt_type = 1).  Contains 256 elements.
     if (seqParams->pic_order_cnt_type == 1)
     {
-        for (uint8_t i = 0; i < 256; ++i)
+        for (uint16_t i = 0; i < 256; ++i)
         {
             oss << "offset_for_ref_frame[" << +i << "] = " << +seqParams->offset_for_ref_frame[i] << std::endl;
         }

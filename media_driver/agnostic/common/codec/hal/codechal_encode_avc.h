@@ -1654,14 +1654,14 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
 
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
-    virtual MOS_STATUS DumpSeqParFile();
-    virtual MOS_STATUS DumpFrameParFile();
+    virtual MOS_STATUS DumpSeqParFile()  override;
+    virtual MOS_STATUS DumpFrameParFile() override;
 
     virtual MOS_STATUS PopulateHmeParam(
         bool    is16xMeEnabled,
         bool    is32xMeEnabled,
         uint8_t meMethod,
-        void    *cmd);
+        void    *cmd) override;
 #endif
 };
 #endif  // __CODECHAL_ENCODE_AVC_H__

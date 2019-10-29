@@ -5672,14 +5672,14 @@ public:
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
     virtual MOS_STATUS PopulateBrcInitParam(
-        void *cmd);
+        void *cmd) override;
 
     virtual MOS_STATUS PopulateBrcUpdateParam(
-        void *cmd);
+        void *cmd) override;
 
     virtual MOS_STATUS PopulateEncParam(
         uint8_t meMethod,
-        void    *cmd);
+        void    *cmd) override;
 #endif
 
 protected:
