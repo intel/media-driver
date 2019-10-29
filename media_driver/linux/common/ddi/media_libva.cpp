@@ -1019,7 +1019,7 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 
     if (((GmmFlags.Gpu.MMC                                                        ||
           GmmFlags.Gpu.CCS)                                                       &&
-          GmmFlags.Gpu.UnifiedAuxSurface)                                         ||
+          GmmFlags.Info.MediaCompressed)                                          ||
           mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
     {
 #ifdef _MMC_SUPPORTED
