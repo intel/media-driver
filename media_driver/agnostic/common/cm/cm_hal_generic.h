@@ -719,6 +719,22 @@ public:
         return m_defaultMocs;
     }
 
+    //! \brief    Check whether compressed output is needed
+    //! \return   true if compression format is needed
+    //!
+    virtual bool SupportCompressedOutput()
+    {
+        return false;
+    }
+
+    //! \brief    Check whether separate scratch space is needed
+    //! \return   true if separate scratch is needed
+    //!
+    virtual bool IsSeparateScratch()
+    {
+        return false;
+    }
+
 protected:
     uint32_t              m_platformID;
     uint32_t              m_genGT;

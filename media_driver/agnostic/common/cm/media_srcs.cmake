@@ -55,7 +55,15 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_visa.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_global_api.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_execution_adv.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_execution_adv.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_ish_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_ex.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_ssh.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_scratch_space.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_media_state.cpp
+)
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_array.h
@@ -109,7 +117,15 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_rt_umd.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_base.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.h)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_ish_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_ex.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_ssh.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_scratch_space.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_media_state.h
+)
 
 set(SOURCES_
     ${SOURCES_}
