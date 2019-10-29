@@ -61,14 +61,6 @@ typedef struct _MHW_CP_COPY_PARAMS
     bool          isEncodeInUse;
 } MHW_CP_COPY_PARAMS, *PMHW_CP_COPY_PARAMS;
 
-typedef struct _MHW_ADD_CP_COPY_PARAMS
-{
-    PMOS_RESOURCE presSrc;
-    PMOS_RESOURCE presDst;
-    uint32_t      size;
-    uint64_t      offset;
-} MHW_ADD_CP_COPY_PARAMS, *PMHW_ADD_CP_COPY_PARAMS;
-
 static void MhwStubMessage()
 {
     MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_MHW, "This function is stubbed as it is not implemented.");
@@ -140,19 +132,6 @@ public:
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_CP_COPY_PARAMS params)
-    {
-        MOS_UNUSED(osInterface);
-        MOS_UNUSED(cmdBuffer);
-        MOS_UNUSED(params);
-
-        MhwStubMessage();
-        return MOS_STATUS_SUCCESS;
-    }
-
-    virtual MOS_STATUS AddCpCopy(
-        PMOS_INTERFACE      osInterface,
-        PMOS_COMMAND_BUFFER cmdBuffer,
-        PMHW_ADD_CP_COPY_PARAMS params)
     {
         MOS_UNUSED(osInterface);
         MOS_UNUSED(cmdBuffer);

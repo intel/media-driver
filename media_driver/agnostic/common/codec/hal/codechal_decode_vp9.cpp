@@ -1688,14 +1688,6 @@ MOS_STATUS CodechalDecodeVp9 :: UpdatePicStateBuffers(
         }
     }
 
-    if (m_osInterface->osCpInterface->IsHMEnabled())
-    {
-        if (m_secureDecoder && MEDIA_IS_WA(m_hwInterface->GetWaTable(), WaSecureDecodeTDR))
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_destSurface.OsResource, cmdBuffe));
-        }
-    }
-
     CODECHAL_DEBUG_TOOL(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
             &m_resVp9SegmentIdBuffer,
