@@ -172,13 +172,14 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
     } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
     return ret;
 }
-#if defined(__cplusplus)
-}
-#endif
-int drmIoctl(int fd, unsigned long request, void *arg)
+drm_export int
+drmIoctl(int fd, unsigned long request, void *arg)
 {
     return mosdrmIoctl(fd,request,arg);
 }
+#if defined(__cplusplus)
+}
+#endif
 
 static unsigned long drmGetKeyFromFd(int fd)
 {

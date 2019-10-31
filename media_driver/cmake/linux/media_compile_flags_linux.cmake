@@ -171,6 +171,26 @@ if(NOT ${PLATFORM} STREQUAL "android")
         )
     endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    list(APPEND MEDIA_COMPILER_FLAGS_COMMON
+         -Wno-deprecated
+         -Wno-missing-braces
+         -Wno-overloaded-virtual
+        )
+    list(REMOVE_ITEM MEDIA_COMPILER_FLAGS_COMMON
+         -funswitch-loops
+         -Wl,--gc-sections
+         -Wl,--no-as-needed
+         -fno-tree-pre
+        )
+    list(REMOVE_ITEM MEDIA_COMPILER_FLAGS_RELEASE
+         -finline-limit=100
+        )
+    list(REMOVE_ITEM MEDIA_COMPILER_FLAGS_RELEASEINTERNAL
+         -finline-limit=100
+        )
+endif()
+
 set(MEDIA_COMPILER_FLAGS_DEBUG
     -O0
     -DINSTR_GTUNE_EXT
