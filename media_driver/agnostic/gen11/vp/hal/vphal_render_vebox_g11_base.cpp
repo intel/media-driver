@@ -404,8 +404,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
     int32_t                i;
     bool                   bAllocated;
     bool                   bDIEnable;
-    bool                   bSurfCompressed;
-    bool                   bFFDNSurfCompressed;
+    bool                   bSurfCompressible;
+    bool                   bFFDNSurfCompressible;
     MOS_RESOURCE_MMC_MODE  SurfCompressionMode;
     MOS_RESOURCE_MMC_MODE  FFDNSurfCompressionMode;
     MHW_VEBOX_SURFACE_PARAMS      MhwVeboxSurfaceParam;
@@ -414,8 +414,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
     PVPHAL_VEBOX_RENDER_DATA      pRenderData = GetLastExecRenderData();
 
     bAllocated              = false;
-    bSurfCompressed         = false;
-    bFFDNSurfCompressed     = false;
+    bSurfCompressible       = false;
+    bFFDNSurfCompressible   = false;
     SurfCompressionMode     = MOS_MMC_DISABLED;
     FFDNSurfCompressionMode = MOS_MMC_DISABLED;
     pOsInterface            = pVeboxState->m_pOsInterface;
@@ -430,7 +430,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
     // or none of them compressed at all.This is HW limitation.
     if (IsDNOnly())
     {
-        bSurfCompressed     = pVeboxState->m_currentSurface->bCompressible;
+        bSurfCompressible   = pVeboxState->m_currentSurface->bCompressible;
         SurfCompressionMode = pVeboxState->m_currentSurface->bIsCompressed ? MOS_MMC_HORIZONTAL : MOS_MMC_DISABLED;
     }
     // Only Tiled Y surfaces support MMC
@@ -438,7 +438,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
              (TileType == MOS_TILE_Y) &&
              IsFormatMMCSupported(format))
     {
-        bSurfCompressed     = true;
+        bSurfCompressible   = true;
         SurfCompressionMode = MOS_MMC_HORIZONTAL;
     }
 
@@ -461,7 +461,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
                     TileType,
                     pVeboxState->m_currentSurface->dwWidth,
                     pVeboxState->m_currentSurface->dwHeight,
-                    bSurfCompressed,
+                    bSurfCompressible,
                     SurfCompressionMode,
                     &bAllocated));
 
@@ -482,7 +482,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             if (bAllocated)
             {
                 // Report Compress Status
-                m_reporting->FFDICompressible = bSurfCompressed;
+                m_reporting->FFDICompressible = bSurfCompressible;
                 m_reporting->FFDICompressMode = (uint8_t)(SurfCompressionMode);
             }
         }
@@ -507,14 +507,14 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
     // when the second clip playback starting without media pipeline recreation,
     // the internal FFDNSurfaces are compressed, but VP input surface is uncompressed.
     if ((pVeboxState->bDIEnabled && !pVeboxState->bDNEnabled && pRenderData->bDenoise) ||
-        ((pVeboxState->m_currentSurface->bIsCompressed == false) && ((bSurfCompressed == true) || (pVeboxState->FFDNSurfaces[0]->bIsCompressed == true))))
+        ((pVeboxState->m_currentSurface->bIsCompressed == false) && ((bSurfCompressible == true) || (pVeboxState->FFDNSurfaces[0]->bIsCompressed == true))))
     {
-        bFFDNSurfCompressed     = pVeboxState->m_currentSurface->bCompressible;
+        bFFDNSurfCompressible   = pVeboxState->m_currentSurface->bCompressible;
         FFDNSurfCompressionMode = pVeboxState->m_currentSurface->bIsCompressed ? MOS_MMC_HORIZONTAL : MOS_MMC_DISABLED;
     }
     else
     {
-        bFFDNSurfCompressed     = bSurfCompressed;
+        bFFDNSurfCompressible   = bSurfCompressible;
         FFDNSurfCompressionMode = SurfCompressionMode;
     }
 
@@ -532,7 +532,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
                     pVeboxState->m_currentSurface->TileType,
                     pVeboxState->m_currentSurface->dwWidth,
                     pVeboxState->m_currentSurface->dwHeight,
-                    bFFDNSurfCompressed,
+                    bFFDNSurfCompressible,
                     FFDNSurfCompressionMode,
                     &bAllocated));
 
@@ -574,7 +574,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             if (bAllocated)
             {
                 // Report Compress Status
-                m_reporting->FFDNCompressible = bFFDNSurfCompressed;
+                m_reporting->FFDNCompressible = bFFDNSurfCompressible;
                 m_reporting->FFDNCompressMode = (uint8_t)(FFDNSurfCompressionMode);
             }
         }
@@ -604,12 +604,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
     {
         if (pVeboxState->bEnableMMC)
         {
-            bSurfCompressed     = true;
+            bSurfCompressible     = true;
             SurfCompressionMode = MOS_MMC_HORIZONTAL;
         }
         else
         {
-            bSurfCompressed     = false;
+            bSurfCompressible     = false;
             SurfCompressionMode = MOS_MMC_DISABLED;
         }
 
@@ -624,7 +624,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
                 MOS_TILE_Y,
                 pVeboxState->m_currentSurface->dwWidth,
                 pVeboxState->m_currentSurface->dwHeight,
-                bSurfCompressed,
+                bSurfCompressible,
                 SurfCompressionMode,
                 &bAllocated));
 
@@ -633,7 +633,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
                 VPHAL_RENDER_CHK_STATUS(VeboxInitSTMMHistory(i));
 
                 // Report Compress Status
-                m_reporting->STMMCompressible = bSurfCompressed;
+                m_reporting->STMMCompressible = bSurfCompressible;
                 m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
             }
         }

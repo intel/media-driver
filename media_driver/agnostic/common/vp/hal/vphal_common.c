@@ -402,8 +402,8 @@ float VpHal_Lanczos(float x, uint32_t dwNumEntries, float fLanczosT)
 //!           Expected Surface Width
 //! \param    [in] dwHeight
 //!           Expected Surface Height
-//! \param    [in] bCompressed
-//!           Compressed surface or not
+//! \param    [in] bCompressible
+//!           Surface being compressible or not
 //! \param    [in] CompressionMode
 //!           Compression Mode
 //! \param    [out] pbAllocated
@@ -420,7 +420,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     MOS_TILE_TYPE           DefaultTileType,
     uint32_t                dwWidth,
     uint32_t                dwHeight,
-    bool                    bCompressed,
+    bool                    bCompressible,
     MOS_RESOURCE_MMC_MODE   CompressionMode,
     bool*                   pbAllocated)
 {
@@ -436,14 +436,14 @@ MOS_STATUS VpHal_ReAllocateSurface(
     eStatus      = MOS_STATUS_SUCCESS;
     *pbAllocated = false;
 
-    // bCompressed should be compared with bCompressible since it is inited by bCompressible in previous call
+    // bCompressible should be compared with bCompressible since it is inited by bCompressible in previous call
     // TileType of surface should be compared since we need to reallocate surface if TileType changes
     if (!Mos_ResourceIsNull(&pSurface->OsResource)        &&
         (pSurface->dwWidth         == dwWidth)            &&
-        (pSurface->dwHeight        == dwHeight)            &&
-        (pSurface->Format          == Format)            &&
-        (pSurface->bCompressible   == bCompressed)        &&
-        (pSurface->CompressionMode == CompressionMode)  &&
+        (pSurface->dwHeight        == dwHeight)           &&
+        (pSurface->Format          == Format)             &&
+        (pSurface->bCompressible   == bCompressible)      &&
+        (pSurface->CompressionMode == CompressionMode)    &&
         (pSurface->TileType        == DefaultTileType))
     {
         goto finish;
@@ -456,7 +456,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     AllocParams.dwWidth         = dwWidth;
     AllocParams.dwHeight        = dwHeight;
     AllocParams.Format          = Format;
-    AllocParams.bIsCompressed   = bCompressed;
+    AllocParams.bIsCompressible = bCompressible;
     AllocParams.CompressionMode = CompressionMode;
     AllocParams.pBufName        = pSurfaceName;
     AllocParams.dwArraySize     = 1;

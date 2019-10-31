@@ -184,9 +184,9 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     switch (tileformat)
     {
         case MOS_TILE_Y:
-            gmmParams.Flags.Gpu.MMC       = params.m_isCompressed;
+            gmmParams.Flags.Gpu.MMC       = params.m_isCompressible;
             tileFormatLinux               = I915_TILING_Y;
-            if (params.m_isCompressed && pOsContextSpecific->GetAuxTableMgr())
+            if (params.m_isCompressible && pOsContextSpecific->GetAuxTableMgr())
             {
                 gmmParams.Flags.Info.MediaCompressed = 1;
                 gmmParams.Flags.Gpu.CCS = 1;

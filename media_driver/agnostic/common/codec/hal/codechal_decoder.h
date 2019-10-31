@@ -388,15 +388,15 @@ public:
     //!           Surface name
     //! \param    [in] format
     //!           Surface format, by default is NV12
-    //! \param    [in] isCompressed
-    //!           Compress flag, by default is false
+    //! \param    [in] isCompressible
+    //!           Compressible flag, by default is false
     MOS_STATUS AllocateSurface(
         PMOS_SURFACE surface,
         uint32_t width,
         uint32_t height,
         const char* name,
         MOS_FORMAT format = Format_NV12,
-        bool isCompressed = false);
+        bool isCompressible = false);
 
     //!
     //! \brief  Entry to allocate and intialize the decode instance

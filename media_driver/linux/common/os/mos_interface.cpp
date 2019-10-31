@@ -1130,7 +1130,7 @@ MOS_STATUS MosInterface::AllocateResource(
     switch (tileformat)
     {
     case MOS_TILE_Y:
-        gmmParams.Flags.Gpu.MMC = params->bIsCompressed;
+        gmmParams.Flags.Gpu.MMC = params->bIsCompressible;
         tileformat_linux        = I915_TILING_Y;
         break;
     case MOS_TILE_X:

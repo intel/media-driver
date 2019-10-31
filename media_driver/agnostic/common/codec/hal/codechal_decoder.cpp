@@ -121,7 +121,7 @@ MOS_STATUS CodechalDecode::AllocateSurface(
     uint32_t        height,
     const char      *name,
     MOS_FORMAT      format,
-    bool            isCompressed)
+    bool            isCompressible)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -139,7 +139,7 @@ MOS_STATUS CodechalDecode::AllocateSurface(
     allocParams.dwHeight    = height;
     allocParams.dwArraySize = 1;
     allocParams.pBufName    = name;
-    allocParams.bIsCompressed = isCompressed;
+    allocParams.bIsCompressible = isCompressible;
 
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
         m_osInterface,

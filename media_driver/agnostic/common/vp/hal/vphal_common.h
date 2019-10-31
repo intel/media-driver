@@ -1336,8 +1336,8 @@ MOS_STATUS VpHal_GetSurfaceInfo(
 //!           Expected Surface Width
 //! \param    [in] dwHeight
 //!           Expected Surface Height
-//! \param    [in] bCompressed
-//!           Compressed surface or not
+//! \param    [in] bCompressible
+//!           Surface being compressible or not
 //! \param    [in] CompressionMode
 //!           Compression Mode
 //! \param    [out] pbAllocated
@@ -1354,7 +1354,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     MOS_TILE_TYPE           DefaultTileType,                                    // [in]    Default Resource Tile Type to use if resource has not be allocated yet
     uint32_t                dwWidth,                                            // [in]    Resource Width
     uint32_t                dwHeight,                                           // [in]    Resource Height
-    bool                    pbCompressed,                                       // [in]    Flag indaicated reource is compressed or not
+    bool                    bCompressible,                                      // [in]    Flag indaicated reource is compressible or not
     MOS_RESOURCE_MMC_MODE   CompressionMode,                                    // [in]    Compression mode
     bool*                   pbAllocated);                                       // [out]   Flag indicating new allocation
 

@@ -77,9 +77,9 @@ public:
         uint32_t m_height   = 1;
 
         //!
-        //! \brief   Resource is compressed or not.
+        //! \brief   Resource is compressible or not.
         //!
-        bool m_isCompressed = false;
+        bool m_isCompressible = false;
 
         //!
         //! \brief   Optional parameter. Used to indicate that resource
@@ -134,7 +134,7 @@ public:
             m_depth           = pParams->dwDepth;
             m_format          = pParams->Format;
             m_height          = pParams->dwHeight;
-            m_isCompressed    = (pParams->bIsCompressed == 1) ? true : false;
+            m_isCompressible  = (pParams->bIsCompressible == 1) ? true : false;
             m_isPersistent    = (pParams->bIsPersistent == 1) ? true : false;
             if (pParams->pBufName != nullptr)
             {

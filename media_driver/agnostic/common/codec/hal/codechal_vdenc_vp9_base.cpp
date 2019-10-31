@@ -2189,7 +2189,7 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
     allocParamsForBuffer.Type = MOS_GFXRES_2D;
     allocParamsForBuffer.TileType = MOS_TILE_Y;
     allocParamsForBuffer.Format = m_reconSurface.Format;
-    allocParamsForBuffer.bIsCompressed = IsToBeCompressed(true);
+    allocParamsForBuffer.bIsCompressible = IsToBeCompressed(true);
 
     PCODEC_REF_LIST *refList = &m_refList[0];
     if (Mos_ResourceIsNull(&refList[idx]->sDysSurface.OsResource) ||
