@@ -1535,7 +1535,7 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
             decodeStatusReport.m_currDecodedPicRes  = m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx]->resRefPic;
 #ifdef _DECODE_PROCESSING_SUPPORTED
             CODECHAL_DEBUG_TOOL(
-                if (m_downsampledSurfaces) {
+                if (m_downsampledSurfaces && m_sfcState && m_sfcState->m_sfcOutputSurface) {
                     m_downsampledSurfaces[m_hevcPicParams->CurrPic.FrameIdx].OsResource =
                         m_sfcState->m_sfcOutputSurface->OsResource;
                     decodeStatusReport.m_currSfcOutputPicRes =

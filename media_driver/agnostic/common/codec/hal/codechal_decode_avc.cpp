@@ -1243,7 +1243,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
-        if (!decProcessingParams->bIsReferenceOnlyPattern)
+        if (!decProcessingParams->bIsReferenceOnlyPattern && m_downsamplingHinted)
         {
             CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
         }
@@ -1257,7 +1257,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
 
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
              m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
-             m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
+             (m_downsamplingHinted && m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams))) &&
              m_sfcState->m_sfcPipeOut == false &&
             !decProcessingParams->bIsReferenceOnlyPattern)
         {

@@ -76,6 +76,8 @@ typedef struct _CODECHAL_DECODE_PROCESSING_PARAMS
     CODECHAL_RECTANGLE           rcOutputSurfaceRegion;
     uint32_t                     uiOutputColorStandard;
 
+    PMOS_SURFACE                 pHistogramSurface;
+
     // Processing state
     uint32_t                     uiRotationState;
     uint32_t                     uiBlendState;
