@@ -200,7 +200,7 @@ public:
 
 protected:
     MOS_STREAM_HANDLE m_stream = MOS_INVALID_HANDLE;
-    bool bScalabilitySupported;
+    bool bScalabilitySupported = false;
 
 #if _DEBUG || _RELEASE_INTERNAL
     uint8_t EngineLogicId[MOS_MAX_ENGINE_INSTANCE_PER_CLASS] = {};
