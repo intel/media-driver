@@ -44,17 +44,16 @@ MOS_STATUS MosOsVeSinglePipe::PopulateDbgOvrdParams(MOS_STREAM_HANDLE stream)
 
     MOS_OS_CHK_NULL_RETURN(stream);
 
-    PMOS_INTERFACE pOsInterface = stream->osInterfaceLegacy;
     int32_t        iForceEngine = 0;
 
     iForceEngine = MOS_INVALID_FORCEENGINE_VALUE;
-    switch (pOsInterface->Component)
+    switch (stream->component)
     {
         case COMPONENT_Decode:
-            iForceEngine = pOsInterface->eForceVdbox;
+            iForceEngine = stream->eForceVdbox;
             break;
         case COMPONENT_VPCommon:
-            iForceEngine = pOsInterface->eForceVebox;
+            iForceEngine = stream->eForceVebox;
             break;
         case COMPONENT_Encode:
         default:

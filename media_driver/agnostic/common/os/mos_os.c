@@ -808,11 +808,12 @@ MOS_STATUS Mos_InitInterface(
 
 #if _DEBUG || _RELEASE_INTERNAL
         pOsInterface->osStreamState->enableDbgOvrdInVirtualEngine = pOsInterface->bEnableDbgOvrdInVE;
+        pOsInterface->osStreamState->eForceVdbox = pOsInterface->eForceVdbox;
+        pOsInterface->osStreamState->eForceVebox = pOsInterface->eForceVebox;
 #endif  // _DEBUG || _RELEASE_INTERNAL
 
         pOsInterface->osStreamState->ctxBasedScheduling       = pOsInterface->ctxBasedScheduling;
         pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
-        pOsInterface->osStreamState->osInterfaceLegacy = pOsInterface;
     }
 
     return eStatus;

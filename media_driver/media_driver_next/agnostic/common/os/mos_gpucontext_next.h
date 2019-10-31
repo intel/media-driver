@@ -230,6 +230,15 @@ public:
     //!
     GraphicsResourceNext* GetStatusBufferResource() { return m_statusBufferResource; }
 
+    //!
+    //! \brief    Get VE attribute buffer for current gpu context
+    //! \return   MOS_CMD_BUF_ATTRI_VE*
+    //!
+    MOS_CMD_BUF_ATTRI_VE *GetAttributeVeBuffer()
+    {
+        return &m_bufAttriVe;
+    }
+
 protected:
     //! \brief    Hardware node for current gpu context
     MOS_GPU_NODE m_nodeOrdinal;
@@ -248,5 +257,8 @@ protected:
 
     //! \brief    Track the GPU Context Client Info
     MOS_GPU_CONTEXT m_gpuContext;
+
+    //! \brief    VE attribute buffer
+    MOS_CMD_BUF_ATTRI_VE m_bufAttriVe = {};
 };
 #endif  // #ifndef __MOS_GPU_CONTEXT_NEXT_H__

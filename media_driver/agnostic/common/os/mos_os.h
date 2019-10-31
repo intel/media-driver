@@ -568,12 +568,13 @@ struct MosStreamState
 
 #if _DEBUG || _RELEASE_INTERNAL
     bool  enableDbgOvrdInVirtualEngine = false;
+
+    int32_t eForceVdbox = 0;   //!< Force select Vdbox
+    int32_t eForceVebox = 0;  //!< Force select Vebox
 #endif // _DEBUG || _RELEASE_INTERNAL
 
     bool  ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
     OS_PER_STREAM_PARAMETERS  perStreamParameters = nullptr; //!< Parameters of OS specific per stream
-
-    _MOS_INTERFACE *osInterfaceLegacy = nullptr;
 };
 
 // OS agnostic MOS objects

@@ -36,25 +36,24 @@ MOS_STATUS MosOsVeScalability::PopulateDbgOvrdParams(
     MOS_OS_FUNCTION_ENTER;
     MOS_OS_CHK_NULL_RETURN(stream);
 
-    PMOS_INTERFACE pOsInterface   = stream->osInterfaceLegacy;
     uint8_t        ucMaxEngineCnt = 0;
     uint8_t        ui8EngineId    = 0;
     int32_t        iForceEngine   = 0;
 
     iForceEngine = MOS_INVALID_FORCEENGINE_VALUE;
 
-    switch (pOsInterface->Component)
+    switch (stream->component)
     {
         case COMPONENT_Decode:
-            iForceEngine   = pOsInterface->eForceVdbox;
+            iForceEngine   = stream->eForceVdbox;
             ucMaxEngineCnt = ucMaxNumPipesInUse + 1;
             break;
         case COMPONENT_VPCommon:
-            iForceEngine   = pOsInterface->eForceVebox;
+            iForceEngine   = stream->eForceVebox;
             ucMaxEngineCnt = ucMaxNumPipesInUse;
             break;
         case COMPONENT_Encode:
-            iForceEngine   = pOsInterface->eForceVdbox;
+            iForceEngine   = stream->eForceVdbox;
             ucMaxEngineCnt = ucMaxNumPipesInUse;
             break;
         default:

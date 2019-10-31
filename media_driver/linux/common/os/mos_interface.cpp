@@ -587,6 +587,17 @@ MOS_STATUS MosInterface::SetupIndirectState(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MosInterface::SetupAttributeVeBuffer(
+    MOS_STREAM_HANDLE     streamState,
+    COMMAND_BUFFER_HANDLE cmdBuffer)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // no VE attribute buffer to setup
+
+    return MOS_STATUS_SUCCESS;
+}
+
 static GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
 {
     //
@@ -1934,6 +1945,17 @@ MosOcaInterface *MosInterface::GetOcaInterface(MOS_STREAM_HANDLE streamState)
     MOS_OS_FUNCTION_ENTER;
 
     return nullptr;
+}
+
+MOS_STATUS MosInterface::ComposeCommandBufferHeader(
+    MOS_STREAM_HANDLE     streamState,
+    COMMAND_BUFFER_HANDLE cmdBuffer)
+{
+    MOS_OS_FUNCTION_ENTER;
+    
+    // No Command buffer header to compose
+
+    return MOS_STATUS_SUCCESS;
 }
 
 GpuContextSpecificNext *MosInterface::GetGpuContext(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE handle)

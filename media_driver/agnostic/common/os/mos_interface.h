@@ -573,6 +573,24 @@ public:
     static MOS_STATUS SetupIndirectState(
         MOS_STREAM_HANDLE streamState,
         uint32_t size);
+
+    //!
+    //! \brief    Setup VE Attribute Buffer
+    //! \details  [Cmd Buffer Interface] Setup VE Attribute Buffer into cmd buffer.
+    //! \details  Caller: MHW only
+    //! \details  This interface is called to setup into cmd buffer.
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [out] cmdBuffer
+    //!           Cmd buffer to setup VE attribute.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS SetupAttributeVeBuffer(
+        MOS_STREAM_HANDLE     streamState,
+        COMMAND_BUFFER_HANDLE cmdBuffer);
         
     //!
     //! \brief    Get Cache Policy Memory Object
@@ -1184,6 +1202,22 @@ public:
     static MosOcaInterface *GetOcaInterface(MOS_STREAM_HANDLE streamState);
 
 private:
+
+    //!
+    //! \brief    Compose Cmd buffer header
+    //! \details  Compose Cmd buffer header if it contains header
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [out] cmdBuffer
+    //!           Cmd buffer to compose header.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS ComposeCommandBufferHeader(
+        MOS_STREAM_HANDLE streamState,
+        COMMAND_BUFFER_HANDLE cmdBuffer);
 
     //!
     //! \brief   Get GpuContext
