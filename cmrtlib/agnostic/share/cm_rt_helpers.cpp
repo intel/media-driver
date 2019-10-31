@@ -147,11 +147,12 @@ extern "C" CM_RT_API const char* GetCmErrorString(int code)
         ENUM_STRING(CM_INVALID_PARAM_FOR_CREATE_QUEUE_EX),
         ENUM_STRING(CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS),
         ENUM_STRING(CM_INVALID_KERNEL_ARG_POINTER),
+        ENUM_STRING(CM_LOAD_LIBRARY_FAILED),
 #undef ENUM_STRING
     };
 
     const char *errorString = "Internal Error";
-    if (code >= CM_INVALID_KERNEL_ARG_POINTER && code <= CM_SUCCESS)
+    if (code >= CM_LOAD_LIBRARY_FAILED && code <= CM_SUCCESS)
     {
         errorString = errorStrings[-code];
     }
