@@ -1778,12 +1778,6 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
             true,
             pCmdBufferInUse));
 
-        if (pOsInterface->osCpInterface &&
-            pOsInterface->osCpInterface->IsHMEnabled() &&
-            pScalabilityState->pHwInterface->GetCpInterface())
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetCpInterface()->AddConditionalBatchBufferEndForEarlyExit(pOsInterface, pCmdBufferInUse));
-        }
     }
 
     return eStatus;

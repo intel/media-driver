@@ -121,17 +121,6 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS AddConditionalBatchBufferEndForEarlyExit(
-        PMOS_INTERFACE      osInterface,
-        PMOS_COMMAND_BUFFER cmdBuffer)
-    {
-        MOS_UNUSED(osInterface);
-        MOS_UNUSED(cmdBuffer);
-
-        MhwStubMessage();
-        return MOS_STATUS_SUCCESS;
-    }
-
     virtual MOS_STATUS CheckStatusReportNum(
         void *              mfxRegisters,
         uint32_t            cencBufIndex,
