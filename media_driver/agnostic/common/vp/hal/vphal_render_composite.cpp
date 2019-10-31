@@ -2477,6 +2477,12 @@ void CompositeState::SetScalingMode(
         pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
     }
 
+    // Fix GPU Hang on EHL, since EHL has no AVS sampler
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrDisableVEBoxFeatures))
+    {
+        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
+    }
+
     // WA for multilayer P010 AVS+3D one single pass corruption hw issue
     if (uSourceCount > 1 &&
         pSource->Format == Format_P010)
