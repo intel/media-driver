@@ -242,7 +242,7 @@ public:
         MHW_MI_CHK_NULL(skuTable);
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        /* It will be better to remove this code when this file is upstreamed */
+
         if (MEDIA_IS_SKU(skuTable, FtrSimulationMode))
         {
             // Disable RowStore Cache on simulation by default

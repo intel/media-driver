@@ -244,7 +244,6 @@ void MhwVdboxHcpInterfaceG11::InitRowstoreUserFeatureSettings()
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
-    /* It will be better to remove this code when it is upstreamed */
     if (MEDIA_IS_SKU(m_skuTable, FtrSimulationMode))
     {
         // Disable RowStore Cache on simulation by default

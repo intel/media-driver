@@ -245,4 +245,12 @@ if(GEN11_ICLLP)
     media_include_subdirectory(gen11_icllp)
 endif()
 
+if(GEN12)
+    media_include_subdirectory(gen12)
+endif()
+
+if(GEN12_TGLLP)
+    media_include_subdirectory(gen12_tgllp)
+endif()
+
 include(${MEDIA_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)

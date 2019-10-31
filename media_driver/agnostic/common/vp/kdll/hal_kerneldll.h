@@ -27,6 +27,9 @@
 #define __HAL_KERNELDLL_H__
 
 #include "mos_defs.h"
+#include "cm_fc_ld.h"
+// Kernel IDs and Kernel Names
+#include "vpkrnheader.h" // IDR_VP_TOTAL_NUM_KERNELS
 
 #if EMUL
 
@@ -855,6 +858,18 @@ bool KernelDll_SetupCSC(
 bool KernelDll_IsSameFormatType(MOS_FORMAT   format1, MOS_FORMAT   format2);
 void KernelDll_ReleaseHashEntry(Kdll_KernelHashTable *pHashTable, uint16_t entry);
 void KernelDll_ReleaseCacheEntry(Kdll_KernelCache *pCache, Kdll_CacheEntry  *pEntry);
+
+//---------------------------------------------------------------------------------------
+// KernelDll_SetupFunctionPointers_Ext - Setup Extension Function pointers
+//
+// Parameters:
+//    KdllState  *pState    - [in/out] Kernel Dll state
+//
+// Output: true  - Function pointers are set
+//         false - Failed to setup function pointers (invalid platform)
+//-----------------------------------------------------------------------------------------
+bool KernelDll_SetupFunctionPointers_Ext(
+    Kdll_State  *pState);
 
 #if _DEBUG || EMUL
 

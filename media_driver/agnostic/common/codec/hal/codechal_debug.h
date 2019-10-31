@@ -133,6 +133,12 @@ static const char *bufHucDmem       = "HucDmem";
 static const char *bufEncodePar     = "EncodePar";
 };
 
+namespace CodechalDbgAttr
+{
+static const char *attrInitSWScoreboard = "InitSWScoreboard";
+static const char *attrSfcHistogram = "SfcHistogram";
+};
+
 enum CodechalHucRegionDumpType
 {
     hucRegionDumpDefault        = 0,

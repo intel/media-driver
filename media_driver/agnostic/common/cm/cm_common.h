@@ -533,8 +533,9 @@ typedef struct _CM_WALKING_PARAMETERS
 
 typedef struct _CM_TASK_CONFIG
 {
-    bool     turboBoostFlag     : 1;
-    uint32_t reserved_bits      :31;
+    bool     turboBoostFlag      : 1;
+    bool     fusedEuDispatchFlag : 1;
+    uint32_t reserved_bits       :30;
     uint32_t reserved0;
     uint32_t reserved1;
     uint32_t reserved2;
