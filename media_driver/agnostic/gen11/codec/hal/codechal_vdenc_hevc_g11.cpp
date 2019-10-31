@@ -3477,10 +3477,12 @@ MOS_STATUS CodechalVdencHevcStateG11::SetConstDataHuCBrcUpdate()
     if (m_hevcVisualQualityImprovement)
     {
         MOS_SecureMemcpy(hucConstData->SADQPLambdaI, sizeof(m_sadQpLambdaI), m_sadQpLambdaI_VQI, sizeof(m_sadQpLambdaI));
+        MOS_SecureMemcpy(hucConstData->PenaltyForIntraNonDC32x32PredMode, sizeof(m_penaltyForIntraNonDC32x32PredMode), m_penaltyForIntraNonDC32x32PredMode_VQI, sizeof(m_penaltyForIntraNonDC32x32PredMode_VQI));
     }
     else
     {
         MOS_SecureMemcpy(hucConstData->SADQPLambdaI, sizeof(m_sadQpLambdaI), m_sadQpLambdaI, sizeof(m_sadQpLambdaI));
+        MOS_SecureMemcpy(hucConstData->PenaltyForIntraNonDC32x32PredMode, sizeof(m_penaltyForIntraNonDC32x32PredMode), m_penaltyForIntraNonDC32x32PredMode, sizeof(m_penaltyForIntraNonDC32x32PredMode));
     }
 
     MOS_SecureMemcpy(hucConstData->SADQPLambdaP, sizeof(m_sadQpLambdaP), m_sadQpLambdaP, sizeof(m_sadQpLambdaP));

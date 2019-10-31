@@ -252,6 +252,7 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11
     // motion adaptive
     uint8_t    QPAdaptiveWeight[52];
     uint8_t    boostTable[52];
+    uint8_t    PenaltyForIntraNonDC32x32PredMode[52];
 };
 
 using PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11 = CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11*;
