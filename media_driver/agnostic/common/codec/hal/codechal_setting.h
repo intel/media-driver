@@ -64,7 +64,7 @@ public:
 
     // Decode SFC enabling
     bool                    sfcEnablingHinted = false;     //!< Applies to decode only, application may request field sfc.
-
+    bool                    sfcInUseHinted = false;        //!< Applies to decode only, application may request sfc engine.
     bool                    enableCodecMmc = false;        //!< Applies to both of decode and encode, to indicate if codec MMC could be enabled by default
 
     //!

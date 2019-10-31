@@ -48,7 +48,7 @@ MOS_STATUS CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
     {
         gpuCtxCreatOpts->DebugOverride      = true;
         gpuCtxCreatOpts->LRCACount          = 1;
-        gpuCtxCreatOpts->UsingSFC           = false; // this param ignored when dbgoverride enabled
+        gpuCtxCreatOpts->UsingSFC           = SFCInuse;  // this param ignored when dbgoverride enabled
         if (g_apoMosEnabled)
         {
             CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);

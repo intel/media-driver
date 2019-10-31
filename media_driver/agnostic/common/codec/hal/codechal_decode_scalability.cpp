@@ -1374,17 +1374,17 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(gpuCtxCreatOpts);
     CODECHAL_DECODE_CHK_NULL_RETURN(codecHalSetting);
-
+    bool sfcInUse = codecHalSetting->sfcInUseHinted && codecHalSetting->downsamplingHinted 
+                       && (MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrSFCPipe) 
+                       && !MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrDisableVDBox2SFC));
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface    = pScalState->pHwInterface->GetOsInterface();
-
     if (pOsInterface->bEnableDbgOvrdInVE)
     {
         PMOS_VIRTUALENGINE_INTERFACE pVEInterface = pScalState->pVEInterface;
-
         CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface);
         gpuCtxCreatOpts->DebugOverride      = true;
-        gpuCtxCreatOpts->UsingSFC           = false; // this param ignored when dbgoverride enabled
+        gpuCtxCreatOpts->UsingSFC           = sfcInUse; // this param ignored when dbgoverride enabled
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDebugOvrdDecidePipeNum(pScalState));
 
         if (g_apoMosEnabled)
@@ -1406,7 +1406,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
     else
 #endif
     {
-        gpuCtxCreatOpts->UsingSFC  = false;
+        gpuCtxCreatOpts->UsingSFC  = sfcInUse;
 
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = MOS_ALIGN_CEIL(codecHalSetting->width, 8);
@@ -1420,7 +1420,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
                 initParams.format = Format_P010;
             }
         }
-        initParams.usingSFC             = false;
+        initParams.usingSFC             = sfcInUse;
         initParams.usingSecureDecode    = codecHalSetting->DecodeEncType();
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
             pScalState,
