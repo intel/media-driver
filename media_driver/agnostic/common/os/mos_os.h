@@ -709,6 +709,11 @@ typedef struct _MOS_INTERFACE
         MOS_GPU_NODE                GpuNode,
         PMOS_GPUCTX_CREATOPTIONS    createOption);
 
+    GPU_CONTEXT_HANDLE (*pfnCreateGpuComputeContext) (
+        PMOS_INTERFACE          osInterface,
+        MOS_GPU_CONTEXT         gpuContext,
+        MOS_GPUCTX_CREATOPTIONS *createOption);
+
     MOS_STATUS (* pfnDestroyGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
@@ -716,6 +721,10 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnSetGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
+
+    MOS_STATUS (*pfnSetGpuContextFromHandle)(PMOS_INTERFACE osInterface,
+                                             MOS_GPU_CONTEXT contextName,
+                                             GPU_CONTEXT_HANDLE contextHandle);
 
     MOS_STATUS (*pfnSetGpuContextHandle) (
         PMOS_INTERFACE     pOsInterface,

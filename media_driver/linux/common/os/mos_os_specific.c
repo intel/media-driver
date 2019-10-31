@@ -1595,6 +1595,44 @@ MOS_STATUS Mos_Specific_SetGpuContext(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Mos_Specific_SetGpuContextFromHandle(MOS_INTERFACE *osInterface,
+                                                MOS_GPU_CONTEXT contextName,
+                                                GPU_CONTEXT_HANDLE contextHandle)
+{
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(osInterface);
+
+    if (MOS_GPU_CONTEXT_INVALID_HANDLE == contextName)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid input parameter contextName.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // Set GPU context handle
+    osInterface->CurrentGpuContextOrdinal = contextName;
+
+    if (osInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
+    {
+        MOS_OS_CHK_NULL_RETURN(osInterface->osContextPtr);
+
+        auto os_context_specific
+                = static_cast<OsContextSpecific*>(osInterface->osContextPtr);
+        MOS_OS_CHK_NULL_RETURN(os_context_specific);
+
+        // Set GPU context handle
+        osInterface->CurrentGpuContextHandle = contextHandle;
+
+        if (g_apoMosEnabled)
+        {
+            MOS_OS_CHK_STATUS_RETURN(
+                MosInterface::SetGpuContext(osInterface->osStreamState,
+                                            contextHandle));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 //!
 //! \brief    Get current GPU context
 //! \details  Get current GPU context for the following rendering operations
@@ -4495,6 +4533,107 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
     return MOS_STATUS_SUCCESS;
 }
 
+GPU_CONTEXT_HANDLE
+Mos_Specific_CreateGpuComputeContext(MOS_INTERFACE *osInterface,
+                                     MOS_GPU_CONTEXT contextName,
+                                     MOS_GPUCTX_CREATOPTIONS *createOption)
+{
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(osInterface);
+
+    if (MOS_GPU_CONTEXT_CM_COMPUTE != contextName
+        && MOS_GPU_CONTEXT_COMPUTE != contextName)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid input parameter contextName.");
+        return MOS_GPU_CONTEXT_INVALID_HANDLE;
+    }
+
+    if (osInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
+    {
+        if (nullptr == createOption)
+        {
+            MOS_OS_ASSERTMESSAGE("Invalid pointer (nullptr).");
+            return MOS_GPU_CONTEXT_INVALID_HANDLE;
+        }
+
+        if (g_apoMosEnabled)
+        {
+            if (nullptr == osInterface->osStreamState)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid pointer (nullptr).");
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+
+            // Update ctxBasedScheduling from legacy OsInterface
+            osInterface->osStreamState->ctxBasedScheduling
+                    = osInterface->ctxBasedScheduling;
+
+            // Only wrapper will contain re-creation check based on stream Index and MOS_GPU_CONTEXT
+            createOption->gpuNode = MOS_GPU_NODE_COMPUTE;
+            GPU_CONTEXT_HANDLE context_handle = MOS_GPU_CONTEXT_INVALID_HANDLE;
+            MOS_STATUS status
+                    = MosInterface::CreateGpuContext(osInterface->osStreamState,
+                                                     *createOption, context_handle);
+            if (MOS_FAILED(status))
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+
+            auto os_device_context = osInterface->osStreamState->osDeviceContext;
+            auto gpu_context_mgr = os_device_context->GetGpuContextMgr();
+            if (nullptr == gpu_context_mgr)
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+            GpuContextNext *context_next
+                    = gpu_context_mgr->GetGpuContext(context_handle);
+            auto context_specific_next
+                    = static_cast<GpuContextSpecificNext*>(context_next);
+            if (nullptr == context_specific_next)
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+            context_specific_next->SetGpuContext(contextName);
+            return context_handle;
+        }
+        else
+        {
+            auto os_context_specific
+                    = static_cast<OsContextSpecific*>(osInterface->osContextPtr);
+            if (nullptr == os_context_specific)
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+            auto gpu_context_mgr = os_context_specific->GetGpuContextMgr();
+            if (nullptr == gpu_context_mgr)
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+            auto cmd_buffer_mgr = os_context_specific->GetCmdBufMgr();
+            if (nullptr == cmd_buffer_mgr)
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+
+            GpuContext *gpu_context
+                    = gpu_context_mgr->CreateGpuContext(MOS_GPU_NODE_COMPUTE,
+                                                        cmd_buffer_mgr,
+                                                        contextName);
+            auto *context_specific = static_cast<GpuContextSpecific*>(gpu_context);
+            MOS_STATUS status
+                    = context_specific->Init(gpu_context_mgr->GetOsContext(),
+                                             osInterface, MOS_GPU_NODE_COMPUTE,
+                                             createOption);
+            if (MOS_STATUS_SUCCESS != status)
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
+            return context_specific->GetGpuContextHandle();
+        }
+    }
+    return MOS_GPU_CONTEXT_INVALID_HANDLE;
+}
+
 //!
 //! \brief    Destroy GPU context
 //! \details  Destroy GPU context
@@ -6742,6 +6881,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     // Initialize OS interface functions
     pOsInterface->pfnSetGpuContext                          = Mos_Specific_SetGpuContext;
+    pOsInterface->pfnSetGpuContextFromHandle                = Mos_Specific_SetGpuContextFromHandle;
     pOsInterface->pfnGetGpuContext                          = Mos_Specific_GetGpuContext;
     pOsInterface->pfnSetEncodePakContext                    = Mos_Specific_SetEncodePakContext;
     pOsInterface->pfnSetEncodeEncContext                    = Mos_Specific_SetEncodeEncContext;
@@ -6797,6 +6937,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     //GPU context and synchronization functions
     pOsInterface->pfnCreateGpuContext                       = Mos_Specific_CreateGpuContext;
+    pOsInterface->pfnCreateGpuComputeContext                = Mos_Specific_CreateGpuComputeContext;
     pOsInterface->pfnDestroyGpuContext                      = Mos_Specific_DestroyGpuContext;
     pOsInterface->pfnIsGpuContextValid                      = Mos_Specific_IsGpuContextValid;
     pOsInterface->pfnSyncOnResource                         = Mos_Specific_SyncOnResource;
