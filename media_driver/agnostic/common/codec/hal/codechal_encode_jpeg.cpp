@@ -699,6 +699,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
                     return eStatus;
                 }
             }
@@ -714,6 +715,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
                 return eStatus;
             }
 
@@ -733,7 +735,12 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             }
         }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxJpegFqmCmd(&cmdBuffer, &fqmParams, numQuantTables));
+        eStatus = (MOS_STATUS) m_mfxInterface->AddMfxJpegFqmCmd(&cmdBuffer, &fqmParams, numQuantTables);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
 
         // set MFC_JPEG_HUFF_TABLE - Convert encoded huffman table to actual table for HW
         // We need a different params struct for JPEG Encode Huffman table because JPEG decode huffman table has Bits and codes,
@@ -744,34 +751,59 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             CodechalEncodeJpegHuffTable huffmanTable;// intermediate table for each AC/DC component which will be copied to huffTableParams
             MOS_ZeroMemory(&huffmanTable, sizeof(huffmanTable));
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(ConvertHuffDataToTable(m_jpegHuffmanTable->m_huffmanData[i], &huffmanTable));
+            eStatus = (MOS_STATUS) ConvertHuffDataToTable(m_jpegHuffmanTable->m_huffmanData[i], &huffmanTable);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
 
             huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].HuffTableID = m_jpegHuffmanTable->m_huffmanData[i].m_tableID;
 
             if (m_jpegHuffmanTable->m_huffmanData[i].m_tableClass == 0) // DC table
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
+                eStatus = (MOS_STATUS) MOS_SecureMemcpy(
                     huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].pDCCodeValues,
                     JPEG_NUM_HUFF_TABLE_DC_HUFFVAL * sizeof(uint16_t),
                     &huffmanTable.m_huffCode,
-                    JPEG_NUM_HUFF_TABLE_DC_HUFFVAL * sizeof(uint16_t)));
+                    JPEG_NUM_HUFF_TABLE_DC_HUFFVAL * sizeof(uint16_t));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].pDCCodeLength,
+                eStatus = (MOS_STATUS) MOS_SecureMemcpy(huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].pDCCodeLength,
                     JPEG_NUM_HUFF_TABLE_DC_HUFFVAL * sizeof(uint8_t),
                     &huffmanTable.m_huffSize,
-                    JPEG_NUM_HUFF_TABLE_DC_HUFFVAL * sizeof(uint8_t)));
+                    JPEG_NUM_HUFF_TABLE_DC_HUFFVAL * sizeof(uint8_t));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
             }
             else // AC Table
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].pACCodeValues,
+                eStatus = (MOS_STATUS) MOS_SecureMemcpy(huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].pACCodeValues,
                     JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint16_t),
                     &huffmanTable.m_huffCode,
-                    JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint16_t)));
+                    JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint16_t));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].pACCodeLength,
+                eStatus = (MOS_STATUS) MOS_SecureMemcpy(huffTableParams[m_jpegHuffmanTable->m_huffmanData[i].m_tableID].pACCodeLength,
                     JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint8_t),
                     &huffmanTable.m_huffSize,
-                    JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint8_t)));
+                    JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint8_t));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
             }
         }
 
@@ -796,6 +828,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
                     return eStatus;
                 }
 
@@ -806,6 +839,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
                     return eStatus;
                 }
             }
@@ -816,10 +850,20 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
         {
             if (repeatHuffTable)
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfcJpegHuffTableStateCmd(&cmdBuffer, &huffTableParams[i]));
+                eStatus = (MOS_STATUS) (m_mfxInterface->AddMfcJpegHuffTableStateCmd(&cmdBuffer, &huffTableParams[i]));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
             }
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfcJpegHuffTableStateCmd(&cmdBuffer, &huffTableParams[i]));
+            eStatus = (MOS_STATUS) m_mfxInterface->AddMfcJpegHuffTableStateCmd(&cmdBuffer, &huffTableParams[i]);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
         }
 
         // set MFC_JPEG_SCAN_OBJECT
@@ -830,24 +874,47 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
         scanObjectParams.dwPicHeight            = m_jpegPicParams->m_picHeight;
         scanObjectParams.pJpegEncodeScanParams  = m_jpegScanParams;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfcJpegScanObjCmd(&cmdBuffer, &scanObjectParams));
+        eStatus = (MOS_STATUS) m_mfxInterface->AddMfcJpegScanObjCmd(&cmdBuffer, &scanObjectParams);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
         // set MFC_JPEG_PAK_INSERT_OBJECT
         MHW_VDBOX_PAK_INSERT_PARAMS pakInsertObjectParams;
         MOS_ZeroMemory(&pakInsertObjectParams, sizeof(pakInsertObjectParams));
 
         // The largest component written through the MFC_JPEG_PAK_INSERT_OBJECT command is Huffman table
         pakInsertObjectParams.pBsBuffer = (BSBuffer *)MOS_AllocAndZeroMemory(sizeof(CodechalEncodeJpegFrameHeader));
-        CODECHAL_ENCODE_CHK_NULL_RETURN(pakInsertObjectParams.pBsBuffer);
+        if (pakInsertObjectParams.pBsBuffer == nullptr)
+        {
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(nullptr);
+        }
         if(!m_fullHeaderInAppData)
         {
             // Add SOI (0xFFD8) (only if it was sent by the application)
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(PackSOI(pakInsertObjectParams.pBsBuffer));
+            eStatus = (MOS_STATUS)PackSOI(pakInsertObjectParams.pBsBuffer);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
             pakInsertObjectParams.dwOffset                      = 0;
             pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
             pakInsertObjectParams.bLastHeader                   = false;
             pakInsertObjectParams.bEndOfSlice                   = false;
             pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr, &pakInsertObjectParams));
+            eStatus = (MOS_STATUS) m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr, &pakInsertObjectParams);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
             MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
         }
         // Add Application data if it was sent by application
@@ -869,7 +936,13 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             }
 
             appDataChunk = (uint8_t*)MOS_AllocAndZeroMemory(appDataChunkSize);
-            CODECHAL_ENCODE_CHK_NULL_RETURN(appDataChunk);
+            if (appDataChunk == nullptr)
+            {
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_NULL_RETURN(nullptr);
+            }
 
             for (uint32_t i = 0; i < numAppDataCmdsNeeded; i++)
             {
@@ -878,7 +951,15 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                 MOS_SecureMemcpy(appDataChunk, appDataChunkSize,
                     copyAddress, appDataChunkSize);
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(PackApplicationData(pakInsertObjectParams.pBsBuffer, appDataChunk, appDataChunkSize));
+                eStatus = (MOS_STATUS)PackApplicationData(pakInsertObjectParams.pBsBuffer, appDataChunk, appDataChunkSize);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    MOS_SafeFreeMemory(appDataChunk);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
                 pakInsertObjectParams.dwOffset                      = 0;
                 pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
                 //if full header is included in application data, it will be the last insert headers
@@ -893,8 +974,16 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                     pakInsertObjectParams.bEndOfSlice                   = false;
                 }
                 pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-                    &pakInsertObjectParams));
+                eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+                    &pakInsertObjectParams);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    MOS_SafeFreeMemory(appDataChunk);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
             }
 
             if (appDataCmdSizeResidue != 0)
@@ -906,7 +995,15 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                     lastAddress,
                     appDataChunkSize);
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(PackApplicationData(pakInsertObjectParams.pBsBuffer, appDataChunk, appDataCmdSizeResidue));
+                eStatus = (MOS_STATUS)PackApplicationData(pakInsertObjectParams.pBsBuffer, appDataChunk, appDataCmdSizeResidue);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    MOS_SafeFreeMemory(appDataChunk);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
                 pakInsertObjectParams.dwOffset                      = 0;
                 pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
                 //if full header is included in application data, it will be the last insert headers
@@ -921,8 +1018,16 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                     pakInsertObjectParams.bEndOfSlice                   = false;
                 }
                 pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-                    &pakInsertObjectParams));
+                eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+                    &pakInsertObjectParams);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    MOS_SafeFreeMemory(appDataChunk);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
             }
 
             MOS_FreeMemory(appDataChunk);
@@ -930,15 +1035,28 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
         if(!m_fullHeaderInAppData)
         {
         // Add Quant Table for Y
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentY));
-
+        eStatus = (MOS_STATUS)PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentY);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
         pakInsertObjectParams.dwOffset                      = 0;
         pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
         pakInsertObjectParams.bLastHeader                   = false;
         pakInsertObjectParams.bEndOfSlice                   = false;
         pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-            &pakInsertObjectParams));
+        eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+            &pakInsertObjectParams);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
         MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
 
         if (!useSingleDefaultQuantTable)
@@ -947,94 +1065,198 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             if (m_jpegPicParams->m_inputSurfaceFormat != codechalJpegY8)
             {
                 // Add quant table for U
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentU));
+                eStatus = (MOS_STATUS)PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentU);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
                 pakInsertObjectParams.dwOffset                      = 0;
                 pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
                 pakInsertObjectParams.bLastHeader                   = false;
                 pakInsertObjectParams.bEndOfSlice                   = false;
                 pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-                    &pakInsertObjectParams));
+                eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+                    &pakInsertObjectParams);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
                 MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
 
                 // Add quant table for V
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentV));
+                eStatus = (MOS_STATUS)PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentV);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
                 pakInsertObjectParams.dwOffset                      = 0;
                 pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
                 pakInsertObjectParams.bLastHeader                   = false;
                 pakInsertObjectParams.bEndOfSlice                   = false;
                 pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-                    &pakInsertObjectParams));
+                eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+                    &pakInsertObjectParams);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                    MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+                }
                 MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
             }
         }
 
         // Add Frame Header
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(PackFrameHeader(pakInsertObjectParams.pBsBuffer, useSingleDefaultQuantTable));
+        eStatus = (MOS_STATUS)PackFrameHeader(pakInsertObjectParams.pBsBuffer, useSingleDefaultQuantTable);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
         pakInsertObjectParams.dwOffset                      = 0;
         pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
         pakInsertObjectParams.bLastHeader                   = false;
         pakInsertObjectParams.bEndOfSlice                   = false;
         pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-            &pakInsertObjectParams));
+        eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+            &pakInsertObjectParams);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
         MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
 
         // Add Huffman Table for Y - DC table, Y- AC table, U/V - DC table, U/V - AC table
         for (uint32_t i = 0; i < m_encodeParams.dwNumHuffBuffers; i++)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(PackHuffmanTable(pakInsertObjectParams.pBsBuffer, i));
+            eStatus = (MOS_STATUS)PackHuffmanTable(pakInsertObjectParams.pBsBuffer, i);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
             pakInsertObjectParams.dwOffset                      = 0;
             pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
             pakInsertObjectParams.bLastHeader                   = false;
             pakInsertObjectParams.bEndOfSlice                   = false;
             pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-                &pakInsertObjectParams));
+            eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+                &pakInsertObjectParams);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
             MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
         }
 
         // Restart Interval - Add only if the restart interval is not zero
         if (m_jpegScanParams->m_restartInterval != 0)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(PackRestartInterval(pakInsertObjectParams.pBsBuffer));
+            eStatus = (MOS_STATUS)PackRestartInterval(pakInsertObjectParams.pBsBuffer);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
             pakInsertObjectParams.dwOffset                      = 0;
             pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
             pakInsertObjectParams.bLastHeader                   = false;
             pakInsertObjectParams.bEndOfSlice                   = false;
             pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-                &pakInsertObjectParams));
+            eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+                &pakInsertObjectParams);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+                MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
             MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
         }
 
         // Add scan header
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(PackScanHeader(pakInsertObjectParams.pBsBuffer));
+        eStatus = (MOS_STATUS)PackScanHeader(pakInsertObjectParams.pBsBuffer);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
         pakInsertObjectParams.dwOffset                      = 0;
         pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
         pakInsertObjectParams.bLastHeader                   = true;
         pakInsertObjectParams.bEndOfSlice                   = true;
         pakInsertObjectParams.bResetBitstreamStartingPos    = 1; // from discussion with HW Architect
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
-            &pakInsertObjectParams));
+        eStatus = (MOS_STATUS)m_mfxInterface->AddMfxPakInsertObject(&cmdBuffer, nullptr,
+            &pakInsertObjectParams);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
+            MOS_SafeFreeMemory(pakInsertObjectParams.pBsBuffer);
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
         MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
         }
         MOS_FreeMemory(pakInsertObjectParams.pBsBuffer);
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadMfcStatus(&cmdBuffer));
+    eStatus = ReadMfcStatus(&cmdBuffer);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_SafeFreeMemory(tempJpegQuantMatrix);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+    }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
+    eStatus = EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_SafeFreeMemory(tempJpegQuantMatrix);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+    }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    eStatus = m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_SafeFreeMemory(tempJpegQuantMatrix);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+    }
 
     std::string pakPassName = "PAK_PASS" + std::to_string(static_cast<uint32_t>(m_currPass));
     CODECHAL_DEBUG_TOOL(
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
+        eStatus = m_debugInterface->DumpCmdBuffer(
             &cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
-            pakPassName.data()));
+            pakPassName.data());
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(tempJpegQuantMatrix);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
 
     //CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgReplaceAllCommands(
     //    m_debugInterface,
@@ -1043,7 +1265,12 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, m_renderContextUsesNullHw));
+    eStatus = SubmitCommandBuffer(&cmdBuffer, m_renderContextUsesNullHw);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_SafeFreeMemory(tempJpegQuantMatrix);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+    }
 
     if (tempJpegQuantMatrix != nullptr)
     {

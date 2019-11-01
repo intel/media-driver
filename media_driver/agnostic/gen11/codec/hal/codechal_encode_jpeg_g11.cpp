@@ -166,6 +166,7 @@ MOS_STATUS CodechalEncodeJpegStateG11::ExecuteSliceLevel()
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
+                MOS_SafeFreeMemory(tempJpegQuantMatrix);
                 return eStatus;
             }
 
@@ -278,6 +279,7 @@ MOS_STATUS CodechalEncodeJpegStateG11::ExecuteSliceLevel()
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
                     return eStatus;
                 }
 
@@ -288,6 +290,7 @@ MOS_STATUS CodechalEncodeJpegStateG11::ExecuteSliceLevel()
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
+                    MOS_SafeFreeMemory(tempJpegQuantMatrix);
                     return eStatus;
                 }
             }

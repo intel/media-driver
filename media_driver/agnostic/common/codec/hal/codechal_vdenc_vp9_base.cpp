@@ -3760,16 +3760,25 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
         m_osInterface,
         &m_resCompressedHeaderBuffer,
         &lockFlagsWriteOnly);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+    if(data == nullptr)
+    {
+        MOS_FreeMemory(compressedHdr);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(nullptr);
+    }
 
     for (uint32_t i = 0; i < PAK_COMPRESSED_HDR_SYNTAX_ELEMS; i += 2)
     {
         data[i>>1] = (compressedHdr[i + 1].value << 0x04) | (compressedHdr[i].value);
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+    eStatus = (MOS_STATUS) m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &m_resCompressedHeaderBuffer));
+        &m_resCompressedHeaderBuffer);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_FreeMemory(compressedHdr);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
+    }
 
     MOS_FreeMemory(compressedHdr);
     return eStatus;
