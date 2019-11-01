@@ -468,13 +468,13 @@ void VpFeatureReport(
     //VP MMC In Use
     WriteUserFeature(__VPHAL_ENABLE_MMC_IN_USE_ID,             pConfig->dwVPMMCInUse);
     //VP Primary Surface Compress Mode Report
-    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESS_MODE_ID, pConfig->dwPrimaryCompressMode);
+    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESS_MODE_ID, pConfig->dwPrimaryCompressModeReported);
     //VP Primary Surface Compressible
-    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESSIBLE_ID,  pConfig->dwPrimaryCompressible);
+    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESSIBLE_ID,  pConfig->dwPrimaryCompressibleReported);
     //VP RT Compress Mode
-    WriteUserFeature(__VPHAL_RT_COMPRESS_MODE_ID,              pConfig->dwRTCompressMode);
+    WriteUserFeature(__VPHAL_RT_COMPRESS_MODE_ID,              pConfig->dwRTCompressModeReported);
     //VP RT Compressible
-    WriteUserFeature(__VPHAL_RT_COMPRESSIBLE_ID,               pConfig->dwRTCompressible);
+    WriteUserFeature(__VPHAL_RT_COMPRESSIBLE_ID,               pConfig->dwRTCompressibleReported);
 #endif
 }
 
