@@ -76,11 +76,11 @@ MOS_STATUS CodechalDecodeJpegG12::SetGpuCtxCreatOption(
     else
     {
         m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
-        bool sfcInUse    = codecHalSetting->sfcInUseHinted && IsSfcInUse(codecHalSetting);
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
             m_veState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
-            sfcInUse));
+            false));
     }
 
     return eStatus;
