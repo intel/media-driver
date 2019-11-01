@@ -3864,7 +3864,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     secondLevelBatchBuffer.bSecondLevel = true;
     if (m_hucEnabled)
     {
-        secondLevelBatchBuffer.OsResource = m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex];
+        secondLevelBatchBuffer.OsResource = m_resVdencPictureState2NdLevelBatchBufferWrite[0];
     }
     else
     {
@@ -5140,7 +5140,16 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
     // If BRC enabled, BRC Pass 2 output SLBB -> input SLBB for HPU on pass 2 (HPU pass 1 and 3. BRC Update pass 1 and 2)
     //                 BRC Pass 1 output SLBB -> input SLBB for HPU on pass 1
     // If BRC not on, Driver prepared SLBB    -> input to HPU on both passes
-    virtualAddrParams.regionParams[7].presRegion = m_vdencBrcEnabled ? ((!IsLastPass()) ? &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex] : &m_resVdencPictureState2NdLevelBatchBufferWrite[m_lastVdencPictureState2ndLevelBBIndex]) : &m_resVdencPictureState2NdLevelBatchBufferRead[currPass][m_vdencPictureState2ndLevelBBIndex];
+
+    if (m_vdencBrcEnabled)
+    {
+        virtualAddrParams.regionParams[7].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[0];
+    }
+    else
+    {
+        virtualAddrParams.regionParams[7].presRegion = &m_resVdencPictureState2NdLevelBatchBufferRead[currPass][m_vdencPictureState2ndLevelBBIndex];
+    }
+
     virtualAddrParams.regionParams[8].presRegion = &m_resHucPakInsertUncompressedHeaderReadBuffer;
     virtualAddrParams.regionParams[9].presRegion = &m_resHucDefaultProbBuffer;
 
@@ -5153,7 +5162,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
     virtualAddrParams.regionParams[4].isWritable = true;
     virtualAddrParams.regionParams[5].presRegion = &m_resCompressedHeaderBuffer;
     virtualAddrParams.regionParams[5].isWritable = true;
-    virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex];
+    virtualAddrParams.regionParams[6].presRegion  = &m_resVdencPictureState2NdLevelBatchBufferWrite[0];
     virtualAddrParams.regionParams[6].isWritable = true;
     virtualAddrParams.regionParams[10].presRegion = &m_resBitstreamBuffer;
     virtualAddrParams.regionParams[10].isWritable = true;
@@ -5528,7 +5537,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
         virtualAddrParams.regionParams[4].presRegion = &m_brcBuffers.resBrcHucDataBuffer;
         virtualAddrParams.regionParams[4].isWritable = true;
         virtualAddrParams.regionParams[5].presRegion = &m_brcBuffers.resBrcConstantDataBuffer;
-        virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex];
+        virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[0];
         virtualAddrParams.regionParams[6].isWritable = true;
         virtualAddrParams.regionParams[7].presRegion = &m_brcBuffers.resBrcBitstreamSizeBuffer;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(// Dump history IN since it's both IN/OUT, OUT will dump at end of function, rest of buffers are IN XOR OUT (not both)
@@ -5680,7 +5689,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
     virtualAddrParams.regionParams[5].presRegion = &m_brcBuffers.resBrcConstantDataBuffer;
 
     // Output SLBB - OUT
-    virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex];
+    virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[0];
     virtualAddrParams.regionParams[6].isWritable = true;
 
     // Load HuC Regions into Cmd Buf
