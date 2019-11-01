@@ -407,7 +407,7 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
             uint32_t           MBBRC                        : 4;
             /*! \brief Indicates trellis control.
             *
-            *    The Trellis_I, Trellis_P and Trellis_B settings may be combined using bitwise OR like “Trellis_I | Trellis_P” to enable Trellis for I & P.  If Trellis_Disabled is set with any combination, Trellis will be disabled.
+            *    The Trellis_I, Trellis_P and Trellis_B settings may be combined using bitwise OR like "Trellis_I | Trellis_P" to enable Trellis for I & P.  If Trellis_Disabled is set with any combination, Trellis will be disabled.
             *        \n - 0: Trellis_Default – Trellis decided internally.
             *        \n - 1: Trellis_Disabled – Trellis disabled for all frames/fields.
             *        \n - 2: Trellis_I – Trellis enabled for I frames/fields.

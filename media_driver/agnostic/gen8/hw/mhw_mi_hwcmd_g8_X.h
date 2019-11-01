@@ -1179,8 +1179,8 @@ public:
     //!     the PD information following MI_SEMAPHORE_WAIT command. This will ensure
     //!     Page Directory information gets reprogrammed after exiting IDLE flow
     //!     triggered on MI_SEMAPHORE_WAIT command. Alternatively SW can disable
-    //!     IDLE flows on MI_SEMAPHORE_WAIT by setting “Semaphore Wait Event IDLE
-    //!     Message Disable“ bit in “BCS_ECOSKPD” register.
+    //!     IDLE flows on MI_SEMAPHORE_WAIT by setting "Semaphore Wait Event IDLE
+    //!     Message Disable" bit in "BCS_ECOSKPD" register.
     //!
     struct MI_SEMAPHORE_WAIT_CMD
     {

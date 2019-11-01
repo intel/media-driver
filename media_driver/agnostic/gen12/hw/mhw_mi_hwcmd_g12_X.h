@@ -471,12 +471,12 @@ public:
 
         //! \brief ADD_CS_MMIO_START_OFFSET
         //! \details
-        //!     This bit controls the functionality of the “Register Address” field in
+        //!     This bit controls the functionality of the "Register Address" field in
         //!     the command.
         enum ADD_CS_MMIO_START_OFFSET
         {
-            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< “Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< “Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset.Bits [22:2] of the “Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in a write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< "Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< "Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset.Bits [22:2] of the "Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in a write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         enum MI_COMMAND_OPCODE
@@ -619,22 +619,22 @@ public:
 
         //! \brief ADD_CS_MMIO_START_OFFSET_SOURCE
         //! \details
-        //!     <p>This bit controls the functionality of the “Register Address Source”
+        //!     <p>This bit controls the functionality of the "Register Address Source"
         //!     field in the command.</p>
         enum ADD_CS_MMIO_START_OFFSET_SOURCE
         {
-            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED0                         = 0, //!< “Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED1                         = 1, //!< “Source Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the “Source Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: false, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C _2130 instead of read from 0x1C_0130 and write to MMIO offset 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED0                         = 0, //!< "Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED1                         = 1, //!< "Source Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the "Source Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: false, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C _2130 instead of read from 0x1C_0130 and write to MMIO offset 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         //! \brief ADD_CS_MMIO_START_OFFSET_DESTINATION
         //! \details
-        //!     <p>This bit controls the functionality of the “Register Address
-        //!     Destination” field in the command.</p>
+        //!     <p>This bit controls the functionality of the "Register Address
+        //!     Destination" field in the command.</p>
         enum ADD_CS_MMIO_START_OFFSET_DESTINATION
         {
-            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED0                    = 0, //!< “Destination Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED1                    = 1, //!< “Destination Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the “Destination Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: true, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C_2130 (0x00_2000 + 0x1C_0130) and write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead of read from 0x1C_0130 and write to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED0                    = 0, //!< "Destination Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED1                    = 1, //!< "Destination Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the "Destination Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: true, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C_2130 (0x00_2000 + 0x1C_0130) and write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead of read from 0x1C_0130 and write to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         enum MI_COMMAND_OPCODE
@@ -758,12 +758,12 @@ public:
 
         //! \brief ADD_CS_MMIO_START_OFFSET
         //! \details
-        //!     <p>This bit controls the functionality of the “Register Address” field
+        //!     <p>This bit controls the functionality of the "Register Address" field
         //!     in the command.</p>
         enum ADD_CS_MMIO_START_OFFSET
         {
-            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< “Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< “Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the “Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_STORE_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in updating the memory address with the content of the MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< "Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< "Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the "Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_STORE_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in updating the memory address with the content of the MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         enum MI_COMMAND_OPCODE
@@ -882,10 +882,10 @@ public:
         //! \brief ENABLE_COMMAND_CACHE
         //! \details
         //!     <p>Command Buffer DMA engine on processing the MI_BATCH_BUFFER_START
-        //!     command with “Enable Command Cache” set will make the corresponding
+        //!     command with "Enable Command Cache" set will make the corresponding
         //!     command buffer read requests cacheable in L3, it also applies the
         //!     command caching to all subsequent chained and next level batch buffers.
-        //!     Command buffer DMA engine uses the “Command Buffer Cache Size”
+        //!     Command buffer DMA engine uses the "Command Buffer Cache Size"
         //!     programmed in the CMD_BUF_CCTL register to limit the read requests of a
         //!     cacheable batch buffer to be cached in L3. DMA engine does this by
         //!     tracking the amount of read requests made cacheable and stops caching
@@ -909,41 +909,41 @@ public:
 
         //! \brief POSH_ENABLE
         //! \details
-        //!     <p> “POSH Enable” field in the MI_BATCH_BUFFER_START command is a hint
+        //!     <p> "POSH Enable" field in the MI_BATCH_BUFFER_START command is a hint
         //!     to POCS to traverse (parse, don’t execute) the batch buffer to look for
-        //!     “POSH Start” batch buffers. “POSH Enable” field is only inherited to the
+        //!     "POSH Start" batch buffers. "POSH Enable" field is only inherited to the
         //!     chained batch buffer and doesn’t get inherit to the next level batch
-        //!     buffers unlike “POSH Start” field. “POSH Enable” field must be
+        //!     buffers unlike "POSH Start" field. "POSH Enable" field must be
         //!     explicitly set in the MI_BATCH_BUFFER_START command which calls the next
         //!     level batch buffers in order for the POCS to parse them to look for
-        //!     “POSH Start” batch buffers. “POSH Start” field  takes precedence over
-        //!     the “POSH Enable” field in POCS.</p>
+        //!     "POSH Start" batch buffers. "POSH Start" field  takes precedence over
+        //!     the "POSH Enable" field in POCS.</p>
         //!     <p>Example:</p>
         //!     <ul>
-        //!         <li>Once “POSH Enable” is encountered in a first level batch buffer,
+        //!         <li>Once "POSH Enable" is encountered in a first level batch buffer,
         //!     POCS will traverse the whole of the first level batch buffers (including
-        //!     chained first level) to check for “POSH Start” field in
+        //!     chained first level) to check for "POSH Start" field in
         //!     MI_BATCH_BUFFER_START command. POCS by default will not traverse the
-        //!     second level batch buffers. SW must explicitly set the “POSH Enable”
+        //!     second level batch buffers. SW must explicitly set the "POSH Enable"
         //!     field for the second level batch buffer called from first level batch
         //!     buffer if the second level batch buffer have to be traversed by
         //!     POCS.</li>
-        //!         <li>Similarly, Once “POSH Enable” is encountered in a second level
+        //!         <li>Similarly, Once "POSH Enable" is encountered in a second level
         //!     batch buffer, POCS will traverse the whole of the second level batch
-        //!     buffers (including chained second level) to check for “POSH Start” field
+        //!     buffers (including chained second level) to check for "POSH Start" field
         //!     in MI_BATCH_BUFFER_START command. POCS by default will not traverse the
-        //!     third level batch buffers. SW must explicitly set the “POSH Enable”
+        //!     third level batch buffers. SW must explicitly set the "POSH Enable"
         //!     field for the third level batch buffer called from second level batch
         //!     buffer if the third level batch buffer have to be traversed by
         //!     POCS.</li>
-        //!         <li>Similarly, Once “POSH Enable” is encountered in a third level
+        //!         <li>Similarly, Once "POSH Enable" is encountered in a third level
         //!     batch buffer, POCS will traverse the whole of the third level batch
-        //!     buffers (including chained second level) to check for “POSH Start” field
+        //!     buffers (including chained second level) to check for "POSH Start" field
         //!     in MI_BATCH_BUFFER_START command.</li>
         //!     </ul>
         //!
-        //!     <p>RCS ignores “POSH Enable” field and has no implications due to the
-        //!     “POSH Enable” field set in the MI_BATCH_BUFFER_START command.</p>
+        //!     <p>RCS ignores "POSH Enable" field and has no implications due to the
+        //!     "POSH Enable" field set in the MI_BATCH_BUFFER_START command.</p>
         enum POSH_ENABLE
         {
             POSH_ENABLE_UNNAMED0                                             = 0, //!< Batch buffer is  not "POSH Enable".
@@ -953,36 +953,36 @@ public:
         //! \brief POSH_START
         //! \details
         //!     <p>Batch buffers dedicated to be executed by POSH pipe are indicated by
-        //!     setting the field “POSH Start” in the MI_BATCH_BUFFER_START command
-        //!     header. Once “POSH Start” is set in a batch buffer all the following
+        //!     setting the field "POSH Start" in the MI_BATCH_BUFFER_START command
+        //!     header. Once "POSH Start" is set in a batch buffer all the following
         //!     chained batch buffers and next level batch buffers will implicitly
-        //!     inherit the “POSH Start” field value. Once “POSH Start” is set in a
+        //!     inherit the "POSH Start" field value. Once "POSH Start" is set in a
         //!     batch buffer all the following command sequences are to be
         //!     <b>executed</b> by POCS until the corresponding batch buffer sequencing
         //!     is terminated through
         //!     MI_BATCH_BUFFER_END/MI_CONDITIONAL_BATCH_BUFFER_END command.</p>
         //!     <p>Example:</p>
         //!     <ul>
-        //!         <li>Once “POSH Start” is encountered in a first level batch buffer
+        //!         <li>Once "POSH Start" is encountered in a first level batch buffer
         //!     by POCS, it will get reset only when the first level batch buffer
         //!     execution is terminated through batch buffer end and the command
         //!     execution sequence goes back to the ring buffer,</li>
-        //!         <li>Similarly, once “POSH Start” is encountered in a second level
+        //!         <li>Similarly, once "POSH Start" is encountered in a second level
         //!     batch buffer by POCS, it will get reset only when the second level batch
         //!     buffer execution is terminated through batch buffer end and the command
         //!     execution sequence goes back to the first level buffer,</li>
-        //!         <li>Similarly, once when “POSH Start” is encountered in a third
+        //!         <li>Similarly, once when "POSH Start" is encountered in a third
         //!     level batch buffer by POCS, it will get reset only when the third level
         //!     batch buffer execution is terminated through batch buffer end and the
         //!     command execution sequence goes back to the second level batch
         //!     buffer.</li>
         //!     </ul>
         //!
-        //!     <p>Command sequences executed from the “POSH Start” batch buffer may
+        //!     <p>Command sequences executed from the "POSH Start" batch buffer may
         //!     lead to chained batch buffers or next level batch buffers.  Batch
         //!     buffers executed by POCS may have MI Commands, 3DSATE commands and
         //!     3DPRIMTIVE commands for POSH pipe. RCS on parsing MI_BATCH_BUFFER_START
-        //!     command with “POSH Start” enabled NOOPS the command and moves on the
+        //!     command with "POSH Start" enabled NOOPS the command and moves on the
         //!     following command.</p>
         enum POSH_START
         {
@@ -1056,7 +1056,7 @@ public:
     //! \details
     //!     This command provides a mechanism to NOOP a section of commands
     //!     programmed in the command buffer. This command on execution evaluates
-    //!     the condition based on the “Predicate Enable” field and sets the
+    //!     the condition based on the "Predicate Enable" field and sets the
     //!     predicate status accordingly in HW. On predicate status set, HW NOOPS
     //!     the commands subsequently parsed until the predicate status is
     //!     re-evaluated and reset on executing MI_SET_PREDICATE. MI_SET_PREDICATE
@@ -1341,11 +1341,11 @@ public:
     //! \brief MI_SEMAPHORE_SIGNAL
     //! \details
     //!     An engine on executing this command generates a signal (interrupt) to
-    //!     the GUC (scheduler or FW) by reporting the “Producer Token Number”
+    //!     the GUC (scheduler or FW) by reporting the "Producer Token Number"
     //!     programmed in SEMAPHORE_TOKEN register. Each engine implements its own
     //!     SEMAPHORE_TOKEN register. SEMAPHORE_TOKEN register is privileged and
     //!     context save/restored. Scheduler can take appropriate action on decoding
-    //!     the reported “Producer Token Number”. Typically MI_ATOMIC (non-posted)
+    //!     the reported "Producer Token Number". Typically MI_ATOMIC (non-posted)
     //!     command will be used to update the memory semaphore before signaling the
     //!     consumer context.
     //!     Each engine implements SEMAPHORE_SIGNAL_PORT register for receiving
@@ -1367,8 +1367,8 @@ public:
     //!     memory semaphore by the producer context before signaling the consumer
     //!     context.
     //!
-    //!     Scheduler on receiving the signal will process the “Producer Token
-    //!     Number” and if required will signal the consumer context running on an
+    //!     Scheduler on receiving the signal will process the "Producer Token
+    //!     Number" and if required will signal the consumer context running on an
     //!     engine by writing 0xFFFF_FFFF to the corresponding engines
     //!     SEMAPHORE_SIGNAL_PORT.
     //!
@@ -1376,10 +1376,10 @@ public:
     //!     until the semaphore comparison is successful. An engine waiting on
     //!     un-successful MI_SEMAPHORE_WAIT (signal mode) command will reacquire the
     //!     semaphore data from memory and re-evaluate the semaphore comparison on
-    //!     receiving the semaphore signal.MI_SEMAPHORE_WAIT command has “Wait Token
-    //!     Number” as inline data programmed by the SW. Context switched out an
-    //!     un-successful MI_SEMAPHORE_WAIT command will report “Wait Token Number”
-    //!     as “Wait Detail” field in the CSB structure.
+    //!     receiving the semaphore signal.MI_SEMAPHORE_WAIT command has "Wait Token
+    //!     Number" as inline data programmed by the SW. Context switched out an
+    //!     un-successful MI_SEMAPHORE_WAIT command will report "Wait Token Number"
+    //!     as "Wait Detail" field in the CSB structure.
     //!
     //!
     //!
@@ -1492,20 +1492,20 @@ public:
     //!     MI_SEMAPHORE_WAIT command also supports register based Semaphore WAIT.
     //!     Command Streamer on parsing this command fetches data from the MMIO
     //!     offset mentioned in this command and compares it with the inline
-    //!     Semaphore Data Dword. This functionality is supported when “Register
-    //!     Poll” bit is set in the command header. In register poll mode of
-    //!     operation “Wait Mode” supported is always Poll mode and no Signal mode
+    //!     Semaphore Data Dword. This functionality is supported when "Register
+    //!     Poll" bit is set in the command header. In register poll mode of
+    //!     operation "Wait Mode" supported is always Poll mode and no Signal mode
     //!     is supported.
     //!     
     //!     If comparison passes, the command streamer moves to the next command.
     //!     
     //!     Unlike in Memory based semaphore, there is no context switch on an
-    //!     un-successful semaphore wait in “Register Poll” mode, however preemption
-    //!     is supported on unsuccessful semaphore wait in “Register Poll” mode.
+    //!     un-successful semaphore wait in "Register Poll" mode, however preemption
+    //!     is supported on unsuccessful semaphore wait in "Register Poll" mode.
     //!     Semaphore wait interrupt is not generated by default on wait
-    //!     un-successful in “Register Poll” mode. However interrupt generation can
-    //!     be enabled by setting debug mode bit “Semaphore Interrupt Enable in
-    //!     Register Poll Mode” in specified register 
+    //!     un-successful in "Register Poll" mode. However interrupt generation can
+    //!     be enabled by setting debug mode bit "Semaphore Interrupt Enable in
+    //!     Register Poll Mode" in specified register 
     //!     
     //!     Also unlike in Memory based semaphore, generation of an interrupt for a
     //!     semaphore wait in "Register Poll" mode is not dependent on the value of
@@ -1515,8 +1515,8 @@ public:
     //!     and will be supported from PPGTT batch buffers.
     //!     
     //!     HW will trigger Render DOP CG on semaphore wait unsuccessful by default
-    //!     and can be disabled if not desired by programming “Register
-    //!     Poll Mode Semaphore Wait Event IDLE message Disable” bit in “INSTPM”
+    //!     and can be disabled if not desired by programming "Register
+    //!     Poll Mode Semaphore Wait Event IDLE message Disable" bit in "INSTPM"
     //!     register. Note that Render DOP CG will not be triggered on register
     //!     semaphore wait un-successfull from INDIRECT_CTX pointer or
     //!     BB_PER_CTX_PTR buffers.
@@ -1529,10 +1529,10 @@ public:
     //!     
     //!     
     //!     : [All Command Streamers][Ring Buffer Mode of Scheduling]:
-    //!     MI_SEMAPHORE_WAIT command must be always programmed with “Wait Mode” set
-    //!     to “Polling Mode” Or MI_SEMAPHORE_WAIT command with “Wait Mode” set to
-    //!     “Polling Mode” can be programmed when “Semaphore Wait Event IDLE message
-    //!     Disable” bit in “RC_PSMI_CTRL” register is set to disable Idle messaging
+    //!     MI_SEMAPHORE_WAIT command must be always programmed with "Wait Mode" set
+    //!     to "Polling Mode" Or MI_SEMAPHORE_WAIT command with "Wait Mode" set to
+    //!     "Polling Mode" can be programmed when "Semaphore Wait Event IDLE message
+    //!     Disable" bit in "RC_PSMI_CTRL" register is set to disable Idle messaging
     //!     on unsuccessful MI_SEMPAHORE_WAIT.
     //!     
     struct MI_SEMAPHORE_WAIT_CMD
@@ -1618,7 +1618,7 @@ public:
         enum REGISTER_POLL_MODE
         {
             REGISTER_POLL_MODE_MEMORYPOLL                                    = 0, //!< In this mode HW will functional as in regular mode and checks for semaphore data in memory.
-            REGISTER_POLL_MODE_REGISTERPOLL                                  = 1, //!< In this mode HW periodically reads the semaphore data from MMIO register instead of memory for comparison until the condition is satisfied. Periodicity will be mentioned in a SEMA_WAIT_POLL register.When operating in register poll mode, DW2 “Semaphore Address” (bits 22:2) carries the register MMIO offset to be polled.In register poll mode “Memory Type” field of this command are ignored by HW. 
+            REGISTER_POLL_MODE_REGISTERPOLL                                  = 1, //!< In this mode HW periodically reads the semaphore data from MMIO register instead of memory for comparison until the condition is satisfied. Periodicity will be mentioned in a SEMA_WAIT_POLL register.When operating in register poll mode, DW2 "Semaphore Address" (bits 22:2) carries the register MMIO offset to be polled.In register poll mode "Memory Type" field of this command are ignored by HW. 
         };
 
         //! \brief MEMORY_TYPE
@@ -1660,8 +1660,8 @@ public:
     //!     using a MI_BATCH_BUFFER_START command.
     //!     Termination of the current level of batch buffer from which
     //!     MI_CONDITIONAL_BATCH_BUFFER_END is executed or termination of all levels
-    //!     of batch buffer behavior is controlled by the “End Current Batch Buffer
-    //!     Level” bit in the command header.
+    //!     of batch buffer behavior is controlled by the "End Current Batch Buffer
+    //!     Level" bit in the command header.
     //!     
     //!     Any updates to the memory location exercised by this command must be
     //!     ensured to be coherent in memory prior to programming of this command.
@@ -1675,8 +1675,8 @@ public:
     //!     times) (Dummy data, Scratch Address)
     //!     MI_CONDITIONAL_BATCH_BUFFER_END(0x2CF0_0000)
     //!     Option2: Programming of a PIPE_CONTROL with Post-Sync Operation selected
-    //!     to “Write Immediate Data” to scratch space address with “Command
-    //!     Streamer Stall Enable” set prior to programming of this command.
+    //!     to "Write Immediate Data" to scratch space address with "Command
+    //!     Streamer Stall Enable" set prior to programming of this command.
     //!     Example: MI_STORE_REGISTE_MEM (0x2288, 0x2CF0_0000) ……… ……… PIPE_CONTROL
     //!     (Stall, Write Immediate Data),
     //!     MI_CONDITIONAL_BATCH_BUFFER_END(0x2CF0_0000).
@@ -2272,31 +2272,31 @@ public:
     //!     Write cache flush bits must not be set (Render Target Cache Flush
     //!     Enable, DC Flush Enable, Depth Cache Flush Enable )
     //!     
-    //!     Post Sync Operations must not be set to “Write PS Depth Count”
+    //!     Post Sync Operations must not be set to "Write PS Depth Count"
     //!     
-    //!     “Stall at Pixel Scoreboard” must not be set
+    //!     "Stall at Pixel Scoreboard" must not be set
     //!     
-    //!     “Notify Enable” must not be set.
+    //!     "Notify Enable" must not be set.
     //!     
-    //!     “Depth Stall Enable” must not be set.
+    //!     "Depth Stall Enable" must not be set.
     //!     
-    //!     “Generic Media State Clear” must not be set.
+    //!     "Generic Media State Clear" must not be set.
     //!     
-    //!     “PSD Sync Enable” must not be set.
+    //!     "PSD Sync Enable" must not be set.
     //!     
     //!     SW must follow below programming restrictions when
     //!     programmingPIPE_CONTROL command for ComputeCS:
     //!     
     //!     "Command Streamer Stall Enable" must be always set.
     //!     
-    //!     Post Sync Operations must not be set to “Write PS Depth Count”
+    //!     Post Sync Operations must not be set to "Write PS Depth Count"
     //!     
     //!     Following bits must not be set when programmed for ComputeCS
     //!     
     //!     "Render Target Cache Flush Enable", "Depth Cache Flush Enable" and "Tile
     //!     Cache Flush Enable"
     //!     
-    //!     "Depth Stall Enable", “Stall at Pixel Scoreboard” and "PSD Sync Enable".
+    //!     "Depth Stall Enable", "Stall at Pixel Scoreboard" and "PSD Sync Enable".
     //!     
     //!     "OVR Tile 0 Flush", "TBIMR Force Batch Closure", "AMFS Flush Enable" "VF
     //!     Cache Invalidation Enable" and "Global Snapshot Count Reset".

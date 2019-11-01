@@ -133,8 +133,8 @@ typedef enum _CODEC_INPUT_COLORSPACE
 typedef enum _CODEC_FRAMESIZE_TOLERANCE
 {
     EFRAMESIZETOL_NORMAL        = 0,
-    EFRAMESIZETOL_LOW           = 1,    //!< Maps to “sliding window”
-    EFRAMESIZETOL_EXTREMELY_LOW = 2     //!< Maps to “low delay”
+    EFRAMESIZETOL_LOW           = 1,    //!< Maps to "sliding window"
+    EFRAMESIZETOL_EXTREMELY_LOW = 2     //!< Maps to "low delay"
 } CODEC_FRAMESIZE_TOLERANCE, ENCODE_FRAMESIZE_TOLERANCE;
 
 /*! \brief Provides a hint to encoder about the scenario for the encoding session.

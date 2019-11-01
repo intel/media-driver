@@ -36,7 +36,7 @@
 
 /*! \brief Quantization matrix data, which is sent on a per-picture basis.
  *
- *  The quantization matrix buffer is sent only when scaling_list_enabled_flag takes value 1. If 0, driver should assume “flat” scaling lists are present and all the entries takes value 16.
+ *  The quantization matrix buffer is sent only when scaling_list_enabled_flag takes value 1. If 0, driver should assume "flat" scaling lists are present and all the entries takes value 16.
  */
 typedef struct _CODECHAL_HEVC_IQ_MATRIX_PARAMS
 {
