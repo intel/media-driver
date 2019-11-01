@@ -32,7 +32,7 @@
 //**********************************************************************
 #ifndef CM_1_0
 #define CM_1_0          100
-#endif 
+#endif
 #ifndef CM_2_0
 #define CM_2_0          200
 #endif
@@ -68,7 +68,7 @@
 #endif
 
 //Legacy MACRO, will be removed later
-#ifndef __INTEL_MDF 
+#ifndef __INTEL_MDF
 #define __INTEL_MDF     (CM_7_2)
 #endif
 
@@ -139,7 +139,7 @@
 #define CM_DEVICE_CONFIG_DISABLE_TASKFLUSHEDSEMAPHORE_MASK   (1<<CM_DEVICE_CONFIG_DISABLE_TASKFLUSHEDSEMAPHORE_OFFSET)
 #define CM_DEVICE_CREATE_OPTION_TASKFLUSHEDSEMAPHORE_DISABLE  1   //to disable the semaphore for task flushed
 #define CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_OFFSET           22
-#define CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_DISENABLE         (1 << CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_OFFSET)    
+#define CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_DISENABLE         (1 << CM_DEVICE_CONFIG_MIDTHREADPREEMPTION_OFFSET)
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET                  23
 #define CM_DEVICE_CONFIG_KERNEL_DEBUG_ENABLE               (1 << CM_DEVICE_CONFIG_KERNEL_DEBUG_OFFSET)
 #define CM_DEVICE_CONFIG_VEBOX_OFFSET                      28
@@ -255,7 +255,7 @@ typedef enum _CM_RETURN_CODE
     CM_KERNELPAYLOAD_PERTHREADARG_MUTEX_FAIL    = -49,
     CM_KERNELPAYLOAD_PERKERNELARG_MUTEX_FAIL    = -50,
     CM_KERNELPAYLOAD_SETTING_FAILURE            = -51,
-    CM_KERNELPAYLOAD_SURFACE_INVALID_BTINDEX    = -52, 
+    CM_KERNELPAYLOAD_SURFACE_INVALID_BTINDEX    = -52,
     CM_NOT_SET_KERNEL_ARGUMENT                  = -53,
     CM_GPUCOPY_INVALID_SURFACES                 = -54,
     CM_GPUCOPY_INVALID_SIZE                     = -55,
@@ -565,14 +565,14 @@ typedef enum _CM_ROTATION
     CM_ROTATION_270,               //!< Rotation 270 degrees
 } CM_ROTATION;
 
-// to define frame type for interlace frame support 
-typedef enum _CM_FRAME_TYPE 
-{ 
-    CM_FRAME,     // singe frame, not interlaced 
-    CM_TOP_FIELD,  
-    CM_BOTTOM_FIELD, 
-    MAX_FRAME_TYPE 
-} CM_FRAME_TYPE; 
+// to define frame type for interlace frame support
+typedef enum _CM_FRAME_TYPE
+{
+    CM_FRAME,     // singe frame, not interlaced
+    CM_TOP_FIELD,
+    CM_BOTTOM_FIELD,
+    MAX_FRAME_TYPE
+} CM_FRAME_TYPE;
 
 enum CM_QUEUE_TYPE
 {
@@ -593,18 +593,18 @@ enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
 typedef struct _CM_SAMPLER_STATE
 {
     CM_TEXTURE_FILTER_TYPE minFilterType;
-    CM_TEXTURE_FILTER_TYPE magFilterType;   
-    CM_TEXTURE_ADDRESS_TYPE addressU;   
-    CM_TEXTURE_ADDRESS_TYPE addressV;   
-    CM_TEXTURE_ADDRESS_TYPE addressW; 
+    CM_TEXTURE_FILTER_TYPE magFilterType;
+    CM_TEXTURE_ADDRESS_TYPE addressU;
+    CM_TEXTURE_ADDRESS_TYPE addressV;
+    CM_TEXTURE_ADDRESS_TYPE addressW;
 } CM_SAMPLER_STATE;
 
 typedef struct _CM_SAMPLER_STATE_EX
 {
     CM_TEXTURE_FILTER_TYPE minFilterType;
-    CM_TEXTURE_FILTER_TYPE magFilterType;   
-    CM_TEXTURE_ADDRESS_TYPE addressU;   
-    CM_TEXTURE_ADDRESS_TYPE addressV;   
+    CM_TEXTURE_FILTER_TYPE magFilterType;
+    CM_TEXTURE_ADDRESS_TYPE addressU;
+    CM_TEXTURE_ADDRESS_TYPE addressV;
     CM_TEXTURE_ADDRESS_TYPE addressW;
 
     CM_PIXEL_TYPE SurfaceFormat;
@@ -625,7 +625,7 @@ typedef struct _CM_SAMPLER_STATE_EX
         INT BorderColorBlueS;
         FLOAT BorderColorBlueF;
     };
-    
+
     union {
         DWORD BorderColorAlphaU;
         INT BorderColorAlphaS;
@@ -648,7 +648,7 @@ typedef struct _CM_DLL_FILE_VERSION
     WORD    wMANVERSION;
     WORD    wMANREVISION;
     WORD    wSUBREVISION;
-    WORD    wBUILD_NUMBER; 
+    WORD    wBUILD_NUMBER;
     //Version constructed as : "wMANVERSION.wMANREVISION.wSUBREVISION.wBUILD_NUMBER"
 } CM_DLL_FILE_VERSION, *PCM_DLL_FILE_VERSION;
 
@@ -695,19 +695,19 @@ struct L3ConfigRegisterValues
 
 //GT-PIN
 typedef struct _CM_SURFACE_DETAILS{
-    UINT        width; 
-    UINT        height; 
-    UINT        depth; 
-    CM_SURFACE_FORMAT   format; 
+    UINT        width;
+    UINT        height;
+    UINT        depth;
+    CM_SURFACE_FORMAT   format;
     UINT        planeIndex;
-    UINT        pitch; 
+    UINT        pitch;
     UINT        slicePitch;
     UINT        SurfaceBaseAddress;
     UINT8       TiledSurface;
     UINT8       TileWalk;
     UINT        XOffset;
-    UINT        YOffset; 
-    
+    UINT        YOffset;
+
 }CM_SURFACE_DETAILS;
 
 /*
@@ -742,7 +742,7 @@ typedef struct _CM_AVS_NONPIPLINED_STATE{
     BYTE maxDerivative4Pixels;
     BYTE maxDerivative8Pixels;
     BYTE transitionArea4Pixels;
-    BYTE transitionArea8Pixels;    
+    BYTE transitionArea8Pixels;
     CM_AVS_COEFF_TABLE Tbl0X[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_COEFF_TABLE Tbl0Y[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_COEFF_TABLE Tbl1X[ CM_NUM_COEFF_ROWS_SKL ];
@@ -758,7 +758,7 @@ typedef struct _CM_AVS_INTERNEL_NONPIPLINED_STATE{
     BYTE maxDerivative4Pixels;
     BYTE maxDerivative8Pixels;
     BYTE transitionArea4Pixels;
-    BYTE transitionArea8Pixels;    
+    BYTE transitionArea8Pixels;
     CM_AVS_INTERNEL_COEFF_TABLE Tbl0X[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_INTERNEL_COEFF_TABLE Tbl0Y[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_INTERNEL_COEFF_TABLE Tbl1X[ CM_NUM_COEFF_ROWS_SKL ];
@@ -768,7 +768,7 @@ typedef struct _CM_AVS_INTERNEL_NONPIPLINED_STATE{
 }CM_AVS_INTERNEL_NONPIPLINED_STATE;
 
 typedef struct _CM_AVS_STATE_MSG{
-    bool AVSTYPE; //true nearest, false adaptive    
+    bool AVSTYPE; //true nearest, false adaptive
     bool EightTapAFEnable; //HSW+
     bool BypassIEF; //ignored for BWL, moved to sampler8x8 payload.
     bool ShuffleOutputWriteback; //SKL mode only to be set when AVS msg sequence is 4x4 or 8x4
@@ -781,10 +781,10 @@ typedef struct _CM_AVS_STATE_MSG{
     unsigned char RegularWght;
     unsigned char NonEdgeWght;
     unsigned short wR3xCoefficient;
-    unsigned short wR3cCoefficient;  
+    unsigned short wR3cCoefficient;
     unsigned short wR5xCoefficient;
     unsigned short wR5cxCoefficient;
-    unsigned short wR5cCoefficient;    
+    unsigned short wR5cCoefficient;
     //For Non-piplined states
     unsigned short stateID;
     CM_AVS_NONPIPLINED_STATE * AvsState;
@@ -792,7 +792,7 @@ typedef struct _CM_AVS_STATE_MSG{
 
 struct CM_AVS_STATE_MSG_EX {
   CM_AVS_STATE_MSG_EX();
-  
+
   bool enable_all_channel_adaptive_filter;  // adaptive filter for all channels. validValues => [true..false]
   bool enable_rgb_adaptive_filter;          // adaptive filter for all channels. validValues => [true..false]
   bool enable_8_tap_adaptive_filter;        // enable 8-tap filter. validValues => [true..false]
@@ -834,10 +834,10 @@ struct CM_AVS_STATE_MSG_EX {
   BYTE global_noise_estimation; // validValues => [0..255]
   bool mr_boost;                // validValues => [true..false]
   BYTE mr_smooth_threshold;     // validValues => [0..3]
-  BYTE mr_threshold; 
+  BYTE mr_threshold;
   bool steepness_boost;         // validValues => [true..false]
   BYTE steepness_threshold;     // validValues => [0..15]
-  bool texture_coordinate_mode; // true: clamp, false: mirror. validValues => [true..false]  
+  bool texture_coordinate_mode; // true: clamp, false: mirror. validValues => [true..false]
   BYTE max_hue;                 // Rectangle half width. validValued => [0..63]
   BYTE max_saturation;          // Rectangle half length. validValued => [0..63]
   int angles;                   // validValued => [0..360]
@@ -895,7 +895,7 @@ typedef struct _CM_CONVOLVE_COEFF_TABLE{
     float   FilterCoeff_0_13;
     float   FilterCoeff_0_14;
     float   FilterCoeff_0_15;
-    float   FilterCoeff_0_16;    
+    float   FilterCoeff_0_16;
     float   FilterCoeff_0_17;
     float   FilterCoeff_0_18;
     float   FilterCoeff_0_19;
@@ -917,7 +917,7 @@ typedef struct _CM_CONVOLVE_STATE_MSG{
     bool CoeffSize; //true 16-bit, false 8-bit
     byte SclDwnValue; //Scale down value
     byte Width; //Kernel Width
-    byte Height; //Kernel Height   
+    byte Height; //Kernel Height
     //SKL mode
     bool isVertical32Mode;
     bool isHorizontal32Mode;
@@ -1019,7 +1019,7 @@ typedef struct _CM_MISC_STATE {
         };
     } DW7;
 } CM_MISC_STATE;
- 
+
 typedef struct _CM_MISC_STATE_MSG{
     //DWORD 0
     union{
@@ -1162,13 +1162,13 @@ typedef struct _CM_VEBOX_STATE
 typedef struct _CM_POWER_OPTION
 {
     USHORT nSlice;                      // set number of slice to use: 0(default number), 1, 2...
-    USHORT nSubSlice;                   // set number of subslice to use: 0(default number), 1, 2... 
+    USHORT nSubSlice;                   // set number of subslice to use: 0(default number), 1, 2...
     USHORT nEU;                         // set number of EU to use: 0(default number), 1, 2...
 } CM_POWER_OPTION, *PCM_POWER_OPTION;
 
 // to support new flag with current API
 // new flag/field could be add to the end of this structure
-// 
+//
 struct CM_FLAG {
     CM_FLAG();
     CM_ROTATION rotationFlag;
@@ -1272,6 +1272,7 @@ class CmBufferSVM;
 class CmBufferStateless;
 class CmSurface2D;
 class CmSurface2DUP;
+class CmSurface2DStateless;
 class CmSurface3D;
 class CmSampler;
 class CmThreadSpace;
@@ -1316,14 +1317,14 @@ protected:
 
 class CmKernel
 {
-public:       
+public:
     CM_RT_API virtual INT SetThreadCount(UINT count ) = 0;
     CM_RT_API virtual INT SetKernelArg(UINT index, size_t size, const void * pValue ) = 0;
     CM_RT_API virtual INT SetThreadArg(UINT threadId, UINT index, size_t size, const void * pValue ) = 0;
     CM_RT_API virtual INT SetStaticBuffer(UINT index, const void * pValue ) = 0;
     CM_RT_API virtual INT SetSurfaceBTI(SurfaceIndex* pSurface, UINT BTIndex) = 0;
     CM_RT_API virtual INT AssociateThreadSpace(CmThreadSpace* & pTS) = 0;
-    CM_RT_API virtual INT AssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0; 
+    CM_RT_API virtual INT AssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
     CM_RT_API virtual INT SetSamplerBTI(SamplerIndex* pSampler, UINT nIndex) = 0;
     CM_RT_API virtual INT DeAssociateThreadSpace(CmThreadSpace* & pTS) = 0;
     CM_RT_API virtual INT DeAssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
@@ -1336,7 +1337,7 @@ protected:
 
 class CmTask
 {
-public:       
+public:
     CM_RT_API virtual INT AddKernel(CmKernel *pKernel) = 0;
     CM_RT_API virtual INT Reset(void) = 0;
     CM_RT_API virtual INT AddSync(void) = 0;
@@ -1348,12 +1349,12 @@ public:
     CM_RT_API virtual INT AddSyncEx(const CM_KERNEL_SYNC_CONFIG *config) = 0;
 protected:
    ~CmTask(){};
-}; 
+};
 
 class CmBuffer
 {
 public:
-    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
+    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0;
     CM_RT_API virtual INT ReadSurface( unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT WriteSurface( const unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent) = 0;
@@ -1366,7 +1367,7 @@ protected:
 class CmBufferUP
 {
 public:
-    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
+    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0;
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
 protected:
    ~CmBufferUP(){};
@@ -1375,7 +1376,7 @@ protected:
 class CmBufferSVM
 {
 public:
-    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
+    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0;
     CM_RT_API virtual INT GetAddress( void * &pAddr) = 0;
 protected:
     ~CmBufferSVM(){};
@@ -1398,18 +1399,32 @@ protected:
 
 class CmSurface2DUP
 {
-public:    
-    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
+public:
+    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0;
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
-    CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0; 
+    CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0;
 protected:
     ~CmSurface2DUP(){};
 };
 
+class CmSurface2DStateless
+{
+public:
+    CM_RT_API virtual INT GetGfxAddress(uint64_t &gfxAddr) = 0;
+    CM_RT_API virtual INT ReadSurface(unsigned char *pSysMem,
+                                      CmEvent *pEvent,
+                                      uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
+    CM_RT_API virtual INT WriteSurface(const unsigned char *pSysMem,
+                                       CmEvent *pEvent,
+                                       uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
+protected:
+    ~CmSurface2DStateless(){};
+};
+
 class CmSurface3D
 {
-public:    
-    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
+public:
+    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0;
     CM_RT_API virtual INT ReadSurface( unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT WriteSurface( const unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent) = 0;
@@ -1479,11 +1494,11 @@ protected:
 
 class CmQueue
 {
-public:    
+public:
     CM_RT_API virtual INT Enqueue( CmTask* pTask, CmEvent* & pEvent, const CmThreadSpace* pTS = nullptr ) = 0;
-    CM_RT_API virtual INT DestroyEvent( CmEvent* & pEvent ) = 0; 
+    CM_RT_API virtual INT DestroyEvent( CmEvent* & pEvent ) = 0;
     CM_RT_API virtual INT EnqueueWithGroup( CmTask* pTask, CmEvent* & pEvent, const CmThreadGroupSpace* pTGS = nullptr )=0;
-    CM_RT_API virtual INT EnqueueCopyCPUToGPU( CmSurface2D* pSurface, const unsigned char* pSysMem, CmEvent* & pEvent ) = 0; 
+    CM_RT_API virtual INT EnqueueCopyCPUToGPU( CmSurface2D* pSurface, const unsigned char* pSysMem, CmEvent* & pEvent ) = 0;
     CM_RT_API virtual INT EnqueueCopyGPUToCPU( CmSurface2D* pSurface, unsigned char* pSysMem, CmEvent* & pEvent ) = 0;
     CM_RT_API virtual INT EnqueueInitSurface2D( CmSurface2D* pSurface, const DWORD initValue, CmEvent* &pEvent ) = 0;
     CM_RT_API virtual INT EnqueueCopyGPUToGPU( CmSurface2D* pOutputSurface, CmSurface2D* pInputSurface, UINT option, CmEvent* & pEvent ) = 0;
@@ -1494,7 +1509,7 @@ public:
 
     CM_RT_API virtual INT EnqueueCopyCPUToGPUFullStrideDup( CmSurface2D* pSurface, const unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
     CM_RT_API virtual INT EnqueueCopyGPUToCPUFullStrideDup( CmSurface2D* pSurface, unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
-    
+
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
 

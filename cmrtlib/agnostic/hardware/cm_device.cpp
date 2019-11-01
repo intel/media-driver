@@ -1168,3 +1168,18 @@ CM_RT_API int32_t CmDevice_RT::GetVISAVersion(uint32_t& majorVersion, uint32_t& 
     minorVersion = inParam.minorVersion;
     return CM_SUCCESS;
 }
+
+
+CM_RT_API int32_t
+CmDevice_RT::CreateSurface2DStateless(uint32_t width,
+                                      uint32_t height,
+                                      uint32_t &pitch,
+                                      CmSurface2DStateless *&pSurface)
+{
+    return CM_NOT_IMPLEMENTED;
+}
+
+CM_RT_API int32_t CmDevice_RT::DestroySurface2DStateless(CmSurface2DStateless *&pSurface)
+{
+    return CM_NOT_IMPLEMENTED;
+}

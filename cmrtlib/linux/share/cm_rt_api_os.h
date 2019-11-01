@@ -29,8 +29,8 @@
 
 class CmSurface2D
 {
-public:    
-    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
+public:
+    CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0;
 
     CM_RT_API virtual INT ReadSurface( unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT WriteSurface( const unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
@@ -43,7 +43,7 @@ public:
     CM_RT_API virtual INT ReadSurfaceHybridStrides( unsigned char* pSysMem, CmEvent* pEvent, const UINT iWidthStride, const UINT iHeightStride, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL, UINT uiOption = 0 ) = 0;
     CM_RT_API virtual INT WriteSurfaceHybridStrides( const unsigned char* pSysMem, CmEvent* pEvent, const UINT iWidthStride, const UINT iHeightStride, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL, UINT uiOption = 0 ) = 0;
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
-    CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0; 
+    CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0;
     CM_RT_API virtual INT SetSurfaceStateParam( SurfaceIndex *pSurfIndex, const CM_SURFACE2D_STATE_PARAM *pSSParam ) = 0;
 protected:
     ~CmSurface2D(){}
@@ -63,8 +63,8 @@ public:
     CM_RT_API virtual INT DestroySurface( CmBuffer* & pSurface) = 0;
     CM_RT_API virtual INT DestroySurface( CmSurface2D* & pSurface) = 0;
     CM_RT_API virtual INT DestroySurface( CmSurface3D* & pSurface) = 0;
-  
-    CM_RT_API virtual INT CreateQueue( CmQueue* & pQueue) = 0; 
+
+    CM_RT_API virtual INT CreateQueue( CmQueue* & pQueue) = 0;
     CM_RT_API virtual INT LoadProgram( void* pCommonISACode, const UINT size, CmProgram*& pProgram, const char* options = nullptr ) = 0;
     CM_RT_API virtual INT CreateKernel( CmProgram* pProgram, const char* kernelName, CmKernel* & pKernel, const char* options = nullptr) = 0;
     CM_RT_API virtual INT CreateKernel( CmProgram* pProgram, const char* kernelName, const void * fncPnt, CmKernel* & pKernel, const char* options = nullptr) = 0;
@@ -73,7 +73,7 @@ public:
     CM_RT_API virtual INT DestroyKernel( CmKernel*& pKernel) = 0;
     CM_RT_API virtual INT DestroySampler( CmSampler*& pSampler ) = 0;
     CM_RT_API virtual INT DestroyProgram( CmProgram*& pProgram ) = 0;
-    CM_RT_API virtual INT DestroyThreadSpace( CmThreadSpace* & pTS ) = 0; 
+    CM_RT_API virtual INT DestroyThreadSpace( CmThreadSpace* & pTS ) = 0;
 
     CM_RT_API virtual INT CreateTask(CmTask *& pTask)=0;
     CM_RT_API virtual INT DestroyTask(CmTask*& pTask)=0;
@@ -107,7 +107,7 @@ public:
     CM_RT_API virtual INT CreateSamplerSurface3D(CmSurface3D* p3DSurface, SurfaceIndex* & pSamplerSurfaceIndex) = 0;
     CM_RT_API virtual INT DestroySamplerSurface(SurfaceIndex* & pSamplerSurfaceIndex) = 0;
 
-    CM_RT_API virtual INT InitPrintBuffer(size_t printbufsize = 1048576) = 0; 
+    CM_RT_API virtual INT InitPrintBuffer(size_t printbufsize = 1048576) = 0;
     CM_RT_API virtual INT FlushPrintBuffer() = 0;
 
     CM_RT_API virtual INT CreateVebox( CmVebox* & pVebox ) = 0;
@@ -147,7 +147,14 @@ public:
 
     CM_RT_API virtual int32_t DispatchTask() = 0;
 
-    //adding new functions in the bottom is a must 
+    CM_RT_API virtual INT CreateSurface2DStateless(uint32_t width,
+                                                   uint32_t height,
+                                                   uint32_t &pitch,
+                                                   CmSurface2DStateless *&pSurface) = 0;
+
+    CM_RT_API virtual int32_t DestroySurface2DStateless(CmSurface2DStateless *&pSurface) = 0;
+
+    //adding new functions in the bottom is a must
 protected:
     ~CmDevice(){}
 };

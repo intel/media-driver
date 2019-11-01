@@ -135,6 +135,13 @@ public:
 
     CM_RT_API int32_t DispatchTask() { return CM_SUCCESS; }
 
+    CM_RT_API int32_t CreateSurface2DStateless(uint32_t width,
+                                               uint32_t height,
+                                               uint32_t &pitch,
+                                               CmSurface2DStateless *&pSurface);
+
+    CM_RT_API int32_t DestroySurface2DStateless(CmSurface2DStateless *&pSurface);
+
     int32_t CheckDdiVersionSupported(const uint32_t ddiVersion);
 
     int32_t OSALExtensionExecute(uint32_t functionId,
@@ -182,7 +189,7 @@ protected:
     int32_t GetLibvaDisplayDrm(VADisplay & vaDisplay);
 #endif
     int32_t InitializeLibvaDisplay( void );
-    
+
     VADisplay m_vaDisplay;
     pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
 
