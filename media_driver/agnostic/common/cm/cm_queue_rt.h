@@ -363,6 +363,8 @@ protected:
 private:
     uint32_t m_streamIndex;
 
+    GPU_CONTEXT_HANDLE m_gpuContextHandle;
+
     MOS_STATUS CreateGpuContext(CM_HAL_STATE *halState,
                                 MOS_GPU_CONTEXT gpuContextName,
                                 MOS_GPU_NODE gpuNode,

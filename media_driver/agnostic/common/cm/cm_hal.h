@@ -1854,6 +1854,15 @@ typedef struct _CM_HAL_STATE
         MOS_GPU_NODE                gpuNode,
         PMOS_GPUCTX_CREATOPTIONS    mosCreateOption);
 
+    GPU_CONTEXT_HANDLE (*pfnCreateGpuComputeContext) (
+        PCM_HAL_STATE state,
+        MOS_GPUCTX_CREATOPTIONS *mosCreateOption);
+
+    uint32_t (*pfnSetGpuContext)(PCM_HAL_STATE      halState,
+                                 MOS_GPU_CONTEXT    contextName,
+                                 uint32_t           streamIndex,
+                                 GPU_CONTEXT_HANDLE contextHandle);
+
     MOS_STATUS (*pfnUpdateTrackerResource)
         (
         PCM_HAL_STATE               state,

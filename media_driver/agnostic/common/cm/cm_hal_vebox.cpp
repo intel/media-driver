@@ -86,8 +86,6 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     state->cmVeboxSettings.diOutputFrames = veboxTaskParam->cmVeboxState.DIOutputFrames;
 
     cmVeboxSurfaceData = veboxTaskParam->veboxSurfaceData;
-    // switch GPU context to VEBOX
-    osInterface->pfnSetGpuContext(osInterface, MOS_GPU_CONTEXT_VEBOX);
 
     // reset states before execute
     // (clear allocations, get GSH allocation index + any additional housekeeping)
