@@ -485,6 +485,8 @@ static bool InitGlkMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrHDR, 1);
+
     return true;
 }
 
