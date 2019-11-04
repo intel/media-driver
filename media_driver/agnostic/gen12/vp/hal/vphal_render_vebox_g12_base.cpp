@@ -2363,7 +2363,8 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     PMOS_INTERFACE              pOsInterface;
     MOS_STATUS                  eStatus;
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState = this;
-    PVPHAL_SURFACE              pSrcSurface;
+    PVPHAL_SURFACE              pSrcSurface = nullptr;
+    PVPHAL_SURFACE              pOutSurface = nullptr;
     bool                        bEnableIEF;
 
     bVeboxNeeded  = false;
@@ -2376,6 +2377,7 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     pRenderTarget = pcRenderParams->pTarget[0];
     pRenderData   = GetLastExecRenderData();
     pSrcSurface   = pRenderPassData->pSrcSurface;
+    pOutSurface   = pRenderPassData->pOutSurface;
 
     VPHAL_RENDER_CHK_NULL(pSrcSurface);
 
@@ -2389,6 +2391,15 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
 
     // Check if the Surface size is greater than 64x16 which is the minimum Width and Height VEBOX can handle
     if (pSrcSurface->dwWidth < MHW_VEBOX_MIN_WIDTH || pSrcSurface->dwHeight < MHW_VEBOX_MIN_HEIGHT)
+    {
+        pRenderPassData->bCompNeeded = true;
+        goto finish;
+    }
+
+    //Force 8K to render
+    if (pcRenderParams->bDisableVpFor8K &&
+        ((pSrcSurface->dwWidth >= VPHAL_RNDR_8K_WIDTH || pSrcSurface->dwHeight >= VPHAL_RNDR_8K_HEIGHT) ||
+         (pOutSurface->dwWidth >= VPHAL_RNDR_8K_WIDTH || pOutSurface->dwHeight >= VPHAL_RNDR_8K_HEIGHT)))
     {
         pRenderPassData->bCompNeeded = true;
         goto finish;

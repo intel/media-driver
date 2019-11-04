@@ -50,6 +50,9 @@
 #define RGB_RANGE_16_235                1
 #define RGB_RANGE_0_255                 0
 
+// Media Features width
+#define VPHAL_RNDR_8K_WIDTH (7680)
+
 // Media Features height
 #define VPHAL_RNDR_2K_HEIGHT  1080
 // The reason that the definition is not (VPHAL_RNDR_2K_HEIGHT*2) is because some 4K clips have 1200 height.
