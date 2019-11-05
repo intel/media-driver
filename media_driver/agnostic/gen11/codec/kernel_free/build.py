@@ -19,7 +19,7 @@ class GenSource2Bin(object):
                 command += ' -mCM_emit_common_isa  -mCM_no_input_reorder -mCM_jit_option="-nocompaction" '
                 os.system(command)
 
-                print("Compiled %s" % fp);
+                print(("Compiled %s" % fp));
 
     def deleteFile(self):
         for filename in os.listdir('./'):
