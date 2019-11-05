@@ -45,6 +45,8 @@ const char *CPLibUtils::FUNC_CREATE_MEDIALIBVACAPSCP = "Create_MediaLibvaCapsCp"
 const char *CPLibUtils::FUNC_DELETE_MEDIALIBVACAPSCP = "Delete_MediaLibvaCapsCp";
 const char *CPLibUtils::FUNC_CREATE_SECUREDECODE     = "Create_SecureDecode";
 const char *CPLibUtils::FUNC_DELETE_SECUREDECODE     = "Delete_SecureDecode";
+const char *CPLibUtils::FUNC_CREATE_DECODECP         = "Create_DecodeCp";
+const char *CPLibUtils::FUNC_DELETE_DECODECP         = "Delete_DecodeCp";
 const char *CPLibUtils::FUNC_SETUP_MOS_APO_SWITCH    = "Setup_MosApogeiosSwitch";
 
 bool CPLibUtils::LoadCPLib(VADriverContextP ctx)
@@ -78,6 +80,8 @@ bool CPLibUtils::LoadCPLib(VADriverContextP ctx)
             m_symbols[FUNC_DELETE_MEDIALIBVACAPSCP] = dlsym(m_phandle, FUNC_DELETE_MEDIALIBVACAPSCP);
             m_symbols[FUNC_CREATE_SECUREDECODE]     = dlsym(m_phandle, FUNC_CREATE_SECUREDECODE);
             m_symbols[FUNC_DELETE_SECUREDECODE]     = dlsym(m_phandle, FUNC_DELETE_SECUREDECODE);
+            m_symbols[FUNC_CREATE_DECODECP]         = dlsym(m_phandle, FUNC_CREATE_DECODECP);
+            m_symbols[FUNC_DELETE_DECODECP]         = dlsym(m_phandle, FUNC_DELETE_DECODECP);
             m_symbols[FUNC_SETUP_MOS_APO_SWITCH]    = dlsym(m_phandle, FUNC_SETUP_MOS_APO_SWITCH);
 
             // confirm if all symbols exported from CPLIB are exist

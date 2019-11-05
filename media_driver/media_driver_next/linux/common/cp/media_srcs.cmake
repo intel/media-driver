@@ -18,7 +18,13 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(shared)
-media_include_subdirectory(os)
-media_include_subdirectory(vp)
-media_include_subdirectory(cp)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/decodecp_interface.cpp
+)
+
+set(SOURCES_
+    ${SOURCES_}
+    ${TMP_SOURCES_}
+ )
+
+media_add_curr_to_include_path()
