@@ -3409,8 +3409,10 @@ int32_t CompositeState::SetLayer(
             }
             else
             {
-                //For Y210 with AVS(Y)+3D(U/V) sampler, the shift is not needed.
-                if (pSource->Format == Format_Y210 && pSurfaceEntries[0]->bAVS)
+                //For Y210/Y216 with AVS(Y)+3D(U/V) sampler, the shift is not needed.
+                if ((pSource->Format == Format_Y210 ||
+                    pSource->Format == Format_Y216)
+                    && pSurfaceEntries[0]->bAVS)
                 {
                     fShiftX = 0.0f;
                     fShiftY = 0.0f;
