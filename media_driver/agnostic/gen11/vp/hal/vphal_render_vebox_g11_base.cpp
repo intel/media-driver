@@ -2215,7 +2215,7 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
         pTarget->rcDst.bottom = pSrcSurface->rcDst.bottom;
 
         // Check if Vebox can be the output pipe again
-        bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
+        bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface) && !MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrDisableVEBoxFeatures);
         if (bOutputPipeVeboxFeasible)
         {
             OutputPipe              = VPHAL_OUTPUT_PIPE_MODE_VEBOX;
