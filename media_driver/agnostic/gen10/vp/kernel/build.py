@@ -44,7 +44,7 @@ class WinKernel2Source(object):
                 os.remove(newfp)
                 os.remove(hexfp)
  
-                print("Compiled %s" % fp);
+                print(("Compiled %s" % fp));
 
     def kernel2bin(self):
         cmd = '.\\compile\\GenKrnBin.exe component_release vp'
@@ -97,7 +97,7 @@ class LinuxKernel2Source(object):
                 os.remove(newfp)
                 os.remove(hexfp)
  
-                print("Compiled %s" % fp);
+                print(("Compiled %s" % fp));
         
     def kernel2bin(self):
         cmd = './compile/GenKrnBin component_release vp'

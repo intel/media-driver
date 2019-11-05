@@ -86,7 +86,7 @@ class Generator:
         tpl = tpl.replace("@LOCAL_C_INCLUDES", self.getIncludes())
         with open(mk, "w") as f:
             f.write(tpl)
-        print("generated " + self.getName() + " to " + self.makefile)
+        print(("generated " + self.getName() + " to " + self.makefile))
 
     #virtuall functions
     def getTemplate(self):
@@ -241,7 +241,7 @@ class Main:
     def run(self):
         tool = path.dirname(__file__)
         root = path.abspath(path.join(tool, "../../../../"))
-        print("root = "+root)
+        print(("root = "+root))
         gens = [GmmGeneator(root), CmrtGeneator(root), DriverGeneator(root)]
         for g in gens:
             g.generate()
