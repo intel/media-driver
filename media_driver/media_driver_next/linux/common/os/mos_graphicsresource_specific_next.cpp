@@ -97,6 +97,7 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecificNext::ConvertMosFmtToGmmFmt(MOS_FORM
         case Format_BGRP        : return GMM_FORMAT_BGRP_TYPE;
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
+        case Format_R16F        : return GMM_FORMAT_R16_FLOAT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
         case Format_P016        : return GMM_FORMAT_P016_TYPE;
         case Format_Y216        : return GMM_FORMAT_Y216_TYPE;

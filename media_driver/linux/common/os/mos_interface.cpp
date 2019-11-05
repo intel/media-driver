@@ -1117,6 +1117,7 @@ MOS_STATUS MosInterface::AllocateResource(
     case Format_P208:
     case Format_Y210:
     case Format_Y410:
+    case Format_R16F:
         resourceType = RESOURCE_2D;
         //indicate buffer Restriction is Planar surface restrictions.
         gmmParams.Flags.Gpu.Video = true;
