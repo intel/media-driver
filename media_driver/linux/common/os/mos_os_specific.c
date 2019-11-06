@@ -5109,23 +5109,6 @@ void Mos_Specific_SyncWith3DContext(
 }
 
 //!
-//! \brief    Sleep
-//! \details  Sleeps for the specified amount
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] pointer to Os interface structure
-//! \param    uint32_t dwWaitMs
-//!           [in] sleep time in ms
-//! \return   void
-//!
-void Mos_Specific_SleepMs(
-    PMOS_INTERFACE      pOsInterface,
-    uint32_t            dwWaitMs)
-{
-    MOS_UNUSED(pOsInterface);
-    usleep(dwWaitMs);
-}
-
-//!
 //! \brief    Checks for HW enabled
 //! \details  Checks for HW enabled
 //! \param    PMOS_INTERFACE pOsInterface
@@ -6537,24 +6520,6 @@ MOS_STATUS Mos_Specific_FreeLibrary(
 }
 
 //!
-//! \brief
-//! \details
-//! \param    char  *pData
-//! \return   void
-//!
-void  *Mos_Specific_GetProcAddress(
-    void        *hInstance,
-    char        *pModuleName)
-{
-    //---------------------------------
-    MOS_OS_ASSERT(hInstance);
-    MOS_OS_ASSERT(pModuleName);
-    //---------------------------------
-
-    return dlsym(hInstance, pModuleName);
-}
-
-//!
 //! \brief    Determines if the GPU Hung
 //! \param    PMOS_INTERFACE pOsInterface
 //!           [in] Pointer to OS Interface
@@ -6926,12 +6891,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetIndirectState                       = Mos_Specific_GetIndirectState;
     pOsInterface->pfnGetIndirectStatePointer                = Mos_Specific_GetIndirectStatePointer;
     pOsInterface->pfnSetPatchEntry                          = Mos_Specific_SetPatchEntry;
-
-    pOsInterface->pfnSleepMs                                = Mos_Specific_SleepMs;
-
     pOsInterface->pfnLoadLibrary                            = Mos_Specific_LoadLibrary;
     pOsInterface->pfnFreeLibrary                            = Mos_Specific_FreeLibrary;
-    pOsInterface->pfnGetProcAddress                         = Mos_Specific_GetProcAddress;
     pOsInterface->pfnLogData                                = Mos_Specific_LogData;
     pOsInterface->pfnCheckVirtualEngineSupported            = Mos_Specific_CheckVirtualEngineSupported;
 
