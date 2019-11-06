@@ -1290,6 +1290,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
         IecpStateInitialization(pIecpState);
     }
     pGamutState = &pIecpState->GamutState;
+    MHW_CHK_NULL(pGamutState);
 
     if (pVeboxGamutParams->GCompMode != MHW_GAMUT_MODE_NONE)
     {
@@ -1629,6 +1630,59 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
         MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
         // Back end CSC setting, need to convert BT2020 YUV input to RGB before GE
         VeboxInterface_BT2020YUVToRGB(m_veboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+    }
+    else if (pVeboxIecpParams && pVeboxIecpParams->s1DLutParams.bActive)
+    {
+        uint16_t in_val = 0, vchan1_y = 0, vchan2_u = 0, vchan3_v = 0;
+        uint32_t nIndex = 0;
+        uint16_t* pForwardGamma = (uint16_t*)pVeboxIecpParams->s1DLutParams.p1DLUT;
+        MHW_CHK_NULL(pForwardGamma);
+
+        // Gamut Expansion setting
+        pGamutState->DW0.GlobalModeEnable     = true;
+        pGamutState->DW1.CmW                  = 1023;
+        dInverseGamma                         = 1.0;
+
+        for (uint32_t i = 0; i < pVeboxIecpParams->s1DLutParams.LUTSize; i++)
+        {
+            usGE_Values[i][0] = 256 * i;
+            usGE_Values[i][1] =
+            usGE_Values[i][2] =
+            usGE_Values[i][3] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), dInverseGamma) * 65536);
+
+            nIndex      = 4 * i;
+            in_val      = pForwardGamma[nIndex];
+            vchan1_y    = pForwardGamma[nIndex + 1];
+            vchan2_u    = pForwardGamma[nIndex + 2];
+            vchan3_v    = pForwardGamma[nIndex + 3];
+
+            // ayuv: in_val, vchan1_y, vchan2_u, vchan3_v
+            usGE_Values[i][4] = in_val;
+            usGE_Values[i][5] = vchan1_y;
+            usGE_Values[i][6] = vchan2_u;
+            usGE_Values[i][7] = vchan3_v;
+        }
+        pGamutState->DW1.C0 = 65536;
+        pGamutState->DW0.C1 = 0;
+        pGamutState->DW3.C2 = 0;
+        pGamutState->DW2.C3 = 0;
+        pGamutState->DW5.C4 = 65536;
+        pGamutState->DW4.C5 = 0;
+        pGamutState->DW7.C6 = 0;
+        pGamutState->DW6.C7 = 0;
+        pGamutState->DW8.C8 = 65536;
+        pGamutState->DW9.OffsetInR   = 0;
+        pGamutState->DW10.OffsetInG  = 0;
+        pGamutState->DW11.OffsetInB  = 0;
+        pGamutState->DW12.OffsetOutR = 0;
+        pGamutState->DW13.OffsetOutG = 0;
+        pGamutState->DW14.OffsetOutB = 0;
+        // Copy two uint16_t to one DW (UNT32).
+        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1020, usGE_Values, sizeof(uint16_t) * 8 * 255);
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown branch!");
     }
 
 finish:
