@@ -5798,6 +5798,8 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         }
         MOS_Delete(imageStateParams);
 
+        HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext,&secondLevelBatchBufferUsed->OsResource, 0, true, 0);
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, secondLevelBatchBufferUsed));
 
         CODECHAL_DEBUG_TOOL(
