@@ -152,10 +152,12 @@ MOS_STATUS CodechalDecodeVp9G12::SetGpuCtxCreatOption(
         }
         else
         {
+            bool sfcInUse = (codecHalSetting->sfcInUseHinted && codecHalSetting->downsamplingHinted 
+                                && (MEDIA_IS_SKU(m_skuTable, FtrSFCPipe) && !MEDIA_IS_SKU(m_skuTable, FtrDisableVDBox2SFC)));
             CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
                 m_sinlgePipeVeState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
-                false));
+                sfcInUse));
 
             m_videoContext = MOS_GPU_CONTEXT_VIDEO;
         }
