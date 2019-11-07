@@ -1023,9 +1023,6 @@ public:
                     this->m_osInterface,
                     cmdBuffer,
                     &resourceParams));
-
-                MOS_SecureMemcpy(&cmd.FwdRef1, sizeof(cmd.FwdRef1), &cmd.FwdRef0, sizeof(cmd.FwdRef0));
-                MOS_SecureMemcpy(&cmd.FwdRef2, sizeof(cmd.FwdRef2), &cmd.FwdRef0, sizeof(cmd.FwdRef0));
             }
 
             if (params->presVdenc8xDsSurface[refIdx])
