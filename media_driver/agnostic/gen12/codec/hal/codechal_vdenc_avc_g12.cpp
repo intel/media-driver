@@ -40,6 +40,7 @@
 #include "mhw_vdbox_mfx_hwcmd_g12_X.h"
 #include "mhw_vdbox_vdenc_hwcmd_g12_X.h"
 #endif
+#include "hal_oca_interface.h"
 
 enum SfdBindingTableOffset
 {
@@ -727,6 +728,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SubmitCommandBuffer(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
+    HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface->pOsContext);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(cmdBuffer));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));
     return eStatus;

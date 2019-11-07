@@ -4695,10 +4695,12 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
 
     if (!m_singleTaskPhaseSupported || m_firstTaskInPhase)
     {
+        MHW_MI_MMIOREGISTERS mmioRegister;
+        bool validMmio = m_mfxInterface->ConvertToMiRegister(m_vdboxIndex, mmioRegister);
         // Send command buffer header at the beginning (OS dependent)
         bool bRequestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : 0;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-            &cmdBuffer, bRequestFrameTracking));
+            &cmdBuffer, bRequestFrameTracking, validMmio ? &mmioRegister: nullptr));
     }
 
     // load kernel from WOPCM into L2 storage RAM
@@ -4769,6 +4771,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     }
 
     CODECHAL_DEBUG_TOOL(DumpHucBrcInit());
+    m_firstTaskInPhase = false;
 
     return eStatus;
 }
@@ -4789,10 +4792,13 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
 
     if (!m_singleTaskPhaseSupported || (m_firstTaskInPhase && !m_brcInit))
     {
+        MHW_MI_MMIOREGISTERS mmioRegister;
+        bool validMmio = m_mfxInterface->ConvertToMiRegister(m_vdboxIndex, mmioRegister);
+
         // Send command buffer header at the beginning (OS dependent)
         bool bRequestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : 0;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            SendPrologWithFrameTracking(&cmdBuffer, bRequestFrameTracking));
+            SendPrologWithFrameTracking(&cmdBuffer, bRequestFrameTracking, validMmio ? &mmioRegister : nullptr));
     }
 
     if (m_brcInit || m_brcReset)
@@ -5550,10 +5556,13 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
                                                     ? m_sliceShutdownRequestState
                                                     : m_sliceShutdownDefaultState;
 
+        MHW_MI_MMIOREGISTERS mmioRegister;
+        bool validMmio = m_mfxInterface->ConvertToMiRegister(m_vdboxIndex, mmioRegister);
+
         // Send command buffer header at the beginning (OS dependent)
         // frame tracking tag is only added in the last command buffer header
         requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : m_lastTaskInPhase;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking, validMmio ? &mmioRegister : nullptr));
 
         m_hwInterface->m_numRequestedEuSlices = CODECHAL_SLICE_SHUTDOWN_DEFAULT;
     }
