@@ -340,6 +340,7 @@ enum GPU_PLATFORM{
     PLATFORM_INTEL_BXT         = 8,
     PLATFORM_INTEL_KBL         = 11,
     PLATFORM_INTEL_ICLLP       = 13,
+    PLATFORM_INTEL_TGLLP       = 15,
     PLATFORM_INTEL_GLK         = 16,
     PLATFORM_INTEL_CFL         = 17,
 };
@@ -1551,5 +1552,6 @@ EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 #include "cm_rt_g9.h"
 #include "cm_rt_g10.h"
 #include "cm_rt_g11.h"
+#include "cm_rt_g12_tgl.h"
 
 #endif //__CM_RT_H__
