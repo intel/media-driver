@@ -2901,7 +2901,8 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
     uint8_t *stateData           = nullptr;
     uint8_t *surfaceData         = nullptr;
     CmBuffer_RT * temp          = nullptr;
-    uint32_t original_stream_index = cmData->cmHalState->osInterface->streamIndex;
+
+    uint32_t original_stream_index = 0;
 
     CmSafeMemSet( &param, 0, sizeof( CM_HAL_EXEC_VEBOX_TASK_PARAM ) );
     //Set VEBOX state data pointer and size
@@ -2928,6 +2929,7 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
     param.taskIdOut = -1;
 
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    original_stream_index = cmData->cmHalState->osInterface->streamIndex;
     cmData->cmHalState->pfnSetGpuContext(cmData->cmHalState, MOS_GPU_CONTEXT_VEBOX,
                                          original_stream_index, m_gpuContextHandle);
     RegisterSyncEvent();
@@ -2971,7 +2973,7 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* task )
     CmEventRT                    *event        = nullptr;
     PCM_HAL_KERNEL_PARAM         tempData      = nullptr;
 
-    uint32_t original_stream_index = cmData->cmHalState->osInterface->streamIndex;
+    uint32_t original_stream_index = 0;
 
     CmSafeMemSet( &param, 0, sizeof( CM_HAL_EXEC_HINTS_TASK_PARAM ) );
     task->GetKernelCount ( count );
@@ -3015,8 +3017,10 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* task )
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
 
-    cmData->cmHalState->pfnSetGpuContext(cmData->cmHalState, MOS_GPU_CONTEXT_VEBOX,
-                                         original_stream_index, m_gpuContextHandle);
+    original_stream_index = cmData->cmHalState->osInterface->streamIndex;
+    cmData->cmHalState->pfnSetGpuContext(
+        cmData->cmHalState, static_cast<MOS_GPU_CONTEXT>(m_queueOption.GPUContext),
+        original_stream_index, m_gpuContextHandle);
     RegisterSyncEvent();
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnExecuteHintsTask(cmData->cmHalState, &param));
