@@ -2364,7 +2364,6 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     MOS_STATUS                  eStatus;
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState = this;
     PVPHAL_SURFACE              pSrcSurface = nullptr;
-    PVPHAL_SURFACE              pOutSurface = nullptr;
     bool                        bEnableIEF;
 
     bVeboxNeeded  = false;
@@ -2377,7 +2376,6 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     pRenderTarget = pcRenderParams->pTarget[0];
     pRenderData   = GetLastExecRenderData();
     pSrcSurface   = pRenderPassData->pSrcSurface;
-    pOutSurface   = pRenderPassData->pOutSurface;
 
     VPHAL_RENDER_CHK_NULL(pSrcSurface);
 
@@ -2399,8 +2397,9 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     //Force 8K to render
     if (pcRenderParams->bDisableVpFor8K &&
         ((pSrcSurface->dwWidth >= VPHAL_RNDR_8K_WIDTH || pSrcSurface->dwHeight >= VPHAL_RNDR_8K_HEIGHT) ||
-         (pOutSurface->dwWidth >= VPHAL_RNDR_8K_WIDTH || pOutSurface->dwHeight >= VPHAL_RNDR_8K_HEIGHT)))
+         (pRenderTarget->dwWidth >= VPHAL_RNDR_8K_WIDTH || pRenderTarget->dwHeight >= VPHAL_RNDR_8K_HEIGHT)))
     {
+        VPHAL_RENDER_NORMALMESSAGE("Disable VEBOX/SFC for 8k resolution");
         pRenderPassData->bCompNeeded = true;
         goto finish;
     }
