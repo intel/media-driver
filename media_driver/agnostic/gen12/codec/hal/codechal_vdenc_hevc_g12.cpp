@@ -3042,6 +3042,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, nullRendering));
 
         CODECHAL_DEBUG_TOOL(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpHucDebugOutputBuffers());
             if (m_mmcState)
             {
                 m_mmcState->UpdateUserFeatureKey(&m_reconSurface);
@@ -5872,19 +5873,25 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRegionsHuCPakIntegrate(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ConfigStitchDataBuffer());
     }
 
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 tileParams = m_tileParams[m_virtualEngineBbIndex];
+    CODECHAL_ENCODE_CHK_NULL_RETURN(tileParams);
+
     MOS_ZeroMemory(virtualAddrParams, sizeof(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS));
+
     // Add Virtual addr
     virtualAddrParams->regionParams[0].presRegion = &m_resTileBasedStatisticsBuffer[m_virtualEngineBbIndex].sResource;  // Region 0 - Tile based input statistics from PAK/ VDEnc
     virtualAddrParams->regionParams[0].dwOffset   = 0;
     virtualAddrParams->regionParams[1].presRegion = &m_resHuCPakAggregatedFrameStatsBuffer.sResource;  // Region 1 - HuC Frame statistics output
     virtualAddrParams->regionParams[1].isWritable = true;
     virtualAddrParams->regionParams[4].presRegion = &m_resBitstreamBuffer;                         // Region 4 - Last Tile bitstream
+    virtualAddrParams->regionParams[4].dwOffset   = MOS_ALIGN_FLOOR(tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
     virtualAddrParams->regionParams[5].presRegion = &m_resBitstreamBuffer;                         // Region 5 - HuC modifies the last tile bitstream before stitch command
+    virtualAddrParams->regionParams[5].dwOffset   = MOS_ALIGN_FLOOR(tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
     virtualAddrParams->regionParams[5].isWritable = true;
-    virtualAddrParams->regionParams[6].presRegion = &m_vdencBrcHistoryBuffer;                 // Region 6 � History Buffer (Input/Output)
+    virtualAddrParams->regionParams[6].presRegion = &m_vdencBrcHistoryBuffer;                 // Region 6 History Buffer (Input/Output)
     virtualAddrParams->regionParams[6].isWritable = true;
     virtualAddrParams->regionParams[7].presRegion = &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource;                // Region 7 - HCP PIC state command
-    virtualAddrParams->regionParams[9].presRegion = &m_resBrcDataBuffer;                           // Region 9 � HuC outputs BRC data
+    virtualAddrParams->regionParams[9].presRegion = &m_resBrcDataBuffer;                           // Region 9 HuC outputs BRC data
     virtualAddrParams->regionParams[9].isWritable = true;
     if (m_enableTileStitchByHW)
     {
@@ -5968,6 +5975,9 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRegionsHuCPakIntegrateStitch(
 
     MOS_ZeroMemory(virtualAddrParams, sizeof(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS));
 
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 tileParams = m_tileParams[m_virtualEngineBbIndex];
+    CODECHAL_ENCODE_CHK_NULL_RETURN(tileParams);
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ConfigStitchDataBuffer());
 
     // Add Virtual addr
@@ -5975,8 +5985,10 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRegionsHuCPakIntegrateStitch(
     virtualAddrParams->regionParams[0].dwOffset   = 0;
     virtualAddrParams->regionParams[1].presRegion = &m_resHuCPakAggregatedFrameStatsBuffer.sResource;  // Region 1 - HuC Frame statistics output
     virtualAddrParams->regionParams[1].isWritable = true;
-    virtualAddrParams->regionParams[4].presRegion = &m_resBitstreamBuffer;  // Region 4 - Last Tile bitstream
-    virtualAddrParams->regionParams[5].presRegion = &m_resBitstreamBuffer;  // Region 5 - HuC modifies the last tile bitstream before stitch command
+    virtualAddrParams->regionParams[4].presRegion = &m_resBitstreamBuffer;                         // Region 4 - Last Tile bitstream
+    virtualAddrParams->regionParams[4].dwOffset   = MOS_ALIGN_FLOOR(tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
+    virtualAddrParams->regionParams[5].presRegion = &m_resBitstreamBuffer;                         // Region 5 - HuC modifies the last tile bitstream before stitch command
+    virtualAddrParams->regionParams[5].dwOffset   = MOS_ALIGN_FLOOR(tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
     virtualAddrParams->regionParams[5].isWritable = true;
     virtualAddrParams->regionParams[6].presRegion = &m_vdencBrcHistoryBuffer;  // Region 6  History Buffer (Input/Output)
     virtualAddrParams->regionParams[6].isWritable = true;
@@ -6026,6 +6038,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCPakIntegrateStitch(
     uint16_t numTiles        = numTileRows * numTileColumns;
     uint16_t numTilesPerPipe = m_numTiles / m_numPipe;
     PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 tileParams = m_tileParams[m_virtualEngineBbIndex];
+    CODECHAL_ENCODE_CHK_NULL_RETURN(tileParams);
 
     hucPakStitchDmem->PicWidthInPixel          = (uint16_t)m_frameWidth;
     hucPakStitchDmem->PicHeightInPixel         = (uint16_t)m_frameHeight;
@@ -6034,14 +6047,14 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCPakIntegrateStitch(
     hucPakStitchDmem->MAXPass                  = 1;
     hucPakStitchDmem->CurrentPass              = 1;
     hucPakStitchDmem->MinCUSize                = m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3;
-    hucPakStitchDmem->CabacZeroWordFlag        = true;
+    hucPakStitchDmem->CabacZeroWordFlag        = false;
     hucPakStitchDmem->bitdepth_luma            = m_hevcSeqParams->bit_depth_luma_minus8 + 8;    // default: 8
     hucPakStitchDmem->bitdepth_chroma          = m_hevcSeqParams->bit_depth_chroma_minus8 + 8;  // default: 8
     hucPakStitchDmem->ChromaFormatIdc          = m_hevcSeqParams->chroma_format_idc;
     hucPakStitchDmem->TotalSizeInCommandBuffer = m_numTiles * CODECHAL_CACHELINE_SIZE;
     // Last tile length may get modified by HuC. Obtain last Tile Record, Add an offset of 8bytes to skip address field in Tile Record
     hucPakStitchDmem->OffsetInCommandBuffer   = tileParams[m_numTiles - 1].TileSizeStreamoutOffset * CODECHAL_CACHELINE_SIZE + 8;
-    hucPakStitchDmem->LastTileBS_StartInBytes = tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE;
+    hucPakStitchDmem->LastTileBS_StartInBytes = (tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE) & (CODECHAL_PAGE_SIZE - 1);
 
     hucPakStitchDmem->StitchEnable        = true;
     hucPakStitchDmem->StitchCommandOffset = 0;
@@ -6097,6 +6110,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCPakIntegrate(
     MOS_ZeroMemory(hucPakStitchDmem, sizeof(HucPakStitchDmemVdencG12));
 
     PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 tileParams = m_tileParams[m_virtualEngineBbIndex];
+    CODECHAL_ENCODE_CHK_NULL_RETURN(tileParams);
 
     // Reset all the offsets to be shared in the huc dmem (6*5 DW's)
     MOS_FillMemory(hucPakStitchDmem, 120, 0xFF);
@@ -6116,13 +6130,13 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCPakIntegrate(
     hucPakStitchDmem->MAXPass                  = m_brcEnabled ? CODECHAL_VDENC_BRC_NUM_OF_PASSES : 1;
     hucPakStitchDmem->CurrentPass              = (uint8_t) currentPass + 1;      // Current BRC pass [1..MAXPass]
     hucPakStitchDmem->MinCUSize                = m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3;
-    hucPakStitchDmem->CabacZeroWordFlag        = true;
+    hucPakStitchDmem->CabacZeroWordFlag        = false;
     hucPakStitchDmem->bitdepth_luma            = m_hevcSeqParams->bit_depth_luma_minus8 + 8;    // default: 8
     hucPakStitchDmem->bitdepth_chroma          = m_hevcSeqParams->bit_depth_chroma_minus8 + 8;  // default: 8
     hucPakStitchDmem->ChromaFormatIdc          = m_hevcSeqParams->chroma_format_idc;
-    hucPakStitchDmem->LastTileBS_StartInBytes  = tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE;
+    hucPakStitchDmem->LastTileBS_StartInBytes  = (tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE) & (CODECHAL_PAGE_SIZE - 1);
     hucPakStitchDmem->PIC_STATE_StartInBytes   = (uint16_t)m_picStateCmdStartInBytes;
-
+    CODECHAL_ENCODE_VERBOSEMESSAGE("last tile offset = 0x%x, LastTileBS_StartInBytes =0x%x, (tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE), hucPakStitchDmem->LastTileBS_StartInBytes");
     if(m_enableTileStitchByHW)
     {
         hucPakStitchDmem->StitchEnable = true;
@@ -8005,7 +8019,7 @@ MOS_STATUS CodechalVdencHevcStateG12::DumpHucDebugOutputBuffers()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // Virtual Engine does only one submit per pass. Dump all HuC debug outputs
-    bool dumpDebugBuffers = IsLastPipe();
+    bool dumpDebugBuffers = IsLastPipe() && (m_numPipe > 1);
     if (m_singleTaskPhaseSupported)
     {
         dumpDebugBuffers = dumpDebugBuffers && IsLastPass();
@@ -8039,7 +8053,7 @@ MOS_STATUS CodechalVdencHevcStateG12::DumpHucPakIntegrate()
         m_resTileBasedStatisticsBuffer[m_virtualEngineBbIndex].dwSize,
         0,
         "",
-        false,
+        true,
         currentPass,
         hucRegionDumpPakIntegrate));
 
@@ -8053,10 +8067,16 @@ MOS_STATUS CodechalVdencHevcStateG12::DumpHucPakIntegrate()
         currentPass,
         hucRegionDumpPakIntegrate));
 
-       CODECHAL_DEBUG_CHK_STATUS(m_debugInterface->DumpHucRegion(
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 tileParams = m_tileParams[m_virtualEngineBbIndex];
+    CODECHAL_ENCODE_CHK_NULL_RETURN(tileParams);
+
+    auto bitStreamSize = m_encodeParams.dwBitstreamSize - 
+        MOS_ALIGN_FLOOR(tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
+
+    CODECHAL_DEBUG_CHK_STATUS(m_debugInterface->DumpHucRegion(
         &m_resBitstreamBuffer,
-        0,
-        m_encodeParams.dwBitstreamSize,
+        MOS_ALIGN_FLOOR(tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE),
+        bitStreamSize,
         4,
         "",
         true,
@@ -8065,8 +8085,8 @@ MOS_STATUS CodechalVdencHevcStateG12::DumpHucPakIntegrate()
 
     CODECHAL_DEBUG_CHK_STATUS(m_debugInterface->DumpHucRegion(
         &m_resBitstreamBuffer,
-        0,
-        m_encodeParams.dwBitstreamSize,
+        MOS_ALIGN_FLOOR(tileParams[m_numTiles - 1].BitstreamByteOffset * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE),
+        bitStreamSize,
         5,
         "",
         false,
