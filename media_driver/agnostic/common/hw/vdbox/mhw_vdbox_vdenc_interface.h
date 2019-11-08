@@ -183,6 +183,7 @@ protected:
 
     bool                        m_rowstoreCachingSupported = 0;
     MHW_VDBOX_ROWSTORE_CACHE    m_vdencRowStoreCache = {};    //!< vdenc row store cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_vdencIpdlRowstoreCache = {}; //!< vdenc IntraPred row store cache
     bool                        m_rhoDomainStatsEnabled = false; //! indicate if rho domain stats is enabled
     bool                        m_perfModeSupported = true; //! indicate perf mode is supported
 

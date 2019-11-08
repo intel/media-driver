@@ -49,6 +49,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define VP9VDENCROWSTORE_BASEADDRESS_2112                                 2112
 #define VP9VDENCROWSTORE_BASEADDRESS_1920                                 1920
 #define VP9VDENCROWSTORE_BASEADDRESS_768                                  768
+#define RESERVED_VDENC_ROWSTORE_BASEADDRESS                               2370
+#define RESERVED_VDENC_IPDL_ROWSTORE_BASEADDRESS                          384
 
 #define GEN12_AVC_VDENC_ROWSTORE_BASEADDRESS                                  1280
 #define GEN12_AVC_VDENC_ROWSTORE_BASEADDRESS_MBAFF                            1536
@@ -442,6 +444,16 @@ public:
                 this->m_vdencRowStoreCache.bEnabled = RowStoreCacheEnableVP9[index][3];
                 this->m_vdencRowStoreCache.dwAddress = RowStoreCacheAddrVP9[index][3];
             }
+        }
+
+        if (this->m_vdencRowStoreCache.bSupported && rowstoreParams->Mode == CODECHAL_ENCODE_RESERVED_0)
+        {
+            this->m_vdencRowStoreCache.bEnabled  = true;
+            this->m_vdencRowStoreCache.dwAddress = RESERVED_VDENC_ROWSTORE_BASEADDRESS;
+
+            //IPDL
+            this->m_vdencIpdlRowstoreCache.dwAddress = RESERVED_VDENC_IPDL_ROWSTORE_BASEADDRESS;
+
         }
 
         return MOS_STATUS_SUCCESS;
