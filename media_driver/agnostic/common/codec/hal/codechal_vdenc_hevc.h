@@ -115,7 +115,7 @@ public:
     static constexpr uint8_t                m_numMaxVdencL1Ref = 3;                   //!< Max number of reference frame list1
     static constexpr uint32_t               m_brcPakStatsBufSize = 512;               //!< Pak statistic buffer size
     static constexpr uint32_t               m_brcStatsBufSize = 1216;                 //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
-    static constexpr uint32_t               m_brcHistoryBufSize = 1024;                //!< BRC history buffer size
+    static constexpr uint32_t               m_brcHistoryBufSize = 6080;              //!< BRC history buffer size
     static constexpr uint32_t               m_brcDebugBufSize = 0x1000;               //!< BRC debug buffer size
     static constexpr uint32_t               m_LaHistoryBufSize = 8192;                //!< Lookahead history buffer size
     static constexpr uint32_t               m_weightHistSize = 1024;                  //!< Weight Histogram (part of VDEnc Statistic): 256 DWs (16CLs) of Histogram Stats = 1024
@@ -178,7 +178,7 @@ public:
     MOS_RESOURCE                            m_dataFromPicsBuffer;                              //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
     MOS_RESOURCE                            m_vdencDeltaQpBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                              //!< VDEnc delta QP buffer
     MOS_RESOURCE                            m_vdencOutputROIStreaminBuffer;                    //!< VDEnc Output ROI Streamin Buffer
-    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc BrcUpdate DMEM buffer
+    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES_FOR_TILE_REPLAY];  //!< VDEnc BrcUpdate DMEM buffer
     MOS_RESOURCE                            m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                          //!< VDEnc BrcInit DMEM buffer
     MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                         //!< VDEnc brc constant data buffer
     MOS_RESOURCE                            m_vdencBrcHistoryBuffer;                           //!< VDEnc brc history buffer
