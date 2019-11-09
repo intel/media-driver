@@ -2336,6 +2336,23 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
     }
+    else if (IsFirstPass())
+    {
+        // Send force wake command for VDBOX
+        MOS_COMMAND_BUFFER cmdBuffer;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+
+        MHW_MI_FORCE_WAKEUP_PARAMS forceWakeupParams;
+        MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
+        forceWakeupParams.bMFXPowerWellControl = true;
+        forceWakeupParams.bMFXPowerWellControlMask = true;
+        forceWakeupParams.bHEVCPowerWellControl = true;
+        forceWakeupParams.bHEVCPowerWellControlMask = true;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiForceWakeupCmd(
+            &cmdBuffer,
+            &forceWakeupParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
+    }
 
     if (m_vdencHucUsed && IsFirstPipe())
     {
@@ -2374,26 +2391,11 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         m_brcInit = m_brcReset = false;
     }
 
-    if (!m_singleTaskPhaseSupported)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifyCommandBufferSize());
-    }
-
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
     
     if ((!m_singleTaskPhaseSupported || (m_firstTaskInPhase && !m_hevcVdencAcqpEnabled)) && (m_numPipe == 1))
     {
-        MHW_MI_FORCE_WAKEUP_PARAMS forceWakeupParams;
-        MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
-        forceWakeupParams.bMFXPowerWellControl = true;
-        forceWakeupParams.bMFXPowerWellControlMask = true;
-        forceWakeupParams.bHEVCPowerWellControl = true;
-        forceWakeupParams.bHEVCPowerWellControlMask = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiForceWakeupCmd(
-            &cmdBuffer,
-            &forceWakeupParams));
-
         // Send command buffer header at the beginning (OS dependent)
         // frame tracking tag is only added in the last command buffer header
         bool requestFrameTracking = m_singleTaskPhaseSupported ?
