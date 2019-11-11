@@ -21,3 +21,5 @@
 add_subdirectory(GenKrnBin)
 add_subdirectory(KernelBinToSource)
 add_subdirectory(KrnToHex_IGA)
+add_subdirectory(KrnToHex)
+add_subdirectory(GenDmyHex)

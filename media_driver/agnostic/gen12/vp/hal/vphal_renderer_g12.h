@@ -45,7 +45,6 @@ const VphalSseuSetting VpHalDefaultSSEUTableG12[baseKernelMaxNumID] =
 class VphalRendererG12 : public VphalRenderer
 {
 public:
-    bool                        bEnableSWSB;                                    //!< Enable SWSB for GEN12
     bool                        bEnableCMFC;                                    //!< Enable CM based FC for GEN12
     //!
     //! \brief    VphalRendererG8 constructor

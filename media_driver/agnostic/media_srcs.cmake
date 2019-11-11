@@ -43,6 +43,9 @@ if (BUILD_KERNELS)
         elseif(platform STREQUAL "gen11_icllp")
             set(genx "11" PARENT_SCOPE)
             set(kind "icllp" PARENT_SCOPE)
+        elseif(platform STREQUAL "gen12_tgllp")
+            set(genx "12" PARENT_SCOPE)
+            set(kind "tgllp" PARENT_SCOPE)
         endif()
     endfunction()
 
@@ -78,7 +81,7 @@ if (BUILD_KERNELS)
             OUTPUT ${krn}.bin ${krn_header}
             DEPENDS GenKrnBin ${hexs} ${link_file}
             COMMAND ${CMAKE_COMMAND} -E copy ${link_file} ./
-            COMMAND GenKrnBin . ${name}
+            COMMAND GenKrnBin . ${name} ${genx} ${kind}
             COMMAND ${CMAKE_COMMAND} -E copy ${krn}.h ${krn_header})
 
         # Generating kernel from the .bin file
@@ -173,6 +176,142 @@ if (BUILD_KERNELS)
             COMMENT "Generate source file from krn")
     endfunction()
 
+    # Function generates vp cmfc kernel for the specified platform. It assumes that generated
+    # kernel should be placed in the certain directory (see ${krn_dir}).
+    function(gen_vpkernel_from_cm name platform)
+        platform_to_genx(${platform} genx kind)
+
+        set(krn ig${name}krn_g${genx}_${kind}_cmfc)
+        set(krnpatch ig${name}krn_g${genx}_${kind}_cmfcpatch)
+        set(krn_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/${platform}/vp/kernel_free)
+        set(link_file ${krn_dir}/component_release/LinkFile.txt)
+        set(out_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/${platform}/vp/kernel_free/cache_kernel)
+        set(kernel_dir ${out_dir}/kernel)
+        set(patch_dir ${out_dir}/fcpatch)
+        set(kernel_hex_dir ${kernel_dir}/hex)
+        set(patch_hex_dir ${patch_dir}/hex)
+        set(krn_header ${CMAKE_CURRENT_LIST_DIR}/common/vp/kernel/${name}krnheader.h)
+
+        add_custom_command(
+            OUTPUT ${out_dir} ${kernel_dir} ${patch_dir} ${kernel_hex_dir} ${patch_hex_dir}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${kernel_dir}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${patch_dir}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${kernel_hex_dir}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${patch_hex_dir}
+            COMMENT "Creating VP cmfc kernels output directory")
+
+        # Compiling all the sources in the kernel source directory.
+        file(GLOB_RECURSE srcs ${krn_dir}/Source/*.cpp)
+
+        set(objsname "")
+        set(cm_genx ${kind})
+
+        foreach(src ${srcs})
+            get_filename_component(obj ${src} NAME_WE) # there are other outputs from cmc command, but we use only .dat and .fcpatch
+            if(obj STREQUAL "EOT" OR obj STREQUAL "Secure_Block_Copy") # "EOT" and "Secure_Block_Copy" don't generate the related .fcpatch file.
+            add_custom_command(
+                OUTPUT ${out_dir}/${obj}_0.dat
+                DEPENDS ${src} ${out_dir}
+                WORKING_DIRECTORY ${out_dir}
+                COMMAND ${CMC}
+                    -c -Qxcm -Qxcm_jit_target=${cm_genx} -I ${krn_dir}/Source/ -I ${krn_dir}/Source/Common -I ${krn_dir}/Source/Components
+                    -I ${krn_dir}/Source/Core_Kernels -Qxcm_jit_option="-nocompaction" -mCM_emit_common_isa -mCM_no_input_reorder -mCM_unique_labels=MDF_FC -mCM_printregusage
+                    ${src})
+            else()
+            add_custom_command(
+                OUTPUT ${out_dir}/${obj}_0.dat ${out_dir}/${obj}.fcpatch
+                DEPENDS ${src} ${out_dir}
+                WORKING_DIRECTORY ${out_dir}
+                COMMAND ${CMC}
+                    -c -Qxcm -Qxcm_jit_target=${cm_genx} -I ${krn_dir}/Source/ -I ${krn_dir}/Source/Common -I ${krn_dir}/Source/Components
+                    -I ${krn_dir}/Source/Core_Kernels -Qxcm_jit_option="-nocompaction" -mCM_emit_common_isa -mCM_no_input_reorder -mCM_unique_labels=MDF_FC -mCM_printregusage
+                    ${src})
+            endif()
+            set(objsname ${objsname} ${obj})
+        endforeach()
+
+        #Generate the .hex files from the .dat files by using KrnToHex.
+        set(hexs "")
+
+         foreach(objname ${objsname})
+            add_custom_command(
+            OUTPUT ${kernel_dir}/${objname}.krn
+            DEPENDS ${out_dir}/${objname}_0.dat ${kernel_dir}
+            WORKING_DIRECTORY ${out_dir}
+            COMMAND ${CMAKE_COMMAND} -E copy ${out_dir}/${objname}_0.dat ${kernel_dir}/${objname}.krn
+            )
+         endforeach()
+
+         foreach(objname ${objsname})
+            add_custom_command(
+            OUTPUT ${kernel_hex_dir}/${objname}.hex
+            DEPENDS KrnToHex ${kernel_dir}/${objname}.krn ${kernel_hex_dir}
+            WORKING_DIRECTORY ${kernel_dir}
+            COMMAND KrnToHex ${kernel_dir}/${objname}.krn
+            COMMAND ${CMAKE_COMMAND} -E copy ${kernel_dir}/${objname}.hex ${kernel_hex_dir}/${objname}.hex
+            COMMAND ${CMAKE_COMMAND} -E remove ${kernel_dir}/${objname}.hex
+            COMMENT "Generate the hex files of cmfc kernel")
+            set(hexs ${hexs} ${kernel_hex_dir}/${objname}.hex)
+         endforeach()
+
+         ##Generate the .hex files from the .fcpatch files by using KrnToHex.
+
+         list(REMOVE_ITEM objsname "EOT" "Secure_Block_Copy") # Remove "EOT" and "Secure_Block_Copy".
+
+         foreach(objname ${objsname})
+            add_custom_command(
+            OUTPUT ${patch_dir}/${objname}.krn
+            DEPENDS ${out_dir}/${objname}.fcpatch ${patch_dir}
+            WORKING_DIRECTORY ${out_dir}
+            COMMAND ${CMAKE_COMMAND} -E copy ${out_dir}/${objname}.fcpatch ${patch_dir}/${objname}.krn
+            )
+         endforeach()
+
+         set(fcpatch_hexs "")
+         foreach(objname ${objsname})
+            add_custom_command(
+            OUTPUT ${patch_hex_dir}/${objname}.hex
+            DEPENDS KrnToHex ${patch_dir}/${objname}.krn ${patch_hex_dir}
+            WORKING_DIRECTORY ${patch_dir}
+            COMMAND KrnToHex ${patch_dir}/${objname}.krn
+            COMMAND ${CMAKE_COMMAND} -E copy ${patch_dir}/${objname}.hex ${patch_hex_dir}/${objname}.hex
+            COMMAND ${CMAKE_COMMAND} -E remove ${patch_dir}/${objname}.hex
+            COMMENT "Generate the hex files of cmfc patch")
+            set(fcpatch_hexs ${fcpatch_hexs} ${patch_hex_dir}/${objname}.hex)
+         endforeach()
+
+        # Generating the .bin files for cmfc kernel and patch respectively.
+
+        add_custom_command(
+            OUTPUT ${kernel_hex_dir}/${krn}.bin ${krn_header}
+            DEPENDS GenDmyHex GenKrnBin ${hexs} ${link_file}   #Generate the dummy hexs from the pre-built header
+            WORKING_DIRECTORY ${kernel_hex_dir}
+            COMMAND GenDmyHex ${kernel_hex_dir} ${krn_header}
+            COMMAND ${CMAKE_COMMAND} -E copy ${link_file} ${kernel_hex_dir}
+            COMMAND GenKrnBin ${kernel_hex_dir} ${name} ${genx} tgllp_cmfc
+            COMMAND ${CMAKE_COMMAND} -E copy ${krn}.h ${krn_header})
+
+        add_custom_command(
+            OUTPUT ${patch_hex_dir}/${krnpatch}.bin
+            DEPENDS GenKrnBin ${fcpatch_hexs} ${link_file}
+            WORKING_DIRECTORY ${patch_hex_dir}
+            COMMAND ${CMAKE_COMMAND} -E copy ${link_file} ${patch_hex_dir}
+            COMMAND GenKrnBin ${patch_hex_dir} ${name} ${genx} tgllp_cmfcpatch)
+
+        # Generating kernel source files for cmfc kernel and patch.
+
+        add_custom_command(
+            OUTPUT ${krn_dir}/cmfc/${krn}.c ${krn_dir}/cmfc/${krn}.h
+            DEPENDS KernelBinToSource ${kernel_hex_dir}/${krn}.bin
+            COMMAND KernelBinToSource -i ${kernel_hex_dir}/${krn}.bin -o ${krn_dir}/cmfc)
+
+        add_custom_command(
+            OUTPUT ${krn_dir}/cmfcpatch/${krnpatch}.c ${krn_dir}/cmfcpatch/${krnpatch}.h
+            DEPENDS KernelBinToSource ${patch_hex_dir}/${krnpatch}.bin
+            COMMAND KernelBinToSource -i ${patch_hex_dir}/${krnpatch}.bin -o ${krn_dir}/cmfcpatch)
+    endfunction()
+
     # List of kernel sources to build.
     # NOTE: Order is important!! It should match the order in which sub-kernels are described
     # in the corresponding strcuture in the driver. For example, HME kernel should
@@ -188,6 +327,8 @@ if (BUILD_KERNELS)
     if(GEN11_ICLLP)
         gen_kernel_from_asm(vp gen11_icllp)
         gen_kernel_from_cm(codec gen11 ${IDR_CODEC_HME_DS_SCOREBOARD_KERNEL} "${HME_KRN_SOURCES}")
+    elseif(GEN12_TGLLP)
+        gen_vpkernel_from_cm(vp gen12_tgllp)
     endif()
 endif()
 

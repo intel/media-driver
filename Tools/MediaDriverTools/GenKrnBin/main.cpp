@@ -29,6 +29,8 @@ char KERNEL_BINARY_FILE[MAX_STRING_SIZE]        = "";
 char KERNEL_SEARCH_DIR[MAX_STRING_SIZE]            = "";
 
 char  KERNEL_HEADER_PREFIX[8]       = "";
+char  KERNEL_HEADER_GEN[8]          = "";
+char  KERNEL_HEADER_KIND[16]        = "";
 char  KERNEL_HEADER_PREFIX_UPPER[8] = "";
 char  KERNEL_HEADER_SENTRY[64]      = "";
 char  KERNEL_IDR[16]                = "";
@@ -137,13 +139,13 @@ int main(int argc, char *argv[])
     unsigned int dwKernelCount, dwHeaderSize, dwTempHeaderSize, dwBytesRead;
 
     bVerbose = false;
-    if (argc < 3)
+    if (argc < 5)
     {
         fprintf(stderr, "Usage: GenKrnBin.exe <kernel root dir> <component> [-verbose]\n");
         exit (-1);
     }
 
-    int idx = 3;        // scan the command-line options from index 3
+    int idx = 5;        // scan the command-line options from index 3
     while (idx < argc)
     {
         if (StrCmp(argv[idx], "-verbose", 8) == 0)
@@ -156,12 +158,14 @@ int main(int argc, char *argv[])
 #ifdef LINUX_
     sprintf(KERNEL_COMPONENT_DIR,"%s", argv[1]);
     strncpy(KERNEL_HEADER_PREFIX, argv[2], sizeof(KERNEL_HEADER_PREFIX));
+    strncpy(KERNEL_HEADER_GEN, argv[3], sizeof(KERNEL_HEADER_GEN));
+    strncpy(KERNEL_HEADER_KIND, argv[4], sizeof(KERNEL_HEADER_KIND));
     strncpy(KERNEL_HEADER_PREFIX_UPPER, argv[2], sizeof(KERNEL_HEADER_PREFIX));
    _strupr_s(KERNEL_HEADER_PREFIX_UPPER);
 
-    sprintf(KERNEL_HEADER_FILE, "%s/ig%skrn_g11_icllp.h", KERNEL_COMPONENT_DIR, KERNEL_HEADER_PREFIX);
+    sprintf(KERNEL_HEADER_FILE, "%s/ig%skrn_%s_%s.h", KERNEL_COMPONENT_DIR, KERNEL_HEADER_PREFIX, KERNEL_HEADER_GEN, KERNEL_HEADER_KIND);
     sprintf(KERNEL_TEMP_HEADER_FILE, "%s/%stemp%s", KERNEL_COMPONENT_DIR, KERNEL_HEADER_PREFIX, KERNEL_HEADER_FILE_NAME);
-    sprintf(KERNEL_BINARY_FILE, "%s/ig%skrn_g11_icllp.bin", KERNEL_COMPONENT_DIR, KERNEL_HEADER_PREFIX);
+    sprintf(KERNEL_BINARY_FILE, "%s/ig%skrn_%s_%s.bin", KERNEL_COMPONENT_DIR, KERNEL_HEADER_PREFIX, KERNEL_HEADER_GEN, KERNEL_HEADER_KIND);
     sprintf(KERNEL_SEARCH_DIR, "%s/g*", KERNEL_COMPONENT_DIR);
     sprintf(KERNEL_HEADER_SENTRY, "__%sKRNHEADER_H__", KERNEL_HEADER_PREFIX_UPPER);
     sprintf(KERNEL_IDR, "IDR_%s", KERNEL_HEADER_PREFIX_UPPER);

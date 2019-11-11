@@ -21,7 +21,6 @@
 #check whether need some flags to guard the including of below folders
 media_include_subdirectory(cmfc)
 media_include_subdirectory(cmfcpatch)
-media_include_subdirectory(swsb)
 
 set(TMP_1_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g12_tgllp.c
@@ -30,24 +29,15 @@ set(TMP_1_SOURCES_
 set(TMP_1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g12_tgllp.h
 )
-set(TMP_2_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g12_tgllp.c
-)
-
-set(TMP_2_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g12_tgllp.h
-)
 
 set(SOURCES_
     ${SOURCES_}
     ${TMP_1_SOURCES_}
-    ${TMP_2_SOURCES_}
 )
 
 set(HEADERS_
     ${HEADERS_}
     ${TMP_1_HEADERS_}
-    ${TMP_2_HEADERS_}
 )
 
 source_group( "Kernel\\VpKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )

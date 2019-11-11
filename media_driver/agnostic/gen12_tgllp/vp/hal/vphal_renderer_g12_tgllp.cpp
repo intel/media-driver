@@ -25,10 +25,10 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_g12_tgllp.h"
-#include "igvpkrn_g12_tgllp.h"
-#include "igvpkrn_g12_tgllp_swsb.h"
+#if defined(ENABLE_KERNELS)
 #include "igvpkrn_g12_tgllp_cmfc.h"
 #include "igvpkrn_g12_tgllp_cmfcpatch.h"
+#endif
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_g12lp[];
 extern const Kdll_RuleEntry         g_KdllRuleTable_g12lpcmfc[];
@@ -40,25 +40,13 @@ MOS_STATUS VphalRendererG12Tgllp::InitKdllParam()
     // Override kernel binary for CMFC/SWSB
     if (bEnableCMFC)
     {
+#if defined(ENABLE_KERNELS)
         pKernelDllRules     = g_KdllRuleTable_g12lpcmfc;
         pcKernelBin         = (const void *)IGVPKRN_G12_TGLLP_CMFC;
         dwKernelBinSize     = IGVPKRN_G12_TGLLP_CMFC_SIZE;
         pcFcPatchBin        = (const void *)IGVPKRN_G12_TGLLP_CMFCPATCH;
         dwFcPatchBinSize    = IGVPKRN_G12_TGLLP_CMFCPATCH_SIZE;
-    }
-    else if (bEnableSWSB)
-    {
-        pKernelDllRules     = g_KdllRuleTable_g12lp;
-        pcKernelBin         = (const void *)IGVPKRN_G12_TGLLP_SWSB;
-        dwKernelBinSize     = IGVPKRN_G12_TGLLP_SWSB_SIZE;
-        pcFcPatchBin        = nullptr;
-        dwFcPatchBinSize    = 0;
-    }
-    else 
-    {
-        pKernelDllRules     = g_KdllRuleTable_g12lp;
-        pcKernelBin         = (const void *)IGVPKRN_G12_TGLLP;
-        dwKernelBinSize     = IGVPKRN_G12_TGLLP_SIZE;
+#endif
     }
 
     if ((NULL == pcFcPatchBin) || (0 == dwFcPatchBinSize))

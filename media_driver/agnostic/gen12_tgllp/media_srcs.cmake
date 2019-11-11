@@ -20,3 +20,10 @@
 
 media_include_subdirectory(media_interfaces)
 media_include_subdirectory(vp)
+if(ENABLE_KERNELS)
+        if(ENABLE_NONFREE_KERNELS)
+            media_include_subdirectory(kernel)
+        else()
+            media_include_subdirectory(kernel_free)
+        endif()
+endif()
