@@ -180,6 +180,8 @@ protected:
     void *m_callbackUserData;                  //Pdata for Callback
 
 private:
+    bool m_osSignalTriggered;
+
     CmEventRT(const CmEventRT& other);
     CmEventRT& operator=(const CmEventRT& other);
 };

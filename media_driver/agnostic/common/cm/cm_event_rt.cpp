@@ -100,7 +100,8 @@ CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int
     m_isVisible(isVisible),
     m_task(task),
     m_callbackFunction(nullptr),
-    m_callbackUserData(nullptr)
+    m_callbackUserData(nullptr),
+    m_osSignalTriggered(false)
 {
     m_globalSubmitTimeCpu.QuadPart = 0;
     m_submitTimeGpu.QuadPart = 0;
@@ -199,30 +200,6 @@ int32_t CmEventRT::Initialize(void)
     m_kernelNames = nullptr;
     m_kernelCount = 0;
 
-    return CM_SUCCESS;
-}
-
-//*-----------------------------------------------------------------------------
-//! Query the status of the task associated with the event
-//! An event is generated when a task ( one kernel or multiples kernels running concurrently )
-//! is enqueued.
-//! This is a non-blocking call.
-//! INPUT:
-//!     The reference to status. For now only two status, CM_STATUS_QUEUED and CM_STATUS_FINISHED, are supported
-//! OUTPUT:
-//!     CM_SUCCESS if the status is successfully returned;
-//!     CM_FAILURE if not.
-//*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmEventRT::GetStatus( CM_STATUS& status)
-{
-    if( ( m_status == CM_STATUS_FLUSHED ) || ( m_status == CM_STATUS_STARTED ) )
-    {
-        Query();
-    }
-
-    m_queue->FlushTaskWithoutSync();
-
-    status = m_status;
     return CM_SUCCESS;
 }
 

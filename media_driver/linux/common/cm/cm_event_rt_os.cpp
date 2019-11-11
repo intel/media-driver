@@ -30,6 +30,42 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
+//! Query the status of the task associated with the event
+//! An event is generated when a task ( one kernel or multiples kernels running concurrently )
+//! is enqueued.
+//! This is a non-blocking call.
+//! INPUT:
+//!     The reference to status. For now only two status, CM_STATUS_QUEUED and CM_STATUS_FINISHED, are supported
+//! OUTPUT:
+//!     CM_SUCCESS if the status is successfully returned;
+//!     CM_FAILURE if not.
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmEventRT::GetStatus(CM_STATUS &status)
+{
+    static const uint64_t TIME_OUT = 10000; // 10 microseconds.
+    if (m_status == CM_STATUS_FLUSHED || m_status == CM_STATUS_STARTED)
+    {
+        if (!m_osSignalTriggered)
+        {
+            CM_CHK_NULL_RETURN_CMERROR(m_osData);
+            MOS_LINUX_BO *buffer_object = reinterpret_cast<MOS_LINUX_BO*>(m_osData);
+            int result = mos_gem_bo_wait(buffer_object, TIME_OUT);
+            mos_gem_bo_clear_relocs(buffer_object, 0);
+            m_osSignalTriggered = (result == 0);
+        }
+        if (m_osSignalTriggered)
+        {
+            Query();
+        }
+    }
+
+    m_queue->FlushTaskWithoutSync();
+
+    status = m_status;
+    return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
 //! Wait for the task completed with event-driven mechanism
 //! When the task finished, CM will be notified and waken up by KMD.
 //! INPUT:
