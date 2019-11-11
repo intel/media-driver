@@ -292,6 +292,15 @@ mos_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset)
 }
 
 int
+mos_bo_set_softpin(struct mos_linux_bo *bo)
+{
+    if (bo->bufmgr->bo_set_softpin)
+        return bo->bufmgr->bo_set_softpin(bo);
+
+    return -ENODEV;
+}
+
+int
 mos_bo_disable_reuse(struct mos_linux_bo *bo)
 {
     if (bo->bufmgr->bo_disable_reuse)

@@ -268,6 +268,12 @@ struct mos_bufmgr {
     int (*bo_set_softpin_offset) (struct mos_linux_bo *bo, uint64_t offset);
 
     /**
+     * Softpin the buffer object 
+     * \param bo Buffer to set the softpin
+     */
+    int (*bo_set_softpin) (struct mos_linux_bo *bo);
+
+    /**
      * Create a visible name for a buffer which can be used by other apps
      *
      * \param buf Buffer to create a name for

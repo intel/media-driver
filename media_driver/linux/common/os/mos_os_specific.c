@@ -4252,10 +4252,7 @@ uint64_t Mos_Specific_GetResourceGfxAddress(
 
     if (!mos_gem_bo_is_softpin(pResource->bo))
     {
-        mos_gem_bo_get_fake_offset(pResource->bo);
-        mos_bo_set_softpin_offset(pResource->bo, MOS_ALIGN_CEIL(pResource->bo->offset64 & 0xFFFFFFFFFFFF, 4096));
-        mos_bo_use_48b_address_range(pResource->bo, 1);
-        mos_bo_disable_reuse(pResource->bo);
+        mos_bo_set_softpin(pResource->bo);
     }
     return pResource->bo->offset64;
 }
