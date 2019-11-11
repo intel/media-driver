@@ -8213,22 +8213,18 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRoundingValues()
         {
             m_roundIntraValue = 10;
         }
-    else if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
+        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
         {
-            //Hierachical B GOP
-            if (m_hevcPicParams->CodingType == P_TYPE)
+            //Hierachical GOP
+            if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
                 m_roundIntraValue = 10;
             }
-            else if (m_hevcPicParams->CodingType == B_TYPE)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 2)
             {
-                m_roundIntraValue = 9; //regular B
-                if (m_lowDelay && !m_hevcSeqParams->LowDelayMode)
-                {
-                    m_roundIntraValue = 10; // RAB test, anchor frame
-                }
+                m_roundIntraValue = 9;
             }
-            else //B1,B2 picutre
+            else
             {
                 m_roundIntraValue = 8;
             }
@@ -8249,22 +8245,18 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRoundingValues()
         {
             m_roundInterValue = 4;
         }
-        else if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
+        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
         {
-            //Hierachical B GOP
-            if (m_hevcPicParams->CodingType == P_TYPE)
+            //Hierachical GOP
+            if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
                 m_roundInterValue = 4;
             }
-            else if (m_hevcPicParams->CodingType == B_TYPE)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 2)
             {
-                m_roundInterValue = 3; //regular B
-                if (m_lowDelay && !m_hevcSeqParams->LowDelayMode)
-                {
-                    m_roundInterValue = 4; // RAB test, anchor frame
-                }
+                m_roundInterValue = 3;
             }
-            else //B1,B2 picutre
+            else
             {
                 m_roundInterValue = 2;
             }
