@@ -1200,9 +1200,15 @@ int32_t GpuContextSpecificNext::SubmitPipeCommands(
         }
     }
 
-    if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+    //Keep FE and BE0 running on same engine for VT decode
+    if((cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_ALONE)
+        || (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER))
     {
-        fence_flag = I915_EXEC_FENCE_OUT;
+        if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+        {
+            //Only master pipe needs fence out flag
+            fence_flag = I915_EXEC_FENCE_OUT;
+        }
         queue = m_i915Context[1];
     }
 
