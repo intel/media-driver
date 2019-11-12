@@ -629,12 +629,6 @@ public:
             cmd.DW5.TailPointerReadFrequency           = 0x50;
         }
 
-        if (paramsG12->bStreamingBufferEnabled)
-        {
-            cmd.DW1.StreamingBufferConfig   = TVdencCmds::VDENC_PIPE_MODE_SELECT_CMD::STREAMING_BUFFER_64;
-            cmd.DW5.CaptureMode             = TVdencCmds::VDENC_PIPE_MODE_SELECT_CMD::CAPTURE_MODE_CAMERA;
-        }
-
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;

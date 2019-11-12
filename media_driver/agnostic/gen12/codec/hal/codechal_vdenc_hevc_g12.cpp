@@ -4710,11 +4710,6 @@ void CodechalVdencHevcStateG12::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_S
         pipeModeSelectParams.bTileBasedReplayMode = 0;
     }
 
-    if (m_hevcSeqParams->EnableStreamingBufferLLC || m_hevcSeqParams->EnableStreamingBufferDDR)
-    {
-        pipeModeSelectParams.bStreamingBufferEnabled = true;
-    }
-
     // To enable VDENC/PAK statistics stream out for BRC only
     // Is stream out needed for ACQP? check this out!
     pipeModeSelectParams.bBRCEnabled = m_hevcVdencAcqpEnabled || m_vdencBrcEnabled;
