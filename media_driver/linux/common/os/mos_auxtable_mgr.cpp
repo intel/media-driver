@@ -27,7 +27,7 @@
 #include "mos_auxtable_mgr.h"
 
 #ifndef _AUXTABLE_SUPPORTED
-AuxTableMgr::AuxTableMgr(MOS_BUFMGR *bufMgr, bool is64KAligned)
+AuxTableMgr::AuxTableMgr(MOS_BUFMGR *bufMgr)
 {
 }
 
@@ -35,7 +35,7 @@ AuxTableMgr::~AuxTableMgr()
 {
 }
 
-AuxTableMgr * AuxTableMgr::CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku, MEDIA_WA_TABLE *wa)
+AuxTableMgr * AuxTableMgr::CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku)
 {
     return nullptr;
 }

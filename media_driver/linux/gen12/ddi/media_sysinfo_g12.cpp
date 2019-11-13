@@ -146,15 +146,6 @@ static bool InitTglShadowWa(struct GfxDeviceInfo *devInfo,
     waTable->WaDisregardPlatformChecks          = 1;
     waTable->Wa4kAlignUVOffsetNV12LinearSurface = 1;
 
-    // Set it to 0 if GMM support 64K AuxTable
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_AUX_TABLE_16K_GRANULAR_ID,
-        &userFeatureData);
-    waTable->WaAuxTable16KGranular = (userFeatureData.i32Data) ? 1 : 0;
-
     // Set it to 1 if need to support 256B compress mode
     waTable->WaLimit128BMediaCompr = 1;
 

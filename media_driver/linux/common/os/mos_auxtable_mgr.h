@@ -43,7 +43,7 @@ public:
     //!
     //! \brief  Constructor
     //!
-    AuxTableMgr(MOS_BUFMGR *bufMgr, bool is64KAligned);
+    AuxTableMgr(MOS_BUFMGR *bufMgr);
 
     //!
     //! \brief  Destructor
@@ -62,7 +62,7 @@ public:
     //! \return   Object pointer to AuxTableMgr
     //!           Return object pointer if success or return nullptr if failed
     //!
-    static AuxTableMgr * CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku, MEDIA_WA_TABLE *wa);
+    static AuxTableMgr * CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku);
 
     //!
     //! \brief    Map resource to aux table
@@ -109,8 +109,7 @@ public:
 
 private:
     GMM_CLIENT_CONTEXT *m_gmmClientContext = nullptr;     //!<  GMM Client Context for GMM Page table manager
-    void *m_gmmPageTableMgr = nullptr;      //!<  The GMM Page Table Manager
-    bool  m_AuxTable16KAligned = false;     //!<  If Aux Table is 16K aligned or 64K aligned.
+    void *m_gmmPageTableMgr = nullptr;                    //!<  The GMM Page Table Manager
 };
 
 #endif //MOS_AUXTABLE_MGR_H

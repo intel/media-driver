@@ -260,13 +260,11 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
 
     if (drvInfo->devId == 0x0201 || drvInfo->devId == 0x0bd0)
     {
-        MEDIA_WR_WA(waTable, WaAuxTable16KGranular, 0);
         MEDIA_WR_WA(waTable, WaLimit128BMediaCompr, 1);
     }
     else
     {
-    MEDIA_WR_WA(waTable, WaAuxTable16KGranular, (userFeatureData.i32Data) ? 1 : 0);
-    MEDIA_WR_WA(waTable, WaLimit128BMediaCompr, 1);
+        MEDIA_WR_WA(waTable, WaLimit128BMediaCompr, 1);
     }
 
     MEDIA_WR_WA(waTable, WaDummyReference, 1);
