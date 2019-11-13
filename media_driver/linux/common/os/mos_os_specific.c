@@ -6675,13 +6675,6 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             &userFeatureData);
         osInterface->bHcpDecScalabilityMode = userFeatureData.u32Data ? true : false;
 
-        if (MosUtilUserInterface::IsDefaultValueChanged() &&
-           (eStatusUserFeature == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED ||
-            eStatusUserFeature == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
-        {
-            osInterface->bHcpDecScalabilityMode = false;
-        }
-
         osInterface->frameSplit                  = false;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(

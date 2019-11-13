@@ -927,11 +927,14 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
 #endif
 
     // enable FE separate submission by default in multi-pipe mode
-    if ((vdboxNum > 2)
+    if((vdboxNum >= 2) && osInterface->phasedSubmission)
+    {
+        pScalabilityState->bFESeparateSubmission = true;
+    }
+    else if ((vdboxNum > 2)
 #if (_DEBUG || _RELEASE_INTERNAL)
         && (((pScalabilityState->dbgOverUserPipeNum >= 3)
-        && (pScalabilityState->dbgOverUserPipeNum <= vdboxNum))
-        || (osInterface->frameSplit))
+        && (pScalabilityState->dbgOverUserPipeNum <= vdboxNum)))
 #endif
         )
     {
@@ -939,7 +942,6 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     }
     else
     {
-        // no benefit to enable FE separate submission on 2 vdbox config.
         pScalabilityState->bFESeparateSubmission = false;
     }
 
