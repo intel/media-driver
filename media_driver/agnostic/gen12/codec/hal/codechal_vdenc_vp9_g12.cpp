@@ -4483,6 +4483,23 @@ void CodechalVdencVp9StateG12::FreeResources()
     return;
 }
 
+MOS_STATUS CodechalVdencVp9StateG12::SetRowstoreCachingOffsets()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    // Add row store cache support for VDENC Gen12.
+    if (m_hwInterface->GetHcpInterface()->IsRowStoreCachingSupported())
+    {
+        //add row store cache support.
+        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
+        rowstoreParams.Mode             = m_mode;
+        rowstoreParams.dwPicWidth       = m_frameWidth;
+        rowstoreParams.ucChromaFormat   = ToHCPChromaFormat(m_chromaFormat);
+        rowstoreParams.ucBitDepthMinus8 = m_bitDepth * 2;  // 0(8bit) -> 0, 1(10bit)->2, 2(12bit)->4
+        m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
+    }
+    return eStatus;
+}
+
 MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -4514,17 +4531,7 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     m_scalableMode = (m_numPipe > 1);
     m_useVirtualEngine = true;
 
-    // Add row store cache support for VDENC Gen12.
-    if (m_hwInterface->GetHcpInterface()->IsRowStoreCachingSupported())
-    {
-        //add row store cache support.
-        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
-        rowstoreParams.Mode = m_mode;
-        rowstoreParams.dwPicWidth = m_frameWidth;
-        rowstoreParams.ucChromaFormat = ToHCPChromaFormat(m_chromaFormat);
-        rowstoreParams.ucBitDepthMinus8 = m_bitDepth * 2; // 0(8bit) -> 0, 1(10bit)->2, 2(12bit)->4
-        m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRowstoreCachingOffsets());
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

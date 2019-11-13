@@ -5744,6 +5744,22 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencVp9State::SetRowstoreCachingOffsets()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    if (m_vdencEnabled &&
+        m_hwInterface->GetHcpInterface()->IsRowStoreCachingSupported())
+    {
+        MHW_VDBOX_ROWSTORE_PARAMS rowStoreParams;
+        rowStoreParams.Mode             = m_mode;
+        rowStoreParams.dwPicWidth       = m_frameWidth;
+        rowStoreParams.ucChromaFormat   = m_chromaFormat;
+        rowStoreParams.ucBitDepthMinus8 = m_bitDepth * 2;  // 0(8bit) -> 0, 1(10bit)->2, 2(12bit)->4
+        m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams);
+    }
+    return eStatus;
+}
+
 MOS_STATUS CodechalVdencVp9State::InitializePicture(const EncoderParams& params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -5826,16 +5842,9 @@ MOS_STATUS CodechalVdencVp9State::InitializePicture(const EncoderParams& params)
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPictureStructs());
-    if (m_vdencEnabled &&
-        m_hwInterface->GetHcpInterface()->IsRowStoreCachingSupported())
-    {
-        MHW_VDBOX_ROWSTORE_PARAMS rowStoreParams;
-        rowStoreParams.Mode = m_mode;
-        rowStoreParams.dwPicWidth = m_frameWidth;
-        rowStoreParams.ucChromaFormat = m_chromaFormat;
-        rowStoreParams.ucBitDepthMinus8 = m_bitDepth * 2; // 0(8bit) -> 0, 1(10bit)->2, 2(12bit)->4
-        m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams);
-    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRowstoreCachingOffsets());
+
     m_pictureStatesSize = m_defaultPictureStatesSize;
     m_picturePatchListSize = m_defaultPicturePatchListSize;
 

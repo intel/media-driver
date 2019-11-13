@@ -1150,6 +1150,8 @@ public:
 
     MOS_STATUS SetPictureStructs() override;
 
+    MOS_STATUS SetRowstoreCachingOffsets() override;
+
     virtual MOS_STATUS AllocateResources() override;
 
     void FreeResources() override;

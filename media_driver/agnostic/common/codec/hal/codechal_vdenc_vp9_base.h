@@ -1896,6 +1896,8 @@ public:
 
     virtual MOS_STATUS SetPictureStructs();
 
+    virtual MOS_STATUS SetRowstoreCachingOffsets();
+
     //!
     //! \brief      User feature key report
     //!
