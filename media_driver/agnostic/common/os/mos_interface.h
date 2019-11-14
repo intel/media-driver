@@ -1201,6 +1201,37 @@ public:
     //!
     static MosOcaInterface *GetOcaInterface(MOS_STREAM_HANDLE streamState);
 
+    //!
+    //! \brief    Maps the specified executable module into the address space of
+    //!           the calling process.
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] A handle to OS interface.  This can be nullptr which allows a caller to
+    //!           always get library from specified library path (function will never check
+    //!           driver store) which is useful if there's a constant static path of a library
+    //! \param    const PCCHAR lpLibFileName
+    //!           [in] String containing resource name to load.  Absolute path is given here
+    //!           if pOsInterface is nullptr, else only lib path is given, and driver will check store for path
+    //! \param    PHMODULE phModule
+    //!           [out] Handle to library given back to the caller
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosLoadLibrary(
+        MOS_STREAM_HANDLE           streamState,
+        PCCHAR                      pFileName,
+        PHMODULE                    phModule);
+
+    //!
+    //! \brief    Free the loaded dynamic-link library
+    //! \details  Free the loaded dynamic-link library
+    //! \param    [in] hLibModule
+    //!           A handle to the loaded DLL module
+    //! \return   int32_t
+    //!           true if success else false
+    //!
+    static MOS_STATUS MosFreeLibrary(HMODULE hLibModule);
+
 private:
 
     //!

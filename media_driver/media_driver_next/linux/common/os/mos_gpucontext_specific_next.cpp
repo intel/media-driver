@@ -79,7 +79,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
     if (m_cmdBufPoolMutex == nullptr)
     {
-        m_cmdBufPoolMutex = MOS_CreateMutex();
+        m_cmdBufPoolMutex = MosUtilities::MosCreateMutex();
     }
 
     MOS_OS_CHK_NULL_RETURN(m_cmdBufPoolMutex);
@@ -166,7 +166,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
             if (createOption->SSEUValue != 0)
             {
                 struct drm_i915_gem_context_param_sseu sseu;
-                MOS_ZeroMemory(&sseu, sizeof(sseu));
+                MosUtilities::MosZeroMemory(&sseu, sizeof(sseu));
                 sseu.flags = I915_CONTEXT_SSEU_FLAG_ENGINE_INDEX;
                 sseu.engine.engine_instance = m_i915ExecFlag;
 
@@ -202,7 +202,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                 caps |= I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC;
             }
 
-            MOS_ZeroMemory(engine_map, sizeof(engine_map));
+            MosUtilities::MosZeroMemory(engine_map, sizeof(engine_map));
             if (mos_query_engines(osParameters->fd,engine_class,caps,&nengine,engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
@@ -496,9 +496,9 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
         comamndBuffer->Attributes.pAttriVe = nullptr;
 
         // zero comamnd buffer
-        MOS_ZeroMemory(comamndBuffer->pCmdBase, comamndBuffer->iRemaining);
+        MosUtilities::MosZeroMemory(comamndBuffer->pCmdBase, comamndBuffer->iRemaining);
         comamndBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
-        MOS_ZeroMemory(&comamndBuffer->Attributes,sizeof(comamndBuffer->Attributes));
+        MosUtilities::MosZeroMemory(&comamndBuffer->Attributes,sizeof(comamndBuffer->Attributes));
 
         if (isPrimaryCmdBuffer)
         {
@@ -506,14 +506,14 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
             m_cmdBufFlushed = false;
 
             // keep a copy in GPU context
-            MosUtilities::MOS_SecureMemcpy(m_commandBuffer, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
+            MosUtilities::MosSecureMemcpy(m_commandBuffer, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
         }
         else
         {
             PMOS_COMMAND_BUFFER tempCmdBuf = (PMOS_COMMAND_BUFFER)MOS_AllocAndZeroMemory(sizeof(MOS_COMMAND_BUFFER));
             MOS_OS_CHK_NULL_RETURN(tempCmdBuf);
             m_secondaryCmdBufs[secondaryIdx] = tempCmdBuf;
-            MOS_SecureMemcpy(tempCmdBuf, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
+            MosUtilities::MosSecureMemcpy(tempCmdBuf, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
         }
 
         // Command buffers are treated as cyclical buffers, the CB after the just submitted one
@@ -529,11 +529,11 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
         // current command buffer still active, directly copy to comamndBuffer
         if (isPrimaryCmdBuffer)
         {
-            MosUtilities::MOS_SecureMemcpy(comamndBuffer, sizeof(MOS_COMMAND_BUFFER), m_commandBuffer, sizeof(MOS_COMMAND_BUFFER));
+            MosUtilities::MosSecureMemcpy(comamndBuffer, sizeof(MOS_COMMAND_BUFFER), m_commandBuffer, sizeof(MOS_COMMAND_BUFFER));
         }
         else
         {
-            MosUtilities::MOS_SecureMemcpy(comamndBuffer, sizeof(MOS_COMMAND_BUFFER), m_secondaryCmdBufs[secondaryIdx], sizeof(MOS_COMMAND_BUFFER));
+            MosUtilities::MosSecureMemcpy(comamndBuffer, sizeof(MOS_COMMAND_BUFFER), m_secondaryCmdBufs[secondaryIdx], sizeof(MOS_COMMAND_BUFFER));
         }
     }
 
@@ -573,7 +573,7 @@ void GpuContextSpecificNext::ReturnCommandBuffer(
         uint32_t secondaryIdx = flags;
         MOS_OS_ASSERT(m_secondaryCmdBufs.count(secondaryIdx));
 
-        MosUtilities::MOS_SecureMemcpy(m_secondaryCmdBufs[secondaryIdx], sizeof(MOS_COMMAND_BUFFER), cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+        MosUtilities::MosSecureMemcpy(m_secondaryCmdBufs[secondaryIdx], sizeof(MOS_COMMAND_BUFFER), cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     }
 }
 
@@ -647,7 +647,7 @@ MOS_STATUS GpuContextSpecificNext::ResizeCommandBufferAndPatchList(
         m_patchLocationList = newPatchList;
 
         // now zero the extended portion
-        MOS_ZeroMemory((m_patchLocationList + m_maxPatchLocationsize), sizeof(PATCHLOCATIONLIST) * (requestedPatchListSize - m_maxPatchLocationsize));
+        MosUtilities::MosZeroMemory((m_patchLocationList + m_maxPatchLocationsize), sizeof(PATCHLOCATIONLIST) * (requestedPatchListSize - m_maxPatchLocationsize));
         m_maxPatchLocationsize = requestedPatchListSize;
     }
 
@@ -1145,12 +1145,12 @@ if (streamState->dumpCommandBuffer)
 
     // Reset resource allocation
     m_numAllocations = 0;
-    MOS_ZeroMemory(m_allocationList, sizeof(ALLOCATION_LIST) * m_maxNumAllocations);
+    MosUtilities::MosZeroMemory(m_allocationList, sizeof(ALLOCATION_LIST) * m_maxNumAllocations);
     m_currentNumPatchLocations = 0;
-    MOS_ZeroMemory(m_patchLocationList, sizeof(PATCHLOCATIONLIST) * m_maxNumAllocations);
+    MosUtilities::MosZeroMemory(m_patchLocationList, sizeof(PATCHLOCATIONLIST) * m_maxNumAllocations);
     m_resCount = 0;
 
-    MOS_ZeroMemory(m_writeModeList, sizeof(bool) * m_maxNumAllocations);
+    MosUtilities::MosZeroMemory(m_writeModeList, sizeof(bool) * m_maxNumAllocations);
 finish:
     return eStatus;
 }
@@ -1244,15 +1244,15 @@ void GpuContextSpecificNext::IncrementGpuStatusTag()
 
 void GpuContextSpecificNext::ResetGpuContextStatus()
 {
-    MOS_ZeroMemory(m_allocationList, sizeof(ALLOCATION_LIST) * ALLOCATIONLIST_SIZE);
+    MosUtilities::MosZeroMemory(m_allocationList, sizeof(ALLOCATION_LIST) * ALLOCATIONLIST_SIZE);
     m_numAllocations = 0;
-    MOS_ZeroMemory(m_patchLocationList, sizeof(PATCHLOCATIONLIST) * PATCHLOCATIONLIST_SIZE);
+    MosUtilities::MosZeroMemory(m_patchLocationList, sizeof(PATCHLOCATIONLIST) * PATCHLOCATIONLIST_SIZE);
     m_currentNumPatchLocations = 0;
 
-    MOS_ZeroMemory(m_attachedResources, sizeof(MOS_RESOURCE) * ALLOCATIONLIST_SIZE);
+    MosUtilities::MosZeroMemory(m_attachedResources, sizeof(MOS_RESOURCE) * ALLOCATIONLIST_SIZE);
     m_resCount = 0;
 
-    MOS_ZeroMemory(m_writeModeList, sizeof(bool) * ALLOCATIONLIST_SIZE);
+    MosUtilities::MosZeroMemory(m_writeModeList, sizeof(bool) * ALLOCATIONLIST_SIZE);
 
     if ((m_cmdBufFlushed == true) && m_commandBuffer->OsResource.bo)
     {

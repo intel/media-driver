@@ -143,7 +143,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     GMM_RESOURCE_TYPE  resourceType    = RESOURCE_2D;
 
     GMM_RESCREATE_PARAMS    gmmParams;
-    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+    MosUtilities::MosZeroMemory(&gmmParams, sizeof(gmmParams));
 
     switch (params.m_type)
     {
@@ -272,7 +272,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     MOS_LINUX_BO* boPtr      = nullptr;
 
     char bufName[m_maxBufNameLength];
-    MOS_SecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str());
+    MosUtilities::MosSecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str());
 
     if (nullptr != params.m_pSystemMemory)
     {
@@ -474,7 +474,7 @@ void* GraphicsResourceSpecificNext::Lock(OsContextNext* osContextPtr, LockParams
                             uint64_t surfSize = m_gmmResInfo->GetSizeMainSurface();
                             MOS_OS_CHECK_CONDITION((m_tileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
                             MOS_OS_CHECK_CONDITION((boPtr->size <= 0 || m_pitch <= 0), "Invalid BO size or pitch", nullptr);
-                            Mos_SwizzleData((uint8_t*)boPtr->virt, m_systemShadow,
+                            MosUtilities::MosSwizzleData((uint8_t*)boPtr->virt, m_systemShadow,
                                             MOS_TILE_Y, MOS_TILE_LINEAR,
                                             (int32_t)(surfSize / m_pitch), m_pitch, flags);
                         }
@@ -541,7 +541,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Unlock(OsContextNext* osContextPtr)
                {
                    int32_t flags = pOsContextSpecific->GetTileYFlag() ? 0 : 1;
                    uint64_t surfSize = m_gmmResInfo->GetSizeMainSurface();
-                   Mos_SwizzleData(m_systemShadow, (uint8_t*)boPtr->virt,
+                   MosUtilities::MosSwizzleData(m_systemShadow, (uint8_t*)boPtr->virt,
                                    MOS_TILE_LINEAR, MOS_TILE_Y,
                                    (int32_t)(surfSize / m_pitch), m_pitch, flags);
                    MOS_FreeMemory(m_systemShadow);

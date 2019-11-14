@@ -27,6 +27,7 @@
 #include "mos_interface.h"
 #include "mos_context_specific_next.h"
 #include "mos_gpucontext_specific_next.h"
+#include "mos_os_specific_next.h"
 #include "media_libva_common.h"
 #include "mos_auxtable_mgr.h"
 
@@ -178,7 +179,7 @@ MOS_STATUS MosInterface::CreateGpuContext(
     if (createOption.gpuNode == MOS_GPU_NODE_3D && createOption.SSEUValue != 0)
     {
         struct drm_i915_gem_context_param_sseu sseu;
-        MosUtilities::MOS_ZeroMemory(&sseu, sizeof(sseu));
+        MosUtilities::MosZeroMemory(&sseu, sizeof(sseu));
         sseu.engine.engine_class    = I915_ENGINE_CLASS_RENDER;
         sseu.engine.engine_instance = 0;
 
@@ -288,7 +289,7 @@ MOS_STATUS MosInterface::AddCommand(
         return MOS_STATUS_UNKNOWN;
     }
 
-    MOS_SecureMemcpy(cmdBuffer->pCmdPtr, cmdSize, cmd, cmdSize);
+    MosUtilities::MosSecureMemcpy(cmdBuffer->pCmdPtr, cmdSize, cmd, cmdSize);
     cmdBuffer->pCmdPtr += (cmdSizeDwAligned / sizeof(uint32_t));
 
     return MOS_STATUS_SUCCESS;
@@ -325,13 +326,13 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     {
     case MOS_GPU_NODE_VIDEO:
     case MOS_GPU_NODE_VIDEO2:
-        MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
+        MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
         break;
     case MOS_GPU_NODE_COMPUTE:
-        MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
+        MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
         break;
     case MOS_GPU_NODE_VE:
-        MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VEBOX_ENGINE);
+        MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VEBOX_ENGINE);
         break;
     default:
         MOS_OS_ASSERTMESSAGE("Unsupported GPU context.");
@@ -348,7 +349,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
     MOS_OS_CHK_NULL_RETURN(pOutputBuffer);
 
-    dwBytesWritten = MosUtilities::MOS_SecureStringPrint(
+    dwBytesWritten = MosUtilities::MosSecureStringPrint(
         pOutputBuffer,
         SIZE_OF_ONE_WORD * 3,
         SIZE_OF_ONE_WORD * 3,
@@ -358,7 +359,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     if (streamState->dumpCommandBufferToFile)
     {
         // Set the file name.
-        eStatus = MosUtilDebug::MOS_LogFileNamePrefix(sFileName);
+        eStatus = MOS_LogFileNamePrefix(sFileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
@@ -366,7 +367,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
         }
 
         nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
-        MosUtilities::MOS_SecureStringPrint(
+        MosUtilities::MosSecureStringPrint(
             sFileName + nSizeFileNamePrefix,
             sizeof(sFileName) - nSizeFileNamePrefix,
             sizeof(sFileName) - nSizeFileNamePrefix,
@@ -378,7 +379,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
             dwCommandBufferNumber);
 
         // Write the output buffer to file.
-        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MOS_WriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosWriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
     }
 
     if (streamState->dumpCommandBufferAsMessages)
@@ -386,13 +387,13 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
         MOS_OS_NORMALMESSAGE(pOutputBuffer);
     }
 
-    MosUtilities::MOS_ZeroMemory(pOutputBuffer, dwBytesWritten);
+    MosUtilities::MosZeroMemory(pOutputBuffer, dwBytesWritten);
     dwBytesWritten = 0;
 
     // Fill in the output buffer with the command buffer dwords.
     for (uint32_t dwIndex = 0; dwIndex < dwNumberOfDwords; dwIndex++)
     {
-        dwBytesWritten += MOS_SecureStringPrint(
+        dwBytesWritten += MosUtilities::MosSecureStringPrint(
             pOutputBuffer + dwBytesWritten,
             SIZE_OF_ONE_WORD + 1,
             SIZE_OF_ONE_WORD + 1,
@@ -403,21 +404,21 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
         {
             if (streamState->dumpCommandBufferToFile)
             {
-                MOS_OS_CHK_STATUS_RETURN(MosUtilities::MOS_AppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+                MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
             }
             if (streamState->dumpCommandBufferAsMessages)
             {
                 MOS_OS_NORMALMESSAGE(pOutputBuffer);
             }
 
-            MosUtilities::MOS_ZeroMemory(pOutputBuffer, dwBytesWritten);
+            MosUtilities::MosZeroMemory(pOutputBuffer, dwBytesWritten);
             dwBytesWritten = 0;
         }
     }
 
     if (streamState->dumpCommandBufferToFile)
     {
-        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MOS_AppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
     }
 
     if (streamState->dumpCommandBufferAsMessages)
@@ -1057,7 +1058,7 @@ MOS_STATUS MosInterface::AllocateResource(
     GMM_RESOURCE_TYPE resourceType = RESOURCE_2D;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    MosUtilities::MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+    MosUtilities::MosZeroMemory(&gmmParams, sizeof(gmmParams));
 
     MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
     auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
@@ -1391,7 +1392,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     }
     else
     {
-        MosUtilities::MOS_ZeroMemory(reqInfo, sizeof(reqInfo));
+        MosUtilities::MosZeroMemory(reqInfo, sizeof(reqInfo));
         gmmChannel = GMM_DISPLAY_BASE;
         // Get the base offset of the surface (plane Y)
         reqInfo[2].ReqRender = true;
@@ -1518,7 +1519,7 @@ void *MosInterface::LockMosResource(
                             int32_t swizzleflags = perStreamParameters->bTileYFlag ? 0 : 1;
                             MOS_OS_CHECK_CONDITION((resource->TileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
                             MOS_OS_CHECK_CONDITION((bo->size <= 0 || resource->iPitch <= 0), "Invalid BO size or pitch", nullptr);
-                            Mos_SwizzleData((uint8_t *)bo->virt, resource->pSystemShadow, MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / resource->iPitch, resource->iPitch, swizzleflags);
+                            MosUtilities::MosSwizzleData((uint8_t *)bo->virt, resource->pSystemShadow, MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / resource->iPitch, resource->iPitch, swizzleflags);
                         }
                     }
                     else
@@ -1590,7 +1591,7 @@ MOS_STATUS MosInterface::UnlockMosResource(
                 if (resource->pSystemShadow)
                 {
                     int32_t flags = perStreamParameters->bTileYFlag ? 0 : 1;
-                    Mos_SwizzleData(resource->pSystemShadow, (uint8_t *)resource->bo->virt, MOS_TILE_LINEAR, MOS_TILE_Y, resource->bo->size / resource->iPitch, resource->iPitch, flags);
+                    MosUtilities::MosSwizzleData(resource->pSystemShadow, (uint8_t *)resource->bo->virt, MOS_TILE_LINEAR, MOS_TILE_Y, resource->bo->size / resource->iPitch, resource->iPitch, flags);
                     MOS_FreeMemory(resource->pSystemShadow);
                     resource->pSystemShadow = nullptr;
                 }
@@ -1784,7 +1785,7 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
     MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
 
     MOS_OS_CHK_NULL_RETURN(resource);
-    MosUtilities::MOS_ZeroMemory(&flags, sizeof(GMM_RESOURCE_FLAG));
+    MosUtilities::MosZeroMemory(&flags, sizeof(GMM_RESOURCE_FLAG));
 
     // Get Gmm resource info
     gmmResourceInfo = (GMM_RESOURCE_INFO *)resource->pGmmResInfo;
@@ -1957,6 +1958,27 @@ MOS_STATUS MosInterface::ComposeCommandBufferHeader(
     // No Command buffer header to compose
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::MosLoadLibrary(
+    MOS_STREAM_HANDLE           streamState,
+    PCCHAR                      pFileName,
+    PHMODULE                    ppvModule)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_UNUSED(streamState);
+    MOS_OS_ASSERT(pFileName);
+    return MosUtilities::MosLoadLibrary(pFileName, ppvModule);
+}
+
+MOS_STATUS MosInterface::MosFreeLibrary(HMODULE hLibModule)
+{
+    MOS_OS_ASSERT(hLibModule);
+
+    uint32_t ret = MosUtilities::MosFreeLibrary(hLibModule);
+
+    return (ret == true) ? MOS_STATUS_SUCCESS : MOS_STATUS_UNKNOWN;
 }
 
 GpuContextSpecificNext *MosInterface::GetGpuContext(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE handle)

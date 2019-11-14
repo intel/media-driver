@@ -27,7 +27,6 @@
 #ifndef __COMMAND_BUFFER_MANAGER_NEXT_H__
 #define __COMMAND_BUFFER_MANAGER_NEXT_H__
 
-#include "mos_os_next.h"
 #include "mos_commandbuffer_next.h"
 #include "mos_gpucontextmgr_next.h"
 

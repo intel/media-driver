@@ -102,7 +102,7 @@ MOS_STATUS OsContextSpecificNext::UnLockSemaphore(int32_t semid)
 int16_t OsContextSpecificNext::ShmAttachedNumber(unsigned int shmid)
 {
     struct shmid_ds buf;
-    MosUtilities::MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
@@ -146,7 +146,7 @@ MOS_STATUS OsContextSpecificNext::ConnectCreateShm(long key, uint32_t size, int3
     int32_t         shmid = 0;
     key_t           key_value = (key_t)key;
     void            *shmptr = nullptr;
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     shmid = shmget(key_value, size, IPC_CREAT | 0666);
     if (shmid < 0)
@@ -180,7 +180,7 @@ MOS_STATUS OsContextSpecificNext::DetachDestroyShm(int32_t shmid, void  *pShm)
     MOS_OS_CHK_NULL_RETURN(pShm);
 
     struct shmid_ds buf;
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     if (shmid < 0)
     {
@@ -218,8 +218,8 @@ MOS_STATUS OsContextSpecificNext::ConnectCreateSemaphore(long key, int32_t *pSem
     key_t           key_value = (key_t)key;
     int32_t         val = 0;
 
-    MosUtilities::MOS_ZeroMemory(&sop, sizeof(sop));
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&sop, sizeof(sop));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
 
@@ -265,7 +265,7 @@ MOS_STATUS OsContextSpecificNext::CreateIPC()
     m_shm   = MOS_LINUX_SHM_INVALID;
 
     struct semid_ds buf;
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
     //wait and retry till to get a valid semphore
     for(int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i++)
     {
@@ -285,7 +285,7 @@ MOS_STATUS OsContextSpecificNext::CreateIPC()
             break;
         }
 
-        MOS_Sleep(1); //wait and retry
+        MosUtilities::MosSleep(1); //wait and retry
     }
 
     LockSemaphore(m_semId);
@@ -386,7 +386,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
     
         m_bufmgr        = osDriverContext->bufmgr;
         m_fd            = osDriverContext->fd;
-        MosUtilities::MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), osDriverContext->pPerfData, sizeof(PERF_DATA));
+        MosUtilities::MosSecureMemcpy(&m_perfData, sizeof(PERF_DATA), osDriverContext->pPerfData, sizeof(PERF_DATA));
         mos_bufmgr_gem_enable_reuse(osDriverContext->bufmgr);
         m_gmmClientContext = osDriverContext->pGmmClientContext;
         m_auxTableMgr = osDriverContext->m_auxTableMgr;
@@ -400,10 +400,10 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             MEDIA_WA_TABLE       waTable;
             MEDIA_SYSTEM_INFO    gtSystemInfo;
     
-            MosUtilities::MOS_ZeroMemory(&platformInfo, sizeof(platformInfo));
-            MosUtilities::MOS_ZeroMemory(&skuTable, sizeof(skuTable));
-            MosUtilities::MOS_ZeroMemory(&waTable, sizeof(waTable));
-            MosUtilities::MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
+            MosUtilities::MosZeroMemory(&platformInfo, sizeof(platformInfo));
+            MosUtilities::MosZeroMemory(&skuTable, sizeof(skuTable));
+            MosUtilities::MosZeroMemory(&waTable, sizeof(waTable));
+            MosUtilities::MosZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
             eStatus = HWInfo_GetGfxInfo(osDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
@@ -411,8 +411,8 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
                 return eStatus;
             }
     
-            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
-            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
+            MosUtilities::MosSecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
+            MosUtilities::MosSecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
     
             osDriverContext->iDeviceId      = platformInfo.usDeviceID;
             m_skuTable = skuTable;
@@ -429,8 +429,8 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         {
             // osDriverContext's parameters were passed by CmCreateDevice.
             // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
-            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(osDriverContext->platform), sizeof(PLATFORM));
-            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(osDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
+            MosUtilities::MosSecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(osDriverContext->platform), sizeof(PLATFORM));
+            MosUtilities::MosSecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(osDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
     
             m_skuTable = osDriverContext->SkuTable;
             m_waTable  = osDriverContext->WaTable;

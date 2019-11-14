@@ -58,7 +58,7 @@ public:
     //!           [in] variable list of arguments for the message
     //! \return   void
     //!
-    static void Mos_Message(
+    static void MosMessage(
     MOS_MESSAGE_LEVEL level,
     const PCCHAR      logtag,
     MOS_COMPONENT_ID  compID,

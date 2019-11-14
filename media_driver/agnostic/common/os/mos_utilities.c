@@ -42,6 +42,8 @@
 #include <time.h>     //for simulate random memory allcation failure
 #endif
 
+#define Mos_SwizzleOffset __Mos_SwizzleOffset
+
 #ifdef _MOS_UTILITY_EXT
 #include "mos_utilities_ext.h"
 #endif

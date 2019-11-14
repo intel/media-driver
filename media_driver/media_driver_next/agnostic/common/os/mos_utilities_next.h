@@ -27,70 +27,12 @@
 #ifndef __MOS_UTILITIES_NEXT_H__
 #define __MOS_UTILITIES_NEXT_H__
 
-#include "mos_utilities.h"
+#include "mos_utilities_common.h"
 #include "mos_utilities_specific.h"
 #include "mos_utilities_specific_next.h"
 #include "mos_util_user_feature_keys.h"
 #include "mos_resource_defs.h"
-#include "mos_util_debug_next.h"
 #include "mos_os_trace_event.h"
-
-#include <fstream>
-#include <memory>
-#include <string>
-#include <vector>
-#include <stdint.h>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <map>
-
-// It is used in ULT.
-class PerfUtilityNext
-{
-public:
-    struct Tick
-    {
-        double freq;
-        int64_t start;
-        int64_t stop;
-        double time;
-    };
-    struct PerfInfo
-    {
-        uint32_t count;
-        double avg;
-        double max;
-        double min;
-    };
-
-public:
-    static PerfUtilityNext *getInstance();
-    ~PerfUtilityNext();
-
-    void startTick(std::string tag);
-    void stopTick(std::string tag);
-    void savePerfData();
-
-private:
-    PerfUtilityNext();
-    void printPerfSummary();
-    void printPerfDetails();
-    void printHeader(std::ofstream& fout);
-    void printBody(std::ofstream& fout);
-    void printFooter(std::ofstream& fout);
-    std::string formatPerfData(std::string tag, std::vector<Tick>& record);
-    void getPerfInfo(std::vector<Tick>& record, PerfInfo* info);
-    std::string getDashString(uint32_t num);
-
-private:
-    static PerfUtilityNext *instance;
-    std::map<std::string, std::vector<Tick>*> records;
-};
-
-#ifndef __MOS_USER_FEATURE_WA_
-#define  __MOS_USER_FEATURE_WA_
-#endif
 
 //------------------------------------------------------------------------------
 // SECTION: Media User Feature Control
@@ -103,11 +45,18 @@ class MosUtilities
 {
 public:
 
-    MOS_FUNC_EXPORT static void MOS_SetUltFlag(uint8_t ultFlag);
-    MOS_FUNC_EXPORT static int32_t MOS_GetMemNinjaCounter();
-    MOS_FUNC_EXPORT static int32_t MOS_GetMemNinjaCounterGfx();
+    MOS_FUNC_EXPORT static void MosSetUltFlag(uint8_t ultFlag);
+    MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounter();
+    MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounterGfx();
 
-//APO_MOS_WRAPPER
+    //!
+    //! \brief    Get current run time
+    //! \details  Get current run time in us
+    //! \return   double
+    //!           Returns time in us
+    //!
+    static double MosGetTime();
+
 #if MOS_MESSAGES_ENABLED
     template<class _Ty, class... _Types>
     static _Ty* MOS_NewUtil(const char *functionName,
@@ -118,22 +67,29 @@ public:
     static _Ty* MOS_NewUtil(_Types&&... _Args)
 #endif
     {
-            _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
-            if (ptr != nullptr)
-            {
-                MOS_AtomicIncrement(&MosMemAllocCounter);
-                MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
-            }
-            else
-            {
-                MOS_OS_ASSERTMESSAGE("Fail to create class.");
-            }
-            return ptr;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Simulate allocate memory fail if flag turned on
+        if (MosSimulateAllocMemoryFail(sizeof(_Ty), NO_ALLOC_ALIGNMENT, functionName, filename, line))
+        {
+            return nullptr;
+        }
+#endif
+        _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
+        if (ptr != nullptr)
+        {
+            MosAtomicIncrement(&MosMemAllocCounter);
+            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Fail to create class.");
+        }
+        return ptr;
     }
-    //APO_MOS_WRAPPER
+
 #if MOS_MESSAGES_ENABLED
     template<class _Ty, class... _Types>
-    static _Ty* MOS_NewArrayUtil(const char *functionName,
+    static _Ty *MOS_NewArrayUtil(const char *functionName,
         const char *filename,
         int32_t line, int32_t numElements)
 #else
@@ -141,16 +97,22 @@ public:
     static _Ty* MOS_NewArrayUtil(int32_t numElements)
 #endif
     {
-            _Ty* ptr = new (std::nothrow) _Ty[numElements]();
-            if (ptr != nullptr)
-            {
-                MOS_AtomicIncrement(&MosMemAllocCounter);
-                MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
-            }
-            return ptr;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Simulate allocate memory fail if flag turned on
+        if (MosSimulateAllocMemoryFail(sizeof(_Ty) * numElements, NO_ALLOC_ALIGNMENT, functionName, filename, line))
+        {
+            return nullptr;
+        }
+#endif
+        _Ty* ptr = new (std::nothrow) _Ty[numElements]();
+        if (ptr != nullptr)
+        {
+            MosAtomicIncrement(&MosMemAllocCounter);
+            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
+        }
+        return ptr;
     }
 
-//APO_MOS_WRAPPER
 #if MOS_MESSAGES_ENABLED
     template<class _Ty> inline
     static void MOS_DeleteUtil(
@@ -165,14 +127,13 @@ public:
     {
         if (ptr != nullptr)
         {
-            MOS_AtomicDecrement(&MosMemAllocCounter);
+            MosAtomicDecrement(&MosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
             delete(ptr);
             ptr = nullptr;
         }
     }
 
-//APO_MOS_WRAPPER
 #if MOS_MESSAGES_ENABLED
     template<class _Ty> inline
     static void MOS_DeleteArrayUtil(
@@ -187,7 +148,7 @@ public:
     {
         if (ptr != nullptr)
         {
-            MOS_AtomicDecrement(&MosMemAllocCounter);
+            MosAtomicDecrement(&MosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
             delete[](ptr);
@@ -195,15 +156,6 @@ public:
         }
     }
 
-    //!
-    //! \brief    Get current run time
-    //! \details  Get current run time in us
-    //! \return   double
-    //!           Returns time in us
-    //!
-    static double MOS_GetTime();
-
-    //APO_MOS_WRAPPER
     //!
     //! \brief    Init Function for MOS utilitiesNext
     //! \details  Initial MOS utilitiesNext related structures, and only execute once for multiple entries
@@ -235,7 +187,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DeclareUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeatureKey);
+    static MOS_STATUS MosDeclareUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeatureKey);
 
 private:
     //!
@@ -263,9 +215,9 @@ private:
     //!           __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL
     //! \return   void
     //!
-    static void MOS_InitAllocMemoryFailSimulateFlag();
+    static void MosInitAllocMemoryFailSimulateFlag();
 
-    static bool MOS_SimulateAllocMemoryFail(
+    static bool MosSimulateAllocMemoryFail(
         size_t      size,
         size_t      alignment,
         const char *functionName,
@@ -300,7 +252,7 @@ public:
 
 #else // !MOS_MESSAGES_ENABLED
 
-    static void  *MOS_AlignedAllocMemory(
+    static void *MOS_AlignedAllocMemory(
         size_t  size,
         size_t  alignment);
 
@@ -325,7 +277,7 @@ public:
 
 #else // !MOS_MESSAGES_ENABLED
 
-    static void MOS_AlignedFreeMemory(void  *ptr);
+    static void MOS_AlignedFreeMemory(void *ptr);
 
 #endif // MOS_MESSAGES_ENABLED
 
@@ -341,7 +293,7 @@ public:
     //!
     // APO_MOS_WRAPPER
 #if MOS_MESSAGES_ENABLED
-    static void  *MOS_AllocMemoryUtils(
+    static void *MOS_AllocMemoryUtils(
         size_t     size,
         const char *functionName,
         const char *filename,
@@ -349,7 +301,7 @@ public:
 
 #else // !MOS_MESSAGES_ENABLED
 
-    static void  *MOS_AllocMemory(
+    static void *MOS_AllocMemory(
         size_t  size);
 
 #endif // MOS_MESSAGES_ENABLED
@@ -366,14 +318,14 @@ public:
     //!           Pointer to allocated memory
     //!
 #if MOS_MESSAGES_ENABLED
-    static void  *MOS_AllocAndZeroMemoryUtils(
+    static void *MOS_AllocAndZeroMemoryUtils(
         size_t     size,
         const char *functionName,
         const char *filename,
         int32_t    line);
 
 #else // !MOS_MESSAGES_ENABLED
-    static void  *MOS_AllocAndZeroMemory(
+    static void *MOS_AllocAndZeroMemory(
         size_t                   size);
 #endif // MOS_MESSAGES_ENABLED
 
@@ -436,7 +388,7 @@ public:
     //! \return   void
     //!
     // APO_MOS_WRAPPER
-    static void MOS_ZeroMemory(
+    static void MosZeroMemory(
         void            *pDestination,
         size_t          stLength);
 
@@ -453,7 +405,7 @@ public:
     //! \return   void
     //!
     // APO_MOS_WRAPPER
-    static void MOS_FillMemory(
+    static void MosFillMemory(
         void            *pDestination,
         size_t          stLength,
         uint8_t         bFill);
@@ -475,7 +427,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_ReadFileToPtr(
+    static MOS_STATUS MosReadFileToPtr(
         const char         *pFilename,
         uint32_t           *lpNumberOfBytesRead,
         void               **ppReadBuffer);
@@ -493,7 +445,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_WriteFileFromPtr(
+    static MOS_STATUS MosWriteFileFromPtr(
         const char              *pFilename,
         void                    *lpBuffer,
         uint32_t                writeSize);
@@ -512,7 +464,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_GetFileSize(
+    static MOS_STATUS MosGetFileSize(
         HANDLE             hFile,
         uint32_t           *lpFileSizeLow,
         uint32_t           *lpFileSizeHigh);
@@ -526,7 +478,7 @@ public:
     //!           Returns MOS_STATUS_SUCCESS if directory was created or was already exists,
     //!           else MOS_STATUS_DIR_CREATE_FAILED
     //!
-    static MOS_STATUS MOS_CreateDirectory(
+    static MOS_STATUS MosCreateDirectory(
         char * const       lpPathName);
 
     //!
@@ -544,7 +496,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_CreateFile(
+    static MOS_STATUS MosCreateFile(
         PHANDLE               pHandle,
         char * const          lpFileName,
         uint32_t              iOpenFlag);
@@ -568,7 +520,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_ReadFile(
+    static MOS_STATUS MosReadFile(
         HANDLE          hFile,
         void            *lpBuffer,
         uint32_t        bytesToRead,
@@ -594,7 +546,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_WriteFile(
+    static MOS_STATUS MosWriteFile(
         HANDLE           hFile,
         void             *lpBuffer,
         uint32_t         bytesToWrite,
@@ -618,7 +570,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_SetFilePointer(
+    static MOS_STATUS MosSetFilePointer(
         HANDLE                hFile,
         int32_t               lDistanceToMove,
         int32_t               *lpDistanceToMoveHigh,
@@ -632,7 +584,7 @@ public:
     //! \return   int32_t
     //!           true if success else false
     //!
-    static int32_t MOS_CloseHandle(
+    static int32_t MosCloseHandle(
         HANDLE           hObject);
 
     //!
@@ -648,7 +600,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_AppendFileFromPtr(
+    static MOS_STATUS MosAppendFileFromPtr(
         const char               *pFilename,
         void                     *pData,
         uint32_t                 dwSize);
@@ -666,7 +618,7 @@ public:
     //!           ------------------------------------------------------------------------------------
     //!           Usage example:
     //!           a) Initiation:
-    //!           MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
+    //!           MosZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
     //!           UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
     //!           UserFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
     //!           UserFeature.pValues         = &UserFeatureValue;
@@ -718,8 +670,6 @@ public:
 
 #endif
 
-
-
     //!
     //! \brief    Link user feature key description table items to specified UserFeatureKeyTable
     //! \details  Link user feature key description table items to specified UserFeatureKeyTable
@@ -736,7 +686,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DeclareUserFeatureKeysFromDescFields(
+    static MOS_STATUS MosDeclareUserFeatureKeysFromDescFields(
         MOS_USER_FEATURE_VALUE     *userValueDescTable,
         uint32_t                   numOfValues,
         uint32_t                   maxId,
@@ -759,7 +709,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DestroyUserFeatureKeysFromDescFields(
+    static MOS_STATUS MosDestroyUserFeatureKeysFromDescFields(
         MOS_USER_FEATURE_VALUE     *descTable,
         uint32_t                   numOfItems,
         uint32_t                   maxId,
@@ -779,7 +729,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_CopyUserFeatureValueData(
+    static MOS_STATUS MosCopyUserFeatureValueData(
         PMOS_USER_FEATURE_VALUE_DATA pSrcData,
         PMOS_USER_FEATURE_VALUE_DATA pDstData,
         MOS_USER_FEATURE_VALUE_TYPE ValueType
@@ -795,7 +745,7 @@ public:
     //!           ------------------------------------------------------------------------------------
     //!           Usage example:
     //!           a) Initiation:
-    //!           MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
+    //!           MosZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
     //!           UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
     //!           UserFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
     //!           UserFeature.pValues         = &UserFeatureValue;
@@ -834,13 +784,11 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-#ifdef  __MOS_USER_FEATURE_WA_
-    static MOS_STATUS MOS_UserFeature_ReadValue(
+    static MOS_STATUS MosUserFeatureReadValue(
         PMOS_USER_FEATURE_INTERFACE       pOsUserFeatureInterface,
         PMOS_USER_FEATURE                 pUserFeature,
         const char                        *pValueName,
         MOS_USER_FEATURE_VALUE_TYPE       ValueType);
-#endif
 
     //!
     //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE
@@ -852,7 +800,7 @@ public:
     //!           ------------------------------------------------------------------------------------
     //!           Usage example: 
     //!           a) Initiation:
-    //!           MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    //!           MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     //!           b.0) Don't need to input a default value if the default value in user feature key Desc Fields table item is good 
     //!                for your case
     //!           b.1) For uint32_t type:
@@ -873,7 +821,7 @@ public:
     //!           }
     //!           UserFeatureData.MultiStringData.pStrings = Strings;
     //!           c) Read user feature key:
-    //!           MOS_UserFeature_ReadValue_ID();
+    //!           MosUserFeatureReadValueID();
     //!           -------------------------------------------------------------------------------------
     //!           Important note: The pointer pStringData/pMultStringData may be modified if the 
     //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's 
@@ -899,11 +847,7 @@ public:
     //!                                          No default value or User Feature Key value return
     //! 
     //!
-#ifdef  __MOS_USER_FEATURE_WA_
-    static MOS_STATUS MOS_UserFeature_ReadValue_ID(
-#else
-    static MOS_STATUS MOS_UserFeature_ReadValue(
-#endif
+    static MOS_STATUS MosUserFeatureReadValueID(
         PMOS_USER_FEATURE_INTERFACE  pOsUserFeatureInterface,
         uint32_t                     ValueID,
         PMOS_USER_FEATURE_VALUE_DATA pValueData);
@@ -923,11 +867,8 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-#ifdef  __MOS_USER_FEATURE_WA_
-    static MOS_STATUS MOS_UserFeature_WriteValues_ID(
-#else
-    static MOS_STATUS MOS_UserFeature_WriteValues(
-#endif
+    static MOS_STATUS MosUserFeatureWriteValuesID(
+
         PMOS_USER_FEATURE_INTERFACE              pOsUserFeatureInterface,
         PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
         uint32_t                                 uiNumOfValues);
@@ -940,7 +881,7 @@ public:
     //! \return   const char*
     //!           pointer to the char array holding the user feature value name
     //!
-    static const char* MOS_UserFeature_LookupValueName(
+    static const char *MosUserFeatureLookupValueName(
         uint32_t ValueID);
 
     //!
@@ -955,7 +896,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_EnableNotification(
+    static MOS_STATUS MosUserFeatureEnableNotification(
         PMOS_USER_FEATURE_INTERFACE               pOsUserFeatureInterface,
         PMOS_USER_FEATURE_NOTIFY_DATA             pNotification);
 
@@ -971,7 +912,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_DisableNotification(
+    static MOS_STATUS MosUserFeatureDisableNotification(
         PMOS_USER_FEATURE_INTERFACE                pOsUserFeatureInterface,
         PMOS_USER_FEATURE_NOTIFY_DATA              pNotification);
 
@@ -992,12 +933,15 @@ public:
     //! \return   MOS_STATUS
     //!           Returns MOS_STATUS_INVALID_PARAMETER if failed, else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_ParsePath(
+    static MOS_STATUS MosUserFeatureParsePath(
         PMOS_USER_FEATURE_INTERFACE  pOsUserFeatureInterface,
         char * const                 pInputPath,
         PMOS_USER_FEATURE_TYPE       pUserFeatureType,
         char                         **ppSubPath);
 
+    //------------------------------------------------------------------------------
+    // String Functions
+    //------------------------------------------------------------------------------
     //!
     //! \brief    String concatenation with security checks.
     //! \details  String concatenation with security checks.
@@ -1012,7 +956,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_SecureStrcat(
+    static MOS_STATUS MosSecureStrcat(
         char                *strDestination,
         size_t              numberOfElements,
         const char * const  strSource);
@@ -1033,7 +977,7 @@ public:
     //! \return   char *
     //!           Returns tokens else nullptr
     //!
-    static char  *MOS_SecureStrtok(
+    static char *MosSecureStrtok(
         char                *strToken,
         const char          *strDelimit,
         char                **contex);
@@ -1052,7 +996,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_SecureStrcpy(
+    static MOS_STATUS MosSecureStrcpy(
         char                *strDestination,
         size_t              numberOfElements,
         const char * const  strSource);
@@ -1073,7 +1017,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_SecureMemcpy(
+    static MOS_STATUS MosSecureMemcpy(
         void                *pDestination,
         size_t              dstLength,
         const void          *pSource,
@@ -1092,7 +1036,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_SecureFileOpen(
+    static MOS_STATUS MosSecureFileOpen(
         FILE       **ppFile,
         const char *filename,
         const char *mode);
@@ -1113,7 +1057,7 @@ public:
     //! \return   int32_t
     //!           Returns the number of characters printed or -1 if an error occurs
     //!
-    static int32_t MOS_SecureStringPrint(
+    static int32_t MosSecureStringPrint(
         char                     *buffer,
         size_t                   bufSize,
         size_t                   length,
@@ -1138,7 +1082,7 @@ public:
     //! \return   int32_t
     //!           Returns the number of characters printed or -1 if an error occurs
     //!
-    static MOS_STATUS MOS_SecureVStringPrint(
+    static MOS_STATUS MosSecureVStringPrint(
         char                      *buffer,
         size_t                    bufSize,
         size_t                    length,
@@ -1161,7 +1105,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_LoadLibrary(
+    static MOS_STATUS MosLoadLibrary(
         const char * const lpLibFileName,
         PHMODULE           phModule);
 
@@ -1173,7 +1117,7 @@ public:
     //! \return   int32_t
     //!           true if success else false
     //!
-    static int32_t MOS_FreeLibrary(HMODULE hLibModule);
+    static int32_t MosFreeLibrary(HMODULE hLibModule);
 
     //!
     //! \brief    Retrieves the address of an exported function or variable from
@@ -1190,7 +1134,7 @@ public:
     //!           function or variable. If fails, the return value is NULL.
     //!           To get extended error information, call GetLastError.
     //!
-    static void  *MOS_GetProcAddress(
+    static void *MosGetProcAddress(
         HMODULE     hModule,
         const char  *lpProcName);
 
@@ -1200,7 +1144,7 @@ public:
     //! \return   int32_t
     //!           Return the current process id
     //!
-    static int32_t MOS_GetPid();
+    static int32_t MosGetPid();
 
     //!
     //! \brief    Retrieves the frequency of the high-resolution performance
@@ -1215,7 +1159,7 @@ public:
     //!           counter, the return value is nonzero. If the function fails, the
     //!           return value is zero.
     //!
-    static int32_t MOS_QueryPerformanceFrequency(
+    static int32_t MosQueryPerformanceFrequency(
         uint64_t                       *pFrequency);
 
     //!
@@ -1231,7 +1175,7 @@ public:
     //!           counter, the return value is nonzero. If the function fails, the
     //!           return value is zero. To get extended error information, call GetLastError.
     //!
-    static int32_t MOS_QueryPerformanceCounter(
+    static int32_t MosQueryPerformanceCounter(
         uint64_t                     *pPerformanceCount);
 
     //!
@@ -1241,7 +1185,7 @@ public:
     //!           Sleep duration in ms
     //! \return   void
     //!
-    void MOS_Sleep(
+    static void MosSleep(
         uint32_t   mSec);
 
     //------------------------------------------------------------------------------
@@ -1265,7 +1209,7 @@ public:
     //!           If the function fails, the return value is a error code defined
     //!           in mos_utilitiesNext.h.
     //!
-    static MOS_STATUS MOS_UserFeatureOpenKey(
+    static MOS_STATUS MosUserFeatureOpenKey(
         void              *UFKey,
         const char        *lpSubKey,
         uint32_t          ulOptions,
@@ -1282,7 +1226,7 @@ public:
     //!           If the function fails, the return value is a error code defined
     //!           in mos_utilitiesNext.h.
     //!
-    static MOS_STATUS MOS_UserFeatureCloseKey(
+    static MOS_STATUS MosUserFeatureCloseKey(
         void               *UFKey);
 
     //!
@@ -1311,7 +1255,7 @@ public:
     //!           If the function fails, the return value is a error code defined
     //!           in mos_utilitiesNext.h.
     //!
-    static MOS_STATUS MOS_UserFeatureGetValue(
+    static MOS_STATUS MosUserFeatureGetValue(
         void               *UFKey,
         const char         *lpSubKey,
         const char         *lpValue,
@@ -1346,7 +1290,7 @@ public:
     //!           If the function fails, the return value is a error code defined
     //!           in mos_utilitiesNext.h.
     //!
-    static MOS_STATUS MOS_UserFeatureQueryValueEx(
+    static MOS_STATUS MosUserFeatureQueryValueEx(
         void                    *UFKey,
         char                    *lpValueName,
         uint32_t                *lpReserved,
@@ -1374,7 +1318,7 @@ public:
     //!           If the function fails, the return value is a error code defined
     //!           in mos_utilitiesNext.h.
     //!
-    static MOS_STATUS MOS_UserFeatureSetValueEx(
+    static MOS_STATUS MosUserFeatureSetValueEx(
         void                 *UFKey,
         const char           *lpValueName,
         uint32_t             Reserved,
@@ -1403,7 +1347,7 @@ public:
     //!           If the function fails, the return value is a error code defined
     //!           in mos_utilitiesNext.h.
     //!
-    static MOS_STATUS MOS_UserFeatureNotifyChangeKeyValue(
+    static MOS_STATUS MosUserFeatureNotifyChangeKeyValue(
         void                           *UFKey,
         int32_t                        bWatchSubtree,
         HANDLE                         hEvent,
@@ -1428,7 +1372,7 @@ public:
     //!           event object. If failed, returns NULL. To get extended error
     //!           information, call GetLastError.
     //!
-    static HANDLE MOS_CreateEventEx(
+    static HANDLE MosCreateEventEx(
         void                 *lpEventAttributes,
         char                 *lpName,
         uint32_t             dwFlags);
@@ -1451,7 +1395,7 @@ public:
     //!           the return value is nonzero. If the function fails, the
     //!           return value is zero.
     //!
-    static int32_t MOS_UserFeatureWaitForSingleObject(
+    static int32_t MosUserFeatureWaitForSingleObject(
         PTP_WAIT                         *phNewWaitObject,
         HANDLE                           hObject,
         void                             *Callback,
@@ -1470,7 +1414,7 @@ public:
     //!           the return value is nonzero. If the function fails, the
     //!           return value is zero.
     //!
-    static int32_t MOS_UnregisterWaitEx(
+    static int32_t MosUnregisterWaitEx(
         PTP_WAIT                hWaitHandle);
 
     //!
@@ -1480,7 +1424,7 @@ public:
     //!           If the function succeeds, the return value is the number of
     //!           current CPU.
     //!
-    static uint32_t MOS_GetLogicalCoreNumber();
+    static uint32_t MosGetLogicalCoreNumber();
 
     //!
     //! \brief    Creates or opens a thread object and returns a handle to the object
@@ -1493,7 +1437,7 @@ public:
     //!           If the function succeeds, the return value is a handle to the
     //!           thread object. If failed, returns NULL.
     //!
-    static MOS_THREADHANDLE MOS_CreateThread(
+    static MOS_THREADHANDLE MosCreateThread(
         void                        *ThreadFunction,
         void                        *ThreadData);
 
@@ -1505,7 +1449,7 @@ public:
     //! \return   uint32_t
     //!           Return the current thread id
     //!
-    static uint32_t MOS_GetThreadId(
+    static uint32_t MosGetThreadId(
         MOS_THREADHANDLE            hThread);
 
     //!
@@ -1514,7 +1458,7 @@ public:
     //! \return   uint32_t
     //!           Return the current thread id
     //!
-    uint32_t MOS_GetCurrentThreadId();
+    uint32_t MosGetCurrentThreadId();
 
     //!
     //! \brief    Wait for thread to terminate
@@ -1523,7 +1467,7 @@ public:
     //!           A handle of thread object.
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_WaitThread(
+    static MOS_STATUS MosWaitThread(
         MOS_THREADHANDLE            hThread);
 
     //!
@@ -1534,7 +1478,7 @@ public:
     //! \return   PMOS_MUTEX
     //!           Pointer of mutex
     //!
-    static PMOS_MUTEX MOS_CreateMutex();
+    static PMOS_MUTEX MosCreateMutex();
 
     //!
     //! \brief    Destroy mutex for context protection across threads
@@ -1544,7 +1488,7 @@ public:
     //!           Pointer of mutex
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_DestroyMutex(PMOS_MUTEX pMutex);
+    static MOS_STATUS MosDestroyMutex(PMOS_MUTEX pMutex);
 
     //!
     //! \brief    Lock mutex for context protection across threads
@@ -1554,7 +1498,7 @@ public:
     //!           Pointer of mutex
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_LockMutex(PMOS_MUTEX pMutex);
+    static MOS_STATUS MosLockMutex(PMOS_MUTEX pMutex);
 
     //!
     //! \brief    Unlock mutex for context protection across threads
@@ -1564,7 +1508,7 @@ public:
     //!           Pointer of mutex
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_UnlockMutex(PMOS_MUTEX pMutex);
+    static MOS_STATUS MosUnlockMutex(PMOS_MUTEX pMutex);
 
     //!
     //! \brief    Creates or opens a semaphore object and returns a handle to the object
@@ -1578,7 +1522,7 @@ public:
     //!           semaphore object. If failed, returns NULL. To get extended error
     //!           information, call GetLastError.
     //!
-    static PMOS_SEMAPHORE MOS_CreateSemaphore(
+    static PMOS_SEMAPHORE MosCreateSemaphore(
         uint32_t                    uiInitialCount,
         uint32_t                    uiMaximumCount);
 
@@ -1589,7 +1533,7 @@ public:
     //!           A handle of semaphore object.
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_DestroySemaphore(
+    static MOS_STATUS MosDestroySemaphore(
         PMOS_SEMAPHORE              pSemaphore);
 
     //!
@@ -1601,7 +1545,7 @@ public:
     //!           Wait time.
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_WaitSemaphore(
+    static MOS_STATUS MosWaitSemaphore(
         PMOS_SEMAPHORE              pSemaphore,
         uint32_t                    uiMilliseconds);
 
@@ -1614,7 +1558,7 @@ public:
     //!           semaphore post count.
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_PostSemaphore(
+    static MOS_STATUS MosPostSemaphore(
         PMOS_SEMAPHORE              pSemaphore,
         uint32_t                    uiPostCount);
 
@@ -1629,7 +1573,7 @@ public:
     //!           If the function succeeds, the return value is the wait result of the
     //!           semaphore/mutex/thread object.
     //!
-    static uint32_t MOS_WaitForSingleObject(
+    static uint32_t MosWaitForSingleObject(
         void                        *pObject,
         uint32_t                    uiMilliseconds);
 
@@ -1648,7 +1592,7 @@ public:
     //! \return   uint32_t
     //!           Return the wait result
     //!
-    static uint32_t MOS_WaitForMultipleObjects(
+    static uint32_t MosWaitForMultipleObjects(
         uint32_t                    uiThreadCount,
         void                        **ppObjects,
         uint32_t                    bWaitAll,
@@ -1661,7 +1605,7 @@ public:
     //! \return   int32_t
     //!           The function returns the resulting incremented value.
     //!
-    static int32_t MOS_AtomicIncrement(
+    static int32_t MosAtomicIncrement(
         int32_t *pValue);
 
     //!
@@ -1671,7 +1615,7 @@ public:
     //! \return   int32_t
     //!           The function returns the resulting decremented value.
     //!
-    static int32_t MOS_AtomicDecrement(
+    static int32_t MosAtomicDecrement(
         int32_t *pValue);
 
     //!
@@ -1681,7 +1625,7 @@ public:
     //! \return     MOS_OSRESULT
     //!             Corresponding return code on different OSes
     //!
-    static MOS_OSRESULT MOS_StatusToOsResult(
+    static MOS_OSRESULT MosStatusToOsResult(
         MOS_STATUS               eStatus);
 
     //!
@@ -1691,7 +1635,7 @@ public:
     //! \return     MOS_STATUS
     //!             Corresponding MOS_STATUS
     //!
-    static MOS_STATUS OsResultToMOS_Status(
+    static MOS_STATUS OsResultToMOSStatus(
         MOS_OSRESULT            eResult);
 
     //!
@@ -1702,7 +1646,7 @@ public:
     //! \return   float
     //!           sinc(x)
     //!
-    static float MOS_Sinc(
+    static float MosSinc(
         float                   x);
 
     //!
@@ -1718,7 +1662,7 @@ public:
     //! \return   float
     //!           lanczos(x)
     //!
-    static float MOS_Lanczos(
+    static float MosLanczos(
         float                   x,
         uint32_t                dwNumEntries,
         float                   fLanczosT);
@@ -1736,7 +1680,7 @@ public:
     //! \return   float
     //!           lanczos(x)
     //!
-    static float MOS_Lanczos_g(
+    static float MosLanczosG(
         float                   x,
         uint32_t                dwNumEntries,
         float                   fLanczosT);
@@ -1749,9 +1693,9 @@ public:
     //! \param    [in] b
     //!           uint32_t
     //! \return   uint32_t
-    //!           MOS_GCD(a, b)
+    //!           MosGCD(a, b)
     //!
-    static uint32_t MOS_GCD(
+    static uint32_t MosGCD(
         uint32_t               a,
         uint32_t               b);
 
@@ -1762,7 +1706,7 @@ public:
     //!           tm struct
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MOS_GetLocalTime(
+    static MOS_STATUS MosGetLocalTime(
         struct tm* tm);
 
     //!
@@ -1784,13 +1728,23 @@ public:
     //! \return   int32_t
     //!           Return SwizzleOffset
     //!    
-    static int32_t __Mos_SwizzleOffset(
+    static int32_t MosSwizzleOffset(
         int32_t         OffsetX,
         int32_t         OffsetY,
         int32_t         Pitch,
         MOS_TILE_TYPE   TileFormat,
         int32_t         CsxSwizzle,
         int32_t         flags);
+
+#ifdef _MOS_UTILITY_EXT
+    static int32_t MosSwizzleOffsetExt(
+        int32_t       OffsetX,
+        int32_t       OffsetY,
+        int32_t       Pitch,
+        MOS_TILE_TYPE TileFormat,
+        int32_t       CsxSwizzle,
+        int32_t       extFlags);
+#endif
 
     //!
     //! \brief    Wrapper function for SwizzleOffset
@@ -1811,7 +1765,7 @@ public:
     //!           Pitch
     //! \return   void
     //!
-    static void Mos_SwizzleData(
+    static void MosSwizzleData(
         uint8_t         *pSrc,
         uint8_t         *pDst,
         MOS_TILE_TYPE   SrcTiling,
@@ -1826,7 +1780,7 @@ public:
     //! \param    void
     //! \return   void
     //!
-    static void MOS_TraceEventInit();
+    static void MosTraceEventInit();
 
     //!
     //! \brief    MOS trace event close
@@ -1834,7 +1788,7 @@ public:
     //! \param    void
     //! \return   void
     //!
-    static void MOS_TraceEventClose();
+    static void MosTraceEventClose();
 
     //!
     //! \brief    MOS log trace event
@@ -1854,7 +1808,7 @@ public:
     //!           event data size
     //! \return   void
     //!
-    static void MOS_TraceEvent(
+    static void MosTraceEvent(
         uint16_t         usId,
         uint8_t          ucType,
         void * const     pArg1,
@@ -1878,30 +1832,13 @@ public:
     //!           event line number
     //! \return   void
     //!
-    static void MOS_TraceEventMsg(
+    static void MosTraceEventMsg(
         uint8_t          level,
         uint8_t          compID,
         void*            message,
         void*            functionName,
         uint32_t         lineNum);
 
-    //!
-    //! \brief    MOS gfx info initialize
-    //! \details  Load igdinfoXX.dll library and get gfx info function pointer
-    //! \param    void
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MOS_GfxInfoInit();
-
-    //!
-    //! \brief    MOS gfx info close
-    //! \details  Release igdinfoXX.dll library
-    //! \param    void
-    //! \return   void
-    //!
-    static void MOS_GfxInfoClose();
 
     //!
     //! \brief    MOS_GfxInfo_RTErr
@@ -1923,7 +1860,7 @@ public:
     //!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
     //! \return   void
     //!
-    static void MOS_GfxInfo_RTErr(uint8_t ver,
+    static void MosGfxInfoRTErr(uint8_t ver,
         uint16_t    compId,
         uint16_t    FtrId,
         uint32_t    ErrorCode,
@@ -1948,7 +1885,7 @@ public:
     //!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
     //! \return   void
     //!
-    static void MOS_GfxInfo(
+    static void MosGfxInfo(
         uint8_t         ver,
         uint16_t        compId,
         uint32_t        tmtryID,
@@ -1966,7 +1903,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DestroyUserFeatureKeysForAllDescFields();
+    static MOS_STATUS MosDestroyUserFeatureKeysForAllDescFields();
 
     //!
     //! \brief    Write one user feature key into XML file
@@ -1979,7 +1916,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_WriteOneUserFeatureKeyToXML(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeature);
+    static MOS_STATUS MosWriteOneUserFeatureKeyToXML(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeature);
 
     //!
     //! \brief    Write one User Feature Group into XML file
@@ -1990,7 +1927,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_WriteOneUserFeatureGroupToXML(MOS_USER_FEATURE_VALUE   UserFeatureFilter);
+    static MOS_STATUS MosWriteOneUserFeatureGroupToXML(MOS_USER_FEATURE_VALUE   UserFeatureFilter);
 
     //!
     //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
@@ -1999,7 +1936,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_GenerateUserFeatureKeyXML();
+    static MOS_STATUS MosGenerateUserFeatureKeyXML();
 
     //!
     //! \brief    Link the MOSUserFeatureDescFields table items to gc_UserFeatureKeysMap
@@ -2009,7 +1946,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DeclareUserFeatureKeysForAllDescFields();
+    static MOS_STATUS MosDeclareUserFeatureKeysForAllDescFields();
 
     //!
     //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE with specified map table
@@ -2021,7 +1958,7 @@ private:
     //!           ------------------------------------------------------------------------------------
     //!           Usage example: 
     //!           a) Initiation:
-    //!           MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    //!           MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     //!           b.0) Don't need to input a default value if the default value in user feature key Desc Fields table is good 
     //!                for your case
     //!           b.1) For uint32_t type:
@@ -2042,7 +1979,7 @@ private:
     //!           }
     //!           UserFeatureData.MultiStringData.pStrings = Strings;
     //!           c) Read user feature key:
-    //!           MOS_UserFeature_ReadValue_ID();
+    //!           MosUserFeatureReadValueID();
     //!           -------------------------------------------------------------------------------------
     //!           Important note: The pointer pStringData/pMultStringData may be modified if the 
     //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's 
@@ -2070,11 +2007,29 @@ private:
     //!                                          No default value or User Feature Key value return
     //! 
     //!
-    static MOS_STATUS MOS_UserFeature_ReadValue_FromMap_ID(
+    static MOS_STATUS MosUserFeatureReadValueFromMapID(
         MOS_USER_FEATURE_VALUE_MAP      *keyValueMap,
         PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface,
         uint32_t                        ValueID,
         PMOS_USER_FEATURE_VALUE_DATA    pValueData);
+
+    //!
+    //! \brief    User Feature Callback function
+    //! \details  User Feature Callback function
+    //!           Notifies the caller that the CB is triggered
+    //! \param    void  *pvParameter
+    //!           [out] Pointer to the User Feature Notification Data for
+    //!                 which callback is requested
+    //! \param    int32_t TimerOrWait
+    //!           [in/out] Flag to indicate if a timer or wait is applied
+    //!                    (Not used currently)
+    //! \return   void
+    //!
+    static void MosUserFeatureCallback(
+        PTP_CALLBACK_INSTANCE Instance,
+        void *                pvParameter,
+        PTP_WAIT              Wait,
+        TP_WAIT_RESULT        WaitResult);
 
     //!
     //! \brief    Open the user feature based on the access type requested
@@ -2095,7 +2050,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_Open(
+    static MOS_STATUS MosUserFeatureOpen(
         MOS_USER_FEATURE_TYPE KeyType,
         const char            *pSubKey,
         uint32_t              dwAccess,
@@ -2118,7 +2073,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_WriteValues_Tbl_ID(
+    static MOS_STATUS MosUserFeatureWriteValuesTblID(
         MOS_USER_FEATURE_VALUE_MAP              *keyValueMap,
         PMOS_USER_FEATURE_INTERFACE             pOsUserFeatureInterface,
         PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
@@ -2131,7 +2086,7 @@ private:
     //!           [in] Pointer to the string structure with memory to be freed
     //! \return   void
     //!
-    static void MOS_Free_UserFeatureValueString(PMOS_USER_FEATURE_VALUE_STRING pUserString);
+    static void MosFreeUserFeatureValueString(PMOS_USER_FEATURE_VALUE_STRING pUserString);
 
     //!
     //! \brief    Free the allocated memory for the related Value type
@@ -2144,7 +2099,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DestroyUserFeatureData(PMOS_USER_FEATURE_VALUE_DATA pData, MOS_USER_FEATURE_VALUE_TYPE ValueType);
+    static MOS_STATUS MosDestroyUserFeatureData(PMOS_USER_FEATURE_VALUE_DATA pData, MOS_USER_FEATURE_VALUE_TYPE ValueType);
 
     //!
     //! \brief    Unlink the user feature key Desc Fields table items to key value map
@@ -2158,7 +2113,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DestroyUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeatureKey);
+    static MOS_STATUS MosDestroyUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeatureKey);
 
     //!
     //! \brief    Assign the value as a string type to destination Value Data pointer
@@ -2173,7 +2128,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_AssignUserFeatureValueData(
+    static MOS_STATUS MosAssignUserFeatureValueData(
         PMOS_USER_FEATURE_VALUE_DATA    pDstData,
         const char                      *pData,
         MOS_USER_FEATURE_VALUE_TYPE     ValueType);
@@ -2189,7 +2144,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_isCorrectDefaultValueType(
+    static MOS_STATUS MosIsCorrectDefaultValueType(
         const char                  *pData,
         MOS_USER_FEATURE_VALUE_TYPE ValueType);
 
@@ -2204,7 +2159,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_isCorrectUserFeatureDescField(PMOS_USER_FEATURE_VALUE pUserFeatureKey, uint32_t maxKeyID);
+    static MOS_STATUS MosIsCorrectUserFeatureDescField(PMOS_USER_FEATURE_VALUE pUserFeatureKey, uint32_t maxKeyID);
 
     //!
     //! \brief    Get the User Feature Value from Table
@@ -2226,7 +2181,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_GetItemFromMOSUserFeatureDescField(
+    static MOS_STATUS MosGetItemFromMOSUserFeatureDescField(
         MOS_USER_FEATURE_VALUE      *descTable,
         uint32_t                    numOfItems,
         uint32_t                    maxId,
@@ -2247,7 +2202,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS  MOS_UserFeature_WriteValueString(
+    static MOS_STATUS  MosUserFeatureWriteValueString(
         void                            *UFKey,
         PMOS_USER_FEATURE_VALUE         pFeatureValue,
         PMOS_USER_FEATURE_VALUE_DATA    pDataValue);
@@ -2267,7 +2222,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_WriteValueMultiString(
+    static MOS_STATUS MosUserFeatureWriteValueMultiString(
         void                            *UFKey,
         PMOS_USER_FEATURE_VALUE         pFeatureValue,
         PMOS_USER_FEATURE_VALUE_DATA    pDataValue);
@@ -2285,7 +2240,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_WriteValueBinary(
+    static MOS_STATUS MosUserFeatureWriteValueBinary(
         void                            *UFKey,
         PMOS_USER_FEATURE_VALUE         pFeatureValue,
         PMOS_USER_FEATURE_VALUE_DATA    pDataValue);
@@ -2303,7 +2258,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_WriteValuePrimitive(
+    static MOS_STATUS MosUserFeatureWriteValuePrimitive(
         void                            *UFKey,
         PMOS_USER_FEATURE_VALUE         pFeatureValue,
         PMOS_USER_FEATURE_VALUE_DATA    pDataValue);
@@ -2320,7 +2275,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_ReadValueBinary(
+    static MOS_STATUS MosUserFeatureReadValueBinary(
         void                       *UFKey,
         PMOS_USER_FEATURE_VALUE    pFeatureValue);
 
@@ -2336,7 +2291,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_ReadValueString(
+    static MOS_STATUS MosUserFeatureReadValueString(
         void                       *UFKey,
         PMOS_USER_FEATURE_VALUE    pFeatureValue);
 
@@ -2352,7 +2307,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_ReadValueMultiString(
+    static MOS_STATUS MosUserFeatureReadValueMultiString(
         void                       *UFKey,
         PMOS_USER_FEATURE_VALUE    pFeatureValue);
 
@@ -2368,27 +2323,9 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_ReadValuePrimitive(
+    static MOS_STATUS MosUserFeatureReadValuePrimitive(
         void                       *UFKey,
         PMOS_USER_FEATURE_VALUE    pFeatureValue);
-
-    //!
-    //! \brief    User Feature Callback function
-    //! \details  User Feature Callback function
-    //!           Notifies the caller that the CB is triggered
-    //! \param    void  *pvParameter
-    //!           [out] Pointer to the User Feature Notification Data for
-    //!                 which callback is requested
-    //! \param    int32_t TimerOrWait
-    //!           [in/out] Flag to indicate if a timer or wait is applied
-    //!                    (Not used currently)
-    //! \return   void
-    //!
-    static void MOS_UserFeature_Callback(
-        PTP_CALLBACK_INSTANCE Instance,
-        void                  *pvParameter,
-        PTP_WAIT              Wait,
-        TP_WAIT_RESULT        WaitResult);
 
     //!
     //! \brief    Initializes read user feature value function
@@ -2410,7 +2347,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_ReadValueInit(
+    static MOS_STATUS MosUserFeatureReadValueInit(
         PMOS_USER_FEATURE_INTERFACE   pOsUserFeatureInterface,
         uint32_t                      uiNumValues,
         MOS_USER_FEATURE_VALUE_DATA   Value,
@@ -2433,9 +2370,27 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_UserFeature_SetMultiStringValue(
+    static MOS_STATUS MosUserFeatureSetMultiStringValue(
         PMOS_USER_FEATURE_VALUE_DATA     pFeatureData,
         uint32_t                         dwSize);
+
+    //!
+    //! \brief    MOS gfx info initialize
+    //! \details  Load igdinfoXX.dll library and get gfx info function pointer
+    //! \param    void
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosGfxInfoInit();
+
+    //!
+    //! \brief    MOS gfx info close
+    //! \details  Release igdinfoXX.dll library
+    //! \param    void
+    //! \return   void
+    //!
+    static void MosGfxInfoClose();
 
 public:
     static uint8_t m_mosUltFlag;
@@ -2456,11 +2411,5 @@ private:
     static uint32_t m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
 };
-
-#ifdef Mos_SwizzleOffset
-#undef Mos_SwizzleOffset
-#define Mos_SwizzleOffset MosUtilities::__Mos_SwizzleOffset
-#endif
-
 
 #endif // __MOS_UTILITIESNext_NEXT_H__

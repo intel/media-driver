@@ -30,6 +30,8 @@
 #include "mos_defs.h"
 #include "media_skuwa_specific.h"
 #include "mos_utilities.h"
+#include "mos_utilities_next.h"
+#include "mos_util_debug_next.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
 #include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality 
 #if (_RELEASE_INTERNAL || _DEBUG)

@@ -51,7 +51,7 @@ const PCCHAR MosUtilDebug::m_mosUltLogPathPrefix = "./";
 MOS_MUTEX MosUtilDebugSpecific::m_mosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define HLT_COPY_BUFFER_LENGTH 200
-MOS_STATUS MosUtilDebug::MOS_HltpCopyFile(PFILE pFile, const PCCHAR szFileName)
+MOS_STATUS MosUtilDebug::MosHltpCopyFile(PFILE pFile, const PCCHAR szFileName)
 {
     PFILE   pFileSrc;
     char    szBuffer[HLT_COPY_BUFFER_LENGTH];
@@ -77,7 +77,7 @@ MOS_STATUS MosUtilDebug::MOS_HltpCopyFile(PFILE pFile, const PCCHAR szFileName)
     return MOS_STATUS_SUCCESS;
 }
 
-void MosUtilDebug::MOS_HltpPreface(PFILE pFile)
+void MosUtilDebug::MosHltpPreface(PFILE pFile)
 {
     time_t      rawtime;
     struct tm*  timeinfo;
@@ -86,7 +86,7 @@ void MosUtilDebug::MOS_HltpPreface(PFILE pFile)
     timeinfo = localtime(&rawtime);
     if (timeinfo == nullptr)
     {
-        printf("fail to call localtime in MOS_HltpPreface\n");
+        printf("fail to call localtime in MosHltpPreface\n");
         return;
     }
 
@@ -97,7 +97,7 @@ void MosUtilDebug::MOS_HltpPreface(PFILE pFile)
                    timeinfo->tm_hour,timeinfo->tm_min,timeinfo->tm_sec);
 
     fwrite("\n", 1, 1, pFile);
-    MOS_HltpCopyFile(pFile, "/etc/hosts");
+    MosHltpCopyFile(pFile, "/etc/hosts");
 
     // This section has been temporarily commented out because it's printing a non standard character to the logfile and corrupting it.
     /*
@@ -105,35 +105,35 @@ void MosUtilDebug::MOS_HltpPreface(PFILE pFile)
                    "// PID=%d; Process name=",
                    getpid());
 
-    MOS_HltpCopyFile(pFile, "/proc/self/cmdline");
+    MosHltpCopyFile(pFile, "/proc/self/cmdline");
     */
 
     fwrite("\n", 1, 1, pFile);
 
-    MOS_HltpCopyFile(pFile, "/proc/version");
+    MosHltpCopyFile(pFile, "/proc/version");
     // Linux version 2.6.35-22-generic (buildd@rothera) (gcc version 4.4.5 (Ubuntu/Linaro // 4.4.4-14ubuntu4) ) #33-Ubuntu SMP Sun Sep 19 20:34:50 UTC 2010
 
-    if (MosUtilDebug::m_mosMsgParams.bEnableMaps)
+    if (m_mosMsgParams.bEnableMaps)
     {
         fwrite("\n// Loaded modules:\n", 20, 1, pFile);
 
-        MOS_HltpCopyFile(pFile, "/proc/self/maps");
+        MosHltpCopyFile(pFile, "/proc/self/maps");
         fwrite("\n", 1, 1, pFile);
     }
 
     fflush(pFile);
 }
 
-MOS_STATUS MosUtilDebug::MOS_LogFileNamePrefix(char  *fileNamePrefix)
+MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char  *fileNamePrefix)
 {
     int32_t                             iRet = 0;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
 
-    if (MosUtilities::m_mosUltFlag)
+    if (MosUltFlag)
     {
-        iRet =  MosUtilities::MOS_SecureStringPrint(
+        iRet =  MosUtilities::MosSecureStringPrint(
                      fileNamePrefix,
                      MOS_MAX_HLT_FILENAME_LEN,
                      MOS_MAX_HLT_FILENAME_LEN,
@@ -147,9 +147,9 @@ MOS_STATUS MosUtilDebug::MOS_LogFileNamePrefix(char  *fileNamePrefix)
         return eStatus;
     }
 
-    MosUtilities::MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.StringData.pStringData = fileNamePrefix;
-    eStatus = MosUtilities::MOS_UserFeature_ReadValue_ID(
+    eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID,
         &UserFeatureData);
@@ -157,7 +157,7 @@ MOS_STATUS MosUtilDebug::MOS_LogFileNamePrefix(char  *fileNamePrefix)
     // If the user feature key was not found, create it with the default value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
-        iRet = MosUtilities::MOS_SecureStringPrint(
+        iRet = MosUtilities::MosSecureStringPrint(
                      fileNamePrefix,
                      MOS_MAX_HLT_FILENAME_LEN,
                      MOS_MAX_HLT_FILENAME_LEN,
@@ -165,12 +165,12 @@ MOS_STATUS MosUtilDebug::MOS_LogFileNamePrefix(char  *fileNamePrefix)
 
         if (iRet == 0)
         {
-            MosUtilities::MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+            MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
             UserFeatureWriteData.Value.StringData.pStringData = fileNamePrefix;
             UserFeatureWriteData.Value.StringData.uSize = strlen(fileNamePrefix) + 1;
             UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID;
 
-            eStatus = MosUtilities::MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+            eStatus = MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
         }
         else
         {
@@ -181,7 +181,7 @@ MOS_STATUS MosUtilDebug::MOS_LogFileNamePrefix(char  *fileNamePrefix)
     return eStatus;
 }
 
-void MosUtilDebugSpecific::Mos_Message(
+void MosUtilDebugSpecific::MosMessage(
     MOS_MESSAGE_LEVEL level,
     const PCCHAR      logtag,
     MOS_COMPONENT_ID  compID,
@@ -195,17 +195,17 @@ void MosUtilDebugSpecific::Mos_Message(
     uint32_t nLen = 0;
     PCCHAR func = functionName;
 
-    if (MosUtilDebug::MOS_ShouldPrintMessage(level, compID, subCompID, message) == false)
+    if (MosUtilDebug::MosShouldPrintMessage(level, compID, subCompID, message) == false)
     {
         return;
     }
 
     va_start(var_args, message);
-    MosUtilities::MOS_LockMutex(&m_mosMsgMutex);
+    MosUtilities::MosLockMutex(&m_mosMsgMutex);
     // Proceed to print the message
     if (functionName == nullptr)
     {
-        MosUtilities::MOS_SecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
+        MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
                 MOS_MAX_MSG_BUF_SIZE,
                 (MOS_MAX_MSG_BUF_SIZE-1),
                 "%s%s - ",
@@ -223,7 +223,7 @@ void MosUtilDebugSpecific::Mos_Message(
         if (lineNum < 0)
         {
             // no line number output
-            MosUtilities::MOS_SecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
+            MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
                 MOS_MAX_MSG_BUF_SIZE,
                 (MOS_MAX_MSG_BUF_SIZE-1),
                 "%s%s - %s",
@@ -234,7 +234,7 @@ void MosUtilDebugSpecific::Mos_Message(
         }
         else
         {
-            MosUtilities::MOS_SecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
+            MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
                     MOS_MAX_MSG_BUF_SIZE,
                     (MOS_MAX_MSG_BUF_SIZE-1),
                     "%s%s - %s:%d: ",
@@ -245,7 +245,7 @@ void MosUtilDebugSpecific::Mos_Message(
             nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
         }
     }
-    MosUtilities::MOS_SecureVStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer + nLen,
+    MosUtilities::MosSecureVStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer + nLen,
                 MOS_MAX_MSG_BUF_SIZE - nLen,
                 (MOS_MAX_MSG_BUF_SIZE - 1 - nLen),
                 message,
@@ -274,7 +274,7 @@ void MosUtilDebugSpecific::Mos_Message(
             printf("ERROR: MosUtilDebug::m_mosMsgParams.pLogFile is NULL!\n");
         }
     }
-    MosUtilities::MOS_UnlockMutex(&m_mosMsgMutex);
+    MosUtilities::MosUnlockMutex(&m_mosMsgMutex);
     va_end(var_args);
 }
 
@@ -305,7 +305,7 @@ PCCHAR MosUtilDebugSpecific::MOS_getClassMethod(PCCHAR pcPrettyFunction)
     // We want to copy pcPrettyFunction into gFunction, only up to the first '('.
     len = end ? (uint32_t)(end - pcPrettyFunction) : strlen(pcPrettyFunction);
 
-    MosUtilities::MOS_SecureMemcpy(m_functionName, sizeof(m_functionName), pcPrettyFunction, len);
+    MosUtilities::MosSecureMemcpy(m_functionName, sizeof(m_functionName), pcPrettyFunction, len);
 
     // dismiss anything before the last ' '.
     return strrchr(m_functionName, ' ') ? strrchr(m_functionName, ' ') + 1 : m_functionName;
@@ -315,9 +315,9 @@ PCCHAR MosUtilDebugSpecific::MOS_getClassMethod(PCCHAR pcPrettyFunction)
 
 #if MOS_ASSERT_ENABLED
 
-void MosUtilDebug::_MOS_Assert(MOS_COMPONENT_ID compID, uint8_t subCompID)
+void MosUtilDebug::MosAssert(MOS_COMPONENT_ID compID, uint8_t subCompID)
 {
-    if (MosUtilDebug::MOS_ShouldAssert(compID, subCompID) == false)
+    if (MosUtilDebug::MosShouldAssert(compID, subCompID) == false)
     {
         return;
     }

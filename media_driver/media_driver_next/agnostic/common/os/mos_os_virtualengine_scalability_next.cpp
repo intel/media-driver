@@ -62,7 +62,7 @@ MOS_STATUS MosOsVeScalability::PopulateDbgOvrdParams(
             return eStatus;
     }
 
-    MosUtilities::MOS_ZeroMemory(EngineLogicId, sizeof(EngineLogicId));
+    MosUtilities::MosZeroMemory(EngineLogicId, sizeof(EngineLogicId));
     ucEngineCount = 0;
     if (iForceEngine == 0)
     {

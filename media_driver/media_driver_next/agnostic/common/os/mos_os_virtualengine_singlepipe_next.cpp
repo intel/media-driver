@@ -62,7 +62,7 @@ MOS_STATUS MosOsVeSinglePipe::PopulateDbgOvrdParams(MOS_STREAM_HANDLE stream)
             return eStatus;
     }
 
-    MosUtilities::MOS_ZeroMemory(EngineLogicId, sizeof(EngineLogicId));
+    MosUtilities::MosZeroMemory(EngineLogicId, sizeof(EngineLogicId));
     ucEngineCount = 0;
     if (iForceEngine == 0)
     {

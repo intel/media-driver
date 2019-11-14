@@ -36,9 +36,9 @@ MOS_STATUS MosUtilUserInterfaceNext::MosUtilUserInterfaceInit(PRODUCT_FAMILY pro
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     // lock mutex to avoid multi init and close in multi-threading env
-    MosUtilities::MOS_LockMutex(&m_mutexLock);
+    MosUtilities::MosLockMutex(&m_mutexLock);
     MosUtilUserInterfaceNext* mosUtilInst = GetInstance(productFamily);
-    MosUtilities::MOS_UnlockMutex(&m_mutexLock);
+    MosUtilities::MosUnlockMutex(&m_mutexLock);
 
     return eStatus;
 }
@@ -47,9 +47,9 @@ MOS_STATUS MosUtilUserInterfaceNext::MosUtilUserInterfaceClose()
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
-    MosUtilities::MOS_LockMutex(&m_mutexLock);
+    MosUtilities::MosLockMutex(&m_mutexLock);
     Destroy();
-    MosUtilities::MOS_UnlockMutex(&m_mutexLock);
+    MosUtilities::MosUnlockMutex(&m_mutexLock);
 
     return eStatus;
 }

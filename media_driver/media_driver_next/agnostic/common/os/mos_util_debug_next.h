@@ -44,7 +44,7 @@ public:
     //!           to be called during device creation
     //! \return   void
     //!
-    static void MOS_MessageInit();
+    static void MosMessageInit();
 
     //!
     //! \brief    Frees the MOS message buffer and MOS message parameters structure
@@ -52,7 +52,7 @@ public:
     //!           to be called during device destruction
     //! \return   void
     //!
-    static void MOS_MessageClose();
+    static void MosMessageClose();
 
     //!
     //! \brief    Form a string that will prefix MOS's log file name
@@ -66,7 +66,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
+    static MOS_STATUS MosLogFileNamePrefix(char  *fileNamePrefix);
 
     //!
     //! \brief    Checks whether debug messages should be printed.
@@ -82,7 +82,7 @@ public:
     //!           [in] pointer to the message format string
     //! \return   int32_t
     //!
-    static int32_t MOS_ShouldPrintMessage(
+    static int32_t MosShouldPrintMessage(
         MOS_MESSAGE_LEVEL  level,
         MOS_COMPONENT_ID   compID,
         uint8_t            subCompID,
@@ -97,7 +97,7 @@ public:
     //!           [in] Enable/disable flag
     //! \return   void
     //!
-    static void MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable);
+    static void MosCompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable);
 #endif // MOS_MESSAGES_ENABLED
 
 #if MOS_ASSERT_ENABLED
@@ -113,7 +113,7 @@ public:
     //!           [in] Indicates which sub-component
     //! \return   void
     //!
-    static void _MOS_Assert(
+    static void MosAssert(
         MOS_COMPONENT_ID compID,
         uint8_t          subCompID);
 
@@ -130,7 +130,7 @@ private:
     //!           [out] Pointer to the log file
     //! \return   void
     //!
-    static void MOS_HltpPreface(
+    static void MosHltpPreface(
         PFILE            pFile);
 
     /*----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ private:
     |             else MOS_STATUS_SUCCESS
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS MOS_HltpCopyFile(PFILE pFile, const PCCHAR szFileName);
+    static MOS_STATUS MosHltpCopyFile(PFILE pFile, const PCCHAR szFileName);
 
     //!
     //! \brief    Set debug message level for a sub-component within a component
@@ -155,7 +155,7 @@ private:
     //!           [in] Message level that the sub component allows
     //! \return   void
     //!
-    static void MOS_SetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_MESSAGE_LEVEL msgLevel);
+    static void MosSetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_MESSAGE_LEVEL msgLevel);
 
     //!
     //! \brief    Set debug message level for a particular component
@@ -166,7 +166,7 @@ private:
     //!           [in] Message level that the component allows
     //! \return   void
     //!
-    static void MOS_SetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel);
+    static void MosSetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel);
 
     //!
     //! \brief    Set debug message level for all components
@@ -175,7 +175,7 @@ private:
     //!           [in] Message level that all components allow
     //! \return   void
     //!
-    static void MOS_SetCompMessageLevelAll(MOS_MESSAGE_LEVEL msgLevel);
+    static void MosSetCompMessageLevelAll(MOS_MESSAGE_LEVEL msgLevel);
 
     //!
     //! \brief    Enable/disable asserts for a sub-component within a component
@@ -188,7 +188,7 @@ private:
     //!           [in] Enable/disable flag
     //! \return   void
     //!
-    static void MOS_SubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8_t subCompID, int32_t bEnable);
+    static void MosSubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8_t subCompID, int32_t bEnable);
 
     //!
     //! \brief    Set debug message level and asserts for a component and its sub-components.
@@ -198,7 +198,7 @@ private:
     //!           [in] Indicates which component
     //! \return   void
     //!
-    static void MOS_MessageInitComponent(MOS_COMPONENT_ID compID);
+    static void MosMessageInitComponent(MOS_COMPONENT_ID compID);
 
     //!
     //! \brief    Initialize or refresh the Hybrid Log and Trace facility
@@ -208,7 +208,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_HLTInit();
+    static MOS_STATUS MosHLTInit();
 
     //!
     //! \brief    Initialize or refresh the DDI Dump facility
@@ -218,7 +218,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_DDIDumpInit();
+    static MOS_STATUS MosDDIDumpInit();
 
     //!
     //! \brief    Close file handles and frees resources
@@ -226,7 +226,7 @@ private:
     //!           Called during MOS close
     //! \return   void
     //!
-    static void MOS_HLTClose();
+    static void MosHLTClose();
 
     // !
     //! \brief    Close file handles and frees resources
@@ -234,7 +234,7 @@ private:
     //!           Called during MOS close
     //! \return   void
     //!
-    static void MOS_DDIDumpClose();
+    static void MosDDIDumpClose();
 #endif // MOS_MESSAGES_ENABLED
 
 #if MOS_ASSERT_ENABLED
@@ -248,7 +248,7 @@ private:
     //!           [in] Indicates which sub-component
     //! \return   int32_t
     //!
-    static int32_t MOS_ShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID);
+    static int32_t MosShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID);
 #endif
 
 public:

@@ -117,7 +117,7 @@ public:
     //!
     void SetPerfInfo(const struct PerfInfo &performanceInfo)
     {
-        MosUtilities::MOS_SecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));
+        MosUtilities::MosSecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));
     }
 
     //!

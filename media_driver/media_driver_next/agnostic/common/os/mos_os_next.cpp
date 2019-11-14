@@ -45,7 +45,7 @@ const GpuCmdResInfoDumpNext *GpuCmdResInfoDumpNext::GetInstance()
 GpuCmdResInfoDumpNext::GpuCmdResInfoDumpNext()
 {
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
@@ -58,8 +58,8 @@ GpuCmdResInfoDumpNext::GpuCmdResInfoDumpNext()
     }
 
     char path[MOS_MAX_PATH_LENGTH + 1];
-    MOS_ZeroMemory(path, sizeof(path));
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosZeroMemory(path, sizeof(path));
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.StringData.pStringData = path;
     MOS_UserFeature_ReadValue_ID(
         nullptr,
@@ -80,7 +80,7 @@ GpuCmdResInfoDumpNext::GpuCmdResInfoDumpNext()
     {
         tmpPath += '/';
     }
-    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MOS_GetPid()) + ".txt";
+    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MosUtilities::MosGetPid()) + ".txt";
 }
 
 void GpuCmdResInfoDumpNext::Dump(PMOS_INTERFACE pOsInterface) const

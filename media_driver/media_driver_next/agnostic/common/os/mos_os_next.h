@@ -29,10 +29,6 @@
 
 #include "mos_os.h"
 
-#include "media_skuwa_specific.h"
-#include "mos_utilities_next.h"
-#include "mos_os_hw.h"         //!< HW specific details that flow through OSNextpathes
-#include "mos_os_cp_interface_specific.h"         //!< CP specific OSNextfunctionality 
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 #include "work_queue_mngr.h"
@@ -43,7 +39,6 @@
 //!
 //! \brief OSNextspecific includes and definitions
 //!
-#include "mos_os_specific_next.h"
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 //!

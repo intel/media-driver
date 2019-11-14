@@ -6488,6 +6488,11 @@ MOS_STATUS Mos_Specific_LoadLibrary(
     //---------------------------------
     MOS_OS_ASSERT(pFileName);
     //---------------------------------
+    if (g_apoMosEnabled)
+    {
+        MOS_STREAM_HANDLE osStreamState = (pOsInterface != nullptr) ? pOsInterface->osStreamState : nullptr;
+        return MosInterface::MosLoadLibrary(osStreamState, pFileName, ppvModule);
+    }
 
     *ppvModule = dlopen(pFileName, RTLD_LAZY);
 
@@ -6512,6 +6517,10 @@ MOS_STATUS Mos_Specific_FreeLibrary(
     //---------------------------------
     MOS_OS_ASSERT(hInstance);
     //---------------------------------
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::MosFreeLibrary(hInstance);
+    }
 
     bStatus = dlclose(hInstance);
     return (bStatus != 0) ? MOS_STATUS_SUCCESS : MOS_STATUS_UNKNOWN;
@@ -6882,6 +6891,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetIndirectState                       = Mos_Specific_GetIndirectState;
     pOsInterface->pfnGetIndirectStatePointer                = Mos_Specific_GetIndirectStatePointer;
     pOsInterface->pfnSetPatchEntry                          = Mos_Specific_SetPatchEntry;
+
     pOsInterface->pfnLoadLibrary                            = Mos_Specific_LoadLibrary;
     pOsInterface->pfnFreeLibrary                            = Mos_Specific_FreeLibrary;
     pOsInterface->pfnLogData                                = Mos_Specific_LogData;

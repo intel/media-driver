@@ -28,7 +28,7 @@
 #define __MOS_UTIL_USER_INTERFACE_NEXT_H__
 
 #include "igfxfmid.h"
-#include "mos_utilities_next.h"
+#include "mos_utilities.h"
 #include <map>
 
 class MosUtilUserInterfaceNext
