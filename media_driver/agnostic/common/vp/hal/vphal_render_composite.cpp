@@ -5823,7 +5823,7 @@ MOS_STATUS CompositeState::RenderPhase(
             else if (m_need3DSampler                                       &&
                      pSource->ScalingMode != VPHAL_SCALING_AVS             &&
                      pSource->SurfType == SURF_IN_PRIMARY                  &&
-                     (IS_PL2_FORMAT(pSource->Format)                       ||
+                     ((IS_PL2_FORMAT(pSource->Format) && iLayer == 0)      || // when 3D sampler been used, PL2 chromasitting kernel does not support sub-layer chromasitting
                      pSource->Format == Format_YUY2))
             {
                 m_bChromaUpSampling   = VpHal_IsChromaUpSamplingNeeded(
