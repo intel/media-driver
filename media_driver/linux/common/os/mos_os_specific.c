@@ -6184,35 +6184,7 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionFormat(
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
 
-    MOS_OS_CHK_NULL(pOsInterface->pfnGetGmmClientContext(pOsInterface));
-    // Get compression format from GMM RESOURCE FORMAT
-    GMM_RESOURCE_FORMAT gmmResFmt;
-    gmmResFmt = pGmmResourceInfo->GetResourceFormat();
-    MOS_MEMCOMP_STATE   MmcMode;
-    uint32_t            MmcFormat;
-    Mos_Specific_GetMemoryCompressionMode(pOsInterface, pOsResource, &MmcMode);
-    switch (MmcMode)
-    {
-    case MOS_MEMCOMP_MC:
-        MmcFormat = static_cast<uint32_t>(pOsInterface->pfnGetGmmClientContext(pOsInterface)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
-        break;
-    case MOS_MEMCOMP_RC:
-        MmcFormat = static_cast<uint32_t>(pOsInterface->pfnGetGmmClientContext(pOsInterface)->GetSurfaceStateCompressionFormat(gmmResFmt));
-        break;
-    default:
-        MmcFormat = 0;
-    }
-
-    if (MmcFormat > 0x1F)
-    {
-        MOS_OS_ASSERTMESSAGE("Get a incorrect Compression format(%d) from GMM", MmcFormat);
-    }
-    else
-    {
-        *pResMmcFormat = MmcFormat;
-        MOS_OS_VERBOSEMESSAGE("GMM compression mode %d, compression format %d", MmcMode, MmcFormat);
-    }
-    
+    // GetResourceFormat() is not declared in Linux project, use Mos_Specific_ConvertMosFmtToGmmFmt()?
     eStatus = MOS_STATUS_SUCCESS;
 
 finish:

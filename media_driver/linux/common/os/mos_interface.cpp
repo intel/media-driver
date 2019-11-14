@@ -1493,12 +1493,10 @@ void *MosInterface::LockMosResource(
     if (resource && resource->bo && resource->pGmmResInfo)
     {
         MOS_LINUX_BO *bo = resource->bo;
-        GMM_RESOURCE_FLAG GmmFlags = resource->pGmmResInfo->GetResFlags();
 
         // Do decompression for a compressed surface before lock
         if (!flags->NoDecompress &&
-            (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Info.MediaCompressed) ||
-            resource->pGmmResInfo->IsMediaMemoryCompressed(0)))
+            resource->pGmmResInfo->IsMediaMemoryCompressed(0))
         {
             PMOS_CONTEXT pOsContext = perStreamParameters;
 
@@ -1865,48 +1863,10 @@ MOS_STATUS MosInterface::GetMemoryCompressionFormat(
     uint32_t *          resMmcFormat)
 {
     MOS_OS_FUNCTION_ENTER;
-    
-    MOS_STATUS         eStatus = MOS_STATUS_UNKNOWN;
-    PGMM_RESOURCE_INFO pGmmResourceInfo;
 
-    MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(resource);
-    MOS_OS_CHK_NULL_RETURN(resMmcFormat);
+    // No GMM GetResourceFormat() in Linux project
 
-    pGmmResourceInfo = (GMM_RESOURCE_INFO *)resource->pGmmResInfo;
-    MOS_OS_CHK_NULL_RETURN(pGmmResourceInfo);
-    MOS_OS_CHK_NULL_RETURN(MosInterface::GetGmmClientContext(streamState));
-    // Get compression format from GMM RESOURCE FORMAT
-    GMM_RESOURCE_FORMAT gmmResFmt;
-    gmmResFmt = pGmmResourceInfo->GetResourceFormat();
-    MOS_MEMCOMP_STATE MmcMode   = MOS_MEMCOMP_DISABLED;
-    uint32_t          MmcFormat = 0;
-    MosInterface::GetMemoryCompressionMode(streamState, resource, MmcMode);
-    switch (MmcMode)
-    {
-    case MOS_MEMCOMP_MC:
-         MmcFormat = static_cast<uint32_t>(MosInterface::GetGmmClientContext(streamState)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
-         break;
-    case MOS_MEMCOMP_RC:
-         MmcFormat = static_cast<uint32_t>(MosInterface::GetGmmClientContext(streamState)->GetSurfaceStateCompressionFormat(gmmResFmt));
-         break;
-    default:
-          MmcFormat = 0;
-    }
-
-    if (MmcFormat > 0x1F)
-    {
-        MOS_OS_ASSERTMESSAGE("Get a incorrect Compression format(%d) from GMM", MmcFormat); 
-    }
-    else
-    {
-        *resMmcFormat = MmcFormat;
-        MOS_OS_VERBOSEMESSAGE("GMM compression mode %d, compression format %d", MmcMode, MmcFormat);
-    }
-
-    eStatus = MOS_STATUS_SUCCESS;
-    
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 uint32_t MosInterface::GetGpuStatusTag(
