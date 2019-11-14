@@ -4623,6 +4623,10 @@ Mos_Specific_CreateGpuComputeContext(MOS_INTERFACE *osInterface,
                                                         cmd_buffer_mgr,
                                                         contextName);
             auto *context_specific = static_cast<GpuContextSpecific*>(gpu_context);
+            if (nullptr == context_specific)
+            {
+                return MOS_GPU_CONTEXT_INVALID_HANDLE;
+            }
             MOS_STATUS status
                     = context_specific->Init(gpu_context_mgr->GetOsContext(),
                                              osInterface, MOS_GPU_NODE_COMPUTE,
