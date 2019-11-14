@@ -433,9 +433,12 @@ void* GraphicsResourceSpecificNext::Lock(OsContextNext* osContextPtr, LockParams
     {
         // Do decompression for a compressed surface before lock
         const auto pGmmResInfo = m_gmmResInfo;
-         MOS_OS_ASSERT(pGmmResInfo);
+        MOS_OS_ASSERT(pGmmResInfo);
+        GMM_RESOURCE_FLAG GmmFlags = pGmmResInfo->GetResFlags();
+
         if (!params.m_noDecompress &&
-             pGmmResInfo->IsMediaMemoryCompressed(0))
+            (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Info.MediaCompressed) ||
+             pGmmResInfo->IsMediaMemoryCompressed(0)))
         {
             if ((pOsContextSpecific->m_mediaMemDecompState == nullptr) ||
                 (pOsContextSpecific->m_memoryDecompress    == nullptr))
