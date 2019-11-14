@@ -3039,7 +3039,7 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencBrcUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC BrcUpdate DmemBuffer";
 
-        for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES_FOR_TILE_REPLAY; i++)
+        for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES; i++)
         {
             CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
                 m_osInterface,
@@ -3210,12 +3210,8 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
 
         for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES; i++)
         {
-            m_osInterface->pfnFreeResource(m_osInterface, &m_vdencReadBatchBuffer[k][i]);
-        }
-
-        for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES_FOR_TILE_REPLAY; i++)
-        {
             m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcUpdateDmemBuffer[k][i]);
+            m_osInterface->pfnFreeResource(m_osInterface, &m_vdencReadBatchBuffer[k][i]);
         }
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcInitDmemBuffer[k]);
