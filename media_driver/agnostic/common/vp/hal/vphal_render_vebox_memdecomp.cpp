@@ -285,20 +285,26 @@ MOS_STATUS MediaVeboxDecompState::Initialize(
         }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        m_surfaceDumper = MOS_New(VphalSurfaceDumper, m_osInterface);
+        CreateSurfaceDumper();
         if (m_surfaceDumper)
         {
             m_surfaceDumper->GetSurfaceDumpSpec();
         }
         else
         {
-            VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("surface dumpper creatuon failed.");
+            VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("surface dumpper creation failed.");
         }
 #endif
     }
 
     return eStatus;
 }
+#if (_DEBUG || _RELEASE_INTERNAL)
+void MediaVeboxDecompState::CreateSurfaceDumper()
+{
+    m_surfaceDumper = MOS_New(VphalSurfaceDumper, m_osInterface);
+}
+#endif
 
 MOS_STATUS MediaVeboxDecompState::GetResourceInfo(PMOS_SURFACE surface)
 {
@@ -324,6 +330,7 @@ MOS_STATUS MediaVeboxDecompState::GetResourceInfo(PMOS_SURFACE surface)
     surface->bArraySpacing                                      = resDetails.bArraySpacing;
     surface->TileType                                           = resDetails.TileType;
     surface->bCompressible                                      = resDetails.bCompressible;
+    surface->bIsCompressed                                      = resDetails.bIsCompressed;
     surface->dwOffset                                           = resDetails.RenderOffset.YUV.Y.BaseOffset;
     surface->UPlaneOffset.iSurfaceOffset                        = resDetails.RenderOffset.YUV.U.BaseOffset;
     surface->UPlaneOffset.iXOffset                              = resDetails.RenderOffset.YUV.U.XOffset;
@@ -342,6 +349,13 @@ MOS_STATUS MediaVeboxDecompState::GetResourceInfo(PMOS_SURFACE surface)
     if (mmcMode)
     {
         m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface, &surface->OsResource, &surface->CompressionFormat);
+        if ((surface->TileType == MOS_TILE_Y ||
+             surface->TileType == MOS_TILE_YS))
+        {
+            surface->bCompressible   = true;
+            surface->bIsCompressed   = true;
+            surface->CompressionMode = (MOS_RESOURCE_MMC_MODE)mmcMode;
+        }
     }
 
     return eStatus;

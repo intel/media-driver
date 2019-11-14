@@ -260,6 +260,10 @@ protected:
         TRMODE_UNKNOWN,
     };
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual void CreateSurfaceDumper();
+#endif
+
 public:
     // Add Public Numbers
 

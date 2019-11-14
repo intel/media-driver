@@ -1579,7 +1579,7 @@ MOS_STATUS VpHal_HdrPreprocess(
     {
         VphalSurfaceDumper surfaceDumper(pOsInterface);
         std::string fileName("Preprocessed_HDRMandatory_coefficient_8x98");
-        surfaceDumper.DumpSurfaceToFile(pOsInterface, &pHdrState->CoeffSurface, fileName.c_str(), 0, true);
+        surfaceDumper.DumpSurfaceToFile(pOsInterface, &pHdrState->CoeffSurface, fileName.c_str(), 0, true, false, nullptr);
     }
 #endif
 
