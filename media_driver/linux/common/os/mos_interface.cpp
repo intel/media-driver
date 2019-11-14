@@ -30,6 +30,8 @@
 #include "mos_os_specific_next.h"
 #include "media_libva_common.h"
 #include "mos_auxtable_mgr.h"
+#include "mos_os_virtualengine_singlepipe_specific_next.h"
+#include "mos_os_virtualengine_scalability_specific_next.h"
 
 MOS_STATUS MosInterface::CreateOsDeviceContext(DDI_DEVICE_CONTEXT ddiDeviceContext, MOS_DEVICE_HANDLE *deviceContext)
 {
@@ -597,6 +599,15 @@ MOS_STATUS MosInterface::SetupAttributeVeBuffer(
     // no VE attribute buffer to setup
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_CMD_BUF_ATTRI_VE *MosInterface::GetAttributeVeBuffer(
+        COMMAND_BUFFER_HANDLE cmdBuffer)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // no VE attribute buffer to get
+    return nullptr;
 }
 
 static GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
@@ -1643,10 +1654,15 @@ uint64_t MosInterface::GetResourceGfxAddress(
     MOS_RESOURCE_HANDLE resource)
 {
     MOS_OS_FUNCTION_ENTER;
+    
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(resource);
 
-    // UMD cannot get gfx address of resource before patched
-
-    return 0;
+    if (!mos_gem_bo_is_softpin(resource->bo))
+    {
+        mos_bo_set_softpin(resource->bo);
+    }
+    return resource->bo->offset64;
 }
 
 uint32_t MosInterface::GetResourceAllocationIndex(
@@ -1949,6 +1965,122 @@ MosOcaInterface *MosInterface::GetOcaInterface(MOS_STREAM_HANDLE streamState)
     return nullptr;
 }
 
+MOS_VE_HANDLE MosInterface::GetVirtualEngineState(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return streamState ? streamState->virtualEngineInterface : nullptr;
+}
+
+MOS_STATUS MosInterface::SetVirtualEngineState(
+    MOS_STREAM_HANDLE streamState,
+    MOS_VE_HANDLE veState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(veState);
+
+    streamState->virtualEngineInterface = veState;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::CreateVirtualEngineState(
+    MOS_STREAM_HANDLE streamState,
+    PMOS_VIRTUALENGINE_INIT_PARAMS veInitParms,
+    MOS_VE_HANDLE& veState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    if (veInitParms->bScalabilitySupported)
+    {
+        streamState->virtualEngineInterface = MosUtilities::MOS_New(MosOsVeScalabilitySpecific);
+    }
+    else
+    {
+        streamState->virtualEngineInterface = MosUtilities::MOS_New(MosOsVeSinglePipeSpecific);
+    }
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+
+    MOS_OS_CHK_STATUS_RETURN(streamState->virtualEngineInterface->Initialize(streamState, veInitParms));
+
+    veState = streamState->virtualEngineInterface;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::DestroyVirtualEngineState(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+
+    streamState->virtualEngineInterface->Destroy();
+    MosUtilities::MOS_Delete(streamState->virtualEngineInterface);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::SetVeHintParams(
+    MOS_STREAM_HANDLE             streamState,
+    PMOS_VIRTUALENGINE_SET_PARAMS veParams)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+
+    return streamState->virtualEngineInterface->SetHintParams(veParams);
+}
+
+MOS_STATUS MosInterface::GetVeHintParams(
+    MOS_STREAM_HANDLE               streamState,
+    bool                            scalableMode,
+    PMOS_VIRTUALENGINE_HINT_PARAMS* hintParams)
+{
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+    MOS_OS_CHK_NULL_RETURN(hintParams);
+
+    return streamState->virtualEngineInterface->GetHintParams(scalableMode, hintParams);
+}
+
+MOS_STATUS MosInterface::SetVeSubmissionType(
+    MOS_STREAM_HANDLE     streamState,
+    COMMAND_BUFFER_HANDLE cmdBuf,
+    MOS_SUBMISSION_TYPE   type)
+{
+    MOS_OS_CHK_NULL_RETURN(cmdBuf);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+
+    return streamState->virtualEngineInterface->SetSubmissionType(cmdBuf, type);
+}
+
+#if _DEBUG || _RELEASE_INTERNAL
+
+uint8_t MosInterface::GetVeEngineCount(
+    MOS_STREAM_HANDLE streamState)
+{
+    return streamState && streamState->virtualEngineInterface ?
+        streamState->virtualEngineInterface->GetEngineCount() : 0;
+}
+
+uint8_t MosInterface::GetEngineLogicId(
+    MOS_STREAM_HANDLE streamState,
+    uint32_t instanceIdx)
+{
+    return streamState && streamState->virtualEngineInterface ?
+        streamState->virtualEngineInterface->GetEngineLogicId(instanceIdx) : 0;
+}
+
+#endif  // _DEBUG || _RELEASE_INTERNAL
 MOS_STATUS MosInterface::ComposeCommandBufferHeader(
     MOS_STREAM_HANDLE     streamState,
     COMMAND_BUFFER_HANDLE cmdBuffer)

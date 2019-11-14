@@ -27,11 +27,31 @@
 
 #include "mos_os_virtualengine_scalability_specific_next.h"
 
-MOS_STATUS MosOsVeScalabilitySpecific::Mos_Specific_VirtualEngine_Scalability_Initialize(
-    PMOS_VIRTUALENGINE_INTERFACE     pVEInterface,
+MOS_STATUS MosOsVeScalabilitySpecific::Initialize(
+    MOS_STREAM_HANDLE stream,
     PMOS_VIRTUALENGINE_INIT_PARAMS   pVEInitParms)
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+
+MOS_STATUS MosOsVeScalabilitySpecific::GetHintParams(
+    bool bScalableMode,
+    PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MOS_OS_CHK_NULL_RETURN(ppHintParams);
+
+    if (bScalableMode)
+    {
+        *ppHintParams = &ScalabilityHintParams;
+    }
+    else
+    {
+        *ppHintParams = &SinglePipeHintParams;
+    }
 
     return eStatus;
 }

@@ -33,19 +33,11 @@
 class MosOsVeSinglePipeSpecific : public MosOsVeSinglePipe
 {
 public:
-    //!
-    //! \brief    initialize VE parameters for single pipe virtual engine interface
-    //! \param    [in]  pVEInterface
-    //!                virtual engine interface
-    //! \param    [in]  pVEInitParms
-    //!                pointer to VE init parameter
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS Mos_Specific_VirtualEngine_SinglePipe_Initialize(
-        PMOS_VIRTUALENGINE_INTERFACE     pVEInterface,
+    MOS_STATUS Initialize(
+        MOS_STREAM_HANDLE stream,
         PMOS_VIRTUALENGINE_INIT_PARAMS   pVEInitParms);
-        
+
+    // No secondary cmd buf used in single pipe mode
     void ResetSecdryCmdBufStates() {}
 
     MOS_STATUS VerifySecdryCmdBufSize(
@@ -64,12 +56,13 @@ public:
 
     MOS_STATUS DoneSecdryCmdBuf() { return MOS_STATUS_SUCCESS; }
 
+    // No hint parameters to set
     MOS_STATUS SetHintParams(
         PMOS_VIRTUALENGINE_SET_PARAMS pVEParams) { return MOS_STATUS_SUCCESS; }
 
     MOS_STATUS GetHintParams(
-        bool                           bScalableMode,
-        PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams) { return MOS_STATUS_SUCCESS; }
+        bool bScalableMode,
+        PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams);
 
     MOS_STATUS CheckHintParamsValidity() { return MOS_STATUS_SUCCESS; }
 

@@ -34,19 +34,11 @@
 class MosOsVeScalabilitySpecific : public MosOsVeScalability
 {
 public:
-    //!
-    //! \brief    initialize VE parameters for scalability virtual engine
-    //! \param    [in]  pVEInterface
-    //!                virtual engine interface
-    //! \param    [in]  pVEInitParms
-    //!                pointer to ve init parameter structure
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS Mos_Specific_VirtualEngine_Scalability_Initialize(
-        PMOS_VIRTUALENGINE_INTERFACE      pVEInterface,
-        PMOS_VIRTUALENGINE_INIT_PARAMS    pVEInitParms);
-        
+    MOS_STATUS Initialize(
+        MOS_STREAM_HANDLE stream,
+        PMOS_VIRTUALENGINE_INIT_PARAMS pVEInitParms);
+
+    // Secondary cmd buf are maintained in GPU context in multi-pipe mode
     void ResetSecdryCmdBufStates() {}
 
     MOS_STATUS VerifySecdryCmdBufSize(
@@ -65,12 +57,13 @@ public:
 
     MOS_STATUS DoneSecdryCmdBuf() { return MOS_STATUS_SUCCESS; }
 
+    // No hint parameters to set
     MOS_STATUS SetHintParams(
         PMOS_VIRTUALENGINE_SET_PARAMS pVEParams) { return MOS_STATUS_SUCCESS; }
 
     MOS_STATUS GetHintParams(
-        bool                           bScalableMode,
-        PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams) { return MOS_STATUS_SUCCESS; }
+        bool bScalableMode,
+        PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams);
 
     MOS_STATUS CheckHintParamsValidity() { return MOS_STATUS_SUCCESS; }
 
