@@ -51,11 +51,6 @@
 #include "mos_os.h"
 
 class GpuContextSpecificNext;
-struct _MOS_VIRTUALENGINE_SET_PARAMS;
-struct _MOS_VIRTUALENGINE_INIT_PARAMS;
-typedef struct _MOS_VIRTUALENGINE_SET_PARAMS  MOS_VIRTUALENGINE_SET_PARAMS, *PMOS_VIRTUALENGINE_SET_PARAMS;
-typedef struct _MOS_VIRTUALENGINE_INIT_PARAMS MOS_VIRTUALENGINE_INIT_PARAMS, *PMOS_VIRTUALENGINE_INIT_PARAMS;
-typedef struct _MOS_CMD_BUF_ATTRI_VE MOS_CMD_BUF_ATTRI_VE, *PMOS_CMD_BUF_ATTRI_VE;
 class MosInterface
 {
 public:
@@ -237,7 +232,7 @@ public:
     //!
     //! \brief    Create Gpu Context
     //! \details  [GPU Context Interface] Create Gpu Context to submit cmdbuffers
-    //! \details  Caller: HAL (Media Context) only
+    //! \details  Caller: HAL only
     //! \details  This func is called when a stream (Hal instance) needs a SW queue to submit cmd buffers programmed with GPU cmds.
     //! \details  This queue contain options to indicate the properties of virtual GPU engine to execute these cmds.
     //! \details  Caller can use Usage & option & GPU_CONTEXT_HANDLE to track and re-use the GPU contexts.
@@ -262,7 +257,7 @@ public:
     //!
     //! \brief    Destroy Gpu Context
     //! \details  [GPU Context Interface] Destroy Gpu Context to submit cmdbuffers
-    //! \details  Caller: HAL (Media Context) only
+    //! \details  Caller: HAL only
     //! \details  This func is called when a stream (Hal instance) never needs this SW queue to submit cmd buffers
     //! \details  This func is called only in the destruction stage of Hal instance. 
     //!           Never should be SetGpuContext called to set destroied Gpu Context.
@@ -282,7 +277,7 @@ public:
     //!
     //! \brief    Set Gpu Context
     //! \details  [GPU Context Interface] Set current Gpu Context to submit cmd buffers for the stream(Hal instance)
-    //! \details  Caller: HAL (Media Context) only
+    //! \details  Caller: HAL only
     //! \details  This func is called when a stream (Hal instance) needs an existing GPU context to submit cmd buffers.
     //! \details  Current GPU context is the major state of Os Stream State.
     //! \details  Before getting a cmd buffer to program GPU cmds, a valid GPU context must be setted into the stream.
@@ -595,23 +590,6 @@ public:
     //!
     static MOS_STATUS SetupAttributeVeBuffer(
         MOS_STREAM_HANDLE     streamState,
-        COMMAND_BUFFER_HANDLE cmdBuffer);
-        
-    //!
-    //! \brief    Get VE Attribute Buffer
-    //! \details  [Cmd Buffer Interface] Get VE Attribute Buffer from cmd buffer.
-    //! \details  Caller: HAL only
-    //! \details  This interface is called to get VE attribute buffer from cmd buffer if it contains one.
-    //!           If there is no VE attribute buffer returned, it means the cmd buffer has no such buffer
-    //!           in current MOS module. It is not error state if it is nullptr.
-    //!
-    //! \param    [out] cmdBuffer
-    //!           Cmd buffer to setup VE attribute.
-    //!
-    //! \return   MOS_CMD_BUF_ATTRI_VE*
-    //!           Return pointer of VE attribute buffer, nullptr if current cmdBuffer didn't contain attribute.
-    //!
-    static MOS_CMD_BUF_ATTRI_VE *GetAttributeVeBuffer(
         COMMAND_BUFFER_HANDLE cmdBuffer);
         
     //!
@@ -1253,176 +1231,6 @@ public:
     //!           true if success else false
     //!
     static MOS_STATUS MosFreeLibrary(HMODULE hLibModule);
-
-    //! \brief    Get Virtual Engine State
-    //! \details  [Virtual Engine Interface] Get Virtual Engine State from streamState
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  This func is called when a stream (Hal instance) need to get a VE state
-    //! \details  corresponding to current GPU context.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //!
-    //! \return   MOS_VE_HANDLE
-    //!           Handle of MOS virtual engine state, Invalid handle if get failed 
-    //!
-    static MOS_VE_HANDLE GetVirtualEngineState(
-        MOS_STREAM_HANDLE  streamState);
-
-    //!
-    //! \brief    Set Virtual Engine State
-    //! \details  [Virtual Engine Interface] Set Virtual Engine State of provided streamState
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  This func is called when a stream (Hal instance) need to set an existing VE state
-    //! \details  into provided stream.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] veState
-    //!           Handle of Virtual Engine State to set
-    //!
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    static MOS_STATUS SetVirtualEngineState(
-        MOS_STREAM_HANDLE streamState,
-        MOS_VE_HANDLE veState);
-
-    //!
-    //! \brief    Create Virtual Engine State
-    //! \details  [Virtual Engine Interface] Create Virtual Engine State of provided streamState
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  This func is called when a stream (Hal instance) need to create a VE state
-    //! \details  into provided stream.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] veInitParms
-    //!           Pointer of parameters to init ve staet
-    //! \param    [out] veState
-    //!           Reference of the handle of Virtual Engine State to created
-    //!
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    static MOS_STATUS CreateVirtualEngineState(
-        MOS_STREAM_HANDLE streamState,
-        PMOS_VIRTUALENGINE_INIT_PARAMS veInitParms,
-        MOS_VE_HANDLE    &veState);
-
-    //!
-    //! \brief    Destroy Virtual Engine State
-    //! \details  [Virtual Engine Interface] Destroy Virtual Engine State of provided streamState
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  This func is called when a stream (Hal instance) need to destroy a VE state
-    //! \details  into provided stream.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [out] veState
-    //!           Reference of the handle of Virtual Engine State to created
-    //!
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    static MOS_STATUS DestroyVirtualEngineState(
-        MOS_STREAM_HANDLE streamState);
-
-    //!
-    //! \brief    Set hint parameters
-    //!
-    //! \details  [Virtual Engine Interface] Set hint parameters into Virtual Engine State in provided stream
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  Set hint parameters for virtual engine state
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] veParams
-    //!           pointer to VE parameter data structure to set
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS SetVeHintParams(
-        MOS_STREAM_HANDLE streamState,
-        PMOS_VIRTUALENGINE_SET_PARAMS veParams);
-
-    //!
-    //! \brief    Get hint parameters
-    //!
-    //! \details  [Virtual Engine Interface] Get hint parameters from Virtual Engine State in provided stream
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  Get hint parameters from virtual engine state
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] scalableMode
-    //!           flag to indicate if scalability mode
-    //! \param    [out] hintParams
-    //!           pointer to VE hint parameter address
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS GetVeHintParams(
-        MOS_STREAM_HANDLE streamState,
-        bool scalableMode,
-        PMOS_VIRTUALENGINE_HINT_PARAMS *hintParams);
-
-    //!
-    //! \brief    Set Virtual Engine Submission Type
-    //!
-    //! \details  [Virtual Engine Interface] Set submission type for the provided cmd buffer
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  Set submission type as per cmd buffer hint parameter. Must be set before submission.
-    //!           Submission type is to set cmd buffer (primary or secondary) property to indicate 
-    //!           which pipe it belongs. See MOS_SUBMISSION_TYPE.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [out] cmdBuf
-    //!           Handle of cmd buffer to set submission type
-    //! \param    [in] type
-    //!           Submission type to set
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS SetVeSubmissionType(
-        MOS_STREAM_HANDLE     streamState,
-        COMMAND_BUFFER_HANDLE cmdBuf,
-        MOS_SUBMISSION_TYPE   type);
-
-#if _DEBUG || _RELEASE_INTERNAL
-    //!
-    //! \brief    Get engine count
-    //!
-    //! \details  [Virtual Engine Interface] Get engine count from Virtual Engine State in provided stream
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  Get engine count from virtual engine state
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \return   uint8_t
-    //!           Engine count
-    //!
-    static uint8_t GetVeEngineCount(
-        MOS_STREAM_HANDLE streamState);
-
-    //!
-    //! \brief    Get Engine Logic Id
-    //! \details  [Virtual Engine Interface] Get engine Logic Id from Virtual Engine State in provided stream
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  Get engine Logic Id from virtual engine state
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] instanceIdx
-    //!           Engine instance index
-    //! \return   uint8_t
-    //!
-    static uint8_t GetEngineLogicId(
-        MOS_STREAM_HANDLE streamState,
-        uint32_t instanceIdx);
-
-#endif // _DEBUG || _RELEASE_INTERNAL
 
 private:
 

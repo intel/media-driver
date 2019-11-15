@@ -59,6 +59,8 @@ public:
 
     //!
     //! \brief     check if scalability is supported
+    //! \param    [in]   pVEInterface
+    //!                virtual engine interface
     //! \param    [out] pbScalabilitySupported
     //!                pointer to a bool value
     //! \return   MOS_STATUS
@@ -96,6 +98,8 @@ public:
 
     //!
     //! \brief    get secondary cmd buffer 
+    //! \param    [in]  pVEInterface
+    //!                virtual engine interface
     //! \param    [in]  pScdryCmdBuf
     //!                pointer to secondry cmd buffer
     //! \param    [in]  dwBufIdxPlus1
@@ -156,6 +160,10 @@ public:
     //!
     //! \brief    check hint parameters 
     //! \details  check hint parameters for virtual engine scalability or single pipe mode 
+    //! \param    [in]  pVEInterface
+    //!                virtual engine interface
+    //! \param    [in] ppHintParams
+    //!                pointer to VE hint parameter address
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -163,29 +171,11 @@ public:
 
     //!
     //! \brief    Destroy resources for virtual engine scalability
-    //!
+    //! \param    [in]  pVEInterface
+    //!                virtual engine interface
     //! \return   void
     //!
     virtual void Destroy() = 0;
-
-    //!
-    //! \brief    Set Submission Type for cmd buffer
-    //! \param    [out] cmdBuf
-    //!           Handle of cmd buffer to set submission type
-    //! \param    [in] type
-    //!           Submission type to set
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetSubmissionType(
-        COMMAND_BUFFER_HANDLE cmdBuf,
-        MOS_SUBMISSION_TYPE   type)
-    {
-        MOS_OS_CHK_NULL_RETURN(cmdBuf);
-        cmdBuf->iSubmissionType = type;
-        return MOS_STATUS_SUCCESS;
-    }
-
 #if _DEBUG || _RELEASE_INTERNAL
     //!
     //! \brief    Get Engine Count

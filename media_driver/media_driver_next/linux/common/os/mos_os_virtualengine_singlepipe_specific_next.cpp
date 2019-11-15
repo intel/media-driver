@@ -27,29 +27,12 @@
 
 #include "mos_os_virtualengine_singlepipe_specific_next.h"
 
-MOS_STATUS MosOsVeSinglePipeSpecific::Initialize(
-    MOS_STREAM_HANDLE stream,
+MOS_STATUS MosOsVeSinglePipeSpecific::Mos_Specific_VirtualEngine_SinglePipe_Initialize(
+    PMOS_VIRTUALENGINE_INTERFACE     pVEInterface,
     PMOS_VIRTUALENGINE_INIT_PARAMS   pVEInitParms)
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
 
     return eStatus;
 }
-
-MOS_STATUS MosOsVeSinglePipeSpecific::GetHintParams(
-    bool bScalableMode,
-    PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    MOS_OS_FUNCTION_ENTER;
-
-    MOS_OS_CHK_NULL_RETURN(ppHintParams);
-    MOS_OS_CHECK_CONDITION((bScalableMode), "Invalid input paramerter of scalable mode", MOS_STATUS_INVALID_PARAMETER);
-
-    *ppHintParams = &SinglePipeHintParams;
-
-    return eStatus;
-}
-
 
