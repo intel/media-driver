@@ -117,6 +117,9 @@ public:
         MHW_FUNCTION_ENTER;
 
         m_osInterface = osInterface;
+#ifdef LINUX
+        m_scalabilitySupported = false;
+#else
         if (m_numVdbox > 1
 #if (_DEBUG || _RELEASE_INTERNAL)
             && m_osInterface != nullptr
@@ -126,6 +129,7 @@ public:
         {
             m_scalabilitySupported = true;
         }
+#endif
 
         m_rhoDomainStatsEnabled = true;
 
