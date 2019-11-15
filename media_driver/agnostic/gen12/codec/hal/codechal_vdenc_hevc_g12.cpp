@@ -3337,7 +3337,10 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                 }
 
                 // Add batch buffer end at the end of each tile batch, 2nd level batch buffer
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&tileBatchBuf, nullptr));
+                (&m_tileLevelBatchBuffer[m_tileRowPass][idx])->iCurrent = tileBatchBuf.iOffset;
+                (&m_tileLevelBatchBuffer[m_tileRowPass][idx])->iRemaining = tileBatchBuf.iRemaining;
+                (&m_tileLevelBatchBuffer[m_tileRowPass][idx])->pData = data;
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, &m_tileLevelBatchBuffer[m_tileRowPass][idx]));
 
                 if (data)
                 {
@@ -7705,7 +7708,10 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcTileRowUpdate(PMOS_COMMAND_BUFFER cm
     storeDataParams.dwValue     = 0xFF;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&tileRowBRCBatchBuf, &storeDataParams));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&tileRowBRCBatchBuf, nullptr));
+    (&m_TileRowBRCBatchBuffer[m_CurrentPassForTileReplay][m_CurrentTileRow])->iCurrent = tileRowBRCBatchBuf.iOffset;
+    (&m_TileRowBRCBatchBuffer[m_CurrentPassForTileReplay][m_CurrentTileRow])->iRemaining = tileRowBRCBatchBuf.iRemaining;
+    (&m_TileRowBRCBatchBuffer[m_CurrentPassForTileReplay][m_CurrentTileRow])->pData = data;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, &m_TileRowBRCBatchBuffer[m_CurrentPassForTileReplay][m_CurrentTileRow]));
 
     if (data)
     {
