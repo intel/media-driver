@@ -718,6 +718,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g10[] =
     // AVS Interlace Scaling
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                 , Kdll_None },
+    { RID_IsSrc0Format     , Format_AYUV                         , Kdll_Or   },
     { RID_IsSrc0Format     , Format_NV12                         , Kdll_Or   },
     { RID_IsSrc0Format     , Format_PA                           , Kdll_Or   },
     { RID_IsSrc0Format     , Format_YV12                         , Kdll_Or   },
