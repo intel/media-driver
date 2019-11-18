@@ -1540,10 +1540,10 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxGamutState(
 
         for (uint32_t i = 0; i < pVeboxIecpParams->s1DLutParams.LUTSize; i++)
         {
-            usGE_Values[i][0] = 256 * i;
+            usGE_Values[i][0] = 257 * i;
             usGE_Values[i][1] =
             usGE_Values[i][2] =
-            usGE_Values[i][3] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), dInverseGamma) * 65536);
+            usGE_Values[i][3] = 257 * i;
 
             nIndex      = 4 * i;
             in_val      = pForwardGamma[nIndex];
@@ -1552,7 +1552,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxGamutState(
             vchan3_v    = pForwardGamma[nIndex + 3];
 
             // ayuv: in_val, vchan1_y, vchan2_u, vchan3_v
-            usGE_Values[i][4] = in_val;
+            usGE_Values[i][4] = (i == 0) ? 0 : ((i == 255) ? 0xffff: in_val);
             usGE_Values[i][5] = vchan1_y;
             usGE_Values[i][6] = vchan2_u;
             usGE_Values[i][7] = vchan3_v;
@@ -1573,7 +1573,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxGamutState(
         pGamutState->DW13.OffsetOutG = 0;
         pGamutState->DW14.OffsetOutB = 0;
         // Copy two uint16_t to one DW (UNT32).
-        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1020, usGE_Values, sizeof(uint16_t) * 8 * 255);
+        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
     }
     else
     {
