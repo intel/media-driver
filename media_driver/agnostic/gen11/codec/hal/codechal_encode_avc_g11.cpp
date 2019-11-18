@@ -3033,7 +3033,7 @@ public:
             uint32_t   CurrFrameType                               : MOS_BITFIELD_RANGE(  0, 7 );
             uint32_t   EnableROI                                   : MOS_BITFIELD_RANGE(  8,15 );
             uint32_t   ROIRatio                                    : MOS_BITFIELD_RANGE( 16,23 );
-            uint32_t   Reserved                                    : MOS_BITFIELD_RANGE( 24,31 );
+            uint32_t   CQP_QPValue                                 : MOS_BITFIELD_RANGE( 24,31 );
         };
         struct
         {
@@ -3045,7 +3045,8 @@ public:
     {
         struct
         {
-            uint32_t   Reserved;
+            uint32_t   EnableCQPMode                               : MOS_BITFIELD_RANGE(  0, 7 );
+            uint32_t   Reserved                                    : MOS_BITFIELD_RANGE(  8,31 );
         };
         struct
         {
@@ -5020,7 +5021,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
     }
 
     // BRC init/reset needs to be called before HME since it will reset the Brc Distortion surface
-    if (bBrcEnabled && (bBrcInit || bBrcReset))
+    if ((bBrcEnabled || m_avcPicParam->bEnableQpAdjustment) && (bBrcInit || bBrcReset))
     {
         bool cscEnabled = m_cscDsState->RequireCsc() && m_firstField;
         m_lastTaskInPhase = !(cscEnabled || m_scalingEnabled || m_16xMeSupported || m_hmeEnabled || swScoreboardInitNeeded);
@@ -5161,6 +5162,13 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcMbUpdateKernel());
         }
+
+        // Reset buffer ID used for BRC kernel performance reports
+        m_osInterface->pfnResetPerfBufferID(m_osInterface);
+    }
+    else if (bMbBrcEnabled)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcMbUpdateKernel());
 
         // Reset buffer ID used for BRC kernel performance reports
         m_osInterface->pfnResetPerfBufferID(m_osInterface);
@@ -7070,6 +7078,12 @@ MOS_STATUS CodechalEncodeAvcEncG11::SetCurbeAvcMbBrcUpdate(PCODECHAL_ENCODE_AVC_
     else
     {
         curbe.m_dw0.ROIRatio = 0;
+    }
+
+    if (m_avcPicParam->bEnableQpAdjustment)
+    {
+        curbe.m_dw0.CQP_QPValue = MOS_MIN(m_avcPicParam->QpY + m_avcSliceParams->slice_qp_delta, 51);
+        curbe.m_dw1.EnableCQPMode = 1;
     }
 
     curbe.m_dw8.HistorybufferIndex        = mbBrcUpdateHistory;

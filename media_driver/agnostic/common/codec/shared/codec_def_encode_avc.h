@@ -929,6 +929,13 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     bool            bRepeatFrame;
 
+    /*! \brief Indicates if enable QP adjustment for current frame. 
+    *
+    *  Applicaiton sets to 1 to enable QP adjustment for current frame in CQP mode. 
+    *  When QP adjustment is enabled, driver calls MBBRC kernel to adjust per MB QP for perceptual quality in CQP mode.
+    */
+    bool            bEnableQpAdjustment;
+
     /*! \brief Indicates marker coordinates in raw surface for GPU polling based sync. 
     *
     *  In unite of bytes. Valid for encoders which report SyncSupport capability as true.
