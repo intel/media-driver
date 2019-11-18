@@ -567,7 +567,7 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
     }
     else if (m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444)
     {
-        //422/444 8bit
+        //420/422/444 8bit
         if((picParams->bit_depth_luma_minus8 == 0) &&
             (picParams->bit_depth_chroma_minus8 == 0))
         {
@@ -578,6 +578,10 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
             else if (picParams->chroma_format_idc == 3)
             {
                 Format = Format_AYUV;
+            }
+            else
+            {
+                Format = Format_NV12;
             }
         }
         else
@@ -590,6 +594,10 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
             else if (picParams->chroma_format_idc == 3)
             {
                 Format = Format_Y410;
+            }
+            else
+            {
+                Format = Format_P010;
             }
         }
     }
