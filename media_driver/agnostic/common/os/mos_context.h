@@ -150,6 +150,9 @@ public:
     //!
     virtual void SetSliceCount(uint32_t *pSliceCount) { MOS_UNUSED(pSliceCount); };
 
+    //! \brief   Flag to indicate if implicit tile setting is needed
+    bool m_implicitTileNeeded = false;
+
 protected:
     //! \brief  Platform string including product family, chipset family, etc
     PLATFORM                        m_platformInfo = {};
