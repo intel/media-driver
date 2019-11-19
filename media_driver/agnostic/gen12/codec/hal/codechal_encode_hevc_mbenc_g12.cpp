@@ -545,16 +545,6 @@ MOS_STATUS CodecHalHevcMbencG12::SetupKernelArgsB()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    CmKernel *cmKrn = nullptr;
-    if (m_isMaxLcu64)
-    {
-        cmKrn = m_cmKrnB64;
-    }
-    else
-    {
-        cmKrn = m_cmKrnB;
-    }
-
     //Setup surfaces
     //Setup first combined 1D surface
     int idx = 0;
@@ -972,29 +962,30 @@ MOS_STATUS CodecHalHevcMbencG12::EncodeMbEncKernel(
         }
     }
 
+    if (m_mfeEnabled && m_mfeLastStream)
+    {
+        //update the TS variables before submitting the kernels
+        maxthreadWidth = m_mfeEncodeSharedState->maxTheadWidth;
+        maxthreadHeight = m_mfeEncodeSharedState->maxTheadHeight;
+    }
+
+    if ((!m_mfeEnabled) || (m_mfeLastStream))
+    {
+        uint32_t threadCount = maxthreadWidth * maxthreadHeight * m_numberConcurrentGroup;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKrn->SetThreadCount(threadCount));
+    }
+
     // setup curbe, setup surfaces and send all kernel args
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitCurbeDataB());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesB());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupKernelArgsB());
 
-    if (m_mfeEnabled)     
+    if (m_mfeEnabled && (!m_mfeLastStream))
     {
-        if (m_mfeLastStream)
-        {
-            //update the TS variables before submitting the kernels
-            maxthreadWidth = m_mfeEncodeSharedState->maxTheadWidth;
-            maxthreadHeight = m_mfeEncodeSharedState->maxTheadHeight;
-        }
-        else
-        {
-            //Only last stream need to submit the kernels.
-            return eStatus;
-        }
+        //Only last stream need to submit the kernels.
+        return eStatus;
     }
 
-    uint32_t threadCount = maxthreadWidth * maxthreadHeight * m_numberConcurrentGroup;
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKrn->SetThreadCount(threadCount));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateThreadSpace(
         maxthreadWidth,
         maxthreadHeight,
