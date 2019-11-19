@@ -209,6 +209,11 @@ MOS_STATUS CodechalEncodeWPMdfG12::SetupKernelArgs(uint8_t wpKrnIdx)
 
     // SetKernelArg will copy curbe data
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn[wpKrnIdx]->SetKernelArg(idx++, sizeof(curbe), &curbe));
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            CODECHAL_MEDIA_STATE_ENC_WP,
+            (uint8_t *)&curbe,
+            sizeof(curbe)));)
 
     m_wpInputSurface[wpKrnIdx]->GetIndex(pSurfIndex);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn[wpKrnIdx]->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex));
