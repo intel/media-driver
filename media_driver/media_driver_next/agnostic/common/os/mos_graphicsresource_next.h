@@ -474,6 +474,16 @@ protected:
     MOS_TILE_TYPE m_tileType = MOS_TILE_INVALID;
 
     //!
+    //! \brief   Transparent GMM Tiletype specifying in hwcmd finally
+    //!
+    MOS_TILE_MODE_GMM   m_tileModeGMM = MOS_TILE_LINEAR_GMM;
+
+    //!
+    //! \brief   GMM defined Tile mode flag
+    //!
+    bool                m_isGMMTileEnabled = false;
+
+    //!
     //! \brief   Basic resource geometry
     //!
     MOS_GFXRES_TYPE m_type = MOS_GFXRES_INVALID;

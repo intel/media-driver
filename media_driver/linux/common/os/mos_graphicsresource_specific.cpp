@@ -315,6 +315,8 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_depth     = MOS_MAX(1, gmmResourceInfoPtr->GetBaseDepth());
         m_size      = (uint32_t)gmmResourceInfoPtr->GetSizeSurface();
         m_tileType  = tileformat;
+        m_tileModeGMM           = (MOS_TILE_MODE_GMM)gmmResourceInfoPtr->GetTileModeSurfaceState();
+        m_isGMMTileEnabled      = true;
 
         m_compressible    = gmmParams.Flags.Gpu.MMC ?
             (gmmResourceInfoPtr->GetMmcHint(0) == GMM_MMC_HINT_ON) : false;
@@ -393,6 +395,8 @@ MOS_STATUS GraphicsResourceSpecific::ConvertToMosResource(MOS_RESOURCE* pMosReso
     pMosResource->iPitch   = m_pitch;
     pMosResource->iDepth   = m_depth;
     pMosResource->TileType = m_tileType;
+    pMosResource->TileModeGMM = m_tileModeGMM;
+    pMosResource->bGMMTileEnabled = m_isGMMTileEnabled;
     pMosResource->iCount   = 0;
     pMosResource->pData    = m_pData;
     pMosResource->bufname  = m_name.c_str();

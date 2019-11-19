@@ -1211,6 +1211,8 @@ MOS_STATUS MosInterface::AllocateResource(
         resource->bufname  = bufname;
         resource->bo       = bo;
         resource->TileType = tileformat;
+        resource->TileModeGMM = (MOS_TILE_MODE_GMM)gmmResourceInfo->GetTileModeSurfaceState();
+        resource->bGMMTileEnabled = true;
         resource->pData    = (uint8_t *)bo->virt;  //It is useful for batch buffer to fill commands
         MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).", iSize, params->dwWidth, iHeight);
     }
@@ -1350,6 +1352,8 @@ MOS_STATUS MosInterface::GetResourceInfo(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     // check resource's tile type
+    details.TileModeGMM     = (MOS_TILE_MODE_GMM)gmmResourceInfo->GetTileModeSurfaceState();
+    details.bGMMTileEnabled = true;
     switch (gmmResourceInfo->GetTileType())
     {
     case GMM_TILED_Y:
