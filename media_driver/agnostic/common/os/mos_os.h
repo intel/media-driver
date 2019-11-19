@@ -356,6 +356,7 @@ typedef enum _MOS_VEBOX_NODE_IND
 #define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT          24
 #define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_MASK           (0xff << SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT)
 #define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE      (1 << SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT)
+typedef int32_t MOS_SUBMISSION_TYPE;
 
 //!
 //! \brief Structure to command buffer
@@ -585,6 +586,7 @@ typedef MosStreamState  *MOS_STREAM_HANDLE;
 //typedef uint32_t             GPU_CONTEXT_HANDLE;
 typedef MOS_COMMAND_BUFFER *COMMAND_BUFFER_HANDLE;
 typedef MOS_RESOURCE       *MOS_RESOURCE_HANDLE;
+typedef MosVeInterface     *MOS_VE_HANDLE;
 
 // OS specific MOS objects
 typedef void *              OsSpecificRes;       //!< stand for different os specific resource structure (or info)

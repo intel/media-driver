@@ -4254,6 +4254,11 @@ uint64_t Mos_Specific_GetResourceGfxAddress(
 {
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pResource);
+    
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetResourceGfxAddress(pOsInterface->osStreamState, pResource);
+    }
 
     if (!mos_gem_bo_is_softpin(pResource->bo))
     {
