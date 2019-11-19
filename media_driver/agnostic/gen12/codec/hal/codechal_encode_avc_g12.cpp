@@ -5489,7 +5489,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::KernelDebugDumps()
                 "MbQp",
                 BrcBuffers.sBrcMbQpBuffer.dwPitch*BrcBuffers.sBrcMbQpBuffer.dwHeight,
                 BrcBuffers.dwBrcMbQpBottomFieldOffset,
-                CODECHAL_MEDIA_STATE_BRC_UPDATE));
+                CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
         }
         if (BrcBuffers.pMbEncKernelStateInUse)
         {
