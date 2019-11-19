@@ -172,9 +172,6 @@ static struct GfxDeviceInfo tgllpGt2Info = {
     .InitShadowWa     = InitTglShadowWa,
 };
 
-static bool tgllpGt2Device9a09 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x9A09, &tgllpGt2Info);
-
 static bool tgllpGt2Device9a49 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9A49, &tgllpGt2Info);
 
