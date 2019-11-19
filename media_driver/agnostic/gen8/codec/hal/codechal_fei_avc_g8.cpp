@@ -4176,6 +4176,18 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::DispatchKernelMe(SurfaceIndex** surfIdxArr
     {
        pKernel = kernelRes->ppKernel[0];
     }
+
+    //identify field or frame from curbe
+    bool isField = (kernelRes->pCurbe[12] >> 7) & 1;
+    // config thread space
+    uint32_t           threadWidth   = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(width);
+    uint32_t           threadHeight  = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(height);
+    if (isField)
+    {
+        threadHeight = (height + 31) >> 5;
+    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetThreadCount(threadWidth * threadHeight));
+
     uint32_t kernelArgIdx = 0;
     //curbe data
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetKernelArg(kernelArgIdx++, m_feiMeCurbeDataSize, kernelRes->pCurbe));
@@ -4191,16 +4203,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::DispatchKernelMe(SurfaceIndex** surfIdxArr
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetKernelArg(kernelArgIdx++, sizeof(SurfaceIndex), surfIdxArray[4]));
     // bwd ref surfaces. if not provided, set to output surface
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetKernelArg(kernelArgIdx++, sizeof(SurfaceIndex), surfIdxArray[5]));
-    //identify field or frame from curbe
-    bool isField = (kernelRes->pCurbe[12] >> 7) & 1;
-    // config thread space
-    uint32_t           threadWidth   = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(width);
-    uint32_t           threadHeight  = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(height);
-    if (isField)
-    {
-        threadHeight = (height + 31) >> 5;
-    }
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetThreadCount(threadWidth * threadHeight));
     if(kernelRes->pTS == nullptr)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateThreadSpace(threadWidth, threadHeight, kernelRes->pTS));
@@ -4407,6 +4409,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::DispatchKernelScaling(
     if (kernelType == 0)
     {
         kernel = kernelRes->ppKernel[m_dsKernelIdx];
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadSpaceWidth*threadSpaceHeight));
+
         surfaceIndex_SrcSurf_Top = surfIdxArray[0];
         surfaceIndex_DSSurf_Top = surfIdxArray[1];
         surfaceIndex_MB_VProc_Stats_Top = surfIdxArray[4];
@@ -4418,6 +4422,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::DispatchKernelScaling(
     else
     {
         kernel = kernelRes->ppKernel[m_dsKernelIdx + 3];
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadSpaceWidth*threadSpaceHeight));
+
         surfaceIndex_SrcSurf_Top = surfIdxArray[0];
         surfaceIndex_DSSurf_Top  = surfIdxArray[1];
         surfaceIndex_SrcSurf_Bot = surfIdxArray[2];
@@ -4439,7 +4445,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::DispatchKernelScaling(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(9, sizeof(SurfaceIndex), surfaceIndex_MB_VProc_Stats_Top));// DW8
 
     // Setup Dispatch Pattern ======================================================
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadSpaceWidth*threadSpaceHeight));
     bool            isEnqueue                  = false;
 
     if(kernelRes->pTS == nullptr)
@@ -5217,8 +5222,9 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::DispatchKernelPreProc(
     // config thread space
     uint32_t threadswidth  = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(width);
     uint32_t threadsheight = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(height + 15);
-    uint32_t kernelArgIdx = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadswidth * threadsheight));
 
+    uint32_t kernelArgIdx = 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArgIdx++, kernelRes->wCurbeSize, kernelRes->pCurbe));
     // Current Input Picture surface
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArgIdx++, sizeof(SurfaceIndex), surfIndexArray[0]));
@@ -5238,8 +5244,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::DispatchKernelPreProc(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArgIdx++, sizeof(SurfaceIndex), surfIndexArray[7]));
     // Qp and FTQ LUT
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArgIdx++, sizeof(SurfaceIndex), surfIndexArray[8]));
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadswidth * threadsheight));
 
     if(nullptr == kernelRes->pTS)
     {
