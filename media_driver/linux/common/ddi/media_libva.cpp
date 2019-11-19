@@ -3902,7 +3902,6 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_YV12:
         case VA_FOURCC_I420:
         case VA_FOURCC_IYUV:
-        case VA_FOURCC_UYVY:
         case VA_FOURCC_A2R10G10B10:
         case VA_FOURCC_A2B10G10R10:
             gmmParams.BaseHeight        = height;
@@ -3923,6 +3922,9 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_422V:
         case VA_FOURCC_IMC3:
         case VA_FOURCC_Y800:
+        case VA_FOURCC_VYUY:
+        case VA_FOURCC_YVYU:
+        case VA_FOURCC_UYVY:
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
         default:
