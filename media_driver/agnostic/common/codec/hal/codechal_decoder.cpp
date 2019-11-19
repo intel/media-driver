@@ -1743,7 +1743,7 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
 
     if (m_mmc)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
     }
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;

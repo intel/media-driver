@@ -175,7 +175,7 @@ MOS_STATUS CodecHalMmcStateG12::SetSurfaceState(
 MOS_STATUS CodecHalMmcStateG12::SendPrologCmd(
     MhwMiInterface      *miInterface,
     MOS_COMMAND_BUFFER  *cmdBuffer,
-    bool                isRcs)
+    MOS_GPU_CONTEXT     gpuContext)
 {
     CODECHAL_HW_CHK_NULL_RETURN(miInterface);
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
@@ -188,7 +188,7 @@ MOS_STATUS CodecHalMmcStateG12::SendPrologCmd(
             MHW_MI_LOAD_REGISTER_IMM_PARAMS lriParams;
             MOS_ZeroMemory(&lriParams, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
 
-            if (isRcs)
+            if (MOS_RCS_ENGINE_USED(gpuContext))
             {
                 lriParams.dwRegister = MhwMiInterfaceG12::m_mmioRcsAuxTableBaseLow;
                 lriParams.dwData = (auxTableBaseAddr & 0xffffffff);
@@ -204,6 +204,16 @@ MOS_STATUS CodecHalMmcStateG12::SendPrologCmd(
 
                 lriParams.dwRegister = MhwMiInterfaceG12::m_mmioCcs0AuxTableBaseHigh;
                 lriParams.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
+                CODECHAL_HW_CHK_STATUS_RETURN(miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &lriParams));
+            }
+            else if (MOS_VECS_ENGINE_USED(gpuContext))
+            {
+                lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseLow;
+                lriParams.dwData     = (auxTableBaseAddr & 0xffffffff);
+                CODECHAL_HW_CHK_STATUS_RETURN(miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &lriParams));
+
+                lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseHigh;
+                lriParams.dwData     = ((auxTableBaseAddr >> 32) & 0xffffffff);
                 CODECHAL_HW_CHK_STATUS_RETURN(miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &lriParams));
             }
             else

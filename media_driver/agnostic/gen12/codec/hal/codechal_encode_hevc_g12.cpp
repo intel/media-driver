@@ -9595,6 +9595,8 @@ MOS_STATUS CodechalEncHevcStateG12::SendPrologWithFrameTracking(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
     MHW_MI_FORCE_WAKEUP_PARAMS forceWakeupParams;
     MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
     forceWakeupParams.bMFXPowerWellControl = false;
@@ -9612,7 +9614,7 @@ MOS_STATUS CodechalEncHevcStateG12::SendPrologWithFrameTracking(
     }
 
 #ifdef _MMC_SUPPORTED
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
 #endif
 
     if (!IsLastPipe())

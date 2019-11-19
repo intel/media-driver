@@ -157,15 +157,15 @@ public:
     //!           Pointer to MhwMiInterface
     //! \param    [in] cmdBuffer
     //!           Command buffer pointer
-    //! \param    [in] isRcs
-    //!           if the cmd buffer is for render pipe
+    //! \param    [in] gpuContext
+    //!           Current pipe of the cmd buffer
     //!
     //! \return   MOS_STATUS
     //!           Return status of sending register MMIOs
     virtual MOS_STATUS SendPrologCmd(
         MhwMiInterface      *miInterface,
         MOS_COMMAND_BUFFER  *cmdBuffer,
-        bool                isRcs = false)
+        MOS_GPU_CONTEXT     gpuContext)
     {
         return MOS_STATUS_SUCCESS;
     }

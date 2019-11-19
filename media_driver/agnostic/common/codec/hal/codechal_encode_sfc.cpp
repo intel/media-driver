@@ -665,6 +665,7 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxDiIecpParams(
     MOS_ALLOC_GFXRES_PARAMS     allocParamsForBufferLinear;
     uint32_t                    size = 0, sizeLace = 0, sizeNoLace = 0;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    MOS_MEMCOMP_STATE           mmcMode = MOS_MEMCOMP_DISABLED;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -682,6 +683,19 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxDiIecpParams(
     CodecHalGetResourceInfo(
         m_osInterface,
         m_inputSurface);
+
+    m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, &m_inputSurface->OsResource, &mmcMode);
+    if (mmcMode &&
+        (m_inputSurface->TileType == MOS_TILE_Y ||
+         m_inputSurface->TileType == MOS_TILE_YS))
+    {
+        m_inputSurface->bCompressible = true;
+        m_inputSurface->CompressionMode = (MOS_RESOURCE_MMC_MODE)mmcMode;
+    }
+    else
+    {
+        m_inputSurface->CompressionMode = MOS_MMC_DISABLED;
+    }
 
     params->CurInputSurfMMCState = (MOS_MEMCOMP_STATE)(m_inputSurface->CompressionMode);
 
@@ -1133,6 +1147,7 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     MHW_VEBOX_SURFACE_STATE_CMD_PARAMS  veboxSurfaceStateCmdParams;
     MHW_VEBOX_DI_IECP_CMD_PARAMS        veboxDiIecpCmdParams;
     MHW_VEBOX_IECP_PARAMS               veboxIecpParams;
+    MHW_VEBOX_SURFACE_CNTL_PARAMS       veboxSurfCntlParams;
     MhwVeboxInterface                   *veboxInterface;
     PMHW_SFC_INTERFACE                  sfcInterface;
     MhwMiInterface                      *miInterface;
@@ -1188,6 +1203,13 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
 
     MOS_ZeroMemory(&veboxDiIecpCmdParams, sizeof(veboxDiIecpCmdParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetVeboxDiIecpParams(&veboxDiIecpCmdParams));
+
+    MOS_ZeroMemory(&veboxSurfCntlParams, sizeof(veboxSurfCntlParams));
+    veboxSurfCntlParams.bIsCompressed   = m_inputSurface->bIsCompressed;
+    veboxSurfCntlParams.CompressionMode = m_inputSurface->CompressionMode;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(veboxInterface->AddVeboxSurfaceControlBits(
+        &veboxSurfCntlParams,
+        (uint32_t *)&(veboxDiIecpCmdParams.CurrInputSurfCtrl.Value)));
 
     // get csc matrix
     MOS_ZeroMemory(&veboxIecpParams, sizeof(veboxIecpParams));

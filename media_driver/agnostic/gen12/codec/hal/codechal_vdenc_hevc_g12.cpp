@@ -7026,6 +7026,8 @@ MOS_STATUS CodechalVdencHevcStateG12::SendPrologWithFrameTracking(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
+    MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
     if (UseRenderCommandBuffer())
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTrackingRequested, mmioRegister));
@@ -7033,7 +7035,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SendPrologWithFrameTracking(
     }
 
 #ifdef _MMC_SUPPORTED
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
 #endif
 
     if (!IsLastPipe())

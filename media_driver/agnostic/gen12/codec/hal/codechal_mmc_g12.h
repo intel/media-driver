@@ -57,7 +57,7 @@ public:
     MOS_STATUS SendPrologCmd(
         MhwMiInterface      *miInterface,
         MOS_COMMAND_BUFFER  *cmdBuffer,
-        bool                isRcs = false);
+        MOS_GPU_CONTEXT     gpuContext);
 
     //!
     //! \brief    Indicate if mmc is enabled for G12

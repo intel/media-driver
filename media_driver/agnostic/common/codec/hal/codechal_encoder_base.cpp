@@ -4193,7 +4193,7 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     }
 
 #ifdef _MMC_SUPPORTED
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
 #endif
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
