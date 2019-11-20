@@ -34,6 +34,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_ish.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state_manager_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_command_buffer_os.cpp
 )
 
 set(TMP_HEADERS_

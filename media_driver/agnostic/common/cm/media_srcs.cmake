@@ -66,6 +66,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_dsh.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_tracker.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_command_buffer.cpp
 )
 
 set(TMP_HEADERS_
@@ -131,6 +132,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_dsh.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_tracker.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_command_buffer.h
 )
 
 set(SOURCES_
