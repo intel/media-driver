@@ -358,6 +358,8 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
 
     uint32_t    *pdwCmd;                // [out] Pointer for patching
     uint32_t    dwLocationInCmd;       // [out] Offset in command for patching
+    MOS_TILE_MODE_GMM TileModeGMM;     // Tile Type from GMM Definition
+    bool        bGMMTileEnabled;       //!<  GMM defined tile mode flag
 } MHW_SURFACE_STATE_PARAMS, *PMHW_SURFACE_STATE_PARAMS;
 
 struct _MHW_STATE_HEAP

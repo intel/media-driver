@@ -89,6 +89,8 @@ CmSurfaceState2Dor3D::CmSurfaceState2Dor3D(CM_HAL_STATE *cmhal):
     m_pitch(0),
     m_qPitch(0),
     m_tile(0),
+    m_tileModeGMM(MOS_TILE_LINEAR_GMM),
+    m_bGMMTileEnabled(0),
     m_isCompressed(0),
     m_compressionMode(0),
     m_mmcState(MOS_MEMCOMP_DISABLED),
@@ -166,6 +168,8 @@ MOS_STATUS CmSurfaceState2Dor3D::RefreshSurfaceInfo(CM_HAL_SURFACE2D_SURFACE_STA
     m_qPitch = ResDetails.dwQPitch;
     m_format = ResDetails.Format;
     m_tile = ResDetails.TileType;
+    m_tileModeGMM = ResDetails.TileModeGMM;
+    m_bGMMTileEnabled = ResDetails.bGMMTileEnabled;
     m_isCompressed = ResDetails.bIsCompressed;
     m_compressionMode = ResDetails.CompressionMode;
 
@@ -1270,6 +1274,8 @@ MOS_STATUS CmSurfaceState2Dor3D::UpdateSurfaceState()
         SurfStateParams.bTileWalk             = IS_Y_MAJOR_TILE_FORMAT(m_tile)
                                                 ? GFX3DSTATE_TILEWALK_YMAJOR
                                                 : GFX3DSTATE_TILEWALK_XMAJOR;;
+        SurfStateParams.TileModeGMM           = m_tileModeGMM;
+        SurfStateParams.bGMMTileEnabled       = m_bGMMTileEnabled;
         SurfStateParams.dwCacheabilityControl = GetCacheabilityControl();
 
         if (m_cmhal->platform.eRenderCoreFamily <= IGFX_GEN11_CORE)
@@ -1469,6 +1475,10 @@ MOS_STATUS CmSurfaceStateBuffer::GenerateSurfaceState(CM_HAL_BUFFER_SURFACE_STAT
     params.dwDepth = (uint16_t)((bufferSize & depthMaskRawBuffer) >> 21);
     params.dwCacheabilityControl = GetCacheabilityControl();
     params.pSurfaceState = m_cmds;
+
+    // Default tile mode of surface state buffer is linear
+    params.bGMMTileEnabled = true;
+
     m_renderhal->pMhwStateHeap->SetSurfaceStateEntry(&params);
 
     return MOS_STATUS_SUCCESS;

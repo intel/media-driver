@@ -179,6 +179,8 @@ MOS_STATUS CodechalSfcState::SetVeboxSurfaceStateParams(
     veboxSurfParams->SurfInput.dwUYoffset             = m_inputSurface->UPlaneOffset.iYOffset;
     veboxSurfParams->SurfInput.dwPitch                = m_inputSurface->dwPitch;
     veboxSurfParams->SurfInput.TileType               = m_inputSurface->TileType;
+    veboxSurfParams->SurfInput.TileModeGMM            = m_inputSurface->TileModeGMM;
+    veboxSurfParams->SurfInput.bGMMTileEnabled        = m_inputSurface->bGMMTileEnabled;
     veboxSurfParams->SurfInput.pOsResource            = &m_inputSurface->OsResource;
     veboxSurfParams->SurfInput.rcMaxSrc.left          = 0;
     veboxSurfParams->SurfInput.rcMaxSrc.top           = 0;
@@ -331,6 +333,8 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     outSurfaceParams->TileType     = m_sfcOutputSurface->TileType;
     outSurfaceParams->ChromaSiting = m_chromaSiting;
     outSurfaceParams->dwUYoffset   = m_sfcOutputSurface->UPlaneOffset.iYOffset;
+    outSurfaceParams->TileModeGMM  = m_sfcOutputSurface->TileModeGMM;
+    outSurfaceParams->bGMMTileEnabled = m_sfcOutputSurface->bGMMTileEnabled;
 
     sfcStateParams->dwOutputFrameWidth    = MOS_ALIGN_CEIL(m_sfcOutputSurface->dwWidth, widthAlignUnit);
     sfcStateParams->dwOutputFrameHeight   = MOS_ALIGN_CEIL(m_sfcOutputSurface->dwHeight, heightAlignUnit);

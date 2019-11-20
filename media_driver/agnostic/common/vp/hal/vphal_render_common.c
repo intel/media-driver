@@ -961,6 +961,8 @@ MOS_STATUS VpHal_RndrCommonInitRenderHalSurface(
     pRenderHalSurface->OsSurface.dwPitch            = pVpSurface->dwPitch;
     pRenderHalSurface->OsSurface.Format             = pVpSurface->Format;
     pRenderHalSurface->OsSurface.TileType           = pVpSurface->TileType;
+    pRenderHalSurface->OsSurface.TileModeGMM        = pVpSurface->TileModeGMM;
+    pRenderHalSurface->OsSurface.bGMMTileEnabled    = pVpSurface->bGMMTileEnabled;
     pRenderHalSurface->OsSurface.dwOffset           = pVpSurface->dwOffset;
     pRenderHalSurface->OsSurface.bIsCompressed      = pVpSurface->bIsCompressed;
     pRenderHalSurface->OsSurface.bCompressible      = pVpSurface->bCompressible;

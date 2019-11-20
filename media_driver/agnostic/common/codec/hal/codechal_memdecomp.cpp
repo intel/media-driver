@@ -695,6 +695,8 @@ MOS_STATUS MediaMemDecompState::GetResourceInfo(
     surface->dwDepth                     = details.dwDepth;
     surface->bArraySpacing               = details.bArraySpacing;
     surface->TileType                    = details.TileType;
+    surface->TileModeGMM                 = details.TileModeGMM;
+    surface->bGMMTileEnabled             = details.bGMMTileEnabled;
     surface->dwOffset                    = details.RenderOffset.YUV.Y.BaseOffset;
     surface->UPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.U.BaseOffset;
     surface->UPlaneOffset.iXOffset       = details.RenderOffset.YUV.U.XOffset;

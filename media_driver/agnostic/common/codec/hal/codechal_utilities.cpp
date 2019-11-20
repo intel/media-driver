@@ -514,6 +514,8 @@ MOS_STATUS CodecHalGetResourceInfo(
     surface->dwQPitch      = details.dwQPitch;
     surface->bArraySpacing = details.bArraySpacing;
     surface->TileType      = details.TileType;
+    surface->TileModeGMM   = details.TileModeGMM;
+    surface->bGMMTileEnabled = details.bGMMTileEnabled;
     surface->dwOffset      = details.RenderOffset.YUV.Y.BaseOffset;
     surface->YPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.Y.BaseOffset;
     surface->YPlaneOffset.iXOffset = details.RenderOffset.YUV.Y.XOffset;

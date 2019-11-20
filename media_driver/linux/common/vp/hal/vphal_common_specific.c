@@ -75,6 +75,8 @@ MOS_STATUS VpHal_GetSurfaceInfo(
     pSurface->dwSlicePitch    = ResDetails.dwSlicePitch;
     pSurface->dwDepth         = ResDetails.dwDepth;
     pSurface->TileType        = ResDetails.TileType;
+    pSurface->TileModeGMM     = ResDetails.TileModeGMM;
+    pSurface->bGMMTileEnabled = ResDetails.bGMMTileEnabled;
     pSurface->bOverlay        = ResDetails.bOverlay;
     pSurface->bFlipChain      = ResDetails.bFlipChain;
     pSurface->Format          = ResDetails.Format;
