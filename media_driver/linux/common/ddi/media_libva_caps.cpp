@@ -762,7 +762,13 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         attrib.value = attribValMaxFrameSize.value;
         (*attribList)[attrib.type] = attrib.value;
     }
-
+    
+    if (IsAvcProfile(profile) && (entrypoint == VAEntrypointEncSliceLP))
+    {
+        attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
+        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS;
+        (*attribList)[attrib.type] = attrib.value;
+    }
     return status;
 }
 
