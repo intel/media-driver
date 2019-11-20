@@ -82,6 +82,10 @@ inline int memcpy_s(void *dst, size_t numberOfElements, const void *src, size_t 
 #define CM_MAX_SURFACE2D_FORMAT_COUNT   29
 #define CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL   (CM_MAX_SURFACE2D_FORMAT_COUNT-1)
 
+// max resolution for surface 2D
+#define CM_MAX_2D_SURF_WIDTH  16384
+#define CM_MAX_2D_SURF_HEIGHT 16384
+
 typedef enum _CM_TEXTURE_ADDRESS_TYPE
 {
     CM_TEXTURE_ADDRESS_WRAP         = 1,

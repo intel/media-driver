@@ -99,6 +99,9 @@ inline void CM_ALIGNED_FREE(void * memory)
   free(memory);
 }
 
+// max resolution for surface 2D
+#define CM_MAX_2D_SURF_WIDTH  16384
+#define CM_MAX_2D_SURF_HEIGHT 16384
 
 typedef enum _VA_CM_FORMAT {
 
