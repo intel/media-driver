@@ -84,16 +84,23 @@ MOS_STATUS VpHal_GetSurfaceInfo(
     MOS_ZeroMemory(&mmcMode, sizeof(mmcMode));
     pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, &pSurface->OsResource, &mmcMode);
 
-    if (mmcMode &&
+    if (mmcMode                           &&
         (pSurface->TileType == MOS_TILE_Y ||
          pSurface->TileType == MOS_TILE_YS))
     {
         pSurface->bCompressible   = true;
+        pSurface->bIsCompressed   = true;
         pSurface->CompressionMode = (MOS_RESOURCE_MMC_MODE)mmcMode;
+
+        pOsInterface->pfnGetMemoryCompressionFormat(pOsInterface, &pSurface->OsResource, &pSurface->CompressionFormat);
     }
     else
     {
-        pSurface->CompressionMode = MOS_MMC_DISABLED;
+        // Do not modify the bCompressible flag even MmcMode is disable, since the surface size/pitch may be different
+        // between Compressible and Uncompressible, which will affect the DN surface allocation.
+        pSurface->bIsCompressed     = false;
+        pSurface->CompressionMode   = MOS_MMC_DISABLED;
+        pSurface->CompressionFormat = 0;
     }
 
     if (IS_RGB32_FORMAT(pSurface->Format) ||
