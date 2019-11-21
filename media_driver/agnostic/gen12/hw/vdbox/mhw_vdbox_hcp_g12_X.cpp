@@ -4142,7 +4142,7 @@ MOS_STATUS  MhwVdboxHcpInterfaceG12::AddHcpEncodeTileCodingCmd(
     cmd.DW12.Vp9ProbabilityCounterStreamoutOffset = params->Vp9ProbabilityCounterStreamoutOffset;
 
     // for Tile Replay
-    cmd.DW2.NonFirstPassTile           = params->bTileReplayEnable && (!params->IsFirstPass) && (!params->IsLastPass);
+    cmd.DW2.NonFirstPassTile           = params->bTileReplayEnable && (!params->IsFirstPass);
     // By default enable bit stream offset when tile replay is enabled with multiple pipes;
     // for single pipe case, by default set to 1, simulation currently can not support 0 for single pipe;
     // To be followed and clarified

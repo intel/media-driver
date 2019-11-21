@@ -2697,6 +2697,7 @@ private:
     uint32_t                    m_CurrentTileRow  = 0;                      //!< Current tile row number, start from 0
     static const uint32_t       m_NumPassesForTileReplay = 2;               //!< Max number Passes for tile row based BRC
     uint32_t                    m_CurrentPassForTileReplay  = 0;            //!< Current BRC pass number for tile replay
+    uint32_t                    m_CurrentPassForOverAll = 0;                //!< Current tile replay pass for overall
     PMHW_BATCH_BUFFER           m_TileRowBRCBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];   //!< Tile level batch buffer HUC BRC Update
     uint32_t                    m_numTileRows = 1;                          //!< Total number of tile rows
     uint32_t                    m_numTileRowBRCBatchAllocated = 0;          //!< The number of allocated batch buffer for tile row BRC
