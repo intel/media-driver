@@ -365,9 +365,11 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
+            userFeatureData.i32Data = apogeiosEnable;
+            userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
-                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
+                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_HEVCD_ENABLE_ID,
                 &userFeatureData);
             apogeiosEnable = userFeatureData.bData ? true : false;
 

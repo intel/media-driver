@@ -3513,6 +3513,15 @@ MOS_USER_FEATURE_VALUE MosUtilities::m_mosUserFeatureDescFields[__MOS_USER_FEATU
         MOS_USER_FEATURE_VALUE_TYPE_UINT32,
         "0",
         "Eanble mos Apogeios path. 1: enable, 0: disable."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_HEVCD_ENABLE_ID,
+        "ApogeiosHevcdEnable",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Codec",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Eanble Apogeios hevc decode path. 1: enable, 0: disable."),
 };
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(m_mosUserFeatureDescFields) / sizeof(m_mosUserFeatureDescFields[0]))
