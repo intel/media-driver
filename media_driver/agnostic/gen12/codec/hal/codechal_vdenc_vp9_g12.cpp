@@ -29,7 +29,7 @@
 #include "codechal_kernel_header_g12.h"
 #include "codechal_kernel_hme_g12.h"
 #include "codeckrnheader.h"
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
 #endif
 #include "mhw_vdbox_hcp_g12_X.h"
@@ -97,7 +97,7 @@ CodechalVdencVp9StateG12::CodechalVdencVp9StateG12(
     {
         m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
         eStatus = CodecHalGetKernelBinaryAndSize(
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             (uint8_t*)IGCODECKRN_G12,
 #else
             nullptr,
@@ -641,7 +641,7 @@ MOS_STATUS CodechalVdencVp9StateG12::InitKernelStates()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G12;
 #endif
 
@@ -703,7 +703,7 @@ MOS_STATUS CodechalVdencVp9StateG12::InitKernelStateDys()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     uint32_t combinedKernelSize = 0;
     uint8_t* binary = nullptr;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
