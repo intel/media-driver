@@ -3569,14 +3569,14 @@ MOS_STATUS CodechalVdencHevcState::DumpHucBrcUpdate(bool isInput)
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
                 vdencDeltaQpBuffer,
                 0,
-                vdencDeltaQpBuffer->iSize,
+                m_deltaQpRoiBufferSize,
                 10,
                 "_DeltaQp",
                 true,
                 currentPass,
                 hucRegionDumpUpdate));
         }
-        
+
         // Region 12 - Input SLB Buffer
         auto slbBuffer = m_virtualAddrParams.regionParams[12].presRegion;
         if (slbBuffer)
@@ -3616,7 +3616,7 @@ MOS_STATUS CodechalVdencHevcState::DumpHucBrcUpdate(bool isInput)
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
                 vdencOutputROIStreaminBuffer,
                 0,
-                vdencOutputROIStreaminBuffer->iSize,
+                m_roiStreamInBufferSize,
                 11,
                 "_RoiStreamin",
                 false,
@@ -3630,7 +3630,7 @@ MOS_STATUS CodechalVdencHevcState::DumpHucBrcUpdate(bool isInput)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
         vdencBrcHistoryBuffer,
         0,
-        CODECHAL_VDENC_HEVC_BRC_HISTORY_BUF_SIZE,
+        m_brcHistoryBufSize,
         0,
         "_History",
         isInput,

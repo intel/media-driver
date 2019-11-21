@@ -2898,11 +2898,19 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
                 // Add batch buffer end at the end of each tile batch, 2nd level batch buffer
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(tempCmdBuf, nullptr));
 
+                std::string pakPassName = "PAK_PASS[" + std::to_string(GetCurrentPass()) + "]_PIPE[" + std::to_string(GetCurrentPipe()) + "]_TILELEVEL";
+                CODECHAL_DEBUG_TOOL(
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
+                        tempCmdBuf,
+                        CODECHAL_NUM_MEDIA_STATES,
+                        pakPassName.data()));)
+
                 if (data)
                 {
                     m_osInterface->pfnUnlockResource(m_osInterface, &(m_tileLevelBatchBuffer[currentPass][idx].OsResource));
                 }
             }
+
         } // end of row tile
     } // end of column tile
 
@@ -3910,6 +3918,13 @@ MOS_STATUS CodechalVdencHevcStateG12::ConstructTLB(PMHW_BATCH_BUFFER thirdLevelB
     thirdLevelBatchBuffer->pData        = data;
     // set MI_BATCH_BUFFER_END command
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, thirdLevelBatchBuffer));
+
+    std::string pakPassName = "PAK_PASS[" + std::to_string(GetCurrentPass()) + "]_PIPE[" + std::to_string(GetCurrentPipe()) + "]_TLB";
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
+            &constructedCmdBuf,
+            CODECHAL_NUM_MEDIA_STATES,
+            pakPassName.data()));)
 
     if (data)
     {
