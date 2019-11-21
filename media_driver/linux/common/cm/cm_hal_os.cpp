@@ -1180,6 +1180,7 @@ void HalCm_OsInitInterface(
     cmState->pfnRegisterStream                      = HalCm_RegisterStream;
 
     HalCm_GetLibDrmVMapFnt(cmState);
+    cmState->syncOnResource                         = false;
     return;
 }
 

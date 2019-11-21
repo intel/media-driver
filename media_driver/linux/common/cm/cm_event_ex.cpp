@@ -37,8 +37,9 @@ CmEventEx::~CmEventEx()
     }
 }
 
-void CmEventEx::SetTaskOsData(MOS_RESOURCE *resource)
+void CmEventEx::SetTaskOsData(MOS_RESOURCE *resource, HANDLE handle)
 {
+    UNUSED(handle);
     if (resource != nullptr)
     {
         mos_bo_reference((MOS_LINUX_BO *)(resource->bo));

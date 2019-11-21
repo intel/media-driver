@@ -28,16 +28,12 @@
 #include "renderhal_platform_interface.h"
 #include "cm_kernel_ex.h"
 #include "cm_scratch_space.h"
+#include "mos_solo_generic.h"
 
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
-#ifndef __GNUC__
-#include "mos_solo_generic.h"
-#endif
-
 
 CmSSH::CmSSH(CM_HAL_STATE *cmhal, PMOS_COMMAND_BUFFER cmdBuf):
     m_stateBase(nullptr),
@@ -295,8 +291,7 @@ int CmSSH::AddSurfaceState(CmSurfaceState *surfState, int bteIndex, int btIndex)
             MOS_RESOURCE *resourcePerPlane = surfState->GetResource(surfIdx);
             if (resourcePerPlane)
             {
-#ifndef __GNUC__
-                if (!Mos_Solo_IsInUse(m_cmhal->osInterface))
+                if (m_cmhal->syncOnResource && (!Mos_Solo_IsInUse(m_cmhal->osInterface)))
                 {
                     if (m_cmhal->osInterface->CurrentGpuContextOrdinal != MOS_GPU_CONTEXT_RENDER4)
                     {
@@ -307,7 +302,6 @@ int CmSSH::AddSurfaceState(CmSurfaceState *surfState, int bteIndex, int btIndex)
                             true);
                     }
                 }
-#endif
                 m_renderhal->pOsInterface->pfnRegisterResource(m_renderhal->pOsInterface, resourcePerPlane, true, true);
                 m_resourcesAdded[m_resCount ++] = resourcePerPlane;
             }

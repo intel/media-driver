@@ -1581,6 +1581,8 @@ typedef struct _CM_HAL_STATE
 
     bool                        veboxDisabled = false;
 
+    bool                        syncOnResource = false;
+
     //********************************************************************************
     // Export Interface methods called by CMRT@UMD <START>
     //********************************************************************************

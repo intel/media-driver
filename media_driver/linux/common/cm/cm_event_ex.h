@@ -42,7 +42,7 @@ public:
 
     virtual int32_t GetStatus(CM_STATUS &status);
 
-    void SetTaskOsData(MOS_RESOURCE *resource);
+    void SetTaskOsData(MOS_RESOURCE *resource, HANDLE handle);
 
 protected:
     virtual void RleaseOsData();
