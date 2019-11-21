@@ -34,7 +34,9 @@
 #include "mhw_render_g12_X.h"
 #include "mos_util_user_interface_g12.h"
 #include "codeckrnheader.h"
+#if defined(ENABLE_KERNELS)
 #include "igcodeckrn_g12.h"
+#endif
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g12.h"
 #include "mhw_vdbox_mfx_hwcmd_g12_X.h"
@@ -592,7 +594,9 @@ CodechalVdencAvcStateG12::CodechalVdencAvcStateG12(
 
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
 
+#if defined(ENABLE_KERNELS)
     m_kernelBase = (uint8_t*)IGCODECKRN_G12;
+#endif
     m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     AddIshSize(m_kuidCommon, m_kernelBase);
 
