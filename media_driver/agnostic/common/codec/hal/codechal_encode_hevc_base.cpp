@@ -811,17 +811,9 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
 
     uint32_t frameHeight = (m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3);
 
-    if (m_firstFrame)
-    {
-        m_oriFrameWidth   = frameWidth;
-        m_oriFrameHeight  = frameHeight;
-        m_prevFrameWidth  = m_oriFrameWidth;       //to ensure resolution reset at frame 0 is captured
-        m_prevFrameHeight = m_oriFrameHeight;
-    }
-
     // check if there is a dynamic resolution change
-    if ((m_prevFrameHeight && (m_prevFrameHeight != frameHeight)) ||
-        (m_prevFrameWidth && (m_prevFrameWidth != frameWidth)))
+    if ((m_oriFrameHeight && (m_oriFrameHeight != frameHeight)) ||
+        (m_oriFrameWidth && (m_oriFrameWidth != frameWidth)))
     {
         if (frameHeight > m_createHeight || frameWidth > m_createWidth)
         {
@@ -838,8 +830,8 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
     }
 
     // setup internal parameters
-    m_prevFrameWidth = m_oriFrameWidth = m_frameWidth = frameWidth;
-    m_prevFrameHeight = m_oriFrameHeight = m_frameHeight = frameHeight;
+    m_oriFrameWidth = m_frameWidth = frameWidth;
+    m_oriFrameHeight = m_frameHeight = frameHeight;
 
     m_picWidthInMb = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_oriFrameWidth);
     m_picHeightInMb = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);

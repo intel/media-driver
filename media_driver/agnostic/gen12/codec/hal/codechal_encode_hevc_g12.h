@@ -1887,6 +1887,13 @@ public:
     MOS_STATUS LoadSourceAndRef2xDSFromFile(PMOS_SURFACE pRef2xSurface, PMOS_SURFACE pSrc2xSurface, uint8_t reflist, uint8_t refIdx);
 
     //!
+    //! \brief   Re-calculate buffer size and offets during resolution reset
+    //!
+    //! \return   void
+    //!
+    void ResizeBufferOffset();
+
+    //!
     //! \brief    Set HCP_SLICE_STATE parameters that are different at slice level
     //!
     //! \param    [in, out] sliceState

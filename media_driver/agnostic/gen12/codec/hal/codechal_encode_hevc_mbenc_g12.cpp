@@ -86,7 +86,7 @@ MOS_STATUS CodecHalHevcMbencG12::AllocateEncResources()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-   CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcStateG12::AllocateEncResources());
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcStateG12::AllocateEncResources());
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateMeResources());
 
@@ -860,20 +860,20 @@ MOS_STATUS CodecHalHevcMbencG12::EncodeMbEncKernel(
         cmKrn             = m_cmKrnB64;
         if (m_hevcSeqParams->TargetUsage == 1)
         {
-            walkerResolutionX = m_widthAlignedMaxLcu >> 6;
-            walkerResolutionY = m_heightAlignedMaxLcu >> 6;
+            walkerResolutionX = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE) >> 6;
+            walkerResolutionY = MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE) >> 6;
         }
         else
         {
-            walkerResolutionX = 2 * (m_widthAlignedMaxLcu >> 6);
-            walkerResolutionY = 2 * (m_heightAlignedMaxLcu >> 6);
+            walkerResolutionX = 2 * (MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE) >> 6);
+            walkerResolutionY = 2 * (MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE) >> 6);
         }
     }
     else
     {
         cmKrn             = m_cmKrnB;
-        walkerResolutionX = m_widthAlignedLcu32 >> 5;
-        walkerResolutionY = m_heightAlignedLcu32 >> 5;
+        walkerResolutionX = MOS_ALIGN_CEIL(m_frameWidth, 32) >> 5;
+        walkerResolutionY = MOS_ALIGN_CEIL(m_frameHeight, 32) >> 5;
     }
 
     if (m_numberConcurrentGroup > 1)
