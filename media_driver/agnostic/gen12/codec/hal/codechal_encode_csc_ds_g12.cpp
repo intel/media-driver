@@ -29,7 +29,7 @@
 #include "codechal_encode_sfc_g12.h"
 #include "codechal_kernel_header_g12.h"
 #include "codeckrnheader.h"
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
 #endif
 #if USE_CODECHAL_DEBUG_TOOL
@@ -789,7 +789,7 @@ CodechalEncodeCscDsG12::CodechalEncodeCscDsG12(CodechalEncoderState* encoder)
 {
     m_cscKernelUID = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G12;
 #endif
 }

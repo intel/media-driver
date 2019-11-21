@@ -34,7 +34,7 @@
 #include "renderhal_g12.h"
 #include "hal_oca_interface.h"
 #include "mhw_mmio_g12.h"
-#ifdef ENABLE_KERNELS
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "cm_gpucopy_kernel_g12lp.h"
 #include "cm_gpuinit_kernel_g12lp.h"
 #else  // #ifdef ENABLE_KERNELS
