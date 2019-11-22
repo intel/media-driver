@@ -10439,6 +10439,7 @@ MOS_STATUS HalCm_Create(
     uint32_t            numCmdBuffers = 0;
     MhwInterfaces       *mhwInterfaces = nullptr;
     MhwInterfaces::CreateParams params;
+    MOS_GPUCTX_CREATOPTIONS createOption;
 
     //-----------------------------------------
     CM_ASSERT(osDriverContext);
@@ -10468,18 +10469,13 @@ MOS_STATUS HalCm_Create(
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
     state->waTable  = state->osInterface->pfnGetWaTable (state->osInterface);
 
-    if (!param->disableVebox)
-    {
-        MOS_GPUCTX_CREATOPTIONS createOption;
-
-        // Create VEBOX Context
-        createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
-        CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_CreateGPUContext(
-            state,
-            MOS_GPU_CONTEXT_VEBOX,
-            MOS_GPU_NODE_VE,
-            &createOption));
-    }
+    // Create VEBOX Context
+    createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_CreateGPUContext(
+        state,
+        MOS_GPU_CONTEXT_VEBOX,
+        MOS_GPU_NODE_VE,
+        &createOption));
 
     // Allocate/Initialize CM Rendering Interface
     state->renderHal = (PRENDERHAL_INTERFACE)
