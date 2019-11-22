@@ -47,6 +47,8 @@ DdiEncodeHevc::~DdiEncodeHevc()
     MOS_FreeMemory(m_encodeCtx->pSeqParams);
     m_encodeCtx->pSeqParams = nullptr;
 
+    MOS_FreeMemory(((PCODEC_HEVC_ENCODE_PICTURE_PARAMS)m_encodeCtx->pPicParams)->pDirtyRect);
+    ((PCODEC_HEVC_ENCODE_PICTURE_PARAMS)m_encodeCtx->pPicParams)->pDirtyRect = nullptr;
     MOS_FreeMemory(m_encodeCtx->pPicParams);
     m_encodeCtx->pPicParams = nullptr;
 
@@ -1245,6 +1247,71 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 #endif
+        break;
+    }
+    case VAEncMiscParameterTypeDirtyRect:
+    {
+        VAEncMiscParameterBufferDirtyRect *vaEncMiscDirtyRect = (VAEncMiscParameterBufferDirtyRect *)miscParamBuf->data;
+
+        uint8_t blockSize  = (m_encodeCtx->bVdencActive) ? vdencRoiBlockSize : CODECHAL_MACROBLOCK_WIDTH;
+        uint32_t frameWidth = (seqParams->wFrameWidthInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
+        uint32_t frameHeight = (seqParams->wFrameHeightInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
+
+         DDI_CHK_NULL(vaEncMiscDirtyRect->roi_rectangle, "nullptr dirty rect", VA_STATUS_ERROR_INVALID_PARAMETER);
+        if(vaEncMiscDirtyRect->num_roi_rectangle > ENCODE_VDENC_HEVC_MAX_DIRTYRECT_G10)
+        {
+            DDI_ASSERTMESSAGE("The number of dirty rect is greater than %d", ENCODE_VDENC_HEVC_MAX_DIRTYRECT_G10);
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        picParams->pDirtyRect = m_pDirtyRect;
+
+        if (vaEncMiscDirtyRect->num_roi_rectangle > m_numDirtyRects)
+        {
+            picParams->pDirtyRect = (PCODEC_ROI)MOS_ReallocMemory(picParams->pDirtyRect, vaEncMiscDirtyRect->num_roi_rectangle * sizeof(CODEC_ROI));
+            if (!picParams->pDirtyRect)
+            {
+                picParams->NumDirtyRects = 0;
+                DDI_ASSERTMESSAGE("Allocation of pDirtyRect failed!");
+                return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            }
+            m_pDirtyRect = picParams->pDirtyRect;
+            m_numDirtyRects = vaEncMiscDirtyRect->num_roi_rectangle;
+        }
+
+        if(vaEncMiscDirtyRect->num_roi_rectangle > 0)
+        {
+            MOS_ZeroMemory(picParams->pDirtyRect, vaEncMiscDirtyRect->num_roi_rectangle * sizeof(CODEC_ROI));
+            picParams->NumDirtyRects = 0;
+
+            for (int32_t i = 0; i < vaEncMiscDirtyRect->num_roi_rectangle; i++)
+            {
+                auto &rect    = picParams->pDirtyRect[i];
+                auto &va_rect = vaEncMiscDirtyRect->roi_rectangle[i];
+
+                // Check and adjust if rect not within frame boundaries
+                rect.Left   = MOS_MIN(va_rect.x, frameWidth - 1);
+                rect.Top    = MOS_MIN(va_rect.y, frameHeight - 1);
+                rect.Right  = MOS_MIN(va_rect.x + va_rect.width, frameWidth - 1);
+                rect.Bottom = MOS_MIN(va_rect.y + va_rect.height, frameHeight - 1);
+
+                if( rect.Left > rect.Right ||  rect.Top > rect.Bottom)
+                {
+                    DDI_ASSERTMESSAGE("Invalid rect region parameter.");
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+                }
+
+                rect.Right  = MOS_ALIGN_CEIL(rect.Right, blockSize);
+                rect.Bottom = MOS_ALIGN_CEIL(rect.Bottom, blockSize);
+
+                // Convert from pixel units to block units
+                rect.Left /= blockSize;
+                rect.Right /= blockSize;
+                rect.Top /= blockSize;
+                rect.Bottom /= blockSize;
+
+                picParams->NumDirtyRects ++;
+            }
+        }
         break;
     }
     case VAEncMiscParameterTypeSkipFrame:

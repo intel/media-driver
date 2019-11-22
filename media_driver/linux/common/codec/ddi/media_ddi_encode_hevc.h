@@ -293,5 +293,11 @@ private:
 
         return ret;
     }
+
+    //! \brief Number of Rectangle
+    uint32_t    m_numDirtyRects = 0;
+
+    //! \brief Pointer to dirty rectangle array with num_roi_rectangle elements
+    PCODEC_ROI  m_pDirtyRect = nullptr;
 };
 #endif  //__MEDIA_LIBVA_ENCODER_HEVC_H__
