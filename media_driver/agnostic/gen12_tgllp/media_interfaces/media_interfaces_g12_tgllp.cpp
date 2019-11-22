@@ -26,7 +26,9 @@
 
 #include "media_interfaces_g12_tgllp.h"
 #include "codechal_debug.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -473,8 +475,9 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G12;
+#endif
         }
         else
 #endif
@@ -553,7 +556,9 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             {
                 m_codechalDevice = encoder;
             }
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G12;
+#endif
         }
         else
 #endif
@@ -561,7 +566,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             // use MDF RT to program CSC kernel for HEVC dual pipe 
@@ -581,6 +586,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
                 }
             }
         }
+#endif
     }
     else
     {

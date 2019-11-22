@@ -27,7 +27,9 @@
 #include "codechal_vdenc_hevc_g12.h"
 #include "codechal_kernel_header_g12.h"
 #include "codeckrnheader.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
+#endif
 #include "mhw_vdbox_g12_X.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
@@ -229,10 +231,14 @@ uint32_t CodechalVdencHevcStateG12::GetMaxBtCount()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    uint32_t maxBtCount = 0;
+
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     auto btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
 
     // DsConversion kernel
-    uint32_t maxBtCount = 2 * (MOS_ALIGN_CEIL(m_cscDsState->GetBTCount(), btIdxAlignment));
+    maxBtCount = 2 * (MOS_ALIGN_CEIL(m_cscDsState->GetBTCount(), btIdxAlignment));
+#endif
 
     // add ME and stream-in later
     return maxBtCount;
@@ -361,8 +367,10 @@ MOS_STATUS CodechalVdencHevcStateG12::InitKernelState()
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateStreamIn());
+#endif
 
     return eStatus;
 }
@@ -1948,6 +1956,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
         m_rawSurfaceToEnc,
         CodechalDbgAttr::attrEncodeRawInputSurface,
@@ -2118,6 +2127,8 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
                     CODECHAL_MEDIA_STATE_ME_VDENC_STREAMIN));
             }
         })
+#endif
+
     return eStatus;
 }
 
@@ -5803,7 +5814,9 @@ CodechalVdencHevcStateG12::CodechalVdencHevcStateG12(
     m_useCommonKernel = true;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_useHwScoreboard = false;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G12;
+#endif
     m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_scalabilityState = nullptr;
 
@@ -5850,7 +5863,9 @@ CodechalVdencHevcStateG12::CodechalVdencHevcStateG12(
 
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_HEVC_NUM_SYNC_TAGS;
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_INIT_DSH_SIZE_HEVC_ENC;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G12;
+#endif
 
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
