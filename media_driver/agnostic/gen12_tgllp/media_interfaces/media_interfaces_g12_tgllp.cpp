@@ -324,6 +324,11 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
                 return MOS_STATUS_NO_SPACE;
             }
  #ifdef _DECODE_PROCESSING_SUPPORTED
+
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    ((CodechalSetting *)settings)->downsamplingHinted = false;
+#endif
+
             if (settings != nullptr && ((CodechalSetting *)settings)->downsamplingHinted)
             {
                 CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_codechalDevice);

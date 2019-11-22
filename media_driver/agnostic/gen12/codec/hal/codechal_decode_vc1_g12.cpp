@@ -27,7 +27,11 @@
 //!
 
 #include "codeckrnheader.h"
+
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
+#endif
+
 #include "codechal_decode_vc1_g12.h"
 #include "codechal_secure_decode_interface.h"
 #include "mhw_vdbox_mfx_g12_X.h"
@@ -1543,11 +1547,14 @@ CodechalDecodeVc1G12::CodechalDecodeVc1G12(
     uint32_t kuid = 0;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     eStatus = CodecHalGetKernelBinaryAndSize(
         (uint8_t *)IGCODECKRN_G12,
         IDR_CODEC_AllVC1_NV12,
         &m_olpKernelBase,
         &m_olpKernelSize);
+#endif
+
     CODECHAL_DECODE_ASSERT(eStatus == MOS_STATUS_SUCCESS);
 
     hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_DECODE_VC1_NUM_SYNC_TAGS;

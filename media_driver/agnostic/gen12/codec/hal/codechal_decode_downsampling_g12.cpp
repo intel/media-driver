@@ -24,7 +24,11 @@
 //! \brief    Implements the decode interface extension for downsampling on Gen12.
 //!
 #include "codechal_decoder.h"
+
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
+#endif
+
 #include "codechal_decode_downsampling_g12.h"
 #include "mhw_render_g12_X.h"
 #include "codechal_mmc_g12.h"
@@ -35,8 +39,12 @@ FieldScalingInterfaceG12::FieldScalingInterfaceG12(CodechalHwInterface *hwInterf
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase = (uint8_t*)IGCODECKRN_G12;
+#else
+    m_kernelBase = NULL;
+#endif
+
     InitInterfaceStateHeapSetting(hwInterface);
 }
 
