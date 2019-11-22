@@ -1609,6 +1609,18 @@ MOS_STATUS CodecHalHevcMbencG12::SetupSurfacesB()
         MAX_VME_BWD_REF,
         m_curVme));
 
+    /* WA for 16k resolution tests with P010 format. Recon surface is NV12 format with width=2*original_width 
+       32k width is not supported by MEDIA_SURFACE_STATE_CMD. 
+       We can therefore change the recon dimensions to 16k width and 32k pitch,
+       this will cover the portion of the surface that VME uses */
+    if (MEDIA_IS_WA(m_waTable, Wa16kWidth32kPitchNV12ReconForP010Input) && m_curVme && m_encode16KSequence && (uint8_t)HCP_CHROMA_FORMAT_YUV420 == m_chromaFormat && inputSurface->Format == Format_P010)
+    {
+       CM_VME_SURFACE_STATE_PARAM  vmeDimensionParam;
+       vmeDimensionParam.width   = ENCODE_HEVC_16K_PIC_WIDTH;
+       vmeDimensionParam.height  = ENCODE_HEVC_16K_PIC_HEIGHT;
+       m_cmDev->SetVmeSurfaceStateParam(m_curVme, &vmeDimensionParam);
+    }
+
     // Current Y with reconstructed boundary pixels
     if (!m_reconWithBoundaryPix)
     {

@@ -937,6 +937,11 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
                              ? true
                              : false;
 
+    m_encode16KSequence = ((m_frameWidth * m_frameHeight) >=
+                              (ENCODE_HEVC_16K_PIC_WIDTH * ENCODE_HEVC_16K_PIC_HEIGHT))
+                             ? true
+                             : false;
+
     // if GOP structure is I-frame only, we use 3 non-ref slots for tracked buffer
     m_gopIsIdrFrameOnly = (m_hevcSeqParams->GopPicSize == 1);
 
