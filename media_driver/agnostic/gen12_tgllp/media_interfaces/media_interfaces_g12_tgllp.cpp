@@ -325,7 +325,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             }
  #ifdef _DECODE_PROCESSING_SUPPORTED
 
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#if defined(ENABLE_KERNELS) && defined(_FULL_OPEN_SOURCE)
     ((CodechalSetting *)settings)->downsamplingHinted = false;
 #endif
 
