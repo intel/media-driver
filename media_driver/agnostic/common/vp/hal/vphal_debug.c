@@ -414,13 +414,13 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
         case 1:
             if (pSurface->Format == Format_YV12)
             {
-                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[0].dwPitch * pPlanes[0].dwHeight : pSurface->VPlaneOffset.iSurfaceOffset) +
+                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[0].dwPitch * pPlanes[0].dwHeight + pPlanes[0].dwOffset : pSurface->VPlaneOffset.iSurfaceOffset) +
                     (pSurface->VPlaneOffset.iYOffset * pSurface->dwPitch) +
                     pSurface->VPlaneOffset.iXOffset;
             }
             else
             {
-                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[0].dwPitch * pPlanes[0].dwHeight : pSurface->UPlaneOffset.iSurfaceOffset) +
+                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[0].dwPitch * pPlanes[0].dwHeight + pPlanes[0].dwOffset : pSurface->UPlaneOffset.iSurfaceOffset) +
                     (pSurface->UPlaneOffset.iYOffset * pSurface->dwPitch) +
                     pSurface->UPlaneOffset.iXOffset;
             }
