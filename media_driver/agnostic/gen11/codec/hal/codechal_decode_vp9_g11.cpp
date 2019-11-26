@@ -499,9 +499,6 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
     MOS_COMMAND_BUFFER primCmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &primCmdBuffer, 0));
 
-    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
-    HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
-
     bool sendPrologWithFrameTracking;
     CODECHAL_DECODE_CHK_STATUS_RETURN(DetermineSendProlgwithFrmTracking(&sendPrologWithFrameTracking));
     if (sendPrologWithFrameTracking)
@@ -513,6 +510,7 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
 
     PMOS_COMMAND_BUFFER cmdBufferInUse = &primCmdBuffer;
     MOS_COMMAND_BUFFER  scdryCmdBuffer;
+    auto                mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
 
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState) && MOS_VE_SUPPORTED(m_osInterface))
     {
@@ -526,6 +524,12 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodeStateLevel()
             //send prolog at the start of a secondary cmd buffer
             CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(cmdBufferInUse, false));
         }
+
+        HalOcaInterface::On1stLevelBBStart(scdryCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+    }
+    else
+    {
+        HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
     }
 
     auto pipeModeSelectParams =
@@ -845,12 +849,16 @@ MOS_STATUS CodechalDecodeVp9G11 :: DecodePrimitiveLevel()
             &copyDataSyncParams));
     }
 
-    HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
 
     bool submitCommand = true;
     if (MOS_VE_SUPPORTED(m_osInterface) && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
     {
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer(m_scalabilityState);
+        HalOcaInterface::On1stLevelBBEnd(scdryCmdBuffer, *m_osInterface->pOsContext);
+    }
+    else
+    {
+        HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
     }
 
     if (submitCommand || m_osInterface->phasedSubmission)

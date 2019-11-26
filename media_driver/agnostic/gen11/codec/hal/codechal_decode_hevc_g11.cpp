@@ -908,9 +908,6 @@ MOS_STATUS CodechalDecodeHevcG11::SendPictureLongFormat()
     MOS_COMMAND_BUFFER primCmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &primCmdBuffer, 0));
 
-    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
-    HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
-
     bool sendPrologWithFrameTracking = false;
     CODECHAL_DECODE_CHK_STATUS_RETURN(DetermineSendProlgwithFrmTracking(&sendPrologWithFrameTracking));
 
@@ -923,6 +920,7 @@ MOS_STATUS CodechalDecodeHevcG11::SendPictureLongFormat()
 
     PMOS_COMMAND_BUFFER cmdBufferInUse = &primCmdBuffer;
     MOS_COMMAND_BUFFER  scdryCmdBuffer;
+    auto                mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
 
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState) && MOS_VE_SUPPORTED(m_osInterface))
     {
@@ -937,6 +935,12 @@ MOS_STATUS CodechalDecodeHevcG11::SendPictureLongFormat()
             //send prolog at the start of a secondary cmd buffer
             CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(cmdBufferInUse, false));
         }
+
+        HalOcaInterface::On1stLevelBBStart(scdryCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+    }
+    else
+    {
+        HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicLongFormatMhwParams());
@@ -1626,10 +1630,12 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
     if (MOS_VE_SUPPORTED(m_osInterface) && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
     {
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer(m_scalabilityState);
+        HalOcaInterface::On1stLevelBBEnd(scdryCmdBuffer, *m_osInterface->pOsContext);
     }
-
-    HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
-
+    else
+    {
+        HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
+    }
     if (submitCommand || m_osInterface->phasedSubmission)
     {
         //command buffer to submit is the primary cmd buffer.
