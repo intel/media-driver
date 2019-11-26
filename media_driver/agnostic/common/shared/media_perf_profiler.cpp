@@ -131,10 +131,18 @@ MediaPerfProfiler::MediaPerfProfiler()
 
     m_mutex = MOS_CreateMutex();
 
-    // m_mutex is destroyed after MemNinja report, this will cause fake memory leak,
-    // the following 2 lines is to circumvent Memninja counter validation and log parser
-    MOS_AtomicDecrement(&MosMemAllocCounter);
-    MOS_MEMNINJA_FREE_MESSAGE(m_mutex, __FUNCTION__, __FILE__, __LINE__);
+    if (m_mutex)
+    {
+        // m_mutex is destroyed after MemNinja report, this will cause fake memory leak,
+        // the following 2 lines is to circumvent Memninja counter validation and log parser
+        MOS_AtomicDecrement(&MosMemAllocCounter);
+        MOS_MEMNINJA_FREE_MESSAGE(m_mutex, __FUNCTION__, __FILE__, __LINE__);
+    }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE("Create Mutex failed!");
+    }
+
 }
 
 MediaPerfProfiler::~MediaPerfProfiler()
@@ -149,8 +157,16 @@ MediaPerfProfiler::~MediaPerfProfiler()
 MediaPerfProfiler* MediaPerfProfiler::Instance()
 {
     static MediaPerfProfiler instance;
+    if (!instance.m_mutex && instance.m_profilerEnabled)
+    {
+        MOS_OS_ASSERTMESSAGE("Create MediaPerfProfiler failed!");
+        return nullptr;
+    }
+    else
+    {
+        return &instance;
+    }
 
-    return &instance;
 }
 
 void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_INTERFACE *osInterface)
