@@ -257,7 +257,7 @@ MOS_STATUS CodechalVdencHevcStateG12::InitKernelStateMe()
     CODECHAL_KERNEL_HEADER currKrnHeader;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnGetKernelHeaderAndSize(
         m_kernelBinary,
-        ENC_ME,
+        VDENC_ME_P,
         0,
         &currKrnHeader,
         &kernelSize));
@@ -270,6 +270,36 @@ MOS_STATUS CodechalVdencHevcStateG12::InitKernelStateMe()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetBindingTable(
         VDENC_ME_P,
         &m_vdencMeKernelBindingTable));
+
+    kernelStatePtr->dwCurbeOffset = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
+    kernelStatePtr->KernelParams.pBinary =
+        m_kernelBinary +
+        (currKrnHeader.KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT);
+    kernelStatePtr->KernelParams.iSize = kernelSize;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnCalculateSshAndBtSizesRequested(
+        m_stateHeapInterface,
+        kernelStatePtr->KernelParams.iBTCount,
+        &kernelStatePtr->dwSshSize,
+        &kernelStatePtr->dwBindingTableSize));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelStatePtr));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnGetKernelHeaderAndSize(
+        m_kernelBinary,
+        VDENC_ME_B,
+        0,
+        &currKrnHeader,
+        &kernelSize));
+
+    kernelStatePtr = &m_vdencMeKernelStateRAB;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetKernelParams(
+        VDENC_ME_B,
+        &kernelStatePtr->KernelParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetBindingTable(
+        VDENC_ME_B,
+        &m_vdencStreaminKernelBindingTable));
 
     kernelStatePtr->dwCurbeOffset = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
     kernelStatePtr->KernelParams.pBinary =
@@ -4980,7 +5010,15 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeMeKernel(HmeLevel hmeLevel)
 
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
-    auto kernelState = (hmeLevel == HME_LEVEL_4x) ? (m_lowDelay ? &m_vdencStreaminKernelState : &m_vdencStreaminKernelStateRAB) : &m_vdencMeKernelState;
+    PMHW_KERNEL_STATE kernelState = nullptr;
+    if(hmeLevel == HME_LEVEL_4x)
+    {
+        kernelState = m_lowDelay ? &m_vdencStreaminKernelState : &m_vdencStreaminKernelStateRAB;
+    }
+    else
+    {
+        kernelState = m_lowDelay ? &m_vdencMeKernelState : &m_vdencMeKernelStateRAB;
+    }
     auto encFunctionType = (hmeLevel == HME_LEVEL_32x) ? CODECHAL_MEDIA_STATE_32X_ME :
         (hmeLevel == HME_LEVEL_16x) ? CODECHAL_MEDIA_STATE_16X_ME : CODECHAL_MEDIA_STATE_4X_ME;
 
@@ -5119,7 +5157,16 @@ MOS_STATUS CodechalVdencHevcStateG12::SetMeCurbe(HmeLevel hmeLevel)
         ME_CURBE_INIT_G12,
         sizeof(CODECHAL_VDENC_HEVC_ME_CURBE_G12)));
 
-    PMHW_KERNEL_STATE kernelState = (hmeLevel == HME_LEVEL_4x) ? (m_lowDelay ? &m_vdencStreaminKernelState : &m_vdencStreaminKernelStateRAB) : &m_vdencMeKernelState;
+    PMHW_KERNEL_STATE kernelState = nullptr;
+    if(hmeLevel == HME_LEVEL_4x)
+    {
+        kernelState = m_lowDelay ? &m_vdencStreaminKernelState : &m_vdencStreaminKernelStateRAB;
+    }
+    else
+    {
+        kernelState = m_lowDelay ? &m_vdencMeKernelState : &m_vdencMeKernelStateRAB;
+    }
+    
     bool useMvFromPrevStep;
     bool writeDistortions;
     uint32_t scaleFactor;
@@ -5280,7 +5327,15 @@ MOS_STATUS CodechalVdencHevcStateG12::SendMeSurfaces(HmeLevel hmeLevel, PMOS_COM
     meMvDataBuffer->dwHeight = height;
     meMvDataBuffer->dwPitch = width;
 
-    auto kernelState = (hmeLevel == HME_LEVEL_4x) ? (m_lowDelay ? &m_vdencStreaminKernelState : &m_vdencStreaminKernelStateRAB) : &m_vdencMeKernelState;
+    PMHW_KERNEL_STATE kernelState = nullptr;
+    if(hmeLevel == HME_LEVEL_4x)
+    {
+        kernelState = m_lowDelay ? &m_vdencStreaminKernelState : &m_vdencStreaminKernelStateRAB;
+    }
+    else
+    {
+        kernelState = m_lowDelay ? &m_vdencMeKernelState : &m_vdencMeKernelStateRAB;
+    }
     auto bindingTable = (hmeLevel == HME_LEVEL_4x) ?
         &m_vdencStreaminKernelBindingTable : &m_vdencMeKernelBindingTable;
     uint32_t meMvBottomFieldOffset = 0;

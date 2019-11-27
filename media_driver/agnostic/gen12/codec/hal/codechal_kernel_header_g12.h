@@ -126,6 +126,12 @@ static MOS_STATUS GetCommonKernelHeaderAndSizeG12(
         case ENC_ME:
             currKrnHeader = &kernelHeaderTable->hmeGenX0;
             break;
+        case VDENC_ME_P:
+            currKrnHeader = &kernelHeaderTable->hmeGenX0;
+            break;
+        case VDENC_ME_B:
+            currKrnHeader = &kernelHeaderTable->hmeGenX1;
+            break;
         case VDENC_ME:
             currKrnHeader = &kernelHeaderTable->hmeGenX2;
             break;

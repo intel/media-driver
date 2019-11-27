@@ -1614,7 +1614,8 @@ public:
 
     // HME VDEnc
     GenericBindingTable             m_vdencMeKernelBindingTable = {};   //!< Vdenc ME kernel binding table
-    MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state
+    MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state for Low Delay B
+    MHW_KERNEL_STATE                m_vdencMeKernelStateRAB = {};       //!< Vdenc ME kernel state for Random Access B
 
     GenericBindingTable             m_vdencStreaminKernelBindingTable = {};  //!< Vdenc stream in kernel binding table
     MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state for Low Delay B

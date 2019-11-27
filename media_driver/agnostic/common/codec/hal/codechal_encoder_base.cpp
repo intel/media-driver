@@ -4559,6 +4559,9 @@ CodechalEncoderState::CodechalEncoderState(
 
     m_vdencMeKernelState = MHW_KERNEL_STATE();
     m_vdencStreaminKernelState = MHW_KERNEL_STATE();
+    m_vdencMeKernelStateRAB = MHW_KERNEL_STATE();
+    m_vdencStreaminKernelStateRAB = MHW_KERNEL_STATE();
+
     for (auto i = 0; i < CODEC_NUM_FIELDS_PER_FRAME; i++)
     {
         m_scaling2xKernelStates[i] = MHW_KERNEL_STATE();
