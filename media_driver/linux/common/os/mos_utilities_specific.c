@@ -2997,6 +2997,15 @@ void MOS_TraceEvent(
     return;
 }
 
+void MOS_TraceDataDump(
+    char * const pcName,
+    uint32_t     flags,
+    void *const  pBuf,
+    uint32_t     dwSize)
+{
+    // not implemented
+}
+
 MOS_STATUS MOS_GfxInfoInit()
 {
     // not implemented

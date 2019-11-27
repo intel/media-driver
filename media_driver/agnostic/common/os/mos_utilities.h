@@ -2037,6 +2037,25 @@ void MOS_TraceEvent(
     uint32_t         dwSize2);
 
 //!
+//! \brief    MOS log trace dump
+//! \details  dump driver data in raw format, data could be driver internal state or surface.
+//! \param    [in] name
+//!           Indicates dump name
+//! \param    [in] flags
+//!           additional buffer info flags
+//! \param    [in] pBuf
+//!           Indicates buffer address
+//! \param    [in] size
+//!           Indicates buffer size
+//! \return   void
+//!
+void MOS_TraceDataDump(
+    char *const pcName,
+    uint32_t    flags,
+    void *const pBuf,
+    uint32_t    dwSize);
+
+//!
 //! \brief    MOS log trace event Msg
 //! \details  log trace event msg w/ level/compID/functionname/lineNum arguments
 //!           arguments are in raw data format, need match data structure in manifest.
