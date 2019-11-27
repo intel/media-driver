@@ -423,6 +423,26 @@ static struct GfxDeviceInfo bxtGt1Info = {
     .eGTType       = GTTYPE_GT1,
     .L3CacheSizeInKb = 384,
     .L3BankCount   = 2,
+    .EUCount       = 12,
+    .SliceCount    = 1,
+    .SubSliceCount = 2,
+    .MaxEuPerSubSlice = 6,
+    .isLCIA        = 1,
+    .hasLLC        = 0,
+    .hasERAM       = 0,
+    .InitMediaSysInfo = InitLCIAMediaSysInfo,
+    .InitShadowSku    = InitLCIAShadowSku,
+    .InitShadowWa     = InitLCIAShadowWa,
+};
+
+static struct GfxDeviceInfo bxtGt1f5Info = {
+    .platformType  = PLATFORM_MOBILE,
+    .productFamily = IGFX_BROXTON,
+    .displayFamily = IGFX_GEN9_CORE,
+    .renderFamily  = IGFX_GEN9_CORE,
+    .eGTType       = GTTYPE_GT1_5,
+    .L3CacheSizeInKb = 384,
+    .L3BankCount   = 2,
     .EUCount       = 18,
     .SliceCount    = 1,
     .SubSliceCount = 3,
@@ -436,6 +456,26 @@ static struct GfxDeviceInfo bxtGt1Info = {
 };
 
 static struct GfxDeviceInfo glkGt1Info = {
+    .platformType  = PLATFORM_MOBILE,
+    .productFamily = IGFX_GEMINILAKE,
+    .displayFamily = IGFX_GEN9_CORE,
+    .renderFamily  = IGFX_GEN9_CORE,
+    .eGTType       = GTTYPE_GT1,
+    .L3CacheSizeInKb = 384,
+    .L3BankCount   = 2,
+    .EUCount       = 12,
+    .SliceCount    = 1,
+    .SubSliceCount = 2,
+    .MaxEuPerSubSlice = 6,
+    .isLCIA        = 1,
+    .hasLLC        = 0,
+    .hasERAM       = 0,
+    .InitMediaSysInfo = InitLCIAMediaSysInfo,
+    .InitShadowSku    = InitLCIAShadowSku,
+    .InitShadowWa     = InitLCIAShadowWa,
+};
+
+static struct GfxDeviceInfo glkGt1f5Info = {
     .platformType  = PLATFORM_MOBILE,
     .productFamily = IGFX_GEMINILAKE,
     .displayFamily = IGFX_GEN9_CORE,
@@ -460,7 +500,7 @@ static struct GfxDeviceInfo kblGt1Info = {
     .productFamily = IGFX_KABYLAKE,
     .displayFamily = IGFX_GEN9_CORE,
     .renderFamily  = IGFX_GEN9_CORE,
-    .eGTType       = GTTYPE_GT1,
+    .eGTType       = GTTYPE_GT1_5,
     .L3CacheSizeInKb = 384,
     .L3BankCount   = 2,
     .EUCount       = 12,
@@ -712,19 +752,19 @@ static bool sklDevice193d = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x193d, &sklGt4eInfo);
 
 static bool bxtDevice1a84 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x1a84, &bxtGt1Info);
+    RegisterDevice(0x1a84, &bxtGt1f5Info);
 
 static bool bxtDevice1a85 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1a85, &bxtGt1Info);
 
 static bool bxtDevice5a84 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x5a84, &bxtGt1Info);
+    RegisterDevice(0x5a84, &bxtGt1f5Info);
 
 static bool bxtDevice5a85 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x5a85, &bxtGt1Info);
 
 static bool glkDevice3a84 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x3184, &glkGt1Info);
+    RegisterDevice(0x3184, &glkGt1f5Info);
 
 static bool glkDevice3a85 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3185, &glkGt1Info);

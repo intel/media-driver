@@ -253,7 +253,20 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
 
-    MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    if (devInfo->eGTType == GTTYPE_GT1)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+    else if (devInfo->eGTType == GTTYPE_GT1_5)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1_5, 1);
+    }
+    else
+    {
+        /* GT1 is by default */
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+
     MEDIA_WR_SKU(skuTable, FtrLCIA, 1);
     MEDIA_WR_SKU(skuTable, FtrVERing, drvInfo->hasVebox);
     MEDIA_WR_SKU(skuTable, FtrEDram, devInfo->hasERAM);
@@ -470,7 +483,20 @@ static bool InitGlkMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
 
-    MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    if (devInfo->eGTType == GTTYPE_GT1)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+    else if (devInfo->eGTType == GTTYPE_GT1_5)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1_5, 1);
+    }
+    else
+    {
+        /* GT1 is by default */
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+
     MEDIA_WR_SKU(skuTable, FtrLCIA, 1);
     MEDIA_WR_SKU(skuTable, FtrVERing, drvInfo->hasVebox);
     MEDIA_WR_SKU(skuTable, FtrPPGTT, drvInfo->hasPpgtt);
