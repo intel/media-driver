@@ -113,6 +113,7 @@ typedef enum _CM_SUB_PLATFORM_USE_SKU {
   GT2 = 2,
   GT3 = 3,
   GT4 = 4,
+  GT5 = 5,
   GTA = 5,
   GTC = 6,
   GTX = 7,
