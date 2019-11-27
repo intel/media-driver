@@ -474,18 +474,6 @@ typedef enum _MOS_TILE_TYPE
 } MOS_TILE_TYPE;
 C_ASSERT(MOS_TILE_LINEAR == 4); //!< When adding, update assert
 
-//!
-//! \brief Enum for tile mode from GMM
-//!
-typedef enum _MOS_TILE_MODE_GMM
-{
-    MOS_TILE_LINEAR_GMM = 0,
-    MOS_TILE_64_GMM,
-    MOS_TILE_X_GMM,
-    MOS_TILE_4_GMM,
-} MOS_TILE_MODE_GMM;
-C_ASSERT(MOS_TILE_4_GMM == 3);
-
 #define IS_TILE_FORMAT(TileType)              \
             ( (MOS_TILE_X  == TileType) ||    \
               (MOS_TILE_Y  == TileType) ||    \

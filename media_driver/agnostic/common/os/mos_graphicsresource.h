@@ -471,17 +471,7 @@ protected:
     //!
     //! \brief   Defines the layout of a physical page. Optimal choice depends on usage
     //!
-    MOS_TILE_TYPE       m_tileType = MOS_TILE_INVALID;
-
-    //!
-    //! \brief   Transparent GMM Tiletype specifying in hwcmd finally
-    //!
-    MOS_TILE_MODE_GMM   m_tileModeGMM = MOS_TILE_LINEAR_GMM;
-
-    //!
-    //! \brief   GMM defined Tile mode flag
-    //!
-    bool                m_isGMMTileEnabled = false;
+    MOS_TILE_TYPE m_tileType = MOS_TILE_INVALID;
 
     //!
     //! \brief   Basic resource geometry

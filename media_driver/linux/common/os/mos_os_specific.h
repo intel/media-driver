@@ -251,8 +251,6 @@ struct _MOS_SPECIFIC_RESOURCE
     const char          *bufname;
     uint32_t            isTiled;
     MOS_TILE_TYPE       TileType;
-    MOS_TILE_MODE_GMM   TileModeGMM;
-    bool                bGMMTileEnabled;
     uint32_t            bMapped;
     MOS_LINUX_BO        *bo;
     uint32_t            name;
@@ -319,8 +317,6 @@ struct MOS_SURFACE
     uint32_t            dwSlicePitch;                                           //!< [out] Type == VOLUME, byte offset to next slice. Type != VOLUME, n/a
     uint32_t            dwQPitch;                                               //!< [out] QPitch - distance in rows between R-Planes used for programming HW
     MOS_TILE_TYPE       TileType;                                               //!< [out] Defines the layout of a physical page. Optimal choice depends on usage model.
-    MOS_TILE_MODE_GMM   TileModeGMM;                                            //!< [out] Transparent GMM Tiletype specifying in hwcmd finally
-    bool                bGMMTileEnabled;                                        //!< [out] GMM defined tile mode flag
     MOS_FORMAT          Format;                                                 //!< [out] Pixel format
     int32_t             bArraySpacing;                                          //!< [out] Array spacing
     int32_t             bCompressible;                                          //!< [out] Memory compression
