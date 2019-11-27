@@ -10929,32 +10929,25 @@ void HalCm_GetUserFeatureSettings(
 )
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
-    PMOS_INTERFACE                  osInterface;
-    PMOS_USER_FEATURE_INTERFACE     userFeatureInterface;
-    MOS_USER_FEATURE                userFeature;
-    MOS_USER_FEATURE_VALUE          userFeatureValue;
+    PMOS_INTERFACE osInterface = cmState->osInterface;
 
-    MOS_ZeroMemory(&userFeatureValue, sizeof(userFeatureValue));
-    osInterface            = cmState->osInterface;
-    userFeatureInterface   = &osInterface->UserFeatureInterface;
-    userFeature             = *userFeatureInterface->pUserFeatureInit;
-    userFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath       = (char *)__MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues     = &userFeatureValue;
-    userFeature.uiNumValues = 1;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 
-    if (userFeatureInterface->pfnReadValue(
-          userFeatureInterface,
-          &userFeature,
-          (char *)VPHAL_CM_MAX_THREADS,
-          MOS_USER_FEATURE_VALUE_TYPE_UINT32) == MOS_STATUS_SUCCESS)
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MDF_MAX_THREAD_NUM_ID,
+        &userFeatureData);
+
+    if (userFeatureData.i32Data != 0)
     {
-        uint32_t data = userFeature.pValues[0].u32Data;
+        uint32_t data = userFeatureData.i32Data;
         if ((data > 0) && (data <= cmState->renderHal->pHwCaps->dwMaxThreads))
         {
             cmState->maxHWThreadValues.userFeatureValue = data;
         }
     }
+
 #else
     UNUSED(cmState);
 #endif // _DEBUG || _RELEASE_INTERNAL

@@ -313,8 +313,13 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
     {
     //reg control for svm IA/GT cache coherence
 #if (_RELEASE_INTERNAL)
-        uint32_t value = 0;
-        if (ReadUserFeatureValue(CM_RT_USER_FEATURE_FORCE_COHERENT_STATELESSBTI, value) == CM_SUCCESS && value == 1)
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_COHERENT_STATELESSBTI_ID,
+            &userFeatureData);
+        if (userFeatureData.i32Data == 1)
         {
             jitFlags[numJitFlags] = CM_RT_JITTER_NCSTATELESS_FLAG;
             numJitFlags++;

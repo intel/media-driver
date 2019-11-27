@@ -175,8 +175,6 @@ typedef enum _CM_RETURN_CODE
     CM_MOS_STATUS_CONVERTED_CODE_OFFSET         = -20000
 } CM_RETURN_CODE;
 
-#define VPHAL_CM_MAX_THREADS    "CmMaxThreads"
-
 //------------------------------------------------------------------------------
 //| Lock flags
 //------------------------------------------------------------------------------
