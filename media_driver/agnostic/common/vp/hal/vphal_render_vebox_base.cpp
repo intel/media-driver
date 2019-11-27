@@ -430,8 +430,6 @@ void VPHAL_VEBOX_STATE::VeboxCopySurfaceParams(
     pOutSurface->dwWidth            = pTempSurface->dwWidth;
     pOutSurface->dwPitch            = pTempSurface->dwPitch;
     pOutSurface->TileType           = pTempSurface->TileType;
-    pOutSurface->TileModeGMM        = pTempSurface->TileModeGMM;
-    pOutSurface->bGMMTileEnabled    = pTempSurface->bGMMTileEnabled;
     pOutSurface->SampleType         = pTempSurface->SampleType;
     pOutSurface->ColorSpace         = pTempSurface->ColorSpace;
     pOutSurface->dwOffset           = pTempSurface->dwOffset;

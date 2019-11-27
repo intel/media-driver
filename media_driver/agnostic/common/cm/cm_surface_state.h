@@ -159,8 +159,6 @@ protected:
     uint32_t m_pitch;
     uint32_t m_qPitch;
     uint32_t m_tile;
-    MOS_TILE_MODE_GMM m_tileModeGMM;
-    bool     m_bGMMTileEnabled;
     uint32_t m_isCompressed;
     uint32_t m_compressionMode;
     MOS_MEMCOMP_STATE m_mmcState;

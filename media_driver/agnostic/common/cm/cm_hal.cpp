@@ -11958,8 +11958,6 @@ MOS_STATUS HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(
                                       + surface->UPlaneOffset.iYOffset;
     }
     mhwVeboxSurface->TileType      = surface->TileType;
-    mhwVeboxSurface->TileModeGMM   = surface->TileModeGMM;
-    mhwVeboxSurface->bGMMTileEnabled = surface->bGMMTileEnabled;
     mhwVeboxSurface->rcMaxSrc      = renderHalSurface->rcMaxSrc;
     mhwVeboxSurface->pOsResource   = &surface->OsResource;
 

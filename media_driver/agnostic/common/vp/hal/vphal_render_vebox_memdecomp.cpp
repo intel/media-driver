@@ -95,8 +95,6 @@ MOS_STATUS CloneResourceInfo(PVPHAL_SURFACE pVphalSurface, PMOS_SURFACE pMosSurf
     pVphalSurface->dwPitch           = pMosSurface->dwPitch;
     pVphalSurface->Format            = pMosSurface->Format;
     pVphalSurface->TileType          = pMosSurface->TileType;
-    pVphalSurface->TileModeGMM       = pMosSurface->TileModeGMM;
-    pVphalSurface->bGMMTileEnabled   = pMosSurface->bGMMTileEnabled;
     pVphalSurface->dwDepth           = pMosSurface->dwDepth;
     pVphalSurface->dwSlicePitch      = pMosSurface->dwSlicePitch;
     pVphalSurface->dwOffset          = pMosSurface->dwOffset;
@@ -331,8 +329,6 @@ MOS_STATUS MediaVeboxDecompState::GetResourceInfo(PMOS_SURFACE surface)
     surface->dwDepth                                            = resDetails.dwDepth;
     surface->bArraySpacing                                      = resDetails.bArraySpacing;
     surface->TileType                                           = resDetails.TileType;
-    surface->TileModeGMM                                        = resDetails.TileModeGMM;
-    surface->bGMMTileEnabled                                    = resDetails.bGMMTileEnabled;
     surface->bCompressible                                      = resDetails.bCompressible;
     surface->bIsCompressed                                      = resDetails.bIsCompressed;
     surface->dwOffset                                           = resDetails.RenderOffset.YUV.Y.BaseOffset;
@@ -417,8 +413,6 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
     if (!outputSurface)
     {
         mhwVeboxSurfaceStateCmdParams->SurfInput.TileType    = mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType    = inputSurface->TileType;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.TileModeGMM = mhwVeboxSurfaceStateCmdParams->SurfOutput.TileModeGMM = inputSurface->TileModeGMM;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.bGMMTileEnabled = mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled = inputSurface->bGMMTileEnabled;
         mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch    = mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch      = inputSurface->dwPitch;
         mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource = mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource = &(inputSurface->OsResource);
         mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset   = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset   = inputSurface->YPlaneOffset.iYOffset;
@@ -429,12 +423,8 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
     else
     // double buffer resolve
     {
-        mhwVeboxSurfaceStateCmdParams->SurfInput.TileType            = inputSurface->TileType;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.TileModeGMM         = inputSurface->TileModeGMM;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.bGMMTileEnabled     = inputSurface->bGMMTileEnabled;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType           = outputSurface->TileType;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.TileModeGMM        = outputSurface->TileModeGMM;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled    = outputSurface->bGMMTileEnabled;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.TileType     = inputSurface->TileType;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType    = outputSurface->TileType;
         mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch      = inputSurface->dwPitch;
         mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch     = outputSurface->dwPitch;
         mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource  = &(inputSurface->OsResource);
