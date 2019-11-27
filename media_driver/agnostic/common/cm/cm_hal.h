@@ -1583,6 +1583,9 @@ typedef struct _CM_HAL_STATE
 
     bool                        syncOnResource = false;
 
+    // Pointer to the buffer for sychronizing tasks in a queue.
+    MOS_RESOURCE                *syncBuffer = nullptr;
+
     //********************************************************************************
     // Export Interface methods called by CMRT@UMD <START>
     //********************************************************************************
@@ -1860,6 +1863,11 @@ typedef struct _CM_HAL_STATE
         PCM_HAL_STATE state,
         MOS_GPUCTX_CREATOPTIONS *mosCreateOption);
 
+    //*-----------------------------------------------------------------------------
+    //| Purpose: Selects the required stream index and sets the correct GPU context for further function calls.
+    //| Returns: Previous stream index.
+    //| Note: On Linux, context handle is used exclusively to retrieve the correct GPU context. Stream index is used on other operating systems.
+    //*-----------------------------------------------------------------------------
     uint32_t (*pfnSetGpuContext)(PCM_HAL_STATE      halState,
                                  MOS_GPU_CONTEXT    contextName,
                                  uint32_t           streamIndex,
@@ -1870,6 +1878,13 @@ typedef struct _CM_HAL_STATE
         PCM_HAL_STATE               state,
         PMOS_COMMAND_BUFFER         cmdBuffer,
         uint32_t                    tag);
+
+    //*-----------------------------------------------------------------------------
+    //| Purpose: Selects the buffer for synchronizing tasks in a CmQueue.
+    //| Returns: Result of this operation.
+    //| Note: Synchronization buffer is most useful on Linux. It's not required on other operating systems.
+    //*-----------------------------------------------------------------------------
+    MOS_STATUS (*pfnSelectSyncBuffer) (PCM_HAL_STATE state, uint32_t bufferIdx);
 
     //********************************************************************************
     // Internal interface methods called by CM HAL only <END>

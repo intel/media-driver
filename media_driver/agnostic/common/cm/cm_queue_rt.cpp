@@ -122,7 +122,8 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_trackerIndex(0),
     m_fastTrackerIndex(0),
     m_streamIndex(0),
-    m_gpuContextHandle(MOS_GPU_CONTEXT_INVALID_HANDLE)
+    m_gpuContextHandle(MOS_GPU_CONTEXT_INVALID_HANDLE),
+    m_syncBufferHandle(INVALID_SYNC_BUFFER_HANDLE)
 {
     MOS_ZeroMemory(&m_mosVeHintParams, sizeof(m_mosVeHintParams));
 }
@@ -164,6 +165,9 @@ CmQueueRT::~CmQueueRT()
 
     m_copyKernelParamArray.Delete();
 
+    CM_HAL_STATE *hal_state = static_cast<CM_CONTEXT_DATA*>(m_device->GetAccelData())->cmHalState;
+    ReleaseSyncBuffer(hal_state);
+    return;
 }
 
 //*-----------------------------------------------------------------------------
@@ -858,6 +862,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
         }
         else
         {
+            SelectSyncBuffer(cmHalState);
             result = cmHalState->advExecutor->SubmitComputeTask(this, task, event,
                                                                 threadGroupSpace,
                                                                 gpu_context_name);
@@ -3821,6 +3826,7 @@ MOS_STATUS CmQueueRT::CreateGpuContext(CM_HAL_STATE *halState,
         if (MOS_GPU_CONTEXT_INVALID_HANDLE != m_gpuContextHandle)
         {
             status = MOS_STATUS_SUCCESS;
+            CreateSyncBuffer(halState);
         }
     }
     else
@@ -3845,6 +3851,7 @@ MOS_STATUS CmQueueRT::ExecuteGroupTask(CM_HAL_STATE *halState,
         return MOS_STATUS_UNKNOWN;
     }
     RegisterSyncEvent();
+    CM_CHK_MOSSTATUS_RETURN(SelectSyncBuffer(halState));
     MOS_STATUS result = halState->pfnExecuteGroupTask(halState, taskParam);
     halState->osInterface->streamIndex = old_stream_idx;
     return result;

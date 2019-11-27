@@ -361,24 +361,53 @@ protected:
     uint32_t m_fastTrackerIndex;
 
 private:
-    uint32_t m_streamIndex;
+    static const uint32_t INVALID_SYNC_BUFFER_HANDLE = 0xDEADBEEF;
 
-    GPU_CONTEXT_HANDLE m_gpuContextHandle;
-
+    //--------------------------------------------------------------------------------
+    // Create a GPU context for this object.
+    //--------------------------------------------------------------------------------
     MOS_STATUS CreateGpuContext(CM_HAL_STATE *halState,
                                 MOS_GPU_CONTEXT gpuContextName,
                                 MOS_GPU_NODE gpuNode,
                                 MOS_GPUCTX_CREATOPTIONS *createOptions);
 
+    //--------------------------------------------------------------------------------
     // Calls CM HAL API to submit a group task to command buffer.
+    //--------------------------------------------------------------------------------
     MOS_STATUS ExecuteGroupTask(CM_HAL_STATE *halState,
                                 CM_HAL_EXEC_TASK_GROUP_PARAM *taskParam,
                                 MOS_GPU_CONTEXT gpuContextName);
 
+    //--------------------------------------------------------------------------------
     // Calls CM HAL API to submit a general task to command buffer.
+    //--------------------------------------------------------------------------------
     MOS_STATUS ExecuteGeneralTask(CM_HAL_STATE *halState,
                                   CM_HAL_EXEC_TASK_PARAM *taskParam,
                                   MOS_GPU_CONTEXT gpuContextName);
+
+    //--------------------------------------------------------------------------------
+    // Creates a buffer to synchronize all tasks in this queue.
+    // It's useful only on certain operating systems.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS CreateSyncBuffer(CM_HAL_STATE *halState);
+
+    //--------------------------------------------------------------------------------
+    // Selects sync buffer in this queue so CM HAL can add it to the command buffer.
+    // It's useful only on certain operating systems.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS SelectSyncBuffer(CM_HAL_STATE *halState);
+
+    //--------------------------------------------------------------------------------
+    // Releases sync buffer in this queue if it's created.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS ReleaseSyncBuffer(CM_HAL_STATE *halState);
+
+    uint32_t m_streamIndex;
+
+    GPU_CONTEXT_HANDLE m_gpuContextHandle;
+
+    // Handle of buffer resource for synchronizing tasks in this queue.
+    uint32_t m_syncBufferHandle;
 
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);

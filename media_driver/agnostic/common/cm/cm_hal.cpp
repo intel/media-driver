@@ -10390,11 +10390,6 @@ HalCm_CreateGpuComputeContext(CM_HAL_STATE *state,
     return context_handle;
 }
 
-//*-----------------------------------------------------------------------------
-//| Purpose: Selects the required stream index and sets the correct GPU context for further function calls.
-//| Returns: Previous stream index.
-//| Note: On Linux, context handle is used exclusively to retrieve the correct GPU context. Stream index is used on other operating systems.
-//*-----------------------------------------------------------------------------
 uint32_t HalCm_SetGpuContext(CM_HAL_STATE *halState,
                              MOS_GPU_CONTEXT contextName,
                              uint32_t streamIndex,
@@ -10421,6 +10416,20 @@ uint32_t HalCm_SetGpuContext(CM_HAL_STATE *halState,
         return INVALID_STREAM_INDEX;
     }
     return old_stream_idx;
+}
+
+MOS_STATUS HalCm_SelectSyncBuffer(CM_HAL_STATE *halState, uint32_t bufferIdx)
+{
+    if (bufferIdx >= halState->cmDeviceParam.maxBufferTableSize)
+    {
+        halState->syncBuffer = nullptr;
+        return MOS_STATUS_SUCCESS;
+    }
+    CM_HAL_BUFFER_ENTRY *entry = halState->bufferTable + bufferIdx;
+    halState->syncBuffer = &entry->osResource;
+    MOS_INTERFACE *os_interface = halState->osInterface;
+    return os_interface->pfnRegisterResource(os_interface, halState->syncBuffer,
+                                             true, true);
 }
 
 //*-----------------------------------------------------------------------------
@@ -10666,6 +10675,7 @@ MOS_STATUS HalCm_Create(
     state->pfnCreateGPUContext            = HalCm_CreateGPUContext;
     state->pfnCreateGpuComputeContext     = HalCm_CreateGpuComputeContext;
     state->pfnSetGpuContext               = HalCm_SetGpuContext;
+    state->pfnSelectSyncBuffer            = HalCm_SelectSyncBuffer;
     state->pfnDSHUnregisterKernel         = HalCm_DSH_UnregisterKernel;
 
     state->pfnUpdateBuffer                = HalCm_UpdateBuffer;

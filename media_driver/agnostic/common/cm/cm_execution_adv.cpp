@@ -381,8 +381,8 @@ int CmExecutionAdv::SubmitTask(CMRT_UMD::CmQueueRT *queue,
     {
         cmdBuf->AddMMCProlog();
     }
-    cmdBuf->AddFlushCache(false, false);
-    cmdBuf->AddFlushCache(true, false);
+    cmdBuf->AddFlushCacheAndSyncTask(false, false, nullptr);
+    cmdBuf->AddFlushCacheAndSyncTask(true, false, nullptr);
 
     cmdBuf->AddPowerOption(kernelArrayRT->GetPowerOption());
 
@@ -424,7 +424,7 @@ int CmExecutionAdv::SubmitTask(CMRT_UMD::CmQueueRT *queue,
         bool needCBB = conditionalBitMap & ((uint64_t)1 << i);
         if (needCBB)
         {
-            cmdBuf->AddFlushCache(false, true);
+            cmdBuf->AddFlushCacheAndSyncTask(false, true, nullptr);
 
             cmdBuf->AddReadTimeStamp(cmTracker->GetResource(), cmTracker->GetEndOffset(taskId), true);
 
@@ -450,14 +450,14 @@ int CmExecutionAdv::SubmitTask(CMRT_UMD::CmQueueRT *queue,
             // add sync if necessary
             if ((dcount != 0) || syncFlag)
             {
-                cmdBuf->AddSync();
+                cmdBuf->AddSyncBetweenKernels();
             }
         }
 
         cmdBuf->AddMediaObjectWalker(ts, i);
     }
 
-    cmdBuf->AddFlushCache(false, true);
+    cmdBuf->AddFlushCacheAndSyncTask(false, true, nullptr);
 
     cmdBuf->AddUmdProfilerEnd();
     cmdBuf->AddReadTimeStamp(cmTracker->GetResource(), cmTracker->GetEndOffset(taskId), true);
@@ -746,8 +746,8 @@ int CmExecutionAdv::SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
     {
         cmdBuf->AddMMCProlog();
     }
-    cmdBuf->AddFlushCache(false, false);
-    cmdBuf->AddFlushCache(true, false);
+    cmdBuf->AddFlushCacheAndSyncTask(false, false, nullptr);
+    cmdBuf->AddFlushCacheAndSyncTask(true, false, nullptr);
 
     cmdBuf->AddPowerOption(kernelArrayRT->GetPowerOption());
 
@@ -793,7 +793,7 @@ int CmExecutionAdv::SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
         bool needCBB = conditionalBitMap & ((uint64_t)1 << i);
         if (needCBB)
         {
-            cmdBuf->AddFlushCache(false, true);
+            cmdBuf->AddFlushCacheAndSyncTask(false, true, nullptr);
 
             cmdBuf->AddReadTimeStamp(cmTracker->GetResource(), cmTracker->GetEndOffset(taskId), true);
 
@@ -810,14 +810,14 @@ int CmExecutionAdv::SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
             // add sync if necessary
             if (syncFlag)
             {
-                cmdBuf->AddSync();
+                cmdBuf->AddSyncBetweenKernels();
             }
         }
 
         cmdBuf->AddGpgpuWalker(tgs, kernels[i], i);
     }
 
-    cmdBuf->AddFlushCache(false, true);
+    cmdBuf->AddFlushCacheAndSyncTask(false, true, nullptr);
 
     cmdBuf->AddUmdProfilerEnd();
     cmdBuf->AddReadTimeStamp(cmTracker->GetResource(), cmTracker->GetEndOffset(taskId), true);

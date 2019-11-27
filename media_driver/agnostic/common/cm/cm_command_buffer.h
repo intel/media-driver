@@ -45,7 +45,15 @@ public:
     virtual ~CmCommandBuffer();
 
     MOS_STATUS AddFrameTracker(MOS_RESOURCE *resource, uint32_t offset, uint32_t tag);
-    MOS_STATUS AddFlushCache(bool isRead = true, bool rtCache = false); 
+
+    //--------------------------------------------------------------------------------
+    // Adds a PIPE_CONTROL command to flush cache. It's also used to synchronize tasks in a CmQueue (GPU context).
+    // Task synchronization is only needed on certain platforms. In most cases, this PIPE_CONTROL command is used for flushing cache exclusively.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS AddFlushCacheAndSyncTask(bool isRead,
+                                        bool rtCache,
+                                        MOS_RESOURCE *syncBuffer);
+
     MOS_STATUS AddReadTimeStamp(MOS_RESOURCE *resource, uint32_t offset, bool isRead = false);
     MOS_STATUS AddL3CacheConfig(L3ConfigRegisterValues *l3values);
     MOS_STATUS AddPipelineSelect(bool gpgpu = false);
@@ -53,7 +61,12 @@ public:
     MOS_STATUS AddMediaVFE(CmMediaState *mediaState, bool fusedEuDispatch = false, CMRT_UMD::CmThreadSpaceRT **threadSpaces = nullptr, uint32_t count = 0);
     MOS_STATUS AddCurbeLoad(CmMediaState *mediaState);
     MOS_STATUS AddMediaIDLoad(CmMediaState *mediaState);
-    MOS_STATUS AddSync();
+
+    //--------------------------------------------------------------------------------
+    // Adds a PIPE_CONTROL command for synchronization between kernels in a batch.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS AddSyncBetweenKernels();
+
     MOS_STATUS AddMediaObjectWalker(CMRT_UMD::CmThreadSpaceRT *threadSpace, uint32_t mediaID);
     MOS_STATUS AddDummyVFE();
     MOS_STATUS AddBatchBufferEnd();

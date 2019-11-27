@@ -95,10 +95,13 @@ CmSSH* CmCommandBuffer::GetSSH()
     return m_ssh;
 }
 
-MOS_STATUS CmCommandBuffer::AddFlushCache(bool isRead, bool rtCache)
+MOS_STATUS CmCommandBuffer::AddFlushCacheAndSyncTask(bool isRead,
+                                                     bool rtCache,
+                                                     MOS_RESOURCE *syncBuffer)
 {
     MHW_PIPE_CONTROL_PARAMS pipeCtlParams;
     MOS_ZeroMemory(&pipeCtlParams, sizeof(pipeCtlParams));
+    pipeCtlParams.presDest = syncBuffer;
     pipeCtlParams.bFlushRenderTargetCache = rtCache;
     pipeCtlParams.dwFlushMode = isRead ? MHW_FLUSH_READ_CACHE : MHW_FLUSH_WRITE_CACHE;
     pipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
@@ -310,7 +313,7 @@ MOS_STATUS CmCommandBuffer::AddMediaIDLoad(CmMediaState *mediaState)
     return m_hwRender->AddMediaIDLoadCmd(&m_cmdBuf, &idLoadParams);
 }
 
-MOS_STATUS CmCommandBuffer::AddSync()
+MOS_STATUS CmCommandBuffer::AddSyncBetweenKernels()
 {
     MHW_PIPE_CONTROL_PARAMS pipeCtlParams;
     MOS_ZeroMemory(&pipeCtlParams, sizeof(pipeCtlParams));
