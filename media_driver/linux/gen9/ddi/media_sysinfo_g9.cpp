@@ -751,6 +751,9 @@ static bool sklDevice193b = DeviceInfoFactory<GfxDeviceInfo>::
 static bool sklDevice193d = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x193d, &sklGt4eInfo);
 
+static bool bxtDevice0a84 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x0a84, &bxtGt1f5Info);
+
 static bool bxtDevice1a84 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1a84, &bxtGt1f5Info);
 
