@@ -159,6 +159,9 @@ protected:
     ~CmDevice(){}
 };
 
+#ifndef __SURFACE_SAMPLER_INDEX_DEFINED__
+#define __SURFACE_SAMPLER_INDEX_DEFINED__
+
 class SurfaceIndex
 {
 public:
@@ -189,6 +192,8 @@ private:
     unsigned int index;
     unsigned char extra_byte; // an extra byte to align the object size among OSes
 };
+
+#endif /* __SURFACE_SAMPLER_INDEX_DEFINED__ */
 
 EXTERN_C CM_RT_API INT CreateCmDevice(CmDevice* &device, UINT& version, VADisplay vaDisplay = nullptr);
 EXTERN_C CM_RT_API INT CreateCmDeviceEx(CmDevice* &device, UINT& version, VADisplay vaDisplay, UINT DevCreateOption = CM_DEVICE_CREATE_OPTION_DEFAULT);

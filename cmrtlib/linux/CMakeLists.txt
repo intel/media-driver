@@ -21,21 +21,26 @@
 cmake_minimum_required(VERSION 2.8)
 include (${CMAKE_CURRENT_LIST_DIR}/cmrt_utils.cmake)
 
+
 set(EXECUTABLE_OUTPUT_PATH ${MDF_OPTION__OUTPUT_DIR})
 set(LIBRARY_OUTPUT_PATH    ${MDF_OPTION__OUTPUT_DIR})
 
 # Set up compile options that will be used for the Linux build
-if(CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1 -std=c++11 -fPIC -fpermissive -fstack-protector-all -Werror")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing -D_FORTIFY_SOURCE=2")
-    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D__DEBUG -O0")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1 -std=c++11 -fPIC -fpermissive -fstack-protector-all -Werror")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fno-strict-aliasing -D_FORTIFY_SOURCE=2")
-    set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -D__DEBUG -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fPIC -fpermissive -fstack-protector-all -Werror")
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+endif()
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing -D_FORTIFY_SOURCE=2")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D__DEBUG -O0")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++17 -fPIC -fpermissive -fstack-protector-all -Werror")
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
+endif()
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fno-strict-aliasing -D_FORTIFY_SOURCE=2")
+set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -D__DEBUG -O0")
 
-    set(GCC_SECURE_LINK_FLAGS "-z relro -z now")
-    set(CMAKE_SKIP_RPATH ON)
-endif(CMAKE_COMPILER_IS_GNUCC)
+set(GCC_SECURE_LINK_FLAGS "-z relro -z now")
+set(CMAKE_SKIP_RPATH ON)
 
 #include paths
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../proprietary/share/)

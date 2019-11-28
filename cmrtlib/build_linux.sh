@@ -10,6 +10,7 @@ usage(){
     echo "    -h                 : Help (print out this usage)";
     echo "    -a                 : build jitter shared library and GenX_IR";
     echo "    -d                 : Debug build (default build.linux.debug)";
+    echo "    -e                 : Enable EMU build";
     echo "    --32               : Build 32 bit variant (default on 32 bit systems)";
     echo "    --64               : Build 64 bit variant (default on 64 bit systems)";
 }
@@ -69,6 +70,7 @@ DEBUG=0
 BUILD_SET=0
 BUILD_32=0
 BUILD_64=0
+BUILD_EMU=0
 CROSS_BUILD=0
 BUILD_SIZE=0
 
@@ -80,7 +82,7 @@ else
     BUILD_SIZE=32
 fi
 
-while getopts "b:dah-:" opt; do
+while getopts "b:edah-:" opt; do
     case $opt in
         -)
             case "${OPTARG}" in
@@ -94,6 +96,9 @@ while getopts "b:dah-:" opt; do
         b) 
             BUILD_DIR=$OPTARG
             BUILD_SET=1
+            ;;
+        e)
+            BUILD_EMU=1
             ;;
         d)
             DEBUG=1
@@ -183,8 +188,12 @@ cd $CMAKE_ROOT
 cd $BUILD_DIR
 echo "executing : $EXTRA_OPTIONS cmake" $CMAKE_ROOT
 (
-$EXTRA_OPTIONS 
+if [[ $BUILD_EMU -eq 0 ]]; then
+  $EXTRA_OPTIONS
+fi
 cmake $EXTRA_CMAKE_FLAGS $CMAKE_ROOT
 )
-echo "executing make"
-make
+if [[ $BUILD_EMU -eq 0 ]]; then
+  echo "executing make"
+  make
+fi
