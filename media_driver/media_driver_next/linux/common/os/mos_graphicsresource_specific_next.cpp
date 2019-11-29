@@ -29,6 +29,7 @@
 
 #include "mos_graphicsresource_specific_next.h"
 #include "mos_context_specific_next.h"
+#include "mos_os_specific_next.h"
 
 GraphicsResourceSpecificNext::GraphicsResourceSpecificNext()
 {
@@ -581,3 +582,409 @@ MOS_STATUS GraphicsResourceSpecificNext::Unlock(OsContextNext* osContextPtr)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
+    MOS_STREAM_HANDLE streamState,
+    PMOS_ALLOC_GFXRES_PARAMS params,
+    MOS_RESOURCE_HANDLE& resource)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    
+    MOS_OS_CHK_NULL_RETURN(resource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
+    
+    const char *bufname = params->pBufName;;
+    int32_t iSize = 0;
+    int32_t iPitch = 0;
+    unsigned long ulPitch = 0;
+    MOS_LINUX_BO *bo = nullptr;
+    MOS_TILE_TYPE tileformat = params->TileType;
+    uint32_t tileformat_linux = I915_TILING_NONE;
+    int32_t iHeight = params->dwHeight;
+    int32_t iAlignedHeight = 0;
+    GMM_RESCREATE_PARAMS gmmParams;
+    GMM_RESOURCE_INFO *gmmResourceInfo = nullptr;
+    GMM_RESOURCE_TYPE resourceType = RESOURCE_2D;
+
+    MosUtilities::MosZeroMemory(&gmmParams, sizeof(gmmParams));
+
+    MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
+    auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    if (nullptr == perStreamParameters)
+    {
+        MOS_OS_ASSERTMESSAGE("input parameter perStreamParameters is NULL.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    switch (params->Format)
+    {
+    case Format_Buffer:
+    case Format_RAW:
+        resourceType   = RESOURCE_BUFFER;
+        iAlignedHeight = 1;
+        //indicate buffer Restriction is Vertex.
+        gmmParams.Flags.Gpu.State = true;
+        break;
+    case Format_L8:
+    case Format_L16:
+    case Format_STMM:
+    case Format_AI44:
+    case Format_IA44:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
+    case Format_X8R8G8B8:
+    case Format_A8R8G8B8:
+    case Format_X8B8G8R8:
+    case Format_A8B8G8R8:
+    case Format_R32S:
+    case Format_R32F:
+    case Format_V8U8:
+    case Format_YUY2:
+    case Format_UYVY:
+    case Format_P8:
+    case Format_A8:
+    case Format_AYUV:
+    case Format_NV12:
+    case Format_NV21:
+    case Format_YV12:
+    case Format_Buffer_2D:
+    case Format_R32U:
+    case Format_444P:
+    case Format_422H:
+    case Format_422V:
+    case Format_IMC3:
+    case Format_411P:
+    case Format_411R:
+    case Format_RGBP:
+    case Format_BGRP:
+    case Format_R16U:
+    case Format_R8U:
+    case Format_P010:
+    case Format_P016:
+    case Format_Y216:
+    case Format_Y416:
+    case Format_P208:
+    case Format_Y210:
+    case Format_Y410:
+    case Format_R16F:
+        resourceType = RESOURCE_2D;
+        //indicate buffer Restriction is Planar surface restrictions.
+        gmmParams.Flags.Gpu.Video = true;
+        break;
+    default:
+        MOS_OS_ASSERTMESSAGE("Unsupported format");
+        eStatus = MOS_STATUS_UNIMPLEMENTED;
+        return eStatus;
+    }
+
+    // Create GmmResourceInfo
+    gmmParams.BaseWidth  = params->dwWidth;
+    gmmParams.BaseHeight = iAlignedHeight;
+    gmmParams.ArraySize  = 1;
+    gmmParams.Type       = resourceType;
+    gmmParams.Format     = MosOsSpecificNext::Mos_Specific_ConvertMosFmtToGmmFmt(params->Format);
+
+    MOS_OS_CHECK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID,
+        "Unsupported format",
+        MOS_STATUS_UNKNOWN);
+
+    switch (tileformat)
+    {
+    case MOS_TILE_Y:
+        gmmParams.Flags.Gpu.MMC = params->bIsCompressible;
+        tileformat_linux        = I915_TILING_Y;
+        break;
+    case MOS_TILE_X:
+        gmmParams.Flags.Info.TiledX = true;
+        tileformat_linux            = I915_TILING_X;
+        break;
+    default:
+        gmmParams.Flags.Info.Linear = true;
+        tileformat_linux            = I915_TILING_NONE;
+    }
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&perStreamParameters->SkuTable, FtrLocalMemory);
+
+    resource->pGmmResInfo = gmmResourceInfo = perStreamParameters->pGmmClientContext->CreateResInfoObject(&gmmParams);
+
+    MOS_OS_CHK_NULL_RETURN(gmmResourceInfo);
+
+    switch (gmmResourceInfo->GetTileType())
+    {
+    case GMM_TILED_X:
+        tileformat       = MOS_TILE_X;
+        tileformat_linux = I915_TILING_X;
+        break;
+    case GMM_TILED_Y:
+        tileformat       = MOS_TILE_Y;
+        tileformat_linux = I915_TILING_Y;
+        break;
+    case GMM_NOT_TILED:
+        tileformat       = MOS_TILE_LINEAR;
+        tileformat_linux = I915_TILING_NONE;
+        break;
+    default:
+        tileformat       = MOS_TILE_Y;
+        tileformat_linux = I915_TILING_Y;
+        break;
+    }
+
+    if (params->TileType == MOS_TILE_Y)
+    {
+        gmmResourceInfo->SetMmcMode((GMM_RESOURCE_MMC_INFO)params->CompressionMode, 0);
+    }
+
+    iPitch  = GFX_ULONG_CAST(gmmResourceInfo->GetRenderPitch());
+    iSize   = GFX_ULONG_CAST(gmmResourceInfo->GetSizeSurface());
+    iHeight = gmmResourceInfo->GetBaseHeight();
+
+    // Only Linear and Y TILE supported
+    if (tileformat_linux == I915_TILING_NONE)
+    {
+        bo = mos_bo_alloc(perStreamParameters->bufmgr, bufname, iSize, 4096);
+    }
+    else
+    {
+        bo     = mos_bo_alloc_tiled(perStreamParameters->bufmgr, bufname, iPitch, iSize / iPitch, 1, &tileformat_linux, &ulPitch, 0);
+        iPitch = (int32_t)ulPitch;
+    }
+
+    resource->bMapped = false;
+    if (bo)
+    {
+        resource->Format   = params->Format;
+        resource->iWidth   = params->dwWidth;
+        resource->iHeight  = iHeight;
+        resource->iPitch   = iPitch;
+        resource->iCount   = 0;
+        resource->bufname  = bufname;
+        resource->bo       = bo;
+        resource->TileType = tileformat;
+        resource->pData    = (uint8_t *)bo->virt;  //It is useful for batch buffer to fill commands
+        MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).", iSize, params->dwWidth, iHeight);
+    }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource).", iSize, params->dwWidth, params->dwHeight);
+        eStatus = MOS_STATUS_NO_SPACE;
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS GraphicsResourceSpecificNext::FreeExternalResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE resource,
+    uint32_t            flag)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    
+    MOS_OS_CHK_NULL_RETURN(resource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
+    
+    if (resource && resource->bo)
+    {
+        OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
+        if (osCtx == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("osCtx is nullptr!");
+            return MOS_STATUS_NULL_POINTER;
+        }
+        else
+        {
+            AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
+
+            // Unmap Resource from Aux Table
+            if (auxTableMgr)
+            {
+                auxTableMgr->UnmapResource(resource->pGmmResInfo, resource->bo);
+            }
+        }
+
+        mos_bo_unreference((MOS_LINUX_BO *)(resource->bo));
+
+        MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
+        auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+        if (perStreamParameters != nullptr && perStreamParameters->contextOffsetList.size())
+        {
+            MOS_CONTEXT *pOsCtx   = perStreamParameters;
+            auto         item_ctx = pOsCtx->contextOffsetList.begin();
+
+            for (; item_ctx != pOsCtx->contextOffsetList.end();)
+            {
+                if (item_ctx->target_bo == resource->bo)
+                {
+                    item_ctx = pOsCtx->contextOffsetList.erase(item_ctx);
+                }
+                else
+                {
+                    item_ctx++;
+                }
+            }
+        }
+
+        resource->bo = nullptr;
+    }
+    
+    return eStatus;
+}
+
+void* GraphicsResourceSpecificNext::LockExternalResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE resource,
+    PMOS_LOCK_PARAMS    flags)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    void *pData = nullptr;
+    if (nullptr == streamState)
+    {
+        MOS_OS_ASSERTMESSAGE("input parameter streamState is NULL.");
+        return nullptr;
+    }
+
+    if (nullptr == resource)
+    {
+        MOS_OS_ASSERTMESSAGE("input parameter resource is NULL.");
+        return nullptr;
+    }
+    
+    if (streamState->perStreamParameters == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("perStreamParameters is nullptr, skip lock");
+        return nullptr;
+    }
+    auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    if (resource && resource->bo && resource->pGmmResInfo)
+    {
+        MOS_LINUX_BO *bo = resource->bo;
+        GMM_RESOURCE_FLAG GmmFlags = resource->pGmmResInfo->GetResFlags();
+
+        // Do decompression for a compressed surface before lock
+        if (!flags->NoDecompress &&
+            (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Info.MediaCompressed) ||
+            resource->pGmmResInfo->IsMediaMemoryCompressed(0)))
+        {
+            PMOS_CONTEXT pOsContext = perStreamParameters;
+
+            MOS_OS_ASSERT(pOsContext);
+            MOS_OS_ASSERT(pOsContext->ppMediaMemDecompState);
+            MOS_OS_ASSERT(pOsContext->pfnMemoryDecompress);
+            pOsContext->pfnMemoryDecompress(pOsContext, resource);
+        }
+
+        if (false == resource->bMapped)
+        {
+            if (perStreamParameters->bIsAtomSOC)
+            {
+                mos_gem_bo_map_gtt(bo);
+            }
+            else
+            {
+                if (resource->TileType != MOS_TILE_LINEAR && !flags->TiledAsTiled)
+                {
+                    if (perStreamParameters->bUseSwSwizzling)
+                    {
+                        mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY & flags->WriteOnly));
+                        resource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
+                        if (resource->pSystemShadow == nullptr)
+                        {
+                            resource->pSystemShadow = (uint8_t *)MOS_AllocMemory(bo->size);
+                            MOS_OS_CHECK_CONDITION((resource->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
+                        }
+                        if (resource->pSystemShadow)
+                        {
+                            int32_t swizzleflags = perStreamParameters->bTileYFlag ? 0 : 1;
+                            MOS_OS_CHECK_CONDITION((resource->TileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
+                            MOS_OS_CHECK_CONDITION((bo->size <= 0 || resource->iPitch <= 0), "Invalid BO size or pitch", nullptr);
+                            MosUtilities::MosSwizzleData((uint8_t *)bo->virt, resource->pSystemShadow, MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / resource->iPitch, resource->iPitch, swizzleflags);
+                        }
+                    }
+                    else
+                    {
+                        mos_gem_bo_map_gtt(bo);
+                        resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
+                    }
+                }
+                else if (flags->Uncached)
+                {
+                    mos_gem_bo_map_wc(bo);
+                    resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
+                }
+                else
+                {
+                    mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY & flags->WriteOnly));
+                    resource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
+                }
+            }
+            resource->pData   = resource->pSystemShadow ? resource->pSystemShadow : (uint8_t *)bo->virt;
+            resource->bMapped = true;
+        }
+
+        pData = resource->pData;
+    }
+
+    MOS_OS_ASSERT(pData);
+    return pData;
+}
+
+MOS_STATUS GraphicsResourceSpecificNext::UnlockExternalResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE resource)
+{
+    MOS_OS_FUNCTION_ENTER;
+    
+    MOS_OS_CHK_NULL_RETURN(resource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
+    
+    MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
+    auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    if (resource->bo)
+    {
+        if (true == resource->bMapped)
+        {
+            if (perStreamParameters->bIsAtomSOC)
+            {
+                mos_gem_bo_unmap_gtt(resource->bo);
+            }
+            else
+            {
+                if (resource->pSystemShadow)
+                {
+                    int32_t flags = perStreamParameters->bTileYFlag ? 0 : 1;
+                    MosUtilities::MosSwizzleData(resource->pSystemShadow, (uint8_t *)resource->bo->virt, MOS_TILE_LINEAR, MOS_TILE_Y, resource->bo->size / resource->iPitch, resource->iPitch, flags);
+                    MOS_FreeMemory(resource->pSystemShadow);
+                    resource->pSystemShadow = nullptr;
+                }
+
+                switch (resource->MmapOperation)
+                {
+                case MOS_MMAP_OPERATION_MMAP_GTT:
+                    mos_gem_bo_unmap_gtt(resource->bo);
+                    break;
+                case MOS_MMAP_OPERATION_MMAP_WC:
+                    mos_gem_bo_unmap_wc(resource->bo);
+                    break;
+                case MOS_MMAP_OPERATION_MMAP:
+                    mos_bo_unmap(resource->bo);
+                    break;
+                default:
+                    MOS_OS_ASSERTMESSAGE("Invalid mmap operation type");
+                    break;
+                }
+            }
+            resource->bo->virt = nullptr;
+            resource->bMapped  = false;
+        }
+        resource->pData = nullptr;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}

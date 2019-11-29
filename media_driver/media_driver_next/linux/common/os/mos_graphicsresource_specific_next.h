@@ -143,6 +143,80 @@ public:
     MOS_STATUS ConvertToMosResource(MOS_RESOURCE* mosResourcePtr);
 
     MOS_LINUX_BO*  GetBufferObject(){return m_bo;};
+    
+    //!
+    //! \brief    Allocate External Resource
+    //! \details  Derive the MOS_RESOURCE_HANDLE to indicate external resource.
+    //!           It could be user provided resource with no GraphicResource info firstly
+    //!           and get the info later; Or the resource converted from DDI.
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] params
+    //!           Pointer to the parameters for allocating resource
+    //! \param    [out] resource
+    //!           MOS Resource handle of the allocated resource.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS AllocateExternalResource(
+        MOS_STREAM_HANDLE        streamState,
+        PMOS_ALLOC_GFXRES_PARAMS params,
+        MOS_RESOURCE_HANDLE &    resource);
+
+    //!
+    //! \brief    Free External Resource
+    //! \details  Free the MOS_RESOURCE_HANDLE of external resource. 
+    //!           Undefined behavior if using to free internal resource.
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] resource
+    //!           MOS Resource handle of the allocated resource.
+    //! \param    [in] flag
+    //!           User defined free flag of the resource.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS FreeExternalResource(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE resource,
+        uint32_t            flag);
+
+    //!
+    //! \brief    Lock External Resource
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] resource
+    //!           MOS Resource handle of the resource to lock.
+    //! \param    [in] flags
+    //!           Control flags of locking resource.
+    //!
+    //! \return   void *
+    //!           Locked memory data pointer, nullptr if lock failed.
+    //!
+    static void *LockExternalResource(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE resource,
+        PMOS_LOCK_PARAMS    flags);
+
+    //!
+    //! \brief    Unlock External Resource
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] resource
+    //!           MOS Resource handle of the allocated resource.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS UnlockExternalResource(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE resource);
 
 protected:
     //!
