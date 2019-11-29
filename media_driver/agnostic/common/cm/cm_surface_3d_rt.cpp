@@ -578,7 +578,7 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
     GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);   
 
     // Open file
-    outputFileStream.open(fileNamePrefix, std::ios::app);
+    outputFileStream.open(fileNamePrefix, std::ios::app | std::ios::binary);
     CM_ASSERT(outputFileStream);
 
     uint32_t        surfaceSize = 0;

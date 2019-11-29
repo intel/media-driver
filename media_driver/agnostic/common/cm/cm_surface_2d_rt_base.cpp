@@ -1394,7 +1394,7 @@ void CmSurface2DRTBase::DumpContentToFile(const char *filename)
     GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
     std::ofstream outputFileStream;
     // Open file
-    outputFileStream.open(fileNamePrefix, std::ios::app);
+    outputFileStream.open(fileNamePrefix, std::ios::app | std::ios::binary);
     CM_ASSERT(outputFileStream);
 
     CmDeviceRT * cmDevice = nullptr;

@@ -517,7 +517,7 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t t
     GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
 
     // Open file
-    outputFileStream.open(fileNamePrefix, std::ios::app);
+    outputFileStream.open(fileNamePrefix, std::ios::app | std::ios::binary);
     CM_ASSERT(outputFileStream);
 
     if (m_sysMem != nullptr)
