@@ -1322,7 +1322,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
     if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
     {
         // eStatus query reporting
-        m_encodeStatusBuf.dwReportSize           = MOS_ALIGN_CEIL(sizeof(EncodeStatus), sizeof(uint64_t));
+        m_encodeStatusBuf.dwReportSize           = MOS_ALIGN_CEIL(sizeof(EncodeStatus), MHW_CACHELINE_SIZE);
         uint32_t size                            = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM + sizeof(HwCounter);
         allocParamsForBufferLinear.dwBytes       = size;
         allocParamsForBufferLinear.pBufName      = "HWCounterQueryBuffer";
@@ -1359,7 +1359,9 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
     }
 
     // eStatus query reporting
-    m_encodeStatusBuf.dwReportSize = MOS_ALIGN_CEIL(sizeof(EncodeStatus), sizeof(uint64_t));
+    // HW requires the MI_CONDITIONAL_BATCH_BUFFER_END compare address aligned with cache line since TGL,
+    // this change will guarantee the multi pak pass BRC works correctly
+    m_encodeStatusBuf.dwReportSize = MOS_ALIGN_CEIL(sizeof(EncodeStatus), MHW_CACHELINE_SIZE);
     uint32_t size = m_encodeStatusBuf.dwReportSize * CODECHAL_ENCODE_STATUS_NUM + sizeof(uint32_t) * 2;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "StatusQueryBuffer";
