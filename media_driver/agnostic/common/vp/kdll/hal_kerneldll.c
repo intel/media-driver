@@ -3430,8 +3430,8 @@ Kdll_State *KernelDll_AllocateStates(
 cleanup:
     if (pState)
     {
-        MOS_FreeMemory(pState->ComponentKernelCache.pCache);
         MOS_FreeMemory(pState->pSortedRules);
+        pState->pSortedRules = nullptr;
     }
 
     // Free DL States and temporary sort buffers

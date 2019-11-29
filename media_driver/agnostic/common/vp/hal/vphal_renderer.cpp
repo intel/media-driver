@@ -1480,11 +1480,21 @@ finish:
         if (pKernelBin)
         {
             MOS_SafeFreeMemory(pKernelBin);
+            if (pKernelDllState && pKernelDllState->ComponentKernelCache.pCache == pKernelBin)
+            {
+                pKernelDllState->ComponentKernelCache.pCache = nullptr;
+            }
+            pKernelBin = nullptr;
         }
 
         if (pFcPatchBin)
         {
             MOS_SafeFreeMemory(pFcPatchBin);
+            if (pKernelDllState && pKernelDllState->CmFcPatchCache.pCache == pFcPatchBin)
+            {
+                pKernelDllState->CmFcPatchCache.pCache = nullptr;
+            }
+            pFcPatchBin = nullptr;
         }
     }
     return eStatus;
