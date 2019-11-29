@@ -399,11 +399,13 @@ MOS_STATUS CodechalDebugInterface::DumpMDFCurbe(
     }
 
     std::string funcName = m_configMgr->GetMediaStateStr(mediaState);
+    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary);
+    const char* extType = binaryDump ? CodechalDbgExtType::dat : CodechalDbgExtType::txt;
 
     const char *fileName = CreateFileName(
         funcName.c_str(),
         CodechalDbgBufferType::bufCurbe,
-        CodechalDbgExtType::txt);
+        extType);
 
     curbeAlignedSize = MOS_ALIGN_CEIL(curbeSize, 64);
     curbeAlignedData = (uint8_t *)malloc(curbeAlignedSize * sizeof(uint8_t));
@@ -416,7 +418,14 @@ MOS_STATUS CodechalDebugInterface::DumpMDFCurbe(
     MOS_ZeroMemory(curbeAlignedData, curbeAlignedSize);
     MOS_SecureMemcpy(curbeAlignedData, curbeSize, curbeBuffer, curbeSize);
 
-    eStatus = DumpBufferInHexDwords(curbeAlignedData, curbeAlignedSize);
+    if (binaryDump)
+    {
+        eStatus = DumpBufferInBinary(curbeAlignedData, curbeAlignedSize);
+    }
+    else
+    {
+        eStatus = DumpBufferInHexDwords(curbeAlignedData, curbeAlignedSize);
+    }
 
     free(curbeAlignedData);
 
