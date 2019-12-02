@@ -775,7 +775,9 @@ MOS_STATUS VphalRenderer::RenderPass(
                 {
                     VPHAL_RENDER_CHK_STATUS(RenderComposite(pRenderParams, &RenderPassData));
                 }
-                else if (VpHal_RndrIsHdrPathNeeded(this, pRenderParams, &RenderPassData) && !pHdrState->bBypassHdrKernelPath)
+                else if (VpHal_RndrIsHdrPathNeeded(this, pRenderParams, &RenderPassData) &&
+                        (pHdrState &&
+                         !pHdrState->bBypassHdrKernelPath))
                 {
                     VPHAL_RENDER_CHK_STATUS(VpHal_RndrRenderHDR(this, pRenderParams, &RenderPassData));
                 }
@@ -876,7 +878,7 @@ MOS_STATUS VphalRenderer::RenderSingleStream(
             pRenderParams->pSrc[pRenderPassData->uiSrcIndex] = pRenderPassData->pSrcSurface;
         }
 
-        if (pRenderPassData->bHdrNeeded && !pHdrState->bBypassHdrKernelPath)
+        if (pRenderPassData->bHdrNeeded && (pHdrState && !pHdrState->bBypassHdrKernelPath))
         {
             pRenderPassData->bCompNeeded = false;
         }
