@@ -4015,12 +4015,6 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
             m_brcHistoryBufferSize,
             0,
             CODECHAL_MEDIA_STATE_BRC_UPDATE));
-        if (m_brcBuffers.pMbEncKernelStateInUse)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCurbe(
-                CODECHAL_MEDIA_STATE_BRC_UPDATE,
-                m_brcBuffers.pMbEncKernelStateInUse));
-        }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
             &m_resMbStatsBuffer,
             CodechalDbgAttr::attrInput,

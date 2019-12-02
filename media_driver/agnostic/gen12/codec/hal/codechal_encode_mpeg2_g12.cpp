@@ -2174,7 +2174,7 @@ MOS_STATUS CodechalEncodeMpeg2G12::ExecuteKernelFunctions()
     if (m_brcBuffers.pMbEncKernelStateInUse)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCurbe(
-            CODECHAL_MEDIA_STATE_BRC_UPDATE,
+            CODECHAL_MEDIA_STATE_ENC_NORMAL,
             m_brcBuffers.pMbEncKernelStateInUse));
     }
     if (m_mbencBrcBufferSize>0)
