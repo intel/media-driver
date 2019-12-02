@@ -40,6 +40,7 @@
 #define  VDBOX_HUC_PAK_INTEGRATION_KERNEL_DESCRIPTOR 15
 #define  BRC_IMG_STATE_SIZE_PER_PASS_G12             192
 #define  HEVC_BRC_LONG_TERM_REFRENCE_FLAG            0x8000
+#define  MAX_CONCURRENT_GROUP                        4
 
 //!
 //! \struct HucPakStitchDmemEncG12
@@ -1186,7 +1187,7 @@ public:
     uint32_t      m_lambdaRD = 0;              //!< Lambda value to multiply the RD  costs
 
     uint8_t                 m_numberEncKernelSubThread = m_hevcThreadTaskDataNum;
-    uint32_t                m_numberConcurrentGroup = 4;    // can dividie one picture into several groups
+    uint32_t                m_numberConcurrentGroup = MAX_CONCURRENT_GROUP;    // can dividie one picture into several groups
     uint32_t                m_numWavefrontInOneRegion = 0;
     uint16_t                m_lastPictureCodingType = I_TYPE;
     uint8_t*                m_swScoreboard = nullptr;
