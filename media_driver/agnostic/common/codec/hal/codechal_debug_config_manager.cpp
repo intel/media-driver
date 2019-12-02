@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -233,6 +233,7 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
     ofs << "##" << CodechalDbgAttr::attrResidualDifference << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrDeblocking << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrMvData << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrForceYUVDumpWithMemcpy << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrSfcOutputSurface << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrReferenceSurfaces << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrEncodeRawInputSurface << ":0" << std::endl;
