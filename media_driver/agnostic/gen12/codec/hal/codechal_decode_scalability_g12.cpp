@@ -19,7 +19,7 @@
 //!
 #include "codechal_decoder.h"
 #include "codechal_decode_scalability_g12.h"
-#include "mos_util_user_interface_g12.h"
+#include "media_user_settings_mgr_g12.h"
 #include "mos_os_virtualengine_next.h"
 
 //==<Functions>=======================================================

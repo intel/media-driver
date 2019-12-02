@@ -25,7 +25,6 @@
 //!
 
 #include "codechal_mmc_decode_avc_g12.h"
-#include "mos_util_user_interface_g12.h"
 
 CodechalMmcDecodeAvcG12::CodechalMmcDecodeAvcG12(
     CodechalHwInterface    *hwInterface,

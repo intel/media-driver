@@ -37,7 +37,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #if _MEDIA_RESERVED
-#include "codechal_util_user_interface_ext.h"
+#include "codechal_user_settings_mgr_ext.h"
+#include "vphal_user_settings_mgr_ext.h"
 #endif // _MEDIA_RESERVED
 #ifndef ANDROID
 #include <sys/ipc.h>   // System V IPC
@@ -50,6 +51,12 @@
 #endif // ANDROID
 
 static const char* szUserFeatureFile = USER_FEATURE_FILE;
+
+#if _MEDIA_RESERVED
+static MediaUserSettingsMgr *codecUserFeatureExt = nullptr;
+static MediaUserSettingsMgr *vpUserFeatureExt    = nullptr;
+#endif
+
 
 #ifdef __cplusplus
 
@@ -2231,8 +2238,10 @@ MOS_STATUS MOS_OS_Utilities_Init()
         }
         //Init MOS User Feature Key from mos desc table
         eStatus = MOS_DeclareUserFeatureKeysForAllDescFields();
+
 #if _MEDIA_RESERVED
-        utilUserInterface = new CodechalUtilUserInterface();
+        codecUserFeatureExt = new CodechalUserSettingsMgr();
+        vpUserFeatureExt    = new VphalUserSettingsMgr();
 #endif // _MEDIA_RESERVED
         eStatus = MOS_GenerateUserFeatureKeyXML();
 #if MOS_MESSAGES_ENABLED
@@ -2275,7 +2284,16 @@ MOS_STATUS MOS_OS_Utilities_Close()
 
         eStatus = MOS_DestroyUserFeatureKeysForAllDescFields();
 #if _MEDIA_RESERVED
-        if (utilUserInterface) delete utilUserInterface;
+        if (codecUserFeatureExt)
+        {
+            delete codecUserFeatureExt;
+            codecUserFeatureExt = nullptr;
+        }
+        if (vpUserFeatureExt)
+        {
+            delete vpUserFeatureExt;
+            vpUserFeatureExt = nullptr;
+        }
 #endif // _MEDIA_RESERVED
 #if (_DEBUG || _RELEASE_INTERNAL)
         // MOS maintains a reference counter,

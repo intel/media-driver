@@ -32,7 +32,6 @@
 #include "codechal_decode_downsampling_g12.h"
 #include "mhw_render_g12_X.h"
 #include "codechal_mmc_g12.h"
-#include "mos_util_user_interface_g12.h"
 
 FieldScalingInterfaceG12::FieldScalingInterfaceG12(CodechalHwInterface *hwInterface) :
     FieldScalingInterface(hwInterface)

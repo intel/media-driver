@@ -29,8 +29,6 @@
 #include "mos_defs.h"
 #include "mos_utilities_specific.h"
 
-typedef MosMutex MosMutexNext;
-
 class MosUtilUserInterfaceNext;
 class MosUtilitiesSpecificNext
 {

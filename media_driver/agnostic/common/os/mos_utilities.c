@@ -28,7 +28,7 @@
 #include "mos_utilities.h"
 #include "mos_utilities_specific.h"
 #ifdef __cplusplus
-#include "mos_util_user_interface.h"
+#include "media_user_settings_mgr.h"
 #include <sstream>
 #endif
 #include <fcntl.h>     //open
@@ -3932,7 +3932,7 @@ MOS_STATUS MOS_utilities_close()
 
     MOS_OS_FUNCTION_ENTER;
 
-    MosUtilUserInterfaceClose();
+    MediaUserSettingsMgr::MediaUserSettingClose();
 
     // MOS_OS_Utilitlies_Close must be called right before end of function
     // Because Memninja will calc mem leak here.

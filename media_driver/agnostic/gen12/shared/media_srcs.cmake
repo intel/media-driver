@@ -19,11 +19,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr_g12.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface_g12.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr_g12.h
 )
 
 set(SOURCES_
@@ -36,7 +36,7 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-source_group( "MOS" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+source_group( "Common Files" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 
 media_add_curr_to_include_path()

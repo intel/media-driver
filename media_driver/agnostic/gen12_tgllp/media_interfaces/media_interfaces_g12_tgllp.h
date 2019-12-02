@@ -121,7 +121,7 @@
 #include "cm_hal_g12.h"
 #include "vphal_g12_tgllp.h"
 #include "renderhal_g12.h"
-#include "mos_util_user_interface_g12.h"
+#include "media_user_settings_mgr_g12.h"
 
 #include "codechal_decode_histogram_g12.h"
 
@@ -259,7 +259,7 @@ protected:
 class MosUtilDeviceG12Tgllp : public MosUtilDevice
 {
 public:
-    using MosUtil = MosUtilUserInterface_g12;
+    using MosUtil = MediaUserSettingsMgr_g12;
 
     MOS_STATUS Initialize();
 };

@@ -28,7 +28,7 @@
 
 #include "mhw_vebox_g12_X.h"
 #include "mos_solo_generic.h"
-#include "mos_util_user_interface_g12.h"
+#include "media_user_settings_mgr_g12.h"
 #include "mhw_mi_g12_X.h"
 
 

@@ -32,7 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mhw_vdbox_hcp_generic.h"
 #include "mhw_vdbox_hcp_hwcmd_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
-#include "mos_util_user_interface_g12.h"
+#include "media_user_settings_mgr_g12.h"
 #include "codec_def_decode_hevc.h"
 
 //definition for row store cache offset on GEN12
