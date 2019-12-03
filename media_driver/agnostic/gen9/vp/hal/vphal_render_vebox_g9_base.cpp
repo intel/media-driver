@@ -1730,7 +1730,8 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
     SET_VPHAL_COMPONENT(pRenderData, pcRenderParams->Component);
 
     // Check if Vebox can be used to process the surface
-    if (pVeboxState->IsFormatSupported(pSrcSurface))
+    // if Hdr enabled on Gen9, do not use VE feature to avoid VPOutputPipe report fail.
+    if (!pRenderPassData->bHdrNeeded && pVeboxState->IsFormatSupported(pSrcSurface))
     {
         // Save Alpha passed by App to be used in Vebox
         if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
