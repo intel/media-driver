@@ -2684,8 +2684,6 @@ public:
 #endif
 
     MOS_STATUS SetRoundingValues();
-    MOS_STATUS CreatePipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &pipeModeSelectParams);
-    void ReleasePipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12& pipeModeSelectParams);
 
 protected:
 #ifdef _ENCODE_VDENC_RESERVED
