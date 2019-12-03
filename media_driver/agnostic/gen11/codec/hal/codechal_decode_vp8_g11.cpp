@@ -111,9 +111,30 @@ MOS_STATUS CodechalDecodeVp8G11::DecodeStateLevel()
     }
     else
     {
-        m_presLastRefSurface   = &(vp8RefList[lastRefPicIndex]->resRefPic);
-        m_presGoldenRefSurface = &(vp8RefList[goldenRefPicIndex]->resRefPic);
-        m_presAltRefSurface    = &(vp8RefList[altRefPicIndex]->resRefPic);
+        if((Mos_ResourceIsNull(&vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic)) && (m_presLastRefSurface))
+        {
+            vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic = *m_presLastRefSurface;
+        }
+        else
+        {
+            m_presLastRefSurface   = &(vp8RefList[lastRefPicIndex]->resRefPic);
+        }
+        if((Mos_ResourceIsNull(&vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic)) && (m_presGoldenRefSurface))
+        {
+            vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic = *m_presGoldenRefSurface;
+        }
+        else
+        {
+            m_presGoldenRefSurface = &(vp8RefList[goldenRefPicIndex]->resRefPic);
+        }
+        if((Mos_ResourceIsNull(&vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic)) && (m_presAltRefSurface))
+        {
+            vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic = *m_presAltRefSurface;
+        }
+        else
+        {
+            m_presAltRefSurface    = &(vp8RefList[altRefPicIndex]->resRefPic);
+        }
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
