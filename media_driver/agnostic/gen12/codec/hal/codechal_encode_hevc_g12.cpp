@@ -37,7 +37,7 @@
 #include "mhw_vdbox_g12_X.h"
 #include "mhw_mi_g12_X.h"
 #include "mhw_render_g12_X.h"
-#include "media_user_settings_mgr_g12.h"
+#include "mos_util_user_interface_g12.h"
 #include "cm_queue_rt.h"
 #include "codechal_debug.h"
 

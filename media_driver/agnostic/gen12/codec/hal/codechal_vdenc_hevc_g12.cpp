@@ -36,7 +36,7 @@
 #include "mhw_mi_g12_X.h"
 #include "mhw_render_g12_X.h"
 #include "codechal_mmc_encode_hevc_g12.h"
-#include "media_user_settings_mgr_g12.h"
+#include "mos_util_user_interface_g12.h"
 #include "mhw_mmio_g12.h"
 
 const uint32_t CodechalVdencHevcStateG12::m_VdboxVDENCRegBase[4] = M_VDBOX_VDENC_REG_BASE;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,25 +20,24 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_util_user_interface.cpp
+//! \file     mos_util_user_interface_next.cpp
 //! \brief    Common MOS util user feature key service across different platform
 //!
 
-#include "mos_os.h"
-#include "mos_util_user_interface.h"
+#include "mos_os_next.h"
+#include "mos_util_user_interface_next.h"
 #include "media_interfaces_mosutil.h"
 
-std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  MosUtilUserInterface::m_userFeatureKeyMap;
-MosUtilUserInterface* MosUtilUserInterface::m_inst = nullptr;
-uint32_t MosUtilUserInterface::m_refCount = 0;
-bool MosUtilUserInterface::m_defaultValueChanged = false;
+std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  MosUtilUserInterfaceNext::m_userFeatureKeyMap;
+MosUtilUserInterfaceNext* MosUtilUserInterfaceNext::m_inst = nullptr;
+uint32_t MosUtilUserInterfaceNext::m_refCount = 0;
+bool MosUtilUserInterfaceNext::m_defaultValueChanged = true;
 
-MosUtilUserInterface::MosUtilUserInterface()
+MosUtilUserInterfaceNext::MosUtilUserInterfaceNext()
 {
-
 }
 
-MOS_STATUS MosUtilUserInterface::AddEntry(const uint32_t keyId, PMOS_USER_FEATURE_VALUE userFeatureKey)
+MOS_STATUS MosUtilUserInterfaceNext::AddEntry(const uint32_t keyId, PMOS_USER_FEATURE_VALUE userFeatureKey)
 {
     auto result = m_userFeatureKeyMap.find(keyId);
 
@@ -57,7 +56,7 @@ MOS_STATUS MosUtilUserInterface::AddEntry(const uint32_t keyId, PMOS_USER_FEATUR
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosUtilUserInterface::DelEntry(const uint32_t keyId)
+MOS_STATUS MosUtilUserInterfaceNext::DelEntry(const uint32_t keyId)
 {
     auto result = m_userFeatureKeyMap.find(keyId);
 
@@ -73,7 +72,7 @@ MOS_STATUS MosUtilUserInterface::DelEntry(const uint32_t keyId)
     return MOS_STATUS_SUCCESS;
 }
 
-PMOS_USER_FEATURE_VALUE MosUtilUserInterface::GetValue(uint32_t keyId)
+PMOS_USER_FEATURE_VALUE MosUtilUserInterfaceNext::GetValue(uint32_t keyId)
 {
     auto result = m_userFeatureKeyMap.find(keyId);
 
@@ -89,18 +88,18 @@ PMOS_USER_FEATURE_VALUE MosUtilUserInterface::GetValue(uint32_t keyId)
     return nullptr;
 }
 
-MosUtilUserInterface* MosUtilUserInterface::GetInstance(PRODUCT_FAMILY productFamily)
+MosUtilUserInterfaceNext* MosUtilUserInterfaceNext::GetInstance(PRODUCT_FAMILY productFamily)
 {
     if (m_refCount == 0 && m_inst == nullptr)
     {
-        m_inst = (MosUtilUserInterface*)MosUtilDevice::CreateFactory(productFamily);
+        m_inst = (MosUtilUserInterfaceNext*)MosUtilDevice::CreateFactory(productFamily);
     }
     ++m_refCount;
 
     return m_inst;
 }
 
-void MosUtilUserInterface::Destroy()
+void MosUtilUserInterfaceNext::Destroy()
 {
     if (m_refCount > 0)
     {

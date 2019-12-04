@@ -174,7 +174,7 @@ protected:
 class MosUtilDeviceG8Bdw : public MosUtilDevice
 {
 public:
-    using MosUtil = MediaUserSettingsMgr;
+    using MosUtil = MosUtilUserInterface;
 
     MOS_STATUS Initialize();
 };

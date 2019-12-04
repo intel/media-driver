@@ -27,7 +27,8 @@
 
 #include "mos_utilities.h"
 #include "mos_util_debug_next.h"
-#include "media_user_settings_mgr.h"
+#include "mos_utilities_specific_next.h"
+#include "mos_util_user_interface_next.h"
 #include <sstream>
 #include <fcntl.h>     //open
 #include <malloc.h>    // For memalign
@@ -3734,7 +3735,7 @@ MOS_STATUS MosUtilities::MOS_utilities_close()
 
     MOS_OS_FUNCTION_ENTER;
 
-    MediaUserSettingsMgr::MediaUserSettingClose();
+    MosUtilUserInterfaceNext::MosUtilUserInterfaceClose();
 
     // MOS_OS_Utilitlies_Close must be called right before end of function
     // Because Memninja will calc mem leak here.
@@ -4635,7 +4636,7 @@ MOS_STATUS MosUtilities::MosDeclareUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *ke
             keyValueMap[pUserFeatureKey->ValueID].pUserFeatureValue = pUserFeatureKey; // legacy path, keep for compatibilty temporally
         }
 #ifdef __cplusplus
-        MosUtilUserInterface::AddEntry(pUserFeatureKey->ValueID, pUserFeatureKey);
+        MosUtilUserInterfaceNext::AddEntry(pUserFeatureKey->ValueID, pUserFeatureKey);
 #endif
     }
     return eStatus;
@@ -4684,7 +4685,7 @@ MOS_STATUS MosUtilities::MosDestroyUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *ke
     //------------------------------
 
 #ifdef __cplusplus
-    MosUtilUserInterface::DelEntry(pUserFeatureKey->ValueID);
+    MosUtilUserInterfaceNext::DelEntry(pUserFeatureKey->ValueID);
 #endif
     if (keyValueMap)
     {
@@ -5549,7 +5550,7 @@ MOS_STATUS MosUtilities::MosUserFeatureReadValueFromMapID(
     //--------------------------------------------------
     iDataFlag = pValueData->i32DataFlag;
 #ifdef __cplusplus
-    pUserFeature = MosUtilUserInterface::GetValue(ValueID);
+    pUserFeature = MosUtilUserInterfaceNext::GetValue(ValueID);
 #else
     if (keyValueMap)
     {
@@ -5658,7 +5659,7 @@ const char* MosUtilities::MosUserFeatureLookupValueName(uint32_t ValueID)
     MOS_OS_ASSERT(ValueID != __MOS_USER_FEATURE_KEY_INVALID_ID);
 
 #ifdef __cplusplus
-    PMOS_USER_FEATURE_VALUE pUserFeature = MosUtilUserInterface::GetValue(ValueID);
+    PMOS_USER_FEATURE_VALUE pUserFeature = MosUtilUserInterfaceNext::GetValue(ValueID);
     if (pUserFeature)
     {
         return pUserFeature->pValueName;
@@ -5702,7 +5703,7 @@ MOS_STATUS MosUtilities::MosUserFeatureWriteValuesTblID(
     {
         ValueID = pWriteValues[ui].ValueID;
 #ifdef __cplusplus
-        pUserFeature = MosUtilUserInterface::GetValue(ValueID);
+        pUserFeature = MosUtilUserInterfaceNext::GetValue(ValueID);
 #else
         if (keyValueMap)
         {

@@ -21,25 +21,22 @@
 */
 
 //!
-//! \file     media_user_settings_mgr_g12.h
+//! \file     mos_util_user_interface_g12.h
 //! \brief    Common user feature interface on Gen12 platform
 //!
-#ifndef __MEDIA_USER_SETTINGS_MGR_G12_H__
-#define __MEDIA_USER_SETTINGS_MGR_G12_H__
+#ifndef __MOS_UTIL_USER_INTERFACE_G12_H__
+#define __MOS_UTIL_USER_INTERFACE_G12_H__
 
-#include "media_user_settings_mgr.h"
+#include "mos_util_user_interface.h"
 
-class MediaUserSettingsMgr_g12 : public MediaUserSettingsMgr
+class MosUtilUserInterface_g12:public MosUtilUserInterface
 {
 public:
-    MediaUserSettingsMgr_g12();
-    virtual ~MediaUserSettingsMgr_g12();
+    MosUtilUserInterface_g12();
+    virtual ~MosUtilUserInterface_g12();
 
 protected:
-    virtual bool SetDefaultValueChanged()
-    {
-        return MosUtilUserInterface::SetDefaultValueChanged(true);
-    }
+
 
 };
 
@@ -100,6 +97,8 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID_G12
     __MOS_USER_FEATURE_KEY_G12_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID_G12;
 
-#define MOS_NUM_USER_FEATURE_VALUES_G12 (__MOS_USER_FEATURE_KEY_G12_MAX_ID - __MOS_USER_FEATURE_KEY_INVALID_ID_G12 - 1)
+#define MOS_NUM_USER_FEATURE_VALUES_G12 (__MOS_USER_FEATURE_KEY_G12_MAX_ID - __MOS_USER_FEATURE_KEY_INVALID_ID_G12 - 1) 
 
-#endif // __MEDIA_USER_SETTINGS_MGR_G12_H__
+extern MOS_USER_FEATURE_VALUE MOSUserFeatureValueDescFields_g12[MOS_NUM_USER_FEATURE_VALUES_G12];
+
+#endif // __MOS_UTIL_USER_INTERFACE_G12_H__

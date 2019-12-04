@@ -31,7 +31,7 @@
 #include "mhw_render_g12_X.h"
 #include "codeckrnheader.h"
 #include "igcodeckrn_g12.h"
-#include "media_user_settings_mgr_g12.h"
+#include "mos_util_user_interface_g12.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g12.h"
 #include "mhw_vdbox_mfx_hwcmd_g12_X.h"

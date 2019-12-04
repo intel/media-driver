@@ -21,14 +21,14 @@
 */
 
 //!
-//! \file     media_user_settings_mgr_g12.cpp
+//! \file     mos_util_user_interface_g12.cpp
 //! \brief    Common user feature interface on Gen12 platform
 //!
 
 #include "mos_utilities.h"
-#include "media_user_settings_mgr_g12.h"
+#include "mos_util_user_interface_g12.h"
 
-static MOS_USER_FEATURE_VALUE MOSUserFeatureValueDescFields_g12[MOS_NUM_USER_FEATURE_VALUES_G12] =
+MOS_USER_FEATURE_VALUE MOSUserFeatureValueDescFields_g12[MOS_NUM_USER_FEATURE_VALUES_G12] =
 {
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID_G12,
      "Force VEBOX",
@@ -440,15 +440,16 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureValueDescFields_g12[MOS_NUM_USER_FEA
      "Disabling SFC DTR output. 1: Disable, 0: Enable."),
 };
 
-MediaUserSettingsMgr_g12::MediaUserSettingsMgr_g12()
+MosUtilUserInterface_g12::MosUtilUserInterface_g12()
 {
+
     MOS_STATUS eStatus = MOS_DeclareUserFeatureKeysFromDescFields(
         MOSUserFeatureValueDescFields_g12,
         MOS_NUM_USER_FEATURE_VALUES_G12,
         __MOS_USER_FEATURE_KEY_G12_MAX_ID,
         nullptr);
 
-    MosUtilUserInterface::SetDefaultValueChanged(true);
+    m_defaultValueChanged = true;
 
     if (MOS_FAILED(eStatus))
     {
@@ -457,7 +458,7 @@ MediaUserSettingsMgr_g12::MediaUserSettingsMgr_g12()
 
 }
 
-MediaUserSettingsMgr_g12::~MediaUserSettingsMgr_g12()
+MosUtilUserInterface_g12::~MosUtilUserInterface_g12()
 {
 
     MOS_STATUS eStatus = MOS_DestroyUserFeatureKeysFromDescFields(

@@ -20,19 +20,34 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_user_settings_mgr.h
-//! \brief    Common MOS util user feature key service across different platform
+//! \file     mos_util_user_interface_next.h
+//! \brief    Common MOS util user feature key service across different platform 
+//! \details  Common MOS util user feature key service across different platform
 //!
+#ifndef __MOS_UTIL_USER_INTERFACE_NEXT_H__
+#define __MOS_UTIL_USER_INTERFACE_NEXT_H__
 
-#ifndef __MEDIA_USER_SETTINGS_MGR_H__
-#define __MEDIA_USER_SETTINGS_MGR_H__
+#include "igfxfmid.h"
+#include "mos_utilities.h"
+#include <map>
 
-#include "mos_util_user_interface.h"
-
-class MediaUserSettingsMgr
+class MosUtilUserInterfaceNext
 {
 public:
-    virtual MOS_STATUS Initialize() { return MOS_STATUS_SUCCESS; }
+    MosUtilUserInterfaceNext();
+    virtual ~MosUtilUserInterfaceNext() {}
+
+    static MosUtilUserInterfaceNext *GetInstance(PRODUCT_FAMILY productFamily = IGFX_MAX_PRODUCT);
+
+    static void Destroy();
+
+    static MOS_STATUS AddEntry(uint32_t keyId, PMOS_USER_FEATURE_VALUE userFeatureKey);
+    static MOS_STATUS DelEntry(uint32_t keyId);
+
+    static PMOS_USER_FEATURE_VALUE GetValue(uint32_t keyId);
+
+    virtual MOS_STATUS Initialize() {return MOS_STATUS_SUCCESS;}
+    static bool  IsDefaultValueChanged() { return m_defaultValueChanged; }
 
     //!
     //! \brief    Init Function for MOS utilities user interface
@@ -43,7 +58,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MediaUserSettingsInit(PRODUCT_FAMILY productFamily = IGFX_MAX_PRODUCT);
+    static MOS_STATUS MosUtilUserInterfaceInit(PRODUCT_FAMILY productFamily = IGFX_MAX_PRODUCT);
 
     //!
     //! \brief    Close Function for MOS util user interface
@@ -52,23 +67,21 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MediaUserSettingClose();
-
-    static bool      IsDefaultValueChanged()
-    {
-        return MosUtilUserInterface::IsDefaultValueChanged();
-    }
-
-    MediaUserSettingsMgr();
-    virtual ~MediaUserSettingsMgr();
+    static MOS_STATUS MosUtilUserInterfaceClose();
 
 private:
-    static MOS_STATUS Destroy();
+    static MosUtilUserInterfaceNext* m_inst;
+    static uint32_t              m_refCount;    // UMD entry could be multi-threaded, need reference count to keep only do initialization once.
+    static std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  m_userFeatureKeyMap;
 
+protected:
+    static bool  m_defaultValueChanged;
 private:
-    static MosMutex m_userFeatureMutexLock;  // brief mutex for mos util user interface multi-threading protection
-    static uint32_t m_userFeatureRefCount;   // If there are more than one VPHAL state created, need reference count to keep only do initialization once
-    static MediaUserSettingsMgr *m_inst;
+    static MosMutexNext m_mutexLock;
 };
 
-#endif  //__MEDIA_USER_SETTINGS_MGR_H__
+
+
+
+
+#endif // __MOS_UTIL_USER_INTERFACE_NEXT_H__

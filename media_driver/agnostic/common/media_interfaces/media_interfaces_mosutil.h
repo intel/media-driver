@@ -28,7 +28,7 @@
 #define __MEDIA_INTERFACES_MOSUTIL_H__
 
 #include <map>
-#include "media_user_settings_mgr.h"
+#include "mos_util_user_interface.h"
 #include "media_interfaces.h"
 
 //!
@@ -61,6 +61,8 @@ public:
 
 };
 
+
 extern template class MediaInterfacesFactory<MosUtilDevice>;
+
 
 #endif // __MEDIA_INTERFACES_MOSUTIL_H__

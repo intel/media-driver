@@ -54,7 +54,7 @@
 #include "mos_solo_generic.h"
 #include "media_libva_caps.h"
 #include "media_interfaces_mmd.h"
-#include "media_user_settings_mgr.h"
+#include "mos_util_user_interface.h"
 #include "cplib_utils.h"
 #include "media_interfaces.h"
 #include "mos_interface.h"
@@ -1360,7 +1360,7 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
-    MediaUserSettingsMgr::MediaUserSettingsInit(platform.eProductFamily);
+    MosUtilUserInterfaceInit(platform.eProductFamily);
 
     mediaCtx->platform = platform;
 

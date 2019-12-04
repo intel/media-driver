@@ -26,8 +26,11 @@
 //!
 #ifndef __MOS_UTILITIES_NEXT_H__
 #define __MOS_UTILITIES_NEXT_H__
+
 #include "mos_utilities_common.h"
 #include "mos_utilities_specific.h"
+#include "mos_utilities_specific_next.h"
+#include "mos_util_user_feature_keys.h"
 #include "mos_resource_defs.h"
 #include "mos_os_trace_event.h"
 
@@ -37,8 +40,7 @@
 // ABSTRACT: Is an abstraction to read and write system level settings relating
 //      to GEN media driver.
 //------------------------------------------------------------------------------
-class MediaUserSettingsMgr;
-class MosMutex;
+
 class MosUtilities
 {
 public:
@@ -2397,14 +2399,11 @@ public:
     static int32_t m_mosSimulateRandomAllocMemoryFailFreq;
 
 private:
-    static MosMutex m_mutexLock;
+    static MosMutexNext m_mutexLock;
     static char m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE];
     static MOS_USER_FEATURE_VALUE_MAP m_userFeatureKeysMap[__MOS_USER_FEATURE_KEY_MAX_ID];
     static MOS_USER_FEATURE_VALUE m_mosUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MAX_ID];
     static uint32_t m_mosUtilInitCount; // number count of mos utilities init
-    static MediaUserSettingsMgr      *m_codecUserFeatureExt;
-    static MediaUserSettingsMgr      *m_vpUserFeatureExt;
-    static MediaUserSettingsMgr      *m_cpUserFeatureExt;
 #if (_DEBUG || _RELEASE_INTERNAL)
     static uint32_t m_mosAllocMemoryFailSimulateMode;
     static uint32_t m_mosAllocMemoryFailSimulateFreq;

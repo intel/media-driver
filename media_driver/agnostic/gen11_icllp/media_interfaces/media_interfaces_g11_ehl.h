@@ -196,7 +196,7 @@ protected:
 class MosUtilDeviceG11Ehl : public MosUtilDevice
 {
 public:
-    using MosUtil = MediaUserSettingsMgr;
+    using MosUtil = MosUtilUserInterface;
 
     MOS_STATUS Initialize();
 };

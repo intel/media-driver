@@ -37,8 +37,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #if _MEDIA_RESERVED
-#include "codechal_user_settings_mgr_ext.h"
-#include "vphal_user_settings_mgr_ext.h"
+#include "codechal_util_user_interface_ext.h"
+#include "mos_util_user_interface_next.h"
 #endif // _MEDIA_RESERVED
 #include <sys/ipc.h>   // System V IPC
 #include <sys/types.h>
@@ -83,11 +83,14 @@ static int32_t MosTraceFd = -1;
 #define MOSd64     __MOS64_PREFIX "d"
 #define MOSu64     __MOS64_PREFIX "u"
 
+#if _MEDIA_RESERVED
+MosUtilUserInterfaceNext  *MosUtilitiesSpecificNext::m_utilUserInterface = nullptr;
+#endif // _MEDIA_RESERVED
 
 //!
 //! \brief mutex for mos utilities multi-threading protection
 //!
-MosMutex MosUtilities::m_mutexLock;
+MosMutexNext MosUtilities::m_mutexLock = PTHREAD_MUTEX_INITIALIZER;
 
 uint32_t MosUtilities::m_mosUtilInitCount = 0; // number count of mos utilities init
 
@@ -1314,7 +1317,7 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Init()
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
 
     // lock mutex to avoid multi init in multi-threading env
-    m_mutexLock.Lock();
+    MosLockMutex(&m_mutexLock);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Get use user feature file from env, instead of default.
@@ -1348,11 +1351,6 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Init()
         //Init MOS User Feature Key from mos desc table
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
 
-#if _MEDIA_RESERVED
-        m_codecUserFeatureExt = new CodechalUserSettingsMgr();
-        m_vpUserFeatureExt    = new VphalUserSettingsMgr();
-#endif
-
         eStatus = MosGenerateUserFeatureKeyXML();
 #if MOS_MESSAGES_ENABLED
         // Initialize MOS message params structure and HLT
@@ -1366,7 +1364,7 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Init()
     m_mosUtilInitCount++;
 
 finish:
-    m_mutexLock.Unlock();
+    MosUnlockMutex(&m_mutexLock);
     return eStatus;
 }
 
@@ -1377,7 +1375,7 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Close()
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     // lock mutex to avoid multi close in multi-threading env
-    m_mutexLock.Lock();
+    MosLockMutex(&m_mutexLock);
     m_mosUtilInitCount--;
     if (m_mosUtilInitCount == 0)
     {
@@ -1394,16 +1392,7 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Close()
 
         eStatus = MosDestroyUserFeatureKeysForAllDescFields();
 #if _MEDIA_RESERVED
-        if (m_codecUserFeatureExt)
-        {
-            delete m_codecUserFeatureExt;
-            m_codecUserFeatureExt = nullptr;
-        }
-        if (m_vpUserFeatureExt)
-        {
-            delete m_vpUserFeatureExt;
-            m_vpUserFeatureExt = nullptr;
-        }
+        if (MosUtilitiesSpecificNext::m_utilUserInterface) delete MosUtilitiesSpecificNext::m_utilUserInterface;
 #endif // _MEDIA_RESERVED
 #if (_DEBUG || _RELEASE_INTERNAL)
         // MOS maintains a reference counter,
@@ -1413,7 +1402,7 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Close()
         MOS_FreeMemory(MosUtilitiesSpecificNext::m_ufKeyOps);
         MosUtilitiesSpecificNext::m_ufKeyOps = nullptr;
     }
-    m_mutexLock.Unlock();
+    MosUnlockMutex(&m_mutexLock);
     return eStatus;
 }
 
