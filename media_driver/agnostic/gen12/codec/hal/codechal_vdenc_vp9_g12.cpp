@@ -648,11 +648,13 @@ MOS_STATUS CodechalVdencVp9StateG12::InitKernelStates()
     // KUID for HME + DS + SW SCOREBOARD Kernel
     m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     // DYS
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateDys());
 
     // SHME
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
+#endif
 
     return eStatus;
 }
@@ -664,6 +666,7 @@ uint32_t CodechalVdencVp9StateG12::GetMaxBtCount()
     CODECHAL_ENCODE_FUNCTION_ENTER;
     uint32_t maxBtCount = 0;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     if (m_hmeSupported)
     {
         uint32_t scalingBtCount = 0;
@@ -692,6 +695,7 @@ uint32_t CodechalVdencVp9StateG12::GetMaxBtCount()
         }
         maxBtCount = scalingBtCount + meBtCount;
     }
+#endif
 
     return maxBtCount;
 }
@@ -964,6 +968,7 @@ MOS_STATUS CodechalVdencVp9StateG12::InitKernelStateMe()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderEngineInterface->GetHwCaps());
 
     uint32_t combinedKernelSize = 0;
@@ -1033,6 +1038,7 @@ MOS_STATUS CodechalVdencVp9StateG12::InitKernelStateMe()
     bindingTable->dwMEBwdRefPicIdx[1] = CODECHAL_ENCODE_ME_BWD_REF_IDX1_G12;
     bindingTable->dwVdencStreamInSurface = CODECHAL_ENCODE_ME_VDENC_STREAMIN_OUTPUT_G12;
     bindingTable->dwVdencStreamInInputSurface = CODECHAL_ENCODE_ME_VDENC_STREAMIN_INPUT_G12;
+#endif
 
     return eStatus;
 }
@@ -1925,6 +1931,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     uint32_t dumpFormat = 0;
     CODECHAL_DEBUG_TOOL(
     //    CodecHal_DbgMapSurfaceFormatToDumpFormat(m_rawSurfaceToEnc->Format, &dumpFormat);
@@ -2013,6 +2020,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
         m_waitForEnc = true;
     }
+#endif
 
     return eStatus;
 }
