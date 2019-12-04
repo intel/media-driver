@@ -1374,17 +1374,25 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(gpuCtxCreatOpts);
     CODECHAL_DECODE_CHK_NULL_RETURN(codecHalSetting);
-    bool sfcInUse = codecHalSetting->sfcInUseHinted && codecHalSetting->downsamplingHinted 
-                       && (MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrSFCPipe) 
+    bool sfcInUse = codecHalSetting->sfcInUseHinted && codecHalSetting->downsamplingHinted
+                       && (MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrSFCPipe)
                        && !MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrDisableVDBox2SFC));
-#if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface    = pScalState->pHwInterface->GetOsInterface();
+    MEDIA_FEATURE_TABLE *m_skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+#if (_DEBUG || _RELEASE_INTERNAL)
     if (pOsInterface->bEnableDbgOvrdInVE)
     {
         PMOS_VIRTUALENGINE_INTERFACE pVEInterface = pScalState->pVEInterface;
         CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface);
         gpuCtxCreatOpts->DebugOverride      = true;
-        gpuCtxCreatOpts->UsingSFC           = sfcInUse; // this param ignored when dbgoverride enabled
+        if (MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
+        {
+            gpuCtxCreatOpts->UsingSFC = false;// this param ignored when dbgoverride enabled
+        }
+        else
+        {
+            gpuCtxCreatOpts->UsingSFC = sfcInUse;  // this param ignored when dbgoverride enabled
+        }
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDebugOvrdDecidePipeNum(pScalState));
 
         if (g_apoMosEnabled)
@@ -1406,7 +1414,14 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
     else
 #endif
     {
-        gpuCtxCreatOpts->UsingSFC  = sfcInUse;
+        if (MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
+        {
+            gpuCtxCreatOpts->UsingSFC = false;
+        }
+        else
+        {
+            gpuCtxCreatOpts->UsingSFC = sfcInUse;
+        }
 
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = MOS_ALIGN_CEIL(codecHalSetting->width, 8);

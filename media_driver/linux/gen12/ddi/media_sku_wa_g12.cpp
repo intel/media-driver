@@ -209,6 +209,7 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrVp16BitSupport, 1);
 
     MEDIA_WR_SKU(skuTable, FtrContextBasedScheduling, 1);
+    MEDIA_WR_SKU(skuTable, FtrSfcScalability, 1);
     // Enable context based scheduling when vebox scalabilitiy enable due to KMD didn't support GUC submission yet
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
