@@ -3218,16 +3218,11 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
 
                 if (m_numPipe > 1)
                 {
-                    // Clear the tile row BRC update sync semaphore
-                    if (IsFirstPipe())
-                    {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(&m_resTileRowBRCsyncSemaphore, &tileBatchBuf, 0x0));
-                    }
-
                     //wait for last tile row BRC update completion
                     if ((!IsFirstPipe()) && (!IsFirstPassForTileReplay()))
                     {
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(&m_resTileRowBRCsyncSemaphore, &tileBatchBuf, 0xFF));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(&m_resTileRowBRCsyncSemaphore, &tileBatchBuf, 0x0));
                     }
                 }
 
@@ -3276,6 +3271,13 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                 {
                     m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&tileBatchBuf, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx]));
+
+                    if (m_hevcRdoqEnabled)
+                    {
+                        MHW_VDBOX_HEVC_PIC_STATE_G12 picStateParams;
+                        SetHcpPicStateParams(picStateParams);
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcVp9RdoqStateCmd(&tileBatchBuf, &picStateParams));
+                    }
                 }
 
                 // HCP_TILE_CODING commmand
@@ -3452,8 +3454,34 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
+    // Set the HW semaphore to indicate current pipe done
+    if (m_numPipe > 1)
+    {
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.bVideoPipelineCacheInvalidate = true;
+        if (!Mos_ResourceIsNull(&m_resVdBoxSemaphoreMem[currentPipe].sResource))
+        {
+            flushDwParams.pOsResource = &m_resVdBoxSemaphoreMem[currentPipe].sResource;
+            flushDwParams.dwDataDW1   = 0xFF;
+        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+    }
+
     if (IsFirstPipe())
     {
+        // first pipe needs to ensure all other pipes are ready
+        if (m_numPipe > 1)
+        {
+            for (uint32_t i = 0; i < m_numPipe; i++)
+            {
+                if (!Mos_ResourceIsNull(&m_resVdBoxSemaphoreMem[i].sResource))
+                {
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(&m_resVdBoxSemaphoreMem[i].sResource, &cmdBuffer, 0xFF));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(&m_resVdBoxSemaphoreMem[i].sResource, &cmdBuffer, 0x0));
+                }
+            }
+        }
+
         // Whenever ACQP/ BRC is enabled with tiling, PAK Integration kernel is needed.
         // ACQP/ BRC need PAK integration kernel to aggregate statistics
         if (m_vdencHucUsed)
