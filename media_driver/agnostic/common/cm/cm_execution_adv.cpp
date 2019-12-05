@@ -439,7 +439,7 @@ int CmExecutionAdv::SubmitTask(CMRT_UMD::CmQueueRT *queue,
             uint32_t dcount = 0;
             if (ts != nullptr)
             {
-                CM_HAL_DEPENDENCY *dependency = nullptr;
+                CM_HAL_DEPENDENCY *dependency;
                 ts->GetDependency(dependency);
                 dcount = dependency->count;
             }

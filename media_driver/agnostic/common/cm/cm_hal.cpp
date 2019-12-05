@@ -8138,8 +8138,8 @@ MOS_STATUS HalCm_ExecuteTask(
     int32_t                 taskId;
     int32_t                 remBindingTables;
     int32_t                 bindingTable;
-    int32_t                 bti = 0;
-    int32_t                 mediaID = 0;
+    int32_t                 bti;
+    int32_t                 mediaID;
     PRENDERHAL_KRN_ALLOCATION krnAllocations[CM_MAX_KERNELS_PER_TASK];
     uint32_t                vfeCurbeSize;
     uint32_t                maxInlineDataSize, maxIndirectDataSize;
@@ -8458,8 +8458,8 @@ MOS_STATUS HalCm_ExecuteGroupTask(
     int32_t                 taskId;
     uint32_t                remBindingTables;
     int32_t                 bindingTable;
-    int32_t                 bti = 0;
-    int32_t                 mediaID = 0;
+    int32_t                 bti;
+    int32_t                 mediaID;
     PRENDERHAL_MEDIA_STATE  mediaState = nullptr;
     uint32_t                i;
     void                    *cmdBuffer   = nullptr;
