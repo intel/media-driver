@@ -389,3 +389,12 @@ static bool ehlDevice4551 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool ehlDevice4541 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x4541, &ehlDevInfo);
+
+static bool ehlDevice4E51 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4E51, &ehlDevInfo);
+
+static bool ehlDevice4E61 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4E61, &ehlDevInfo);
+
+static bool ehlDevice4E71 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4E71, &ehlDevInfo);
