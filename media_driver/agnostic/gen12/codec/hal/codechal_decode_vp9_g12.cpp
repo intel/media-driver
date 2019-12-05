@@ -177,8 +177,7 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
 #ifdef _MMC_SUPPORTED
     if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, WaClearCcsVe) && 
         !Mos_ResourceIsNull(&m_destSurface.OsResource) && 
-        m_destSurface.OsResource.bConvertedFromDDIResource &&
-        !m_osInterface->osCpInterface->IsHMEnabled())
+        m_destSurface.OsResource.bConvertedFromDDIResource)
     {
         CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(m_osInterface, &m_destSurface.OsResource));
@@ -623,22 +622,6 @@ MOS_STATUS CodechalDecodeVp9G12::SetFrameStates()
         if(m_decodeHistogram)
             m_decodeHistogram->SetSrcHistogramSurface(m_histogramSurface);
 
-    }
-#endif
-
-#ifdef _MMC_SUPPORTED
-    // TGL A0 has HW issue, need initialize the aux data of protected surfaces as WA.
-    if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_hwInterface->GetWaTable(), WaSecureDecodeTDR) &&
-        m_decodeParams.m_destSurface && !Mos_ResourceIsNull(&m_decodeParams.m_destSurface->OsResource) &&
-        m_secureDecoder && m_osInterface->osCpInterface->IsHMEnabled())
-    {
-        MOS_COMMAND_BUFFER cmdBuffer;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_decodeParams.m_destSurface->OsResource, &cmdBuffer));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
-        m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, 0));
     }
 #endif
 
