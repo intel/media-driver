@@ -21,11 +21,13 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.h
 )
 
 set(SOURCES_

@@ -247,7 +247,7 @@ protected:
 class MosUtilDeviceG11Icllp : public MosUtilDevice
 {
 public:
-    using MosUtil = MosUtilUserInterface;
+    using MosUtil = MediaUserSettingsMgr;
 
     MOS_STATUS Initialize();
 };

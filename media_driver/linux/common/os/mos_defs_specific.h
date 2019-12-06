@@ -30,7 +30,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-typedef pthread_mutex_t         MOS_MUTEX, *PMOS_MUTEX, MosMutex;         //!< mutex pointer
+typedef pthread_mutex_t         MOS_MUTEX, *PMOS_MUTEX;         //!< mutex pointer
 typedef sem_t                   MOS_SEMAPHORE, *PMOS_SEMAPHORE;           //!< semaphore pointer
 typedef pthread_t               MOS_THREADHANDLE;                         //!< thread handle
 typedef uint32_t                UFKEY, *PUFKEY;                           //!< Handle of user feature key

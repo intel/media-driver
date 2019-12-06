@@ -34,48 +34,60 @@
 class MosUtilUserInterface
 {
 public:
-    MosUtilUserInterface();
-    virtual ~MosUtilUserInterface() {}
+    MosUtilUserInterface() = default;
+    virtual ~MosUtilUserInterface() = default;
 
-    static MosUtilUserInterface *GetInstance(PRODUCT_FAMILY productFamily = IGFX_MAX_PRODUCT);
-
-    static void Destroy();
-
+    //!
+    //! \brief    Add a user feature key to the m_userFeatureKeyMap
+    //! \details  Each component call MOS_DeclareUserFeatureKeysFromDescFields to add their specifc user key vlaue to the m_userFeatureKeyMap
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
     static MOS_STATUS AddEntry(uint32_t keyId, PMOS_USER_FEATURE_VALUE userFeatureKey);
+
+    //!
+    //! \brief    Del a user feature key from the m_userFeatureKeyMap
+    //! \details  Each component call MOS_DestroyUserFeatureKeysFromDescFields to delete their regostered user key from the m_userFeatureKeyMap
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
     static MOS_STATUS DelEntry(uint32_t keyId);
 
+    //!
+    //! \brief    Get a user feature key from the m_userFeatureKeyMap
+    //! \details  Get a user feature key from the m_userFeatureKeyMap
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
     static PMOS_USER_FEATURE_VALUE GetValue(uint32_t keyId);
 
-    virtual MOS_STATUS Initialize() {return MOS_STATUS_SUCCESS;}
+    //!
+    //! \brief    Set if default value can be changed
+    //! \details  true if default value can be changed, false if it cannot be changed
+    //! \return   bool
+    //!           Returns if default value can be changed.
+    //!
+    static bool SetDefaultValueChanged(bool bChanged = false)
+    {
+        return m_defaultValueChanged = bChanged;
+    }
+
+    //!
+    //! \brief    Get if default value can be changed
+    //! \details  true if default value can be changed, false if it cannot be changed
+    //! \return   bool
+    //!           Returns if default value can be changed.
+    //!
     static bool  IsDefaultValueChanged() { return m_defaultValueChanged; }
 
 private:
-    static MosUtilUserInterface* m_inst;
-    static uint32_t              m_refCount;    // UMD entry could be multi-threaded, need reference count to keep only do initialization once.
     static std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  m_userFeatureKeyMap;
-
-protected:
-    static bool  m_defaultValueChanged;
+    static MosMutex                                     m_mosMutex;
+    static bool                                         m_defaultValueChanged;
 };
 
-//!
-//! \brief    Init Function for MOS utilities user interface
-//! \details  Initial MOS utilities user interface related structures, and only execute once for multiple entries
-//! \param    [in] platform
-//!           Pointer to current platform info. Will use default platform when it's nullptr
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MosUtilUserInterfaceInit(PRODUCT_FAMILY productFamily = IGFX_MAX_PRODUCT);
-
-//!
-//! \brief    Close Function for MOS util user interface
-//! \details  close/remove MOS utilities user interface related structures, and only execute once for multiple entries
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MosUtilUserInterfaceClose();
 
 #endif // __MOS_UTIL_USER_INTERFACE_H__

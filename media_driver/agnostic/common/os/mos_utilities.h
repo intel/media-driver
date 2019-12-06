@@ -27,7 +27,6 @@
 #ifndef __MOS_UTILITIES_H__
 #define __MOS_UTILITIES_H__
 #include "mos_utilities_common.h"
-#include "mos_defs.h"
 #include "mos_util_user_feature_keys.h"
 #include "mos_resource_defs.h"
 #include "mos_util_debug.h"
@@ -2147,6 +2146,33 @@ void MOS_GfxInfo(
     uint32_t        tmtryID,
     uint8_t         num_of_triples,
     ...);
+
+class MosMutex
+{
+public:
+    MosMutex(void)
+    {
+        m_lock = MOS_CreateMutex();
+    }
+
+    ~MosMutex()
+    {
+        MOS_DestroyMutex(m_lock);
+    }
+
+    void Lock()
+    {
+        MOS_LockMutex(m_lock);
+    }
+
+    void Unlock()
+    {
+        MOS_UnlockMutex(m_lock);
+    }
+
+private:
+    PMOS_MUTEX m_lock = nullptr;
+};
 
 #ifdef __cplusplus
 }

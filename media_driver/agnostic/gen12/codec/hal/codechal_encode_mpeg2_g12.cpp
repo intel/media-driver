@@ -30,7 +30,6 @@
 #include "codechal_mmc_encode_mpeg2_g12.h"
 #include "mhw_render_g12_X.h"
 #include "igcodeckrn_g12.h"
-#include "mos_util_user_interface_g12.h"
 #include "codeckrnheader.h"
 
 struct KernelHeader

@@ -26,20 +26,14 @@
 
 #include "mos_os.h"
 #include "mos_util_user_interface.h"
-#include "media_interfaces_mosutil.h"
 
-std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  MosUtilUserInterface::m_userFeatureKeyMap;
-MosUtilUserInterface* MosUtilUserInterface::m_inst = nullptr;
-uint32_t MosUtilUserInterface::m_refCount = 0;
-bool MosUtilUserInterface::m_defaultValueChanged = false;
-
-MosUtilUserInterface::MosUtilUserInterface()
-{
-
-}
+std::map<uint32_t, PMOS_USER_FEATURE_VALUE> MosUtilUserInterface::m_userFeatureKeyMap;
+MosMutex                                    MosUtilUserInterface::m_mosMutex;
+bool                                        MosUtilUserInterface::m_defaultValueChanged = false;
 
 MOS_STATUS MosUtilUserInterface::AddEntry(const uint32_t keyId, PMOS_USER_FEATURE_VALUE userFeatureKey)
 {
+    m_mosMutex.Lock();
     auto result = m_userFeatureKeyMap.find(keyId);
 
     if (result == m_userFeatureKeyMap.end())
@@ -51,14 +45,18 @@ MOS_STATUS MosUtilUserInterface::AddEntry(const uint32_t keyId, PMOS_USER_FEATUR
         MOS_OS_NORMALMESSAGE("User feature key already exist, replacing the old one.");
         m_userFeatureKeyMap.erase(keyId);
         m_userFeatureKeyMap.insert(std::make_pair(keyId, userFeatureKey));
+        m_mosMutex.Unlock();
         return MOS_STATUS_SUCCESS;
     }
+    m_mosMutex.Unlock();
 
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MosUtilUserInterface::DelEntry(const uint32_t keyId)
 {
+    m_mosMutex.Lock();
+
     auto result = m_userFeatureKeyMap.find(keyId);
 
     if (result != m_userFeatureKeyMap.end())
@@ -67,48 +65,33 @@ MOS_STATUS MosUtilUserInterface::DelEntry(const uint32_t keyId)
     }
     else
     {
+        m_mosMutex.Unlock();
         return MOS_STATUS_SUCCESS;
     }
+    m_mosMutex.Unlock();
 
     return MOS_STATUS_SUCCESS;
 }
 
 PMOS_USER_FEATURE_VALUE MosUtilUserInterface::GetValue(uint32_t keyId)
 {
+    m_mosMutex.Lock();
+
     auto result = m_userFeatureKeyMap.find(keyId);
 
     if (result != m_userFeatureKeyMap.end())
     {
-        return result->second;
+        auto userFeatureValue = result->second;
+        m_mosMutex.Unlock();
+
+        return userFeatureValue;
     }
     else
     {
+        m_mosMutex.Unlock();
         return nullptr;
     }
+    m_mosMutex.Unlock();
 
     return nullptr;
-}
-
-MosUtilUserInterface* MosUtilUserInterface::GetInstance(PRODUCT_FAMILY productFamily)
-{
-    if (m_refCount == 0 && m_inst == nullptr)
-    {
-        m_inst = (MosUtilUserInterface*)MosUtilDevice::CreateFactory(productFamily);
-    }
-    ++m_refCount;
-
-    return m_inst;
-}
-
-void MosUtilUserInterface::Destroy()
-{
-    if (m_refCount > 0)
-    {
-        --m_refCount;
-        if (m_refCount == 0 && m_inst)
-        {
-            MOS_Delete(m_inst);
-            m_inst = nullptr;
-        }
-    }
 }
