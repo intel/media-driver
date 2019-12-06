@@ -31,7 +31,9 @@
 #include "codechal_kernel_header_g12.h"
 #include "codechal_kernel_hme_g12.h"
 #include "codechal_debug.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
+#endif
 #include "codeckrnheader.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
@@ -8067,7 +8069,11 @@ CodechalEncHevcStateG12::CodechalEncHevcStateG12(
     m_2xMeSupported =
         m_useCommonKernel = true;
     m_useHwScoreboard     = false;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_kernelBase          = (uint8_t *)IGCODECKRN_G12;
+#else
+    m_kernelBase          = nullptr;
+#endif
     m_kuidCommon          = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_hucPakStitchEnabled = true;
     m_scalabilityState    = nullptr;
