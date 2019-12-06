@@ -66,7 +66,7 @@
 | VP8        |Input       |      |      |         | NV12 | NV12 | NV12 | NV12 | NV12           |
 |            |Max Res.    |      |      |         | 4k   | 4k   | 4k   | 4k   | 4k             |
 | HEVC 8bit  |Input       |      | NV12 |  NV12   | NV12 | NV12 | NV12 | NV12 | NV12/AYUV      |
-|            |Max Res.    |      | 8k   |  8k     | 8k   | 8k   | 8k   | 8k   | 8k             |
+|            |Max Res.    |      | 4k   |  4k     | 4k   | 4k   | 4k   | 4k   | 8k             |
 | HEVC 10bit |Input       |      |      |         |      |      |      |      | P010/Y410      |
 |            |Max Res.    |      |      |         |      |      |      |      | 8k             |
 
