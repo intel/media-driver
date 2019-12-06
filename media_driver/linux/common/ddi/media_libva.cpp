@@ -3552,17 +3552,17 @@ static VAStatus DdiMedia_SyncSurface (
                 // StatusFeedBackID is last time submitted Target Surface ID which is set in BeginPicture,
                 // So we can know the report is for which surface here.
                 DDI_MEDIA_SURFACE *tempSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, tempVpReport.StatusFeedBackID);
-                if(tempSurface == nullptr)
-                {
-                    return VA_STATUS_ERROR_OPERATION_FAILED;
-                }
-
-                // Update the status of the surface which is reported.
-                tempSurface->curStatusReport.vpp.status = (uint32_t)tempVpReport.dwStatus;
-                tempSurface->curStatusReportQueryState  = DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED;
-
                 if(tempVpReport.StatusFeedBackID == render_target)
                 {
+                    if(tempSurface == nullptr)
+                    {
+                        return VA_STATUS_ERROR_OPERATION_FAILED;
+                    }
+
+                    // Update the status of the surface which is reported.
+                    tempSurface->curStatusReport.vpp.status = (uint32_t)tempVpReport.dwStatus;
+                    tempSurface->curStatusReportQueryState  = DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED;
+
                     break;
                 }
             }
