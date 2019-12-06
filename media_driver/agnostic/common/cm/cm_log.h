@@ -73,12 +73,6 @@ typedef enum _CM_LOG_LEVEL{
 
 class CmLogger
 {
-
-    /**
-     * \brief Pointer to the unique Logger (i.e., Singleton)
-     */
-    static CmLogger* m_globalCmLogger;
-
     /**
      * \brief Initial part of the name of the file used for Logging.
      * Date and time are automatically appended.
@@ -115,7 +109,11 @@ class CmLogger
 
 public:
 
-    static CmLogger& GetInstance();
+    static CmLogger& GetInstance()
+    {
+        static CmLogger m_globalCmLogger;
+        return m_globalCmLogger;
+    }
 
     static void LogDataArrayHex(std::ostringstream &oss, unsigned char * data, unsigned int size );
 

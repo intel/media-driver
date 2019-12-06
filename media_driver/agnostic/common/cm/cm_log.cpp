@@ -33,7 +33,6 @@
 #if CM_LOG_ON
 
 // Definition (and initialization) of static attributes
-CmLogger *      CmLogger::m_globalCmLogger = nullptr;
 CMRT_UMD::CSync globalCmLogLock;
 
 /**
@@ -81,24 +80,6 @@ CmLogger::~CmLogger()
     {  // empty, dump to screen
         m_streamOut.close();
     }
-}
-
-/**
- * Method to get a reference to the object (i.e., Singleton)
- * It is a static method.
- * @return Reference to the object.
- */
-CmLogger &CmLogger::GetInstance()
-{
-    CmLogger::Lock();
-
-    if (m_globalCmLogger == nullptr)
-    {
-        m_globalCmLogger = new CmLogger();
-    }
-
-    CmLogger::Unlock();
-    return *m_globalCmLogger;
 }
 
 void CmLogger::GetVerbosityLevel()
