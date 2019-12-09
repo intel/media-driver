@@ -3346,7 +3346,8 @@ MOS_STATUS CodechalVdencVp9State::ConstructPakInsertObjBatchBuf(
     pakInsertObjectParams.pBsBuffer = &m_bsBuffer;
     pakInsertObjectParams.dwBitSize = nalUnitSize * 8;
     pakInsertObjectParams.dwOffset = nalUnitOffset;
-    pakInsertObjectParams.bEndOfSlice = pakInsertObjectParams.bLastHeader = true;
+    pakInsertObjectParams.bEndOfSlice               = false;
+    pakInsertObjectParams.bLastHeader               = true;
 
     MOS_COMMAND_BUFFER constructedCmdBuf;
     MOS_ZeroMemory(&constructedCmdBuf, sizeof(constructedCmdBuf));
