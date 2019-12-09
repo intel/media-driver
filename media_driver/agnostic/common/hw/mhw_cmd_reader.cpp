@@ -40,21 +40,37 @@ shared_ptr<MhwCmdReader> MhwCmdReader::GetInstance()
 {
     if (!m_instance)
     {
-        char                        path[1024]      = {};
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
-
         m_instance = make_shared<MhwCmdReader>();
-
-        userFeatureData.StringData.pStringData = path;
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
-            &userFeatureData);
-        m_instance->SetFilePath(path);
-
+        m_instance->SetFilePath(GetOverrideDataPath());
         m_instance->PrepareCmdData();
     }
     return m_instance;
+}
+
+pair<uint32_t *, uint32_t> MhwCmdReader::FindCmd(uint32_t *cmdBuf, uint32_t dwLen, OPCODE opcode) const
+{
+    uint32_t                   currOpcode, currLen;
+    uint32_t                   offset = 0;
+    pair<uint32_t *, uint32_t> cmd(nullptr, 0);
+
+    while (offset < dwLen)
+    {
+        ParseCmdHeader(cmdBuf[offset], currOpcode, currLen);
+
+        if (currOpcode == MI_BATCH_BUFFER_END || currOpcode == opcode)
+        {
+            if (currOpcode == opcode)
+            {
+                cmd.first  = &cmdBuf[offset];
+                cmd.second = currLen;
+            }
+            return cmd;
+        }
+
+        offset += currLen;
+    }
+
+    return cmd;
 }
 
 void MhwCmdReader::OverrideCmdBuf(uint32_t *cmdBuf, uint32_t dwLen)
@@ -79,6 +95,20 @@ void MhwCmdReader::OverrideCmdBuf(uint32_t *cmdBuf, uint32_t dwLen)
         OverrideOneCmd(&cmdBuf[offset], opcode, len);
         offset += len;
     }
+}
+
+string MhwCmdReader::GetOverrideDataPath()
+{
+    char                        path[1024]      = {};
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
+
+    userFeatureData.StringData.pStringData = path;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
+        &userFeatureData);
+
+    return path;
 }
 
 string MhwCmdReader::TrimSpace(const string &str)
