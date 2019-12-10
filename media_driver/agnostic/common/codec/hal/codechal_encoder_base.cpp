@@ -2031,6 +2031,20 @@ void CodechalEncoderState::FreeResources()
     // Release eStatus buffer
     if (!Mos_ResourceIsNull(&m_encodeStatusBuf.resStatusBuffer))
     {
+        if(m_encodeStatusBuf.pEncodeStatus != nullptr)
+        {
+            EncodeStatus* tmpEncodeStatus = nullptr;
+            for(int i = 0; i < CODECHAL_ENCODE_STATUS_NUM; i++)
+            {
+                tmpEncodeStatus = (EncodeStatus*)(m_encodeStatusBuf.pEncodeStatus + i * m_encodeStatusBuf.dwReportSize);
+                if(tmpEncodeStatus != nullptr && tmpEncodeStatus->encodeStatusReport.pHEVCTileinfo != nullptr)
+                {
+                    MOS_FreeMemory(tmpEncodeStatus->encodeStatusReport.pHEVCTileinfo);
+                    tmpEncodeStatus->encodeStatusReport.pHEVCTileinfo = nullptr;
+                }
+            }
+        }
+
         m_osInterface->pfnUnlockResource(
             m_osInterface,
             &(m_encodeStatusBuf.resStatusBuffer));
@@ -2038,6 +2052,9 @@ void CodechalEncoderState::FreeResources()
         m_osInterface->pfnFreeResource(
             m_osInterface,
             &m_encodeStatusBuf.resStatusBuffer);
+
+        m_encodeStatusBuf.pData = nullptr;
+        m_encodeStatusBuf.pEncodeStatus = nullptr;
     }
 
     // Release HW Counter buffer
@@ -2057,6 +2074,20 @@ void CodechalEncoderState::FreeResources()
 
     if (!Mos_ResourceIsNull(&m_encodeStatusBufRcs.resStatusBuffer))
     {
+        if(m_encodeStatusBufRcs.pEncodeStatus != nullptr)
+        {
+            EncodeStatus* tmpEncodeStatus = nullptr;
+            for(int i = 0; i < CODECHAL_ENCODE_STATUS_NUM; i++)
+            {
+                tmpEncodeStatus = (EncodeStatus*)(m_encodeStatusBufRcs.pEncodeStatus + i * m_encodeStatusBufRcs.dwReportSize);
+                if(tmpEncodeStatus != nullptr && tmpEncodeStatus->encodeStatusReport.pHEVCTileinfo != nullptr)
+                {
+                    MOS_FreeMemory(tmpEncodeStatus->encodeStatusReport.pHEVCTileinfo);
+                    tmpEncodeStatus->encodeStatusReport.pHEVCTileinfo = nullptr;
+                }
+            }
+        }
+
         m_osInterface->pfnUnlockResource(
             m_osInterface,
             &(m_encodeStatusBufRcs.resStatusBuffer));
@@ -2064,6 +2095,9 @@ void CodechalEncoderState::FreeResources()
         m_osInterface->pfnFreeResource(
             m_osInterface,
             &m_encodeStatusBufRcs.resStatusBuffer);
+
+        m_encodeStatusBufRcs.pData = nullptr;
+        m_encodeStatusBufRcs.pEncodeStatus = nullptr;
     }
 
     if (m_pakEnabled)

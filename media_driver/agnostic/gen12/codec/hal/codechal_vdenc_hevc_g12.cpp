@@ -1720,6 +1720,7 @@ MOS_STATUS CodechalVdencHevcStateG12::GetStatusReport(
     if (encodeStatusReport->pHEVCTileinfo)
     {
         MOS_FreeMemory(encodeStatusReport->pHEVCTileinfo);
+        encodeStatusReport->pHEVCTileinfo = nullptr;
     }
     encodeStatusReport->pHEVCTileinfo = (CodechalTileInfo *)MOS_AllocAndZeroMemory(encodeStatusReport->SizeOfTileInfoBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport->pHEVCTileinfo);
