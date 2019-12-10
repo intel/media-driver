@@ -1672,6 +1672,7 @@ public:
     uint32_t                        m_sizeCurrSkipFrame = 0;    //!< size of curr skipped frame for skipflag = 2
 
     // Lookahead
+    MOS_RESOURCE                    m_resLaDataBuffer;          //!< Resource of lookahead data buffer
     uint8_t                         m_lookaheadDepth = 0;       //!< Number of frames to lookahead
     uint8_t                         m_currLaDataIdx = 0;        //!< Current lookahead data index
 

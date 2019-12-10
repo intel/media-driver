@@ -3102,6 +3102,7 @@ CodechalVdencAvcState::CodechalVdencAvcState(
     MOS_ZeroMemory(&m_pakStatsBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_vdencStatsBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_vdencTlbMmioBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resLaDataBuffer, sizeof(MOS_RESOURCE));
 }
 
 CodechalVdencAvcState::~CodechalVdencAvcState()
@@ -4076,6 +4077,8 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
         (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
         seqParams->FramesPer100Sec);
+    
+    m_lookaheadDepth = seqParams->LookaheadDepth;
 
     return eStatus;
 }
@@ -4907,6 +4910,11 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     virtualAddrParams.regionParams[0].isWritable = true;
     virtualAddrParams.regionParams[6].presRegion = &m_batchBufferForVdencImgStat[0].OsResource;
     virtualAddrParams.regionParams[6].isWritable = true;
+    if (m_lookaheadDepth > 0)
+    {
+        virtualAddrParams.regionParams[11].presRegion = &m_resLaDataBuffer;
+        virtualAddrParams.regionParams[11].isWritable = true;
+    }
     // region 15 always in clear
     virtualAddrParams.regionParams[15].presRegion = &m_resVdencBrcDbgBuffer;
 
@@ -5302,6 +5310,11 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
 
     m_resVdencStatsBuffer = &(m_vdencStatsBuffer);
     m_resPakStatsBuffer   = &(m_pakStatsBuffer);
+
+    if (m_encodeParams.bLaDataEnabled)
+    {
+        m_resLaDataBuffer = *(m_encodeParams.psLaDataBuffer);
+    }
 
     return eStatus;
 }
@@ -7566,6 +7579,21 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
                 m_currPass,
                 hucRegionDumpUpdate));
         }
+
+        //  Lookahead data buffer dump
+        if (m_lookaheadDepth > 0)
+        {
+            uint32_t laDataBufferSize = m_numLaDataEntry * 32;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
+                &m_resLaDataBuffer,
+                0,
+                laDataBufferSize,
+                11,
+                "_LaData",
+                isInput,
+                m_currPass,
+                hucRegionDumpUpdate));
+        }
     }
     else
     {
@@ -7600,6 +7628,21 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
             isInput,
             m_currPass,
             hucRegionDumpUpdate));
+
+        //  Lookahead data buffer dump
+        if (m_lookaheadDepth > 0)
+        {
+            uint32_t laDataBufferSize = m_numLaDataEntry * 32;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
+                &m_resLaDataBuffer,
+                0,
+                laDataBufferSize,
+                11,
+                "_LaData",
+                isInput,
+                m_currPass,
+                hucRegionDumpUpdate));
+        }
     }
 
     return MOS_STATUS_SUCCESS;
