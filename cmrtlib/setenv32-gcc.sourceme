@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Please update the paths below in accordance with your setup
+
+export CC=gcc
+export CXX=g++
+export CFLAGS="-m32 -Wno-register -msse2"
+export CXXFLAGS="-m32 -Wno-register -msse2"
+
