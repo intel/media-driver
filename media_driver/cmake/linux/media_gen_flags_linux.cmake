@@ -42,6 +42,9 @@ cmake_dependent_option(GEN9_SKL
 cmake_dependent_option(GEN9_CML
     "Enabled CML support (Gen9)" ON
     "GEN9" OFF)
+cmake_dependent_option(GEN9_CMPV
+    "Enabled CMPV support (Gen9)" ON
+    "GEN9" OFF)
 
 option(GEN10 "Enable Gen10 support" ON)
 cmake_dependent_option(GEN10_CNL
@@ -92,6 +95,10 @@ endif()
 
 if(GEN9_CML)
     add_definitions(-DIGFX_GEN9_CML_SUPPORTED)
+endif()
+
+if(GEN9_CMPV)
+    add_definitions(-DIGFX_GEN9_CMPV_SUPPORTED)
 endif()
 
 if(GEN10)

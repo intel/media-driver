@@ -350,6 +350,10 @@ if(GEN9_CML)
     media_include_subdirectory(gen9_cml)
 endif()
 
+if(GEN9_CMPV)
+    media_include_subdirectory(gen9_cmpv)
+endif()
+
 if(GEN9_BXT)
     media_include_subdirectory(gen9_bxt)
 endif()
