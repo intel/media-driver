@@ -3787,7 +3787,10 @@ MOS_STATUS CodechalEncodeAvcEnc::MbEncKernel(bool mbEncIFrameDistInUse)
 
     if (m_mbStatsSupported)
     {
-        mbEncSurfaceParams.bMBVProcStatsEnabled            = (m_flatnessCheckEnabled || m_adaptiveTransformDecisionEnabled);
+        mbEncSurfaceParams.bMBVProcStatsEnabled = m_flatnessCheckEnabled ||
+                                                  m_adaptiveTransformDecisionEnabled ||
+                                                  bMbBrcEnabled ||
+                                                  bMbQpDataEnabled;
         mbEncSurfaceParams.presMBVProcStatsBuffer = &m_resMbStatsBuffer;
         mbEncSurfaceParams.dwMBVProcStatsBottomFieldOffset = m_mbStatsBottomFieldOffset;
     }
