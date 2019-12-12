@@ -5343,6 +5343,12 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
     }
 
     CODECHAL_DEBUG_TOOL(
+        if (MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrFlatPhysCCS))
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBltOutput(
+                m_rawSurfaceToEnc,
+                CodechalDbgAttr::attrDecodeBltOutput))
+        }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
             m_rawSurfaceToEnc,
             CodechalDbgAttr::attrEncodeRawInputSurface,
@@ -6185,7 +6191,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                 m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER),
                 CodechalDbgAttr::attrReconstructedSurface,
-                "4XScaling")) 
+                "4XScaling"))
                 for (int i = 0; i < (avcPicParams->num_ref_idx_l0_active_minus1 + 1); i++)
                 {
                     std::string refSurfName = "4XScaling_RefL0[" + std::to_string(static_cast<uint32_t>(i)) + "]";
@@ -6194,6 +6200,10 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
                         CodechalDbgAttr::attrReconstructedSurface,
                         refSurfName.c_str()))
                 }
+            if (MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrFlatPhysCCS)){
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBltOutput(
+                    &m_reconSurface,
+                    CodechalDbgAttr::attrDecodeBltOutput))}
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                         &m_reconSurface,
                         CodechalDbgAttr::attrReconstructedSurface,
