@@ -682,7 +682,7 @@ public:
             cmd.RowStoreScratchBuffer.BufferPictureFields.DW0.CacheSelect = TVdencCmds::VDENC_Surface_Control_Bits_CMD::CACHE_SELECT_UNNAMED1;
             cmd.RowStoreScratchBuffer.LowerAddress.DW0.Value              = this->m_vdencRowStoreCache.dwAddress << 6;
         }
-        else if (params->presVdencIntraRowStoreScratchBuffer != nullptr)
+        else if (!Mos_ResourceIsNull(params->presVdencIntraRowStoreScratchBuffer))
         {
             cmd.RowStoreScratchBuffer.BufferPictureFields.DW0.MemoryObjectControlState =
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VDENC_ROW_STORE_BUFFER_CODEC].Value;
