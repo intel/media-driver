@@ -290,6 +290,9 @@ struct _MOS_SPECIFIC_RESOURCE
     GraphicsResourceNext*   pGfxResourceNext;
     bool                    bConvertedFromDDIResource;
 
+    // Tile switch
+    MOS_TILE_MODE_GMM   TileModeGMM;
+    bool                bGMMTileEnabled;
 };
 
 //!
@@ -356,6 +359,9 @@ struct MOS_SURFACE
     uint32_t                CompressionFormat;                                   //!< [out] Memory compression format
     // deprecated: not to use MmcState
     MOS_MEMCOMP_STATE       MmcState;                                            // Memory compression state
+    // Tile Switch
+    MOS_TILE_MODE_GMM   TileModeGMM;                                            //!< [out] Transparent GMM Tiletype specifying in hwcmd finally
+    bool                bGMMTileEnabled;                                        //!< [out] GMM defined tile mode flag
 };
 typedef MOS_SURFACE *PMOS_SURFACE;
 

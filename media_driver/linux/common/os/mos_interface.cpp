@@ -1141,6 +1141,8 @@ MOS_STATUS MosInterface::GetResourceInfo(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     // check resource's tile type
+    details.TileModeGMM     = (MOS_TILE_MODE_GMM)gmmResourceInfo->GetTileModeSurfaceState();
+    details.bGMMTileEnabled = true;
     switch (gmmResourceInfo->GetTileType())
     {
     case GMM_TILED_Y:
