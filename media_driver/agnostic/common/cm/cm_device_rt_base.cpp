@@ -64,6 +64,8 @@ struct CM_SET_CAPS
 
 namespace CMRT_UMD
 {
+const uint32_t CmDeviceRTBase::m_maxPrintBuffer = 16;
+
 CSync CmDeviceRTBase::m_globalCriticalSectionSurf2DUserDataLock = CSync();
 
 //*-----------------------------------------------------------------------------
@@ -3014,6 +3016,17 @@ CM_RT_API int32_t CmDeviceRTBase::InitPrintBuffer(size_t printbufsize)
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRTBase::CreatePrintBuffer()
 {
+    if (m_printBufferMems.size() >= m_maxPrintBuffer)
+    {
+        // reuse the oldest buffer if enqueue called without flushPrintBuffer
+        uint8_t *mem = m_printBufferMems.front();
+        CmBufferUP *buf = m_printBufferUPs.front();
+        m_printBufferMems.pop_front();
+        m_printBufferUPs.pop_front();
+        m_printBufferMems.push_back(mem);
+        m_printBufferUPs.push_back(buf);
+        return CM_SUCCESS;
+    }
     uint8_t *mem = (uint8_t*)MOS_AlignedAllocMemory(m_printBufferSize, 0x1000); //PAGE SIZE
     if(!mem)
     {

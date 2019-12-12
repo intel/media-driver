@@ -595,6 +595,8 @@ protected:
     uint32_t       m_kernelsLoaded;
 
     bool           m_preloadKernelEnabled;
+
+    static const uint32_t m_maxPrintBuffer;
 private:
     CmDeviceRTBase(const CmDeviceRTBase& other);
 
