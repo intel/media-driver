@@ -2524,17 +2524,24 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodePicStateCmd(
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pHevcPicParams);
 
-    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD  *cmd =
-        (mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD*)cmdBuffer->pCmdPtr;
-
-    MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g12_X>::AddHcpDecodePicStateCmd(cmdBuffer, params));
-
     auto paramsG12 = dynamic_cast<PMHW_VDBOX_HEVC_PIC_STATE_G12>(params);
     MHW_MI_CHK_NULL(paramsG12);
 
     auto hevcPicParams = paramsG12->pHevcPicParams;
     auto hevcExtPicParams = paramsG12->pHevcExtPicParams;
     auto hevcSccPicParams = paramsG12->pHevcSccPicParams;
+
+    if (hevcExtPicParams && hevcExtPicParams->PicRangeExtensionFlags.fields.cabac_bypass_alignment_enabled_flag == 1)
+    {
+        MHW_ASSERTMESSAGE("HW decoder doesn't support HEVC High Throughput profile so far.");
+        MHW_ASSERTMESSAGE("So cabac_bypass_alignment_enabled_flag cannot equal to 1.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD  *cmd =
+        (mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD*)cmdBuffer->pCmdPtr;
+
+    MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g12_X>::AddHcpDecodePicStateCmd(cmdBuffer, params));
 
     // RExt fields
     cmd->DW2.ChromaSubsampling           = hevcPicParams->chroma_format_idc;
