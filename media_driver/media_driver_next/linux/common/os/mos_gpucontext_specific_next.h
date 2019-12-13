@@ -210,6 +210,14 @@ protected:
                                uint32_t execFlag,
                                int32_t dr4);
 
+    //!
+    //! \brief    Set the flags of engin quering according to create options
+    //! \return   void
+    //!
+    void SetEngineQueryFlags(
+        PMOS_GPUCTX_CREATOPTIONS option,
+        __u64 &caps);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_LINUX_BO* GetNopCommandBuffer(
         MOS_STREAM_HANDLE streamState);

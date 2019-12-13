@@ -197,10 +197,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
             __u16 engine_class = (gpuNode == MOS_GPU_NODE_VE)? I915_ENGINE_CLASS_VIDEO_ENHANCE : I915_ENGINE_CLASS_VIDEO;
             __u64 caps = 0;
 
-            if (m_createOptionEnhanced->UsingSFC)
-            {
-                caps |= I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC;
-            }
+            SetEngineQueryFlags(createOption, caps);
 
             MosUtilities::MosZeroMemory(engine_map, sizeof(engine_map));
             if (mos_query_engines(osParameters->fd,engine_class,caps,&nengine,engine_map))
