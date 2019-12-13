@@ -173,7 +173,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix)
                      MOS_MAX_HLT_FILENAME_LEN,
                      MosUltLogPathPrefix);
 
-        if (iRet == 0)
+        if (iRet > 0)
         {
             eStatus = MOS_STATUS_SUCCESS;
         }
@@ -197,7 +197,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix)
                      MOS_MAX_HLT_FILENAME_LEN,
                      MosLogPathPrefix);
 
-        if (iRet == 0)
+        if (iRet > 0)
         {
             MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
             UserFeatureWriteData.Value.StringData.pStringData = fileNamePrefix;
