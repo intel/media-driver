@@ -5648,6 +5648,9 @@ MOS_STATUS RenderHal_SetSurfaceStateBuffer(
     Params.pSurfaceState = (uint8_t*)pSurfaceState;
     Params.dwCacheabilityControl = pParams->dwCacheabilityControl;
 
+    // Default tile mode of surface state buffer is linear
+    Params.bGMMTileEnabled       = true;
+
     // Setup Surface State Entry via MHW state heap interface
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&Params));
 

@@ -1004,6 +1004,8 @@ MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE pSurface)
     outSurface.dwWidth         = pSurface->dwWidth;
     outSurface.dwHeight        = pSurface->dwHeight;
     outSurface.TileType        = pSurface->TileType;
+    outSurface.TileModeGMM     = pSurface->TileModeGMM;
+    outSurface.bGMMTileEnabled = pSurface->bGMMTileEnabled;
     outSurface.dwDepth         = pSurface->dwDepth;
     outSurface.dwPitch         = pSurface->dwPitch;
     outSurface.dwSlicePitch    = pSurface->dwSlicePitch;

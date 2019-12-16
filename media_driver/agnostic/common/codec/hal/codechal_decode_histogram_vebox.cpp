@@ -234,6 +234,8 @@ MOS_STATUS CodechalDecodeHistogramVebox::SetVeboxSurfaceStateParams(
     veboxSurfParams->SurfInput.dwUYoffset       = m_inputSurface->UPlaneOffset.iYOffset;
     veboxSurfParams->SurfInput.dwPitch          = m_inputSurface->dwPitch;
     veboxSurfParams->SurfInput.TileType         = m_inputSurface->TileType;
+    veboxSurfParams->SurfInput.TileModeGMM      = m_inputSurface->TileModeGMM;
+    veboxSurfParams->SurfInput.bGMMTileEnabled  = m_inputSurface->bGMMTileEnabled;
     veboxSurfParams->SurfInput.pOsResource      = &m_inputSurface->OsResource;
     veboxSurfParams->SurfInput.rcMaxSrc.left    = 0;
     veboxSurfParams->SurfInput.rcMaxSrc.top     = 0;

@@ -641,6 +641,8 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxSurfaceStateParams(
     params->SurfInput.dwHeight               = m_inputSurface->dwHeight;
     params->SurfInput.dwPitch                = m_inputSurface->dwPitch;
     params->SurfInput.TileType               = m_inputSurface->TileType;
+    params->SurfInput.TileModeGMM            = m_inputSurface->TileModeGMM;
+    params->SurfInput.bGMMTileEnabled        = m_inputSurface->bGMMTileEnabled;
     params->SurfInput.dwYoffset              = m_inputSurface->YPlaneOffset.iYOffset;
     params->SurfInput.pOsResource            = &m_inputSurface->OsResource;
     params->SurfInput.rcMaxSrc.left          = m_inputSurfaceRegion.X;
@@ -895,6 +897,8 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
     outSurfaceParams->dwHeight             = m_sfcOutputSurface->dwHeight;
     outSurfaceParams->dwPitch              = m_sfcOutputSurface->dwPitch;
     outSurfaceParams->TileType             = m_sfcOutputSurface->TileType;
+    outSurfaceParams->TileModeGMM          = m_sfcOutputSurface->TileModeGMM;
+    outSurfaceParams->bGMMTileEnabled      = m_sfcOutputSurface->bGMMTileEnabled;
     outSurfaceParams->ChromaSiting         = m_chromaSiting;
     outSurfaceParams->dwUYoffset           = m_sfcOutputSurface->UPlaneOffset.iYOffset;
 

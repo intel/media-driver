@@ -717,6 +717,8 @@ typedef struct _MHW_VEBOX_SURFACE_PARAMS
     uint32_t                    dwYoffset;           //!<  Surface Yoffset in Vertical
     uint32_t                    dwUYoffset;          //!<  Surface Uoffset in Vertical
     MOS_TILE_TYPE               TileType;            //!<  Tile Type
+    MOS_TILE_MODE_GMM           TileModeGMM;         //!<  Tile Mode from GMM Definition
+    bool                        bGMMTileEnabled;     //!<  GMM defined tile mode flag
     RECT                        rcMaxSrc;            //!< Max source rectangle
     PMOS_RESOURCE               pOsResource;         //!<  Surface resource
 } MHW_VEBOX_SURFACE_PARAMS, *PMHW_VEBOX_SURFACE_PARAMS;

@@ -132,6 +132,8 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         rawSurface->dwHeight                 = rawSurface->OsResource.iHeight;
         rawSurface->dwPitch                  = rawSurface->OsResource.iPitch;
         rawSurface->TileType                 = rawSurface->OsResource.TileType;
+        rawSurface->TileModeGMM              = rawSurface->OsResource.TileModeGMM;
+        rawSurface->bGMMTileEnabled          = rawSurface->OsResource.bGMMTileEnabled;
         preEncParams->psCurrOriginalSurface  = rawSurface;
         encodeParams->pPreEncParams          = m_encodeCtx->pPreEncParams;
         DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, false), "ClearRefList failed!");
@@ -928,6 +930,8 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         preEncParams->sPastRefSurface.dwHeight = preEncParams->sPastRefSurface.OsResource.iHeight;
         preEncParams->sPastRefSurface.dwPitch  = preEncParams->sPastRefSurface.OsResource.iPitch;
         preEncParams->sPastRefSurface.TileType = preEncParams->sPastRefSurface.OsResource.TileType;
+        preEncParams->sPastRefSurface.TileModeGMM = preEncParams->sPastRefSurface.OsResource.TileModeGMM;
+        preEncParams->sPastRefSurface.bGMMTileEnabled = preEncParams->sPastRefSurface.OsResource.bGMMTileEnabled;
         preEncParams->bPastRefStatsNeeded      = false;
 
         if (statsParams->stats_params.past_ref_stat_buf)

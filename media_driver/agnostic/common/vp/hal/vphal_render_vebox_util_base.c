@@ -110,6 +110,8 @@ MOS_STATUS VpHal_InitVeboxSurfaceParams(
     pMhwVeboxSurface->dwPitch                = pVpHalVeboxSurface->dwPitch;
     pMhwVeboxSurface->dwBitDepth             = pVpHalVeboxSurface->dwDepth;
     pMhwVeboxSurface->TileType               = pVpHalVeboxSurface->TileType;
+    pMhwVeboxSurface->TileModeGMM            = pVpHalVeboxSurface->TileModeGMM;
+    pMhwVeboxSurface->bGMMTileEnabled        = pVpHalVeboxSurface->bGMMTileEnabled;
     pMhwVeboxSurface->rcMaxSrc               = pVpHalVeboxSurface->rcMaxSrc;
     pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->OsResource;
     pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->bIsCompressed;

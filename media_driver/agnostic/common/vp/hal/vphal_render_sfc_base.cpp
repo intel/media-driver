@@ -64,6 +64,8 @@ MOS_STATUS VpHal_InitMhwOutSurfParams(
     pMhwOutSurfParams->dwHeight                    = pSfcPipeOutSurface->dwHeight;
     pMhwOutSurfParams->dwPitch                     = pSfcPipeOutSurface->dwPitch;
     pMhwOutSurfParams->TileType                    = pSfcPipeOutSurface->TileType;
+    pMhwOutSurfParams->TileModeGMM                 = pSfcPipeOutSurface->TileModeGMM;
+    pMhwOutSurfParams->bGMMTileEnabled             = pSfcPipeOutSurface->bGMMTileEnabled;
     pMhwOutSurfParams->pOsResource                 = &(pSfcPipeOutSurface->OsResource);
     pMhwOutSurfParams->Format                      = pSfcPipeOutSurface->Format;
     pMhwOutSurfParams->bCompressible               = pSfcPipeOutSurface->bCompressible;
