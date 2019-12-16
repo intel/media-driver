@@ -351,6 +351,9 @@ static bool icllpDevice8a52 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool icllpDevice8a53 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x8a53, &icllpGt2Info);
 
+static bool icllpDevice8a54 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a54, &icllpGt1Info);
+
 static bool icllpDevice8a56 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x8a56, &icllpGt1Info);
 
