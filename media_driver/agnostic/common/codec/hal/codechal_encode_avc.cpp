@@ -6196,8 +6196,8 @@ MOS_STATUS CodechalEncodeAvcEnc::InitializePicture(const EncoderParams& params)
 
     // Determine if Trellis Quantization should be enabled
     MOS_ZeroMemory(&m_trellisQuantParams, sizeof(m_trellisQuantParams));
-
-    if (!(dwTrellis & trellisDisabled))
+    // Trellis must remain switched off if it is explicitly disabled or picture is encoded with CAVLC
+    if (!(dwTrellis & trellisDisabled) && m_avcPicParam->entropy_coding_mode_flag)
     {
         if (dwTrellis == trellisInternal)
         {
