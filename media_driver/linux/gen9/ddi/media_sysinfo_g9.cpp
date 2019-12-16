@@ -937,11 +937,25 @@ static bool cmlDevice9bc0 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bc0, &cflGt2Info);
 static bool cmlDevice9bc5 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bc5, &cflGt2Info);
+static bool cmlDevice9bc6 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9bc6, &cflGt2Info);
 static bool cmlDevice9bc8 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bc8, &cflGt2Info);
 static bool cmlDevice9bc4 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bc4, &cflGt2Info);
 static bool cmlDevice9bc2 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bc2, &cflGt2Info);
+static bool cmlDevice9be6 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9be6, &cflGt2Info);
 static bool cmlDevice9bf6 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9bf6, &cflGt2Info);
+
+/* AML/KBL Y GT2 */
+static bool cmlDevice591c = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x591C, &cflGt2Info);
+static bool cmlDevice87C0 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x87C0, &cflGt2Info);
+
+/* AML/CFL Y GT2 */
+static bool cmlDevice87ca = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x87ca, &cflGt2Info);
