@@ -6816,8 +6816,6 @@ MOS_STATUS RenderHal_InitInterface(
     PMOS_INTERFACE       pOsInterface)
 {
     PMOS_USER_FEATURE_INTERFACE     pUserFeatureInterface = nullptr;
-    MOS_USER_FEATURE                UserFeature;
-    MOS_USER_FEATURE_VALUE          UserFeatureValue;
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     MHW_VFE_PARAMS                  *pVfeStateParams = nullptr;
 
@@ -6886,34 +6884,30 @@ MOS_STATUS RenderHal_InitInterface(
     }
 
     // Read VDI Walker Regkey once during initialization
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
-    pUserFeatureInterface   = &pRenderHal->pOsInterface->UserFeatureInterface;
-    UserFeature             = *pUserFeatureInterface->pUserFeatureInit;
-    UserFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues     = &UserFeatureValue;
-    UserFeature.uiNumValues = 1;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
 
-    UserFeatureValue.u32Data = true;    // Init as default value
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    userFeatureValueData.u32Data = true;  // Init as default value
+    userFeatureValueData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &UserFeature,
-        __MEDIA_USER_FEATURE_VALUE_VDI_MODE,
-        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+        __MEDIA_USER_FEATURE_VALUE_VDI_MODE_ID,
+        &userFeatureValueData);
 #endif
-    pRenderHal->bVDIWalker = UserFeature.pValues[0].u32Data ? true : false;
+    pRenderHal->bVDIWalker = userFeatureValueData.u32Data ? true : false;
 
-    UserFeatureValue.u32Data = MHW_WALKER_MODE_NOT_SET;    // Init as default value
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    userFeatureValueData.u32Data     = MHW_WALKER_MODE_NOT_SET;  // Init as default value
+    userFeatureValueData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Read Media Walker Mode from RegKey once in initialization
-    MOS_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &UserFeature,
-        __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE,
-        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE_ID,
+        &userFeatureValueData);
 #endif
-    pRenderHal->MediaWalkerMode = (MHW_WALKER_MODE)UserFeature.pValues[0].u32Data;
+    pRenderHal->MediaWalkerMode = (MHW_WALKER_MODE)userFeatureValueData.u32Data;
 
     pRenderHal->pPlaneDefinitions             = g_cRenderHal_SurfacePlanes;
 

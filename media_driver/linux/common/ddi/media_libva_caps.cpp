@@ -1982,29 +1982,7 @@ VAStatus MediaLibvaCaps::CheckEncodeResolution(
 
 VAStatus MediaLibvaCaps::CheckProfile(VAProfile profile)
 {
-    VAStatus status = VA_STATUS_SUCCESS;
-    if (IsVc1Profile(profile))
-    {
-        MOS_USER_FEATURE       userFeature;
-        MOS_USER_FEATURE_VALUE userFeatureValue;
-        MOS_ZeroMemory(&userFeatureValue, sizeof(userFeatureValue));
-        userFeatureValue.u32Data    = true;
-        userFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-        userFeature.pValues         = &userFeatureValue;
-        userFeature.uiNumValues     = 1;
-        MOS_UserFeature_ReadValue(
-            nullptr,
-            &userFeature,
-            "VC1Enabled",
-            MOS_USER_FEATURE_VALUE_TYPE_INT32);
-
-        if (!userFeatureValue.u32Data)
-        {
-            status = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
-        }
-
-    }
-    return status;
+    return VA_STATUS_SUCCESS;
 }
 
 VAStatus MediaLibvaCaps::CreateConfig(

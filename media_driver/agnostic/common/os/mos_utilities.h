@@ -959,7 +959,7 @@ MOS_STATUS MOS_DestroyUserFeatureData(
     MOS_USER_FEATURE_VALUE_TYPE  ValueType);
 
 #ifdef  __MOS_USER_FEATURE_WA_
-MOS_STATUS MOS_UserFeature_ReadValue (
+MOS_STATUS MOS_UserFeature_ReadValue(
     PMOS_USER_FEATURE_INTERFACE       pOsUserFeatureInterface,
     PMOS_USER_FEATURE                 pUserFeature,
     const char                        *pValueName,

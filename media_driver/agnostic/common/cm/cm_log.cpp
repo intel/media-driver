@@ -85,24 +85,18 @@ CmLogger::~CmLogger()
 void CmLogger::GetVerbosityLevel()
 {
     // Read VerbosityLevel from RegisterKey
-    MOS_USER_FEATURE_VALUE userFeatureValue;
-    MOS_USER_FEATURE       userFeature;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
     // User feature key reads
-    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    userFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues     = &userFeatureValue;
-    userFeature.uiNumValues = 1;
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
-    userFeatureValue.u32Data = CM_LOG_LEVEL_NONE;  // default value
-
-    MOS_UserFeature_ReadValue(
+    userFeatureValueData.u32Data = CM_LOG_LEVEL_NONE;  // default value
+    userFeatureValueData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &userFeature,
-        __MEDIA_USER_FEATURE_VALUE_MDF_LOG_LEVEL,
-        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+        __MEDIA_USER_FEATURE_VALUE_MDF_LOG_LEVEL_ID,
+        &userFeatureValueData);
 
-    m_verbosityLevel = userFeatureValue.u32Data;
+    m_verbosityLevel = userFeatureValueData.u32Data;
 }
 
 /**

@@ -56,17 +56,6 @@ AutoPerfUtility::~AutoPerfUtility()
     }
 }
 
-//!
-//! \brief GLOBAL INITIALIZERS
-//!
-const MOS_USER_FEATURE g_MosUserFeatureInit =
-{
-    MOS_USER_FEATURE_TYPE_INVALID,                                              // Type
-    nullptr,                                                                       // pSettingPath
-    nullptr,                                                                       // pSettingsValues
-    0                                                                           // uiNumSettingValues
-};
-
 #if MOS_MEDIASOLO_SUPPORTED
 void *   _MOS_INTERFACE::pvSoloContext = nullptr; 
 uint32_t _MOS_INTERFACE::soloRefCnt = 0;
@@ -755,9 +744,6 @@ MOS_STATUS Mos_InitInterface(
 
     pOsUserFeatureInterface = &pOsInterface->UserFeatureInterface;
     MOS_OS_CHK_NULL_RETURN(pOsUserFeatureInterface);
-
-    // Setup Member variables
-    pOsUserFeatureInterface->pUserFeatureInit = &g_MosUserFeatureInit;
 
     // Setup Member functions
     pOsInterface->pfnFillResource       = Mos_OsFillResource;

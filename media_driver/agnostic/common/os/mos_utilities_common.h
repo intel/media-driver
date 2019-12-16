@@ -737,7 +737,6 @@ typedef struct _MOS_USER_FEATURE_INTERFACE
 {
     void *                  pOsInterface;              //!< Pointer to OS Interface
     int32_t                 bIsNotificationSupported;  //!< Whether Notification feature is supported
-    const MOS_USER_FEATURE *pUserFeatureInit;          //!< Initializer for Os User Feature structure
 
     MOS_STATUS (*pfnReadValue)
     (

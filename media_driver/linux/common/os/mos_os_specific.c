@@ -110,22 +110,16 @@ void SetupApoMosSwitch(PLATFORM *platform)
     g_apoMosEnabled = (UserFeatureData.i32Data) ? 1 : 0;
 
 #if MOS_MEDIASOLO_SUPPORTED
-    MOS_USER_FEATURE       UserFeature;
-    MOS_USER_FEATURE_VALUE UserFeatureValue;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
     int32_t                bSoloInUse;
 
     // when MediaSolo is enabled, turn off APO MOS path
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
-    UserFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues     = &UserFeatureValue;
-    UserFeature.uiNumValues = 1;
-    MOS_UserFeature_ReadValue(
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &UserFeature,
-        __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE,
-        MOS_USER_FEATURE_VALUE_TYPE_INT32);
-    bSoloInUse = (UserFeatureValue.u32Data) ? true : false;
+        __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_ID,
+        &userFeatureValueData);
+    bSoloInUse = (userFeatureValueData.u32Data) ? true : false;
 
     if (bSoloInUse)
     {

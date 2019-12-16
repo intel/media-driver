@@ -130,39 +130,29 @@ int32_t GetFileNameAndCounter(char fileNamePrefix[], bool timeStampFlag, int32_t
 //!
 int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        userFeature;
-    char                    fileName[MOS_MAX_HLT_FILENAME_LEN];
-    MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  userFeatureValue;
-    int32_t                 hr = CM_FAILURE;
+    char                            fileName[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_STATUS                      eStatus;
+    MOS_USER_FEATURE_VALUE_DATA     userFeatureValueData;
+    int32_t                         hr = CM_FAILURE;
 
     MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if command buffer dump was enabled in user feature settings.
-    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues = &userFeatureValue;
-    userFeature.uiNumValues = 1;
-    userFeatureValue.bData = false;
-
     GetLogFileLocation(HALCM_COMMAND_BUFFER_OUTPUT_DIR, fileName);
 
-    eStatus = MOS_UserFeature_ReadValue(
+    eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &userFeature,
-        __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_ENABLE,
-        MOS_USER_FEATURE_VALUE_TYPE_INT32);
+        __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_ENABLE_ID,
+        &userFeatureValueData);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read command buffer user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (userFeatureValue.bData)
+    if (userFeatureValueData.bData)
     {
-       
         eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -170,8 +160,8 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
             goto finish;
         }
         // Setup member function and variable.
-        state->dumpCommandBuffer = userFeatureValue.bData?true: false;
-        if (userFeatureValue.bData == 17)
+        state->dumpCommandBuffer = userFeatureValueData.bData ? true : false;
+        if (userFeatureValueData.bData == 17)
         {
             state->enableCMDDumpTimeStamp = true;
         }
@@ -277,35 +267,26 @@ finish:
 //!
 int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        userFeature;
-    char                    fileName[MOS_MAX_HLT_FILENAME_LEN];
-    MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  userFeatureValue;
-    int32_t                 hr = CM_FAILURE;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+    char                        fileName[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_STATUS                  eStatus;
+    int32_t                     hr = CM_FAILURE;
 
     MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if curbe data dump was enabled in user feature settings.
-    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues = &userFeatureValue;
-    userFeature.uiNumValues = 1;
-    userFeatureValue.bData = false;
-
-    eStatus = MOS_UserFeature_ReadValue(
+    eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &userFeature,
-        __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE,
-        MOS_USER_FEATURE_VALUE_TYPE_INT32);
+        __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE_ID,
+        &userFeatureValueData);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read curbe data dump user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (userFeatureValue.bData)
+    if (userFeatureValueData.bData)
     {
         GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName);
         eStatus = MOS_CreateDirectory(fileName);
@@ -315,7 +296,7 @@ int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
             goto finish;
         }
         // Setup member function and variable.
-        state->dumpCurbeData = userFeatureValue.bData ? true: false;
+        state->dumpCurbeData = userFeatureValueData.bData ? true : false;
     }
     hr = CM_SUCCESS;
 finish:
@@ -414,37 +395,28 @@ finish:
 //!
 int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        userFeature;
-    MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  userFeatureValue;
-    int32_t                 hr = CM_FAILURE;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+    MOS_STATUS                  eStatus;
+    int32_t                     hr = CM_FAILURE;
 
     MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if surface content dump was enabled in user feature settings.
-    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues = &userFeatureValue;
-    userFeature.uiNumValues = 1;
-    userFeatureValue.bData = false;
-
-    eStatus = MOS_UserFeature_ReadValue(
+    eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &userFeature,
-        __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE,
-        MOS_USER_FEATURE_VALUE_TYPE_INT32);
+        __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE_ID,
+        &userFeatureValueData);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read surface content dump user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (userFeatureValue.bData)
+    if (userFeatureValueData.bData)
     {
         // Setup member function and variable.
-        state->dumpSurfaceContent = userFeatureValue.bData ? true: false;
+        state->dumpSurfaceContent = userFeatureValueData.bData ? true : false;
     }
     hr = CM_SUCCESS;
 finish:
@@ -460,37 +432,28 @@ finish:
 
 int32_t HalCm_InitDumpSurfaceState(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        userFeature;
-    char                    fileName[MOS_MAX_HLT_FILENAME_LEN];
-    MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  userFeatureValue;
-    int32_t                 hr = CM_FAILURE;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+    char                        fileName[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_STATUS                  eStatus;
+    int32_t                     hr = CM_FAILURE;
 
     MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if command buffer dump was enabled in user feature settings.
-    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues = &userFeatureValue;
-    userFeature.uiNumValues = 1;
-    userFeatureValue.bData = false;
-
     GetLogFileLocation(HALCM_SURFACE_STATE_OUTPUT_DIR, fileName);
 
-    eStatus = MOS_UserFeature_ReadValue(
+    eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &userFeature,
-        __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE,
-        MOS_USER_FEATURE_VALUE_TYPE_INT32);
+        __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE_ID,
+        &userFeatureValueData);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read surface state user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (userFeatureValue.bData)
+    if (userFeatureValueData.bData)
     {
         eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -499,9 +462,9 @@ int32_t HalCm_InitDumpSurfaceState(PCM_HAL_STATE state)
             goto finish;
         }
         // Setup member function and variable.
-        state->dumpSurfaceState = userFeatureValue.bData ? true : false;
+        state->dumpSurfaceState = userFeatureValueData.bData ? true : false;
 
-        if (userFeatureValue.bData == 17)
+        if (userFeatureValueData.bData == 17)
         {
             state->enableSurfaceStateDumpTimeStamp = true;
         }
@@ -601,37 +564,28 @@ finish:
 
 int32_t HalCm_InitDumpInterfaceDescriporData(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        userFeature;
-    char                    fileName[MOS_MAX_HLT_FILENAME_LEN];
-    MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  userFeatureValue;
-    int32_t                 hr = CM_FAILURE;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+    char                        fileName[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_STATUS                  eStatus;
+    int32_t                     hr = CM_FAILURE;
 
     MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if command buffer dump was enabled in user feature settings.
-    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues = &userFeatureValue;
-    userFeature.uiNumValues = 1;
-    userFeatureValue.bData = false;
-
     GetLogFileLocation(HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR, fileName);
 
-    eStatus = MOS_UserFeature_ReadValue(
+    eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &userFeature,
-        __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP,
-        MOS_USER_FEATURE_VALUE_TYPE_INT32);
+        __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP_ID,
+        &userFeatureValueData);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read interface descriptor data dump user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (userFeatureValue.bData)
+    if (userFeatureValueData.bData)
     {
         eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -640,8 +594,8 @@ int32_t HalCm_InitDumpInterfaceDescriporData(PCM_HAL_STATE state)
             goto finish;
         }
         // Setup member function and variable.
-        state->dumpIDData = userFeatureValue.bData ? true : false;
-        if (userFeatureValue.bData == 17)
+        state->dumpIDData = userFeatureValueData.bData ? true : false;
+        if (userFeatureValueData.bData == 17)
         {
             state->enableIDDumpTimeStamp = true;
         }
