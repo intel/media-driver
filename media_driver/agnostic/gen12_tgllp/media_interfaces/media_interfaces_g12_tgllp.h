@@ -125,7 +125,7 @@
 
 #include "codechal_decode_histogram_g12.h"
 
-#if 0 
+#if LINUX
 #include "vp_pipeline_adapter_g12.h"
 #endif
 

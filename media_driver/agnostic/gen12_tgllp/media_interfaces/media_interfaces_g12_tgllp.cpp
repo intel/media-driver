@@ -49,7 +49,7 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     PMOS_CONTEXT    osDriverContext,
     MOS_STATUS      *eStatus)
 {
-#if 0
+#if LINUX
     bool bApogeiosEnable = false;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
