@@ -51,6 +51,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define VP9VDENCROWSTORE_BASEADDRESS_768                                  768
 #define RESERVED_VDENC_ROWSTORE_BASEADDRESS                               2370
 #define RESERVED_VDENC_IPDL_ROWSTORE_BASEADDRESS                          384
+#define AVC_VDENC_IPDL_ROWSTORE_BASEADDRESS                               512
 
 #define GEN12_AVC_VDENC_ROWSTORE_BASEADDRESS                                  1280
 #define GEN12_AVC_VDENC_ROWSTORE_BASEADDRESS_MBAFF                            1536
@@ -453,6 +454,14 @@ public:
 
             //IPDL
             this->m_vdencIpdlRowstoreCache.dwAddress = RESERVED_VDENC_IPDL_ROWSTORE_BASEADDRESS;
+
+        }
+        else if (this->m_vdencRowStoreCache.bSupported && rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC)
+        {
+            this->m_vdencRowStoreCache.bEnabled = true;
+
+            //IPDL
+            this->m_vdencIpdlRowstoreCache.dwAddress = AVC_VDENC_IPDL_ROWSTORE_BASEADDRESS;
 
         }
 
