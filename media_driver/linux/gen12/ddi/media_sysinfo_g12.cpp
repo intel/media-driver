@@ -120,6 +120,18 @@ static bool InitTglShadowSku(struct GfxDeviceInfo *devInfo,
     skuTable->FtrEDram = devInfo->hasERAM;
 
     skuTable->FtrE2ECompression = 1;
+    // Disable MMC for all components if set reg key
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_MMC_ID,
+        &userFeatureData);
+    if (userFeatureData.bData)
+    {
+        skuTable->FtrE2ECompression = 0;
+    }
+
     skuTable->FtrLinearCCS = 1;
     skuTable->FtrTileY = 1;
 
