@@ -60,6 +60,9 @@
 #include "mos_os_virtualengine.h"
 #include "mos_util_user_interface.h"
 
+#include "mos_os_virtualengine_singlepipe_next.h"
+#include "mos_os_virtualengine_scalability_next.h"
+
 //!
 //! \brief DRM VMAP patch
 //!
@@ -1872,6 +1875,11 @@ void Mos_Specific_Destroy(
     }
     if (pOsInterface->pVEInterf)
     {
+        if (g_apoMosEnabled && pOsInterface->pVEInterf->veInterface)
+        {
+            pOsInterface->pVEInterf->veInterface->Destroy();
+            MOS_Delete(pOsInterface->pVEInterf->veInterface);
+        }
         MOS_FreeMemAndSetNull(pOsInterface->pVEInterf);
     }
 
