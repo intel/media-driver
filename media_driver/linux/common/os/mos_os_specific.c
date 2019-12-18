@@ -1512,6 +1512,8 @@ MOS_STATUS Linux_InitContext(
     // For Media Memory compression
     pContext->ppMediaMemDecompState     = pOsDriverContext->ppMediaMemDecompState;
     pContext->pfnMemoryDecompress       = pOsDriverContext->pfnMemoryDecompress;
+    pContext->pfnMediaMemoryCopy        = pOsDriverContext->pfnMediaMemoryCopy;
+    pContext->pfnMediaMemoryCopy2D      = pOsDriverContext->pfnMediaMemoryCopy2D;
 
     // Set interface functions
     pContext->pfnDestroy                 = Linux_Destroy;
@@ -3079,6 +3081,106 @@ MOS_STATUS Mos_Specific_DecompResource(
             MOS_OS_CHK_NULL(pOsContext->pfnMemoryDecompress);
             pOsContext->pfnMemoryDecompress(pOsContext, pOsResource);
         }
+    }
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+finish:
+    return eStatus;
+}
+
+//!
+//! \brief    Decompress and Copy Resource to Another Buffer
+//! \details  Decompress and Copy Resource to Another Buffer
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] pointer to OS Interface structure
+//! \param    PMOS_RESOURCE inputOsResource
+//!           [in] Input Resource object
+//! \param    PMOS_RESOURCE outputOsResource
+//!           [out] output Resource object
+//! \param    [in] bOutputCompressed
+//!            true means apply compression on output surface, else output uncompressed surface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if successful
+//!
+MOS_STATUS Mos_Specific_DoubleBufferCopyResource(
+    PMOS_INTERFACE        osInterface,
+    PMOS_RESOURCE         inputOsResource,
+    PMOS_RESOURCE         outputOsResource,
+    bool                  bOutputCompressed)
+{
+    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
+    MOS_OS_CONTEXT          *pContext = nullptr;
+
+    //---------------------------------------
+    MOS_OS_CHK_NULL(osInterface);
+    MOS_OS_CHK_NULL(inputOsResource);
+    MOS_OS_CHK_NULL(outputOsResource);
+    //---------------------------------------
+
+    pContext = osInterface->pOsContext;
+
+    if (inputOsResource && inputOsResource->bo && inputOsResource->pGmmResInfo &&
+        outputOsResource && outputOsResource->bo && outputOsResource->pGmmResInfo)
+    {
+        // Double Buffer Copy can support any tile status surface with/without compression
+        pContext->pfnMediaMemoryCopy(pContext, inputOsResource, outputOsResource, bOutputCompressed);
+    }
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+finish:
+    return eStatus;
+}
+
+//!
+//! \brief    Decompress and Copy Resource to Another Buffer
+//! \details  Decompress and Copy Resource to Another Buffer
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] pointer to OS Interface structure
+//! \param    PMOS_RESOURCE inputOsResource
+//!           [in] Input Resource object
+//! \param    PMOS_RESOURCE outputOsResource
+//!           [out] output Resource object
+//! \param    [in] copyWidth
+//!            The 2D surface Width
+//! \param    [in] copyHeight
+//!            The 2D surface height
+//! \param    [in] copyInputOffset
+//!            The offset of copied surface from
+//! \param    [in] copyOutputOffset
+//!            The offset of copied to
+//! \param    [in] bOutputCompressed
+//!            true means apply compression on output surface, else output uncompressed surface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if successful
+//!
+MOS_STATUS Mos_Specific_MediaCopyResource2D(
+    PMOS_INTERFACE        osInterface,
+    PMOS_RESOURCE         inputOsResource,
+    PMOS_RESOURCE         outputOsResource,
+    uint32_t              copyWidth,
+    uint32_t              copyHeight,
+    uint32_t              copyInputOffset,
+    uint32_t              copyOutputOffset,
+    bool                  bOutputCompressed)
+{
+    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
+    MOS_OS_CONTEXT          *pContext = nullptr;
+
+    //---------------------------------------
+    MOS_OS_CHK_NULL(osInterface);
+    MOS_OS_CHK_NULL(inputOsResource);
+    MOS_OS_CHK_NULL(outputOsResource);
+    //---------------------------------------
+
+    pContext = osInterface->pOsContext;
+
+    if (inputOsResource && inputOsResource->bo && inputOsResource->pGmmResInfo &&
+        outputOsResource && outputOsResource->bo && outputOsResource->pGmmResInfo)
+    {
+        // Double Buffer Copy can support any tile status surface with/without compression
+        pContext->pfnMediaMemoryCopy2D(pContext, inputOsResource, outputOsResource, copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bOutputCompressed);
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -6901,6 +7003,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnLockResource                           = Mos_Specific_LockResource;
     pOsInterface->pfnUnlockResource                         = Mos_Specific_UnlockResource;
     pOsInterface->pfnDecompResource                         = Mos_Specific_DecompResource;
+    pOsInterface->pfnDoubleBufferCopyResource               = Mos_Specific_DoubleBufferCopyResource;
+    pOsInterface->pfnMediaCopyResource2D                    = Mos_Specific_MediaCopyResource2D;
     pOsInterface->pfnRegisterResource                       = Mos_Specific_RegisterResource;
     pOsInterface->pfnResetResourceAllocationIndex           = Mos_Specific_ResetResourceAllocationIndex;
     pOsInterface->pfnGetResourceAllocationIndex             = Mos_Specific_GetResourceAllocationIndex;

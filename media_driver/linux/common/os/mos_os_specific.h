@@ -586,6 +586,28 @@ struct _MOS_OS_CONTEXT
         PMOS_CONTEXT                pOsContext,
         PMOS_RESOURCE               pOsResource);
 
+    //!
+    //! \brief  the function ptr for surface copy function
+    //!
+    void  (* pfnMediaMemoryCopy )(
+        PMOS_CONTEXT       pOsContext,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        bool               bOutputCompressed);
+
+    //!
+    //! \brief  the function ptr for Media Memory 2D copy function
+    //!
+    void (* pfnMediaMemoryCopy2D)(
+        PMOS_CONTEXT       pOsContext,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        uint32_t           copyWidth,
+        uint32_t           copyHeight,
+        uint32_t           copyInputOffset,
+        uint32_t           copyOutputOffset,
+        bool               bOutputCompressed);
+
     // Os Context interface functions
     void (* pfnDestroy)(
         struct _MOS_OS_CONTEXT      *pOsContext,

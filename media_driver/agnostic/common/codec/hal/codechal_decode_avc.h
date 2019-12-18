@@ -306,7 +306,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS FormatAvcMonoPicture(PMOS_SURFACE surface);
+    virtual MOS_STATUS FormatAvcMonoPicture(PMOS_SURFACE surface);
 
     //!
     //! \brief    Set frame store Id for avc codec.

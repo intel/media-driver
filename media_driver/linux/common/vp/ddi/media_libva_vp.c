@@ -1555,7 +1555,10 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     pVpCtx->MosDrvCtx.m_auxTableMgr   = pMediaCtx->m_auxTableMgr;
     pVpCtx->MosDrvCtx.pGmmClientContext = pMediaCtx->pGmmClientContext;
     pVpCtx->MosDrvCtx.ppMediaMemDecompState = &pMediaCtx->pMediaMemDecompState;
+    pVpCtx->MosDrvCtx.pfnMediaMemoryCopy    = pMediaCtx->pfnMediaMemoryCopy;
+    pVpCtx->MosDrvCtx.pfnMediaMemoryCopy2D  = pMediaCtx->pfnMediaMemoryCopy2D;
     pVpCtx->MosDrvCtx.pfnMemoryDecompress   = pMediaCtx->pfnMemoryDecompress;
+
     pVpCtx->MosDrvCtx.pPerfData             = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     pVpCtx->MosDrvCtx.m_osDeviceContext     = pMediaCtx->m_osDeviceContext;
     if( nullptr == pVpCtx->MosDrvCtx.pPerfData)

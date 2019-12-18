@@ -459,6 +459,28 @@ struct DDI_MEDIA_CONTEXT
         PMOS_CONTEXT  pMosCtx,
         PMOS_RESOURCE pOsResource);
 
+    //!
+    //! \brief  the function ptr for surface copy function
+    //!
+    void  (* pfnMediaMemoryCopy )(
+        PMOS_CONTEXT       pMosCtx,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        bool               bOutputCompressed);
+
+    //!
+    //! \brief  the function ptr for Media Memory 2D copy function
+    //!
+    void (* pfnMediaMemoryCopy2D)(
+        PMOS_CONTEXT       pMosCtx,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        uint32_t           copyWidth,
+        uint32_t           copyHeight,
+        uint32_t           copyInputOffset,
+        uint32_t           copyOutputOffset,
+        bool               bOutputCompressed);
+
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;

@@ -217,6 +217,83 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     //Get context before proceeding
     auto gpuContext = m_osInterface->CurrentGpuContextOrdinal;
 
+    // Sync for Vebox read
+    m_osInterface->pfnSyncOnResource(
+        m_osInterface,
+        &sourceSurface.OsResource,
+        MOS_GPU_CONTEXT_VEBOX,
+        false);
+
+    // Sync for Vebox write
+    m_osInterface->pfnSyncOnResource(
+        m_osInterface,
+        &targetSurface.OsResource,
+        MOS_GPU_CONTEXT_VEBOX,
+        false);
+
+    DumpSurfaceMemDecomp(sourceSurface, m_surfaceDumpCounter, 1, VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP);
+
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(RenderDoubleBufferDecompCMD(&sourceSurface, &targetSurface));
+
+    DumpSurfaceMemDecomp(targetSurface, m_surfaceDumpCounter++, 1, VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP);
+
+    return eStatus;
+}
+
+MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
+    PMOS_RESOURCE inputResource,
+    PMOS_RESOURCE outputResource,
+    uint32_t      copyWidth,
+    uint32_t      copyHeight,
+    uint32_t      copyInputOffset,
+    uint32_t      copyOutputOffset,
+    bool          outputCompressed)
+{
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_FUNCTION_ENTER;
+
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputResource);
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(outputResource);
+
+    MOS_SURFACE             sourceSurface;
+    MOS_SURFACE             targetSurface;
+
+    MOS_ZeroMemory(&targetSurface, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(&sourceSurface, sizeof(MOS_SURFACE));
+
+    targetSurface.Format = Format_Invalid;
+    targetSurface.OsResource = *outputResource;
+
+#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+    // for Double Buffer copy, clear the allocationInfo temply
+    MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
+#endif
+
+    sourceSurface.Format = Format_Invalid;
+    sourceSurface.OsResource = *inputResource;
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&targetSurface));
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&sourceSurface));
+
+    if (!outputCompressed && targetSurface.CompressionMode != MOS_MMC_DISABLED)
+    {
+        targetSurface.CompressionMode = MOS_MMC_RC;
+    }
+
+    //Get context before proceeding
+    auto gpuContext = m_osInterface->CurrentGpuContextOrdinal;
+
+    targetSurface.Format = Format_Y8;
+    sourceSurface.Format = Format_Y8;
+
+    sourceSurface.dwOffset = copyInputOffset;
+    targetSurface.dwOffset = copyOutputOffset;
+
+    sourceSurface.dwWidth  = copyWidth;
+    sourceSurface.dwHeight = copyHeight;
+    targetSurface.dwWidth  = copyWidth;
+    targetSurface.dwHeight = copyHeight;
+
     // Sync for Vebox write
     m_osInterface->pfnSyncOnResource(
         m_osInterface,
@@ -422,25 +499,30 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
         mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch    = mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch      = inputSurface->dwPitch;
         mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource = mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource = &(inputSurface->OsResource);
         mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset   = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset   = inputSurface->YPlaneOffset.iYOffset;
-        
+
         mhwVeboxSurfaceStateCmdParams->SurfInput.dwCompressionFormat = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwCompressionFormat =
             inputSurface->CompressionFormat;
     }
     else
     // double buffer resolve
     {
-        mhwVeboxSurfaceStateCmdParams->SurfInput.TileType            = inputSurface->TileType;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.TileModeGMM         = inputSurface->TileModeGMM;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.bGMMTileEnabled     = inputSurface->bGMMTileEnabled;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType           = outputSurface->TileType;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.TileModeGMM        = outputSurface->TileModeGMM;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled    = outputSurface->bGMMTileEnabled;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch      = inputSurface->dwPitch;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch     = outputSurface->dwPitch;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource  = &(inputSurface->OsResource);
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource = &(outputSurface->OsResource);
-        mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset    = inputSurface->YPlaneOffset.iYOffset;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.dwCompressionFormat = inputSurface->CompressionFormat;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.TileType             = inputSurface->TileType;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.TileModeGMM          = inputSurface->TileModeGMM;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.bGMMTileEnabled      = inputSurface->bGMMTileEnabled;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType            = outputSurface->TileType;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.TileModeGMM         = outputSurface->TileModeGMM;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled     = outputSurface->bGMMTileEnabled;
+
+        // When surface is 1D but processed as 2D, fake a min(pitch, width) is needed as the pitch API passed may less surface width in 1D surface
+        mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch              = (inputSurface->TileType == MOS_TILE_LINEAR) ? 
+                                                                         MOS_MIN(inputSurface->dwWidth, inputSurface->dwPitch) : inputSurface->dwPitch;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch             = (outputSurface->TileType == MOS_TILE_LINEAR) ? 
+                                                                         MOS_MIN(outputSurface->dwPitch, outputSurface->dwWidth) : outputSurface->dwPitch;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource          = &(inputSurface->OsResource);
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource         = &(outputSurface->OsResource);
+        mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset            = inputSurface->YPlaneOffset.iYOffset;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset           = outputSurface->YPlaneOffset.iYOffset;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.dwCompressionFormat  = inputSurface->CompressionFormat;
         mhwVeboxSurfaceStateCmdParams->SurfOutput.dwCompressionFormat = outputSurface->CompressionFormat;
     }
 

@@ -378,6 +378,28 @@ private:
         PMOS_RESOURCE               pOsResource) = nullptr;
 
     //!
+    //! \brief  the function ptr for surface copy function
+    //!
+    void  (* m_mediaMemCopy )(
+        PMOS_CONTEXT       pOsContext,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        bool               bOutputCompressed) = nullptr;
+
+    //!
+    //! \brief  the function ptr for Media Memory 2D copy function
+    //!
+    void (* m_mediaMemCopy2D)(
+        PMOS_CONTEXT       pOsContext,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        uint32_t           copyWidth,
+        uint32_t           copyHeight,
+        uint32_t           copyInputOffset,
+        uint32_t           copyOutputOffset,
+        bool               bOutputCompressed) = nullptr;
+
+    //!
     //! \brief  ptr to ptr of memory decompression state
     //!
     void*               *m_mediaMemDecompState = nullptr;

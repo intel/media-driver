@@ -166,6 +166,35 @@ public:
         bool          outputCompressed);
 
     //!
+    //! \brief    Media memory copy 2D
+    //! \details  Entry point to decompress media memory and copy with byte in unit
+    //! \param    [in] inputSurface
+    //!            The source surface resource
+    //! \param    [out] outputSurface
+    //!            The target surface resource will be copied to
+    //! \param    [in] copyWidth
+    //!            The 2D surface Width
+    //! \param    [in] copyHeight
+    //!            The 2D surface height
+    //! \param    [in] copyInputOffset
+    //!            The offset of copied surface from
+    //! \param    [in] copyOutputOffset
+    //!            The offset of copied to
+    //! \param    [in] bOutputCompressed
+    //!            true means apply compression on output surface, else output uncompressed surface
+    //!
+    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
+    //!
+    virtual MOS_STATUS MediaMemoryCopy2D(
+        PMOS_RESOURCE inputResource,
+        PMOS_RESOURCE outputResource,
+        uint32_t      copyWidth,
+        uint32_t      copyHeight,
+        uint32_t      copyInputOffset,
+        uint32_t      copyOutputOffset,
+        bool          bOutputCompressed);
+
+    //!
     //! \brief    Initialize memory decompress state
     //! \param    [in] osInterface
     //!           Os interface

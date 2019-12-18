@@ -516,7 +516,9 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     
         // For Media Memory compression
         m_mediaMemDecompState       = pOsDriverContext->ppMediaMemDecompState;
-        m_memoryDecompress       = pOsDriverContext->pfnMemoryDecompress;
+        m_memoryDecompress          = pOsDriverContext->pfnMemoryDecompress;
+        m_mediaMemCopy              = pOsDriverContext->pfnMediaMemoryCopy;
+        m_mediaMemCopy2D            = pOsDriverContext->pfnMediaMemoryCopy2D;
         m_mosContext                = pOsDriverContext;
     
         m_noParsingAssistanceInKmd  = true;

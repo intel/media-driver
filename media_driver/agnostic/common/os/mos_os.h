@@ -965,6 +965,16 @@ typedef struct _MOS_INTERFACE
         PMOS_RESOURCE         pOutputOsResource,
         bool                  bOutputCompressed);
 
+    MOS_STATUS(*pfnMediaCopyResource2D) (
+        PMOS_INTERFACE        pOsInterface,
+        PMOS_RESOURCE         pInputOsResource,
+        PMOS_RESOURCE         pOutputOsResource,
+        uint32_t              copyWidth,
+        uint32_t              copyHeight,
+        uint32_t              copyInputOffset,
+        uint32_t              copyOutputOffset,
+        bool                  bOutputCompressed);
+
     MOS_STATUS (* pfnFillResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource,

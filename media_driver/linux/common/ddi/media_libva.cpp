@@ -993,6 +993,98 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
         DDI_ASSERTMESSAGE("Invalid memory decompression state.");
     }
 }
+
+//!
+//! \brief  copy internal media surface to another surface 
+//! 
+//! \param  [in] mosCtx
+//!         Pointer to mos context
+//! \param  [in] inputOsResource
+//!         Pointer input mos resource
+//! \param  [in] outputOsResource
+//!         Pointer output mos resource
+//! \param  [in] boutputcompressed
+//!         output can be compressed or not
+//!
+void DdiMedia_MediaMemoryCopyInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE inputOsResource, PMOS_RESOURCE outputOsResource, bool boutputcompressed)
+{
+    DDI_CHK_NULL(mosCtx, "nullptr mosCtx",);
+    DDI_CHK_NULL(inputOsResource, "nullptr input osResource",);
+    DDI_CHK_NULL(outputOsResource, "nullptr output osResource",);
+    DDI_ASSERT(inputOsResource);
+    DDI_ASSERT(outputOsResource);
+
+    MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
+
+    if (!mediaMemDecompState)
+    {
+        mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
+        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
+    }
+
+    if (mediaMemDecompState)
+    {
+        mediaMemDecompState->MediaMemoryCopy(inputOsResource, outputOsResource, boutputcompressed);
+    }
+    else
+    {
+        DDI_ASSERTMESSAGE("Invalid memory decompression state.");
+    }
+}
+
+//!
+//! \brief  copy internal media surface/buffer to another surface/buffer 
+//! 
+//! \param  [in] mosCtx
+//!         Pointer to mos context
+//! \param  [in] inputOsResource
+//!         Pointer input mos resource
+//! \param  [in] outputOsResource
+//!         Pointer output mos resource
+//! \param  [in] boutputcompressed
+//!         output can be compressed or not
+//! \param  [in] copyWidth
+//!         The 2D surface Width
+//! \param  [in] copyHeight
+//!         The 2D surface height
+//! \param  [in] copyInputOffset
+//!         The offset of copied surface from
+//! \param  [in] copyOutputOffset
+//!         The offset of copied to
+//!
+void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE inputOsResource, PMOS_RESOURCE outputOsResource, uint32_t copyWidth, uint32_t copyHeight, uint32_t copyInputOffset, uint32_t copyOutputOffset, bool boutputcompressed)
+{
+    DDI_CHK_NULL(mosCtx, "nullptr mosCtx",);
+    DDI_CHK_NULL(inputOsResource, "nullptr input osResource",);
+    DDI_CHK_NULL(outputOsResource, "nullptr output osResource",);
+    DDI_ASSERT(inputOsResource);
+    DDI_ASSERT(outputOsResource);
+
+    MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
+
+    if (!mediaMemDecompState)
+    {
+        mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
+        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
+    }
+
+    if (mediaMemDecompState)
+    {
+        mediaMemDecompState->MediaMemoryCopy2D(
+            inputOsResource,
+            outputOsResource,
+            copyWidth,
+            copyHeight,
+            copyInputOffset,
+            copyOutputOffset,
+            boutputcompressed);
+    }
+    else
+    {
+        DDI_ASSERTMESSAGE("Invalid memory decompression state.");
+    }
+}
+
 #endif
 
 //!
@@ -1044,6 +1136,8 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
+        mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
         mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
@@ -1387,7 +1481,9 @@ VAStatus DdiMedia__Initialize (
     }
     ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
 #ifdef _MMC_SUPPORTED
-    mediaCtx->pfnMemoryDecompress = DdiMedia_MediaMemoryDecompressInternal;
+    mediaCtx->pfnMemoryDecompress  = DdiMedia_MediaMemoryDecompressInternal;
+    mediaCtx->pfnMediaMemoryCopy   = DdiMedia_MediaMemoryCopyInternal;
+    mediaCtx->pfnMediaMemoryCopy2D = DdiMedia_MediaMemoryCopy2DInternal;
 #endif
     // init the mutexs
     DdiMediaUtil_InitMutex(&mediaCtx->SurfaceMutex);
@@ -1467,6 +1563,8 @@ VAStatus DdiMedia__Initialize (
         mosCtx.platform              = mediaCtx->platform;
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
+        mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
@@ -1497,6 +1595,8 @@ VAStatus DdiMedia__Initialize (
         mosCtx.platform              = mediaCtx->platform;
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
+        mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
