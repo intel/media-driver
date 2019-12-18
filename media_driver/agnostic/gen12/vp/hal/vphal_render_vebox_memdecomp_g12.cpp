@@ -203,8 +203,15 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDoubleBufferDecompCMD(
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(&outputSurface->OsResource);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_osInterface->osCpInterface);
 
+    //there is a new usage that input surface is clear and output surface is secure.
+    //replace Huc Copy by DoubleBuffer resolve to update ccs data.
+    //So need consolidate both input/output surface information to decide cp context.
+     PMOS_SURFACE surfaceArray[2];
+     surfaceArray[0] = inputSurface;
+     surfaceArray[1] = outputSurface;
+
     // preprocess in cp first
-    m_osInterface->osCpInterface->PrepareResources((void **)&inputSurface, 1, nullptr, 0);
+    m_osInterface->osCpInterface->PrepareResources((void **)&surfaceArray, sizeof(surfaceArray) / sizeof(PMOS_SURFACE), nullptr, 0);
 
     // initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
