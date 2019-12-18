@@ -478,6 +478,11 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
                     RenderParams.uSrcCount++;
                 }
             }
+            else if (!bColorFillForFirstRender && SinglePassSource.pLumaKeyParams)  // colorfill is needed if lumakey enabled on a single pass
+            {
+                RenderParams.pColorFillParams  = &colorFillForFirstRenderPass;
+                RenderParams.pTarget[0]->rcDst = SinglePassSource.rcDst;
+            }
             else
             {
                 RenderParams.pTarget[0]->rcDst = SinglePassSource.rcDst;
