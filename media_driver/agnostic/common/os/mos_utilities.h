@@ -2049,9 +2049,9 @@ void MOS_TraceEvent(
 //! \return   void
 //!
 void MOS_TraceDataDump(
-    char *const pcName,
+    const char *pcName,
     uint32_t    flags,
-    void *const pBuf,
+    const void *pBuf,
     uint32_t    dwSize);
 
 //!
