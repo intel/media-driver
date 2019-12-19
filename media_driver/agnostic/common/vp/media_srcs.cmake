@@ -21,4 +21,6 @@
 media_include_subdirectory(hal)
 media_include_subdirectory(kdll)
 media_include_subdirectory(kernel)
+if("${MEDIA_EXT}" STREQUAL "")
 media_include_subdirectory(cm_fc_ld)
+endif()
