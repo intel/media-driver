@@ -136,7 +136,7 @@ public:
         return m_initialized;
     }
 
-private:
+protected:
     //!
     //! \brief    Self define compare method as std:sort input 
     //! \detail   Command buffer size will be compared 

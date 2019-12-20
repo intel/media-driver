@@ -82,7 +82,7 @@ public:
     //! \return   GpuContext*
     //!           Gpu context pointer if success, otherwise nullptr
     //!
-    GpuContextNext* CreateGpuContext(
+    virtual GpuContextNext* CreateGpuContext(
         const MOS_GPU_NODE gpuNode,
         CmdBufMgrNext     *cmdBufMgr);
 
@@ -95,14 +95,14 @@ public:
     //! \return   GpuContext*
     //!           Gpu context pointer if success, otherwise nullptr
     //!
-    GpuContextNext* GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHandle);
+    virtual GpuContextNext* GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHandle);
 
     //!
     //! \brief    Destroy specified gpu context
     //! \param    [in] gpuContext
     //!           Gpu context need to be destroyed
     //!
-    void DestroyGpuContext(GpuContextNext *gpuContext);
+    virtual void DestroyGpuContext(GpuContextNext *gpuContext);
 
     //!
     //! \brief    Destroy all gpu context instance
@@ -158,6 +158,7 @@ public:
     bool m_noCycledGpuCxtMgmt = false;
 
 protected:
+    GpuContextMgrNext() = default;
     //! \brief    Gt system info 
     //! \detail   reserve to reuse gpu context
     GT_SYSTEM_INFO m_gtSystemInfo = {};

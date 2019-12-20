@@ -58,21 +58,22 @@ typedef struct _MOS_VIRTUALENGINE_INIT_PARAMS MOS_VIRTUALENGINE_INIT_PARAMS, *PM
 typedef struct _MOS_CMD_BUF_ATTRI_VE MOS_CMD_BUF_ATTRI_VE, *PMOS_CMD_BUF_ATTRI_VE;
 class MosInterface
 {
-public:
+protected:
     //!
     //! \brief   Destructor
     //! \details There is no members in Mos Interface, it's pure interface.
     //!          Never call the Destructor of Mos interface
     //!
-    ~MosInterface() = delete;
+    ~MosInterface() = default;
     
     //!
     //! \brief   Constructor
     //! \details There is no members in Mos Interface, it's pure interface.
     //!          Never call the Constructor of Mos interface
     //!
-    MosInterface() = delete;
+    MosInterface() = default;
 
+public:
     //!
     //! \brief    Create Os Device Context
     //! \details  Create the Os Device Context in device level.
