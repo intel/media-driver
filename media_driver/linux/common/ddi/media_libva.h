@@ -286,6 +286,7 @@ typedef struct _DDI_CODEC_RENDER_TARGET_TABLE
     DDI_MEDIA_SURFACE           *pCurrentReconTarget;  // recon surface for encode
     DDI_MEDIA_SURFACE           *pRT[DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT];
     uint8_t                      ucRTFlag[DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT];
+    int32_t                      iLastFrameIdx;
 } DDI_CODEC_RENDER_TARGET_TABLE, *PDDI_CODEC_RENDER_TARGET_TABLE;
 
 #define DDI_CODEC_INVALID_FRAME_INDEX              0xffffffff

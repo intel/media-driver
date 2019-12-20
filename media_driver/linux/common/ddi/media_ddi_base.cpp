@@ -86,8 +86,8 @@ VAStatus DdiMediaBase::RegisterRTSurfaces(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, 
     }
     else
     {
-        uint32_t j = 0;
-        for(j = 0; j < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; j ++)
+        uint32_t j = (rtTbl->iLastFrameIdx + 1) % DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT;
+        for(uint32_t k = 0; k < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; k++, j = (j +1) % DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
         {
             if(rtTbl->ucRTFlag[j] == SURFACE_STATE_INACTIVE)
             {
@@ -121,6 +121,7 @@ VAStatus DdiMediaBase::ClearRefList(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, bool w
             else if(rtTbl->ucRTFlag[i] == SURFACE_STATE_ACTIVE_IN_CURFRAME)
             {
                 rtTbl->ucRTFlag[i] = SURFACE_STATE_ACTIVE_IN_LASTFRAME;
+                rtTbl->iLastFrameIdx = i;
             }
         }
     }
