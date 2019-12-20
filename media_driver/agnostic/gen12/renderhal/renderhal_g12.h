@@ -41,8 +41,8 @@ typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_G12 : _RENDERHAL_GENERIC_PROLOG_
 
 //! \brief      for Gen12LP VP and MDF
 //!              SLM     URB     DC      RO      Rest/L3 Client Pool
-//!               0      64      0       0       320 (KB chunks based on GT2)
-#define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G12LP_RENDERHAL (0xA0000420)
+//!               0      64      0       0       416 (KB chunks based on GT2)
+#define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G12LP_RENDERHAL (0xD0000020)
 class XRenderHal_Interface_g12 : public XRenderHal_Platform_Interface
 {
 public:

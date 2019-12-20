@@ -186,20 +186,15 @@ MOS_STATUS MhwRenderInterfaceG12::SetL3Cache( PMOS_COMMAND_BUFFER cmdBuffer )
     {
         MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterParams;
 
-        //L3CacheAllocReg_Setting
-        if ( m_l3CacheConfig.dwL3CacheAllocReg_Setting != 0 )
+        //L3CacheAllocReg_Setting and L3CacheTcCntlReg_Setting
+        if ((m_l3CacheConfig.dwL3CacheAllocReg_Setting != 0) || (m_l3CacheConfig.dwL3CacheTcCntlReg_Setting != 0))
         {
-
             //update L3 AllocReg setting for RCS; CCS L3 AllocReg setting will be dulicated from RCS
             MOS_ZeroMemory(&loadRegisterParams, sizeof(loadRegisterParams));
             loadRegisterParams.dwRegister = m_l3CacheConfig.dwRcsL3CacheAllocReg_Register;
             loadRegisterParams.dwData = m_l3CacheConfig.dwL3CacheAllocReg_Setting;
             MHW_MI_CHK_STATUS(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegisterParams));
-        }
 
-        //L3CacheTcCntlReg_Setting
-        if ( m_l3CacheConfig.dwL3CacheTcCntlReg_Setting != 0 )
-        {
             //update L3 TcCntlReg setting for RCS; CCS L3 TcCntlReg setting will be dulicated from RCS
             MOS_ZeroMemory(&loadRegisterParams, sizeof(loadRegisterParams));
             loadRegisterParams.dwRegister = m_l3CacheConfig.dwRcsL3CacheTcCntlReg_Register;

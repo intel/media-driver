@@ -566,16 +566,17 @@ MOS_STATUS XRenderHal_Interface_g12::EnableL3Caching(
     // customize the cache config for renderhal and let mhw_render overwrite it
     pCacheConfig = &mHwL3CacheConfig;
 
-    pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G12LP_RENDERHAL;
+    mHwL3CacheConfig.dwAllocReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G12LP_RENDERHAL;
 
     // Override L3 cache configuration
     if (pCacheSettings->bOverride)
     {
         if (pCacheSettings->bCntlRegOverride)
         {
-            pCacheConfig->dwCntlReg = pCacheSettings->dwCntlReg;
+            mHwL3CacheConfig.dwAllocReg = pCacheSettings->dwCntlReg;
         }
     }
+
     MHW_RENDERHAL_CHK_STATUS(pMhwRender->EnableL3Caching(pCacheConfig));
 
 finish:
