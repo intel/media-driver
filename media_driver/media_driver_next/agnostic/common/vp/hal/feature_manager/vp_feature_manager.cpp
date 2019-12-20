@@ -33,8 +33,8 @@ using namespace vp;
 /*                                      VpFeatureManagerNext                                        */
 /****************************************************************************************************/
 
-VpFeatureManagerNext::VpFeatureManagerNext(VpResourceAllocator &resourceAllocator, PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe) :
-    m_bBypassSwFilterPipe(bBypassSwFilterPipe), m_pHwInterface(pHwInterface), m_ResourceAllocator(resourceAllocator), m_Policy(pHwInterface, bBypassSwFilterPipe)
+VpFeatureManagerNext::VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe) :
+    m_bBypassSwFilterPipe(bBypassSwFilterPipe), m_vpInterface(pHwInterface, allocator, resourceManager), m_Policy(bBypassSwFilterPipe, m_vpInterface)
 {
 }
 
@@ -53,18 +53,18 @@ MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(VP_PIPELINE_PARAMS &params, 
     pHwFilterPipe = nullptr;
     if (m_bBypassSwFilterPipe)
     {
-        status = m_HwFilterPipeFactory.CreateHwFilterPipe(params, m_Policy, pHwFilterPipe);
+        status = m_vpInterface.GetHwFilterPipeFactory().Create(params, m_Policy, pHwFilterPipe);
     }
     else
     {
         SwFilterPipe * pSwFilterPipe = nullptr;
-        status = m_SwFilterPipeFactory.CreateSwFilterPipe(params, pSwFilterPipe); 
+        status = m_vpInterface.GetSwFilterPipeFactory().Create(params, pSwFilterPipe); 
 
         VP_PUBLIC_CHK_STATUS_RETURN(status);
         VP_PUBLIC_CHK_NULL_RETURN(pSwFilterPipe);
 
-        status = m_HwFilterPipeFactory.CreateHwFilterPipe(*pSwFilterPipe, m_Policy, pHwFilterPipe);
-        m_SwFilterPipeFactory.ReturnSwFilterPipe(pSwFilterPipe);
+        status = m_vpInterface.GetHwFilterPipeFactory().Create(*pSwFilterPipe, m_Policy, pHwFilterPipe);
+        m_vpInterface.GetSwFilterPipeFactory().Destory(pSwFilterPipe);
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(status);
@@ -87,20 +87,20 @@ MOS_STATUS VpFeatureManagerNext::InitPacketPipe(VP_PIPELINE_PARAMS &params,
 
     if (MOS_FAILED(status))
     {
-        m_HwFilterPipeFactory.ReturnHwFilterPipe(pHwFilterPipe);
+        m_vpInterface.GetHwFilterPipeFactory().Destory(pHwFilterPipe);
         return status;
     }
 
     status = pHwFilterPipe->InitPacketPipe(packetPipe);
 
-    m_HwFilterPipeFactory.ReturnHwFilterPipe(pHwFilterPipe);
+    m_vpInterface.GetHwFilterPipeFactory().Destory(pHwFilterPipe);
 
     return status;
 }
 
 MOS_STATUS VpFeatureManagerNext::UpdateResources(HwFilterPipe &hwFilterPipe)
 {
-    return hwFilterPipe.UpdateResources(m_ResourceAllocator);
+    return hwFilterPipe.UpdateResources();
 }
 
 /****************************************************************************************************/

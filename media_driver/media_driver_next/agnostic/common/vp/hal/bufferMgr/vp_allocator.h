@@ -34,6 +34,29 @@
 
 namespace vp {
 
+struct VP_SURFACE
+{
+    MOS_SURFACE                 *osSurface;         //!< mos surface
+    bool                        isInternalSurface;  //!< true if created by feature manager. false if the surface is from DDI.
+    VPHAL_CSPACE                ColorSpace;         //!< Color Space
+    uint32_t                    ChromaSiting;       //!< ChromaSiting
+
+    bool                        bQueryVariance;     //!< enable variance query. Not in use for internal surface
+    int32_t                     FrameID;            //!< Not in use for internal surface
+    bool                        ExtendedGamut;      //!< Extended Gamut Flag. Not in use for internal surface
+    VPHAL_PALETTE               Palette;            //!< Palette data. Not in use for internal surface
+    VPHAL_SURFACE_TYPE          SurfType;           //!< Surface type (context). Not in use for internal surface
+    uint32_t                    uFwdRefCount;       //!< Not in use for internal surface
+    uint32_t                    uBwdRefCount;       //!< Not in use for internal surface
+    VPHAL_SURFACE               *pFwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
+    VPHAL_SURFACE               *pBwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
+    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type.
+    // Use index of m_InputSurfaces for layerID. No need iLayerID here anymore.
+
+    PVPHAL_SURFACE              pCurrent;           //!< Pointer to related vphal surface. Only be used in VpVeboxCmdPacket::PacketInit for current
+                                                    //!< stage. Should be removed after vphal surface being cleaned from VpVeboxCmdPacket.
+};
+
 class VpAllocator
 {
 public:
@@ -99,6 +122,43 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS FreeResource(MOS_RESOURCE *resource);
+
+    //!
+    //! \brief  Allocate Surface
+    //! \param  [in] component
+    //!         component type to track the buffer
+    //! \param  [in] param
+    //!         reference to MOS_ALLOC_GFXRES_PARAMS
+    //! \param  [in] zeroOnAllocate
+    //!         zero the memory if true
+    //! \param  [in] ColorSpace
+    //!         Surface color space config
+    //! \param  [in] ChromaSiting
+    //!         Surface chromasiting config
+    //! \param  [in] ChromaSiting
+    //!         Surface rotation config
+    //! \return VP_SURFACE*
+    //!         return the pointer to VP_SURFACE
+    //!
+    VP_SURFACE* AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroOnAllocate, VPHAL_CSPACE ColorSpace, uint32_t ChromaSiting = 0);
+
+    //!
+    //! \brief  Allocate Surface
+    //! \param  [in] vphalSurf
+    //!         The vphal surface that vp surface created from. The resource will be reused in vp surface.
+    //! \return VP_SURFACE*
+    //!         return the pointer to VP_SURFACE
+    //!
+    VP_SURFACE* AllocateVpSurface(VPHAL_SURFACE &vphalSurf);
+
+    //!
+    //! \brief  Destroy Surface
+    //! \param  [in] surface
+    //!         Pointer to VP_SURFACE
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DestroyVpSurface(VP_SURFACE *&surface);
 
     //!
     //! \brief  Allocate Surface

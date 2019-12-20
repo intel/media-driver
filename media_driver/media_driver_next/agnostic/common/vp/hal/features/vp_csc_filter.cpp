@@ -28,6 +28,7 @@
 #include "vp_csc_filter.h"
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
+#include "sw_filter_pipe.h"
 
 namespace vp {
 VpCscFilter::VpCscFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -69,8 +70,27 @@ MOS_STATUS VpCscFilter::SetExecuteEngineCaps(
 {
     VP_FUNC_CALL();
 
-    m_inputSurface  = vpRenderParams->pSrc[0];
-    m_targetSurface = vpRenderParams->pTarget[0];
+    m_cscParams.chromaSitingInput = vpRenderParams->pSrc[0]->ChromaSiting;
+    m_cscParams.chromaSitingOutput = vpRenderParams->pTarget[0]->ChromaSiting;
+    m_cscParams.colorSpaceInput = vpRenderParams->pSrc[0]->ColorSpace; 
+    m_cscParams.colorSpaceOutput = vpRenderParams->pTarget[0]->ColorSpace;
+    m_cscParams.formatInput = vpRenderParams->pSrc[0]->Format; 
+    m_cscParams.formatOutput = vpRenderParams->pTarget[0]->Format;
+    m_cscParams.pIEFParams = vpRenderParams->pSrc[0]->pIEFParams;
+    m_cscParams.type = FeatureTypeCsc;
+
+    m_executeCaps   = vpExecuteCaps;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpCscFilter::SetExecuteEngineCaps(
+    FeatureParamCsc &cscParams,
+    VP_EXECUTE_CAPS vpExecuteCaps)
+{
+    VP_FUNC_CALL();
+
+    m_cscParams = cscParams;
     m_executeCaps   = vpExecuteCaps;
 
     return MOS_STATUS_SUCCESS;
@@ -98,9 +118,6 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
 {
     VP_FUNC_CALL();
 
-    VP_RENDER_CHK_NULL_RETURN(m_inputSurface);
-    VP_RENDER_CHK_NULL_RETURN(m_targetSurface);
-
     if (m_executeCaps.bSFC)
     {
         if (!m_sfcCSCParams)
@@ -118,25 +135,25 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
             MOS_ZeroMemory(m_sfcCSCParams, sizeof(SFC_CSC_PARAMS));
         }
 
-        m_sfcCSCParams->bIEFEnable = (m_inputSurface->pIEFParams                 &&
-                                      m_inputSurface->pIEFParams->bEnabled       &&
-                                      m_inputSurface->pIEFParams->fIEFFactor > 0.0F) ? true : false;
+        m_sfcCSCParams->bIEFEnable = (m_cscParams.pIEFParams                 &&
+                                      m_cscParams.pIEFParams->bEnabled       &&
+                                      m_cscParams.pIEFParams->fIEFFactor > 0.0F) ? true : false;
 
         if (m_sfcCSCParams->bIEFEnable)
         {
-            m_sfcCSCParams->iefParams = m_inputSurface->pIEFParams;
+            m_sfcCSCParams->iefParams = m_cscParams.pIEFParams;
         }
 
-        m_sfcCSCParams->inputColorSpcase = m_inputSurface->ColorSpace;
-        m_sfcCSCParams->inputFormat      = m_executeCaps.bDI ? Format_YUY2 : m_inputSurface->Format;
-        m_sfcCSCParams->outputFormat     = m_targetSurface->Format;
+        m_sfcCSCParams->inputColorSpcase = m_cscParams.colorSpaceInput;
+        m_sfcCSCParams->inputFormat      = m_executeCaps.bDI ? Format_YUY2 : m_cscParams.formatInput;
+        m_sfcCSCParams->outputFormat     = m_cscParams.formatOutput;
 
-        if (m_sfcCSCParams->inputColorSpcase != m_targetSurface->ColorSpace)
+        if (m_sfcCSCParams->inputColorSpcase != m_cscParams.colorSpaceOutput)
         {
             m_sfcCSCParams->bCSCEnabled = true;
         }
 
-        if (IS_RGB_CSPACE(m_inputSurface->ColorSpace))
+        if (IS_RGB_CSPACE(m_cscParams.colorSpaceInput))
         {
             m_sfcCSCParams->bInputColorSpace = true;
         }
@@ -154,26 +171,12 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
     return MOS_STATUS_SUCCESS;
 }
 
-bool VpCscFilter::IsCscEnabled( )
-{
-    bool bCscEnabled = false;
-    // Determine if CSC is needed
-    if (m_inputSurface->ColorSpace != m_targetSurface->ColorSpace)
-    {
-        bCscEnabled = true;
-    }
-
-    return bCscEnabled;
-}
-
 MOS_STATUS VpCscFilter::SetChromaParams(
     VP_EXECUTE_CAPS         vpExecuteCaps)
 {
     VP_FUNC_CALL();
 
     VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
-    VP_RENDER_CHK_NULL_RETURN(m_inputSurface);
-    VP_RENDER_CHK_NULL_RETURN(m_targetSurface);
 
     // Setup General params
     // Set chroma subsampling type according to the Vebox output, but
@@ -195,10 +198,10 @@ MOS_STATUS VpCscFilter::SetChromaParams(
     {
         VP_RENDER_CHK_STATUS_RETURN(SetSubSampling());
     }
-
-    m_sfcCSCParams->chromaDownSamplingVerticalCoef = (m_targetSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_CENTER) ?
+    
+    m_sfcCSCParams->chromaDownSamplingVerticalCoef = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_VERT_CENTER) ?
         MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8;
-    m_sfcCSCParams->chromaDownSamplingHorizontalCoef = (m_targetSurface->ChromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ?
+    m_sfcCSCParams->chromaDownSamplingHorizontalCoef = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_HORZ_CENTER) ?
         MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8;
 
     m_sfcCSCParams->bChromaUpSamplingEnable = IsChromaUpSamplingNeeded();
@@ -211,8 +214,6 @@ MOS_STATUS VpCscFilter::SetSubSampling()
     VP_FUNC_CALL();
 
     VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
-    VP_RENDER_CHK_NULL_RETURN(m_inputSurface);
-    VP_RENDER_CHK_NULL_RETURN(m_targetSurface);
 
     if (m_sfcCSCParams->inputFormat  == Format_NV12 ||
         (m_sfcCSCParams->inputFormat == Format_P010) ||
@@ -230,7 +231,7 @@ MOS_STATUS VpCscFilter::SetSubSampling()
         m_sfcCSCParams->b8tapChromafiltering = true;
     }
 
-    m_sfcCSCParams->sfcSrcChromaSiting = m_inputSurface->ChromaSiting;
+    m_sfcCSCParams->sfcSrcChromaSiting = m_cscParams.chromaSitingInput;
 
     if (m_sfcCSCParams->sfcSrcChromaSiting == MHW_CHROMA_SITING_NONE)
     {
@@ -250,17 +251,17 @@ MOS_STATUS VpCscFilter::SetSubSampling()
     }
 
     // Prevent invalid input for output surface and format
-    if (m_targetSurface->ChromaSiting == MHW_CHROMA_SITING_NONE)
+    if (m_cscParams.chromaSitingOutput == MHW_CHROMA_SITING_NONE)
     {
-        m_targetSurface->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
+        m_cscParams.chromaSitingOutput = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpHal_GetSurfaceColorPack(m_targetSurface->Format))
+    switch (VpHal_GetSurfaceColorPack(m_cscParams.formatOutput))
     {
     case VPHAL_COLORPACK_422:
-        m_targetSurface->ChromaSiting = (m_targetSurface->ChromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
+        m_cscParams.chromaSitingOutput = (m_cscParams.chromaSitingOutput & 0x7) | CHROMA_SITING_VERT_TOP;
         break;
     case VPHAL_COLORPACK_444:
-        m_targetSurface->ChromaSiting = CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_TOP;
+        m_cscParams.chromaSitingOutput = CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_TOP;
         break;
     default:
         break;
@@ -276,15 +277,8 @@ bool VpCscFilter::IsChromaUpSamplingNeeded()
 
     bChromaUpSampling = false;
 
-    if (m_inputSurface && m_targetSurface)
-    {
-        srcColorPack = VpHal_GetSurfaceColorPack(m_inputSurface->Format);
-        dstColorPack = VpHal_GetSurfaceColorPack(m_targetSurface->Format);
-    }
-    else
-    {
-        return false;
-    }
+    srcColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatInput);
+    dstColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatOutput);
 
     if ((srcColorPack == VPHAL_COLORPACK_420 &&
         (dstColorPack == VPHAL_COLORPACK_422 || dstColorPack == VPHAL_COLORPACK_444)) ||
@@ -299,7 +293,7 @@ bool VpCscFilter::IsChromaUpSamplingNeeded()
 /****************************************************************************************************/
 /*                                   HwFilter Csc Parameter                                         */
 /****************************************************************************************************/
-HwFilterParameter *HwFilterCscParameter::Create(HW_FILTER_CSC_PARAM &param, VpFeatureType featureType)
+HwFilterParameter *HwFilterCscParameter::Create(HW_FILTER_CSC_PARAM &param, FeatureType featureType)
 {
     HwFilterCscParameter *p = MOS_New(HwFilterCscParameter, featureType);
     if (p)
@@ -313,7 +307,7 @@ HwFilterParameter *HwFilterCscParameter::Create(HW_FILTER_CSC_PARAM &param, VpFe
     return p;
 }
 
-HwFilterCscParameter::HwFilterCscParameter(VpFeatureType featureType) : HwFilterParameter(featureType)
+HwFilterCscParameter::HwFilterCscParameter(FeatureType featureType) : HwFilterParameter(featureType)
 {
 }
 
@@ -379,7 +373,14 @@ bool VpSfcCscParameter::SetPacketParam(VpCmdPacket *pPacket)
 MOS_STATUS VpSfcCscParameter::Initialize(HW_FILTER_CSC_PARAM &params)
 {
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.Init());
-    VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.pPipelineParams, params.vpExecuteCaps));
+    if (params.isSwFilterEnabled)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.cscParams, params.vpExecuteCaps));
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.pPipelineParams, params.vpExecuteCaps));
+    }
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.CalculateEngineParams());
     return MOS_STATUS_SUCCESS;
 }
@@ -389,7 +390,7 @@ MOS_STATUS VpSfcCscParameter::Initialize(HW_FILTER_CSC_PARAM &params)
 /****************************************************************************************************/
 PolicySfcCscHandler::PolicySfcCscHandler()
 {
-    m_Type = VpFeatureTypeSfcCsc;
+    m_Type = FeatureTypeCscOnSfc;
 }
 PolicySfcCscHandler::~PolicySfcCscHandler()
 {}
@@ -399,27 +400,42 @@ bool PolicySfcCscHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
     return vpExecuteCaps.bSfcCsc;
 }
 
-HwFilterParameter *PolicySfcCscHandler::GetHwFeatureParameter(SwFilterPipe &swFilterPipe)
-{
-    return nullptr;
-}
-
-HwFilterParameter *PolicySfcCscHandler::GetHwFeatureParameter(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
+HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
     if (IsFeatureEnabled(vpExecuteCaps))
     {
+        if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Sfc only support 1To1 swFilterPipe!");
+            return nullptr;
+        }
+
+        SwFilterCsc *swFilter = dynamic_cast<SwFilterCsc *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeCscOnSfc));
+
+        if (nullptr == swFilter)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Feature enabled in vpExecuteCaps but no swFilter exists!");
+            return nullptr;
+        }
+
+        FeatureParamCsc &param = swFilter->GetSwFilterParams();
+
         HW_FILTER_CSC_PARAM paramCsc = {};
+        paramCsc.type = m_Type;
         paramCsc.pHwInterface = pHwInterface;
-        paramCsc.pPipelineParams = &pipelineParams;
         paramCsc.vpExecuteCaps = vpExecuteCaps;
         paramCsc.pPacketParamFactory = &m_PacketParamFactory;
+
+        paramCsc.isSwFilterEnabled = true;
+        paramCsc.cscParams = param;
+
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 
         if (pHwFilterParam)
         {
             if (MOS_FAILED(((HwFilterCscParameter*)pHwFilterParam)->Initialize(paramCsc)))
             {
-                ReturnHwFeatureParameter(pHwFilterParam);
+                ReleaseHwFeatureParameter(pHwFilterParam);
             }
         }
         else
@@ -435,4 +451,38 @@ HwFilterParameter *PolicySfcCscHandler::GetHwFeatureParameter(VP_EXECUTE_CAPS vp
     }
 }
 
+HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
+{
+    if (IsFeatureEnabled(vpExecuteCaps))
+    {
+        HW_FILTER_CSC_PARAM paramCsc = {};
+        paramCsc.type = m_Type;
+        paramCsc.pHwInterface = pHwInterface;
+        paramCsc.vpExecuteCaps = vpExecuteCaps;
+        paramCsc.pPacketParamFactory = &m_PacketParamFactory;
+
+        paramCsc.isSwFilterEnabled = false;
+        paramCsc.pPipelineParams = &pipelineParams;
+
+        HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
+
+        if (pHwFilterParam)
+        {
+            if (MOS_FAILED(((HwFilterCscParameter*)pHwFilterParam)->Initialize(paramCsc)))
+            {
+                ReleaseHwFeatureParameter(pHwFilterParam);
+            }
+        }
+        else
+        {
+            pHwFilterParam = HwFilterCscParameter::Create(paramCsc, m_Type);
+        }
+
+        return pHwFilterParam;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
 }

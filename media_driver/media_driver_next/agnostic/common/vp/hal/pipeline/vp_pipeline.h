@@ -43,7 +43,7 @@ namespace vp
 
 class PacketFactory;
 class PacketPipeFactory;
-class VpResourceAllocator;
+class VpResourceManager;
 
 class VpPipeline : public MediaPipeline
 {
@@ -232,8 +232,9 @@ protected:
     bool                   m_currentFrameAPGEnabled = false;
     PacketFactory         *m_pPacketFactory         = nullptr;
     PacketPipeFactory     *m_pPacketPipeFactory     = nullptr;
-    VpResourceAllocator   *m_ResourceAllocator      = nullptr;
+    VpResourceManager     *m_resourceManager        = nullptr;
     bool                   m_bEnableFeatureManagerNext = true;
+    bool                   m_bBypassSwFilterPipe    = true;
 };
 
 struct _VP_SFC_PACKET_PARAMS

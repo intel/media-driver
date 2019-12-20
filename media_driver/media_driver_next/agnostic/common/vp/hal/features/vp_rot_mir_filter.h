@@ -29,6 +29,7 @@
 #define __VP_ROT_MIR_FILTER_H__
 
 #include "vp_filter.h"
+#include "sw_filter.h"
 
 namespace vp {
 
@@ -53,6 +54,9 @@ public:
     virtual MOS_STATUS SetExecuteEngineCaps(
         PVP_PIPELINE_PARAMS     vpRenderParams,
         VP_EXECUTE_CAPS         vpExecuteCaps) override;
+    virtual MOS_STATUS SetExecuteEngineCaps(
+        FeatureParamRotMir      &rotMirParams,
+        VP_EXECUTE_CAPS         vpExecuteCaps);
 
     virtual MOS_STATUS SetExecuteEngineParams() override;
 
@@ -84,25 +88,28 @@ protected:
         VPHAL_ROTATION Rotation);
 
 protected:
-
-    PVPHAL_SURFACE        m_inputSurface    = nullptr;
-    PSFC_ROT_MIR_PARAMS   m_sfcRotMirParams = nullptr;
-    VPHAL_ROTATION        m_rotation        = VPHAL_ROTATION_IDENTITY;
+    FeatureParamRotMir      m_rotMirParams;
+    PSFC_ROT_MIR_PARAMS     m_sfcRotMirParams = nullptr;
 };
 
 struct HW_FILTER_ROT_MIR_PARAM
 {
+    FeatureType             type;
     PVP_MHWINTERFACE        pHwInterface;
-    PVP_PIPELINE_PARAMS     pPipelineParams;
     VP_EXECUTE_CAPS         vpExecuteCaps;
     PacketParamFactoryBase *pPacketParamFactory;
+    bool                    isSwFilterEnabled;
+    // For swFilter disabled case
+    PVP_PIPELINE_PARAMS     pPipelineParams;
+    // For swFilter enabled case
+    FeatureParamRotMir      rotMirParams;
 };
 
 class HwFilterRotMirParameter : public HwFilterParameter
 {
 public:
-    static HwFilterParameter *Create(HW_FILTER_ROT_MIR_PARAM &param, VpFeatureType featureType);
-    HwFilterRotMirParameter(VpFeatureType featureType);
+    static HwFilterParameter *Create(HW_FILTER_ROT_MIR_PARAM &param, FeatureType featureType);
+    HwFilterRotMirParameter(FeatureType featureType);
     virtual ~HwFilterRotMirParameter();
     virtual MOS_STATUS ConfigParams(HwFilter &hwFilter);
     MOS_STATUS Initialize(HW_FILTER_ROT_MIR_PARAM &param);
@@ -132,8 +139,8 @@ public:
     PolicySfcRotMirHandler();
     virtual ~PolicySfcRotMirHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
-    virtual HwFilterParameter *GetHwFeatureParameter(SwFilterPipe &swFilterPipe);
-    virtual HwFilterParameter *GetHwFeatureParameter(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
 private:
     PacketParamFactory<VpSfcRotMirParameter> m_PacketParamFactory;
 };

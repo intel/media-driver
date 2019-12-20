@@ -27,67 +27,10 @@
 using namespace std;
 using namespace vp;
 
-VpResourceAllocator::VpResourceAllocator(MOS_INTERFACE &osInterface, VpAllocator &allocator) : m_OsInterface(osInterface), m_Allocator(allocator)
+VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator) : m_OsInterface(osInterface), m_Allocator(allocator)
 {
 }
 
-VpResourceAllocator::~VpResourceAllocator()
+VpResourceManager::~VpResourceManager()
 {
-}
-
-MOS_RESOURCE *vp::VpResourceAllocator::AllocateResource(MOS_ALLOC_GFXRES_PARAMS &allocParam)
-{
-    list<VP_RESOURCE_INFO *>::iterator it = m_IdleResPool.begin();
-    for (; it != m_IdleResPool.end(); ++it)
-    {
-        if (allocParam == (*it)->AllocParam)
-        {
-            break;
-        }
-    }
-
-    if (it != m_IdleResPool.end())
-    {
-        VP_RESOURCE_INFO *p = *it;
-        m_IdleResPool.erase(it);
-        m_InuseResPool.push_back(p);
-        return &p->OsResource;
-    }
-
-    VP_RESOURCE_INFO *pResInfo = MOS_New(VP_RESOURCE_INFO);
-    MOS_ZeroMemory(pResInfo, sizeof(VP_RESOURCE_INFO));
-
-    pResInfo->AllocParam = allocParam;
-
-    m_OsInterface.pfnAllocateResource(&m_OsInterface, &pResInfo->AllocParam, &pResInfo->OsResource);
-    return &pResInfo->OsResource;
-}
-
-void VpResourceAllocator::ReleaseResource(MOS_RESOURCE *res)
-{
-    list<VP_RESOURCE_INFO *>::iterator it = m_InuseResPool.begin();
-    for (; it != m_InuseResPool.end(); ++it)
-    {
-        if (res == &(*it)->OsResource)
-        {
-            break;
-        }
-    }
-
-    if (it == m_InuseResPool.end())
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid Resource!");
-        return;
-    }
-
-    VP_RESOURCE_INFO *p = *it;
-    m_InuseResPool.erase(it);
-    m_IdleResPool.push_front(p);
-
-    if (m_IdleResPool.size() > MAX_IDLE_RESOURCE_COUNT)
-    {
-        VP_RESOURCE_INFO *pInfo = m_IdleResPool.back();
-        m_IdleResPool.pop_back();
-        delete pInfo;
-    }
 }

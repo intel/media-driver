@@ -28,6 +28,7 @@
 #define __VP_CSC_FILTER_H__
 
 #include "vp_filter.h"
+#include "sw_filter.h"
 
 namespace vp {
 class VpCscFilter : public VpFilter
@@ -52,6 +53,10 @@ public:
         PVP_PIPELINE_PARAMS     vpRenderParams,
         VP_EXECUTE_CAPS         vpExecuteCaps) override;
 
+    virtual MOS_STATUS SetExecuteEngineCaps(
+        FeatureParamCsc         &cscParams,
+        VP_EXECUTE_CAPS         vpExecuteCaps);
+
     virtual MOS_STATUS SetExecuteEngineParams() override;
 
     MOS_STATUS CalculateEngineParams();
@@ -61,12 +66,6 @@ public:
     }
 
 protected:
-
-    //!
-    //! \brief    Determine if CSC is required and set related params
-    //! \return   bool
-    //!
-    virtual bool IsCscEnabled();
 
     //!
     //! \brief    Setup Chroma sitting parameters
@@ -93,29 +92,30 @@ protected:
     bool IsChromaUpSamplingNeeded();
 
 protected:
-
-        PVPHAL_SURFACE        m_inputSurface  = nullptr;
-        PVPHAL_SURFACE        m_targetSurface = nullptr;
-        PSFC_CSC_PARAMS       m_sfcCSCParams  = nullptr;
-        bool                  bCscEnabled     = false;
+    FeatureParamCsc     m_cscParams;
+    PSFC_CSC_PARAMS     m_sfcCSCParams  = nullptr;
 };
 
 
 struct HW_FILTER_CSC_PARAM
 {
+    FeatureType             type;
     PVP_MHWINTERFACE        pHwInterface;
-    PVP_PIPELINE_PARAMS     pPipelineParams;
     VP_EXECUTE_CAPS         vpExecuteCaps;
     PacketParamFactoryBase *pPacketParamFactory;
+    bool                    isSwFilterEnabled;
+    PVP_PIPELINE_PARAMS     pPipelineParams;
+    FeatureParamCsc         cscParams;
 };
 
 class HwFilterCscParameter : public HwFilterParameter
 {
 public:
-    static HwFilterParameter *Create(HW_FILTER_CSC_PARAM &param, VpFeatureType featureType);
-    HwFilterCscParameter(VpFeatureType featureType);
+    static HwFilterParameter *Create(HW_FILTER_CSC_PARAM &param, FeatureType featureType);
+    HwFilterCscParameter(FeatureType featureType);
     virtual ~HwFilterCscParameter();
     virtual MOS_STATUS ConfigParams(HwFilter &hwFilter);
+
     MOS_STATUS Initialize(HW_FILTER_CSC_PARAM &param);
 
 private:
@@ -143,8 +143,8 @@ public:
     PolicySfcCscHandler();
     virtual ~PolicySfcCscHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
-    virtual HwFilterParameter *GetHwFeatureParameter(SwFilterPipe &swFilterPipe);
-    virtual HwFilterParameter *GetHwFeatureParameter(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
 
 private:
     PacketParamFactory<VpSfcCscParameter> m_PacketParamFactory;

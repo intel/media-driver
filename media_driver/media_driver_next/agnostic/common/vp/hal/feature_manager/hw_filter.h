@@ -46,7 +46,7 @@ namespace vp
 {
 
 class HwFilter;
-
+class VpInterface;
 
 enum EngineType
 {
@@ -62,7 +62,11 @@ struct HW_FILTER_PARAMS
 {
     EngineType Type = EngineTypeInvalid;
     VP_EXECUTE_CAPS vpExecuteCaps = {};
+    bool isSwFilterEnabled = false;
+    // For swFilter disabled case.
     PVP_PIPELINE_PARAMS pVpParams = nullptr;
+    // For swFilter enabled case.
+    SwFilterPipe *executedFilters = nullptr;
     std::vector<HwFilterParameter *> Params;
 };
 
@@ -75,11 +79,10 @@ struct PACKET_PARAMS
 class HwFilter
 {
 public:
-    HwFilter(EngineType type);
+    HwFilter(VpInterface &vpInterface, EngineType type);
     virtual ~HwFilter();
-    void Clean();
+    virtual MOS_STATUS Clean();
     virtual MOS_STATUS Initialize(HW_FILTER_PARAMS &param);
-
     virtual MOS_STATUS SetPacketParams(VpCmdPacket &package) = 0;
 
     virtual MOS_STATUS ConfigCscParam(HW_FILTER_CSC_PARAM &)
@@ -101,19 +104,27 @@ public:
     }
 
 protected:
-
-    PACKET_PARAMS m_Params = {};
+    VpInterface         &m_vpInterface;
+    PACKET_PARAMS       m_Params = {};
+    // For swFilter disabled case.
     PVP_PIPELINE_PARAMS m_pVpParams = nullptr;
-    VP_EXECUTE_CAPS m_vpExecuteCaps = {};
+    // For swFilter enabled case.
+    SwFilterPipe        *m_swFilterPipe = nullptr;
+    VP_EXECUTE_CAPS     m_vpExecuteCaps = {};
+    bool                m_isSwFilterEnabled = false;
 };
 
 class HwFilterVebox: public HwFilter
 {
 public:
-    HwFilterVebox();
+    HwFilterVebox(VpInterface &vpInterface);
     virtual ~HwFilterVebox();
+    virtual MOS_STATUS Clean()
+    {
+        HwFilter::Clean();
+        return MOS_STATUS_SUCCESS;
+    }
     virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
-
     virtual MOS_STATUS ConfigCscParam(HW_FILTER_CSC_PARAM &)
     {
         return MOS_STATUS_SUCCESS;
@@ -128,19 +139,23 @@ public:
     }
 
 protected:
-    HwFilterVebox(EngineType type);
+    HwFilterVebox(VpInterface &vpInterface, EngineType type);
 };
 
 class HwFilterSfc: public HwFilterVebox  // VEBOX+SFC
 {
 public:
-    HwFilterSfc();
+    HwFilterSfc(VpInterface &vpInterface);
     virtual ~HwFilterSfc();
+    virtual MOS_STATUS Clean()
+    {
+        HwFilter::Clean();
+        return MOS_STATUS_SUCCESS;
+    }
     virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
-
     virtual MOS_STATUS ConfigCscParam(HW_FILTER_CSC_PARAM &param)
     {
-        if (param.vpExecuteCaps.bSfcCsc)
+        if (FeatureTypeCscOnSfc == param.type)
         {
             VpPacketParameter *p = VpSfcCscParameter::Create(param);
             VP_PUBLIC_CHK_NULL_RETURN(p);
@@ -154,7 +169,7 @@ public:
     }
     virtual MOS_STATUS ConfigRotMirParam(HW_FILTER_ROT_MIR_PARAM &param)
     {
-        if (param.vpExecuteCaps.bSfcRotMir)
+        if (FeatureTypeRotMirOnSfc == param.type)
         {
             VpPacketParameter *p = VpSfcRotMirParameter::Create(param);
             VP_PUBLIC_CHK_NULL_RETURN(p);
@@ -168,7 +183,7 @@ public:
     }
     virtual MOS_STATUS ConfigScalingParam(HW_FILTER_SCALING_PARAM &param)
     {
-        if (param.vpExecuteCaps.bSfcScaling)
+        if (FeatureTypeScalingOnSfc == param.type)
         {
             VpPacketParameter *p = VpSfcScalingParameter::Create(param);
             VP_PUBLIC_CHK_NULL_RETURN(p);
@@ -185,10 +200,16 @@ public:
 class HwFilterRender: public HwFilter
 {
 public:
-    HwFilterRender();
+    HwFilterRender(VpInterface &vpInterface);
     virtual ~HwFilterRender();
-    virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
 
+    virtual MOS_STATUS Clean()
+    {
+        HwFilter::Clean();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
     virtual MOS_STATUS ConfigCscParam(HW_FILTER_CSC_PARAM &)
     {
         return MOS_STATUS_SUCCESS;
@@ -201,21 +222,6 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
-};
-
-class HwFilterFactory
-{
-public:
-    HwFilterFactory();
-    virtual ~HwFilterFactory();
-    HwFilter *GetHwFilter(HW_FILTER_PARAMS &param);
-    void ReturnHwFilter(HwFilter *&pHwFilter);
-    HwFilter *GetIdleHwFilter(std::queue<HwFilter *> &pool);
-
-private:
-    std::queue<HwFilter *> m_PoolVebox;
-    std::queue<HwFilter *> m_PoolSfc;
-    std::queue<HwFilter *> m_PoolRender;
 };
 
 }

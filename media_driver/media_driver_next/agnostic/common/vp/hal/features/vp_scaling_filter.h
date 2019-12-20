@@ -28,6 +28,7 @@
 #define __VP_SCALING_FILTER_H__
 
 #include "vp_filter.h"
+#include "sw_filter.h"
 
 namespace vp {
 class VpScalingFilter : public VpFilter
@@ -52,6 +53,10 @@ public:
         PVP_PIPELINE_PARAMS     vpRenderParams,
         VP_EXECUTE_CAPS         vpExecuteCaps) override;
 
+    virtual MOS_STATUS SetExecuteEngineCaps(
+        FeatureParamScaling     &scalingParams,
+        VP_EXECUTE_CAPS         vpExecuteCaps);
+
     virtual MOS_STATUS SetExecuteEngineParams() override;
 
     MOS_STATUS CalculateEngineParams();
@@ -64,8 +69,6 @@ protected:
     //!
     //! \brief      Gen specific function for SFC adjust boundary
     //! \details    Adjust the width and height of the input surface for SFC
-    //! \param      [in] pSurface
-    //!             Pointer to input Surface
     //! \param      [out] pdwSurfaceWidth
     //!             Pointer to adjusted surface width
     //! \param      [out] pdwSurfaceHeight
@@ -74,7 +77,6 @@ protected:
     //!             MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SfcAdjustBoundary(
-        PVPHAL_SURFACE              pSurface,
         uint32_t                   *pdwSurfaceWidth,
         uint32_t                   *pdwSurfaceHeight);
 
@@ -126,20 +128,16 @@ protected:
     //! \return   MOS_STATUS
     //!  MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetRectSurfaceAlignment(PVPHAL_SURFACE pSurface);
+    MOS_STATUS SetRectSurfaceAlignment(MOS_FORMAT format, bool isOutputSurf, uint32_t &width, uint32_t &height, RECT &rcSrc, RECT &rcDst);
 
 protected:
-
-    PVPHAL_SURFACE               m_inputSurface      = nullptr;
-    PVPHAL_SURFACE               m_targetSurface     = nullptr;
+    FeatureParamScaling          m_scalingParams;
     SFC_SCALING_PARAMS          *m_sfcScalingParams  = nullptr;
     float                        fScaleX             = 0.0f;
     float                        fScaleY             = 0.0f;
 
     // colorfill params
     bool                         m_bColorfillEnable  = false;
-    PVPHAL_COLORFILL_PARAMS      m_colorFillParams   = nullptr;           //!< ColorFill - BG only
-    PVPHAL_ALPHA_PARAMS          m_colorfillAlpha    = nullptr;           //!< Alpha for colorfill if needed
     VPHAL_COLOR_SAMPLE_8         m_colorFillColorSrc = {};                 //!< ColorFill Sample from DDI
     VPHAL_COLOR_SAMPLE_8         m_colorFillColorDst = {};                 //!< ColorFill Sample programmed in Sfc State
     VPHAL_CSPACE                 m_colorFillSrcCspace = {};                //!< Cspace of the source ColorFill Color
@@ -149,24 +147,29 @@ protected:
 
 struct HW_FILTER_SCALING_PARAM
 {
+    FeatureType             type;
     PVP_MHWINTERFACE        pHwInterface;
-    PVP_PIPELINE_PARAMS     pPipelineParams;
     VP_EXECUTE_CAPS         vpExecuteCaps;
     PacketParamFactoryBase *pPacketParamFactory;
+    bool                    isSwFilterEnabled;
+    // For swFilter disabled case
+    PVP_PIPELINE_PARAMS     pPipelineParams;
+    // For swFilter enabled case
+    FeatureParamScaling     scalingParams;
 };
 
 class HwFilterScalingParameter : public HwFilterParameter
 {
 public:
-    static HwFilterParameter *Create(HW_FILTER_SCALING_PARAM &param, VpFeatureType featureType);
-    HwFilterScalingParameter(VpFeatureType featureType);
+    static HwFilterParameter *Create(HW_FILTER_SCALING_PARAM &param, FeatureType featureType);
+    HwFilterScalingParameter(FeatureType featureType);
     virtual ~HwFilterScalingParameter();
     virtual MOS_STATUS ConfigParams(HwFilter &hwFilter);
     MOS_STATUS Initialize(HW_FILTER_SCALING_PARAM &param);
 
 private:
 
-    HW_FILTER_SCALING_PARAM m_Params = {};
+    HW_FILTER_SCALING_PARAM         m_Params = {};
 };
 
 class VpSfcScalingParameter : public VpPacketParameter
@@ -179,6 +182,7 @@ public:
 
 private:
     MOS_STATUS Initialize(HW_FILTER_SCALING_PARAM &params);
+
     VpScalingFilter m_ScalingFilter;
 };
 
@@ -188,8 +192,8 @@ public:
     PolicySfcScalingHandler();
     virtual ~PolicySfcScalingHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
-    virtual HwFilterParameter *GetHwFeatureParameter(SwFilterPipe &swFilterPipe);
-    virtual HwFilterParameter *GetHwFeatureParameter(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
 
 private:
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;

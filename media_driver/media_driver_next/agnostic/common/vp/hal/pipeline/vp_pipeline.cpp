@@ -50,10 +50,10 @@ VpPipeline::~VpPipeline()
     DeleteFilter();
     DeletePackets();
     DeleteTasks();
-    // Delete m_featureManager before m_ResourceAllocator, since
-    // m_ResourceAllocator is referenced by m_featureManager.
+    // Delete m_featureManager before m_resourceManager, since
+    // m_resourceManager is referenced by m_featureManager.
     MOS_Delete(m_featureManager);
-    MOS_Delete(m_ResourceAllocator);
+    MOS_Delete(m_resourceManager);
     MOS_Delete(m_mmc);
     MOS_Delete(m_allocator);
     MOS_Delete(m_statusReport);
@@ -423,9 +423,9 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
     {
         VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
         VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
-        m_ResourceAllocator = MOS_New(VpResourceAllocator, *m_osInterface, *m_allocator); 
-        VP_PUBLIC_CHK_NULL_RETURN(m_ResourceAllocator);
-        m_featureManager = MOS_New(VpFeatureManagerNext, *m_ResourceAllocator, m_pvpMhwInterface, true);
+        m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator); 
+        VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
+        m_featureManager = MOS_New(VpFeatureManagerNext, *m_allocator, *m_resourceManager, m_pvpMhwInterface, m_bBypassSwFilterPipe);
         VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());
     }
     else

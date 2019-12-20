@@ -34,13 +34,12 @@
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
 
-#include "sw_filter_pipe_factory.h"
-#include "hw_filter_pipe_factory.h"
+#include "vp_obj_factories.h"
 
 namespace vp
 {
 
-class VpResourceAllocator;
+class VpResourceManager;
 
 class VPFeatureManager : public MediaFeatureManager
 {
@@ -147,10 +146,12 @@ protected:
     PVP_MHWINTERFACE        m_hwInterface       = nullptr;
 };
 
+
+
 class VpFeatureManagerNext : public MediaFeatureManager
 {
 public:
-    VpFeatureManagerNext(VpResourceAllocator &resourceAllocator, PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe);
+    VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe);
     virtual ~VpFeatureManagerNext();
 
     virtual MOS_STATUS Initialize();
@@ -163,11 +164,8 @@ protected:
 
     const bool          m_bBypassSwFilterPipe;
 
-    PVP_MHWINTERFACE    m_pHwInterface;
-    VpResourceAllocator &m_ResourceAllocator;
+    VpInterface         m_vpInterface;
     Policy              m_Policy;
-    SwFilterPipeFactory m_SwFilterPipeFactory;
-    HwFilterPipeFactory m_HwFilterPipeFactory;
 
 private:
     MOS_STATUS Init(void *settings) { return MOS_STATUS_UNIMPLEMENTED; }

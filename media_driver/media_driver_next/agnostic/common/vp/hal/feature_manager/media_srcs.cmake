@@ -21,10 +21,9 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/policy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/hw_filter_pipe_factory.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_obj_factories.cpp
     ${CMAKE_CURRENT_LIST_DIR}/hw_filter_pipe.cpp
     ${CMAKE_CURRENT_LIST_DIR}/hw_filter.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/sw_filter_pipe_factory.cpp
     ${CMAKE_CURRENT_LIST_DIR}/sw_filter_pipe.cpp
     ${CMAKE_CURRENT_LIST_DIR}/sw_filter.cpp
 )
@@ -32,10 +31,9 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/policy.h
-    ${CMAKE_CURRENT_LIST_DIR}/hw_filter_pipe_factory.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_obj_factories.h
     ${CMAKE_CURRENT_LIST_DIR}/hw_filter_pipe.h
     ${CMAKE_CURRENT_LIST_DIR}/hw_filter.h
-    ${CMAKE_CURRENT_LIST_DIR}/sw_filter_pipe_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/sw_filter_pipe.h
     ${CMAKE_CURRENT_LIST_DIR}/sw_filter.h
 )

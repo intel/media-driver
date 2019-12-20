@@ -40,7 +40,7 @@ VpFilter::VpFilter(PVP_MHWINTERFACE vpMhwInterface) :
 /****************************************************************************************************/
 /*                                     HwFilter Parameters                                          */
 /****************************************************************************************************/
-HwFilterParameter::HwFilterParameter(VpFeatureType featureType) : m_FeatureType(featureType)
+HwFilterParameter::HwFilterParameter(FeatureType featureType) : m_FeatureType(featureType)
 {
 }
 
@@ -98,7 +98,7 @@ bool PolicyFeatureHandler::IsFeatureEnabled(SwFilterPipe &swFilterPipe)
     return false;
 }
 
-HwFilterParameter *PolicyFeatureHandler::GetHwFeatureParameter(SwFilterPipe &swFilterPipe)
+HwFilterParameter *PolicyFeatureHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
     return nullptr;
 }
@@ -108,11 +108,11 @@ bool PolicyFeatureHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
     return false;
 }
 
-HwFilterParameter *PolicyFeatureHandler::GetHwFeatureParameter(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
+HwFilterParameter *PolicyFeatureHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
 {
     return nullptr;
 }
-VpFeatureType PolicyFeatureHandler::GetType()
+FeatureType PolicyFeatureHandler::GetType()
 {
     return m_Type;
 }
@@ -128,7 +128,7 @@ HwFilterParameter *PolicyFeatureHandler::GetHwFeatureParameterFromPool()
     return p;
 }
 
-MOS_STATUS PolicyFeatureHandler::ReturnHwFeatureParameter(HwFilterParameter *&pParam)
+MOS_STATUS PolicyFeatureHandler::ReleaseHwFeatureParameter(HwFilterParameter *&pParam)
 {
     VP_PUBLIC_CHK_NULL_RETURN(pParam);
     m_Pool.push_back(pParam);

@@ -28,12 +28,13 @@
 //!
 #include "hw_filter_pipe.h"
 #include "vp_resource_manager.h"
+#include "vp_obj_factories.h"
 using namespace vp;
 
 /****************************************************************************************************/
 /*                                      HwFilterPipe                                                */
 /****************************************************************************************************/
-HwFilterPipe::HwFilterPipe(HwFilterFactory &hwFilterFactory) : m_hwFilterFactory(hwFilterFactory)
+HwFilterPipe::HwFilterPipe(VpInterface &vpInterface) : m_vpInterface(vpInterface)
 {
 }
 
@@ -45,12 +46,12 @@ HwFilterPipe::~HwFilterPipe()
 MOS_STATUS HwFilterPipe::Initialize(SwFilterPipe &swFilterPipe, Policy &policy)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
-    SwFilterPipe subSwFilterPipe = swFilterPipe;
+    SwFilterPipe &subSwFilterPipe = swFilterPipe;
     HwFilter *pHwFilter = nullptr;
 
     Clean();
 
-    status = policy.CreateHwFilter(subSwFilterPipe, m_hwFilterFactory, pHwFilter);
+    status = policy.CreateHwFilter(subSwFilterPipe, pHwFilter);
 
     if (MOS_FAILED(status))
     {
@@ -66,7 +67,7 @@ MOS_STATUS HwFilterPipe::Initialize(SwFilterPipe &swFilterPipe, Policy &policy)
             return status;
         }
 
-        status = policy.CreateHwFilter(subSwFilterPipe, m_hwFilterFactory, pHwFilter);
+        status = policy.CreateHwFilter(subSwFilterPipe, pHwFilter);
 
         if (MOS_FAILED(status))
         {
@@ -82,7 +83,7 @@ void HwFilterPipe::Clean()
     {
         HwFilter *p = m_Pipe.back();
         m_Pipe.pop_back();
-        m_hwFilterFactory.ReturnHwFilter(p);
+        m_vpInterface.GetHwFilterFactory().Destory(p);
     }
 }
 
@@ -92,7 +93,7 @@ MOS_STATUS HwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, Policy &policy)
 
     Clean();
 
-    VP_PUBLIC_CHK_STATUS_RETURN(policy.CreateHwFilter(params, m_hwFilterFactory, pHwFilter));
+    VP_PUBLIC_CHK_STATUS_RETURN(policy.CreateHwFilter(params, pHwFilter));
 
     VP_PUBLIC_CHK_STATUS_RETURN(AddHwFilter(*pHwFilter));
 
@@ -118,7 +119,7 @@ MOS_STATUS HwFilterPipe::InitPacketPipe(PacketPipe &packetPipe)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HwFilterPipe::UpdateResources(VpResourceAllocator &resourceAllocator)
+MOS_STATUS HwFilterPipe::UpdateResources()
 {
     return MOS_STATUS_SUCCESS;
 }

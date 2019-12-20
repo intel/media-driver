@@ -27,6 +27,8 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 #include "hw_filter.h"
+#include "sw_filter_pipe.h"
+#include "vp_obj_factories.h"
 
 using namespace vp;
 
@@ -34,7 +36,7 @@ using namespace vp;
 /*                                      HwFilter                                                    */
 /****************************************************************************************************/
 
-HwFilter::HwFilter(EngineType type)
+HwFilter::HwFilter(VpInterface &vpInterface,EngineType type) : m_vpInterface(vpInterface)
 {
     m_Params.Type = type;
 }
@@ -50,9 +52,14 @@ MOS_STATUS HwFilter::Initialize(HW_FILTER_PARAMS &param)
 
     Clean();
 
-    m_pVpParams = param.pVpParams;
+    m_isSwFilterEnabled = param.isSwFilterEnabled;
+    m_pVpParams = param.isSwFilterEnabled ? nullptr : param.pVpParams;
+    m_swFilterPipe = param.isSwFilterEnabled ? param.executedFilters : nullptr;
     m_vpExecuteCaps = param.vpExecuteCaps;
     m_Params.Type = param.Type;
+
+    // Clear executedFilters, which will be destroyed during hwFilter destroying.
+    param.executedFilters = nullptr;
 
     std::vector<HwFilterParameter *>::iterator it = param.Params.begin();
     for (; it != param.Params.end(); ++it)
@@ -62,7 +69,7 @@ MOS_STATUS HwFilter::Initialize(HW_FILTER_PARAMS &param)
     return MOS_STATUS_SUCCESS;
 }
 
-void HwFilter::Clean()
+MOS_STATUS HwFilter::Clean()
 {
     std::vector<VpPacketParameter *>::iterator it = m_Params.Params.begin();
     for (; it != m_Params.Params.end(); ++it)
@@ -71,17 +78,21 @@ void HwFilter::Clean()
         VpPacketParameter::Destory(p);
     }
     m_Params.Params.clear();
+
+    m_vpInterface.GetSwFilterPipeFactory().Destory(m_swFilterPipe);
+
+    return MOS_STATUS_SUCCESS;
 }
 
 /****************************************************************************************************/
 /*                                      HwFilterVebox                                               */
 /****************************************************************************************************/
 
-HwFilterVebox::HwFilterVebox() : HwFilter(EngineTypeVebox)
+HwFilterVebox::HwFilterVebox(VpInterface &vpInterface) : HwFilter(vpInterface, EngineTypeVebox)
 {
 }
 
-HwFilterVebox::HwFilterVebox(EngineType type) : HwFilter(type)
+HwFilterVebox::HwFilterVebox(VpInterface &vpInterface, EngineType type) : HwFilter(vpInterface, type)
 {
 }
 
@@ -93,12 +104,32 @@ MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
 {
     bool bRet = true;
 
-    VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(m_pVpParams, m_vpExecuteCaps));
+    PVPHAL_SURFACE pSrcSurface = nullptr;
+    PVPHAL_SURFACE pOutputSurface = nullptr;
 
-    std::vector<VpPacketParameter *>::iterator it = m_Params.Params.begin();
-    for (; it != m_Params.Params.end(); ++it)
+    if (m_isSwFilterEnabled)
     {
-        bRet = bRet && (*it)->SetPacketParam(&packet);
+        // Remove dependence on vphal surface later.
+        VP_PUBLIC_CHK_NULL_RETURN(m_swFilterPipe);
+        VP_SURFACE *inputSurf = m_swFilterPipe->GetSurface(true, 0);
+        VP_SURFACE *outputSurf = m_swFilterPipe->GetSurface(false, 0);
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+        VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+        VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(inputSurf->pCurrent, outputSurf->pCurrent, m_vpExecuteCaps));
+    }
+    else
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_pVpParams);
+        VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(m_pVpParams->pSrc[0], m_pVpParams->pTarget[0], m_vpExecuteCaps));
+    }
+
+
+    for (auto handler : m_Params.Params)
+    {
+        if (handler)
+        {
+            bRet = handler->SetPacketParam(&packet) && bRet;
+        }
     }
     return bRet ? MOS_STATUS_SUCCESS : MOS_STATUS_UNKNOWN;
 }
@@ -107,7 +138,7 @@ MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
 /*                                      HwFilterSfc                                                 */
 /****************************************************************************************************/
 
-HwFilterSfc::HwFilterSfc() : HwFilterVebox(EngineTypeSfc)
+HwFilterSfc::HwFilterSfc(VpInterface &vpInterface) : HwFilterVebox(vpInterface, EngineTypeSfc)
 {}
 
 HwFilterSfc::~HwFilterSfc()
@@ -122,7 +153,7 @@ MOS_STATUS HwFilterSfc::SetPacketParams(VpCmdPacket &packet)
 /*                                      HwFilterRender                                              */
 /****************************************************************************************************/
 
-HwFilterRender::HwFilterRender() : HwFilter(EngineTypeRender)
+HwFilterRender::HwFilterRender(VpInterface &vpInterface) : HwFilter(vpInterface, EngineTypeRender)
 {}
 
 HwFilterRender::~HwFilterRender()
@@ -131,106 +162,4 @@ HwFilterRender::~HwFilterRender()
 MOS_STATUS HwFilterRender::SetPacketParams(VpCmdPacket &packet)
 {
     return MOS_STATUS_SUCCESS;
-}
-
-/****************************************************************************************************/
-/*                                      HwFilterFactory                                             */
-/****************************************************************************************************/
-
-HwFilterFactory::HwFilterFactory()
-{
-}
-
-HwFilterFactory::~HwFilterFactory()
-{
-    HwFilter *p = nullptr;
-    while (p = GetIdleHwFilter(m_PoolVebox))
-    {
-        MOS_Delete(p);
-    }
-    while (p = GetIdleHwFilter(m_PoolSfc))
-    {
-        MOS_Delete(p);
-    }
-    while (p = GetIdleHwFilter(m_PoolRender))
-    {
-        MOS_Delete(p);
-    }
-}
-
-HwFilter *HwFilterFactory::GetHwFilter(HW_FILTER_PARAMS &param)
-{
-    HwFilter *p = nullptr;
-    switch (param.Type)
-    {
-    case EngineTypeVebox:
-        p = GetIdleHwFilter(m_PoolVebox);
-        if (nullptr == p)
-        {
-            p = MOS_New(HwFilterVebox);
-        }
-        break;
-    case EngineTypeSfc:
-        p = GetIdleHwFilter(m_PoolSfc);
-        if (nullptr == p)
-        {
-            p = MOS_New(HwFilterSfc);
-        }
-        break;
-    case EngineTypeRender:
-        p = GetIdleHwFilter(m_PoolRender);
-        if (nullptr == p)
-        {
-            p = MOS_New(HwFilterRender);
-        }
-        break;
-    default:
-        return nullptr;
-        break;
-    }
-    if (p)
-    {
-        if (MOS_FAILED(p->Initialize(param)))
-        {
-            ReturnHwFilter(p);
-            return nullptr;
-        }
-    }
-    return p;
-}
-
-void HwFilterFactory::ReturnHwFilter(HwFilter *&pHwFilter)
-{
-    if (pHwFilter)
-    {
-        pHwFilter->Clean();
-
-        switch (pHwFilter->GetEngineType())
-        {
-        case EngineTypeVebox:
-            m_PoolVebox.push(pHwFilter);
-            break;
-        case EngineTypeSfc:
-            m_PoolSfc.push(pHwFilter);
-            break;
-        case EngineTypeRender:
-            m_PoolRender.push(pHwFilter);
-            break;
-        default:
-            MOS_Delete(pHwFilter);
-            return;
-        }
-        pHwFilter = nullptr;
-    }
-}
-
-HwFilter *HwFilterFactory::GetIdleHwFilter(std::queue<HwFilter *> &pool)
-{
-    if (pool.empty())
-    {
-        return nullptr;
-    }
-    HwFilter *pHwFilter = pool.front();
-    pool.pop();
-    return pHwFilter;
 }

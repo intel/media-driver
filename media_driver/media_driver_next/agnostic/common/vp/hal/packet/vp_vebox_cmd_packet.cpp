@@ -304,8 +304,20 @@ MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     // Scaing only can be apply to SFC path
     if (m_PacketCaps.bSFC)
     {
-        m_sfcRenderData.sfcStateParams->dwOutputFrameHeight            = scalingParams->dwOutputFrameHeight;
-        m_sfcRenderData.sfcStateParams->dwOutputFrameWidth             = scalingParams->dwOutputFrameWidth;
+        // Adjust output width/height according to rotation.
+        if (VPHAL_ROTATION_90                   == m_sfcRenderData.SfcRotation ||
+            VPHAL_ROTATION_270                  == m_sfcRenderData.SfcRotation ||
+            VPHAL_ROTATE_90_MIRROR_VERTICAL     == m_sfcRenderData.SfcRotation ||
+            VPHAL_ROTATE_90_MIRROR_HORIZONTAL   == m_sfcRenderData.SfcRotation)
+        {
+            m_sfcRenderData.sfcStateParams->dwOutputFrameWidth         = scalingParams->dwOutputFrameHeight;
+            m_sfcRenderData.sfcStateParams->dwOutputFrameHeight        = scalingParams->dwOutputFrameWidth;
+        }
+        else
+        {
+            m_sfcRenderData.sfcStateParams->dwOutputFrameWidth         = scalingParams->dwOutputFrameWidth;
+            m_sfcRenderData.sfcStateParams->dwOutputFrameHeight        = scalingParams->dwOutputFrameHeight;
+        }
         m_sfcRenderData.sfcStateParams->dwInputFrameHeight             = scalingParams->dwInputFrameHeight;
         m_sfcRenderData.sfcStateParams->dwInputFrameWidth              = scalingParams->dwInputFrameWidth;
 
@@ -409,6 +421,17 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams
         m_sfcRenderData.SfcRotation   = rotMirParams->rotationMode;
         m_sfcRenderData.bMirrorEnable = rotMirParams->bMirrorEnable;
         m_sfcRenderData.mirrorType  = rotMirParams->mirrorType;
+
+        // Adjust output width/height according to rotation.
+        if (VPHAL_ROTATION_90                   == m_sfcRenderData.SfcRotation ||
+            VPHAL_ROTATION_270                  == m_sfcRenderData.SfcRotation ||
+            VPHAL_ROTATE_90_MIRROR_VERTICAL     == m_sfcRenderData.SfcRotation ||
+            VPHAL_ROTATE_90_MIRROR_HORIZONTAL   == m_sfcRenderData.SfcRotation)
+        {
+            uint32_t width = m_sfcRenderData.sfcStateParams->dwOutputFrameWidth;
+            m_sfcRenderData.sfcStateParams->dwOutputFrameWidth  = m_sfcRenderData.sfcStateParams->dwOutputFrameHeight;
+            m_sfcRenderData.sfcStateParams->dwOutputFrameHeight = width;
+        }
     }
     else
     {
@@ -1245,10 +1268,12 @@ MOS_STATUS VpVeboxCmdPacket::Init()
     return eStatus;
 }
 MOS_STATUS VpVeboxCmdPacket::PacketInit(
-    PVP_PIPELINE_PARAMS vpPipelineParams,
+    PVPHAL_SURFACE      pSrcSurface,
+    PVPHAL_SURFACE      pOutputSurface,
     VP_EXECUTE_CAPS     packetCaps)
 {
-    VP_RENDER_CHK_NULL_RETURN(vpPipelineParams);
+    VP_RENDER_CHK_NULL_RETURN(pSrcSurface);
+    VP_RENDER_CHK_NULL_RETURN(pOutputSurface);
     VP_FUNC_CALL();
     m_PacketCaps      = packetCaps;
 
@@ -1266,11 +1291,10 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
         m_IsSfcUsed = true;
     }
 
-    VP_RENDER_CHK_STATUS_RETURN(SetupVeboxRenderMode0(vpPipelineParams->pSrc[0], vpPipelineParams->pTarget[0]));
+    VP_RENDER_CHK_STATUS_RETURN(SetupVeboxRenderMode0(pSrcSurface, pOutputSurface));
 
     return MOS_STATUS_SUCCESS;
 }
-;
 
 MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase)
 {

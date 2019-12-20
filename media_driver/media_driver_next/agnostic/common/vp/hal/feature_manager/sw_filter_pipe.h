@@ -43,10 +43,7 @@ namespace vp
 
 #define MAX_LAYER_COUNT VPHAL_MAX_SOURCES
 
-struct SwFilterSet
-{
-    std::vector<SwFilter *> m_SwFilters;
-};
+class VpInterface;
 
 struct FeatureSet
 {
@@ -60,14 +57,24 @@ struct FeatureSubRule
 
 struct FeatureRule
 {
-    std::vector<FeatureSubRule> m_InputPipes; 
+    std::vector<FeatureSubRule> m_InputPipes;
     std::vector<FeatureSubRule> m_OutputPipes;
 };
 
-struct SwFilterSubPipe
+class SwFilterSubPipe
 {
+public:
+    SwFilterSubPipe();
+    virtual ~SwFilterSubPipe();
+    MOS_STATUS Clean();
+    MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf);
+    SwFilter *GetSwFilter(FeatureType type);
+    MOS_STATUS AddSwFilterOrdered(SwFilter *swFilter, bool useNewSwFilterSet);
+    MOS_STATUS AddSwFilterUnordered(SwFilter *swFilter);
+
+private:
     std::vector<SwFilterSet *> m_OrderedFilters;    // For features in featureRule
-    SwFilterSet m_DisorderedFilters;                // For features not in featureRule
+    SwFilterSet m_UnorderedFilters;                // For features not in featureRule
 };
 
 enum SwFilterPipeType
@@ -76,67 +83,101 @@ enum SwFilterPipeType
     SwFilterPipeType1To1,
     SwFilterPipeTypeNTo1,
     SwFilterPipeType1ToN,
+    SwFilterPipeType0To1,
     NumOfSwFilterPipeType
 };
 
-struct SwFilterSurfaceInfo
+class SwFilterFeatureHandler
 {
-    MOS_SURFACE m_OsSurface;
+public:
+    SwFilterFeatureHandler(VpInterface &vpInterface, FeatureType type);
+    virtual ~SwFilterFeatureHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual MOS_STATUS CreateSwFilter(SwFilter *&swFilter, VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+protected:
+    VpInterface     &m_vpInterface;
+    FeatureType     m_type;
+};
 
-    // Color Information
-    VPHAL_CSPACE                ColorSpace;         //!<Color Space
-    bool                        ExtendedGamut;      //!<Extended Gamut Flag
-    VPHAL_PALETTE               Palette;            //!<Palette data
+class SwFilterCscHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterCscHandler(VpInterface &vpInterface);
+    virtual ~SwFilterCscHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+};
 
-    // Rendering parameters
+class SwFilterRotMirHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterRotMirHandler(VpInterface &vpInterface);
+    virtual ~SwFilterRotMirHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+};
 
-    bool                        bQueryVariance;     //!< enable variance query  For DI???
-
-    // Frame ID and reference samples -> for advanced processing
-    int32_t                     FrameID;
-    uint32_t                    uFwdRefCount;
-    uint32_t                    uBwdRefCount;
-    PVPHAL_SURFACE              pFwdRef;
-    PVPHAL_SURFACE              pBwdRef;
-
-    //// VPHAL_SURFACE Linked list
-    //PVPHAL_SURFACE              pNext;
-
-    //--------------------------------------
-    // FIELDS TO BE SETUP BY VPHAL int32_tERNALLY
-    //--------------------------------------
-    int32_t                     iLayerID;           //!<  Layer index (0-based index)
-
-    //--------------------------------------
-    // FIELDS TO BE PROVIDED BY DDI
-    //--------------------------------------
-    // Sample information
-    VPHAL_SURFACE_TYPE          SurfType;           //!<  Surface type (context)
-    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type
-
-    // Chroma siting
-    uint32_t                    ChromaSiting;
+class SwFilterScalingHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterScalingHandler(VpInterface &vpInterface);
+    virtual ~SwFilterScalingHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
 };
 
 class SwFilterPipe
 {
 public:
-    SwFilterPipe();
+    SwFilterPipe(VpInterface &vpInterface);
     virtual ~SwFilterPipe();
     MOS_STATUS Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule);
+    void UpdateSwFilterPipeType();
+    MOS_STATUS Clean();
+
     bool IsEmpty();
 
+    MOS_STATUS RegisterFeatures();
+    MOS_STATUS UnregisterFeatures();
+
+    MOS_STATUS ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule, bool isInputPipe);
+    MOS_STATUS ConfigFeatures(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule);
+    MOS_STATUS UpdateFeatures(bool isInputPipe, uint32_t pipeIndex);
+
+    SwFilterPipeType GetSwFilterPipeType()
+    {
+        return m_swFilterPipeType;
+    }
+
+    SwFilter *GetSwFilter(bool isInputPipe, int index, FeatureType type);
+
+    SwFilterSubPipe *GetSwFilterSubPipe(bool isInputPipe, int index);
+    // useNewSwFilterSet: true if insert new swFilterSet in pipe, otherwise, reuse the last one in pipe.
+    MOS_STATUS AddSwFilterOrdered(SwFilter *swFilter, bool isInputPipe, int index, bool useNewSwFilterSet);
+    MOS_STATUS AddSwFilterUnordered(SwFilter *swFilter, bool isInputPipe, int index);
+    MOS_STATUS RemoveSwFilter(SwFilter *swFilter);
+    VP_SURFACE *GetSurface(bool isInputSurface, uint32_t index);
+    VP_SURFACE *RemoveSurface(bool isInputSurface, uint32_t index);
+    MOS_STATUS AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint32_t index);
+    MOS_STATUS Update();
+    uint32_t GetSurfaceCount(bool isInputSurface);
+
 private:
-    void InitMosSurface(MOS_SURFACE &surf, VPHAL_SURFACE &vphalSurf);
-    void InitSwFilterSurfaceInfo(SwFilterSurfaceInfo &surfInfo, VPHAL_SURFACE &vphalSurf);
+    MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe, uint32_t index);
+    MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe);
+    MOS_STATUS CleanFeatures();
+    MOS_STATUS RemoveUnusedLayers(bool bUpdateInput);
 
-    std::vector<SwFilterSubPipe *> m_InputPipes;        // For features on input surfaces.
-    std::vector<SwFilterSubPipe *> m_OutputPipes;       // For features on output surfaces.
+    std::vector<SwFilterSubPipe *>      m_InputPipes;       // For features on input surfaces.
+    std::vector<SwFilterSubPipe *>      m_OutputPipes;      // For features on output surfaces.
 
-    std::vector<SwFilterSurfaceInfo> m_InputSurfaces;
-    std::vector<SwFilterSurfaceInfo> m_OutputSurfaces;
-    std::vector<SwFilterSurfaceInfo> m_PreviousSurface;
-    std::vector<SwFilterSurfaceInfo> m_NextSurface;
+    std::vector<VP_SURFACE *>           m_InputSurfaces;
+    std::vector<VP_SURFACE *>           m_OutputSurfaces;
+    std::vector<VP_SURFACE *>           m_PreviousSurface;
+    std::vector<VP_SURFACE *>           m_NextSurface;
+
+    VpInterface                         &m_vpInterface;
+    std::map<FeatureType, SwFilterFeatureHandler*> m_featureHandler;
+
+    bool                                m_isFeatureRegistered = false;
+    SwFilterPipeType                    m_swFilterPipeType = SwFilterPipeTypeInvalid;
 };
 
 

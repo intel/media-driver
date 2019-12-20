@@ -32,6 +32,7 @@
 #include "vp_pipeline_common.h"
 #include "vp_sfc_common.h"
 #include "vp_utils.h"
+#include "sw_filter.h"
 
 namespace vp {
 class VpCmdPacket;
@@ -220,30 +221,21 @@ class SwFilterPipe;
 class HwFilter;
 class PacketParamFactoryBase;
 
-
-enum VpFeatureType
-{
-    VpFeatureTypeInvalid = 0,
-    VpFeatureTypeSfcCsc,
-    VpFeatureTypeSfcRotMir,
-    VpFeatureTypeSfcScaling,
-    NumOfVpFeatureType
-};
 /////////////////////////////HwFilter Parameters///////////////////////////////////
 class HwFilterParameter
 {
 public:
-    HwFilterParameter(VpFeatureType featureType);
+    HwFilterParameter(FeatureType featureType);
     virtual ~HwFilterParameter();
     virtual MOS_STATUS ConfigParams(HwFilter &hwFilter) = 0;
 
-    VpFeatureType GetFeatureType()
+    FeatureType GetFeatureType()
     {
         return m_FeatureType;
     }
 
 private:
-    VpFeatureType m_FeatureType = VpFeatureTypeInvalid;
+    FeatureType m_FeatureType = FeatureTypeInvalid;
 };
 
 /////////////////////////////Packet Parameters///////////////////////////////////
@@ -270,14 +262,14 @@ public:
     PolicyFeatureHandler();
     virtual ~PolicyFeatureHandler();
     virtual bool IsFeatureEnabled(SwFilterPipe &swFilterPipe);
-    virtual HwFilterParameter *GetHwFeatureParameter(SwFilterPipe &swFilterPipe);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
-    virtual HwFilterParameter *GetHwFeatureParameter(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
-    VpFeatureType GetType();
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
+    FeatureType GetType();
     HwFilterParameter *GetHwFeatureParameterFromPool();
-    MOS_STATUS ReturnHwFeatureParameter(HwFilterParameter *&pParam);
+    MOS_STATUS ReleaseHwFeatureParameter(HwFilterParameter *&pParam);
 protected:
-    VpFeatureType m_Type = VpFeatureTypeInvalid;
+    FeatureType m_Type = FeatureTypeInvalid;
     std::vector<HwFilterParameter *> m_Pool;
 };
 

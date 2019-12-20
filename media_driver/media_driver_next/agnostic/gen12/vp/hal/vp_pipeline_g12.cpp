@@ -195,8 +195,9 @@ MOS_STATUS VpPipelineG12::AllocateVpPackets(VP_EXECUTE_CAPS *engineCaps)
     }
 
     VP_PUBLIC_CHK_NULL_RETURN(vpPacket);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams);
 
-    vpPacket->PacketInit(m_pvpParams, *engineCaps);
+    vpPacket->PacketInit(m_pvpParams->pSrc[0], m_pvpParams->pTarget[0], *engineCaps);
 
     return MOS_STATUS_SUCCESS;
 }

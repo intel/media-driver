@@ -28,6 +28,7 @@
 #include "vp_rot_mir_filter.h"
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
+#include "sw_filter_pipe.h"
 
 using namespace vp;
 
@@ -71,9 +72,20 @@ MOS_STATUS VpRotMirFilter::SetExecuteEngineCaps(
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(vpRenderParams);
     VP_RENDER_CHK_NULL_RETURN(vpRenderParams->pSrc[0]);
-    m_inputSurface = vpRenderParams->pSrc[0];
-    m_executeCaps  = vpExecuteCaps;
-    m_rotation     = m_inputSurface->Rotation;
+    m_executeCaps           = vpExecuteCaps;
+    m_rotMirParams.rotation = vpRenderParams->pSrc[0]->Rotation;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRotMirFilter::SetExecuteEngineCaps(
+    FeatureParamRotMir      &rotMirParams,
+    VP_EXECUTE_CAPS         vpExecuteCaps)
+{
+    VP_FUNC_CALL();
+
+    m_executeCaps   = vpExecuteCaps;
+    m_rotMirParams = rotMirParams;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -101,8 +113,6 @@ MOS_STATUS VpRotMirFilter::CalculateEngineParams()
 {
     VP_FUNC_CALL();
 
-    VP_RENDER_CHK_NULL_RETURN(m_inputSurface);
-
     if (m_executeCaps.bSFC)
     {
         // create a filter Param buffer
@@ -121,7 +131,7 @@ MOS_STATUS VpRotMirFilter::CalculateEngineParams()
             MOS_ZeroMemory(m_sfcRotMirParams, sizeof(SFC_ROT_MIR_PARAMS));
         }
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SetRotationAndMirrowParams(m_rotation));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetRotationAndMirrowParams(m_rotMirParams.rotation));
     }
     else
     {
@@ -195,7 +205,7 @@ VPHAL_ROTATION VpRotMirFilter::GetRotationParam(VPHAL_ROTATION Rotation)
 /****************************************************************************************************/
 /*                          HwFilter Rotation and Mirror Parameter                                  */
 /****************************************************************************************************/
-HwFilterParameter *HwFilterRotMirParameter::Create(HW_FILTER_ROT_MIR_PARAM &param, VpFeatureType featureType)
+HwFilterParameter *HwFilterRotMirParameter::Create(HW_FILTER_ROT_MIR_PARAM &param, FeatureType featureType)
 {
     HwFilterRotMirParameter *p = MOS_New(HwFilterRotMirParameter, featureType);
     if (p)
@@ -209,7 +219,7 @@ HwFilterParameter *HwFilterRotMirParameter::Create(HW_FILTER_ROT_MIR_PARAM &para
     return p;
 }
 
-HwFilterRotMirParameter::HwFilterRotMirParameter(VpFeatureType featureType) : HwFilterParameter(featureType)
+HwFilterRotMirParameter::HwFilterRotMirParameter(FeatureType featureType) : HwFilterParameter(featureType)
 {
 }
 
@@ -275,7 +285,14 @@ bool VpSfcRotMirParameter::SetPacketParam(VpCmdPacket *pPacket)
 MOS_STATUS VpSfcRotMirParameter::Initialize(HW_FILTER_ROT_MIR_PARAM & params)
 {
     VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.Init());
-    VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.SetExecuteEngineCaps(params.pPipelineParams, params.vpExecuteCaps));
+    if (params.isSwFilterEnabled)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.SetExecuteEngineCaps(params.rotMirParams, params.vpExecuteCaps));
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.SetExecuteEngineCaps(params.pPipelineParams, params.vpExecuteCaps));
+    }
     VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.CalculateEngineParams());
     return MOS_STATUS_SUCCESS;
 }
@@ -285,7 +302,7 @@ MOS_STATUS VpSfcRotMirParameter::Initialize(HW_FILTER_ROT_MIR_PARAM & params)
 /****************************************************************************************************/
 PolicySfcRotMirHandler::PolicySfcRotMirHandler()
 {
-    m_Type = VpFeatureTypeSfcRotMir;
+    m_Type = FeatureTypeRotMirOnSfc;
 }
 PolicySfcRotMirHandler::~PolicySfcRotMirHandler()
 {
@@ -296,27 +313,78 @@ bool PolicySfcRotMirHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
     return vpExecuteCaps.bSfcRotMir;
 }
 
-HwFilterParameter *PolicySfcRotMirHandler::GetHwFeatureParameter(SwFilterPipe &swFilterPipe)
-{
-    return nullptr;
-}
-
-HwFilterParameter *PolicySfcRotMirHandler::GetHwFeatureParameter(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
+HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
     if (IsFeatureEnabled(vpExecuteCaps))
     {
+        if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Sfc only support 1To1 swFilterPipe!");
+            return nullptr;
+        }
+
+        SwFilterRotMir *swFilter = dynamic_cast<SwFilterRotMir *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeRotMirOnSfc));
+
+        if (nullptr == swFilter)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Feature enabled in vpExecuteCaps but no swFilter exists!");
+            return nullptr;
+        }
+
+        FeatureParamRotMir &param = swFilter->GetSwFilterParams();
+
         HW_FILTER_ROT_MIR_PARAM paramRotMir = {};
+        paramRotMir.type = m_Type;
         paramRotMir.pHwInterface = pHwInterface;
-        paramRotMir.pPipelineParams = &pipelineParams;
         paramRotMir.vpExecuteCaps = vpExecuteCaps;
         paramRotMir.pPacketParamFactory = &m_PacketParamFactory;
+
+        paramRotMir.isSwFilterEnabled = true;
+        paramRotMir.rotMirParams = param;
+
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 
         if (pHwFilterParam)
         {
             if (MOS_FAILED(((HwFilterRotMirParameter*)pHwFilterParam)->Initialize(paramRotMir)))
             {
-                ReturnHwFeatureParameter(pHwFilterParam);
+                ReleaseHwFeatureParameter(pHwFilterParam);
+            }
+       }
+        else
+        {
+            pHwFilterParam = HwFilterRotMirParameter::Create(paramRotMir, m_Type);
+        }
+
+        return pHwFilterParam;
+   }
+    else
+    {
+        return nullptr;
+    }
+}
+
+
+HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
+{
+    if (IsFeatureEnabled(vpExecuteCaps))
+    {
+        HW_FILTER_ROT_MIR_PARAM paramRotMir = {};
+        paramRotMir.type = m_Type;
+        paramRotMir.pHwInterface = pHwInterface;
+        paramRotMir.vpExecuteCaps = vpExecuteCaps;
+        paramRotMir.pPacketParamFactory = &m_PacketParamFactory;
+
+        paramRotMir.isSwFilterEnabled = false;
+        paramRotMir.pPipelineParams = &pipelineParams;
+
+        HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
+
+        if (pHwFilterParam)
+        {
+            if (MOS_FAILED(((HwFilterRotMirParameter*)pHwFilterParam)->Initialize(paramRotMir)))
+            {
+                ReleaseHwFeatureParameter(pHwFilterParam);
             }
         }
         else

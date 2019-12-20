@@ -41,31 +41,36 @@
 namespace vp
 {
 
+class VpInterface;
+
 class Policy
 {
 public:
-    Policy(PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe);
+    Policy(bool bBypassSwFilterPipe, VpInterface &vpInterface);
     virtual ~Policy();
-    MOS_STATUS CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilterFactory &facotry, HwFilter *&pFilter);
+    MOS_STATUS CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFilter);
     // Function for SwFilterPipe Disabled.
-    MOS_STATUS CreateHwFilter(VP_PIPELINE_PARAMS &pipelineParams, HwFilterFactory &facotry, HwFilter *&pFilter);
+    MOS_STATUS CreateHwFilter(VP_PIPELINE_PARAMS &pipelineParams, HwFilter *&pFilter);
     MOS_STATUS Initialize();
 
 protected:
     MOS_STATUS GetHwFilterParam(SwFilterPipe &subSwFilterPipe, HW_FILTER_PARAMS &params);
+    MOS_STATUS GetExecuteCaps(SwFilterPipe &subSwFilterPipe, VP_EXECUTE_CAPS &caps);
+
     // Function for SwFilterPipe Disabled.
     MOS_STATUS GetHwFilterParam(VP_PIPELINE_PARAMS &pipelineParams, HW_FILTER_PARAMS &params);
+    MOS_STATUS GetExecuteCaps(VP_PIPELINE_PARAMS &pipelineParams, VP_EXECUTE_CAPS &caps);
 
     MOS_STATUS RegisterFeatures();
-    MOS_STATUS ReturnHwFilterParam(HW_FILTER_PARAMS &params);
-    MOS_STATUS GetExecuteCaps(VP_PIPELINE_PARAMS &pipelineParams, VP_EXECUTE_CAPS &caps);
+    MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
 
 
     const bool          m_bBypassSwFilterPipe;
-    PVP_MHWINTERFACE    m_pHwInterface;
 
-    std::map<VpFeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
-    std::map<VpFeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
+    std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
+    std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
+
+    VpInterface      &m_vpInterface;
 };
 
 }

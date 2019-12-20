@@ -47,18 +47,18 @@ namespace vp
 class HwFilterPipe
 {
 public:
-    HwFilterPipe(HwFilterFactory &hwFilterFactory);
+    HwFilterPipe(VpInterface &vpInterface);
     virtual ~HwFilterPipe();
     void Clean();
     MOS_STATUS Initialize(SwFilterPipe &swFilterPipe, Policy &policy);
     MOS_STATUS Initialize(VP_PIPELINE_PARAMS &params, Policy &policy);
     MOS_STATUS AddHwFilter(HwFilter &hwFilter);
     MOS_STATUS InitPacketPipe(PacketPipe &packetPipe);
-    MOS_STATUS UpdateResources(VpResourceAllocator &resourceAllocator);
+    MOS_STATUS UpdateResources();
 
 private:
-    std::vector<HwFilter*> m_Pipe;
-    HwFilterFactory &m_hwFilterFactory;
+    std::vector<HwFilter*>  m_Pipe;
+    VpInterface             &m_vpInterface;
 };
 }
 #endif // !__HW_FILTER_PIPE_H__

@@ -103,6 +103,113 @@ MOS_STATUS VpAllocator::DestroySurface(MOS_SURFACE *surface)
     return m_allocator->DestroySurface(surface);
 }
 
+VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroOnAllocate, VPHAL_CSPACE ColorSpace, uint32_t ChromaSiting)
+{
+    VP_SURFACE *surface = MOS_New(VP_SURFACE);
+    if (nullptr == surface)
+    {
+        return nullptr;
+    }
+    MOS_ZeroMemory(surface, sizeof(VP_SURFACE));
+    surface->osSurface = AllocateSurface(param, zeroOnAllocate);
+
+    if (nullptr == surface->osSurface)
+    {
+        MOS_Delete(surface);
+        return nullptr;
+    }
+
+    surface->isInternalSurface = true;
+    surface->ColorSpace = ColorSpace;
+    surface->ChromaSiting = ChromaSiting;
+    surface->SampleType = SAMPLE_PROGRESSIVE; // Hardcode to SAMPLE_PROGRESSIVE for intermedia surface. Set to correct value for DI later.
+
+    return surface;
+}
+
+// Allocate vp surface from vphalSurf. Reuse the resource in vphalSurf.
+VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
+{
+    VP_SURFACE *surf = MOS_New(VP_SURFACE);
+
+    if (nullptr == surf || Mos_ResourceIsNull(&vphalSurf.OsResource))
+    {
+        return nullptr;
+    }
+
+    MOS_ZeroMemory(surf, sizeof(VP_SURFACE));
+
+    surf->osSurface = MOS_New(MOS_SURFACE);
+
+    if (nullptr == surf->osSurface)
+    {
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    // Initialize the mos surface in vp surface structure.
+    MOS_SURFACE &osSurface = *surf->osSurface;
+    MOS_ZeroMemory(&osSurface, sizeof(MOS_SURFACE));
+
+    // Set input parameters dwArraySlice, dwMipSlice and S3dChannel if needed later.
+    osSurface.Format            = vphalSurf.Format;
+    osSurface.OsResource        = vphalSurf.OsResource;
+
+    if (MOS_FAILED(m_allocator->GetSurfaceInfo(&osSurface.OsResource, &osSurface)))
+    {
+        MOS_Delete(surf->osSurface);
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    // Align the MMC related flag with vphal surface.
+    osSurface.bCompressible     = vphalSurf.bCompressible;
+    osSurface.bIsCompressed     = vphalSurf.bIsCompressed;
+    osSurface.CompressionMode   = vphalSurf.CompressionMode;
+    osSurface.CompressionFormat = vphalSurf.CompressionFormat;
+    osSurface.MmcState          = (MOS_MEMCOMP_STATE)vphalSurf.CompressionMode;
+
+    // Initialize other parameters in vp surface according to vphal surface.
+    surf->ColorSpace            = vphalSurf.ColorSpace;
+    surf->ExtendedGamut         = vphalSurf.ExtendedGamut;
+    surf->Palette               = vphalSurf.Palette;
+    surf->bQueryVariance        = vphalSurf.bQueryVariance;
+    surf->FrameID               = vphalSurf.FrameID;
+    surf->uFwdRefCount          = vphalSurf.uFwdRefCount;
+    surf->uBwdRefCount          = vphalSurf.uBwdRefCount;
+    surf->pFwdRef               = vphalSurf.pFwdRef;
+    surf->pBwdRef               = vphalSurf.pBwdRef;
+    surf->SurfType              = vphalSurf.SurfType;
+    surf->SampleType            = vphalSurf.SampleType;
+    surf->ChromaSiting          = vphalSurf.ChromaSiting;
+
+    surf->isInternalSurface     = false;
+
+    // Only be used in VpVeboxCmdPacket::PacketInit for current stage.
+    // Should be removed after vphal surface being cleaned from VpVeboxCmdPacket.
+    surf->pCurrent              = &vphalSurf;
+
+    return surf;
+}
+
+MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    VP_PUBLIC_CHK_NULL_RETURN(surface);
+
+    if (surface->isInternalSurface)
+    {
+        status = DestroySurface(surface->osSurface);
+    }
+    else
+    {
+        MOS_Delete(surface->osSurface);
+    }
+
+    MOS_Delete(surface);
+    return status;
+}
+
 void* VpAllocator::Lock(MOS_RESOURCE* resource, MOS_LOCK_PARAMS *lockFlag)
 {
     if (!m_allocator)

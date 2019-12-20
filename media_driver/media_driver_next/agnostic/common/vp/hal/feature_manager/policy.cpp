@@ -27,13 +27,14 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 #include "policy.h"
+#include "vp_obj_factories.h"
 using namespace vp;
 
 /****************************************************************************************************/
 /*                                      Policy                                                      */
 /****************************************************************************************************/
 
-Policy::Policy(PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe) : m_bBypassSwFilterPipe(bBypassSwFilterPipe), m_pHwInterface(pHwInterface)
+Policy::Policy(bool bBypassSwFilterPipe, VpInterface &vpInterface) : m_bBypassSwFilterPipe(bBypassSwFilterPipe), m_vpInterface(vpInterface)
 {
 }
 
@@ -41,14 +42,14 @@ Policy::~Policy()
 {
     while (!m_VeboxSfcFeatureHandlers.empty())
     {
-        std::map<VpFeatureType, PolicyFeatureHandler*>::iterator it = m_VeboxSfcFeatureHandlers.begin();
+        std::map<FeatureType, PolicyFeatureHandler*>::iterator it = m_VeboxSfcFeatureHandlers.begin();
         MOS_Delete(it->second);
         m_VeboxSfcFeatureHandlers.erase(it);
     }
 
     while (!m_RenderFeatureHandlers.empty())
     {
-        std::map<VpFeatureType, PolicyFeatureHandler*>::iterator it = m_RenderFeatureHandlers.begin();
+        std::map<FeatureType, PolicyFeatureHandler*>::iterator it = m_RenderFeatureHandlers.begin();
         MOS_Delete(it->second);
         m_RenderFeatureHandlers.erase(it);
     }
@@ -64,22 +65,22 @@ MOS_STATUS Policy::RegisterFeatures()
     // Vebox/Sfc features.
     PolicyFeatureHandler *p = MOS_New(PolicySfcCscHandler);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(VpFeatureTypeSfcCsc, p));
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnSfc, p));
 
     p = MOS_New(PolicySfcRotMirHandler);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(VpFeatureTypeSfcRotMir, p));
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnSfc, p));
 
     p = MOS_New(PolicySfcScalingHandler);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(VpFeatureTypeSfcScaling, p));
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnSfc, p));
 
     return MOS_STATUS_SUCCESS;
 }
 
 /*                                    Enable SwFilterPipe                                           */
 
-MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilterFactory &facotry, HwFilter *&pFilter)
+MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFilter)
 {
     if (m_bBypassSwFilterPipe)
     {
@@ -102,7 +103,21 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilterFactory
         return status;
     }
 
-    pFilter = facotry.GetHwFilter(param);
+    pFilter = m_vpInterface.GetHwFilterFactory().Create(param);
+
+    ReleaseHwFilterParam(param);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe &subSwFilterPipe, VP_EXECUTE_CAPS &caps)
+{
+    caps.value = 0;
+    // Hardcode now. Will set related value according to pipelineParams later.
+    caps.bSFC = 1;
+    caps.bSfcCsc = SwFilterPipeType1To1 == subSwFilterPipe.GetSwFilterPipeType();
+    caps.bSfcRotMir = SwFilterPipeType1To1 == subSwFilterPipe.GetSwFilterPipeType();
+    caps.bSfcScaling = SwFilterPipeType1To1 == subSwFilterPipe.GetSwFilterPipeType();
     return MOS_STATUS_SUCCESS;
 }
 
@@ -112,12 +127,84 @@ MOS_STATUS Policy::GetHwFilterParam(SwFilterPipe &subSwFilterPipe, HW_FILTER_PAR
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
+    VP_EXECUTE_CAPS vpExecuteCaps = {};
+    VP_PUBLIC_CHK_STATUS_RETURN(GetExecuteCaps(subSwFilterPipe, vpExecuteCaps));
+
+    // Clear params before using it.
+    ReleaseHwFilterParam(params);
+
+    params.Type = EngineTypeInvalid;
+    params.vpExecuteCaps = vpExecuteCaps;
+    params.isSwFilterEnabled = true;
+
+    // Create and clear executedFilters.
+    if (params.executedFilters)
+    {
+        params.executedFilters->Clean();
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetSwFilterPipeFactory().Create(params.executedFilters));
+    }
+
+    // Move surfaces from subSwFilterPipe to executedFilters.
+    VP_SURFACE * surfInput = subSwFilterPipe.RemoveSurface(true, 0);
+    if (surfInput)
+    {
+        // surface should be added before swFilters, since empty feature pipe will be allocated accordingly when surface being added.
+        VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfInput, true, 0));
+    }
+
+    VP_SURFACE * surfOutput = subSwFilterPipe.RemoveSurface(false, 0);
+    if (surfOutput)
+    {
+        // surface should be added before swFilters, since empty feature pipe will be allocated accordingly when surface being added.
+        VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfOutput, false, 0));
+    }
+
+    // Move swFilters from subSwFilterPipe to executedFilters.
+    FeatureType featuresRegistered[] = {FeatureTypeCsc, FeatureTypeScaling, FeatureTypeRotMir}; 
+    FeatureType featuresToApply[] = {FeatureTypeCscOnSfc, FeatureTypeScalingOnSfc, FeatureTypeRotMirOnSfc};
+    int featureCount = sizeof(featuresRegistered) / sizeof(featuresRegistered[0]);
+
+    for (int i = 0; i < featureCount; ++i)
+    {
+        SwFilter *swFilter = subSwFilterPipe.GetSwFilter(true, 0, featuresRegistered[i]);
+        if (swFilter)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(subSwFilterPipe.RemoveSwFilter(swFilter));
+            VP_PUBLIC_CHK_STATUS_RETURN(swFilter->SetFeatureType(featuresToApply[i]));
+            VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSwFilterUnordered(swFilter, true, 0));
+        }
+    }
+
+    // Update both subSwFilterPipe and executedFilters.
+    VP_PUBLIC_CHK_STATUS_RETURN(subSwFilterPipe.Update());
+    VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->Update());
+
+    // Create HwFilter parameters for each feature.
+    if (vpExecuteCaps.bVebox || vpExecuteCaps.bSFC)
+    {
+        params.Type = vpExecuteCaps.bSFC ? EngineTypeSfc : EngineTypeVebox;
+        std::map<FeatureType, PolicyFeatureHandler*>::iterator it = m_VeboxSfcFeatureHandlers.begin();
+        for (; it != m_VeboxSfcFeatureHandlers.end(); ++it)
+        {
+            if ((*(it->second)).IsFeatureEnabled(vpExecuteCaps))
+            {
+                HwFilterParameter *pHwFilterParam = (*(it->second)).CreateHwFilterParam(vpExecuteCaps, *params.executedFilters, m_vpInterface.GetHwInterface());
+                VP_PUBLIC_CHK_NULL_RETURN(pHwFilterParam);
+                params.Params.push_back(pHwFilterParam);
+            }
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
 /*                                    Disable SwFilterPipe                                          */
 
-MOS_STATUS Policy::CreateHwFilter(VP_PIPELINE_PARAMS &pipelineParams, HwFilterFactory &facotry, HwFilter *&pFilter)
+MOS_STATUS Policy::CreateHwFilter(VP_PIPELINE_PARAMS &pipelineParams, HwFilter *&pFilter)
 {
     if (!m_bBypassSwFilterPipe)
     {
@@ -128,9 +215,9 @@ MOS_STATUS Policy::CreateHwFilter(VP_PIPELINE_PARAMS &pipelineParams, HwFilterFa
 
     VP_PUBLIC_CHK_STATUS_RETURN(GetHwFilterParam(pipelineParams, param));
 
-    pFilter = facotry.GetHwFilter(param);
+    pFilter = m_vpInterface.GetHwFilterFactory().Create(param);
 
-    ReturnHwFilterParam(param);
+    ReleaseHwFilterParam(param);
 
     VP_PUBLIC_CHK_NULL_RETURN(pFilter);
 
@@ -159,20 +246,21 @@ MOS_STATUS Policy::GetHwFilterParam(VP_PIPELINE_PARAMS &pipelineParams, HW_FILTE
     VP_PUBLIC_CHK_STATUS_RETURN(GetExecuteCaps(pipelineParams, vpExecuteCaps));
 
     // Clear params before using it.
-    ReturnHwFilterParam(params);
+    ReleaseHwFilterParam(params);
 
     params.Type = EngineTypeInvalid;
     params.vpExecuteCaps = vpExecuteCaps;
+    params.isSwFilterEnabled = false;
     params.pVpParams = &pipelineParams;
     if (vpExecuteCaps.bVebox || vpExecuteCaps.bSFC)
     {
         params.Type = vpExecuteCaps.bSFC ? EngineTypeSfc : EngineTypeVebox;
-        std::map<VpFeatureType, PolicyFeatureHandler*>::iterator it = m_VeboxSfcFeatureHandlers.begin();
+        std::map<FeatureType, PolicyFeatureHandler*>::iterator it = m_VeboxSfcFeatureHandlers.begin();
         for (; it != m_VeboxSfcFeatureHandlers.end(); ++it)
         {
             if ((*(it->second)).IsFeatureEnabled(vpExecuteCaps))
             {
-                HwFilterParameter *pHwFilterParam = (*(it->second)).GetHwFeatureParameter(vpExecuteCaps, pipelineParams, m_pHwInterface);
+                HwFilterParameter *pHwFilterParam = (*(it->second)).CreateHwFilterParam(vpExecuteCaps, pipelineParams, m_vpInterface.GetHwInterface());
                 VP_PUBLIC_CHK_NULL_RETURN(pHwFilterParam);
                 params.Params.push_back(pHwFilterParam);
             }
@@ -182,7 +270,7 @@ MOS_STATUS Policy::GetHwFilterParam(VP_PIPELINE_PARAMS &pipelineParams, HW_FILTE
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::ReturnHwFilterParam(HW_FILTER_PARAMS &params)
+MOS_STATUS Policy::ReleaseHwFilterParam(HW_FILTER_PARAMS &params)
 {
     if (EngineTypeInvalid == params.Type || params.Params.empty())
     {
@@ -196,7 +284,7 @@ MOS_STATUS Policy::ReturnHwFilterParam(HW_FILTER_PARAMS &params)
         return MOS_STATUS_SUCCESS;
     }
 
-    std::map<VpFeatureType, PolicyFeatureHandler*> &featureHandler = 
+    std::map<FeatureType, PolicyFeatureHandler*> &featureHandler = 
             (EngineTypeVebox == params.Type || EngineTypeSfc == params.Type) ? m_VeboxSfcFeatureHandlers : m_RenderFeatureHandlers;
 
     params.Type = EngineTypeInvalid;
@@ -206,17 +294,19 @@ MOS_STATUS Policy::ReturnHwFilterParam(HW_FILTER_PARAMS &params)
         params.Params.pop_back();
         if (p)
         {
-            std::map<VpFeatureType, PolicyFeatureHandler*>::iterator it = featureHandler.find(p->GetFeatureType());
+            auto it = featureHandler.find(p->GetFeatureType());
             if (featureHandler.end() == it)
             {
                 MOS_Delete(p);
             }
             else
             {
-                it->second->ReturnHwFeatureParameter(p);
+                it->second->ReleaseHwFeatureParameter(p);
             }
         }
     }
+
+    m_vpInterface.GetSwFilterPipeFactory().Destory(params.executedFilters);
 
     return MOS_STATUS_SUCCESS;
 }

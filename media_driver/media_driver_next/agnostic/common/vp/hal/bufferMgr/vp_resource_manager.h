@@ -26,44 +26,15 @@
 
 namespace vp {
 
-struct VP_RESOURCE_INFO
-{
-    MOS_ALLOC_GFXRES_PARAMS AllocParam;
-    MOS_RESOURCE            OsResource;
-};
-
-inline bool operator==(MOS_ALLOC_GFXRES_PARAMS &allocParam1, MOS_ALLOC_GFXRES_PARAMS &allocParam2)
-{
-    return allocParam1.Type == allocParam2.Type &&
-        0 == memcmp(&allocParam1.Flags, &allocParam2.Flags, sizeof(allocParam1.Flags)),
-        allocParam1.dwWidth == allocParam2.dwWidth &&
-        allocParam1.dwHeight == allocParam2.dwHeight &&
-        allocParam1.dwDepth == allocParam2.dwDepth &&
-        allocParam1.dwArraySize == allocParam2.dwArraySize &&
-        allocParam1.TileType == allocParam2.TileType &&
-        allocParam1.Format == allocParam2.Format &&
-        allocParam1.pSystemMemory == allocParam2.pSystemMemory &&
-        nullptr == allocParam1.pSystemMemory &&
-        allocParam1.bIsCompressible == allocParam2.bIsCompressible &&
-        allocParam1.CompressionMode == allocParam2.CompressionMode &&
-        allocParam1.bIsPersistent == allocParam2.bIsPersistent;
-}
-
-#define MAX_IDLE_RESOURCE_COUNT 10
-
-class VpResourceAllocator
+class VpResourceManager
 {
 public:
-    VpResourceAllocator(MOS_INTERFACE &osInterface, VpAllocator &allocator);
-    virtual ~VpResourceAllocator();
-    MOS_RESOURCE *AllocateResource(MOS_ALLOC_GFXRES_PARAMS &allocParam);
-    void ReleaseResource(MOS_RESOURCE *res);
+    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator);
+    virtual ~VpResourceManager();
 
 private:
-    std::list<VP_RESOURCE_INFO *> m_IdleResPool = {}; 
-    std::list<VP_RESOURCE_INFO *> m_InuseResPool = {};
     MOS_INTERFACE                &m_OsInterface;
     VpAllocator                  &m_Allocator;
 };
 }
-#endif // !PacketPipe
+#endif // _VP_RESOURCE_MANAGER_H__
