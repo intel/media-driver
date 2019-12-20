@@ -234,7 +234,7 @@ protected:
     PacketPipeFactory     *m_pPacketPipeFactory     = nullptr;
     VpResourceManager     *m_resourceManager        = nullptr;
     bool                   m_bEnableFeatureManagerNext = true;
-    bool                   m_bBypassSwFilterPipe    = true;
+    bool                   m_bBypassSwFilterPipe    = false;
 };
 
 struct _VP_SFC_PACKET_PARAMS
