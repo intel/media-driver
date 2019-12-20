@@ -902,6 +902,19 @@ PMOS_RESOURCE Mos_Specific_GetMarkerResource(
 //!
 uint32_t Mos_Specific_GetTsFrequency(
     PMOS_INTERFACE         pOsInterface);
+    
+//!
+//! \brief    Checks whether the requested resource is releasable
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] Pointer to OS Resource
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if requested can be released, otherwise MOS_STATUS_UNKNOWN
+//!
+MOS_STATUS Mos_Specific_IsResourceReleasable(
+    PMOS_INTERFACE         pOsInterface,
+    PMOS_RESOURCE          pOsResource);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(

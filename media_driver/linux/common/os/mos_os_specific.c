@@ -7376,6 +7376,22 @@ uint32_t Mos_Specific_GetTsFrequency(PMOS_INTERFACE osInterface)
     }
 }
 
+//!
+//! \brief    Checks whether the requested resource is releasable
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] Pointer to OS Resource
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if requested can be released, otherwise MOS_STATUS_UNKNOWN
+//!
+MOS_STATUS Mos_Specific_IsResourceReleasable(
+    PMOS_INTERFACE         pOsInterface,
+    PMOS_RESOURCE          pOsResource)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 struct GpuCmdResInfoDump::GpuCmdResInfo
 {
