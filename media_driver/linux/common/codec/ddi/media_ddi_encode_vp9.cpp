@@ -213,6 +213,10 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     {
         seqParams->RateControlMethod = RATECONTROL_VBR;
     }
+    else if(VA_RC_ICQ == m_encodeCtx->uiRCMethod)
+    {
+        seqParams->RateControlMethod = RATECONTROL_CQL;
+    }
 
     seqParams->TargetUsage = vp9TargetUsage;
 
@@ -866,7 +870,7 @@ VAStatus DdiEncodeVp9::ParseMiscParamRC(void *data)
             seqParams->SeqFlags.fields.bResetBRC |= 0x1;
         }
     }
-    else if (VA_RC_VBR == m_encodeCtx->uiRCMethod)
+    else if (VA_RC_VBR == m_encodeCtx->uiRCMethod || VA_RC_ICQ == m_encodeCtx->uiRCMethod)
     {
         seqParams->TargetBitRate[temporalId] = bitRate * vaEncMiscParamRC->target_percentage / 100;  // VBR target bits
         uint32_t minBitRate = bitRate * abs((int32_t)(2 * vaEncMiscParamRC->target_percentage) - 100) / 100;
@@ -880,6 +884,12 @@ VAStatus DdiEncodeVp9::ParseMiscParamRC(void *data)
             seqParams->SeqFlags.fields.bResetBRC |= 0x1;
             savedMaxBitRate[temporalId]          = bitRate;
         }
+    }
+
+    if (VA_RC_ICQ == m_encodeCtx->uiRCMethod)
+    {
+        seqParams->ICQQualityFactor  = vaEncMiscParamRC->ICQ_quality_factor;
+        seqParams->RateControlMethod = RATECONTROL_CQL;
     }
 
     /* the reset flag in RC will be considered. */
