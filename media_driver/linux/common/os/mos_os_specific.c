@@ -3125,6 +3125,11 @@ MOS_STATUS Mos_Specific_DoubleBufferCopyResource(
     MOS_OS_CHK_NULL(inputOsResource);
     MOS_OS_CHK_NULL(outputOsResource);
     //---------------------------------------
+    
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::DoubleBufferCopyResource(osInterface->osStreamState, inputOsResource, outputOsResource, bOutputCompressed);
+    }
 
     pContext = osInterface->pOsContext;
 
@@ -3181,6 +3186,12 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
     MOS_OS_CHK_NULL(inputOsResource);
     MOS_OS_CHK_NULL(outputOsResource);
     //---------------------------------------
+    
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::MediaCopyResource2D(osInterface->osStreamState, inputOsResource, outputOsResource,
+            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bOutputCompressed);
+    }
 
     pContext = osInterface->pOsContext;
 

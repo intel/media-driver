@@ -1575,6 +1575,63 @@ MOS_STATUS MosInterface::GetMemoryCompressionFormat(
     return eStatus;
 }
 
+MOS_STATUS MosInterface::DoubleBufferCopyResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE inputResource,
+    MOS_RESOURCE_HANDLE outputResource,
+    bool                outputCompressed)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(inputResource);
+    MOS_OS_CHK_NULL_RETURN(outputResource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    MOS_OS_CHK_NULL_RETURN(osParameters);
+
+    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
+        outputResource && outputResource->bo && outputResource->pGmmResInfo)
+    {
+        // Double Buffer Copy can support any tile status surface with/without compression
+        osParameters->pfnMediaMemoryCopy(osParameters, inputResource, outputResource, outputCompressed);
+    }
+
+    return status;
+}
+
+MOS_STATUS MosInterface::MediaCopyResource2D(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE inputResource,
+    MOS_RESOURCE_HANDLE outputResource,
+    uint32_t            copyWidth,
+    uint32_t            copyHeight,
+    uint32_t            copyInputOffset,
+    uint32_t            copyOutputOffset,
+    bool                outputCompressed)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(inputResource);
+    MOS_OS_CHK_NULL_RETURN(outputResource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    MOS_OS_CHK_NULL_RETURN(osParameters);
+    
+    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
+        outputResource && outputResource->bo && outputResource->pGmmResInfo)
+    {
+        // Double Buffer Copy can support any tile status surface with/without compression
+        osParameters->pfnMediaMemoryCopy2D(osParameters, inputResource, outputResource,
+            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, outputCompressed);
+    }
+
+    return status;
+}
+
 uint32_t MosInterface::GetGpuStatusTag(
         MOS_STREAM_HANDLE  streamState,
         GPU_CONTEXT_HANDLE gpuContext)

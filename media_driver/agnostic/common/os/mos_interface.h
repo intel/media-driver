@@ -1136,6 +1136,59 @@ public:
         MOS_RESOURCE_HANDLE resource,
         uint32_t *resMmcFormat);
 
+    //!
+    //! \brief    Double buffer copy resource
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] inputResource
+    //!           Input resource to copy.
+    //! \param    [out] outputResource
+    //!           Output resource.
+    //! \param    [in] outputCompressed
+    //!           Insdicate if output resource is compressed.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS DoubleBufferCopyResource(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE inputResource,
+        MOS_RESOURCE_HANDLE outputResource,
+        bool                outputCompressed);
+
+    //!
+    //! \brief    Copy Resource to Another Buffer
+    //! \details  Decompress and Copy Resource to Another 2D Buffer
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    inputResource
+    //!           [in] Input Resource object
+    //! \param    outputResource
+    //!           [out] output Resource object
+    //! \param    [in] copyWidth
+    //!           The 2D surface Width
+    //! \param    [in] copyHeight
+    //!           The 2D surface height
+    //! \param    [in] copyInputOffset
+    //!           The offset of copied surface from
+    //! \param    [in] copyOutputOffset
+    //!           The offset of copied to
+    //! \param    [in] outputCompressed
+    //!           True means apply compression on output surface, else output uncompressed surface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS MediaCopyResource2D(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE inputResource,
+        MOS_RESOURCE_HANDLE outputResource,
+        uint32_t            copyWidth,
+        uint32_t            copyHeight,
+        uint32_t            copyInputOffset,
+        uint32_t            copyOutputOffset,
+        bool                outputCompressed);
+
     // GPU Status interfaces
 
     //!
