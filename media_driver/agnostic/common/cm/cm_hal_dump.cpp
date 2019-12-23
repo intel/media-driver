@@ -68,8 +68,6 @@ static uint32_t HalCm_CopyHexDwordLine(char  *destBuf, size_t buflen, uint32_t *
 //!           flag to control if need time stamp
 //! \param    [in] counter
 //!           dump file counter
-//! \param    [in] pValueName
-//!           pointer to value name, used for user feature read
 //! \param    [in] outputDir
 //!           pointer to output dir
 //! \param    [in] outputFile
@@ -77,7 +75,7 @@ static uint32_t HalCm_CopyHexDwordLine(char  *destBuf, size_t buflen, uint32_t *
 //! \return   number of bytes written
 //!
 int32_t GetFileNameAndCounter(char fileNamePrefix[], bool timeStampFlag, int32_t counter,
-                              const char *pValueName, const char *outputDir,const char *outputFile)
+                              const char *outputDir,const char *outputFile)
 {
     GetLogFileLocation(outputDir, fileNamePrefix);
     PlatformSNPrintf(fileNamePrefix + strlen(fileNamePrefix), 
@@ -97,17 +95,17 @@ int32_t GetFileNameAndCounter(char fileNamePrefix[], bool timeStampFlag, int32_t
         //check if command buffer or surface state counter, and get it
         if (!strcmp(outputFile,"Command_Buffer"))
         {
-            counter = GetCommandBufferDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER);
+            counter = GetCommandBufferDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID);
         }
         else if (!strcmp(outputFile,"Surface_State_Dump"))
         {
-            counter = GetSurfaceStateDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER);
+            counter = GetSurfaceStateDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID);
         }
         else if (!strcmp(outputFile, "Interface_Descriptor_Data_Dump"))
         {
-            counter = GetInterfaceDescriptorDataDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER);
+            counter = GetInterfaceDescriptorDataDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID);
         }
-       
+
         PlatformSNPrintf(fileNamePrefix + strlen(fileNamePrefix), 
                          MOS_MAX_HLT_FILENAME_LEN - strlen(fileNamePrefix), "%s_%d.txt", outputFile, counter);
     }
@@ -211,7 +209,6 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
    //Check if use timestamp in cmd buffer dump file
     commandBufferNumber = GetFileNameAndCounter(fileName, state->enableCMDDumpTimeStamp,
                           commandBufferNumber,
-                          __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER, 
                           HALCM_COMMAND_BUFFER_OUTPUT_DIR,
                           HALCM_COMMAND_BUFFER_OUTPUT_FILE);
 
@@ -506,7 +503,6 @@ int32_t HalCm_DumpSurfaceState(PCM_HAL_STATE state,  int offsetSurfaceState, siz
    //Check if use timestamp in cmd buffer dump file
     surfacestatedumpNumber = GetFileNameAndCounter(filename, state->enableSurfaceStateDumpTimeStamp,
         surfacestatedumpNumber,
-        __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER,
         HALCM_SURFACE_STATE_OUTPUT_DIR,
         HALCM_SURFACE_STATE_OUTPUT_FILE);
     
@@ -639,7 +635,6 @@ int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state)
     //Check if use timestamp in cmd buffer dump file
     IDDNumber = GetFileNameAndCounter(fileName, state->enableIDDumpTimeStamp,
         IDDNumber,
-        __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER,
         HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR,
         HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_FILE);
 

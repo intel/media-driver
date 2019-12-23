@@ -29,11 +29,9 @@
 #include "mos_defs.h"
 #include "mos_utilities_specific.h"
 
-class MosUtilUserInterfaceNext;
 class MosUtilitiesSpecificNext
 {
 public:
-
 
 /*----------------------------------------------------------------------------
 | Name      : MosUserFeatureSetValueExFile
@@ -291,9 +289,5 @@ private:
 
 public:
     static const char* m_szUserFeatureFile;
-    static PUFKEYOPS   m_ufKeyOps;
-#if _MEDIA_RESERVED
-    static MosUtilUserInterfaceNext  *m_utilUserInterface;
-#endif
 };
 #endif // __MOS_UTILITIES_SPECIFIC_NEXT_H__

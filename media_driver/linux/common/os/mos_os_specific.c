@@ -7107,10 +7107,16 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;
-    pOsUserFeatureInterface->pfnReadValue               = MOS_UserFeature_ReadValue;
     pOsUserFeatureInterface->pfnEnableNotification      = MOS_UserFeature_EnableNotification;
     pOsUserFeatureInterface->pfnDisableNotification     = MOS_UserFeature_DisableNotification;
     pOsUserFeatureInterface->pfnParsePath               = MOS_UserFeature_ParsePath;
+
+    if (g_apoMosEnabled)
+    {
+        pOsUserFeatureInterface->pfnEnableNotification      = MosUtilities::MosUserFeatureEnableNotification;
+        pOsUserFeatureInterface->pfnDisableNotification     = MosUtilities::MosUserFeatureDisableNotification;
+        pOsUserFeatureInterface->pfnParsePath               = MosUtilities::MosUserFeatureParsePath;
+    }
 
     // Init reset count for the context
     ret = mos_get_reset_stats(pOsInterface->pOsContext->intel_context, &dwResetCount, nullptr, nullptr);

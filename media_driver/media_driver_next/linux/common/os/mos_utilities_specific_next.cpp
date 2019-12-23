@@ -63,8 +63,6 @@ double MosUtilities::MosGetTime()
 #define MOS_UFKEY_EXT     "UFKEY_EXTERNAL"
 #define MOS_UFKEY_INT     "UFKEY_INTERNAL"
 
-PUFKEYOPS      MosUtilitiesSpecificNext::m_ufKeyOps = nullptr;
-
 //!
 //! \brief Linux specific trace entry path and file description.
 //!
@@ -1239,7 +1237,7 @@ MOS_STATUS MosUtilitiesSpecificNext::MosUserFeatureOpenKeyFile(
     }
 
     MosUtilities::MosSecureStrcat(pcKeyName, sizeof(pcKeyName), lpSubKey);
-    iRet =  UserFeatureGetKeyIdbyName(pcKeyName, phkResult);
+    iRet = UserFeatureGetKeyIdbyName(pcKeyName, phkResult);
 
     return iRet;
 }
@@ -1309,7 +1307,7 @@ MOS_STATUS MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MOS_OS_Utilities_Init()
+MOS_STATUS MosUtilities::MosOsUtilitiesInit()
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
 
@@ -1332,19 +1330,14 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Init()
       else
       {
           MOS_OS_ASSERTMESSAGE("Can't open %s for USER_FEATURE_FILE!!!", tmpFile);
-          eStatus =  MOS_STATUS_FILE_NOT_FOUND;
-          goto finish;
+          m_mutexLock.Unlock();
+          return MOS_STATUS_FILE_NOT_FOUND;
       }
     }
 #endif
 
     if (m_mosUtilInitCount == 0)
     {
-        MosUtilitiesSpecificNext::m_ufKeyOps = (PUFKEYOPS)MOS_AllocAndZeroMemory(sizeof(UFKEYOPS));
-        MOS_OS_CHK_NULL(MosUtilitiesSpecificNext::m_ufKeyOps);
-        MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureOpenKey = MosUtilitiesSpecificNext::MosUserFeatureOpenKeyFile;
-        MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureGetValue = MosUtilitiesSpecificNext::MosUserFeatureGetValueFile;
-        MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureSetValueEx = MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile;
         //Init MOS User Feature Key from mos desc table
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
 
@@ -1370,7 +1363,7 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MOS_OS_Utilities_Close()
+MOS_STATUS MosUtilities::MosOsUtilitiesClose()
 {
     int32_t                             MemoryCounter = 0;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
@@ -1410,8 +1403,6 @@ MOS_STATUS MosUtilities::MOS_OS_Utilities_Close()
         // so if there still is another active lib instance, logs would still be printed.
         MosUtilDebug::MosMessageClose();
 #endif
-        MOS_FreeMemory(MosUtilitiesSpecificNext::m_ufKeyOps);
-        MosUtilitiesSpecificNext::m_ufKeyOps = nullptr;
     }
     m_mutexLock.Unlock();
     return eStatus;
@@ -1432,14 +1423,7 @@ MOS_STATUS MosUtilities::MosUserFeatureOpenKey(
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    if ((MosUtilitiesSpecificNext::m_ufKeyOps != nullptr) && (MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureOpenKey != nullptr))
-    {
-        return MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureOpenKey(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
-    }
-    else
-    {
-        return MosUserFeatureOpenKey(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
-    }
+    return MosUtilitiesSpecificNext::MosUserFeatureOpenKeyFile(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 
 MOS_STATUS MosUtilities::MosUserFeatureCloseKey(void  *UFKey)
@@ -1467,14 +1451,8 @@ MOS_STATUS MosUtilities::MosUserFeatureGetValue(
     }
 
     eStatus = MOS_STATUS_UNKNOWN;
-    if ((MosUtilitiesSpecificNext::m_ufKeyOps != nullptr) && (MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureGetValue != nullptr))
-    {
-        return MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureGetValue(UFKey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
-    }
-    else
-    {
-        return MosUtilitiesSpecificNext::MosUserFeatureGetValueFile(UFKey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
-    }
+
+    return MosUtilitiesSpecificNext::MosUserFeatureGetValueFile(UFKey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
 
 }
 
@@ -1498,21 +1476,7 @@ MOS_STATUS MosUtilities::MosUserFeatureSetValueEx(
     uint8_t         *lpData,
     uint32_t        cbData)
 {
-    char        pcKeyName[MAX_USERFEATURE_LINE_LENGTH];
-    MOS_STATUS  eStatus;
-
-    if (UFKey == nullptr)
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-    if ((MosUtilitiesSpecificNext::m_ufKeyOps != nullptr) && (MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureSetValueEx != nullptr))
-    {
-        return MosUtilitiesSpecificNext::m_ufKeyOps->pfnUserFeatureSetValueEx(UFKey, lpValueName, Reserved, dwType, lpData, cbData);
-    }
-    else
-    {
-        return MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(UFKey, lpValueName, Reserved, dwType, lpData, cbData);
-    }
+    return MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(UFKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 
 MOS_STATUS MosUtilities::MosUserFeatureNotifyChangeKeyValue(
@@ -2048,6 +2012,14 @@ void MosUtilities::MosTraceEvent(
         }
     }
     return;
+}
+
+void MosUtilities::MosTraceDataDump(
+    char *const pcName,
+    uint32_t    flags,
+    void *const pBuf,
+    uint32_t    dwSize)
+{
 }
 
 MOS_STATUS MosUtilities::MosGfxInfoInit()

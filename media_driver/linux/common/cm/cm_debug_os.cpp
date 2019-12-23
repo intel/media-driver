@@ -39,7 +39,7 @@ uint32_t GetLogFileLocation(const char *filename, char fileNamePrefix[])
     return 0;
 }
 
-int32_t GetCommandBufferDumpCounter(const char *pValueName)
+int32_t GetCommandBufferDumpCounter(uint32_t valueID)
 {
     return commandBufferCounter;
 }
@@ -50,7 +50,7 @@ int32_t RecordCommandBufferDumpCounter(int32_t count, uint32_t ValueID)
     return 0;
 }
 
-int32_t GetSurfaceStateDumpCounter(const char *pValueName)
+int32_t GetSurfaceStateDumpCounter(uint32_t valueID)
 {
     return surfaceStateCounter;
 }
@@ -61,7 +61,7 @@ int32_t RecordSurfaceStateDumpCounter(int32_t count, uint32_t ValueID)
     return 0;
 }
 
-int32_t GetInterfaceDescriptorDataDumpCounter(const char *pValueName)
+int32_t GetInterfaceDescriptorDataDumpCounter(uint32_t valueID)
 {
     return IDDCounter;
 }

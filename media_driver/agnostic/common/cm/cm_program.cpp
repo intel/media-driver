@@ -166,33 +166,6 @@ CmProgramRT::~CmProgramRT( void )
     CmSafeDelete(m_isaFile);
 }
 
-#if (_RELEASE_INTERNAL)
-int32_t CmProgramRT::ReadUserFeatureValue(const char *pcMessageKey, uint32_t &value)
-{
-    MOS_USER_FEATURE        userFeature;
-    MOS_USER_FEATURE_VALUE  userFeatureValue = __NULL_USER_FEATURE_VALUE__;
-    CM_RETURN_CODE          hr = CM_SUCCESS;
-
-    // Set the component's message level and asserts:
-    userFeatureValue.u32Data    = __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE;
-    userFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues         = &userFeatureValue;
-    userFeature.uiNumValues     = 1;
-
-    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(MOS_UserFeature_ReadValue(
-                                  nullptr,
-                                  &userFeature,
-                                  pcMessageKey,
-                                  MOS_USER_FEATURE_VALUE_TYPE_UINT32));
-
-    value = userFeature.pValues->u32Data;
-
-finish:
-    return hr;
-}
-#endif
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize Cm Program
 //| Returns:    Result of the operation.

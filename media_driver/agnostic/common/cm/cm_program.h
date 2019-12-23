@@ -205,10 +205,6 @@ public:
 
     uint32_t GetProgramIndex();
 
-#if (_RELEASE_INTERNAL)
-    int32_t ReadUserFeatureValue(const char *pcMessageKey, uint32_t &value);
-#endif
-
     //! \brief    get m_isaFile object
     //! \detail   m_isaFile object provides methods to read, parse and write ISA files.
     //! \return   Pointer to m_isaFile object

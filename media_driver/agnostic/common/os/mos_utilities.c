@@ -3729,7 +3729,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "Eanble Apogeios hevc decode path. 1: enable, 0: disable."),
 };
 
-#define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))
+PMOS_USER_FEATURE_VALUE const MosUtilities::m_mosUserFeatureDescFields = MOSUserFeatureDescFields;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 uint32_t MosAllocMemoryFailSimulateMode;
@@ -4452,6 +4452,9 @@ MOS_STATUS MOS_AppendFileFromPtr(
 MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia()
 {
     MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
+    if (g_apoMosEnabled)
+        return MosUtilities::DumpUserFeatureKeyDefinitionsMedia();
+
     // Init MOS User Feature Key from mos desc table
     MOS_OS_CHK_STATUS( MOS_DeclareUserFeatureKeysForAllDescFields() );
     MOS_OS_CHK_STATUS( MOS_GenerateUserFeatureKeyXML() );
@@ -4649,6 +4652,12 @@ MOS_STATUS MOS_GenerateUserFeatureKeyXML()
                                                            "General", "MOS", "Report", "VP"};
     uint32_t                            FilterGroupsCount = sizeof(FilterGroups) / sizeof(FilterGroups[0]);
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+
+    if (g_apoMosEnabled)
+    {
+        return MosUtilities::MosGenerateUserFeatureKeyXML();
+    }
+
     // Check if XML dump is enabled by User Feature Key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     eStatus =MOS_UserFeature_ReadValue_ID(
@@ -4811,6 +4820,8 @@ MOS_STATUS MOS_CopyUserFeatureValueData(
     MOS_OS_ASSERT(pDstData);
     MOS_OS_ASSERT(ValueType != MOS_USER_FEATURE_VALUE_TYPE_INVALID);
     //------------------------------
+    if (g_apoMosEnabled)
+        return MosUtilities::MosCopyUserFeatureValueData(pSrcData, pDstData, ValueType);
 
     switch(ValueType)
     {
@@ -5076,17 +5087,11 @@ MOS_STATUS MOS_DeclareUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PM
     MOS_OS_ASSERT(pUserFeatureKey);
     //------------------------------
 
-    if (pUserFeatureKey->pfnSetDefaultValueData!=NULL)
-    {
-        eStatus = pUserFeatureKey->pfnSetDefaultValueData(&pUserFeatureKey->Value);
-    }
-    else
-    {
-        eStatus = MOS_AssignUserFeatureValueData(
-            &pUserFeatureKey->Value,
-            pUserFeatureKey->DefaultValue,
-            pUserFeatureKey->ValueType);
-    }
+    eStatus = MOS_AssignUserFeatureValueData(
+        &pUserFeatureKey->Value,
+        pUserFeatureKey->DefaultValue,
+        pUserFeatureKey->ValueType);
+
     if (eStatus == MOS_STATUS_SUCCESS)
     {
         if (keyValueMap)
@@ -5401,6 +5406,9 @@ MOS_STATUS MOS_DeclareUserFeatureKeysFromDescFields(
     MOS_USER_FEATURE_VALUE      UserFeatureKeyFilter = __NULL_USER_FEATURE_VALUE__;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
+    if (g_apoMosEnabled)
+        return MosUtilities::MosDeclareUserFeatureKeysFromDescFields(descTable, numOfItems, maxId);
+
     eStatus = MOS_GetItemFromMOSUserFeatureDescField(
         descTable,
         numOfItems,
@@ -5453,6 +5461,9 @@ MOS_STATUS MOS_DestroyUserFeatureKeysFromDescFields(
 {
     MOS_USER_FEATURE_VALUE      UserFeatureKeyFilter = __NULL_USER_FEATURE_VALUE__;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+
+    if (g_apoMosEnabled)
+        return MosUtilities::MosDestroyUserFeatureKeysFromDescFields(descTable, numOfItems, maxId);
 
     eStatus = MOS_GetItemFromMOSUserFeatureDescField(
         descTable,
@@ -6224,6 +6235,12 @@ MOS_STATUS MOS_UserFeature_ReadValue(
     MOS_OS_ASSERT(ValueType != MOS_USER_FEATURE_VALUE_TYPE_INVALID);
     //--------------------------------------------------
 
+    // If g_apoMosEnabled, please use MOS_UserFeature_ReadValue_ID
+    if (g_apoMosEnabled)
+    {
+        MOS_OS_ASSERTMESSAGE("read value failed because the method is not supported");
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
     //--------------------------------------------------
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 
@@ -6534,6 +6551,12 @@ MOS_STATUS MOS_UserFeature_ReadValue(
     uint32_t                        ValueID,
     PMOS_USER_FEATURE_VALUE_DATA    pValueData)
 {
+    if (g_apoMosEnabled)
+        return MosUtilities::MosUserFeatureReadValueID(
+            pOsUserFeatureInterface,
+            ValueID,
+            pValueData);
+
     return MOS_UserFeature_ReadValue_FromMap_ID(
         gc_UserFeatureKeysMap,
         pOsUserFeatureInterface,
@@ -6550,6 +6573,9 @@ const char* MOS_UserFeature_LookupValueName(
     uint32_t ValueID)
 {
     MOS_OS_ASSERT(ValueID != __MOS_USER_FEATURE_KEY_INVALID_ID);
+
+    if (g_apoMosEnabled)
+        return MosUtilities::MosUserFeatureLookupValueName(ValueID);
 
 #ifdef __cplusplus
     PMOS_USER_FEATURE_VALUE pUserFeature = MosUtilUserInterface::GetValue(ValueID);
@@ -6577,6 +6603,8 @@ const char* MOS_UserFeature_LookupReadPath(
     uint32_t ValueID)
 {
     MOS_OS_ASSERT(ValueID != __MOS_USER_FEATURE_KEY_INVALID_ID);
+    if (g_apoMosEnabled)
+        return MosUtilities::MosUserFeatureLookupReadPath(ValueID);
 
 #ifdef __cplusplus
     PMOS_USER_FEATURE_VALUE pUserFeature = MosUtilUserInterface::GetValue(ValueID);
@@ -6605,6 +6633,9 @@ const char* MOS_UserFeature_LookupWritePath(
     uint32_t ValueID)
 {
     MOS_OS_ASSERT(ValueID != __MOS_USER_FEATURE_KEY_INVALID_ID);
+    if (g_apoMosEnabled)
+        return MosUtilities::MosUserFeatureLookupWritePath(ValueID);
+
 #ifdef __cplusplus
     PMOS_USER_FEATURE_VALUE pUserFeature = MosUtilUserInterface::GetValue(ValueID);
     if (pUserFeature)
@@ -6778,6 +6809,12 @@ MOS_STATUS MOS_UserFeature_WriteValues(
     PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
     uint32_t                                uiNumOfValues)
 {
+    if (g_apoMosEnabled)
+        return MosUtilities::MosUserFeatureWriteValuesID(
+            pOsUserFeatureInterface,
+            pWriteValues,
+            uiNumOfValues);
+
     return MOS_UserFeature_WriteValues_Tbl_ID(
         gc_UserFeatureKeysMap,
         pOsUserFeatureInterface,

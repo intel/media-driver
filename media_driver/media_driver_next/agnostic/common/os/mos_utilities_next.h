@@ -42,6 +42,8 @@ class MosMutex;
 class MosUtilities
 {
 public:
+    MosUtilities()          = delete;
+    virtual ~MosUtilities() = delete;
 
     MOS_FUNC_EXPORT static void MosSetUltFlag(uint8_t ultFlag);
     MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounter();
@@ -161,7 +163,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_utilities_init();
+    static MOS_STATUS MosUtilitiesInit();
 
     //!
     //! \brief    Close Function for MOS utilitiesNext
@@ -170,22 +172,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    //APO_MOS_WRAPPER
-    static MOS_STATUS MOS_utilities_close();
-
-    //!
-    //! \brief    Link the user feature key Desc Fields table items to key value map
-    //! \details  Link the user feature key Desc Fields table items to key value map
-    //!           according to ID sequence and do some post processing by calling MOS_AssignUserFeatureValueData
-    //! \param    [out] keyValueMap
-    //!           Optional pointer to the map table to add the user feature key. Could be nullptr
-    //! \param    [in] pUserFeatureKey
-    //!           Pointer to the User Feature Value needed to be declared
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MosDeclareUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeatureKey);
+    static MOS_STATUS MosUtilitiesClose();
 
 private:
     //!
@@ -195,7 +182,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_OS_Utilities_Init();
+    static MOS_STATUS MosOsUtilitiesInit();
 
     //!
     //! \brief    Close Function for MOS OS utilitiesNext
@@ -204,7 +191,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MOS_OS_Utilities_Close();
+    static MOS_STATUS MosOsUtilitiesClose();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
@@ -659,7 +646,7 @@ public:
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
-    //! \details  Generate a User Feature Keys XML files according to MOSUserFeatureDescFields
+    //! \details  Generate a User Feature Keys XML files according to m_mosUserFeatureDescFields
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
@@ -667,6 +654,15 @@ public:
     static MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia();
 
 #endif
+
+    //!
+    //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
+    //! \details  Generate a User Feature Keys XML files according to m_mosUserFeatureDescFields
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosGenerateUserFeatureKeyXML();
 
     //!
     //! \brief    Link user feature key description table items to specified UserFeatureKeyTable
@@ -687,8 +683,7 @@ public:
     static MOS_STATUS MosDeclareUserFeatureKeysFromDescFields(
         MOS_USER_FEATURE_VALUE     *userValueDescTable,
         uint32_t                   numOfValues,
-        uint32_t                   maxId,
-        MOS_USER_FEATURE_VALUE_MAP *keyValueMap);
+        uint32_t                   maxId);
 
     //!
     //!
@@ -701,8 +696,6 @@ public:
     //!           Number of user feature keys described in the table
     //! \param    [in] maxId
     //!           Max value ID in the table
-    //! \param    [out] keyValueMap
-    //!           optional pointer to the value map where the table items will be destroyed, could be nullptr
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
@@ -710,9 +703,7 @@ public:
     static MOS_STATUS MosDestroyUserFeatureKeysFromDescFields(
         MOS_USER_FEATURE_VALUE     *descTable,
         uint32_t                   numOfItems,
-        uint32_t                   maxId,
-        MOS_USER_FEATURE_VALUE_MAP *keyValueMap);
-
+        uint32_t                   maxId);
 
     //!
     //! \brief    Copy the VALUE_DATA from source to destination pointer
@@ -734,77 +725,22 @@ public:
     );
 
     //!
-    //! \brief    Read Single Value from User Feature
+    //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE
     //! \details  This is a unified funtion to read user feature key for all components.
     //!           (Codec/VP/CP/CM)
     //!           It is required to prepare all memories for buffers before calling this function.
     //!           User can choose to use array variable or allocated memory for the buffer.
     //!           If the buffer is allocated dynamically, it must be freed by user to avoid memory leak.
     //!           ------------------------------------------------------------------------------------
-    //!           Usage example:
-    //!           a) Initiation:
-    //!           MosZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
-    //!           UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    //!           UserFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    //!           UserFeature.pValues         = &UserFeatureValue;
-    //!           UserFeature.uiNumValues     = 1;
-    //!           b.1) For uint32_t type:
-    //!           UserFeatureValue.u32Data = 1;    //set the default value, must be initiated with one valid value.
-    //!           b.2) For String/Binary type:
-    //!           char cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
-    //!           UserFeatureValue.StringData.pStringData = cStringData; // make sure the pointer is valid
-    //!           UserFeatureValue.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    //!           UserFeatureValue.StringData.uSize       = 0;  //set the default value. 0 is empty buffer.
-    //!           b.3) For MultiString type:
-    //!           char cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
-    //!           MOS_USER_FEATURE_VALUE_STRING strings[MAX_STRING_COUNT];
-    //!           UserFeatureValue.MultiStringData.pMultStringData = cStringData; // make sure the pointer is valid
-    //!           UserFeatureValue.MultiStringData.uMaxSize        = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    //!           UserFeatureValue.MultiStringData.uSize           = 0;  //set the default value. 0 is empty buffer.
-    //!           UserFeatureValue.MultiStringData.pStrings        = strings; // make sure the pointer is valid
-    //!           UserFeatureValue.MultiStringData.uCount          = MAX_STRING_COUNT;
-    //!           c) Read user feature key:
-    //!           MOS_UserFeature_ReadValue();
-    //!           -------------------------------------------------------------------------------------
-    //!           Important note: The pointer pStringData/pMultStringData may be modified if the
-    //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's
-    //!           suggested to set the union members in UserFeatureValue every time before
-    //!           MOS_UserFeature_ReadValue() if you are not familiar with the details of this function.
-    //! \param    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface
-    //!           [in] Pointer to OS User Interface structure
-    //! \param    PMOS_USER_FEATURE pUserFeature
-    //!           [in/out] Pointer to User Feature Interface
-    //! \param    char  *pValueName
-    //!           [in] Pointer to the name of the user feature value
-    //! \param    MOS_USER_FEATURE_VALUE_TYPE ValueType
-    //!           [in] User Feature Value type
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MosUserFeatureReadValue(
-        PMOS_USER_FEATURE_INTERFACE       pOsUserFeatureInterface,
-        PMOS_USER_FEATURE                 pUserFeature,
-        const char                        *pValueName,
-        MOS_USER_FEATURE_VALUE_TYPE       ValueType);
-
-    //!
-    //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE
-    //! \details  This is a unified funtion to read user feature key for all components.
-    //!           (Codec/VP/CP/CM)
-    //!           It is required to prepare all memories for buffers before calling this function.
-    //!           User can choose to use array variable or allocated memory for the buffer.
-    //!           If the buffer is allocated dynamically, it must be freed by user to avoid memory leak. 
-    //!           ------------------------------------------------------------------------------------
     //!           Usage example: 
     //!           a) Initiation:
     //!           MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    //!           b.0) Don't need to input a default value if the default value in user feature key Desc Fields table item is good 
+    //!           b.0) Don't need to input a default value if the default value in user feature key Desc Fields table item is good
     //!                for your case
     //!           b.1) For uint32_t type:
     //!           UserFeatureData.u32Data = 1;    // overwrite a custom default value 
-    //!           UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE; 
-    //!                                           // raise a flag to use this custom default value instead of 
+    //!           UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    //!                                           // raise a flag to use this custom default value instead of
     //!                                              default value in user feature key Desc Fields table item
     //!           b.2) For String/Binary type:
     //!           char cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
@@ -821,8 +757,8 @@ public:
     //!           c) Read user feature key:
     //!           MosUserFeatureReadValueID();
     //!           -------------------------------------------------------------------------------------
-    //!           Important note: The pointer pStringData/pMultStringData may be modified if the 
-    //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's 
+    //!           Important note: The pointer pStringData/pMultStringData may be modified if the
+    //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's
     //!           suggested to set the union members in UserFeatureValue every time before 
     //!           MOS_UserFeature_ReadValue() if you are not familiar with the details of this function.
     //!           If a new key is added, please make sure to declare a definition in corresponding
@@ -841,7 +777,7 @@ public:
     //!                 MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED: pValueData is from default value
     //!                 MOS_STATUS_UNKNOWN: pValueData is from default value
     //!                 MOS_STATUS_USER_FEATURE_KEY_READ_FAILED: pValueData is from default value
-    //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table, 
+    //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table,
     //!                                          No default value or User Feature Key value return
     //! 
     //!
@@ -866,7 +802,6 @@ public:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosUserFeatureWriteValuesID(
-
         PMOS_USER_FEATURE_INTERFACE              pOsUserFeatureInterface,
         PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
         uint32_t                                 uiNumOfValues);
@@ -879,8 +814,23 @@ public:
     //! \return   const char*
     //!           pointer to the char array holding the user feature value name
     //!
-    static const char *MosUserFeatureLookupValueName(
-        uint32_t ValueID);
+    static const char *MosUserFeatureLookupValueName(uint32_t ValueID);
+
+    //!
+    //! \brief    Lookup the read path associated with the ID
+    //! \param    [in] ValueId
+    //!           The user feature value ID to be looked up
+    //! \return   pointer to the char array holding the read path
+    //!
+    static const char *MosUserFeatureLookupReadPath(uint32_t ValueID);
+
+    //!
+    //! \brief    Lookup the write path associated with the ID
+    //! \param    [in] ValueId
+    //!           The user feature value ID to be looked up
+    //! \return   pointer to the char array holding the write path
+    //!
+    static const char *MosUserFeatureLookupWritePath(uint32_t ValueID);
 
     //!
     //! \brief    Enable user feature change notification
@@ -936,6 +886,21 @@ public:
         char * const                 pInputPath,
         PMOS_USER_FEATURE_TYPE       pUserFeatureType,
         char                         **ppSubPath);
+
+    //!
+    //! \brief    Set the User Feature Default Value
+    //! \details  Set the User Feature Default Value in the user feature key map
+    //! \param    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface
+    //!           [in] Pointer to OS User Interface structure
+    //! \param    PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues
+    //!           [in] Pointer to User Feature Write Datas
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    MOS_STATUS MosUserFeatureSetDefaultValues(
+        PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues,
+        uint32_t                           uiNumOfValues);
 
     //------------------------------------------------------------------------------
     // String Functions
@@ -1329,7 +1294,7 @@ public:
     //!           of a specified user feature key
     //! \details  Notifies the caller about changes to the attributes or contents
     //!           of a specified user feature key
-    //!           Used internally by MOS_UserFeature_EnableNotification()
+    //!           Used internally by MosUserFeatureEnableNotification()
     //! \param    [in] UFKey
     //!           A handle to an open user feature key.
     //!           The key must have been opened with the KEY_NOTIFY access right.
@@ -1709,7 +1674,7 @@ public:
 
     //!
     //! \brief    Swizzles the given linear offset via the specified tiling params.
-    //! \details  Swizzles the given linear offset via the specified tiling parameters. 
+    //! \details  Swizzles the given linear offset via the specified tiling parameters.
     //!           Used to provide linear access to raw, tiled data.
     //! \param    [in] OffsetX
     //!           Horizontal byte offset from left edge of tiled surface.
@@ -1746,7 +1711,7 @@ public:
 
     //!
     //! \brief    Wrapper function for SwizzleOffset
-    //! \details  Wrapper function for SwizzleOffset in Mos 
+    //! \details  Wrapper function for SwizzleOffset in Mos
     //! \param    [in] pSrc
     //!           Pointer to source data.
     //! \param    [out] pDst
@@ -1774,7 +1739,7 @@ public:
 
     //!
     //! \brief    MOS trace event initialize
-    //! \details  register provide Global ID to the system. 
+    //! \details  register provide Global ID to the system.
     //! \param    void
     //! \return   void
     //!
@@ -1837,6 +1802,11 @@ public:
         void*            functionName,
         uint32_t         lineNum);
 
+    static void MosTraceDataDump(
+        char *const pcName,
+        uint32_t    flags,
+        void *const pBuf,
+        uint32_t    dwSize);
 
     //!
     //! \brief    MOS_GfxInfo_RTErr
@@ -1914,7 +1884,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosWriteOneUserFeatureKeyToXML(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeature);
+    static MOS_STATUS MosWriteOneUserFeatureKeyToXML(PMOS_USER_FEATURE_VALUE pUserFeature);
 
     //!
     //! \brief    Write one User Feature Group into XML file
@@ -1928,17 +1898,8 @@ private:
     static MOS_STATUS MosWriteOneUserFeatureGroupToXML(MOS_USER_FEATURE_VALUE   UserFeatureFilter);
 
     //!
-    //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
-    //! \details  Generate a User Feature Keys XML files according to MOSUserFeatureDescFields
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MosGenerateUserFeatureKeyXML();
-
-    //!
-    //! \brief    Link the MOSUserFeatureDescFields table items to gc_UserFeatureKeysMap
-    //! \details  Link the MOSUserFeatureDescFields table items to gc_UserFeatureKeysMap
+    //! \brief    Link the m_mosUserFeatureDescFields table items to MosUtilUserInterface::m_userFeatureKeyMap
+    //! \details  Link the m_mosUserFeatureDescFields table items to MosUtilUserInterface::m_userFeatureKeyMap
     //!           according to ID sequence and do some post processing such as malloc related memory
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
@@ -1947,23 +1908,35 @@ private:
     static MOS_STATUS MosDeclareUserFeatureKeysForAllDescFields();
 
     //!
+    //! \brief    Link the user feature key Desc Fields table items to key value map
+    //! \details  Link the user feature key Desc Fields table items to key value map
+    //!           according to ID sequence and do some post processing by calling MosAssignUserFeatureValueData
+    //! \param    [in] pUserFeatureKey
+    //!           Pointer to the User Feature Value needed to be declared
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosDeclareUserFeatureKey(PMOS_USER_FEATURE_VALUE pUserFeatureKey);
+
+    //!
     //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE with specified map table
     //! \details  This is a unified funtion to read user feature key for all components.
     //!           (Codec/VP/CP/CM)
     //!           It is required to prepare all memories for buffers before calling this function.
     //!           User can choose to use array variable or allocated memory for the buffer.
-    //!           If the buffer is allocated dynamically, it must be freed by user to avoid memory leak. 
+    //!           If the buffer is allocated dynamically, it must be freed by user to avoid memory leak.
     //!           ------------------------------------------------------------------------------------
-    //!           Usage example: 
+    //!           Usage example:
     //!           a) Initiation:
     //!           MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    //!           b.0) Don't need to input a default value if the default value in user feature key Desc Fields table is good 
+    //!           b.0) Don't need to input a default value if the default value in user feature key Desc Fields table is good
     //!                for your case
     //!           b.1) For uint32_t type:
-    //!           UserFeatureData.u32Data = 1;    // overwrite a custom default value 
-    //!           UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE; 
-     //!                                           // raise a flag to use this custom default value instead of 
-    //!                                              default value in user feature key Desc Fields table 
+    //!           UserFeatureData.u32Data = 1;    // overwrite a custom default value
+    //!           UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+     //!                                           // raise a flag to use this custom default value instead of
+    //!                                              default value in user feature key Desc Fields table
     //!           b.2) For String/Binary type:
     //!           char cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
     //!           UserFeatureData.StringData.pStringData = cStringData; // make sure the pointer is valid
@@ -1979,14 +1952,12 @@ private:
     //!           c) Read user feature key:
     //!           MosUserFeatureReadValueID();
     //!           -------------------------------------------------------------------------------------
-    //!           Important note: The pointer pStringData/pMultStringData may be modified if the 
-    //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's 
-    //!           suggested to set the union members in UserFeatureValue every time before 
+    //!           Important note: The pointer pStringData/pMultStringData may be modified if the
+    //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's
+    //!           suggested to set the union members in UserFeatureValue every time before
     //!           MOS_UserFeature_ReadValue() if you are not familiar with the details of this function.
-    //!           If a new key is added, please make sure to declare a definition in corresponding 
+    //!           If a new key is added, please make sure to declare a definition in corresponding
     //!           user feature key Desc Fields table by MOS_DECLARE_UF_KEY
-    //! \param    [in] keyValueMap
-    //!           The key value map to get user feature key details from ID. Not used in cplusplus flow
     //! \param    [in] pOsUserFeatureInterface
     //!           Pointer to OS User Interface structure
     //! \param    [in] ValueID
@@ -2001,13 +1972,11 @@ private:
     //!                 MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED: pValueData is from default value
     //!                 MOS_STATUS_UNKNOWN: pValueData is from default value
     //!                 MOS_STATUS_USER_FEATURE_KEY_READ_FAILED: pValueData is from default value
-    //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table, 
+    //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table,
     //!                                          No default value or User Feature Key value return
-    //! 
+    //!
     //!
     static MOS_STATUS MosUserFeatureReadValueFromMapID(
-        MOS_USER_FEATURE_VALUE_MAP      *keyValueMap,
-        PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface,
         uint32_t                        ValueID,
         PMOS_USER_FEATURE_VALUE_DATA    pValueData);
 
@@ -2059,8 +2028,6 @@ private:
     //! \details  Write Values to User Feature with specified Table and ID
     //!           The caller is responsible to allocate values / names
     //!           and free them later if necessary
-    //! \param    [in] keyValueMap
-    //!           The key value map to get user feature key details from ID. not used in cplusplus flow
     //! \param    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface
     //!           [in] Pointer to OS User Interface structure
     //! \param    PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues
@@ -2072,8 +2039,6 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosUserFeatureWriteValuesTblID(
-        MOS_USER_FEATURE_VALUE_MAP              *keyValueMap,
-        PMOS_USER_FEATURE_INTERFACE             pOsUserFeatureInterface,
         PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
         uint32_t                                uiNumOfValues);
 
@@ -2103,15 +2068,13 @@ private:
     //! \brief    Unlink the user feature key Desc Fields table items to key value map
     //! \details  Unlink the user feature key Desc Fields table items to key value map
     //!           according to ID sequence and do some post processing by calling MOS_DestroyUserFeatureData
-    //! \param    [out] keyValueMap
-    //!           Optional pointer to the map table to destroy the user feature key, could be nullptr
     //! \param    [in] pUserFeatureKey
     //!           Pointer to the User Feature Value needed to be destroyed
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosDestroyUserFeatureKey(MOS_USER_FEATURE_VALUE_MAP *keyValueMap, PMOS_USER_FEATURE_VALUE pUserFeatureKey);
+    static MOS_STATUS MosDestroyUserFeatureKey(PMOS_USER_FEATURE_VALUE pUserFeatureKey);
 
     //!
     //! \brief    Assign the value as a string type to destination Value Data pointer
@@ -2179,12 +2142,11 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosGetItemFromMOSUserFeatureDescField(
+    static MOS_STATUS MosGetItemFromMosUserFeatureDescField(
         MOS_USER_FEATURE_VALUE      *descTable,
         uint32_t                    numOfItems,
         uint32_t                    maxId,
-        MOS_USER_FEATURE_VALUE_MAP  *keyValueMap,
-        MOS_STATUS(*CallbackFunc)(MOS_USER_FEATURE_VALUE_MAP *, PMOS_USER_FEATURE_VALUE),
+        MOS_STATUS(*CallbackFunc)(PMOS_USER_FEATURE_VALUE),
         PMOS_USER_FEATURE_VALUE     pUserFeatureKeyFilter);
 
     //!
@@ -2346,11 +2308,7 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosUserFeatureReadValueInit(
-        PMOS_USER_FEATURE_INTERFACE   pOsUserFeatureInterface,
-        uint32_t                      uiNumValues,
-        MOS_USER_FEATURE_VALUE_DATA   Value,
-        const char                    *pValueName,
-        MOS_USER_FEATURE_VALUE_TYPE   ValueType);
+        uint32_t                      uiNumValues);
 
     //!
     //! \brief    Set the Multi String Value to Settings Data
@@ -2391,25 +2349,24 @@ private:
     static void MosGfxInfoClose();
 
 public:
-    static uint8_t m_mosUltFlag;
-    static int32_t m_mosMemAllocCounterNoUserFeature;
-    static int32_t m_mosMemAllocCounterNoUserFeatureGfx;
-    static int32_t m_mosSimulateRandomAllocMemoryFailFreq;
+    static uint8_t                      m_mosUltFlag;
+    static int32_t                      m_mosMemAllocCounterNoUserFeature;
+    static int32_t                      m_mosMemAllocCounterNoUserFeatureGfx;
+    static int32_t                      m_mosSimulateRandomAllocMemoryFailFreq;
 
 private:
-    static MosMutex m_mutexLock;
-    static char m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE];
-    static MOS_USER_FEATURE_VALUE_MAP m_userFeatureKeysMap[__MOS_USER_FEATURE_KEY_MAX_ID];
-    static MOS_USER_FEATURE_VALUE m_mosUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MAX_ID];
-    static uint32_t m_mosUtilInitCount; // number count of mos utilities init
-    static MediaUserSettingsMgr      *m_codecUserFeatureExt;
-    static MediaUserSettingsMgr      *m_vpUserFeatureExt;
-    static MediaUserSettingsMgr      *m_cpUserFeatureExt;
+    static MosMutex                     m_mutexLock;
+    static char                         m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE];
+    static PMOS_USER_FEATURE_VALUE const m_mosUserFeatureDescFields;
+    static uint32_t                     m_mosUtilInitCount; // number count of mos utilities init
+    static MediaUserSettingsMgr         *m_codecUserFeatureExt;
+    static MediaUserSettingsMgr         *m_vpUserFeatureExt;
+    static MediaUserSettingsMgr         *m_cpUserFeatureExt;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    static uint32_t m_mosAllocMemoryFailSimulateMode;
-    static uint32_t m_mosAllocMemoryFailSimulateFreq;
-    static uint32_t m_mosAllocMemoryFailSimulateHint;
-    static uint32_t m_mosAllocMemoryFailSimulateAllocCounter;
+    static uint32_t                     m_mosAllocMemoryFailSimulateMode;
+    static uint32_t                     m_mosAllocMemoryFailSimulateFreq;
+    static uint32_t                     m_mosAllocMemoryFailSimulateHint;
+    static uint32_t                     m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
 };
 
