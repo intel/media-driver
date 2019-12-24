@@ -157,13 +157,6 @@ MOS_STATUS CodechalEncodeSwScoreboardMdfG12::SetupKernelArgs()
 
     m_cmKrn->SetKernelArg(idx++, sizeof(curbe), &curbe);
     m_scoreboardSurface->GetIndex(pSurfIndex);
-
-    CODECHAL_DEBUG_TOOL(
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
-            CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT,
-            (uint8_t *)&curbe,
-            sizeof(curbe)));)
-
     m_cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
     if (m_lcuInfoSurface)
     {
