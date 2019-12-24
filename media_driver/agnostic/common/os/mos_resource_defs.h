@@ -477,7 +477,7 @@ C_ASSERT(MOS_TILE_LINEAR == 4); //!< When adding, update assert
 //!
 //! \brief Enum for tile mode from GMM
 //!
-typedef enum _MOS_TILE_MODE_GMM
+typedef enum _MOS_TILE_MODE_GMM : uint8_t
 {
     MOS_TILE_LINEAR_GMM = 0,
     MOS_TILE_64_GMM,
