@@ -3236,6 +3236,7 @@ void CodechalEncodeAvcBase::SetMfxPipeModeSelectParams(
     param.bStreamOutEnabled         = (m_currPass != m_numPasses);  // Disable Stream Out for final pass; its important for multiple passes, because , next pass will take the qp from stream out
     param.bVdencEnabled             = m_vdencEnabled;
     param.bDeblockerStreamOutEnable = genericParam.bDeblockerStreamOutEnable;
+    param.bStreamOutEnabledExtEnabled = genericParam.bPerMBStreamOutEnable;
     param.bPostDeblockOutEnable     = genericParam.bPostDeblockOutEnable;
     param.bPreDeblockOutEnable      = genericParam.bPreDeblockOutEnable;
     param.bDynamicSliceEnable       = m_avcSeqParam->EnableSliceLevelRateCtrl;

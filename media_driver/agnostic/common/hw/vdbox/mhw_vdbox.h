@@ -218,6 +218,7 @@ struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
 {
     uint32_t                    Mode = 0;
     bool                        bStreamOutEnabled = false;
+    bool                        bStreamOutEnabledExtEnabled = false;
     bool                        bShortFormatInUse = false;
     bool                        bVC1OddFrameHeight = false;
     bool                        pakFrmLvlStrmoutEnable = false;
@@ -421,6 +422,7 @@ struct MHW_VDBOX_AVC_IMG_PARAMS
     bool                                    bVdencBRCEnabled = false;
     bool                                    bSliceSizeStreamOutEnabled = false;
     bool                                    bCrePrefetchEnable = false;
+    bool                                    bPerMBStreamOut = false;
 
     uint32_t                                dwMbSlcThresholdValue = 0;  // For VDENC dynamic slice size control
     uint32_t                                dwSliceThresholdTable = 0;

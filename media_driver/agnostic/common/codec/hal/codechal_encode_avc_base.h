@@ -279,6 +279,7 @@ typedef struct _CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS
     bool                        bDeblockerStreamOutEnable;
     bool                        bPostDeblockOutEnable;
     bool                        bPreDeblockOutEnable;
+    bool                        bPerMBStreamOutEnable;
 } CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS, *PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS;
 
 typedef struct _CODECHAL_ENCODE_AVC_ME_CURBE

@@ -663,6 +663,12 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxPipeModeSelectCmd(
         cmd.DW1.FrameStatisticsStreamoutEnable = 1;
     }
 
+    if (params->bStreamOutEnabledExtEnabled)
+    {
+        // Enable PerMB streamOut PAK Statistics
+        cmd.DW1.StreamOutEnable = 1;
+        cmd.DW1.ExtendedStreamOutEnable = true;
+    }
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     //for gen 12, we need to add MFX wait for both KIN and VRT before and after MFX Pipemode select...

@@ -3101,6 +3101,7 @@ CodechalVdencAvcState::CodechalVdencAvcState(
     MOS_ZeroMemory(&m_vdencColocatedMVBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_pakStatsBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_vdencStatsBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_pakStatsBufferFull, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_vdencTlbMmioBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_resLaDataBuffer, sizeof(MOS_RESOURCE));
 }
@@ -3113,6 +3114,7 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencColocatedMVBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencStatsBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBufferFull);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencTlbMmioBuffer);
     if (m_vdencBrcImgStatAllocated)
     {
@@ -3342,6 +3344,14 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting *settings)
             m_mmioMfxLra2Override = userFeatureData.u32Data;
         }
     }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_VDENC_PERMB_STREAMOUT_ENABLE_ID,
+        &userFeatureData);
+    m_perMBStreamOutEnable = (userFeatureData.u32Data) ? true : false;
+#endif
 
     // Initialize hardware resources for the current Os/Platform
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitializeState());
@@ -3511,6 +3521,7 @@ void CodechalVdencAvcState::InitializeDataMember()
     m_vdencBrcUpdateDmemBufferSize = false;
     m_vdencStaticFrame             = false;
     m_vdencStaticRegionPct         = false;
+    m_perMBStreamOutEnable         = false;
 }
 
 MOS_STATUS CodechalVdencAvcState::InitializeState()
@@ -5308,8 +5319,8 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
         }
     }
 
-    m_resVdencStatsBuffer = &(m_vdencStatsBuffer);
-    m_resPakStatsBuffer   = &(m_pakStatsBuffer);
+    m_resVdencStatsBuffer     = &(m_vdencStatsBuffer);
+    m_resPakStatsBuffer       = &(m_pakStatsBuffer);
 
     if (m_encodeParams.bLaDataEnabled)
     {
@@ -5500,7 +5511,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     encodePictureLevelParams.bDeblockerStreamOutEnable = 0;
     encodePictureLevelParams.bPreDeblockOutEnable      = !m_deblockingEnabled && !suppressReconPic;
     encodePictureLevelParams.bPostDeblockOutEnable     = m_deblockingEnabled && !suppressReconPic;
-
+    encodePictureLevelParams.bPerMBStreamOutEnable     = m_perMBStreamOutEnable;
     if (!m_staticFrameDetectionInUse)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadCosts(m_avcPicParam->CodingType,
@@ -6250,6 +6261,17 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
         }
     }
 
+    CODECHAL_DEBUG_TOOL(
+        // here add the dump buffer for PAK statistics.
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_pakStatsBufferFull,
+            CodechalDbgAttr::attrInput,
+            "MB and FrameLevel PAK staistics vdenc",
+            m_vdencBrcPakStatsBufferSize + m_picWidthInMb * m_picHeightInMb * 64,   //size
+            0, //offset
+            CODECHAL_MEDIA_STATE_16X_ME));
+    )
+
     if (m_vdencBrcEnabled)
     {
         CODECHAL_DEBUG_TOOL(DumpHucBrcUpdate(false));
@@ -6656,6 +6678,21 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC BRC PAK Statistics Buffer\n", __FUNCTION__);
+        return eStatus;
+    }
+
+    // Here allocate the buffer for MB+FrameLevel PAK statistics.
+    uint32_t size = m_vdencBrcPakStatsBufferSize + m_picWidthInMb*m_picHeightInMb*64;
+    allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(size, CODECHAL_PAGE_SIZE);
+
+    eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_pakStatsBufferFull);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC BRC PerMB and framel level PAK Statistics Buffer\n", __FUNCTION__);
         return eStatus;
     }
 
@@ -7277,7 +7314,15 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
 
     param.ps4xDsSurface                       = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     param.presVdencIntraRowStoreScratchBuffer = &m_vdencIntraRowStoreScratchBuffer;
-    param.presVdencStreamOutBuffer            = &m_vdencStatsBuffer;
+    if (m_perMBStreamOutEnable)
+    {
+        // Using frame and PerMB level buffer to get PerMB StreamOut PAK Statistic.
+        param.presStreamOutBuffer                 = &m_pakStatsBufferFull;
+    }
+    else
+    {
+        param.presStreamOutBuffer                 = &m_pakStatsBuffer;
+    }
     param.presStreamOutBuffer                 = &m_pakStatsBuffer;
     param.dwNumRefIdxL0ActiveMinus1           = m_avcSliceParams->num_ref_idx_l0_active_minus1;
     param.dwNumRefIdxL1ActiveMinus1           = m_avcSliceParams->num_ref_idx_l1_active_minus1;

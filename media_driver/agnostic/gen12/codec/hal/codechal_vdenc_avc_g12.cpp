@@ -1150,6 +1150,7 @@ void CodechalVdencAvcStateG12::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS&
     param.bVDEncPerfModeEnabled =
         m_vdencInterface->IsPerfModeSupported() && m_perfModeEnabled[m_avcSeqParam->TargetUsage];
     paramsG12->bVDEncUltraModeEnabled = m_vdencUltraModeEnable;
+    param.bPerMBStreamOut = m_perMBStreamOutEnable;
     if (((m_avcSeqParam->TargetUsage & 0x07) == TARGETUSAGE_BEST_SPEED) &&
         (m_avcSeqParam->FrameWidth >= m_singlePassMinFrameWidth) &&
         (m_avcSeqParam->FrameHeight >= m_singlePassMinFrameHeight) &&

@@ -850,6 +850,7 @@ protected:
 
     MOS_RESOURCE                                m_vdencIntraRowStoreScratchBuffer; //!< Handle of intra row store surface
     MOS_RESOURCE                                m_pakStatsBuffer;                  //!< Handle of PAK status buffer
+    MOS_RESOURCE                                m_pakStatsBufferFull;              //!< Handle of PAK status buffer include PerMB and frame level.
     MOS_RESOURCE                                m_vdencStatsBuffer;                //!< Handle of VDEnc status buffer
     MOS_RESOURCE                                m_vdencColocatedMVBuffer;           //!< Handle of colocated MV buffer
     MOS_RESOURCE                                m_vdencTlbMmioBuffer;              //!< VDEnc TLB MMIO buffer
@@ -931,6 +932,7 @@ protected:
     bool                                m_vdencStaticFrame;                                             //!< Static Frame Indicator.
     uint32_t                            m_vdencStaticRegionPct;                                         //!< Ratio of Static Region in One Frame.
     bool                                m_oneOnOneMapping = false;                                      //!< Indicate if one on one ref index mapping is enabled
+    bool                                m_perMBStreamOutEnable;
 
     static const uint32_t TrellisQuantizationRounding[NUM_VDENC_TARGET_USAGE_MODES];
     static const bool TrellisQuantizationEnable[NUM_TARGET_USAGE_MODES];
