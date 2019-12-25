@@ -6491,8 +6491,8 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetupROISurface()
     uint32_t* dataPtr = (uint32_t*)m_osInterface->pfnLockResource(m_osInterface, &BrcBuffers.sBrcRoiSurface.OsResource, &readOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(dataPtr);
 
-    uint32_t bufferWidthInByte = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 4), 64);//(m_picWidthInMb * 4 + 63) & ~63;
-    uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);//(m_picHeightInMb + 7) & ~7;
+    uint32_t bufferWidthInByte  = BrcBuffers.sBrcRoiSurface.dwPitch;
+    uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);
     uint32_t numMBs = m_picWidthInMb * m_picHeightInMb;
     for (uint32_t mb = 0; mb <= numMBs; mb++)
     {

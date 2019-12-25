@@ -7768,21 +7768,23 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResourcesMbBrc()
     {
         uint32_t width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 4), 64);
         uint32_t height = MOS_ALIGN_CEIL((downscaledFieldHeightInMB4x << 2), 8) << 1;
-        uint32_t size = width * height;
 
         MOS_ZeroMemory(&BrcBuffers.sBrcRoiSurface, sizeof(MOS_SURFACE));
-        BrcBuffers.sBrcRoiSurface.TileType = MOS_TILE_LINEAR;
-        BrcBuffers.sBrcRoiSurface.bArraySpacing = true;
-        BrcBuffers.sBrcRoiSurface.Format = Format_Buffer_2D;
-        BrcBuffers.sBrcRoiSurface.dwWidth = allocParamsForBuffer2D.dwWidth = width;
-        BrcBuffers.sBrcRoiSurface.dwHeight = allocParamsForBuffer2D.dwHeight = height;
-        BrcBuffers.sBrcRoiSurface.dwPitch = width;
+        allocParamsForBuffer2D.dwWidth = width;
+        allocParamsForBuffer2D.dwHeight = height;
         allocParamsForBuffer2D.pBufName = "BRC ROI Surface";
 
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
             m_osInterface,
             &allocParamsForBuffer2D,
             &BrcBuffers.sBrcRoiSurface.OsResource), "Failed to allocate BRC ROI surface.");
+
+        BrcBuffers.sBrcRoiSurface.TileType = MOS_TILE_LINEAR;
+        BrcBuffers.sBrcRoiSurface.bArraySpacing = true;
+        BrcBuffers.sBrcRoiSurface.Format = Format_Buffer_2D;
+        BrcBuffers.sBrcRoiSurface.dwWidth = width;
+        BrcBuffers.sBrcRoiSurface.dwHeight = height;
+        BrcBuffers.sBrcRoiSurface.dwPitch = (uint32_t)BrcBuffers.sBrcRoiSurface.OsResource.pGmmResInfo->GetRenderPitch();
 
         uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
             m_osInterface,
@@ -7796,6 +7798,7 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResourcesMbBrc()
             return eStatus;
         }
 
+        uint32_t size = BrcBuffers.sBrcRoiSurface.dwPitch * BrcBuffers.sBrcRoiSurface.dwHeight;
         MOS_ZeroMemory(pData, size);
         m_osInterface->pfnUnlockResource(
             m_osInterface,
