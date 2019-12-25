@@ -55,6 +55,30 @@ MOS_STATUS CodechalEncodeSwScoreboard::AllocateResources()
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface,
             &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex]));
+
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].OsResource,
+            &lockFlagsWriteOnly);
+
+        if (pData == nullptr)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock SW scoreboard init Buffer");
+            eStatus = MOS_STATUS_UNKNOWN;
+            return eStatus;
+        }
+
+        uint32_t size =
+            m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].dwPitch *
+            m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].dwHeight;
+        MOS_ZeroMemory(pData, size);
+
+        m_osInterface->pfnUnlockResource(
+            m_osInterface, &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].OsResource);
     }
 
     return eStatus;
