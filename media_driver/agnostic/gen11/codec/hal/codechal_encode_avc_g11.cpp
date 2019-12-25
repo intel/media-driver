@@ -5141,6 +5141,19 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
         m_semaphoreObjCount = 0; //reset
     }
 
+    // Dump BrcDist 4X_ME buffer here because it will be overwritten in BrcFrameUpdateKernel
+    CODECHAL_DEBUG_TOOL(
+        if (m_hmeEnabled && bBrcDistortionBufferSupported)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &BrcBuffers.sMeBrcDistortionBuffer.OsResource,
+                CodechalDbgAttr::attrOutput,
+                "BrcDist",
+                BrcBuffers.sMeBrcDistortionBuffer.dwPitch * BrcBuffers.sMeBrcDistortionBuffer.dwHeight,
+                BrcBuffers.dwMeBrcDistortionBottomFieldOffset,
+                CODECHAL_MEDIA_STATE_4X_ME));
+        })
+
     // BRC and MbEnc are included in the same task phase
     m_lastEncPhase = true;
     m_firstTaskInPhase = true;
@@ -5290,8 +5303,6 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
 
             MOS_ZeroMemory(&MeOutputParams, sizeof(MeOutputParams));
             MeOutputParams.psMeMvBuffer = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer) : &m_4xMeMvDataBuffer;
-            MeOutputParams.psMeBrcDistortionBuffer =
-                bBrcDistortionBufferSupported ? &BrcBuffers.sMeBrcDistortionBuffer : nullptr;
             MeOutputParams.psMeDistortionBuffer =
                 m_4xMeDistortionBufferSupported ?
                 (m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xDistortionBuffer) : &m_4xMeDistortionBuffer) : nullptr;
@@ -5305,25 +5316,15 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                 CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64) * (m_downscaledFrameFieldHeightInMb4x * 4) : 0,
                 CODECHAL_MEDIA_STATE_4X_ME));
 
-            if (MeOutputParams.psMeBrcDistortionBuffer)
+            if (MeOutputParams.psMeDistortionBuffer)
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                    &MeOutputParams.psMeBrcDistortionBuffer->OsResource,
+                    &MeOutputParams.psMeDistortionBuffer->OsResource,
                     CodechalDbgAttr::attrOutput,
-                    "BrcDist",
-                    MeOutputParams.psMeBrcDistortionBuffer->dwHeight *MeOutputParams.psMeBrcDistortionBuffer->dwPitch,
-                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4), 8) : 0,
+                    "MeDist",
+                    MeOutputParams.psMeDistortionBuffer->dwHeight *MeOutputParams.psMeDistortionBuffer->dwPitch,
+                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4 * 10), 8) : 0,
                     CODECHAL_MEDIA_STATE_4X_ME));
-                if (MeOutputParams.psMeDistortionBuffer)
-                {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                        &MeOutputParams.psMeDistortionBuffer->OsResource,
-                        CodechalDbgAttr::attrOutput,
-                        "MeDist",
-                        MeOutputParams.psMeDistortionBuffer->dwHeight *MeOutputParams.psMeDistortionBuffer->dwPitch,
-                        CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4 * 10), 8) : 0,
-                        CODECHAL_MEDIA_STATE_4X_ME));
-                }
             }
 
             if (m_16xMeEnabled)
