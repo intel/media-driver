@@ -7314,6 +7314,7 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
 
     param.ps4xDsSurface                       = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     param.presVdencIntraRowStoreScratchBuffer = &m_vdencIntraRowStoreScratchBuffer;
+    param.presVdencStreamOutBuffer            = &m_vdencStatsBuffer;
     if (m_perMBStreamOutEnable)
     {
         // Using frame and PerMB level buffer to get PerMB StreamOut PAK Statistic.
@@ -7323,7 +7324,6 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
     {
         param.presStreamOutBuffer                 = &m_pakStatsBuffer;
     }
-    param.presStreamOutBuffer                 = &m_pakStatsBuffer;
     param.dwNumRefIdxL0ActiveMinus1           = m_avcSliceParams->num_ref_idx_l0_active_minus1;
     param.dwNumRefIdxL1ActiveMinus1           = m_avcSliceParams->num_ref_idx_l1_active_minus1;
     param.oneOnOneMapping                     = m_oneOnOneMapping;
