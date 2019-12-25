@@ -91,7 +91,6 @@ MOS_STATUS CodechalKernelIntraDist::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KE
     surfaceParams.bIsWritable           = true;
     surfaceParams.bMediaBlockRW         = true;
     surfaceParams.psSurface             = m_surfaceParam.intraDistSurface;
-    surfaceParams.dwVerticalLineStride  = m_verticalLineStride;
     surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_INTRA_DISTORTION_ENCODE].Value;
     surfaceParams.dwBindingTableOffset  = BindingTableOffset::intraDistOutputSurf;
 
