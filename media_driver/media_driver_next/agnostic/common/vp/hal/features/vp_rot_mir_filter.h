@@ -88,7 +88,7 @@ protected:
         VPHAL_ROTATION Rotation);
 
 protected:
-    FeatureParamRotMir      m_rotMirParams;
+    FeatureParamRotMir      m_rotMirParams = {};
     PSFC_ROT_MIR_PARAMS     m_sfcRotMirParams = nullptr;
 };
 

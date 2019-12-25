@@ -92,7 +92,7 @@ protected:
     bool IsChromaUpSamplingNeeded();
 
 protected:
-    FeatureParamCsc     m_cscParams;
+    FeatureParamCsc     m_cscParams = {};
     PSFC_CSC_PARAMS     m_sfcCSCParams  = nullptr;
 };
 
