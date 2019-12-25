@@ -2147,7 +2147,9 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
 
     if (params->bMBVProcStatsEnabled)
     {
-        size = (currFieldPicture ? 1 : 2) * params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * sizeof(uint32_t);
+        size = params->dwFrameWidthInMb *
+            (currFieldPicture ? params->dwFrameFieldHeightInMb : params->dwFrameHeightInMb) *
+            16 * sizeof(uint32_t);
 
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.dwSize = size;

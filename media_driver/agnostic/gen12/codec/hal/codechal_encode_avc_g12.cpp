@@ -4722,8 +4722,9 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
 
     if (params->bMBVProcStatsEnabled)
     {
-        //size = (currFieldPicture ? 1 : 2) * params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * sizeof(uint32_t);
-        size = (currFieldPicture ? 1 : 1) * params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * sizeof(uint32_t);
+        size = params->dwFrameWidthInMb *
+            (currFieldPicture ? params->dwFrameFieldHeightInMb : params->dwFrameHeightInMb) *
+            16 * sizeof(uint32_t);
 
         memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.dwSize               = size;
@@ -5516,8 +5517,8 @@ MOS_STATUS CodechalEncodeAvcEncG12::KernelDebugDumps()
                 &m_resMbStatsBuffer,
                 CodechalDbgAttr::attrOutput,
                 "MBStatsSurf",
-                m_picWidthInMb * (((CodecHal_PictureIsField(m_currOriginalPic)) ? 2 : 4) * m_downscaledFrameFieldHeightInMb4x) * 16 * sizeof(uint32_t),
-                CodecHal_PictureIsBottomField(m_currOriginalPic) ? (m_picWidthInMb * 16 * sizeof(uint32_t) * (2 * m_downscaledFrameFieldHeightInMb4x)) : 0,
+                m_picWidthInMb * m_frameFieldHeightInMb * 16 * sizeof(uint32_t),
+                CodecHal_PictureIsBottomField(m_currOriginalPic) ? m_mbStatsBottomFieldOffset : 0,
                 CODECHAL_MEDIA_STATE_4X_SCALING));
         }
 

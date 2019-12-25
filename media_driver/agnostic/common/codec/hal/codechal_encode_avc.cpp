@@ -6585,8 +6585,8 @@ MOS_STATUS CodechalEncodeAvcEnc::DumpEncodeKernelOutput()
             &m_resMbStatsBuffer,
             CodechalDbgAttr::attrOutput,
             "MBStatsSurf",
-            m_picWidthInMb * (((CodecHal_PictureIsField(m_currOriginalPic)) ? 2 : 4) * m_downscaledFrameFieldHeightInMb4x) * 16 * sizeof(uint32_t),
-            CodecHal_PictureIsBottomField(m_currOriginalPic) ? (m_picWidthInMb * 16 * sizeof(uint32_t) * (2 * m_downscaledFrameFieldHeightInMb4x)) : 0,
+            m_picWidthInMb * m_frameFieldHeightInMb * 16 * sizeof(uint32_t),
+            CodecHal_PictureIsBottomField(m_currOriginalPic) ? m_mbStatsBottomFieldOffset : 0,
             CODECHAL_MEDIA_STATE_4X_SCALING));
     }
 

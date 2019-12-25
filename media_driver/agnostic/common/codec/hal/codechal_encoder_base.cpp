@@ -1699,6 +1699,26 @@ MOS_STATUS CodechalEncoderState::AllocateScalingResources()
             &m_resMbStatsBuffer), "Failed to allocate  MB Statistics Buffer.");
 
         m_mbStatsBottomFieldOffset = m_picWidthInMb * 16 * sizeof(uint32_t) * (2 * m_downscaledHeightInMb4x);
+
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resMbStatsBuffer,
+            &lockFlagsWriteOnly);
+
+        if (pData == nullptr)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock m_resMbStatsBuffer");
+            eStatus = MOS_STATUS_UNKNOWN;
+            return eStatus;
+        }
+
+        MOS_ZeroMemory(pData, m_hwInterface->m_avcMbStatBufferSize);
+        m_osInterface->pfnUnlockResource(
+            m_osInterface, &m_resMbStatsBuffer);
     }
     else if(m_flatnessCheckSupported)
     {
