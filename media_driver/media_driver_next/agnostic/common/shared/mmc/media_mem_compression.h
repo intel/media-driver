@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
@@ -33,8 +33,6 @@
 #include "mos_os.h"
 #include "mos_os_specific.h"
 
-#define MAX_AUXTALBE_REGISTER_COUNT 4
-
 class MediaMemComp
 {
 public:
@@ -54,14 +52,10 @@ public:
     //! \brief    SendPrologCmd
     //!
     virtual MOS_STATUS SendPrologCmd(
-        PMOS_COMMAND_BUFFER         cmdBuffer,
-        MOS_GPU_CONTEXT             gpuContext);
-
-    //!
-    //! \brief    SendPrologCmd, for >=VE2.0
-    //!
-    virtual MOS_STATUS SendPrologCmd(
-        PMOS_COMMAND_BUFFER         cmdBuffer);
+        PMOS_COMMAND_BUFFER         cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
 
     //!
     //! \brief    SetSurfaceMmcState
@@ -122,11 +116,6 @@ private:
     //!
     bool IsMmcFeatureEnabled();
 
-    //!
-    //! \brief    AddMiLoadRegisterImmCmd
-    //!
-    MOS_STATUS AddMiLoadRegisterImmCmd(PMOS_COMMAND_BUFFER cmdBuffer, uint32_t auxtableRegisterIndex);
-
 public:
     // Interface
     PMOS_INTERFACE              m_osInterface = nullptr;
@@ -137,24 +126,6 @@ protected:
     bool                        m_bComponentMmcEnabled = false;
     uint32_t                    m_mmcFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
     uint32_t                    m_mmcInuseFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
-
-private:
-    uint64_t                    m_auxTableBaseAddr;
-    enum AuxtableRegisterIndex
-    {
-        renderAuxtableRegisterIndex = 0,
-        veboxAuxtableRegisterIndex,
-        vdboxAuxtableRegisterIndex,
-        maxAuxtableRegisterIndex
-    };
-
-    struct AuxTableRegisterParams
-    {
-        MHW_MI_LOAD_REGISTER_IMM_PARAMS lriParams[MAX_AUXTALBE_REGISTER_COUNT];
-        uint32_t                        size;
-    } ;
-
-    AuxTableRegisterParams m_auxtableRegisterArray[maxAuxtableRegisterIndex];
 };
 
 #endif //__MEDIA_MEM_COMPRESSION_H__
