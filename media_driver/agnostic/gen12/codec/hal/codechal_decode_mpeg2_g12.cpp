@@ -98,7 +98,8 @@ MOS_STATUS CodechalDecodeMpeg2G12::SetFrameStates ()
     }
 
 #ifdef _MMC_SUPPORTED
-    if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, WaClearCcsVe) && 
+    // To WA invalid aux data caused HW issue when MMC on
+    if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) && 
         !Mos_ResourceIsNull(&m_destSurface.OsResource) && 
         m_destSurface.OsResource.bConvertedFromDDIResource)
     {

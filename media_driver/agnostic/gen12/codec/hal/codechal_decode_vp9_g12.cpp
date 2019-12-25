@@ -175,7 +175,8 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeVp9 :: AllocateResourcesVariableSizes());
 
 #ifdef _MMC_SUPPORTED
-    if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, WaClearCcsVe) && 
+    // To WA invalid aux data caused HW issue when MMC on
+    if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) && 
         !Mos_ResourceIsNull(&m_destSurface.OsResource) && 
         m_destSurface.OsResource.bConvertedFromDDIResource)
     {

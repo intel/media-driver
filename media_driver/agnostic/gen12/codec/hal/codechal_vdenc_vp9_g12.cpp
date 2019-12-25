@@ -3307,7 +3307,7 @@ MOS_STATUS CodechalVdencVp9StateG12::SetPictureStructs()
 
 #ifdef _MMC_SUPPORTED
     //WA to clear CCS by VE resolve
-    if (MEDIA_IS_WA(m_waTable, WaClearCcsVe))
+    if (MEDIA_IS_WA(m_waTable, Wa_1408785368))
     {
         bool        clearccswa     = false;
         MOS_SURFACE surfaceDetails = {};
