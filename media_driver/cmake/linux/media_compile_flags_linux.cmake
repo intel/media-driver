@@ -160,7 +160,7 @@ if(NOT ${PLATFORM} STREQUAL "android")
 endif()
 
 set(MEDIA_COMPILER_FLAGS_RELEASEINTERNAL
-    -O2
+    -O0
     -fno-omit-frame-pointer
 )
 
