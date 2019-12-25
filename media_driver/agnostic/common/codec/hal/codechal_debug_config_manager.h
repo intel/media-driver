@@ -84,6 +84,7 @@ static const char *attrDumpEncodePar          = "DumpEncodePar";
 static const char *attrForceCmdDumpLvl        = "ForceCmdDumpLvl";
 static const char *attrForceCurbeDumpLvl      = "ForceCurbeDumpLvl";
 static const char *attrForceYUVDumpWithMemcpy = "ForceYUVDumpWithMemcpy";
+static const char *attrDisableSwizzleForDumps = "DisableSwizzleForDumps";
 static const char *attrVdencOutput            = "VdencOutput";
 static const char *attrDecodeProcParams       = "DecodeProcParams";
 static const char *attrFrameState             = "FrameState";

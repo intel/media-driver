@@ -234,6 +234,7 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
     ofs << "##" << CodechalDbgAttr::attrDeblocking << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrMvData << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrForceYUVDumpWithMemcpy << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrDisableSwizzleForDumps << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrSfcOutputSurface << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrReferenceSurfaces << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrEncodeRawInputSurface << ":0" << std::endl;
