@@ -177,6 +177,11 @@ typedef struct _VP_CONFIG
     //FALSE(0): no force color fill, TRUE(1): force color fill with default color,
     //ELSE(other non-zero value): force color fill with color info from dwForceColorFill
     uint32_t   dwForceColorFill;
+
+    //VEBOX perf is not enough for 8K@60fps processing
+    //add config to switch 8K resolution on VEBOX or render
+    //default is use render for 8k
+    uint32_t   dwUseVeboxFor8K;
 } VP_CONFIG, *PVP_CONFIG;
 
 //!

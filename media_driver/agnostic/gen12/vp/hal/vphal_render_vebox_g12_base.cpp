@@ -2398,7 +2398,7 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     }
 
     //Force 8K to render
-    if (pcRenderParams->bDisableVpFor8K &&
+    if (pcRenderParams->bDisableVeboxFor8K &&
         ((pSrcSurface->dwWidth >= VPHAL_RNDR_8K_WIDTH || pSrcSurface->dwHeight >= VPHAL_RNDR_8K_HEIGHT) ||
          (pRenderTarget->dwWidth >= VPHAL_RNDR_8K_WIDTH || pRenderTarget->dwHeight >= VPHAL_RNDR_8K_HEIGHT)))
     {

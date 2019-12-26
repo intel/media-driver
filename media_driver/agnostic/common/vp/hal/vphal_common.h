@@ -1187,7 +1187,7 @@ struct VPHAL_RENDER_PARAMS
     bool                                    bPathKernel;                // HDR path config if use kernel
     bool                                    bAPGWorkloadEnable = false;         //!< Identify Whether APG workload Enabled or not
 
-    bool                                    bDisableVpFor8K = false;
+    bool                                    bDisableVeboxFor8K = false;
 
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
