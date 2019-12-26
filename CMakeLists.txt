@@ -31,7 +31,7 @@ endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
 if(NOT DEFINED MEDIA_VERSION OR MEDIA_VERSION STREQUAL "")
-    set(MEDIA_VERSION "1.0.0")
+    set(MEDIA_VERSION "19.4.0")
 endif()
 
 if("${os_name}" STREQUAL "clear-linux-os")
