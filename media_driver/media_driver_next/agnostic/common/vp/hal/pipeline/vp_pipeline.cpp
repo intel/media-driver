@@ -333,17 +333,29 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
     if (m_bEnableFeatureManagerNext)
     {
-        VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
+        VP_PUBLIC_CHK_NULL(m_pPacketPipeFactory);
 
         PacketPipe *pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
-        VP_PUBLIC_CHK_NULL_RETURN(pPacketPipe);
+        VP_PUBLIC_CHK_NULL(pPacketPipe);
 
         VpFeatureManagerNext *m_featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
-        VP_PUBLIC_CHK_NULL_RETURN(m_featureManagerNext);
-        VP_PUBLIC_CHK_STATUS_RETURN(m_featureManagerNext->InitPacketPipe(*m_pvpParams, *pPacketPipe));
+
+        if (nullptr == m_featureManagerNext)
+        {
+            m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+            VP_PUBLIC_CHK_STATUS(MOS_STATUS_NULL_POINTER);
+        }
+
+        eStatus = m_featureManagerNext->InitPacketPipe(*m_pvpParams, *pPacketPipe);
+
+        if (MOS_FAILED(eStatus))
+        {
+            m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+            VP_PUBLIC_CHK_STATUS(eStatus);
+        }
 
         // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
-        pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
+        eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
 
         m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
     }
