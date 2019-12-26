@@ -368,6 +368,7 @@ typedef struct _MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS
     uint32_t                    dwMvObjectOffset;
     PMOS_RESOURCE               presPakBaseObjectBuffer;
     uint32_t                    dwPakBaseObjectSize;
+    uint32_t                    dwPakBaseObjectOffset;
     PMOS_RESOURCE               presPakTileSizeStasBuffer;
     uint32_t                    dwPakTileSizeStasBufferSize;
     uint32_t                    dwPakTileSizeRecordOffset;
