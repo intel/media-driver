@@ -810,8 +810,7 @@ MOS_STATUS CodechalKernelHmeMdfG12::SetupKernelArgs(CmKernel *cmKrn)
     }
     else
     {
-        // bwd ref surfaces. if not provided, set to previous surface
-        cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), YuvInfo->VMEFwdIdx);
+        cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), (SurfaceIndex *)CM_NULL_SURFACE);
     }
 
     if (m_surfaceParam.vdencStreamInEnabled && m_4xMeInUse)
