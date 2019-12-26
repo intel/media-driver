@@ -266,37 +266,46 @@ endif()
 # encode
 if(${Common_Encode_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_mbenc_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_brc_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_g12.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_mdf_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_mdf_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist_mdf_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_mdf_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_g12.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_mdf_g12.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_encode_par_g12.cpp
     )
-
     set(TMP_3_HEADERS_
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_mbenc_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_brc_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_mdf_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_mdf_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist_mdf_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_mdf_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_g12.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_mdf_g12.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_header_g12.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_encode_par_g12.h
     )
+
+    if(ENABLE_NONFREE_KERNELS)
+        set(TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_mbenc_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_brc_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_mdf_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_mdf_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist_mdf_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_mdf_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_mdf_g12.cpp
+        )
+
+        set(TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_mbenc_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_brc_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_mdf_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_mdf_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist_mdf_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_mdf_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_mdf_g12.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc_g12.h
+        )
+    endif()
 endif()
 
 if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")

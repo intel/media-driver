@@ -130,7 +130,7 @@ endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 # post target attributes
 bs_set_post_target()
 
-if(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS)
+if(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
     include(${MEDIA_EXT}/media_driver_next/ult/ult_top_cmake.cmake OPTIONAL)
 endif(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS)
