@@ -1190,17 +1190,20 @@ PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CodechalVdencAvcStateG12::CreateMhwVdboxVde
 
 MOS_STATUS CodechalVdencAvcStateG12::InitKernelStateMe()
 {
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_hmeKernel = MOS_New(CodechalKernelHmeG12, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hmeKernel);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hmeKernel->Initialize(
         GetCommonKernelHeaderAndSizeG12,
         m_kernelBase,
         m_kuidCommon));
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalVdencAvcStateG12::ExecuteMeKernel()
 {
+    #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     if (m_hmeKernel && m_hmeKernel->Is4xMeEnabled())
     {
         CodechalKernelHme::CurbeParam curbeParam = {};
@@ -1272,6 +1275,7 @@ MOS_STATUS CodechalVdencAvcStateG12::ExecuteMeKernel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hmeKernel->Execute(curbeParam, surfaceParam, CodechalKernelHme::HmeLevel::hmeLevel4x));
         m_vdencStreamInEnabled = true;
     }
+    #endif
     return MOS_STATUS_SUCCESS;
 }
 
