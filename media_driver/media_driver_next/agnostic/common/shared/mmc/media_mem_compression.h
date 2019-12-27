@@ -52,7 +52,8 @@ public:
     //! \brief    SendPrologCmd
     //!
     virtual MOS_STATUS SendPrologCmd(
-        PMOS_COMMAND_BUFFER         cmdBuffer)
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool bRcsIsUsed)
     {
         return MOS_STATUS_SUCCESS;
     };
