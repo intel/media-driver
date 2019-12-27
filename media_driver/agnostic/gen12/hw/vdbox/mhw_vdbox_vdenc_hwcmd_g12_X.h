@@ -3593,7 +3593,19 @@ public:
             };
             uint32_t                     Value;
         } DW9;
-        uint32_t DW_Reserved[17] = {0};
+        uint32_t DW_Reserved_10_15[6] = {0}; //!< Reserved
+        union
+        {
+            //!< DWORD 16
+            struct
+            {
+                uint32_t                 Reserved518                                      : __CODEGEN_BITFIELD( 0, 23)    ; //!< Reserved
+                uint32_t                 AdaptiveChannelThreshold                         : __CODEGEN_BITFIELD(24, 28)    ; //!< Adaptive Channel Threshold
+                uint32_t                 Reserved520                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW16;
+        uint32_t DW_Reserved_17_26[10] = {0}; //!< Reserved
 
         //! \name Local enumerations
 

@@ -1797,6 +1797,7 @@ public:
                     cmd.DW7.TileRowstoreOffset = num32x32InX;
                 }
             }
+            cmd.DW16.AdaptiveChannelThreshold = 6;
         }
         else if (params->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
