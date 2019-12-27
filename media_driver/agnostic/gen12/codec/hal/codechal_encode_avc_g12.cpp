@@ -5438,7 +5438,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::KernelDebugDumps()
                     CodechalDbgAttr::attrOutput,
                     "MeDist",
                     meOutputParams.psMeDistortionBuffer->dwHeight *meOutputParams.psMeDistortionBuffer->dwPitch,
-                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4 * 10), 8) : 0,
+                    m_hmeKernel ? m_hmeKernel->GetDistortionBottomFieldOffset() : (uint32_t)m_meDistortionBottomFieldOffset,
                     CODECHAL_MEDIA_STATE_4X_ME));
             }
 
