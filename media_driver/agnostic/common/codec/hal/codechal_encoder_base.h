@@ -2340,6 +2340,23 @@ public:
     //!
     uint8_t GetNumBrcPakPasses(uint16_t usBRCPrecision);
 
+    //!
+    //! \brief  Setup Compute Context
+    //! \param  [in, out] cmdBuffer
+    //!         Input and output cmdbuffer
+    //! \param  [in] Pointer to kernel state
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetupComputeContext(
+        MOS_COMMAND_BUFFER* commandBuffer,
+        MHW_KERNEL_STATE* kernelState)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);
     virtual MOS_STATUS DumpFrameStatsBuffer(CodechalDebugInterface* debugInterface) { return MOS_STATUS_SUCCESS; }

@@ -1433,47 +1433,56 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
             m_cscKernelState));
     )
 
-    MHW_WALKER_PARAMS walkerParams;
-    MOS_ZeroMemory(&walkerParams, sizeof(walkerParams));
-    walkerParams.WalkerMode = m_walkerMode;
-    walkerParams.UseScoreboard = m_useHwScoreboard;
-    walkerParams.BlockResolution.x =
-    walkerParams.GlobalResolution.x =
-    walkerParams.GlobalOutlerLoopStride.x = m_walkerResolutionX;
-    walkerParams.BlockResolution.y =
-    walkerParams.GlobalResolution.y =
-    walkerParams.GlobalInnerLoopUnit.y = m_walkerResolutionY;
-    walkerParams.dwLocalLoopExecCount = 0xFFFF;  //MAX VALUE
-    walkerParams.dwGlobalLoopExecCount = 0xFFFF;  //MAX VALUE
+        // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external
+        // raw surface processing to complete, before start CSC. Once the marker in
+        // raw surface is overwritten by external operation, HW semaphore will be
+        // signalled and CSC will start. This is to reduce SW latency between
+        // external raw surface processing and CSC, in usages like remote gaming.
+        if (m_pollingSyncEnabled)
+        {
+            MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
+            MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
+            miSemaphoreWaitParams.presSemaphoreMem = &m_surfaceParamsCsc.psInputSurface->OsResource;
+            miSemaphoreWaitParams.dwResourceOffset = m_syncMarkerOffset;
+            miSemaphoreWaitParams.bPollingWaitMode = true;
+            miSemaphoreWaitParams.dwSemaphoreData = m_syncMarkerValue;
+            miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_NOT_EQUAL_SDD;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
+        }
 
-    // Raster scan walking pattern
-    walkerParams.LocalOutLoopStride.y = 1;
-    walkerParams.LocalInnerLoopUnit.x = 1;
-    walkerParams.LocalEnd.x = m_walkerResolutionX - 1;
-
-    if (m_groupIdSelectSupported)
+    if (!m_encoder->m_computeContextEnabled)
     {
-        walkerParams.GroupIdLoopSelect = m_groupId;
-    }
+        MHW_WALKER_PARAMS walkerParams;
+        MOS_ZeroMemory(&walkerParams, sizeof(walkerParams));
+        walkerParams.WalkerMode = m_walkerMode;
+        walkerParams.UseScoreboard = m_useHwScoreboard;
+        walkerParams.BlockResolution.x =
+            walkerParams.GlobalResolution.x =
+            walkerParams.GlobalOutlerLoopStride.x = m_walkerResolutionX;
+        walkerParams.BlockResolution.y =
+            walkerParams.GlobalResolution.y =
+            walkerParams.GlobalInnerLoopUnit.y = m_walkerResolutionY;
 
-    // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external 
-    // raw surface processing to complete, before start CSC. Once the marker in 
-    // raw surface is overwritten by external operation, HW semaphore will be 
-    // signalled and CSC will start. This is to reduce SW latency between 
-    // external raw surface processing and CSC, in usages like remote gaming.
-    if (m_pollingSyncEnabled)
+        //MAX VALUE
+        walkerParams.dwLocalLoopExecCount = 0xFFFF;
+        walkerParams.dwGlobalLoopExecCount = 0xFFFF;
+
+        // Raster scan walking pattern
+        walkerParams.LocalOutLoopStride.y = 1;
+        walkerParams.LocalInnerLoopUnit.x = 1;
+        walkerParams.LocalEnd.x = m_walkerResolutionX - 1;
+
+        if (m_groupIdSelectSupported)
+        {
+            walkerParams.GroupIdLoopSelect = m_groupId;
+        }
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaObjectWalkerCmd(&cmdBuffer, &walkerParams));
+    }
+    else
     {
-        MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
-        MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
-        miSemaphoreWaitParams.presSemaphoreMem = &m_surfaceParamsCsc.psInputSurface->OsResource;
-        miSemaphoreWaitParams.dwResourceOffset = m_syncMarkerOffset;
-        miSemaphoreWaitParams.bPollingWaitMode = true;
-        miSemaphoreWaitParams.dwSemaphoreData  = m_syncMarkerValue;
-        miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_NOT_EQUAL_SDD;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetWalkerCmd(&cmdBuffer, m_cscKernelState));
     }
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaObjectWalkerCmd(&cmdBuffer, &walkerParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->EndStatusReport(&cmdBuffer, encFunctionType));
 

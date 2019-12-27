@@ -174,6 +174,8 @@ MOS_STATUS CodechalEncodeCscDsG12::InitKernelStateCsc()
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderInterface->m_stateHeapInterface);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_renderInterface->m_stateHeapInterface, m_cscKernelState));
 
+    m_maxBtCount += MOS_ALIGN_CEIL(cscNumSurfaces,m_renderInterface->m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment());
+
     return eStatus;
 }
 

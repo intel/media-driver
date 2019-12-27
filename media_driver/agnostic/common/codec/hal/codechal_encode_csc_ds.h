@@ -1096,6 +1096,19 @@ private:
     //!
     MOS_STATUS SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer);
 
+    //!
+    //! \brief    Set walker command
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetWalkerCmd(
+        MOS_COMMAND_BUFFER *cmdBuffer,
+        MHW_KERNEL_STATE *kernelState)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     union
     {
         struct

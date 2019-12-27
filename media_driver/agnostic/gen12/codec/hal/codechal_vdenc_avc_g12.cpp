@@ -748,9 +748,6 @@ MOS_STATUS CodechalVdencAvcStateG12::InitKernelStateSFD()
     auto stateHeapInterface    = m_renderEngineInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
 
-    m_sfdKernelState = MOS_New(MHW_KERNEL_STATE);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfdKernelState);
-
     uint8_t* kernelBinary;
     uint32_t kernelSize;
 

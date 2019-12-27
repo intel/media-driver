@@ -3368,12 +3368,6 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting *settings)
             CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
         }
 
-        if (m_staticFrameDetectionEnable)
-        {
-            // init Static frame detection kernel
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateSFD());
-        }
-
         if (m_singleTaskPhaseSupported)
         {
             uint32_t i;
@@ -3827,9 +3821,6 @@ MOS_STATUS CodechalVdencAvcState::InitKernelStateSFD()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    m_sfdKernelState = MOS_New(MHW_KERNEL_STATE);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfdKernelState);
 
     uint8_t *kernelBinary;
     uint32_t kernelSize;
@@ -4332,6 +4323,12 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (!m_sfdKernelState)
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfdKernelState = MOS_New(MHW_KERNEL_STATE));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateSFD());
+    }
 
     PerfTagSetting perfTag;
     perfTag.Value             = 0;
