@@ -2010,6 +2010,22 @@ void MOS_TraceEventInit();
 void MOS_TraceEventClose();
 
 //!
+//! \brief    setup static platform info for trace events
+//! \details  send static platform info to trace struct, which itself determine when to send them.
+//!           static platform info should only send 1 time per trace capture, no more no less.
+//! \param    [in] driver version
+//! \param    [in] platform family
+//! \param    [in] render family
+//! \param    [in] device id
+//! \return   void
+//!
+void MOS_TraceSetupInfo(
+    uint32_t DrvVer,
+    uint32_t PlatFamily,
+    uint32_t RenderFamily,
+    uint32_t DeviceID);
+
+//!
 //! \brief    MOS log trace event
 //! \details  log trace event by id and event type, arg1 and arg2 are optional arguments
 //!           arguments are in raw data format, need match data structure in manifest.

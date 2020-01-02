@@ -2962,6 +2962,11 @@ void MOS_TraceEventClose()
     return;
 }
 
+void MOS_TraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID)
+{
+    // not implemented
+}
+
 #define TRACE_EVENT_MAX_SIZE    4096
 void MOS_TraceEvent(
     uint16_t         usId,

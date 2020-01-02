@@ -1454,6 +1454,12 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
+    MOS_TraceSetupInfo(
+        (VA_MAJOR_VERSION << 16) | VA_MINOR_VERSION,
+        platform.eProductFamily,
+        platform.eRenderCoreFamily,
+        (platform.usRevId << 16) | platform.usDeviceID);
+
     MediaUserSettingsMgr::MediaUserSettingsInit(platform.eProductFamily);
 
     mediaCtx->platform = platform;
