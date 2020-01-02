@@ -30,6 +30,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_cmd_packet_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_packet_factory_g12.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_caps_g12.h
 )
 
 set(SOURCES_NEW

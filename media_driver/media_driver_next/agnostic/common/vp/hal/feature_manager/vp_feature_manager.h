@@ -111,6 +111,9 @@ protected:
 
     virtual bool IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params);
 
+    virtual bool IsOutputFormatSupported(
+        PVPHAL_SURFACE              outSurface);
+
     //!
     //! \brief    Get the aligned the surface height and width unit
     //! \details  According to the format of the surface, get the aligned unit for the surface

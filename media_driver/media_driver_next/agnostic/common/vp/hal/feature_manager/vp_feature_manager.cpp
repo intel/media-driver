@@ -464,6 +464,13 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         return bRet;
     }
 
+    if (params->pTarget[0] && !IsOutputFormatSupported(params->pTarget[0]))
+    {
+        VPHAL_RENDER_NORMALMESSAGE("The output format %d is not supported by vebox.", params->pSrc[0]->Format);
+        bRet = false;
+        return bRet;
+    }
+
     dwSfcMaxWidth       = 16 * 1024;
     dwSfcMaxHeight      = 16 * 1024;
     dwSfcMinWidth       = MHW_SFC_MIN_WIDTH;
@@ -574,6 +581,38 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
 
 finish:
     return bRet;
+}
+
+bool VPFeatureManager::IsOutputFormatSupported(PVPHAL_SURFACE outSurface)
+{
+    bool ret = true;
+
+    if (!IS_RGB32_FORMAT(outSurface->Format) &&
+        // Remove RGB565 support due to quality issue, may reopen this after root cause in the future.
+        //!IS_RGB16_FORMAT(outSurface->Format)   &&
+        outSurface->Format != Format_YUY2 &&
+        outSurface->Format != Format_UYVY &&
+        outSurface->Format != Format_AYUV &&
+        outSurface->Format != Format_Y210 &&
+        outSurface->Format != Format_Y410 &&
+        outSurface->Format != Format_Y216 &&
+        outSurface->Format != Format_Y416)
+    {
+        if (outSurface->TileType == MOS_TILE_Y    &&
+            (outSurface->Format == Format_P010    ||
+             outSurface->Format == Format_P016    ||
+             outSurface->Format == Format_NV12))
+        {
+            ret = true;
+        }
+        else
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Unsupported Render Target Format '0x%08x' for SFC Pipe.", outSurface->Format);
+            ret = false;
+        }
+    }
+
+    return ret;
 }
 
 //!

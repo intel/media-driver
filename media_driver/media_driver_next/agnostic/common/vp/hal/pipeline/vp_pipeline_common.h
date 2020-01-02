@@ -61,29 +61,53 @@ struct _VP_MHWINTERFACE
 };
 
 // To define the features enabling on different engines
-union _VP_EXECUTE_CAPS
+struct _VP_EXECUTE_CAPS
 {
-    uint32_t value;
-    struct {
-        uint32_t bVebox          : 1;   // Vebox needed;
-        uint32_t bSFC            : 1;   // SFC needed;
-        uint32_t bRender         : 1;   // Render Only needed;
-        // Vebox Features
-        uint32_t bDN             : 1;   // Vebox DN needed;
-        uint32_t bDI             : 1;   // Vebox DNDI enabled
-        uint32_t bIECP           : 1;   // Vebox IECP needed;
-        uint32_t bLACE           : 1;   // Vebox LACE Needed;
+    union {
+        uint32_t value;
+        struct {
+            uint32_t bVebox : 1;   // Vebox needed;
+            uint32_t bSFC : 1;   // SFC needed;
+            uint32_t bRender : 1;   // Render Only needed;
+            // Vebox Features
+            uint32_t bDN : 1;   // Vebox DN needed;
+            uint32_t bDI : 1;   // Vebox DNDI enabled
+            uint32_t bIECP : 1;   // Vebox IECP needed;
+            uint32_t bLACE : 1;   // Vebox LACE Needed;
 
-        // SFC features
-        uint32_t bSfcCsc         : 1;   // Sfc Csc enabled
-        uint32_t bSfcRotMir      : 1;   // Sfc Rotation/Mirror needed;
-        uint32_t bSfcScaling     : 1;   // Sfc Scaling Needed;
+            // SFC features
+            uint32_t bSfcCsc : 1;   // Sfc Csc enabled
+            uint32_t bSfcRotMir : 1;   // Sfc Rotation/Mirror needed;
+            uint32_t bSfcScaling : 1;   // Sfc Scaling Needed;
+            uint32_t bSfcIef : 1;   // Sfc Details Needed;
 
-        // Render Features
-
-        uint32_t reserved        : 22;  // Reserved
+            // Render Features
+            uint32_t bComposite : 1;
+            uint32_t reserved : 20;  // Reserved
+        };
     };
 };
+
+typedef struct _VP_EngineEntry
+{
+    union
+    {
+        struct
+        {
+            uint32_t bEnabled : 1;
+            uint32_t SfcNeeded : 2;
+            uint32_t VeboxNeeded : 2;
+            uint32_t RenderNeeded : 2;
+            uint32_t VeboxARGBOut : 1;
+            uint32_t VeboxARGB10bitOutput : 1;
+            uint32_t DisableVeboxSFCMode : 1;
+            uint32_t FurtherProcessNeeded : 1;
+            uint32_t CompositionNeeded : 1;
+            uint32_t reserve : 20;
+        };
+        uint32_t value;
+    };
+}VP_EngineEntry;
 
 enum _VP_PACKET_ENGINE
 {

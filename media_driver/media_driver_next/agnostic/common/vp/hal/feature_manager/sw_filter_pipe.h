@@ -71,10 +71,24 @@ public:
     SwFilter *GetSwFilter(FeatureType type);
     MOS_STATUS AddSwFilterOrdered(SwFilter *swFilter, bool useNewSwFilterSet);
     MOS_STATUS AddSwFilterUnordered(SwFilter *swFilter);
+    bool IsEmpty()
+    {
+        bool ret = false;
+
+        if (m_OrderedFilters.size() == 0 &&
+            m_UnorderedFilters.IsEmpty())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 private:
     std::vector<SwFilterSet *> m_OrderedFilters;    // For features in featureRule
-    SwFilterSet m_UnorderedFilters;                // For features not in featureRule
+    SwFilterSet m_UnorderedFilters;                 // For features not in featureRule
 };
 
 enum SwFilterPipeType
@@ -133,6 +147,7 @@ public:
     MOS_STATUS Clean();
 
     bool IsEmpty();
+    bool IsPrimaryEmpty();
 
     MOS_STATUS RegisterFeatures();
     MOS_STATUS UnregisterFeatures();
@@ -147,8 +162,9 @@ public:
     }
 
     SwFilter *GetSwFilter(bool isInputPipe, int index, FeatureType type);
-
     SwFilterSubPipe *GetSwFilterSubPipe(bool isInputPipe, int index);
+    SwFilterSubPipe *GetSwFilterPrimaryPipe(uint32_t& index);
+
     // useNewSwFilterSet: true if insert new swFilterSet in pipe, otherwise, reuse the last one in pipe.
     MOS_STATUS AddSwFilterOrdered(SwFilter *swFilter, bool isInputPipe, int index, bool useNewSwFilterSet);
     MOS_STATUS AddSwFilterUnordered(SwFilter *swFilter, bool isInputPipe, int index);

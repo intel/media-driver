@@ -85,6 +85,8 @@ inline bool operator<(FeatureType a, FeatureType b)
 struct FeatureParam
 {
     FeatureType type;
+    MOS_FORMAT  formatInput;
+    MOS_FORMAT  formatOutput;
 };
 
 class SwFilterSet;
@@ -118,9 +120,14 @@ public:
         return m_location;
     }
 
-    VpInterface &GetVpInterface()
+    VpInterface& GetVpInterface()
     {
         return m_vpInterface;
+    }
+
+    VP_EngineEntry& GetFilterEngineCaps()
+    {
+        return m_EngineCaps;
     }
 
 protected:
@@ -130,6 +137,7 @@ protected:
     FeatureType m_type = FeatureTypeInvalid;
     // SwFilterSet current swFilter belongs to.
     SwFilterSet *m_location = nullptr;
+    VP_EngineEntry  m_EngineCaps = {};
 };
 
 struct FeatureParamCsc : public FeatureParam
@@ -137,10 +145,9 @@ struct FeatureParamCsc : public FeatureParam
     PVPHAL_IEF_PARAMS   pIEFParams;
     VPHAL_CSPACE        colorSpaceInput;
     VPHAL_CSPACE        colorSpaceOutput;
-    MOS_FORMAT          formatInput;
-    MOS_FORMAT          formatOutput;
     uint32_t            chromaSitingInput;
     uint32_t            chromaSitingOutput;
+    FeatureParamCsc     *next;                //!< pointe to new/next generated CSC params
 };
 
 class SwFilterCsc : public SwFilter
@@ -163,13 +170,11 @@ struct FeatureParamScaling : public FeatureParam
 {
     VPHAL_SCALING_MODE          scalingMode;
     bool                        bDirectionalScalar = false;     //!< Vebox Directional Scalar
-    MOS_FORMAT                  formatInput;
     RECT                        rcSrcInput;
     RECT                        rcDstInput;
     RECT                        rcMaxSrcInput;
     uint32_t                    dwWidthInput;
     uint32_t                    dwHeightInput;
-    MOS_FORMAT                  formatOutput;
     RECT                        rcSrcOutput;
     RECT                        rcDstOutput;
     RECT                        rcMaxSrcOutput;
@@ -178,6 +183,7 @@ struct FeatureParamScaling : public FeatureParam
     PVPHAL_COLORFILL_PARAMS     pColorFillParams;               //!< ColorFill - BG only
     PVPHAL_ALPHA_PARAMS         pCompAlpha;                     //!< Alpha for composited surfaces
     VPHAL_CSPACE                colorSpaceOutput;
+    FeatureParamScaling        *next;                           //!< pointe to new/next generated scaling params
 };
 
 class SwFilterScaling : public SwFilter

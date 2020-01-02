@@ -403,6 +403,19 @@ bool SwFilterPipe::IsEmpty()
     return false;
 }
 
+bool SwFilterPipe::IsPrimaryEmpty()
+{
+    uint32_t index;
+    auto pipe = GetSwFilterPrimaryPipe(index);
+
+    if (pipe->IsEmpty())
+    {
+        return true;
+    }
+
+    return false;
+}
+
 // Only register features once. Do not clear feature handlers when clean.
 MOS_STATUS SwFilterPipe::RegisterFeatures()
 {
@@ -591,14 +604,38 @@ SwFilter *SwFilterPipe::GetSwFilter(bool isInputPipe, int index, FeatureType typ
     return pipe->GetSwFilter(type);
 }
 
-SwFilterSubPipe *SwFilterPipe::GetSwFilterSubPipe(bool isInputPipe, int index)
+SwFilterSubPipe* SwFilterPipe::GetSwFilterSubPipe(bool isInputPipe, int index)
 {
-    SwFilterSubPipe *pSubPipe = nullptr;
-    auto &pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
+    SwFilterSubPipe* pSubPipe = nullptr;
+    auto& pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
 
     if ((uint32_t)index < pipes.size())
     {
         pSubPipe = pipes[index];
+    }
+    return pSubPipe;
+}
+
+SwFilterSubPipe* SwFilterPipe::GetSwFilterPrimaryPipe(uint32_t& index)
+{
+    SwFilterSubPipe* pSubPipe = nullptr;
+
+    index = 0;
+
+    if (m_InputPipes.size() == 0)
+    {
+        return nullptr;
+    }
+
+    for (auto item : m_InputSurfaces)
+    {
+
+        if (item->SurfType == SURF_IN_PRIMARY)
+        {
+            pSubPipe = m_InputPipes[index];
+            return pSubPipe;
+        }
+        ++index;
     }
     return pSubPipe;
 }

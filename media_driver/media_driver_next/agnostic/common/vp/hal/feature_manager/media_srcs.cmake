@@ -36,6 +36,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/hw_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/sw_filter_pipe.h
     ${CMAKE_CURRENT_LIST_DIR}/sw_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_caps.h
 )
 
 set(SOURCES_NEW

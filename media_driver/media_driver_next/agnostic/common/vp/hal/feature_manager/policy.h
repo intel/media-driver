@@ -21,9 +21,9 @@
 */
 
 //!
-//! \file     vp_feature_manager.h
+//! \file     policy.h
 //! \brief    Defines the common interface for vp features manager
-//! \details  The vp manager is further sub-divided by vp type
+//! \details  The policy is further sub-divided by vp type
 //!           this file is for the base interface which is shared by all components.
 //!
 #ifndef __POLICY_H__
@@ -33,13 +33,19 @@
 #include "vp_utils.h"
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
+#include "vp_feature_caps.h"
 
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#include "vp_resource_manager.h"
 #include <map>
 
 namespace vp
 {
+#define ENGINE_MUST_MASK(supported)    (supported & 0x02)
+#define ENGINE_SUPPORT_MASK(supported) (supported & 0x3)
+#define ENGINE_MUST(supported)         (supported << 1)
+#define FEATURE_TYPE_EXECUTE(feature, engine) FeatureType##feature##On##engine
 
 class VpInterface;
 
@@ -54,7 +60,7 @@ public:
     MOS_STATUS Initialize();
 
 protected:
-    MOS_STATUS GetHwFilterParam(SwFilterPipe &subSwFilterPipe, HW_FILTER_PARAMS &params);
+    MOS_STATUS GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS GetExecuteCaps(SwFilterPipe &subSwFilterPipe, VP_EXECUTE_CAPS &caps);
 
     // Function for SwFilterPipe Disabled.
@@ -63,14 +69,26 @@ protected:
 
     MOS_STATUS RegisterFeatures();
     MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
+    MOS_STATUS GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
+    MOS_STATUS BuildExecutionEngines(SwFilterSubPipe& SwFilterPipe);
 
+    MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetExecutionCaps(SwFilter* feature);
 
-    const bool          m_bBypassSwFilterPipe;
+    MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
+    MOS_STATUS BuildExecuteFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
 
     std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
+    std::vector<FeatureType> m_featurePool;
 
-    VpInterface      &m_vpInterface;
+    const bool          m_bBypassSwFilterPipe;
+    VpInterface         &m_vpInterface;
+    VP_SFC_ENTRY_REC    m_sfcHwEntry[Format_Count] = {};
 };
 
 }

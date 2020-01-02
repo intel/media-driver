@@ -278,8 +278,11 @@ MOS_STATUS SwFilterRotMir::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
 {
     // Parameter checking should be done in SwFilterScalingHandler::IsFeatureEnabled.
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
+    PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
-    m_Params.rotation   = surfInput->Rotation;
+    m_Params.rotation     = surfInput->Rotation;
+    m_Params.formatInput  = surfInput->Format;
+    m_Params.formatOutput = surfOutput->Format;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -315,6 +318,8 @@ bool SwFilterRotMir::operator == (SwFilter& swFilter)
 
 MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
 {
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
     return MOS_STATUS_SUCCESS;
 }
 
