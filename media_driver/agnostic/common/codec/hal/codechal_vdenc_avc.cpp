@@ -4722,12 +4722,12 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucImemStateCmd(&cmdBuffer, &imemParams));
 
     // pipe mode select
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     pipeModeSelectParams->Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
-    MOS_Delete(pipeModeSelectParams);
+    m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcInitReset());
 
@@ -4880,12 +4880,12 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucImemStateCmd(&cmdBuffer, &imemParams));
 
     // pipe mode select
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     pipeModeSelectParams->Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
-    MOS_Delete(pipeModeSelectParams);
+    m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
 
     // DMEM set
     SetDmemHuCBrcUpdate();
@@ -5696,7 +5696,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     m_mmcState->SetPipeBufAddr(&pipeBufAddrParams, &cmdBuffer);
 
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     SetMfxPipeModeSelectParams(encodePictureLevelParams, *pipeModeSelectParams);
@@ -5724,7 +5724,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxBspBufBaseAddrCmd(&cmdBuffer, &bspBufBaseAddrParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
-    MOS_Delete(pipeModeSelectParams);
+    m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSrcSurfaceStateCmd(&cmdBuffer, &surfaceParams));
 
@@ -7380,13 +7380,6 @@ PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcState::CreateMhwVdboxStateCmdsiz
 {
     PMHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams = MOS_New(MHW_VDBOX_STATE_CMDSIZE_PARAMS);
     return stateCmdSizeParams;
-}
-
-PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcState::CreateMhwVdboxPipeModeSelectParams()
-{
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
-
-    return pipeModeSelectParams;
 }
 
 PMHW_VDBOX_AVC_IMG_PARAMS CodechalVdencAvcState::CreateMhwVdboxAvcImgParams()

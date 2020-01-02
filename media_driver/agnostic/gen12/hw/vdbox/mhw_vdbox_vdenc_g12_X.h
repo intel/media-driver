@@ -2028,6 +2028,18 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
+
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams() override
+    {
+        auto pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12);
+
+        return pipeModeSelectParams;
+    }
+
+    void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) override
+    {
+        MOS_Delete(pipeModeSelectParams);
+    }
 };
 
 //!  MHW Vdbox Vdenc interface for Gen12 X

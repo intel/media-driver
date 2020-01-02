@@ -821,13 +821,6 @@ protected:
     virtual PMHW_VDBOX_STATE_CMDSIZE_PARAMS CreateMhwVdboxStateCmdsizeParams();
 
     //!
-    //! \brief    Create PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS.
-    //!
-    //! \return   PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS
-    //!
-    virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams();
-
-    //!
     //! \brief    Create PMHW_VDBOX_AVC_IMG_PARAMS.
     //!
     //! \return   PMHW_VDBOX_AVC_IMG_PARAMS

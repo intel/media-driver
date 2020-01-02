@@ -588,6 +588,8 @@ public:
         PMHW_BATCH_BUFFER                   batchBuffer,
         PMHW_VDBOX_VDENC_CMD2_STATE         params) = 0;
 
+    virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams() = 0;
+    virtual void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) = 0;
 };
 
 #endif

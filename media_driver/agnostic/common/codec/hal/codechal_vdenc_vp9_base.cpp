@@ -4034,7 +4034,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
 
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
     // set HCP_PIPE_MODE_SELECT values
-    pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
+    pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
 
@@ -4081,11 +4081,8 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
-    if (pipeModeSelectParams)
-    {
-        MOS_Delete(pipeModeSelectParams);
-        pipeModeSelectParams = nullptr;
-    }
+
+    m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSrcSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
     if (m_pictureCodingType == I_TYPE)
@@ -4356,13 +4353,6 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualHeight           = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
 
     return eStatus;
-}
-
-PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencVp9State::CreateMhwVdboxPipeModeSelectParams()
-{
-    auto pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
-
-    return pipeModeSelectParams;
 }
 
 void CodechalVdencVp9State::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams)
@@ -4946,7 +4936,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
 
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
-    pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
+    pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     if (pipeModeSelectParams)
     {
         pipeModeSelectParams->Mode = m_mode;
@@ -4955,8 +4945,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         pipeModeSelectParams->ChromaType         = m_vp9SeqParams->SeqFlags.fields.EncodedFormat;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
-        MOS_Delete(pipeModeSelectParams);
-        pipeModeSelectParams = nullptr;
+        m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
     }
 
     // set HCP_SURFACE_STATE values

@@ -1165,13 +1165,6 @@ PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcStateG12::CreateMhwVdboxStateCmd
     return cmdSizeParams;
 }
 
-PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcStateG12::CreateMhwVdboxPipeModeSelectParams()
-{
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12);
-
-    return pipeModeSelectParams;
-}
-
 PMHW_VDBOX_AVC_IMG_PARAMS CodechalVdencAvcStateG12::CreateMhwVdboxAvcImgParams()
 {
     PMHW_VDBOX_AVC_IMG_PARAMS avcImgParams = MOS_New(MHW_VDBOX_AVC_IMG_PARAMS_G12);

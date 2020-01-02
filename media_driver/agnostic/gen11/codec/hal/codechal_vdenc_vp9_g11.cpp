@@ -2464,13 +2464,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteSliceLevel()
     return ExecuteTileLevel();
 }
 
-PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencVp9StateG11::CreateMhwVdboxPipeModeSelectParams()
-{
-    auto pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11);
-
-    return pipeModeSelectParams;
-}
-
 void CodechalVdencVp9StateG11::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -4342,7 +4335,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
 
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
-    pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
+    pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
 

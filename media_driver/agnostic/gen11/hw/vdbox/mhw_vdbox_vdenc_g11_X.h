@@ -1691,6 +1691,18 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams()
+    {
+        PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11);
+
+        return pipeModeSelectParams;
+    }
+
+    void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) 
+    {
+        MOS_Delete(pipeModeSelectParams);
+    }
 };
 
 //!  MHW Vdbox Vdenc interface for Gen11 ICL

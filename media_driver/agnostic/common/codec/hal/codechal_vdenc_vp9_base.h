@@ -1839,13 +1839,6 @@ public:
 
     virtual MOS_STATUS SetupSegmentationStreamIn() = 0;
 
-    //!
-    //! \brief    Create PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS.
-    //!
-    //! \return   PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS
-    //!
-    virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams();
-
     virtual void SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams);
 
     virtual void SetHcpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS& indObjBaseAddrParams);

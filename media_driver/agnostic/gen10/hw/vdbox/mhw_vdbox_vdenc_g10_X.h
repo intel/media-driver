@@ -164,6 +164,18 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams()
+    {
+        PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
+
+        return pipeModeSelectParams;
+    }
+
+    void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) 
+    {
+        MOS_Delete(pipeModeSelectParams);
+    }
 };
 
 #endif
