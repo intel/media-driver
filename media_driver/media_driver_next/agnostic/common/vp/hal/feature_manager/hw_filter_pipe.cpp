@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019 - 2020, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -122,19 +122,4 @@ MOS_STATUS HwFilterPipe::InitPacketPipe(PacketPipe &packetPipe)
 MOS_STATUS HwFilterPipe::UpdateResources()
 {
     return MOS_STATUS_SUCCESS;
-}
-
-uint32_t HwFilterPipe::HwFilterCount()
-{
-    return m_Pipe.size();
-}
-
-EngineType HwFilterPipe::GetEngineType(uint32_t index)
-{
-    if (index >= m_Pipe.size() || nullptr == m_Pipe[index])
-    {
-        return EngineTypeInvalid;
-    }
-
-    return m_Pipe[index]->GetEngineType();
 }
