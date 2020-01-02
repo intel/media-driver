@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019 - 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -55,6 +55,9 @@ public:
     MOS_STATUS AddHwFilter(HwFilter &hwFilter);
     MOS_STATUS InitPacketPipe(PacketPipe &packetPipe);
     MOS_STATUS UpdateResources();
+    uint32_t HwFilterCount();
+    // Get engine type of m_Pipe[index]
+    EngineType GetEngineType(uint32_t index);
 
 private:
     std::vector<HwFilter*>  m_Pipe;
