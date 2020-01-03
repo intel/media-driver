@@ -49,7 +49,7 @@
 #else
 #include <cutils/properties.h>
 #endif // ANDROID
-
+#include "mos_utilities_specific_next.h"
 static const char* szUserFeatureFile = USER_FEATURE_FILE;
 
 #if _MEDIA_RESERVED
@@ -2206,6 +2206,7 @@ MOS_STATUS MOS_OS_Utilities_Init()
       if ((fp = fopen(tmpFile, "r")) != nullptr)
       {
         szUserFeatureFile = tmpFile;
+        MosUtilitiesSpecificNext::m_szUserFeatureFile = tmpFile;
         fclose(fp);
         MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE", szUserFeatureFile);
       }
