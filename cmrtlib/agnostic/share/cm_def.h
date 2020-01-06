@@ -170,6 +170,7 @@ typedef enum _CM_RETURN_CODE
     CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS = -103,
     CM_INVALID_KERNEL_ARG_POINTER                 = -104,
     CM_LOAD_LIBRARY_FAILED                        = -105,
+    CM_NO_SUPPORTED_ADAPTER                       = -106,
 
     /*
      * RANGE -10000 ~ -19999 FOR INTERNAL ERROR CODE

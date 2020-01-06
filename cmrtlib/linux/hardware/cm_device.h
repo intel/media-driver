@@ -33,6 +33,7 @@ class CmSurfaceManager;
 class CmDevice_RT : public CmDevice
 {
 public:
+    static int32_t GetSupportedRenderer(uint32_t &count);
     static int32_t Create( CmDevice_RT* &device, uint32_t createOption );
     static int32_t Destroy( CmDevice_RT* &device );
     static int32_t Create(VADisplay &vaDisplay, CmDevice_RT* &device,uint32_t createOption );
@@ -175,7 +176,7 @@ protected:
     void    *m_deviceInUmd;    //CmDevice pointer in UMD
     bool    m_cmCreated;
 
-    int32_t Initialize(bool isCmCreated);
+    int32_t Initialize(bool isCmCreated, uint32_t Index = 0);
     int32_t FreeResources();
 #if USE_EXTENSION_CODE
     int32_t EnableGtpin( void );
@@ -188,9 +189,10 @@ protected:
     int32_t FreeLibvaDrm();
     int32_t GetLibvaDisplayDrm(VADisplay & vaDisplay);
 #endif
-    int32_t InitializeLibvaDisplay( void );
 
+    int32_t InitializeLibvaDisplay(uint32_t Index = 0);
     VADisplay m_vaDisplay;
+    uint32_t m_drmIndex;
     pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
 
 #if !defined(ANDROID)
