@@ -1408,6 +1408,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
     m_encodeStatusBuf.dwSliceReportOffset     = CODECHAL_OFFSETOF(EncodeStatus, sliceReport);
     m_encodeStatusBuf.dwHuCStatusMaskOffset   = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusRegMask);
     m_encodeStatusBuf.dwHuCStatusRegOffset    = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusReg);
+    m_encodeStatusBuf.dwLookaheadStatusOffset = CODECHAL_OFFSETOF(EncodeStatus, lookaheadStatus);
 
     m_encodeStatusBuf.wCurrIndex  = 0;
     m_encodeStatusBuf.wFirstIndex = 0;

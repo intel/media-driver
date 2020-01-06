@@ -7628,7 +7628,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
         //  Lookahead data buffer dump
         if (m_lookaheadDepth > 0)
         {
-            uint32_t laDataBufferSize = m_numLaDataEntry * 32;
+            uint32_t laDataBufferSize = m_numLaDataEntry * sizeof(CodechalEncodeLaData);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
                 &m_resLaDataBuffer,
                 0,

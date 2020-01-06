@@ -41,6 +41,8 @@ struct CodechalVdencHevcPakInfo
     uint8_t   PAKPassNum;
 };
 
+using pCodechalVdencHevcPakInfo = CodechalVdencHevcPakInfo*;
+
 //!
 //! \struct    CodechalVdencHevcLaStats
 //! \brief     Codechal Vdenc HEVC lookahead info for BRC
@@ -53,8 +55,6 @@ struct CodechalVdencHevcLaStats
     uint32_t  intraCuCount;
     uint32_t  reserved[4];
 };
-
-using pCodechalVdencHevcPakInfo = CodechalVdencHevcPakInfo*;
 
 //!
 //! \struct    DeltaQpForROI
@@ -81,11 +81,13 @@ struct CodechalVdencHevcLaDmem
     uint32_t vbvInitialFullness;  // in the units of frames
     uint32_t mbCount;             // normalized 16x16 block count
     uint32_t statsRecords;        // # of statistic records
+    uint32_t averageFrameSize;    // in the units of bytes
+    uint8_t  RSVD1[4];
     // for Update, valid only when lookAheadFunc = 1
     uint32_t validStatsRecords;   // # of valid stats records
     uint32_t offset;              // offset in unit of entries
-
-    uint8_t RSVD[32];
+    uint8_t  cqmQpThreshold;    // QP threshold for CQM enable/disable. If estimated QP > CQM_QP_threshold, kernel set HUC_HEVC_LA_DATA.enableCQM to 1.
+    uint8_t  RSVD2[23];
 };
 
 using PCodechalVdencHevcLaDmem = CodechalVdencHevcLaDmem *;
@@ -224,6 +226,7 @@ public:
     uint32_t                                m_vdencLaInitDmemBufferSize = 0;                   //!< Offset of Lookahead init DMEM buffer
     uint32_t                                m_vdencLaUpdateDmemBufferSize = 0;                 //!< Offset of Lookahead update DMEM buffer
     uint32_t                                m_numValidLaRecords = 0;                           //!< Number of valid lookahead records
+    uint8_t                                 m_cqmQpThreshold = 40;                             //!< QP threshold for CQM enable/disable. Used by lookahead analysis kernel.
 
 protected:
     //!

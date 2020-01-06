@@ -899,6 +899,8 @@ struct EncodeStatusReport
     *    For single stream encoder (regular), this value should be set to default 0. For Multi-Frame-Encoder (MFE), this value is the StreamId that is set by application.  
     */
     uint32_t                        StreamId;               
+
+    uint8_t                         cqmHint; //!< CQM hint. 0x00 - flat matrix; 0x01 - enable CQM; 0xFF - invalid hint; other vlaues are reserved.
 };
 
 //!
@@ -947,6 +949,7 @@ struct EncodeStatus
     uint32_t                        dwSceneChangedFlag;     //!< The flag indicate if the scene is changed
     uint64_t                        sumSquareError[3];      //!< The list of sum square error
     EncodeStatusSliceReport         sliceReport;
+    uint32_t                        lookaheadStatus;        //!< Lookahead status. valid in lookahead pass only
 };
 
 //!
@@ -976,6 +979,7 @@ struct EncodeStatusBuffer
     uint32_t                                dwSceneChangedOffset;           //!> The offset of the scene changed flag
     uint32_t                                dwSumSquareErrorOffset;         //!> The offset of list of sum square error
     uint32_t                                dwSliceReportOffset;            //!> The offset of slice size report structure
+    uint32_t                                dwLookaheadStatusOffset;        //!> The offset of lookahead status
     uint32_t                                dwSize;                         //!> Size of status buffer
     uint32_t                                dwReportSize;                   //!> Size of report
 };
@@ -1031,6 +1035,25 @@ struct CodechalEncodeIdOffsetParams
 struct VdencBrcPakMmio
 {
     uint32_t                dwReEncode[4];
+};
+
+//!
+//! \struct    CodechalEncodeLaData
+//! \brief     Codechal encode lookahead analysis output data structure, used by BRC kernel
+//!
+struct CodechalEncodeLaData
+{
+    uint32_t reserved0[5];
+    union
+    {
+        struct
+        {
+            uint32_t cqmHint    : 8;  //!< Custom quantization matrix hint. 0x00 - flat matrix; 0x01 - CQM; 0xFF - invalid hint; other values are reserved.
+            uint32_t reserved2  : 24;
+        };
+        uint32_t report;
+    };
+    uint32_t reserved1[10];
 };
 
 //!

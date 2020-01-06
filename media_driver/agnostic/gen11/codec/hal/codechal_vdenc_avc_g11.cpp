@@ -220,7 +220,8 @@ struct CodechalVdencAvcStateG11::BrcUpdateDmem
     uint8_t      MOTION_ADAPTIVE_G4;
     uint8_t      EnableLookAhead;
     uint8_t      UPD_LA_Data_Offset_U8;
-    uint8_t      RSVD2[25];
+    uint8_t      UPD_CQMEnabled_U8;  // 0 indicates CQM is disabled for current frame; otherwise CQM is enabled.
+    uint8_t      RSVD2[24];
 };
 
 // CURBE for Static Frame Detection kernel
@@ -1343,7 +1344,7 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcInitReset()
     SetDmemHuCBrcInitResetImpl<BrcInitDmem>(dmem);
 
     // fractional QP enable for extended rho domain
-    dmem->INIT_FracQPEnable_U8 = (uint8_t)m_vdencInterface->IsRhoDomainStatsEnabled();
+    dmem->INIT_FracQPEnable_U8 = m_lookaheadDepth > 0 ? 0 : (uint8_t)m_vdencInterface->IsRhoDomainStatsEnabled();
 
     dmem->INIT_SinglePassOnly = m_vdencSinglePassEnable;
 
@@ -1437,6 +1438,7 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcUpdate()
     dmem->UPD_HeightInMB_U16 = m_picHeightInMb;
 
     dmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING);
+    dmem->UPD_CQMEnabled_U8  = m_avcSeqParam->seq_scaling_matrix_present_flag || m_avcPicParam->pic_scaling_matrix_present_flag;
 
     if (m_lookaheadDepth > 0)
     {

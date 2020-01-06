@@ -2075,7 +2075,10 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
+    if (!m_lookaheadUpdate)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
+    }
 
     MHW_VDBOX_SURFACE_PARAMS srcSurfaceParams;
     SetHcpSrcSurfaceParams(srcSurfaceParams);
@@ -2360,7 +2363,10 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     }
 #endif
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
+    if (!m_lookaheadUpdate)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
+    }
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
@@ -2834,6 +2840,18 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
         }
         m_osInterface->pfnUnlockResource(m_osInterface, encodeStatus->sliceReport.pSliceSize);
     }
+
+    encodeStatusReport->cqmHint = 0xFF;
+    if (m_lookaheadPass && m_lookaheadUpdate)
+    {
+        encodeStatusReport->cqmHint = (uint8_t)(encodeStatus->lookaheadStatus & 0xFF);
+        if (encodeStatusReport->cqmHint > 1)
+        {
+            // Currently only 0x00 and 0x01 are valid. Report invalid (0xFF) for other values.
+            encodeStatusReport->cqmHint = 0xFF; 
+        }
+    }
+
     return eStatus;
 }
 
@@ -3343,6 +3361,15 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
             __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_PAKOBJCMD_STREAMOUT_ENABLE_ID,
             &userFeatureData);
         m_vdencPakObjCmdStreamOutEnabled = userFeatureData.i32Data ? true : false;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENCODE_CQM_QP_THRESHOLD_ID,
+            &userFeatureData);
+        m_cqmQpThreshold = (uint8_t)userFeatureData.u32Data;
+#endif
     }
 
     m_minScaledDimension = CODECHAL_ENCODE_MIN_SCALED_SURFACE_SIZE;
