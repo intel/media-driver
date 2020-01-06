@@ -370,6 +370,7 @@ public:
     bool                        m_enableVdBoxHWSemaphore = false;        //!< Enable VDBOX HW semaphore
     // scalability
     unsigned char                         m_numPipe            = 1;         //!< Number of pipes
+    unsigned char                         m_numPipePre         = 1;         //!< Number of pipes of previous frame
     unsigned char                         m_numPassesInOnePipe = 1;         //!< Number of PAK passes in one pipe
     CODECHAL_ENCODE_BUFFER                m_resPakSliceLevelStreamoutData;  //!< Surface for slice level stream out data from PAK
     CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride;                   //!< KMD override virtual engine index

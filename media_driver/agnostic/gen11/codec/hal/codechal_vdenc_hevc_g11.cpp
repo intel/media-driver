@@ -359,6 +359,7 @@ MOS_STATUS CodechalVdencHevcStateG11::DecideEncodingPipeNumber()
 
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
+    m_numPipePre = m_numPipe;
     m_numPipe = m_numVdbox;
 
     uint8_t numTileColumns = m_hevcPicParams->num_tile_columns_minus1 + 1;
@@ -3643,6 +3644,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetRegionsHuCBrcUpdate(PMHW_VDBOX_HUC_VIRT
         virtualAddrParams->regionParams[1].presRegion = &m_resHuCPakAggregatedFrameStatsBuffer.sResource;  // Region 1  VDEnc Statistics Buffer (Input) - VDENC_HEVC_VP9_FRAME_BASED_STATISTICS_STREAMOUT
         virtualAddrParams->regionParams[1].dwOffset   = m_hevcFrameStatsOffset.uiVdencStatistics;
     }
+
     if (m_numPipe > 1)
     {
         virtualAddrParams->regionParams[2].presRegion = &m_resHuCPakAggregatedFrameStatsBuffer.sResource;  // Region 2  PAK Statistics Buffer (Input) - MFX_PAK_FRAME_STATISTICS
@@ -3652,7 +3654,21 @@ MOS_STATUS CodechalVdencHevcStateG11::SetRegionsHuCBrcUpdate(PMHW_VDBOX_HUC_VIRT
         // In scalable-mode, use PAK Integration kernel output to get bistream size
         virtualAddrParams->regionParams[8].presRegion   = &m_resBrcDataBuffer;
     }
+
     virtualAddrParams->regionParams[12].presRegion = &m_vdencGroup3BatchBuffer[m_currRecycledBufIdx][currentPass];        // Region 12 - SLB buffer for group 3 (Input)
+
+    // Tile reset case, use previous frame BRC data
+    if ((m_numPipe != m_numPipePre) && IsFirstPass())
+    {
+        if (m_numPipePre > 1)
+        {
+            virtualAddrParams->regionParams[8].presRegion   = &m_resBrcDataBuffer;
+        }
+        else
+        {
+            virtualAddrParams->regionParams[8].presRegion   = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, pakInfo);
+        }
+    }
 
     return eStatus;
 }
