@@ -158,8 +158,8 @@ static bool InitTglShadowWa(struct GfxDeviceInfo *devInfo,
     waTable->WaDisregardPlatformChecks          = 1;
     waTable->Wa4kAlignUVOffsetNV12LinearSurface = 1;
 
-    // Set it to 1 if need to support 256B compress mode
-    waTable->WaLimit128BMediaCompr = 1;
+    // Set it to 0 if need to support 256B compress mode
+    waTable->WaLimit128BMediaCompr = 0;
 
     return true;
 }

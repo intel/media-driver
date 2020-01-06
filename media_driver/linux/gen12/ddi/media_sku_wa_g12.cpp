@@ -271,15 +271,6 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
         __MEDIA_USER_FEATURE_VALUE_AUX_TABLE_16K_GRANULAR_ID,
         &userFeatureData);
 
-    if (drvInfo->devId == 0x0201 || drvInfo->devId == 0x0bd0)
-    {
-        MEDIA_WR_WA(waTable, WaLimit128BMediaCompr, 1);
-    }
-    else
-    {
-        MEDIA_WR_WA(waTable, WaLimit128BMediaCompr, 1);
-    }
-
     MEDIA_WR_WA(waTable, WaDummyReference, 1);
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
