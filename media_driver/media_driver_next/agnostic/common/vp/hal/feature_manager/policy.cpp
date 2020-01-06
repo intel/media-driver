@@ -330,21 +330,7 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         }
     }
 
-    /* Place Holder: Vebox/Render support to be added */
-
-    if (cscEngine->FurtherProcessNeeded && cscParams->next == nullptr)
-    {
-        cscParams->next = (FeatureParamCsc*)MOS_AllocAndZeroMemory(sizeof(FeatureParamCsc));
-        cscParams->formatOutput            = cscParams->next->formatInput        = midFormat;
-        cscParams->colorSpaceOutput        = cscParams->next->colorSpaceInput    = CSpace_sRGB;
-        cscParams->next->chromaSitingInput = cscParams->next->chromaSitingOutput = cscParams->chromaSitingOutput;
-        cscParams->next->pIEFParams        = cscParams->pIEFParams;
-        cscParams->next->type              = cscParams->type;
-    }
-    else
-    {
-        VP_PUBLIC_NORMALMESSAGE("no further process needed");
-    }
+    /* Place Holder: Vebox/Render support to be added, Futher process also need to be added */
 
     return MOS_STATUS_SUCCESS;
 }
