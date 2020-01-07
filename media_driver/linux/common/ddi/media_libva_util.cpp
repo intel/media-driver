@@ -369,7 +369,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     gmmParams.ArraySize             = 1;
     gmmParams.Type                  = RESOURCE_2D;
-    //gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
     gmmParams.Format                = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
     gmmParams.CpTag                 = tag;
 
@@ -381,23 +380,18 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case I915_TILING_Y:
             // Disable MMC for application required surfaces, because some cases' output streams have corruption.
             gmmParams.Flags.Gpu.MMC    = false;
-
-            if (mediaDrvCtx->m_auxTableMgr)
+            if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression))
             {
                 gmmParams.Flags.Gpu.MMC = true;
                 gmmParams.Flags.Info.MediaCompressed = 1;
                 gmmParams.Flags.Gpu.CCS = 1;
                 gmmParams.Flags.Gpu.RenderTarget = 1;
                 gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
-            }
-            else if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) &&
-                     MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
-            {
-                gmmParams.Flags.Gpu.MMC = true;
-                gmmParams.Flags.Info.MediaCompressed = 1;
-                gmmParams.Flags.Gpu.CCS = 1;
-                gmmParams.Flags.Gpu.RenderTarget = 1;
-                gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
+
+                if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
+                {
+                    gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
+                }
             }
             break;
         case I915_TILING_X:

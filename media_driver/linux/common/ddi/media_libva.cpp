@@ -4043,6 +4043,20 @@ VAStatus DdiMedia_CreateImage(
     gmmParams.Type            = RESOURCE_2D;
     gmmParams.Flags.Gpu.Video = true;
     gmmParams.Format          = mediaCtx->m_caps->ConvertFourccToGmmFmt(format->fourcc);
+    gmmParams.Flags.Gpu.MMC   = false;
+    if (MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrE2ECompression))
+    {
+        gmmParams.Flags.Gpu.MMC = true;
+        gmmParams.Flags.Info.MediaCompressed = 1;
+        gmmParams.Flags.Gpu.CCS = 1;
+        gmmParams.Flags.Gpu.RenderTarget = 1;
+        gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
+
+        if(MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrFlatPhysCCS))
+        {
+            gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
+        }
+    }
 
     if (gmmParams.Format == GMM_FORMAT_INVALID)
     {
