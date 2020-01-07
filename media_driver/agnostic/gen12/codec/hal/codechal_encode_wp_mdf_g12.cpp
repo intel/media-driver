@@ -68,6 +68,8 @@ MOS_STATUS CodechalEncodeWPMdfG12::SetCurbe(CurbeData& curbe)
     curbe.DW0.defaultWeight = m_curbeParams.slcParams->weights[m_curbeParams.refPicListIdx][m_curbeParams.wpIdx][0][0];
     curbe.DW0.defaultOffset = m_curbeParams.slcParams->weights[m_curbeParams.refPicListIdx][m_curbeParams.wpIdx][0][1];
 
+    curbe.DW49.lumaLog2WeightDenom = m_curbeParams.slcParams->luma_log2_weight_denom;
+
     return MOS_STATUS_SUCCESS;
 }
 
