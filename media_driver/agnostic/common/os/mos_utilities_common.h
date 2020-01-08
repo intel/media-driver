@@ -763,6 +763,15 @@ typedef struct
     PTP_WAIT hWaitEvent;  //!< Handle to User Feature Key Wait Event
 } MOS_USER_FEATURE_NOTIFY_DATA_COMMON, *PMOS_USER_FEATURE_NOTIFY_DATA_COMMON;
 
+//!
+//! \brief User Feature Key Path Info
+//!
+typedef struct
+{
+    char *   Path;
+    uint32_t Length;
+} MOS_USER_FEATURE_KEY_PATH_INFO, *PMOS_USER_FEATURE_KEY_PATH_INFO;
+
 #ifdef __cplusplus
 //Memory alloc fail simulatiion related defination
 #if (_DEBUG || _RELEASE_INTERNAL)

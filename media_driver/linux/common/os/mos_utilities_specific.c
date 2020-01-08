@@ -2189,9 +2189,10 @@ MOS_STATUS MOS_UserFeatureSetValueEx_File(
     return eStatus;
 }
 
-MOS_STATUS MOS_OS_Utilities_Init()
+MOS_STATUS MOS_OS_Utilities_Init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo)
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
+    MOS_UNUSED(userFeatureKeyPathInfo);
 
     // lock mutex to avoid multi init in multi-threading env
     MOS_LockMutex(&gMosUtilMutex);

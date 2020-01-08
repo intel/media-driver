@@ -159,11 +159,13 @@ public:
     //!
     //! \brief    Init Function for MOS utilitiesNext
     //! \details  Initial MOS utilitiesNext related structures, and only execute once for multiple entries
+    //! \param    [in] userFeatureKeyPathInfo
+    //!           user feature key path info
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosUtilitiesInit();
+    static MOS_STATUS MosUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo = NULL);
 
     //!
     //! \brief    Close Function for MOS utilitiesNext
@@ -174,15 +176,33 @@ public:
     //!
     static MOS_STATUS MosUtilitiesClose();
 
+    //!
+    //! \brief    Init user feature key path for MOS OS specific utilitiesNext
+    //! \details  Init user feature key path from the parameter
+    //! \param    [in] userFeatureKeyPathInfo
+    //!           user feature key path info
+    //! \return   void
+    //!
+    static void MosInitUserFeatureKeyPathInfo(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo);
+
+    //!
+    //! \brief    Deinit user feature key path for MOS OS specific utilitiesNext
+    //! \details  release the user feature key path memory and set null
+    //! \return   void
+    //!
+    static void MosDeinitUserFeatureKeyPathInfo();
+
 private:
     //!
     //! \brief    Init Function for MOS OS specific utilitiesNext
     //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
+    //! \param    [in] userFeatureKeyPathInfo
+    //!           user feature key path info
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosOsUtilitiesInit();
+    static MOS_STATUS MosOsUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo = NULL);
 
     //!
     //! \brief    Close Function for MOS OS utilitiesNext
@@ -2368,6 +2388,7 @@ private:
     static uint32_t                     m_mosAllocMemoryFailSimulateHint;
     static uint32_t                     m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
+    static MOS_USER_FEATURE_KEY_PATH_INFO m_mosUtilUserFeatureKeyPathInfo;
 };
 
 #endif // __MOS_UTILITIESNext_NEXT_H__

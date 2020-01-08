@@ -3940,17 +3940,19 @@ bool MOS_SimulateAllocMemoryFail(
 //!
 //! \brief    Init Function for MOS utilities
 //! \details  Initial MOS utilities related structures, and only execute once for multiple entries
+//! \param    [in] userFeatureKeyPathInfo
+//!           user feature key path info
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-MOS_STATUS MOS_utilities_init()
+MOS_STATUS MOS_utilities_init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
 
-    eStatus = MOS_OS_Utilities_Init();
+    eStatus = MOS_OS_Utilities_Init(userFeatureKeyPathInfo);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Initialize MOS simulate alloc memory fail flag

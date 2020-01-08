@@ -216,13 +216,13 @@ bool MosUtilities::MosSimulateAllocMemoryFail(
 #endif  // #if (_DEBUG || _RELEASE_INTERNAL)
 
 
-MOS_STATUS MosUtilities::MosUtilitiesInit()
+MOS_STATUS MosUtilities::MosUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
 
-    eStatus = MosOsUtilitiesInit();
+    eStatus = MosOsUtilitiesInit(userFeatureKeyPathInfo);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Initialize MOS simulate random alloc memorflag
