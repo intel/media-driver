@@ -100,21 +100,24 @@ do                                                                              
     MOS_USER_FEATURE_VALUE_DATA             userFeatureData;                                                    \
     MOS_USER_FEATURE_VALUE_WRITE_DATA       userFeatureWriteData;                                               \
                                                                                                                 \
-    valueID = __MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED;                                                             \
+    valueID = __MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED;                                                         \
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));                                                  \
-    MOS_UserFeature_ReadValue_ID(                                                                             \
-        nullptr,                                                                                                   \
+    MOS_UserFeature_ReadValue_ID(                                                                               \
+        nullptr,                                                                                                \
         valueID,                                                                                                \
         &userFeatureData);                                                                                      \
                                                                                                                 \
-    userFeatureData.i32Data |= 1 << ((instanceId) << 2);                                                        \
-    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;                                              \
-    userFeatureWriteData.ValueID = valueID;                                                                     \
-    MOS_CopyUserFeatureValueData(                                                                               \
+    if(!(userFeatureData.i32DataFlag & (1 << ((instanceId) << 2))))                                             \
+    {                                                                                                           \
+        userFeatureData.i32Data |= 1 << ((instanceId) << 2);                                                    \
+        userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;                                          \
+        userFeatureWriteData.ValueID = valueID;                                                                 \
+        MOS_CopyUserFeatureValueData(                                                                           \
             &userFeatureData,                                                                                   \
             &userFeatureWriteData.Value,                                                                        \
             MOS_USER_FEATURE_VALUE_TYPE_INT32);                                                                 \
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                      \
+    }                                                                                                           \
 } while (0)
 
 typedef struct CODECHAL_SSEU_SETTING

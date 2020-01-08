@@ -201,6 +201,3 @@ static bool tgllpGt2Device9a68 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool tgllpGt2Device9a70 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9A70, &tgllpGt2Info);
-
-static bool tgllpGt2Device9a78 = DeviceInfoFactory<GfxDeviceInfo>::
-    RegisterDevice(0x9A78, &tgllpGt2Info);
