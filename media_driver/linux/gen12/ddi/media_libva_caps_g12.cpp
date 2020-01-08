@@ -546,6 +546,7 @@ VAStatus MediaLibvaCapsG12::LoadVp9EncProfileEntrypoints()
         AddEncConfig(VA_RC_CQP);
         AddEncConfig(VA_RC_CBR);
         AddEncConfig(VA_RC_VBR);
+        AddEncConfig(VA_RC_ICQ); // for VP9 CQL only
         AddProfileEntry(VAProfileVP9Profile0, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -557,6 +558,7 @@ VAStatus MediaLibvaCapsG12::LoadVp9EncProfileEntrypoints()
         AddEncConfig(VA_RC_CQP);
         AddEncConfig(VA_RC_CBR);
         AddEncConfig(VA_RC_VBR);
+        AddEncConfig(VA_RC_ICQ); // for VP9 CQL only
         AddProfileEntry(VAProfileVP9Profile1, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -568,6 +570,7 @@ VAStatus MediaLibvaCapsG12::LoadVp9EncProfileEntrypoints()
         AddEncConfig(VA_RC_CQP);
         AddEncConfig(VA_RC_CBR);
         AddEncConfig(VA_RC_VBR);
+        AddEncConfig(VA_RC_ICQ); // for VP9 CQL only
         AddProfileEntry(VAProfileVP9Profile2, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -579,6 +582,7 @@ VAStatus MediaLibvaCapsG12::LoadVp9EncProfileEntrypoints()
         AddEncConfig(VA_RC_CQP);
         AddEncConfig(VA_RC_CBR);
         AddEncConfig(VA_RC_VBR);
+        AddEncConfig(VA_RC_ICQ); // for VP9 CQL only
         AddProfileEntry(VAProfileVP9Profile3, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
