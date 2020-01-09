@@ -948,14 +948,8 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         default:
-            if(m_encodeCtx->pCpDdiInterface)
-            {
-                vaStatus = m_encodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
-            }
-            else
-            {
-                vaStatus = VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
-            }
+            DDI_ASSERTMESSAGE("not supported buffer type in vpgEncodeRenderPicture.");
+            // vaStatus = VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
             break;
         }
         DdiMedia_UnmapBuffer(ctx, buffers[i]);
