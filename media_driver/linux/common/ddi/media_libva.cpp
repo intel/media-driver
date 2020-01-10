@@ -4058,8 +4058,12 @@ VAStatus DdiMedia_CreateImage(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    uint32_t    gmmPitch  = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    uint32_t    gmmHeight = (uint32_t)gmmResourceInfo->GetBaseHeight();
+    uint32_t gmmPitch  = (uint32_t)gmmResourceInfo->GetRenderPitch();
+    uint32_t gmmHeight = (uint32_t)gmmResourceInfo->GetBaseHeight();
+    uint32_t UPlaneXOffset = (uint32_t)gmmResourceInfo->GetPlanarXOffset(GMM_PLANE_U);
+    uint32_t UPlaneYOffset = (uint32_t)gmmResourceInfo->GetPlanarYOffset(GMM_PLANE_U);
+    uint32_t VPlaneXOffset = (uint32_t)gmmResourceInfo->GetPlanarXOffset(GMM_PLANE_V);
+    uint32_t VPlaneYOffset = (uint32_t)gmmResourceInfo->GetPlanarYOffset(GMM_PLANE_V);
 
     vaimg->format                = *format;
     vaimg->format.byte_order     = VA_LSB_FIRST;
@@ -4093,8 +4097,8 @@ VAStatus DdiMedia_CreateImage(
             vaimg->pitches[1] = gmmPitch;
             vaimg->pitches[2] = gmmPitch;
             vaimg->offsets[0] = 0;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
+            vaimg->offsets[1] = gmmPitch * UPlaneYOffset + UPlaneXOffset;
+            vaimg->offsets[2] = gmmPitch * VPlaneYOffset + VPlaneXOffset;
             break;
         case VA_FOURCC_Y800:
         case VA_FOURCC_UYVY:
