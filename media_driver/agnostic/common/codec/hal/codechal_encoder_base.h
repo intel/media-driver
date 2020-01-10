@@ -931,7 +931,7 @@ struct EncodeStatus
     uint32_t                        dwStoredData;           //!< SW stored data
     uint32_t                        dwMFCBitstreamByteCountPerFrame;         //!< Media fixed function bitstream byte count per frame
     uint32_t                        dwMFCBitstreamSyntaxElementOnlyBitCount; //!< Media fixed function bitstream bit count for syntax element only
-    uint32_t                        dwPad2;                 //!< Pad 2
+    uint32_t                        lookaheadStatus;        //!< Lookahead status. valid in lookahead pass only
     uint32_t                        dwImageStatusMask;      //!< MUST ENSURE THAT THIS IS QWORD ALIGNED as it's used for the conditional BB end
     MHW_VDBOX_IMAGE_STATUS_CONTROL  ImageStatusCtrl;        //!< Used for storing the control flags for the image status
     uint32_t                        HuCStatusRegMask;       //!< MUST ENSURE THAT THIS IS QWORD ALIGNED as it's used for the conditional BB end
@@ -949,7 +949,6 @@ struct EncodeStatus
     uint32_t                        dwSceneChangedFlag;     //!< The flag indicate if the scene is changed
     uint64_t                        sumSquareError[3];      //!< The list of sum square error
     EncodeStatusSliceReport         sliceReport;
-    uint32_t                        lookaheadStatus;        //!< Lookahead status. valid in lookahead pass only
 };
 
 //!
