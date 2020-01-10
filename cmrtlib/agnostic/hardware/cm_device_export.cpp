@@ -21,7 +21,7 @@
 */
 #include "cm_device.h"
 #include "cm_event_base.h"
-#include "cm_queue_base.h"
+#include "cm_queue_base_hw.h"
 #include "cm_timer.h"
 
 //!

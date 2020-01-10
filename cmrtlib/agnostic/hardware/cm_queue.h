@@ -22,7 +22,7 @@
 #ifndef CMRTLIB_AGNOSTIC_HARDWARE_CM_QUEUE_H_
 #define CMRTLIB_AGNOSTIC_HARDWARE_CM_QUEUE_H_
 
-#include "cm_queue_base.h"
+#include "cm_queue_base_hw.h"
 #include "cm_def_os.h"
 
 class CmEvent;

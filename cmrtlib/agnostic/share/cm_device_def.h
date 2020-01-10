@@ -30,7 +30,7 @@
 #include <cstdint>
 #include "cm_surface_properties.h"
 #include "cm_l3_cache_config.h"
-#include "cm_queue_base.h"
+#include "cm_queue_base_hw.h"
 #include "cm_def.h"
 
 typedef enum _CM_DEVICE_CAP_NAME {

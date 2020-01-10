@@ -25,7 +25,7 @@
 #include "cm_include.h"
 #include "cm_def.h"
 #include "cm_device_base.h"
-#include "cm_queue_base.h"
+#include "cm_queue_base_hw.h"
 #include "cm_debug.h"
 
 //!
