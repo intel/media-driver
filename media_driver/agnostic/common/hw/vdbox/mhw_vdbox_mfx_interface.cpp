@@ -255,7 +255,15 @@ MhwVdboxMfxInterface::MhwVdboxMfxInterface(
     }
 
     auto gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-    m_numVdbox = (uint8_t)gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled;
+
+    if (gtSystemInfo != nullptr && (!MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox)))
+    {
+        m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+    }
+    else
+    {
+        m_numVdbox = 1;
+    }
 }
 
 void MhwVdboxMfxInterface::CalcAvcImgStateMinMaxBitrate(

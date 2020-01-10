@@ -700,6 +700,11 @@ MOS_STATUS CodechalVdencAvcStateG12::SetGpuCtxCreatOption()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
             m_sinlgePipeVeState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt));
+
+        PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreatOpts =
+            dynamic_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(m_gpuCtxCreatOpt);
+
+        gpuCtxCreatOpts->Flags |=  (1 << 2);
     }
 
     return eStatus;
