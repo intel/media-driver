@@ -27,6 +27,7 @@
 
 #include "mhw_mi_g12_X.h"
 #include "mhw_mi_hwcmd_g12_X.h"
+#include "media_skuwa_specific.h"
 
 MOS_STATUS MhwMiInterfaceG12::AddMiSemaphoreWaitCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
@@ -350,13 +351,18 @@ void MhwMiInterfaceG12::InitMmioRegisters()
 
 MOS_STATUS MhwMiInterfaceG12::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder)
 {
+    MEDIA_WA_TABLE *waTable = nullptr;
+
     MHW_FUNCTION_ENTER;
 
-    if (m_osInterface->bMediaReset == false || 
+    if (m_osInterface->bMediaReset == false ||
         m_osInterface->umdMediaResetEnable == false)
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    MHW_CHK_NULL_RETURN(waTable);
 
     if (isEncoder)
     {
@@ -386,6 +392,10 @@ MOS_STATUS MhwMiInterfaceG12::SetWatchdogTimerThreshold(uint32_t frameWidth, uin
         else if ((frameWidth * frameHeight) >= (7680 * 4320))
         {
             MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_16K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if (((frameWidth * frameHeight) < (1280 * 720)) && MEDIA_IS_WA(waTable, WaSliceMissingMB))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_720P_WATCHDOG_THRESHOLD_IN_MS;
         }
         else
         {
