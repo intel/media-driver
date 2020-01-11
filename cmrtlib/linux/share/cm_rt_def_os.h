@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
-#include <malloc.h>
 #include <string.h>
 #include <sys/time.h>
 #include <pthread.h>
@@ -175,7 +174,7 @@ template<> inline const char * CM_TYPE_NAME_UNMANGLED<double>() { return "double
 
 inline void * CM_ALIGNED_MALLOC(size_t size, size_t alignment) 
 {
-  return memalign(alignment, size);
+  return aligned_alloc(alignment, size);
 } 
 
 inline void CM_ALIGNED_FREE(void * memory) 
