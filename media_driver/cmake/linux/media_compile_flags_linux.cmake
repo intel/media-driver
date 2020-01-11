@@ -91,7 +91,6 @@ endif()
 if(NOT ${PLATFORM} STREQUAL "android")
     set(MEDIA_COMPILER_FLAGS_COMMON
         ${MEDIA_COMPILER_FLAGS_COMMON}
-        -D__linux__
             -fno-tree-pre
         -fPIC
             -Wl,--no-as-needed
