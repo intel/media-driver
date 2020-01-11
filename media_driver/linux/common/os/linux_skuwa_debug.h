@@ -35,7 +35,7 @@
 #define DEVINFO_WARNING(msg) ALOGW(msg)
 #define DEVINFO_ERROR(msg) ALOGE(msg)
 
-#elif defined(__linux__) // Linux libskuwa
+#elif !defined(_WIN32) // Linux libskuwa
 #include <stdio.h>
 #include <assert.h>
 
