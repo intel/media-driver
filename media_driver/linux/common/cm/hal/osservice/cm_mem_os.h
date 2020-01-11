@@ -30,6 +30,9 @@
 #include <smmintrin.h>
 
 typedef uintptr_t           UINT_PTR;
+#ifdef __fastcall
+    #undef __fastcall
+#endif
 #define __fastcall
 #define __noop
 
