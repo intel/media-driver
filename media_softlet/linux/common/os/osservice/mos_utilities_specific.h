@@ -27,7 +27,6 @@
 #define __MOS_UTILITIES_SPECIFIC_H__
 
 #include <map>
-#include <malloc.h>
 #include "mos_defs.h"
 #include "media_class_trace.h"
 
@@ -35,7 +34,7 @@
 
 #define NOT_FOUND            -1
 
-#define _aligned_malloc(size, alignment)  memalign(alignment, size)
+#define _aligned_malloc(size, alignment)  aligned_alloc(alignment, size)
 #define _aligned_free(ptr)                free(ptr)
 
 typedef void (*MOS_UserFeatureCallback)( void*, bool);

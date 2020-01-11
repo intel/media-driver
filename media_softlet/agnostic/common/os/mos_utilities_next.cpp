@@ -27,7 +27,6 @@
 
 #include <sstream>
 #include <fcntl.h>     //open
-#include <malloc.h>    // For memalign
 #include <stdlib.h>    // atoi atol
 #include <math.h>
 #include <time.h>     //for simulate random memory allcation failure
