@@ -1022,15 +1022,21 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDiIecp(
 
     if (pVeboxDiIecpCmdParams->pOsResCurrInput)
     {
-        cmd.DW2.CurrentFrameSurfaceControlBitsMemoryCompressionEnable =
-            (pVeboxDiIecpCmdParams->CurInputSurfMMCState != MOS_MEMCOMP_DISABLED) ? 1 : 0;
-        cmd.DW2.CurrentFrameSurfaceControlBitsMemoryCompressionMode =
-            (pVeboxDiIecpCmdParams->CurInputSurfMMCState == MOS_MEMCOMP_HORIZONTAL) ? 0 : 1;
+        if (pVeboxDiIecpCmdParams->CurInputSurfMMCState != MOS_MEMCOMP_DISABLED)
+        {
+            mhw_vebox_g12_X::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD *pSurfCtrlBits;
+            pSurfCtrlBits = (mhw_vebox_g12_X::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD*)&pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value;
+            pSurfCtrlBits->DW0.MemoryCompressionEnable = 1;
+            pSurfCtrlBits->DW0.CompressionType = pSurfCtrlBits->MEMORY_COMPRESSION_TYPE_MEDIA_COMPRESSION_ENABLE;
+            if (pVeboxDiIecpCmdParams->CurInputSurfMMCState == MOS_MEMCOMP_RC)
+            {
+                pSurfCtrlBits->DW0.CompressionType = pSurfCtrlBits->MEMORY_COMPRESSION_TYPE_RENDER_COMPRESSION_ENABLE;
+            }
+        }
 
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-        ResourceParams.dwLsbNum        = MHW_VEBOX_DI_IECP_SHIFT;
         ResourceParams.presResource    = pVeboxDiIecpCmdParams->pOsResCurrInput;
-        ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->dwCurrInputSurfOffset;
+        ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->dwCurrInputSurfOffset + pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value;
         ResourceParams.pdwCmd          = & (cmd.DW2.Value);
         ResourceParams.dwLocationInCmd = 2;
         ResourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
@@ -1039,13 +1045,6 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDiIecp(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
-    }
-
-    // Remove this after VPHAL moving to new cmd definition --- assign MOCS/MMC bits directly
-    if (pVeboxDiIecpCmdParams->CurInputSurfMMCState == 0)
-    {
-        // bit 0 ~ 10 is MOCS/MMC bits
-        cmd.DW2.Value = (cmd.DW2.Value & 0xFFFFF800) + pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value;
     }
 
     if (pVeboxDiIecpCmdParams->pOsResPrevInput)
