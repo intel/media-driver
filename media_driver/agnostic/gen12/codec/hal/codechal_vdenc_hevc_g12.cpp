@@ -4662,7 +4662,17 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
         hucVdencBrcUpdateDmem->TileHuCCallPassIndex    = m_CurrentPassForTileReplay + 1;
         hucVdencBrcUpdateDmem->TileHuCCallPassMax      = m_NumPassesForTileReplay;
 
-        hucVdencBrcUpdateDmem->TxSizeInBitsPerFrame    = 0; //threshold for the min frame size
+        // Need change App to pass real max bit rate rather than to enlarge it with 1000
+        if (m_hevcSeqParams->FrameRate.Numerator)
+        {
+            hucVdencBrcUpdateDmem->TxSizeInBitsPerFrame = (uint32_t)(((uint32_t)m_hevcSeqParams->MaxBitRate * CODECHAL_ENCODE_BRC_KBPS *
+                m_hevcSeqParams->FrameRate.Denominator + (m_hevcSeqParams->FrameRate.Numerator >> 1)) /
+                m_hevcSeqParams->FrameRate.Numerator);
+        }
+        else
+        {
+            hucVdencBrcUpdateDmem->TxSizeInBitsPerFrame = (uint32_t)(((uint32_t)m_hevcSeqParams->MaxBitRate * CODECHAL_ENCODE_BRC_KBPS + 15) / 30);
+        }
 
         uint32_t numTileColumns = m_hevcPicParams->num_tile_columns_minus1 + 1;
         uint32_t startIdx       = m_CurrentTileRow * numTileColumns;
@@ -4684,7 +4694,18 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
         hucVdencBrcUpdateDmem->TileHucCallIndex        = 0;
         hucVdencBrcUpdateDmem->TileHuCCallPassIndex    = 0;
         hucVdencBrcUpdateDmem->TileHuCCallPassMax      = m_NumPassesForTileReplay;
-        hucVdencBrcUpdateDmem->TxSizeInBitsPerFrame    = 0;  //threshold for the min frame size
+
+        // Need change App to pass real max bit rate rather than to enlarge it with 1000
+        if (m_hevcSeqParams->FrameRate.Numerator)
+        {
+            hucVdencBrcUpdateDmem->TxSizeInBitsPerFrame = (uint32_t)(((uint32_t)m_hevcSeqParams->MaxBitRate * CODECHAL_ENCODE_BRC_KBPS *
+                m_hevcSeqParams->FrameRate.Denominator + (m_hevcSeqParams->FrameRate.Numerator >> 1)) /
+                m_hevcSeqParams->FrameRate.Numerator);
+        }
+        else
+        {
+            hucVdencBrcUpdateDmem->TxSizeInBitsPerFrame = (uint32_t)(((uint32_t)m_hevcSeqParams->MaxBitRate * CODECHAL_ENCODE_BRC_KBPS + 15) / 30);
+        }
     }
 
     // Long term reference
