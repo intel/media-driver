@@ -73,9 +73,9 @@
 #define DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1          16
 
 /* Number of supported input color formats */
-#define DDI_VP_NUM_INPUT_COLOR_STD    5
+#define DDI_VP_NUM_INPUT_COLOR_STD    6
 /* Number of supported output color formats */
-#define DDI_VP_NUM_OUT_COLOR_STD      5
+#define DDI_VP_NUM_OUT_COLOR_STD      6
 /* Number of forward references */
 #define DDI_CODEC_NUM_FWD_REF         0
 /* Number of backward references */

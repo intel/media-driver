@@ -85,7 +85,8 @@ VAProcColorStandardType vp_input_color_std[DDI_VP_NUM_INPUT_COLOR_STD] = {
     VAProcColorStandardBT709,
     VAProcColorStandardSRGB,
     VAProcColorStandardSTRGB,
-    VAProcColorStandardBT2020
+    VAProcColorStandardBT2020,
+    VAProcColorStandardExplicit
 };
 
 VAProcColorStandardType vp_output_color_std[DDI_VP_NUM_OUT_COLOR_STD] = {
@@ -93,7 +94,8 @@ VAProcColorStandardType vp_output_color_std[DDI_VP_NUM_OUT_COLOR_STD] = {
     VAProcColorStandardBT709,
     VAProcColorStandardSRGB,
     VAProcColorStandardSTRGB,
-    VAProcColorStandardBT2020
+    VAProcColorStandardBT2020,
+    VAProcColorStandardExplicit
 };
 
 static VAStatus DdiMedia_DestroyContext (
