@@ -3403,26 +3403,6 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                 flushDwParams.bVideoPipelineCacheInvalidate = true;
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&tileBatchBuf, &flushDwParams));
 
-                // Set the semaphore for tile row BRC update
-                if ((m_numPipe > 1) && (!IsFirstPipe()))
-                {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                        SetSemaphoreMem(
-                            &m_resVdBoxSemaphoreMem[currentPipe].sResource,
-                            &tileBatchBuf,
-                            0xFF));
-                }
-
-                // Before tile row BRC update, make sure all pipes are complete
-                if ((m_numPipe > 1) && IsFirstPipe())
-                {
-                    for (uint32_t i = 1; i < m_numPipe; i++)
-                    {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(&m_resVdBoxSemaphoreMem[i].sResource, &tileBatchBuf, 0xFF));
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(&m_resVdBoxSemaphoreMem[i].sResource, &tileBatchBuf, 0x0));
-                    }
-                }
-
                 // Add batch buffer end at the end of each tile batch, 2nd level batch buffer
                 (&m_tileLevelBatchBuffer[m_tileRowPass][idx])->iCurrent = tileBatchBuf.iOffset;
                 (&m_tileLevelBatchBuffer[m_tileRowPass][idx])->iRemaining = tileBatchBuf.iRemaining;
@@ -3435,12 +3415,32 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                 }
             } // end of row tile
 
+            // Set the semaphore for tile row BRC update
+            if ((m_numPipe > 1) && (!IsFirstPipe()) && (!IsLastPassForTileReplay()))
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(
+                    SetSemaphoreMem(
+                        &m_resVdBoxSemaphoreMem[currentPipe].sResource,
+                        &cmdBuffer,
+                        0xFF));
+            }
+
             // Run tile row based BRC on pipe 0
             if (IsFirstPipe() && (!IsLastPassForTileReplay()))
             {
                 m_CurrentTileRow           = tileRow;
                 m_CurrentPassForTileReplay = m_tileRowPass;
                 m_CurrentPassForOverAll++;
+
+                // Before tile row BRC update, make sure all pipes are complete
+                if (m_numPipe > 1)
+                {
+                    for (uint32_t i = 1; i < m_numPipe; i++)
+                    {
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(&m_resVdBoxSemaphoreMem[i].sResource, &cmdBuffer, 0xFF));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(&m_resVdBoxSemaphoreMem[i].sResource, &cmdBuffer, 0x0));
+                    }
+                }
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcTileRowUpdate(&cmdBuffer));
             }
