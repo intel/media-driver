@@ -751,6 +751,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 
     // Map Resource to Aux if needed
     MapResourcesToAuxTable(cmd_bo);
+    for(auto it : m_secondaryCmdBufs)
+    {
+        MapResourcesToAuxTable(it.second->OsResource.bo);
+    }
 
     if (m_secondaryCmdBufs.size() >= 2)
     {
