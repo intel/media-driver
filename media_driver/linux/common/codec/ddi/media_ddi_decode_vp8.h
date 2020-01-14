@@ -41,7 +41,7 @@ public:
     //!
     //! \brief Constructor
     //!
-    DdiDecodeVP8(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr) { };
+    DdiDecodeVP8(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr) {m_withDpb = false;};
 
     //!
     //! \brief Destructor
