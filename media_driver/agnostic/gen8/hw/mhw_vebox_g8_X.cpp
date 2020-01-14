@@ -893,7 +893,7 @@ MOS_STATUS MhwVeboxInterfaceG8::AddVeboxDndiState(
     pVeboxDndiState->DW5.SdiFallbackMode1T2Constant       = 100;
     pVeboxDndiState->DW5.SdiFallbackMode1T1Constant       = 50;
 
-    pVeboxDndiState->DW6.McdiEnable                      = 1;
+    pVeboxDndiState->DW6.McdiEnable                      = pVeboxDndiParams->bMcdiEnable;
     pVeboxDndiState->DW6.FmdTearThreshold                = 2;
     pVeboxDndiState->DW6.Fmd2VerticalDifferenceThreshold = 100;
     pVeboxDndiState->DW6.Fmd1VerticalDifferenceThreshold = 16;

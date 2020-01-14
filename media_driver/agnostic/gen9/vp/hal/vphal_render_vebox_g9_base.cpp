@@ -1375,6 +1375,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetDNDIParams(
         }
     }
 
+    // Set DI params
+    if (pRenderData->bDeinterlace)
+    {
+        pRenderData->VeboxDNDIParams.bMcdiEnable = pSrcSurface->pDeinterlaceParams->bEnableMCDI;
+    }
+
     if (pDNParams && pDNParams->bEnableHVSDenoise)
     {
         VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(pSrcSurface);

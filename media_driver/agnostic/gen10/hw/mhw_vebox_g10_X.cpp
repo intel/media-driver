@@ -1733,7 +1733,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxDndiState(
     pVeboxDndiState->DW14.StmmShiftUp                    = 1;
     pVeboxDndiState->DW14.MinimumStmm                    = 118;
 
-    pVeboxDndiState->DW16.McdiEnable                      = 1;
+    pVeboxDndiState->DW16.McdiEnable                      = pVeboxDndiParams->bMcdiEnable;;
     pVeboxDndiState->DW16.FmdTearThreshold                = 2;
     pVeboxDndiState->DW16.Fmd2VerticalDifferenceThreshold = 100;
     pVeboxDndiState->DW16.Fmd1VerticalDifferenceThreshold = 16;

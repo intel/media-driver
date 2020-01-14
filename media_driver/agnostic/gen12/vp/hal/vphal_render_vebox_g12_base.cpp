@@ -1685,6 +1685,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetDIParams(
         pRenderData->VeboxDNDIParams.dwSADWT3                   = VPHAL_VEBOX_DI_SAD_WT3_NATUAL;
         pRenderData->VeboxDNDIParams.dwSADWT4                   = VPHAL_VEBOX_DI_SAD_WT4_NATUAL;
         pRenderData->VeboxDNDIParams.dwSADWT6                   = VPHAL_VEBOX_DI_SAD_WT6_NATUAL;
+        pRenderData->VeboxDNDIParams.bMcdiEnable                = pSrcSurface->pDeinterlaceParams->bEnableMCDI;
         if (pSrcSurface && pSrcSurface->pDeinterlaceParams)
         {
             pRenderData->VeboxDNDIParams.bSCDEnable             = pSrcSurface->pDeinterlaceParams->bSCDEnable;

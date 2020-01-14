@@ -288,6 +288,8 @@ typedef struct _MHW_VEBOX_DNDI_PARAMS
     uint32_t  dwLPFWtLUT5;
     uint32_t  dwLPFWtLUT6;
     uint32_t  dwLPFWtLUT7;
+
+    bool      bMcdiEnable;
 } MHW_VEBOX_DNDI_PARAMS, *PMHW_VEBOX_DNDI_PARAMS;
 
 //!

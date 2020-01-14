@@ -864,6 +864,7 @@ typedef struct _VPHAL_DI_PARAMS
     bool                bEnableFMD;        //!< FMD
     bool                bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
     bool                bSCDEnable;        //!< Scene change detection
+    bool                bEnableMCDI;       //!< Enable motion compensated deinterlace
 } VPHAL_DI_PARAMS, *PVPHAL_DI_PARAMS;
 
 //!

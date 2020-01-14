@@ -1168,6 +1168,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetDNDIParams(
         }
     }
 
+    // Set DI params
+    if (pRenderData->bDeinterlace)
+    {
+        pRenderData->VeboxDNDIParams.bMcdiEnable = pSrcSurface->pDeinterlaceParams->bEnableMCDI;
+    }
+
     return eStatus;
 }
 

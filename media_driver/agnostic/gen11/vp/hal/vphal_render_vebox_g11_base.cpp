@@ -1548,6 +1548,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetDIParams(
         pRenderData->VeboxDNDIParams.dwSADWT3                       = VPHAL_VEBOX_DI_SAD_WT3_NATUAL;
         pRenderData->VeboxDNDIParams.dwSADWT4                       = VPHAL_VEBOX_DI_SAD_WT4_NATUAL;
         pRenderData->VeboxDNDIParams.dwSADWT6                       = VPHAL_VEBOX_DI_SAD_WT6_NATUAL;
+        pRenderData->VeboxDNDIParams.bMcdiEnable                    = pSrcSurface->pDeinterlaceParams->bEnableMCDI;
 
         VPHAL_RENDER_CHK_NULL_RETURN(pSrcSurface);
         if (MEDIA_IS_HDCONTENT(pSrcSurface->dwWidth, pSrcSurface->dwHeight))

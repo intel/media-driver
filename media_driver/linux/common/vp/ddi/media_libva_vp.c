@@ -2184,6 +2184,7 @@ DdiVp_SetProcFilterDinterlaceParams(
     PVPHAL_SURFACE            pTarget;
     PVPHAL_SURFACE            pSrc;
     VPHAL_DI_MODE             DIMode;
+    bool                      bEnableMCDI;
 
     VP_DDI_FUNCTION_ENTER;
     DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -2201,6 +2202,7 @@ DdiVp_SetProcFilterDinterlaceParams(
     DDI_CHK_NULL(pSrc, "Null pSrc.", VA_STATUS_ERROR_INVALID_SURFACE);
     pTarget = pVpHalRenderParams->pTarget[0];
     DDI_CHK_NULL(pTarget, "Null pTarget.", VA_STATUS_ERROR_INVALID_SURFACE);
+    bEnableMCDI = false;
 
     switch (pDiParamBuff->algorithm)
     {
@@ -2210,12 +2212,15 @@ DdiVp_SetProcFilterDinterlaceParams(
         case VAProcDeinterlacingMotionAdaptive:
             DIMode = DI_MODE_ADI;
             break;
+        case VAProcDeinterlacingMotionCompensated:
+            DIMode = DI_MODE_ADI;
+            bEnableMCDI = true;
+            break;
         case VAProcDeinterlacingWeave:
             pSrc->bFieldWeaving = true;;
             return VA_STATUS_SUCCESS;
         case VAProcDeinterlacingNone:
             return VA_STATUS_SUCCESS;
-        case VAProcDeinterlacingMotionCompensated:
         default:
             VP_DDI_ASSERTMESSAGE("Deinterlacing type is unsupported.");
             return VA_STATUS_ERROR_UNIMPLEMENTED;
@@ -2243,10 +2248,9 @@ DdiVp_SetProcFilterDinterlaceParams(
         pSrc->pDeinterlaceParams->bSCDEnable = false;
     }
 
-    pSrc->pDeinterlaceParams->DIMode = DIMode;
-
+    pSrc->pDeinterlaceParams->DIMode       = DIMode;
+    pSrc->pDeinterlaceParams->bEnableMCDI  = bEnableMCDI;
     pSrc->pDeinterlaceParams->bSingleField = (pDiParamBuff->flags & VA_DEINTERLACING_ONE_FIELD) ? true : false;
-
     pSrc->pDeinterlaceParams->bEnableFMD   = (pDiParamBuff->flags & VA_DEINTERLACING_FMD_ENABLE) ? true : false;
 
     //update sample type
@@ -4089,7 +4093,7 @@ DdiVp_QueryVideoProcFilterCaps (
 
         /* Deinterlacing filter */
         case VAProcFilterDeinterlacing:
-            uExistCapsNum  = 2;
+            uExistCapsNum  = 3;
             /* set input filter caps number to the actual number of filters in vp module */
             *num_filter_caps = uExistCapsNum;
             /* set the actual filter caps attribute in vp module */
@@ -4102,8 +4106,9 @@ DdiVp_QueryVideoProcFilterCaps (
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
 
-                diCap[0].type                         = VAProcDeinterlacingBob;
-                diCap[1].type                         = VAProcDeinterlacingMotionAdaptive;
+                diCap[0].type = VAProcDeinterlacingBob;
+                diCap[1].type = VAProcDeinterlacingMotionAdaptive;
+                diCap[2].type = VAProcDeinterlacingMotionCompensated;
             }
             break;
 
