@@ -2898,7 +2898,16 @@ MOS_STATUS CodechalVdencVp9StateG12::VerifyCommandBufferSize()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
         }
         uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-        PMOS_COMMAND_BUFFER cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][(uint32_t)currentPipe][passIndex];
+        PMOS_COMMAND_BUFFER cmdBuffer;
+        if (m_osInterface->phasedSubmission)
+        {
+            m_osInterface->pfnVerifyCommandBufferSize(m_osInterface, requestedSize, 0);
+            return eStatus;
+        }
+        else
+        {
+            cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][(uint32_t)currentPipe][passIndex];
+        }
 
         if (Mos_ResourceIsNull(&cmdBuffer->OsResource) ||
             m_sizeOfVEBatchBuffer < requestedSize)
@@ -2965,15 +2974,27 @@ MOS_STATUS CodechalVdencVp9StateG12::GetCommandBuffer(
     else    // virtual engine
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_realCmdBuffer, 0));
-
-        int currentPipe = GetCurrentPipe();
-        int currentPass = GetCurrentPass();
-        if (currentPipe < 0 || currentPipe >= m_numPipe)
+        if (m_osInterface->phasedSubmission)
         {
-            return MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, cmdBuffer, GetCurrentPipe() + 1));
+
+            CodecHalEncodeScalability_EncodePhaseToSubmissionType(IsFirstPipe(), cmdBuffer);
+            if (IsLastPipe())
+            {
+                cmdBuffer->iSubmissionType |= SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE;
+            }
         }
-        uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-        *cmdBuffer = m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex];
+        else
+        {
+            int currentPipe = GetCurrentPipe();
+            int currentPass = GetCurrentPass();
+            if (currentPipe < 0 || currentPipe >= m_numPipe)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
+            *cmdBuffer = m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex];
+        }
     }
 
     return eStatus;
@@ -2994,18 +3015,27 @@ MOS_STATUS CodechalVdencVp9StateG12::ReturnCommandBuffer(
     }
     else    // virtual engine
     {
-        int currentPipe = GetCurrentPipe();
-        int currentPass = GetCurrentPass();
-        if (currentPipe < 0 || currentPipe >= m_numPipe)
+        if (m_osInterface->phasedSubmission)
         {
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-
-        if (eStatus == MOS_STATUS_SUCCESS)
-        {
-            uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-            m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex] = *cmdBuffer;
+            m_osInterface->pfnReturnCommandBuffer(m_osInterface, cmdBuffer, GetCurrentPipe() + 1);
             m_osInterface->pfnReturnCommandBuffer(m_osInterface, &m_realCmdBuffer, 0);
+        }
+        else
+        {
+
+            int currentPipe = GetCurrentPipe();
+            int currentPass = GetCurrentPass();
+            if (currentPipe < 0 || currentPipe >= m_numPipe)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+
+            if (eStatus == MOS_STATUS_SUCCESS)
+            {
+                uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
+                m_veBatchBuffer[m_virtualEngineBBIndex][currentPipe][passIndex] = *cmdBuffer;
+                m_osInterface->pfnReturnCommandBuffer(m_osInterface, &m_realCmdBuffer, 0);
+            }
         }
     }
 
@@ -3036,25 +3066,33 @@ MOS_STATUS CodechalVdencVp9StateG12::SubmitCommandBuffer(
         {
             return eStatus;
         }
-        int currentPass = GetCurrentPass();
-        for (auto i = 0; i < m_numPipe; i++)
-        {
-            uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
-            PMOS_COMMAND_BUFFER cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][i][passIndex];
 
-            if (cmdBuffer->pCmdBase)
+        if (m_osInterface->phasedSubmission)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, nullRendering));
+        }
+        else
+        {
+            int currentPass = GetCurrentPass();
+            for (auto i = 0; i < m_numPipe; i++)
             {
-                m_osInterface->pfnUnlockResource(m_osInterface, &cmdBuffer->OsResource);
+                uint8_t passIndex = m_singleTaskPhaseSupported ? 0 : currentPass;
+                PMOS_COMMAND_BUFFER cmdBuffer = &m_veBatchBuffer[m_virtualEngineBBIndex][i][passIndex];
+
+                if (cmdBuffer->pCmdBase)
+                {
+                    m_osInterface->pfnUnlockResource(m_osInterface, &cmdBuffer->OsResource);
+                }
+
+                cmdBuffer->pCmdBase = 0;
+                cmdBuffer->iOffset = cmdBuffer->iRemaining = 0;
             }
 
-            cmdBuffer->pCmdBase = 0;
-            cmdBuffer->iOffset = cmdBuffer->iRemaining = 0;
-        }
-
-        if (eStatus == MOS_STATUS_SUCCESS)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&m_realCmdBuffer));
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, nullRendering));
+            if (eStatus == MOS_STATUS_SUCCESS)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&m_realCmdBuffer));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, nullRendering));
+            }
         }
     }
 
@@ -4555,7 +4593,12 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
         &userFeatureData);
     m_enableTileStitchByHW = userFeatureData.i32Data ? true : false;
 
-    userFeatureData.i32Data = 1; 
+    if (m_scalableMode && !m_brcEnabled && m_osInterface->phasedSubmission)
+    {
+        m_enableTileStitchByHW = false;
+    }
+
+    userFeatureData.i32Data = 1;
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     MOS_UserFeature_ReadValue_ID(
         nullptr,
@@ -4850,16 +4893,16 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9PakInt(
     hucRegionSize[0] = m_tileStatsPakIntegrationBufferSize;
     hucRegionName[1] = "_IntegratedStreamout_output";
     hucRegionSize[1] = m_frameStatsPakIntegrationBufferSize;
-    hucRegionName[4] = "_BitStream_input";
-    hucRegionSize[4] = MOS_ALIGN_CEIL(m_bitstreamUpperBound, CODECHAL_PAGE_SIZE);
-    hucRegionName[5] = "_BitStream_output";
-    hucRegionSize[5] = MOS_ALIGN_CEIL(m_bitstreamUpperBound, CODECHAL_PAGE_SIZE);
-    hucRegionName[6] = "_HistoryBufferOutput";
-    hucRegionSize[6] = MOS_ALIGN_CEIL(64, CODECHAL_PAGE_SIZE);
+    hucRegionName[4] = "_HCPPICSTATEInputDummy";
+    hucRegionSize[4] = sizeof(m_hucPakIntDummyBuffer);
+    hucRegionName[5] = "_HCPPICSTATEInputDummy";
+    hucRegionSize[5] = sizeof(m_hucPakIntDummyBuffer);
+    hucRegionName[6] = "_HCPPICSTATEInputDummy";
+    hucRegionSize[6] = sizeof(m_hucPakIntDummyBuffer);
     hucRegionName[7] = "_HCPPICSTATEInputDummy";
-    hucRegionSize[7] = MOS_ALIGN_CEIL(64, CODECHAL_PAGE_SIZE);
-    hucRegionName[8] = "_HCPPICSTATEOutputDummy";
-    hucRegionSize[8] = MOS_ALIGN_CEIL(64, CODECHAL_PAGE_SIZE);
+    hucRegionSize[7] = sizeof(m_hucPakIntDummyBuffer);
+    hucRegionName[8] = "_HucStitchDataBuffer";
+    hucRegionSize[8] = MOS_ALIGN_CEIL(sizeof(HucCommandData), CODECHAL_PAGE_SIZE);
     hucRegionName[9] = "_BrcDataOutputBuffer"; // This is the pak MMIO region 7 , not 4, of BRC update
     hucRegionSize[9] = MOS_ALIGN_CEIL(CODECHAL_ENCODE_VP9_HUC_BRC_DATA_BUFFER_SIZE, CODECHAL_PAGE_SIZE);
     hucRegionName[15] = "_TileRecordBuffer"; 
@@ -4924,6 +4967,45 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9PakInt(
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    CODECHAL_DEBUG_TOOL(
+    // Dump input Pak Integration buffers before running HuC
+    m_debugInterface->DumpHucRegion(
+        virtualAddrParams.regionParams[0].presRegion,
+        0,
+        hucRegionSize[0],
+        0,
+        "_PakIntStitchBuffer",
+        (virtualAddrParams.regionParams[0].isWritable ? true : false),
+        GetCurrentPass(),
+        CodechalHucRegionDumpType::hucRegionDumpPakIntegrate);
+
+    m_debugInterface->DumpHucDmem(
+        &m_hucPakIntDmemBuffer[m_currRecycledBufIdx][GetCurrentPass()],
+        sizeof(HucPakIntDmem),
+        GetCurrentPass(),
+        CodechalHucRegionDumpType::hucRegionDumpPakIntegrate);
+
+    for (auto i = 0; i < 16; i++)
+    {
+        if (virtualAddrParams.regionParams[i].presRegion)
+        {
+            if (m_scalableMode && m_isTilingSupported && virtualAddrParams.regionParams[i].isWritable && i != 11)
+            {
+                continue;
+            }
+            m_debugInterface->DumpHucRegion(
+                virtualAddrParams.regionParams[i].presRegion,
+                virtualAddrParams.regionParams[i].dwOffset,
+                hucRegionSize[i],
+                i,
+                hucRegionName[i],
+                !virtualAddrParams.regionParams[i].isWritable,
+                GetCurrentPass(),
+                CodechalHucRegionDumpType::hucRegionDumpPakIntegrate);
+        }
+    }
+    )
 
     return eStatus;
 }
