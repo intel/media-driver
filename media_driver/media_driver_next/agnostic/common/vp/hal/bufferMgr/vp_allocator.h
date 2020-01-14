@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -140,7 +140,7 @@ public:
     //! \return VP_SURFACE*
     //!         return the pointer to VP_SURFACE
     //!
-    VP_SURFACE* AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroOnAllocate, VPHAL_CSPACE ColorSpace, uint32_t ChromaSiting = 0);
+    VP_SURFACE* AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroOnAllocate = false, VPHAL_CSPACE ColorSpace = CSpace_None, uint32_t ChromaSiting = 0);
 
     //!
     //! \brief  Allocate Surface
@@ -271,6 +271,27 @@ public:
         MOS_TILE_TYPE               defaultTileType);
 
     //!
+    //! \brief    Initial the Type/TileType fields in Alloc Params structure
+    //! \details  Initial the Type/TileType fields in Alloc Params structure
+    //!           - Use the last type from GMM resource
+    //! \param    [in, out] allocParams
+    //!           Reference to MOS_ALLOC_GFXRES_PARAMS
+    //! \param    [in] surface
+    //!           Pointer to VP_SURFACE
+    //! \param    [in] defaultResType
+    //!           Expected Resource Type
+    //! \param    [in] defaultTileType
+    //!           Expected Surface Tile Type
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocParamsInitType(
+        MOS_ALLOC_GFXRES_PARAMS     &allocParams,
+        VP_SURFACE                  *surface,
+        MOS_GFXRES_TYPE             defaultResType,
+        MOS_TILE_TYPE               defaultTileType);
+
+    //!
     //! \brief    Allocates the Surface
     //! \details  Allocates the Surface
     //!           - if the surface is not already allocated OR
@@ -309,6 +330,49 @@ public:
         bool                    compressible,
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated);
+
+    //!
+    //! \brief    Reallocates the VP Surface
+    //! \details  Reallocates the VP Surface
+    //!           - if the surface is not already allocated OR
+    //!           - resource dimenisions OR format changed
+    //! \param    [in,out] surface
+    //!           Pointer to VP_SURFACE
+    //! \param    [in] surfaceName
+    //!           Pointer to surface name
+    //! \param    [in] format
+    //!           Expected MOS_FORMAT
+    //! \param    [in] defaultResType
+    //!           Expected Resource Type
+    //! \param    [in] defaultTileType
+    //!           Expected Surface Tile Type
+    //! \param    [in] width
+    //!           Expected Surface Width
+    //! \param    [in] height
+    //!           Expected Surface Height
+    //! \param    [in] compressible
+    //!           Surface compressible or not
+    //! \param    [in] compressionMode
+    //!           Compression Mode
+    //! \param    [out] allocated
+    //!           true if allocated, false for not
+    //! \param    [in] zeroOnAllocate
+    //!           zero when surface allocated
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
+    //!
+    MOS_STATUS ReAllocateSurface(
+        VP_SURFACE             *surface,
+        PCCHAR                  surfaceName,
+        MOS_FORMAT              format,
+        MOS_GFXRES_TYPE         defaultResType,
+        MOS_TILE_TYPE           defaultTileType,
+        uint32_t                width,
+        uint32_t                height,
+        bool                    compressible,
+        MOS_RESOURCE_MMC_MODE   compressionMode,
+        bool                    &allocated,
+        bool                    zeroOnAllocate = 0);
 
     //!
     //! \brief    Unified OS fill Resource
@@ -366,6 +430,26 @@ public:
         PVPHAL_SURFACE      surface,
         uint32_t            bpp,
         const uint8_t       *src);
+
+    //!
+    //! \brief    Copy Data from input Buffer to the Surface contents
+    //! \details  Copy Data from input Buffer to the Surface contents
+    //!           - 1 lock surface
+    //!           - 2 copy data from pSrc to Surface
+    //!           - 3 unlock surface
+    //! \param    [out] Surface
+    //!           Pointer to VP_SURFACE
+    //! \param    [in] Bpp
+    //!           bit per pixel of input buffer
+    //! \param    [in] Src
+    //!           Input buffer to store Surface contents
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
+    //!
+    MOS_STATUS WriteSurface(
+        VP_SURFACE         *surface,
+        uint32_t            bpp,
+        const uint8_t      *src);
 
     //!
     //! \brief    Tag based synchronization at the resource level

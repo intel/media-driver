@@ -388,6 +388,35 @@ MOS_STATUS VpAllocator::AllocParamsInitType(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpAllocator::AllocParamsInitType(
+        MOS_ALLOC_GFXRES_PARAMS     &allocParams,
+        VP_SURFACE                  *surface,
+        MOS_GFXRES_TYPE             defaultResType,
+        MOS_TILE_TYPE               defaultTileType)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(surface);
+    VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);
+
+    //  Need to reallocate surface according to expected tiletype instead of tiletype of the surface what we have
+    if (surface != nullptr &&
+        surface->osSurface != nullptr &&
+        surface->osSurface->OsResource.pGmmResInfo != nullptr &&
+        surface->osSurface->TileType == defaultTileType)
+    {
+        // Reallocate but use same tile type and resource type as current
+        allocParams.TileType = surface->osSurface->TileType;
+        allocParams.Type     = surface->osSurface->Type;
+    }
+    else
+    {
+        // First time allocation. Caller must specify default params
+        allocParams.Type     = defaultResType;
+        allocParams.TileType = defaultTileType;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpAllocator::ReAllocateSurface(
     PVPHAL_SURFACE          surface,
     PCCHAR                  surfaceName,
@@ -448,9 +477,66 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     VP_PUBLIC_CHK_STATUS_RETURN(GetSurfaceInfo(surface, info));
 
     surface->Format = format;
-
     allocated = true;
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpAllocator::ReAllocateSurface(
+        VP_SURFACE             *surface,
+        PCCHAR                  surfaceName,
+        MOS_FORMAT              format,
+        MOS_GFXRES_TYPE         defaultResType,
+        MOS_TILE_TYPE           defaultTileType,
+        uint32_t                width,
+        uint32_t                height,
+        bool                    compressible,
+        MOS_RESOURCE_MMC_MODE   compressionMode,
+        bool                    &allocated,
+        bool                    zeroOnAllocate)
+{
+    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+    VPHAL_GET_SURFACE_INFO  info;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
+
+    allocated = false;
+
+    //---------------------------------
+    VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
+    VP_PUBLIC_CHK_NULL_RETURN(surface);
+    //---------------------------------
+
+    // compressible should be compared with bCompressible since it is inited by bCompressible in previous call
+    // TileType of surface should be compared since we need to reallocate surface if TileType changes
+    if (!surface->osSurface                                        &&
+        !Mos_ResourceIsNull(&surface->osSurface->OsResource)       &&
+        (surface->osSurface->dwWidth              == width)           &&
+        (surface->osSurface->dwHeight             == height)          &&
+        (surface->osSurface->Format               == format)          &&
+        ((surface->osSurface->bCompressible != 0) == compressible)    &&
+        (surface->osSurface->CompressionMode      == compressionMode) &&
+        (surface->osSurface->TileType             == defaultTileType))
+    {
+        return eStatus;
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));
+    MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+
+    AllocParamsInitType(allocParams, surface, defaultResType, defaultTileType);
+
+    allocParams.dwWidth         = width;
+    allocParams.dwHeight        = height;
+    allocParams.Format          = format;
+    allocParams.bIsCompressible = compressible;
+    allocParams.CompressionMode = compressionMode;
+    allocParams.pBufName        = surfaceName;
+    allocParams.dwArraySize     = 1;
+
+    surface = AllocateVpSurface(allocParams, zeroOnAllocate);
+    VP_PUBLIC_CHK_NULL_RETURN(surface);
+
+    allocated = true;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -561,6 +647,66 @@ MOS_STATUS VpAllocator::WriteSurface (
     {
         tempSrc    = (uint8_t*)src;
         tempDst    = dst;
+
+        for (z = 0; z < surface->dwDepth; z++)
+        {
+            for (y = 0; y < surface->dwHeight; y++)
+            {
+                MOS_SecureMemcpy(tempDst, widthInBytes, tempSrc, widthInBytes);
+                tempSrc += widthInBytes;
+                tempDst += surface->dwPitch;
+            }
+        }
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&surface->OsResource));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpAllocator::WriteSurface(VP_SURFACE* vpsurface, uint32_t bpp, const uint8_t* src)
+{
+    uint8_t* dst = nullptr;
+    uint8_t* tempSrc = nullptr;
+    uint8_t* tempDst = nullptr;
+    uint32_t            widthInBytes = 0;
+    uint32_t            size = 0;
+    uint32_t            y = 0;
+    uint32_t            z = 0;
+    MOS_SURFACE* surface;
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
+
+    //----------------------------------------------
+    VP_PUBLIC_ASSERT(vpsurface);
+
+    surface = vpsurface->osSurface;
+    VP_PUBLIC_ASSERT(surface);
+
+    VP_PUBLIC_ASSERT(surface->dwWidth > 0);
+    VP_PUBLIC_ASSERT(surface->dwHeight > 0);
+    VP_PUBLIC_ASSERT(surface->dwDepth > 0);
+    VP_PUBLIC_ASSERT(surface->dwPitch >= surface->dwWidth);
+    VP_PUBLIC_ASSERT(bpp > 0);
+    VP_PUBLIC_ASSERT(src);
+    VP_PUBLIC_ASSERT(!Mos_ResourceIsNull(&surface->OsResource));
+    //----------------------------------------------
+
+    dst = (uint8_t*)LockResouceForWrite(&surface->OsResource);
+    VP_PUBLIC_CHK_NULL_RETURN(dst);
+
+    // Calculate Size in Bytes
+    size = surface->dwWidth * surface->dwHeight * surface->dwDepth * bpp / 8;
+    widthInBytes = surface->dwWidth * bpp / 8;
+
+    if (surface->dwPitch == widthInBytes)
+    {
+        MOS_SecureMemcpy(dst, size, src, size);
+    }
+    else
+    {
+        tempSrc = (uint8_t*)src;
+        tempDst = dst;
 
         for (z = 0; z < surface->dwDepth; z++)
         {
