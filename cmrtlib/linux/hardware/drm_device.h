@@ -520,7 +520,7 @@ static int parse_separate_sysfs_files(int maj, int min,
         "subsystem_device",
     };
     char path[PATH_MAX + 1], pci_path[PATH_MAX + 1];
-    char resourcename[PATH_MAX + 1], driverpath[PATH_MAX + 1], drivername[PATH_MAX + 1], irqpath[PATH_MAX + 1];
+    char resourcename[PATH_MAX + 64], driverpath[PATH_MAX + 64], drivername[PATH_MAX + 64], irqpath[PATH_MAX + 64];
 
     unsigned int data[ARRAY_SIZE(attrs)];
     FILE *fp;
