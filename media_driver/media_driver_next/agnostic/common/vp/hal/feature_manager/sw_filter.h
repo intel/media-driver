@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@
 #include "media_feature_manager.h"
 #include "vp_utils.h"
 #include "vp_pipeline_common.h"
-#include "vp_allocator.h"
 #include <vector>
 
 namespace vp

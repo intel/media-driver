@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,14 +50,8 @@ public:
     virtual MOS_STATUS Destroy() override;
 
     virtual MOS_STATUS SetExecuteEngineCaps(
-        PVP_PIPELINE_PARAMS     vpRenderParams,
-        VP_EXECUTE_CAPS         vpExecuteCaps) override;
-
-    virtual MOS_STATUS SetExecuteEngineCaps(
         FeatureParamScaling     &scalingParams,
         VP_EXECUTE_CAPS         vpExecuteCaps);
-
-    virtual MOS_STATUS SetExecuteEngineParams() override;
 
     MOS_STATUS CalculateEngineParams();
     SFC_SCALING_PARAMS *GetSfcParams()
@@ -151,10 +145,6 @@ struct HW_FILTER_SCALING_PARAM
     PVP_MHWINTERFACE        pHwInterface;
     VP_EXECUTE_CAPS         vpExecuteCaps;
     PacketParamFactoryBase *pPacketParamFactory;
-    bool                    isSwFilterEnabled;
-    // For swFilter disabled case
-    PVP_PIPELINE_PARAMS     pPipelineParams;
-    // For swFilter enabled case
     FeatureParamScaling     scalingParams;
 };
 
@@ -193,7 +183,6 @@ public:
     virtual ~PolicySfcScalingHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
-    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
 
 private:
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;

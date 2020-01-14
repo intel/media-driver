@@ -154,7 +154,7 @@ protected:
 class VpFeatureManagerNext : public MediaFeatureManager
 {
 public:
-    VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe);
+    VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface);
     virtual ~VpFeatureManagerNext();
 
     virtual MOS_STATUS Initialize();
@@ -164,8 +164,6 @@ public:
 protected:
     MOS_STATUS CreateHwFilterPipe(VP_PIPELINE_PARAMS &params, HwFilterPipe *&pHwFilterPipe);
     MOS_STATUS UpdateResources(HwFilterPipe &hwFilterPipe);
-
-    const bool          m_bBypassSwFilterPipe;
 
     VpInterface         m_vpInterface;
     Policy              m_Policy;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,6 @@ VpPipeline::~VpPipeline()
     // m_pPacketFactory is referenced by m_pPacketPipeFactory.
     MOS_Delete(m_pPacketPipeFactory);
     MOS_Delete(m_pPacketFactory);
-    DeleteFilter();
     DeletePackets();
     DeleteTasks();
     // Delete m_featureManager before m_resourceManager, since
@@ -141,178 +140,14 @@ MOS_STATUS VpPipeline::Initialize(void *settings)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpPipeline::CreateFilterList()
-{
-    VP_FUNC_CALL();
-
-    uint32_t         srccount        = 0;
-    MOS_STATUS       status          = MOS_STATUS_SUCCESS;
-    VpScalingFilter *vpScalingFilter = nullptr;
-    VpCscFilter     *vpCscFilter     = nullptr;
-    VpRotMirFilter  *vpRotMirFilter  = nullptr;
-
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams);
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
-
-    // for SFC, Scaling, CSC and RotMir is default constant filter.
-
-    //*************************
-    // Generate scaling Filter
-    //*************************
-    if (!QueryVpFilterExist(VP_FILTER_SFC_SCALING))
-    {
-        vpScalingFilter = MOS_New(VpScalingFilter, m_pvpMhwInterface);
-
-        if (!vpScalingFilter)
-        {
-            VP_PUBLIC_ASSERTMESSAGE("Scaling Filter create failed");
-            status = MOS_STATUS_NO_SPACE;
-            goto finish;
-        }
-
-        // Register Vebox Filters
-        RegisterVpFilter(VP_FILTER_SFC_SCALING, vpScalingFilter);
-    }
-
-    //*************************
-    // Generate CSC/IEF Filter
-    //*************************
-    if (!QueryVpFilterExist(VP_FILTER_SFC_CSC))
-    {
-        vpCscFilter = MOS_New(VpCscFilter, m_pvpMhwInterface);
-
-        if (!vpCscFilter)
-        {
-            VP_PUBLIC_ASSERTMESSAGE("CSC Filter create failed");
-            status = MOS_STATUS_NO_SPACE;
-            goto finish;
-        }
-
-        // Register Vebox Filters
-        RegisterVpFilter(VP_FILTER_SFC_CSC, vpCscFilter);
-    }
-
-    //*************************
-    // Generate Rotation/Mirror Filter
-    //*************************
-    if (!QueryVpFilterExist(VP_FILTER_SFC_ROTMIR))
-    {
-        vpRotMirFilter = MOS_New(VpRotMirFilter, m_pvpMhwInterface);
-
-        if (!vpRotMirFilter)
-        {
-            VP_PUBLIC_ASSERTMESSAGE("CSC Filter create failed");
-            status = MOS_STATUS_NO_SPACE;
-            goto finish;
-        }
-
-        // Register Vebox Filters
-        RegisterVpFilter(VP_FILTER_SFC_ROTMIR, vpRotMirFilter);
-    }
-
-    if (srccount > 1)
-    {
-        // Place Holder: for multiple frames cases
-        // Create a composition Filter, would inplement in Ph3
-    }
-
-finish:
-    if (MOS_STATUS_SUCCESS != status)
-    {
-        DeleteFilter();
-    }
-
-    return status;
-}
-
-MOS_STATUS VpPipeline::ExecuteFilter(VP_EXECUTE_CAPS executeEngine)
-{
-    VP_FUNC_CALL();
-
-    if (executeEngine.bSFC || executeEngine.bVebox)
-    {
-        if (!m_AdvfilterList.size())
-        {
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-
-        // Allocate Packet and initial Packet resource;
-        VP_PUBLIC_CHK_STATUS_RETURN(AllocateVpPackets(&m_vpPipelineCaps));
-
-        VpCmdPacket *packet = (VpCmdPacket *)m_packetList.find(VP_PIPELINE_PACKET_FF)->second;
-        VP_PUBLIC_CHK_NULL_RETURN(packet);
-
-        for (auto iter : m_AdvfilterList)
-        {
-            iter.second->SetExecuteEngineCaps(m_pvpParams, executeEngine);
-            iter.second->SetPacket(packet);
-            iter.second->SetExecuteEngineParams();
-        }
-
-        ActivateVideoProcessingPackets(VP_PIPELINE_PACKET_FF, true);
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpPipeline::DeleteFilter()
-{
-    VP_FUNC_CALL();
-
-    for (auto iter : m_AdvfilterList)
-    {
-        MOS_Delete(iter.second);
-    }
-
-    m_AdvfilterList.clear();
-
-    return MOS_STATUS_SUCCESS;
-}
-
-bool VpPipeline::QueryVpFilterExist(FilterType filterId)
-{
-    if (VP_FILTER_MAX <= filterId)
-    {
-        VP_PUBLIC_ASSERTMESSAGE("Invalid Filter type");
-    }
-
-    auto iter = m_AdvfilterList.find(filterId);
-    if (iter == m_AdvfilterList.end())
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-}
-
-MOS_STATUS VpPipeline::RegisterVpFilter(FilterType filterId, VpFilter *filter)
-{
-    if (nullptr == filter)
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    auto iter = m_AdvfilterList.find(filterId);
-    if (iter == m_AdvfilterList.end())
-    {
-        m_AdvfilterList.insert(std::make_pair(filterId, filter));
-        return MOS_STATUS_SUCCESS;
-    }
-    else
-    {
-        VP_PUBLIC_ASSERTMESSAGE("register Filter error, filter is exist already!");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-}
-
 MOS_STATUS VpPipeline::ExecuteVpPipeline()
 {
     VP_FUNC_CALL();
 
     MOS_STATUS      eStatus   = MOS_STATUS_SUCCESS;
     PVPHAL_RENDER_PARAMS pRenderParams = (PVPHAL_RENDER_PARAMS) m_pvpParams;
+    PacketPipe *pPacketPipe = nullptr;
+    VpFeatureManagerNext *featureManagerNext = nullptr;
 
     // Set Pipeline status Table
     m_statusReport->SetPipeStatusReportParams(m_pvpParams, m_pvpMhwInterface->m_statusTable);
@@ -331,56 +166,30 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         }
     }
 
-    if (m_bEnableFeatureManagerNext)
+    VP_PUBLIC_CHK_NULL(m_pPacketPipeFactory);
+    pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
+    VP_PUBLIC_CHK_NULL(pPacketPipe);
+
+    featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
+
+    if (nullptr == featureManagerNext)
     {
-        VP_PUBLIC_CHK_NULL(m_pPacketPipeFactory);
-
-        PacketPipe *pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
-        VP_PUBLIC_CHK_NULL(pPacketPipe);
-
-        VpFeatureManagerNext *m_featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
-
-        if (nullptr == m_featureManagerNext)
-        {
-            m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
-            VP_PUBLIC_CHK_STATUS(MOS_STATUS_NULL_POINTER);
-        }
-
-        eStatus = m_featureManagerNext->InitPacketPipe(*m_pvpParams, *pPacketPipe);
-
-        if (MOS_FAILED(eStatus))
-        {
-            m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
-            VP_PUBLIC_CHK_STATUS(eStatus);
-        }
-
-        // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
-        eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
-
         m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+        VP_PUBLIC_CHK_STATUS(MOS_STATUS_NULL_POINTER);
     }
-    else
+
+    eStatus = featureManagerNext->InitPacketPipe(*m_pvpParams, *pPacketPipe);
+
+    if (MOS_FAILED(eStatus))
     {
-        // Create VP Filter List
-        VP_PUBLIC_CHK_STATUS(CreateFilterList());
-
-        // VP Context Prepare.
-        VP_PUBLIC_CHK_STATUS(PrepareVpExeContext());
-
-        if (m_vpOutputPipe != VPHAL_OUTPUT_PIPE_MODE_COMP)
-        {
-            m_vpPipelineCaps.bVebox = true;
-
-            if (m_vpOutputPipe == VPHAL_OUTPUT_PIPE_MODE_SFC)
-            {
-                m_vpPipelineCaps.bSFC = true;
-            }
-
-            VP_PUBLIC_CHK_STATUS(ExecuteFilter(m_vpPipelineCaps));
-        }
-
-        VP_PUBLIC_CHK_STATUS(ExecuteActivePackets());
+        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+        VP_PUBLIC_CHK_STATUS(eStatus);
     }
+
+    // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
+    eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
+
+    m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
 
     VPHAL_SURFACE_PTRS_DUMP(m_surfaceDumper,
                                 pRenderParams->pTarget,
@@ -394,20 +203,6 @@ finish:
     m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
     uiFrameCounter++;
     return eStatus;
-}
-
-MOS_STATUS VpPipeline::ActivateVideoProcessingPackets(
-    uint32_t packetId,
-    bool     immediateSubmit)
-{
-    VP_FUNC_CALL();
-
-    VP_PUBLIC_CHK_STATUS_RETURN(ActivatePacket(packetId, immediateSubmit, 0, 0));
-
-    // Last element in m_activePacketList must be immediately submitted
-    m_activePacketList.back().immediateSubmit = true;
-
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpPipeline::GetSystemVeboxNumber()
@@ -431,19 +226,12 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
 {
     VP_FUNC_CALL();
 
-    if (m_bEnableFeatureManagerNext)
-    {
-        VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
-        VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
-        m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator); 
-        VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
-        m_featureManager = MOS_New(VpFeatureManagerNext, *m_allocator, *m_resourceManager, m_pvpMhwInterface, m_bBypassSwFilterPipe);
-        VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());
-    }
-    else
-    {
-        m_featureManager = MOS_New(VPFeatureManager, m_pvpMhwInterface);
-    }
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
+    m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator); 
+    VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
+    m_featureManager = MOS_New(VpFeatureManagerNext, *m_allocator, *m_resourceManager, m_pvpMhwInterface);
+    VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());
 
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
     return MOS_STATUS_SUCCESS;
@@ -452,17 +240,10 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
 MOS_STATUS VpPipeline::CheckFeatures(void *params, bool &bapgFuncSupported)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
-    if (m_bEnableFeatureManagerNext)
-    {
-        // Add CheckFeatures api later in FeatureManagerNext.
-        VPFeatureManager paramChecker(m_pvpMhwInterface);
-        return paramChecker.CheckFeatures(params, bapgFuncSupported);
-    }
-    else
-    {
-        VPFeatureManager *vpFeatureManager = (VPFeatureManager *)m_featureManager;
-        return vpFeatureManager->CheckFeatures(params, bapgFuncSupported);
-    }
+
+    // Add CheckFeatures api later in FeatureManagerNext.
+    VPFeatureManager paramChecker(m_pvpMhwInterface);
+    return paramChecker.CheckFeatures(params, bapgFuncSupported);
 }
 
 MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
@@ -550,34 +331,6 @@ MOS_STATUS VpPipeline::PrepareVpExePipe()
     // Output Pipe can be multiple submittion for example: Render + VE
     // Check the feasible for each engine, current noe for CSC/Scaling, we set it as SFC
     m_vpOutputPipe = VPHAL_OUTPUT_PIPE_MODE_SFC;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpPipeline::PrepareVpExeContext()
-{
-    VP_FUNC_CALL();
-
-    ScalabilityPars scalPars;
-    MOS_ZeroMemory(&scalPars, sizeof(ScalabilityPars));
-
-    if (m_vpOutputPipe == VPHAL_OUTPUT_PIPE_MODE_SFC ||
-        m_vpOutputPipe == VPHAL_OUTPUT_PIPE_MODE_VEBOX)
-    {
-        VP_PUBLIC_NORMALMESSAGE("Switch to Vebox Context");
-
-        scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
-        scalPars.numVebox = m_numVebox;
-
-        m_mediaContext->SwitchContext(VeboxVppFunc, &scalPars, &m_scalability);
-        VP_PUBLIC_CHK_NULL_RETURN(m_scalability);
-    }
-    else
-    {
-        VP_PUBLIC_NORMALMESSAGE("Switch to Render Context");
-        m_mediaContext->SwitchContext(RenderGenericFunc, &scalPars, &m_scalability);
-        VP_PUBLIC_CHK_NULL_RETURN(m_scalability);
-    }
 
     return MOS_STATUS_SUCCESS;
 }

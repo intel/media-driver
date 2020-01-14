@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -65,22 +65,6 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS Destroy() = 0;
-
-    //!
-    //! \brief  Set Execute Engine Caps
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SetExecuteEngineCaps(
-        PVP_PIPELINE_PARAMS     vpRenderParams,
-        VP_EXECUTE_CAPS         vpExecuteCaps) = 0;
-
-    //!
-    //! \brief  Set executed engine params
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SetExecuteEngineParams() = 0;
 
     //!
     //! \brief  Get execute caps for this filter
@@ -264,7 +248,6 @@ public:
     virtual bool IsFeatureEnabled(SwFilterPipe &swFilterPipe);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
-    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface);
     FeatureType GetType();
     HwFilterParameter *GetHwFeatureParameterFromPool();
     MOS_STATUS ReleaseHwFeatureParameter(HwFilterParameter *&pParam);

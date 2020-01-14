@@ -51,7 +51,6 @@ public:
     virtual ~HwFilterPipe();
     void Clean();
     MOS_STATUS Initialize(SwFilterPipe &swFilterPipe, Policy &policy);
-    MOS_STATUS Initialize(VP_PIPELINE_PARAMS &params, Policy &policy);
     MOS_STATUS AddHwFilter(HwFilter &hwFilter);
     MOS_STATUS InitPacketPipe(PacketPipe &packetPipe);
     MOS_STATUS UpdateResources();

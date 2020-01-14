@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,33 @@
 using VP_PIPELINE_PARAMS   = VPHAL_RENDER_PARAMS;
 using PVP_PIPELINE_PARAMS  = VPHAL_RENDER_PARAMS*;
 using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
+
+struct VP_SURFACE
+{
+    MOS_SURFACE                 *osSurface;         //!< mos surface
+    bool                        isInternalSurface;  //!< true if created by feature manager. false if the surface is from DDI.
+    VPHAL_CSPACE                ColorSpace;         //!< Color Space
+    uint32_t                    ChromaSiting;       //!< ChromaSiting
+
+    bool                        bQueryVariance;     //!< enable variance query. Not in use for internal surface
+    int32_t                     FrameID;            //!< Not in use for internal surface
+    bool                        ExtendedGamut;      //!< Extended Gamut Flag. Not in use for internal surface
+    VPHAL_PALETTE               Palette;            //!< Palette data. Not in use for internal surface
+    VPHAL_SURFACE_TYPE          SurfType;           //!< Surface type (context). Not in use for internal surface
+    uint32_t                    uFwdRefCount;       //!< Not in use for internal surface
+    uint32_t                    uBwdRefCount;       //!< Not in use for internal surface
+    VPHAL_SURFACE               *pFwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
+    VPHAL_SURFACE               *pBwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
+    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type.
+    // Use index of m_InputSurfaces for layerID. No need iLayerID here anymore.
+
+    RECT                        rcSrc;              //!< Source rectangle
+    RECT                        rcDst;              //!< Destination rectangle
+    RECT                        rcMaxSrc;           //!< Max source rectangle
+
+    PVPHAL_SURFACE              pCurrent;           //!< Pointer to related vphal surface. Only be used in VpVeboxCmdPacket::PacketInit for current
+                                                    //!< stage. Should be removed after vphal surface being cleaned from VpVeboxCmdPacket.
+};
 
 struct _VP_MHWINTERFACE
 {
@@ -126,5 +153,6 @@ using VP_MHWINTERFACE  = _VP_MHWINTERFACE;
 using PVP_MHWINTERFACE = VP_MHWINTERFACE * ;
 using VP_EXECUTE_CAPS  = _VP_EXECUTE_CAPS;
 using VP_PACKET_ENGINE = _VP_PACKET_ENGINE;
+using PVP_SURFACE      = VP_SURFACE*;
 
 #endif

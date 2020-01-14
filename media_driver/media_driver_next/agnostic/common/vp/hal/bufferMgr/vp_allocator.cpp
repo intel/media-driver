@@ -124,6 +124,12 @@ VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool 
     surface->ChromaSiting = ChromaSiting;
     surface->SampleType = SAMPLE_PROGRESSIVE; // Hardcode to SAMPLE_PROGRESSIVE for intermedia surface. Set to correct value for DI later.
 
+    surface->rcSrc.left     = surface->rcSrc.top = 0;
+    surface->rcSrc.right    = surface->osSurface->dwWidth;
+    surface->rcSrc.bottom   = surface->osSurface->dwHeight;
+    surface->rcDst          = surface->rcSrc;
+    surface->rcMaxSrc       = surface->rcSrc;
+
     return surface;
 }
 
@@ -182,6 +188,9 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
     surf->SurfType              = vphalSurf.SurfType;
     surf->SampleType            = vphalSurf.SampleType;
     surf->ChromaSiting          = vphalSurf.ChromaSiting;
+    surf->rcSrc                 = vphalSurf.rcSrc;
+    surf->rcDst                 = vphalSurf.rcDst;
+    surf->rcMaxSrc              = vphalSurf.rcMaxSrc;
 
     surf->isInternalSurface     = false;
 

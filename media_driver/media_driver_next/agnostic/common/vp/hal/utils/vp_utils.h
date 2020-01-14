@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,10 @@
 
 #define VP_PUBLIC_CHK_STATUS_RETURN(_stmt)                                        \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _stmt)
+
+#define VP_PUBLIC_CHK_VALUE_RETURN(_value, _expect_value)                         \
+    MOS_CHK_STATUS_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,                \
+        ((_value) == (_expect_value)) ? MOS_STATUS_SUCCESS : MOS_STATUS_INVALID_PARAMETER)
 
 #define VP_PUBLIC_CHK_NULL(_ptr)                                                  \
     MOS_CHK_NULL(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _ptr)

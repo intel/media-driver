@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,8 @@ using namespace vp;
 /*                                      VpFeatureManagerNext                                        */
 /****************************************************************************************************/
 
-VpFeatureManagerNext::VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface, bool bBypassSwFilterPipe) :
-    m_bBypassSwFilterPipe(bBypassSwFilterPipe), m_vpInterface(pHwInterface, allocator, resourceManager), m_Policy(bBypassSwFilterPipe, m_vpInterface)
+VpFeatureManagerNext::VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface) :
+    m_vpInterface(pHwInterface, allocator, resourceManager), m_Policy(m_vpInterface)
 {
 }
 
@@ -51,21 +51,15 @@ MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(VP_PIPELINE_PARAMS &params, 
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     pHwFilterPipe = nullptr;
-    if (m_bBypassSwFilterPipe)
-    {
-        status = m_vpInterface.GetHwFilterPipeFactory().Create(params, m_Policy, pHwFilterPipe);
-    }
-    else
-    {
-        SwFilterPipe * pSwFilterPipe = nullptr;
-        status = m_vpInterface.GetSwFilterPipeFactory().Create(params, pSwFilterPipe); 
 
-        VP_PUBLIC_CHK_STATUS_RETURN(status);
-        VP_PUBLIC_CHK_NULL_RETURN(pSwFilterPipe);
+    SwFilterPipe * pSwFilterPipe = nullptr;
+    status = m_vpInterface.GetSwFilterPipeFactory().Create(params, pSwFilterPipe);
 
-        status = m_vpInterface.GetHwFilterPipeFactory().Create(*pSwFilterPipe, m_Policy, pHwFilterPipe);
-        m_vpInterface.GetSwFilterPipeFactory().Destory(pSwFilterPipe);
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(status);
+    VP_PUBLIC_CHK_NULL_RETURN(pSwFilterPipe);
+
+    status = m_vpInterface.GetHwFilterPipeFactory().Create(*pSwFilterPipe, m_Policy, pHwFilterPipe);
+    m_vpInterface.GetSwFilterPipeFactory().Destory(pSwFilterPipe);
 
     VP_PUBLIC_CHK_STATUS_RETURN(status);
     VP_PUBLIC_CHK_NULL_RETURN(pHwFilterPipe);

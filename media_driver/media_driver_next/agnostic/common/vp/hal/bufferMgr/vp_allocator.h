@@ -28,34 +28,13 @@
 
 #ifndef __VP_ALLOCATOR_H__
 #define __VP_ALLOCATOR_H__
+
 #include "media_allocator.h"
 #include "vp_mem_compression.h"
 #include "vp_vebox_common.h"
+#include "vp_pipeline_common.h"
 
 namespace vp {
-
-struct VP_SURFACE
-{
-    MOS_SURFACE                 *osSurface;         //!< mos surface
-    bool                        isInternalSurface;  //!< true if created by feature manager. false if the surface is from DDI.
-    VPHAL_CSPACE                ColorSpace;         //!< Color Space
-    uint32_t                    ChromaSiting;       //!< ChromaSiting
-
-    bool                        bQueryVariance;     //!< enable variance query. Not in use for internal surface
-    int32_t                     FrameID;            //!< Not in use for internal surface
-    bool                        ExtendedGamut;      //!< Extended Gamut Flag. Not in use for internal surface
-    VPHAL_PALETTE               Palette;            //!< Palette data. Not in use for internal surface
-    VPHAL_SURFACE_TYPE          SurfType;           //!< Surface type (context). Not in use for internal surface
-    uint32_t                    uFwdRefCount;       //!< Not in use for internal surface
-    uint32_t                    uBwdRefCount;       //!< Not in use for internal surface
-    VPHAL_SURFACE               *pFwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
-    VPHAL_SURFACE               *pBwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
-    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type.
-    // Use index of m_InputSurfaces for layerID. No need iLayerID here anymore.
-
-    PVPHAL_SURFACE              pCurrent;           //!< Pointer to related vphal surface. Only be used in VpVeboxCmdPacket::PacketInit for current
-                                                    //!< stage. Should be removed after vphal surface being cleaned from VpVeboxCmdPacket.
-};
 
 class VpAllocator
 {

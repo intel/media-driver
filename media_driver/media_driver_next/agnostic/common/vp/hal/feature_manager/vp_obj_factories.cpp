@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -46,20 +46,6 @@ MOS_STATUS HwFilterPipeFactory::Create(SwFilterPipe &swfilterPipe,
 
     VP_PUBLIC_CHK_NULL_RETURN(pHwFilterPipe);
     MOS_STATUS status = pHwFilterPipe->Initialize(swfilterPipe, policy);
-    if (MOS_FAILED(status))
-    {
-        Destory(pHwFilterPipe);
-    }
-    return status;
-}
-
-MOS_STATUS HwFilterPipeFactory::Create(VP_PIPELINE_PARAMS &params,
-    Policy &policy, HwFilterPipe *&pHwFilterPipe)
-{
-    pHwFilterPipe = m_allocator.Create();
-
-    VP_PUBLIC_CHK_NULL_RETURN(pHwFilterPipe);
-    MOS_STATUS status = pHwFilterPipe->Initialize(params, policy);
     if (MOS_FAILED(status))
     {
         Destory(pHwFilterPipe);

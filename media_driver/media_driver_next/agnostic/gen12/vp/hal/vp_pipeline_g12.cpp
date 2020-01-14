@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -164,42 +164,6 @@ MOS_STATUS VpPipelineG12::GetSystemVeboxNumber()
     }
 
     return eStatus;
-}
-
-MOS_STATUS VpPipelineG12::AllocateVpPackets(VP_EXECUTE_CAPS *engineCaps)
-{
-    VP_FUNC_CALL();
-
-    VP_PUBLIC_CHK_NULL_RETURN(engineCaps);
-
-    VpCmdPacket *vpPacket = nullptr;
-
-    // Create active tasks
-    MediaTask *task = GetTask(MediaTask::TaskType::cmdTask);
-    VP_PUBLIC_CHK_NULL_RETURN(task);
-
-    if ((engineCaps->bSFC || engineCaps->bVebox))
-    {
-        if (m_packetList.find(VP_PIPELINE_PACKET_FF) == m_packetList.end())
-        {
-            vpPacket = MOS_New(VpVeboxCmdPacketG12, task, m_pvpMhwInterface, m_allocator, m_mmc);
-            VP_PUBLIC_CHK_NULL_RETURN(vpPacket);
-            RegisterPacket(VP_PIPELINE_PACKET_FF, vpPacket);
-        }
-
-        vpPacket = (VpCmdPacket *)m_packetList.find(VP_PIPELINE_PACKET_FF)->second;
-    }
-    else
-    {
-        // Place holder for Render engine
-    }
-
-    VP_PUBLIC_CHK_NULL_RETURN(vpPacket);
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams);
-
-    vpPacket->PacketInit(m_pvpParams->pSrc[0], m_pvpParams->pTarget[0], *engineCaps);
-
-    return MOS_STATUS_SUCCESS;
 }
 
 }

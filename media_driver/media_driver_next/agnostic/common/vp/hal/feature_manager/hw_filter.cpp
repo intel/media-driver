@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -52,9 +52,7 @@ MOS_STATUS HwFilter::Initialize(HW_FILTER_PARAMS &param)
 
     Clean();
 
-    m_isSwFilterEnabled = param.isSwFilterEnabled;
-    m_pVpParams = param.isSwFilterEnabled ? nullptr : param.pVpParams;
-    m_swFilterPipe = param.isSwFilterEnabled ? param.executedFilters : nullptr;
+    m_swFilterPipe = param.executedFilters;
     m_vpExecuteCaps = param.vpExecuteCaps;
     m_Params.Type = param.Type;
 
@@ -107,22 +105,13 @@ MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
     PVPHAL_SURFACE pSrcSurface = nullptr;
     PVPHAL_SURFACE pOutputSurface = nullptr;
 
-    if (m_isSwFilterEnabled)
-    {
-        // Remove dependence on vphal surface later.
-        VP_PUBLIC_CHK_NULL_RETURN(m_swFilterPipe);
-        VP_SURFACE *inputSurf = m_swFilterPipe->GetSurface(true, 0);
-        VP_SURFACE *outputSurf = m_swFilterPipe->GetSurface(false, 0);
-        VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
-        VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
-        VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(inputSurf->pCurrent, outputSurf->pCurrent, m_vpExecuteCaps));
-    }
-    else
-    {
-        VP_PUBLIC_CHK_NULL_RETURN(m_pVpParams);
-        VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(m_pVpParams->pSrc[0], m_pVpParams->pTarget[0], m_vpExecuteCaps));
-    }
-
+    // Remove dependence on vphal surface later.
+    VP_PUBLIC_CHK_NULL_RETURN(m_swFilterPipe);
+    VP_SURFACE *inputSurf = m_swFilterPipe->GetSurface(true, 0);
+    VP_SURFACE *outputSurf = m_swFilterPipe->GetSurface(false, 0);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(inputSurf->pCurrent, outputSurf->pCurrent, m_vpExecuteCaps));
 
     for (auto handler : m_Params.Params)
     {

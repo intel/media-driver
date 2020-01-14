@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,10 +62,6 @@ struct HW_FILTER_PARAMS
 {
     EngineType Type = EngineTypeInvalid;
     VP_EXECUTE_CAPS vpExecuteCaps = {};
-    bool isSwFilterEnabled = false;
-    // For swFilter disabled case.
-    PVP_PIPELINE_PARAMS pVpParams = nullptr;
-    // For swFilter enabled case.
     SwFilterPipe *executedFilters = nullptr;
     std::vector<HwFilterParameter *> Params;
 };
@@ -106,12 +102,8 @@ public:
 protected:
     VpInterface         &m_vpInterface;
     PACKET_PARAMS       m_Params = {};
-    // For swFilter disabled case.
-    PVP_PIPELINE_PARAMS m_pVpParams = nullptr;
-    // For swFilter enabled case.
     SwFilterPipe        *m_swFilterPipe = nullptr;
     VP_EXECUTE_CAPS     m_vpExecuteCaps = {};
-    bool                m_isSwFilterEnabled = false;
 };
 
 class HwFilterVebox: public HwFilter

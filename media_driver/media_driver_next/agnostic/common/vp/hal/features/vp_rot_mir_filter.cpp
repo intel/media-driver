@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -66,19 +66,6 @@ MOS_STATUS VpRotMirFilter::Destroy()
 }
 
 MOS_STATUS VpRotMirFilter::SetExecuteEngineCaps(
-    PVP_PIPELINE_PARAMS     vpRenderParams,
-    VP_EXECUTE_CAPS         vpExecuteCaps)
-{
-    VP_FUNC_CALL();
-    VP_RENDER_CHK_NULL_RETURN(vpRenderParams);
-    VP_RENDER_CHK_NULL_RETURN(vpRenderParams->pSrc[0]);
-    m_executeCaps           = vpExecuteCaps;
-    m_rotMirParams.rotation = vpRenderParams->pSrc[0]->Rotation;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpRotMirFilter::SetExecuteEngineCaps(
     FeatureParamRotMir      &rotMirParams,
     VP_EXECUTE_CAPS         vpExecuteCaps)
 {
@@ -86,25 +73,6 @@ MOS_STATUS VpRotMirFilter::SetExecuteEngineCaps(
 
     m_executeCaps   = vpExecuteCaps;
     m_rotMirParams = rotMirParams;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpRotMirFilter::SetExecuteEngineParams()
-{
-    VP_FUNC_CALL();
-
-    VP_RENDER_CHK_STATUS_RETURN(CalculateEngineParams());
-
-    if (m_executeCaps.bSFC)
-    {
-        VpVeboxCmdPacket *packet = (VpVeboxCmdPacket*)m_packet;
-        packet->SetSfcRotMirParams(m_sfcRotMirParams);
-    }
-    else
-    {
-        // Render Engine Solution
-    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -285,14 +253,7 @@ bool VpSfcRotMirParameter::SetPacketParam(VpCmdPacket *pPacket)
 MOS_STATUS VpSfcRotMirParameter::Initialize(HW_FILTER_ROT_MIR_PARAM & params)
 {
     VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.Init());
-    if (params.isSwFilterEnabled)
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.SetExecuteEngineCaps(params.rotMirParams, params.vpExecuteCaps));
-    }
-    else
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.SetExecuteEngineCaps(params.pPipelineParams, params.vpExecuteCaps));
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.SetExecuteEngineCaps(params.rotMirParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_RotMirFilter.CalculateEngineParams());
     return MOS_STATUS_SUCCESS;
 }
@@ -338,8 +299,6 @@ HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
         paramRotMir.pHwInterface = pHwInterface;
         paramRotMir.vpExecuteCaps = vpExecuteCaps;
         paramRotMir.pPacketParamFactory = &m_PacketParamFactory;
-
-        paramRotMir.isSwFilterEnabled = true;
         paramRotMir.rotMirParams = param;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
@@ -358,42 +317,6 @@ HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
 
         return pHwFilterParam;
    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-
-HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
-{
-    if (IsFeatureEnabled(vpExecuteCaps))
-    {
-        HW_FILTER_ROT_MIR_PARAM paramRotMir = {};
-        paramRotMir.type = m_Type;
-        paramRotMir.pHwInterface = pHwInterface;
-        paramRotMir.vpExecuteCaps = vpExecuteCaps;
-        paramRotMir.pPacketParamFactory = &m_PacketParamFactory;
-
-        paramRotMir.isSwFilterEnabled = false;
-        paramRotMir.pPipelineParams = &pipelineParams;
-
-        HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
-
-        if (pHwFilterParam)
-        {
-            if (MOS_FAILED(((HwFilterRotMirParameter*)pHwFilterParam)->Initialize(paramRotMir)))
-            {
-                ReleaseHwFeatureParameter(pHwFilterParam);
-            }
-        }
-        else
-        {
-            pHwFilterParam = HwFilterRotMirParameter::Create(paramRotMir, m_Type);
-        }
-
-        return pHwFilterParam;
-    }
     else
     {
         return nullptr;

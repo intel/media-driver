@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -52,20 +52,14 @@ class VpInterface;
 class Policy
 {
 public:
-    Policy(bool bBypassSwFilterPipe, VpInterface &vpInterface);
+    Policy(VpInterface &vpInterface);
     virtual ~Policy();
     MOS_STATUS CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFilter);
-    // Function for SwFilterPipe Disabled.
-    MOS_STATUS CreateHwFilter(VP_PIPELINE_PARAMS &pipelineParams, HwFilter *&pFilter);
     MOS_STATUS Initialize();
 
 protected:
     MOS_STATUS GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS GetExecuteCaps(SwFilterPipe &subSwFilterPipe, VP_EXECUTE_CAPS &caps);
-
-    // Function for SwFilterPipe Disabled.
-    MOS_STATUS GetHwFilterParam(VP_PIPELINE_PARAMS &pipelineParams, HW_FILTER_PARAMS &params);
-    MOS_STATUS GetExecuteCaps(VP_PIPELINE_PARAMS &pipelineParams, VP_EXECUTE_CAPS &caps);
 
     MOS_STATUS RegisterFeatures();
     MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
@@ -86,7 +80,6 @@ protected:
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
     std::vector<FeatureType> m_featurePool;
 
-    const bool          m_bBypassSwFilterPipe;
     VpInterface         &m_vpInterface;
     VP_SFC_ENTRY_REC    m_sfcHwEntry[Format_Count] = {};
 };

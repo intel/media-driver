@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -181,13 +181,11 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
 }
 
 MOS_STATUS SfcRenderBase::SetIefStateParams(
-    PVPHAL_VEBOX_RENDER_DATA        veboxRenderData,
     PMHW_SFC_STATE_PARAMS           psfcStateParams)
 {
     PMHW_SFC_IEF_STATE_PARAMS   pIefStateParams = nullptr;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    MOS_UNUSED(veboxRenderData);
     VP_RENDER_CHK_NULL_RETURN(psfcStateParams);
     VP_RENDER_CHK_NULL_RETURN(m_renderData);
 
@@ -253,13 +251,12 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
 
 MOS_STATUS SfcRenderBase::SetupSfcState(
     PVPHAL_SFC_RENDER_DATA          sfcRenderData,
-    PVPHAL_SURFACE                  targetSurface,
-    PVPHAL_VEBOX_RENDER_DATA        pRenderDat)
+    PVPHAL_SURFACE                  targetSurface)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
-    VP_RENDER_CHK_NULL_RETURN(targetSurface);
     VP_RENDER_CHK_NULL_RETURN(sfcRenderData);
+    VP_RENDER_CHK_NULL_RETURN(targetSurface);
 
     m_renderData = sfcRenderData;
 
@@ -298,7 +295,6 @@ MOS_STATUS SfcRenderBase::SetupSfcState(
         m_renderData->bCSC)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetIefStateParams(
-            pRenderDat,
             m_renderData->sfcStateParams));
     }
 

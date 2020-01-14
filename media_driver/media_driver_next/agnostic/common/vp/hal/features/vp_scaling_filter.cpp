@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -276,71 +276,6 @@ MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(MOS_FORMAT format, bool isOu
 
 // Prepare
 MOS_STATUS VpScalingFilter::SetExecuteEngineCaps(
-    PVP_PIPELINE_PARAMS     vpRenderParams,
-    VP_EXECUTE_CAPS         vpExecuteCaps)
-{
-    VP_FUNC_CALL();
-
-    VP_PUBLIC_CHK_NULL_RETURN(vpRenderParams);
-    VP_PUBLIC_CHK_NULL_RETURN(vpRenderParams->pSrc[0]);
-    VP_PUBLIC_CHK_NULL_RETURN(vpRenderParams->pTarget[0]);
-
-    m_executeCaps   = vpExecuteCaps;
-
-    m_scalingParams.scalingMode = vpRenderParams->pSrc[0]->ScalingMode;
-    m_scalingParams.bDirectionalScalar = vpRenderParams->pSrc[0]->bDirectionalScalar;
-    m_scalingParams.formatInput = vpRenderParams->pSrc[0]->Format;
-    m_scalingParams.rcSrcInput = vpRenderParams->pSrc[0]->rcSrc;
-
-    m_scalingParams.rcMaxSrcInput = vpRenderParams->pSrc[0]->rcMaxSrc;
-    m_scalingParams.dwWidthInput = vpRenderParams->pSrc[0]->dwWidth;
-    m_scalingParams.dwHeightInput = vpRenderParams->pSrc[0]->dwHeight;
-    m_scalingParams.formatOutput = vpRenderParams->pTarget[0]->Format;
-
-
-    m_scalingParams.colorSpaceOutput = vpRenderParams->pTarget[0]->ColorSpace;
-
-    // Ajust output width/height according to rotation.
-    if (vpRenderParams->pSrc[0]->Rotation == VPHAL_ROTATION_IDENTITY ||
-        vpRenderParams->pSrc[0]->Rotation == VPHAL_ROTATION_180 ||
-        vpRenderParams->pSrc[0]->Rotation == VPHAL_MIRROR_HORIZONTAL ||
-        vpRenderParams->pSrc[0]->Rotation == VPHAL_MIRROR_VERTICAL)
-    {
-        m_scalingParams.dwWidthOutput = vpRenderParams->pTarget[0]->dwWidth;
-        m_scalingParams.dwHeightOutput = vpRenderParams->pTarget[0]->dwHeight;
-
-        m_scalingParams.rcDstInput = vpRenderParams->pSrc[0]->rcDst;
-        m_scalingParams.rcSrcOutput = vpRenderParams->pTarget[0]->rcSrc;
-        m_scalingParams.rcDstOutput = vpRenderParams->pTarget[0]->rcDst;
-        m_scalingParams.rcMaxSrcOutput = vpRenderParams->pTarget[0]->rcMaxSrc;
-    }
-    else
-    {
-        m_scalingParams.dwWidthOutput = vpRenderParams->pTarget[0]->dwHeight;
-        m_scalingParams.dwHeightOutput = vpRenderParams->pTarget[0]->dwWidth;
-
-        RECT_ROTATE(m_scalingParams.rcDstInput, vpRenderParams->pSrc[0]->rcDst);
-        RECT_ROTATE(m_scalingParams.rcSrcOutput, vpRenderParams->pTarget[0]->rcSrc);
-        RECT_ROTATE(m_scalingParams.rcDstOutput, vpRenderParams->pTarget[0]->rcDst);
-        RECT_ROTATE(m_scalingParams.rcMaxSrcOutput, vpRenderParams->pTarget[0]->rcMaxSrc);
-    }
-
-    //Colrofill Params
-    m_scalingParams.pColorFillParams = vpRenderParams->pColorFillParams;
-    m_scalingParams.pCompAlpha = m_scalingParams.pColorFillParams ? vpRenderParams->pCompAlpha : nullptr;
-
-    m_scalingParams.rcMaxSrcInput = m_scalingParams.rcSrcInput;
-
-    // Set Src/Dst Surface Rect
-    VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(m_scalingParams.formatInput, false, m_scalingParams.dwWidthInput,
-        m_scalingParams.dwHeightInput, m_scalingParams.rcSrcInput, m_scalingParams.rcDstInput));
-    VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(m_scalingParams.formatOutput, true, m_scalingParams.dwWidthOutput,
-        m_scalingParams.dwHeightOutput, m_scalingParams.rcSrcOutput, m_scalingParams.rcDstOutput));
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpScalingFilter::SetExecuteEngineCaps(
     FeatureParamScaling     &scalingParams,
     VP_EXECUTE_CAPS         vpExecuteCaps)
 {
@@ -356,27 +291,6 @@ MOS_STATUS VpScalingFilter::SetExecuteEngineCaps(
         m_scalingParams.dwHeightInput, m_scalingParams.rcSrcInput, m_scalingParams.rcDstInput));
     VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(m_scalingParams.formatOutput, true, m_scalingParams.dwWidthOutput,
         m_scalingParams.dwHeightOutput, m_scalingParams.rcSrcOutput, m_scalingParams.rcDstOutput));
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpScalingFilter::SetExecuteEngineParams()
-{
-    VP_FUNC_CALL();
-
-    VP_PUBLIC_CHK_STATUS_RETURN(CalculateEngineParams());
-
-    if (m_executeCaps.bSFC)
-    {
-        VpVeboxCmdPacket           *packet = (VpVeboxCmdPacket*)m_packet;
-
-        VP_RENDER_CHK_STATUS_RETURN(packet->SetScalingParams(m_sfcScalingParams));
-    }
-    // Need add support for Render engine
-    else
-    {
-
-    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -603,14 +517,7 @@ bool VpSfcScalingParameter::SetPacketParam(VpCmdPacket *pPacket)
 MOS_STATUS VpSfcScalingParameter::Initialize(HW_FILTER_SCALING_PARAM &params)
 {
     VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.Init());
-    if (params.isSwFilterEnabled)
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.SetExecuteEngineCaps(params.scalingParams, params.vpExecuteCaps));
-    }
-    else
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.SetExecuteEngineCaps(params.pPipelineParams, params.vpExecuteCaps));
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.SetExecuteEngineCaps(params.scalingParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.CalculateEngineParams());
     return MOS_STATUS_SUCCESS;
 }
@@ -655,44 +562,7 @@ HwFilterParameter *PolicySfcScalingHandler::CreateHwFilterParam(VP_EXECUTE_CAPS 
         paramScaling.pHwInterface = pHwInterface;
         paramScaling.vpExecuteCaps = vpExecuteCaps;
         paramScaling.pPacketParamFactory = &m_PacketParamFactory;
-
-        paramScaling.isSwFilterEnabled = true;
         paramScaling.scalingParams = param;
-
-        HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
-
-        if (pHwFilterParam)
-        {
-            if (MOS_FAILED(((HwFilterScalingParameter*)pHwFilterParam)->Initialize(paramScaling)))
-            {
-                ReleaseHwFeatureParameter(pHwFilterParam);
-            }
-        }
-        else
-        {
-            pHwFilterParam = HwFilterScalingParameter::Create(paramScaling, m_Type);
-        }
-
-        return pHwFilterParam;
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-HwFilterParameter *PolicySfcScalingHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
-{
-    if (IsFeatureEnabled(vpExecuteCaps))
-    {
-        HW_FILTER_SCALING_PARAM paramScaling = {};
-        paramScaling.type = m_Type;
-        paramScaling.pHwInterface = pHwInterface;
-        paramScaling.vpExecuteCaps = vpExecuteCaps;
-        paramScaling.pPacketParamFactory = &m_PacketParamFactory;
-
-        paramScaling.isSwFilterEnabled = false;
-        paramScaling.pPipelineParams = &pipelineParams;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 

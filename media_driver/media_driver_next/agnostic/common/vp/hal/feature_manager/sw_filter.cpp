@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -256,7 +256,7 @@ MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
     return MOS_STATUS_SUCCESS;
 }
 /****************************************************************************************************/
-/*                                      SwFilterScaling                                             */
+/*                                      SwFilter Rotation/Mirror                                    */
 /****************************************************************************************************/
 
 SwFilterRotMir::SwFilterRotMir(VpInterface &vpInterface) : SwFilter(vpInterface, FeatureTypeRotMir)

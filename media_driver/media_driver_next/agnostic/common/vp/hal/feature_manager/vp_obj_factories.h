@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -100,8 +100,6 @@ public:
     virtual ~HwFilterPipeFactory();
 
     MOS_STATUS Create(SwFilterPipe &swfilterPipe,
-        Policy &policy, HwFilterPipe *&pHwFilterPipe);
-    MOS_STATUS Create(VP_PIPELINE_PARAMS &params,
         Policy &policy, HwFilterPipe *&pHwFilterPipe);
 
     MOS_STATUS Destory(HwFilterPipe *&pHwfilterPipe);

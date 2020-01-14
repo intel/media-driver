@@ -87,19 +87,6 @@ void HwFilterPipe::Clean()
     }
 }
 
-MOS_STATUS HwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, Policy &policy)
-{
-    HwFilter *pHwFilter = nullptr;
-
-    Clean();
-
-    VP_PUBLIC_CHK_STATUS_RETURN(policy.CreateHwFilter(params, pHwFilter));
-
-    VP_PUBLIC_CHK_STATUS_RETURN(AddHwFilter(*pHwFilter));
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS HwFilterPipe::AddHwFilter(HwFilter &hwFilter)
 {
     m_Pipe.push_back(&hwFilter);

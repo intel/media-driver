@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -117,82 +117,11 @@ protected:
     virtual MOS_STATUS PrepareVpExePipe();
 
     //!
-    //! \brief  prepare execution Context for vp pipeline
-    //! \param  [in] params
-    //!         Pointer to VP pipeline params
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS PrepareVpExeContext();
-
-    //!
-    //! \brief  Create VP FilterList
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS CreateFilterList();
-
-    //!
-    //! \brief  Execute VP Filter List
-    //! \param  [in] executeCaps
-    //!         Pointer to execute enginie
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS ExecuteFilter(
-        VP_EXECUTE_CAPS executeEngine);
-
-    //!
-    //! \brief  Delete VP FilterList
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS DeleteFilter();
-
-    //!
-    //! \brief  query filter is existing in filter pool
-    //! \param  [in] filterId
-    //!         Filter Id
-    //! \return bool
-    //!         true if exists, else not
-    //!
-    bool QueryVpFilterExist(FilterType filterId);
-
-    //!
-    //! \brief  Register filter into filter pool
-    //! \param  [in] filterId
-    //!         Filter Id
-    //! \param  [in] filter
-    //!         Pointer to created filter
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS RegisterVpFilter(FilterType filterId, VpFilter *filter);
-
-    //!
     //! \brief  Execute Vp Pipeline, and generate VP Filters
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS ExecuteVpPipeline();
-
-    //!
-    //! \brief  Active Video Processing Packets
-    //! \param  [in] packetID
-    //!         Packet Id
-    //! \param  [in] immediateSubmit
-    //!         submit immediate
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS ActivateVideoProcessingPackets(uint32_t packetId, bool immediateSubmit);
-
-    //!
-    //! \brief  Allocate Vp Pipeline Packets based on the caps of filter
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS AllocateVpPackets(VP_EXECUTE_CAPS *engineCaps) = 0;
 
     //!
     //! \brief  Get System Vebox Number
@@ -211,8 +140,6 @@ protected:
     virtual MOS_STATUS CheckFeatures(void *params, bool &bapgFuncSupported);
 
 protected:
-    std::map<FilterType, VpFilter *> m_AdvfilterList;  //!< filter list: will allcaote a filterList for Render engine
-
     PVP_PIPELINE_PARAMS    m_pvpParams              = nullptr;  //!< vp Pipeline params
     PVP_MHWINTERFACE       m_pvpMhwInterface        = nullptr;  //!< vp Pipeline Mhw Interface
     VP_EXECUTE_CAPS        m_vpPipelineCaps         = {};       //!< vp Pipeline Engine execute caps
@@ -233,8 +160,6 @@ protected:
     PacketFactory         *m_pPacketFactory         = nullptr;
     PacketPipeFactory     *m_pPacketPipeFactory     = nullptr;
     VpResourceManager     *m_resourceManager        = nullptr;
-    bool                   m_bEnableFeatureManagerNext = true;
-    bool                   m_bBypassSwFilterPipe    = false;
 };
 
 struct _VP_SFC_PACKET_PARAMS

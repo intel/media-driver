@@ -1,5 +1,5 @@
 /*__VP_RENDER_SFC_BASE_H__
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -59,8 +59,6 @@ public:
     //!
     //! \brief    Setup parameters related to SFC_IEF State
     //! \details  Setup the IEF and CSC params of the SFC_IEF State
-    //! \param    [in] veboxRenderData
-    //!           Pointer to Vebox Render Data
     //! \param    [in,out] sfcStateParams
     //!           Pointer to SFC_STATE params
     //! \param    [in] inputSurface
@@ -68,7 +66,6 @@ public:
     //! \return   void
     //!
     virtual MOS_STATUS SetIefStateParams(
-        PVPHAL_VEBOX_RENDER_DATA        veboxRenderData,
         PMHW_SFC_STATE_PARAMS           sfcStateParams);
 
     //!
@@ -103,8 +100,7 @@ public:
     //!
     virtual MOS_STATUS SetupSfcState(
         PVPHAL_SFC_RENDER_DATA          sfcRenderData,
-        PVPHAL_SURFACE                  targetSurface,
-        PVPHAL_VEBOX_RENDER_DATA        pRenderDat);
+        PVPHAL_SURFACE                  targetSurface);
 
     bool IsCSC() { return m_renderData->bCSC; };
     bool IsScaling() { return m_renderData->bScaling; };

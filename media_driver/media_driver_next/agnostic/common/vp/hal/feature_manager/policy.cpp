@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@ using namespace vp;
 /*                                      Policy                                                      */
 /****************************************************************************************************/
 
-Policy::Policy(bool bBypassSwFilterPipe, VpInterface &vpInterface) : m_bBypassSwFilterPipe(bBypassSwFilterPipe), m_vpInterface(vpInterface)
+Policy::Policy(VpInterface &vpInterface) : m_vpInterface(vpInterface)
 {
 #include "vp_feature_caps_g12.h"
 }
@@ -93,12 +93,6 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
 {
     VP_FUNC_CALL();
 
-    if (m_bBypassSwFilterPipe)
-    {
-        pFilter = nullptr;
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-
     if (subSwFilterPipe.IsEmpty())
     {
         pFilter = nullptr;
@@ -146,7 +140,6 @@ MOS_STATUS vp::Policy::GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER
     MOS_STATUS status;
 
     params.Type = EngineTypeInvalid;
-    params.isSwFilterEnabled = true;
 
     // Create and clear executedFilters.
     if (params.executedFilters)
@@ -174,40 +167,6 @@ MOS_STATUS vp::Policy::GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER
         return status;
     }
 
-    return MOS_STATUS_SUCCESS;
-}
-
-/*                                    Disable SwFilterPipe                                          */
-
-MOS_STATUS Policy::CreateHwFilter(VP_PIPELINE_PARAMS &pipelineParams, HwFilter *&pFilter)
-{
-    if (!m_bBypassSwFilterPipe)
-    {
-        pFilter = nullptr;
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-    HW_FILTER_PARAMS param = {};
-
-    VP_PUBLIC_CHK_STATUS_RETURN(GetHwFilterParam(pipelineParams, param));
-
-    pFilter = m_vpInterface.GetHwFilterFactory().Create(param);
-
-    ReleaseHwFilterParam(param);
-
-    VP_PUBLIC_CHK_NULL_RETURN(pFilter);
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS Policy::GetExecuteCaps(VP_PIPELINE_PARAMS &pipelineParams, VP_EXECUTE_CAPS &caps)
-{
-    caps.value = 0;
-    // Hardcode now. Will set related value according to pipelineParams later.
-
-    caps.bSFC = 1;
-    caps.bSfcCsc = pipelineParams.uSrcCount > 0 && pipelineParams.uDstCount > 0;
-    caps.bSfcRotMir = pipelineParams.uSrcCount > 0 && pipelineParams.uDstCount > 0;
-    caps.bSfcScaling = pipelineParams.uSrcCount > 0 && pipelineParams.uDstCount > 0;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -573,7 +532,6 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
 
     params.Type = EngineTypeInvalid;
     params.vpExecuteCaps = caps;
-    params.isSwFilterEnabled = true;
 
     VP_PUBLIC_CHK_STATUS_RETURN(SetupExecuteFilter(featurePipe, caps, params));
 
@@ -712,41 +670,6 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             break;
         default:
             break;
-        }
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS Policy::GetHwFilterParam(VP_PIPELINE_PARAMS &pipelineParams, HW_FILTER_PARAMS &params)
-{
-    if (!m_bBypassSwFilterPipe)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-
-    VP_EXECUTE_CAPS vpExecuteCaps = {};
-    VP_PUBLIC_CHK_STATUS_RETURN(GetExecuteCaps(pipelineParams, vpExecuteCaps));
-
-    // Clear params before using it.
-    ReleaseHwFilterParam(params);
-
-    params.Type = EngineTypeInvalid;
-    params.vpExecuteCaps = vpExecuteCaps;
-    params.isSwFilterEnabled = false;
-    params.pVpParams = &pipelineParams;
-    if (vpExecuteCaps.bVebox || vpExecuteCaps.bSFC)
-    {
-        params.Type = vpExecuteCaps.bSFC ? EngineTypeSfc : EngineTypeVebox;
-        std::map<FeatureType, PolicyFeatureHandler*>::iterator it = m_VeboxSfcFeatureHandlers.begin();
-        for (; it != m_VeboxSfcFeatureHandlers.end(); ++it)
-        {
-            if ((*(it->second)).IsFeatureEnabled(vpExecuteCaps))
-            {
-                HwFilterParameter *pHwFilterParam = (*(it->second)).CreateHwFilterParam(vpExecuteCaps, pipelineParams, m_vpInterface.GetHwInterface());
-                VP_PUBLIC_CHK_NULL_RETURN(pHwFilterParam);
-                params.Params.push_back(pHwFilterParam);
-            }
         }
     }
 

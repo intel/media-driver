@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -108,10 +108,6 @@ bool PolicyFeatureHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
     return false;
 }
 
-HwFilterParameter *PolicyFeatureHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
-{
-    return nullptr;
-}
 FeatureType PolicyFeatureHandler::GetType()
 {
     return m_Type;

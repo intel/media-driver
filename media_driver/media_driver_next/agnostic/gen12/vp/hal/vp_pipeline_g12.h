@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -49,8 +49,6 @@ public:
     virtual MOS_STATUS Execute() override;
 
     virtual MOS_STATUS Destroy() override;
-
-    virtual MOS_STATUS AllocateVpPackets(VP_EXECUTE_CAPS *engineCaps) override;
 
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;

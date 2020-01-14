@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -65,26 +65,6 @@ MOS_STATUS VpCscFilter::Destroy()
 }
 
 MOS_STATUS VpCscFilter::SetExecuteEngineCaps(
-    PVP_PIPELINE_PARAMS     vpRenderParams,
-    VP_EXECUTE_CAPS         vpExecuteCaps)
-{
-    VP_FUNC_CALL();
-
-    m_cscParams.chromaSitingInput = vpRenderParams->pSrc[0]->ChromaSiting;
-    m_cscParams.chromaSitingOutput = vpRenderParams->pTarget[0]->ChromaSiting;
-    m_cscParams.colorSpaceInput = vpRenderParams->pSrc[0]->ColorSpace; 
-    m_cscParams.colorSpaceOutput = vpRenderParams->pTarget[0]->ColorSpace;
-    m_cscParams.formatInput = vpRenderParams->pSrc[0]->Format; 
-    m_cscParams.formatOutput = vpRenderParams->pTarget[0]->Format;
-    m_cscParams.pIEFParams = vpRenderParams->pSrc[0]->pIEFParams;
-    m_cscParams.type = FeatureTypeCsc;
-
-    m_executeCaps   = vpExecuteCaps;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpCscFilter::SetExecuteEngineCaps(
     FeatureParamCsc &cscParams,
     VP_EXECUTE_CAPS vpExecuteCaps)
 {
@@ -92,24 +72,6 @@ MOS_STATUS VpCscFilter::SetExecuteEngineCaps(
 
     m_cscParams = cscParams;
     m_executeCaps   = vpExecuteCaps;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpCscFilter::SetExecuteEngineParams()
-{
-    VP_FUNC_CALL();
-
-    VP_RENDER_CHK_STATUS_RETURN(CalculateEngineParams());
-
-    if (m_executeCaps.bSFC)
-    {
-        VpVeboxCmdPacket *packet = (VpVeboxCmdPacket*)m_packet;
-        VP_RENDER_CHK_STATUS_RETURN(packet->SetSfcCSCParams(m_sfcCSCParams));
-    }
-    else
-    {
-    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -373,14 +335,7 @@ bool VpSfcCscParameter::SetPacketParam(VpCmdPacket *pPacket)
 MOS_STATUS VpSfcCscParameter::Initialize(HW_FILTER_CSC_PARAM &params)
 {
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.Init());
-    if (params.isSwFilterEnabled)
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.cscParams, params.vpExecuteCaps));
-    }
-    else
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.pPipelineParams, params.vpExecuteCaps));
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.cscParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.CalculateEngineParams());
     return MOS_STATUS_SUCCESS;
 }
@@ -393,7 +348,8 @@ PolicySfcCscHandler::PolicySfcCscHandler()
     m_Type = FeatureTypeCscOnSfc;
 }
 PolicySfcCscHandler::~PolicySfcCscHandler()
-{}
+{
+}
 
 bool PolicySfcCscHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
@@ -425,44 +381,7 @@ HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpEx
         paramCsc.pHwInterface = pHwInterface;
         paramCsc.vpExecuteCaps = vpExecuteCaps;
         paramCsc.pPacketParamFactory = &m_PacketParamFactory;
-
-        paramCsc.isSwFilterEnabled = true;
         paramCsc.cscParams = param;
-
-        HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
-
-        if (pHwFilterParam)
-        {
-            if (MOS_FAILED(((HwFilterCscParameter*)pHwFilterParam)->Initialize(paramCsc)))
-            {
-                ReleaseHwFeatureParameter(pHwFilterParam);
-            }
-        }
-        else
-        {
-            pHwFilterParam = HwFilterCscParameter::Create(paramCsc, m_Type);
-        }
-
-        return pHwFilterParam;
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, VP_PIPELINE_PARAMS &pipelineParams, PVP_MHWINTERFACE pHwInterface)
-{
-    if (IsFeatureEnabled(vpExecuteCaps))
-    {
-        HW_FILTER_CSC_PARAM paramCsc = {};
-        paramCsc.type = m_Type;
-        paramCsc.pHwInterface = pHwInterface;
-        paramCsc.vpExecuteCaps = vpExecuteCaps;
-        paramCsc.pPacketParamFactory = &m_PacketParamFactory;
-
-        paramCsc.isSwFilterEnabled = false;
-        paramCsc.pPipelineParams = &pipelineParams;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 
