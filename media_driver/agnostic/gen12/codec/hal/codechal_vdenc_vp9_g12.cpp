@@ -3249,7 +3249,6 @@ MOS_STATUS CodechalVdencVp9StateG12::SetSequenceStructs()
     rawSurface = *(m_encodeParams.psRawSurface);
 
     if (rawSurface.OsResource.Format == Format_A8R8G8B8 ||
-        rawSurface.OsResource.Format == Format_R10G10B10A2 ||
         rawSurface.OsResource.Format == Format_B10G10R10A2)
     {
         seqParams->SeqFlags.fields.DisplayFormatSwizzle = 1;
