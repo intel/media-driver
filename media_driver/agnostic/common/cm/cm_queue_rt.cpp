@@ -25,7 +25,7 @@
 //!
 
 #include "cm_queue_rt.h"
-
+#include "cm_event_ex.h"
 #include "cm_mem.h"
 #include "cm_device_rt.h"
 #include "cm_event_rt.h"
@@ -41,6 +41,7 @@
 #include "cm_surface_2d_rt.h"
 #include "cm_vebox_rt.h"
 #include "cm_execution_adv.h"
+
 
 // Used by GPUCopy
 #define BLOCK_PIXEL_WIDTH            (32)
@@ -58,9 +59,27 @@
 
 #define GPUCOPY_KERNEL_LOCK(a) ((a)->locked = true)
 #define GPUCOPY_KERNEL_UNLOCK(a) ((a)->locked = false)
+using namespace CMRT_UMD;
 
 namespace CMRT_UMD
 {
+    typedef struct _tdata
+    {
+        void* pCmQueueRT;
+        void* buffer;
+        size_t offset;
+        unsigned char* sysMem;
+        uint64_t sysMemSize;
+        int dir;
+        void* threadSpace;
+        void* task;
+        void* wait_event;
+        void* event;
+        unsigned option;
+        uint64_t cpuFrrequency;
+    }CopyThreadData;
+
+
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Queue
 //| Returns:    Result of the operation.
@@ -126,6 +145,7 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_syncBufferHandle(INVALID_SYNC_BUFFER_HANDLE)
 {
     MOS_ZeroMemory(&m_mosVeHintParams, sizeof(m_mosVeHintParams));
+    MOS_QueryPerformanceFrequency(&m_CPUperformanceFrequency);
 }
 
 //*-----------------------------------------------------------------------------
@@ -766,6 +786,7 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* kernelArray[],
     cmData->cmHalState->renderHal->currentTrackerIndex = m_trackerIndex;
 
     result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, task, numTasksGenerated, isLastTask, hints, m_device );
+
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Create CM task internal failure.");
@@ -2097,7 +2118,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
     CmKernel        *kernel                = nullptr;
     SurfaceIndex    *surfaceInputIndex     = nullptr;
     SurfaceIndex    *surfaceOutputIndex    = nullptr;
-    CmThreadSpace   *threadSpace                    = nullptr;
+    CmThreadSpace   *threadSpace           = nullptr;
     CmTask          *task                  = nullptr;
 
     int32_t         srcLeftShiftOffset      = 0;
@@ -2156,9 +2177,9 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsi
     //Calculate proper thread space's width and height
     threadWidth  = 1;
     threadHeight = threadNum/threadWidth;
-    while((threadHeight > CM_MAX_THREADSPACE_HEIGHT_FOR_MW))
+    while((threadHeight > CM_MAX_THREADSPACE_HEIGHT_SKLUP_FOR_MW))
     {
-        if(threadWidth > CM_MAX_THREADSPACE_WIDTH_FOR_MW)
+        if(threadWidth > CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW)
         {
             hr = CM_GPUCOPY_INVALID_SIZE; // thread number exceed 511*511
             goto finish;
@@ -2255,6 +2276,217 @@ finish:
 
     return hr;
 }
+
+
+//worker thread for video buffer copy to/from system memory
+//support wait event and provide notification event
+void BufferCopyThread(void* threadData)
+{
+    int hr = CM_SUCCESS;
+    CopyThreadData* data = (CopyThreadData*)threadData;
+
+    CmBuffer_RT* buffer = (CmBuffer_RT*)(data->buffer);
+    unsigned char* sysMem = (unsigned char*)data->sysMem;
+    CmEvent* wait_event = (CmEvent*)(data->wait_event);
+    CmEvent* notify_event = (CmEvent*)(data->event);
+    CmEventRT* eventRT = dynamic_cast<CmEventRT*>(notify_event);
+    CmEventEx* eex = dynamic_cast<CmEventEx*>(notify_event);
+
+    uint32_t offset = data->offset;
+    uint64_t cpuMemCopySize = data->sysMemSize;
+    uint64_t ts = 0, te = 0;
+    MOS_QueryPerformanceCounter(&ts);
+    // CPU buffer copy call with wait event
+    if(data->dir)
+        hr = buffer->WriteBuffer(sysMem, wait_event, cpuMemCopySize, offset);
+    else
+        hr = buffer->ReadBuffer((unsigned char*)sysMem, wait_event, cpuMemCopySize, offset);
+    MOS_QueryPerformanceCounter(&te);
+    uint64_t etime = (te - ts)*1000000000 / data->cpuFrrequency;
+    eventRT->ModifyStatus(CM_STATUS_FINISHED, etime);
+
+    MOS_Delete(data);
+}
+
+int32_t CmQueueRT::EnqueueBufferCopy(CmBuffer* buffer, size_t offset, const unsigned char* sysMem, uint64_t sysMemSize, CM_GPUCOPY_DIRECTION dir, CmEvent* wait_event, CmEvent*& event, unsigned option)
+{
+    INSERT_API_CALL_LOG();
+    int hr = CM_SUCCESS;
+    bool bCPUcopy = option>0 ? true:false;
+    if ((offset) || (sysMemSize > 1069551616))
+        bCPUcopy = true;
+
+    MOS_THREADHANDLE workThread = 0;
+    CmBufferUP* sysUPbuffer = nullptr;
+    CmBufferUP* surfaceOutput = nullptr;
+    CmKernel* kernel = nullptr;
+    SurfaceIndex* vBufferIndex = nullptr;
+    SurfaceIndex* sysUPIndex = nullptr;
+    CmThreadSpace* threadSpace = nullptr;
+    CmTask* task = nullptr;
+    CM_GPUCOPY_KERNEL* gpuCopyKernelParam = nullptr;
+
+    int32_t         sysLeftShiftOffset = 0;
+    int32_t         dstLeftShiftOffset = 0;
+    uint32_t        threadWidth = 0;
+    uint32_t        threadHeight = 0;
+    uint32_t        threadNum = 0;
+    uint32_t        copySize = (uint32_t)sysMemSize;
+    uint32_t        cpuMemcopySize = 0;
+    size_t          systemLinearAddressAligned = 0;
+
+    threadNum = copySize / BYTE_COPY_ONE_THREAD;
+
+    int32_t taskDriverId = -1;
+    CmEventRT* eventRT = static_cast<CmEventRT*>(event);
+    hr = CreateEvent((CmTaskInternal *)task, true, taskDriverId, eventRT);
+    event = static_cast<CmEvent*>(eventRT);
+
+    if (((size_t)sysMem & 0xf) || (sysMem == 0))
+    {
+        CM_ASSERTMESSAGE("Error: Start address of system memory is not 16-byte aligned.");
+        bCPUcopy = true;
+    }
+
+    // Get page aligned address
+    if (sizeof(void*) == 8) //64-bit
+    {
+        systemLinearAddressAligned = (size_t)sysMem & ADDRESS_PAGE_ALIGNMENT_MASK_X64;  // make sure the address page aligned.
+    }
+    else
+    {
+        systemLinearAddressAligned = (size_t)sysMem & ADDRESS_PAGE_ALIGNMENT_MASK_X86;  // make sure the address page aligned.
+    }
+
+    sysLeftShiftOffset = (int32_t)((size_t)sysMem - systemLinearAddressAligned);
+
+
+    if ((sysMemSize + sysLeftShiftOffset) > CM_MAX_1D_SURF_WIDTH)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid copy size.");
+        return CM_GPUCOPY_INVALID_SIZE;
+    }
+
+    if (!m_device->HasGpuCopyKernel())
+    {
+        //return CM_NOT_IMPLEMENTED;
+        bCPUcopy = true;
+    }
+
+    if (sysMem == nullptr)
+    {
+        CM_ASSERTMESSAGE("Error: Pointer to system memory is null.");
+        return CM_NULL_POINTER;
+    }
+
+    threadWidth = 511;
+    threadHeight = (threadNum + threadWidth - 1) / threadWidth;
+    while (threadHeight > (CM_MAX_THREADSPACE_HEIGHT_SKLUP_FOR_MW >>1))
+    {
+        threadWidth++; // THREAD_SPACE_WIDTH_INCREMENT; //threadWidth << 1;
+        threadHeight = (threadNum + threadWidth - 1) / threadWidth;
+
+        if (threadWidth > (CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW >>1))
+        {
+            hr = CM_GPUCOPY_INVALID_SIZE; // thread number exceed 1023*1023
+            goto finish;
+        }
+    }
+
+     if (bCPUcopy)
+    {
+        void* data = MOS_New(CopyThreadData);  // malloc  use mos utility
+
+        ((CopyThreadData*)data)->buffer = dynamic_cast<CmBuffer_RT*>(buffer);
+        ((CopyThreadData*)data)->offset = offset;
+        ((CopyThreadData*)data)->sysMem = (unsigned char*)sysMem;
+        ((CopyThreadData*)data)->sysMemSize = sysMemSize;
+        ((CopyThreadData*)data)->dir = dir;
+        ((CopyThreadData*)data)->wait_event = wait_event;
+        ((CopyThreadData*)data)->event = event;
+        ((CopyThreadData*)data)->option = option;
+        ((CopyThreadData*)data)->pCmQueueRT = this;
+        ((CopyThreadData*)data)->cpuFrrequency = m_CPUperformanceFrequency;
+
+        workThread = MOS_CreateThread((void*)BufferCopyThread, data);
+        if (workThread)
+            hr = CM_SUCCESS;
+        else
+            hr = CM_INVALID_MOS_RESOURCE_HANDLE;
+    }
+    else
+    {
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateBufferUP((int)sysMemSize + sysLeftShiftOffset, (void*)systemLinearAddressAligned, sysUPbuffer));
+
+        CM_CHK_CMSTATUS_GOTOFINISH(CreateGPUCopyKernel((int)sysMemSize, 0, CM_SURFACE_FORMAT_INVALID, CM_FASTCOPY_CPU2CPU, gpuCopyKernelParam));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(gpuCopyKernelParam->kernel);
+        kernel = gpuCopyKernelParam->kernel;
+
+        CM_CHK_NULL_GOTOFINISH_CMERROR(buffer);
+        CM_CHK_CMSTATUS_GOTOFINISH(buffer->GetIndex(vBufferIndex));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(sysUPbuffer);
+        CM_CHK_CMSTATUS_GOTOFINISH(sysUPbuffer->GetIndex(sysUPIndex));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetThreadCount(threadNum));
+
+        if (dir)
+        {
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(0, sizeof(SurfaceIndex), sysUPIndex));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(1, sizeof(SurfaceIndex), vBufferIndex));
+        }
+        else
+        {
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(0, sizeof(SurfaceIndex), vBufferIndex));
+            CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(1, sizeof(SurfaceIndex), sysUPIndex));
+        }
+
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(2, sizeof(int), &threadWidth));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(3, sizeof(int), &threadHeight));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(4, sizeof(int), &offset));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(5, sizeof(int), &sysLeftShiftOffset));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernel->SetKernelArg(6, sizeof(int), &copySize));
+
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateThreadSpace(threadWidth, threadHeight, threadSpace));
+
+        CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(task));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(task);
+        CM_CHK_CMSTATUS_GOTOFINISH(task->AddKernel(kernel));
+
+        if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
+        {
+            // disable turbo
+            CM_TASK_CONFIG taskConfig;
+            CmSafeMemSet(&taskConfig, 0, sizeof(CM_TASK_CONFIG));
+            taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
+            task->SetProperty(taskConfig);
+        }
+
+        CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, event, threadSpace));
+    }
+
+finish:
+    if (hr != CM_SUCCESS)
+    {   //Failed
+        if (sysUPbuffer == nullptr || buffer == nullptr)
+        {
+            hr = CM_GPUCOPY_OUT_OF_RESOURCE; // user need to know whether the failure is caused by out of BufferUP.
+        }
+        else
+        {
+            hr = CM_FAILURE;
+        }
+    }
+
+       if (sysUPbuffer)                      m_device->DestroyBufferUP(sysUPbuffer);
+       if (kernel && gpuCopyKernelParam)      GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
+       if (threadSpace)                       m_device->DestroyThreadSpace(threadSpace);
+       if (task)                              m_device->DestroyTask(task);
+
+    return hr;
+}
+
+
+
 
 //*----------------------------------------------------------------------------------------
 //| Purpose:    Pop task from flushed Queue, Update surface state and Destroy the task
@@ -3274,7 +3506,9 @@ int32_t CmQueueRT::CreateEvent(CmTaskInternal *task, bool isVisible, int32_t &ta
         m_eventArray.SetElement( freeSlotInEventArray, event );
         m_eventCount ++;
 
-        task->SetTaskEvent( event );
+        if (task)
+            task->SetTaskEvent( event );
+
         if (!isVisible)
         {
             event = nullptr;

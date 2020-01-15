@@ -933,7 +933,7 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         CM_ASSERT(cmQueue);
 
         cmRet = cmQueue->EnqueueCopyCPUToCPU((unsigned char *) enqueueCopyL2LParam->dstSysMem,
-                                           (unsigned char *) enqueueCopyL2LParam->srcSysMem,
+                                            (unsigned char *) enqueueCopyL2LParam->srcSysMem,
                                             enqueueCopyL2LParam->copySize,
                                             enqueueCopyL2LParam->option,
                                             cmEvent);
@@ -941,6 +941,27 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         enqueueCopyL2LParam->eventHandle = cmEvent;
         enqueueCopyL2LParam->returnValue = cmRet;
 
+        break;
+
+    case CM_FN_CMQUEUE_ENQUEUECOPY_BUFFER:
+        PCM_ENQUEUE_COPY_BUFFER_PARAM  enqueueCopyBtoCPUParam;
+        enqueueCopyBtoCPUParam = (PCM_ENQUEUE_COPY_BUFFER_PARAM)(cmPrivateInputData);
+        cmQueue = (CmQueue*)enqueueCopyBtoCPUParam->cmQueueHandle;
+        CM_ASSERT(cmQueue);
+        cmEvent = (CmEvent*)enqueueCopyBtoCPUParam->cmEventHandle; // used as input
+        cmQueueRT = static_cast<CmQueueRT*>(cmQueue);
+
+        cmRet = cmQueueRT->EnqueueBufferCopy((CmBuffer*)enqueueCopyBtoCPUParam->buffer,
+                                            enqueueCopyBtoCPUParam->offset,
+                                            (unsigned char*)enqueueCopyBtoCPUParam->sysMem,
+                                            enqueueCopyBtoCPUParam->copySize,
+                                            (CM_GPUCOPY_DIRECTION)enqueueCopyBtoCPUParam->copyDir,
+                                            (CmEvent*)enqueueCopyBtoCPUParam->wait_event,
+                                            cmEvent,
+                                            enqueueCopyBtoCPUParam->option);
+
+        enqueueCopyBtoCPUParam->cmEventHandle = cmEvent;
+        enqueueCopyBtoCPUParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMQUEUE_ENQUEUEVEBOX:

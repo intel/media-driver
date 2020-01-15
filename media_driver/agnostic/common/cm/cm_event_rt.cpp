@@ -229,6 +229,16 @@ int32_t CmEventRT::GetStatusNoFlush(CM_STATUS& status)
     return CM_SUCCESS;
 }
 
+int32_t CmEventRT::ModifyStatus(CM_STATUS status, uint64_t elapsedTime)
+{
+    if (m_ticks == 0)
+    {
+        m_time = elapsedTime;
+    }
+    m_status = status;
+    return CM_SUCCESS;
+}
+
 int32_t CmEventRT::GetQueue(CmQueueRT *& queue)
 {
     queue = m_queue;

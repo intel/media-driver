@@ -117,6 +117,8 @@ public:
 
     int32_t GetStatusNoFlush(CM_STATUS &status);
 
+    int32_t ModifyStatus(CM_STATUS status, uint64_t elapsedTime);
+
     int32_t GetQueue(CmQueueRT *&queue);
 
     int32_t Query();

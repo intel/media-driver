@@ -354,6 +354,7 @@ public:
         WriteSurface(const unsigned char *sysMem,
                      CmEvent *event,
                      uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
+
 };
 
 }//namespace
