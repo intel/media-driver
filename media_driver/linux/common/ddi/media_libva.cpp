@@ -1239,11 +1239,6 @@ VAStatus DdiMedia__Initialize (
     struct drm_state *pDRMState = (struct drm_state *)ctx->drm_state;
     DDI_CHK_NULL(pDRMState,    "nullptr pDRMState", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if(CPLibUtils::LoadCPLib(ctx))
-    {
-        DDI_NORMALMESSAGE("CPLIB is not loaded.");
-    }
-
     // If libva failes to open the graphics card, try to open it again within Media Driver
     if(pDRMState->fd < 0 || pDRMState->fd == 0 )
     {
@@ -1274,6 +1269,24 @@ VAStatus DdiMedia__Initialize (
         mediaCtx->uiRef++;
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_SUCCESS;
+    }
+
+    mediaCtx = DdiMedia_CreateMediaDriverContext();
+    if (nullptr == mediaCtx)
+    {
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+    mediaCtx->uiRef++;
+    ctx->pDriverData = (void *)mediaCtx;
+
+    SetupApoMosSwitch(devicefd);
+    mediaCtx->apoMosEnabled = g_apoMosEnabled;
+
+    // LoadCPLib after mediaCtx->apoMosEnabled is set correctly. cp lib init would use it.
+    if (!CPLibUtils::LoadCPLib(ctx))
+    {
+        DDI_NORMALMESSAGE("CPLIB is not loaded.");
     }
 
     MOS_utilities_init();
@@ -1313,14 +1326,7 @@ VAStatus DdiMedia__Initialize (
     }
 #endif
 
-    mediaCtx = DdiMedia_CreateMediaDriverContext();
-    if (nullptr == mediaCtx)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
 
-    mediaCtx->uiRef++;
 
     // Heap initialization here
     mediaCtx->pSurfaceHeap                         = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
@@ -1517,7 +1523,6 @@ VAStatus DdiMedia__Initialize (
     }
 #endif
 
-    ctx->pDriverData  = (void*)mediaCtx;
     mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
 
 #if !defined(ANDROID) && defined(X11_FOUND)
@@ -1554,10 +1559,6 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->m_useSwSwizzling = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrSimulationMode) || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
     mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
     mediaCtx->modularizedGpuCtxEnabled = true;
-
-    SetupApoMosSwitch(&mediaCtx->platform);
-    using FuncType = bool (*)(uint32_t);
-    CPLibUtils::InvokeCpFunc<FuncType>(CPLibUtils::FUNC_SETUP_MOS_APO_SWITCH, g_apoMosEnabled);
 
     if (g_apoMosEnabled)
     {
@@ -1805,13 +1806,14 @@ static VAStatus DdiMedia_Terminate (
     mediaCtx->GmmFuncs.pfnDeleteClientContext(mediaCtx->pGmmClientContext);
     mediaCtx->GmmFuncs.pfnDestroySingletonContext();
 
-    // release media driver context
+    MOS_utilities_close();
+
+    // release media driver context, ctx creation is behind the mos_utilities_init
+    // If free earilier than MOS_utilities_close, memnja count error.
     MOS_FreeMemory(mediaCtx);
 
     ctx->pDriverData = nullptr;
     CPLibUtils::UnloadCPLib(ctx);
-
-    MOS_utilities_close();
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 

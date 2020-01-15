@@ -83,16 +83,27 @@ extern int32_t MosMemAllocCounterGfx;
 
 //============= PRIVATE FUNCTIONS <BEGIN>=========================================
 
-void SetupApoMosSwitch(PLATFORM *platform)
+void SetupApoMosSwitch(int32_t fd)
 {
-    if (platform == nullptr)
+    if (fd < 0)
     {
         g_apoMosEnabled = 0;
         return;
     }
 
-    // Mos APO wrapper
-    if (platform->eProductFamily >= FUTURE_PLATFORM_MOS_APO)
+    //Read user feature to determine if apg mos is enabled.
+    uint32_t    userfeatureValue = 0;
+    MOS_STATUS  estatus          = MosUtilities::MosReadApoMosEnabledUserFeature(userfeatureValue);
+
+    if(estatus == MOS_STATUS_SUCCESS)
+    {
+        g_apoMosEnabled = userfeatureValue;
+        return;
+    }
+    PRODUCT_FAMILY eProductFamily = IGFX_UNKNOWN;
+    HWInfo_GetGfxProductFamily(fd, eProductFamily);
+
+    if (eProductFamily >= FUTURE_PLATFORM_MOS_APO)
     {
         g_apoMosEnabled = 1;
     }
@@ -100,37 +111,8 @@ void SetupApoMosSwitch(PLATFORM *platform)
     {
         g_apoMosEnabled = 0;
     }
-
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-
-    UserFeatureData.i32Data     = g_apoMosEnabled;
-    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_APO_MOS_PATH_ENABLE_ID,
-        &UserFeatureData);
-    g_apoMosEnabled = (UserFeatureData.i32Data) ? 1 : 0;
-
-#if MOS_MEDIASOLO_SUPPORTED
-    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
-    int32_t                bSoloInUse;
-
-    // when MediaSolo is enabled, turn off APO MOS path
-    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_ID,
-        &userFeatureValueData);
-    bSoloInUse = (userFeatureValueData.u32Data) ? true : false;
-
-    if (bSoloInUse)
-    {
-        g_apoMosEnabled = 0;
-    }
-#endif //MOS_MEDIASOLO_SUPPORTED
+    return;
 }
-
 
 
 //!

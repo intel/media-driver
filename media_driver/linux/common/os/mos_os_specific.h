@@ -493,7 +493,7 @@ struct MOS_CONTEXT_OFFSET
 
 // APO related
 #define FUTURE_PLATFORM_MOS_APO   1234
-void SetupApoMosSwitch(PLATFORM *platform);
+void SetupApoMosSwitch(int32_t fd);
 
 enum OS_SPECIFIC_RESOURCE_TYPE
 {

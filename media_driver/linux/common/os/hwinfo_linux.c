@@ -64,6 +64,39 @@ static bool MediaGetParam(int fd, int32_t param, uint32_t *retValue)
 
 /*****************************************************************************\
 Description:
+    Get ProductFamily according to input device FD
+
+Input:
+    fd              - file descriptor to the /dev/dri/cardX
+Output:
+    eProductFamily  - describing current platform product family
+\*****************************************************************************/
+MOS_STATUS HWInfo_GetGfxProductFamily(int32_t fd, PRODUCT_FAMILY &eProductFamily)
+{
+    if (fd < 0)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid parameter \n");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
+    if (HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
+    GfxDeviceInfo *devInfo = getDeviceInfo(drvInfo.devId);
+    if (devInfo == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to get the device info for Device id: %x\n", drvInfo.devId);
+        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+    }
+    eProductFamily = (PRODUCT_FAMILY)devInfo->productFamily;
+    return MOS_STATUS_SUCCESS;
+}
+
+
+/*****************************************************************************\
+Description:
     Get Sku/Wa tables and platform information according to input device FD
 
 Input:

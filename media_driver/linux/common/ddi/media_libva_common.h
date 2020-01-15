@@ -505,6 +505,7 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T    PutSurfaceRenderMutex;
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
 #endif
+    bool apoMosEnabled;
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)

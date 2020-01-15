@@ -1575,6 +1575,97 @@ int32_t MosUtilities::MosUserFeatureWaitForSingleObject(
     return (iRet != 0);
 }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS MosUtilities::MosGetApoMosEnabledUserFeatureFile()
+{
+    // Get use user feature file from env, instead of default.
+    FILE *       fp      = nullptr;
+    static char *tmpFile = getenv("GFX_FEATURE_FILE");
+
+    if (tmpFile != nullptr)
+    {
+        if ((fp = fopen(tmpFile, "r")) != nullptr)
+        {
+            if (MosUtilitiesSpecificNext::m_szUserFeatureFile != tmpFile)
+                MosUtilitiesSpecificNext::m_szUserFeatureFile = tmpFile;
+            fclose(fp);
+            MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE", MosUtilitiesSpecificNext::m_szUserFeatureFile);
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Can't open %s for USER_FEATURE_FILE!!!", tmpFile);
+            return MOS_STATUS_FILE_NOT_FOUND;
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
+MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureValue, char *path)
+{
+    MOS_STATUS eStatus  = MOS_STATUS_SUCCESS;
+    void *     UFKey    = nullptr;
+    uint32_t   dwUFSize = 0;
+    uint32_t   data     = 0;
+    MOS_UNUSED(path);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    eStatus = MosGetApoMosEnabledUserFeatureFile();
+#endif
+
+    eStatus = MosUserFeatureOpen(
+        MOS_USER_FEATURE_TYPE_USER,
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        KEY_READ,
+        &UFKey);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to open ApoMosEnable user feature key , error status %d.", eStatus);
+        return eStatus;
+    }
+
+    //If apo mos enabled, to check if media solo is enabled. Disable apo mos if media solo is enabled.
+#if MOS_MEDIASOLO_SUPPORTED
+    eStatus = MosUserFeatureGetValue(
+        UFKey,
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE,
+        RRF_RT_UF_DWORD,
+        nullptr,
+        &data,
+        &dwUFSize);
+
+    //If media solo is enabled, disable apogeios.
+    if (eStatus == MOS_STATUS_SUCCESS && data > 0)
+    {
+        // This error case can be hit if the user feature key does not exist.
+        MOS_OS_NORMALMESSAGE("Solo is enabled, disable apo mos");
+        userfeatureValue = 0;
+        MosUserFeatureCloseKey(UFKey);  // Closes the key if not nullptr
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
+    eStatus = MosUserFeatureGetValue(
+        UFKey,
+        nullptr,
+        "ApoMosEnable",
+        RRF_RT_UF_DWORD,
+        nullptr,
+        &userfeatureValue,
+        &dwUFSize);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        // This error case can be hit if the user feature key does not exist.
+        MOS_OS_NORMALMESSAGE("Failed to read ApoMosEnable  user feature key value, error status %d", eStatus);
+    }
+
+    MosUserFeatureCloseKey(UFKey);  // Closes the key if not nullptr
+    return eStatus;
+}
+
 int32_t MosUtilities::MosUnregisterWaitEx(PTP_WAIT hWaitHandle)
 {
     int32_t iPid;

@@ -922,6 +922,20 @@ public:
         PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues,
         uint32_t                           uiNumOfValues);
 
+
+    //!
+    //! \brief    Read the User Feature Value of ApoMosEnabled
+    //! \details  Read the User Feature Value of ApoMosEnabled
+    //! \param    uint32_t& userfeatureValue
+    //!           [in] reference to a userfeatureValue
+    //! \param    char *path
+    //!           [in] stated uf key path
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosReadApoMosEnabledUserFeature(uint32_t &userfeatureValue, char *path = nullptr);
+
     //------------------------------------------------------------------------------
     // String Functions
     //------------------------------------------------------------------------------
@@ -1999,6 +2013,20 @@ private:
     static MOS_STATUS MosUserFeatureReadValueFromMapID(
         uint32_t                        ValueID,
         PMOS_USER_FEATURE_VALUE_DATA    pValueData);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief    Get the User Feature File location
+    //! \details  Get the User Feature File location
+    //! \param    uint32_t& userfeatureValue
+    //!           [in] reference to a userfeatureValue
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosGetApoMosEnabledUserFeatureFile();
+
+#endif
 
     //!
     //! \brief    User Feature Callback function

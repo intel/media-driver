@@ -104,7 +104,6 @@ public:
     static const char* FUNC_DELETE_DECODECP;
     static const char* FUNC_CREATE_CPSTREAMOUT;
     static const char* FUNC_DELETE_CPSTREAMOUT;
-    static const char* FUNC_SETUP_MOS_APO_SWITCH;
 
     static std::unordered_map<const char*, void*> m_symbols;
     static std::mutex                             m_referenceMutex;
