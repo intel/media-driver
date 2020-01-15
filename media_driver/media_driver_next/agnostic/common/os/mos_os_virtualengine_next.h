@@ -78,10 +78,10 @@ public:
     //! \brief    Verify secondary cmd buffer size
     //! \param    [in]  dwNewRequestSize
     //!                new request cmd buffer size
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //! \return   bool
+    //!           true if size is enough, else the size < new requested size
     //!
-    virtual MOS_STATUS VerifySecdryCmdBufSize(
+    virtual bool VerifySecdryCmdBufSize(
         uint32_t dwNewRequestSize) = 0;
 
     //!

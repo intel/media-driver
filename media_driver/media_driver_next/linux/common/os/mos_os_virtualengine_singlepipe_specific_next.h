@@ -40,8 +40,8 @@ public:
     // No secondary cmd buf used in single pipe mode
     void ResetSecdryCmdBufStates() {}
 
-    MOS_STATUS VerifySecdryCmdBufSize(
-        uint32_t dwNewRequestSize) { return MOS_STATUS_SUCCESS; }
+    bool VerifySecdryCmdBufSize(
+        uint32_t dwNewRequestSize) { return true; }
 
     MOS_STATUS ResizeSecdryCmdBuf(
         uint32_t dwNewRequestSize) { return MOS_STATUS_SUCCESS; }
