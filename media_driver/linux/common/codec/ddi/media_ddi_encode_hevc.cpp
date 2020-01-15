@@ -737,20 +737,20 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
             hevcSlcParams->luma_offset[0][i]       = vaEncSlcParamsHEVC->luma_offset_l0[i];
             hevcSlcParams->delta_luma_weight[0][i] = vaEncSlcParamsHEVC->delta_luma_weight_l0[i];
 
-            hevcSlcParams->chroma_offset[0][i][0]       = vaEncSlcParamsHEVC->chroma_offset_l0[i][0];
+            hevcSlcParams->chroma_offset[0][i][0]       = MOS_CLAMP_MIN_MAX(vaEncSlcParamsHEVC->chroma_offset_l0[i][0], minChromaOffset, maxChromaOffset);
             hevcSlcParams->delta_chroma_weight[0][i][0] = vaEncSlcParamsHEVC->delta_chroma_weight_l0[i][0];
 
-            hevcSlcParams->chroma_offset[0][i][1]       = vaEncSlcParamsHEVC->chroma_offset_l0[i][1];
+            hevcSlcParams->chroma_offset[0][i][1]       = MOS_CLAMP_MIN_MAX(vaEncSlcParamsHEVC->chroma_offset_l0[i][1], minChromaOffset, maxChromaOffset);
             hevcSlcParams->delta_chroma_weight[0][i][1] = vaEncSlcParamsHEVC->delta_chroma_weight_l0[i][1];
 
             // list 1
             hevcSlcParams->luma_offset[1][i]       = vaEncSlcParamsHEVC->luma_offset_l1[i];
             hevcSlcParams->delta_luma_weight[1][i] = vaEncSlcParamsHEVC->delta_luma_weight_l1[i];
 
-            hevcSlcParams->chroma_offset[1][i][0]       = vaEncSlcParamsHEVC->chroma_offset_l1[i][0];
+            hevcSlcParams->chroma_offset[1][i][0]       = MOS_CLAMP_MIN_MAX(vaEncSlcParamsHEVC->chroma_offset_l1[i][0], minChromaOffset, maxChromaOffset);
             hevcSlcParams->delta_chroma_weight[1][i][0] = vaEncSlcParamsHEVC->delta_chroma_weight_l1[i][0];
 
-            hevcSlcParams->chroma_offset[1][i][1]       = vaEncSlcParamsHEVC->chroma_offset_l1[i][1];
+            hevcSlcParams->chroma_offset[1][i][1]       = MOS_CLAMP_MIN_MAX(vaEncSlcParamsHEVC->chroma_offset_l1[i][1], minChromaOffset, maxChromaOffset);
             hevcSlcParams->delta_chroma_weight[1][i][1] = vaEncSlcParamsHEVC->delta_chroma_weight_l1[i][1];
         }
 

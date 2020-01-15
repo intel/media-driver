@@ -36,6 +36,9 @@ static const uint8_t sliceTypeI = 2;
 static const uint8_t numMaxRefFrame    = 15;
 static const uint8_t vdencRoiBlockSize = 32;
 
+const int8_t maxChromaOffset = 127;
+const int8_t minChromaOffset = -128;
+
 //!
 //! \class  DdiEncodeHevc
 //! \brief  DDi encode HEVC
