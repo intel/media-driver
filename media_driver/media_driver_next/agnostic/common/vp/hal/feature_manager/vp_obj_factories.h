@@ -154,7 +154,7 @@ private:
 class VpInterface
 {
 public:
-    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator &allocator, VpResourceManager &resourceManager) :
+    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator &allocator, VpResourceManager *resourceManager) :
         m_swFilterPipeFactory(*this),
         m_swFilterFactory(*this),
         m_hwFilterPipeFactory(*this),
@@ -194,7 +194,7 @@ public:
         return m_allocator;
     }
 
-    VpResourceManager &GetResourceManager()
+    VpResourceManager *GetResourceManager()
     {
         return m_resourceManager;
     }
@@ -212,7 +212,7 @@ private:
 
     PVP_MHWINTERFACE    m_hwInterface;
     VpAllocator         &m_allocator;
-    VpResourceManager   &m_resourceManager;
+    VpResourceManager   *m_resourceManager;
 };
 
 }

@@ -61,6 +61,25 @@
 #define NOISEFACTOR_MID                                 32                      //!< Mid Slider value, SKL+ only
 #define NOISEFACTOR_MIN                                 0                       //!< Min Slider value
 
+#define VP_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE                (256 * 4)
+#define VP_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE      (256 * 4)
+
+#define VP_VEBOX_MAX_SLICES                              4
+
+#define VP_VEBOX_RGB_HISTOGRAM_SIZE                      (VP_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
+                                                          VP_NUM_RGB_CHANNEL                    * \
+                                                          VP_VEBOX_MAX_SLICES)
+#define VP_VEBOX_RGB_ACE_HISTOGRAM_SIZE_RESERVED         (3072 * 4)
+
+//!
+//! \brief Vebox Statistics Surface definition for TGL
+//!
+#define VP_VEBOX_STATISTICS_SIZE                          (32 * 8)
+#define VP_VEBOX_STATISTICS_PER_FRAME_SIZE                (32 * sizeof(uint32_t))
+#define VP_VEBOX_STATISTICS_SURFACE_FMD_OFFSET            0
+#define VP_VEBOX_STATISTICS_SURFACE_GNE_OFFSET            0x2C
+#define VP_VEBOX_STATISTICS_SURFACE_STD_OFFSET            0x44
+
 //!
 //! \brief Temporal Denoise Definitions
 //!
@@ -140,6 +159,17 @@
 #define NOISE_BLF_RANGE_WGTS3_DEFAULT               NOISE_BLF_RANGE_WGTS3_MID
 #define NOISE_BLF_RANGE_WGTS4_DEFAULT               NOISE_BLF_RANGE_WGTS4_MID
 #define NOISE_BLF_RANGE_WGTS5_DEFAULT               NOISE_BLF_RANGE_WGTS5_MID
+
+// Distance Weight Matrix Denoise Definitions for SKL+ 5x5 Bilateral Filter
+#define NOISE_BLF_DISTANCE_WGTS00_DEFAULT           12
+#define NOISE_BLF_DISTANCE_WGTS01_DEFAULT           12
+#define NOISE_BLF_DISTANCE_WGTS02_DEFAULT           10
+#define NOISE_BLF_DISTANCE_WGTS10_DEFAULT           12
+#define NOISE_BLF_DISTANCE_WGTS11_DEFAULT           11
+#define NOISE_BLF_DISTANCE_WGTS12_DEFAULT           10
+#define NOISE_BLF_DISTANCE_WGTS20_DEFAULT           10
+#define NOISE_BLF_DISTANCE_WGTS21_DEFAULT           10
+#define NOISE_BLF_DISTANCE_WGTS22_DEFAULT           8
 
 //!
 //! \brief Improved Deinterlacing for CNL+

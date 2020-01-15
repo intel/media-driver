@@ -1,5 +1,4 @@
-/*__VP_RENDER_SFC_BASE_H__
-* Copyright (c) 2018-2020, Intel Corporation
+/* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),

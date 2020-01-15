@@ -93,24 +93,27 @@ struct _VP_EXECUTE_CAPS
     union {
         uint32_t value;
         struct {
-            uint32_t bVebox : 1;   // Vebox needed;
-            uint32_t bSFC : 1;   // SFC needed;
-            uint32_t bRender : 1;   // Render Only needed;
+            uint32_t bVebox         : 1;   // Vebox needed;
+            uint32_t bSFC           : 1;   // SFC needed;
+            uint32_t bRender        : 1;   // Render Only needed;
             // Vebox Features
-            uint32_t bDN : 1;   // Vebox DN needed;
-            uint32_t bDI : 1;   // Vebox DNDI enabled
-            uint32_t bIECP : 1;   // Vebox IECP needed;
-            uint32_t bLACE : 1;   // Vebox LACE Needed;
+            uint32_t bDN            : 1;   // Vebox DN needed;
+            uint32_t bDI            : 1;   // Vebox DNDI enabled
+            uint32_t bIECP          : 1;   // Vebox IECP needed;
+            uint32_t bLACE          : 1;   // Vebox LACE Needed;
+            uint32_t bQueryVariance : 1;
+            uint32_t bRefValid      : 1;   // Vebox Ref is Valid
+            uint32_t bSTD           : 1;   // Vebox LACE STD Needed;
 
             // SFC features
-            uint32_t bSfcCsc : 1;   // Sfc Csc enabled
-            uint32_t bSfcRotMir : 1;   // Sfc Rotation/Mirror needed;
-            uint32_t bSfcScaling : 1;   // Sfc Scaling Needed;
-            uint32_t bSfcIef : 1;   // Sfc Details Needed;
+            uint32_t bSfcCsc        : 1;   // Sfc Csc enabled
+            uint32_t bSfcRotMir     : 1;   // Sfc Rotation/Mirror needed;
+            uint32_t bSfcScaling    : 1;   // Sfc Scaling Needed;
+            uint32_t bSfcIef        : 1;   // Sfc Details Needed;
 
             // Render Features
-            uint32_t bComposite : 1;
-            uint32_t reserved : 20;  // Reserved
+            uint32_t bComposite     : 1;
+            uint32_t reserved       : 18;  // Reserved
         };
     };
 };

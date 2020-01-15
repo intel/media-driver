@@ -154,7 +154,7 @@ protected:
 class VpFeatureManagerNext : public MediaFeatureManager
 {
 public:
-    VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface);
+    VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager *resourceManager, PVP_MHWINTERFACE pHwInterface);
     virtual ~VpFeatureManagerNext();
 
     virtual MOS_STATUS Initialize();

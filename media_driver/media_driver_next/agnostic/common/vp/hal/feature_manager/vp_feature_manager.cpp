@@ -33,7 +33,7 @@ using namespace vp;
 /*                                      VpFeatureManagerNext                                        */
 /****************************************************************************************************/
 
-VpFeatureManagerNext::VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager &resourceManager, PVP_MHWINTERFACE pHwInterface) :
+VpFeatureManagerNext::VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager *resourceManager, PVP_MHWINTERFACE pHwInterface) :
     m_vpInterface(pHwInterface, allocator, resourceManager), m_Policy(m_vpInterface)
 {
 }
