@@ -77,7 +77,7 @@ public:
     //! \brief    Constructor
     //!
 
-    uint32_t            m_brcNumPakPasses;
+    uint32_t            m_brcNumPakPasses = 0;
     CodecHalHevcMbencG12* encoderBrc;
     CodecHalHevcBrcG12(CodecHalHevcMbencG12* encoder) { encoderBrc = encoder; };
     //!

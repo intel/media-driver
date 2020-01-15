@@ -1384,13 +1384,13 @@ public:
     // Per-frame Application Settings
     EncoderParams                   m_encodeParams = {};          //!< Encode parameters used in each frame
     uint32_t                        *m_dataHwCount = nullptr;     //!< HW count data
-    MOS_RESOURCE                     m_resHwCount;                //!< Resource of HW count
+    MOS_RESOURCE                     m_resHwCount = {};                //!< Resource of HW count
     MOS_SURFACE                     m_prevRawSurface = {};        //!< Pointer to MOS_SURFACE of previous raw surface
     MOS_SURFACE                     m_rawSurface = {};            //!< Pointer to MOS_SURFACE of raw surface
     MOS_SURFACE                     m_reconSurface = {};          //!< Pointer to MOS_SURFACE of reconstructed surface
-    MOS_RESOURCE                    m_resBitstreamBuffer;         //!< Pointer to MOS_SURFACE of bitstream surface
-    MOS_RESOURCE                    m_resMbCodeSurface;           //!< Pointer to MOS_SURFACE of MbCode surface
-    MOS_RESOURCE                    m_resMvDataSurface;           //!< Pointer to MOS_SURFACE of MvData surface
+    MOS_RESOURCE                    m_resBitstreamBuffer = {};         //!< Pointer to MOS_SURFACE of bitstream surface
+    MOS_RESOURCE                    m_resMbCodeSurface = {};           //!< Pointer to MOS_SURFACE of MbCode surface
+    MOS_RESOURCE                    m_resMvDataSurface = {};           //!< Pointer to MOS_SURFACE of MvData surface
     uint32_t                        m_mbDataBufferSize = 0;
     HwCounter                       m_regHwCount[CODECHAL_ENCODE_STATUS_NUM + 1];    //!< HW count register value
 
@@ -1430,8 +1430,8 @@ public:
     bool                            m_feiEnable = false;          //!< FEI is enabled
 
     // Synchronization
-    MOS_RESOURCE                    m_resSyncObjectRenderContextInUse; //!< Resource of the sync object to indicate render context is in use
-    MOS_RESOURCE                    m_resSyncObjectVideoContextInUse;  //!< Resource of the sync object to indicate video context is in use
+    MOS_RESOURCE                    m_resSyncObjectRenderContextInUse = {}; //!< Resource of the sync object to indicate render context is in use
+    MOS_RESOURCE                    m_resSyncObjectVideoContextInUse = {};  //!< Resource of the sync object to indicate video context is in use
     bool                            m_waitForPak = false;              //!< Flag to indicate if waiting for PAK
     bool                            m_signalEnc = false;               //!< Flag used to signal ENC
     uint32_t                        m_semaphoreObjCount = 0;           //!< Count of semaphore objects
@@ -1508,7 +1508,7 @@ public:
     bool                            m_singlePassDys = false;              //!< sungle pass dynamic scaling supported flag
 
     // CmdGen HuC FW for HEVC/VP9 VDEnc
-    MOS_RESOURCE                    m_resVdencCmdInitializerDmemBuffer;   //!< Resource of vdenc command initializer DMEM buffer
+    MOS_RESOURCE                    m_resVdencCmdInitializerDmemBuffer = {};   //!< Resource of vdenc command initializer DMEM buffer
     MOS_RESOURCE                    m_resVdencCmdInitializerDataBuffer[2];   //!< Resource of vdenc command initializer data buffer
 
     // VDEnc params
@@ -1546,7 +1546,7 @@ public:
     uint32_t                        m_mbcodeBottomFieldOffset = 0;  //!< MB code offset frame/TopField - zero, BottomField - nonzero
     uint32_t                        m_mvDataSize = 0;               //!< MV data size
     uint32_t                        m_mvBottomFieldOffset = 0;      //!< MV data offset frame/TopField - zero, BottomField - nonzero
-    MOS_RESOURCE                    m_resDistortionBuffer;          //!< MBEnc Distortion Buffer
+    MOS_RESOURCE                    m_resDistortionBuffer = {};          //!< MBEnc Distortion Buffer
     MOS_RESOURCE                    m_resMadDataBuffer[CODECHAL_ENCODE_MAX_NUM_MAD_BUFFERS]; //!< Buffers to store Mean of Absolute Differences
     bool                            m_madEnabled = false;                                    //!< Mad enabled flag
 
@@ -1569,14 +1569,14 @@ public:
     uint32_t                        m_maxNumSlicesAllowed = 0;          //!< Max number of slices allowed
 
     //VDEnc HuC FW status
-    MOS_RESOURCE                    m_resPakMmioBuffer;                 //!< Resource of PAK MMIO buffer
-    MOS_RESOURCE                    m_resHucStatus2Buffer;              //!< Resource of HuC status 2 buffer
-    MOS_RESOURCE                    m_resHucFwBuffer;                   //!< Resource of HuC Fw buffer
+    MOS_RESOURCE                    m_resPakMmioBuffer = {};                 //!< Resource of PAK MMIO buffer
+    MOS_RESOURCE                    m_resHucStatus2Buffer = {};              //!< Resource of HuC status 2 buffer
+    MOS_RESOURCE                    m_resHucFwBuffer = {};                   //!< Resource of HuC Fw buffer
     PMOS_RESOURCE                   m_resVdencBrcUpdateDmemBufferPtr[2] = {nullptr, nullptr}; //!< One for 1st pass of next frame, and the other for the next pass of current frame.
 
     // PAK Scratch Buffers
-    MOS_RESOURCE                    m_resDeblockingFilterRowStoreScratchBuffer;                 //!< Handle of deblock row store surface
-    MOS_RESOURCE                    m_resMPCRowStoreScratchBuffer;                              //!< Handle of mpc row store surface
+    MOS_RESOURCE                    m_resDeblockingFilterRowStoreScratchBuffer = {};                 //!< Handle of deblock row store surface
+    MOS_RESOURCE                    m_resMPCRowStoreScratchBuffer = {};                              //!< Handle of mpc row store surface
     MOS_RESOURCE                    m_resStreamOutBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Handle of streamout data surface
 
     // Scaling
@@ -1621,7 +1621,7 @@ public:
     uint32_t                        m_mbvProcStatsBottomFieldOffset    = 0;                                 //!< MB VProc statistics Bottom Field Offset
     CODECHAL_ENCODE_BUFFER          m_resMbStatisticsSurface;                                               //!< Resource of Mb statistics surface
     bool                            m_mbStatsSupported = false;                           //!< Mb statistics supported flag
-    MOS_RESOURCE                    m_resMbStatsBuffer;                                   //!< Resource of Mb statistics buffer
+    MOS_RESOURCE                    m_resMbStatsBuffer = {};                                   //!< Resource of Mb statistics buffer
     uint32_t                        m_mbStatsBottomFieldOffset = 0;                       //!< Mb statistics bottom field offset
 
     // ME

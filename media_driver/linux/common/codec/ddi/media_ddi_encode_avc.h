@@ -49,9 +49,9 @@ public:
     void ResetBitOffset();
 
 protected:
-    uint8_t const *m_pInBits;
-    uint32_t m_BitSize;
-    uint32_t m_BitOffset;
+    uint8_t const *m_pInBits = nullptr;
+    uint32_t m_BitSize = 0;
+    uint32_t m_BitOffset = 0;
 
 private:
     AvcInBits() {};
@@ -71,11 +71,11 @@ public:
     uint32_t GetBitOffset();
 
 protected:
-    uint8_t *m_pOutBits;
-    uint8_t *m_pOutBitsEnd;
-    uint32_t m_BitSize;
-    uint32_t m_ByteSize;
-    uint32_t m_BitOffset;
+    uint8_t *m_pOutBits = nullptr;
+    uint8_t *m_pOutBitsEnd = nullptr;
+    uint32_t m_BitSize = 0;
+    uint32_t m_ByteSize = 0;
+    uint32_t m_BitOffset = 0;
 
 private:
     AvcOutBits() {};
