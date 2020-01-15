@@ -124,13 +124,23 @@ MOS_STATUS MediaScalability::Destroy()
         return MosInterface::DestroyVirtualEngineState(m_osInterface->osStreamState);
     }
 
-    SCALABILITY_CHK_NULL_RETURN(m_veInterface);
-    
-    if(m_veInterface->pfnVEDestroy)
+    if (m_veInterface)
     {
-        m_veInterface->pfnVEDestroy(m_veInterface);
+        if(m_veInterface->pfnVEDestroy)
+        {
+            m_veInterface->pfnVEDestroy(m_veInterface);
+        }
+        MOS_FreeMemAndSetNull(m_veInterface);
     }
-    MOS_FreeMemAndSetNull(m_veInterface);
+    else
+    {
+        // For VE not enabled/supported case, such as vp vebox on some platform, m_veInterface is nullptr.
+        // MOS_STATUS_SUCCESS should be returned for such case.
+        if (MOS_VE_SUPPORTED(m_osInterface))
+        {
+            SCALABILITY_CHK_NULL_RETURN(m_veInterface);
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }
