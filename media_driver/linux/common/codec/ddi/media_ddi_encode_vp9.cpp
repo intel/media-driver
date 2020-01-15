@@ -124,6 +124,10 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
         seqParams->SeqFlags.fields.SourceFormat   = VP9_ENCODED_CHROMA_FORMAT_YUV422;
         seqParams->SeqFlags.fields.SourceBitDepth = VP9_ENCODED_BIT_DEPTH_8;
         break;
+    case Format_UYVY:
+        seqParams->SeqFlags.fields.SourceFormat   = VP9_ENCODED_CHROMA_FORMAT_YUV422;
+        seqParams->SeqFlags.fields.SourceBitDepth = VP9_ENCODED_BIT_DEPTH_8;
+        break;
     case Format_AYUV:
     case Format_A8R8G8B8:
     case Format_A8B8G8R8:
