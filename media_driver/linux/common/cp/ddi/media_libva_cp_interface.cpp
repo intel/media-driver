@@ -85,7 +85,7 @@ VAStatus DdiCpInterface::RenderCencPicture(
     void                  *data)
 {
     DdiStubMessage();
-    return VA_STATUS_SUCCESS;
+    return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
 }
 
 VAStatus DdiCpInterface::CreateBuffer(
@@ -137,7 +137,7 @@ VAStatus DdiCpInterface::ParseCpParamsForEncode()
     return VA_STATUS_SUCCESS;
 }
 
-void DdiCpInterface::SetHdcp2Enabled(int32_t flag)
+void DdiCpInterface::SetCpFlags(int32_t flag)
 {
     DdiStubMessage();
 }

@@ -69,7 +69,7 @@ public:
 
     virtual VAStatus ParseCpParamsForEncode();
 
-    virtual void SetHdcp2Enabled(int32_t flag);
+    virtual void SetCpFlags(int32_t flag);
 
     virtual bool IsHdcp2Enabled();
 

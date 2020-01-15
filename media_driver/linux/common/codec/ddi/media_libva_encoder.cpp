@@ -361,7 +361,7 @@ VAStatus DdiEncode_CreateContext(
     // Attach PMEDIDA_DRIVER_CONTEXT
     encCtx->pMediaCtx = mediaDrvCtx;
 
-    encCtx->pCpDdiInterface->SetHdcp2Enabled(flag);
+    encCtx->pCpDdiInterface->SetCpFlags(flag);
     encCtx->pCpDdiInterface->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
 
     vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);

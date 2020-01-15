@@ -96,6 +96,12 @@ public:
         return false;
     }
 
+    virtual bool IsTSEnabled()
+    {
+        OsStubMessage();
+        return false;
+    }
+
     virtual bool IsIDMEnabled()
     {
         OsStubMessage();

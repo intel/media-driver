@@ -1256,7 +1256,14 @@ VAStatus DdiEncodeBase::CreateBuffer(
             return va;
         }
 
-        DDI_ASSERTMESSAGE("DDI: non supported buffer type = %d, size = %d, num = %d", type, size, elementsNum);
+        va = m_encodeCtx->pCpDdiInterface->CreateBuffer(type, buf, size, elementsNum);
+        if (va  == VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE)
+        {
+            MOS_FreeMemory(buf);
+            DDI_ASSERTMESSAGE("DDI: non supported buffer type = %d, size = %d, num = %d", type, size, elementsNum);
+            return va;
+        }
+
         break;
     }
     }
