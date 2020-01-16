@@ -30,7 +30,6 @@ class CmTask;
 class CmEvent;
 class CmThreadSpace;
 class CmThreadGroupSpace;
-class CmBuffer;
 class CmSurface2D;
 class CmKernel;
 class CmVebox;
@@ -526,75 +525,6 @@ public:
     CM_RT_API virtual int32_t EnqueueWithGroupFast(CmTask *task,
                                   CmEvent *&event,
                                   const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
-
-    //!
-    //! \brief    Enqueue the kernel to copy memory from video memory buffer/1D surface to system memory.
-    //! \details  This function enqueues a task that contains a pre-defined kernel to copy from
-    //!           video memory buffer/1D surface to system memory. This is a non-blocking call.
-    //!           Buffer read copy task need to wait a CM wait_event to check dependent condition ready
-    //!           status before actual copy starts.
-    //!           Also a Cm notification event is generated each time a task is enqueued.
-    //!           The CmEvent can be used to check the status or other data regarding the task execution.
-    //! \param    [in] buffer
-    //!           CM Buffer as 1D surface is copy source
-    //! \param    [in] offset
-    //!           data copy starting address offset within CM buffer 
-    //! \param    [in] sysMem
-    //!           system memory as copy destination, better to be 16-Byte aligned
-    //! \param    [in] sysMemSize
-    //!           data byte count to copy into system memory 
-    //! \param    [in] wait_event
-    //!           a wait conditional event before read copy starts
-    //! \param    [in,out] event
-    //!           reference to pointer of CM event generated to notify buffer read copy task status change
-    //! \param    [in] option
-    //!           If it is none-zero, CPU worker thread will be used for buffer read copy
-    //! \retval   CM_SUCCESS if the task is successfully enqueued
-    //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources
-    //! \retval   CM_FAILURE otherwise
-    //!
-    CM_RT_API virtual int32_t EnqueueReadBuffer(CmBuffer* buffer,
-                                                size_t offset,
-                                                const unsigned char* sysMem,
-                                                uint64_t sysMemSize,
-                                                CmEvent* wait_event,
-                                                CmEvent*& event,
-                                                unsigned option = 0) = 0;
-
-    //!
-    //! \brief    Enqueue the kernel to copy memory from to system memory to video memory buffer/1D surface
-    //! \details  This function enqueues a task, which contains a pre-defined kernel to copy from system
-    //!           memory to 1D surface.This is a non-blocking call.
-    //!           Buffer write copy task need to wait an CM wait_event to check condition ready status
-    //!           before actual copy starts.
-    //!           Also a Cm notification event is generated each time a task is enqueued.
-    //!           The CmEvent can be used to check the status or other data regarding the task execution.
-    //! \param    [in] buffer
-    //!           CM Buffer as 1D surface is copy destination
-    //! \param    [in] offset
-    //!           data copy starting address offset within CM buffer 
-    //! \param    [in] sysMem
-    //!           system memory as copy source, better to be 16-Byte aligned
-    //! \param    [in] sysMemSize
-    //!           data byte count to copy from system memory 
-    //! \param    [in] wait_event
-    //!           a wait conditional event before write copy starts
-    //! \param    [in,out] event
-    //!           reference to pointer of CM event generated to notify buffer write copy task status change
-    //! \param    [in] option
-    //!           If it is none-zero, CPU worker thread will be used for buffer copy
-    //! \retval   CM_SUCCESS if the task is successfully enqueued
-    //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources
-    //! \retval   CM_FAILURE otherwise
-    //!
-    CM_RT_API virtual int32_t EnqueueWriteBuffer(CmBuffer* buffer,
-                                                 size_t offset,
-                                                 const unsigned char* sysMem,
-                                                 uint64_t sysMemSize,
-                                                 CmEvent* wait_event,
-                                                 CmEvent*& event,
-                                                 unsigned option = 0) = 0;
-
 
     //!
     //! \brief    [Only In Emu Mode] set the resident group number and parallel thread number
