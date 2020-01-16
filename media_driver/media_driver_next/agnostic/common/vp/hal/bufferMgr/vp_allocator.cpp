@@ -517,8 +517,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
     // compressible should be compared with bCompressible since it is inited by bCompressible in previous call
     // TileType of surface should be compared since we need to reallocate surface if TileType changes
-    if (!surface->osSurface                                        &&
-        !Mos_ResourceIsNull(&surface->osSurface->OsResource)       &&
+    if (surface->osSurface                                            &&
+        !Mos_ResourceIsNull(&surface->osSurface->OsResource)          &&
         (surface->osSurface->dwWidth              == width)           &&
         (surface->osSurface->dwHeight             == height)          &&
         (surface->osSurface->Format               == format)          &&
