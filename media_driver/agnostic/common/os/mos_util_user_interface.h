@@ -21,7 +21,7 @@
 */
 //!
 //! \file     mos_util_user_interface.h
-//! \brief    Common MOS util user feature key service across different platform 
+//! \brief    Common MOS util user feature key service across different platform
 //! \details  Common MOS util user feature key service across different platform
 //!
 #ifndef __MOS_UTIL_USER_INTERFACE_H__
@@ -30,6 +30,8 @@
 #include "igfxfmid.h"
 #include "mos_utilities.h"
 #include <map>
+
+using UserFeatureValueMapType = std::map<uint32_t, PMOS_USER_FEATURE_VALUE>;
 
 class MosUtilUserInterface
 {
@@ -82,6 +84,17 @@ public:
     //!           Returns if default value can be changed.
     //!
     static bool  IsDefaultValueChanged() { return m_defaultValueChanged; }
+
+    //!
+    //! \brief    Get user feature key map
+    //! \details  Get user feature key map
+    //! \return   UserFeatureValueMapType
+    //!           Returns the map of user feature keys.
+    //!
+    static UserFeatureValueMapType& GetUserFeatureKeyMap()
+    {
+        return m_userFeatureKeyMap;
+    }
 
 private:
     static std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  m_userFeatureKeyMap;

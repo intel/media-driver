@@ -308,7 +308,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_BOOL,
         "0",
-        "Perf Profiler FE&BE Timing Measurement Flag"),
+        "Perf Profiler FE and BE Timing Measurement Flag"),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
         "Perf Profiler Output File Name",
         __MEDIA_USER_FEATURE_SUBKEY_PERFORMANCE,
@@ -3355,7 +3355,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_UINT32,
         "0",
-        "Hcp Decode mode switch single pipe <-> 2 pipe"),
+        "Hcp Decode mode switch single pipe - 2 pipe"),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD2_ID,
         "HCP Decode Mode Switch TH2",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -3364,7 +3364,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_UINT32,
         "0",
-        "Hcp Decode mode switch single pipe <-> 2/3 pipe"),
+        "Hcp Decode mode switch single pipe - 2/3 pipe"),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE,
         "Enable VE Debug Override",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -3580,7 +3580,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_BOOL,
         "0",
-        "HEVC Vme encode force scalability for low (< 4K) resolution. (Default 0"),
+        "HEVC Vme encode force scalability for low (below 4K) resolution. (Default 0"),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_SEMA_RESET_DELAY_ID,
         "HEVC VDEnc Semaphore Reset Delay",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -4512,8 +4512,8 @@ MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia()
         return MosUtilities::DumpUserFeatureKeyDefinitionsMedia();
 
     // Init MOS User Feature Key from mos desc table
-    MOS_OS_CHK_STATUS( MOS_DeclareUserFeatureKeysForAllDescFields() );
-    MOS_OS_CHK_STATUS( MOS_GenerateUserFeatureKeyXML() );
+    MOS_OS_CHK_STATUS(MOS_DeclareUserFeatureKeysForAllDescFields());
+    MOS_OS_CHK_STATUS(MOS_GenerateUserFeatureKeyXML());
 finish:
     return    eStatus;
 }
@@ -4704,8 +4704,8 @@ MOS_STATUS MOS_GenerateUserFeatureKeyXML()
     uint32_t                            uiIndex=0;
     MOS_USER_FEATURE_VALUE              UserFeatureFilter = __NULL_USER_FEATURE_VALUE__;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
-    const char * const                  FilterGroups[] = { "Codec", "Decode", "Encode", "CP",
-                                                           "General", "MOS", "Report", "VP"};
+    const char * const                  FilterGroups[] = { "Codec", "Decode", "Encode", "CP", "General", "MOS",
+                                                           "Report", "VP", "Media", "Secure HEVC Encode", "MDF"};
     uint32_t                            FilterGroupsCount = sizeof(FilterGroups) / sizeof(FilterGroups[0]);
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
@@ -4922,31 +4922,31 @@ MOS_STATUS MOS_CopyUserFeatureValueData(
     case MOS_USER_FEATURE_VALUE_TYPE_MULTI_STRING:
         if ((pSrcData->MultiStringData.pMultStringData != nullptr) && (strlen(pSrcData->MultiStringData.pMultStringData) != 0))
         {
-        pDstData->MultiStringData.uCount = pSrcData->MultiStringData.uCount;
-        pDstData->MultiStringData.uMaxSize = pSrcData->MultiStringData.uMaxSize;
-        pDstData->MultiStringData.uSize = pSrcData->MultiStringData.uSize;
+            pDstData->MultiStringData.uCount = pSrcData->MultiStringData.uCount;
+            pDstData->MultiStringData.uMaxSize = pSrcData->MultiStringData.uMaxSize;
+            pDstData->MultiStringData.uSize = pSrcData->MultiStringData.uSize;
             if (pDstData->MultiStringData.pMultStringData != nullptr)
             {
-            eStatus = MOS_SecureMemcpy(
-                pDstData->MultiStringData.pMultStringData,
-                pDstData->MultiStringData.uSize,
-                pSrcData->MultiStringData.pMultStringData,
-                pSrcData->MultiStringData.uSize);
+                eStatus = MOS_SecureMemcpy(
+                    pDstData->MultiStringData.pMultStringData,
+                    pDstData->MultiStringData.uSize,
+                    pSrcData->MultiStringData.pMultStringData,
+                    pSrcData->MultiStringData.uSize);
 
-        for (ui = 0; ui < pSrcData->MultiStringData.uCount; ui++)
-        {
-            pSrcString = &pSrcData->MultiStringData.pStrings[ui];
-            pDstString = &pDstData->MultiStringData.pStrings[ui];
+                for (ui = 0; ui < pSrcData->MultiStringData.uCount; ui++)
+                {
+                    pSrcString = &pSrcData->MultiStringData.pStrings[ui];
+                    pDstString = &pDstData->MultiStringData.pStrings[ui];
 
                     MOS_OS_CHK_NULL(pSrcString);
                     MOS_OS_CHK_NULL(pDstString);
-                pDstString->uMaxSize = pSrcString->uMaxSize;
-                pDstString->uSize = pSrcString->uSize;
+                    pDstString->uMaxSize = pSrcString->uMaxSize;
+                    pDstString->uSize = pSrcString->uSize;
 
                     if (pDstString->pStringData != nullptr)
-                {
+                    {
                         eStatus = MOS_SecureMemcpy(
-                    pDstString->pStringData,
+                            pDstString->pStringData,
                             pDstString->uSize+1,
                             pSrcString->pStringData,
                             pSrcString->uSize+1);
