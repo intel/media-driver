@@ -127,6 +127,11 @@ typedef void          *drmAddress, **drmAddressPtr; /**< For mapped regions */
 #define ALIGN(value, alignment)    __align_mask(value, (__typeof__(value))((alignment) - 1))
 #define DRM_PLATFORM_DEVICE_NAME_LEN 256
 
+#if __GNUC__ >= 7
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
+
 typedef struct _drmPciBusInfo {
     uint16_t domain;
     uint8_t bus;
@@ -1169,5 +1174,9 @@ static int32_t GetRendererFileDescriptor(char * drm_node)
     driFileDescriptor = open(drm_node, O_RDWR);
     return driFileDescriptor;
 }
+
+#if __GNUC__ >= 7
+#pragma GCC diagnostic pop
+#endif
 
 #endif  // #ifndef DRM_DEVICE_H_
