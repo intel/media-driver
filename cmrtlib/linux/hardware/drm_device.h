@@ -140,7 +140,7 @@ typedef struct _drmPciDeviceInfo {
     uint32_t subvendor_id;
     uint32_t subdevice_id;
     uint32_t revision_id;
-    char    driverInfo[DRM_PLATFORM_DEVICE_NAME_LEN];
+    char driverInfo[DRM_PLATFORM_DEVICE_NAME_LEN + 1];
     uint64_t videoMem[4] = {};
     uint64_t systemMem[4] = {};
     uint64_t sharedMem[4] = {};
@@ -162,7 +162,7 @@ typedef struct _drmUsbDeviceInfo {
 
 
 typedef struct _drmPlatformBusInfo {
-    char fullname[DRM_PLATFORM_DEVICE_NAME_LEN];
+    char fullname[DRM_PLATFORM_DEVICE_NAME_LEN + 1];
 } drmPlatformBusInfo, *drmPlatformBusInfoPtr;
 
 typedef struct _drmPlatformDeviceInfo {
@@ -172,7 +172,7 @@ typedef struct _drmPlatformDeviceInfo {
 #define DRM_HOST1X_DEVICE_NAME_LEN 512
 
 typedef struct _drmHost1xBusInfo {
-    char fullname[DRM_HOST1X_DEVICE_NAME_LEN];
+    char fullname[DRM_HOST1X_DEVICE_NAME_LEN + 1];
 } drmHost1xBusInfo, *drmHost1xBusInfoPtr;
 
 typedef struct _drmHost1xDeviceInfo {
@@ -472,8 +472,14 @@ static int drmParsePlatformDeviceInfo(int maj, int min,
     if (!value)
         return -ENOENT;
     sscanf(value, "%u", &count);
+
     free(value);
-    info->compatible = (char**)calloc(count + 1, sizeof(*info->compatible));
+    if (count <= MAX_DRM_NODES)
+    {
+        info->compatible = (char**)calloc(count + 1, sizeof(*info->compatible));
+    }else
+        return -ENOENT;
+
     if (!info->compatible)
         return -ENOMEM;
     for (i = 0; i < count; i++) {

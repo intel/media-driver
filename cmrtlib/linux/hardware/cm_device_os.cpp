@@ -78,12 +78,14 @@ int32_t CmDevice_RT::GetSupportedRenderer(uint32_t& count)
             driver_name = strrchr(devices[k]->nodes[0], '/');
             driver_name++;
             int len = strlen(devices[k]->deviceinfo.pci->driverInfo);
-            snprintf(devices[k]->deviceinfo.pci->driverInfo + len - 1, (sizeof devices[k]->deviceinfo.pci->driverInfo) - len, "  %s", driver_name);
+            if (len > 0)
+                devices[k]->deviceinfo.pci->driverInfo[len - 1] = ' ';
+
+            snprintf(devices[k]->deviceinfo.pci->driverInfo + len, (sizeof devices[k]->deviceinfo.pci->driverInfo) - len, "  %s", driver_name);
             driver_name = strrchr(devices[k]->nodes[2], '/');
             driver_name++;
             len = strlen(devices[k]->deviceinfo.pci->driverInfo);
             snprintf(devices[k]->deviceinfo.pci->driverInfo + len, (sizeof devices[k]->deviceinfo.pci->driverInfo) - len, "  %s", driver_name);
-
             if (devices[k]->deviceinfo.pci->vendor_id == INTEL_VENDOR_ID)
             {
                 g_AdapterList[i] = devices[k];
