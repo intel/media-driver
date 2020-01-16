@@ -209,6 +209,7 @@ CmDevice_RT::CmDevice_RT(
 #ifdef ANDROID
     m_display(nullptr),
 #endif
+    m_drmIndex(0),
     m_fvaCmExtSendReqMsg(nullptr),
     m_gtpinEnabled(false),
     m_gtpinBufferUP0(nullptr),

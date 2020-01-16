@@ -541,12 +541,12 @@ static int parse_separate_sysfs_files(int maj, int min,
     snprintf(driverpath, sizeof(driverpath), "%s/driver", pci_path);
     snprintf(irqpath, sizeof(irqpath), "%s/irq", pci_path);
     int fd = open(irqpath, O_RDONLY);
-    char buffer[1024];
+    char buffer[1024] ;
+    memset(buffer, 0, sizeof(buffer));
+
     if (fd >= 0)
     {
         int count = 0;
-        memset(buffer, 0, sizeof(buffer));
-
         count = read(fd, buffer, sizeof(buffer));
         close(fd);
     }
