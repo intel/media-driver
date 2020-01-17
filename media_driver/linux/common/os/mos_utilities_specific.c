@@ -1049,6 +1049,7 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
                         MOS_FreeMemory(CurValue[i].ulValueBuf);
                     }
                 }
+                MOS_FreeMemory(CurValue);
                 MOS_FreeMemory(CurKey);
             }
         }
@@ -1061,6 +1062,7 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
                     MOS_FreeMemory(CurValue[i].ulValueBuf);
                 }
             }
+            MOS_FreeMemory(CurValue);
             MOS_FreeMemory(CurKey);
         }
     }
@@ -1073,6 +1075,7 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
                 MOS_FreeMemory(CurValue[i].ulValueBuf);
             }
         }
+        MOS_FreeMemory(CurValue);
         MOS_FreeMemory(CurKey);
     }
     fclose(File);
@@ -1438,7 +1441,7 @@ MOS_STATUS MOS_CheckMountStatus(char  *pKeyWord)
     MOS_OS_CHK_NULL(file);
     MOS_OS_CHK_NULL(pKeyWord);
 
-    while( fscanf( file, "%s %s %s %s %s %s\n", sPartitionPath, sMountPoint, sSystemType, sTemp0, sTemp1, sTemp2 ) > 0 )
+    while( fscanf( file, "%255s %255s %255s %255s %255s %255s\n", sPartitionPath, sMountPoint, sSystemType, sTemp0, sTemp1, sTemp2 ) > 0 )
     {
         if( strcmp(sSystemType, pKeyWord) == 0 )
         {
