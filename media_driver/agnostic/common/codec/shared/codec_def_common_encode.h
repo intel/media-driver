@@ -63,6 +63,7 @@
 #define CODEC_8K_MAX_PIC_HEIGHT   8192
 
 #define CODEC_16K_MAX_PIC_WIDTH        16384
+#define CODEC_12K_MAX_PIC_HEIGHT       12288
 #define CODEC_16K_MAX_PIC_HEIGHT       16384
 
 #define CODECHAL_MAD_BUFFER_SIZE                4 // buffer size is 4 bytes

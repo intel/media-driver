@@ -447,7 +447,7 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
         status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSliceLP, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         (*attributeList)[VAConfigAttribMaxPictureWidth] = CODEC_16K_MAX_PIC_WIDTH;
-        (*attributeList)[VAConfigAttribMaxPictureHeight] = CODEC_16K_MAX_PIC_HEIGHT;
+        (*attributeList)[VAConfigAttribMaxPictureHeight] = CODEC_12K_MAX_PIC_HEIGHT;
         (*attributeList)[VAConfigAttribEncTileSupport] = 1;
     }
 
@@ -1116,7 +1116,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         }
         else if(IsHevcProfile(profile))
         {
-            attribs[i].value.value.i = CODEC_16K_MAX_PIC_HEIGHT;
+            attribs[i].value.value.i = CODEC_12K_MAX_PIC_HEIGHT;
         }
         if(IsAvcProfile(profile))
         {
