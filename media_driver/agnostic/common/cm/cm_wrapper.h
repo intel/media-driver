@@ -288,6 +288,21 @@ typedef struct _CM_ENQUEUE_GPUCOPY_L2L_PARAM
     int32_t                 returnValue;            // [out]
 }CM_ENQUEUE_GPUCOPY_L2L_PARAM, *PCM_ENQUEUE_GPUCOPY_L2L_PARAM;
 
+typedef struct _CM_ENQUEUE_COPY_BUFFER_PARAM
+{
+    void* cmQueueHandle;        // [in]
+    void* buffer;               // [in]
+    void* sysMem;               // [in]
+    uint32_t offset;            // [in]
+    uint64_t copySize;          // [in]
+    uint32_t copyDir;           // [in]
+    void* wait_event;           // [in]
+    void* cmEventHandle;        // [out]
+    uint32_t option;            // [in]
+    uint32_t eventIndex;        // [out] index of Event in m_EventArray
+    int32_t  returnValue;       // [out]
+}CM_ENQUEUE_COPY_BUFFER_PARAM, * PCM_ENQUEUE_COPY_BUFFER_PARAM;
+
 typedef struct _CM_CREATE_SURFACE3D_PARAM
 {
     uint32_t width;                // [in] width of 3D  in pixel
@@ -551,6 +566,7 @@ enum CM_FUNCTION_ID
     CM_FN_CMQUEUE_ENQUEUEFAST       = 0x150a,
     CM_FN_CMQUEUE_DESTROYEVENTFAST  = 0x150b,
     CM_FN_CMQUEUE_ENQUEUEWITHGROUPFAST = 0x150c,
+    CM_FN_CMQUEUE_ENQUEUECOPY_BUFFER   = 0x150d,
 };
 
 //*-----------------------------------------------------------------------------

@@ -1523,7 +1523,11 @@ public:
                                   CmEvent *&event,
                                   const CmThreadGroupSpace *threadGroupSpace = nullptr) = 0;
 
+    CM_RT_API virtual int32_t EnqueueReadBuffer(CmBuffer* buffer, size_t offset, const unsigned char* sysMem, uint64_t sysMemSize, CmEvent* wait_event, CmEvent*& event, unsigned option) = 0;
+    CM_RT_API virtual int32_t EnqueueWriteBuffer(CmBuffer* buffer, size_t offset, const unsigned char* sysMem, uint64_t sysMemSize, CmEvent* wait_event, CmEvent*& event, unsigned option) = 0;
+
     CM_RT_API virtual INT SetResidentGroupAndParallelThreadNum(uint32_t residentGroupNum, uint32_t parallelThreadNum) = 0;
+
 protected:
     ~CmQueue(){};
 };

@@ -86,18 +86,34 @@ struct CM_ENQUEUE_GPUCOPY_L2L_PARAM
     void *cmQueueHandle;  // [in]
     void *srcSysMem;      // [in]
     void *dstSysMem;      // [in]
-    uint32_t copySize;     // [in]
+    uint32_t copySize;    // [in]
     uint32_t option;      // [in]
     void *cmEventHandle;  // [out]
     uint32_t eventIndex;  // [out] index of Event in m_EventArray
     int32_t returnValue;  // [out]
 };
 
+
+struct CM_ENQUEUE_COPY_BUFFER_PARAM
+{
+    void* cmQueueHandle;  // [in]
+    void* buffer;         // [in]
+    void* sysMem;         // [in]
+    uint32_t offset;      // [in]
+    uint64_t copySize;    // [in]
+    uint32_t copyDir;     // [in]
+    void* wait_event;     // [in]
+    void* cmEventHandle;  // [out]
+    uint32_t option;      // [in]
+    uint32_t eventIndex;  // [out] index of Event in m_EventArray
+    int32_t  returnValue; // [out]
+};
+
 struct CM_ENQUEUE_2DInit_PARAM
 {
     void *cmQueueHandle;  // [in]
     void *cmSurface2d;    // [in]
-    uint32_t initValue;  // [in]
+    uint32_t initValue;   // [in]
     void *cmEventHandle;  // [out]
     uint32_t eventIndex;  // [out] index of Event in m_EventArray
     int32_t returnValue;  // [out]
@@ -860,3 +876,91 @@ CM_RT_API int32_t CmQueue_RT::SetResidentGroupAndParallelThreadNum(uint32_t resi
     return CM_NOT_IMPLEMENTED;
 }
 
+
+CM_RT_API int32_t CmQueue_RT::EnqueueReadBuffer(CmBuffer* buffer,
+                                                size_t offset,
+                                                const unsigned char* sysMem,
+                                                uint64_t sysMemSize,
+                                                CmEvent* wait_event,
+                                                CmEvent*& event,
+                                                unsigned option)
+{
+    INSERT_PROFILER_RECORD();
+    CM_ENQUEUE_COPY_BUFFER_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.buffer = buffer;
+    inParam.sysMem = (void*)sysMem;
+    inParam.copySize = sysMemSize;
+    inParam.offset = offset;
+    inParam.copyDir = 0;
+    inParam.wait_event = wait_event;
+    inParam.option = option;
+    inParam.copyDir = CM_FASTCOPY_GPU2CPU;
+    inParam.cmEventHandle = event;
+
+    m_criticalSection.Acquire();
+
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY_BUFFER,
+        &inParam,
+        sizeof(inParam));
+    if (FAILED(hr))
+    {
+        CmAssert(0);
+        m_criticalSection.Release();
+        return hr;
+    }
+    if (inParam.returnValue != CM_SUCCESS)
+    {
+        m_criticalSection.Release();
+        return inParam.returnValue;
+    }
+
+    event = static_cast<CmEvent*>(inParam.cmEventHandle);
+    m_criticalSection.Release();
+    return CM_SUCCESS;
+}
+
+CM_RT_API int32_t CmQueue_RT::EnqueueWriteBuffer(CmBuffer* buffer,
+                                                 size_t offset,
+                                                 const unsigned char* sysMem,
+                                                 uint64_t sysMemSize,
+                                                 CmEvent* wait_event,
+                                                 CmEvent*& event,
+                                                 unsigned option)
+{
+    INSERT_PROFILER_RECORD();
+    CM_ENQUEUE_COPY_BUFFER_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.buffer = buffer;
+    inParam.sysMem = (void*)sysMem;
+    inParam.copySize = sysMemSize;
+    inParam.offset = offset;
+    inParam.copyDir = 1;
+    inParam.wait_event = wait_event;
+    inParam.option = option;
+    inParam.copyDir = CM_FASTCOPY_CPU2GPU;
+    inParam.cmEventHandle = event;
+
+    m_criticalSection.Acquire();
+
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY_BUFFER,
+        &inParam,
+        sizeof(inParam));
+    if (FAILED(hr))
+    {
+        CmAssert(0);
+        m_criticalSection.Release();
+        return hr;
+    }
+    if (inParam.returnValue != CM_SUCCESS)
+    {
+        m_criticalSection.Release();
+        return inParam.returnValue;
+    }
+
+    event = static_cast<CmEvent*>(inParam.cmEventHandle);
+    m_criticalSection.Release();
+    return CM_SUCCESS;
+}

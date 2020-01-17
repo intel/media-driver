@@ -110,13 +110,13 @@ int32_t CmBuffer_RT::GetHandle( uint32_t& handle)
 //| Purpose:    Write data from sysMem to Buffer
 //| Returns:    Result of the operation
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
+int32_t CmBuffer_RT::WriteBuffer( const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize, size_t offset)
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr      = CM_SUCCESS;
-    uint8_t         *dst    = nullptr;
-    uint8_t         *surf   = nullptr;
+    uint8_t *dst    = nullptr;
+    uint8_t *surf   = nullptr;
     size_t copySize = MOS_MIN((size_t)sysMemSize, m_size);
 
     if (sysMem == nullptr)
@@ -162,8 +162,8 @@ CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEven
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
     CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
-    // Memory copy : Source ->System Memory  Dest -> Vedio Memory
-    dst  = ( uint8_t *)(inParam.data);
+    // Memory copy : Source ->System Memory  Dest -> Video Memory
+    dst  = ( uint8_t *)(inParam.data) + offset;
     surf = ( uint8_t *)sysMem;
 
     CmFastMemCopyWC(dst, surf, copySize);
@@ -182,12 +182,13 @@ finish:
 //| Purpose:    Read data from sysMem to Buffer
 //| Returns:    Result of the operation
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmBuffer_RT::ReadSurface( unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
+int32_t CmBuffer_RT::ReadBuffer( unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize, size_t offset)
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr          = CM_SUCCESS;
-
+    uint8_t* surf = nullptr;
+    uint8_t* dst = nullptr;
     size_t copySize = MOS_MIN((size_t)sysMemSize, m_size);
 
     if (sysMem == nullptr)
@@ -231,8 +232,12 @@ CM_RT_API int32_t CmBuffer_RT::ReadSurface( unsigned char* sysMem, CmEvent* even
     CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
     // Memory copy : Dest ->System Memory  Source -> Vedio Memory
-    CmFastMemCopyFromWC(sysMem, inParam.data, copySize, GetCpuInstructionLevel());
-
+    // CmFastMemCopyFromWC(sysMem, (void*)(&((unsigned char*)inParam.data)[offset]), copySize, GetCpuInstructionLevel());
+    // Memory copy : Source ->System Memory  Dest -> Video Memory
+    surf = (uint8_t *)(inParam.data) + offset;
+    dst = (uint8_t *)sysMem;
+    CmFastMemCopyFromWC(dst, surf, copySize, GetCpuInstructionLevel());
+    //MOS_SecureMemcpy(dst, copySize, surf, copySize);
     //Unlock Buffer
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
 
@@ -248,6 +253,145 @@ CM_RT_API int32_t CmBuffer_RT::GetIndex( SurfaceIndex*& index )
     index = m_index;
     return CM_SUCCESS;
 }
+
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Write data from sysMem to Buffer
+//| Returns:    Result of the operation
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmBuffer_RT::WriteSurface(const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
+{
+    INSERT_API_CALL_LOG();
+
+    CM_RETURN_CODE  hr = CM_SUCCESS;
+    uint8_t* dst = nullptr;
+    uint8_t* surf = nullptr;
+    size_t copySize = MOS_MIN((size_t)sysMemSize, m_size);
+
+    if (sysMem == nullptr)
+    {
+        CM_ASSERTMESSAGE("Error: Pointer to system memory is null.");
+        return CM_NULL_POINTER;
+    }
+
+    // It makes sense to flush the whole enqueued tasks for each surface read
+    // because usually we read the output of the last task.
+    // Update: using event not to flush the whole enqueued tasks
+    if (event)
+    {
+        CmEventRT* eventRT = dynamic_cast<CmEventRT*>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
+    }
+
+    WaitForReferenceFree(); // wait all owner task finished
+
+    // Lock Buffer first
+    CmDeviceRT* cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+
+    CM_HAL_BUFFER_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_BUFFER_PARAM));
+    inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
+    inParam.handle = m_handle;
+
+    // Lock Buffer:
+    // Lock Buffer may fail due to the out of memory/out of page-in in KMD.
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
+
+    // Memory copy : Source ->System Memory  Dest -> Vedio Memory
+    dst = (uint8_t*)(inParam.data);
+    surf = (uint8_t*)sysMem;
+
+    CmFastMemCopyWC(dst, surf, copySize);
+
+    //Unlock Buffer
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
+
+finish:
+    if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
+        hr = CM_LOCK_SURFACE_FAIL;
+    }
+    return hr;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Read data from sysMem to Buffer
+//| Returns:    Result of the operation
+//*-----------------------------------------------------------------------------
+CM_RT_API int32_t CmBuffer_RT::ReadSurface(unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
+{
+    INSERT_API_CALL_LOG();
+
+    CM_RETURN_CODE  hr = CM_SUCCESS;
+
+    size_t copySize = MOS_MIN((size_t)sysMemSize, m_size);
+
+    if (sysMem == nullptr)
+    {
+        CM_ASSERTMESSAGE("Error: Pointer to system memory is null.");
+        return CM_NULL_POINTER;
+    }
+
+    // It makes sense to flush the whole enqueued tasks for each surface read
+    // because usually we read the output of the last task.
+    // Update: using event not to flush the whole enqueued tasks
+    if (event)
+    {
+        CmEventRT* eventRT = dynamic_cast<CmEventRT*>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
+    }
+
+    WaitForReferenceFree();    // wait all owner task finished
+
+    // Lock Buffer first
+    CmDeviceRT* cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+
+    CM_HAL_BUFFER_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_BUFFER_PARAM));
+    inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
+    inParam.handle = m_handle;
+
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
+
+    // Memory copy : Dest ->System Memory  Source -> Vedio Memory
+    CmFastMemCopyFromWC(sysMem, inParam.data, copySize, GetCpuInstructionLevel());
+
+    //Unlock Buffer
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
+
+finish:
+    if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
+        hr = CM_LOCK_SURFACE_FAIL;
+    }
+    return hr;
+}
+
 
 CM_RT_API int32_t CmBuffer_RT::InitSurface(const uint32_t initValue, CmEvent* event)
 {

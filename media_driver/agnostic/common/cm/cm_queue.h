@@ -36,6 +36,14 @@ enum CM_FASTCOPY_OPTION
     CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST = 0x02
 };
 
+enum CM_GPUCOPY_DIRECTION
+{
+    CM_FASTCOPY_GPU2CPU = 0,
+    CM_FASTCOPY_CPU2GPU = 1,
+    CM_FASTCOPY_GPU2GPU = 2,
+    CM_FASTCOPY_CPU2CPU = 3
+};
+
 namespace CMRT_UMD
 {
 class CmTask;
@@ -44,6 +52,7 @@ class CmThreadSpace;
 class CmThreadGroupSpace;
 class CmVebox;
 class CmSurface2D;
+class CmBuffer;
 
 //!
 //! \brief      CmQueue class for task queue management.

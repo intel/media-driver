@@ -35,13 +35,6 @@
 #include "cm_csync.h"
 #include "cm_hal.h"
 
-enum CM_GPUCOPY_DIRECTION
-{
-    CM_FASTCOPY_GPU2CPU = 0,
-    CM_FASTCOPY_CPU2GPU = 1,
-    CM_FASTCOPY_GPU2GPU = 2,
-    CM_FASTCOPY_CPU2CPU = 3
-};
 
 namespace CMRT_UMD
 {
@@ -53,6 +46,7 @@ class CmEventRT;
 class CmThreadSpaceRT;
 class CmThreadGroupSpace;
 class CmVebox;
+class CmBuffer;
 class CmSurface2D;
 class CmSurface2DRT;
 
@@ -247,6 +241,15 @@ public:
 
     uint32_t StreamIndex() const { return m_streamIndex; }
 
+    int32_t EnqueueBufferCopy(  CmBuffer* buffer,
+                                size_t   offset,
+                                const unsigned char* sysMem,
+                                uint64_t sysMemSize,
+                                CM_GPUCOPY_DIRECTION dir,
+                                CmEvent* wait_event,
+                                CmEvent*& event,
+                                uint32_t option);
+
 protected:
     CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
@@ -343,6 +346,7 @@ protected:
     CSync m_criticalSectionTaskInternal;
 
     uint32_t m_eventCount;
+    uint64_t m_CPUperformanceFrequency;
 
     CmDynamicArray m_copyKernelParamArray;
     uint32_t m_copyKernelParamArrayCount;

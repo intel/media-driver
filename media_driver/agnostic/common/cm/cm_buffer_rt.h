@@ -53,13 +53,24 @@ public:
                           uint64_t gfxMem,
                           bool enableCompareMask = false);
 
-    CM_RT_API int32_t ReadSurface(unsigned char *sysMem,
-                                  CmEvent *event,
+    CM_RT_API int32_t ReadSurface(unsigned char* sysMem,
+                                  CmEvent* event,
                                   uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
-    CM_RT_API int32_t WriteSurface(const unsigned char *sysMem,
-                                   CmEvent * event,
+    CM_RT_API int32_t WriteSurface(const unsigned char* sysMem,
+                                   CmEvent* event,
                                    uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
+
+
+    int32_t ReadBuffer(unsigned char* sysMem,
+                                 CmEvent* event,
+                                 uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL,
+                                 size_t offset = 0);
+
+    int32_t WriteBuffer(const unsigned char* sysMem,
+                                  CmEvent* event,
+                                  uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL,
+                                  size_t offset = 0);
 
     CM_RT_API int32_t InitSurface(const uint32_t initValue, CmEvent *event);
 
