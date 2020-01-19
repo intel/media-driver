@@ -1397,6 +1397,30 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
     {
         pipeBufAddrParams.presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(idxForTempMVP);
     }
+
+    // Disable temporal MVP for LDB frames which only refer to I frame
+    if (m_pictureCodingType == I_TYPE)
+    {
+        m_currGopIFramePOC = m_hevcPicParams->CurrPicOrderCnt;
+    }
+
+    if (m_hevcSeqParams->sps_temporal_mvp_enable_flag == 0 && m_hevcSliceParams->slice_temporal_mvp_enable_flag == 1)
+    {
+        CODECHAL_ENCODE_NORMALMESSAGE("Attention: temporal MVP flag is inconsistent between seq and slice.");
+        m_hevcSliceParams->slice_temporal_mvp_enable_flag = 0;
+    }
+
+    if (m_lowDelay && m_hevcSliceParams->num_ref_idx_l0_active_minus1 == 0
+        && m_currGopIFramePOC != -1 && m_hevcSliceParams->slice_temporal_mvp_enable_flag != 0)
+    {
+        auto idx = m_refList[m_currReconstructedPic.FrameIdx]->RefList[0].FrameIdx;
+
+        if (m_refList[idx]->iFieldOrderCnt[0] == m_currGopIFramePOC)
+        {
+            m_hevcSliceParams->slice_temporal_mvp_enable_flag = 0;
+        }
+    }
+
 }
 
 void CodechalVdencHevcState::SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_STATE& sliceStateParams)

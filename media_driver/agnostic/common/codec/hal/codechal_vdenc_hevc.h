@@ -174,6 +174,7 @@ public:
     uint8_t                                 m_maxNumROI = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;    //!< VDEnc maximum number of ROI supported
     uint8_t                                 m_maxNumNativeROI = ENCODE_VDENC_HEVC_MAX_STREAMINROI_G10;  //!< Number of native ROI supported by VDEnc HW
     uint8_t                                 m_imgStateImePredictors = 8;                       //!< Number of predictors for IME
+    uint32_t                                m_currGopIFramePOC = -1;                           //!< PoC for I frame in current GoP
 
     // BRC
     HevcVdencBrcBuffers                     m_vdencBrcBuffers;                                 //!< VDEnc Brc buffers
