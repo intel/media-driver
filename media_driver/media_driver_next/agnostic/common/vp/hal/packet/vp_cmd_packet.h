@@ -44,9 +44,11 @@ public:
 
     // Need to remove vphal surface dependence from VpCmdPacket later.
     virtual MOS_STATUS PacketInit(
-        PVPHAL_SURFACE      pSrcSurface,
-        PVPHAL_SURFACE      pOutputSurface,
-        VP_EXECUTE_CAPS     packetCaps) = 0;
+        VP_SURFACE                          *inputSurface,
+        VP_SURFACE                          *outputSurface,
+        VP_SURFACE                          *previousSurface,
+        std::map<SurfaceType, VP_SURFACE*>  &internalSurfaces,
+        VP_EXECUTE_CAPS                     packetCaps) = 0;
 
     virtual MOS_STATUS Prepare()
     {

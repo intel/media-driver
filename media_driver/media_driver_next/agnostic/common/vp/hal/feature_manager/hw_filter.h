@@ -41,6 +41,7 @@
 #include "vp_scaling_filter.h"
 #include "vp_rot_mir_filter.h"
 #include "vp_csc_filter.h"
+#include "vp_dn_filter.h"
 
 namespace vp
 {
@@ -93,6 +94,10 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+    virtual MOS_STATUS ConfigDnParam(HW_FILTER_DN_PARAM &)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     EngineType GetEngineType()
     {
@@ -129,6 +134,7 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+    virtual MOS_STATUS ConfigDnParam(HW_FILTER_DN_PARAM &param);
 
 protected:
     HwFilterVebox(VpInterface &vpInterface, EngineType type);

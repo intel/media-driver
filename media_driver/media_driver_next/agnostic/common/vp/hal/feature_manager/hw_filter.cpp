@@ -109,9 +109,13 @@ MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
     VP_PUBLIC_CHK_NULL_RETURN(m_swFilterPipe);
     VP_SURFACE *inputSurf = m_swFilterPipe->GetSurface(true, 0);
     VP_SURFACE *outputSurf = m_swFilterPipe->GetSurface(false, 0);
+    // previousSurf can be nullptr;
+    VP_SURFACE *previousSurf = m_swFilterPipe->GetPreviousSurface(0);
+    auto &internalSurfaces = m_swFilterPipe->GetSurfacesGroup();
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
-    VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(inputSurf->pCurrent, outputSurf->pCurrent, m_vpExecuteCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(inputSurf, outputSurf,
+        previousSurf, internalSurfaces, m_vpExecuteCaps));
 
     for (auto handler : m_Params.Params)
     {
@@ -121,6 +125,17 @@ MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
         }
     }
     return bRet ? MOS_STATUS_SUCCESS : MOS_STATUS_UNKNOWN;
+}
+
+MOS_STATUS HwFilterVebox::ConfigDnParam(HW_FILTER_DN_PARAM &param)
+{
+    if (FeatureTypeDnOnVebox == param.type)
+    {
+        VpPacketParameter *p = VpVeboxDnParameter::Create(param);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_Params.Params.push_back(p);
+    }
+    return MOS_STATUS_SUCCESS;
 }
 
 /****************************************************************************************************/

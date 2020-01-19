@@ -251,12 +251,13 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
 
 MOS_STATUS SfcRenderBase::SetupSfcState(
     PVPHAL_SFC_RENDER_DATA          sfcRenderData,
-    PVPHAL_SURFACE                  targetSurface)
+    PVP_SURFACE                     targetSurface)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     VP_RENDER_CHK_NULL_RETURN(sfcRenderData);
     VP_RENDER_CHK_NULL_RETURN(targetSurface);
+    VP_RENDER_CHK_NULL_RETURN(targetSurface->osSurface);
 
     m_renderData = sfcRenderData;
 
@@ -265,12 +266,12 @@ MOS_STATUS SfcRenderBase::SetupSfcState(
     //---------------------------------
     m_renderData->sfcStateParams->sfcPipeMode = MEDIASTATE_SFC_PIPE_VE_TO_SFC;
 
-    m_renderData->sfcStateParams->OutputFrameFormat = targetSurface->Format;
-    m_renderData->sfcStateParams->dwOutputSurfaceOffset = targetSurface->YPlaneOffset.iSurfaceOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceUXOffset = (uint16_t) targetSurface->UPlaneOffset.iXOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceUYOffset = (uint16_t) targetSurface->UPlaneOffset.iYOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceVXOffset = (uint16_t) targetSurface->VPlaneOffset.iXOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceVYOffset = (uint16_t) targetSurface->VPlaneOffset.iYOffset;
+    m_renderData->sfcStateParams->OutputFrameFormat = targetSurface->osSurface->Format;
+    m_renderData->sfcStateParams->dwOutputSurfaceOffset = targetSurface->osSurface->YPlaneOffset.iSurfaceOffset;
+    m_renderData->sfcStateParams->wOutputSurfaceUXOffset = (uint16_t) targetSurface->osSurface->UPlaneOffset.iXOffset;
+    m_renderData->sfcStateParams->wOutputSurfaceUYOffset = (uint16_t) targetSurface->osSurface->UPlaneOffset.iYOffset;
+    m_renderData->sfcStateParams->wOutputSurfaceVXOffset = (uint16_t) targetSurface->osSurface->VPlaneOffset.iXOffset;
+    m_renderData->sfcStateParams->wOutputSurfaceVYOffset = (uint16_t) targetSurface->osSurface->VPlaneOffset.iYOffset;
 
     m_renderData->pSfcPipeOutSurface = targetSurface;
     m_renderData->pAvsParams         = &m_AvsParameters;
@@ -325,7 +326,7 @@ MOS_STATUS SfcRenderBase::SetupSfcState(
 
     VP_RENDER_CHK_STATUS_RETURN(AllocateResources());
 
-    m_renderData->sfcStateParams->pOsResOutputSurface = &targetSurface->OsResource;
+    m_renderData->sfcStateParams->pOsResOutputSurface = &targetSurface->osSurface->OsResource;
     m_renderData->sfcStateParams->pOsResIEFLineBuffer = &m_IEFLineBufferSurface.OsResource;
     m_renderData->sfcStateParams->pOsResAVSLineBuffer = &m_AVSLineBufferSurface.OsResource;
 
@@ -333,7 +334,7 @@ MOS_STATUS SfcRenderBase::SetupSfcState(
 }
 
 void SfcRenderBase::SetSfcStateInputOrderingMode(
-    PVPHAL_VEBOX_RENDER_DATA    veboxRenderData,
+    VpVeboxRenderData           *veboxRenderData,
     PMHW_SFC_STATE_PARAMS       sfcStateParams)
 {
     MOS_UNUSED(veboxRenderData);
@@ -343,40 +344,41 @@ void SfcRenderBase::SetSfcStateInputOrderingMode(
 }
 
 MOS_STATUS SfcRenderBase::InitMhwOutSurfParams(
-  PVPHAL_SURFACE                           pSfcPipeOutSurface,
-  PMHW_SFC_OUT_SURFACE_PARAMS              pMhwOutSurfParams)
+  PVP_SURFACE                               pSfcPipeOutSurface,
+  PMHW_SFC_OUT_SURFACE_PARAMS               pMhwOutSurfParams)
 {
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     VP_RENDER_CHK_NULL_RETURN(pSfcPipeOutSurface);
+    VP_RENDER_CHK_NULL_RETURN(pSfcPipeOutSurface->osSurface);
     VP_RENDER_CHK_NULL_RETURN(pMhwOutSurfParams);
 
     MOS_ZeroMemory(pMhwOutSurfParams, sizeof(*pMhwOutSurfParams));
 
     pMhwOutSurfParams->ChromaSiting = pSfcPipeOutSurface->ChromaSiting;
-    pMhwOutSurfParams->dwWidth = pSfcPipeOutSurface->dwWidth;
-    pMhwOutSurfParams->dwHeight = pSfcPipeOutSurface->dwHeight;
-    pMhwOutSurfParams->dwPitch = pSfcPipeOutSurface->dwPitch;
-    pMhwOutSurfParams->TileType = pSfcPipeOutSurface->TileType;
-    pMhwOutSurfParams->TileModeGMM = pSfcPipeOutSurface->TileModeGMM;
-    pMhwOutSurfParams->bGMMTileEnabled = pSfcPipeOutSurface->bGMMTileEnabled;
-    pMhwOutSurfParams->pOsResource = &(pSfcPipeOutSurface->OsResource);
-    pMhwOutSurfParams->Format = pSfcPipeOutSurface->Format;
-    pMhwOutSurfParams->bCompressible = pSfcPipeOutSurface->bCompressible;
-    pMhwOutSurfParams->dwCompressionFormat = pSfcPipeOutSurface->CompressionFormat;
-    pMhwOutSurfParams->dwSurfaceXOffset = pSfcPipeOutSurface->YPlaneOffset.iXOffset;
-    pMhwOutSurfParams->dwSurfaceYOffset = pSfcPipeOutSurface->YPlaneOffset.iYOffset;
+    pMhwOutSurfParams->dwWidth = pSfcPipeOutSurface->osSurface->dwWidth;
+    pMhwOutSurfParams->dwHeight = pSfcPipeOutSurface->osSurface->dwHeight;
+    pMhwOutSurfParams->dwPitch = pSfcPipeOutSurface->osSurface->dwPitch;
+    pMhwOutSurfParams->TileType = pSfcPipeOutSurface->osSurface->TileType;
+    pMhwOutSurfParams->TileModeGMM = pSfcPipeOutSurface->osSurface->TileModeGMM;
+    pMhwOutSurfParams->bGMMTileEnabled = pSfcPipeOutSurface->osSurface->bGMMTileEnabled;
+    pMhwOutSurfParams->pOsResource = &(pSfcPipeOutSurface->osSurface->OsResource);
+    pMhwOutSurfParams->Format = pSfcPipeOutSurface->osSurface->Format;
+    pMhwOutSurfParams->bCompressible = pSfcPipeOutSurface->osSurface->bCompressible;
+    pMhwOutSurfParams->dwCompressionFormat = pSfcPipeOutSurface->osSurface->CompressionFormat;
+    pMhwOutSurfParams->dwSurfaceXOffset = pSfcPipeOutSurface->osSurface->YPlaneOffset.iXOffset;
+    pMhwOutSurfParams->dwSurfaceYOffset = pSfcPipeOutSurface->osSurface->YPlaneOffset.iYOffset;
 
-    if (pSfcPipeOutSurface->dwPitch > 0)
+    if (pSfcPipeOutSurface->osSurface->dwPitch > 0)
     {
-        pMhwOutSurfParams->dwUYoffset = ((pSfcPipeOutSurface->UPlaneOffset.iSurfaceOffset - pSfcPipeOutSurface->YPlaneOffset.iSurfaceOffset)
-              / pSfcPipeOutSurface->dwPitch) + pSfcPipeOutSurface->UPlaneOffset.iYOffset;
+        pMhwOutSurfParams->dwUYoffset = ((pSfcPipeOutSurface->osSurface->UPlaneOffset.iSurfaceOffset - pSfcPipeOutSurface->osSurface->YPlaneOffset.iSurfaceOffset)
+              / pSfcPipeOutSurface->osSurface->dwPitch) + pSfcPipeOutSurface->osSurface->UPlaneOffset.iYOffset;
     }
 
     return eStatus;
 }
 
 MOS_STATUS SfcRenderBase::SendSfcCmd(
-    PVPHAL_VEBOX_RENDER_DATA        pRenderData,
+    VpVeboxRenderData               *pRenderData,
     PMOS_COMMAND_BUFFER             pCmdBuffer)
 {
     PMHW_SFC_INTERFACE              pSfcInterface;
@@ -393,8 +395,8 @@ MOS_STATUS SfcRenderBase::SendSfcCmd(
     pSfcInterface           = m_sfcInterface;
 
     // Setup params for SFC Lock command
-    SfcLockParams.sfcPipeMode           = MhwSfcInterface::SFC_PIPE_MODE_VEBOX;
-    SfcLockParams.bOutputToMemory = (pRenderData->bDeinterlace || pRenderData->bDenoise);
+    SfcLockParams.sfcPipeMode     = MhwSfcInterface::SFC_PIPE_MODE_VEBOX;
+    SfcLockParams.bOutputToMemory = (pRenderData->DI.bDeinterlace || pRenderData->DN.bDnEnabled);
 
     // Send SFC_LOCK command to acquire SFC pipe for Vebox
     VP_RENDER_CHK_STATUS_RETURN(pSfcInterface->AddSfcLock(

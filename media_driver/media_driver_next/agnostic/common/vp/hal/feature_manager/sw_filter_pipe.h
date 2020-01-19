@@ -137,6 +137,14 @@ public:
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
 };
 
+class SwFilterDnHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterDnHandler(VpInterface &vpInterface);
+    virtual ~SwFilterDnHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+};
+
 class SwFilterPipe
 {
 public:
@@ -170,10 +178,15 @@ public:
     MOS_STATUS AddSwFilterUnordered(SwFilter *swFilter, bool isInputPipe, int index);
     MOS_STATUS RemoveSwFilter(SwFilter *swFilter);
     VP_SURFACE *GetSurface(bool isInputSurface, uint32_t index);
+    VP_SURFACE *GetPreviousSurface(uint32_t index);
     VP_SURFACE *RemoveSurface(bool isInputSurface, uint32_t index);
     MOS_STATUS AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint32_t index);
     MOS_STATUS Update();
     uint32_t GetSurfaceCount(bool isInputSurface);
+    std::map<SurfaceType, VP_SURFACE*> &GetSurfacesGroup()
+    {
+        return m_surfacesGroup;
+    }
 
 protected:
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe, uint32_t index);
@@ -188,6 +201,9 @@ protected:
     std::vector<VP_SURFACE *>           m_OutputSurfaces;
     std::vector<VP_SURFACE *>           m_PreviousSurface;
     std::vector<VP_SURFACE *>           m_NextSurface;
+    // Only be used for executedFilters in HW_FILTER_PARAMS. It contains the internal surfaces, including the
+    // statistic buffer and histogram, for one submission, which are managed by resource manager.
+    std::map<SurfaceType, VP_SURFACE*>  m_surfacesGroup;
 
     VpInterface                         &m_vpInterface;
     std::map<FeatureType, SwFilterFeatureHandler*> m_featureHandler;

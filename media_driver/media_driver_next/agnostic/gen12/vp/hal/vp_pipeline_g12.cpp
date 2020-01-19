@@ -70,28 +70,6 @@ MOS_STATUS VpPipelineG12::Prepare(void * params)
 
     VP_PUBLIC_CHK_STATUS_RETURN(PrepareVpExePipe());
 
-    if (m_reporting)
-    {
-        m_reporting->OutputPipeMode = m_vpOutputPipe;
-
-        if (m_mmc)
-        {
-            m_reporting->VPMMCInUse = m_mmc->IsMmcEnabled();
-        }
-
-        if (m_pvpParams->pSrc[0] && m_pvpParams->pSrc[0]->bCompressible)
-        {
-            m_reporting->PrimaryCompressible = true;
-            m_reporting->PrimaryCompressMode = (uint8_t)(m_pvpParams->pSrc[0]->CompressionMode);
-        }
-
-        if (m_pvpParams->pTarget[0]->bCompressible)
-        {
-            m_reporting->RTCompressible = true;
-            m_reporting->RTCompressMode = (uint8_t)(m_pvpParams->pTarget[0]->CompressionMode);
-        }
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 

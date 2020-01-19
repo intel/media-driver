@@ -324,6 +324,77 @@ MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterDenoise                                             */
+/****************************************************************************************************/
+
+SwFilterDenoise::SwFilterDenoise(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeDn)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterDenoise::~SwFilterDenoise()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterDenoise::Clean()
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
+
+    m_Params.denoiseParams = *surfInput->pDenoiseParams;
+    m_Params.formatInput   = surfInput->Format;
+    m_Params.formatOutput  = surfInput->Format;// Denoise didn't change the original format;
+
+    m_Params.denoiseParams.bEnableChroma =
+        m_Params.denoiseParams.bEnableChroma && m_Params.denoiseParams.bEnableLuma;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamDenoise& SwFilterDenoise::GetSwFilterParams()
+{
+    return m_Params;
+}
+
+SwFilter *SwFilterDenoise::Clone()
+{
+    SwFilter *p = m_vpInterface.GetSwFilterFactory().Create(m_type);
+    if (nullptr == p)
+    {
+        return nullptr;
+    }
+
+    SwFilterDenoise *swFilter = dynamic_cast<SwFilterDenoise *>(p);
+    if (nullptr == swFilter)
+    {
+        m_vpInterface.GetSwFilterFactory().Destory(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterDenoise::operator==(SwFilter& swFilter)
+{
+    SwFilterDenoise* p = dynamic_cast<SwFilterDenoise*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(SwFilterDenoise));
+}
+
+MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+{
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+
+/****************************************************************************************************/
 /*                                      SwFilterSet                                                 */
 /****************************************************************************************************/
 

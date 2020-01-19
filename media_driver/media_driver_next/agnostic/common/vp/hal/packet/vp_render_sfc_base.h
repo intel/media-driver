@@ -84,7 +84,7 @@ public:
     //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SendSfcCmd(
-        PVPHAL_VEBOX_RENDER_DATA        pRenderData,
+        VpVeboxRenderData               *pRenderData,
         PMOS_COMMAND_BUFFER             pCmdBuffer);
 
     //!
@@ -99,7 +99,7 @@ public:
     //!
     virtual MOS_STATUS SetupSfcState(
         PVPHAL_SFC_RENDER_DATA          sfcRenderData,
-        PVPHAL_SURFACE                  targetSurface);
+        PVP_SURFACE                     targetSurface);
 
     bool IsCSC() { return m_renderData->bCSC; };
     bool IsScaling() { return m_renderData->bScaling; };
@@ -125,7 +125,7 @@ protected:
     //! \return   void
     //!
     virtual void SetSfcStateInputOrderingMode(
-        PVPHAL_VEBOX_RENDER_DATA    veboxRenderData,
+        VpVeboxRenderData           *veboxRenderData,
         PMHW_SFC_STATE_PARAMS       sfcStateParams);
 
     //!
@@ -188,8 +188,8 @@ protected:
     //! \return   MOS_STATUS
     //!
     MOS_STATUS InitMhwOutSurfParams(
-        PVPHAL_SURFACE                pSfcPipeOutSurface,
-        PMHW_SFC_OUT_SURFACE_PARAMS   pMhwOutSurfParams);
+        PVP_SURFACE                     pSfcPipeOutSurface,
+        PMHW_SFC_OUT_SURFACE_PARAMS     pMhwOutSurfParams);
 
     //!
     //! \brief    Initialize AVS parameters shared by Renderers

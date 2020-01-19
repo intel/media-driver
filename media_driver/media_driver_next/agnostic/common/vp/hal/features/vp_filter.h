@@ -155,40 +155,16 @@ struct _SFC_ROT_MIR_PARAMS
     bool                            bMirrorEnable;                              // Mirror mode -- enable/disable
 };
 
-// Vebox obligatory parameters when enabling vebox features.
-struct VEBOX_OBLI_PARAMS
-{
-    PVPHAL_SURFACE                  pCurrInput;
-    PVPHAL_SURFACE                  pCurrOutput;    // will be removed from here, this is not a obligate parameter. for example SFC scaling only
-    PVPHAL_SURFACE                  pStatisticsOutput;
-    PVPHAL_SURFACE                  pLaceOrAceOrRgbHistogram;
-};
-
 struct _VEBOX_DN_PARAMS
 {
-    VEBOX_OBLI_PARAMS               VeboxObliParams;
-    PVPHAL_SURFACE                  pPrevInput;
-    PVPHAL_SURFACE                  pSTMMInput;
-    PVPHAL_SURFACE                  pSTMMOutput;
-    PVPHAL_SURFACE                  pDenoisedCurrOutput;
-    bool                            bRefValid;
-};
-
-struct _VEBOX_DI_PARAMS
-{
-    VEBOX_OBLI_PARAMS               VeboxObliParams;
-    PVPHAL_SURFACE                  pPrevOutput;
-    PVPHAL_SURFACE                  pSTMMInput;
-    PVPHAL_SURFACE                  pSTMMOutput;
-    uint32_t                        DIOutputFrames;
-};
-
-enum _FilterType
-{
-    VP_FILTER_SFC_SCALING = 0,
-    VP_FILTER_SFC_CSC,
-    VP_FILTER_SFC_ROTMIR,
-    VP_FILTER_MAX
+    bool                            bDnEnabled;
+    bool                            bChromaDenoise;                             // bEnableChroma && bEnableLuma
+    bool                            bAutoDetect;
+    float                           fDenoiseFactor;
+    VPHAL_NOISELEVEL                NoiseLevel;
+    bool                            bEnableHVSDenoise;
+    VPHAL_HVSDENOISE_PARAMS         HVSDenoise;
+    bool                            bProgressive;
 };
 
 using SFC_SCALING_PARAMS    = _SFC_SCALING_PARAMS;
@@ -199,7 +175,6 @@ using SFC_ROT_MIR_PARAMS    = _SFC_ROT_MIR_PARAMS;
 using PSFC_ROT_MIR_PARAMS   = SFC_ROT_MIR_PARAMS * ;
 using VEBOX_DN_PARAMS       = _VEBOX_DN_PARAMS;
 using PVEBOX_DN_PARAMS      = VEBOX_DN_PARAMS *;
-using FilterType            = _FilterType;
 
 class SwFilterPipe;
 class HwFilter;

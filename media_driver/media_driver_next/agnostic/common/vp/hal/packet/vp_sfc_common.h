@@ -24,7 +24,10 @@
 
 #include "mhw_sfc.h"
 #include "vphal_common.h"
+#include "vp_pipeline_common.h"
 
+namespace vp
+{
 //!
 //! \brief Constants used to derive Line Buffer sizes
 //!
@@ -72,7 +75,7 @@ typedef struct _VPHAL_SFC_RENDER_DATA
   uint32_t                            chromaDownSamplingVerticalCoef;         //!< Chroma DownSampling Vertical Coeff
   uint32_t                            chromaDownSamplingHorizontalCoef;       //!< Chroma DownSampling Horizontal Coeff
 
-  PVPHAL_SURFACE                      pSfcPipeOutSurface;                     //!< SFC Pipe output surface
+  PVP_SURFACE                         pSfcPipeOutSurface;                     //!< SFC Pipe output surface
 
   bool                                bForcePolyPhaseCoefs;                   //!< SFC AVS force polyphase coef
 } VPHAL_SFC_RENDER_DATA, *PVPHAL_SFC_RENDER_DATA;
@@ -86,5 +89,5 @@ struct VPHAL_SFC_AVS_STATE
   MHW_SFC_AVS_CHROMA_TABLE    ChromaCoeffs;
   MHW_SFC_AVS_STATE           AvsStateParams;
 };
-
+}
 #endif // !__VP_SFC_COMMON_H__

@@ -28,8 +28,6 @@
 #include "vp_render_sfc_base.h"
 #include "vp_filter.h"
 
-#define MOVE_TO_HWFILTER // remove the macro after finished code refactor
-
 #define VP_VEBOX_MAX_SLICES          4
 #define VP_MAX_NUM_FFDI_SURFACES     4                                       //!< 2 for ADI plus additional 2 for parallel execution on HSW+
 #define VP_NUM_FFDN_SURFACES         2                                       //!< Number of FFDN surfaces
@@ -229,7 +227,7 @@ typedef struct _VPHAL_DNUV_PARAMS
 //!
 //! \brief  Structure to handle DNDI sampler states
 //!
-typedef struct _VPHAL_SAMPLER_STATE_DNDI_PARAM
+typedef struct _VP_SAMPLER_STATE_DN_PARAM
 {
     uint32_t  dwDenoiseASDThreshold;
     uint32_t  dwDenoiseHistoryDelta;
@@ -240,28 +238,25 @@ typedef struct _VPHAL_SAMPLER_STATE_DNDI_PARAM
     uint32_t  dwLTDThreshold;
     uint32_t  dwTDThreshold;
     uint32_t  dwGoodNeighborThreshold;
-    bool      bDNEnable;
-    bool      bDIEnable;
-    bool      bDNDITopFirst;
-    bool      bProgressiveDN;
-    uint32_t  dwFMDFirstFieldCurrFrame;
-    uint32_t  dwFMDSecondFieldPrevFrame;
-} VPHAL_SAMPLER_STATE_DNDI_PARAM, *PVPHAL_SAMPLER_STATE_DNDI_PARAM;
+} VP_SAMPLER_STATE_DN_PARAM, *PVP_SAMPLER_STATE_DN_PARAM;
 
+namespace vp
+{
 typedef struct _VEBOX_PACKET_SURFACE_PARAMS
 {
-    PVPHAL_SURFACE                  pCurrInput;
-    PVPHAL_SURFACE                  pPrevInput;
-    PVPHAL_SURFACE                  pSTMMInput;
-    PVPHAL_SURFACE                  pSTMMOutput;
-    PVPHAL_SURFACE                  pDenoisedCurrOutput;
-    PVPHAL_SURFACE                  pCurrOutput;
-    PVPHAL_SURFACE                  pPrevOutput;
-    PVPHAL_SURFACE                  pStatisticsOutput;
-    PVPHAL_SURFACE                  pAlphaOrVignette;
-    PVPHAL_SURFACE                  pLaceOrAceOrRgbHistogram;
-    PVPHAL_SURFACE                  pSurfSkinScoreOutput;
+    VP_SURFACE                      *pCurrInput;
+    VP_SURFACE                      *pPrevInput;
+    VP_SURFACE                      *pSTMMInput;
+    VP_SURFACE                      *pSTMMOutput;
+    VP_SURFACE                      *pDenoisedCurrOutput;
+    VP_SURFACE                      *pCurrOutput;           //!< Current Vebox Output
+    VP_SURFACE                      *pPrevOutput;
+    VP_SURFACE                      *pStatisticsOutput;
+    VP_SURFACE                      *pAlphaOrVignette;
+    VP_SURFACE                      *pLaceOrAceOrRgbHistogram;
+    VP_SURFACE                      *pSurfSkinScoreOutput;
 }VEBOX_PACKET_SURFACE_PARAMS, *PVEBOX_PACKET_SURFACE_PARAMS;
+};
 
 enum MEDIASTATE_DNDI_FIELDCOPY_SELECT
 {
@@ -312,7 +307,7 @@ public:
 
         if (!m_lastExecRenderData)
         {
-            m_lastExecRenderData = MOS_New(VP_VEBOX_RENDER_DATA);
+            m_lastExecRenderData = MOS_New(VpVeboxRenderData);
             if (!m_lastExecRenderData)
             {
                 return MOS_STATUS_NO_SPACE;
@@ -328,7 +323,7 @@ public:
         return eStatus;
     }
 
-    virtual PVPHAL_VEBOX_RENDER_DATA    GetLastExecRenderData()
+    virtual VpVeboxRenderData *GetLastExecRenderData()
     {
         if (!m_lastExecRenderData)
         {
@@ -341,7 +336,7 @@ public:
     {
         if (GetLastExecRenderData() != NULL)
         {
-           return GetLastExecRenderData()->bIECP;
+           return GetLastExecRenderData()->IECP.IsIecpEnabled();
         }
         return false;
     }
@@ -407,14 +402,102 @@ public:
     //!
     MOS_STATUS SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams);
 
-    MOS_STATUS SetDNPacketParams(
-        PVEBOX_DN_PARAMS        pDNParams);
+    //!
+    //! \brief    Setup DN Params for Vebox
+    //! \details  Setup surface DN Params for Vebox
+    //! \param    [in] dnParams
+    //!           DN Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetDnParams(PVEBOX_DN_PARAMS dnParams);
 
-    MOS_STATUS InitSTMMHistory(int32_t iSurfaceIndex);
+    //!
+    //! \brief    Get DN luma parameters
+    //! \details  Get DN luma parameters
+    //! \param    [in] bDnEnabled
+    //!           true if DN being enabled
+    //! \param    [in] bAutoDetect
+    //!           true if auto DN being enabled
+    //! \param    [in] fDnFactor
+    //!           DN factor
+    //! \param    [in] bRefValid
+    //!           true if reference surface available
+    //! \param    [out] pLumaParams
+    //!           DN luma parameters
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS GetDnLumaParams(
+        bool                        bDnEnabled,
+        bool                        bAutoDetect,
+        float                       fDnFactor,
+        bool                        bRefValid,
+        PVP_SAMPLER_STATE_DN_PARAM  pLumaParams) { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief    Get DN chroma parameters
+    //! \details  Get DN chroma parameters
+    //! \param    [in] bChromaDenoise
+    //!           true if chroma DN being enabled
+    //! \param    [in] bAutoDetect
+    //!           true if auto DN being enabled
+    //! \param    [in] fDnFactor
+    //!           DN factor
+    //! \param    [out] pChromaParams
+    //!           DN chroma parameters
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS GetDnChromaParams(
+        bool                        bChromaDenoise,
+        bool                        bAutoDetect,
+        float                       fDnFactor,
+        PVPHAL_DNUV_PARAMS          pChromaParams) { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief    Config DN luma pix range
+    //! \details  Config DN luma pix range threshold and weight
+    //! \param    [in] bDnEnabled
+    //!           true if DN being enabled
+    //! \param    [in] bAutoDetect
+    //!           true if auto DN being enabled
+    //! \param    [in] fDnFactor
+    //!           DN factor
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS ConfigLumaPixRange(
+        bool                        bDnEnabled,
+        bool                        bAutoDetect,
+        float                       fDnFactor) { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief    Config DN chroma pix range
+    //! \details  Config DN chroma pix range threshold and weight
+    //! \param    [in] bChromaDenoise
+    //!           true if chroma DN being enabled
+    //! \param    [in] bAutoDetect
+    //!           true if auto DN being enabled
+    //! \param    [in] fDnFactor
+    //!           DN factor
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS ConfigChromaPixRange(
+        bool                        bChromaDenoise,
+        bool                        bAutoDetect,
+        float                       fDnFactor) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS InitSTMMHistory();
 
     //!
     //! \brief    Vebox Populate VEBOX parameters
     //! \details  Populate the Vebox VEBOX state parameters to VEBOX RenderData
+    //! \param    [in] bDnEnabled
+    //!           true if DN being enabled
+    //! \param    [in] bChromaDenoise
+    //!           true if chroma DN being enabled
     //! \param    [in] pLumaParams
     //!           Pointer to Luma DN and DI parameter
     //! \param    [in] pChromaParams
@@ -422,26 +505,12 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS PopulateDNDIParams(
-        PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams,
-        PVPHAL_DNUV_PARAMS              pChromaParams);
-
-    //!
-    //! \brief    Set DI output frame
-    //! \details  Choose 2nd Field of Previous frame or 1st Field of Current frame
-    //!           or both frames
-    //! \param    [in] pRenderData
-    //!           Pointer to Render data
-    //! \param    [in] pVeboxState
-    //!           Pointer to Vebox State
-    //! \param    [in] pVeboxMode
-    //!           Pointer to Vebox Mode
-    //! \return   GFX_MEDIA_VEBOX_DI_OUTPUT_MODE
-    //!           Return Previous/Current/Both frames
-    //!
-    virtual GFX_MEDIA_VEBOX_DI_OUTPUT_MODE SetDIOutputFrame(
-        PVPHAL_VEBOX_RENDER_DATA pRenderData,
-        PMHW_VEBOX_MODE          pVeboxMode);
+    virtual MOS_STATUS ConfigDnLumaChromaParams(
+        bool                            bDnEnabled,
+        bool                            bChromaDenoise,
+        PVP_SAMPLER_STATE_DN_PARAM      pLumaParams,
+        PVPHAL_DNUV_PARAMS              pChromaParams
+        );
 
     //!
     //! \brief    Calculate offsets of statistics surface address based on the
@@ -500,25 +569,18 @@ public:
         int32_t*                            pStatSlice1Offset);
 
     //!
-    //! \brief    Vebox Set FMD parameter
-    //! \details  Set up the FMD parameters for DNDI State
+    //! \brief    Configure FMD parameter
+    //! \details  Configure FMD parameters for DNDI State
+    //! \param    [in] bProgressive
+    //!           true if sample being progressive
+    //! \param    [in] bAutoDenoise
+    //!           true if auto denoise being enabled
     //! \param    [out] pLumaParams
     //!           Pointer to DNDI Param for set FMD parameters
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetFMDParams(
-        PVPHAL_SAMPLER_STATE_DNDI_PARAM     pLumaParams);
-
-    //!
-    //! \brief    Vebox Set VEBOX parameter
-    //! \details  Set up the VEBOX parameter value
-    //! \param    [in] pSrcSurface
-    //!           Pointer to input surface of Vebox
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    MOS_STATUS SetVeboxDNDIParams(PVPHAL_SURFACE pSrcSurface);
+    virtual MOS_STATUS ConfigFMDParams(bool bProgressive, bool bAutoDenoise);
 
     //!
     //! \brief    Setup Vebox_State Command parameter
@@ -547,22 +609,6 @@ public:
         bool                        bDiScdEnable,
         PMHW_VEBOX_DI_IECP_CMD_PARAMS   pVeboxDiIecpCmdParams);
 
-    //!
-    //! \brief    Setup Vebox_DI_IECP Command params for VEBOX final output surface on G9
-    //! \details  Setup Vebox_DI_IECP Command params for VEBOX final output surface on G9
-    //! \param    [in] bDiScdEnable
-    //!           Is DI/Variances report enabled
-    //! \param    [in,out] pVeboxDiIecpCmdParams
-    //!           Pointer to VEBOX_DI_IECP command parameters
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful
-    //!                  MOS_STATUS_UNIMPLEMENTED, if condition not implemented,
-    //!                  otherwise failed
-    //!
-    MOS_STATUS SetupDiIecpStateForOutputSurf(
-        bool                            bDiScdEnable,
-        PMHW_VEBOX_DI_IECP_CMD_PARAMS   pVeboxDiIecpCmdParams);
-
     virtual bool UseKernelResource();
 
     //!
@@ -582,26 +628,20 @@ public:
 
     virtual SfcRenderBase* GetSfcRenderInstance() { return m_sfcRender; };
 
-    virtual MOS_STATUS SetupVeboxRenderMode0(
-        PVPHAL_SURFACE           pSrcSurface,
-        PVPHAL_SURFACE           pOutputSurface);
-
-    // Need to remove vphal surface dependence from VpCmdPacket later.
     virtual MOS_STATUS PacketInit(
-        PVPHAL_SURFACE      pSrcSurface,
-        PVPHAL_SURFACE      pOutputSurface,
-        VP_EXECUTE_CAPS     packetCaps) override;
+        VP_SURFACE                          *inputSurface,
+        VP_SURFACE                          *outputSurface,
+        VP_SURFACE                          *previousSurface,
+        std::map<SurfaceType, VP_SURFACE*>  &internalSurfaces,
+        VP_EXECUTE_CAPS                     packetCaps) override;
 
     //!
     //! \brief    Copy and update vebox state
     //! \details  Copy and update vebox state for input frame.
-    //! \param    [in] pSrcSurface
-    //!           Pointer to input surface of Vebox
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS CopyAndUpdateVeboxState(
-        PVPHAL_SURFACE           pSrcSurface);
+    virtual MOS_STATUS CopyAndUpdateVeboxState();
 
     //!
     //! \brief    Check whether the Vebox command parameters are correct
@@ -616,11 +656,6 @@ public:
         const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
         const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams);
 
-    virtual MOS_STATUS SetDNDIParams(
-        PVPHAL_SURFACE                  pSrcSurface,
-        PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams,
-        PVPHAL_DNUV_PARAMS              pChromaParams) { return MOS_STATUS_SUCCESS;}
-
     //!
     //! \brief    Copy Vebox state heap
     //! \details  Call HW interface function,
@@ -634,13 +669,10 @@ public:
     //!
     //! \brief    Vebox state heap update for auto mode features
     //! \details  Update Vebox indirect states for auto mode features
-    //! \param    [in] pSrcSurface
-    //!           Pointer to input surface of Vebox
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS UpdateVeboxStates(
-        PVPHAL_SURFACE              pSrcSurface);
+    virtual MOS_STATUS UpdateVeboxStates();
 
     virtual MOS_STATUS QueryStatLayout(
         VEBOX_STAT_QUERY_TYPE QueryType,
@@ -752,8 +784,8 @@ protected:
         PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS      pMhwVeboxSurfaceStateCmdParams);
 
     MOS_STATUS InitVeboxSurfaceParams(
-        PVPHAL_SURFACE                 pVpHalVeboxSurface,
-        PMHW_VEBOX_SURFACE_PARAMS      pMhwVeboxSurface);
+        PVP_SURFACE                     pVpHalVeboxSurface,
+        PMHW_VEBOX_SURFACE_PARAMS       pMhwVeboxSurface);
 
     //!
     //! \brief    Copy Surface value
@@ -764,8 +796,8 @@ protected:
     //! \return   void
     //!
     virtual void CopySurfaceValue(
-      PVPHAL_SURFACE              pTargetSurface,
-      PVPHAL_SURFACE              pSourceSurface);
+      PVP_SURFACE                 pTargetSurface,
+      PVP_SURFACE                 pSourceSurface);
 
     //!
     //! \brief    Vebox allocate resources
@@ -783,46 +815,19 @@ protected:
     virtual MOS_STATUS FreeResources();
 
     //!
-    //! \brief    Get Output surface params needed when allocate surfaces
-    //! \details  Get Output surface params needed when allocate surfaces
-    //! \param    [out] Format
-    //!           Format of output surface
-    //! \param    [out] TileType
-    //!           Tile type of output surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if success, otherwise failed
-    //!
-    MOS_STATUS GetOutputSurfParams(
-        MOS_FORMAT    &Format,
-        MOS_TILE_TYPE &TileType);
-
-    //!
-    //! \brief    Get related surf parameters needed when allocate FFDI surface
-    //! \details  Get related surf parameters needed when allocate FFDI surface
-    //! \param    ColorSpace
-    //!           [out] Color space of FFDI surface
-    //! \param    SampleType
-    //!           [out] Sample type of FFDI surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if success, otherwise failed
-    //!
-    virtual MOS_STATUS GetFFDISurfParams(
-        VPHAL_CSPACE         &ColorSpace,
-        VPHAL_SAMPLE_TYPE    &SampleType);
-
-    //!
-    //! \brief    Vebox set up vebox state heap
-    //! \details  Setup Vebox indirect states: DNDI and etc
-    //! \param    [in] pSrcSurface
-    //!           Pointer to input surface of Vebox
-    //! \param    [in] pOutSurface
-    //!           Pointer to output surface of Vebox
+    //! \brief    Add vebox DNDI state
+    //! \details  Add vebox DNDI state
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetupIndirectStates(
-        PVPHAL_SURFACE                  pSrcSurface,
-        PVPHAL_SURFACE                  pOutSurface);
+    virtual MOS_STATUS AddVeboxDndiState();
+    //!
+    //! \brief    Vebox set up vebox state heap
+    //! \details  Setup Vebox indirect states: DNDI and etc
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetupIndirectStates();
 
     //!
     //! \brief    Vebox get the back-end colorspace conversion matrix
@@ -838,17 +843,17 @@ protected:
         PVPHAL_SURFACE pSrcSurface,
         PVPHAL_SURFACE pOutSurface);
 
-private:
+    //!
+    //! \brief    Get surface by type
+    //! \details  Get surface by type
+    //! \param    [in] type
+    //!           surface type
+    //! \return   VP_SURFACE*
+    //!           Pointer to surface of specified type
+    //!
+    virtual VP_SURFACE *GetSurface(SurfaceType type);
 
-    //!
-    //! \brief    Get output surface of Vebox
-    //! \details  Get output surface of Vebox in current operation
-    //! \param    [in] bDiVarianceEnable
-    //!           Is DI/Variances report enabled
-    //! \return   PVPHAL_SURFACE
-    //!           Corresponding output surface pointer
-    //!
-    PVPHAL_SURFACE GetSurfOutput(bool   bDiVarianceEnable);
+private:
 
     //!
     //! \brief    IsFormatMMCSupported
@@ -869,7 +874,7 @@ private:
 protected:
 
     // Execution state
-    PVPHAL_VEBOX_RENDER_DATA    m_lastExecRenderData     = nullptr;                             //!< Cache last render operation info
+    VpVeboxRenderData           *m_lastExecRenderData     = nullptr;                             //!< Cache last render operation info
 
     VPHAL_CSPACE                m_CscOutputCspace = {};                            //!< Cspace of Output Frame
     VPHAL_CSPACE                m_CscInputCspace = {};                             //!< Cspace of Input frame
@@ -880,40 +885,22 @@ protected:
     VPHAL_SFC_RENDER_DATA       m_sfcRenderData          = {};
     bool                        m_IsSfcUsed              = false;
     uint32_t                    m_histogramSurfaceOffset = 0;                                 //!< Vebox Histogram Surface Offset
+    std::map<SurfaceType, VP_SURFACE*> m_surfacesGroup;
 
     VEBOX_PACKET_SURFACE_PARAMS m_veboxPacketSurface = {};
 
+    VP_SURFACE                  *m_currentSurface           = nullptr;              //!< Current frame
+    VP_SURFACE                  *m_previousSurface          = nullptr;              //!< Previous frame
+    VP_SURFACE                  *m_renderTarget             = nullptr;              //!< Render Target frame
+
 #ifdef MOVE_TO_HWFILTER
     // Resources
-    VPHAL_SURFACE               m_veboxStatisticsSurface = {};                                 //!< Statistics Surface for VEBOX
-    VPHAL_SURFACE               *m_currentSurface        = nullptr;                            //!< Current frame
-    VPHAL_SURFACE               *m_previousSurface       = nullptr;                            //!< Previous frame
-    VPHAL_SURFACE               *m_renderTarget          = nullptr;                            //!< Render Target frame
-    VPHAL_SURFACE               *FFDISurfaces[VP_MAX_NUM_FFDI_SURFACES] = {};  //!< FFDI output surface structure
-    VPHAL_SURFACE               *FFDNSurfaces[VP_NUM_FFDN_SURFACES] = {};      //!< Denoise output surface.
-    VPHAL_SURFACE               STMMSurfaces[VP_NUM_STMM_SURFACES] = {};        //!< Motion history (DI)
-    int32_t                     m_iCurDNIndex = 0;                                //!< Current index of Denoise Output
-    // DNDI
-    struct
-    {
-        int32_t                     m_iNumFFDISurfaces = 2;                       //!< Actual number of FFDISurfaces. Is <= VPHAL_NUM_FFDI_SURFACES PE on: 4 used. PE off: 2 used
-        int32_t                     m_iCurStmmIndex = 0;                          //!< Current index of Motion History Buffer
-    };
-    // Chroma DN
-    struct
-    {
-        int32_t                     m_iCurHistIndex = 0;                          //!< Current index of Chroma Denoise History Buffer
-    };
-    // timestamps for DI output control
-    int32_t                         m_iCurFrameID = 0;                            //!< Current Frame ID
-    int32_t                         m_iPrvFrameID = 0;                            //!< Previous Frame ID
-    // S3D channel
-    uint32_t                    m_uiCurrentChannel = 0;                           //!< 0=StereoLeft or nonStereo, 1=StereoRight. N/A in nonStereo
+    VP_SURFACE                  *m_veboxStatisticsSurface   = nullptr;              //!< Statistics Surface for VEBOX
 #endif
+
     bool                        m_bRefValid = false;
     uint32_t                    m_dwGlobalNoiseLevelU = 0;                        //!< Global Noise Level for U
     uint32_t                    m_dwGlobalNoiseLevelV = 0;                        //!< Global Noise Level for V
-    bool                        m_bFirstFrame = false;                            //!< First frame case for Chroma DN
     uint32_t                    m_dwGlobalNoiseLevel = 0;                         //!< Global Noise Level
     VPHAL_DNDI_CACHE_CNTL       m_DnDiSurfMemObjCtl = {};                         //!< Surface memory object control
     uint32_t                    m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_CURRENT; //!< default value is 2 for non-DI case.

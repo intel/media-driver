@@ -309,7 +309,7 @@ HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
             {
                 ReleaseHwFeatureParameter(pHwFilterParam);
             }
-       }
+        }
         else
         {
             pHwFilterParam = HwFilterRotMirParameter::Create(paramRotMir, m_Type);

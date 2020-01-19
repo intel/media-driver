@@ -103,7 +103,7 @@ public:
     MOS_STATUS FreeResource(MOS_RESOURCE *resource);
 
     //!
-    //! \brief  Allocate Surface
+    //! \brief  Allocate vp surface
     //! \param  [in] component
     //!         component type to track the buffer
     //! \param  [in] param
@@ -122,13 +122,40 @@ public:
     VP_SURFACE* AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroOnAllocate = false, VPHAL_CSPACE ColorSpace = CSpace_None, uint32_t ChromaSiting = 0);
 
     //!
-    //! \brief  Allocate Surface
+    //! \brief  Allocate vp surface
     //! \param  [in] vphalSurf
     //!         The vphal surface that vp surface created from. The resource will be reused in vp surface.
     //! \return VP_SURFACE*
     //!         return the pointer to VP_SURFACE
     //!
     VP_SURFACE* AllocateVpSurface(VPHAL_SURFACE &vphalSurf);
+
+    //!
+    //! \brief  Allocate vp surface
+    //! \param  [in] vpSurf
+    //!         The surface that vp surface created from. The resource will be reused in vp surface.
+    //! \return VP_SURFACE*
+    //!         return the pointer to VP_SURFACE
+    //!
+    VP_SURFACE* AllocateVpSurface(VP_SURFACE &vphalSurf);
+
+    //!
+    //! \brief  Allocate vp surface without resource
+    //! \return VP_SURFACE*
+    //!         return the pointer to VP_SURFACE
+    //!
+    VP_SURFACE *AllocateVpSurface();
+
+    //!
+    //! \brief  Copy vp surface from src to dst
+    //! \param  [in] dst
+    //!         The target vp surface for copy. The isResourceOwner flag should be false.
+    //! \param  [in] src
+    //!         The source vp surface for copy. The resource will be reused in dst.
+    //! \return MOS_STATUS
+    //!         return MOS_STATUS_SUCCESS if no error occur.
+    //!
+    MOS_STATUS CopyVpSurface(VP_SURFACE &dst, VP_SURFACE &src);
 
     //!
     //! \brief  Destroy Surface
@@ -341,7 +368,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success. Error code otherwise
     //!
     MOS_STATUS ReAllocateSurface(
-        VP_SURFACE             *surface,
+        VP_SURFACE             *&surface,
         PCCHAR                  surfaceName,
         MOS_FORMAT              format,
         MOS_GFXRES_TYPE         defaultResType,

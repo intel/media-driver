@@ -39,7 +39,7 @@ using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
 struct VP_SURFACE
 {
     MOS_SURFACE                 *osSurface;         //!< mos surface
-    bool                        isInternalSurface;  //!< true if created by feature manager. false if the surface is from DDI.
+    bool                        isResourceOwner;    //!< true if the resource is owned by current instance.
     VPHAL_CSPACE                ColorSpace;         //!< Color Space
     uint32_t                    ChromaSiting;       //!< ChromaSiting
 
@@ -54,13 +54,14 @@ struct VP_SURFACE
     VPHAL_SURFACE               *pBwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
     VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type.
     // Use index of m_InputSurfaces for layerID. No need iLayerID here anymore.
-
     RECT                        rcSrc;              //!< Source rectangle
     RECT                        rcDst;              //!< Destination rectangle
     RECT                        rcMaxSrc;           //!< Max source rectangle
 
-    PVPHAL_SURFACE              pCurrent;           //!< Pointer to related vphal surface. Only be used in VpVeboxCmdPacket::PacketInit for current
-                                                    //!< stage. Should be removed after vphal surface being cleaned from VpVeboxCmdPacket.
+    // Return true if no resource assigned to current vp surface.
+    bool        IsEmpty();
+    // Clean the vp surface to empty state. Only valid for false == isResourceOwner case.
+    MOS_STATUS  Clean();
 };
 
 struct _VP_MHWINTERFACE
@@ -104,6 +105,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bQueryVariance : 1;
             uint32_t bRefValid      : 1;   // Vebox Ref is Valid
             uint32_t bSTD           : 1;   // Vebox LACE STD Needed;
+            uint32_t bDnKernelUpdate: 1;
 
             // SFC features
             uint32_t bSfcCsc        : 1;   // Sfc Csc enabled
@@ -112,8 +114,8 @@ struct _VP_EXECUTE_CAPS
             uint32_t bSfcIef        : 1;   // Sfc Details Needed;
 
             // Render Features
-            uint32_t bComposite     : 1;
-            uint32_t reserved       : 18;  // Reserved
+            uint32_t bComposite : 1;
+            uint32_t reserved : 17;  // Reserved
         };
     };
 };

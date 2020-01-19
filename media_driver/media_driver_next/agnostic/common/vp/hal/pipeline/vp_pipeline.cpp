@@ -80,6 +80,28 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 {
     VP_FUNC_CALL();
 
+    if (m_reporting)
+    {
+        m_reporting->OutputPipeMode = m_vpOutputPipe;
+
+        if (m_mmc)
+        {
+            m_reporting->VPMMCInUse = m_mmc->IsMmcEnabled();
+        }
+
+        if (m_pvpParams->pSrc[0] && m_pvpParams->pSrc[0]->bCompressible)
+        {
+            m_reporting->PrimaryCompressible = true;
+            m_reporting->PrimaryCompressMode = (uint8_t)(m_pvpParams->pSrc[0]->CompressionMode);
+        }
+
+        if (m_pvpParams->pTarget[0]->bCompressible)
+        {
+            m_reporting->RTCompressible = true;
+            m_reporting->RTCompressMode = (uint8_t)(m_pvpParams->pTarget[0]->CompressionMode);
+        }
+    }
+
     MediaPipeline::UserFeatureReport();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -185,6 +207,9 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
         VP_PUBLIC_CHK_STATUS(eStatus);
     }
+
+    // Update output pipe mode.
+    m_vpOutputPipe = pPacketPipe->GetOutputPipeMode();
 
     // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
     eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
@@ -327,10 +352,8 @@ MOS_STATUS VpPipeline::PrepareVpExePipe()
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams);
 
-    // Get Output Pipe for Features
-    // Output Pipe can be multiple submittion for example: Render + VE
-    // Check the feasible for each engine, current noe for CSC/Scaling, we set it as SFC
-    m_vpOutputPipe = VPHAL_OUTPUT_PIPE_MODE_SFC;
+    // Get Output Pipe for Features. It should be configured in ExecuteVpPipeline.
+    m_vpOutputPipe = VPHAL_OUTPUT_PIPE_MODE_INVALID;
 
     return MOS_STATUS_SUCCESS;
 }

@@ -143,7 +143,7 @@ protected:
     PVP_PIPELINE_PARAMS    m_pvpParams              = nullptr;  //!< vp Pipeline params
     PVP_MHWINTERFACE       m_pvpMhwInterface        = nullptr;  //!< vp Pipeline Mhw Interface
     VP_EXECUTE_CAPS        m_vpPipelineCaps         = {};       //!< vp Pipeline Engine execute caps
-    VPHAL_OUTPUT_PIPE_MODE m_vpOutputPipe           = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    VPHAL_OUTPUT_PIPE_MODE m_vpOutputPipe           = VPHAL_OUTPUT_PIPE_MODE_INVALID;
     uint8_t                m_numVebox               = 0;
     bool                   m_forceMultiplePipe      = false;
     VpAllocator           *m_allocator              = nullptr;  //!< vp Pipeline allocator

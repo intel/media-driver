@@ -209,7 +209,7 @@ VpVeboxCmdPacketG12::~VpVeboxCmdPacketG12()
 }
 
 void VpVeboxCmdPacketG12::GetLumaDefaultValue(
-    PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams)
+    PVP_SAMPLER_STATE_DN_PARAM pLumaParams)
 {
     VP_RENDER_ASSERT(pLumaParams);
 
@@ -223,223 +223,228 @@ void VpVeboxCmdPacketG12::GetLumaDefaultValue(
     pLumaParams->dwTDThreshold           = NOISE_TEMPORALPIXELDIFF_THRESHOLD_DEFAULT_G12;
 }
 
-MOS_STATUS VpVeboxCmdPacketG12::SetDNParams(
-    PVPHAL_SURFACE                  pSrcSurface,
-    PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams,
-    PVPHAL_DNUV_PARAMS              pChromaParams)
+MOS_STATUS VpVeboxCmdPacketG12::GetDnLumaParams(bool bDnEnabled, bool bAutoDetect, float fDnFactor, bool bRefValid, PVP_SAMPLER_STATE_DN_PARAM pLumaParams)
 {
-    MOS_STATUS               eStatus;
-    PVPHAL_DENOISE_PARAMS    pDNParams;
-    uint32_t                 dwDenoiseFactor;
-    PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    VpVeboxRenderData *pRenderData = GetLastExecRenderData();
 
-    VP_RENDER_ASSERT(pSrcSurface);
-    VP_RENDER_ASSERT(pLumaParams);
-    VP_RENDER_ASSERT(pChromaParams);
-    VP_RENDER_ASSERT(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(pLumaParams);
 
-    eStatus   = MOS_STATUS_SUCCESS;
-    pDNParams = pSrcSurface->pDenoiseParams;
-
-    if (!m_PacketCaps.bDN)
+    if (!bDnEnabled)
     {
-        VP_RENDER_NORMALMESSAGE("DN for Output is enabled in Vebox, pls recheck the features enabling in Vebox");
-        return MOS_STATUS_INVALID_PARAMETER;
+        return MOS_STATUS_SUCCESS;
     }
 
-    // Set Luma DN params
-    if (pRenderData->bDenoise)
+    if (bAutoDetect)
     {
-        // Setup Denoise Params
         GetLumaDefaultValue(pLumaParams);
-
-        // Initialize pixel range threshold array
-        pRenderData->VeboxDNDIParams.dwPixRangeThreshold[0] = NOISE_BLF_RANGE_THRESHOLD_S0_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeThreshold[1] = NOISE_BLF_RANGE_THRESHOLD_S1_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeThreshold[2] = NOISE_BLF_RANGE_THRESHOLD_S2_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeThreshold[3] = NOISE_BLF_RANGE_THRESHOLD_S3_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeThreshold[4] = NOISE_BLF_RANGE_THRESHOLD_S4_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeThreshold[5] = NOISE_BLF_RANGE_THRESHOLD_S5_DEFAULT;
-
-        // Initialize pixel range weight array
-        pRenderData->VeboxDNDIParams.dwPixRangeWeight[0] = NOISE_BLF_RANGE_WGTS0_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeWeight[1] = NOISE_BLF_RANGE_WGTS1_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeWeight[2] = NOISE_BLF_RANGE_WGTS2_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeWeight[3] = NOISE_BLF_RANGE_WGTS3_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeWeight[4] = NOISE_BLF_RANGE_WGTS4_DEFAULT;
-        pRenderData->VeboxDNDIParams.dwPixRangeWeight[5] = NOISE_BLF_RANGE_WGTS5_DEFAULT;
-
-        // User specified Denoise strength case (no auto DN detect)
-        if (!pDNParams->bAutoDetect)
-        {
-            dwDenoiseFactor = (uint32_t)pDNParams->fDenoiseFactor;
-
-            if (dwDenoiseFactor > NOISEFACTOR_MAX)
-            {
-                dwDenoiseFactor = NOISEFACTOR_MAX;
-            }
-
-            pLumaParams->dwDenoiseHistoryDelta   = dwDenoiseHistoryDelta[dwDenoiseFactor];
-            pLumaParams->dwDenoiseMaximumHistory = dwDenoiseMaximumHistory[dwDenoiseFactor];
-            pLumaParams->dwDenoiseASDThreshold   = dwDenoiseASDThreshold[dwDenoiseFactor];
-            pLumaParams->dwDenoiseSCMThreshold   = dwDenoiseSCMThreshold[dwDenoiseFactor];
-            pLumaParams->dwDenoiseMPThreshold    = dwDenoiseMPThreshold[dwDenoiseFactor];
-            pLumaParams->dwLTDThreshold          = dwLTDThreshold[dwDenoiseFactor];
-            pLumaParams->dwTDThreshold           = dwTDThreshold[dwDenoiseFactor];
-            pLumaParams->dwDenoiseSTADThreshold  = dwDenoiseSTADThreshold[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[0] = dwPixRangeThreshold0[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[1] = dwPixRangeThreshold1[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[2] = dwPixRangeThreshold2[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[3] = dwPixRangeThreshold3[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[4] = dwPixRangeThreshold4[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeThreshold[5] = dwPixRangeThreshold5[dwDenoiseFactor];
-
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[0] = dwPixRangeWeight0[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[1] = dwPixRangeWeight1[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[2] = dwPixRangeWeight2[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[3] = dwPixRangeWeight3[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[4] = dwPixRangeWeight4[dwDenoiseFactor];
-            pRenderData->VeboxDNDIParams.dwPixRangeWeight[5] = dwPixRangeWeight5[dwDenoiseFactor];
-        }
     }
-
-    // Set Chroma DN params
-    if (pRenderData->bChromaDenoise)
+    else
     {
-        // Setup Denoise Params
-        pChromaParams->dwHistoryDeltaUV = NOISE_HISTORY_DELTA_DEFAULT;
-        pChromaParams->dwHistoryMaxUV   = NOISE_HISTORY_MAX_DEFAULT;
+        uint32_t dwDenoiseFactor = (uint32_t)fDnFactor;
 
-        // Denoise Slider case (no auto DN detect)
-        if (!pDNParams->bAutoDetect)
+        if (dwDenoiseFactor > NOISEFACTOR_MAX)
         {
-            dwDenoiseFactor = (uint32_t)pDNParams->fDenoiseFactor;
-
-            if (dwDenoiseFactor > NOISEFACTOR_MAX)
-            {
-                dwDenoiseFactor = NOISEFACTOR_MAX;
-            }
-
-            pChromaParams->dwLTDThresholdU  =
-            pChromaParams->dwLTDThresholdV  = dwLTDThresholdUV[dwDenoiseFactor];
-
-            pChromaParams->dwTDThresholdU   =
-            pChromaParams->dwTDThresholdV   = dwTDThresholdUV[dwDenoiseFactor];
-
-            pChromaParams->dwSTADThresholdU =
-            pChromaParams->dwSTADThresholdV = dwSTADThresholdUV[dwDenoiseFactor];
+            dwDenoiseFactor = NOISEFACTOR_MAX;
         }
+
+        pLumaParams->dwDenoiseHistoryDelta   = dwDenoiseHistoryDelta[dwDenoiseFactor];
+        pLumaParams->dwDenoiseMaximumHistory = dwDenoiseMaximumHistory[dwDenoiseFactor];
+        pLumaParams->dwDenoiseASDThreshold   = dwDenoiseASDThreshold[dwDenoiseFactor];
+        pLumaParams->dwDenoiseSCMThreshold   = dwDenoiseSCMThreshold[dwDenoiseFactor];
+        pLumaParams->dwDenoiseMPThreshold    = dwDenoiseMPThreshold[dwDenoiseFactor];
+        pLumaParams->dwLTDThreshold          = dwLTDThreshold[dwDenoiseFactor];
+        pLumaParams->dwTDThreshold           = dwTDThreshold[dwDenoiseFactor];
+        pLumaParams->dwDenoiseSTADThreshold  = dwDenoiseSTADThreshold[dwDenoiseFactor];
     }
-
-    return eStatus;
-}
-
-MOS_STATUS VpVeboxCmdPacketG12::SetDIParams(
-    PVPHAL_SURFACE pSrcSurface)
-{
-    PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
-    VP_RENDER_CHK_NULL_RETURN(pRenderData);
-
-    if (!m_PacketCaps.bDI)
+    if (!bRefValid)
     {
-        VP_RENDER_NORMALMESSAGE("DI for Output is enabled in Vebox, pls recheck the features enabling in Vebox");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    // Set DI params
-    if (pRenderData->bDeinterlace)
-    {
-        pRenderData->VeboxDNDIParams.dwLumaTDMWeight            = VPHAL_VEBOX_DI_LUMA_TDM_WEIGHT_NATUAL;
-        pRenderData->VeboxDNDIParams.dwChromaTDMWeight          = VPHAL_VEBOX_DI_CHROMA_TDM_WEIGHT_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSHCMDelta                = VPHAL_VEBOX_DI_SHCM_DELTA_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSHCMThreshold            = VPHAL_VEBOX_DI_SHCM_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSVCMDelta                = VPHAL_VEBOX_DI_SVCM_DELTA_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSVCMThreshold            = VPHAL_VEBOX_DI_SVCM_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.bFasterConvergence         = false;
-        pRenderData->VeboxDNDIParams.bTDMLumaSmallerWindow      = false;
-        pRenderData->VeboxDNDIParams.bTDMChromaSmallerWindow    = false;
-        pRenderData->VeboxDNDIParams.dwLumaTDMCoringThreshold   = VPHAL_VEBOX_DI_LUMA_TDM_CORING_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.dwChromaTDMCoringThreshold = VPHAL_VEBOX_DI_CHROMA_TDM_CORING_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.bBypassDeflickerFilter     = true;
-        pRenderData->VeboxDNDIParams.bUseSyntheticContentMedian = false;
-        pRenderData->VeboxDNDIParams.bLocalCheck                = true;
-        pRenderData->VeboxDNDIParams.bSyntheticContentCheck     = false;
-        pRenderData->VeboxDNDIParams.dwDirectionCheckThreshold  = VPHAL_VEBOX_DI_DIRECTION_CHECK_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.dwTearingLowThreshold      = VPHAL_VEBOX_DI_TEARING_LOW_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.dwTearingHighThreshold     = VPHAL_VEBOX_DI_TEARING_HIGH_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.dwDiffCheckSlackThreshold  = VPHAL_VEBOX_DI_DIFF_CHECK_SLACK_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSADWT0                   = VPHAL_VEBOX_DI_SAD_WT0_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSADWT1                   = VPHAL_VEBOX_DI_SAD_WT1_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSADWT2                   = VPHAL_VEBOX_DI_SAD_WT2_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSADWT3                   = VPHAL_VEBOX_DI_SAD_WT3_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSADWT4                   = VPHAL_VEBOX_DI_SAD_WT4_NATUAL;
-        pRenderData->VeboxDNDIParams.dwSADWT6                   = VPHAL_VEBOX_DI_SAD_WT6_NATUAL;
-        if (pSrcSurface && pSrcSurface->pDeinterlaceParams)
-        {
-            pRenderData->VeboxDNDIParams.bSCDEnable             = pSrcSurface->pDeinterlaceParams->bSCDEnable;
-        }
-        else
-        {
-            pRenderData->VeboxDNDIParams.bSCDEnable             = false;
-        }
-
-        VP_RENDER_CHK_NULL_RETURN(pSrcSurface);
-        if (MEDIA_IS_HDCONTENT(pSrcSurface->dwWidth, pSrcSurface->dwHeight))
-        {
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_HD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_HD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_HD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_HD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_HD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_HD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_HD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_HD_NATUAL;
-        }
-        else
-        {
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_SD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_SD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_SD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_SD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_SD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_SD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_SD_NATUAL;
-            pRenderData->VeboxDNDIParams.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_SD_NATUAL;
-        }
+        // setting LTDThreshold = TDThreshold = 0 forces SpatialDenoiseOnly
+        pLumaParams->dwLTDThreshold   = 0;
+        pLumaParams->dwTDThreshold    = 0;
     }
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacketG12::SetDNDIParams(
-    PVPHAL_SURFACE                  pSrcSurface,
-    PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams,
-    PVPHAL_DNUV_PARAMS              pChromaParams)
+MOS_STATUS VpVeboxCmdPacketG12::GetDnChromaParams(bool bChromaDenoise, bool bAutoDetect, float fDnFactor, PVPHAL_DNUV_PARAMS pChromaParams)
 {
-    MOS_STATUS status;
+    VpVeboxRenderData *pRenderData = GetLastExecRenderData();
 
-    VP_RENDER_ASSERT(pSrcSurface);
-    VP_RENDER_ASSERT(pLumaParams);
-    VP_RENDER_ASSERT(pChromaParams);
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(pChromaParams);
 
-    status = MOS_STATUS_SUCCESS;
-
-    if (!m_PacketCaps.bVebox)
+    if (!bChromaDenoise)
     {
-        VP_RENDER_NORMALMESSAGE("DN/DI for Output is enabled in Vebox, pls recheck the features enabling in Vebox");
-        return MOS_STATUS_INVALID_PARAMETER;
+        return MOS_STATUS_SUCCESS;
     }
 
-    status = SetDNParams(pSrcSurface, pLumaParams, pChromaParams);
-
-    MOS_STATUS status2 = SetDIParams(pSrcSurface);
-
-    if (MOS_SUCCEEDED(status))
+    pChromaParams->dwHistoryDeltaUV = NOISE_HISTORY_DELTA_DEFAULT;
+    pChromaParams->dwHistoryMaxUV   = NOISE_HISTORY_MAX_DEFAULT;
+    if (bAutoDetect)
     {
-        status = status2;
+        // Place holder: Add config for default chroma params.
+    }
+    else
+    {
+        uint32_t dwDenoiseFactor = (uint32_t)fDnFactor;
+
+        if (dwDenoiseFactor > NOISEFACTOR_MAX)
+        {
+            dwDenoiseFactor = NOISEFACTOR_MAX;
+        }
+
+        pChromaParams->dwLTDThresholdU  =
+        pChromaParams->dwLTDThresholdV  = dwLTDThresholdUV[dwDenoiseFactor];
+
+        pChromaParams->dwTDThresholdU   =
+        pChromaParams->dwTDThresholdV   = dwTDThresholdUV[dwDenoiseFactor];
+
+        pChromaParams->dwSTADThresholdU =
+        pChromaParams->dwSTADThresholdV = dwSTADThresholdUV[dwDenoiseFactor];
     }
 
-    return status;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacketG12::ConfigLumaPixRange(bool bDnEnabled, bool bAutoDetect, float fDnFactor)
+{
+    VpVeboxRenderData *pRenderData = GetLastExecRenderData();
+    uint32_t dwDenoiseFactor = (uint32_t)fDnFactor;
+    const uint32_t idxDefault = 0, idxMin = 1, idxMid = 2, idxMax = 3;
+
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+
+    if (!bDnEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MHW_VEBOX_DNDI_PARAMS &dndiParams = pRenderData->GetDNDIParams();
+    uint32_t *dwPixRangeThrs    = dndiParams.dwPixRangeThreshold;
+    uint32_t *dwPixRangeWgts    = dndiParams.dwPixRangeWeight;
+
+    if (bAutoDetect)
+    {
+        // Initialize pixel range threshold array
+        dwPixRangeThrs[0] = NOISE_BLF_RANGE_THRESHOLD_S0_DEFAULT;
+        dwPixRangeThrs[1] = NOISE_BLF_RANGE_THRESHOLD_S1_DEFAULT;
+        dwPixRangeThrs[2] = NOISE_BLF_RANGE_THRESHOLD_S2_DEFAULT;
+        dwPixRangeThrs[3] = NOISE_BLF_RANGE_THRESHOLD_S3_DEFAULT;
+        dwPixRangeThrs[4] = NOISE_BLF_RANGE_THRESHOLD_S4_DEFAULT;
+        dwPixRangeThrs[5] = NOISE_BLF_RANGE_THRESHOLD_S5_DEFAULT;
+
+        // Initialize pixel range weight array
+        dwPixRangeWgts[0] = NOISE_BLF_RANGE_WGTS0_DEFAULT;
+        dwPixRangeWgts[1] = NOISE_BLF_RANGE_WGTS1_DEFAULT;
+        dwPixRangeWgts[2] = NOISE_BLF_RANGE_WGTS2_DEFAULT;
+        dwPixRangeWgts[3] = NOISE_BLF_RANGE_WGTS3_DEFAULT;
+        dwPixRangeWgts[4] = NOISE_BLF_RANGE_WGTS4_DEFAULT;
+        dwPixRangeWgts[5] = NOISE_BLF_RANGE_WGTS5_DEFAULT;
+    }
+    else
+    {
+        dwPixRangeThrs[0] = dwPixRangeThreshold0[dwDenoiseFactor];
+        dwPixRangeThrs[1] = dwPixRangeThreshold1[dwDenoiseFactor];
+        dwPixRangeThrs[2] = dwPixRangeThreshold2[dwDenoiseFactor];
+        dwPixRangeThrs[3] = dwPixRangeThreshold3[dwDenoiseFactor];
+        dwPixRangeThrs[4] = dwPixRangeThreshold4[dwDenoiseFactor];
+        dwPixRangeThrs[5] = dwPixRangeThreshold5[dwDenoiseFactor];
+
+        dwPixRangeWgts[0] = dwPixRangeWeight0[dwDenoiseFactor];
+        dwPixRangeWgts[1] = dwPixRangeWeight1[dwDenoiseFactor];
+        dwPixRangeWgts[2] = dwPixRangeWeight2[dwDenoiseFactor];
+        dwPixRangeWgts[3] = dwPixRangeWeight3[dwDenoiseFactor];
+        dwPixRangeWgts[4] = dwPixRangeWeight4[dwDenoiseFactor];
+        dwPixRangeWgts[5] = dwPixRangeWeight5[dwDenoiseFactor];
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacketG12::ConfigChromaPixRange(bool bChromaDenoise, bool bAutoDetect, float fDnFactor)
+{
+    // Place hold: Add config for chroma pix range.
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacketG12::SetDIParams(
+    PVPHAL_SURFACE pSrcSurface)
+{
+    // Place Hold: Add it back when enabling DI.
+    //PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    //VP_RENDER_CHK_NULL_RETURN(pRenderData);
+
+    //if (!m_PacketCaps.bDI)
+    //{
+    //    VP_RENDER_NORMALMESSAGE("DI for Output is enabled in Vebox, pls recheck the features enabling in Vebox");
+    //    return MOS_STATUS_INVALID_PARAMETER;
+    //}
+
+    //// Set DI params
+    //if (pRenderData->bDeinterlace)
+    //{
+    //    pRenderData->VeboxDNDIParams.dwLumaTDMWeight            = VPHAL_VEBOX_DI_LUMA_TDM_WEIGHT_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwChromaTDMWeight          = VPHAL_VEBOX_DI_CHROMA_TDM_WEIGHT_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSHCMDelta                = VPHAL_VEBOX_DI_SHCM_DELTA_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSHCMThreshold            = VPHAL_VEBOX_DI_SHCM_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSVCMDelta                = VPHAL_VEBOX_DI_SVCM_DELTA_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSVCMThreshold            = VPHAL_VEBOX_DI_SVCM_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.bFasterConvergence         = false;
+    //    pRenderData->VeboxDNDIParams.bTDMLumaSmallerWindow      = false;
+    //    pRenderData->VeboxDNDIParams.bTDMChromaSmallerWindow    = false;
+    //    pRenderData->VeboxDNDIParams.dwLumaTDMCoringThreshold   = VPHAL_VEBOX_DI_LUMA_TDM_CORING_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwChromaTDMCoringThreshold = VPHAL_VEBOX_DI_CHROMA_TDM_CORING_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.bBypassDeflickerFilter     = true;
+    //    pRenderData->VeboxDNDIParams.bUseSyntheticContentMedian = false;
+    //    pRenderData->VeboxDNDIParams.bLocalCheck                = true;
+    //    pRenderData->VeboxDNDIParams.bSyntheticContentCheck     = false;
+    //    pRenderData->VeboxDNDIParams.dwDirectionCheckThreshold  = VPHAL_VEBOX_DI_DIRECTION_CHECK_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwTearingLowThreshold      = VPHAL_VEBOX_DI_TEARING_LOW_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwTearingHighThreshold     = VPHAL_VEBOX_DI_TEARING_HIGH_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwDiffCheckSlackThreshold  = VPHAL_VEBOX_DI_DIFF_CHECK_SLACK_THRESHOLD_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSADWT0                   = VPHAL_VEBOX_DI_SAD_WT0_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSADWT1                   = VPHAL_VEBOX_DI_SAD_WT1_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSADWT2                   = VPHAL_VEBOX_DI_SAD_WT2_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSADWT3                   = VPHAL_VEBOX_DI_SAD_WT3_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSADWT4                   = VPHAL_VEBOX_DI_SAD_WT4_NATUAL;
+    //    pRenderData->VeboxDNDIParams.dwSADWT6                   = VPHAL_VEBOX_DI_SAD_WT6_NATUAL;
+    //    if (pSrcSurface && pSrcSurface->pDeinterlaceParams)
+    //    {
+    //        pRenderData->VeboxDNDIParams.bSCDEnable             = pSrcSurface->pDeinterlaceParams->bSCDEnable;
+    //    }
+    //    else
+    //    {
+    //        pRenderData->VeboxDNDIParams.bSCDEnable             = false;
+    //    }
+
+    //    VP_RENDER_CHK_NULL_RETURN(pSrcSurface);
+    //    if (MEDIA_IS_HDCONTENT(pSrcSurface->dwWidth, pSrcSurface->dwHeight))
+    //    {
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_HD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_HD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_HD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_HD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_HD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_HD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_HD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_HD_NATUAL;
+    //    }
+    //    else
+    //    {
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_SD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_SD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_SD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_SD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_SD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_SD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_SD_NATUAL;
+    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_SD_NATUAL;
+    //    }
+    //}
+
+    return MOS_STATUS_SUCCESS;
 }
 
 //!

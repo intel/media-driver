@@ -101,7 +101,7 @@ MOS_STATUS HwFilterPipe::InitPacketPipe(PacketPipe &packetPipe)
         {
             return MOS_STATUS_NULL_POINTER;
         }
-        packetPipe.AddPacket(**it);
+        VP_PUBLIC_CHK_STATUS_RETURN(packetPipe.AddPacket(**it));
     }
     return MOS_STATUS_SUCCESS;
 }

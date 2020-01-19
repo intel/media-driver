@@ -68,12 +68,18 @@ public:
     MOS_STATUS AddPacket(HwFilter &hwFilter);
     MOS_STATUS SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox);
     MOS_STATUS Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox);
+    VPHAL_OUTPUT_PIPE_MODE GetOutputPipeMode()
+    {
+        return m_outputPipeMode;
+    }
 
 private:
     VpCmdPacket *CreatePacket(EngineType type);
+    MOS_STATUS SetOutputPipeMode(EngineType engineType);
 
     PacketFactory &m_PacketFactory;
     std::vector<VpCmdPacket *> m_Pipe;
+    VPHAL_OUTPUT_PIPE_MODE m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
 };
 
 class PacketPipeFactory

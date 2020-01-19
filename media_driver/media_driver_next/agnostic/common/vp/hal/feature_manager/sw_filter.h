@@ -51,9 +51,32 @@ enum FeatureType
     FeatureTypeScalingOnSfc,
     FeatureTypeScalingOnRender,
     FeatureTypeDn               = 0x400,
+    FeatureTypeDnOnVebox,
     FeatureTypeDi               = 0x500,
     // ...
     NumOfFeatureType
+};
+
+enum SurfaceType
+{
+    SurfaceTypeInvalid = 0,
+    SurfaceTypeDNOutput,
+    SurfaceTypeVeboxoutput,
+    SurfaceTypeScalar,
+    SurfaceTypeSTMMIn,
+    SurfaceTypeSTMMOut,
+    SurfaceTypeAutoDNNoiseLevel, // with kernel path needed
+    SurfaceTypeAutoDNSpatialConfig,
+    SurfaceTypeACEHistory,
+    SurfaceTypeFMDHistory,
+    SurfaceTypeLaceAceRGBHistogram,
+    SurfaceTypeLaceLut,
+    SurfaceTypeStatistics,
+    SurfaceTypeSkinScore,
+    SurfaceType3dLut,
+    SurfaceType1dLut,
+    SurfaceTypeAlphaOrVignette,
+    NumberOfSurfaceType
 };
 
 #define FEATURE_TYPE_MASK   0xffffff00
@@ -220,6 +243,28 @@ public:
 
 private:
     FeatureParamRotMir m_Params = {};
+};
+
+struct FeatureParamDenoise : public FeatureParam
+{
+    VPHAL_SAMPLE_TYPE       inputSampleType;
+    VPHAL_DENOISE_PARAMS    denoiseParams;
+};
+
+class SwFilterDenoise : public SwFilter
+{
+public:
+    SwFilterDenoise(VpInterface& vpInterface);
+    virtual ~SwFilterDenoise();
+    virtual MOS_STATUS Clean();
+    virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamDenoise& GetSwFilterParams();
+    virtual SwFilter* Clone();
+    virtual bool operator == (SwFilter& swFilter);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+
+private:
+    FeatureParamDenoise m_Params = {};
 };
 
 

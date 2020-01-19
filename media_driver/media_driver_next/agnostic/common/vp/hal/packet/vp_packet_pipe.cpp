@@ -115,6 +115,7 @@ PacketPipe::~PacketPipe()
 
 MOS_STATUS PacketPipe::Clean()
 {
+    m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
     for (std::vector<VpCmdPacket *>::iterator it = m_Pipe.begin(); it != m_Pipe.end(); ++it)
     {
         m_PacketFactory.ReturnPacket(*it);
@@ -127,14 +128,37 @@ MOS_STATUS PacketPipe::AddPacket(HwFilter &hwFilter)
 {
     VpCmdPacket *pPacket = m_PacketFactory.CreatePacket(hwFilter.GetEngineType());
     VP_PUBLIC_CHK_NULL_RETURN(pPacket);
-
-    if (MOS_FAILED(hwFilter.SetPacketParams(*pPacket)))
+    MOS_STATUS status = hwFilter.SetPacketParams(*pPacket);
+    if (MOS_FAILED(status))
     {
         MOS_OS_ASSERTMESSAGE("SetPacketParams failed!");
         m_PacketFactory.ReturnPacket(pPacket);
-        return MOS_STATUS_UNKNOWN;
+        return status;
     }
     m_Pipe.push_back(pPacket);
+    VP_PUBLIC_CHK_STATUS_RETURN(SetOutputPipeMode(hwFilter.GetEngineType()));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS PacketPipe::SetOutputPipeMode(EngineType engineType)
+{
+    switch (engineType)
+    {
+    case EngineTypeVebox:
+        m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_VEBOX;
+        break;
+    case EngineTypeSfc:
+        m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_SFC;
+        break;
+    case EngineTypeRender:
+        m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        break;
+    default:
+        m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        break;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

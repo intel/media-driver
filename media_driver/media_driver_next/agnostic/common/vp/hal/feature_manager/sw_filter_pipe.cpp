@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -258,6 +258,32 @@ bool SwFilterScalingHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool i
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterDnHandler                                      */
+/****************************************************************************************************/
+
+SwFilterDnHandler::SwFilterDnHandler(VpInterface &vpInterface) : SwFilterFeatureHandler(vpInterface, FeatureTypeDn)
+{}
+SwFilterDnHandler::~SwFilterDnHandler()
+{}
+
+bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (vphalSurf && vphalSurf->pDenoiseParams &&
+        (vphalSurf->pDenoiseParams->bEnableLuma || vphalSurf->pDenoiseParams->bEnableHVSDenoise))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/****************************************************************************************************/
 /*                                      SwFilterPipe                                                */
 /****************************************************************************************************/
 
@@ -292,6 +318,8 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
             return MOS_STATUS_NULL_POINTER;
         }
         m_InputSurfaces.push_back(surf);
+        // Keep m_PreviousSurface same size as m_InputSurfaces.
+        m_PreviousSurface.push_back(nullptr);
 
         // Initialize m_InputPipes.
         SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
@@ -439,6 +467,10 @@ MOS_STATUS SwFilterPipe::RegisterFeatures()
     p = MOS_New(SwFilterScalingHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeScaling, p));
+
+    p = MOS_New(SwFilterDnHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeDn, p));
 
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;
@@ -701,6 +733,11 @@ VP_SURFACE *SwFilterPipe::GetSurface(bool isInputSurface, uint32_t index)
     }
 }
 
+VP_SURFACE *SwFilterPipe::GetPreviousSurface(uint32_t index)
+{
+    return index < m_PreviousSurface.size() ? m_PreviousSurface[index] : nullptr;
+}
+
 VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
 {
     auto &surfaces = isInputSurface ? m_InputSurfaces : m_OutputSurfaces;
@@ -709,6 +746,13 @@ VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
     {
         VP_SURFACE *surf = surfaces[index];
         surfaces[index] = nullptr;
+
+        if (isInputSurface)
+        {
+            // Keep m_PreviousSurface same status as m_InputSurfaces.
+            m_PreviousSurface[index] = nullptr;
+        }
+
         return surf;
     }
     return nullptr;
@@ -722,6 +766,11 @@ MOS_STATUS SwFilterPipe::AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint
     for (uint32_t i = surfaces.size(); i <= index; ++i)
     {
         surfaces.push_back(nullptr);
+        if (isInputSurface)
+        {
+            // Keep m_PreviousSurface same size as m_InputSurfaces.
+            m_PreviousSurface.push_back(nullptr);
+        }
     }
 
     if (index >= surfaces.size())
@@ -785,6 +834,20 @@ MOS_STATUS SwFilterPipe::RemoveUnusedLayers(bool bUpdateInput)
             {
                 surfaces1.erase(itSurf);
                 break;
+            }
+        }
+
+        if (bUpdateInput)
+        {
+            // Keep m_PreviousSurface same size as m_InputSurfaces.
+            itSurf = m_PreviousSurface.begin();
+            for (i = 0; itSurf != m_PreviousSurface.end(); ++itSurf, ++i)
+            {
+                if (i == index)
+                {
+                    m_PreviousSurface.erase(itSurf);
+                    break;
+                }
             }
         }
 

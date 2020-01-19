@@ -74,20 +74,33 @@ public:
     virtual ~VpVeboxCmdPacketG12();
 
     virtual void GetLumaDefaultValue(
-        PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams);
+        PVP_SAMPLER_STATE_DN_PARAM      pLumaParams);
 
-    virtual MOS_STATUS SetDNParams(
-        PVPHAL_SURFACE                  pSrcSurface,
-        PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams,
-        PVPHAL_DNUV_PARAMS              pChromaParams);
+    virtual MOS_STATUS GetDnLumaParams(
+        bool                        bDnEnabled,
+        bool                        bAutoDetect,
+        float                       fDnFactor,
+        bool                        bRefValid,
+        PVP_SAMPLER_STATE_DN_PARAM  pLumaParams) override;
+
+    virtual MOS_STATUS GetDnChromaParams(
+        bool                        bChromaDenoise,
+        bool                        bAutoDetect,
+        float                       fDnFactor,
+        PVPHAL_DNUV_PARAMS          pChromaParams) override;
+
+    virtual MOS_STATUS ConfigLumaPixRange(
+        bool                        bDnEnabled,
+        bool                        bAutoDetect,
+        float                       fDnFactor) override;
+
+    virtual MOS_STATUS ConfigChromaPixRange(
+        bool                        bChromaDenoise,
+        bool                        bAutoDetect,
+        float                       fDnFactor) override;
 
     virtual MOS_STATUS SetDIParams(
-            PVPHAL_SURFACE                  pSrcSurface);
-
-    virtual MOS_STATUS SetDNDIParams(
-        PVPHAL_SURFACE                  pSrcSurface,
-        PVPHAL_SAMPLER_STATE_DNDI_PARAM pLumaParams,
-        PVPHAL_DNUV_PARAMS              pChromaParams);
+            PVPHAL_SURFACE          pSrcSurface);
 
     //!
     //! \brief    Setup Vebox_DI_IECP Command params
@@ -101,11 +114,11 @@ public:
     //!
     virtual MOS_STATUS SetupDiIecpState(
         bool                          bDiScdEnable,
-        PMHW_VEBOX_DI_IECP_CMD_PARAMS pVeboxDiIecpCmdParams);
+        PMHW_VEBOX_DI_IECP_CMD_PARAMS pVeboxDiIecpCmdParams) override;
 
     virtual MOS_STATUS QueryStatLayout(
         VEBOX_STAT_QUERY_TYPE QueryType,
-        uint32_t*             pQuery);
+        uint32_t*             pQuery) override;
 
 };
 

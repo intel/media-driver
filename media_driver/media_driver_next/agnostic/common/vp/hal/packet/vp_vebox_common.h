@@ -25,6 +25,9 @@
 #include "mhw_vebox.h"
 #include "vphal_common.h"
 #include "renderhal_g12.h"
+#include "vp_filter.h"
+
+#define MOVE_TO_HWFILTER // remove the macro after finished code refactor
 
 typedef class VP_VEBOX_RENDER_DATA           *PVPHAL_VEBOX_RENDER_DATA;
 typedef struct VP_VEBOX_RENDER_DATA_EXT      *PVPHAL_VEBOX_RENDER_DATA_EXT;
@@ -80,11 +83,11 @@ struct VPHAL_VEBOX_STATE_PARAMS
 
 typedef struct _VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS
 {
-    PVPHAL_SURFACE                  pSurfInput;
-    PVPHAL_SURFACE                  pSurfOutput;
-    PVPHAL_SURFACE                  pSurfSTMM;
-    PVPHAL_SURFACE                  pSurfDNOutput;
-    PVPHAL_SURFACE                  pSurfSkinScoreOutput;
+    PVP_SURFACE                     pSurfInput;
+    PVP_SURFACE                     pSurfOutput;
+    PVP_SURFACE                     pSurfSTMM;
+    PVP_SURFACE                     pSurfDNOutput;
+    PVP_SURFACE                     pSurfSkinScoreOutput;
     bool                            bDIEnable;
 } VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS, *PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS;
 
@@ -223,5 +226,98 @@ protected:
     // Vebox IECP Parameters
     PVPHAL_VEBOX_IECP_PARAMS            m_pVeboxIecpParams = nullptr;                     //!< auto allocated param instance for set/submit VEBOX IECP cmd
   };
+
+class VpVeboxRenderData
+{
+public:
+    virtual ~VpVeboxRenderData()
+    {
+    }
+    virtual MOS_STATUS Init()
+    {
+        bUseKernelUpdate        = false;
+        bVeboxStateCopyNeeded   = false;
+        PerfTag                 = VPHAL_NONE;
+
+        DN.value                = 0;
+        DI.value                = 0;
+        IECP.ACE.value          = 0;
+        IECP.LACE.value         = 0;
+
+        MOS_ZeroMemory(&m_veboxDNDIParams, sizeof(m_veboxDNDIParams));
+
+        return MOS_STATUS_SUCCESS;
+    }
+    virtual MHW_VEBOX_DNDI_PARAMS &GetDNDIParams()
+    {
+        return m_veboxDNDIParams;
+    }
+
+    bool IsDiEnabled()
+    {
+        return DI.bDeinterlace || DI.bQueryVariance;
+    }
+
+    union
+    {
+        struct
+        {
+            uint32_t bDnEnabled             : 1;      // DN enabled;
+            uint32_t bAutoDetect            : 1;        // Auto DN enabled
+            uint32_t bChromaDnEnabled       : 1;        // Chroma Dn Enabled
+        };
+        uint32_t value = 0;
+    } DN;
+
+    union
+    {
+        struct
+        {
+            uint32_t bDeinterlace           : 1;    // DN enabled;
+            uint32_t bQueryVariance         : 1;    // DN enabled;
+        };
+        uint32_t value = 0;
+    } DI;
+
+    struct
+    {
+        union
+        {
+            struct
+            {
+                uint32_t bAceEnabled            : 1;    // ACE enabled;
+                uint32_t bQueryAceHistogram     : 1;    // Chroma Dn Enabled
+            };
+            uint32_t value = 0;
+        } ACE;
+
+        union
+        {
+            struct
+            {
+                uint32_t bLaceEnabled           : 1;    // DN enabled;
+            };
+            uint32_t value = 0;
+        } LACE;
+
+        bool IsIecpEnabled()
+        {
+            return ACE.bAceEnabled || LACE.bLaceEnabled;
+        }
+    } IECP;
+
+
+
+    bool bUseKernelUpdate = false;
+    bool bVeboxStateCopyNeeded = false;
+
+    // Perf
+    VPHAL_PERFTAG                       PerfTag = VPHAL_NONE;
+
+protected:
+    MHW_VEBOX_DNDI_PARAMS   m_veboxDNDIParams = {};
+};
+
+using PVpVeboxRenderData = VpVeboxRenderData*;
 
 #endif // !__VP_VEBOX_COMMON_H__

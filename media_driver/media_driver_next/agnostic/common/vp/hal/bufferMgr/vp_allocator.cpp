@@ -29,7 +29,7 @@
 #include "vp_allocator.h"
 #include "vp_utils.h"
 
-namespace vp {
+using namespace vp;
 
 VpAllocator::VpAllocator(PMOS_INTERFACE osInterface, VPMediaMemComp *mmc) :
     m_osInterface(osInterface),
@@ -119,7 +119,7 @@ VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool 
         return nullptr;
     }
 
-    surface->isInternalSurface = true;
+    surface->isResourceOwner = true;
     surface->ColorSpace = ColorSpace;
     surface->ChromaSiting = ChromaSiting;
     surface->SampleType = SAMPLE_PROGRESSIVE; // Hardcode to SAMPLE_PROGRESSIVE for intermedia surface. Set to correct value for DI later.
@@ -136,30 +136,35 @@ VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool 
 // Allocate vp surface from vphalSurf. Reuse the resource in vphalSurf.
 VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
 {
-    VP_SURFACE *surf = MOS_New(VP_SURFACE);
-
-    if (nullptr == surf || Mos_ResourceIsNull(&vphalSurf.OsResource))
+    if (Mos_ResourceIsNull(&vphalSurf.OsResource))
     {
         return nullptr;
     }
 
-    MOS_ZeroMemory(surf, sizeof(VP_SURFACE));
+    VP_SURFACE *surf = MOS_New(VP_SURFACE);
+
+    if (nullptr == surf)
+    {
+        return nullptr;
+    }
 
     surf->osSurface = MOS_New(MOS_SURFACE);
-
     if (nullptr == surf->osSurface)
     {
         MOS_Delete(surf);
         return nullptr;
     }
 
+    surf->isResourceOwner = false;
+    surf->Clean();
+
     // Initialize the mos surface in vp surface structure.
     MOS_SURFACE &osSurface = *surf->osSurface;
     MOS_ZeroMemory(&osSurface, sizeof(MOS_SURFACE));
 
     // Set input parameters dwArraySlice, dwMipSlice and S3dChannel if needed later.
-    osSurface.Format            = vphalSurf.Format;
-    osSurface.OsResource        = vphalSurf.OsResource;
+    osSurface.Format                            = vphalSurf.Format;
+    osSurface.OsResource                        = vphalSurf.OsResource;
 
     if (MOS_FAILED(m_allocator->GetSurfaceInfo(&osSurface.OsResource, &osSurface)))
     {
@@ -168,45 +173,151 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
         return nullptr;
     }
 
+    // Align the format with vphal surface. Some format need be remapped in vphal surface.
+    // For example, format_420O is mapped to Format_NV12 in VpHal.
+    // But it is mapped to several different Formats in CodecHal under different conditions.
+    osSurface.Format                            = vphalSurf.Format;
+
+    // dwOffset/YPlaneOffset/UPlaneOffset/VPlaneOffset will not be initialized during GetSurfaceInfo
+    // Just align them with vphal surface.
+    // Align Y plane information (plane offset, X/Y offset)
+    osSurface.dwOffset                          = vphalSurf.dwOffset;
+    osSurface.YPlaneOffset.iLockSurfaceOffset   = vphalSurf.YPlaneOffset.iLockSurfaceOffset;
+    osSurface.YPlaneOffset.iSurfaceOffset       = vphalSurf.YPlaneOffset.iSurfaceOffset;
+    osSurface.YPlaneOffset.iXOffset             = vphalSurf.YPlaneOffset.iXOffset;
+    osSurface.YPlaneOffset.iYOffset             = vphalSurf.YPlaneOffset.iYOffset;
+
+    // Align U/UV plane information (plane offset, X/Y offset)
+    osSurface.UPlaneOffset.iLockSurfaceOffset   = vphalSurf.UPlaneOffset.iLockSurfaceOffset;
+    osSurface.UPlaneOffset.iSurfaceOffset       = vphalSurf.UPlaneOffset.iSurfaceOffset;
+    osSurface.UPlaneOffset.iXOffset             = vphalSurf.UPlaneOffset.iXOffset;
+    osSurface.UPlaneOffset.iYOffset             = vphalSurf.UPlaneOffset.iYOffset;
+
+    // Align V plane information (plane offset, X/Y offset)
+    osSurface.VPlaneOffset.iLockSurfaceOffset   = vphalSurf.VPlaneOffset.iLockSurfaceOffset;
+    osSurface.VPlaneOffset.iSurfaceOffset       = vphalSurf.VPlaneOffset.iSurfaceOffset;
+    osSurface.VPlaneOffset.iXOffset             = vphalSurf.VPlaneOffset.iXOffset;
+    osSurface.VPlaneOffset.iYOffset             = vphalSurf.VPlaneOffset.iYOffset;
+
     // Align the MMC related flag with vphal surface.
-    osSurface.bCompressible     = vphalSurf.bCompressible;
-    osSurface.bIsCompressed     = vphalSurf.bIsCompressed;
-    osSurface.CompressionMode   = vphalSurf.CompressionMode;
-    osSurface.CompressionFormat = vphalSurf.CompressionFormat;
-    osSurface.MmcState          = (MOS_MEMCOMP_STATE)vphalSurf.CompressionMode;
+    osSurface.bCompressible                     = vphalSurf.bCompressible;
+    osSurface.bIsCompressed                     = vphalSurf.bIsCompressed;
+    osSurface.CompressionMode                   = vphalSurf.CompressionMode;
+    osSurface.CompressionFormat                 = vphalSurf.CompressionFormat;
+    osSurface.MmcState                          = (MOS_MEMCOMP_STATE)vphalSurf.CompressionMode;
 
     // Initialize other parameters in vp surface according to vphal surface.
-    surf->ColorSpace            = vphalSurf.ColorSpace;
-    surf->ExtendedGamut         = vphalSurf.ExtendedGamut;
-    surf->Palette               = vphalSurf.Palette;
-    surf->bQueryVariance        = vphalSurf.bQueryVariance;
-    surf->FrameID               = vphalSurf.FrameID;
-    surf->uFwdRefCount          = vphalSurf.uFwdRefCount;
-    surf->uBwdRefCount          = vphalSurf.uBwdRefCount;
-    surf->pFwdRef               = vphalSurf.pFwdRef;
-    surf->pBwdRef               = vphalSurf.pBwdRef;
-    surf->SurfType              = vphalSurf.SurfType;
-    surf->SampleType            = vphalSurf.SampleType;
-    surf->ChromaSiting          = vphalSurf.ChromaSiting;
-    surf->rcSrc                 = vphalSurf.rcSrc;
-    surf->rcDst                 = vphalSurf.rcDst;
-    surf->rcMaxSrc              = vphalSurf.rcMaxSrc;
-
-    surf->isInternalSurface     = false;
-
-    // Only be used in VpVeboxCmdPacket::PacketInit for current stage.
-    // Should be removed after vphal surface being cleaned from VpVeboxCmdPacket.
-    surf->pCurrent              = &vphalSurf;
+    surf->ColorSpace                            = vphalSurf.ColorSpace;
+    surf->ExtendedGamut                         = vphalSurf.ExtendedGamut;
+    surf->Palette                               = vphalSurf.Palette;
+    surf->bQueryVariance                        = vphalSurf.bQueryVariance;
+    surf->FrameID                               = vphalSurf.FrameID;
+    surf->uFwdRefCount                          = vphalSurf.uFwdRefCount;
+    surf->uBwdRefCount                          = vphalSurf.uBwdRefCount;
+    surf->pFwdRef                               = vphalSurf.pFwdRef;
+    surf->pBwdRef                               = vphalSurf.pBwdRef;
+    surf->SurfType                              = vphalSurf.SurfType;
+    surf->SampleType                            = vphalSurf.SampleType;
+    surf->ChromaSiting                          = vphalSurf.ChromaSiting;
+    surf->rcSrc                                 = vphalSurf.rcSrc;
+    surf->rcDst                                 = vphalSurf.rcDst;
+    surf->rcMaxSrc                              = vphalSurf.rcMaxSrc;
 
     return surf;
+}
+
+// Allocate vp surface from vpSurfSrc. Reuse the resource in vpSurfSrc.
+VP_SURFACE *VpAllocator::AllocateVpSurface(VP_SURFACE &vpSurfSrc)
+{
+    if (nullptr == vpSurfSrc.osSurface || Mos_ResourceIsNull(&vpSurfSrc.osSurface->OsResource))
+    {
+        return nullptr;
+    }
+
+    VP_SURFACE *surf = MOS_New(VP_SURFACE);
+
+    if (nullptr == surf)
+    {
+        return nullptr;
+    }
+
+    MOS_SURFACE *osSurface = MOS_New(MOS_SURFACE);
+
+    if (nullptr == osSurface)
+    {
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    *osSurface = *vpSurfSrc.osSurface;
+    *surf = vpSurfSrc;
+
+    surf->osSurface = osSurface;
+    surf->isResourceOwner = false;
+
+    return surf;
+}
+
+// Allocate empty vp surface.
+VP_SURFACE *VpAllocator::AllocateVpSurface()
+{
+    // Allocate VpSurface without resource.
+    VP_SURFACE *surf = MOS_New(VP_SURFACE);
+
+    if (nullptr == surf)
+    {
+        return nullptr;
+    }
+
+    MOS_SURFACE *osSurface = MOS_New(MOS_SURFACE);
+
+    if (nullptr == osSurface)
+    {
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    surf->osSurface = osSurface;
+    surf->isResourceOwner = false;
+    surf->Clean();
+
+    return surf;
+}
+
+// Copy surface info from src to dst. dst shares the resource of src.
+MOS_STATUS VpAllocator::CopyVpSurface(VP_SURFACE &dst, VP_SURFACE &src)
+{
+    if (nullptr == dst.osSurface || nullptr == src.osSurface || dst.isResourceOwner)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    MOS_SURFACE &osSurface = *dst.osSurface;
+    osSurface = *src.osSurface;
+    dst = src;
+
+    dst.osSurface = &osSurface;
+    dst.isResourceOwner = false;
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
-    VP_PUBLIC_CHK_NULL_RETURN(surface);
+    if (nullptr == surface)
+    {
+        return status;
+    }
 
-    if (surface->isInternalSurface)
+    if (surface && nullptr == surface->osSurface)
+    {
+        // VP_SURFACE should always be allocated by interface in VpAllocator,
+        // which will ensure nullptr != surface->osSurface.
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    if (surface->isResourceOwner)
     {
         status = DestroySurface(surface->osSurface);
     }
@@ -403,13 +514,10 @@ MOS_STATUS VpAllocator::AllocParamsInitType(
         MOS_GFXRES_TYPE             defaultResType,
         MOS_TILE_TYPE               defaultTileType)
 {
-    VP_PUBLIC_CHK_NULL_RETURN(surface);
-    VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);
-
     //  Need to reallocate surface according to expected tiletype instead of tiletype of the surface what we have
-    if (surface != nullptr &&
-        surface->osSurface != nullptr &&
-        surface->osSurface->OsResource.pGmmResInfo != nullptr &&
+    if (surface != nullptr                                      &&
+        surface->osSurface != nullptr                           &&
+        surface->osSurface->OsResource.pGmmResInfo != nullptr   &&
         surface->osSurface->TileType == defaultTileType)
     {
         // Reallocate but use same tile type and resource type as current
@@ -492,7 +600,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 }
 
 MOS_STATUS VpAllocator::ReAllocateSurface(
-        VP_SURFACE             *surface,
+        VP_SURFACE             *&surface,
         PCCHAR                  surfaceName,
         MOS_FORMAT              format,
         MOS_GFXRES_TYPE         defaultResType,
@@ -505,19 +613,18 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         bool                    zeroOnAllocate)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
-    VPHAL_GET_SURFACE_INFO  info;
-    MOS_ALLOC_GFXRES_PARAMS allocParams;
+    MOS_ALLOC_GFXRES_PARAMS allocParams = {};
 
     allocated = false;
 
     //---------------------------------
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
-    VP_PUBLIC_CHK_NULL_RETURN(surface);
     //---------------------------------
 
     // compressible should be compared with bCompressible since it is inited by bCompressible in previous call
     // TileType of surface should be compared since we need to reallocate surface if TileType changes
-    if (surface->osSurface                                            &&
+    if (surface                                                       &&
+        surface->osSurface                                            &&
         !Mos_ResourceIsNull(&surface->osSurface->OsResource)          &&
         (surface->osSurface->dwWidth              == width)           &&
         (surface->osSurface->dwHeight             == height)          &&
@@ -529,8 +636,14 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         return eStatus;
     }
 
+    if (surface && nullptr == surface->osSurface)
+    {
+        // VP_SURFACE should always be allocated by interface in VpAllocator,
+        // which will ensure nullptr != surface->osSurface.
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
     VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));
-    MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
 
     AllocParamsInitType(allocParams, surface, defaultResType, defaultTileType);
 
@@ -741,4 +854,40 @@ MOS_STATUS VpAllocator::SyncOnResource(
 
     return (m_allocator->SyncOnResource(osResource, bWriteOperation));
 }
+
+bool VP_SURFACE::IsEmpty()
+{
+    return nullptr == osSurface || Mos_ResourceIsNull(&osSurface->OsResource);
+}
+
+MOS_STATUS VP_SURFACE::Clean()
+{
+    // The vp surface, which owns the resource, cannot be cleaned.
+    if (isResourceOwner)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+    if (osSurface)
+    {
+        MOS_ZeroMemory(osSurface, sizeof(MOS_SURFACE));
+    }
+
+    isResourceOwner     = false;
+    ColorSpace          = CSpace_Any;
+    ChromaSiting        = 0;
+    bQueryVariance      = 0;
+    FrameID             = 0;
+    ExtendedGamut       = false;
+    SurfType            = SURF_NONE;
+    uFwdRefCount        = 0;
+    uBwdRefCount        = 0;
+    pFwdRef             = nullptr;
+    pBwdRef             = nullptr;
+    SampleType          = SAMPLE_PROGRESSIVE;
+    MOS_ZeroMemory(&Palette, sizeof(Palette));
+    MOS_ZeroMemory(&rcSrc, sizeof(rcSrc));
+    MOS_ZeroMemory(&rcDst, sizeof(rcDst));
+    MOS_ZeroMemory(&rcMaxSrc, sizeof(rcMaxSrc));
+
+    return MOS_STATUS_SUCCESS;
 }
