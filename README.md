@@ -104,7 +104,7 @@ Media driver supports two build types as below
 | MPEG-2 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> |<u>D/Es</u><br><i>D<i>|
 | VC-1 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> |<u>D</u><br><i>&nbsp;<i>|
 | JPEG | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E</u><br><i>D/E<i>|
-| VP8 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> |<u>D</u><br><i>D<i> |
+| VP8 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | |
 | HEVC 8bit | <u>Full Feature</u><br><i>Free Kernel</i> |  | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E/Es</u><br><i>D/E<i> |
 | HEVC 8bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> |<u>D/Es</u><br><i>D<i>|
 | HEVC 8bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
