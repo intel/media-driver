@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -466,7 +466,15 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
         {
             if (pOsContextSpecific->IsAtomSoc())
             {
-                mos_gem_bo_map_gtt(boPtr);
+                printf("m_tileType: %d, params.m_uncached: %d\n", m_tileType, params.m_uncached);
+                if (m_tileType != MOS_TILE_LINEAR)
+                {
+                    mos_gem_bo_map_gtt(boPtr);
+                }
+                else
+                {
+                    mos_bo_map(boPtr, (OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest));
+                }
             }
             else
             {
@@ -545,7 +553,14 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
         {
            if (pOsContextSpecific->IsAtomSoc())
            {
-               mos_gem_bo_unmap_gtt(boPtr);
+               if (m_tileType != MOS_TILE_LINEAR)
+               {
+                   mos_gem_bo_unmap_gtt(boPtr);
+               }
+               else
+               {
+                   mos_bo_unmap(boPtr);
+               }
            }
            else
            {

@@ -738,7 +738,15 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
     {
         if (surface->pMediaCtx->bIsAtomSOC)
         {
-            mos_gem_bo_map_gtt(surface->bo);
+            printf("DdiMediaUtil_LockSurface m_tileType: %d\n", (int)surface->TileType);
+            if (surface->TileType == I915_TILING_NONE)
+            {
+                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+            }
+            else
+            {
+                mos_gem_bo_map_gtt(surface->bo);
+            }            
         }
         else
         {
@@ -807,7 +815,14 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
     {
         if (surface->pMediaCtx->bIsAtomSOC)
         {
-            mos_gem_bo_unmap_gtt(surface->bo);
+            if (surface->TileType == I915_TILING_NONE)
+            {
+                mos_bo_unmap(surface->bo);
+            }
+            else
+            {
+                mos_gem_bo_unmap_gtt(surface->bo);
+            }
         }
         else
         {
