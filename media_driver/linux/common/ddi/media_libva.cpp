@@ -2258,74 +2258,74 @@ DdiMedia_CreateSurfaces2(
     {
         if (attrib_list[i].flags & VA_SURFACE_ATTRIB_SETTABLE)
         {
-             switch (attrib_list[i].type)
-             {
-                  case VASurfaceAttribUsageHint:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
-                      surfaceUsageHint = attrib_list[i].value.value.i;
-                      break;
-                  case VASurfaceAttribPixelFormat:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
-                      expected_fourcc = attrib_list[i].value.value.i;
-                      break;
-                  case VASurfaceAttribMemoryType:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
-                      if (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
-                      {
-                          memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
-                          surfIsUserPtr = false;
-                      }
-                      else if ( (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
-                          )
-                      {
-                           memTypeFlag = attrib_list[i].value.value.i;
-                           surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-                      }
-                      else
-                      {
-                           DDI_ASSERTMESSAGE("Not supported external buffer type.");
-                           return VA_STATUS_ERROR_INVALID_PARAMETER;
-                      }
-                      break;
-                  case (VASurfaceAttribType)VASurfaceAttribExternalBufferDescriptor:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypePointer);
-                      if( nullptr == attrib_list[i].value.value.p )
-                      {
-                          DDI_ASSERTMESSAGE("Invalid VASurfaceAttribExternalBuffers used.");
-                          //remove the check for libva-utils conformance test, need libva-utils change cases
-                          //after libva-utils fix the case, return VA_STATUS_ERROR_INVALID_PARAMETER;
-                          break;
-                      }
-                      MOS_SecureMemcpy(externalBufDesc, sizeof(VASurfaceAttribExternalBuffers),  attrib_list[i].value.value.p, sizeof(VASurfaceAttribExternalBuffers));
+            switch (attrib_list[i].type)
+            {
+            case VASurfaceAttribUsageHint:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
+                surfaceUsageHint = attrib_list[i].value.value.i;
+                break;
+            case VASurfaceAttribPixelFormat:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
+                expected_fourcc = attrib_list[i].value.value.i;
+                break;
+            case VASurfaceAttribMemoryType:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
+                if (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
+                {
+                    memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
+                    surfIsUserPtr = false;
+                }
+                else if ((attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM) ||
+                         (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)  ||
+                         (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)   ||
+                         (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2))
+                {
+                    memTypeFlag = attrib_list[i].value.value.i;
+                    surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+                }
+                else
+                {
+                    DDI_ASSERTMESSAGE("Not supported external buffer type.");
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+                }
+                break;
+            case (VASurfaceAttribType)VASurfaceAttribExternalBufferDescriptor:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypePointer);
+                if( nullptr == attrib_list[i].value.value.p )
+                {
+                    DDI_ASSERTMESSAGE("Invalid VASurfaceAttribExternalBuffers used.");
+                    //remove the check for libva-utils conformance test, need libva-utils change cases
+                    //after libva-utils fix the case, return VA_STATUS_ERROR_INVALID_PARAMETER;
+                    break;
+                }
+                MOS_SecureMemcpy(externalBufDesc, sizeof(VASurfaceAttribExternalBuffers),  attrib_list[i].value.value.p, sizeof(VASurfaceAttribExternalBuffers));
 
-                      expected_fourcc  = externalBufDesc->pixel_format;
-                      width            = externalBufDesc->width;
-                      height           = externalBufDesc->height;
-                      surfDescProvided = true;
-                      // the following code is for backward compatible and it will be removed in the future
-                     // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
-                     if( (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )
-                         || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-                         || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
-                         || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING)
-                         )
-                      {
-                          if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-                              memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM;
-                          else if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-                              memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+                expected_fourcc  = externalBufDesc->pixel_format;
+                width            = externalBufDesc->width;
+                height           = externalBufDesc->height;
+                surfDescProvided = true;
+                // the following code is for backward compatible and it will be removed in the future
+                // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
+                if( (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )
+                 || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+                 || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
+                 || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING)
+                 )
+                {
+                    if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+                        memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM;
+                    else if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+                        memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
 
-                          descFlag      = (externalBufDesc->flags & ~(VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME));
-                          surfIsUserPtr = false;
-                      }
+                    descFlag      = (externalBufDesc->flags & ~(VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME));
+                    surfIsUserPtr = false;
+                }
 
-                      break;
-                  default:
-                      DDI_ASSERTMESSAGE("Unsupported type.");
-                      break;
-              }
+                break;
+            default:
+                DDI_ASSERTMESSAGE("Unsupported type.");
+                break;
+            }
         }
     }
 
@@ -3997,14 +3997,6 @@ VAStatus DdiMedia_CreateImage(
 
     switch(format->fourcc)
     {
-        case VA_FOURCC_RGBA:
-        case VA_FOURCC_BGRA:
-        case VA_FOURCC_ARGB:
-        case VA_FOURCC_ABGR:
-        case VA_FOURCC_BGRX:
-        case VA_FOURCC_RGBX:
-        case VA_FOURCC_XRGB:
-        case VA_FOURCC_XBGR:
         case VA_FOURCC_R8G8B8:
         case VA_FOURCC_RGB565:
         case VA_FOURCC_RGBP:
@@ -4012,8 +4004,6 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_YV12:
         case VA_FOURCC_I420:
         case VA_FOURCC_IYUV:
-        case VA_FOURCC_A2R10G10B10:
-        case VA_FOURCC_A2B10G10R10:
             gmmParams.BaseHeight        = height;
             gmmParams.Flags.Info.Linear = true;
             break;
@@ -4035,6 +4025,16 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_VYUY:
         case VA_FOURCC_YVYU:
         case VA_FOURCC_UYVY:
+        case VA_FOURCC_RGBA:
+        case VA_FOURCC_BGRA:
+        case VA_FOURCC_ARGB:
+        case VA_FOURCC_ABGR:
+        case VA_FOURCC_BGRX:
+        case VA_FOURCC_RGBX:
+        case VA_FOURCC_XRGB:
+        case VA_FOURCC_XBGR:
+        case VA_FOURCC_A2R10G10B10:
+        case VA_FOURCC_A2B10G10R10:
             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
             break;
         default:
@@ -4816,7 +4816,12 @@ static void DdiMedia_CopyPlane(
     }
 }
 
-static uint32_t DdiMedia_GetChromaPitchHeight(PDDI_MEDIA_SURFACE mediaSurface, uint32_t *chromaWidth, uint32_t *chromaPitch, uint32_t *chromaHeight);
+static uint32_t DdiMedia_GetChromaPitchHeight(
+    PDDI_MEDIA_SURFACE mediaSurface,
+    uint32_t *chromaWidth,
+    uint32_t *chromaPitch,
+    uint32_t *chromaHeight,
+    bool hasAuxPlane);
 
 //!
 //! \brief  Copy data from a VAImage to a surface
@@ -5012,7 +5017,7 @@ VAStatus DdiMedia_PutImage(
                 uint32_t chromaWidth       = 0;
                 uint32_t chromaHeight      = 0;
                 uint32_t chromaPitch       = 0;
-                uint32_t surfacePlaneCount = DdiMedia_GetChromaPitchHeight(&uPlane, &chromaWidth, &chromaPitch, &chromaHeight);
+                uint32_t surfacePlaneCount = DdiMedia_GetChromaPitchHeight(&uPlane, &chromaWidth, &chromaPitch, &chromaHeight, false);
                 DDI_CHK_CONDITION((surfacePlaneCount != vaimg->num_planes), "DDI:Failed to copy image to surface buffer, diffrent number of planes.", VA_STATUS_ERROR_OPERATION_FAILED);
 
                 uint8_t *uSrc = (uint8_t *)imageData + vaimg->offsets[1];
@@ -6032,7 +6037,12 @@ VAStatus DdiMedia_ReleaseBufferHandle(
 #endif
 
 
-static uint32_t DdiMedia_GetChromaPitchHeight(PDDI_MEDIA_SURFACE mediaSurface, uint32_t *chromaWidth, uint32_t *chromaPitch, uint32_t *chromaHeight)
+static uint32_t DdiMedia_GetChromaPitchHeight(
+    PDDI_MEDIA_SURFACE mediaSurface,
+    uint32_t *chromaWidth,
+    uint32_t *chromaPitch,
+    uint32_t *chromaHeight,
+    bool hasAuxPlane)
 {
     DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(chromaWidth, "nullptr chromaWidth", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -6040,35 +6050,41 @@ static uint32_t DdiMedia_GetChromaPitchHeight(PDDI_MEDIA_SURFACE mediaSurface, u
     DDI_CHK_NULL(chromaHeight, "nullptr chromaHeight", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     uint32_t fourcc = DdiMedia_MediaFormatToOsFormat(mediaSurface->format);
+    uint32_t plane_num = 0;
     switch(fourcc)
     {
         case VA_FOURCC_NV12:
             *chromaWidth = mediaSurface->iWidth;
             *chromaHeight = mediaSurface->iHeight/2;
             *chromaPitch = mediaSurface->iPitch;
-            return 2;
+            plane_num = hasAuxPlane ? 4 : 2;
+            break;
         case VA_FOURCC_I420:
         case VA_FOURCC_YV12:
             *chromaWidth = mediaSurface->iWidth / 2;
             *chromaHeight = mediaSurface->iHeight/2;
             *chromaPitch = mediaSurface->iPitch /2;
-            return 3;
+            plane_num = 3;
+            break;
         case VA_FOURCC_YV16:
             *chromaWidth = mediaSurface->iWidth / 2;
             *chromaHeight = mediaSurface->iHeight;
             *chromaPitch = mediaSurface->iPitch / 2;
-            return 3;
+            plane_num = 3;
+            break;
         case VA_FOURCC_P010:
         case VA_FOURCC_P016:
             *chromaWidth = mediaSurface->iWidth ;
             *chromaHeight = mediaSurface->iHeight/2;
             *chromaPitch = mediaSurface->iPitch;
-            return 2;
+            plane_num = hasAuxPlane ? 4 : 2;
+            break;
         case VA_FOURCC_I010:
             *chromaWidth = mediaSurface->iWidth / 2;
             *chromaHeight = mediaSurface->iHeight/2;
             *chromaPitch = mediaSurface->iPitch / 2;
-            return 2;
+            plane_num = hasAuxPlane ? 4 : 2;
+            break;
         case VA_FOURCC_YUY2:
         case VA_FOURCC_Y800:
         case VA_FOURCC_UYVY:
@@ -6082,8 +6098,9 @@ static uint32_t DdiMedia_GetChromaPitchHeight(PDDI_MEDIA_SURFACE mediaSurface, u
             *chromaWidth = 0;
             *chromaPitch = 0;
             *chromaHeight = 0;
-            return 1;
+            plane_num = hasAuxPlane ? 2 : 1;
     }
+    return plane_num;
 }
 
 static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
@@ -6099,6 +6116,7 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
         case VA_FOURCC_Y800:
             return DRM_FORMAT_R8;
         case VA_FOURCC_P010:
+        case VA_FOURCC_P016:
         case VA_FOURCC_I010:
             return DRM_FORMAT_R16;
 
@@ -6107,18 +6125,26 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
             // These are not representable as separate planes.
             return 0;
 
-        case VA_FOURCC_RGBA:
-            return DRM_FORMAT_ABGR8888;
-        case VA_FOURCC_RGBX:
-            return DRM_FORMAT_XBGR8888;
-        case VA_FOURCC_BGRA:
-            return DRM_FORMAT_ARGB8888;
-        case VA_FOURCC_BGRX:
-            return DRM_FORMAT_XRGB8888;
         case VA_FOURCC_ARGB:
-            return DRM_FORMAT_BGRA8888;
+            return DRM_FORMAT_ARGB8888;
         case VA_FOURCC_ABGR:
+            return DRM_FORMAT_ABGR8888;
+        case VA_FOURCC_RGBA:
             return DRM_FORMAT_RGBA8888;
+        case VA_FOURCC_BGRA:
+            return DRM_FORMAT_BGRA8888;
+        case VA_FOURCC_XRGB:
+            return DRM_FORMAT_XRGB8888;
+        case VA_FOURCC_XBGR:
+            return DRM_FORMAT_XBGR8888;
+        case VA_FOURCC_RGBX:
+            return DRM_FORMAT_RGBX8888;
+        case VA_FOURCC_BGRX:
+            return DRM_FORMAT_BGRX8888;
+        case VA_FOURCC_A2R10G10B10:
+            return DRM_FORMAT_ARGB2101010;
+        case VA_FOURCC_A2B10G10R10:
+            return DRM_FORMAT_ABGR2101010;
         }
     }
     else
@@ -6132,6 +6158,7 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
         case VA_FOURCC_YV16:
             return DRM_FORMAT_R8;
         case VA_FOURCC_P010:
+        case VA_FOURCC_P016:
             return DRM_FORMAT_GR1616;
         case VA_FOURCC_I010:
             return DRM_FORMAT_R16;
@@ -6154,28 +6181,46 @@ static uint32_t DdiMedia_GetDrmFormatOfCompositeObject(uint32_t fourcc)
         return DRM_FORMAT_YVU422;
     case VA_FOURCC_YUY2:
         return DRM_FORMAT_YUYV;
+    case VA_FOURCC_YVYU:
+        return DRM_FORMAT_YVYU;
+    case VA_FOURCC_VYUY:
+        return DRM_FORMAT_VYUY;
     case VA_FOURCC_UYVY:
         return DRM_FORMAT_UYVY;
+    case VA_FOURCC_Y210:
+        return DRM_FORMAT_Y210;
+    case VA_FOURCC_Y216:
+        return DRM_FORMAT_Y216;
+    case VA_FOURCC_Y410:
+        return DRM_FORMAT_Y410;
+    case VA_FOURCC_Y416:
+        return DRM_FORMAT_Y416;
     case VA_FOURCC_Y800:
         return DRM_FORMAT_R8;
     case VA_FOURCC_P010:
         return DRM_FORMAT_P010;
-    case VA_FOURCC_I010:
-        // These currently have no composite DRM format - they are usable
-        // only as separate planes.
-        return 0;
-    case VA_FOURCC_RGBA:
-        return DRM_FORMAT_ABGR8888;
-    case VA_FOURCC_RGBX:
-        return DRM_FORMAT_XBGR8888;
-    case VA_FOURCC_BGRA:
-        return DRM_FORMAT_ARGB8888;
-    case VA_FOURCC_BGRX:
-        return DRM_FORMAT_XRGB8888;
+    case VA_FOURCC_P016:
+        return DRM_FORMAT_P016;
     case VA_FOURCC_ARGB:
-        return DRM_FORMAT_BGRA8888;
+        return DRM_FORMAT_ARGB8888;
     case VA_FOURCC_ABGR:
+        return DRM_FORMAT_ABGR8888;
+    case VA_FOURCC_RGBA:
         return DRM_FORMAT_RGBA8888;
+    case VA_FOURCC_BGRA:
+        return DRM_FORMAT_BGRA8888;
+    case VA_FOURCC_XRGB:
+        return DRM_FORMAT_XRGB8888;
+    case VA_FOURCC_XBGR:
+        return DRM_FORMAT_XBGR8888;
+    case VA_FOURCC_RGBX:
+        return DRM_FORMAT_RGBX8888;
+    case VA_FOURCC_BGRX:
+        return DRM_FORMAT_BGRX8888;
+    case VA_FOURCC_A2R10G10B10:
+        return DRM_FORMAT_ARGB2101010;
+    case VA_FOURCC_A2B10G10R10:
+        return DRM_FORMAT_ABGR2101010;
     }
     return 0;
 }
@@ -6219,16 +6264,15 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     DDI_CHK_NULL(mediaSurface->bo,               "nullptr mediaSurface->bo",               VA_STATUS_ERROR_INVALID_SURFACE);
     DDI_CHK_NULL(mediaSurface->pGmmResourceInfo, "nullptr mediaSurface->pGmmResourceInfo", VA_STATUS_ERROR_INVALID_SURFACE);
 
-    int32_t ret = mos_bo_gem_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name);
-    if (ret)
-    {
-        //LOGE("Failed drm_intel_gem_export_to_prime operation!!!\n");
-        return VA_STATUS_ERROR_OPERATION_FAILED;
+    if (mem_type != VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2) {
+        DDI_ASSERTMESSAGE("vaExportSurfaceHandle: memory type %08x is not supported.\n", mem_type);
+        return VA_STATUS_ERROR_UNSUPPORTED_MEMORY_TYPE;
     }
-    uint32_t tiling, swizzle;
-    if(mos_bo_get_tiling(mediaSurface->bo,&tiling, &swizzle))
+
+    if (mos_bo_gem_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name))
     {
-        tiling = I915_TILING_NONE;
+        DDI_ASSERTMESSAGE("Failed drm_intel_gem_export_to_prime operation!!!\n");
+        return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
     VADRMPRIMESurfaceDescriptor *desc = (VADRMPRIMESurfaceDescriptor *)descriptor;
@@ -6237,35 +6281,40 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     {
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
-    desc->width  = mediaSurface->iWidth;
-    desc->height = mediaSurface->iHeight;
-
+    desc->width           = mediaSurface->iWidth;
+    desc->height          = mediaSurface->iHeight;
     desc->num_objects     = 1;
     desc->objects[0].fd   = mediaSurface->name;
     desc->objects[0].size = mediaSurface->pGmmResourceInfo->GetSizeSurface();
-    switch (tiling) {
+    switch (mediaSurface->TileType) {
     case I915_TILING_X:
         desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_X_TILED;
         break;
     case I915_TILING_Y:
-        desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_Y_TILED;
+        if (mediaCtx->m_auxTableMgr)
+        {
+            desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS;
+        }else
+        {
+            desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_Y_TILED;
+        }
         break;
     case I915_TILING_NONE:
     default:
         desc->objects[0].drm_format_modifier = DRM_FORMAT_MOD_NONE;
     }
+
     int composite_object = flags & VA_EXPORT_SURFACE_COMPOSED_LAYERS;
 
     uint32_t formats[4];
     uint32_t chromaWidth;
     uint32_t chromaPitch;
     uint32_t chromaHeight;
-    uint32_t num_planes = DdiMedia_GetChromaPitchHeight(mediaSurface,&chromaWidth, &chromaPitch,&chromaHeight);
-
+    bool hasAuxPlane = (mediaCtx->m_auxTableMgr)? true: false;
+    uint32_t num_planes = DdiMedia_GetChromaPitchHeight(mediaSurface, &chromaWidth, &chromaPitch, &chromaHeight, hasAuxPlane);
     if(composite_object)
     {
         formats[0] = DdiMedia_GetDrmFormatOfCompositeObject(desc->fourcc);
-
         if(!formats[0])
         {
             DDI_ASSERTMESSAGE("vaExportSurfaceHandle: fourcc %08x is not supported for export as a composite object.\n", desc->fourcc);
@@ -6279,73 +6328,128 @@ VAStatus DdiMedia_ExportSurfaceHandle(
             formats[i] = DdiMedia_GetDrmFormatOfSeparatePlane(desc->fourcc,i);
             if (!formats[i])
             {
-                DDI_ASSERTMESSAGE("vaExportSurfaceHandle: fourcc %08x "
-                              "is not supported for export as separate "
-                              "planes.\n", desc->fourcc);
+                DDI_ASSERTMESSAGE("vaExportSurfaceHandle: fourcc %08x is not supported for export as separate planes.\n", desc->fourcc);
                 return VA_STATUS_ERROR_INVALID_SURFACE;
             }
         }
     }
 
-    uint32_t offset = 0;
-    uint32_t pitch  = 0;
-    uint32_t height = 0;
+    // Get offset from GMM
+    GMM_REQ_OFFSET_INFO reqInfo = {0};
+    reqInfo.Plane = GMM_PLANE_Y;
+    reqInfo.ReqRender = 1;
+    mediaSurface->pGmmResourceInfo->GetOffset(reqInfo);
+    uint32_t offsetY = reqInfo.Render.Offset;
+    MOS_ZeroMemory(&reqInfo, sizeof(GMM_REQ_OFFSET_INFO));
+    reqInfo.Plane = GMM_PLANE_U;
+    reqInfo.ReqRender = 1;
+    mediaSurface->pGmmResourceInfo->GetOffset(reqInfo);
+    uint32_t offsetUV = reqInfo.Render.Offset;
+    uint32_t auxOffsetY = (uint32_t)mediaSurface->pGmmResourceInfo->GetPlanarAuxOffset(0, GMM_AUX_Y_CCS);
+    uint32_t auxOffsetUV = (uint32_t)mediaSurface->pGmmResourceInfo->GetPlanarAuxOffset(0, GMM_AUX_UV_CCS);
 
     if (composite_object) {
         desc->num_layers = 1;
-
         desc->layers[0].drm_format = formats[0];
         desc->layers[0].num_planes = num_planes;
-
-        for (int i = 0; i < num_planes; i++)
+        if (mediaCtx->m_auxTableMgr)
         {
-            desc->layers[0].object_index[i] = 0;
-            if (i == 0)
+            // For semi-planar formats like NV12, CCS planes follow the Y and UV planes,
+            // i.e. planes 0 and 1 are used for Y and UV surfaces, planes 2 and 3 for the respective CCS.
+            for (int i = 0; i < num_planes/2; i++)
             {
-                pitch  = mediaSurface->iPitch;
-                height = mediaSurface->iHeight;
+                desc->layers[0].object_index[2*i] = 0;
+                desc->layers[0].object_index[2*i+1] = 0;
+                if (i == 0)
+                {
+                    // Y plane
+                    desc->layers[0].offset[i] = offsetY;
+                    desc->layers[0].pitch[i]  = mediaSurface->iPitch;
+                    // Y aux plane
+                    desc->layers[0].offset[i + num_planes/2] = auxOffsetY;
+                    desc->layers[0].pitch[i + num_planes/2] = mediaSurface->iPitch/8;
+                }
+                else
+                {
+                    // UV plane
+                    desc->layers[0].offset[i] = offsetUV;
+                    desc->layers[0].pitch[i]  = chromaPitch;
+                    // UV aux plane
+                    desc->layers[0].offset[i + num_planes/2] = auxOffsetUV;
+                    desc->layers[0].pitch[i + num_planes/2] = chromaPitch/8;
+                }
             }
-            else
+        }else
+        {
+            for (int i = 0; i < num_planes; i++)
             {
-                pitch = chromaPitch;
-                height = chromaHeight;
+                desc->layers[0].object_index[i] = 0;
+                if (i == 0)
+                {
+                    desc->layers[0].offset[i] = offsetY;
+                    desc->layers[0].pitch[i]  = mediaSurface->iPitch;
+                }
+                else
+                {
+                    desc->layers[0].offset[i] = offsetUV;
+                    desc->layers[0].pitch[i]  = chromaPitch;
+                }
             }
-
-            desc->layers[0].offset[i] = offset;
-            desc->layers[0].pitch[i]  = pitch;
-
-            offset += pitch * height;
         }
     }
     else
     {
-        desc->num_layers = num_planes;
-
-        offset = 0;
-        for (int i = 0; i < num_planes; i++)
+        if (mediaCtx->m_auxTableMgr)
         {
-            desc->layers[i].drm_format = formats[i];
-            desc->layers[i].num_planes = 1;
+            desc->num_layers = num_planes / 2;
 
-            desc->layers[i].object_index[0] = 0;
-
-            if (i == 0)
+            for (int i = 0; i < desc->num_layers; i++)
             {
-                pitch  = mediaSurface->iPitch;
-                height = mediaSurface->iHeight;
+                desc->layers[i].drm_format = formats[i];
+                desc->layers[i].num_planes = 2;
+
+                desc->layers[i].object_index[0] = 0;
+
+                if (i == 0)
+                {
+                    desc->layers[i].offset[0] = offsetY;
+                    desc->layers[i].offset[1] = auxOffsetY;
+                    desc->layers[i].pitch[0]  = mediaSurface->iPitch;
+                    desc->layers[i].pitch[1]  = mediaSurface->iPitch/8;
+                }
+                else
+                {
+                    desc->layers[i].offset[0] = offsetUV;
+                    desc->layers[i].offset[1] = auxOffsetUV;
+                    desc->layers[i].pitch[0]  = chromaPitch;
+                    desc->layers[i].pitch[1]  = chromaPitch/8;
+                }
             }
-            else
+        }else
+        {
+            desc->num_layers = num_planes;
+
+            for (int i = 0; i < num_planes; i++)
             {
-                pitch  =  chromaPitch;
-                height = chromaHeight;
+                desc->layers[i].drm_format = formats[i];
+                desc->layers[i].num_planes = 1;
+
+                desc->layers[i].object_index[0] = 0;
+
+                if (i == 0)
+                {
+                    desc->layers[i].offset[0] = offsetY;
+                    desc->layers[i].pitch[0]  = mediaSurface->iPitch;
+                }
+                else
+                {
+                    desc->layers[i].offset[0] = offsetUV;
+                    desc->layers[i].pitch[0]  = chromaPitch;
+                }
             }
-
-            desc->layers[i].offset[0] = offset;
-            desc->layers[i].pitch[0]  = pitch;
-
-            offset += pitch * height;
         }
     }
+
     return VA_STATUS_SUCCESS;
 }
 

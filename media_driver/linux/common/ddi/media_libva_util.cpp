@@ -173,37 +173,25 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     switch (format)
     {
-        case Media_Format_X8R8G8B8:
-        case Media_Format_X8B8G8R8:
-        case Media_Format_A8B8G8R8:
-        case Media_Format_R8G8B8A8:
         case Media_Format_R5G6B5:
         case Media_Format_R8G8B8:
-        case Media_Format_R10G10B10A2:
-        case Media_Format_B10G10R10A2:
         case Media_Format_A16R16G16B16:
         case Media_Format_A16B16G16R16:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
-            {
-                 tileformat = I915_TILING_NONE;
-                 break;
-            }
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_RGBP:
         case Media_Format_BGRP:
-        case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_NV12:
         case Media_Format_NV21:
@@ -227,6 +215,13 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_VYUY:
         case Media_Format_YVYU:
         case Media_Format_UYVY:
+        case Media_Format_X8R8G8B8:
+        case Media_Format_X8B8G8R8:
+        case Media_Format_A8B8G8R8:
+        case Media_Format_A8R8G8B8:
+        case Media_Format_R8G8B8A8:
+        case Media_Format_R10G10B10A2:
+        case Media_Format_B10G10R10A2:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
@@ -256,9 +251,9 @@ VAStatus DdiMediaUtil_AllocateSurface(
             tag = PROTECTED_SURFACE_TAG;
         }
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
-         if( (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-             || (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-           )
+         if((mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM) ||
+            (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)  ||
+            (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2))
         {
             if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {
