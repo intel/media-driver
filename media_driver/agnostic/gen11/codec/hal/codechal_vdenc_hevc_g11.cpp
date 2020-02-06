@@ -5458,7 +5458,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SubmitCommandBuffer(
     if (UseRenderCommandBuffer() || m_numPipe == 1)
     {
         // legacy mode
-        if (!UseRenderCommandBuffer())  // Set VE Hints for video contexts only
+        if (!UseRenderCommandBuffer() && MOS_VE_SUPPORTED(m_osInterface))  // Set VE Hints for video contexts only
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(cmdBuffer));
         }

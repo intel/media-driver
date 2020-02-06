@@ -1092,6 +1092,7 @@ public:
 
     static const uint32_t  HEVC_HISTORY_BUF_CONST_SIZE     = 64;
     static const uint32_t  HEVC_FRAMEBRC_BUF_CONST_SIZE    = 1024;
+    static const uint32_t  ENC_FRAME_LEVEL_DISTORTION_BUFFER = 64;
 
     struct MBENC_COMBINED_BUFFER2
     {
@@ -1165,6 +1166,7 @@ public:
     uint8_t       m_modeCostCre[16] = { 0 };   //!< CRE cost
     uint32_t      m_lambdaRD = 0;              //!< Lambda value to multiply the RD  costs
 
+    uint32_t                m_syntaxElementOnlyBitCnt  = 0;
     uint8_t                 m_numberEncKernelSubThread = m_hevcThreadTaskDataNum;
     uint32_t                m_numberConcurrentGroup = 4;    // GEN11 can dividie one picture into several groups
     uint32_t                m_numWavefrontInOneRegion = 0;
@@ -1179,6 +1181,8 @@ public:
     uint32_t                m_historyOutBufferOffset = 0;
     uint32_t                m_threadTaskBufferSize = 0;
     uint32_t                m_threadTaskBufferOffset = 0;
+    uint32_t                m_encFrameLevelDistortionBufferSize = 0;
+    uint32_t                m_encCtuLevelDistortionBufferSize   = 0;
     bool                    m_initEncConstTable = true;
     bool                    m_enableBrcLTR = 1;  //!< flag to enable long term reference BRC feature.
     bool                    m_isFrameLTR = 0;    //!<flag to check if current frame is set as long term reference
