@@ -93,7 +93,16 @@ MOS_SURFACE* VpAllocator::AllocateSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool z
     if (!m_allocator)
         return nullptr;
 
-    return m_allocator->AllocateSurface(param, zeroOnAllocate, COMPONENT_VPCommon);
+    MOS_SURFACE* surf = m_allocator->AllocateSurface(param, zeroOnAllocate, COMPONENT_VPCommon);
+
+    if (surf)
+    {
+        // Format is not initialized in Allocator::AllocateSurface. Remove it after
+        // it being fixed in Allocator::AllocateSurface.
+        surf->Format = param.Format;
+    }
+
+    return surf;
 }
 
 MOS_STATUS VpAllocator::DestroySurface(MOS_SURFACE *surface)

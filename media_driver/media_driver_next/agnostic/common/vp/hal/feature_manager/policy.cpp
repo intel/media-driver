@@ -281,8 +281,20 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         }
         else
         {
-            cscEngine->bEnabled   = 1;
-            cscEngine->SfcNeeded |= 1;
+            if (cscParams->formatInput          == cscParams->formatOutput          &&
+                cscParams->colorSpaceInput      == cscParams->colorSpaceOutput      &&
+                cscParams->chromaSitingInput    == cscParams->chromaSitingOutput    &&
+                nullptr                         == cscParams->pIEFParams)
+            {
+                cscEngine->bEnabled = 0;
+                // It will be enabled if Sfc in use.
+                cscEngine->bForceEnabledOnSfc = 1;
+            }
+            else
+            {
+                cscEngine->bEnabled   = 1;
+                cscEngine->SfcNeeded |= 1;
+            }
         }
     }
 
@@ -376,8 +388,18 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
             // SFC feasible
             else
             {
-                scalingEngine->bEnabled = 1;
-                scalingEngine->SfcNeeded = 1;
+                if (dwOutputRegionWidth == dwSourceRegionWidth  &&
+                    dwOutputRegionHeight == dwSourceRegionHeight)
+                {
+                    scalingEngine->bEnabled = 0;
+                    // It will be enabled if Sfc in use.
+                    scalingEngine->bForceEnabledOnSfc = 1;
+                }
+                else
+                {
+                    scalingEngine->bEnabled = 1;
+                    scalingEngine->SfcNeeded = 1;
+                }
             }
         }
     }
@@ -421,9 +443,18 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
             }
             else
             {
-                // SFC Rotation/Mirror can be applied
-                rotationEngine->bEnabled = 1;
-                rotationEngine->SfcNeeded = 1;
+                if (rotationParams->rotation == VPHAL_ROTATION_IDENTITY)
+                {
+                    rotationEngine->bEnabled = 0;
+                    // It will be enabled if Sfc in use.
+                    rotationEngine->bForceEnabledOnSfc = 1;
+                }
+                else
+                {
+                    // SFC Rotation/Mirror can be applied
+                    rotationEngine->bEnabled = 1;
+                    rotationEngine->SfcNeeded = 1;
+                }
             }
         }
         else
@@ -568,9 +599,6 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
 {
     VP_FUNC_CALL();
 
-    // Clear params before using it.
-    VP_PUBLIC_CHK_STATUS_RETURN(ReleaseHwFilterParam(params));
-
     params.Type = EngineTypeInvalid;
     params.vpExecuteCaps = caps;
 
@@ -585,6 +613,7 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
     if (caps.bVebox || caps.bSFC)
     {
         params.Type = caps.bSFC ? EngineTypeSfc : EngineTypeVebox;
+        params.vpExecuteCaps = caps;
         auto it = m_VeboxSfcFeatureHandlers.begin();
         for (; it != m_VeboxSfcFeatureHandlers.end(); ++it)
         {
@@ -651,9 +680,15 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                 engineCaps = &(feature->GetFilterEngineCaps());
 
                  // if SFC enabled, Vebox is must as SFC need connect with Vebox
-                if ((caps.bSFC && engineCaps->bEnabled) && 
-                    (engineCaps->SfcNeeded || engineCaps->VeboxNeeded))
+                if (caps.bSFC                               &&
+                    (engineCaps->bForceEnabledOnSfc         ||
+                    (engineCaps->bEnabled && (engineCaps->SfcNeeded || engineCaps->VeboxNeeded))))
                 {
+                    if (engineCaps->bForceEnabledOnSfc && !engineCaps->bEnabled)
+                    {
+                        engineCaps->bEnabled = 1;
+                        engineCaps->SfcNeeded = 1;
+                    }
                     /* Place Holder: need to add FurtherProcessNeeded conditions in next step*/
                     // Choose SFC as execution engine
                     UpdateExeCaps(feature, caps, engineCaps->SfcNeeded? EngineTypeSfc : EngineTypeVebox);
@@ -666,6 +701,12 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                     UpdateExeCaps(feature, caps, EngineTypeVebox);
                     featurePipe.RemoveSwFilter(feature);
                     params.executedFilters->AddSwFilterUnordered(feature, true, 0);
+                }
+                else if (caps.bVebox && engineCaps->bForceEnabledOnSfc)
+                {
+                    // For feature which is force enabled on Sfc, just drop it if sfc not being used.
+                    featurePipe.RemoveSwFilter(feature);
+                    m_vpInterface.GetSwFilterFactory().Destory(feature);
                 }
             }
         }
@@ -828,6 +869,9 @@ MOS_STATUS Policy::ReleaseHwFilterParam(HW_FILTER_PARAMS &params)
             params.Params.pop_back();
             MOS_Delete(p);
         }
+
+        m_vpInterface.GetSwFilterPipeFactory().Destory(params.executedFilters);
+
         return MOS_STATUS_SUCCESS;
     }
 

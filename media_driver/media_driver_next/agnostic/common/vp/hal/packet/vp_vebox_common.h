@@ -27,8 +27,6 @@
 #include "renderhal_g12.h"
 #include "vp_filter.h"
 
-#define MOVE_TO_HWFILTER // remove the macro after finished code refactor
-
 typedef class VP_VEBOX_RENDER_DATA           *PVPHAL_VEBOX_RENDER_DATA;
 typedef struct VP_VEBOX_RENDER_DATA_EXT      *PVPHAL_VEBOX_RENDER_DATA_EXT;
 

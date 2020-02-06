@@ -288,6 +288,10 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                         caps.bRefValid = false;
                     }
                 }
+                else
+                {
+                    caps.bRefValid = true;
+                }
 
                 // DN's output format should be same to input
                 veboxDenoiseOutput[i]->SampleType =

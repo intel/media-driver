@@ -149,6 +149,7 @@ private:
     VpObjAllocator<SwFilterCsc> m_allocatorCsc;
     VpObjAllocator<SwFilterRotMir> m_allocatorRotMir;
     VpObjAllocator<SwFilterScaling> m_allocatorScaling;
+    VpObjAllocator<SwFilterDenoise> m_allocatorDn;
 };
 
 class VpInterface

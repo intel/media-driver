@@ -19,6 +19,12 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
+//!
+//! \file     vp_vebox_cmd_packet.h
+//! \brief    vebox packet which used in by mediapipline.
+//! \details  vebox packet provide the structures and generate the cmd buffer which mediapipline will used.
+//!
+
 #ifndef __VP_VEBOX_CMD_PACKET_H__
 #define __VP_VEBOX_CMD_PACKET_H__
 
@@ -279,10 +285,18 @@ typedef enum _VEBOX_STAT_QUERY_TYPE
 } VEBOX_STAT_QUERY_TYPE;
 
 //!
-//! \file     vp_vebox_cmd_packet.h
-//! \brief    vebox packet which used in by mediapipline.
-//! \details  vebox packet provide the structures and generate the cmd buffer which mediapipline will used.
+//! \brief  Feature specific cache control settings
 //!
+typedef struct _VP_VEBOX_CACHE_CNTL
+{
+    // Input
+    bool                        bDnDi;
+    bool                        bLace;
+
+    // Output
+    VPHAL_DNDI_CACHE_CNTL        DnDi;
+    VPHAL_LACE_CACHE_CNTL        Lace;
+} VP_VEBOX_CACHE_CNTL, *PVP_VEBOX_CACHE_CNTL;
 
 namespace vp {
 
@@ -800,21 +814,6 @@ protected:
       PVP_SURFACE                 pSourceSurface);
 
     //!
-    //! \brief    Vebox allocate resources
-    //! \details  Allocate resources that will be used in Vebox
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS AllocateResources();
-
-    //!
-    //! \brief    Vebox free resources
-    //! \details  Free resources that are used in Vebox
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    virtual MOS_STATUS FreeResources();
-
-    //!
     //! \brief    Add vebox DNDI state
     //! \details  Add vebox DNDI state
     //! \return   MOS_STATUS
@@ -853,6 +852,8 @@ protected:
     //!
     virtual VP_SURFACE *GetSurface(SurfaceType type);
 
+    virtual MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
+
 private:
 
     //!
@@ -884,7 +885,6 @@ protected:
     SfcRenderBase               *m_sfcRender             = nullptr;
     VPHAL_SFC_RENDER_DATA       m_sfcRenderData          = {};
     bool                        m_IsSfcUsed              = false;
-    uint32_t                    m_histogramSurfaceOffset = 0;                                 //!< Vebox Histogram Surface Offset
     std::map<SurfaceType, VP_SURFACE*> m_surfacesGroup;
 
     VEBOX_PACKET_SURFACE_PARAMS m_veboxPacketSurface = {};
@@ -893,16 +893,10 @@ protected:
     VP_SURFACE                  *m_previousSurface          = nullptr;              //!< Previous frame
     VP_SURFACE                  *m_renderTarget             = nullptr;              //!< Render Target frame
 
-#ifdef MOVE_TO_HWFILTER
-    // Resources
-    VP_SURFACE                  *m_veboxStatisticsSurface   = nullptr;              //!< Statistics Surface for VEBOX
-#endif
-
-    bool                        m_bRefValid = false;
     uint32_t                    m_dwGlobalNoiseLevelU = 0;                        //!< Global Noise Level for U
     uint32_t                    m_dwGlobalNoiseLevelV = 0;                        //!< Global Noise Level for V
     uint32_t                    m_dwGlobalNoiseLevel = 0;                         //!< Global Noise Level
-    VPHAL_DNDI_CACHE_CNTL       m_DnDiSurfMemObjCtl = {};                         //!< Surface memory object control
+    PVP_VEBOX_CACHE_CNTL        m_surfMemCacheCtl = nullptr;                      //!< Surface memory cache control
     uint32_t                    m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_CURRENT; //!< default value is 2 for non-DI case.
 
     // Statistics

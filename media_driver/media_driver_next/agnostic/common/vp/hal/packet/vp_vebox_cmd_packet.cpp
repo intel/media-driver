@@ -73,7 +73,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     pVeboxMode->SFCParallelWriteEnable = m_IsSfcUsed &&
                                             (m_PacketCaps.bDN || bDiVarianceEnable);
     pVeboxMode->DNEnable = m_PacketCaps.bDN;
-    pVeboxMode->DNDIFirstFrame = (!m_bRefValid && (pVeboxMode->DNEnable || pVeboxMode->DIEnable));
+    pVeboxMode->DNDIFirstFrame = (!m_PacketCaps.bRefValid && (pVeboxMode->DNEnable || pVeboxMode->DIEnable));
     pVeboxMode->DIOutputFrames = m_DIOutputFrames;
     pVeboxMode->DisableEncoderStatistics = true;
     pVeboxMode->DisableTemporalDenoiseFilter = false;
@@ -298,7 +298,13 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcMmcParams()
 VP_SURFACE *VpVeboxCmdPacket::GetSurface(SurfaceType type)
 {
     auto it = m_surfacesGroup.find(type);
-    return (m_surfacesGroup.end() != it) ? it->second : nullptr;
+    VP_SURFACE *surf = (m_surfacesGroup.end() != it) ? it->second : nullptr;
+    if (SurfaceTypeVeboxoutput == type && nullptr == surf && !m_IsSfcUsed)
+    {
+        // Vebox output case.
+        surf = m_renderTarget;
+    }
+    return surf;
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
@@ -589,6 +595,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrInput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrInput->osSurface);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
+    VP_RENDER_CHK_NULL_RETURN(m_surfMemCacheCtl);
 
     MOS_ZeroMemory(pVeboxDiIecpCmdParams, sizeof(*pVeboxDiIecpCmdParams));
 
@@ -606,7 +613,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
 
     pVeboxDiIecpCmdParams->pOsResCurrInput         = &m_veboxPacketSurface.pCurrInput->osSurface->OsResource;
     pVeboxDiIecpCmdParams->dwCurrInputSurfOffset   = m_veboxPacketSurface.pCurrInput->osSurface->dwOffset;
-    pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value = m_DnDiSurfMemObjCtl.CurrentInputSurfMemObjCtl;
+    pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.CurrentInputSurfMemObjCtl;
 
     // Update control bits for current surface
     if (m_mmc->IsMmcEnabled())
@@ -626,7 +633,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
         VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pPrevInput->osSurface);
         pVeboxDiIecpCmdParams->pOsResPrevInput          = &m_veboxPacketSurface.pPrevInput->osSurface->OsResource;
         pVeboxDiIecpCmdParams->dwPrevInputSurfOffset    = m_veboxPacketSurface.pPrevInput->osSurface->dwOffset;
-        pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value  = m_DnDiSurfMemObjCtl.PreviousInputSurfMemObjCtl;
+        pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value  = m_surfMemCacheCtl->DnDi.PreviousInputSurfMemObjCtl;
 
         // Update control bits for PreviousSurface surface
         if (m_mmc->IsMmcEnabled())
@@ -647,7 +654,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
         VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrOutput->osSurface);
         pVeboxDiIecpCmdParams->pOsResCurrOutput         = &m_veboxPacketSurface.pCurrOutput->osSurface->OsResource;
         pVeboxDiIecpCmdParams->dwCurrOutputSurfOffset   = m_veboxPacketSurface.pCurrOutput->osSurface->dwOffset;
-        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value = m_DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
+        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.CurrentOutputSurfMemObjCtl;
 
         // Update control bits for Current Output Surf
         if (m_mmc->IsMmcEnabled())
@@ -666,7 +673,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
     {
         VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pPrevOutput->osSurface);
         pVeboxDiIecpCmdParams->pOsResPrevOutput         = &m_veboxPacketSurface.pPrevOutput->osSurface->OsResource;
-        pVeboxDiIecpCmdParams->PrevOutputSurfCtrl.Value = m_DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
+        pVeboxDiIecpCmdParams->PrevOutputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.CurrentOutputSurfMemObjCtl;
 
         // Update control bits for PrevOutput surface
         if (m_mmc->IsMmcEnabled())
@@ -686,7 +693,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
     {
         VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pDenoisedCurrOutput->osSurface);
         pVeboxDiIecpCmdParams->pOsResDenoisedCurrOutput         = &m_veboxPacketSurface.pDenoisedCurrOutput->osSurface->OsResource;
-        pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value = m_DnDiSurfMemObjCtl.DnOutSurfMemObjCtl;
+        pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.DnOutSurfMemObjCtl;
 
         // Update control bits for DenoisedCurrOutputSurf surface
         if (m_mmc->IsMmcEnabled())
@@ -709,7 +716,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
 
         // STMM in
         pVeboxDiIecpCmdParams->pOsResStmmInput         = &m_veboxPacketSurface.pSTMMInput->osSurface->OsResource;
-        pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value = m_DnDiSurfMemObjCtl.STMMInputSurfMemObjCtl;
+        pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.STMMInputSurfMemObjCtl;
 
         // Update control bits for stmm input surface
         if (m_mmc->IsMmcEnabled())
@@ -725,7 +732,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
 
         // STMM out
         pVeboxDiIecpCmdParams->pOsResStmmOutput         = &m_veboxPacketSurface.pSTMMOutput->osSurface->OsResource;
-        pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value = m_DnDiSurfMemObjCtl.STMMOutputSurfMemObjCtl;
+        pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.STMMOutputSurfMemObjCtl;
 
         // Update control bits for stmm output surface
         if (m_mmc->IsMmcEnabled())
@@ -741,7 +748,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
     }
 
     pVeboxDiIecpCmdParams->pOsResStatisticsOutput         = &m_veboxPacketSurface.pStatisticsOutput->osSurface->OsResource;
-    pVeboxDiIecpCmdParams->StatisticsOutputSurfCtrl.Value = m_DnDiSurfMemObjCtl.StatisticsOutputSurfMemObjCtl;
+    pVeboxDiIecpCmdParams->StatisticsOutputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.StatisticsOutputSurfMemObjCtl;
 
 finish:
     return eStatus;
@@ -772,7 +779,16 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceParams(
     pMhwVeboxSurface->TileType               = pVpHalVeboxSurface->osSurface->TileType;
     pMhwVeboxSurface->TileModeGMM            = pVpHalVeboxSurface->osSurface->TileModeGMM;
     pMhwVeboxSurface->bGMMTileEnabled        = pVpHalVeboxSurface->osSurface->bGMMTileEnabled;
-    pMhwVeboxSurface->rcMaxSrc               = pVpHalVeboxSurface->rcMaxSrc;
+    if (pVpHalVeboxSurface->rcMaxSrc.top == pVpHalVeboxSurface->rcMaxSrc.bottom ||
+        pVpHalVeboxSurface->rcMaxSrc.left == pVpHalVeboxSurface->rcMaxSrc.right)
+    {
+        // If rcMaxSrc is invalid, just use rcSrc.
+        pMhwVeboxSurface->rcMaxSrc           = pVpHalVeboxSurface->rcSrc;
+    }
+    else
+    {
+        pMhwVeboxSurface->rcMaxSrc           = pVpHalVeboxSurface->rcMaxSrc;
+    }
     pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->osSurface->OsResource;
     pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->osSurface->bIsCompressed;
 
@@ -1112,6 +1128,21 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
                                       pVpHalVeboxSurfaceStateCmdParams->pSurfSTMM,
                                       &pMhwVeboxSurfaceStateCmdParams->SurfSTMM));
     }
+    if (pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput)
+    {
+        VP_RENDER_CHK_NULL_RETURN(pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput->osSurface);
+        VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceParams(
+                                      pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput,
+                                      &pMhwVeboxSurfaceStateCmdParams->SurfDNOutput));
+        pMhwVeboxSurfaceStateCmdParams->SurfDNOutput.dwYoffset = pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput->osSurface->YPlaneOffset.iYOffset;
+    }
+    if (pVpHalVeboxSurfaceStateCmdParams->pSurfSkinScoreOutput)
+    {
+        VP_RENDER_CHK_NULL_RETURN(pVpHalVeboxSurfaceStateCmdParams->pSurfSkinScoreOutput->osSurface);
+        VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceParams(
+                                      pVpHalVeboxSurfaceStateCmdParams->pSurfSkinScoreOutput,
+                                      &pMhwVeboxSurfaceStateCmdParams->SurfSkinScoreOutput));
+    }
 
     return eStatus;
 }
@@ -1242,6 +1273,8 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_RENDER_CHK_NULL_RETURN(m_renderTarget);
     VP_RENDER_CHK_NULL_RETURN(m_previousSurface);
 
+    VP_RENDER_CHK_STATUS_RETURN(InitSurfMemCacheControl(packetCaps));
+
     if (packetCaps.bSFC)
     {
         m_IsSfcUsed = true;
@@ -1264,21 +1297,19 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     }
     m_currentSurface->rcMaxSrc = m_currentSurface->rcSrc;
 
-#ifdef MOVE_TO_HWFILTER
-    // Allocate Resources if needed
-    VP_RENDER_CHK_STATUS_RETURN(AllocateResources());
-#endif
-
     // Init packet surface params.
     m_surfacesGroup = internalSurfaces;
-    m_veboxPacketSurface.pCurrInput        = m_currentSurface;
-#ifdef MOVE_TO_HWFILTER
-    m_veboxPacketSurface.pStatisticsOutput = m_veboxStatisticsSurface;
-#else
-    m_veboxPacketSurface.pStatisticsOutput = GetSurface(SurfaceTypeStatistics);
-#endif
+    m_veboxPacketSurface.pCurrInput                 = m_currentSurface;
+    m_veboxPacketSurface.pStatisticsOutput          = GetSurface(SurfaceTypeStatistics);
     m_veboxPacketSurface.pCurrOutput                = GetSurface(SurfaceTypeVeboxoutput);
-    m_veboxPacketSurface.pPrevInput                 = previousSurface ? m_previousSurface : nullptr;
+    if (packetCaps.bDN)
+    {
+        m_veboxPacketSurface.pPrevInput             = m_PacketCaps.bRefValid ? GetSurface(SurfaceTypeDNRef) : nullptr;
+    }
+    else
+    {
+        m_veboxPacketSurface.pPrevInput             = previousSurface ? m_previousSurface : nullptr;
+    }
     m_veboxPacketSurface.pSTMMInput                 = GetSurface(SurfaceTypeSTMMIn);
     m_veboxPacketSurface.pSTMMOutput                = GetSurface(SurfaceTypeSTMMOut);
     m_veboxPacketSurface.pDenoisedCurrOutput        = GetSurface(SurfaceTypeDNOutput);
@@ -1286,6 +1317,9 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     m_veboxPacketSurface.pAlphaOrVignette           = GetSurface(SurfaceTypeAlphaOrVignette);
     m_veboxPacketSurface.pLaceOrAceOrRgbHistogram   = GetSurface(SurfaceTypeLaceAceRGBHistogram);
     m_veboxPacketSurface.pSurfSkinScoreOutput       = GetSurface(SurfaceTypeSkinScore);
+
+    VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
+    VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pLaceOrAceOrRgbHistogram);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1305,65 +1339,6 @@ MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t p
     return eStatus;
 }
 
-#ifdef MOVE_TO_HWFILTER
-MOS_STATUS VpVeboxCmdPacket::AllocateResources()
-{
-    MHW_VEBOX_SURFACE_PARAMS    MhwVeboxSurfaceParam    = {};
-    uint32_t                    dwWidth                 = 0;
-    uint32_t                    dwHeight                = 0;
-    uint32_t                    dwSize                  = 0;
-    bool                        bSurfCompressed         = false;
-    bool                        bAllocated              = false;
-    MOS_STATUS                  eStatus                 = MOS_STATUS_SUCCESS;
-    int32_t                     i                       = 0;
-    MOS_RESOURCE_MMC_MODE       SurfCompressionMode     = MOS_MMC_DISABLED;
-    VpVeboxRenderData           *pRenderData            = GetLastExecRenderData();
-
-    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_veboxInterface);
-    VP_RENDER_CHK_NULL_RETURN(m_allocator);
-
-    // Allocate Statistics State Surface----------------------------------------
-    // Width to be a aligned on 64 bytes and height is 1/4 the height
-    // Per frame information written twice per frame for 2 slices
-    // Surface to be a rectangle aligned with dwWidth to get proper dwSize
-    VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceParams(
-                            m_currentSurface, &MhwVeboxSurfaceParam));
-    VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_veboxInterface->VeboxAdjustBoundary(
-        &MhwVeboxSurfaceParam,
-        &dwWidth,
-        &dwHeight,
-        false));
-
-    dwWidth     = MOS_ALIGN_CEIL(dwWidth, 64);
-    dwHeight    = MOS_ROUNDUP_DIVIDE(dwHeight, 4) +
-                  MOS_ROUNDUP_DIVIDE(256 * sizeof(uint32_t), dwWidth);
-    dwSize      = dwWidth * dwHeight;
-
-    VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
-                m_veboxStatisticsSurface,
-                "VeboxStatisticsSurface",
-                Format_Buffer,
-                MOS_GFXRES_BUFFER,
-                MOS_TILE_LINEAR,
-                dwSize,
-                1,
-                false,
-                MOS_MMC_DISABLED,
-                bAllocated,
-                true));
-
-    if (nullptr == m_veboxStatisticsSurface)
-    {
-        eStatus = MOS_STATUS_NULL_POINTER;
-    }
-
-    if (eStatus != MOS_STATUS_SUCCESS) {
-        FreeResources();
-    }
-
-    return eStatus;
-}
-
 void VpVeboxCmdPacket::CopySurfaceValue(
     VP_SURFACE                  *pTargetSurface,
     VP_SURFACE                  *pSourceSurface)
@@ -1374,23 +1349,6 @@ void VpVeboxCmdPacket::CopySurfaceValue(
         return;
     }
     *pTargetSurface = *pSourceSurface;
-}
-
-#endif
-
-MOS_STATUS VpVeboxCmdPacket::FreeResources()
-{
-    VP_RENDER_CHK_NULL_RETURN(m_allocator);
-
-#ifdef MOVE_TO_HWFILTER
-    // Free Statistics data surface for VEBOX
-    if (m_veboxStatisticsSurface)
-    {
-        m_allocator->DestroyVpSurface(m_veboxStatisticsSurface);
-    }
-#endif
-
-    return MOS_STATUS_SUCCESS;
 }
 
 VpVeboxCmdPacket::VpVeboxCmdPacket(
@@ -1412,13 +1370,11 @@ VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
 
     MOS_Delete(m_sfcRender);
     MOS_Delete(m_lastExecRenderData);
+    MOS_Delete(m_surfMemCacheCtl);
 
-#ifdef MOVE_TO_HWFILTER
-    FreeResources();
     m_allocator->DestroyVpSurface(m_currentSurface);
     m_allocator->DestroyVpSurface(m_previousSurface);
     m_allocator->DestroyVpSurface(m_renderTarget);
-#endif
 }
 
 MOS_STATUS VpVeboxCmdPacket::CopyAndUpdateVeboxState()
@@ -1743,6 +1699,69 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTag(
     } // switch (srcFmt)
 
     return eStatus;
+}
+
+MOS_STATUS VpVeboxCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)
+{
+    MOS_HW_RESOURCE_DEF                 Usage           = MOS_HW_RESOURCE_DEF_MAX;
+    MEMORY_OBJECT_CONTROL_STATE         MemObjCtrl      = {};
+    PMOS_INTERFACE                      pOsInterface    = nullptr;
+    PVP_VEBOX_CACHE_CNTL                pSettings       = nullptr;
+
+    if (nullptr == m_surfMemCacheCtl)
+    {
+        m_surfMemCacheCtl = MOS_New(VP_VEBOX_CACHE_CNTL);
+    }
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_surfMemCacheCtl);
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface->m_osInterface);
+
+    MOS_ZeroMemory(m_surfMemCacheCtl, sizeof(VP_VEBOX_CACHE_CNTL));
+
+    pOsInterface    = m_hwInterface->m_osInterface;
+    pSettings       = m_surfMemCacheCtl;
+
+    pSettings->bDnDi = true;
+
+    if (pSettings->bDnDi)
+    {
+        pSettings->DnDi.bL3CachingEnabled = true;
+
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.CurrentInputSurfMemObjCtl,        MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.PreviousInputSurfMemObjCtl,       MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.STMMInputSurfMemObjCtl,           MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.STMMOutputSurfMemObjCtl,          MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.DnOutSurfMemObjCtl,               MOS_MP_RESOURCE_USAGE_SurfaceState);
+
+        if (packetCaps.bVebox && !packetCaps.bSFC && !packetCaps.bRender)
+        {
+            // Disable cache for output surface in vebox only condition
+            VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.CurrentOutputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_DEFAULT);
+        }
+        else
+        {
+            VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.CurrentOutputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_SurfaceState);
+        }
+
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.StatisticsOutputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.AlphaOrVignetteSurfMemObjCtl,     MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.LaceOrAceOrRgbHistogramSurfCtrl,  MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.SkinScoreSurfMemObjCtl,           MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.LaceLookUpTablesSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.Vebox3DLookUpTablesSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_SurfaceState);
+    }
+    if (pSettings->bLace)
+    {
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.FrameHistogramSurfaceMemObjCtl,                       MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.AggregatedHistogramSurfaceMemObjCtl,                  MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.StdStatisticsSurfaceMemObjCtl,                        MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.PwlfInSurfaceMemObjCtl,                               MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.PwlfOutSurfaceMemObjCtl,                              MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.WeitCoefSurfaceMemObjCtl,                             MOS_MP_RESOURCE_USAGE_SurfaceState);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 }
