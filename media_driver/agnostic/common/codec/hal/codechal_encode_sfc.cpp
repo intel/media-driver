@@ -948,6 +948,16 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
     params->bMMCEnable                     = false;
     params->MMCMode                        = MOS_MMC_DISABLED;
 
+    if (CodecHalMmcState::IsMmcEnabled())
+    {
+        MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, &m_inputSurface->OsResource, &mmcMode));
+        params->bMMCEnable = (mmcMode != MOS_MEMCOMP_DISABLED);
+        params->MMCMode = (mmcMode == MOS_MEMCOMP_RC) ? MOS_MMC_RC : MOS_MMC_MC;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionFormat(
+            m_osInterface, &m_sfcOutputSurface->OsResource, &outSurfaceParams->dwCompressionFormat));
+    }
+
     return eStatus;
 }
 

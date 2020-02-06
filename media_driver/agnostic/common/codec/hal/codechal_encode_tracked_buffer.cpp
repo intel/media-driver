@@ -357,7 +357,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMvDataResources(uint8_t bufIndex
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
+MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc(bool bIsCompressible)
 {
     // update the last 3 buffer index, find a new slot for current frame
     m_cscBufAnteIdx = m_cscBufPenuIdx;
@@ -380,7 +380,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
 
     // allocating Csc surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrCsc = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, width, height, cscSurface, "cscSurface", m_cscBufCurrIdx, false, format, MOS_TILE_Y));
+        m_standard, width, height, cscSurface, "cscSurface", m_cscBufCurrIdx, false, format, MOS_TILE_Y, bIsCompressible));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrCsc));
 

@@ -90,7 +90,7 @@ protected:
     //!
     void* Allocate2DBuffer(
         uint64_t resourceTag, uint32_t width, uint32_t height, MOS_FORMAT format,
-        MOS_TILE_TYPE tile, bool zeroOnAllocation = false, const char *bufName = nullptr);
+        MOS_TILE_TYPE tile, bool zeroOnAllocation = false, bool bIsCompressible = false, const char *bufName = nullptr);
 
     //!
     //! \brief    Allocate batch buffer

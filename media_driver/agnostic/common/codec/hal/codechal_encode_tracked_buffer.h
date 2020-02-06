@@ -326,7 +326,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AllocateSurfaceCsc();
+    MOS_STATUS AllocateSurfaceCsc(bool bIsCompressible = false);
 
     MOS_STATUS ResizeSurfaceDS();
 
