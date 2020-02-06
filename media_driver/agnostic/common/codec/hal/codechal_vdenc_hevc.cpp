@@ -1413,7 +1413,7 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
     if (m_lowDelay && m_hevcSliceParams->num_ref_idx_l0_active_minus1 == 0
         && m_currGopIFramePOC != -1 && m_hevcSliceParams->slice_temporal_mvp_enable_flag != 0)
     {
-        auto idx = m_refList[m_currReconstructedPic.FrameIdx]->RefList[0].FrameIdx;
+        auto idx = m_picIdx[m_hevcSliceParams->RefPicList[0][0].FrameIdx].ucPicIdx;
 
         if (m_refList[idx]->iFieldOrderCnt[0] == m_currGopIFramePOC)
         {
