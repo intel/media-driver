@@ -59,9 +59,14 @@ struct MhwMiInterfaceG12 : public MhwMiInterfaceGeneric<mhw_mi_g12_X>
 {
     MhwMiInterfaceG12(
         MhwCpInterface      *cpInterface,
-        PMOS_INTERFACE      osInterface);
+        PMOS_INTERFACE      osInterface) :
+        MhwMiInterfaceGeneric(cpInterface, osInterface)
+        {
+            MHW_FUNCTION_ENTER;
+            InitMmioRegisters();
+        }
 
-    ~MhwMiInterfaceG12();
+    ~MhwMiInterfaceG12() { MHW_FUNCTION_ENTER; };
 
     MOS_STATUS AddMiConditionalBatchBufferEndCmd(
         PMOS_COMMAND_BUFFER                         cmdBuffer,
@@ -183,12 +188,6 @@ private:
             return false;
         }
     }
-
-    // MI_CONDITIONAL_BATCH_BUFFER_END can only access the bottom half of each cache line due to limitation,
-    // so copy the data buffer to temporal aligned buffer.
-    static const uint32_t m_tempCondEndBufferNum = 24;
-    MOS_RESOURCE m_tempCondEndBuffer[m_tempCondEndBufferNum];
-    uint32_t m_tempCondEndBufferIdx = 0;
 
 public:
     static const uint32_t m_mmioRcsAuxTableBaseLow      = M_MMIO_RCS_AUX_TABLE_BASE_LOW;
