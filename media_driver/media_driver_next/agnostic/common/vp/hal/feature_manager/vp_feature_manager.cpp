@@ -158,6 +158,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         pvpParams->pSrc[0]->pHDRParams                      ||
         pvpParams->pSrc[0]->pLumaKeyParams                  ||
         pvpParams->pSrc[0]->pProcampParams                  ||
+        pvpParams->pSrc[0]->bInterlacedScaling              ||
         pvpParams->pConstriction)
     {
         return MOS_STATUS_SUCCESS;
@@ -184,8 +185,9 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    if (!bVeboxNeeded &&
-        pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX)
+    if ((!bVeboxNeeded &&
+        pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX) ||
+        pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
     {
         VP_PUBLIC_NORMALMESSAGE("DDI choose to use SFC only for VEBOX, and since VEBOX is not required, change to Composition.");
         return MOS_STATUS_SUCCESS;
@@ -520,6 +522,14 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     // Size of the Output Region over the Render Target
     dwOutputRegionHeight = MOS_MIN(dwOutputRegionHeight, params->pTarget[0]->dwHeight);
     dwOutputRegionWidth = MOS_MIN(dwOutputRegionWidth, params->pTarget[0]->dwWidth);
+
+    if (params->pSrc[0]->Rotation > VPHAL_ROTATION_270 &&
+        params->pTarget[0]->TileType != MOS_TILE_Y)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("non TileY output mirror not supported by SFC Pipe.");
+        bRet = false;
+        return bRet;
+    }
 
     // Calculate the scaling ratio
     // Both source region and scaled region are pre-rotated
