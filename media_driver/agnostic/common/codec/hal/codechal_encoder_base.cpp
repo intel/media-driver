@@ -4654,6 +4654,8 @@ CodechalEncoderState::CodechalEncoderState(
         m_meKernelStates[i] = MHW_KERNEL_STATE();
     }
 
+    pfnGetKernelHeaderAndSize = nullptr;
+
     MOS_ZeroMemory(&m_encodeParams, sizeof(m_encodeParams));
     MOS_ZeroMemory(&m_resHwCount, sizeof(m_resHwCount));
     MOS_ZeroMemory(&m_rawSurface, sizeof(m_rawSurface));                // Pointer to MOS_SURFACE of raw surface

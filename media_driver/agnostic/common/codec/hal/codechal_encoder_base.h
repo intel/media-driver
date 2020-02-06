@@ -1349,7 +1349,7 @@ public:
     MEDIA_WA_TABLE                  *m_waTable = nullptr;                           //!< WA table
     CodecHalMmcState*               m_mmcState = nullptr;                           //!< Memory compression
     MEDIA_SYSTEM_INFO               *m_gtSystemInfo = nullptr;                      //!< GT system infomation
-    MOS_GPU_NODE                    m_videoGpuNode;                                 //!< GPU node of video
+    MOS_GPU_NODE                    m_videoGpuNode = MOS_GPU_NODE_MAX;              //!< GPU node of video
     MOS_GPU_CONTEXT                 m_videoContext = MOS_GPU_CONTEXT_INVALID_HANDLE;              //!< GPU context of video
     MOS_GPU_CONTEXT                 m_videoContextExt[4];                           //!< Extand GPU context
     MOS_GPU_CONTEXT                 m_renderContext = MOS_GPU_CONTEXT_INVALID_HANDLE;             //!< GPU context of render
@@ -1701,11 +1701,11 @@ public:
     uint32_t                        m_sizeCurrSkipFrame = 0;    //!< size of curr skipped frame for skipflag = 2
 
     // Lookahead
-    MOS_RESOURCE                    m_resLaDataBuffer;          //!< Resource of lookahead data buffer
+    MOS_RESOURCE                    m_resLaDataBuffer = {};          //!< Resource of lookahead data buffer
     uint8_t                         m_lookaheadDepth = 0;       //!< Number of frames to lookahead
     uint8_t                         m_currLaDataIdx = 0;        //!< Current lookahead data index
 
-    MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
+    MHW_VDBOX_NODE_IND              m_vdboxIndex = MHW_VDBOX_NODE_MAX;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
     PMOS_GPUCTX_CREATOPTIONS        m_gpuCtxCreatOpt = nullptr; //!< Used for creating GPU context
     bool                            intraModeMaskControl;
