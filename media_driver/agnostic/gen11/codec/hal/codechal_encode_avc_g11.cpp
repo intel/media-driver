@@ -4507,10 +4507,6 @@ MOS_STATUS CodechalEncodeAvcEncG11::MbEncKernel(bool mbEncIFrameDistInUse)
     {
         mbEncSurfaceParams.presSFDCostTableBuffer = &resSFDCostTableBFrameBuffer;
     }
-        mbEncSurfaceParams.presMbInlineData         = presMbInlineData;
-        mbEncSurfaceParams.presVMEOutSurface        = presVMEOutSurface;
-        mbEncSurfaceParams.presMbBrcConstDataBuffer = presMbConstSurface;
-        mbEncSurfaceParams.bMbConstDataBufferInUse = false;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendAvcMbEncSurfaces(&cmdBuffer, &mbEncSurfaceParams));
 
@@ -4911,8 +4907,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteSliceLevel()
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
-        if (MOS_VE_SUPPORTED(m_osInterface))
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));
         HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
 
@@ -5786,7 +5781,6 @@ MOS_STATUS CodechalEncodeAvcEncG11::InitKernelStateMbEnc()
     bindingTable->dwAvcMBEncCurrY                    = mbencCurrY;
     bindingTable->dwAvcMBEncCurrUV                   = mbencCurrUv;
     bindingTable->dwAvcMBEncMbSpecificData           = mbencMbSpecificData;
-    bindingTable->dwAvcMBEncVMEDistortion            = mbencAuxVmeOut;
 
     bindingTable->dwAvcMBEncRefPicSelectL0           = mbencRefpicselectL0;
     bindingTable->dwAvcMBEncMVDataFromME             = mbencMvDataFromMe;

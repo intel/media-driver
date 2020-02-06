@@ -1144,8 +1144,7 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(RestoreTLBAllocation(&cmdBuffer, &m_vdencTlbMmioBuffer));
         }
 
-        if(MOS_VE_SUPPORTED(m_osInterface))
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));      
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));
         HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
 
@@ -1609,7 +1608,7 @@ PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxStateCmd
 PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxVdencWalkerStateParams()
 {
     PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS vdencWalkerStateParams = MOS_New(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11);
-
+ 
     return vdencWalkerStateParams;
 }
 
