@@ -125,7 +125,7 @@ typedef void          *drmAddress, **drmAddressPtr; /**< For mapped regions */
 
 #define __align_mask(value, mask)  (((value) + (mask)) & ~(mask))
 #define ALIGN(value, alignment)    __align_mask(value, (__typeof__(value))((alignment) - 1))
-#define DRM_PLATFORM_DEVICE_NAME_LEN 256
+#define DRM_PLATFORM_DEVICE_NAME_LEN 512
 
 typedef struct _drmPciBusInfo {
     uint16_t domain;
@@ -140,7 +140,7 @@ typedef struct _drmPciDeviceInfo {
     uint32_t subvendor_id;
     uint32_t subdevice_id;
     uint32_t revision_id;
-    char driverInfo[DRM_PLATFORM_DEVICE_NAME_LEN + 1];
+    char     driverInfo[1024];
     uint64_t videoMem[4] = {};
     uint64_t systemMem[4] = {};
     uint64_t sharedMem[4] = {};
@@ -525,7 +525,7 @@ static int parse_separate_sysfs_files(int maj, int min,
         "subsystem_vendor",
         "subsystem_device",
     };
-    char path[PATH_MAX + 1], pci_path[PATH_MAX + 1];
+    char path[PATH_MAX + 128], pci_path[PATH_MAX];
     char resourcename[PATH_MAX + 64], driverpath[PATH_MAX + 64], drivername[PATH_MAX + 64], irqpath[PATH_MAX + 64];
 
     unsigned int data[ARRAY_SIZE(attrs)];
@@ -541,9 +541,9 @@ static int parse_separate_sysfs_files(int maj, int min,
     snprintf(driverpath, sizeof(driverpath), "%s/driver", pci_path);
     snprintf(irqpath, sizeof(irqpath), "%s/irq", pci_path);
     int fd = open(irqpath, O_RDONLY);
-    char buffer[1024] ;
-    memset(buffer, 0, sizeof(buffer));
 
+    char buffer[512] ;
+    memset(buffer, 0, sizeof(buffer));
     if (fd >= 0)
     {
         int count = 0;
@@ -625,7 +625,7 @@ static int parse_separate_sysfs_files(int maj, int min,
 static int parse_config_sysfs_file(int maj, int min,
     drmPciDeviceInfoPtr device)
 {
-    char path[PATH_MAX + 1], pci_path[PATH_MAX + 1];
+    char path[PATH_MAX + 128], pci_path[PATH_MAX + 1];
     unsigned char config[64];
     int fd, ret;
 
