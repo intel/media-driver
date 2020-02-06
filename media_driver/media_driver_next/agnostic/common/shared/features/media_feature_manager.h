@@ -43,7 +43,6 @@ enum FeatureIDs
     hevcVdencRoiFeature,
     hevcVdencWpFeature,
     hevcVdencDssFeature,
-    hevcVdencSccFeature,
 
     reserve6,
     reserve7,
