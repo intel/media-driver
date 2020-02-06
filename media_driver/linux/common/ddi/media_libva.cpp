@@ -1765,6 +1765,10 @@ static VAStatus DdiMedia_Terminate (
     DdiMediaUtil_DestroyMutex(&mediaCtx->VpMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
+#if !defined(ANDROID) && defined(X11_FOUND)
+    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
+#endif
 
     //resource checking
     if (mediaCtx->uiNumSurfaces != 0)
