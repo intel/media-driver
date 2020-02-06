@@ -330,7 +330,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
 //! \def MOS_TraceEventExt
 //!  this is trace event interface extension, only for debug purpose.
 //!
-#define MOS_TraceEventExt  MOS_TraceEvent
+#define MOS_TraceEventExt MOS_TraceEvent
 #define MOS_TraceDump MOS_TraceDataDump
 
 #else // !MOS_MESSAGES_ENABLED
@@ -653,13 +653,6 @@ void _MOS_Assert(
 //!
 #define MOS_OS_CHK_STATUS_MESSAGE(_ptr, _message, ...)                                          \
     MOS_CHK_STATUS_MESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr, _message, ##__VA_ARGS__)
-
-//!
-//! \def MOS_OS_CHK_STATUS_RETURN(_stmt)
-//!  MOS_CHK_STATUS \a _stmt with MOS utility comp/subcomp info
-//!
-#define MOS_OS_CHK_STATUS_RETURN(_stmt)                                                            \
-    MOS_CHK_STATUS_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _stmt)
 
 //!
 //! \def MOS_OS_CHK_NULL_RETURN(_ptr)

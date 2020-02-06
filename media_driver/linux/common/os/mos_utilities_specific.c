@@ -49,6 +49,7 @@
 #else
 #include <cutils/properties.h>
 #endif // ANDROID
+
 #include "mos_utilities_specific_next.h"
 static const char* szUserFeatureFile = USER_FEATURE_FILE;
 
@@ -147,10 +148,6 @@ static int32_t MosTraceFd = -1;
 
 #define MOSd64     __MOS64_PREFIX "d"
 #define MOSu64     __MOS64_PREFIX "u"
-
-#if _MEDIA_RESERVED
-MosUtilUserInterface  *utilUserInterface = nullptr;
-#endif // _MEDIA_RESERVED
 
 //!
 //! \brief mutex for mos utilities multi-threading protection
@@ -2210,7 +2207,6 @@ MOS_STATUS MOS_OS_Utilities_Init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyP
       if ((fp = fopen(tmpFile, "r")) != nullptr)
       {
         szUserFeatureFile = tmpFile;
-        MosUtilitiesSpecificNext::m_szUserFeatureFile = tmpFile;
         fclose(fp);
         MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE", szUserFeatureFile);
       }
@@ -2333,7 +2329,7 @@ MOS_STATUS MOS_UserFeatureOpenKey(
     }
     else
     {
-        return MOS_UserFeatureOpenKey(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
+        return MOS_UserFeatureOpenKey_File(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
     }
 }
 
@@ -2947,6 +2943,10 @@ MOS_STATUS MOS_GetLocalTime(
 
 void MOS_TraceEventInit()
 {
+    if (g_apoMosEnabled)
+    {
+        return MosUtilities::MosTraceEventInit();
+    }
     // close first, if already opened.
     if (MosTraceFd >= 0)
     {
@@ -2959,6 +2959,10 @@ void MOS_TraceEventInit()
 
 void MOS_TraceEventClose()
 {
+    if (g_apoMosEnabled)
+    {
+        return MosUtilities::MosTraceEventClose();
+    }
     if (MosTraceFd >= 0)
     {
         close(MosTraceFd);
@@ -2981,6 +2985,11 @@ void MOS_TraceEvent(
     void * const     pArg2,
     uint32_t         dwSize2)
 {
+    if (g_apoMosEnabled)
+    {
+        return MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2);
+    }
+
     if (MosTraceFd >= 0)
     {
         char  *pTraceBuf = (char *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);

@@ -220,16 +220,30 @@ extern "C" {
 
     MOS_FUNC_EXPORT void MOS_SetUltFlag(uint8_t ultFlag)
     {
+        if (g_apoMosEnabled)
+        {
+            return MosUtilities::MosSetUltFlag(ultFlag);
+        }
+
         MosUltFlag = ultFlag;
     }
 
     MOS_FUNC_EXPORT int32_t MOS_GetMemNinjaCounter()
     {
+        if (g_apoMosEnabled)
+        {
+            return MosUtilities::MosGetMemNinjaCounter();
+        }
         return MosMemAllocCounterNoUserFeature;
     }
 
     MOS_FUNC_EXPORT int32_t MOS_GetMemNinjaCounterGfx()
     {
+        if (g_apoMosEnabled)
+        {
+            return MosUtilities::MosGetMemNinjaCounterGfx();
+        }
+
         return MosMemAllocCounterNoUserFeatureGfx;
     }
 
@@ -3951,6 +3965,8 @@ MOS_STATUS MOS_utilities_init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPath
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
+    if (g_apoMosEnabled)
+        return MosUtilities::MosUtilitiesInit(userFeatureKeyPathInfo);
 
     eStatus = MOS_OS_Utilities_Init(userFeatureKeyPathInfo);
 
@@ -3974,6 +3990,9 @@ MOS_STATUS MOS_utilities_close()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
+
+    if (g_apoMosEnabled)
+        return MosUtilities::MosUtilitiesClose();
 
     MediaUserSettingsMgr::MediaUserSettingClose();
 
@@ -4508,8 +4527,6 @@ MOS_STATUS MOS_AppendFileFromPtr(
 MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia()
 {
     MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
-    if (g_apoMosEnabled)
-        return MosUtilities::DumpUserFeatureKeyDefinitionsMedia();
 
     // Init MOS User Feature Key from mos desc table
     MOS_OS_CHK_STATUS(MOS_DeclareUserFeatureKeysForAllDescFields());

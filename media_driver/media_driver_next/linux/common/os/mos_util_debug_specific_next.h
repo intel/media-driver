@@ -30,10 +30,11 @@
 
 #include "mos_defs.h"
 #include "mos_util_debug_specific.h"
+#include "mos_util_debug_next.h"
 
 
 #if MOS_MESSAGES_ENABLED
-class MosUtilDebugSpecific
+class MosUtilDebugSpecific : public MosUtilDebug
 {
 public:
     //!
@@ -68,6 +69,38 @@ public:
     const PCCHAR      message,
     ...);
 
+    //!
+    //! \brief    Prints debug messages in debug mode when enabled
+    //! \details  Prints debug messages if the level of the comp and sub-comp is
+    //!           set to less than the message level. Nop in release version.
+    //! \param    MOS_MESSAGE_LEVEL level
+    //!           [in] Level of the message
+    //! \param    const PCCHAR logtag
+    //!           [in] For Linux only, used for tagging the message.
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \param    const char  *functionName
+    //!           [in] pointer to the function name
+    //! \param    int32_t lineNum
+    //!           [in] Indicates which line the message locate, -1 for no line output
+    //! \param    const char  *message
+    //!           [in] pointer to the message format string
+    //! \param    var_args
+    //!           [in] variable list of arguments for the message
+    //! \return   void
+    //!
+    static void MosMessageInternal(
+        MOS_MESSAGE_LEVEL level,
+        const PCCHAR      logtag,
+        MOS_COMPONENT_ID  compID,
+        uint8_t           subCompID,
+        const PCCHAR      functionName,
+        int32_t           lineNum,
+        const PCCHAR      message,
+        va_list           var_args);
+
 private:
 #if USE_PRETTY_FUNCTION
     //!
@@ -77,7 +110,7 @@ private:
     //!           [in] in the form of "TYPE [CLASS::]FUNCTION(INPUT LIST)"
     //! \return   PCCHAR in the form of [CLASS::]FUNCTION
     //!
-    static PCCHAR MOS_getClassMethod(PCCHAR pcPrettyFunction);
+    static PCCHAR MosGetClassMethod(PCCHAR pcPrettyFunction);
 #endif
 
 private:

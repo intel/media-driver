@@ -37,6 +37,9 @@
 class MosUtilDebug
 {
 public:
+    MosUtilDebug()          = delete;
+    ~MosUtilDebug()         = delete;
+
 #if MOS_MESSAGES_ENABLED
     //!
     //! \brief    Initialize the MOS message params structure and HLT.
@@ -69,26 +72,6 @@ public:
     static MOS_STATUS MosLogFileNamePrefix(char  *fileNamePrefix);
 
     //!
-    //! \brief    Checks whether debug messages should be printed.
-    //! \details  Determines by the print level, component and sub-component IDs
-    //!           whether the debug message should be printed.
-    //! \param    MOS_MESSAGE_LEVEL level
-    //!           [in] Level of the message
-    //! \param    MOS_COMPONENT_ID compID
-    //!           [in] Indicates which component
-    //! \param    uint8_t subCompID
-    //!           [in] Indicates which sub-component
-    //! \param    const char  *message
-    //!           [in] pointer to the message format string
-    //! \return   int32_t
-    //!
-    static int32_t MosShouldPrintMessage(
-        MOS_MESSAGE_LEVEL  level,
-        MOS_COMPONENT_ID   compID,
-        uint8_t            subCompID,
-        const char * const message);
-
-    //!
     //! \brief    Enable or disable asserts of a particular component, it is used by ULT also
     //! \details  Enable or disable asserts of a particular component
     //! \param    MOS_COMPONENT_ID compID
@@ -118,6 +101,29 @@ public:
         uint8_t          subCompID);
 
 #endif // MOS_ASSERT_ENABLED
+
+protected:
+#if MOS_MESSAGES_ENABLED
+    //!
+    //! \brief    Checks whether debug messages should be printed.
+    //! \details  Determines by the print level, component and sub-component IDs
+    //!           whether the debug message should be printed.
+    //! \param    MOS_MESSAGE_LEVEL level
+    //!           [in] Level of the message
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \param    const char  *message
+    //!           [in] pointer to the message format string
+    //! \return   int32_t
+    //!
+    static int32_t MosShouldPrintMessage(
+        MOS_MESSAGE_LEVEL level,
+        MOS_COMPONENT_ID  compID,
+        uint8_t           subCompID,
+        const char *const message);
+#endif
 
 private:
 
@@ -251,23 +257,24 @@ private:
     static int32_t MosShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID);
 #endif
 
-public:
 #if MOS_MESSAGES_ENABLED
-    static const char * const m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT];
-    static const char * const m_mosComponentName[MOS_COMPONENT_COUNT];
+protected:
+    static const char * const *m_mosLogLevelName;
+    static const char * const *m_mosComponentName;
+
+    //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
     static MOS_MESSAGE_PARAMS m_mosMsgParams;
     static MOS_MESSAGE_PARAMS m_mosMsgParamsDdiDump;
 #endif
 
-private:
 #if MOS_MESSAGES_ENABLED
-    static const char * const m_mosLogPathTemplate;
-    static const char * const m_DdiLogPathTemplate;
-    static const MOS_USER_FEATURE_VALUE_ID m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
-    static const uint8_t m_subComponentCount[MOS_COMPONENT_COUNT];
+private:
+    static const char* const m_mosLogPathTemplate;
+    static const char* const m_DdiLogPathTemplate;
+    static const MOS_USER_FEATURE_VALUE_ID (* const m_pcComponentUserFeatureKeys)[3];
+    static const uint8_t* const m_subComponentCount;
     static const PCCHAR m_mosUltLogPathPrefix;
     static const PCCHAR m_mosLogPathPrefix;
-
 #endif
 };
 #endif // __MOS_UTIL_DEBUG_NEXT_H__

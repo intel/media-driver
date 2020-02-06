@@ -30,6 +30,9 @@
 #if MOS_MESSAGES_ENABLED
 #include "mos_utilities_next.h"
 
+extern MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
+extern uint8_t                   subComponentCount[MOS_COMPONENT_COUNT];
+
 //!
 //! \brief HLT file name template
 //!
@@ -38,103 +41,18 @@ const char * const MosUtilDebug::m_mosLogPathTemplate = MOS_LOG_PATH_TEMPLATE;
 //!
 //! \brief DDI dump file name template
 //!
-const char * const MosUtilDebug::m_DdiLogPathTemplate = "%s\\ddi_dump_%d.%s";
+const char * const MosUtilDebug::m_DdiLogPathTemplate       = "%s\\ddi_dump_%d.%s";
 
-const char * const MosUtilDebug::m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT] = {
-    "",          // DISABLED
-    "CRITICAL",
-    "NORMAL  ",
-    "VERBOSE ",
-    "ENTER   ",
-    "EXIT    ",
-    "ENTER   ",  // ENTER VERBOSE
-    "EXIT    ",  // EXIT VERBOSE
-};
+const char * const *MosUtilDebug::m_mosLogLevelName         = MOS_LogLevelName;
 
-const char * const MosUtilDebug::m_mosComponentName[MOS_COMPONENT_COUNT] = {
-    "[MOS]:  ",
-    "[MHW]:  ",
-    "[CODEC]:",
-    "[VP]:   ",
-    "[CP]:   ",
-    MOS_COMPONENT_NAME_DDI_STRING,
-    "[CM]:   "
-};
+const char * const *MosUtilDebug::m_mosComponentName        = MOS_ComponentName;
 
-MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParams = {};
-MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParamsDdiDump = {};
+const MOS_USER_FEATURE_VALUE_ID (*const MosUtilDebug::m_pcComponentUserFeatureKeys)[3] = pcComponentUserFeatureKeys;
 
-const MOS_USER_FEATURE_VALUE_ID MosUtilDebug::m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_OS_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_OS_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_OS_TAG_ID
-    },
+const uint8_t * const MosUtilDebug::m_subComponentCount     = subComponentCount;
 
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_HW_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_HW_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_HW_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_CODEC_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CODEC_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CODEC_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_VP_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_VP_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_VP_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_CP_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CP_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CP_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_DDI_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_DDI_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_DDI_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_CM_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CM_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_BLT_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_BLT_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_BLT_TAG_ID
-    }
-};
-
-const uint8_t MosUtilDebug::m_subComponentCount[MOS_COMPONENT_COUNT] = {
-    MOS_SUBCOMP_COUNT,
-    MOS_HW_SUBCOMP_COUNT,
-    MOS_CODEC_SUBCOMP_COUNT,
-    MOS_VP_SUBCOMP_COUNT,
-    MOS_CP_SUBCOMP_COUNT,
-    MOS_DDI_SUBCOMP_COUNT,
-    MOS_CM_SUBCOMP_COUNT
-};
+MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParams            = {};
+MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParamsDdiDump     = {};
 
 void MosUtilDebug::MosSetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_MESSAGE_LEVEL msgLevel)
 {
@@ -495,9 +413,9 @@ void MosUtilDebug::MosMessageInit()
         MosDDIDumpInit();
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
-        MosMemAllocCounter     = 0;
-        MosMemAllocFakeCounter = 0;
-        MosMemAllocCounterGfx  = 0;
+        MosUtilities::m_mosMemAllocCounter     = 0;
+        MosUtilities::m_mosMemAllocFakeCounter = 0;
+        MosUtilities::m_mosMemAllocCounterGfx  = 0;
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection begin");
     }
 
@@ -585,7 +503,6 @@ int32_t MosUtilDebug::MosShouldPrintMessage(
     return true;
 
 }
-#endif // MOS_MESSAGES_ENABLED
 
 #if MOS_ASSERT_ENABLED
 
@@ -614,3 +531,4 @@ int32_t MosUtilDebug::MosShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID
 }
 #endif // MOS_ASSERT_ENABLED
 
+#endif  // MOS_MESSAGES_ENABLED

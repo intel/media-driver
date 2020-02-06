@@ -38,16 +38,15 @@
 #if MOS_MESSAGES_ENABLED
 #include <time.h>     //for simulate random memory allcation failure
 #endif
+extern int32_t MosMemAllocCounterNoUserFeature;
+extern int32_t MosMemAllocCounterNoUserFeatureGfx;
+int32_t &MosUtilities::m_mosMemAllocCounterNoUserFeature            = MosMemAllocCounterNoUserFeature;
+int32_t &MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx         = MosMemAllocCounterNoUserFeatureGfx;
+uint8_t MosUtilities::m_mosUltFlag                                  = 0;
 
-
-//int32_t MosMemAllocCounter;      //!< Counter to check memory leaks
-//int32_t MosMemAllocFakeCounter;
-//int32_t MosMemAllocCounterGfx;
-int32_t MosUtilities::m_mosMemAllocCounterNoUserFeature = 0;
-int32_t MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx = 0;
-uint8_t MosUtilities::m_mosUltFlag = 0;
-int32_t MosUtilities::m_mosSimulateRandomAllocMemoryFailFreq = 0;
-
+int32_t &MosUtilities::m_mosMemAllocCounter                         = MosMemAllocCounter;
+int32_t &MosUtilities::m_mosMemAllocFakeCounter                     = MosMemAllocFakeCounter;
+int32_t &MosUtilities::m_mosMemAllocCounterGfx                      = MosMemAllocCounterGfx;
 
 MOS_FUNC_EXPORT void MosUtilities::MosSetUltFlag(uint8_t ultFlag)
 {
@@ -71,10 +70,14 @@ char MosUtilities::m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE] = {};
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
-uint32_t MosUtilities::m_mosAllocMemoryFailSimulateMode = 0;
-uint32_t MosUtilities::m_mosAllocMemoryFailSimulateFreq = 0;
-uint32_t MosUtilities::m_mosAllocMemoryFailSimulateHint = 0;
-uint32_t MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = 0;
+extern uint32_t MosAllocMemoryFailSimulateMode;
+extern uint32_t MosAllocMemoryFailSimulateFreq;
+extern uint32_t MosAllocMemoryFailSimulateHint;
+extern uint32_t MosAllocMemoryFailSimulateAllocCounter;
+uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateMode = MosAllocMemoryFailSimulateMode;
+uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateFreq = MosAllocMemoryFailSimulateFreq;
+uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateHint = MosAllocMemoryFailSimulateHint;
+uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = MosAllocMemoryFailSimulateAllocCounter;
 
 #define MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT (0)
 #define MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM (1)
@@ -89,46 +92,46 @@ uint32_t MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = 0;
 
 void MosUtilities::MosInitAllocMemoryFailSimulateFlag()
 {
-    MOS_STATUS             eStatus = MOS_STATUS_SUCCESS;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     //default off for simulate random fail
-    m_mosAllocMemoryFailSimulateMode  = MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT;
-    m_mosAllocMemoryFailSimulateFreq = 0;
-    m_mosAllocMemoryFailSimulateHint = 0;
-    m_mosAllocMemoryFailSimulateAllocCounter = 0;
+    m_mosAllocMemoryFailSimulateMode            = MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT;
+    m_mosAllocMemoryFailSimulateFreq            = 0;
+    m_mosAllocMemoryFailSimulateHint            = 0;
+    m_mosAllocMemoryFailSimulateAllocCounter    = 0;
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
+    // Read Config : memory allocation failure simulate mode
+    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
     MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE_ID,
-        &userFeatureData);
+        &userFeatureValueData);
 
-    if ((userFeatureData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT) ||
-        (userFeatureData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM) ||
-        (userFeatureData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE))
+    if ((userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT) ||
+        (userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM) ||
+        (userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE))
     {
-        m_mosAllocMemoryFailSimulateMode = userFeatureData.u32Data;
+        m_mosAllocMemoryFailSimulateMode = userFeatureValueData.u32Data;
         MOS_OS_NORMALMESSAGE("Init MosSimulateAllocMemoryFailSimulateMode as %d \n ", m_mosAllocMemoryFailSimulateMode);
     }
     else
     {
         m_mosAllocMemoryFailSimulateMode = MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT;
-        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Mode from config: %d \n ", userFeatureData.u32Data);
+        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Mode from config: %d \n ", userFeatureValueData.u32Data);
     }
 
     // Read Config : memory allocation failure simulate frequence
-    MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
     MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
-        &userFeatureData);
+        &userFeatureValueData);
 
-    if ((userFeatureData.u32Data >= MIN_MEMORY_ALLOC_FAIL_FREQ) &&
-        (userFeatureData.u32Data <= MAX_MEMORY_ALLOC_FAIL_FREQ))
+    if ((userFeatureValueData.u32Data >= MIN_MEMORY_ALLOC_FAIL_FREQ) &&
+        (userFeatureValueData.u32Data <= MAX_MEMORY_ALLOC_FAIL_FREQ))
     {
-        m_mosAllocMemoryFailSimulateFreq = userFeatureData.u32Data;
+        m_mosAllocMemoryFailSimulateFreq = userFeatureValueData.u32Data;
         MOS_OS_NORMALMESSAGE("Init MosSimulateRandomAllocMemoryFailFreq as %d \n ", m_mosAllocMemoryFailSimulateFreq);
 
         if (m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM)
@@ -139,25 +142,25 @@ void MosUtilities::MosInitAllocMemoryFailSimulateFlag()
     else
     {
         m_mosAllocMemoryFailSimulateFreq = 0;
-        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Freq from config: %d \n ", userFeatureData.u32Data);
+        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Freq from config: %d \n ", userFeatureValueData.u32Data);
     }
 
     // Read Config : memory allocation failure simulate counter
-    MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
     MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT_ID,
-        &userFeatureData);
+        &userFeatureValueData);
 
-    if (userFeatureData.u32Data <= m_mosAllocMemoryFailSimulateFreq)
+    if (userFeatureValueData.u32Data <= m_mosAllocMemoryFailSimulateFreq)
     {
-        m_mosAllocMemoryFailSimulateHint = userFeatureData.u32Data;
+        m_mosAllocMemoryFailSimulateHint = userFeatureValueData.u32Data;
         MOS_OS_NORMALMESSAGE("Init MosAllocMemoryFailSimulateHint as %d \n ", m_mosAllocMemoryFailSimulateHint);
     }
     else
     {
         m_mosAllocMemoryFailSimulateHint = m_mosAllocMemoryFailSimulateFreq;
-        MOS_OS_NORMALMESSAGE("Set m_mosAllocMemoryFailSimulateHint as %d since INVALID CONFIG %d \n ", m_mosAllocMemoryFailSimulateHint, userFeatureData.u32Data);
+        MOS_OS_NORMALMESSAGE("Set m_mosAllocMemoryFailSimulateHint as %d since INVALID CONFIG %d \n ", m_mosAllocMemoryFailSimulateHint, userFeatureValueData.u32Data);
     }
 }
 
@@ -628,18 +631,6 @@ MOS_STATUS MosUtilities::MosAppendFileFromPtr(
 |
 *****************************************************************************/
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-
-MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL MosUtilities::DumpUserFeatureKeyDefinitionsMedia()
-{
-    // Init MOS User Feature Key from mos desc table
-    MOS_OS_CHK_STATUS_RETURN(MosDeclareUserFeatureKeysForAllDescFields());
-    MOS_OS_CHK_STATUS_RETURN(MosGenerateUserFeatureKeyXML());
-    return MOS_STATUS_SUCCESS;
-}
-
-#endif
-
 MOS_STATUS MosUtilities::MosWriteOneUserFeatureKeyToXML(PMOS_USER_FEATURE_VALUE pUserFeature)
 {
     char                            sOutBuf[MOS_USER_CONTROL_MAX_DATA_SIZE];
@@ -784,8 +775,8 @@ MOS_STATUS MosUtilities::MosGenerateUserFeatureKeyXML()
     uint32_t                            uiIndex=0;
     MOS_USER_FEATURE_VALUE              UserFeatureFilter = __NULL_USER_FEATURE_VALUE__;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
-    const char * const                  FilterGroups[] = { "Codec", "Decode", "Encode", "CP",
-                                                           "General", "MOS", "Report", "VP"};
+    const char * const                  FilterGroups[] = { "Codec", "Decode", "Encode", "CP", "General", "MOS",
+                                                           "Report", "VP", "Media", "Secure HEVC Encode", "MDF"};
     uint32_t                            FilterGroupsCount = sizeof(FilterGroups) / sizeof(FilterGroups[0]);
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
     // Check if XML dump is enabled by User Feature Key
@@ -849,7 +840,7 @@ MOS_STATUS MosUtilities::MosUserFeatureSetMultiStringValue(
     uint32_t                        dwLen;
     uint32_t                        dwPos;
 
-    MOS_OS_ASSERT(pFeatureData);
+    MOS_OS_CHK_NULL_RETURN(pFeatureData);
     MOS_OS_ASSERT(dwSize);
 
     pStrings = pFeatureData->MultiStringData.pStrings;
@@ -1620,7 +1611,7 @@ MOS_STATUS MosUtilities::MosUserFeatureReadValueMultiString(
     {
         MOS_SafeFreeMemory(pFeatureValue->Value.MultiStringData.pMultStringData);
         pFeatureValue->Value.MultiStringData.pMultStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
-        MosMemAllocFakeCounter++;
+        m_mosMemAllocFakeCounter++;
         if (pFeatureValue->Value.MultiStringData.pMultStringData == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to allocate memory.");
@@ -2041,7 +2032,7 @@ MOS_STATUS MosUtilities::MosUserFeatureWriteValuesTblID(
     int32_t                             pid;
 
     //--------------------------------------------------
-    MOS_OS_ASSERT(pWriteValues);
+    MOS_OS_CHK_NULL_RETURN(pWriteValues);
     //--------------------------------------------------
 
     MosZeroMemory(WritePathWithPID, MAX_PATH);

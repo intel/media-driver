@@ -43,7 +43,7 @@ class MosUtilities
 {
 public:
     MosUtilities()          = delete;
-    virtual ~MosUtilities() = delete;
+    ~MosUtilities()         = delete;
 
     MOS_FUNC_EXPORT static void MosSetUltFlag(uint8_t ultFlag);
     MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounter();
@@ -609,71 +609,6 @@ public:
         const char               *pFilename,
         void                     *pData,
         uint32_t                 dwSize);
-
-    //------------------------------------------------------------------------------
-    // User Feature Functions
-    //------------------------------------------------------------------------------
-    //!
-    //! \brief    Read Single Value from User Feature
-    //! \details  This is a unified funtion to read user feature key for all components.
-    //!           (Codec/VP/CP/CM)
-    //!           It is required to prepare all memories for buffers before calling this function.
-    //!           User can choose to use array variable or allocated memory for the buffer.
-    //!           If the buffer is allocated dynamically, it must be freed by user to avoid memory leak.
-    //!           ------------------------------------------------------------------------------------
-    //!           Usage example:
-    //!           a) Initiation:
-    //!           MosZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
-    //!           UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    //!           UserFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    //!           UserFeature.pValues         = &UserFeatureValue;
-    //!           UserFeature.uiNumValues     = 1;
-    //!           b.1) For uint32_t type:
-    //!           UserFeatureValue.u32Data = 1;    //set the default value, must be initiated with one valid value.
-    //!           b.2) For String/Binary type:
-    //!           char cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
-    //!           UserFeatureValue.StringData.pStringData = cStringData; // make sure the pointer is valid
-    //!           UserFeatureValue.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    //!           UserFeatureValue.StringData.uSize       = 0;  //set the default value. 0 is empty buffer.
-    //!           b.3) For MultiString type:
-    //!           char cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
-    //!           MOS_USER_FEATURE_VALUE_STRING strings[MAX_STRING_COUNT];
-    //!           UserFeatureValue.MultiStringData.pMultStringData = cStringData; // make sure the pointer is valid
-    //!           UserFeatureValue.MultiStringData.uMaxSize        = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    //!           UserFeatureValue.MultiStringData.uSize           = 0;  //set the default value. 0 is empty buffer.
-    //!           UserFeatureValue.MultiStringData.pStrings        = strings; // make sure the pointer is valid
-    //!           UserFeatureValue.MultiStringData.uCount          = MAX_STRING_COUNT;
-    //!           c) Read user feature key:
-    //!           MOS_UserFeature_ReadValue();
-    //!           -------------------------------------------------------------------------------------
-    //!           Important note: The pointer pStringData/pMultStringData may be modified if the
-    //!           previous MOS_UserFeature_ReadValue() doesn't read a same user feature key type. So it's
-    //!           suggested to set the union members in UserFeatureValue every time before
-    //!           MOS_UserFeature_ReadValue() if you are not familiar with the details of this function.
-    //! \param    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface
-    //!           [in] Pointer to OS User Interface structure
-    //! \param    PMOS_USER_FEATURE pUserFeature
-    //!           [in/out] Pointer to User Feature Interface
-    //! \param    char  *pValueName
-    //!           [in] Pointer to the name of the user feature key value
-    //! \param    MOS_USER_FEATURE_VALUE_TYPE ValueType
-    //!           [in] User Feature Value type
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    //!
-    //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
-    //! \details  Generate a User Feature Keys XML files according to m_mosUserFeatureDescFields
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia();
-
-#endif
 
     //!
     //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
@@ -1781,11 +1716,23 @@ public:
 
     //!
     //! \brief    MOS trace event close
-    //! \details  un-register provider Global ID. 
+    //! \details  un-register provider Global ID.
     //! \param    void
     //! \return   void
     //!
     static void MosTraceEventClose();
+
+    //!
+    //! \brief    setup static platform info for trace events
+    //! \details  send static platform info to trace struct, which itself determine when to send them.
+    //!           static platform info should only send 1 time per trace capture, no more no less.
+    //! \param    [in] driver version
+    //! \param    [in] platform family
+    //! \param    [in] render family
+    //! \param    [in] device id
+    //! \return   void
+    //!
+    static void MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID);
 
     //!
     //! \brief    MOS log trace event
@@ -1837,13 +1784,13 @@ public:
         uint32_t         lineNum);
 
     static void MosTraceDataDump(
-        char *const pcName,
+        const char *pcName,
         uint32_t    flags,
-        void *const pBuf,
+        const void *pBuf,
         uint32_t    dwSize);
 
     //!
-    //! \brief    MOS_GfxInfo_RTErr
+    //! \brief    MosGfxInfoRTErr
     //! \details  Custom gfx info trace to report runtime errors detected by each component.
     //! \param    [in] ver
     //!           Version
@@ -1870,7 +1817,34 @@ public:
         ...);
 
     //!
-    //! \brief    MOS_GfxInfo
+    //! \brief    MosGfxInfoRTErrInternal
+    //! \details  Custom gfx info trace to report runtime errors detected by each component.
+    //! \param    [in] ver
+    //!           Version
+    //! \param    [in] compId
+    //!           Component ID defined in GFXINFO_COMP_ID
+    //! \param    [in] FtrId
+    //!           Feature ID, an unique identifier for each component.
+    //! \param    [in] ErrorCode
+    //!           Error code that will be recorded.
+    //! \param    [in] num_of_triples
+    //!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+    //! \param    [in] var_args
+    //!           Triples (name, type, value), for example
+    //!             int8_t i = 3;
+    //!             "Name1", GFXINFO_PTYPE_UINT8, &i
+    //!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
+    //! \return   void
+    //!
+    static void MosGfxInfoRTErrInternal(uint8_t ver,
+        uint16_t                        compId,
+        uint16_t                        FtrId,
+        uint32_t                        ErrorCode,
+        uint8_t                         num_of_triples,
+        va_list                         args);
+
+    //!
+    //! \brief    MosGfxInfo
     //! \details  A helper function to help to compose gfx info xml string
     //! \param    [in] ver
     //!           Version
@@ -1893,6 +1867,31 @@ public:
         uint32_t        tmtryID,
         uint8_t         num_of_triples,
         ...);
+
+    //!
+    //! \brief    MosGfxInfoInternal
+    //! \details  A helper function to help to compose gfx info xml string
+    //! \param    [in] ver
+    //!           Version
+    //! \param    [in] compId
+    //!           Component ID defined in GFXINFO_COMP_ID
+    //! \param    [in] tmtryID
+    //!           Gfx info ID, an unique identifier for each component.
+    //! \param    [in] num_of_triples
+    //!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+    //! \param    [in] var_args
+    //!           Triples (name, type, value), for example
+    //!             int8_t i = 3;
+    //!             "Name1", GFXINFO_PTYPE_UINT8, &i
+    //!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
+    //! \return   void
+    //!
+    static void MosGfxInfoInternal(
+        uint8_t  ver,
+        uint16_t compId,
+        uint32_t tmtryID,
+        uint8_t  num_of_triples,
+        va_list  args);
 
 private:
 
@@ -2398,23 +2397,28 @@ private:
 
 public:
     static uint8_t                      m_mosUltFlag;
-    static int32_t                      m_mosMemAllocCounterNoUserFeature;
-    static int32_t                      m_mosMemAllocCounterNoUserFeatureGfx;
-    static int32_t                      m_mosSimulateRandomAllocMemoryFailFreq;
+    static int32_t                      &m_mosMemAllocCounterNoUserFeature;
+    static int32_t                      &m_mosMemAllocCounterNoUserFeatureGfx;
+
+    //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
+    static int32_t                      &m_mosMemAllocCounter;
+    static int32_t                      &m_mosMemAllocFakeCounter;
+    static int32_t                      &m_mosMemAllocCounterGfx;
 
 private:
     static MosMutex                     m_mutexLock;
     static char                         m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE];
     static PMOS_USER_FEATURE_VALUE const m_mosUserFeatureDescFields;
     static uint32_t                     m_mosUtilInitCount; // number count of mos utilities init
-    static MediaUserSettingsMgr         *m_codecUserFeatureExt;
-    static MediaUserSettingsMgr         *m_vpUserFeatureExt;
-    static MediaUserSettingsMgr         *m_cpUserFeatureExt;
+#if _MEDIA_RESERVED
+    static MediaUserSettingsMgr*        m_codecUserFeatureExt;
+    static MediaUserSettingsMgr*        m_vpUserFeatureExt;
+#endif
 #if (_DEBUG || _RELEASE_INTERNAL)
-    static uint32_t                     m_mosAllocMemoryFailSimulateMode;
-    static uint32_t                     m_mosAllocMemoryFailSimulateFreq;
-    static uint32_t                     m_mosAllocMemoryFailSimulateHint;
-    static uint32_t                     m_mosAllocMemoryFailSimulateAllocCounter;
+    static uint32_t                     &m_mosAllocMemoryFailSimulateMode;
+    static uint32_t                     &m_mosAllocMemoryFailSimulateFreq;
+    static uint32_t                     &m_mosAllocMemoryFailSimulateHint;
+    static uint32_t                     &m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
     static MOS_USER_FEATURE_KEY_PATH_INFO m_mosUtilUserFeatureKeyPathInfo;
 };

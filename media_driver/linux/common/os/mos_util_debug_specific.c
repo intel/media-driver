@@ -34,6 +34,7 @@
 #include <time.h>      //get_clocktime
 #include <unistd.h>    //read, lseek
 #include <fcntl.h>     //open
+#include "mos_util_debug_specific_next.h"
 
 #ifdef ANDROID
 #include <android/log.h>
@@ -250,6 +251,13 @@ void MOS_Message(
     va_list var_args;
     uint32_t nLen = 0;
     PCCHAR func = functionName;
+    if(g_apoMosEnabled)
+    {
+        va_start(var_args, message);
+        MosUtilDebugSpecific::MosMessageInternal(level, logtag, compID, subCompID, functionName, lineNum, message, var_args);
+        va_end(var_args);
+        return;
+    }
 
     if (MOS_ShouldPrintMessage(level, compID, subCompID, message) == false)
     {
@@ -424,6 +432,11 @@ extern int32_t MOS_ShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID);
 //!
 void _MOS_Assert(MOS_COMPONENT_ID compID, uint8_t subCompID)
 {
+    if(g_apoMosEnabled)
+   {
+        return MosUtilDebug::MosAssert(compID,subCompID);
+   }
+
     if (MOS_ShouldAssert(compID, subCompID) == false)
     {
         return;

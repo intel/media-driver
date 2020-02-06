@@ -46,7 +46,7 @@
 #include <signal.h>
 #include <unistd.h>    // fork
 
-const char* MosUtilitiesSpecificNext::m_szUserFeatureFile = USER_FEATURE_FILE;
+const char *MosUtilitiesSpecificNext::m_szUserFeatureFile = USER_FEATURE_FILE;
 
 double MosUtilities::MosGetTime()
 {
@@ -66,8 +66,8 @@ double MosUtilities::MosGetTime()
 //!
 //! \brief Linux specific trace entry path and file description.
 //!
-const char * const MosTracePath = "/sys/kernel/debug/tracing/trace_marker";
-static int32_t MosTraceFd = -1;
+const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker";
+int32_t           MosUtilitiesSpecificNext::m_mosTraceFd    = -1;
 
 //!
 //! \brief for int64_t/uint64_t format print warning
@@ -86,8 +86,12 @@ static int32_t MosTraceFd = -1;
 //! \brief mutex for mos utilities multi-threading protection
 //!
 MosMutex MosUtilities::m_mutexLock;
-
 uint32_t MosUtilities::m_mosUtilInitCount = 0; // number count of mos utilities init
+
+#if _MEDIA_RESERVED
+MediaUserSettingsMgr *MosUtilities::m_codecUserFeatureExt = nullptr;
+MediaUserSettingsMgr *MosUtilities::m_vpUserFeatureExt    = nullptr;
+#endif
 
 MOS_STATUS MosUtilities::MosSecureStrcat(char  *strDestination, size_t numberOfElements, const char * const strSource)
 {
@@ -239,9 +243,8 @@ MOS_STATUS MosUtilities::MosCreateDirectory(
     char * const       lpPathName)
 {
     uint32_t   mode;
-    MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
 
-    MOS_OS_CHK_NULL(lpPathName);
+    MOS_OS_CHK_NULL_RETURN(lpPathName);
 
     // Set read/write access right for usr/group.
     mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP;
@@ -249,14 +252,10 @@ MOS_STATUS MosUtilities::MosCreateDirectory(
         errno != EEXIST) // Directory already exists, don't return failure in this case.
     {
         MOS_OS_ASSERTMESSAGE("Failed to create the directory '%s'. Error = %s", lpPathName, strerror(errno));
-        eStatus = MOS_STATUS_DIR_CREATE_FAILED;
-        goto finish;
+        return MOS_STATUS_DIR_CREATE_FAILED;
     }
 
-    eStatus = MOS_STATUS_SUCCESS;
-
-finish:
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MosUtilities::MosCreateFile(
@@ -917,6 +916,7 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
                         MOS_FreeMemory(CurValue[i].ulValueBuf);
                     }
                 }
+                MOS_FreeMemory(CurValue);
                 MOS_FreeMemory(CurKey);
             }
         }
@@ -929,6 +929,7 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
                     MOS_FreeMemory(CurValue[i].ulValueBuf);
                 }
             }
+            MOS_FreeMemory(CurValue);
             MOS_FreeMemory(CurKey);
         }
     }
@@ -941,6 +942,7 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
                 MOS_FreeMemory(CurValue[i].ulValueBuf);
             }
         }
+        MOS_FreeMemory(CurValue);
         MOS_FreeMemory(CurKey);
     }
     fclose(File);
@@ -1352,14 +1354,13 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO user
         // Initialize MOS message params structure and HLT
         MosUtilDebug::MosMessageInit();
 #endif // MOS_MESSAGES_ENABLED
-        MosMemAllocCounter     = 0;
-        MosMemAllocFakeCounter = 0;
-        MosMemAllocCounterGfx  = 0;
+        m_mosMemAllocCounter     = 0;
+        m_mosMemAllocFakeCounter = 0;
+        m_mosMemAllocCounterGfx  = 0;
         MosTraceEventInit();
     }
     m_mosUtilInitCount++;
 
-finish:
     m_mutexLock.Unlock();
     return eStatus;
 }
@@ -1376,10 +1377,10 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose()
     if (m_mosUtilInitCount == 0)
     {
         MosTraceEventClose();
-        MosMemAllocCounter -= MosMemAllocFakeCounter;
-        MemoryCounter = MosMemAllocCounter + MosMemAllocCounterGfx;
-        m_mosMemAllocCounterNoUserFeature = MosMemAllocCounter;
-        m_mosMemAllocCounterNoUserFeatureGfx = MosMemAllocCounterGfx;
+        m_mosMemAllocCounter -= m_mosMemAllocFakeCounter;
+        MemoryCounter = m_mosMemAllocCounter + m_mosMemAllocCounterGfx;
+        m_mosMemAllocCounterNoUserFeature    = m_mosMemAllocCounter;
+        m_mosMemAllocCounterNoUserFeatureGfx = m_mosMemAllocCounterGfx;
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
 
         UserFeatureWriteData.Value.i32Data    =   MemoryCounter;
@@ -2031,26 +2032,31 @@ MOS_STATUS MosUtilities::MosGetLocalTime(
     return eStatus;
 }
 
-    void MosUtilities::MosTraceEventInit()
+void MosUtilities::MosTraceEventInit()
 {
     // close first, if already opened.
-    if (MosTraceFd >= 0)
+    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
     {
-        close(MosTraceFd);
-        MosTraceFd = -1;
+        close(MosUtilitiesSpecificNext::m_mosTraceFd);
+        MosUtilitiesSpecificNext::m_mosTraceFd = -1;
     }
-    MosTraceFd = open(MosTracePath, O_WRONLY);
+    MosUtilitiesSpecificNext::m_mosTraceFd = open(MosUtilitiesSpecificNext::m_mosTracePath, O_WRONLY);
     return;
 }
 
 void MosUtilities::MosTraceEventClose()
 {
-    if (MosTraceFd >= 0)
+    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
     {
-        close(MosTraceFd);
-        MosTraceFd = -1;
+        close(MosUtilitiesSpecificNext::m_mosTraceFd);
+        MosUtilitiesSpecificNext::m_mosTraceFd = -1;
     }
     return;
+}
+
+void MosUtilities::MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID)
+{
+    // not implemented
 }
 
 #define TRACE_EVENT_MAX_SIZE    4096
@@ -2062,7 +2068,7 @@ void MosUtilities::MosTraceEvent(
     void * const     pArg2,
     uint32_t         dwSize2)
 {
-    if (MosTraceFd >= 0)
+    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
     {
         char  *pTraceBuf = (char *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
         uint32_t   nLen = 0;
@@ -2099,17 +2105,26 @@ void MosUtilities::MosTraceEvent(
                     }
                 }
             }
-            size_t writeSize = write(MosTraceFd, pTraceBuf, nLen);
+            size_t writeSize = write(MosUtilitiesSpecificNext::m_mosTraceFd, pTraceBuf, nLen);
             MOS_FreeMemory(pTraceBuf);
         }
     }
     return;
 }
 
+void MosUtilities::MosTraceEventMsg(
+    uint8_t          level,
+    uint8_t          compID,
+    void             *message,
+    void             *functionName,
+    uint32_t         lineNum)
+{
+}
+
 void MosUtilities::MosTraceDataDump(
-    char *const pcName,
+    const char *pcName,
     uint32_t    flags,
-    void *const pBuf,
+    const void *pBuf,
     uint32_t    dwSize)
 {
 }
@@ -2125,12 +2140,32 @@ void MosUtilities::MosGfxInfoClose()
     // not implemented
 }
 
+void MosUtilities::MosGfxInfoRTErrInternal(uint8_t ver,
+    uint16_t    compId,
+    uint16_t    FtrId,
+    uint32_t    ErrorCode,
+    uint8_t     num_of_triples,
+    va_list     args)
+{
+    // not implemented
+}
+
 void MosUtilities::MosGfxInfoRTErr(uint8_t ver,
     uint16_t    compId,
     uint16_t    FtrId,
     uint32_t    ErrorCode,
     uint8_t     num_of_triples,
     ...)
+{
+    // not implemented
+}
+
+void MosUtilities::MosGfxInfoInternal(
+    uint8_t  ver,
+    uint16_t compId,
+    uint32_t tmtryID,
+    uint8_t  num_of_triples,
+    va_list  args)
 {
     // not implemented
 }

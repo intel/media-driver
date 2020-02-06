@@ -29,6 +29,7 @@
 
 #if MOS_MESSAGES_ENABLED
 #include "mos_utilities.h"
+#include "mos_util_debug_next.h"
 
 extern int32_t MosMemAllocCounterNoUserFeature;
 extern int32_t MosMemAllocCounterNoUserFeatureGfx;
@@ -265,6 +266,11 @@ void MOS_SubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8_t subCompID, 
 //!
 void MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
 {
+    if (g_apoMosEnabled)
+    {
+        return MosUtilDebug::MosCompAssertEnableDisable(compID, bEnable);
+    }
+
     if (compID >= MOS_COMPONENT_COUNT)
     {
         MOS_OS_ASSERTMESSAGE("Invalid component %d.", compID);
@@ -541,6 +547,11 @@ void MOS_MessageInit()
     MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
+    if (g_apoMosEnabled)
+    {
+        return MosUtilDebug::MosMessageInit();
+    }
+
     if(g_MosMsgParams.uiCounter == 0)   // first time only
     {
         // Set all sub component messages to critical level by default.
@@ -643,6 +654,9 @@ void MOS_DDIDumpClose()
 //!
 void MOS_MessageClose()
 {
+    if (g_apoMosEnabled)
+        return MosUtilDebug::MosMessageClose();
+
     // uiCounter's thread safety depends on global_lock in VPG_Terminate
     if(g_MosMsgParams.uiCounter == 1)
     {
