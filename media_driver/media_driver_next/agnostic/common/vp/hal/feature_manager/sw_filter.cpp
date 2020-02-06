@@ -383,7 +383,7 @@ SwFilter *SwFilterDenoise::Clone()
 bool vp::SwFilterDenoise::operator==(SwFilter& swFilter)
 {
     SwFilterDenoise* p = dynamic_cast<SwFilterDenoise*>(&swFilter);
-    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(SwFilterDenoise));
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamDenoise));
 }
 
 MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)

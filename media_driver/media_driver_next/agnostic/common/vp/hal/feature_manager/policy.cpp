@@ -480,6 +480,13 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
 
     VP_EngineEntry* denoiseEngine = &denoise->GetFilterEngineCaps();
     MOS_FORMAT      inputformat = denoiseParams->formatInput;
+
+    // MOS_FORMAT is [-14,103], cannot use -14~-1 as index for m_veboxHwEntry
+    if (inputformat < 0)
+    {
+        inputformat = Format_Any;
+    }
+
     uint32_t        widthAlignUint  = m_veboxHwEntry[inputformat].horizontalAlignUnit;
     uint32_t        heightAlignUnit = m_veboxHwEntry[inputformat].verticalAlignUnit;
 
