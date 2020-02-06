@@ -8996,7 +8996,10 @@ void CodechalEncHevcStateG12::InitSwScoreBoardParams(CodechalEncodeSwScoreboard:
         // m_numberConcurrentGroup should  default to 2 here for TU1. the only other value allowed from reg key will be 1
         m_degree45Needed = false;
     }
-
+    else
+    {
+        m_numberConcurrentGroup = MOS_MIN(m_maxWavefrontsforTU4, m_numberConcurrentGroup);
+    }
     DecideConcurrentGroupAndWaveFrontNumber();
 
     DependencyPattern walkPattern;
