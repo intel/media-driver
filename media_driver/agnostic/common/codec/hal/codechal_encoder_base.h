@@ -896,9 +896,9 @@ struct EncodeStatusReport
 
     /*! \brief indicate whether it is single stream encoder or MFE.
     *
-    *    For single stream encoder (regular), this value should be set to default 0. For Multi-Frame-Encoder (MFE), this value is the StreamId that is set by application.  
+    *    For single stream encoder (regular), this value should be set to default 0. For Multi-Frame-Encoder (MFE), this value is the StreamId that is set by application.
     */
-    uint32_t                        StreamId;               
+    uint32_t                        StreamId;
 
     uint8_t                         cqmHint; //!< CQM hint. 0x00 - flat matrix; 0x01 - enable CQM; 0xFF - invalid hint; other vlaues are reserved.
 };
@@ -1627,6 +1627,13 @@ public:
     // ME
     MHW_KERNEL_STATE                m_meKernelStates[CODECHAL_ENCODE_ME_IDX_NUM];     //!< ME kernel states
     MeKernelBindingTable            m_meBindingTable = {};                            //!< ME binding table
+    bool                            bStreamOutEnable;
+    MOS_RESOURCE                    StreamOutBuffer;               // StreamOut buffer
+
+    //GVA paramters to change inter and intra rounding
+    bool                            bCoeffRoundTag;
+    uint32_t                        uiRoundIntra;
+    uint32_t                        uiRoundInter;
 
     // Ds+Copy kernel optimization
     uint8_t                         m_outputChromaFormat = (uint8_t)HCP_CHROMA_FORMAT_YUV420;     //!< 1: 420 2: 422 3: 444
@@ -1701,6 +1708,14 @@ public:
     MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
     PMOS_GPUCTX_CREATOPTIONS        m_gpuCtxCreatOpt = nullptr; //!< Used for creating GPU context
+    bool                            intraModeMaskControl;
+    uint32_t                        intraModeMask;  // to disable intra mode
+    bool                            interMbTransformSizeControl;
+    bool                            interMbTransform8x8Enabled;
+
+    PMOS_RESOURCE                   presMbInlineData;
+    PMOS_RESOURCE                   presMbConstSurface;
+    PMOS_RESOURCE                   presVMEOutSurface;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
@@ -2126,7 +2141,7 @@ public:
 
     //!
     //! \brief   Check Resolution Change and CSC
-    //! 
+    //!
     //! \details On resolution change, resize internal buffer
     //!          Check raw surface to set flag for CSC operation
     //!

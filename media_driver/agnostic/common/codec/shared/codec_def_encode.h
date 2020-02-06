@@ -130,7 +130,22 @@ struct EncoderParams
     MOS_SURFACE                     mbQpSurface;
     MOS_SURFACE                     disableSkipMapSurface;          //!< [AVC] MB disable skip map provided by framework
     HANDLE                          gpuAppTaskEvent;                // MSDK event handling
+    //Call back to application. This informs the application  all ENC kernel workload is submitted(in case of HEVC VME)
+    //such that Application can make use of render engine when encoder is working on PAK. this helps in efficient utilisation of
+    //Render engine for improving the performance as the render engine will be idle when encoder is working on PAK.
+    void *                          plastEncKernelSubmissionCompleteCallback;
 
+
+    bool                            bStreamOutEnable;
+    PMOS_RESOURCE                   pStreamOutBuffer; // StreamOut buffer
+    bool                            bCoeffRoundTag;
+    uint32_t                        uiRoundIntra;
+    uint32_t                        uiRoundInter;
+
+    PMOS_RESOURCE                   presMbInlineData;
+    PMOS_RESOURCE                   presMbConstSurface;
+    PMOS_RESOURCE                   presVMEOutSurface;
+    uint32_t                        uiMVoffset; // App provides PAK objects and MV data in the same surface. This is offset to MV Data.
     bool                            fullHeaderInAppData;         //!< [JPEG]
 };
 

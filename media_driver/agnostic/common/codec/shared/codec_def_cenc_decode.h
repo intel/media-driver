@@ -26,7 +26,7 @@
 #ifndef __CODEC_DEF_CENC_DECODE_H__
 #define __CODEC_DEF_CENC_DECODE_H__
 
-//! \brief  CencDecode share buffer 
+//! \brief  CencDecode share buffer
 struct CencDecodeShareBuf
 {
     uint32_t                       bufIdx = 0;

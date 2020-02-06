@@ -4079,7 +4079,7 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
         (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
         seqParams->FramesPer100Sec);
-    
+
     m_lookaheadDepth = seqParams->LookaheadDepth;
 
     return eStatus;
@@ -4186,6 +4186,13 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
             m_avcPicParam,
             &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
     }
+    if(m_avcPicParam->ForceSkip.Enable && (m_pictureCodingType != I_TYPE))
+    {
+        m_avcPicParam->ForceSkip.Enable  = 1;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN( SetupForceSkipStreamIn(m_avcPicParam,                                                                                                                                                  &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])) );
+    }
+    else
+        m_avcPicParam->ForceSkip.Enable  = 0;
 
     return eStatus;
 }
@@ -4691,6 +4698,57 @@ MOS_STATUS CodechalVdencAvcState::SetupDirtyROI(PMOS_RESOURCE vdencStreamIn)
             vdencStreamIn);
     }
 
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencAvcState::SetupForceSkipStreamIn(PCODEC_AVC_ENCODE_PIC_PARAMS picParams, PMOS_RESOURCE vdencStreamIn)
+{
+    int32_t                     i;
+    uint32_t                        uiCurX, uiCurY;
+    //PVDENC_STREAMIN_STATE_CMD    pData;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+
+    uint32_t CleanHorizontalStartMB    = (picParams->ForceSkip.Xpos >> 4);
+    uint32_t CleanHorizontalEndMB      = (picParams->ForceSkip.Xpos + picParams->ForceSkip.Width) >> 4;
+    uint32_t CleanVerticalStartMB      = (picParams->ForceSkip.Ypos >> 4);
+    uint32_t CleanVerticalEndMB        = (picParams->ForceSkip.Ypos + picParams->ForceSkip.Height) >> 4;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(picParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(vdencStreamIn);
+
+    MOS_LOCK_PARAMS             lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly = 1;
+
+    CODECHAL_VDENC_STREAMIN_STATE *pData = (CODECHAL_VDENC_STREAMIN_STATE*)m_osInterface->pfnLockResource(
+                                                                                                          m_osInterface,
+                                                                                                          vdencStreamIn,
+                                                                                                          &lockFlags);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
+    MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+
+    for (uint16_t i = 0; i < m_picHeightInMb * m_picWidthInMb; i++)
+    {
+        uint32_t XPosInMbs = (i % m_picWidthInMb);
+        uint32_t YPosInMbs = (i / m_picWidthInMb);
+
+        if (XPosInMbs < CleanHorizontalStartMB || YPosInMbs < CleanVerticalStartMB
+            || XPosInMbs >= CleanHorizontalEndMB || YPosInMbs >= CleanVerticalEndMB)
+        {
+            pData->DW0.Forceskip = true;
+        }
+        else
+        {
+            pData->DW0.Forceskip = false;
+        }
+
+        pData++;
+    }
+
+    m_osInterface->pfnUnlockResource(
+                                     m_osInterface,
+                                     vdencStreamIn);
     return eStatus;
 }
 
@@ -6286,7 +6344,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
         m_newPpsHeader = 0;
         m_newSeqHeader = 0;
     }
-  
+
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateSliceStateParam(
             m_adaptiveRoundingInterEnable,

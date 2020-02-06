@@ -865,12 +865,12 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
             break;
         }
 
-        if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ  || 
+        if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ  ||
             m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR ||
             m_hevcPicParams->NumROI)
         {
             // ICQ or ROI must result in LCU-based BRC to be enabled.
-            m_lcuBrcEnabled = true;  
+            m_lcuBrcEnabled = true;
         }
     }
 
@@ -1300,7 +1300,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
             startLCU += slcParams->NumLCUsInSlice;
         }
     }
-    
+
     if (m_lowDelay && !m_sameRefList)
     {
         CODECHAL_ENCODE_NORMALMESSAGE("Attention: LDB frame but with different L0/L1 list !");
@@ -1800,13 +1800,13 @@ uint32_t CodechalEncodeHevcBase::GetProfileLevelMaxFrameSize()
     GetMaxMBPS(levelIdc, &maxMBPS, &maxBytePerPic);
     auto     maxBytePerPicNot0    = (uint64_t)((((float_t)maxMBPS * (float_t)m_hevcSeqParams->FrameRate.Denominator) / (float_t)m_hevcSeqParams->FrameRate.Numerator) * formatFactor);
     uint32_t profileLevelMaxFrame = 0;
-    
+
     uint32_t userMaxFrameSize = m_hevcSeqParams->UserMaxIFrameSize;
     if ((m_hevcPicParams->CodingType != I_TYPE) && (m_hevcSeqParams->UserMaxPBFrameSize > 0))
     {
         userMaxFrameSize = m_hevcSeqParams->UserMaxPBFrameSize;
     }
-    
+
     if (userMaxFrameSize != 0)
     {
         profileLevelMaxFrame = (uint32_t)MOS_MIN(userMaxFrameSize, maxBytePerPic);
@@ -3389,7 +3389,7 @@ MOS_STATUS CodechalEncodeHevcBase::DumpPicParams(
     }
 
     oss << "CodingType = " << +picParams->CodingType << std::endl;
-    oss << "HierarchLevelPlus1 = " << +picParams->HierarchLevelPlus1 << std::endl; 
+    oss << "HierarchLevelPlus1 = " << +picParams->HierarchLevelPlus1 << std::endl;
     oss << "NumSlices = " << +picParams->NumSlices << std::endl;
     oss << "tiles_enabled_flag = " << +picParams->tiles_enabled_flag << std::endl;
 
@@ -3789,7 +3789,7 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->ISliceQP                             = hevcPicParams->QpY + hevcSlcParams->slice_qp_delta;
         m_hevcPar->StartFrameNum                        = 0;
         m_hevcPar->ProfileIDC                           = hevcSeqParams->general_profile_idc;
-        m_hevcPar->LevelIDC                             = hevcSeqParams->Level;        
+        m_hevcPar->LevelIDC                             = hevcSeqParams->Level;
         m_hevcPar->NumP                                 = 0;
         m_hevcPar->NumB                                 = hevcSeqParams->GopPicSize - 1;
         m_hevcPar->NumSlices                            = hevcPicParams->NumSlices;

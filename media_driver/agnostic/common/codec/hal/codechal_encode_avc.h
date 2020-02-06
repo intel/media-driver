@@ -330,6 +330,8 @@ typedef struct _CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS
     PCODEC_AVC_REF_PIC_SELECT_LIST              pWeightedPredOutputPicSelectList;
     bool                                        bUseWeightedSurfaceForL0;
     bool                                        bUseWeightedSurfaceForL1;
+    PMOS_RESOURCE                               presMbInlineData;
+    PMOS_RESOURCE                               presVMEOutSurface;
 } CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS, *PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS;
 
 typedef struct _CODECHAL_ENCODE_AVC_MFE_MBENC_CURBE_PARAMS

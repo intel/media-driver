@@ -74,7 +74,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         bool setVideoNode = false;
 
         // Create Video Context
-        if (MEDIA_IS_SKU(m_skuTable, FtrVcs2) || 
+        if (MEDIA_IS_SKU(m_skuTable, FtrVcs2) ||
             (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) && m_numVdbox > 1))   // Eventually move this functionality to Mhw
         {
             setVideoNode = false;
@@ -3044,7 +3044,7 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, cmdBuffer));
-    
+
     return eStatus;
 }
 
@@ -3156,7 +3156,7 @@ MOS_STATUS CodechalEncoderState::EndStatusReport(
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, cmdBuffer));
-    
+
     return eStatus;
 }
 
@@ -3688,7 +3688,7 @@ MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusRe
     //Report back in Big endian
     encodeStatusReport->HWCounterValue.Count = SwapEndianness(encodeStatusReport->HWCounterValue.Count);
     //IV value computation
-    encodeStatusReport->HWCounterValue.IV = *(++address2Counter); 
+    encodeStatusReport->HWCounterValue.IV = *(++address2Counter);
     encodeStatusReport->HWCounterValue.IV = SwapEndianness(encodeStatusReport->HWCounterValue.IV);
     CODECHAL_ENCODE_NORMALMESSAGE(
         "encodeStatusReport->HWCounterValue.Count = 0x%llx, encodeStatusReport->HWCounterValue.IV = 0x%llx",
@@ -3802,7 +3802,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             CODECHAL_DEBUG_TOOL(
                 m_statusReportDebugInterface->m_bufferDumpFrameNum = encodeStatus->dwStoredData;
             )
-            
+
             // Current command is executed
             if (m_osInterface->pfnIsGPUHung(m_osInterface))
             {
@@ -4472,6 +4472,11 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             else
             {
                 CODECHAL_ENCODE_NORMALMESSAGE("App provides MbCode and MvData buffer!");
+                if(CODECHAL_AVC == m_standard)
+                {
+                    m_currRefList->resRefMbCodeBuffer = m_resMbCodeSurface;
+                    m_currRefList->resRefMvDataBuffer = m_resMvDataSurface;
+                }
             }
 
             m_trackedBuf->SetAllocationFlag(false);

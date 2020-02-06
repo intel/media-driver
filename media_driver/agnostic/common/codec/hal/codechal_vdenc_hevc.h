@@ -266,6 +266,16 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetupROIStreamIn(PMOS_RESOURCE streamIn);
+    //!
+    //! \brief    Setup mb Qp stream-in resource
+    //!
+    //! \param    [in,out] streamIn
+    //!           Pointer to mb Qp stream-in resource
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetupMbQpStreamIn(PMOS_RESOURCE streamIn);
 
     //!
     //! \brief    Setup dirty rectangle stream-in resource

@@ -2616,8 +2616,17 @@ MOS_STATUS CodechalEncodeAvcBase::SetPictureStructs()
     }
     else if (m_codecFunction == CODECHAL_FUNCTION_ENC_PAK)
     {
-        // the actual MbCode/MvData surface to be allocated later
-        m_trackedBuf->SetAllocationFlag(true);
+        if (m_encodeParams.presMbCodeSurface == nullptr ||
+            Mos_ResourceIsNull(m_encodeParams.presMbCodeSurface))
+        {
+            // the actual MbCode/MvData surface to be allocated later
+            m_trackedBuf->SetAllocationFlag(true);
+        }
+        else
+        {
+            m_resMbCodeSurface = *(m_encodeParams.presMbCodeSurface);
+            m_resMvDataSurface  = *(m_encodeParams.presMbCodeSurface);
+        }
     }
     else if (CodecHalIsFeiEncode(m_codecFunction))
     {
@@ -3309,7 +3318,7 @@ CODECHAL_DEBUG_TOOL(
             auto picIdx         = m_picIdx[refPic.FrameIdx].ucPicIdx;
             auto frameStoreId   = m_refList[picIdx]->ucFrameId;
                 CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
-                
+
                 MOS_ZeroMemory(&refSurface, sizeof(refSurface));
                 refSurface.Format     = Format_NV12;
                 refSurface.OsResource = *(param.presReferences[frameStoreId]);
@@ -3323,8 +3332,8 @@ CODECHAL_DEBUG_TOOL(
                     CodechalDbgAttr::attrReferenceSurfaces,
                     refSurfName.c_str()));
         }
-    } 
-    for (uint8_t i = 0; i < numrefL1; i++) 
+    }
+    for (uint8_t i = 0; i < numrefL1; i++)
     {
         if (m_pictureCodingType == B_TYPE && m_avcSliceParams->RefPicList[1][i].PicFlags != PICTURE_INVALID)
         {

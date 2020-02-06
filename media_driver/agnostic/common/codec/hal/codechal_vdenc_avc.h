@@ -550,6 +550,20 @@ public:
     virtual MOS_STATUS SetupROIStreamIn(
         PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
         PMOS_RESOURCE                vdencStreamIn);
+    //!
+    //! \brief    Set VDENC ForceSkip StreamIn Surface state
+    //!
+    //! \param    [in] picParams
+    //!           Pointer to CODEC_AVC_ENCODE_PIC_PARAMS.
+    //! \param    [in] vdencStreamIn
+    //!           StreamIn Surface Resource.
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetupForceSkipStreamIn(
+                                      PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
+                                      PMOS_RESOURCE                vdencStreamIn);
 
     //!
     //! \brief    Sort and set distinct delta QPs

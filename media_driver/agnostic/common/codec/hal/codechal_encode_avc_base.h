@@ -1720,6 +1720,8 @@ public:
     PCODEC_AVC_IQ_MATRIX_PARAMS              m_avcIQMatrixParams     = nullptr;  //!< Pointer to IQMaxtrix parameter
     PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS      m_avcIQWeightScaleLists = nullptr;  //!< Pointer to IQWidght ScaleLists
     CODEC_AVC_ENCODE_USER_FLAGS                 m_userFlags;                        //!< Encoder user flag settings
+    uint32_t                                    m_reconFrameSurfaceId[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];
+    CODECHAL_ENCODE_AVC_ENCODER_USAGE           m_encoderUsage;
 
     CODEC_PIC_ID                                m_picIdx[CODEC_AVC_MAX_NUM_REF_FRAME];              //!< Picture index
     PCODEC_REF_LIST                             m_refList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];   //!< Pointer to reference list
