@@ -60,6 +60,7 @@ enum FeatureType
 enum SurfaceType
 {
     SurfaceTypeInvalid = 0,
+    SurfaceTypeDNRef,
     SurfaceTypeDNOutput,
     SurfaceTypeVeboxoutput,
     SurfaceTypeScalar,
@@ -249,6 +250,8 @@ struct FeatureParamDenoise : public FeatureParam
 {
     VPHAL_SAMPLE_TYPE       inputSampleType;
     VPHAL_DENOISE_PARAMS    denoiseParams;
+    uint32_t                srcWidthAlignUnit;
+    uint32_t                srcHeightAlignUnit;
 };
 
 class SwFilterDenoise : public SwFilter
@@ -266,7 +269,6 @@ public:
 private:
     FeatureParamDenoise m_Params = {};
 };
-
 
 class SwFilterSet
 {

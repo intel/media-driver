@@ -183,9 +183,14 @@ VpResourceManager::~VpResourceManager()
     }
 }
 
-MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE inputSurface, VP_SURFACE outputSurface)
+MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface)
 {
     VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
+
     MOS_FORMAT                      format;
     MOS_TILE_TYPE                   TileType;
     uint32_t                        dwWidth;
@@ -198,8 +203,8 @@ MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, V
 
     if (IS_VP_VEBOX_DN_ONLY(caps))
     {
-        bSurfCompressible = inputSurface.osSurface->bCompressible;
-        surfCompressionMode = inputSurface.osSurface->CompressionMode;
+        bSurfCompressible = inputSurface->osSurface->bCompressible;
+        surfCompressionMode = inputSurface->osSurface->CompressionMode;
     }
     else
     {
@@ -210,6 +215,50 @@ MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, V
     // Decide DN output surface
     if (caps.bVebox)
     {
+        if (VeboxOutputNeeded(caps))
+        {
+            for (i = 0; i < veboxOutputCount; i++)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                    veboxOutput[i],
+                    "VeboxSurfaceOutput",
+                    inputSurface->osSurface->Format,
+                    MOS_GFXRES_2D,
+                    inputSurface->osSurface->TileType,
+                    inputSurface->osSurface->dwWidth,
+                    inputSurface->osSurface->dwHeight,
+                    bSurfCompressible,
+                    surfCompressionMode,
+                    bAllocated));
+
+                veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
+                veboxOutput[i]->rcDst      = inputSurface->rcDst;
+                veboxOutput[i]->rcSrc      = inputSurface->rcSrc;
+                veboxOutput[i]->rcMaxSrc   = inputSurface->rcMaxSrc;
+
+                // When IECP is enabled and Bob or interlaced scaling is selected for interlaced input,
+                // output surface's SampleType should be same to input's. Bob is being
+                // done in Composition part
+                if ((caps.bIECP &&
+                    (caps.bDI && caps.bBobDI)) ||
+                    (caps.bIScaling))
+                {
+                    veboxOutput[i]->SampleType = inputSurface->SampleType;
+                }
+                else
+                {
+                    veboxOutput[i]->SampleType = SAMPLE_PROGRESSIVE;
+                }
+            }
+        }
+        else
+        {
+            for (i = 0; i < veboxOutputCount; i++)
+            {
+                m_allocator.DestroyVpSurface(veboxOutput[i]);
+            }
+        }
+
         if (caps.bDN)
         {
             for (i = 0; i < VP_NUM_DN_SURFACES; i++)
@@ -217,11 +266,11 @@ MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, V
                 VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
                     veboxDenoiseOutput[i],
                     "VeboxFFDNSurface",
-                    inputSurface.osSurface->Format,
+                    inputSurface->osSurface->Format,
                     MOS_GFXRES_2D,
-                    inputSurface.osSurface->TileType,
-                    inputSurface.osSurface->dwWidth,
-                    inputSurface.osSurface->dwHeight,
+                    inputSurface->osSurface->TileType,
+                    inputSurface->osSurface->dwWidth,
+                    inputSurface->osSurface->dwHeight,
                     bSurfCompressible,
                     surfCompressionMode,
                     bAllocated));
@@ -242,13 +291,13 @@ MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, V
 
                 // DN's output format should be same to input
                 veboxDenoiseOutput[i]->SampleType =
-                    inputSurface.SampleType;
+                    inputSurface->SampleType;
 
                 // Set Colorspace of FFDN
-                veboxDenoiseOutput[i]->ColorSpace = inputSurface.ColorSpace;
+                veboxDenoiseOutput[i]->ColorSpace = inputSurface->ColorSpace;
 
                 // Copy FrameID and parameters, as DN output will be used as next blt's current
-                veboxDenoiseOutput[i]->FrameID = inputSurface.FrameID;
+                veboxDenoiseOutput[i]->FrameID = inputSurface->FrameID;
 
                 // Place Holder to update report for debug purpose
             }
@@ -279,8 +328,8 @@ MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, V
                 Format_STMM,
                 MOS_GFXRES_2D,
                 MOS_TILE_Y,
-                inputSurface.osSurface->dwWidth,
-                inputSurface.osSurface->dwHeight,
+                inputSurface->osSurface->dwWidth,
+                inputSurface->osSurface->dwHeight,
                 bSurfCompressible,
                 surfCompressionMode,
                 bAllocated,
@@ -371,8 +420,8 @@ MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, V
     // Per frame information written twice per frame for 2 slices
     // Surface to be a rectangle aligned with dwWidth to get proper dwSize
     // Guangyao::APG PAth need to make sure input surface width/height is what to processed width/Height
-    dwWidth = MOS_ALIGN_CEIL(inputSurface.osSurface->dwWidth, 64);
-    dwHeight = MOS_ROUNDUP_DIVIDE(inputSurface.osSurface->dwHeight, 4) +
+    dwWidth = MOS_ALIGN_CEIL(inputSurface->osSurface->dwWidth, 64);
+    dwHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4) +
         MOS_ROUNDUP_DIVIDE(VP_VEBOX_STATISTICS_SIZE * sizeof(uint32_t), dwWidth);
     dwSize = dwWidth * dwHeight;
 
@@ -399,13 +448,58 @@ MOS_STATUS vp::VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, V
     return MOS_STATUS_SUCCESS;
 }
 
+VP_SURFACE* vp::VpResourceManager::GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps)
+{
+    VP_SURFACE* surface = nullptr;
+    if (!caps.bSFC && !caps.bRender) // Vebox output directlly to output surface
+    {
+        return nullptr;
+    }
+    else if (caps.bDI && caps.bVebox) // Vebox DI enable
+    {
+        // Place Holder when enable DI
+    }
+    else if (caps.bIECP) // IECP enabled, output to internal surface
+    {
+        surface = veboxOutput[currentDnOutput];
+    }
+    else if (caps.bDN) // DN only cases
+    {
+        return veboxDenoiseOutput[currentDnOutput];
+    }
+    else
+    {
+        // Write to SFC cases, Vebox output is not needed
+        VP_PUBLIC_NORMALMESSAGE("No need output for Vebox output");
+        return nullptr;
+    }
+
+    return surface;
+}
+
 MOS_STATUS VpResourceManager::InitVeboxSpatialAttributesConfiguration()
 {
     VP_FUNC_CALL();
 
+    VP_PUBLIC_CHK_NULL_RETURN(veboxDNSpatialConfigSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(veboxDNSpatialConfigSurface->osSurface);
+
     uint8_t* data = (uint8_t*)& g_cInit_VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATIONS;
-    return m_allocator.WriteSurface(
-        veboxDNSpatialConfigSurface,
-        (uint32_t)sizeof(VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION),
-        data);
+    return m_allocator.Write1DSurface(veboxDNSpatialConfigSurface, data,
+        (uint32_t)sizeof(VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION));
+}
+
+bool vp::VpResourceManager::VeboxOutputNeeded(VP_EXECUTE_CAPS& caps)
+{
+    if (caps.bDI            ||
+        caps.bQueryVariance ||
+        caps.bIECP          ||
+        (caps.bDN && caps.bSFC))  // DN + SFC needs IECP implicitly and outputs to DI surface
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

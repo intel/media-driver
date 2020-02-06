@@ -77,12 +77,17 @@ MOS_STATUS Policy::RegisterFeatures()
     p = MOS_New(PolicySfcScalingHandler);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnSfc, p));
+    
+    p = MOS_New(PolicyVeboxDnHandler);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDnOnVebox, p));
 
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.clear();
     m_featurePool.push_back(FeatureTypeCsc);
     m_featurePool.push_back(FeatureTypeScaling);
     m_featurePool.push_back(FeatureTypeRotMir);
+    m_featurePool.push_back(FeatureTypeDn);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -122,18 +127,7 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe &subSwFilterPipe, VP_EXECUTE_CAPS &caps)
-{
-    caps.value = 0;
-    // Hardcode now. Will set related value according to pipelineParams later.
-    caps.bSFC = 1;
-    caps.bSfcCsc = SwFilterPipeType1To1 == subSwFilterPipe.GetSwFilterPipeType();
-    caps.bSfcRotMir = SwFilterPipeType1To1 == subSwFilterPipe.GetSwFilterPipeType();
-    caps.bSfcScaling = SwFilterPipeType1To1 == subSwFilterPipe.GetSwFilterPipeType();
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS vp::Policy::GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params)
+MOS_STATUS Policy::GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params)
 {
     VP_FUNC_CALL();
 
@@ -220,6 +214,9 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterSubPipe& SwFilterPipe)
             break;
         case FeatureTypeRotMir:
             GetRotationExecutionCaps(feature);
+            break;
+        case FeatureTypeDn:
+            GetDenoiseExecutionCaps(feature);
             break;
         default:
             GetExecutionCaps(feature);
@@ -441,6 +438,50 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(feature);
+
+    SwFilterDenoise* denoise = (SwFilterDenoise*)feature;
+
+    FeatureParamDenoise* denoiseParams = &denoise->GetSwFilterParams();
+
+    VP_EngineEntry* denoiseEngine = &denoise->GetFilterEngineCaps();
+    MOS_FORMAT      inputformat = denoiseParams->formatInput;
+    uint32_t        widthAlignUint  = m_veboxHwEntry[inputformat].horizontalAlignUnit;
+    uint32_t        heightAlignUnit = m_veboxHwEntry[inputformat].verticalAlignUnit;
+
+    if (denoiseEngine->value != 0)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Scaling Feature Already been processed, Skip further process");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_veboxHwEntry[inputformat].denoiseSupported)
+    {
+        denoiseEngine->bEnabled = 1;
+        denoiseEngine->VeboxNeeded = 1;
+    }
+
+    if (m_veboxHwEntry[inputformat].denoiseSupported)
+    {
+        widthAlignUint = MOS_ALIGN_CEIL(m_veboxHwEntry[inputformat].horizontalAlignUnit, 2);
+
+        if (inputformat == Format_NV12 ||
+            inputformat == Format_P010 ||
+            inputformat == Format_P016)
+        {
+            heightAlignUnit = MOS_ALIGN_CEIL(m_veboxHwEntry[inputformat].verticalAlignUnit, 4);
+        }
+    }
+
+    denoiseParams->srcWidthAlignUnit  = widthAlignUint;
+    denoiseParams->srcHeightAlignUnit = heightAlignUnit;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::GetExecutionCaps(SwFilter* feature)
 {
     VP_PUBLIC_CHK_NULL_RETURN(feature);
@@ -500,8 +541,8 @@ MOS_STATUS Policy::BuildFilters(SwFilterPipe& featurePipe, HW_FILTER_PARAMS& par
     }
     else
     {
-        caps.bVebox  = (engineCaps.VeboxNeeded != 0);
-        caps.bSFC    = (engineCaps.SfcNeeded != 0);
+        caps.bVebox  = ((engineCaps.VeboxNeeded != 0) || (engineCaps.SfcNeeded != 0)) ? 1 : 0;
+        caps.bSFC    = (engineCaps.SfcNeeded != 0) ? 1 : 0;
 
         if (!caps.bVebox &&
             !caps.bSFC)
@@ -534,6 +575,9 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
     params.vpExecuteCaps = caps;
 
     VP_PUBLIC_CHK_STATUS_RETURN(SetupExecuteFilter(featurePipe, caps, params));
+
+    // Build Execute surface needed
+    VP_PUBLIC_CHK_STATUS_RETURN(SetupFilterResource(featurePipe, caps, params));
 
     VP_PUBLIC_CHK_STATUS_RETURN(featurePipe.Update());
     VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->Update());
@@ -606,11 +650,20 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
             {
                 engineCaps = &(feature->GetFilterEngineCaps());
 
-                if (caps.bSFC && engineCaps->bEnabled && engineCaps->SfcNeeded)
+                 // if SFC enabled, Vebox is must as SFC need connect with Vebox
+                if ((caps.bSFC && engineCaps->bEnabled) && 
+                    (engineCaps->SfcNeeded || engineCaps->VeboxNeeded))
                 {
                     /* Place Holder: need to add FurtherProcessNeeded conditions in next step*/
                     // Choose SFC as execution engine
-                    UpdateExeCaps(feature, caps, EngineTypeSfc);
+                    UpdateExeCaps(feature, caps, engineCaps->SfcNeeded? EngineTypeSfc : EngineTypeVebox);
+                    featurePipe.RemoveSwFilter(feature);
+                    params.executedFilters->AddSwFilterUnordered(feature, true, 0);
+                }
+                // Vebox only cases
+                else if (caps.bVebox && engineCaps->bEnabled && engineCaps->VeboxNeeded)
+                {
+                    UpdateExeCaps(feature, caps, EngineTypeVebox);
                     featurePipe.RemoveSwFilter(feature);
                     params.executedFilters->AddSwFilterUnordered(feature, true, 0);
                 }
@@ -622,7 +675,20 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
         // goto Composition in Render
     }
 
-    // modifier the outputpipe params
+    /* Place Holder: order pipe need to be insert in next step*/
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+{
+    VP_FUNC_CALL();
+
+    VP_SURFACE* surfInput = nullptr;
+    VP_SURFACE* surfOutput = nullptr;
+    uint32_t    index;
+    SwFilterSubPipe* inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
+
     if (featurePipe.IsPrimaryEmpty())
     {
         // Update the input feature surfaces
@@ -640,7 +706,19 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
         /* Place Holder: nest step resource manager will create intermeida surface here for surface sharing b/w packets */
     }
 
-    /* Place Holder: order pipe need to be insert in next step*/
+    if (caps.bVebox)
+    {
+        // Create Vebox Resources
+        VP_PUBLIC_CHK_STATUS_RETURN(AllocateVeboxExecuteResource(caps, params));
+    }
+
+    if (caps.bSFC)
+    {
+        // Create Vebox Resources
+        VP_PUBLIC_CHK_STATUS_RETURN(AllocateSfcExecuteResource(caps, params));
+    }
+
+    // Place Holder for multi-Process(include FC) cases where Temp surface needed here
 
     return MOS_STATUS_SUCCESS;
 }
@@ -658,20 +736,83 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         {
         case FeatureTypeCsc:
             caps.bSfcCsc = 1;
-            feature->SetFeatureType(FEATURE_TYPE_EXECUTE(Csc, Sfc));
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Csc, Sfc)));
             break;
         case FeatureTypeScaling:
             caps.bSfcScaling = 1;
-            feature->SetFeatureType(FEATURE_TYPE_EXECUTE(Scaling, Sfc));
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Scaling, Sfc)));
             break;
         case FeatureTypeRotMir:
             caps.bSfcRotMir = 1;
-            feature->SetFeatureType(FEATURE_TYPE_EXECUTE(RotMir, Sfc));
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(RotMir, Sfc)));
             break;
         default:
             break;
         }
     }
+
+    if (Type == EngineTypeVebox)
+    {
+        switch (featureType)
+        {
+        case FeatureTypeDn:
+            caps.bDN = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Dn, Vebox)));
+            break;
+        default:
+            break;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::Policy::AllocateVeboxExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+{
+    VP_FUNC_CALL();
+
+    VP_SURFACE *inputSurface = params.executedFilters->GetSurface(true, 0);
+    VP_SURFACE *outputSurface = params.executedFilters->GetSurface(false, 0);
+    m_vpInterface.GetResourceManager()->AllocateVeboxResource(caps, inputSurface, outputSurface);
+
+    params.executedFilters->GetSurfacesGroup().clear();
+    // Insert DN output surface
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeDNOutput, m_vpInterface.GetResourceManager()->GetVeboxDNOutputSurface()));
+    // Insert DN Reference surface
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeDNRef, m_vpInterface.GetResourceManager()->GetVeboxDNReferenceSurface()));
+    // Insert Vebox output surface when DI/IECP enabled if needed
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeVeboxoutput, m_vpInterface.GetResourceManager()->GetVeboxOutputSurface(caps)));
+    // Insert STMM input surface
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeSTMMIn, m_vpInterface.GetResourceManager()->GetVeboxSTMMSurfaceIn()));
+    // Insert STMM output surface
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeSTMMOut, m_vpInterface.GetResourceManager()->GetVeboxSTMMSurfaceOut()));
+    // Insert Vebox statistics surface
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeStatistics, m_vpInterface.GetResourceManager()->GetVeboxStatisticsSurface()));
+    // Insert Vebox histogram surface
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeLaceAceRGBHistogram, m_vpInterface.GetResourceManager()->GetVeboxRgbHistogram()));
+    // Insert Vebox auto DN noise level surface
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceTypeAutoDNNoiseLevel, m_vpInterface.GetResourceManager()->GetVeboxDNTempSurface()));
+    // Insert Vebox auto DN spatial config surface/buffer
+    params.executedFilters->GetSurfacesGroup().insert
+    (std::make_pair(SurfaceTypeAutoDNSpatialConfig, m_vpInterface.GetResourceManager()->GetVeboxDNSpatialConfigSurface()));
+    //Insert Vebox 3D lut table/buffer
+    params.executedFilters->GetSurfacesGroup().insert(
+        std::make_pair(SurfaceType3dLut, m_vpInterface.GetResourceManager()->GetVebox3DLookUpTables()));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::Policy::AllocateSfcExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+{
+    VP_FUNC_CALL();
 
     return MOS_STATUS_SUCCESS;
 }

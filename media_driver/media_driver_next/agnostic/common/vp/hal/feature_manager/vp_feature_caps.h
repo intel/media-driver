@@ -37,7 +37,7 @@
 #define VP_SFC_RESOLUTION_FEASIBLE(_InputWidth, _InputHeight, _OutputWidth, _OutputHeight, _90D_Rotation)    \
 
 
-#define VP_FF_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _RotationSupported, _MirrorSupported, _CscSupported, _ScalingSupported, \
+#define VP_FF_SFC_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _RotationSupported, _MirrorSupported, _CscSupported, _ScalingSupported, \
                       _SrcAlphaSupported, _ConstAlphaSupported, _IScalingSupported, _DetheringSupported, _IefSupported, _Max_ScalingRatio, _Min_ScalingRatio)     \
         {                                                                                                                   \
             m_sfcHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
@@ -79,5 +79,48 @@ typedef struct VP_SFC_ENTRY_REC
     bool                          detheringSupported;
     bool                          iefSupported;
 }VP_SFC_ENTRY_REC;
+
+#define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported, \
+                           _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported, _bHsbMode)     \
+        {                                                                                                                     \
+            m_veboxHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
+            m_veboxHwEntry[SurfaceFormat].outputSupported                         = bOutput;                                  \
+            m_veboxHwEntry[SurfaceFormat].maxResolution                           = _MaxResolution;                           \
+            m_veboxHwEntry[SurfaceFormat].minResolution                           = _MinResolution;                           \
+            m_veboxHwEntry[SurfaceFormat].horizontalAlignUnit                     = _HorizUnit;                               \
+            m_veboxHwEntry[SurfaceFormat].verticalAlignUnit                       = _VertUnit;                                \
+            m_veboxHwEntry[SurfaceFormat].hdrSupported                            = _HdrSupported;                            \
+            m_veboxHwEntry[SurfaceFormat].capturePipeSupported                    = _CapturePipeSupported;                    \
+            m_veboxHwEntry[SurfaceFormat].denoiseSupported                        = _DNSupported;                             \
+            m_veboxHwEntry[SurfaceFormat].deinterlaceSupported                    = _DISupported;                             \
+            m_veboxHwEntry[SurfaceFormat].laceSupported                           = _LACESupported;                           \
+            m_veboxHwEntry[SurfaceFormat].frontCscSupported                       = _FrontCscSupported;                       \
+            m_veboxHwEntry[SurfaceFormat].backEndCscSupported                     = _BackEndCscSupported;                     \
+            m_veboxHwEntry[SurfaceFormat].b3dLutSupported                         = _3DLutSupported;                          \
+            m_veboxHwEntry[SurfaceFormat].iecp                                    = _IecpSupported;                           \
+            m_veboxHwEntry[SurfaceFormat].hsb                                     = _bHsbMode;                                \
+        }                                                                                                                     \
+
+typedef struct VP_VEBOX_ENTRY_REC
+{
+    bool                          inputSupported;
+    bool                          outputSupported;
+    uint32_t                      maxResolution;
+    uint32_t                      minResolution;
+    float                         maxScalingRatio;
+    float                         minScalingRatio;
+    uint32_t                      horizontalAlignUnit;
+    uint32_t                      verticalAlignUnit;
+    bool                          hdrSupported; // Gamut Expansion, HDR and Forward Gamma Correction are mutually exclusive.
+    bool                          capturePipeSupported;
+    bool                          denoiseSupported;
+    bool                          deinterlaceSupported;
+    bool                          laceSupported;
+    bool                          frontCscSupported;
+    bool                          backEndCscSupported;
+    bool                          b3dLutSupported;
+    bool                          iecp;// all IECP features like procamp/STD/Gamut etc
+    bool                          hsb;// high speed bypass mode
+}VP_VEBOX_ENTRY_REC;
 
 #endif// __VP_FEATURE_CAPS_H__

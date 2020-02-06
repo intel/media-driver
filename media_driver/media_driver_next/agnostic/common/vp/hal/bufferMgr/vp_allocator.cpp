@@ -846,6 +846,29 @@ MOS_STATUS VpAllocator::WriteSurface(VP_SURFACE* vpsurface, uint32_t bpp, const 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpAllocator::Write1DSurface(VP_SURFACE* vpsurface, const uint8_t* src, uint32_t srcSize)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(vpsurface);
+    VP_PUBLIC_CHK_NULL_RETURN(vpsurface->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(src);
+    VP_PUBLIC_CHK_VALUE_RETURN(srcSize > 0, true);
+    VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
+    VP_PUBLIC_CHK_VALUE_RETURN(vpsurface->osSurface->dwSize > 0, true);
+    VP_PUBLIC_CHK_VALUE_RETURN(vpsurface->osSurface->Type, MOS_GFXRES_BUFFER);
+    VP_PUBLIC_ASSERT(!Mos_ResourceIsNull(&vpsurface->osSurface->OsResource));
+
+    MOS_SURFACE* surface = vpsurface->osSurface;
+    uint8_t* dst = (uint8_t*)LockResouceForWrite(&surface->OsResource);
+
+    VP_PUBLIC_CHK_NULL_RETURN(dst);
+
+    MOS_STATUS status = MOS_SecureMemcpy(dst, surface->dwSize, src, srcSize);
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&surface->OsResource));
+
+    return status;
+}
+
 MOS_STATUS VpAllocator::SyncOnResource(
     PMOS_RESOURCE         osResource,
     bool                  bWriteOperation)

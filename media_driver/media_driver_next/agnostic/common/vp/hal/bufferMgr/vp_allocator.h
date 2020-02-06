@@ -458,6 +458,26 @@ public:
         const uint8_t      *src);
 
     //!
+    //! \brief    Copy Data from input Buffer to the Surface contents
+    //! \details  Copy Data from input Buffer to the Surface contents
+    //!           - 1 lock surface
+    //!           - 2 copy data from pSrc to Surface
+    //!           - 3 unlock surface
+    //! \param    [out] Surface
+    //!           Pointer to VP_SURFACE
+    //! \param    [in] Src
+    //!           Input buffer to store Surface contents
+    //! \param    [in] srcSize
+    //!           size of Src to be copied.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
+    //!
+    MOS_STATUS Write1DSurface(
+        VP_SURFACE         *surface,
+        const uint8_t      *src,
+        uint32_t            srcSize);
+
+    //!
     //! \brief    Tag based synchronization at the resource level
     //! \details  Tag based synchronization at the resource level
     //! \param    PMOS_RESOURCE OsResource
