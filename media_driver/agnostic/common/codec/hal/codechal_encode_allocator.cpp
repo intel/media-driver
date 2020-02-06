@@ -158,7 +158,7 @@ uint16_t CodechalEncodeAllocator::MosToAllocatorTile(MOS_TILE_TYPE type)
 
 void* CodechalEncodeAllocator::AllocateResource(
     uint32_t codec, uint32_t width, uint32_t height, ResourceName name, const char *bufName,
-    uint8_t index, bool zeroOnAllocation, MOS_FORMAT format, MOS_TILE_TYPE tile, bool bIsCompressible)
+    uint8_t index, bool zeroOnAllocation, MOS_FORMAT format, MOS_TILE_TYPE tile)
 {
     RESOURCE_TAG resTag;
     MOS_ZeroMemory(&resTag, sizeof(resTag));
@@ -189,7 +189,7 @@ void* CodechalEncodeAllocator::AllocateResource(
         resTag.width = (uint16_t)width;
         resTag.height = (uint16_t)height;
         resTag.type = allocator2D;
-        buffer = Allocate2DBuffer(resTag.tag, width, height, format, tile, zeroOnAllocation, bIsCompressible);
+        buffer = Allocate2DBuffer(resTag.tag, width, height, format, tile, zeroOnAllocation);
     }
     else
     {

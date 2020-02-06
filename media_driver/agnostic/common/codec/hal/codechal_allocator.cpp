@@ -90,7 +90,7 @@ void* CodechalAllocator::Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
 
 void* CodechalAllocator::Allocate2DBuffer(
     uint64_t resourceTag, uint32_t width, uint32_t height, MOS_FORMAT format,
-    MOS_TILE_TYPE tile, bool zeroOnAllocation, bool bIsCompressible, const char *bufName)
+    MOS_TILE_TYPE tile, bool zeroOnAllocation, const char *bufName)
 {
     MOS_SURFACE* surface = MOS_New(MOS_SURFACE);
     MOS_ZeroMemory(surface, sizeof(MOS_SURFACE));
@@ -103,7 +103,6 @@ void* CodechalAllocator::Allocate2DBuffer(
     allocParams.dwWidth = width;
     allocParams.dwHeight = height;
     allocParams.pBufName = bufName;
-    allocParams.bIsCompressible = bIsCompressible;
 
     if (MOS_STATUS_SUCCESS != m_osInterface->pfnAllocateResource(
         m_osInterface, &allocParams, &surface->OsResource))
