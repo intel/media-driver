@@ -1056,7 +1056,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
 
     // Refine the Scaling ratios in the X and Y direction. SFC output Scaled size may be changed based on the restriction of SFC alignment.
     // The scaling ratio could be changed and not equal to the fScaleX/Y.
-    // Driver must make sure that the scaling ratio should be matched with the output/input size before send to HW  
+    // Driver must make sure that the scaling ratio should be matched with the output/input size before send to HW
     pSfcStateParams->fAVSXScalingRatio              = (float)pSfcStateParams->dwScaledRegionWidth / (float)pSfcStateParams->dwSourceRegionWidth;
     pSfcStateParams->fAVSYScalingRatio              = (float)pSfcStateParams->dwScaledRegionHeight / (float)pSfcStateParams->dwSourceRegionHeight;
 
@@ -1334,7 +1334,9 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
         m_renderData.fScaleX,
         m_renderData.fScaleY,
         m_renderData.SfcSrcChromaSiting,
-        true));
+        true,
+        0,
+        0));
 
 finish:
     return eStatus;

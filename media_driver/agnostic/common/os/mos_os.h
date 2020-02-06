@@ -622,7 +622,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bUsesCmdBufHeaderInResize;
     int32_t                         bEnableKmdMediaFrameTracking;
     int32_t                         bNoParsingAssistanceInKmd;
-    bool                            bPitchAndUVPatchingNeeded;
+    bool                            bPitchAndUVPatchingNeeded = false;
     uint32_t                        dwCommandBufferReservedSpace;
     uint32_t                        dwNumNalUnitBytesIncluded;
 

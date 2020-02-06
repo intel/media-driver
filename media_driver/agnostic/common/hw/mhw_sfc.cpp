@@ -152,11 +152,12 @@ MOS_STATUS MhwSfcInterface::SetSfcSamplerTable(
     float                           fScaleX,
     float                           fScaleY,
     uint32_t                        dwChromaSiting,
-    bool                            bUse8x8Filter)
+    bool                            bUse8x8Filter,
+    float                           fHPStrength,
+    float                           fLanczosT)
 {
     int32_t                             iPhaseOffset;
 
-    float       fHPStrength;
     int32_t     *piYCoefsX, *piYCoefsY;
     int32_t     *piUVCoefsX, *piUVCoefsY;
     MHW_PLANE   Plane;
@@ -165,7 +166,6 @@ MOS_STATUS MhwSfcInterface::SetSfcSamplerTable(
     MHW_CHK_NULL_RETURN(pChromaTable);
     MHW_CHK_NULL_RETURN(pAvsParams);
 
-    fHPStrength = 0.0F;
     piYCoefsX   = pAvsParams->piYCoefsX;
     piYCoefsY   = pAvsParams->piYCoefsY;
     piUVCoefsX  = pAvsParams->piUVCoefsX;
@@ -234,7 +234,8 @@ MOS_STATUS MhwSfcInterface::SetSfcSamplerTable(
                 SrcFormat,
                 fHPStrength,
                 bUse8x8Filter,
-                NUM_HW_POLYPHASE_TABLES));
+                NUM_HW_POLYPHASE_TABLES,
+                fLanczosT));
         }
 
         // If Chroma Siting info is present
@@ -303,7 +304,8 @@ MOS_STATUS MhwSfcInterface::SetSfcSamplerTable(
                 SrcFormat,
                 fHPStrength,
                 bUse8x8Filter,
-                NUM_HW_POLYPHASE_TABLES));
+                NUM_HW_POLYPHASE_TABLES,
+                fLanczosT));
         }
 
         // If Chroma Siting info is present

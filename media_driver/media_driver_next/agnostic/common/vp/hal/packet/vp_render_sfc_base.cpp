@@ -244,7 +244,9 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
         m_renderData->fScaleX,
         m_renderData->fScaleY,
         m_renderData->SfcSrcChromaSiting,
-        true));
+        true,
+        0,
+        0));
 
     return eStatus;
   }

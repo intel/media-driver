@@ -248,7 +248,7 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
     if (pSfcStateParamsG12->MMCMode == MOS_MMC_RC || pSfcStateParamsG12->MMCMode == MOS_MMC_MC)
     {
         cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionEnable = pSfcStateParamsG12->bMMCEnable;
-    }    
+    }
     cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = m_outputSurfCtrl.Gen9.Index;
 
     cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionMode = (pSfcStateParamsG12->MMCMode == MOS_MMC_RC) ? 1 : 0;
@@ -261,14 +261,14 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
                                                    = m_iefLineBufferCtrl.Gen9.Index;
 
     // Set DW29
-    cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ? 
+    cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ?
                                                       true : false;
     cmd.DW29.OutputSurfaceTiled          = (pOutSurface->TileType != MOS_TILE_LINEAR) ?
                                                       true : false;
-    cmd.DW29.OutputSurfaceHalfPitchForChroma 
+    cmd.DW29.OutputSurfaceHalfPitchForChroma
                                                    = bHalfPitchForChroma;
     cmd.DW29.OutputSurfacePitch          = pOutSurface->dwPitch - 1;
-    cmd.DW29.OutputSurfaceInterleaveChromaEnable 
+    cmd.DW29.OutputSurfaceInterleaveChromaEnable
                                                    = bInterleaveChroma;
     cmd.DW29.OutputSurfaceFormat         = cmd.DW3.OutputSurfaceFormatType;
 
@@ -520,9 +520,10 @@ MOS_STATUS MhwSfcInterfaceG12 :: SetSfcSamplerTable(
     float                           fScaleX,
     float                           fScaleY,
     uint32_t                        dwChromaSiting,
-    bool                            bUse8x8Filter)
+    bool                            bUse8x8Filter,
+    float                           fHPStrength,
+    float                           fLanczosT)
 {
-    float       fHPStrength;
     int32_t     *piYCoefsX,  *piYCoefsY;
     int32_t     *piUVCoefsX, *piUVCoefsY;
     MHW_PLANE   Plane;
@@ -563,11 +564,11 @@ MOS_STATUS MhwSfcInterfaceG12 :: SetSfcSamplerTable(
     if (SrcFormat != pAvsParams->Format || fScaleX != pAvsParams->fScaleX)
     {
         MOS_ZeroMemory(
-            piYCoefsX, 
+            piYCoefsX,
             8 * 32 * sizeof(int32_t));
 
         MOS_ZeroMemory(
-            piUVCoefsX, 
+            piUVCoefsX,
             4 * 32 * sizeof(int32_t));
 
         Plane = (IS_RGB32_FORMAT(SrcFormat) && !bUse8x8Filter) ? MHW_U_PLANE : MHW_Y_PLANE;
@@ -604,7 +605,8 @@ MOS_STATUS MhwSfcInterfaceG12 :: SetSfcSamplerTable(
                 SrcFormat,
                 fHPStrength,
                 bUse8x8Filter,
-                NUM_HW_POLYPHASE_TABLES));
+                NUM_HW_POLYPHASE_TABLES,
+                0));
         }
 
         // The 8-tap adaptive is enabled for all channel if RGB format input, then UV/RB use the same coefficient as Y/G
@@ -672,7 +674,7 @@ MOS_STATUS MhwSfcInterfaceG12 :: SetSfcSamplerTable(
                 SrcFormat,
                 fHPStrength,
                 bUse8x8Filter,
-                NUM_HW_POLYPHASE_TABLES));
+                NUM_HW_POLYPHASE_TABLES,0));
         }
 
         // The 8-tap adaptive is enabled for all channel if RGB format input, then UV/RB use the same coefficient as Y/G

@@ -247,7 +247,7 @@ MOS_STATUS VpHal_16AlignSetupKernel(
 
     VPHAL_RENDER_CHK_NULL(p16AlignState);
     eStatus             = MOS_STATUS_SUCCESS;
-    pCacheEntryTable    = 
+    pCacheEntryTable    =
         p16AlignState->pKernelDllState->ComponentKernelCache.pCacheEntries;
 
     // Set the Kernel Parameters
@@ -377,7 +377,8 @@ static MOS_STATUS VpHal_16AlignSamplerAvsCalcScalingTable(
                 SrcFormat,
                 fHPStrength,
                 true,
-                dwHwPhrase));
+                dwHwPhrase,
+                0));
 
             // If the 8-tap adaptive is enabled for all channel, then UV/RB use the same coefficient as Y/G
             // So, coefficient for UV/RB channels caculation can be passed
@@ -392,7 +393,8 @@ static MOS_STATUS VpHal_16AlignSamplerAvsCalcScalingTable(
                         SrcFormat,
                         fHPStrength,
                         true,
-                        dwHwPhrase));
+                        dwHwPhrase,
+                        0));
                 }
                 else
                 {
@@ -705,7 +707,7 @@ MOS_STATUS VpHal_16AlignSetupHwStates(
         &MhwKernelParam,
         nullptr);
 
-    if (iKrnAllocation < 0) 
+    if (iKrnAllocation < 0)
     {
         eStatus = MOS_STATUS_UNKNOWN;
         goto finish;
@@ -720,8 +722,8 @@ MOS_STATUS VpHal_16AlignSetupHwStates(
         (pRenderData->pKernelParam->CURBE_Length << 5),
         0,
         nullptr);
-    
-    if (pRenderData->iMediaID < 0) 
+
+    if (pRenderData->iMediaID < 0)
     {
         eStatus = MOS_STATUS_UNKNOWN;
         goto finish;
@@ -729,7 +731,7 @@ MOS_STATUS VpHal_16AlignSetupHwStates(
 
     // Set Sampler states for this Media ID
     VPHAL_RENDER_CHK_STATUS(p16AlignState->pfnSetSamplerStates(
-        p16AlignState, 
+        p16AlignState,
         pRenderData));
 
 finish:
@@ -750,7 +752,7 @@ finish:
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_16AlignRenderMediaWalker(
-    PVPHAL_16_ALIGN_STATE        p16AlignState,    
+    PVPHAL_16_ALIGN_STATE        p16AlignState,
     PVPHAL_16_ALIGN_RENDER_DATA  pRenderData,
     PMHW_WALKER_PARAMS               pWalkerParams)
 {
@@ -780,10 +782,10 @@ MOS_STATUS VpHal_16AlignRenderMediaWalker(
 
     pWalkerParams->dwGlobalLoopExecCount        = 1;
     pWalkerParams->dwLocalLoopExecCount         = pRenderData->iBlocksY - 1;
-    
+
     pWalkerParams->GlobalResolution.x           = pRenderData->iBlocksX;
     pWalkerParams->GlobalResolution.y           = pRenderData->iBlocksY;
-    
+
     pWalkerParams->GlobalStart.x                = 0;
     pWalkerParams->GlobalStart.y                = 0;
 
@@ -795,7 +797,7 @@ MOS_STATUS VpHal_16AlignRenderMediaWalker(
 
     pWalkerParams->BlockResolution.x            = pRenderData->iBlocksX;
     pWalkerParams->BlockResolution.y            = pRenderData->iBlocksY;
-   
+
     pWalkerParams->LocalStart.x                 = 0;
     pWalkerParams->LocalStart.y                 = 0;
 
@@ -807,7 +809,7 @@ MOS_STATUS VpHal_16AlignRenderMediaWalker(
 
     pWalkerParams->LocalInnerLoopUnit.x         = 1;
     pWalkerParams->LocalInnerLoopUnit.y         = 0;
-    
+
     return eStatus;
 }
 
@@ -857,7 +859,7 @@ MOS_STATUS VpHal_16AlignRender(
 
     VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_STAGE(VPHAL_DBG_STAGE_COMP);
 
-    // Configure cache settings for this render operation 
+    // Configure cache settings for this render operation
     pCacheSettings      = &pRenderHal->L3CacheSettings;
     MOS_ZeroMemory(pCacheSettings, sizeof(*pCacheSettings));
     pCacheSettings->bOverride                  = true;
@@ -905,14 +907,14 @@ MOS_STATUS VpHal_16AlignRender(
 
     // Ensure input can be read
     pOsInterface->pfnSyncOnResource(
-        pOsInterface, 
+        pOsInterface,
         &p16AlignState->pSource->OsResource,
         pOsInterface->CurrentGpuContextOrdinal,
         false);
 
     // Ensure the output can be written
     pOsInterface->pfnSyncOnResource(
-        pOsInterface, 
+        pOsInterface,
         &p16AlignState->pTarget->OsResource,
         pOsInterface->CurrentGpuContextOrdinal,
         true);
@@ -924,7 +926,7 @@ MOS_STATUS VpHal_16AlignRender(
 
     // Submit HW States and Commands
     VPHAL_RENDER_CHK_STATUS(VpHal_16AlignSetupHwStates(
-            p16AlignState, 
+            p16AlignState,
             &RenderData));
 
     // Set perftag information
@@ -932,7 +934,7 @@ MOS_STATUS VpHal_16AlignRender(
     pOsInterface->pfnSetPerfTag(pOsInterface, RenderData.PerfTag);
 
     VPHAL_RENDER_CHK_STATUS(VpHal_16AlignRenderMediaWalker(
-            p16AlignState,    
+            p16AlignState,
             &RenderData,
             &WalkerParams));
 
@@ -940,7 +942,7 @@ MOS_STATUS VpHal_16AlignRender(
     VPHAL_DBG_STATE_DUMPPER_DUMP_SSH(pRenderHal);
 
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrSubmitCommands(
-        pRenderHal, 
+        pRenderHal,
         nullptr,
         p16AlignState->bNullHwRender16Align,
         &WalkerParams,
@@ -1001,7 +1003,7 @@ MOS_STATUS VpHal_16AlignInitialize(
     VPHAL_RENDER_ASSERT(p16AlignState);
     VPHAL_RENDER_ASSERT(p16AlignState->pOsInterface);
 
-    NullRenderingFlags            = 
+    NullRenderingFlags            =
                     p16AlignState->pOsInterface->pfnGetNullHWRenderFlags(p16AlignState->pOsInterface);
     p16AlignState->bNullHwRender16Align =
                     NullRenderingFlags.VPLgca ||
@@ -1268,7 +1270,7 @@ MOS_STATUS VpHal_16AlignInitInterface(
     p16AlignState->pfnSetupSurfaceStates = VpHal_16AlignSetupSurfaceStates;
 
     // States
-    p16AlignState->bFtrMediaWalker       = 
+    p16AlignState->bFtrMediaWalker       =
         p16AlignState->pRenderHal->pfnGetMediaWalkerStatus(p16AlignState->pRenderHal) ? true : false;
 
     p16AlignState->pfnLoadStaticData     = VpHal_16AlignLoadStaticData;

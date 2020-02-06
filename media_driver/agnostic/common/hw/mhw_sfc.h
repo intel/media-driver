@@ -471,7 +471,9 @@ public:
         float                           fScaleX,
         float                           fScaleY,
         uint32_t                        dwChromaSiting,
-        bool                            bUse8x8Filter);
+        bool                            bUse8x8Filter,
+        float                           fHPStrength,
+        float                           fLanczosT);
 
 protected:
 

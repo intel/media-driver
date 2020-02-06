@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_utilities.c 
-//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface. 
+//! \file      mhw_utilities.c
+//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface.
 //!
 #include "mhw_utilities.h"
 #include "mhw_render.h"
@@ -535,6 +535,8 @@ finish:
 //!             [in]    is 8x8 Filter used
 //! \param      uint32_t   dwHwPhase
 //!             [in]    Number of phases in HW
+//! \param      float      fLanczosT
+//!             [in]    Lanczos factor
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
@@ -545,7 +547,8 @@ MOS_STATUS Mhw_CalcPolyphaseTablesY(
     MOS_FORMAT      srcFmt,
     float           fHPStrength,
     bool            bUse8x8Filter,
-    uint32_t        dwHwPhase)
+    uint32_t        dwHwPhase,
+    float           fLanczosT)
 {
     uint32_t                dwNumEntries;
     uint32_t                dwTableCoefUnit;
@@ -557,7 +560,6 @@ MOS_STATUS Mhw_CalcPolyphaseTablesY(
     float                   fStartOffset;
     float                   fHPFilter[3], fHPSum, fHPHalfPhase; // Only used for Y_PLANE
     float                   fBase, fPos, fSumCoefs;
-    float                   fLanczosT;
     int32_t                 iCenterPixel;
     int32_t                 iSumQuantCoefs;
 

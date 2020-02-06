@@ -630,6 +630,7 @@ typedef struct _MHW_SAMPLER_STATE_AVS_PARAM
     uint8_t                      StrongEdgeWght;
     uint8_t                      RegularWght;
     uint8_t                      NonEdgeWght;
+    bool                         b8TapLumaForYUV444;
 
     // Additional overrides
     uint16_t AdditionalOverridesUsed;

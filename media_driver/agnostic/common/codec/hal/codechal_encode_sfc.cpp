@@ -995,7 +995,9 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcAvsStateParams(
                                 m_scaleX,
                                 m_scaleY,
                                 m_chromaSiting,
-                                true));
+                                true,
+                                0,
+                                0));
     return eStatus;
 }
 
@@ -1040,7 +1042,7 @@ MOS_STATUS CodecHalEncodeSfc::Initialize(
     MOS_GPUCTX_CREATOPTIONS createOption;
     //
     // VeboxgpuContext could be created from both VP and Codec.
-    // If there is no such as a GPU context it will create a new one and set the GPU component ID. 
+    // If there is no such as a GPU context it will create a new one and set the GPU component ID.
     // If there has been a valid GPU context it won’t create another one anymore and the component ID won’t be updated either.
     // Therefore if a codec veboxgpu context creation happens earlier than a vp veboxgpu context creation and set its component ID to MOS_GPU_COMPONENT_ENCODE,
     // VPBLT callstack would index a GpuAppTaskEvent of MOS_GPU_COMPONENT_ENCODE.
@@ -1194,7 +1196,7 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external
     // raw surface processing to complete, before start CSC. Once the marker in
     // raw surface is overwritten by external operation, HW semaphore will be
-    // signalled and CSC will start. This is to reduce SW latency between 
+    // signalled and CSC will start. This is to reduce SW latency between
     // external raw surface processing and CSC, in usages like remote gaming.
     if (encoder->m_pollingSyncEnabled)
     {

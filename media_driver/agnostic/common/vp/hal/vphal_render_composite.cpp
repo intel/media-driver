@@ -1053,7 +1053,8 @@ static MOS_STATUS SamplerAvsCalcScalingTable(
                 SrcFormat,
                 fHPStrength,
                 true,
-                dwHwPhrase));
+                dwHwPhrase,
+                0));
 
             // If the 8-tap adaptive is enabled for all channel, then UV/RB use the same coefficient as Y/G
             // So, coefficient for UV/RB channels caculation can be passed
@@ -1068,7 +1069,8 @@ static MOS_STATUS SamplerAvsCalcScalingTable(
                         SrcFormat,
                         fHPStrength,
                         true,
-                        dwHwPhrase));
+                        dwHwPhrase,
+                        0));
                 }
                 else
                 {
@@ -5959,16 +5961,16 @@ MOS_STATUS CompositeState::RenderPhase(
     for (int32_t i = 0; i < iFilterSize; i++)
     {
         Kdll_FilterEntry *pTempFilter = (pFilter + i);
-        
+
         if (pTempFilter == nullptr)
             continue;
 
         VPHAL_RENDER_NORMALMESSAGE("Kernel Search Filter %d: layer %d, format %d, cspace %d, \
                                    bEnableDscale %d, bIsDitherNeeded %d, chromasiting %d, colorfill %d, dualout %d, \
-                                   lumakey %d, procamp %d, RenderMethod %d, sampler %d, samplerlumakey %d ", 
-                                   i, pTempFilter->layer, pTempFilter->format, pTempFilter->cspace, 
-                                   pTempFilter->bEnableDscale, pTempFilter->bIsDitherNeeded, 
-                                   pTempFilter->chromasiting, pTempFilter->colorfill,  pTempFilter->dualout, 
+                                   lumakey %d, procamp %d, RenderMethod %d, sampler %d, samplerlumakey %d ",
+                                   i, pTempFilter->layer, pTempFilter->format, pTempFilter->cspace,
+                                   pTempFilter->bEnableDscale, pTempFilter->bIsDitherNeeded,
+                                   pTempFilter->chromasiting, pTempFilter->colorfill,  pTempFilter->dualout,
                                    pTempFilter->lumakey, pTempFilter->procamp, pTempFilter->RenderMethod, pTempFilter->sampler, pTempFilter->samplerlumakey);
     }
 
@@ -7112,7 +7114,7 @@ bool CompositeState::IsMultipleStreamSupported()
 //!
 //! \brief    set Report data
 //! \details  set Report data for this render
-//! \param    [in] pSource 
+//! \param    [in] pSource
 //!           pointer to the surface
 //!
 void CompositeState::SetReporting(PVPHAL_SURFACE pSource)
@@ -7127,7 +7129,7 @@ void CompositeState::SetReporting(PVPHAL_SURFACE pSource)
 //!
 //! \brief    copy Report data
 //! \details  copy Report data from this render
-//! \param    [out] pReporting 
+//! \param    [out] pReporting
 //!           pointer to the Report data to copy data to
 //!
 void CompositeState::CopyReporting(VphalFeatureReport* pReporting)

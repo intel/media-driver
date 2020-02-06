@@ -820,7 +820,7 @@ MOS_STATUS VpHal_HdrIsInputFormatSupported_g9(
     bool*                       pbSupported)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
- 
+
     VPHAL_PUBLIC_CHK_NULL(pSrcSurface);
     VPHAL_PUBLIC_CHK_NULL(pbSupported);
 
@@ -869,7 +869,7 @@ MOS_STATUS VpHal_HdrIsOutputFormatSupported_g9(
     bool*                       pbSupported)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
- 
+
     VPHAL_PUBLIC_CHK_NULL(pTargetSurface);
     VPHAL_PUBLIC_CHK_NULL(pbSupported);
 
@@ -896,7 +896,7 @@ MOS_STATUS VpHal_HdrIsOutputFormatSupported_g9(
     else
     {
         VPHAL_RENDER_ASSERTMESSAGE(
-            "HDR Unsupported Target Format: '0x%08x'\n", 
+            "HDR Unsupported Target Format: '0x%08x'\n",
             pTargetSurface->Format);
         *pbSupported = false;
     }
@@ -1015,7 +1015,8 @@ static MOS_STATUS VpHal_HdrSamplerAvsCalcScalingTable_g9(
                 SrcFormat,
                 fHPStrength,
                 true,
-                dwHwPhrase));
+                dwHwPhrase,
+                0));
 
             // If the 8-tap adaptive is enabled for all channel, then UV/RB use the same coefficient as Y/G
             // So, coefficient for UV/RB channels caculation can be passed
@@ -1030,7 +1031,8 @@ static MOS_STATUS VpHal_HdrSamplerAvsCalcScalingTable_g9(
                         SrcFormat,
                         fHPStrength,
                         true,
-                        dwHwPhrase));
+                        dwHwPhrase,
+                        0));
                 }
                 else
                 {
@@ -2025,7 +2027,7 @@ MOS_STATUS VpHal_HdrAllocateResources_g9(
 
     eStatus         = MOS_STATUS_UNKNOWN;
     pOsInterface    = pHdrState->pOsInterface;
-    
+
     // Allocate CSC CCM Coeff Surface
     dwWidth  = VPHAL_HDR_COEF_SURFACE_WIDTH_G9;
     dwHeight = VPHAL_HDR_COEF_SURFACE_HEIGHT_G9;
@@ -2604,22 +2606,22 @@ MOS_STATUS VpHal_HdrLoadStaticData_g9(
             pSource->Rotation == VPHAL_MIRROR_HORIZONTAL    ||
             pSource->Rotation == VPHAL_MIRROR_VERTICAL)
         {
-            fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left) * 1.0f) / 
-                      ((pSource->rcDst.right - pSource->rcDst.left) > 0 ? 
+            fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left) * 1.0f) /
+                      ((pSource->rcDst.right - pSource->rcDst.left) > 0 ?
                        (pSource->rcDst.right - pSource->rcDst.left) : 1);
-            fStepY = ((float)(pSource->rcSrc.bottom - pSource->rcSrc.top)) / 
-                      ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ? 
+            fStepY = ((float)(pSource->rcSrc.bottom - pSource->rcSrc.top)) /
+                      ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ?
                        (float)(pSource->rcDst.bottom - pSource->rcDst.top) : 1.0f);
         }
         else
         {
-            // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 || 
+            // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
             // VPHAL_ROTATE_90_MIRROR_HORIZONTAL || VPHAL_ROTATE_90_MIRROR_VERTICAL
-            fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left) * 1.0f) / 
-                      ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ? 
+            fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left) * 1.0f) /
+                      ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ?
                        (pSource->rcDst.bottom - pSource->rcDst.top) : 1);
-            fStepY = ((float)(pSource->rcSrc.bottom - pSource->rcSrc.top)) / 
-                      ((pSource->rcDst.right - pSource->rcDst.left) > 0 ? 
+            fStepY = ((float)(pSource->rcSrc.bottom - pSource->rcSrc.top)) /
+                      ((pSource->rcDst.right - pSource->rcDst.left) > 0 ?
                        (float)(pSource->rcDst.right - pSource->rcDst.left) : 1.0f);
         }
 
@@ -2636,38 +2638,38 @@ MOS_STATUS VpHal_HdrLoadStaticData_g9(
             case VPHAL_ROTATION_90:
                 // Coordinate adjustment for 90 degree rotation
                 fShiftX  -= (float)pSource->rcDst.top;
-                fShiftY  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX - 
+                fShiftY  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX -
                             (float)pSource->rcDst.left;
                 break;
             case VPHAL_ROTATION_180:
                 // Coordinate adjustment for 180 degree rotation
-                fShiftX  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX - 
+                fShiftX  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX -
                             (float)pSource->rcDst.left;
-                fShiftY  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY - 
+                fShiftY  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY -
                             (float)pSource->rcDst.top;
                 break;
             case VPHAL_ROTATION_270:
                 // Coordinate adjustment for 270 degree rotation
-                fShiftX  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY - 
+                fShiftX  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY -
                             (float)pSource->rcDst.top;
                 fShiftY  -= (float)pSource->rcDst.left;
                 break;
             case VPHAL_MIRROR_HORIZONTAL:
                 // Coordinate adjustment for horizontal mirroring
-                fShiftX  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX - 
+                fShiftX  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX -
                             (float)pSource->rcDst.left;
                 fShiftY  -= pSource->rcDst.top;
                 break;
             case VPHAL_MIRROR_VERTICAL:
                 // Coordinate adjustment for vertical mirroring
                 fShiftX  -= pSource->rcDst.left;
-                fShiftY  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY - 
+                fShiftY  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY -
                             (float)pSource->rcDst.top;
                 break;
             case VPHAL_ROTATE_90_MIRROR_HORIZONTAL:
@@ -2678,11 +2680,11 @@ MOS_STATUS VpHal_HdrLoadStaticData_g9(
             case VPHAL_ROTATE_90_MIRROR_VERTICAL:
             default:
                 // Coordinate adjustment for rotating 90 and vertical mirroring
-                fShiftX  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY - 
+                fShiftX  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY -
                             (float)pSource->rcDst.top;
-                fShiftY  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX - 
+                fShiftY  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX -
                             (float)pSource->rcDst.left;
                 break;
         } // switch
@@ -3146,7 +3148,7 @@ MOS_STATUS VpHal_HdrGetSplitFramePortion_g9(
 
     dwPixels = pHdrState->pTargetSurf[0]->dwWidth * pHdrState->pTargetSurf[0]->dwHeight;
     //pHdrState->uiPortions = MOS_ROUNDUP_DIVIDE(dwPixels, g_Hdr_iTouc_Pixel_Throughput_g9[pHdrState->uSourceCount - 1]);
-   
+
     if (dwPixels <= 1920 * 1080)
     {
         pHdrState->uiSplitFramePortions = 2;
@@ -3338,7 +3340,7 @@ MOS_STATUS VpHal_HdrInitOETF1DLUT_g9(
 
     // Hdr kernel require 0 to 1 floating point color value
     // To transfer the value of 16bit integer OETF table to 0 to 1 floating point
-    // We need to divide the table with 2^16 - 1 
+    // We need to divide the table with 2^16 - 1
     if ((pTargetSurf->pHDRParams &&
         (pTargetSurf->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR ||
             pTargetSurf->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_HDR)) ||
@@ -3439,7 +3441,7 @@ MOS_STATUS VpHal_HdrGetKernelParam_g9(
     else
     {
         VPHAL_RENDER_ASSERTMESSAGE("Kernel Not found.");
-        eStatus = MOS_STATUS_INVALID_PARAMETER;        
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
     }
 
 finish:
@@ -3517,7 +3519,7 @@ finish:
 //! \param    int32_t* piCurbeOffsetOut
 //!           [Out] Curbe offset
 //! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if successful, otherwise 
+//!           MOS_STATUS_SUCCESS if successful, otherwise
 //!
 MOS_STATUS VpHal_HdrPreprocessLoadStaticData_g9(
     PVPHAL_HDR_STATE            pHdrState,
@@ -3551,7 +3553,7 @@ MOS_STATUS VpHal_HdrPreprocessLoadStaticData_g9(
             goto finish;
         }
 
-        pSource = pHdrState->pSrcSurf[i];   
+        pSource = pHdrState->pSrcSurf[i];
         if (pSource)
         {
             uiMaxCLL[i] = (pSource->pHDRParams) ? pSource->pHDRParams->MaxCLL : 0;
@@ -3572,7 +3574,7 @@ MOS_STATUS VpHal_HdrPreprocessLoadStaticData_g9(
             break;
         }
 
-        pTarget = pHdrState->pTargetSurf[0];        
+        pTarget = pHdrState->pTargetSurf[0];
         if (pTarget)
         {
             uiMaxDLL[0] = (pTarget->pHDRParams) ? pTarget->pHDRParams->max_display_mastering_luminance : 0;
@@ -3583,7 +3585,7 @@ MOS_STATUS VpHal_HdrPreprocessLoadStaticData_g9(
         HDRStatic.uiTMMode[i] = tmMode[i];
         VPHAL_RENDER_NORMALMESSAGE("StreamIndex: %d, maxCLL: %d, maxDLL: %d, TMMode: %d", i, HDRStatic.uiMaxCLL[i], HDRStatic.uiMaxDLL[i], HDRStatic.uiTMMode[i]);
     }
-    HDRStatic.OutputCoeffIndex = 16; 
+    HDRStatic.OutputCoeffIndex = 16;
 
     *piCurbeOffsetOut = pRenderHal->pfnLoadCurbeData(
         pRenderHal,

@@ -21,7 +21,7 @@
 */
 //!
 //! \file     mhw_vebox.h
-//! \brief    MHW interface for constructing commands for the VEBOX 
+//! \brief    MHW interface for constructing commands for the VEBOX
 //! \details  Impelements the functionalities common across all platforms for MHW_VEBOX
 //!
 
@@ -126,9 +126,10 @@ typedef enum _MHW_GAMUT_MODE
 {
     MHW_GAMUT_MODE_NONE,
     MHW_GAMUT_MODE_BASIC,
-    MHW_GAMUT_MODE_ADVANCED
+    MHW_GAMUT_MODE_ADVANCED,
+    MHW_GAMUT_MODE_CUSTOMIZED
 } MHW_GAMUT_MODE;
-C_ASSERT(MHW_GAMUT_MODE_ADVANCED == 2);
+C_ASSERT(MHW_GAMUT_MODE_CUSTOMIZED == 3);
 
 //!
 //! \brief Gamma Values configuration enum
@@ -543,7 +544,7 @@ typedef struct _MHW_CAPPIPE_PARAMS
 } MHW_CAPPIPE_PARAMS, *PMHW_CAPPIPE_PARAMS;
 
 //!
-//! Structure MHW_3DLUT_PARAMS 
+//! Structure MHW_3DLUT_PARAMS
 //! \details No pre-si version for MHW_VEBOX_IECP_PARAMS, just leave it now and handle it later
 //!
 typedef struct _MHW_3DLUT_PARAMS
@@ -554,7 +555,7 @@ typedef struct _MHW_3DLUT_PARAMS
     uint8_t *pLUT;                       //!< Pointer to the LUT value
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
 
-//! 
+//!
 //! \brief  VEBOX HDR PARAMS
 //! \details For CCM settings, move 1DLut to here later
 typedef struct _MHW_1DLUT_PARAMS
@@ -648,6 +649,14 @@ typedef struct _MHW_VEBOX_GAMUT_PARAMS
 
     // GExp
     MHW_GAMUT_MODE                      GExpMode;
+    uint32_t                            *pFwdGammaBias;
+    uint32_t                            *pInvGammaBias;
+    float                               *pfCscCoeff;         // [3x3] CSC Coeff matrix
+    float                               *pfCscInOffset;      // [3x1] CSC Input Offset matrix
+    float                               *pfCscOutOffset;     // [3x1] CSC Output Offset matrix
+    float                               *pfFeCscCoeff;       // [3x3] Front-end CSC Coeff matrix
+    float                               *pfFeCscInOffset;    // [3x1] Front-end CSC Input Offset matrix
+    float                               *pfFeCscOutOffset;   // [3x1] Front-end CSC Output Offset matrix
     int32_t                             Matrix[3][3];
 
     // Gamma correction
@@ -1050,7 +1059,7 @@ public:
     //!
     //!      GPU (Driver Resource)      GPU (Kernel Resource)        VEBOX State (in Graphics Memory)
     //!      -------------------         -------------------        ---------------------
-    //!     | VEBOX State 0     |       | VEBOX State 0     |       | DNDI State         | 
+    //!     | VEBOX State 0     |       | VEBOX State 0     |       | DNDI State         |
     //!      -------------------         -------------------         --------------------
     //!     | VEBOX State 1     |       | VEBOX State 1     |       | IECP State         |
     //!      -------------------         -------------------         --------------------
@@ -1059,7 +1068,7 @@ public:
     //!     | VEBOX Sync Data   |       | VEBOX Sync Data   |       | Vertex State       |
     //!      -------------------                                     --------------------
     //!                                                             | CapturePipe State  |
-    //!                                                              -------------------- 
+    //!                                                              --------------------
     //!                                                             | Gamma Correction State |
     //!                                                              ------------------------
     //!                                                             | 3D LUT State           |

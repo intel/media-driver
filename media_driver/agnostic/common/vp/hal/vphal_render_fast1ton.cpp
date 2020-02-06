@@ -88,7 +88,7 @@ static const RENDERHAL_KERNEL_PARAM g_fast1toN_MW_KernelParam[1] =
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_Fast1toNLoadStaticData(
-    PVPHAL_FAST1TON_STATE           pFast1toNState,    
+    PVPHAL_FAST1TON_STATE           pFast1toNState,
     PVPHAL_FAST1TON_RENDER_DATA     pRenderData,
     int32_t*                        piCurbeOffset)
 {
@@ -212,7 +212,7 @@ MOS_STATUS VpHal_Fast1toNSetupKernel(
 
     VPHAL_RENDER_CHK_NULL(pFast1toNState);
     eStatus             = MOS_STATUS_SUCCESS;
-    pCacheEntryTable    = 
+    pCacheEntryTable    =
         pFast1toNState->pKernelDllState->ComponentKernelCache.pCacheEntries;
 
     // Set the Kernel Parameters
@@ -342,7 +342,8 @@ static MOS_STATUS VpHal_Fast1toNSamplerAvsCalcScalingTable(
                 SrcFormat,
                 fHPStrength,
                 true,
-                dwHwPhrase));
+                dwHwPhrase,
+                0));
 
             // If the 8-tap adaptive is enabled for all channel, then UV/RB use the same coefficient as Y/G
             // So, coefficient for UV/RB channels caculation can be passed
@@ -357,7 +358,8 @@ static MOS_STATUS VpHal_Fast1toNSamplerAvsCalcScalingTable(
                         SrcFormat,
                         fHPStrength,
                         true,
-                        dwHwPhrase));
+                        dwHwPhrase,
+                        0));
                 }
                 else
                 {
@@ -652,7 +654,7 @@ MOS_STATUS VpHal_Fast1toNSetupHwStates(
         &MhwKernelParam,
         nullptr);
 
-    if (iKrnAllocation < 0) 
+    if (iKrnAllocation < 0)
     {
         eStatus = MOS_STATUS_UNKNOWN;
         goto finish;
@@ -667,8 +669,8 @@ MOS_STATUS VpHal_Fast1toNSetupHwStates(
         (pRenderData->pKernelParam->CURBE_Length << 5),
         0,
         nullptr);
-    
-    if (pRenderData->iMediaID < 0) 
+
+    if (pRenderData->iMediaID < 0)
     {
         eStatus = MOS_STATUS_UNKNOWN;
         goto finish;
@@ -676,7 +678,7 @@ MOS_STATUS VpHal_Fast1toNSetupHwStates(
 
     // Set Sampler states for this Media ID
     VPHAL_RENDER_CHK_STATUS(pFast1toNState->pfnSetSamplerStates(
-        pFast1toNState, 
+        pFast1toNState,
         pRenderData));
 
 finish:
@@ -697,7 +699,7 @@ finish:
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_Fast1toNRenderMediaWalker(
-    PVPHAL_FAST1TON_STATE        pFast1toNState,    
+    PVPHAL_FAST1TON_STATE        pFast1toNState,
     PVPHAL_FAST1TON_RENDER_DATA  pRenderData,
     PMHW_WALKER_PARAMS               pWalkerParams)
 {
@@ -713,11 +715,11 @@ MOS_STATUS VpHal_Fast1toNRenderMediaWalker(
     // Using the Max output size to calculate the iBlock.
     for (uint32_t i = 0; i < pFast1toNState->uDstCount; i++)
     {
-        dwWidth  = MOS_MAX(MOS_ALIGN_CEIL((pFast1toNState->pTarget[i]->rcSrc.right  - 
-                           pFast1toNState->pTarget[i]->rcSrc.left), 
+        dwWidth  = MOS_MAX(MOS_ALIGN_CEIL((pFast1toNState->pTarget[i]->rcSrc.right  -
+                           pFast1toNState->pTarget[i]->rcSrc.left),
                            pRenderData->pKernelParam->block_width), dwWidth);
-        dwHeight = MOS_MAX(MOS_ALIGN_CEIL((pFast1toNState->pTarget[i]->rcSrc.bottom - 
-                       pFast1toNState->pTarget[i]->rcSrc.top),  
+        dwHeight = MOS_MAX(MOS_ALIGN_CEIL((pFast1toNState->pTarget[i]->rcSrc.bottom -
+                       pFast1toNState->pTarget[i]->rcSrc.top),
                        pRenderData->pKernelParam->block_height), dwHeight);
     }
 
@@ -731,10 +733,10 @@ MOS_STATUS VpHal_Fast1toNRenderMediaWalker(
 
     pWalkerParams->dwGlobalLoopExecCount        = 1;
     pWalkerParams->dwLocalLoopExecCount         = pRenderData->iBlocksY - 1;
-    
+
     pWalkerParams->GlobalResolution.x           = pRenderData->iBlocksX;
     pWalkerParams->GlobalResolution.y           = pRenderData->iBlocksY;
-    
+
     pWalkerParams->GlobalStart.x                = 0;
     pWalkerParams->GlobalStart.y                = 0;
 
@@ -746,7 +748,7 @@ MOS_STATUS VpHal_Fast1toNRenderMediaWalker(
 
     pWalkerParams->BlockResolution.x            = pRenderData->iBlocksX;
     pWalkerParams->BlockResolution.y            = pRenderData->iBlocksY;
-   
+
     pWalkerParams->LocalStart.x                 = 0;
     pWalkerParams->LocalStart.y                 = 0;
 
@@ -758,7 +760,7 @@ MOS_STATUS VpHal_Fast1toNRenderMediaWalker(
 
     pWalkerParams->LocalInnerLoopUnit.x         = 1;
     pWalkerParams->LocalInnerLoopUnit.y         = 0;
-    
+
     return eStatus;
 }
 
@@ -814,7 +816,7 @@ MOS_STATUS VpHal_Fast1toNRender(
 
     VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_STAGE(VPHAL_DBG_STAGE_COMP);
 
-    // Configure cache settings for this render operation 
+    // Configure cache settings for this render operation
     pCacheSettings      = &pRenderHal->L3CacheSettings;
     MOS_ZeroMemory(pCacheSettings, sizeof(*pCacheSettings));
     pCacheSettings->bOverride                  = true;
@@ -865,7 +867,7 @@ MOS_STATUS VpHal_Fast1toNRender(
 
     // Ensure input can be read
     pOsInterface->pfnSyncOnResource(
-        pOsInterface, 
+        pOsInterface,
         &pFast1toNState->pSource->OsResource,
         pOsInterface->CurrentGpuContextOrdinal,
         false);
@@ -874,7 +876,7 @@ MOS_STATUS VpHal_Fast1toNRender(
     for (index = 0; index < pFast1toNState->uDstCount; index++)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             &pFast1toNState->pTarget[index]->OsResource,
             pOsInterface->CurrentGpuContextOrdinal,
             true);
@@ -887,7 +889,7 @@ MOS_STATUS VpHal_Fast1toNRender(
 
     // Submit HW States and Commands
     VPHAL_RENDER_CHK_STATUS(VpHal_Fast1toNSetupHwStates(
-            pFast1toNState, 
+            pFast1toNState,
             &RenderData));
 
     // Set perftag information
@@ -895,7 +897,7 @@ MOS_STATUS VpHal_Fast1toNRender(
     pOsInterface->pfnSetPerfTag(pOsInterface, RenderData.PerfTag);
 
     VPHAL_RENDER_CHK_STATUS(VpHal_Fast1toNRenderMediaWalker(
-            pFast1toNState,    
+            pFast1toNState,
             &RenderData,
             &WalkerParams));
 
@@ -903,7 +905,7 @@ MOS_STATUS VpHal_Fast1toNRender(
     VPHAL_DBG_STATE_DUMPPER_DUMP_SSH(pRenderHal);
 
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrSubmitCommands(
-        pRenderHal, 
+        pRenderHal,
         nullptr,
         pFast1toNState->bNullHwRenderfast1toN,
         &WalkerParams,
@@ -968,7 +970,7 @@ MOS_STATUS VpHal_Fast1toNInitialize(
     VPHAL_RENDER_ASSERT(pFast1toNState);
     VPHAL_RENDER_ASSERT(pFast1toNState->pOsInterface);
 
-    NullRenderingFlags            = 
+    NullRenderingFlags            =
                     pFast1toNState->pOsInterface->pfnGetNullHWRenderFlags(pFast1toNState->pOsInterface);
     pFast1toNState->bNullHwRenderfast1toN =
                     NullRenderingFlags.VPLgca ||
@@ -997,7 +999,7 @@ MOS_STATUS VpHal_Fast1toNInitialize(
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_Fast1toNSetupSurfaceStates(
-    PVPHAL_FAST1TON_STATE        pFast1toNState,    
+    PVPHAL_FAST1TON_STATE        pFast1toNState,
     PVPHAL_FAST1TON_RENDER_DATA  pRenderData)
 {
     PRENDERHAL_INTERFACE            pRenderHal;
@@ -1016,24 +1018,24 @@ MOS_STATUS VpHal_Fast1toNSetupSurfaceStates(
     SurfaceParams.bAVS              = true;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_SRCRECT;
     SurfaceParams.bRenderTarget     = false;
-    SurfaceParams.MemObjCtl         = 
+    SurfaceParams.MemObjCtl         =
         pFast1toNState->SurfMemObjCtl.SourceSurfMemObjCtl;
     SurfaceParams.Type              = RENDERHAL_SURFACE_TYPE_ADV_G9;
     SurfaceParams.bWidthInDword_Y   = false;
     SurfaceParams.bWidthInDword_UV  = false;
     SurfaceParams.bWidth16Align     = false;
-    
+
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
                 pRenderHal,
-                pFast1toNState->pSource, 
-                &pFast1toNState->RenderHalSource, 
-                &SurfaceParams, 
-                pRenderData->iBindingTable, 
+                pFast1toNState->pSource,
+                &pFast1toNState->RenderHalSource,
+                &SurfaceParams,
+                pRenderData->iBindingTable,
                 FAST1TON_SRC_INDEX,
                 false));
 
     // Target surface
-    SurfaceParams.MemObjCtl         = 
+    SurfaceParams.MemObjCtl         =
         pFast1toNState->SurfMemObjCtl.TargetSurfMemObjCtl;
     SurfaceParams.Type              = pRenderHal->SurfaceTypeDefault;
     SurfaceParams.bRenderTarget     = true;
@@ -1056,10 +1058,10 @@ MOS_STATUS VpHal_Fast1toNSetupSurfaceStates(
 
             VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
                         pRenderHal,
-                        pFast1toNState->pTarget[index], 
-                        &pFast1toNState->RenderHalTarget[index], 
-                        &SurfaceParams, 
-                        pRenderData->iBindingTable, 
+                        pFast1toNState->pTarget[index],
+                        &pFast1toNState->RenderHalTarget[index],
+                        &SurfaceParams,
+                        pRenderData->iBindingTable,
                         iBTEntry,
                         true));
 
@@ -1072,10 +1074,10 @@ MOS_STATUS VpHal_Fast1toNSetupSurfaceStates(
             iBTEntry = (index == 0)?FAST1TON_DST_Y_INDEX0:((index == 1)?FAST1TON_DST_Y_INDEX1:FAST1TON_DST_Y_INDEX2);
             VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
                         pRenderHal,
-                        pFast1toNState->pTarget[index], 
-                        &pFast1toNState->RenderHalTarget[index], 
-                        &SurfaceParams, 
-                        pRenderData->iBindingTable, 
+                        pFast1toNState->pTarget[index],
+                        &pFast1toNState->RenderHalTarget[index],
+                        &SurfaceParams,
+                        pRenderData->iBindingTable,
                         iBTEntry,
                         true));
         }
@@ -1119,7 +1121,7 @@ MOS_STATUS VpHal_Fast1toNInitInterface(
 
     // States
     pFast1toNState->pKernelParamTable     = (PRENDERHAL_KERNEL_PARAM)g_fast1toN_MW_KernelParam;
-    pFast1toNState->bFtrMediaWalker       = 
+    pFast1toNState->bFtrMediaWalker       =
         pFast1toNState->pRenderHal->pfnGetMediaWalkerStatus(pFast1toNState->pRenderHal) ? true : false;
 
     pFast1toNState->pfnLoadStaticData     = VpHal_Fast1toNLoadStaticData;

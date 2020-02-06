@@ -657,7 +657,8 @@ MOS_STATUS Mhw_CalcPolyphaseTablesY(
     MOS_FORMAT      srcFmt,
     float           fHPStrength,
     bool            bUse8x8Filter,
-    uint32_t        dwHwPhase);
+    uint32_t        dwHwPhase,
+    float           fLanczosT);
 
 MOS_STATUS Mhw_CalcPolyphaseTablesUV(
     int32_t  *piCoefs,
