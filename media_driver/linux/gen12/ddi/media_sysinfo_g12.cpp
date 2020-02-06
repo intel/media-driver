@@ -198,6 +198,26 @@ static bool InitTglShadowWa(struct GfxDeviceInfo *devInfo,
     return true;
 }
 
+static struct GfxDeviceInfo tgllpGt1Info = {
+    .platformType  = PLATFORM_MOBILE,
+    .productFamily = IGFX_TIGERLAKE_LP,
+    .displayFamily = IGFX_GEN12_CORE,
+    .renderFamily  = IGFX_GEN12_CORE,
+    .eGTType       = GTTYPE_GT1,
+    .L3CacheSizeInKb = 0,
+    .L3BankCount   = 0,
+    .EUCount       = 0,
+    .SliceCount    = 0,
+    .SubSliceCount = 0,
+    .MaxEuPerSubSlice = 0,
+    .isLCIA        = 0,
+    .hasLLC        = 0,
+    .hasERAM       = 0,
+    .InitMediaSysInfo = InitTglMediaSysInfo,
+    .InitShadowSku    = InitTglShadowSku,
+    .InitShadowWa     = InitTglShadowWa,
+};
+
 static struct GfxDeviceInfo tgllpGt2Info = {
     .platformType  = PLATFORM_MOBILE,
     .productFamily = IGFX_TIGERLAKE_LP,
@@ -235,3 +255,6 @@ static bool tgllpGt2Device9a68 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool tgllpGt2Device9a70 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9A70, &tgllpGt2Info);
+
+static bool tgllpGt1Device9a78 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9A78, &tgllpGt1Info);
