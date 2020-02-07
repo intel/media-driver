@@ -798,6 +798,7 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
         pCommonStateHeapInterface->pStateHeapInterface = mhwInterfaces->m_stateHeapInterface;
         // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
         MOS_Delete(mhwInterfaces->m_miInterface);
+        MOS_Delete(mhwInterfaces->m_cpInterface);
         Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
         mhwInterfaces->m_cpInterface = NULL;
         MOS_Delete(mhwInterfaces);
