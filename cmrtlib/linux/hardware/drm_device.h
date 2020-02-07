@@ -602,7 +602,7 @@ static int parse_separate_sysfs_files(int maj, int min,
 
 
     for (unsigned i = ignore_revision ? 1 : 0; i < ARRAY_SIZE(attrs); i++) {
-        snprintf(path, PATH_MAX, "%s/%s", pci_path, attrs[i]);
+        snprintf(path, PATH_MAX + 128, "%s/%s", pci_path, attrs[i]);
 
         fp = fopen(path, "r");
         if (!fp)
@@ -631,7 +631,7 @@ static int parse_config_sysfs_file(int maj, int min,
 
     get_pci_path(maj, min, pci_path);
 
-    snprintf(path, PATH_MAX, "%s/config", pci_path);
+    snprintf(path, PATH_MAX + 128, "%s/config", pci_path);
 
     fd = open(path, O_RDONLY);
     if (fd < 0)
