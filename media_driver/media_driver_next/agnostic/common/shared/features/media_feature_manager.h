@@ -46,6 +46,7 @@ enum FeatureIDs
 
     reserve6,
     reserve7,
+    reserve8,
 
     // Decode specific feature
     decodePredication,
