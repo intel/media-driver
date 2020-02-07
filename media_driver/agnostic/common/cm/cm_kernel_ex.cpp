@@ -216,7 +216,7 @@ MOS_STATUS CmKernelEx::AllocateCurbe()
 
 MOS_STATUS CmKernelEx::AllocateCurbeAndFillImplicitArgs(CmThreadGroupSpace *globalGroupSpace)
 {
-    CmThreadGroupSpace *tgs = (globalGroupSpace == nullptr)?m_threadGroupSpace:globalGroupSpace;
+    CmThreadGroupSpace *tgs = (m_threadGroupSpace == nullptr)?globalGroupSpace:m_threadGroupSpace;
 
     uint32_t thrdSpaceWidth = 0;
     uint32_t thrdSpaceHeight = 0;
@@ -698,7 +698,7 @@ MOS_STATUS CmKernelEx::UpdateFastTracker(uint32_t trackerIndex, uint32_t tracker
 
 MOS_STATUS CmKernelEx::UpdateSWSBArgs(CmThreadSpaceRT *threadSpace)
 {
-    CmThreadSpaceRT *ts = (threadSpace == nullptr)?m_threadSpace:threadSpace;
+    CmThreadSpaceRT *ts = (m_threadSpace == nullptr)?threadSpace:m_threadSpace;
     if (ts == nullptr)
     {
         return MOS_STATUS_SUCCESS;

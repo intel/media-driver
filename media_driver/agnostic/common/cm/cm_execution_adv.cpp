@@ -307,11 +307,13 @@ int CmExecutionAdv::SubmitTask(CMRT_UMD::CmQueueRT *queue,
     CmThreadSpaceRT *threadSpaceRT = const_cast<CmThreadSpaceRT *>(threadSpaceRTConst);
     CmThreadSpaceRT *threadSpaces[CM_MAX_KERNELS_PER_TASK];
     MOS_ZeroMemory(threadSpaces, sizeof(threadSpaces));
-    if (threadSpaceRT == nullptr)
+
+    for (uint32_t i = 0; i < kernelCount; i++)
     {
-        for (uint32_t i = 0; i < kernelCount; i++)
+        threadSpaces[i] = kernels[i]->GetThreadSpaceEx();
+        if (threadSpaces[i] == nullptr)
         {
-            threadSpaces[i] = kernels[i]->GetThreadSpaceEx();
+            threadSpaces[i] = threadSpaceRT;
         }
     }
 
@@ -401,14 +403,7 @@ int CmExecutionAdv::SubmitTask(CMRT_UMD::CmQueueRT *queue,
 
     CM_TASK_CONFIG taskConfig;
     kernelArrayRT->GetProperty(taskConfig);
-    if (threadSpaceRT)
-    {
-        cmdBuf->AddMediaVFE(cmMediaState, taskConfig.fusedEuDispatchFlag == CM_FUSED_EU_ENABLE, &threadSpaceRT);  // global thread space
-    }
-    else
-    {
-        cmdBuf->AddMediaVFE(cmMediaState, taskConfig.fusedEuDispatchFlag == CM_FUSED_EU_ENABLE, threadSpaces, kernelCount);
-    }
+    cmdBuf->AddMediaVFE(cmMediaState, taskConfig.fusedEuDispatchFlag == CM_FUSED_EU_ENABLE, threadSpaces, kernelCount);
 
     cmdBuf->AddCurbeLoad(cmMediaState);
 
@@ -418,7 +413,7 @@ int CmExecutionAdv::SubmitTask(CMRT_UMD::CmQueueRT *queue,
     uint64_t conditionalBitMap = kernelArrayRT->GetConditionalEndBitmap();
     for (uint32_t i = 0; i < kernelCount; i ++)
     {
-        CmThreadSpaceRT *ts = (threadSpaceRT != nullptr) ? threadSpaceRT: threadSpaces[i];
+        CmThreadSpaceRT *ts = threadSpaces[i];
 
         // check whether need to insert a CBB
         bool needCBB = conditionalBitMap & ((uint64_t)1 << i);
@@ -686,11 +681,12 @@ int CmExecutionAdv::SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
 
     CmThreadGroupSpace *threadGroupSpaces[CM_MAX_KERNELS_PER_TASK];
     MOS_ZeroMemory(threadGroupSpaces, sizeof(threadGroupSpaces));
-    if (threadGroupSpace == nullptr)
+    for (uint32_t i = 0; i < kernelCount; i++)
     {
-        for (uint32_t i = 0; i < kernelCount; i++)
+        threadGroupSpaces[i] = kernels[i]->GetThreadGroupSpaceEx();
+        if (threadGroupSpaces[i] == nullptr)
         {
-            threadGroupSpaces[i] = kernels[i]->GetThreadGroupSpaceEx();
+            threadGroupSpaces[i] = const_cast<CmThreadGroupSpace *>(threadGroupSpace);
         }
     }
 
@@ -728,9 +724,7 @@ int CmExecutionAdv::SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
         kernels[i]->UpdateCurbe(ssh, cmMediaState, i);
         kernels[i]->UpdateFastTracker(queue->GetFastTrackerIndex(), tracker);
         cmMediaState->LoadCurbe(kernels[i], i);
-        CmThreadGroupSpace *tgs = (threadGroupSpace != nullptr) ?
-                                  const_cast<CmThreadGroupSpace *>(threadGroupSpace)
-                                  : threadGroupSpaces[i];
+        CmThreadGroupSpace *tgs = threadGroupSpaces[i];
         cmMediaState->LoadMediaID(kernels[i], i, ssh->GetBindingTableOffset(), tgs);
     }
 
@@ -787,7 +781,7 @@ int CmExecutionAdv::SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
     uint64_t conditionalBitMap = kernelArrayRT->GetConditionalEndBitmap();
     for (uint32_t i = 0; i < kernelCount; i ++)
     {
-        CmThreadGroupSpace *tgs = (threadGroupSpace != nullptr) ? const_cast<CmThreadGroupSpace *>(threadGroupSpace) : threadGroupSpaces[i];
+        CmThreadGroupSpace *tgs = threadGroupSpaces[i];
 
         // check whether need to insert a CBB
         bool needCBB = conditionalBitMap & ((uint64_t)1 << i);
