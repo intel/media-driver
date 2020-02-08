@@ -4058,6 +4058,14 @@ void  *MOS_AlignedAllocMemory(
 {
     void  *ptr;
 
+    if (g_apoMosEnabled)
+    {
+#if MOS_MESSAGES_ENABLED
+        return MosUtilities::MosAlignedAllocMemoryUtils(size, alignment, functionName, filename, line);
+#else
+        return MosUtilities::MosAlignedAllocMemory(size, alignment);
+#endif
+    }
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (MOS_SimulateAllocMemoryFail(size, alignment, functionName, filename, line))
     {
@@ -4100,6 +4108,15 @@ void MOS_AlignedFreeMemory(void  *ptr)
 {
     MOS_OS_ASSERT(ptr != nullptr);
 
+    if (g_apoMosEnabled)
+    {
+#if MOS_MESSAGES_ENABLED
+        return MosUtilities::MosAlignedFreeMemoryUtils(ptr, functionName, filename, line);
+#else
+        return MosUtilities::MosAlignedFreeMemory(ptr);
+#endif
+    }
+
     if(ptr != nullptr)
     {
         MOS_AtomicDecrement(&MosMemAllocCounter);
@@ -4130,6 +4147,15 @@ void  *MOS_AllocMemory(size_t size)
 #endif // MOS_MESSAGES_ENABLED
 {
     void  *ptr;
+
+    if (g_apoMosEnabled)
+    {
+#if MOS_MESSAGES_ENABLED
+        return MosUtilities::MosAllocMemoryUtils(size, functionName, filename, line);
+#else
+        return MosUtilities::MosAllocMemory(size);
+#endif
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (MOS_SimulateAllocMemoryFail(size, NO_ALLOC_ALIGNMENT, functionName, filename, line))
@@ -4173,6 +4199,15 @@ void  *MOS_AllocAndZeroMemory(size_t size)
 #endif // MOS_MESSAGES_ENABLED
 {
     void  *ptr;
+
+    if (g_apoMosEnabled)
+    {
+#if MOS_MESSAGES_ENABLED
+        return MosUtilities::MosAllocAndZeroMemoryUtils(size, functionName, filename, line);
+#else
+        return MosUtilities::MosAllocAndZeroMemory(size);
+#endif
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (MOS_SimulateAllocMemoryFail(size, NO_ALLOC_ALIGNMENT, functionName, filename, line))
@@ -4224,6 +4259,15 @@ void *MOS_ReallocMemory(
     void *oldPtr = nullptr;
     void *newPtr = nullptr;
 
+    if (g_apoMosEnabled)
+    {
+#if MOS_MESSAGES_ENABLED
+        return MosUtilities::MosReallocMemoryUtils(ptr, newSize, functionName, filename, line);
+#else
+        return MosUtilities::MosReallocMemory(ptr, newSize);
+#endif
+    }
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (MOS_SimulateAllocMemoryFail(newSize, NO_ALLOC_ALIGNMENT, functionName, filename, line))
     {
@@ -4273,6 +4317,14 @@ void MOS_FreeMemoryUtils(
 void MOS_FreeMemory(void  *ptr)
 #endif // MOS_MESSAGES_ENABLED
 {
+    if (g_apoMosEnabled)
+    {
+#if MOS_MESSAGES_ENABLED
+        return MosUtilities::MosFreeMemoryUtils(ptr, functionName, filename, line);
+#else
+        return MosUtilities::MosFreeMemory(ptr);
+#endif
+    }
     if(ptr != nullptr)
     {
         MOS_AtomicDecrement(&MosMemAllocCounter);

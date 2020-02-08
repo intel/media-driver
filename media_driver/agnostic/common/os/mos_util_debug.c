@@ -31,8 +31,6 @@
 #include "mos_utilities.h"
 #include "mos_util_debug_next.h"
 
-extern int32_t MosMemAllocCounterNoUserFeature;
-extern int32_t MosMemAllocCounterNoUserFeatureGfx;
 extern uint8_t MosUltFlag;
 
 //!

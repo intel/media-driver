@@ -2152,7 +2152,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
 
         if (!pParams->bBypassMODImpl)
         {
-            GraphicsResourceNext::SetMemAllocCounterGfx(MosMemAllocCounterGfx);
+            GraphicsResourceNext::SetMemAllocCounterGfx(MosUtilities::m_mosMemAllocCounterGfx);
         }
 
         eStatus = MosInterface::AllocateResource(pOsInterface->osStreamState, pParams, pOsResource);
@@ -2160,11 +2160,11 @@ MOS_STATUS Mos_Specific_AllocateResource(
 
         if (!pParams->bBypassMODImpl)
         {
-            MosMemAllocCounterGfx = GraphicsResourceNext::GetMemAllocCounterGfx();
+            MosUtilities::m_mosMemAllocCounterGfx = GraphicsResourceNext::GetMemAllocCounterGfx();
         }
         else
         {
-            MosMemAllocCounterGfx++;
+            MosUtilities::m_mosMemAllocCounterGfx++;
         }
         MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
         (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
@@ -2613,14 +2613,14 @@ void Mos_Specific_FreeResource(
 
         if (!byPassMod)
         {
-            GraphicsResourceNext::SetMemAllocCounterGfx(MosMemAllocCounterGfx);
+            GraphicsResourceNext::SetMemAllocCounterGfx(MosUtilities::m_mosMemAllocCounterGfx);
         }
 
         MosInterface::FreeResource(pOsInterface->osStreamState, pOsResource, 0);
 
         if (!byPassMod)
         {
-            MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+            MosUtilities::m_mosMemAllocCounterGfx = GraphicsResourceNext::GetMemAllocCounterGfx();
             MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
             MOS_ZeroMemory(pOsResource, sizeof(*pOsResource));
         }
@@ -2628,7 +2628,7 @@ void Mos_Specific_FreeResource(
             pOsInterface->pOsContext != nullptr &&
             pOsInterface->pOsContext->pGmmClientContext != nullptr)
         {
-            MosMemAllocCounterGfx--;
+            MosUtilities::m_mosMemAllocCounterGfx--;
             MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
 
             pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);

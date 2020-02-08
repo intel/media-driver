@@ -57,7 +57,7 @@ MOS_STATUS MosInterface::DestroyOsDeviceContext(MOS_DEVICE_HANDLE deviceContext)
     if (deviceContext)
     {
         deviceContext->CleanUp();
-        MosUtilities::MOS_Delete(deviceContext);
+        MOS_Delete(deviceContext);
         deviceContext = nullptr;
     }
 
@@ -73,7 +73,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(deviceContext);
 
-    *streamState = MosUtilities::MOS_New(MosStreamState);
+    *streamState = MOS_New(MosStreamState);
     (*streamState)->osDeviceContext = deviceContext;
 
     return MOS_STATUS_SUCCESS;
@@ -86,7 +86,7 @@ MOS_STATUS MosInterface::DestroyOsStreamState(
 
     MOS_OS_CHK_NULL_RETURN(streamState);
 
-    MosUtilities::MOS_Delete(streamState);
+    MOS_Delete(streamState);
     streamState = nullptr;
 
     return MOS_STATUS_SUCCESS;
@@ -1761,11 +1761,11 @@ MOS_STATUS MosInterface::CreateVirtualEngineState(
 
     if (veInitParms->bScalabilitySupported)
     {
-        streamState->virtualEngineInterface = MosUtilities::MOS_New(MosOsVeScalabilitySpecific);
+        streamState->virtualEngineInterface = MOS_New(MosOsVeScalabilitySpecific);
     }
     else
     {
-        streamState->virtualEngineInterface = MosUtilities::MOS_New(MosOsVeSinglePipeSpecific);
+        streamState->virtualEngineInterface = MOS_New(MosOsVeSinglePipeSpecific);
     }
     MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
 
@@ -1785,7 +1785,7 @@ MOS_STATUS MosInterface::DestroyVirtualEngineState(
     MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
 
     streamState->virtualEngineInterface->Destroy();
-    MosUtilities::MOS_Delete(streamState->virtualEngineInterface);
+    MOS_Delete(streamState->virtualEngineInterface);
 
     return MOS_STATUS_SUCCESS;
 }

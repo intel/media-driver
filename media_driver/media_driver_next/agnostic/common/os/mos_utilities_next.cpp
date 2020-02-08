@@ -38,15 +38,14 @@
 #if MOS_MESSAGES_ENABLED
 #include <time.h>     //for simulate random memory allcation failure
 #endif
-extern int32_t MosMemAllocCounterNoUserFeature;
-extern int32_t MosMemAllocCounterNoUserFeatureGfx;
-int32_t &MosUtilities::m_mosMemAllocCounterNoUserFeature            = MosMemAllocCounterNoUserFeature;
-int32_t &MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx         = MosMemAllocCounterNoUserFeatureGfx;
-uint8_t MosUtilities::m_mosUltFlag                                  = 0;
 
-int32_t &MosUtilities::m_mosMemAllocCounter                         = MosMemAllocCounter;
-int32_t &MosUtilities::m_mosMemAllocFakeCounter                     = MosMemAllocFakeCounter;
-int32_t &MosUtilities::m_mosMemAllocCounterGfx                      = MosMemAllocCounterGfx;
+int32_t MosUtilities::m_mosMemAllocCounterNoUserFeature            = 0;
+int32_t MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx         = 0;
+uint8_t MosUtilities::m_mosUltFlag                                 = 0;
+
+int32_t MosUtilities::m_mosMemAllocCounter                         = 0;
+int32_t MosUtilities::m_mosMemAllocFakeCounter                     = 0;
+int32_t MosUtilities::m_mosMemAllocCounterGfx                      = 0;
 
 MOS_FUNC_EXPORT void MosUtilities::MosSetUltFlag(uint8_t ultFlag)
 {
@@ -63,21 +62,16 @@ MOS_FUNC_EXPORT int32_t MosUtilities::MosGetMemNinjaCounterGfx()
     return m_mosMemAllocCounterNoUserFeatureGfx;
 }
 
-#define __MOS_USER_FEATURE_VALUE_SINGLE_SLICE_VEBOX_DEFAULT_VALUE "1"
 #define __MAX_MULTI_STRING_COUNT         128
 
 char MosUtilities::m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE] = {};
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
-extern uint32_t MosAllocMemoryFailSimulateMode;
-extern uint32_t MosAllocMemoryFailSimulateFreq;
-extern uint32_t MosAllocMemoryFailSimulateHint;
-extern uint32_t MosAllocMemoryFailSimulateAllocCounter;
-uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateMode = MosAllocMemoryFailSimulateMode;
-uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateFreq = MosAllocMemoryFailSimulateFreq;
-uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateHint = MosAllocMemoryFailSimulateHint;
-uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = MosAllocMemoryFailSimulateAllocCounter;
+uint32_t MosUtilities::m_mosAllocMemoryFailSimulateMode = 0;
+uint32_t MosUtilities::m_mosAllocMemoryFailSimulateFreq = 0;
+uint32_t MosUtilities::m_mosAllocMemoryFailSimulateHint = 0;
+uint32_t MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = 0;
 
 #define MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT (0)
 #define MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM (1)
@@ -86,8 +80,8 @@ uint32_t &MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = MosAllocMemor
 #define MIN_MEMORY_ALLOC_FAIL_FREQ (1)      //max memory allcation fail rate 100%
 #define MAX_MEMORY_ALLOC_FAIL_FREQ (10000)  //min memory allcation fail rate 1/10000
 
-#define MosAllocMemoryFailSimulationEnabled                                      \
-    (m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM || \
+#define MosAllocMemoryFailSimulationEnabled                                         \
+    (m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM ||  \
      m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE)
 
 void MosUtilities::MosInitAllocMemoryFailSimulateFlag()
@@ -132,7 +126,7 @@ void MosUtilities::MosInitAllocMemoryFailSimulateFlag()
         (userFeatureValueData.u32Data <= MAX_MEMORY_ALLOC_FAIL_FREQ))
     {
         m_mosAllocMemoryFailSimulateFreq = userFeatureValueData.u32Data;
-        MOS_OS_NORMALMESSAGE("Init MosSimulateRandomAllocMemoryFailFreq as %d \n ", m_mosAllocMemoryFailSimulateFreq);
+        MOS_OS_NORMALMESSAGE("Init m_MosSimulateRandomAllocMemoryFailFreq as %d \n ", m_mosAllocMemoryFailSimulateFreq);
 
         if (m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM)
         {
@@ -155,7 +149,7 @@ void MosUtilities::MosInitAllocMemoryFailSimulateFlag()
     if (userFeatureValueData.u32Data <= m_mosAllocMemoryFailSimulateFreq)
     {
         m_mosAllocMemoryFailSimulateHint = userFeatureValueData.u32Data;
-        MOS_OS_NORMALMESSAGE("Init MosAllocMemoryFailSimulateHint as %d \n ", m_mosAllocMemoryFailSimulateHint);
+        MOS_OS_NORMALMESSAGE("Init m_MosAllocMemoryFailSimulateHint as %d \n ", m_mosAllocMemoryFailSimulateHint);
     }
     else
     {
@@ -200,7 +194,7 @@ bool MosUtilities::MosSimulateAllocMemoryFail(
         {
             MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, \
                 "Simulated Allocate Memory Fail (hint=%d) for: functionName: %s, filename: %s, line: %d, size: %d \n", \
-                 m_mosAllocMemoryFailSimulateAllocCounter, functionName, filename, line, size, alignment);
+                 m_mosAllocMemoryFailSimulateHint, functionName, filename, line, size, alignment);
             bSimulateAllocFail = true;
         }
         else
@@ -210,7 +204,7 @@ bool MosUtilities::MosSimulateAllocMemoryFail(
     }
     else
     {
-        MOS_OS_NORMALMESSAGE("Invalid MosAllocMemoryFailSimulateMode: %d \n ", m_mosAllocMemoryFailSimulateMode);
+        MOS_OS_NORMALMESSAGE("Invalid m_MosAllocMemoryFailSimulateMode: %d \n ", m_mosAllocMemoryFailSimulateMode);
         bSimulateAllocFail = false;
     }
 
@@ -272,14 +266,14 @@ void MosUtilities::MosFreeUserFeatureValueString(PMOS_USER_FEATURE_VALUE_STRING 
 }
 
 #if MOS_MESSAGES_ENABLED
-void *MosUtilities::MOS_AlignedAllocMemoryUtils(
+void *MosUtilities::MosAlignedAllocMemoryUtils(
     size_t      size,
     size_t      alignment,
     const char  *functionName,
     const char  *filename,
     int32_t     line)
 #else
-void  *MosUtilities::MOS_AlignedAllocMemory(
+void  *MosUtilities::MosAlignedAllocMemory(
     size_t  size,
     size_t  alignment)
 #endif // MOS_MESSAGES_ENABLED
@@ -299,7 +293,7 @@ void  *MosUtilities::MOS_AlignedAllocMemory(
 
     if(ptr != nullptr)
     {
-        MosAtomicIncrement(&MosMemAllocCounter);
+        MosAtomicIncrement(&m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
@@ -307,20 +301,20 @@ void  *MosUtilities::MOS_AlignedAllocMemory(
 }
 
 #if MOS_MESSAGES_ENABLED
-void MosUtilities::MOS_AlignedFreeMemoryUtils(
+void MosUtilities::MosAlignedFreeMemoryUtils(
     void        *ptr,
     const char  *functionName,
     const char  *filename,
     int32_t     line)
 #else
-void MosUtilities::MOS_AlignedFreeMemory(void *ptr)
+void MosUtilities::MosAlignedFreeMemory(void *ptr)
 #endif // MOS_MESSAGES_ENABLED
 {
     MOS_OS_ASSERT(ptr != nullptr);
 
     if(ptr != nullptr)
     {
-        MosAtomicDecrement(&MosMemAllocCounter);
+        MosAtomicDecrement(&m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         _aligned_free(ptr);
@@ -328,13 +322,13 @@ void MosUtilities::MOS_AlignedFreeMemory(void *ptr)
 }
 
 #if MOS_MESSAGES_ENABLED
-void *MosUtilities::MOS_AllocMemoryUtils(
+void *MosUtilities::MosAllocMemoryUtils(
     size_t      size,
     const char  *functionName,
     const char  *filename,
     int32_t     line)
 #else
-void *MosUtilities::MOS_AllocMemory(size_t size)
+void *MosUtilities::MosAllocMemory(size_t size)
 #endif // MOS_MESSAGES_ENABLED
 {
     void  *ptr;
@@ -352,7 +346,7 @@ void *MosUtilities::MOS_AllocMemory(size_t size)
 
     if(ptr != nullptr)
     {
-        MosAtomicIncrement(&MosMemAllocCounter);
+        MosAtomicIncrement(&m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
@@ -360,13 +354,13 @@ void *MosUtilities::MOS_AllocMemory(size_t size)
 }
 
 #if MOS_MESSAGES_ENABLED
-void *MosUtilities::MOS_AllocAndZeroMemoryUtils(
+void *MosUtilities::MosAllocAndZeroMemoryUtils(
     size_t      size,
     const char  *functionName,
     const char  *filename,
     int32_t     line)
 #else
-void *MosUtilities::MOS_AllocAndZeroMemory(size_t size)
+void *MosUtilities::MosAllocAndZeroMemory(size_t size)
 #endif // MOS_MESSAGES_ENABLED
 {
     void  *ptr;
@@ -386,7 +380,7 @@ void *MosUtilities::MOS_AllocAndZeroMemory(size_t size)
     {
         MosZeroMemory(ptr, size);
 
-        MosAtomicIncrement(&MosMemAllocCounter);
+        MosAtomicIncrement(&m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
@@ -394,14 +388,14 @@ void *MosUtilities::MOS_AllocAndZeroMemory(size_t size)
 }
 
 #if MOS_MESSAGES_ENABLED
-void *MosUtilities::MOS_ReallocMemoryUtils(
+void *MosUtilities::MosReallocMemoryUtils(
     void       *ptr,
     size_t     newSize,
     const char *functionName,
     const char *filename,
     int32_t    line)
 #else
-void *MosUtilities::MOS_ReallocMemory(
+void *MosUtilities::MosReallocMemory(
     void       *ptr,
     size_t     newSize)
 #endif // MOS_MESSAGES_ENABLED
@@ -425,13 +419,13 @@ void *MosUtilities::MOS_ReallocMemory(
     {
         if (oldPtr != nullptr)
         {
-            MosAtomicDecrement(&MosMemAllocCounter);
+            MosAtomicDecrement(&m_mosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(oldPtr, functionName, filename, line);
         }
 
         if (newPtr != nullptr)
         {
-            MosAtomicIncrement(&MosMemAllocCounter);
+            MosAtomicIncrement(&m_mosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(newPtr, newSize, functionName, filename, line);
         }
     }
@@ -443,24 +437,24 @@ void *MosUtilities::MOS_ReallocMemory(
 //! \brief    Wrapper for free(). Performs error checking.
 //! \details  Wrapper for free(). Performs error checking.
 //!           It decreases memory allocation counter variable
-//!           MosMemAllocCounter for checking memory leaks.
+//!           m_mosMemAllocCounter for checking memory leaks.
 //! \param    void  *ptr
 //!           [in] Pointer to the memory to be freed
 //! \return   void
 //!
 #if MOS_MESSAGES_ENABLED
-void MosUtilities::MOS_FreeMemoryUtils(
+void MosUtilities::MosFreeMemoryUtils(
     void        *ptr,
     const char  *functionName,
     const char  *filename,
     int32_t     line)
 #else
-void MosUtilities::MOS_FreeMemory(void  *ptr)
+void MosUtilities::MosFreeMemory(void  *ptr)
 #endif // MOS_MESSAGES_ENABLED
 {
     if(ptr != nullptr)
     {
-        MosAtomicDecrement(&MosMemAllocCounter);
+        MosAtomicDecrement(&m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         free(ptr);

@@ -59,12 +59,12 @@ public:
 
 #if MOS_MESSAGES_ENABLED
     template<class _Ty, class... _Types>
-    static _Ty* MOS_NewUtil(const char *functionName,
+    static _Ty* MosNewUtil(const char *functionName,
         const char *filename,
         int32_t line, _Types&&... _Args)
 #else
     template<class _Ty, class... _Types>
-    static _Ty* MOS_NewUtil(_Types&&... _Args)
+    static _Ty* MosNewUtil(_Types&&... _Args)
 #endif
     {
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -77,7 +77,7 @@ public:
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
-            MosAtomicIncrement(&MosMemAllocCounter);
+            MosAtomicIncrement(&m_mosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
         }
         else
@@ -89,12 +89,12 @@ public:
 
 #if MOS_MESSAGES_ENABLED
     template<class _Ty, class... _Types>
-    static _Ty *MOS_NewArrayUtil(const char *functionName,
+    static _Ty *MosNewArrayUtil(const char *functionName,
         const char *filename,
         int32_t line, int32_t numElements)
 #else
     template<class _Ty, class... _Types>
-    static _Ty* MOS_NewArrayUtil(int32_t numElements)
+    static _Ty* MosNewArrayUtil(int32_t numElements)
 #endif
     {
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -107,7 +107,7 @@ public:
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
         if (ptr != nullptr)
         {
-            MosAtomicIncrement(&MosMemAllocCounter);
+            MosAtomicIncrement(&m_mosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
         }
         return ptr;
@@ -115,19 +115,19 @@ public:
 
 #if MOS_MESSAGES_ENABLED
     template<class _Ty> inline
-    static void MOS_DeleteUtil(
+    static void MosDeleteUtil(
         const char *functionName,
         const char *filename,
         int32_t     line,
         _Ty&        ptr)
 #else
     template<class _Ty> inline
-    static void MOS_DeleteUtil(_Ty& ptr)
+    static void MosDeleteUtil(_Ty& ptr)
 #endif
     {
         if (ptr != nullptr)
         {
-            MosAtomicDecrement(&MosMemAllocCounter);
+            MosAtomicDecrement(&m_mosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
             delete(ptr);
             ptr = nullptr;
@@ -136,19 +136,19 @@ public:
 
 #if MOS_MESSAGES_ENABLED
     template<class _Ty> inline
-    static void MOS_DeleteArrayUtil(
+    static void MosDeleteArrayUtil(
         const char *functionName,
         const char *filename,
         int32_t     line,
         _Ty&        ptr)
 #else
     template <class _Ty> inline
-    static void MOS_DeleteArrayUtil(_Ty& ptr)
+    static void MosDeleteArrayUtil(_Ty& ptr)
 #endif
     {
         if (ptr != nullptr)
         {
-            MosAtomicDecrement(&MosMemAllocCounter);
+            MosAtomicDecrement(&m_mosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
             delete[](ptr);
@@ -238,7 +238,7 @@ public:
     //! \brief    Allocates aligned memory and performs error checking
     //! \details  Wrapper for aligned_malloc(). Performs error checking.
     //!           It increases memory allocation counter variable
-    //!           MosMemAllocCounter for checking memory leaks.
+    //!           m_mosMemAllocCounter for checking memory leaks.
     //! \param    [in] size
     //!           Size of memorry to be allocated
     //! \param    [in] alignment
@@ -248,7 +248,7 @@ public:
     //!
     // APO_MOS_WRAPPER
 #if MOS_MESSAGES_ENABLED
-    static void *MOS_AlignedAllocMemoryUtils(
+    static void *MosAlignedAllocMemoryUtils(
         size_t     size,
         size_t     alignment,
         const char *functionName,
@@ -257,7 +257,7 @@ public:
 
 #else // !MOS_MESSAGES_ENABLED
 
-    static void *MOS_AlignedAllocMemory(
+    static void *MosAlignedAllocMemory(
         size_t  size,
         size_t  alignment);
 
@@ -268,13 +268,13 @@ public:
     //! \details  Wrapper for aligned_free() - Free a block of memory that was allocated by MOS_AlignedAllocMemory.
     //!             Performs error checking.
     //!           It decreases memory allocation counter variable
-    //!           MosMemAllocCounter for checking memory leaks.
+    //!           m_mosMemAllocCounter for checking memory leaks.
     //! \param    [in] ptr
     //!           Pointer to the memory to be freed
     //! \return   void
     //!
 #if MOS_MESSAGES_ENABLED
-    static void MOS_AlignedFreeMemoryUtils(
+    static void MosAlignedFreeMemoryUtils(
         void        *ptr,
         const char  *functionName,
         const char  *filename,
@@ -282,7 +282,7 @@ public:
 
 #else // !MOS_MESSAGES_ENABLED
 
-    static void MOS_AlignedFreeMemory(void *ptr);
+    static void MosAlignedFreeMemory(void *ptr);
 
 #endif // MOS_MESSAGES_ENABLED
 
@@ -290,7 +290,7 @@ public:
     //! \brief    Allocates memory and performs error checking
     //! \details  Wrapper for malloc(). Performs error checking.
     //!           It increases memory allocation counter variable
-    //!           MosMemAllocCounter for checking memory leaks.
+    //!           m_mosMemAllocCounter for checking memory leaks.
     //! \param    [in] size
     //!           Size of memorry to be allocated
     //! \return   void *
@@ -298,7 +298,7 @@ public:
     //!
     // APO_MOS_WRAPPER
 #if MOS_MESSAGES_ENABLED
-    static void *MOS_AllocMemoryUtils(
+    static void *MosAllocMemoryUtils(
         size_t     size,
         const char *functionName,
         const char *filename,
@@ -306,7 +306,7 @@ public:
 
 #else // !MOS_MESSAGES_ENABLED
 
-    static void *MOS_AllocMemory(
+    static void *MosAllocMemory(
         size_t  size);
 
 #endif // MOS_MESSAGES_ENABLED
@@ -316,21 +316,21 @@ public:
     //! \details  Wrapper for malloc(). Performs error checking,
     //!           and fills the allocated memory with 0.
     //!           It increases memory allocation counter variable
-    //!           MosMemAllocCounter for checking memory leaks.
+    //!           m_mosMemAllocCounter for checking memory leaks.
     //! \param    [in] size
     //!           Size of memorry to be allocated
     //! \return   void *
     //!           Pointer to allocated memory
     //!
 #if MOS_MESSAGES_ENABLED
-    static void *MOS_AllocAndZeroMemoryUtils(
+    static void *MosAllocAndZeroMemoryUtils(
         size_t     size,
         const char *functionName,
         const char *filename,
         int32_t    line);
 
 #else // !MOS_MESSAGES_ENABLED
-    static void *MOS_AllocAndZeroMemory(
+    static void *MosAllocAndZeroMemory(
         size_t                   size);
 #endif // MOS_MESSAGES_ENABLED
 
@@ -338,7 +338,7 @@ public:
     //! \brief    Reallocate memory
     //! \details  Wrapper for realloc(). Performs error checking.
     //!           It modifies memory allocation counter variable
-    //!           MosMemAllocCounter for checking memory leaks.
+    //!           m_mosMemAllocCounter for checking memory leaks.
     //! \param    [in] ptr
     //!           Pointer to be reallocated
     //! \param    [in] new_size
@@ -347,7 +347,7 @@ public:
     //!           Pointer to allocated memory
     //!
 #if MOS_MESSAGES_ENABLED
-    static void *MOS_ReallocMemoryUtils(
+    static void *MosReallocMemoryUtils(
         void       *ptr,
         size_t     newSize,
         const char *functionName,
@@ -355,7 +355,7 @@ public:
         int32_t    line);
 
 #else // !MOS_MESSAGES_ENABLED
-    static void *MOS_ReallocMemory(
+    static void *MosReallocMemory(
         void       *ptr,
         size_t     newSize);
 #endif // MOS_MESSAGES_ENABLED
@@ -364,21 +364,21 @@ public:
     //! \brief    Wrapper for free(). Performs error checking.
     //! \details  Wrapper for free(). Performs error checking.
     //!           It decreases memory allocation counter variable
-    //!           MosMemAllocCounter for checking memory leaks.
+    //!           m_mosMemAllocCounter for checking memory leaks.
     //! \param    [in] ptr
     //!           Pointer to the memory to be freed
     //! \return   void
     //!
     // APO_MOS_WRAPPER
 #if MOS_MESSAGES_ENABLED
-    static void MOS_FreeMemoryUtils(
+    static void MosFreeMemoryUtils(
         void       *ptr,
         const char *functionName,
         const char *filename,
         int32_t    line);
 
 #else // !MOS_MESSAGES_ENABLED
-    static void MOS_FreeMemory(
+    static void MosFreeMemory(
         void            *ptr);
 #endif // MOS_MESSAGES_ENABLED
 
@@ -2397,13 +2397,13 @@ private:
 
 public:
     static uint8_t                      m_mosUltFlag;
-    static int32_t                      &m_mosMemAllocCounterNoUserFeature;
-    static int32_t                      &m_mosMemAllocCounterNoUserFeatureGfx;
+    static int32_t                      m_mosMemAllocCounterNoUserFeature;
+    static int32_t                      m_mosMemAllocCounterNoUserFeatureGfx;
 
     //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
-    static int32_t                      &m_mosMemAllocCounter;
-    static int32_t                      &m_mosMemAllocFakeCounter;
-    static int32_t                      &m_mosMemAllocCounterGfx;
+    static int32_t                      m_mosMemAllocCounter;
+    static int32_t                      m_mosMemAllocFakeCounter;
+    static int32_t                      m_mosMemAllocCounterGfx;
 
 private:
     static MosMutex                     m_mutexLock;
@@ -2415,10 +2415,10 @@ private:
     static MediaUserSettingsMgr*        m_vpUserFeatureExt;
 #endif
 #if (_DEBUG || _RELEASE_INTERNAL)
-    static uint32_t                     &m_mosAllocMemoryFailSimulateMode;
-    static uint32_t                     &m_mosAllocMemoryFailSimulateFreq;
-    static uint32_t                     &m_mosAllocMemoryFailSimulateHint;
-    static uint32_t                     &m_mosAllocMemoryFailSimulateAllocCounter;
+    static uint32_t                     m_mosAllocMemoryFailSimulateMode;
+    static uint32_t                     m_mosAllocMemoryFailSimulateFreq;
+    static uint32_t                     m_mosAllocMemoryFailSimulateHint;
+    static uint32_t                     m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
     static MOS_USER_FEATURE_KEY_PATH_INFO m_mosUtilUserFeatureKeyPathInfo;
 };
