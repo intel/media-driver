@@ -309,8 +309,6 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
 
-    MEDIA_WR_WA(waTable, Wa_1809012548, 1);
-
     return true;
 }
 

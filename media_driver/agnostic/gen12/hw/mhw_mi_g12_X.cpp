@@ -29,39 +29,6 @@
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "media_skuwa_specific.h"
 
-MhwMiInterfaceG12::MhwMiInterfaceG12(
-    MhwCpInterface      *cpInterface,
-    PMOS_INTERFACE      osInterface) :
-    MhwMiInterfaceGeneric(cpInterface, osInterface)
-{
-    MHW_FUNCTION_ENTER;
-    InitMmioRegisters();
-
-    MOS_ALLOC_GFXRES_PARAMS allocParams;
-    MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParams.Type            = MOS_GFXRES_BUFFER;
-    allocParams.TileType        = MOS_TILE_LINEAR;
-    allocParams.Format          = Format_Buffer;
-    allocParams.dwBytes         = sizeof(uint64_t);
-    allocParams.pBufName        = "TempCondEndBuffer";
-    allocParams.bIsPersistent   = true;
-    MOS_ZeroMemory(m_tempCondEndBuffer, sizeof(m_tempCondEndBuffer));
-    for (auto i = 0; i < m_tempCondEndBufferNum; i++)
-    {
-        m_osInterface->pfnAllocateResource(m_osInterface, &allocParams, &(m_tempCondEndBuffer[i]));
-    }
-}
-
-MhwMiInterfaceG12::~MhwMiInterfaceG12()
-{
-    MHW_FUNCTION_ENTER;
-
-    for (auto i = 0; i < m_tempCondEndBufferNum; i++)
-    {
-        m_osInterface->pfnFreeResource(m_osInterface, &(m_tempCondEndBuffer[i]));
-    }
-}
-
 MOS_STATUS MhwMiInterfaceG12::AddMiSemaphoreWaitCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
     PMHW_MI_SEMAPHORE_WAIT_PARAMS   params)
@@ -135,54 +102,6 @@ MOS_STATUS MhwMiInterfaceG12::AddMiConditionalBatchBufferEndCmd(
     // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP 
     //          but after end of conditional batch buffer CP will be re-enabled.
     MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(m_osInterface, cmdBuffer));
-
-    auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-    MHW_MI_CHK_NULL(waTable);
-
-    bool vcsEngineUsed = MOS_VCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface));
-
-    // Since command MI_CONDITIONAL_BATCH_BUFFER_END can only access the bottom half of each cache line due to VDBOX limitation,
-    // copy the data buffer to temporal aligned buffer for conditianl batch buffer end command.
-    MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS tempParams;
-    if (vcsEngineUsed)
-    {
-        uint32_t tempBufIdx = m_tempCondEndBufferIdx % m_tempCondEndBufferNum;
-        m_tempCondEndBufferIdx++;
-        MHW_ASSERT(!Mos_ResourceIsNull(&(m_tempCondEndBuffer[tempBufIdx])));
-
-        MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
-        MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
-        miCpyMemMemParams.presSrc = params->presSemaphoreBuffer;
-        miCpyMemMemParams.dwSrcOffset = params->dwOffset;
-        miCpyMemMemParams.presDst = &(m_tempCondEndBuffer[tempBufIdx]);
-        miCpyMemMemParams.dwDstOffset = 0;
-        MHW_MI_CHK_STATUS(AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
-        if (!params->bDisableCompareMask)
-        {
-            MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
-            miCpyMemMemParams.presSrc = params->presSemaphoreBuffer;
-            miCpyMemMemParams.dwSrcOffset = params->dwOffset + sizeof(uint32_t);
-            miCpyMemMemParams.presDst = &(m_tempCondEndBuffer[tempBufIdx]);
-            miCpyMemMemParams.dwDstOffset = sizeof(uint32_t);
-            MHW_MI_CHK_STATUS(AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
-        }
-
-        if (params->dwParamsType == MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS::ENHANCED_PARAMS)
-        {
-            MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-                &tempParams, sizeof(MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS),
-                params, sizeof(MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS)));
-        }
-        else
-        {
-            MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
-                &tempParams, sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS),
-                params, sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS)));
-        }
-        tempParams.presSemaphoreBuffer = &(m_tempCondEndBuffer[tempBufIdx]);
-        tempParams.dwOffset = 0;
-        params = &tempParams;
-    }
 
     mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD cmd;
     cmd.DW0.UseGlobalGtt        = IsGlobalGttInUse();
