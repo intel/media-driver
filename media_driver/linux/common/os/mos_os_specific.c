@@ -1353,8 +1353,7 @@ MOS_STATUS Linux_InitContext(
     }
 
     pContext->bUse64BitRelocs = true;
-    pContext->bUseSwSwizzling = MEDIA_IS_SKU(&pContext->SkuTable, FtrSimulationMode)
-                             || MEDIA_IS_SKU(&pContext->SkuTable, FtrUseSwSwizzling);
+    pContext->bUseSwSwizzling = pContext->bSimIsActive || MEDIA_IS_SKU(&pContext->SkuTable, FtrUseSwSwizzling);
     pContext->bTileYFlag      = MEDIA_IS_SKU(&pContext->SkuTable, FtrTileY);
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
@@ -6963,6 +6962,17 @@ MOS_STATUS Mos_Specific_InitInterface(
         pOsContext->pGmmClientContext = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
+        &UserFeatureData);
+    pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
+#endif
+    pOsDriverContext->bSimIsActive = pOsInterface->bSimIsActive != 0 ? true : false;
+    pOsContext->bSimIsActive = pOsInterface->bSimIsActive;
+
     // Initialize
     modularizedGpuCtxEnabled = pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled();
     eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(), modularizedGpuCtxEnabled);
@@ -7150,7 +7160,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     // Check SKU table to detect if simulation environment (HAS) is enabled
     pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
     MOS_OS_CHK_NULL(pSkuTable);
-    pOsInterface->bSimIsActive = MEDIA_IS_SKU(pSkuTable, FtrSimulationMode);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // read the "Force VDBOX" user feature key

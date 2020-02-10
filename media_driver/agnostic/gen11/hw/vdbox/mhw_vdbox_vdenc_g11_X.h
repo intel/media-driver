@@ -243,7 +243,7 @@ public:
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
-        if (MEDIA_IS_SKU(skuTable, FtrSimulationMode))
+        if (this->m_osInterface->bSimIsActive)
         {
             // Disable RowStore Cache on simulation by default
             userFeatureData.u32Data = 1;

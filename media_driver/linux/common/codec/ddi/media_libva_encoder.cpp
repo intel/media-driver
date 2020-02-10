@@ -342,7 +342,8 @@ VAStatus DdiEncode_CreateContext(
         DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
-
+    mediaDrvCtx->m_useSwSwizzling = (pCodecHal->GetOsInterface()->bSimIsActive != 0 ? true : false) ||
+                                    MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrUseSwSwizzling);
     encCtx->pCodecHal = pCodecHal;
 
     // Setup some initial data

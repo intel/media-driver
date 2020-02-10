@@ -755,6 +755,7 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->veDefaultEnable       = true;
 
     pOsInterface->streamIndex = 0;
+    pOsInterface->bSimIsActive = 0;
 
     eStatus = Mos_Specific_InitInterface(pOsInterface, pOsDriverContext);
     if (eStatus != MOS_STATUS_SUCCESS)
