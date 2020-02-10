@@ -297,10 +297,11 @@ void MOS_DeleteUtil(_Ty& ptr)
     if (g_apoMosEnabled)
     {
 #if MOS_MESSAGES_ENABLED
-        return MosUtilities::MosDeleteUtil<_Ty>(functionName, filename, line, ptr);
+        MosUtilities::MosDeleteUtil<_Ty>(functionName, filename, line, ptr);
 #else
-        return MosUtilities::MosDeleteUtil<_Ty>(ptr);
+        MosUtilities::MosDeleteUtil<_Ty>(ptr);
 #endif
+        return;
     }
 
     if (ptr != nullptr)
@@ -327,10 +328,11 @@ void MOS_DeleteArrayUtil(_Ty& ptr)
     if (g_apoMosEnabled)
     {
 #if MOS_MESSAGES_ENABLED
-        return MosUtilities::MosDeleteArrayUtil<_Ty>(functionName, filename, line, ptr);
+        MosUtilities::MosDeleteArrayUtil<_Ty>(functionName, filename, line, ptr);
 #else
-        return MosUtilities::MosDeleteArrayUtil<_Ty>(ptr);
+        MosUtilities::MosDeleteArrayUtil<_Ty>(ptr);
 #endif
+        return;
     }
     if (ptr != nullptr)
     {
