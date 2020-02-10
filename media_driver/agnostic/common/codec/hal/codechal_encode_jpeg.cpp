@@ -592,6 +592,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecutePictureLevel()
     MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
     surfaceParams.Mode      = m_mode;
     surfaceParams.psSurface = &m_rawSurface; // original picture to be encoded
+    surfaceParams.ucSurfaceStateId = CODECHAL_MFX_SRC_SURFACE_ID;
 
     // set MFX_PIPE_BUF_ADDR_STATE
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
