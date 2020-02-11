@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -192,10 +192,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
             __u16 engine_class = (GpuNode == MOS_GPU_NODE_VE)? I915_ENGINE_CLASS_VIDEO_ENHANCE : I915_ENGINE_CLASS_VIDEO;
             __u64 caps = 0;
 
-            if (m_createOptionEnhanced->UsingSFC)
-            {
-                caps |= I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC;
-            }
+            SetEngineQueryFlags(createOption, caps);
 
             MOS_ZeroMemory(engine_map, sizeof(engine_map));
             if (mos_query_engines(osInterface->pOsContext->fd,engine_class,caps,&nengine,engine_map))

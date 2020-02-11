@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -206,6 +206,14 @@ protected:
                                PMOS_CONTEXT osContext,
                                uint32_t execFlag,
                                int32_t dr4);
+
+    //!
+    //! \brief    Set the flags of engin quering according to create options
+    //! \return   void
+    //!
+    void SetEngineQueryFlags(
+        PMOS_GPUCTX_CREATOPTIONS option,
+        __u64 &caps);
 
 private:
     //! \brief    internal command buffer pool per gpu context
