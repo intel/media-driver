@@ -525,7 +525,8 @@ static int parse_separate_sysfs_files(int maj, int min,
         "subsystem_vendor",
         "subsystem_device",
     };
-    char path[PATH_MAX + 128], pci_path[PATH_MAX + 1];
+
+    char path[PATH_MAX + 128], pci_path[PATH_MAX];
     char resourcename[PATH_MAX + 64], driverpath[PATH_MAX + 64], drivername[PATH_MAX + 64], irqpath[PATH_MAX + 64];
 
     unsigned int data[ARRAY_SIZE(attrs)];
@@ -602,7 +603,7 @@ static int parse_separate_sysfs_files(int maj, int min,
 
 
     for (unsigned i = ignore_revision ? 1 : 0; i < ARRAY_SIZE(attrs); i++) {
-        snprintf(path, PATH_MAX, "%s/%s", pci_path, attrs[i]);
+        snprintf(path, PATH_MAX + 128, "%s/%s", pci_path, attrs[i]);
 
         fp = fopen(path, "r");
         if (!fp)
@@ -625,13 +626,13 @@ static int parse_separate_sysfs_files(int maj, int min,
 static int parse_config_sysfs_file(int maj, int min,
     drmPciDeviceInfoPtr device)
 {
-    char path[PATH_MAX + 128], pci_path[PATH_MAX + 1];
+    char path[PATH_MAX + 128], pci_path[PATH_MAX];
     unsigned char config[64];
     int fd, ret;
 
     get_pci_path(maj, min, pci_path);
 
-    snprintf(path, PATH_MAX, "%s/config", pci_path);
+    snprintf(path, PATH_MAX + 128, "%s/config", pci_path);
 
     fd = open(path, O_RDONLY);
     if (fd < 0)
