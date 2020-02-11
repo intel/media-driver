@@ -443,11 +443,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
     }
-    if(IsHevcProfile(profile))
-    {
-        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
-    }
-    if(IsAvcProfile(profile) || IsVp8Profile(profile))
+    if(IsHevcProfile(profile) || IsAvcProfile(profile) || IsVp8Profile(profile))
     {
         attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
@@ -459,11 +455,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
     }
-    if(IsHevcProfile(profile))
-    {
-        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
-    }
-    if(IsAvcProfile(profile) || IsVp8Profile(profile))
+    if(IsHevcProfile(profile) || IsAvcProfile(profile) || IsVp8Profile(profile))
     {
         attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
