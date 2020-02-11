@@ -473,11 +473,9 @@ MOS_STATUS VpHal_ReAllocateSurface(
     // Get surface information
     MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
-    // Pre-set to get surface info
-    pSurface->Format = Format;
-
     VPHAL_PUBLIC_CHK_STATUS(VpHal_GetSurfaceInfo(pOsInterface, &Info, pSurface));
 
+    pSurface->Format = Format;
     *pbAllocated     = true;
 
 finish:
