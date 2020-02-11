@@ -80,7 +80,8 @@ void MhwVdboxMfxInterfaceG12::InitRowstoreUserFeatureSettings()
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    if (m_osInterface->bSimIsActive)
+
+    if (MEDIA_IS_SKU(m_skuTable, FtrSimulationMode))
     {
         // GEN12 can support row store cache
         userFeatureData.u32Data = 1;
@@ -766,19 +767,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxPipeBufAddrCmd(
     resourceParams.HwCommandType = MOS_MFX_PIPE_BUF_ADDR;
 
     mhw_vdbox_mfx_g12_X::MFX_PIPE_BUF_ADDR_STATE_CMD cmd;
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
-    if (m_intraRowstoreCache.bEnabled               ||
-        m_deblockingFilterRowstoreCache.bEnabled    ||
-        m_bsdMpcRowstoreCache.bEnabled              ||
-        m_mprRowstoreCache.bEnabled)
-    {
-        UserFeatureWriteData.Value.i32Data = 1;
-    }
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
-#endif
 
     // Encoding uses both surfaces regardless of deblocking status
     if (params->psPreDeblockSurface != nullptr)

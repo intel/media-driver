@@ -1050,8 +1050,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         return vaStatus;
     }
-    mediaCtx->m_useSwSwizzling = (decoder->GetOsInterface()->bSimIsActive != 0 ? true : false) ||
-                                 MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
     m_ddiDecodeCtx->pCodecHal = codecHal;
 
     m_codechalSettings->enableCodecMmc = false;

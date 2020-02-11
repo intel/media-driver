@@ -362,7 +362,8 @@ void MhwVdboxHcpInterfaceG12::InitRowstoreUserFeatureSettings()
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    if (m_osInterface->bSimIsActive)
+
+    if (MEDIA_IS_SKU(m_skuTable, FtrSimulationMode))
     {
         // GEN12 can support row store cache
         userFeatureData.u32Data = 1;
@@ -1665,22 +1666,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
     MHW_RESOURCE_PARAMS resourceParams;
     MOS_SURFACE details;
     mhw_vdbox_hcp_g12_X::HCP_PIPE_BUF_ADDR_STATE_CMD cmd;
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
-    if (m_hevcDatRowStoreCache.bEnabled     ||
-        m_hevcDfRowStoreCache.bEnabled      ||
-        m_hevcSaoRowStoreCache.bEnabled     ||
-        m_hevcHSaoRowStoreCache.bEnabled    ||
-        m_vp9HvdRowStoreCache.bEnabled      ||
-        m_vp9DatRowStoreCache.bEnabled      ||
-        m_vp9DfRowStoreCache.bEnabled)
-    {
-        UserFeatureWriteData.Value.i32Data = 1;
-    }
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
-#endif
 
     MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
 
