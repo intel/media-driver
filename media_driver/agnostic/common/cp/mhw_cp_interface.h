@@ -90,6 +90,15 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS RefreshCounter(
+        PMOS_INTERFACE osInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        MOS_UNUSED(osInterface);
+        MOS_UNUSED(cmdBuffer);
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual bool IsHWCounterAutoIncrementEnforced(
         PMOS_INTERFACE osInterface)
     {

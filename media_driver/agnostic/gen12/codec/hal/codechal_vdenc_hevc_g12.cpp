@@ -2841,7 +2841,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
             // HCP_PIPE_MODE_SELECT
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(tempCmdBuf, pipeModeSelectParams));
 
-            // 3nd level batch buffer
+            // 3rd level batch buffer
             if (m_hevcVdencAcqpEnabled || m_brcEnabled)
             {
                 HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource, 0, true, 0);
@@ -3283,6 +3283,19 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                         (PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS)(&miEnhancedConditionalBatchBufferEndParams)));
                 }
 
+                // counter should be read after conditional batch buffer
+                // in case second pass is not executed then counter should not be read
+                if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+                {
+                    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
+
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->ReadEncodeCounterFromHW(
+                        m_osInterface,
+                        &tileBatchBuf,
+                        &m_resHwCountTileReplay,
+                        (uint16_t)idx));
+                }
+
                 // Construct the tile batch
                 // To be moved to one sub function later
                 // HCP Lock for multiple pipe mode
@@ -3425,6 +3438,12 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                         0xFF));
             }
 
+            //turn on protection again in case conditionalbatchbufferexit turns off the protection
+            if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->AddProlog(m_osInterface, &cmdBuffer));
+            }
+
             // Run tile row based BRC on pipe 0
             if (IsFirstPipe() && (!IsLastPassForTileReplay()))
             {
@@ -3444,6 +3463,18 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcTileRowUpdate(&cmdBuffer));
             }
+
+            //turn on protection again in case conditionalbatchbufferexit turns off the protection
+            if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->AddProlog(m_osInterface, &cmdBuffer));
+            }
+
+            //Refresh counter after every tilerowpass
+            if (m_tileRowPass < m_NumPassesForTileReplay - 1)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->RefreshCounter(m_osInterface, &cmdBuffer));
+            }
         } 
 
         // Update head pointer for capture mode
@@ -3455,7 +3486,13 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
             registerImmParams.dwRegister  = m_VdboxVDENCRegBase[currentPipe] + 0x90;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &registerImmParams));
         }
-    } 
+
+        //refresh encode counter after every rowpass
+        if (tileRow < numTileRows - 1)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->RefreshCounter(m_osInterface, &cmdBuffer));
+        }
+    }
 
     m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
 
