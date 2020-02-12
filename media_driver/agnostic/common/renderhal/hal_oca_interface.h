@@ -197,6 +197,19 @@ public:
     //!
     static void DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper);
 
+    //!
+    //! \brief  Add cp parameters to oca log section.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
+    //! \param  [in] mosContext
+    //!         Reference to MOS_CONTEXT.
+    //! \param  [in] pCpDumper
+    //!         Pointer to cp dumper object.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void DumpCpParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pCpDumper);
+
 private:
     //!
     //! \brief  Error handle function.

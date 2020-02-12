@@ -213,6 +213,10 @@ void HalOcaInterface::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT 
 {
 }
 
+void HalOcaInterface::DumpCpParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pCpDumper)
+{
+}
+
 void HalOcaInterface::OnOcaError(MOS_STATUS status, const char *functionName, uint32_t lineNumber)
 {
 }
