@@ -230,6 +230,8 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     MOS_OS_ASSERTMESSAGE("Allocate CmdBuf#%d failed", i);
+                    cmdBuf->Free();
+                    MOS_Delete(cmdBuf);
                     continue;
                 }
 
