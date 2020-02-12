@@ -1062,7 +1062,12 @@ VAStatus DdiEncodeVp9::ReportExtraStatus(
     codedBufStatus->next_frame_width = encodeStatusReport->NextFrameWidthMinus1 + 1;
     codedBufStatus->next_frame_height = encodeStatusReport->NextFrameHeightMinus1 + 1;
 
-    codedBufferSegment->next = codedBufStatus;
+    /*
+     * Ignore the private status buffer temporarily. According to the comment for VACodedBufferVP9Status in VA-API,
+     * driver must set codedBufferSegment->status to be VA_CODED_BUF_STATUS_CODEC_SPECIFIC, however
+     * VA_CODED_BUF_STATUS_CODEC_SPECIFIC is not defined in VA-API
+     */
+    // codedBufferSegment->next = codedBufStatus;
 
     return vaStatus;
 }
