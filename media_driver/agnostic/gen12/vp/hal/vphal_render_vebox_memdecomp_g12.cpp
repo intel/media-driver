@@ -28,6 +28,7 @@
 #include "vphal_render_vebox_memdecomp_g12.h"
 #include "mhw_vebox_hwcmd_g12_X.h"
 #include "mhw_vebox_g12_X.h"
+#include "hal_oca_interface.h"
 
 MediaVeboxDecompStateG12::MediaVeboxDecompStateG12() :
     MediaVeboxDecompState()
@@ -44,6 +45,8 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     MHW_MI_FLUSH_DW_PARAMS              flushDwParams;
     uint32_t                            streamID = 0;
     const MHW_VEBOX_HEAP                *veboxHeap = nullptr;
+    MOS_CONTEXT *                       pOsContext     = nullptr;
+    PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(surface);
 
@@ -62,6 +65,9 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     }
 
     veboxInterface = m_veboxInterface;
+
+    pOsContext     = m_osInterface->pOsContext;
+    pMmioRegisters = m_mhwMiInterface->GetMmioRegisters();
 
     m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
 
@@ -86,6 +92,9 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *pOsContext, m_osInterface->CurrentGpuContextHandle, *m_mhwMiInterface, *pMmioRegisters);
+
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(InitCommandBuffer(&cmdBuffer));
 
     // Prepare Vebox_Surface_State, surface input/and output are the same but the compressed status.
@@ -129,6 +138,13 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
             &cmdBuffer,
             &flushDwParams));
     }
+
+    if (m_osInterface->osCpInterface->IsHMEnabled())
+    {
+        HalOcaInterface::DumpCpParam(cmdBuffer, *pOsContext, m_osInterface->osCpInterface->GetOcaDumper());
+    }
+
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *pOsContext);
 
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_mhwMiInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
