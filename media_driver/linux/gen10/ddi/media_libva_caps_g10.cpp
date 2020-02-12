@@ -129,6 +129,7 @@ VAStatus MediaLibvaCapsG10::GetPlatformSpecificAttrib(VAProfile profile,
 {
     DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     VAStatus status = VA_STATUS_SUCCESS;
+    *value = VA_ATTRIB_NOT_SUPPORTED;
     switch ((int)type)
     {
         case VAConfigAttribEncMaxRefFrames:
