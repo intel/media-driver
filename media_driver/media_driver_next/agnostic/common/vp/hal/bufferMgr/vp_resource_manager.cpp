@@ -134,7 +134,8 @@ extern const VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION g_cInit_VEBOX_SPATIAL_ATTRIB
     }
 };
 
-VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator) : m_osInterface(osInterface), m_allocator(allocator)
+VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting)
+    : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting)
 {
 }
 
@@ -287,6 +288,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                     {
                         caps.bRefValid = false;
                     }
+                    // Report Compress Status
+                    m_reporting.FFDNCompressible = bSurfCompressible;
+                    m_reporting.FFDNCompressMode = (uint8_t)(surfCompressionMode);
                 }
                 else
                 {
@@ -341,8 +345,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
 
             if (bAllocated)
             {
-
                 // Report Compress Status
+                m_reporting.STMMCompressible = bSurfCompressible;
+                m_reporting.STMMCompressMode = (uint8_t)(surfCompressionMode);
             }
         }
     }

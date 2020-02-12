@@ -253,7 +253,8 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
 
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
-    m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator); 
+    VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
+    m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator, *m_reporting); 
     VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
     m_featureManager = MOS_New(VpFeatureManagerNext, *m_allocator, m_resourceManager, m_pvpMhwInterface);
     VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());

@@ -261,7 +261,7 @@ namespace vp {
 class VpResourceManager
 {
 public:
-    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator);
+    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting);
     virtual ~VpResourceManager();
 
     virtual MOS_STATUS AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface);
@@ -338,6 +338,7 @@ protected:
 protected:
     MOS_INTERFACE                &m_osInterface;
     VpAllocator                  &m_allocator;
+    VphalFeatureReport           &m_reporting;
 
     // Vebox Resource
     VP_SURFACE* veboxDenoiseOutput[VP_NUM_DN_SURFACES] = {};            //!< Vebox Denoise output surface
