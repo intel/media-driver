@@ -194,18 +194,6 @@ public:
         OsStubMessage();
         return MOS_STATUS_UNIMPLEMENTED;
     }
-
-    void *GetOcaDumper()
-    {
-        OsStubMessage();
-        return nullptr;
-    }
-
-    MOS_STATUS CreateOcaDumper()
-    {
-        OsStubMessage();
-        return MOS_STATUS_SUCCESS;
-    }
 };
 
 //!

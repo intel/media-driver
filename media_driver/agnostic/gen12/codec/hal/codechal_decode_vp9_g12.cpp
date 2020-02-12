@@ -1049,19 +1049,11 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodePrimitiveLevel()
     bool submitCommand = true;
     if (MOS_VE_SUPPORTED(m_osInterface) && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
     {
-        if (m_osInterface->osCpInterface->IsHMEnabled())
-        {
-            HalOcaInterface::DumpCpParam(scdryCmdBuffer, *m_osInterface->pOsContext, m_osInterface->osCpInterface->GetOcaDumper());
-        }
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer_G12(m_scalabilityState);
         HalOcaInterface::On1stLevelBBEnd(scdryCmdBuffer, *m_osInterface->pOsContext);
     }
     else
     {
-        if (m_osInterface->osCpInterface->IsHMEnabled())
-        {
-            HalOcaInterface::DumpCpParam(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->osCpInterface->GetOcaDumper());
-        }
         HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
     }
 
