@@ -453,7 +453,30 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-            encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
+#ifdef _APOGEIOS_SUPPORTED
+            bool                        apogeiosEnable = false;
+            MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
+                &userFeatureData);
+            apogeiosEnable = userFeatureData.bData ? true : false;
+
+            if (apogeiosEnable)
+            {
+                m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterM12, hwInterface, debugInterface);
+                if (m_codechalDevice == nullptr)
+                {
+                    CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+                return MOS_STATUS_SUCCESS;
+            }
+            else
+#endif
+                encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");

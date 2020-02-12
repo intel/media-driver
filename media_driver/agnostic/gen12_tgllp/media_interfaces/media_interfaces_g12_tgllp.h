@@ -93,6 +93,9 @@
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_vp9_g12.h"
+#ifdef _APOGEIOS_SUPPORTED
+#include "encode_vp9_vdenc_pipeline_adapter_m12.h"
+#endif
 #endif
 
 #ifdef _MPEG2_ENCODE_VME_SUPPORTED
