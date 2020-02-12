@@ -3645,30 +3645,29 @@ MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusRe
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
     uint64_t *address2Counter = nullptr;
 
-    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && 
-        MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
     {
-        //Report counter from register
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            m_osInterface->osCpInterface->ReadCtrNounceRegister(
-                true,
-                (uint32_t *)&m_regHwCount[index]));
-        address2Counter = (uint64_t *)&m_regHwCount[index];
-        CODECHAL_ENCODE_NORMALMESSAGE("MMIO returns end ctr is %llx", *address2Counter);
-        CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
+        if(MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+        {
+            //Report counter from register
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(
+                m_osInterface->osCpInterface->ReadCtrNounceRegister(
+                    true,
+                    (uint32_t *)&m_regHwCount[index]));
+            address2Counter = (uint64_t *)&m_regHwCount[index];
+            CODECHAL_ENCODE_NORMALMESSAGE("MMIO returns end ctr is %llx", *address2Counter);
+            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
 
-        // Here gets the end counter of current bit stream, which should minus counter increment.
-        *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
-    }
-    else if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) &&
-        !m_osInterface->osCpInterface->IsTSEnabled())
-    {
-        //Report HW counter by command output resource
-        address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
+            // Here gets the end counter of current bit stream, which should minus counter increment.
+            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
+        }
+        else
+        {
+            //Report HW counter by command output resource
+            address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
+        }
     }
     else
     {
