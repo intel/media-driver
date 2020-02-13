@@ -104,9 +104,13 @@ MOS_STATUS Mos_AddCommand(
     {
         pCmdBuffer->iOffset    -= dwCmdSizeDwAligned;
         pCmdBuffer->iRemaining += dwCmdSizeDwAligned;
-        MOS_OS_ASSERTMESSAGE("Unable to add command (no space).");
+        MOS_OS_ASSERTMESSAGE("Unable to add command: remaining space = %d, command size = %d.",
+                            pCmdBuffer->iRemaining, dwCmdSizeDwAligned);
         return MOS_STATUS_UNKNOWN;
     }
+
+    MOS_OS_VERBOSEMESSAGE("The command was successfully added: remaining space = %d, buffer size = %d.",
+                        pCmdBuffer->iRemaining, pCmdBuffer->iOffset + pCmdBuffer->iRemaining);
 
     MOS_SecureMemcpy(pCmdBuffer->pCmdPtr, dwCmdSize, pCmd, dwCmdSize);
     pCmdBuffer->pCmdPtr += (dwCmdSizeDwAligned / sizeof(uint32_t));
