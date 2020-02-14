@@ -175,6 +175,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
     m_Params.scalingMode            = surfInput->ScalingMode;
+    m_Params.scalingPreference      = surfInput->ScalingPreference;
     m_Params.bDirectionalScalar     = surfInput->bDirectionalScalar;
     m_Params.formatInput            = surfInput->Format;
     m_Params.rcSrcInput             = surfInput->rcSrc;
@@ -276,11 +277,12 @@ MOS_STATUS SwFilterRotMir::Clean()
 
 MOS_STATUS SwFilterRotMir::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex)
 {
-    // Parameter checking should be done in SwFilterScalingHandler::IsFeatureEnabled.
+    // Parameter checking should be done in SwFilterRotMirHandler::IsFeatureEnabled.
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
     m_Params.rotation     = surfInput->Rotation;
+    m_Params.tileOutput   = surfOutput->TileType;
     m_Params.formatInput  = surfInput->Format;
     m_Params.formatOutput = surfOutput->Format;
     return MOS_STATUS_SUCCESS;
@@ -320,6 +322,7 @@ MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
 {
     m_Params.formatInput = inputSurf->osSurface->Format;
     m_Params.formatOutput = outputSurf->osSurface->Format;
+    m_Params.tileOutput = outputSurf->osSurface->TileType;
     return MOS_STATUS_SUCCESS;
 }
 

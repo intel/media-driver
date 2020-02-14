@@ -513,6 +513,7 @@ MOS_STATUS SwFilterPipe::ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, Featur
                 {
                     // Loop all features in feature set.
                     SwFilterFeatureHandler *handler = featureHander.find(feature)->second;
+                    VP_PUBLIC_CHK_NULL_RETURN(handler);
                     VP_PUBLIC_CHK_STATUS_RETURN(handler->CreateSwFilter(swFilter, params, isInputPipe, pipeIndex, m_swFilterPipeType));
                     if (swFilter)
                     {

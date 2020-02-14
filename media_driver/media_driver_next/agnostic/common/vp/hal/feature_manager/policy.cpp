@@ -377,7 +377,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
               OUT_OF_BOUNDS(dwOutputSurfaceHeight, dwSfcMinHeight, dwSfcMaxHeight)))
         {
             if (OUT_OF_BOUNDS(fScaleX, fScaleMin, fScaleMax) ||
-                OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax))
+                OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax) ||
+                (scalingParams->scalingPreference == VPHAL_SCALING_PREFER_COMP))
             {
                 // Render Pipe, need to add more conditions next step for multiple SFC mode
                 // if Render didn't have AVS but Scaling quality mode needed
@@ -434,7 +435,8 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
         if (m_sfcHwEntry[rotationParams->formatInput].rotationSupported)
         {
             if (rotationParams->rotation > VPHAL_ROTATION_270 &&
-                !m_sfcHwEntry[rotationParams->formatInput].mirrorSupported)
+                (!m_sfcHwEntry[rotationParams->formatInput].mirrorSupported ||
+                rotationParams->tileOutput != MOS_TILE_Y))
             {
                 // Render FC Path  for Rotation
                 rotationEngine->bEnabled = 1;
@@ -648,7 +650,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
 {
     VP_FUNC_CALL();
 
-    // Select the Pipe Engine for promary pipe
+    // Select the Pipe Engine for primary pipe
     uint32_t index;
     SwFilterSubPipe* inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
     SwFilter* feature = nullptr;
@@ -714,6 +716,11 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                     // For feature which is force enabled on Sfc, just drop it if sfc not being used.
                     featurePipe.RemoveSwFilter(feature);
                     m_vpInterface.GetSwFilterFactory().Destory(feature);
+                }
+                else if (caps.bComposite && engineCaps->RenderNeeded)
+                {
+                    // use render path to implement feature.
+                    UpdateExeCaps(feature, caps, EngineTypeRender);
                 }
             }
         }
@@ -806,6 +813,25 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeDn:
             caps.bDN = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Dn, Vebox)));
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (Type == EngineTypeRender)
+    {
+        caps.bComposite = 1;
+        switch (featureType)
+        {
+        case FeatureTypeCsc:
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Csc, Render)));
+            break;
+        case FeatureTypeScaling:
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Scaling, Render)));
+            break;
+        case FeatureTypeRotMir:
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(RotMir, Render)));
             break;
         default:
             break;

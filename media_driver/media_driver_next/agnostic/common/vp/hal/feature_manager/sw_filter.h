@@ -192,6 +192,7 @@ private:
 struct FeatureParamScaling : public FeatureParam
 {
     VPHAL_SCALING_MODE          scalingMode;
+    VPHAL_SCALING_PREFERENCE    scalingPreference;              //!< DDI indicate Scaling preference
     bool                        bDirectionalScalar = false;     //!< Vebox Directional Scalar
     RECT                        rcSrcInput;
     RECT                        rcDstInput;
@@ -228,6 +229,7 @@ private:
 struct FeatureParamRotMir : public FeatureParam
 {
     VPHAL_ROTATION rotation;
+    MOS_TILE_TYPE  tileOutput;
 };
 
 class SwFilterRotMir : public SwFilter
