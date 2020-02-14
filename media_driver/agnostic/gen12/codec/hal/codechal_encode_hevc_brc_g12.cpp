@@ -108,15 +108,25 @@ MOS_STATUS CodecHalHevcBrcG12::FreeBrcResources()
         m_BrcROISurf = nullptr;
     }
 
-    if (m_cmKrnBrc)
+    if (m_cmKrnBrcInit)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyKernel(m_cmKrnBrc));
-        m_cmKrnBrc = nullptr;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyKernel(m_cmKrnBrcInit));
+        m_cmKrnBrcInit = nullptr;
     }
-    if (m_cmProgramBrc)
+    if (m_cmProgramBrcInit)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyProgram(m_cmProgramBrc));
-        m_cmProgramBrc = nullptr;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyProgram(m_cmProgramBrcInit));
+        m_cmProgramBrcInit = nullptr;
+    }
+    if (m_cmKrnBrcReset)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyKernel(m_cmKrnBrcReset));
+        m_cmKrnBrcReset = nullptr;
+    }
+    if (m_cmProgramBrcReset)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyProgram(m_cmProgramBrcReset));
+        m_cmProgramBrcReset = nullptr;
     }
     if (m_cmKrnBrcUpdate)
     {
@@ -148,26 +158,23 @@ MOS_STATUS CodecHalHevcBrcG12::InitBrcKernelState()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (encoderBrc->m_brcInit) {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->LoadProgram((void *)HEVC_BRC_INIT_GENX,
-            HEVC_BRC_INIT_GENX_SIZE,
-            m_cmProgramBrc,
-            "-nojitter"));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->LoadProgram((void *)HEVC_BRC_INIT_GENX,
+        HEVC_BRC_INIT_GENX_SIZE,
+        m_cmProgramBrcInit,
+        "-nojitter"));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateKernel(m_cmProgramBrc,
-            "HEVC_brc_init",
-            m_cmKrnBrc));
-    }
-    else if (encoderBrc->m_brcReset) {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->LoadProgram((void *)HEVC_BRC_RESET_GENX,
-            HEVC_BRC_RESET_GENX_SIZE,
-            m_cmProgramBrc,
-            "-nojitter"));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateKernel(m_cmProgramBrcInit,
+        "HEVC_brc_init",
+        m_cmKrnBrcInit));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateKernel(m_cmProgramBrc,
-            "HEVC_brc_reset",
-            m_cmKrnBrc));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->LoadProgram((void *)HEVC_BRC_RESET_GENX,
+        HEVC_BRC_RESET_GENX_SIZE,
+        m_cmProgramBrcReset,
+        "-nojitter"));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateKernel(m_cmProgramBrcReset,
+        "HEVC_brc_reset",
+        m_cmKrnBrcReset));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->LoadProgram((void *)HEVC_BRC_UPDATE_GENX,
         HEVC_BRC_UPDATE_GENX_SIZE,
@@ -259,11 +266,19 @@ MOS_STATUS CodecHalHevcBrcG12::SetupSurfacesBrcInit()
 MOS_STATUS CodecHalHevcBrcG12::EncodeBrcInitResetKernel()
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+    // Setup curbe for BrcInitReset kernel
+    CODECHAL_HEVC_BRC_KRNIDX brcKrnIdx = encoderBrc->m_brcInit ? CODECHAL_HEVC_BRC_INIT : CODECHAL_HEVC_BRC_RESET;
+    if (encoderBrc->m_brcInit)
+    {
+        m_cmKrnBrc = m_cmKrnBrcInit;
+    }
+    else
+    {
+        m_cmKrnBrc = m_cmKrnBrcReset;
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrc, m_threadSpaceBrcInit));
 
-    // Setup curbe for BrcInitReset kernel
-    CODECHAL_HEVC_BRC_KRNIDX brcKrnIdx = encoderBrc->m_brcInit ? CODECHAL_HEVC_BRC_INIT : CODECHAL_HEVC_BRC_RESET;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcInitResetCurbe(
         brcKrnIdx));
 
