@@ -50,9 +50,13 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     MOS_STATUS      *eStatus)
 {
 #if LINUX
-    bool bApogeiosEnable = false;
+    bool bApogeiosEnable = true;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+
+    UserFeatureData.i32Data = bApogeiosEnable;
+    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
