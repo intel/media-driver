@@ -371,10 +371,18 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualWidth = MOS_ALIGN_CEIL(m_oriFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH);
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
 
-    // Decodec picture
+    // Decoded picture
+#ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID]));
+#endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID]));
 
     // Source input
+#ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
+#endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
 
     // Last reference picture
@@ -3793,9 +3801,17 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMfxWaitCmd(&cmdBuffer, nullptr, false));
 
     // Decoded picture
+#ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID]));
+#endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID]));
 
     // Source input
+#ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
+#endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
 
     // Last reference picture
