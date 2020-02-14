@@ -240,22 +240,23 @@ finish:
 static bool VpHal_IsAvsSampleForMultiStreamsEnabled(
     PCVPHAL_RENDER_PARAMS   pcRenderParams)
 {
-    int32_t  iSourceIdx;
-    int32_t  iSourceBIdx;
-    int32_t  iAvsSurfaceCnt            = 0; 
+    uint32_t uSourceIdx;
+    uint32_t uSourceBIdx;
+    uint32_t uAvsSurfaceCnt            = 0;
     bool     bEnableAvsForMultiSurface = false;
 
     VPHAL_PUBLIC_CHK_NULL_NO_STATUS(pcRenderParams);
 
-    //disable if only one or zero source
-    if (pcRenderParams->uSrcCount <= 1)
+    //disable if only one, zero or invalid number source
+    if (pcRenderParams->uSrcCount <= 1 ||
+        pcRenderParams->uSrcCount > VPHAL_MAX_SOURCES)
     {
        goto finish;
     }
 
-    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    for (uSourceIdx = 0; uSourceIdx < pcRenderParams->uSrcCount; uSourceIdx++)
     {
-        PVPHAL_SURFACE pSrcSurf = pcRenderParams->pSrc[iSourceIdx];
+        PVPHAL_SURFACE pSrcSurf = pcRenderParams->pSrc[uSourceIdx];
         if (pSrcSurf && pSrcSurf->SurfType == SURF_IN_PRIMARY)
         {
             // VPHAL_SCALING_PREFER_SFC_FOR_VEBOX means scaling mode is FastMode, don't apply AVS for multiples
@@ -282,11 +283,11 @@ static bool VpHal_IsAvsSampleForMultiStreamsEnabled(
         }
         if (pSrcSurf && IsSurfNeedAvs(pSrcSurf))
         {
-            iAvsSurfaceCnt++;
+            uAvsSurfaceCnt++;
         }
     }
 
-    if (iAvsSurfaceCnt <= 1)
+    if (uAvsSurfaceCnt <= 1)
     {
         goto finish;
     }
@@ -295,16 +296,16 @@ static bool VpHal_IsAvsSampleForMultiStreamsEnabled(
     {
         goto finish;
     }
-  
+ 
     // disable if any AVS surface overlay to other AVS surface.
-    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    for (uSourceIdx = 0; uSourceIdx < pcRenderParams->uSrcCount; uSourceIdx++)
     {
-        PVPHAL_SURFACE pSrcSurfA         = pcRenderParams->pSrc[iSourceIdx];
+        PVPHAL_SURFACE pSrcSurfA         = pcRenderParams->pSrc[uSourceIdx];
         if (pSrcSurfA && IsSurfNeedAvs(pSrcSurfA))
         {
-            for (iSourceBIdx = iSourceIdx + 1; iSourceBIdx < VPHAL_MAX_SOURCES; iSourceBIdx++)
+            for (uSourceBIdx = uSourceIdx + 1; uSourceBIdx < pcRenderParams->uSrcCount; uSourceBIdx++)
             {
-                PVPHAL_SURFACE pSrcSurfB = pcRenderParams->pSrc[iSourceBIdx];
+                PVPHAL_SURFACE pSrcSurfB = pcRenderParams->pSrc[uSourceBIdx];
                 if (pSrcSurfB && IsSurfNeedAvs(pSrcSurfB) &&
                     !RECT1_OUTSIDE_RECT2(pSrcSurfA->rcDst, pSrcSurfB->rcDst)) // not outside means overlay
                 {
@@ -338,7 +339,7 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
     VphalRenderer        *pRenderer,
     PCVPHAL_RENDER_PARAMS   pcRenderParams)
 {
-    int32_t                  iSourceIdx;
+    uint32_t                 uSourceIdx;
     VPHAL_RENDER_PARAMS      RenderParams;
     VPHAL_COLORFILL_PARAMS   colorFillForFirstRenderPass;
     bool                     bColorFillForFirstRender;
@@ -374,9 +375,9 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
     // check if having non-AVS substream
     bHasNonAvsSubstream   = false;
     pBackGroundSurface    = nullptr;
-    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    for (uSourceIdx = 0; uSourceIdx < pcRenderParams->uSrcCount; uSourceIdx++)
     {
-        PVPHAL_SURFACE pSurf = (PVPHAL_SURFACE)pcRenderParams->pSrc[iSourceIdx];
+        PVPHAL_SURFACE pSurf = (PVPHAL_SURFACE)pcRenderParams->pSrc[uSourceIdx];
         if (pSurf && pSurf->SurfType == SURF_IN_SUBSTREAM)
         {
             if (!IS_YUV_FORMAT(pSurf->Format))
@@ -452,10 +453,10 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
     RenderParams.uDstCount   = 1;
     MOS_ZeroMemory(RenderParams.pSrc, sizeof(PVPHAL_SURFACE) * VPHAL_MAX_SOURCES);
     
-    for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES; iSourceIdx++)
+    for (uSourceIdx = 0; uSourceIdx < pcRenderParams->uSrcCount; uSourceIdx++)
     {
         VPHAL_SURFACE               SinglePassSource;
-        PVPHAL_SURFACE              pSurf = (PVPHAL_SURFACE)pcRenderParams->pSrc[iSourceIdx];
+        PVPHAL_SURFACE              pSurf = (PVPHAL_SURFACE)pcRenderParams->pSrc[uSourceIdx];
         RenderParams.uSrcCount         = 0;
 
         if (pSurf && IsSurfNeedAvs(pSurf))
@@ -501,7 +502,7 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
             }
         }
     }
-    
+
     // phase 2: if having non-AVS substream, render them with previous output in one pass.
     if (bHasNonAvsSubstream)
     {
@@ -514,10 +515,10 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
         RenderParams.uSrcCount      = 1;
         RenderParams.uDstCount      = 1;
 
-        for (iSourceIdx = 0; iSourceIdx < VPHAL_MAX_SOURCES && RenderParams.uSrcCount < VPHAL_MAX_SOURCES; iSourceIdx++)
+        for (uSourceIdx = 0; uSourceIdx < pcRenderParams->uSrcCount; uSourceIdx++)
         {
-            PVPHAL_SURFACE pSurf = pcRenderParams->pSrc[iSourceIdx];
-            bool bIsSurfForPhase2   = (pSurf && 
+            PVPHAL_SURFACE pSurf = pcRenderParams->pSrc[uSourceIdx];
+            bool bIsSurfForPhase2   = (pSurf &&
                                     (!IsSurfNeedAvs(pSurf)) &&
                                     (pSurf->SurfType != SURF_IN_BACKGROUND));
             if (bIsSurfForPhase2)
