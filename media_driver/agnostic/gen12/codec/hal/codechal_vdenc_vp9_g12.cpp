@@ -3258,9 +3258,12 @@ MOS_STATUS CodechalVdencVp9StateG12::SetDmemHuCPakInt()
     dmem->lastTileBSStartInBytes = m_tileParams[GetNumTilesInFrame() - 1].TileSizeStreamoutOffset * CODECHAL_CACHELINE_SIZE + 8;
     dmem->picStateStartInBytes = 0xFFFF;
 
-    dmem->StitchEnable = true;
-    dmem->StitchCommandOffset = 0;
-    dmem->BBEndforStitch = HUC_BATCH_BUFFER_END;
+    if (m_enableTileStitchByHW)
+    {
+        dmem->StitchEnable = true;
+        dmem->StitchCommandOffset = 0;
+        dmem->BBEndforStitch = HUC_BATCH_BUFFER_END;
+    }
 
     // Offset 0 is for region 1 - output of integrated frame stats from PAK integration kernel
 
@@ -4324,7 +4327,7 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
         }
     }
 
-    if (m_hucPakStitchEnabled)
+    if (m_enableTileStitchByHW)
     {
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -4525,7 +4528,7 @@ void CodechalVdencVp9StateG12::FreeResources()
         }
     }
 
-    if (m_hucPakStitchEnabled)
+    if (m_enableTileStitchByHW)
     {
         for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
         {
@@ -4944,7 +4947,10 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9PakInt(
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(cmdBuffer, &dmemParams));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(ConfigStitchDataBuffer());
+    if (m_enableTileStitchByHW)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ConfigStitchDataBuffer());
+    }
 
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams;
     MOS_ZeroMemory(&virtualAddrParams, sizeof(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS));
@@ -4958,12 +4964,18 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9PakInt(
     virtualAddrParams.regionParams[6].presRegion = &m_hucPakIntDummyBuffer;              // Region 6 - Not used for VP9
     virtualAddrParams.regionParams[6].isWritable = true;
     virtualAddrParams.regionParams[7].presRegion = &m_hucPakIntDummyBuffer;             // Region 7 - Not used for VP9
-    virtualAddrParams.regionParams[8].presRegion  = &m_resHucStitchDataBuffer[m_currRecycledBufIdx][GetCurrentPass()];  // Region 8 - data buffer read by HUC for stitching cmd generation
-    virtualAddrParams.regionParams[8].isWritable = true;
+    if (m_enableTileStitchByHW)
+    {
+        virtualAddrParams.regionParams[8].presRegion  = &m_resHucStitchDataBuffer[m_currRecycledBufIdx][GetCurrentPass()];  // Region 8 - data buffer read by HUC for stitching cmd generation
+        virtualAddrParams.regionParams[8].isWritable = true;
+    }
     virtualAddrParams.regionParams[9].presRegion = &m_hucPakIntBrcDataBuffer;              // Region 9 - HuC outputs BRC data
     virtualAddrParams.regionParams[9].isWritable = true;
-    virtualAddrParams.regionParams[10].presRegion = &m_HucStitchCmdBatchBuffer.OsResource;                         // Region 10 - SLB for stitching cmd output from Huc
-    virtualAddrParams.regionParams[10].isWritable = true;
+    if (m_enableTileStitchByHW)
+    {
+        virtualAddrParams.regionParams[10].presRegion = &m_HucStitchCmdBatchBuffer.OsResource;                         // Region 10 - SLB for stitching cmd output from Huc
+        virtualAddrParams.regionParams[10].isWritable = true;
+    }
     virtualAddrParams.regionParams[15].presRegion = &m_tileRecordBuffer[m_virtualEngineBBIndex].sResource;          // Region 15 [In/Out] - Tile Record Buffer
     virtualAddrParams.regionParams[15].dwOffset   = 0;
 
