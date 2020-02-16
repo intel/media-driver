@@ -4157,6 +4157,38 @@ finish:
 }
 
 //!
+//! \brief    Set Surface Compressed Parameters
+//! \details  Set Surface Compressed Parameters, and compression mode
+//! \param    [in,out] pSource
+//!           Pointer to Source Surface
+//! \param    [in] isRenderTarget
+//!           Render Target or not
+//! \return   void
+//!
+void CompositeState::SetSurfaceCompressionParams(
+    PVPHAL_SURFACE                  pSource,
+    bool                            isRenderTarget)
+{
+    if (!MEDIA_IS_SKU(GetSkuTable(), FtrCompsitionMemoryCompressedOut) &&
+        isRenderTarget)
+    {
+        if (pSource                                             &&
+            pSource->bCompressible                              &&
+            // For platforms support MC/RC, only enable Render engine MC write.
+            (pSource->CompressionMode == MOS_MMC_RC             ||
+            // For legacy platforms, no compression supported for composite RT.
+            pSource->CompressionMode == MOS_MMC_HORIZONTAL      ||
+            pSource->CompressionMode == MOS_MMC_VERTICAL))
+        {
+            VPHAL_RENDER_NORMALMESSAGE("MMC DISABLED for RT due to CompsitionMemoryCompressedOut no supported");
+            pSource->bIsCompressed   = false;
+            pSource->CompressionMode = MOS_MMC_DISABLED;
+            m_pOsInterface->pfnSetMemoryCompressionMode(m_pOsInterface, &pSource->OsResource, MOS_MEMCOMP_STATE(MOS_MEMCOMP_DISABLED));
+        }
+    }
+}
+
+//!
 //! \brief    Check whether parameters for composition valid or not.
 //! \param    [in] CompositeParams
 //!           Parameters for composition

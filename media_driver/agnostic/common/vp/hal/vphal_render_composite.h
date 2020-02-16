@@ -626,7 +626,7 @@ protected:
     //!
     virtual void SetSurfaceCompressionParams(
         PVPHAL_SURFACE                  pSource,
-        bool                            isRenderTarget) {}
+        bool                            isRenderTarget);
 
     //!
     //! \brief    Check NV12 luma key sampler solution is needed or not
