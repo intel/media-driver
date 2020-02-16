@@ -2930,7 +2930,7 @@ MOS_STATUS CodechalVdencAvcState::ComputeBRCInitQP(
     //add additional change based on buffer size. It is especially useful for low delay
     deltaQ = (int32_t)(9 - (seqParams->VBVBufferSizeInBit * ((float)seqParams->FramesPer100Sec) / ((float)(seqParams->TargetBitRate) * 100)));
     QP += deltaQ < 0 ? 0 : deltaQ;
-    CodecHal_Clip3(CODECHAL_ENCODE_AVC_BRC_MIN_QP, CODECHAL_ENCODE_AVC_MAX_SLICE_QP, QP);
+    QP = CodecHal_Clip3(CODECHAL_ENCODE_AVC_BRC_MIN_QP, CODECHAL_ENCODE_AVC_MAX_SLICE_QP, QP);
     QP--;
     if (QP < 0)
         QP = 1;
