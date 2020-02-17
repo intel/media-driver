@@ -3039,7 +3039,12 @@ VAStatus DdiMedia_MapBufferInternal (
 
                 if ((nullptr != buf->pSurface) && (Media_Format_CPU != buf->format))
                 {
-                    DDI_CHK_RET(DdiMedia_MediaMemoryDecompress(mediaCtx, buf->pSurface),"MMD unsupported!");
+                    VAStatus tmpRet = DdiMedia_MediaMemoryDecompress(mediaCtx, buf->pSurface);
+                    if (tmpRet != VA_STATUS_SUCCESS)
+                    {
+                        DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+                    }
+                    DDI_CHK_RET(tmpRet,"MMD unsupported!");
                 }
 
                 *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
@@ -3804,6 +3809,10 @@ VAStatus DdiMedia_QuerySurfaceError(
             //&& surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL)  // get the crc value whatever the status is
         {
             CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decCtx->pCodecHal);
+            if (decoder == nullptr)
+            {
+                DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+            }
             DDI_CHK_NULL(decoder, "nullptr codechal decoder", VA_STATUS_ERROR_INVALID_CONTEXT);
             if (decoder->GetStandard() != CODECHAL_AVC)
             {
