@@ -947,7 +947,7 @@ MOS_STATUS CodechalVdencVp9StateG12::GetSystemPipeNumberCommon()
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     statusKey = MOS_UserFeature_ReadValue_ID(
         NULL,
-        __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY_G12,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
         &userFeatureData);
 
     bool disableScalability = m_osInterface->phasedSubmission;

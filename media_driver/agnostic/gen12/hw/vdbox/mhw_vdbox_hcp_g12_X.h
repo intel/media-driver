@@ -433,7 +433,7 @@ public:
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
-            __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_PERF_DISABLE_ID_G12,
+            __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_PERF_DISABLE_ID,
             &userFeatureData);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_hevcRDOQPerfDisabled = userFeatureData.i32Data ? true : false;
@@ -444,7 +444,7 @@ public:
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
-            __MEDIA_USER_FEATURE_VALUE_WATCHDOG_TIMER_THRESHOLD_G12,
+            __MEDIA_USER_FEATURE_VALUE_WATCHDOG_TIMER_THRESHOLD,
             &userFeatureData);
         if (userFeatureData.u32Data != 0)
         {

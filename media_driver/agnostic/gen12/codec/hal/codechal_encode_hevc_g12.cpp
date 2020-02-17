@@ -3203,7 +3203,7 @@ MOS_STATUS CodechalEncHevcStateG12::GetSystemPipeNumberCommon()
     MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
     statusKey            = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY_G12,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
         &userFeatureData);
 
     bool disableScalability = true;
@@ -3350,7 +3350,7 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     userFeatureData.StringData.pStringData = stringData;
     statusKey                              = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_PAK_ONLY_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_PAK_ONLY_ID,
         &userFeatureData);
 
     if (statusKey == MOS_STATUS_SUCCESS && userFeatureData.StringData.uSize > 0)
@@ -3431,7 +3431,7 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID,
         &userFeatureData);
     m_numberEncKernelSubThread = (userFeatureData.i32Data < 1) ? 1 : userFeatureData.i32Data;
 
@@ -3457,7 +3457,7 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_ENCODE_SSE_ENABLE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_ENCODE_SSE_ENABLE_ID,
         &userFeatureData);
     m_sseSupported = userFeatureData.i32Data ? true : false;
 
@@ -3518,7 +3518,7 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     statusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_STITCH_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_STITCH,
         &userFeatureData);
     m_enableTileStitchByHW = userFeatureData.i32Data ? true : false;
 
@@ -3526,7 +3526,7 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     statusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_SEMAPHORE_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_SEMAPHORE,
         &userFeatureData);
     m_enableHWSemaphore = userFeatureData.i32Data ? true : false;
 
@@ -3541,14 +3541,14 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     statusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE,
         &userFeatureData);
     m_kmdVeOveride.Value = (uint64_t)userFeatureData.i64Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_FORCE_SCALABILITY_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_FORCE_SCALABILITY_ID,
         &userFeatureData);
     m_forceScalability = userFeatureData.i32Data ? true : false;
 
@@ -9064,15 +9064,15 @@ MOS_STATUS CodechalEncHevcStateG12::UserFeatureKeyReport()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::UserFeatureKeyReport());
 #if (_DEBUG || _RELEASE_INTERNAL)
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID, m_numberConcurrentGroup);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID_G12, m_numberEncKernelSubThread);
-    CodecHalEncode_WriteKey64(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE_G12, m_kmdVeOveride.Value);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID, m_numberEncKernelSubThread);
+    CodecHalEncode_WriteKey64(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE, m_kmdVeOveride.Value);
 
     if (m_pakOnlyTest)
     {
-        CodecHalEncode_WriteStringKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_PAK_ONLY_ID_G12, m_pakOnlyDataFolder, strlen(m_pakOnlyDataFolder));
+        CodecHalEncode_WriteStringKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_PAK_ONLY_ID, m_pakOnlyDataFolder, strlen(m_pakOnlyDataFolder));
     }
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_USED_VDBOX_NUM_ID, m_numPipe);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID_G12, MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface));
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID, MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface));
 #endif
 
     return eStatus;

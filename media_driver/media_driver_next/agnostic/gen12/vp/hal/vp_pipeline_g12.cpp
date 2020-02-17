@@ -127,7 +127,7 @@ MOS_STATUS VpPipelineG12::GetSystemVeboxNumber()
     MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
     statusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
         &userFeatureData);
 
     bool disableScalability = false;
