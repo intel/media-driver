@@ -8194,6 +8194,8 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
     oss << "ROIEnable = " << std::dec << +m_avcPar->ROIEnable << std::endl;
     oss << "ForceIPCMMinQP = " << std::dec << +m_avcPar->ForceIPCMMinQP << std::endl;
     oss << "IntraTr4x4Percent = " << std::dec << +m_avcPar->IntraTr4x4Percent << std::endl;
+    oss << "IntraPredictionIFrame = " << std::dec << +m_avcPar->IntraPredictionIFrame << std::endl;
+    oss << "IntraPrediction = " << std::dec << +m_avcPar->IntraPrediction << std::endl;
 
     // PAK Params
     oss << "TrellisQuantizationEnable = " << std::dec << +m_avcPar->TrellisQuantizationEnable << std::endl;

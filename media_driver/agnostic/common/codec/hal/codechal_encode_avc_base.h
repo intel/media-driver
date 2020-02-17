@@ -232,6 +232,8 @@ struct EncodeAvcPar
     uint8_t                     ForceIPCMMinQP;
     uint8_t                     IntraTr4x4Percent;
     bool                        MultiPassHmeEnable;
+    uint32_t                    IntraPredictionIFrame;
+    uint32_t                    IntraPrediction;
 
     // PAK Params
     uint8_t                     RoundingIntra;

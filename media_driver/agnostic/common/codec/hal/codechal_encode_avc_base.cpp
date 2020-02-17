@@ -4259,7 +4259,6 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateConstParam()
     oss << "HMECoarseShape = 2" << std::endl;
     oss << "HMESubPelMode = 3" << std::endl;
     oss << "IntraDirectionBias = 1" << std::endl;
-    oss << "IntraPrediction = 0" << std::endl;
     oss << "InterSADMeasure = 2" << std::endl;
     oss << "IntraSADMeasure = 2" << std::endl;
     oss << "CostingFeature = 3" << std::endl;
