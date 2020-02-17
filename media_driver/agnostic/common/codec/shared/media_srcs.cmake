@@ -52,6 +52,11 @@ set(HEADERS_
     ${TMP_2_HEADERS_}
 )
 
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_2_HEADERS_}
+)
+
 source_group( "Codec\\Shared" FILES ${TMP_2_HEADERS_} )
 
 media_add_curr_to_include_path()

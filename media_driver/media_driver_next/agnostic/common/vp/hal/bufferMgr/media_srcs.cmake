@@ -38,6 +38,16 @@ set(HEADERS_NEW
     ${TMP_HEADERS_}
 )
 
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
 source_group( VpHalNext\\Shared FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 

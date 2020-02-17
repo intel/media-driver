@@ -41,7 +41,6 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_hwcmd_g12_X.h
 )
 
-
 set(SOURCES_
     ${SOURCES_}
     ${TMP_1_SOURCES_}
@@ -50,6 +49,18 @@ set(SOURCES_
 
 set(HEADERS_
     ${HEADERS_}
+    ${TMP_1_HEADERS_}
+    ${TMP_2_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_1_SOURCES_}
+    ${TMP_2_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_1_HEADERS_}
     ${TMP_2_HEADERS_}
 )
@@ -99,6 +110,20 @@ set(SOURCES_
 
 set(HEADERS_
     ${HEADERS_}
+    ${TMP_3_HEADERS_}
+    ${TMP_4_HEADERS_}
+    ${TMP_5_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_3_SOURCES_}
+    ${TMP_4_SOURCES_}
+    ${TMP_5_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_3_HEADERS_}
     ${TMP_4_HEADERS_}
     ${TMP_5_HEADERS_}
