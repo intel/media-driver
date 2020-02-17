@@ -62,6 +62,10 @@ public:
 
 protected:
     virtual MOS_STATUS VpCmdPacketInit();
+    bool IsOutputPipeVebox()
+    {
+        return m_PacketCaps.bVebox && !m_PacketCaps.bSFC && !m_PacketCaps.bRender;
+    }
 
 public:
     // HW intface to access MHW

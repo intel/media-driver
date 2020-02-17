@@ -890,7 +890,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
     //---------------------------
     // Set Performance Tags
     //---------------------------
-    VP_RENDER_CHK_STATUS_RETURN(VeboxSetPerfTag(m_currentSurface->osSurface->Format));
+    VP_RENDER_CHK_STATUS_RETURN(VeboxSetPerfTag());
     pOsInterface->pfnResetPerfBufferID(pOsInterface);
     pOsInterface->pfnSetPerfTag(pOsInterface, pRenderData->PerfTag);
 
@@ -1623,25 +1623,27 @@ MOS_STATUS VpVeboxCmdPacket::IsCmdParamsValid(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTag(
-    MOS_FORMAT   srcFmt)
+MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTag()
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     PVPHAL_PERFTAG              pPerfTag = nullptr;
     VpVeboxRenderData           *pRenderData = GetLastExecRenderData();
 
     VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(m_currentSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_currentSurface->osSurface);
+
+    MOS_FORMAT srcFmt = m_currentSurface->osSurface->Format;
 
     pPerfTag = &pRenderData->PerfTag;
 
     switch (srcFmt)
     {
         case Format_NV12:
-            *pPerfTag = VPHAL_NV12_420CP;
-            break;
+            return VeboxSetPerfTagNv12();
+
         CASE_PA_FORMAT:
-            *pPerfTag = VPHAL_PA_422CP;
-            break;
+            return VeboxSetPerfTagPaFormat();
 
         case Format_P010:
             // P010 Input Support for VEBOX, SFC
@@ -1699,6 +1701,271 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTag(
     } // switch (srcFmt)
 
     return eStatus;
+}
+
+MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagNv12()
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    PVPHAL_PERFTAG              pPerfTag = nullptr;
+    VpVeboxRenderData           *pRenderData = GetLastExecRenderData();
+
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderTarget);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderTarget->osSurface);
+
+    MOS_FORMAT dstFormat = m_renderTarget->osSurface->Format;
+
+    pPerfTag = &pRenderData->PerfTag;
+
+    if (pRenderData->IsDiEnabled())
+    {
+        if (pRenderData->DN.bDnEnabled ||
+            pRenderData->DN.bChromaDnEnabled)
+        {
+            if (IsIECPEnabled())
+            {
+                *pPerfTag = VPHAL_NV12_DNDI_422CP;
+            }
+            else
+            {
+                *pPerfTag = VPHAL_NV12_DNDI_PA;
+            }
+        }
+        else
+        {
+            if (IsIECPEnabled())
+            {
+                *pPerfTag = VPHAL_PL_DI_422CP;
+            }
+            else
+            {
+                *pPerfTag = VPHAL_PL_DI_PA;
+            }
+        }
+    }
+    else
+    {
+        if (pRenderData->DN.bDnEnabled ||
+            pRenderData->DN.bChromaDnEnabled)
+        {
+            if (IsOutputPipeVebox())
+            {
+                switch (dstFormat)
+                {
+                    case Format_NV12:
+                        *pPerfTag = VPHAL_NV12_DN_420CP;
+                        break;
+                    CASE_PA_FORMAT:
+                        *pPerfTag = VPHAL_NV12_DN_422CP;
+                        break;
+                    case Format_RGB32:
+                        *pPerfTag = VPHAL_NV12_DN_RGB32CP;
+                    case Format_A8R8G8B8:
+                    case Format_A8B8G8R8:
+                        *pPerfTag = VPHAL_NV12_DN_RGB32CP;
+                        break;
+                    case Format_P010:
+                    case Format_P016:
+                    case Format_Y410:
+                    case Format_Y416:
+                    case Format_Y210:
+                    case Format_Y216:
+                    case Format_AYUV:
+                    case Format_Y8:
+                    case Format_Y16S:
+                    case Format_Y16U:
+                        *pPerfTag = VPHAL_NONE;
+                        break;
+                    default:
+                        VP_PUBLIC_ASSERTMESSAGE("Output Format Not found.");
+                        return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+            else if (IsIECPEnabled())
+            {
+                *pPerfTag = VPHAL_NV12_DN_420CP;
+            }
+            else
+            {
+                *pPerfTag = VPHAL_NV12_DN_NV12;
+            }
+        }
+        else
+        {
+            if (IsOutputPipeVebox())
+            {
+                switch (dstFormat)
+                {
+                    case Format_NV12:
+                        *pPerfTag = VPHAL_NV12_420CP;
+                        break;
+                    CASE_PA_FORMAT:
+                        *pPerfTag = VPHAL_NV12_422CP;
+                        break;
+                    case Format_RGB32:
+                        *pPerfTag = VPHAL_NV12_RGB32CP;
+                    case Format_A8R8G8B8:
+                    case Format_A8B8G8R8:
+                    case Format_R10G10B10A2:
+                    case Format_B10G10R10A2:
+                        *pPerfTag = VPHAL_NV12_RGB32CP;
+                        break;
+                    case Format_P010:
+                    case Format_P016:
+                    case Format_Y410:
+                    case Format_Y416:
+                    case Format_Y210:
+                    case Format_Y216:
+                    case Format_AYUV:
+                    case Format_Y8:
+                    case Format_Y16S:
+                    case Format_Y16U:
+                        *pPerfTag = VPHAL_NONE;
+                        break;
+                    default:
+                        VPHAL_RENDER_ASSERTMESSAGE("Output Format Not found.");
+                        return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+            else
+            {
+                *pPerfTag = VPHAL_NV12_420CP;
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagPaFormat()
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    PVPHAL_PERFTAG              pPerfTag = nullptr;
+    VpVeboxRenderData           *pRenderData = GetLastExecRenderData();
+
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderTarget);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderTarget->osSurface);
+
+    MOS_FORMAT dstFormat = m_renderTarget->osSurface->Format;
+
+    pPerfTag = &pRenderData->PerfTag;
+
+    if (pRenderData->IsDiEnabled())
+    {
+        if (pRenderData->DN.bDnEnabled ||
+            pRenderData->DN.bChromaDnEnabled)
+        {
+            if (IsIECPEnabled())
+            {
+                *pPerfTag = VPHAL_PA_DNDI_422CP;
+            }
+            else
+            {
+                *pPerfTag = VPHAL_PA_DNDI_PA;
+            }
+        }
+        else
+        {
+            if (IsIECPEnabled())
+            {
+                *pPerfTag = VPHAL_PA_DI_422CP;
+            }
+            else
+            {
+                *pPerfTag = VPHAL_PA_DI_PA;
+            }
+        }
+    }
+    else
+    {
+        if (pRenderData->DN.bDnEnabled ||
+            pRenderData->DN.bChromaDnEnabled)
+        {
+            if (IsOutputPipeVebox())
+            {
+                switch (dstFormat)
+                {
+                    case Format_NV12:
+                        *pPerfTag = VPHAL_PA_DN_420CP;
+                        break;
+                    CASE_PA_FORMAT:
+                        *pPerfTag = VPHAL_PA_DN_422CP;
+                        break;
+                    case Format_RGB32:
+                        *pPerfTag = VPHAL_PA_DN_RGB32CP;
+                        break;
+                    case Format_P010:
+                    case Format_P016:
+                    case Format_Y410:
+                    case Format_Y416:
+                    case Format_Y210:
+                    case Format_Y216:
+                    case Format_AYUV:
+                    case Format_Y8:
+                    case Format_Y16S:
+                    case Format_Y16U:
+                        *pPerfTag = VPHAL_NONE;
+                        break;
+                    default:
+                        VPHAL_RENDER_ASSERTMESSAGE("Output Format Not found.");
+                        return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+            else if (IsIECPEnabled())
+            {
+                *pPerfTag = VPHAL_PA_DN_422CP;
+            }
+            else
+            {
+                *pPerfTag = VPHAL_PA_DN_PA;
+            }
+        }
+        else
+        {
+            if (IsOutputPipeVebox())
+            {
+                switch (dstFormat)
+                {
+                    case Format_NV12:
+                        *pPerfTag = VPHAL_PA_420CP;
+                        break;
+                    CASE_PA_FORMAT:
+                        *pPerfTag = VPHAL_PA_422CP;
+                        break;
+                    case Format_RGB32:
+                        *pPerfTag = VPHAL_PA_RGB32CP;
+                        break;
+                    case Format_A8R8G8B8:
+                    case Format_A8B8G8R8:
+                    case Format_R10G10B10A2:
+                    case Format_B10G10R10A2:
+                        *pPerfTag = VPHAL_PA_RGB32CP;
+                        break;
+                    case Format_P010:
+                    case Format_P016:
+                    case Format_Y410:
+                    case Format_Y416:
+                    case Format_Y210:
+                    case Format_Y216:
+                    case Format_AYUV:
+                    case Format_Y8:
+                    case Format_Y16S:
+                    case Format_Y16U:
+                        *pPerfTag = VPHAL_NONE;
+                        break;
+                    default:
+                        VPHAL_RENDER_ASSERTMESSAGE("Output Format Not found.");
+                        return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+            else
+            {
+                *pPerfTag = VPHAL_PA_422CP;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpVeboxCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)

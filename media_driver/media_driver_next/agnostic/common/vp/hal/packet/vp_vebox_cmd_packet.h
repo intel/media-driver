@@ -706,13 +706,26 @@ public:
     //!
     //! \brief    Vebox perftag
     //! \details  set vebox perftag
-    //! \param    [in] pSrcSurface
-    //!           Pointer to input surface of Vebox
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS VeboxSetPerfTag(
-       MOS_FORMAT            srcFmt);
+    virtual MOS_STATUS VeboxSetPerfTag();
+
+    //!
+    //! \brief    Vebox perftag for NV12 source
+    //! \details  set vebox perftag for NV12 source
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS VeboxSetPerfTagNv12();
+
+    //!
+    //! \brief    Vebox perftag for Pa format source
+    //! \details  set vebox perftag for Pa format source
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS VeboxSetPerfTagPaFormat();
 
 protected:
 
