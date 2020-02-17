@@ -413,7 +413,7 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     surfaceElement->pSurface = dstSurface;
 
     DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-
+    DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
     return dstSurface;
 }
 
