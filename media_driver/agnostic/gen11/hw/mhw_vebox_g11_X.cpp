@@ -193,7 +193,8 @@ const int32_t g_Vebox_BT2020_Forward_Gamma_LUT_g11[256] =
 
 MhwVeboxInterfaceG11::MhwVeboxInterfaceG11(
     PMOS_INTERFACE pInputInterface)
-    : MhwVeboxInterfaceGeneric(pInputInterface)
+    : MhwVeboxInterfaceGeneric(pInputInterface),
+    m_chromaParams()
 {
     MHW_FUNCTION_ENTER;
     MEDIA_SYSTEM_INFO *pGtSystemInfo = nullptr;

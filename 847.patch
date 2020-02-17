@@ -1,0 +1,88 @@
+From 39a5ab0b9db671e119edc16ab0cb1eca418fa495 Mon Sep 17 00:00:00 2001
+From: kexx <xiaox.ke@intel.com>
+Date: Mon, 17 Feb 2020 18:08:36 +0800
+Subject: [PATCH] Modify for fixing CIV KW issues on WW_08 2020
+
+---
+ .../common/codec/hal/codechal_decode_hevc.cpp |  3 ++-
+ .../codec/hal/codechal_encoder_base.cpp       | 23 ++++++++++++++++++-
+ .../agnostic/gen11/hw/mhw_vebox_g11_X.cpp     |  3 ++-
+ .../codec/hal/codechal_fei_hevc_g9_skl.cpp    |  3 +++
+ 4 files changed, 29 insertions(+), 3 deletions(-)
+
+diff --git a/media_driver/agnostic/common/codec/hal/codechal_decode_hevc.cpp b/media_driver/agnostic/common/codec/hal/codechal_decode_hevc.cpp
+index b48d4bd32..1ecb65f88 100644
+--- a/media_driver/agnostic/common/codec/hal/codechal_decode_hevc.cpp
++++ b/media_driver/agnostic/common/codec/hal/codechal_decode_hevc.cpp
+@@ -2697,7 +2697,8 @@ CodechalDecodeHevc::CodechalDecodeHevc(
+                                             m_widthLastMaxAlloced(0),
+                                             m_heightLastMaxAlloced(0),
+                                             m_ctbLog2SizeYMax(0),
+-                                            m_hcpDecPhase(0)
++                                            m_hcpDecPhase(0),
++                                            m_secondLevelBatchBuffer()
+ {
+     CODECHAL_DECODE_FUNCTION_ENTER;
+ 
+diff --git a/media_driver/agnostic/common/codec/hal/codechal_encoder_base.cpp b/media_driver/agnostic/common/codec/hal/codechal_encoder_base.cpp
+index b0992f43e..4c3303b44 100644
+--- a/media_driver/agnostic/common/codec/hal/codechal_encoder_base.cpp
++++ b/media_driver/agnostic/common/codec/hal/codechal_encoder_base.cpp
+@@ -4613,7 +4613,28 @@ CodechalEncoderState::CodechalEncoderState(
+     CodechalHwInterface* hwInterface,
+     CodechalDebugInterface* debugInterface,
+     PCODECHAL_STANDARD_INFO standardInfo):
+-    Codechal(hwInterface, debugInterface)
++    Codechal(hwInterface, debugInterface),
++    m_platform(),
++    m_videoGpuNode(MOS_GPU_NODE_MAX),
++    m_videoContext(MOS_GPU_CONTEXT_RENDER),
++    m_renderContext(MOS_GPU_CONTEXT_RENDER),
++    m_codecFunction(CODECHAL_FUNCTION_ENC),
++    m_walkerMode(MHW_WALKER_MODE_NOT_SET),
++    m_mfeEncodeParams(),
++    m_mfeEncodeSharedState(),
++    m_encodeParams(),
++    m_resHwCount(),
++    m_rawSurface(),
++    m_reconSurface(),
++    m_resBitstreamBuffer(),
++    m_resMbCodeSurface(),
++    m_resMvDataSurface{(),
++    m_currOriginalPic(),
++    m_currReconstructedPic(),
++    m_resSyncObjectRenderContextInUse(),
++    m_resSyncObjectVideoContextInUse(),
++    m_encodeStatusBuf(),
++    m_encodeStatusBufRcs()
+ {
+     // Add Null checks here for all interfaces.
+     CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
+diff --git a/media_driver/agnostic/gen11/hw/mhw_vebox_g11_X.cpp b/media_driver/agnostic/gen11/hw/mhw_vebox_g11_X.cpp
+index b0a6b1da9..4fab021d5 100644
+--- a/media_driver/agnostic/gen11/hw/mhw_vebox_g11_X.cpp
++++ b/media_driver/agnostic/gen11/hw/mhw_vebox_g11_X.cpp
+@@ -193,7 +193,8 @@ const int32_t g_Vebox_BT2020_Forward_Gamma_LUT_g11[256] =
+ 
+ MhwVeboxInterfaceG11::MhwVeboxInterfaceG11(
+     PMOS_INTERFACE pInputInterface)
+-    : MhwVeboxInterfaceGeneric(pInputInterface)
++    : MhwVeboxInterfaceGeneric(pInputInterface),
++    m_chromaParams()
+ {
+     MHW_FUNCTION_ENTER;
+     MEDIA_SYSTEM_INFO *pGtSystemInfo = nullptr;
+diff --git a/media_driver/agnostic/gen9_skl/codec/hal/codechal_fei_hevc_g9_skl.cpp b/media_driver/agnostic/gen9_skl/codec/hal/codechal_fei_hevc_g9_skl.cpp
+index 32ce2c045..accd724f1 100644
+--- a/media_driver/agnostic/gen9_skl/codec/hal/codechal_fei_hevc_g9_skl.cpp
++++ b/media_driver/agnostic/gen9_skl/codec/hal/codechal_fei_hevc_g9_skl.cpp
+@@ -6873,6 +6873,9 @@ CodechalFeiHevcStateG9Skl::CodechalFeiHevcStateG9Skl(CodechalHwInterface* hwInte
+     CodechalDebugInterface* debugInterface,
+     PCODECHAL_STANDARD_INFO standardInfo)
+     :CodechalEncHevcStateG9(hwInterface, debugInterface, standardInfo)
++#ifdef HEVC_FEI_ENABLE_CMRT
++    ,m_cmEvent(CM_NO_EVENT)
++#endif
+ {
+     m_kernelBase = (uint8_t *)IGCODECKRN_G9;
+     m_kuid = IDR_CODEC_HEVC_FEI_COMBINED_KENREL_INTEL;
