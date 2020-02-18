@@ -38,11 +38,6 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 source_group( "MHW\\Vdbox" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 

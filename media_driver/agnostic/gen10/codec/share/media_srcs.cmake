@@ -35,11 +35,6 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 # no group for now
 #source_group( "CodecHal\\Decode" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 

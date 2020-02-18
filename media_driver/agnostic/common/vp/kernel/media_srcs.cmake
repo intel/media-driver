@@ -36,11 +36,6 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 source_group( "VpHal\\Kernel DLL" FILES ${TMP_HEADERS_} )
 
 

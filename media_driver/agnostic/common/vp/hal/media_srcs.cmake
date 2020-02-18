@@ -81,16 +81,6 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 source_group("VpHal\\Common" FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 
 

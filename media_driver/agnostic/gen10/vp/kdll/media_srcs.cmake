@@ -29,12 +29,6 @@ set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
  )
- 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
 
 # no header for now
 #set(HEADERS_

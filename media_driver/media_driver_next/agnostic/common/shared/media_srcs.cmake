@@ -45,16 +45,6 @@ set(HEADERS_NEW
     ${TMP_HEADERS_}
 )
 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 source_group(SharedNext\\shared FILES ${TMP_HEADERS_} ${TMP_SOURCES_})
 
 media_add_curr_to_include_path()

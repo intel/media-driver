@@ -50,18 +50,6 @@ set(HEADERS_
     ${TMP_2_HEADERS_}
 )
 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_1_SOURCES_}
-    ${TMP_2_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_1_HEADERS_}
-    ${TMP_2_HEADERS_}
-)
-
 source_group( "VpHal\\Common" FILES ${TMP_1_SOURCES_} ${TMP_1_HEADERS_} )
 source_group( "VpHal\\Render" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_} )
 

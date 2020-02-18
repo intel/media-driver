@@ -42,16 +42,6 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 source_group( "MHW\\Render Hal" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 set(TMP_SOURCES2_
@@ -69,11 +59,6 @@ set(TMP_HEADERS2_
 
 set(HEADERS_
     ${HEADERS_}
-    ${TMP_HEADERS2_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
     ${TMP_HEADERS2_}
 )
 

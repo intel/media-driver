@@ -54,18 +54,6 @@ set(HEADERS_
     ${TMP_2_HEADERS_}
 )
 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_1_SOURCES_}
-    ${TMP_2_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_1_HEADERS_}
-    ${TMP_2_HEADERS_}
-)
-
 source_group("MHW\\SFC" FILES ${TMP_1_SOURCES_} ${TMP_1_HEADERS_})
 source_group("MHW\\VEBOX" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_})
 
@@ -111,20 +99,6 @@ set(SOURCES_
 
 set(HEADERS_
     ${HEADERS_}
-    ${TMP_3_HEADERS_}
-    ${TMP_4_HEADERS_}
-    ${TMP_5_HEADERS_}
-)
-
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_3_SOURCES_}
-    ${TMP_4_SOURCES_}
-    ${TMP_5_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
     ${TMP_3_HEADERS_}
     ${TMP_4_HEADERS_}
     ${TMP_5_HEADERS_}

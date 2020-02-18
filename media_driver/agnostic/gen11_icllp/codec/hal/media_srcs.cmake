@@ -90,20 +90,6 @@ set(HEADERS_
     ${TMP_3_HEADERS_}
 )
 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_1_SOURCES_}
-    ${TMP_2_SOURCES_}
-    ${TMP_3_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_1_HEADERS_}
-    ${TMP_2_HEADERS_}
-    ${TMP_3_HEADERS_}
-)
-
 source_group( "CodecHal\\Common" FILES ${TMP_1_SOURCES_} ${TMP_1_HEADERS_} )
 source_group( "CodecHal\\Decode" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_} )
 source_group( "CodecHal\\Encode" FILES ${TMP_3_SOURCES_} ${TMP_3_HEADERS_} )
