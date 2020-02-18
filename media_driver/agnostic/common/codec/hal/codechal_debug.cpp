@@ -686,7 +686,6 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
             break;
         case  Format_Y416:
         case  Format_AUYV:
-        case  Format_Y410: //444 10bit
         case  Format_R10G10B10A2:
             height *= 2;
             break;
