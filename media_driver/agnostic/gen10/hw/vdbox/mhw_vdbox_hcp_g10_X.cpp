@@ -1000,6 +1000,20 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeBufAddrCmd(
     MOS_SURFACE                                      details;
     mhw_vdbox_hcp_g10_X::HCP_PIPE_BUF_ADDR_STATE_CMD cmd;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
+    if (m_hevcDatRowStoreCache.bEnabled     ||
+        m_hevcDfRowStoreCache.bEnabled      ||
+        m_hevcSaoRowStoreCache.bEnabled     ||
+        m_vp9HvdRowStoreCache.bEnabled      ||
+        m_vp9DfRowStoreCache.bEnabled)
+    {
+        UserFeatureWriteData.Value.i32Data = 1;
+    }
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+#endif
+
     MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
 
     // 1. MHW_VDBOX_HCP_GENERAL_STATE_SHIFT(6) may not work with DecodedPicture

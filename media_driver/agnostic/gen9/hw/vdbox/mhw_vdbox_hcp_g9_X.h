@@ -698,6 +698,20 @@ protected:
         typename THcpCmds::HCP_PIPE_BUF_ADDR_STATE_CMD cmd;
         bool                                           firstRefPic = true;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+        UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
+        if (this->m_hevcDatRowStoreCache.bEnabled     ||
+            this->m_hevcDfRowStoreCache.bEnabled      ||
+            this->m_hevcSaoRowStoreCache.bEnabled     ||
+            this->m_vp9HvdRowStoreCache.bEnabled      ||
+            this->m_vp9DfRowStoreCache.bEnabled)
+        {
+            UserFeatureWriteData.Value.i32Data = 1;
+        }
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+#endif
+
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
         resourceParams.dwLsbNum = MHW_VDBOX_HCP_DECODED_BUFFER_SHIFT;
         resourceParams.HwCommandType = MOS_MFX_PIPE_BUF_ADDR;

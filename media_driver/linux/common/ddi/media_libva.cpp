@@ -1556,7 +1556,16 @@ VAStatus DdiMedia__Initialize (
     // Create GMM page table manager
     mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr, &mediaCtx->SkuTable);
 
-    mediaCtx->m_useSwSwizzling = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrSimulationMode) || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
+        &UserFeatureData);
+#endif
+
+    mediaCtx->m_useSwSwizzling = UserFeatureData.i32Data || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
     mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
     mediaCtx->modularizedGpuCtxEnabled = true;
 
