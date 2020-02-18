@@ -5477,14 +5477,6 @@ MOS_STATUS CodechalEncodeAvcEncG12::KernelDebugDumps()
             0,
             CODECHAL_MEDIA_STATE_BRC_UPDATE));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &BrcBuffers.resBrcHistoryBuffer,
-            CodechalDbgAttr::attrOutput,
-            "HistoryWrite",
-            m_brcHistoryBufferSize,
-            0,
-            CODECHAL_MEDIA_STATE_BRC_UPDATE));
-
         if (!Mos_ResourceIsNull(&BrcBuffers.sBrcMbQpBuffer.OsResource))
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
@@ -5493,6 +5485,16 @@ MOS_STATUS CodechalEncodeAvcEncG12::KernelDebugDumps()
                 "MbQp",
                 BrcBuffers.sBrcMbQpBuffer.dwPitch*BrcBuffers.sBrcMbQpBuffer.dwHeight,
                 BrcBuffers.dwBrcMbQpBottomFieldOffset,
+                CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
+        }
+        if (bMbBrcEnabled)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &BrcBuffers.resBrcHistoryBuffer,
+                CodechalDbgAttr::attrOutput,
+                "HistoryWrite",
+                m_brcHistoryBufferSize,
+                0,
                 CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
         }
         if (BrcBuffers.pMbEncKernelStateInUse)
