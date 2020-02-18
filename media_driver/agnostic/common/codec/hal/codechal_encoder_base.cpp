@@ -4611,9 +4611,30 @@ CodechalEncoderGenState::CodechalEncoderGenState(CodechalEncoderState* encoder)
 
 CodechalEncoderState::CodechalEncoderState(
     CodechalHwInterface* hwInterface,
-    CodechalDebugInterface* debugInterface,
-    PCODECHAL_STANDARD_INFO standardInfo):
-    Codechal(hwInterface, debugInterface)
+	CodechalDebugInterface* debugInterface,
+	PCODECHAL_STANDARD_INFO standardInfo):
+	Codechal(hwInterface, debugInterface),
+	m_platform(),
+	m_videoGpuNode(MOS_GPU_NODE_MAX),
+	m_videoContext(MOS_GPU_CONTEXT_RENDER),
+	m_renderContext(MOS_GPU_CONTEXT_RENDER),
+	m_codecFunction(CODECHAL_FUNCTION_ENC),
+	m_walkerMode(MHW_WALKER_MODE_NOT_SET),
+	m_mfeEncodeParams(),
+	m_mfeEncodeSharedState(),
+	m_encodeParams(),
+	m_resHwCount(),
+	m_rawSurface(),
+	m_reconSurface(),
+	m_resBitstreamBuffer(),
+	m_resMbCodeSurface(),
+	m_resMvDataSurface(),
+	m_currOriginalPic(),
+	m_currReconstructedPic(),
+	m_resSyncObjectRenderContextInUse(),
+	m_resSyncObjectVideoContextInUse(),
+	m_encodeStatusBuf(),
+	m_encodeStatusBufRcs()
 {
     // Add Null checks here for all interfaces.
     CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
