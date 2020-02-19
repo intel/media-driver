@@ -6873,6 +6873,9 @@ CodechalFeiHevcStateG9Skl::CodechalFeiHevcStateG9Skl(CodechalHwInterface* hwInte
     CodechalDebugInterface* debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo)
     :CodechalEncHevcStateG9(hwInterface, debugInterface, standardInfo)
+#ifdef HEVC_FEI_ENABLE_CMRT
+    ,m_cmEvent(CM_NO_EVENT)
+#endif
 {
     m_kernelBase = (uint8_t *)IGCODECKRN_G9;
     m_kuid = IDR_CODEC_HEVC_FEI_COMBINED_KENREL_INTEL;
