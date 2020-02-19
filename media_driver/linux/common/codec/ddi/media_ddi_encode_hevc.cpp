@@ -1224,17 +1224,16 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
                 pic_param_roi.Top    /= blockSize;
                 pic_param_roi.Bottom /= blockSize;
 
-                // DDI defination for right and bottom parameters is inclusive whereas
-                // the defination in BRC kernel input is exclusive. So adding 1 to right & bottom.
-                 pic_param_roi.Right += 1;
-                 pic_param_roi.Bottom += 1;
-
                  // check frame boundary
                  pic_param_roi.Left   = pic_param_roi.Left  > rightBorder  ? rightBorder : pic_param_roi.Left;
                  pic_param_roi.Right  = pic_param_roi.Right  > rightBorder  ? rightBorder  : pic_param_roi.Right;
                  pic_param_roi.Top    = pic_param_roi.Top    > bottomBorder ? bottomBorder : pic_param_roi.Top;
                  pic_param_roi.Bottom = pic_param_roi.Bottom > bottomBorder ? bottomBorder : pic_param_roi.Bottom;
 
+                 // DDI defination for right and bottom parameters is inclusive whereas
+                 // the defination in BRC kernel input is exclusive. So adding 1 to right & bottom.
+                 pic_param_roi.Right += 1;
+                 pic_param_roi.Bottom += 1;
             }
             picParams->NumROI = MOS_MIN(vaEncMiscParamROI->num_roi, maxROIsupported);
         }
