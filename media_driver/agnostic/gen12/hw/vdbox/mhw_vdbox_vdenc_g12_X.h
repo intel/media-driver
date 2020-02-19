@@ -575,7 +575,7 @@ public:
         cmd.DW1.ScalabilityMode                = !(paramsG12->MultiEngineMode == MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY);
         if (CODECHAL_ENCODE_MODE_HEVC == params->Mode || CODECHAL_ENCODE_RESERVED_0 == params->Mode)
         {
-            cmd.DW1.FrameStatisticsStreamOutEnable = paramsG12->bBRCEnabled;
+            cmd.DW1.FrameStatisticsStreamOutEnable = paramsG12->bBRCEnabled || paramsG12->bLookaheadPass;
         }
         // AVC VENC to be optimized later
         else
@@ -1657,6 +1657,18 @@ public:
             cmd.DW30.RoiQpAdjustmentForZone1 = priorityLevelOrDQp[0];
             cmd.DW30.RoiQpAdjustmentForZone2 = priorityLevelOrDQp[1];
             cmd.DW30.RoiQpAdjustmentForZone3 = priorityLevelOrDQp[2];
+        }
+
+        if (avcSeqParams->RateControlMethod != RATECONTROL_CQP)
+        {
+            cmd.DW30.QpAdjustmentForShapeBestIntra4X4Winner = 0;
+            cmd.DW30.QpAdjustmentForShapeBestIntra8X8Winner = 0;
+            cmd.DW30.QpAdjustmentForShapeBestIntra16X16Winner = 0;
+
+            cmd.DW31.BestdistortionQpAdjustmentForZone0 = 0;
+            cmd.DW31.BestdistortionQpAdjustmentForZone1 = 1;
+            cmd.DW31.BestdistortionQpAdjustmentForZone2 = 2;
+            cmd.DW31.BestdistortionQpAdjustmentForZone3 = 3;
         }
 
         if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI && params->bVdencStreamInEnabled)

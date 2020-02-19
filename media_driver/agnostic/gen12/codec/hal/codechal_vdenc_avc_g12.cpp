@@ -366,9 +366,10 @@ struct BrcInitDmem
     uint8_t     INIT_AdaptiveCostEnable_U8;           // 0: disabled, 1: enabled
     uint8_t     INIT_AdaptiveHMEExtensionEnable_U8;   // 0: disabled, 1: enabled
     uint8_t     INIT_ICQReEncode_U8;                  // 0: disabled, 1: enabled
-    uint8_t     Reserved_u8;                                // must be zero
+    uint8_t     INIT_LookaheadDepth_U8;               // Lookahead depth in unit of frames [0, 127]
     uint8_t     INIT_SinglePassOnly;                  // 0: disabled, 1: enabled
-    uint8_t     RSVD2[56];                            // must be zero
+    uint8_t     INIT_New_DeltaQP_Adaptation_U8;       // = 1 to enable new delta QP adaption
+    uint8_t     RSVD2[55];                            // must be zero
 };
 using PBrcInitDmem = struct BrcInitDmem*;
 
@@ -442,7 +443,11 @@ struct BrcUpdateDmem
     int8_t       HME0YOffset_I8;    // default = 24, Frame level Y offset from the co-located (0, 0) location for HME0.
     int8_t       HME1XOffset_I8;    // default = -32, Frame level X offset from the co-located (0, 0) location for HME1.
     int8_t       HME1YOffset_I8;    // default = -24, Frame level Y offset from the co-located (0, 0) location for HME1.
-    uint8_t     RSVD2[28];
+    uint8_t      MOTION_ADAPTIVE_G4;
+    uint8_t      EnableLookAhead;
+    uint8_t      UPD_LA_Data_Offset_U8;
+    uint8_t      UPD_CQMEnabled_U8;  // 0 indicates CQM is disabled for current frame; otherwise CQM is enabled.
+    uint8_t      RSVD2[24];
 };
 using PBrcUpdateDmem = struct BrcUpdateDmem*;
 
@@ -896,6 +901,24 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcInitReset()
 
     hucVDEncBrcInitDmem->INIT_SinglePassOnly = m_vdencSinglePassEnable ? true : false;
 
+    if (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING)
+    {
+        if (m_avcSeqParam->RateControlMethod == RATECONTROL_VBR)
+        {
+            m_avcSeqParam->MaxBitRate = m_avcSeqParam->TargetBitRate;
+        }
+
+        // Disable delta QP adaption for non-VCM/ICQ/LowDelay until we have better algorithm
+        if ((m_avcSeqParam->RateControlMethod != RATECONTROL_VCM) &&
+            (m_avcSeqParam->RateControlMethod != RATECONTROL_ICQ) &&
+            (m_avcSeqParam->FrameSizeTolerance != EFRAMESIZETOL_EXTREMELY_LOW))
+        {
+            hucVDEncBrcInitDmem->INIT_DeltaQP_Adaptation_U8 = 0;
+        }
+
+        hucVDEncBrcInitDmem->INIT_New_DeltaQP_Adaptation_U8 = 1;
+    }
+
     if (((m_avcSeqParam->TargetUsage & 0x07) == TARGETUSAGE_BEST_SPEED) &&
         (m_avcSeqParam->FrameWidth >= m_singlePassMinFrameWidth) &&
         (m_avcSeqParam->FrameHeight >= m_singlePassMinFrameHeight) &&
@@ -903,6 +926,8 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcInitReset()
     {
         hucVDEncBrcInitDmem->INIT_SinglePassOnly = true;
     }
+
+    hucVDEncBrcInitDmem->INIT_LookaheadDepth_U8 = m_lookaheadDepth;
 
     //Override the DistQPDelta setting
     if (m_mbBrcEnabled)
@@ -964,6 +989,15 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     }
     hucVDEncBrcDmem->UPD_WidthInMB_U16  = m_picWidthInMb;
     hucVDEncBrcDmem->UPD_HeightInMB_U16 = m_picHeightInMb;
+
+    hucVDEncBrcDmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING);
+    hucVDEncBrcDmem->UPD_CQMEnabled_U8  = m_avcSeqParam->seq_scaling_matrix_present_flag || m_avcPicParam->pic_scaling_matrix_present_flag;
+
+    if (m_lookaheadDepth > 0)
+    {
+        hucVDEncBrcDmem->EnableLookAhead = 1;
+        hucVDEncBrcDmem->UPD_LA_Data_Offset_U8 = m_currLaDataIdx;
+    }
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(

@@ -2119,6 +2119,7 @@ public:
     static constexpr int32_t     m_negMultPB = -50;
     static constexpr int32_t     m_posMultVBR = 100;
     static constexpr int32_t     m_negMultVBR = -50;
+    static constexpr uint32_t    m_vdboxHucHevcLaAnalysisKernelDescriptor = 17;  //!< Huc lookahead analysis kernel descriptor
 
     static const double          m_devThreshIFPNEG[m_numDevThreshlds / 2];
     static const double          m_devThreshIFPPOS[m_numDevThreshlds / 2];
@@ -2770,6 +2771,18 @@ private:
     MOS_STATUS DumpHucDebugOutputBuffers();
 
     MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, uint32_t roundInterValue, uint32_t roundIntraValue, bool isLowDelayB = true, int8_t *pRefIdxMapping = nullptr, int8_t recNotFilteredID = 0);
+
+    //! \brief    Lookahead analysis
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AnalyzeLookaheadStats();
+
+    MOS_STATUS HuCLookaheadInit();
+
+    MOS_STATUS HuCLookaheadUpdate();
+
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpHucPakIntegrate();
     MOS_STATUS DumpHucCqp();

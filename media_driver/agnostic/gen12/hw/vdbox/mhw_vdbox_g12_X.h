@@ -82,6 +82,7 @@ struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 : public MHW_VDBOX_PIPE_MODE_SELECT
     bool                        bHEVCSeparateTileProgramming = false;
     bool                        bStreamingBufferEnabled = false;
     bool                        bIsRandomAccess = false;
+    bool                        bLookaheadPass = false;
 };
 using PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 = MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 *;
 
