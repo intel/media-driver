@@ -363,6 +363,7 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     {
         DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         MOS_FreeMemory(dstSurface);
+        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
         return nullptr;
     }
     //FreeSurface
