@@ -263,8 +263,8 @@ MOS_STATUS MosInterface::SetGpuContext(
 
 MOS_STATUS MosInterface::AddCommand(
     COMMAND_BUFFER_HANDLE cmdBuffer,
-    const void *          cmd,
-    uint32_t              cmdSize)
+    const void *cmd,
+    uint32_t cmdSize)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -288,9 +288,15 @@ MOS_STATUS MosInterface::AddCommand(
     {
         cmdBuffer->iOffset -= cmdSizeDwAligned;
         cmdBuffer->iRemaining += cmdSizeDwAligned;
-        MOS_OS_ASSERTMESSAGE("Unable to add command (no space).");
+        MOS_OS_ASSERTMESSAGE("Unable to add command: remaining space = %d, command size = %d.",
+            cmdBuffer->iRemaining,
+            cmdSizeDwAligned);
         return MOS_STATUS_UNKNOWN;
     }
+
+    MOS_OS_VERBOSEMESSAGE("The command was successfully added: remaining space = %d, buffer size = %d.",
+        cmdBuffer->iRemaining,
+        cmdBuffer->iOffset + cmdBuffer->iRemaining);
 
     MosUtilities::MosSecureMemcpy(cmdBuffer->pCmdPtr, cmdSize, cmd, cmdSize);
     cmdBuffer->pCmdPtr += (cmdSizeDwAligned / sizeof(uint32_t));
