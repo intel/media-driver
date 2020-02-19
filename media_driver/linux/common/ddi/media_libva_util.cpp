@@ -736,11 +736,8 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
     DDI_CHK_NULL(surface->bo, "nullptr surface->bo", nullptr);
     if((false == surface->bMapped) && (0 == surface->iRefCount))
     {
-        if (surface->pMediaCtx->bIsAtomSOC)
-        {
-            mos_gem_bo_map_gtt(surface->bo);
-        }
-        else
+        // remove the differentiation from AtomSOC(surface->pMediaCtx->bIsAtomSOC).
+        // perf will drop from 25fps to 10fps for 1080p decode + vp(nv12tileY -> i420linear) if only mos_gem_bo_map_gtt(surface->bo) on AtomSOC(APL).
         {
             if (surface->TileType == I915_TILING_NONE)
             {
@@ -766,7 +763,6 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                                                    (uint8_t *)surface->pSystemShadow,
                                                    false);
                 DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
-
             }
             else if (flag & MOS_LOCKFLAG_NO_SWIZZLE)
             {
@@ -805,11 +801,8 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
 
     if((true == surface->bMapped) && (1 == surface->iRefCount))
     {
-        if (surface->pMediaCtx->bIsAtomSOC)
-        {
-            mos_gem_bo_unmap_gtt(surface->bo);
-        }
-        else
+        // remove the differentiation from AtomSOC(surface->pMediaCtx->bIsAtomSOC).
+        // perf will drop from 25fps to 10fps for 1080p decode + vp(nv12tileY -> i420linear) if only mos_gem_bo_map_gtt(surface->bo) on AtomSOC(APL).
         {
             if (surface->TileType == I915_TILING_NONE)
             {
@@ -866,22 +859,14 @@ void* DdiMediaUtil_LockBuffer(DDI_MEDIA_BUFFER *buf, uint32_t flag)
         }
         else
         {
-            if (buf->pMediaCtx->bIsAtomSOC)
+            if (buf->TileType == I915_TILING_NONE)
             {
-                mos_gem_bo_map_gtt(buf->bo);
+                mos_bo_map(buf->bo, ((MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY) & flag));
             }
             else
             {
-                if (buf->TileType == I915_TILING_NONE)
-                {
-                    mos_bo_map(buf->bo, ((MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY) & flag));
-                }
-                else
-                {
-                    mos_gem_bo_map_gtt(buf->bo);
-                }
-             }
-
+               mos_gem_bo_map_gtt(buf->bo);
+            }
             buf->pData = (uint8_t*)(buf->bo->virt);
         }
 
@@ -914,20 +899,13 @@ void DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *buf)
         }
         else
         {
-             if (buf->pMediaCtx->bIsAtomSOC)
-             {
-                 mos_gem_bo_unmap_gtt(buf->bo);
-             }
-             else
-             {
-                 if (buf->TileType == I915_TILING_NONE)
-                 {
-                     mos_bo_unmap(buf->bo);
-                 }
-                 else
-                 {
-                     mos_gem_bo_unmap_gtt(buf->bo);
-                 }
+            if (buf->TileType == I915_TILING_NONE)
+            {
+                 mos_bo_unmap(buf->bo);
+            }
+            else
+            {
+                mos_gem_bo_unmap_gtt(buf->bo);
             }
             buf->bo->virt = nullptr;
         }
