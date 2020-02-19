@@ -464,11 +464,8 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
 
         if(false == m_mapped)
         {
-            if (pOsContextSpecific->IsAtomSoc())
-            {
-                mos_gem_bo_map_gtt(boPtr);
-            }
-            else
+            // remove the differentiation from AtomSOC(surface->pMediaCtx->bIsAtomSOC).
+            // perf will drop from 25fps to 10fps for 1080p decode + vp(nv12tileY -> i420linear) if only mos_gem_bo_map_gtt(surface->bo) on AtomSOC(APL).
             {
                 if (m_tileType != MOS_TILE_LINEAR && !params.m_tileAsTiled)
                 {
@@ -543,11 +540,8 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
     {
         if (m_mapped)
         {
-           if (pOsContextSpecific->IsAtomSoc())
-           {
-               mos_gem_bo_unmap_gtt(boPtr);
-           }
-           else
+           // remove the differentiation from AtomSOC(surface->pMediaCtx->bIsAtomSOC).
+           // perf will drop from 25fps to 10fps for 1080p decode + vp(nv12tileY -> i420linear) if only mos_gem_bo_map_gtt(surface->bo) on AtomSOC(APL).
            {
                if (m_systemShadow)
                {
