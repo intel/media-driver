@@ -32,14 +32,14 @@ void GpuContextSpecificNext::SetEngineQueryFlags(
 
     if (typeid(*option) == typeid(MOS_GPUCTX_CREATOPTIONS_ENHANCED))
     {
-        createOptionEnhanced = static_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(option);
+        createOptionEnhanced = dynamic_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(option);
     }
     else
     {
         return;
     }
 
-    if (createOptionEnhanced->UsingSFC)
+    if (createOptionEnhanced != nullptr && createOptionEnhanced->UsingSFC)
     {
         caps |= I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC;
     }
