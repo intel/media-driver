@@ -168,6 +168,7 @@ protected:
 
     // Auxiliary
     MEDIA_FEATURE_TABLE           *m_pSkuTable;
+    MEDIA_WA_TABLE              *m_pWaTable;
 
     void (*m_modifyKdllFunctionPointers)(PKdll_State);
 

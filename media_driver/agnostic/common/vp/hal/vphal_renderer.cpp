@@ -1758,6 +1758,7 @@ VphalRenderer::VphalRenderer(
 
     // Get SKU table
     m_pSkuTable = m_pOsInterface->pfnGetSkuTable(m_pOsInterface);
+    m_pWaTable  = m_pOsInterface->pfnGetWaTable(m_pOsInterface);
 
 finish:
     if (pStatus)

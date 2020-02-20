@@ -1188,6 +1188,7 @@ struct VPHAL_RENDER_PARAMS
     bool                                    bAPGWorkloadEnable = false;         //!< Identify Whether APG workload Enabled or not
 
     bool                                    bDisableVeboxFor8K = false;
+    bool                                    bUseVEHdrSfc       = false;  // use SFC for to perform CSC/Scaling/RGBSwap of HDR streaming; if false, use composite render.
 
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
@@ -1210,7 +1211,8 @@ struct VPHAL_RENDER_PARAMS
 #endif
         bCalculatingAlpha(false),
         pExtensionData(nullptr),
-        bPathKernel(false)
+        bPathKernel(false),
+        bUseVEHdrSfc(false)
     {
     }
 

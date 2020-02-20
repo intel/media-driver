@@ -676,6 +676,7 @@ public:
                                             fScaleY              = 0.0f;
 
                                             bHdr3DLut            = false;
+                                            bUseVEHdrSfc         = false;
                                             uiMaxDisplayLum      = 4000;
                                             uiMaxContentLevelLum = 1000;
                                             hdrMode              = VPHAL_HDR_MODE_NONE;
@@ -778,6 +779,7 @@ public:
     float                               fScaleY;                                //!< Y Scaling ratio
 
     bool                                bHdr3DLut;                              //!< Enable 3DLut to process HDR
+    bool                                bUseVEHdrSfc;                              //!< Use SFC to perform CSC/Scaling for HDR content
     uint32_t                            uiMaxDisplayLum;                        //!< Maximum Display Luminance
     uint32_t                            uiMaxContentLevelLum;                   //!< Maximum Content Level Luminance
     VPHAL_HDR_MODE                      hdrMode;
