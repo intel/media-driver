@@ -802,7 +802,7 @@ static void SetInline16x16Mask(
 //!           MOS_STATUS_SUCCESS, otherwise MOS_STATUS_UNIMPLEMENTED if Destination Colorspace not supported,
 //!            or MOS_STATUS_INVALID_PARAMETER/MOS_STATUS_NULL_POINTER
 //!
-static MOS_STATUS LoadPaletteData(
+MOS_STATUS CompositeState::LoadPaletteData(
     PVPHAL_PALETTE          pInPalette,
     VPHAL_CSPACE            srcCspace,
     VPHAL_CSPACE            dstCspace,
@@ -2599,7 +2599,7 @@ MOS_STATUS CompositeState::RenderInit(
     pRenderingData->Static                 = g_cInit_MEDIA_OBJECT_KA2_STATIC_DATA;
     pRenderingData->Inline                 = g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA;
     pRenderingData->WalkerStatic           = g_cInit_MEDIA_WALKER_KA2_STATIC_DATA;
-
+    pRenderingData->DPFCStatic             = {0};
     // By default, alpha is calculated in PartBlend kernel
     pRenderingData->bAlphaCalculateEnable = false;
 
@@ -3017,7 +3017,7 @@ int32_t CompositeState::SetLayer(
     int32_t                             iLayer; // The index of pSource in pRenderingData->pLayers.
     MEDIA_OBJECT_KA2_STATIC_DATA        *pStatic;
     MEDIA_OBJECT_KA2_INLINE_DATA        *pInline;
-
+    MEDIA_DP_FC_STATIC_DATA             * pDPStatic;
     // Surface states
     int32_t                             iSurfaceEntries, i, iSurfaceEntries2;
     PRENDERHAL_SURFACE_STATE_ENTRY      pSurfaceEntries[MHW_MAX_SURFACE_PLANES];
@@ -3092,6 +3092,8 @@ int32_t CompositeState::SetLayer(
     {
         pStatic      = &pRenderingData->Static;
     }
+    pDPStatic = &pRenderingData->DPFCStatic;
+
     pInline      = &pRenderingData->Inline;
 
     // Set the default alpha value to 0 for Android platform
@@ -3791,6 +3793,9 @@ int32_t CompositeState::SetLayer(
     pStatic->DW08.DestinationRectangleWidth  = dwDestRectWidth;
     pStatic->DW08.DestinationRectangleHeight = dwDestRectHeight;
 
+    pDPStatic->DW7.DestinationRectangleWidth = dwDestRectWidth;
+    pDPStatic->DW7.DestinationRectangleHeight = dwDestRectHeight;
+
     switch (iLayer)
     {
         case 0:
@@ -3809,6 +3814,11 @@ int32_t CompositeState::SetLayer(
             pStatic->DW40.HorizontalFrameOriginLayer0       = fOriginX;
             pStatic->DW32.VerticalFrameOriginLayer0         = fOriginY;
             pInline->DW04.VideoXScalingStep                 = fStepX;
+
+            pDPStatic->DW9.HorizontalScalingStepRatioLayer0 = fStepX;
+            pDPStatic->DW10.VerticalScalingStepRatioLayer0 = fStepY;
+            pDPStatic->DW11.HorizontalFrameOriginLayer0 = fOriginX;
+            pDPStatic->DW12.VerticalFrameOriginLayer0 = fOriginY;
 
             // ChromasitingUOffset and ChromasitingVOffset are only for 3D Sampler use case
             if (m_need3DSampler)
@@ -6592,6 +6602,12 @@ bool CompositeState::BuildFilter(
         //--------------------------------
         pFilter->matrix = DL_CSC_DISABLED;
 
+        if (0 == pSrc->iLayerID)
+        {
+           //set first layer's scalingRatio
+           SetFilterScalingRatio(&(pFilter->ScalingRatio));
+        }
+
         // Update filter
         pFilter++;
         (*piFilterSize)++;
@@ -6616,6 +6632,9 @@ bool CompositeState::BuildFilter(
     pFilter->procamp  = DL_PROCAMP_DISABLED;
     pFilter->matrix   = DL_CSC_DISABLED;
     pFilter->bFillOutputAlphaWithConstant = true;
+
+    //set rendertarget's scalingRatio
+    SetFilterScalingRatio(&(pFilter->ScalingRatio));
 
     if(pCompParams->pSource[0] != nullptr &&
        pCompParams->pSource[0]->Format == Format_R5G6B5 &&
@@ -7018,7 +7037,6 @@ CompositeState::CompositeState(
     m_iProcampVersion(0),
     m_bNullHwRenderComp(false),
     m_b8TapAdaptiveEnable(false),
-    m_pKernelDllState(nullptr),
     m_ThreadCountPrimary(0),
     m_iBatchBufferCount(0),
     m_iCallID(0),
@@ -7061,9 +7079,6 @@ CompositeState::CompositeState(
     MOS_ZeroMemory(&m_mhwSamplerAvsTableParam, sizeof(m_mhwSamplerAvsTableParam));
     MOS_ZeroMemory(&m_BatchBuffer, sizeof(m_BatchBuffer));
     MOS_ZeroMemory(&m_BufferParam, sizeof(m_BufferParam));
-
-    // Set Max number of procamp entries
-    m_iMaxProcampEntries        = VPHAL_MAX_PROCAMP;
 
     // Set Bilinear Sampler Bias
     m_fSamplerLinearBiasX       = VPHAL_SAMPLER_BIAS_GEN575;

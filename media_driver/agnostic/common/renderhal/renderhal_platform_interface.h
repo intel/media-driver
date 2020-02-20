@@ -330,6 +330,20 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
+    //!
+    //! \brief    Get PlaneDefinition for NV12
+    //! \param    [in,out] PlaneDefinition
+    //!           Pointer to PlaneDefinition
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetPlaneDefForFormatNV12(
+        RENDERHAL_PLANE_DEFINITION &PlaneDefinition)
+    {
+        PlaneDefinition = RENDERHAL_PLANES_NV12;
+        return MOS_STATUS_SUCCESS;
+    };
+
     //! \brief      Set L3 cache override config parameters
     //! \param      [in] pRenderHal
     //!             Pointer to RenderHal Interface Structure

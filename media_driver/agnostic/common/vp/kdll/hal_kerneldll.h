@@ -121,6 +121,16 @@ typedef enum tagKdll_Sampling
     Sample_Scaling_AVS                ,  // AVS Scaling on g575+
 } Kdll_Sampling;
 
+// scaling ratio mode
+typedef enum tagKdll_scalingratio
+{
+    Scalingratio_Any               = 0,  // By default, or scaling ratio <=1/8
+    Scalingratio_over1                ,  // Scaling ratio > 1 +1/6;
+    Scalingratio_b1p2to1              ,  // Scaling ratio (1/2, 1+1/6]; //NV12 need 1+1/6 support by kernel
+    Scalingratio_b1p4to1p2            ,  // Scaling ratio (1/4, 1/2];
+    Scalingratio_b1p8to1p4            ,  // Scaling ratio (1/8, 1/4]
+} Kdll_Scalingratio;
+
 // Rotation Mode
 typedef enum tagKdll_Rotation
 {
@@ -296,7 +306,7 @@ typedef enum tagKdll_RuleID
     RID_IsSetCoeffMode   ,     // Set CSC coefficients mode
     RID_IsConstOutAlpha  ,     // Match alpha fill mode
     RID_IsDitherNeeded   ,     // Whether dithering needed
-
+    RID_IsScalingRatio   ,     // Current scaling ratio
     // Extended Match Rules - 0x0100 to 0x01ff
 
     // Simple Set Rules - 0x0200 to 0x02ff
@@ -428,6 +438,7 @@ typedef struct tagKdll_FilterEntry
     bool            bFillOutputAlphaWithConstant;
     bool            bIsDitherNeeded;
 
+    Kdll_Scalingratio      ScalingRatio;
     Kdll_RenderMethod      RenderMethod;
     Kdll_SetCSCCoeffMethod SetCSCCoeffMode;
 } Kdll_FilterEntry, *PKdll_FilterEntry;

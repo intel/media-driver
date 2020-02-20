@@ -579,6 +579,7 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_IsSetCoeffMode     : return _T("IsSetCoeffMode");
         case RID_IsConstOutAlpha    : return _T("IsConstOutAlpha");
         case RID_IsDitherNeeded     : return _T("IsDitherNeeded");
+        case RID_IsScalingRatio     : return _T("IsScalingRatio");
         case RID_SetSrc0Procamp     : return _T("SetSrc0Procamp");
     }
 
