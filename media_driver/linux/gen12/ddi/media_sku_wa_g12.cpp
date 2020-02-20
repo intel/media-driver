@@ -291,8 +291,7 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaMidBatchPreemption, 0);
     MEDIA_WR_WA(waTable, WaArbitraryNumMbsInSlice, 1);
 
-    /* Not needed any more for VDENC */
-    MEDIA_WR_WA(waTable, WaSuperSliceHeaderPacking, 0);
+    MEDIA_WR_WA(waTable, WaSuperSliceHeaderPacking, 1);
 
     MEDIA_WR_WA(waTable, WaSFC270DegreeRotation, 0);
 
