@@ -211,6 +211,9 @@ protected:
     //! \brief   Component info
     MOS_COMPONENT                   m_component = COMPONENT_UNKNOWN;
 
+    //! \brief   Flag to indicate if HAS is enabled
+    bool                            m_simIsActive = false;
+
     //! \brief   Flag to indicate if implicit Tile is needed
     bool                            m_implicitTileNeeded = false;
 };

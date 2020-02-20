@@ -581,8 +581,6 @@ struct _MOS_OS_CONTEXT
 
     std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
 
-    bool                bSimIsActive;   //!< To indicate if simulation environment
-
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT                pOsContext,

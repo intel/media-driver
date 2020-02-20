@@ -5923,7 +5923,7 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::Initialize(settings));
 
     MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
-    if (m_osInterface->bSimIsActive && (m_enableTileReplay == true))
+    if (MEDIA_IS_SKU(skuTable, FtrSimulationMode) && (m_enableTileReplay == true))
     {
         m_frameTrackingEnabled = false;
     }
