@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -165,6 +165,40 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::GetVdencStateCommandsDataSize(
             MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES +
             MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES +
             VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unsupported encode mode.");
+        *commandsSize  = 0;
+        *patchListSize = 0;
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    *commandsSize  = maxSize;
+    *patchListSize = patchListMaxSize;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MhwVdboxVdencInterfaceG10::GetVdencPrimitiveCommandsDataSize(
+        uint32_t                        mode,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize)
+{
+    MHW_FUNCTION_ENTER;
+
+    uint32_t            maxSize = 0;
+    uint32_t            patchListMaxSize = 0;
+    uint32_t            standard = CodecHal_GetStandardFromMode(mode);
+
+    if (standard == CODECHAL_AVC)
+    {
+        maxSize =
+            mhw_vdbox_vdenc_g10_X::VDENC_WEIGHTSOFFSETS_STATE_CMD::byteSize +
+            mhw_vdbox_vdenc_g10_X::VDENC_WALKER_STATE_CMD::byteSize +
+            mhw_vdbox_vdenc_g10_X::VD_PIPELINE_FLUSH_CMD::byteSize;
+
+        patchListMaxSize = VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
     }
     else
     {

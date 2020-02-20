@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -820,12 +820,12 @@ protected:
     virtual void SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param);
 
     //!
-    //! \brief    Calculate Vdenc Picture State CommandSize 
+    //! \brief    Calculate Vdenc Commands Size
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
-    virtual MOS_STATUS CalculateVdencPictureStateCommandSize();
+    virtual MOS_STATUS CalculateVdencCommandsSize();
 
     //!
     //! \brief    Create MHW_VDBOX_STATE_CMDSIZE_PARAMS

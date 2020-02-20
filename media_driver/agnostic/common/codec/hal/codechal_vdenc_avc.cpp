@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2019, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3395,21 +3395,21 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting *settings)
         CODECHAL_ENCODE_MODE_AVC,
         &m_pictureStatesSize,
         &m_picturePatchListSize,
-        0);
+        false);
 
     // Slice Level Commands
     m_hwInterface->GetMfxPrimitiveCommandsDataSize(
         CODECHAL_ENCODE_MODE_AVC,
         &m_sliceStatesSize,
         &m_slicePatchListSize,
-        m_singleTaskPhaseSupported);
+        false);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CalculateVdencPictureStateCommandSize());
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CalculateVdencCommandsSize());
 
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencAvcState::CalculateVdencPictureStateCommandSize()
+MOS_STATUS CodechalVdencAvcState::CalculateVdencCommandsSize()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -3417,6 +3417,7 @@ MOS_STATUS CodechalVdencAvcState::CalculateVdencPictureStateCommandSize()
     PMHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams = CreateMhwVdboxStateCmdsizeParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateCmdSizeParams);
     uint32_t vdencPictureStatesSize, vdencPicturePatchListSize;
+    uint32_t vdencSliceStatesSize, vdencSlicePatchListSize;
 
     m_hwInterface->GetHxxStateCommandSize(
         CODECHAL_ENCODE_MODE_AVC,
@@ -3428,6 +3429,7 @@ MOS_STATUS CodechalVdencAvcState::CalculateVdencPictureStateCommandSize()
     m_pictureStatesSize += vdencPictureStatesSize;
     m_picturePatchListSize += vdencPicturePatchListSize;
 
+    // Picture Level Commands
     m_hwInterface->GetVdencStateCommandsDataSize(
         CODECHAL_ENCODE_MODE_AVC,
         &vdencPictureStatesSize,
@@ -3435,6 +3437,16 @@ MOS_STATUS CodechalVdencAvcState::CalculateVdencPictureStateCommandSize()
 
     m_pictureStatesSize += vdencPictureStatesSize;
     m_picturePatchListSize += vdencPicturePatchListSize;
+
+    // Slice Level Commands
+    m_hwInterface->GetVdencPrimitiveCommandsDataSize(
+        CODECHAL_ENCODE_MODE_AVC,
+        &vdencSliceStatesSize,
+        &vdencSlicePatchListSize
+    );
+
+    m_sliceStatesSize += vdencSliceStatesSize;
+    m_slicePatchListSize += vdencSlicePatchListSize;
 
     return eStatus;
 }

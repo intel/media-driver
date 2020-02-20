@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-Copyright (c) 2017-2019, Intel Corporation
+Copyright (c) 2017-2020, Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -545,6 +545,46 @@ public:
                 MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES +
                 MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES +
                 VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unsupported encode mode.");
+            *commandsSize = 0;
+            *patchListSize = 0;
+            return MOS_STATUS_UNKNOWN;
+        }
+
+        *commandsSize = maxSize;
+        *patchListSize = patchListMaxSize;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    uint32_t GetAvcSliceMaxSize()
+    {
+        uint32_t maxSize =
+            TVdencCmds::VDENC_WEIGHTSOFFSETS_STATE_CMD::byteSize +
+            TVdencCmds::VDENC_WALKER_STATE_CMD::byteSize +
+            TVdencCmds::VD_PIPELINE_FLUSH_CMD::byteSize;
+
+        return maxSize;
+    }
+
+    MOS_STATUS GetVdencPrimitiveCommandsDataSize(
+        uint32_t                        mode,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize) override
+    {
+        MHW_FUNCTION_ENTER;
+
+        uint32_t            maxSize = 0;
+        uint32_t            patchListMaxSize = 0;
+        uint32_t            standard = CodecHal_GetStandardFromMode(mode);
+
+        if (standard == CODECHAL_AVC)
+        {
+            maxSize = GetAvcSliceMaxSize();
+            patchListMaxSize = VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
         }
         else
         {

@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1674,7 +1674,7 @@ MOS_STATUS CodechalEncodeAvcEnc::Initialize(CodechalSetting * settings)
         CODECHAL_ENCODE_MODE_AVC,
         &m_pictureStatesSize,
         &m_picturePatchListSize,
-        0);
+        false);
 
     // Slice Level Commands
     m_hwInterface->GetMfxPrimitiveCommandsDataSize(

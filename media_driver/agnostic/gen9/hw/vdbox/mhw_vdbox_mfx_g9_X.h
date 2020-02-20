@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -425,18 +425,20 @@ protected:
             {
                 maxSize+=
                     mhw_mi_g9_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize +
-                    mhw_mi_g9_X::MI_FLUSH_DW_CMD::byteSize * 3 +   // 3 extra MI_FLUSH_DWs for encode
-                    TMfxCmds::MFX_FQM_STATE_CMD::byteSize * 4 +   // FQM_State sent 4 times
-                    mhw_mi_g9_X::MI_STORE_REGISTER_MEM_CMD::byteSize * 8 +   // 5 extra register queries for encode, 3 extra slice level commands for BrcPakStatistics
-                    mhw_mi_g9_X::MI_STORE_DATA_IMM_CMD::byteSize * 3 +   // slice level commands for StatusReport, BrcPakStatistics
-                    MHW_VDBOX_PAK_BITSTREAM_OVERFLOW_SIZE;                         // accounting for the max DW payload for PAK_INSERT_OBJECT, for frame header payload
+                    mhw_mi_g9_X::MI_FLUSH_DW_CMD::byteSize * 3 +           // 3 extra MI_FLUSH_DWs for encode
+                    TMfxCmds::MFX_FQM_STATE_CMD::byteSize * 4 +            // FQM_State sent 4 times
+                    mhw_mi_g9_X::MI_STORE_REGISTER_MEM_CMD::byteSize * 8 + // 5 extra register queries for encode, 3 extra slice level commands for BrcPakStatistics
+                    mhw_mi_g9_X::MI_STORE_DATA_IMM_CMD::byteSize * 3 +     // slice level commands for StatusReport, BrcPakStatistics
+                    MHW_VDBOX_PAK_BITSTREAM_OVERFLOW_SIZE +                // accounting for the max DW payload for PAK_INSERT_OBJECT, for frame header payload
+                    TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize * 4;     // for inserting AU, SPS, PSP, SEI headers before first slice header
 
                 patchListMaxSize +=
                     PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD) +
-                    PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) * 3 +   // 3 extra MI_FLUSH_DWs for encode
-                    PATCH_LIST_COMMAND(MFX_FQM_STATE_CMD) * 4 +   // FQM_State sent 4 times
-                    PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) * 8 +   // extra register queries for encode, 3 extra slice level commands for BrcPakStatistics
-                    PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) * 3;// slice level commands for StatusReport, BrcPakStatistics
+                    PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) * 3 +              // 3 extra MI_FLUSH_DWs for encode
+                    PATCH_LIST_COMMAND(MFX_FQM_STATE_CMD) * 4 +            // FQM_State sent 4 times
+                    PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) * 8 +    // extra register queries for encode, 3 extra slice level commands for BrcPakStatistics
+                    PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) * 3 +        // slice level commands for StatusReport, BrcPakStatistics
+                    PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD) * 4; // for inserting AU, SPS, PSP, SEI headers before first slice header
             }
         }
         else if (standard == CODECHAL_VC1)
@@ -579,26 +581,33 @@ protected:
             else // CODECHAL_ENCODE_MODE_AVC
             {
                 // 1 PAK_INSERT_OBJECT inserted for every end of frame/stream with 1 DW payload
-                maxSize = TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize + sizeof(uint32_t) +
-                        TMfxCmds::MFX_AVC_SLICE_STATE_CMD::byteSize +
-                        (2 * TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD::byteSize) +
-                        (2 * TMfxCmds::MFX_AVC_WEIGHTOFFSET_STATE_CMD::byteSize) +
-                        TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize +
-                        MHW_VDBOX_PAK_BITSTREAM_OVERFLOW_SIZE + // slice header payload
-                        mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize;
-
-                patchListMaxSize = PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD) +
-                        PATCH_LIST_COMMAND(MFX_AVC_SLICE_STATE_CMD) +
-                        (2 * PATCH_LIST_COMMAND(MFX_AVC_REF_IDX_STATE_CMD)) +
-                        (2 * PATCH_LIST_COMMAND(MFX_AVC_WEIGHTOFFSET_STATE_CMD)) +
-                        PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD) +
-                        PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD);
+                maxSize = TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize + sizeof(uint32_t);
+                patchListMaxSize = PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD);
 
                 if (isModeSpecific)
                 {
                     // isModeSpecific = bSingleTaskPhaseSupported for AVC encode
-                    maxSize += mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize;
-                    patchListMaxSize += PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD);
+                    maxSize += (2 * mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize);
+                    patchListMaxSize += (2 * PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD));
+                }
+                else
+                {
+                    maxSize +=
+                        (2 * TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD::byteSize) +
+                        (2 * TMfxCmds::MFX_AVC_WEIGHTOFFSET_STATE_CMD::byteSize) +
+                        TMfxCmds::MFX_AVC_SLICE_STATE_CMD::byteSize +
+                        MHW_VDBOX_PAK_SLICE_HEADER_OVERFLOW_SIZE + // slice header payload
+                        (2 * TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize) +
+                        mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize +
+                        mhw_mi_g9_X::MI_FLUSH_DW_CMD::byteSize;
+
+                    patchListMaxSize +=
+                        (2 * PATCH_LIST_COMMAND(MFX_AVC_REF_IDX_STATE_CMD)) +
+                        (2 * PATCH_LIST_COMMAND(MFX_AVC_WEIGHTOFFSET_STATE_CMD)) +
+                        PATCH_LIST_COMMAND(MFX_AVC_SLICE_STATE_CMD) +
+                        (2 * PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD)) +
+                        PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) +
+                        PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
                 }
             }
         }

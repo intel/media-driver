@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -938,6 +938,23 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GetVdencStateCommandsDataSize(
+        uint32_t                    mode,
+        uint32_t                   *commandsSize,
+        uint32_t                   *patchListSize);
+
+    //!
+    //! \brief    Calculates maximum size for all slice level VDEnc commands
+    //! \details  Client facing function to calculate the maximum size for Vdenc slice level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetVdencPrimitiveCommandsDataSize(
         uint32_t                    mode,
         uint32_t                   *commandsSize,
         uint32_t                   *patchListSize);

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -96,6 +96,11 @@ public:
     MOS_STATUS GetVdencStateCommandsDataSize(
         uint32_t                        mode,
         uint32_t                        waAddDelayInVDEncDynamicSlice,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize);
+
+    MOS_STATUS GetVdencPrimitiveCommandsDataSize(
+        uint32_t                        mode,
         uint32_t                        *commandsSize,
         uint32_t                        *patchListSize);
 

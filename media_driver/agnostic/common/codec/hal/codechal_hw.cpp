@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -513,6 +513,31 @@ MOS_STATUS CodechalHwInterface::GetVdencStateCommandsDataSize(
         MHW_ASSERTMESSAGE("Unsupported encode mode.");
         return MOS_STATUS_UNKNOWN;
     }
+
+    *commandsSize = commands;
+    *patchListSize = patchList;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalHwInterface::GetVdencPrimitiveCommandsDataSize(
+    uint32_t                    mode,
+    uint32_t                   *commandsSize,
+    uint32_t                   *patchListSize)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    MHW_MI_CHK_NULL(m_miInterface);
+    MHW_MI_CHK_NULL(m_hcpInterface);
+    MHW_MI_CHK_NULL(m_vdencInterface);
+
+    uint32_t commands = 0;
+    uint32_t patchList = 0;
+
+    MHW_MI_CHK_STATUS(m_vdencInterface->GetVdencPrimitiveCommandsDataSize(
+        mode,
+        &commands,
+        &patchList));
 
     *commandsSize = commands;
     *patchListSize = patchList;

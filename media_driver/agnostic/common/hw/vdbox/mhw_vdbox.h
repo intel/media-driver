@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,7 @@
 #define MHW_VDBOX_HCP_RECON_UV_PLANE_ALIGNMENT            8
 
 #define MHW_VDBOX_PAK_BITSTREAM_OVERFLOW_SIZE             400
+#define MHW_VDBOX_PAK_SLICE_HEADER_OVERFLOW_SIZE          50
 #define MHW_VDBOX_VDENC_DYNAMIC_SLICE_WA_COUNT            1500
 
 // Rowstore Cache values

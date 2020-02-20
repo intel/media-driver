@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -152,7 +152,7 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     class SfdCurbe;
     bool                  m_vdencUltraModeEnable = false;   //!< Enable VDEnc ultra mode
 
-    MOS_STATUS CalculateVdencPictureStateCommandSize() override;
+    MOS_STATUS CalculateVdencCommandsSize() override;
     virtual void SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param) override;
 
    private:
