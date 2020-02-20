@@ -1191,6 +1191,17 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
         }
     }
 
+    CODECHAL_DEBUG_TOOL(
+        // here add the dump buffer for PAK statistics.
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_pakStatsBufferFull,
+            CodechalDbgAttr::attrInput,
+            "MB and FrameLevel PAK staistics vdenc",
+            m_vdencBrcPakStatsBufferSize + m_picWidthInMb * m_picHeightInMb * 64,   //size
+            0, //offset
+            CODECHAL_MEDIA_STATE_16X_ME));
+    )
+
     if (m_vdencBrcEnabled)
     {
         CODECHAL_DEBUG_TOOL(DumpHucBrcUpdate(false));
