@@ -4992,6 +4992,10 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     {
         virtualAddrParams.regionParams[11].presRegion = &m_resLaDataBuffer;
         virtualAddrParams.regionParams[11].isWritable = true;
+        if (m_osInterface->pfnEnableResourceSyncDynamic)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEnableResourceSyncDynamic(&m_resLaDataBuffer));
+        }
     }
     // region 15 always in clear
     virtualAddrParams.regionParams[15].presRegion = &m_resVdencBrcDbgBuffer;

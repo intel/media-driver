@@ -1187,6 +1187,12 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS(*pfnSkipResourceSync)(
         PMOS_RESOURCE               pOsResource);
 
+    MOS_STATUS(*pfnSkipResourceSyncDynamic)(
+        PMOS_RESOURCE               pOsResource);
+
+    MOS_STATUS(*pfnEnableResourceSyncDynamic)(
+        PMOS_RESOURCE               pOsResource);
+
     bool(*pfnIsValidStreamID)(
         PMOS_RESOURCE               pOsResource);
 

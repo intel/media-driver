@@ -7755,6 +7755,10 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[1].presRegion = &m_vdencLaStatsBuffer;
     virtualAddrParams.regionParams[2].presRegion = m_encodeParams.psLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true;
+    if (m_osInterface->pfnSkipResourceSyncDynamic)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSkipResourceSyncDynamic(m_encodeParams.psLaDataBuffer));
+    }
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
