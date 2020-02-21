@@ -1725,6 +1725,7 @@ VphalRenderer::VphalRenderer(
     m_pRenderHal(pRenderHal),
     m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
     m_pSkuTable(nullptr),
+    m_pWaTable(nullptr),
     m_modifyKdllFunctionPointers(nullptr),
     uiSsdControl(0),
     bDpRotationUsed(false),
