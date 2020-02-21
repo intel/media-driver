@@ -3447,9 +3447,22 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->BotQPDeltaThrForAdapt2Pass_U8 = 1;
     hucVdencBrcInitDmem->SlidingWindow_Size_U32        = 30;
 
-    uint32_t framerate = m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator;
-    hucVdencBrcInitDmem->SlidingWindow_Size_U32 = MOS_MIN(framerate, 60);
-    hucVdencBrcInitDmem->SlidingWindow_MaxRateRatio_U8 = 120;
+    if ((m_hevcSeqParams->SlidingWindowSize != 0) && (m_hevcSeqParams->MaxBitRatePerSlidingWindow != 0))
+    {
+        hucVdencBrcInitDmem->SlidingWindow_Size_U32     = m_hevcSeqParams->SlidingWindowSize;
+        hucVdencBrcInitDmem->SlidingWindow_MaxRateRatio_U8 = (m_hevcSeqParams->MaxBitRatePerSlidingWindow * 100)/ m_hevcSeqParams->TargetBitRate;
+    }
+    else
+    {
+        if (m_hevcSeqParams->FrameRate.Denominator == 0)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("FrameRate.Deminator is zero!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        uint32_t framerate = m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator;
+        hucVdencBrcInitDmem->SlidingWindow_Size_U32 = MOS_MIN(framerate, 60);
+        hucVdencBrcInitDmem->SlidingWindow_MaxRateRatio_U8 = 120;
+    }
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
 
