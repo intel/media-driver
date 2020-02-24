@@ -1097,7 +1097,7 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = CODEC_8K_MAX_PIC_WIDTH;
         }
-        else if(IsAvcProfile(profile))
+        else if(IsAvcProfile(profile) || IsVp8Profile(profile))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
         }
@@ -1119,7 +1119,7 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = CODEC_8K_MAX_PIC_HEIGHT;
         }
-        else if(IsAvcProfile(profile))
+        else if(IsAvcProfile(profile) || IsVp8Profile(profile))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
         }
