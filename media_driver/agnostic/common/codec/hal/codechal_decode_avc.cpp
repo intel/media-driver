@@ -399,12 +399,21 @@ MOS_STATUS CodechalDecodeAvc::InitMvcDummyDmvBuffer(
     uint32_t i, numMBs = size / 64;
     for (i = 0; i<numMBs; i++)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(mbDmvBuffer, 64, mvcWaDummyDmvBuf, 64));
+        MOS_STATUS tmpRet = MOS_SecureMemcpy(mbDmvBuffer, 64, mvcWaDummyDmvBuf, 64);
+        if (tmpRet != MOS_STATUS_SUCCESS)
+        {
+            MOS_FreeMemAndSetNull(dummyDmvBuffer);
+        }
+        CODECHAL_DECODE_CHK_STATUS_RETURN(tmpRet);
         mbDmvBuffer += 64;
     }
 
     CodechalResLock ResourceLock(m_osInterface, mvcDummyDmvBuffer);
     auto data = (uint8_t*)ResourceLock.Lock(CodechalResLock::writeOnly);
+    if (data == nullptr)
+    {
+        MOS_FreeMemAndSetNull(dummyDmvBuffer);
+	}
     CODECHAL_DECODE_CHK_NULL_RETURN(data);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(data, size, (void*)dummyDmvBuffer, size));
