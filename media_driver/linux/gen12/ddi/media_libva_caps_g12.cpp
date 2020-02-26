@@ -1664,7 +1664,7 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
         else if (IsHevcProfile(profile))
         {
             attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE;
+            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
             (*attribList)[attrib.type] = attrib.value;
         }
     }

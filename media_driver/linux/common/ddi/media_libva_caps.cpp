@@ -928,7 +928,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     if (IsHevcProfile(profile) && (entrypoint == VAEntrypointEncSliceLP))
     {
         attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS;
+        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
         (*attribList)[attrib.type] = attrib.value;
     }
     return status;
