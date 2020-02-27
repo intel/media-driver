@@ -2070,6 +2070,20 @@ finish:
     return;
 }
 
+//!
+//! \brief    Allocate surface dumper
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRenderer::CreateSurfaceDumper()
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    VPHAL_DBG_SURF_DUMP_CREATE()
+    VPHAL_RENDER_CHK_NULL_RETURN(m_surfaceDumper);
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VphalRenderer::AllocateDebugDumper()
 {
     PRENDERHAL_INTERFACE pRenderHal = m_pRenderHal;
@@ -2087,13 +2101,7 @@ MOS_STATUS VphalRenderer::AllocateDebugDumper()
 #if (_DEBUG || _RELEASE_INTERNAL)
 
     // Initialize Surface Dumper
-    VPHAL_DBG_SURF_DUMP_CREATE()
-    if (m_surfaceDumper == nullptr)
-    {
-        VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");
-        eStatus = MOS_STATUS_NULL_POINTER;
-        goto finish;
-    }
+    VPHAL_RENDER_CHK_STATUS(CreateSurfaceDumper());
 
     // Initialize State Dumper
     VPHAL_DBG_STATE_DUMPPER_CREATE()

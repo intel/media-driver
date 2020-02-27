@@ -459,6 +459,13 @@ protected:
     virtual MOS_STATUS AllocateDebugDumper();
 
     //!
+    //! \brief    Allocate surface dumper
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS CreateSurfaceDumper();
+
+    //!
     //! \brief    Get Hdr path needed flag
     //! \details  Get Hdr path needed flag
     //! \param    pRenderParams
