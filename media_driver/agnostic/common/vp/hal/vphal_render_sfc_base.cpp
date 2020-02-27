@@ -1131,7 +1131,11 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             (m_colorFillSrcCspace          != src_cspace)  ||
             (m_colorFillRTCspace           != dst_cspace))
         {
-            VpHal_CSC_8(&m_colorFillColorDst, &Src, src_cspace, dst_cspace);
+            // Clean history Dst BG Color if hit unsupported format
+            if (!VpHal_CSC_8(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
+            {
+                MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
+            }
 
             // store the values for next iteration
             m_colorFillColorSrc    = Src;
