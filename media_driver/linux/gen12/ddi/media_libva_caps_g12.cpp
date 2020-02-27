@@ -68,6 +68,7 @@ const VAImageFormat m_supportedImageformatsG12[] =
     {VA_FOURCC_444P,           VA_LSB_FIRST,   24, 0,0,0,0,0},
     {VA_FOURCC_IMC3,           VA_LSB_FIRST,   16, 0,0,0,0,0},
     {VA_FOURCC_P010,           VA_LSB_FIRST,   24, 0,0,0,0,0},
+    {VA_FOURCC_P016,           VA_LSB_FIRST,   24, 0,0,0,0,0},
     {VA_FOURCC_Y210,           VA_LSB_FIRST,   32, 0,0,0,0,0},
     {VA_FOURCC_Y216,           VA_LSB_FIRST,   32, 0,0,0,0,0},
     {VA_FOURCC_Y410,           VA_LSB_FIRST,   32, 0,0,0,0,0},
