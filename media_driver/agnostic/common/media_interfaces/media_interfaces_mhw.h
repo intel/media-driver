@@ -99,7 +99,6 @@ public:
     MhwVdboxHcpInterface *m_hcpInterface = nullptr;
     MhwVdboxHucInterface *m_hucInterface = nullptr;
     MhwVdboxVdencInterface *m_vdencInterface = nullptr;
-    MhwBltInterface *m_bltInterface = nullptr;
 
     //!
     //! \brief    Calls the factory function to initialize all requested interfaces.
@@ -130,7 +129,7 @@ public:
     //! \brief    Destroys all created MHW interfaces
     //! \details  If the HAL creation fails, this is used for cleanup
     //!
-    void Destroy();
+    virtual void Destroy();
 };
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
