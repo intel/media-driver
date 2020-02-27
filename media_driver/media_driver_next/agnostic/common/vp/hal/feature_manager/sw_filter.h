@@ -121,6 +121,7 @@ public:
     virtual ~SwFilter();
     virtual MOS_STATUS Clean()
     {
+        MOS_ZeroMemory(&m_EngineCaps, sizeof(m_EngineCaps));
         return MOS_STATUS_SUCCESS;
     }
     virtual FeatureType GetFeatureType()

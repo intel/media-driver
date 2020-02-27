@@ -272,6 +272,7 @@ SwFilterRotMir::~SwFilterRotMir()
 
 MOS_STATUS SwFilterRotMir::Clean()
 {
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
@@ -346,6 +347,7 @@ SwFilterDenoise::~SwFilterDenoise()
 
 MOS_STATUS SwFilterDenoise::Clean()
 {
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 

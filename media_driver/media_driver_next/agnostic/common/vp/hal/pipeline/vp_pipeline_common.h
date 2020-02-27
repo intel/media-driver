@@ -129,7 +129,6 @@ typedef struct _VP_EngineEntry
         struct
         {
             uint32_t bEnabled : 1;
-            uint32_t bForceEnabledOnSfc : 1;    // true if the feature always enabled on Sfc even no effect, eg. csc, scaling and rotation.
             uint32_t SfcNeeded : 2;
             uint32_t VeboxNeeded : 2;
             uint32_t RenderNeeded : 2;
