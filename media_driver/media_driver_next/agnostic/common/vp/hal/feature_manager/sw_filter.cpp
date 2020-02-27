@@ -320,6 +320,10 @@ bool SwFilterRotMir::operator == (SwFilter& swFilter)
 
 MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
 {
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
     m_Params.formatInput = inputSurf->osSurface->Format;
     m_Params.formatOutput = outputSurf->osSurface->Format;
     m_Params.tileOutput = outputSurf->osSurface->TileType;
@@ -391,6 +395,10 @@ bool vp::SwFilterDenoise::operator==(SwFilter& swFilter)
 
 MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
 {
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
     m_Params.formatInput = inputSurf->osSurface->Format;
     m_Params.formatOutput = outputSurf->osSurface->Format;
     return MOS_STATUS_SUCCESS;
