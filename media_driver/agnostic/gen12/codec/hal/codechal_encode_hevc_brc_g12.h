@@ -56,7 +56,6 @@ protected:
     CmThreadSpace *    m_threadSpaceBrcUpdate = nullptr;
     CmThreadSpace *    m_threadSpaceBrcLCUQP = nullptr;
     CmKernel           *m_cmKrnBrc = nullptr;
-    CmProgram          *m_cmProgramBrc = nullptr;
     CmKernel           *m_cmKrnBrcInit = nullptr;
     CmProgram          *m_cmProgramBrcInit = nullptr;
     CmKernel           *m_cmKrnBrcReset = nullptr;
