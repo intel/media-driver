@@ -2072,6 +2072,11 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer_G12(m_scalabilityState);
     }
 
+    if (m_osInterface->osCpInterface->IsHMEnabled())
+    {
+        HalOcaInterface::DumpCpParam(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->osCpInterface->GetOcaDumper());
+    }
+
     HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface->pOsContext);
 
     if (submitCommand || m_osInterface->phasedSubmission)
