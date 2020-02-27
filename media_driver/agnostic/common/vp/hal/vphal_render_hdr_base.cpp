@@ -107,6 +107,8 @@ MOS_STATUS VpHal_HdrInitialize(
     pHdrState->bFtrComputeWalker = false;
     pHdrState->uiSplitFramePortions = 1;
 
+    pHdrState->bVeboxpreprocessed = false;
+
     VpHal_HdrInitInterface_g9(pHdrState);            // Total number of slices
     
 finish:
@@ -423,8 +425,9 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             {
                 CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709;
             }
-            else if (pTarget->ColorSpace == CSpace_BT709_FullRange)
+            else if (pHdrState->bVeboxpreprocessed && pTarget->ColorSpace == CSpace_BT709_FullRange)
             {
+                // CSC for target BT709_FULLRANGE is only exposed to Vebox Preprocessed HDR cases.
                 CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709_FULLRANGE;
             }
             else if (pTarget->ColorSpace == CSpace_BT2020 ||

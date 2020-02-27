@@ -216,6 +216,7 @@ typedef struct _VPHAL_HDR_STATE
     STATUS_TABLE_UPDATE_PARAMS      StatusTableUpdateParams;                   //!< Status table, Video Pre-Processing Only
 
     bool                            bFtrComputeWalker;
+    bool                            bVeboxpreprocessed;                   //!< Marked as following VEBOX pre-render, with TCC/IEF preprocessed
 
     MOS_STATUS(*pfnInitialize) (
         PVPHAL_HDR_STATE            pHdrState,
