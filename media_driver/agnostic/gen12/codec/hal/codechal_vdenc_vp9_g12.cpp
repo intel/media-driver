@@ -3388,7 +3388,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     perfTag.CallType = CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE;
     perfTag.PictureCodingType = m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
-    m_vdencPakonlyMultipassEnabled = IsLastPass() ? true : false;
+
     // Scalable Mode header
     if (m_scalableMode)
     {
@@ -3488,7 +3488,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     }
     else
     {
-        if (IsFirstPass())
+        if (IsFirstPass() && m_vdencBrcEnabled)
         {
             m_vdencPakObjCmdStreamOutEnabled = true;
             m_resVdencPakObjCmdStreamOutBuffer = &m_resMbCodeSurface;
@@ -4596,13 +4596,11 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
 
     //Max tile numbers = max of number tiles for single pipe or max muber of tiles for scalable pipes
     m_maxTileNumber = MOS_MAX((MOS_ALIGN_CEIL(m_frameWidth, CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH) / CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH), m_numVdbox * maxRows);
-
+    
     m_numPipe = m_numVdbox;
 
     m_scalableMode = (m_numPipe > 1);
     m_useVirtualEngine = true;
-
-    m_adaptiveRepakSupported = true;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRowstoreCachingOffsets());
 
