@@ -63,7 +63,7 @@
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
 #define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       22
-#define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver - " UFO_VERSION
+#define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver for Intel(R) Gen Graphics - " MEDIA_VERSION " (" MEDIA_VERSION_DETAILS ")"
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
 #define DDI_CODEC_GET_VTABLE_VPP(ctx)              (ctx->vtable_vpp)

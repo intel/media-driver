@@ -217,7 +217,7 @@ class DriverGeneator(Generator):
 
     def getCmakeCmd(self):
         wd = path.join(self.src, "..")
-        cmd = 'cmake ' + wd +' -DCMAKE_INSTALL_PREFIX=/usr -DMEDIA_VERSION="2.0.0"'
+        cmd = 'cmake ' + wd +' -DCMAKE_INSTALL_PREFIX=/usr'
         cmd += ' -DBUILD_ALONG_WITH_CMRTLIB=1 -DBS_DIR_GMMLIB=' + path.join(wd, '../gmmlib/Source/GmmLib/')
         cmd += ' -DBS_DIR_COMMON=' + path.join(wd, '../gmmlib/Source/Common/')
         cmd += ' -DBS_DIR_INC=' + path.join(wd, '../gmmlib/Source/inc/')
