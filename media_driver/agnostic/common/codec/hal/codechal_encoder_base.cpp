@@ -2607,51 +2607,7 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddStateBaseAddrCmd(cmdBuffer, &stateBaseAddrParams));
 
-    if (m_computeContextEnabled)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupComputeContext(cmdBuffer, params->pKernelState));
-    }
-    else
-    {
-        // Add Media VFE command
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AddMediaVfeCmd(cmdBuffer, params));
-
-        // Add Media Curbe Load command
-        if (params->pKernelState->KernelParams.iCurbeLength)
-        {
-            MHW_CURBE_LOAD_PARAMS curbeLoadParams;
-            MOS_ZeroMemory(&curbeLoadParams, sizeof(curbeLoadParams));
-            curbeLoadParams.pKernelState = params->pKernelState;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaCurbeLoadCmd(cmdBuffer, &curbeLoadParams));
-
-            HalOcaInterface::OnIndirectState(
-                *cmdBuffer,
-                *m_osInterface->pOsContext,
-                dsh,
-                params->pKernelState->m_dshRegion.GetOffset() + params->pKernelState->dwCurbeOffset,
-                false,
-                params->pKernelState->KernelParams.iCurbeLength);
-        }
-
-        MHW_ID_LOAD_PARAMS idLoadParams;
-        MOS_ZeroMemory(&idLoadParams, sizeof(idLoadParams));
-        idLoadParams.pKernelState = params->pKernelState;
-        idLoadParams.dwNumKernelsLoaded = 1;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaIDLoadCmd(cmdBuffer, &idLoadParams));
-
-        uint32_t InterfaceDescriptorTotalLength = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
-        uint32_t InterfaceDescriptorDataStartOffset = MOS_ALIGN_CEIL(
-            params->pKernelState->m_dshRegion.GetOffset() + params->pKernelState->dwIdOffset,
-            m_stateHeapInterface->pStateHeapInterface->GetIdAlignment());
-
-        HalOcaInterface::OnIndirectState(
-            *cmdBuffer,
-            *m_osInterface->pOsContext,
-            dsh,
-            InterfaceDescriptorDataStartOffset,
-            false,
-            InterfaceDescriptorTotalLength);
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupWalkerContext(cmdBuffer, params));
 
     return eStatus;
 }
@@ -4731,6 +4687,60 @@ CodechalEncoderState::~CodechalEncoderState()
         MediaPerfProfiler::Destroy(m_perfProfiler, (void*)this, m_osInterface);
         m_perfProfiler = nullptr;
     }
+}
+
+MOS_STATUS CodechalEncoderState::SetupWalkerContext(
+    MOS_COMMAND_BUFFER* cmdBuffer,
+    SendKernelCmdsParams* params)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(params);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
+
+    MOS_RESOURCE* dsh = params->pKernelState->m_dshRegion.GetResource();
+    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh);
+
+    // Add Media VFE command
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddMediaVfeCmd(cmdBuffer, params));
+
+    // Add Media Curbe Load command
+    if (params->pKernelState->KernelParams.iCurbeLength)
+    {
+        MHW_CURBE_LOAD_PARAMS curbeLoadParams;
+        MOS_ZeroMemory(&curbeLoadParams, sizeof(curbeLoadParams));
+        curbeLoadParams.pKernelState = params->pKernelState;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaCurbeLoadCmd(cmdBuffer, &curbeLoadParams));
+
+        HalOcaInterface::OnIndirectState(
+            *cmdBuffer,
+            *m_osInterface->pOsContext,
+            dsh,
+            params->pKernelState->m_dshRegion.GetOffset() + params->pKernelState->dwCurbeOffset,
+            false,
+            params->pKernelState->KernelParams.iCurbeLength);
+    }
+
+    MHW_ID_LOAD_PARAMS idLoadParams;
+    MOS_ZeroMemory(&idLoadParams, sizeof(idLoadParams));
+    idLoadParams.pKernelState = params->pKernelState;
+    idLoadParams.dwNumKernelsLoaded = 1;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaIDLoadCmd(cmdBuffer, &idLoadParams));
+
+    uint32_t InterfaceDescriptorTotalLength = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
+    uint32_t InterfaceDescriptorDataStartOffset = MOS_ALIGN_CEIL(
+        params->pKernelState->m_dshRegion.GetOffset() + params->pKernelState->dwIdOffset,
+        m_stateHeapInterface->pStateHeapInterface->GetIdAlignment());
+
+    HalOcaInterface::OnIndirectState(
+        *cmdBuffer,
+        *m_osInterface->pOsContext,
+        dsh,
+        InterfaceDescriptorDataStartOffset,
+        false,
+        InterfaceDescriptorTotalLength);
+
+    return eStatus;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
