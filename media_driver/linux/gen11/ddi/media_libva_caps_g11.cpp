@@ -35,33 +35,35 @@
 #include "media_libva_vp.h"
 
 const VAImageFormat m_supportedImageformatsG11[] =
-{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 32, 0x0000ff00, 0x00ff0000, 0xff000000,  0x000000ff}, /* [31:0] B:G:R:A 8:8:8:8 little endian */
-    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 32, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000}, /* [31:0] A:R:G:B 8:8:8:8 little endian */
-    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 32, 0xff000000, 0x00ff0000, 0x0000ff00,  0x000000ff}, /* [31:0] R:G:B:A 8:8:8:8 little endian */
-    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 32, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000}, /* [31:0] A:B:G:R 8:8:8:8 little endian */
-    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x0000ff00, 0x00ff0000, 0xff000000,  0}, /* [31:0] B:G:R:x 8:8:8:8 little endian */
-    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0}, /* [31:0] x:R:G:B 8:8:8:8 little endian */
-    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0xff000000, 0x00ff0000, 0x0000ff00,  0}, /* [31:0] R:G:B:x 8:8:8:8 little endian */
-    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0}, /* [31:0] x:B:G:R 8:8:8:8 little endian */
-    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
-    {VA_FOURCC_AYUV,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_Y800,   VA_LSB_FIRST,   8,  0,0,0,0,0},
-    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_411P,   VA_LSB_FIRST,   12, 0,0,0,0,0},
-    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
-    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
-    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0},
-    {VA_FOURCC_Y210,   VA_LSB_FIRST,   32, 0,0,0,0,0},
-    {VA_FOURCC_Y410,   VA_LSB_FIRST,   32, 0,0,0,0,0},
-    {VA_FOURCC_A2R10G10B10,    VA_LSB_FIRST,   32, 30, 0x3ff00000, 0x000ffc00, 0x000003ff, 0x30000000},  /* [31:0] A:R:G:B 2:10:10:10 little endian */
-    {VA_FOURCC_A2B10G10R10,    VA_LSB_FIRST,   32, 30, 0x000003ff, 0x000ffc00, 0x3ff00000, 0x30000000}   /* [31:0] A:B:G:R 2:10:10:10 little endian */
+{   {VA_FOURCC_BGRA,           VA_LSB_FIRST,   32, 32, 0x0000ff00, 0x00ff0000, 0xff000000,  0x000000ff}, /* [31:0] B:G:R:A 8:8:8:8 little endian */
+    {VA_FOURCC_ARGB,           VA_LSB_FIRST,   32, 32, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000}, /* [31:0] A:R:G:B 8:8:8:8 little endian */
+    {VA_FOURCC_RGBA,           VA_LSB_FIRST,   32, 32, 0xff000000, 0x00ff0000, 0x0000ff00,  0x000000ff}, /* [31:0] R:G:B:A 8:8:8:8 little endian */
+    {VA_FOURCC_ABGR,           VA_LSB_FIRST,   32, 32, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000}, /* [31:0] A:B:G:R 8:8:8:8 little endian */
+    {VA_FOURCC_BGRX,           VA_LSB_FIRST,   32, 24, 0x0000ff00, 0x00ff0000, 0xff000000,  0},          /* [31:0] B:G:R:x 8:8:8:8 little endian */
+    {VA_FOURCC_XRGB,           VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},          /* [31:0] x:R:G:B 8:8:8:8 little endian */
+    {VA_FOURCC_RGBX,           VA_LSB_FIRST,   32, 24, 0xff000000, 0x00ff0000, 0x0000ff00,  0},          /* [31:0] R:G:B:x 8:8:8:8 little endian */
+    {VA_FOURCC_XBGR,           VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},          /* [31:0] x:B:G:R 8:8:8:8 little endian */
+    {VA_FOURCC_A2R10G10B10,    VA_LSB_FIRST,   32, 30, 0x3ff00000, 0x000ffc00, 0x000003ff,  0x30000000}, /* [31:0] A:R:G:B 2:10:10:10 little endian */
+    {VA_FOURCC_A2B10G10R10,    VA_LSB_FIRST,   32, 30, 0x000003ff, 0x000ffc00, 0x3ff00000,  0x30000000}, /* [31:0] A:B:G:R 2:10:10:10 little endian */
+    {VA_FOURCC_X2R10G10B10,    VA_LSB_FIRST,   32, 30, 0x3ff00000, 0x000ffc00, 0x000003ff,  0},          /* [31:0] X:R:G:B 2:10:10:10 little endian */
+    {VA_FOURCC_X2B10G10R10,    VA_LSB_FIRST,   32, 30, 0x000003ff, 0x000ffc00, 0x3ff00000,  0},          /* [31:0] X:B:G:R 2:10:10:10 little endian */
+    {VA_FOURCC_RGB565,         VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},          /* [15:0] R:G:B 5:6:5 little endian */
+    {VA_FOURCC_AYUV,           VA_LSB_FIRST,   32, 0,0,0,0,0},
+    {VA_FOURCC_Y800,           VA_LSB_FIRST,   8,  0,0,0,0,0},
+    {VA_FOURCC_NV12,           VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_NV21,           VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_YUY2,           VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_UYVY,           VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_YV12,           VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_I420,           VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_411P,           VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_422H,           VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_422V,           VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_444P,           VA_LSB_FIRST,   24, 0,0,0,0,0},
+    {VA_FOURCC_IMC3,           VA_LSB_FIRST,   16, 0,0,0,0,0},
+    {VA_FOURCC_P010,           VA_LSB_FIRST,   24, 0,0,0,0,0},
+    {VA_FOURCC_Y210,           VA_LSB_FIRST,   32, 0,0,0,0,0},
+    {VA_FOURCC_Y410,           VA_LSB_FIRST,   32, 0,0,0,0,0}
 };
 
 const VAConfigAttribValEncRateControlExt MediaLibvaCapsG11::m_encVp9RateControlExt =
@@ -761,6 +763,8 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG11::ConvertMediaFmtToGmmFmt(
         case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
         case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
+        case Media_Format_R10G10B10X2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
+        case Media_Format_B10G10R10X2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
         case Media_Format_Y210       : return GMM_FORMAT_Y210_TYPE;
         case Media_Format_AYUV       : return GMM_FORMAT_AYUV_TYPE;
         case Media_Format_Y410       : return GMM_FORMAT_Y410_TYPE;

@@ -228,9 +228,11 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
         format = Format_P016;
         break;
     case Media_Format_R10G10B10A2:
+    case Media_Format_R10G10B10X2:
         format = Format_R10G10B10A2;
         break;
     case Media_Format_B10G10R10A2:
+    case Media_Format_B10G10R10X2:
         format =Format_B10G10R10A2;
         break;
     case Media_Format_RGBP:

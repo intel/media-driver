@@ -412,6 +412,10 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_ARGB;
         case Media_Format_B10G10R10A2:
             return VA_FOURCC_A2R10G10B10;
+        case Media_Format_R10G10B10X2:
+            return VA_FOURCC_X2B10G10R10;
+        case Media_Format_B10G10R10X2:
+            return VA_FOURCC_X2R10G10B10;
         case Media_Format_R5G6B5:
             return VA_FOURCC_R5G6B5;
         case Media_Format_R8G8B8:
@@ -501,6 +505,10 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
             return Media_Format_B10G10R10A2;
         case VA_FOURCC_A2B10G10R10:
             return Media_Format_R10G10B10A2;
+        case VA_FOURCC_X2R10G10B10:
+            return Media_Format_B10G10R10X2;
+        case VA_FOURCC_X2B10G10R10:
+            return Media_Format_R10G10B10X2;
         case VA_FOURCC_BGRA:
         case VA_FOURCC_ARGB:
 #ifdef VA_RT_FORMAT_RGB32_10BPP
@@ -4018,6 +4026,8 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_IYUV:
         case VA_FOURCC_A2R10G10B10:
         case VA_FOURCC_A2B10G10R10:
+        case VA_FOURCC_X2R10G10B10:
+        case VA_FOURCC_X2B10G10R10:
             gmmParams.BaseHeight        = height;
             gmmParams.Flags.Info.Linear = true;
             break;
@@ -4104,6 +4114,8 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_RGB565:
         case VA_FOURCC_A2R10G10B10:
         case VA_FOURCC_A2B10G10R10:
+        case VA_FOURCC_X2R10G10B10:
+        case VA_FOURCC_X2B10G10R10:
             vaimg->num_planes = 1;
             vaimg->pitches[0] = gmmPitch;
             vaimg->offsets[0] = 0;
@@ -4341,6 +4353,14 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_B10G10R10A2:
         vaimg->format.bits_per_pixel    = 32;
         vaimg->format.alpha_mask        = RGB_10BIT_ALPHAMASK;
+        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
+        vaimg->num_planes               = 1;
+        vaimg->pitches[0]               = mediaSurface->iPitch;
+        vaimg->offsets[0]               = 0;
+        break;
+    case Media_Format_R10G10B10X2:
+    case Media_Format_B10G10R10X2:
+        vaimg->format.bits_per_pixel    = 32;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
@@ -6111,18 +6131,30 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
             // These are not representable as separate planes.
             return 0;
 
-        case VA_FOURCC_RGBA:
-            return DRM_FORMAT_ABGR8888;
-        case VA_FOURCC_RGBX:
-            return DRM_FORMAT_XBGR8888;
-        case VA_FOURCC_BGRA:
-            return DRM_FORMAT_ARGB8888;
-        case VA_FOURCC_BGRX:
-            return DRM_FORMAT_XRGB8888;
         case VA_FOURCC_ARGB:
-            return DRM_FORMAT_BGRA8888;
+            return DRM_FORMAT_ARGB8888;
         case VA_FOURCC_ABGR:
+            return DRM_FORMAT_ABGR8888;
+        case VA_FOURCC_RGBA:
             return DRM_FORMAT_RGBA8888;
+        case VA_FOURCC_BGRA:
+            return DRM_FORMAT_BGRA8888;
+        case VA_FOURCC_XRGB:
+            return DRM_FORMAT_XRGB8888;
+        case VA_FOURCC_XBGR:
+            return DRM_FORMAT_XBGR8888;
+        case VA_FOURCC_RGBX:
+            return DRM_FORMAT_RGBX8888;
+        case VA_FOURCC_BGRX:
+            return DRM_FORMAT_BGRX8888;
+        case VA_FOURCC_A2R10G10B10:
+            return DRM_FORMAT_ARGB2101010;
+        case VA_FOURCC_A2B10G10R10:
+            return DRM_FORMAT_ABGR2101010;
+        case VA_FOURCC_X2R10G10B10:
+            return DRM_FORMAT_XRGB2101010;
+        case VA_FOURCC_X2B10G10R10:
+            return DRM_FORMAT_XBGR2101010;
         }
     }
     else
@@ -6158,28 +6190,50 @@ static uint32_t DdiMedia_GetDrmFormatOfCompositeObject(uint32_t fourcc)
         return DRM_FORMAT_YVU422;
     case VA_FOURCC_YUY2:
         return DRM_FORMAT_YUYV;
+    case VA_FOURCC_YVYU:
+        return DRM_FORMAT_YVYU;
+    case VA_FOURCC_VYUY:
+        return DRM_FORMAT_VYUY;
     case VA_FOURCC_UYVY:
         return DRM_FORMAT_UYVY;
+    case VA_FOURCC_Y210:
+        return DRM_FORMAT_Y210;
+    case VA_FOURCC_Y216:
+        return DRM_FORMAT_Y216;
+    case VA_FOURCC_Y410:
+        return DRM_FORMAT_Y410;
+    case VA_FOURCC_Y416:
+        return DRM_FORMAT_Y416;
     case VA_FOURCC_Y800:
         return DRM_FORMAT_R8;
     case VA_FOURCC_P010:
         return DRM_FORMAT_P010;
-    case VA_FOURCC_I010:
-        // These currently have no composite DRM format - they are usable
-        // only as separate planes.
-        return 0;
-    case VA_FOURCC_RGBA:
-        return DRM_FORMAT_ABGR8888;
-    case VA_FOURCC_RGBX:
-        return DRM_FORMAT_XBGR8888;
-    case VA_FOURCC_BGRA:
-        return DRM_FORMAT_ARGB8888;
-    case VA_FOURCC_BGRX:
-        return DRM_FORMAT_XRGB8888;
+    case VA_FOURCC_P016:
+        return DRM_FORMAT_P016;
     case VA_FOURCC_ARGB:
-        return DRM_FORMAT_BGRA8888;
+        return DRM_FORMAT_ARGB8888;
     case VA_FOURCC_ABGR:
+        return DRM_FORMAT_ABGR8888;
+    case VA_FOURCC_RGBA:
         return DRM_FORMAT_RGBA8888;
+    case VA_FOURCC_BGRA:
+        return DRM_FORMAT_BGRA8888;
+    case VA_FOURCC_XRGB:
+        return DRM_FORMAT_XRGB8888;
+    case VA_FOURCC_XBGR:
+        return DRM_FORMAT_XBGR8888;
+    case VA_FOURCC_RGBX:
+        return DRM_FORMAT_RGBX8888;
+    case VA_FOURCC_BGRX:
+        return DRM_FORMAT_BGRX8888;
+    case VA_FOURCC_A2R10G10B10:
+        return DRM_FORMAT_ARGB2101010;
+    case VA_FOURCC_A2B10G10R10:
+        return DRM_FORMAT_ABGR2101010;
+    case VA_FOURCC_X2R10G10B10:
+        return DRM_FORMAT_XRGB2101010;
+    case VA_FOURCC_X2B10G10R10:
+        return DRM_FORMAT_XBGR2101010;
     }
     return 0;
 }

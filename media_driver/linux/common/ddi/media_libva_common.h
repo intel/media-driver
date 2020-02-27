@@ -156,6 +156,8 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_R5G6B5      ,
     Media_Format_R10G10B10A2 ,
     Media_Format_B10G10R10A2 ,
+    Media_Format_R10G10B10X2 ,
+    Media_Format_B10G10R10X2 ,
     Media_Format_CPU         ,
 
     Media_Format_YUY2        ,

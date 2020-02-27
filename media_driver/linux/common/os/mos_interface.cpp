@@ -904,9 +904,11 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
             resource->Format = Format_Y16U;
             break;
         case Media_Format_R10G10B10A2:
+        case Media_Format_R10G10B10X2:
             resource->Format = Format_R10G10B10A2;
             break;
         case Media_Format_B10G10R10A2:
+        case Media_Format_B10G10R10X2:
             resource->Format = Format_B10G10R10A2;
             break;
         case Media_Format_UYVY:

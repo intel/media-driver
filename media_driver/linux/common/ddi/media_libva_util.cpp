@@ -181,6 +181,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
         case Media_Format_B10G10R10A2:
+        case Media_Format_R10G10B10X2:
+        case Media_Format_B10G10R10X2:
         case Media_Format_A16R16G16B16:
         case Media_Format_A16B16G16R16:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
