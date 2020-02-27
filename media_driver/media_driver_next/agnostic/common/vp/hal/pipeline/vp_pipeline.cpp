@@ -282,7 +282,19 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
     PMOS_RESOURCE ppSource[VPHAL_MAX_SOURCES] = {nullptr};
     PMOS_RESOURCE ppTarget[VPHAL_MAX_TARGETS] = {nullptr};
 
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams->pSrc[0]);
+    if (!m_pvpParams->pSrc[0])
+    {
+        VP_PUBLIC_NORMALMESSAGE("Not support no source case in APG now \n");
+
+        if (m_currentFrameAPGEnabled)
+        {
+            m_pvpParams->bAPGWorkloadEnable = true;
+            m_currentFrameAPGEnabled = false;
+        }
+
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
     VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams->pTarget[0]);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
