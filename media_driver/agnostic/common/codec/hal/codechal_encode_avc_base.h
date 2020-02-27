@@ -90,6 +90,9 @@ struct EncodeAvcPar
     uint16_t                    FrameRateD;
     uint16_t                    CRFQualityFactor;
     uint32_t                    NumSlices;
+    uint32_t                    SliceHeight;
+    uint32_t                    NumSuperSlices;
+    uint32_t                    SuperSliceHeight[CODECHAL_ENCODE_AVC_MAX_SLICES_SUPPORTED];
     bool                        ConstrainedIntraPred;
     uint8_t                     SliceMode;
     int16_t                     hme0XOffset;

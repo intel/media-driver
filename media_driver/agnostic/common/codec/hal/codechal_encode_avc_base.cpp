@@ -4348,6 +4348,15 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
         {
             m_avcPar->NumSlices = avcPicParams->NumSlice;
         }
+        m_avcPar->SliceHeight = m_sliceHeight;
+
+        m_avcPar->NumSuperSlices = m_avcPar->NumSlices;
+        uint32_t sliceIdx = 0;
+        for (; sliceIdx < m_avcPar->NumSuperSlices - 1; sliceIdx++)
+        {
+            m_avcPar->SuperSliceHeight[sliceIdx] = m_sliceHeight;
+        }
+        m_avcPar->SuperSliceHeight[sliceIdx] = avcSeqParams->pic_height_in_map_units_minus1 + 1 - sliceIdx * m_sliceHeight;
 
         m_avcPar->ISliceQP   = avcPicParams->QpY + avcSlcParams->slice_qp_delta;
         m_avcPar->FrameRateM = ((avcSeqParams->FramesPer100Sec % 100) == 0) ? (avcSeqParams->FramesPer100Sec / 100) : avcSeqParams->FramesPer100Sec;
