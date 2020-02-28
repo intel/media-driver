@@ -522,10 +522,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
     }
 
-    if (codecHalSettings->secureMode)
-    {
-        m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface);
-    }
+    m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface);
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_downsamplingHinted = codecHalSettings->downsamplingHinted ? true : false;
