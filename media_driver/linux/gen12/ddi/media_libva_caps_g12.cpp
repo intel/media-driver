@@ -1204,10 +1204,24 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
     {
         attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10;
     }
+    else if (profile == VAProfileVP9Profile0
+          || profile == VAProfileVP9Profile2
+          || profile == VAProfileVP9Profile1
+          || profile == VAProfileVP9Profile3)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+                      | VA_RT_FORMAT_YUV422
+                      | VA_RT_FORMAT_YUV444
+                      | VA_RT_FORMAT_YUV420_10
+                      | VA_RT_FORMAT_YUV444_10
+                      | VA_RT_FORMAT_RGB32
+                      | VA_RT_FORMAT_YUV420_10BPP;
+    }
     else
     {
         attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32;
     }
+
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribDecSliceMode;
@@ -1272,6 +1286,7 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
             vp9ProfileSupported = true;
         }
+
         if (!vp9ProfileSupported)
         {
             attrib.value = VA_ATTRIB_NOT_SUPPORTED;
