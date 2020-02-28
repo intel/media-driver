@@ -40,6 +40,7 @@ MOS_STATUS CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pVEState);
     CODECHAL_DECODE_CHK_NULL_RETURN(pVEState->pVEInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(gpuCtxCreatOpts);
 
     pVEInterface = pVEState->pVEInterface;
 
