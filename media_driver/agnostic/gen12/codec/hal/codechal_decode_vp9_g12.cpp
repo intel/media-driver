@@ -176,13 +176,20 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
 
 #ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
-    if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) && 
-        !Mos_ResourceIsNull(&m_destSurface.OsResource) && 
+    if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) &&
+        !Mos_ResourceIsNull(&m_destSurface.OsResource) &&
         m_destSurface.OsResource.bConvertedFromDDIResource)
     {
-        CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(m_osInterface, &m_destSurface.OsResource));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext));
+        if (m_secureDecoder && m_secureDecoder->IsAuxDataInvalid(&m_destSurface.OsResource))
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_destSurface.OsResource, false));
+        }
+        else
+        {
+            CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(m_osInterface, &m_destSurface.OsResource));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext));
+        }
     }
 #endif
 

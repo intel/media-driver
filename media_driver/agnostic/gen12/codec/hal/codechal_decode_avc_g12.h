@@ -108,6 +108,16 @@ public:
     //!
     MOS_STATUS  DecodePrimitiveLevel() override;
 
+    //!
+    //! \brief    Constrcut Mono Picture
+    //! \details  Constrcut Mono Picture in AVC decode driver, Write 0x80 in the chroma plane for Monochrome clips
+    //! \param    [in] surface
+    //!           Pointer to the decode output surface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS FormatAvcMonoPicture(PMOS_SURFACE surface) override;
+
 protected:
     MOS_STATUS  InitMmcState() override;
 
