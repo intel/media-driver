@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -185,8 +185,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_B10G10R10X2:
         case Media_Format_A16R16G16B16:
         case Media_Format_A16B16G16R16:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -194,8 +193,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -204,8 +202,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_BGRP:
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER) &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -232,8 +229,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_VYUY:
         case Media_Format_YVYU:
         case Media_Format_UYVY:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
                  //Planar type surface align 64 to improve performance.
@@ -244,11 +240,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
 #endif
             }
             alignedWidth = MOS_ALIGN_CEIL(width, 8);
-            if (mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE)
-            {
-                alignedWidth = MOS_ALIGN_CEIL(width, 128);
-            }
-            tileformat = I915_TILING_Y;
+            tileformat  = I915_TILING_Y;
             break;
         case Media_Format_Buffer:
             tileformat = I915_TILING_NONE;
