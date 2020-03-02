@@ -151,7 +151,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
         m_i915Context[0]->pOsContext = osParameters;
 
         m_i915ExecFlag = I915_EXEC_DEFAULT;
-        if (gpuNode == MOS_GPU_NODE_3D || gpuNode == MOS_GPU_NODE_COMPUTE)
+        if (gpuNode == MOS_GPU_NODE_3D)
         {
             struct i915_engine_class_instance engine_map;
             engine_map.engine_class = I915_ENGINE_CLASS_RENDER;
@@ -187,6 +187,26 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                     MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
                     return MOS_STATUS_UNKNOWN;
                 }
+            }
+        }
+        else if (gpuNode == MOS_GPU_NODE_COMPUTE)
+        {
+            unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
+            struct i915_engine_class_instance engine_map[MAX_ENGINE_INSTANCE_NUM];
+            __u16 engine_class = 4; //To change later when linux define the name
+            __u64 caps = 0;
+
+            MOS_ZeroMemory(engine_map, sizeof(engine_map));
+            if (mos_query_engines(osParameters->fd,engine_class,caps,&nengine,engine_map))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
+                return MOS_STATUS_UNKNOWN;
+            }
+
+            if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
+                return MOS_STATUS_UNKNOWN;
             }
         }
         else if (gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2

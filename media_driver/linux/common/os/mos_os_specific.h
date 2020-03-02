@@ -125,7 +125,7 @@ enum DdiSurfaceFormat
 
 // should be defined in libdrm, this is a temporary solution to pass QuickBuild
 #define I915_EXEC_VEBOX                  (4<<0)
-#define I915_EXEC_VCS2                   (5<<0)
+#define I915_EXEC_VCS2                   (7<<0)
 
 // I915_EXEC_BSD_* -- Attempt to provide backwards and forwards
 // compatibility with versions of include/drm/i915_drm.h that do not
@@ -174,7 +174,7 @@ typedef enum _MOS_MEDIA_OPERATION
 typedef enum _MOS_GPU_NODE
 {
     MOS_GPU_NODE_3D      = I915_EXEC_RENDER,
-    MOS_GPU_NODE_COMPUTE = (6<<0), //To change to compute CS later when linux define the name
+    MOS_GPU_NODE_COMPUTE = (5<<0), //To change to compute CS later when linux define the name
     MOS_GPU_NODE_VE      = I915_EXEC_VEBOX,
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,
