@@ -279,13 +279,6 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
     MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE, _compID, _subCompID, "")
 
 //!
-//! \def MOS_FUNCTION_EXIT_VERBOSE(_compID, _subCompID)
-//!  Output VERBOSE EXIT message with \_a _compID and \_a _subCompID info
-//!
-#define MOS_FUNCTION_EXIT_VERBOSE(_compID, _subCompID)                                      \
-    MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_FUNCTION_EXIT_VERBOSE, _compID, _subCompID, "")
-
-//!
 //! \def MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ...)
 //!  Output CRITICAL message \a _message with \_a _compID and \_a _subCompID info
 //!  and triggers an assert.
@@ -307,6 +300,13 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
 //!
 #define MOS_VERBOSEMESSAGE(_compID, _subCompID, _message, ...)                              \
     MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_VERBOSE, _compID, _subCompID, _message, ##__VA_ARGS__)
+
+//!
+//! \def MOS_MEMNINJAMESSAGE(_compID, _subCompID, _message, ...)
+//!  Output DEBUG message \a _message with \_a _compID and \_a _subCompID info
+//!
+#define MOS_MEMNINJAMESSAGE(_compID, _subCompID, _message, ...)                             \
+    MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_MEMNINJA, _compID, _subCompID, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)
@@ -345,12 +345,12 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
 #define MOS_FUNCTION_ENTER(_compID, _subCompID)
 #define MOS_FUNCTION_EXIT(_compID, _subCompID, hr)
 #define MOS_FUNCTION_ENTER_VERBOSE(_compID, _subCompID)
-#define MOS_FUNCTION_EXIT_VERBOSE(_compID, _subCompID)
 #define MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_NORMALMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_VERBOSEMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_DEBUGMESSAGE_IF(_cond, _level, _compID, _subCompID, _message, ...)
 #define MOS_DEBUGMESSAGE(_compID, _subCompID, _message, ...)
+#define MOS_MEMNINJAMESSAGE(_compID, _subCompID, _message, ...)
 
 #endif // MOS_MESSAGES_ENABLED
 
@@ -737,6 +737,13 @@ void _MOS_Assert(
 //!
 #define MOS_OS_FUNCTION_ENTER                                                               \
     MOS_FUNCTION_ENTER(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF)
+
+//!
+//! \def MOS_OS_MEMNINJAMESSAGE(_message, ...)
+//!  MOS_MEMNINJAMESSAGE \a _message with MOS Utility comp/subcomp info
+//!
+#define MOS_OS_MEMNINJAMESSAGE(_message, ...)                                              \
+    MOS_MEMNINJAMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }

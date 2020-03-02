@@ -335,7 +335,7 @@ void MOS_Message(
             case MOS_MESSAGE_LVL_FUNCTION_ENTRY:
             case MOS_MESSAGE_LVL_FUNCTION_EXIT:
             case MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE:
-            case MOS_MESSAGE_LVL_FUNCTION_EXIT_VERBOSE:
+            case MOS_MESSAGE_LVL_MEMNINJA:
             default:
                 android_level = ANDROID_LOG_INFO;
                 break;
