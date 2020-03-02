@@ -1025,6 +1025,15 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribs[i].value.value.i = VA_FOURCC('P', '0', '1', '0');
             i++;
+
+            if (profile == VAProfileVP9Profile2)
+            {
+                attribs[i].type          = VASurfaceAttribPixelFormat;
+                attribs[i].value.type    = VAGenericValueTypeInteger;
+                attribs[i].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = VA_FOURCC_P016;
+                i++;
+            }
         }
         else if(profile == VAProfileHEVCMain12)
         {
@@ -1034,7 +1043,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC_P016;
             i++;
         }
-        else if(profile == VAProfileHEVCMain444)
+        else if (profile == VAProfileHEVCMain444)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1042,7 +1051,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC_AYUV;
             i++;
         }
-        else if(profile == VAProfileHEVCMain444_10)
+        else if (profile == VAProfileHEVCMain444_10)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1083,6 +1092,40 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
                 attribs[i].value.value.i = m_jpegEncSurfaceAttr[j];
                 i++;
             }
+        }
+        else if (profile == VAProfileVP9Profile1)
+        {
+            attribs[i].type          = VASurfaceAttribPixelFormat;
+            attribs[i].value.type    = VAGenericValueTypeInteger;
+            attribs[i].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_AYUV;
+            i++;
+        }
+        else if (profile == VAProfileVP9Profile3)
+        {
+            attribs[i].type          = VASurfaceAttribPixelFormat;
+            attribs[i].value.type    = VAGenericValueTypeInteger;
+            attribs[i].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y410;
+            i++;
+
+            attribs[i].type          = VASurfaceAttribPixelFormat;
+            attribs[i].value.type    = VAGenericValueTypeInteger;
+            attribs[i].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y416;
+            i++;
+
+            attribs[i].type          = VASurfaceAttribPixelFormat;
+            attribs[i].value.type    = VAGenericValueTypeInteger;
+            attribs[i].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('A', 'R', 'G', 'B');
+            i++;
+
+            attribs[i].type          = VASurfaceAttribPixelFormat;
+            attribs[i].value.type    = VAGenericValueTypeInteger;
+            attribs[i].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('A', 'B', 'G', 'R');
+            i++;
         }
         else
         {
