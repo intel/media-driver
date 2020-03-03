@@ -256,7 +256,7 @@ MhwVdboxMfxInterface::MhwVdboxMfxInterface(
 
     auto gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
 
-    if (gtSystemInfo != nullptr && (!MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox)))
+    if (gtSystemInfo != nullptr && (!MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox) || m_decodeInUse))
     {
         m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
     }
