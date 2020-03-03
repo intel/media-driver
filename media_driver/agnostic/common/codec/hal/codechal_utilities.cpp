@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -366,6 +366,15 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
         surfaceRcsParams.dwHeightToUse[MHW_Y_PLANE]           = (surfaceCodecParams->dwHeightInUse == 0) ?
             ((surfaceCodecParams->bUseHalfHeight) ? (surfaceCodecParams->psSurface->dwHeight / 2) : surfaceCodecParams->psSurface->dwHeight)
             : surfaceCodecParams->dwHeightInUse;
+
+        if (surfaceCodecParams->bCheckCSC8Format &&
+            (surfaceCodecParams->psSurface->Format == Format_AYUV || surfaceCodecParams->psSurface->Format == Format_Y410 ||
+            surfaceCodecParams->psSurface->Format == Format_R10G10B10A2 || surfaceCodecParams->psSurface->Format == Format_B10G10R10A2))
+        {
+            surfaceRcsParams.ForceSurfaceFormat[MHW_Y_PLANE] = MHW_GFX3DSTATE_SURFACEFORMAT_R8_UNORM;
+            surfaceRcsParams.dwWidthToUse[MHW_Y_PLANE] = surfaceRcsParams.dwWidthToUse[MHW_Y_PLANE] * 4;
+        }
+
         surfaceRcsParams.dwBindingTableOffset[MHW_Y_PLANE]    = surfaceCodecParams->dwBindingTableOffset;
         surfaceRcsParams.dwYOffset[MHW_Y_PLANE]               = surfaceCodecParams->psSurface->YPlaneOffset.iYOffset;
         surfaceRcsParams.bVertLineStride                      = surfaceCodecParams->dwVerticalLineStride;

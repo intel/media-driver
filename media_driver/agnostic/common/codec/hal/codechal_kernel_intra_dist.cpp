@@ -70,7 +70,7 @@ MOS_STATUS CodechalKernelIntraDist::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KE
 {
     CODECHAL_SURFACE_CODEC_PARAMS surfaceParams;
     // 4X DS Surface
-    memset(&surfaceParams, 0, sizeof(surfaceParams));
+    MOS_ZeroMemory(&surfaceParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceParams.bIs2DSurface          = true;
     surfaceParams.bIsWritable           = false;
     surfaceParams.bMediaBlockRW         = true;
@@ -86,7 +86,7 @@ MOS_STATUS CodechalKernelIntraDist::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KE
         kernelState));
 
     //Intra Dist Surface
-    memset(&surfaceParams, 0, sizeof(surfaceParams));
+    MOS_ZeroMemory(&surfaceParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceParams.bIs2DSurface          = true;
     surfaceParams.bIsWritable           = true;
     surfaceParams.bMediaBlockRW         = true;
@@ -101,7 +101,7 @@ MOS_STATUS CodechalKernelIntraDist::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KE
         kernelState));
 
     // 4X DS VME Surface
-    memset(&surfaceParams, 0, sizeof(surfaceParams));
+    MOS_ZeroMemory(&surfaceParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceParams.bUseAdvState          = true;
     surfaceParams.psSurface             = m_surfaceParam.input4xDsVmeSurface;
     surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;

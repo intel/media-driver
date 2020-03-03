@@ -2543,7 +2543,7 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_BU
     // MV data buffer
     if (params->psMvDataBuffer)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->psMvDataBuffer;

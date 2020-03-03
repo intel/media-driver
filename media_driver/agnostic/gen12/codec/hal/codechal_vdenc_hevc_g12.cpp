@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2050,7 +2050,28 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
         cscScalingKernelParams.bLastTaskInPhase16xDS    = !(m_32xMeSupported || m_hmeEnabled);
         cscScalingKernelParams.bLastTaskInPhase32xDS    = !m_hmeEnabled;
 
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->SetHevcCscFlagAndRawColor());
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->KernelFunctions(&cscScalingKernelParams));
+
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER),
+                CodechalDbgAttr::attrReconstructedSurface,
+                "4x_Scaled_Surf"));
+
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER),
+                CodechalDbgAttr::attrReconstructedSurface,
+                "16x_Scaled_Surf"));
+
+            if (m_b32XMeEnabled)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                    m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER),
+                    CodechalDbgAttr::attrReconstructedSurface,
+                    "32x_Scaled_Surf"));
+            }
+        )
     }
 
     if (m_b16XMeEnabled)

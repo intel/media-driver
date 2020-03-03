@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -72,7 +72,7 @@ MOS_STATUS CodechalEncodeCscDsG12::AllocateSurfaceCsc()
     return eStatus;
 }
 
-MOS_STATUS CodechalEncodeCscDsG12::CheckRawColorFormat(MOS_FORMAT format)
+MOS_STATUS CodechalEncodeCscDsG12::CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -111,10 +111,18 @@ MOS_STATUS CodechalEncodeCscDsG12::CheckRawColorFormat(MOS_FORMAT format)
         m_cscRequireConvTo8bPlanar = 1;
         break;
     case Format_Y210:
-        if (m_encoder->m_vdencEnabled)
+        if (m_encoder->m_vdencEnabled && MEDIA_IS_WA(m_encoder->m_waTable, WaHEVCVDEncY210LinearInputNotSupported))
         {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Input color format Y210 Linear or Tile X not yet supported!");
-            eStatus = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+            if (tileType == MOS_TILE_Y)
+            {
+                m_colorRawSurface = cscColorY210;
+                m_cscRequireConvTo8bPlanar = 1;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("Input color format Y210 Linear not yet supported!");
+                eStatus = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+            }
         }
         else
         {
@@ -126,6 +134,38 @@ MOS_STATUS CodechalEncodeCscDsG12::CheckRawColorFormat(MOS_FORMAT format)
         m_colorRawSurface = cscColorY210;
         m_cscRequireConvTo8bPlanar = 1;
         break;
+    case Format_AYUV:
+        if(m_encoder->m_vdencEnabled)
+        {
+            m_colorRawSurface = cscColorAYUV;
+            break;
+        }
+    case Format_R10G10B10A2:
+        if(m_encoder->m_vdencEnabled)
+        {
+            m_colorRawSurface = cscColorARGB10;
+            break;
+        }
+    case Format_B10G10R10A2:
+        if(m_encoder->m_vdencEnabled)
+        {
+            m_colorRawSurface = cscColorABGR10;
+            break;
+        }
+    case Format_Y410:
+        if(m_encoder->m_vdencEnabled)
+        {
+            m_colorRawSurface = cscColorY410;
+            break;
+        }
+    case Format_YVYU:
+        if (m_encoder->m_vdencEnabled)
+        {
+            m_colorRawSurface = cscColorYUY2;
+            m_cscRequireColor = (uint8_t)HCP_CHROMA_FORMAT_YUV420 == m_outputChromaFormat;
+            m_cscRequireConvTo8bPlanar = (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat;
+            break;
+        }
     case Format_P210:
         // not supported yet so fall-thru to default
         m_colorRawSurface = cscColorP210;
@@ -323,7 +363,15 @@ MOS_STATUS CodechalEncodeCscDsG12::SetCurbeCsc()
     curbe.DW0_OutputBitDepthForLuma = m_curbeParams.ucEncBitDepthLuma;
     curbe.DW0_RoundingEnable = 1;
 
-    curbe.DW1_PictureFormat = (uint8_t)((m_colorRawSurface == cscColorABGR) ? cscColorARGB : m_colorRawSurface); // Use cscColorARGB for ABGR CSC, just switch B and R coefficients
+    if (m_colorRawSurface == cscColorABGR || m_colorRawSurface == cscColorABGR10)
+    {
+        curbe.DW1_PictureFormat = (uint8_t)((m_colorRawSurface == cscColorABGR) ? cscColorARGB : cscColorARGB10); // Use cscColorARGB for ABGR CSC, just switch B and R coefficients
+    }
+    else
+    {
+        curbe.DW1_PictureFormat = (uint8_t)m_colorRawSurface;
+    }
+
     curbe.DW1_ConvertFlag = m_curbeParams.bConvertFlag;
     curbe.DW1_DownscaleStage = (uint8_t)m_curbeParams.downscaleStage;
     curbe.DW1_MbStatisticsDumpFlag = (m_curbeParams.downscaleStage == dsStage4x || m_curbeParams.downscaleStage == dsStage2x4x);
@@ -350,7 +398,7 @@ MOS_STATUS CodechalEncodeCscDsG12::SetCurbeCsc()
         curbe.DW7_CSC_Coefficient_C7 = 0x0010;
         curbe.DW8_CSC_Coefficient_C8 = 0xFFD5;
         curbe.DW9_CSC_Coefficient_C11 = 0x0080;
-        if (cscColorARGB == m_colorRawSurface)
+        if (cscColorARGB == m_colorRawSurface || cscColorARGB10 == m_colorRawSurface)
         {
             curbe.DW4_CSC_Coefficient_C1 = 0xFFFB;
             curbe.DW5_CSC_Coefficient_C2 = 0x0038;
@@ -359,7 +407,7 @@ MOS_STATUS CodechalEncodeCscDsG12::SetCurbeCsc()
             curbe.DW8_CSC_Coefficient_C9 = 0x0038;
             curbe.DW9_CSC_Coefficient_C10 = 0xFFF3;
         }
-        else // cscColorABGR == m_colorRawSurface
+        else // cscColorABGR == m_colorRawSurface || cscColorABGR10 == m_colorRawSurface
         {
             curbe.DW4_CSC_Coefficient_C1 = 0x0038;
             curbe.DW5_CSC_Coefficient_C2 = 0xFFFB;
@@ -377,7 +425,7 @@ MOS_STATUS CodechalEncodeCscDsG12::SetCurbeCsc()
         curbe.DW7_CSC_Coefficient_C7 = 0x0010;
         curbe.DW8_CSC_Coefficient_C8 = 0xFFDB;
         curbe.DW9_CSC_Coefficient_C11 = 0x0080;
-        if (cscColorARGB == m_colorRawSurface)
+        if (cscColorARGB == m_colorRawSurface || cscColorARGB10 == m_colorRawSurface)
         {
             curbe.DW4_CSC_Coefficient_C1 = 0xFFF7;
             curbe.DW5_CSC_Coefficient_C2 = 0x0038;
@@ -386,7 +434,7 @@ MOS_STATUS CodechalEncodeCscDsG12::SetCurbeCsc()
             curbe.DW8_CSC_Coefficient_C9 = 0x0038;
             curbe.DW9_CSC_Coefficient_C10 = 0xFFED;
         }
-        else // cscColorABGR == m_colorRawSurface
+        else // cscColorABGR == m_colorRawSurface || cscColorABGR10 == m_colorRawSurface
         {
             curbe.DW4_CSC_Coefficient_C1 = 0x0038;
             curbe.DW5_CSC_Coefficient_C2 = 0xFFF7;
@@ -458,6 +506,11 @@ MOS_STATUS CodechalEncodeCscDsG12::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         */
         surfaceParams.bUse16UnormSurfaceFormat = !(cscColorNv12TileY == m_colorRawSurface ||
                                                    cscColorNv12Linear == m_colorRawSurface);
+    }
+
+    if(m_encoder->m_vdencEnabled && CODECHAL_HEVC == m_standard)
+    {
+        surfaceParams.bCheckCSC8Format= true;
     }
 
     // when input surface is NV12 tiled and not aligned by 4 bytes, need kernel to do the

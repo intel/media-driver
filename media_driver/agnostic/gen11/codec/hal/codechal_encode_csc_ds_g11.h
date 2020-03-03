@@ -360,7 +360,7 @@ private:
         ds4xNumSurfaces = 6
     };
 
-    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format) override;
+    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType) override;
     virtual MOS_STATUS InitKernelStateCsc() override;
     virtual MOS_STATUS SetKernelParamsCsc(KernelParams* params) override;
     virtual MOS_STATUS SetCurbeCsc() override;

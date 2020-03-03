@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1632,6 +1632,7 @@ MOS_STATUS CodechalVdencHevcStateG11::EncodeKernelFunctions()
         cscScalingKernelParams.bLastTaskInPhase16xDS    = !(m_32xMeSupported || m_hmeEnabled);
         cscScalingKernelParams.bLastTaskInPhase32xDS    = !m_hmeEnabled;
 
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->SetHevcCscFlagAndRawColor());
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->KernelFunctions(&cscScalingKernelParams));
     }
 

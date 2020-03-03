@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -457,6 +457,8 @@ public:
     //!
     MOS_STATUS KernelFunctions(KernelParams* params);
 
+    MOS_STATUS SetHevcCscFlagAndRawColor();
+
     //!
     //! \brief    CSC using SFC
     //!
@@ -494,8 +496,12 @@ protected:
         cscColorY210 = 4,           // Y210
         cscColorARGB = 5,           // ARGB
         cscColorNv12Linear = 6,     // NV12 linear
-        cscColorABGR = 7,           // ABGR
-        cscColorEnumNumber = 8
+        cscColorAYUV = 7,           // AYUV
+        cscColorARGB10 = 8,         // ARGB10
+        cscColorY410 = 9,           // Y410
+        cscColorABGR = 10,          // ABGR
+        cscColorABGR10 = 11,        // ABGR10
+        cscColorEnumNumber = 12
     };
 
     //!
@@ -1030,7 +1036,7 @@ private:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format);
+    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType);
 
     //!
     //! \brief    Initialize SFC state

@@ -85,6 +85,7 @@ typedef struct _CODECHAL_SURFACE_CODEC_PARAMS
     bool                        bUse16UnormSurfaceFormat;   // Force surface format to R16_UNORM
     bool                        bUse32UnormSurfaceFormat;   // Force surface format to R32_UNORM
     bool                        bUseARGB8Format;            // Force surface format to ARGB8 for Ds+Copy kernel
+    bool                        bCheckCSC8Format;           // Force surface format Y410/ARGB10/AYUV to R8*4 for Ds+Copy kernel
     bool                        bUse32UINTSurfaceFormat;
     bool                        bRenderTarget;
     bool                        bIsWritable;

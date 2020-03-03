@@ -362,7 +362,7 @@ private:
         ds4xNumSurfaces = 6
     };
 
-    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format) override;
+    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType) override;
     virtual MOS_STATUS SetCurbeCsc() override;
     virtual MOS_STATUS SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer) override;
     virtual MOS_STATUS InitSfcState() override;

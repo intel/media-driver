@@ -72,7 +72,7 @@ MOS_STATUS CodechalEncodeCscDsG11::AllocateSurfaceCsc()
     return eStatus;
 }
 
-MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format)
+MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
