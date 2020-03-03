@@ -45,7 +45,7 @@ MOS_STATUS MediaFeatureManager::Init(void *settings)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaFeatureManager::RegisterFeatures(FeatureIDs featureID, MediaFeature *feature)
+MOS_STATUS MediaFeatureManager::RegisterFeatures(int featureID, MediaFeature *feature)
 {
     MEDIA_FUNC_CALL();
     MEDIA_CHK_NULL_RETURN(feature);

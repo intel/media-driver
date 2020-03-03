@@ -33,24 +33,38 @@
 #include "media_feature.h"
 #include "media_feature_const_settings.h"
 
-enum FeatureIDs
+#define CONSTRUCTFEATUREID(_componentID, _subComponentID, _featureID) \
+    (_componentID << 24 | _subComponentID << 16 | _featureID)
+
+enum ComponentIDs
 {
-    // HEVC features
-    basicFeature = 0,
-    encodeTile,
-    hevcCqpFeature,
-    hevcBrcFeature,
-    hevcVdencRoiFeature,
-    hevcVdencWpFeature,
-    hevcVdencDssFeature,
+    FEATURE_COMPONENT_COMMON = 0,
+    FEATURE_COMPONENT_ENCODE,
+    FEATURE_COMPONENT_DECODE,
+    FEATURE_COMPONENT_VP,
+};
 
-    reserve6,
-    reserve7,
-    reserve8,
+enum SubComponentIDs
+{
+    FEATURE_SUBCOMPONENT_COMMON = 0,
+    FEATURE_SUBCOMPONENT_HEVC,
+};
 
-    // Decode specific feature
-    decodePredication,
-    decodeMarker,
+struct FeatureIDs
+{
+    enum CommonFeatureIDs
+    {
+        basicFeature = CONSTRUCTFEATUREID(FEATURE_COMPONENT_COMMON, FEATURE_SUBCOMPONENT_COMMON, 0),
+        encodeTile,
+
+        reserve6,
+        reserve7,
+        reserve8,
+
+        // Decode specific feature
+        decodePredication,
+        decodeMarker,
+    };
 };
 //!
 //! \def RUN_FEATURE_INTERFACE_RETURN(_featureClassName, _featureID, _featureInterface, ...)
@@ -116,7 +130,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RegisterFeatures(FeatureIDs featureID, MediaFeature *feature);
+    MOS_STATUS RegisterFeatures(int featureID, MediaFeature *feature);
 
     //!
     //! \brief  Update all features
@@ -141,7 +155,7 @@ public:
     //! \return MediaFeature*
     //!         Pointer of the feature
     //!
-    virtual MediaFeature *GetFeature(FeatureIDs featureID)
+    virtual MediaFeature *GetFeature(int featureID)
     {
         auto iter = m_features.find(featureID);
         if (iter == m_features.end())
@@ -191,7 +205,7 @@ protected:
     //!
     uint8_t GetTargetUsage(){return m_targetUsage;}
 
-    std::map<FeatureIDs, MediaFeature *> m_features;
+    std::map<int, MediaFeature *> m_features;
     MediaFeatureConstSettings *m_featureConstSettings = nullptr;
     uint8_t m_targetUsage = 0;
     uint8_t m_passNum = 1;
