@@ -188,22 +188,26 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::DestroySurfaces(SurfaceParamsCscMdf& Surfa
     // Input YUV
     if (SurfaceParamsCsc.psInputSurface)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroySurface(SurfaceParamsCsc.psInputSurface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            DestroyCmSurface2D(cmDev, &SurfaceParamsCsc.psInputSurface));
         SurfaceParamsCsc.psInputSurface = nullptr;
     }
     if (SurfaceParamsCsc.psOutputCopiedSurface)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroySurface(SurfaceParamsCsc.psOutputCopiedSurface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            DestroyCmSurface2D(cmDev, &SurfaceParamsCsc.psOutputCopiedSurface));
         SurfaceParamsCsc.psOutputCopiedSurface = nullptr;
     }
     if (SurfaceParamsCsc.psOutput4xDsSurface)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroySurface(SurfaceParamsCsc.psOutput4xDsSurface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            DestroyCmSurface2D(cmDev, &SurfaceParamsCsc.psOutput4xDsSurface));
         SurfaceParamsCsc.psOutput4xDsSurface = nullptr;
     }
     if (SurfaceParamsCsc.psOutput2xDsSurface)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroySurface(SurfaceParamsCsc.psOutput2xDsSurface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            DestroyCmSurface2D(cmDev, &SurfaceParamsCsc.psOutput2xDsSurface));
         SurfaceParamsCsc.psOutput2xDsSurface = nullptr;
     }
     if (SurfaceParamsCsc.presMBVProcStatsBuffer)
@@ -285,9 +289,10 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::SetupSurfacesCSC(SurfaceParamsCscMdf& Surf
 {
     CmDevice* &cmDev = m_encoder->m_cmDev;
     // Input YUV
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->UpdateSurface2D(
-        &m_surfaceParamsCsc.psInputSurface->OsResource,
-        SurfaceParamsCsc.psInputSurface));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(
+        UpdateCmSurface2D(cmDev,
+                          &m_surfaceParamsCsc.psInputSurface->OsResource,
+                          &SurfaceParamsCsc.psInputSurface));
 
     // Change input surface interpretation from NV12 to A8
     if (GMM_FORMAT_NV12_TYPE == m_surfaceParamsCsc.psInputSurface->OsResource.pGmmResInfo->GetResourceFormat())
@@ -307,23 +312,26 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::SetupSurfacesCSC(SurfaceParamsCscMdf& Surf
     // Output to Enc
     if (m_surfaceParamsCsc.psOutputCopiedSurface)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->UpdateSurface2D(
-            &m_surfaceParamsCsc.psOutputCopiedSurface->OsResource,
-            SurfaceParamsCsc.psOutputCopiedSurface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            UpdateCmSurface2D(cmDev,
+                              &m_surfaceParamsCsc.psOutputCopiedSurface->OsResource,
+                              &SurfaceParamsCsc.psOutputCopiedSurface));
     }
 
     if (m_surfaceParamsCsc.psOutput4xDsSurface)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->UpdateSurface2D(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            UpdateCmSurface2D(cmDev,
             &m_surfaceParamsCsc.psOutput4xDsSurface->OsResource,
-            SurfaceParamsCsc.psOutput4xDsSurface));
+            &SurfaceParamsCsc.psOutput4xDsSurface));
     }
 
     if (m_surfaceParamsCsc.psOutput2xDsSurface)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->UpdateSurface2D(
-            &m_surfaceParamsCsc.psOutput2xDsSurface->OsResource,
-            SurfaceParamsCsc.psOutput2xDsSurface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            UpdateCmSurface2D(cmDev,
+                              &m_surfaceParamsCsc.psOutput2xDsSurface->OsResource,
+                              &SurfaceParamsCsc.psOutput2xDsSurface));
     }
 
     if (m_surfaceParamsCsc.presMBVProcStatsBuffer)

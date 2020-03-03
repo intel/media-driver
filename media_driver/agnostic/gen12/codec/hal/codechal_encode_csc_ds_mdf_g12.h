@@ -29,12 +29,14 @@
 #include "codechal_encode_csc_ds_g12.h"
 #include "codechal_kernel_header_g12.h"
 
+#include "cm_surface_2d_codec_wrapper.h"
+
 struct SurfaceParamsCscMdf
 {
-    CmSurface2D                *psInputSurface = nullptr;
-    CmSurface2D                *psOutput4xDsSurface = nullptr;
-    CmSurface2D                *psOutput2xDsSurface = nullptr;
-    CmSurface2D                *psOutputCopiedSurface = nullptr;
+    CmSurface2DCodecWrapper    *psInputSurface = nullptr;
+    CmSurface2DCodecWrapper    *psOutput4xDsSurface = nullptr;
+    CmSurface2DCodecWrapper    *psOutput2xDsSurface = nullptr;
+    CmSurface2DCodecWrapper    *psOutputCopiedSurface = nullptr;
     CmBuffer                   *presMBVProcStatsBuffer = nullptr;
     CmBuffer                   *presHistoryBuffer = nullptr;
     SurfaceIndex               *pHistBufSurfIdx = nullptr;
