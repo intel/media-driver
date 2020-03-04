@@ -774,6 +774,51 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS;
         (*attribList)[attrib.type] = attrib.value;
     }
+
+    if (IsHevcProfile(profile))
+    {
+        attrib.type = VAConfigAttribEncHEVCFeatures;
+        VAConfigAttribValEncHEVCFeatures features;
+
+        features.bits.separate_colour_plane_supported  = 0;
+        features.bits.scaling_list_supported           = 1;
+        features.bits.amp_supported                    = 1;
+        features.bits.sao_supported                    = 0;
+        features.bits.temporal_mvp_supported           = 0;
+        features.bits.pcm_supported                    = 0;
+        features.bits.strong_intra_smoothing_supported = 0;
+        features.bits.sign_data_hiding_supported       = 0;
+        features.bits.transform_skip_supported         = 0;
+        features.bits.weighted_prediction_supported    = 0;
+        features.bits.transquant_bypass_supported      = 0;
+
+        if (entrypoint == VAEntrypointEncSliceLP) {
+            // 64x64 CTBs.
+            features.bits.log2_max_coding_tree_block_size_minus3 = 3;
+        } else {
+            // 32x32 CTBs.
+            features.bits.log2_max_coding_tree_block_size_minus3 = 2;
+        }
+        // CTB size is not variable.
+        features.bits.log2_min_coding_tree_block_size_minus3 =
+            features.bits.log2_max_coding_tree_block_size_minus3;
+
+        // CBs within CTBs may be as small as 8x8.
+        features.bits.log2_min_luma_coding_block_size_minus3 = 0;
+
+        // All transform sizes allowed, with no limit on the hierarchy.
+        features.bits.log2_max_luma_transform_block_size_minus2 = 3;
+        features.bits.log2_min_luma_transform_block_size_minus2 = 0;
+        features.bits.max_transform_hierarchy_depth_inter       = 3;
+        features.bits.max_transform_hierarchy_depth_intra       = 3;
+
+        // QP can only be varied at the CTB level.
+        features.bits.min_cu_qp_delta_block_size_minus3 = 0;
+
+        attrib.value = features.value;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+
     return status;
 }
 
