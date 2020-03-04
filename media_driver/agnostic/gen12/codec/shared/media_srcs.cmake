@@ -41,6 +41,11 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
 source_group( "CodecHal\\Common" FILES ${TMP_HEADERS_} )
 
 

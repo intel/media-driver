@@ -38,4 +38,14 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
 media_add_curr_to_include_path()
