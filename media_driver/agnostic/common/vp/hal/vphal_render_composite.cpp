@@ -3017,7 +3017,7 @@ int32_t CompositeState::SetLayer(
     int32_t                             iLayer; // The index of pSource in pRenderingData->pLayers.
     MEDIA_OBJECT_KA2_STATIC_DATA        *pStatic;
     MEDIA_OBJECT_KA2_INLINE_DATA        *pInline;
-    MEDIA_DP_FC_STATIC_DATA             * pDPStatic;
+    MEDIA_DP_FC_STATIC_DATA             *pDPStatic;
     // Surface states
     int32_t                             iSurfaceEntries, i, iSurfaceEntries2;
     PRENDERHAL_SURFACE_STATE_ENTRY      pSurfaceEntries[MHW_MAX_SURFACE_PLANES];
@@ -3241,6 +3241,12 @@ int32_t CompositeState::SetLayer(
     {
         iResult = -1;
         goto finish;
+    }
+
+    if ((pDPStatic != nullptr) && (pSurfaceEntries[0] != nullptr))
+    {
+        pDPStatic->DW6.InputPictureWidth  = pSurfaceEntries[0]->dwWidth;
+        pDPStatic->DW6.InputPictureHeight = pSurfaceEntries[0]->dwHeight;
     }
 
     eStatus = VpHal_RndrCommonGetBackVpSurfaceParams(
