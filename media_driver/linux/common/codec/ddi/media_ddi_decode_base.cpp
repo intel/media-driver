@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -675,41 +675,50 @@ VAStatus DdiMediaDecode::ExtraDownScaling(
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_ddiDecodeCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
-    DDI_CHK_NULL(decoder, "nullptr decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
-    if(m_ddiDecodeCtx->DecodeParams.m_procParams &&
-        !decoder->IsVdSfcSupported())
+#ifdef _APOGEIOS_SUPPORTED
+    if (m_ddiDecodeCtx->pCodecHal->IsApogeiosEnabled())
     {
-        //check vp context
-        VAContextID vpCtxID = VA_INVALID_ID;
-        if (mediaCtx->pVpCtxHeap != nullptr && mediaCtx->pVpCtxHeap->pHeapBase != nullptr)
+        return MOS_STATUS_SUCCESS; //Add APO logic here.
+    }
+    else
+#endif
+    {
+        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
+        DDI_CHK_NULL(decoder, "nullptr decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
+        if(m_ddiDecodeCtx->DecodeParams.m_procParams &&
+            !decoder->IsVdSfcSupported())
         {
-            //Get VP Context from heap.
-            vpCtxID = (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP);
+            //check vp context
+            VAContextID vpCtxID = VA_INVALID_ID;
+            if (mediaCtx->pVpCtxHeap != nullptr && mediaCtx->pVpCtxHeap->pHeapBase != nullptr)
+            {
+                //Get VP Context from heap.
+                vpCtxID = (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP);
+            }
+            else
+            {
+                //Create VP Context.
+                vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &vpCtxID);
+                DDI_CHK_RET(vaStatus, "Create VP Context failed.");
+            }
+
+            uint32_t        ctxType;
+            PDDI_VP_CONTEXT pVpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vpCtxID, &ctxType);
+            DDI_CHK_NULL(pVpCtx, "nullptr pVpCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+            //Set parameters
+            VAProcPipelineParameterBuffer* pInputPipelineParam = m_procBuf;
+            DDI_CHK_NULL(pInputPipelineParam, "nullptr pInputPipelineParam", VA_STATUS_ERROR_ALLOCATION_FAILED);
+
+            vaStatus = DdiVp_BeginPicture(ctx, vpCtxID, pInputPipelineParam->additional_outputs[0]);
+            DDI_CHK_RET(vaStatus, "VP BeginPicture failed");
+
+            vaStatus = DdiVp_SetProcPipelineParams(ctx, pVpCtx, pInputPipelineParam);
+            DDI_CHK_RET(vaStatus, "VP SetProcPipelineParams failed.");
+
+            vaStatus = DdiVp_EndPicture(ctx, vpCtxID);
+            DDI_CHK_RET(vaStatus, "VP EndPicture failed.");
         }
-        else
-        {
-            //Create VP Context.
-            vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &vpCtxID);
-            DDI_CHK_RET(vaStatus, "Create VP Context failed.");
-        }
-
-        uint32_t        ctxType;
-        PDDI_VP_CONTEXT pVpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vpCtxID, &ctxType);
-        DDI_CHK_NULL(pVpCtx, "nullptr pVpCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-
-        //Set parameters
-        VAProcPipelineParameterBuffer* pInputPipelineParam = m_procBuf;
-        DDI_CHK_NULL(pInputPipelineParam, "nullptr pInputPipelineParam", VA_STATUS_ERROR_ALLOCATION_FAILED);
-
-        vaStatus = DdiVp_BeginPicture(ctx, vpCtxID, pInputPipelineParam->additional_outputs[0]);
-        DDI_CHK_RET(vaStatus, "VP BeginPicture failed");
-
-        vaStatus = DdiVp_SetProcPipelineParams(ctx, pVpCtx, pInputPipelineParam);
-        DDI_CHK_RET(vaStatus, "VP SetProcPipelineParams failed.");
-
-        vaStatus = DdiVp_EndPicture(ctx, vpCtxID);
-        DDI_CHK_RET(vaStatus, "VP EndPicture failed.");
     }
 #endif
     return MOS_STATUS_SUCCESS;
@@ -770,6 +779,63 @@ VAStatus DdiMediaDecode::InitDummyReference(CodechalDecode& decoder)
     return VA_STATUS_SUCCESS;
 }
 
+#ifdef _APOGEIOS_SUPPORTED
+VAStatus DdiMediaDecode::InitDummyReference(DecodePipelineAdapter& decoder)
+{
+    PMOS_SURFACE dummyReference = decoder.GetDummyReference();
+
+    // If dummy reference is from decode output surface, need to update frame by frame
+    if (decoder.GetDummyReferenceStatus() == CODECHAL_DUMMY_REFERENCE_DEST_SURFACE)
+    {
+        MOS_ZeroMemory(dummyReference, sizeof(MOS_SURFACE));
+        decoder.SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_INVALID);
+    }
+
+    if (!Mos_ResourceIsNull(&dummyReference->OsResource))
+    {
+        Mos_Specific_GetResourceInfo(decoder.GetOsInterface(), &dummyReference->OsResource, dummyReference);
+
+        // Check if need to re-get dummy reference from DPB or re-allocated
+        if (dummyReference->dwWidth < m_ddiDecodeCtx->DecodeParams.m_destSurface->dwWidth ||
+            dummyReference->dwHeight < m_ddiDecodeCtx->DecodeParams.m_destSurface->dwHeight)
+        {
+            // Check if the dummy reference needs to be re-allocated
+            if (decoder.GetDummyReferenceStatus() == CODECHAL_DUMMY_REFERENCE_ALLOCATED)
+            {
+                decoder.GetOsInterface()->pfnFreeResource(decoder.GetOsInterface(), &dummyReference->OsResource);
+            }
+
+            // Reset dummy reference
+            MOS_ZeroMemory(dummyReference, sizeof(MOS_SURFACE));
+            decoder.SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_INVALID);
+
+            // Considering potential risk, disable the dummy reference from DPB path temporarily
+            //GetDummyReferenceFromDPB(m_ddiDecodeCtx);
+
+            //if (!Mos_ResourceIsNull(&dummyReference->OsResource))
+            //{
+            //    decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
+            //}
+        }
+    }
+    else
+    {
+        // Init dummy reference
+        MOS_ZeroMemory(dummyReference, sizeof(MOS_SURFACE));
+        decoder.SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_INVALID);
+
+        // Considering potential risk, disable the dummy reference from DPB path temporarily
+        //GetDummyReferenceFromDPB(m_ddiDecodeCtx);
+        //if (!Mos_ResourceIsNull(&dummyReference->OsResource))
+        //{
+        //    decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
+        //}
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+#endif
+
 VAStatus DdiMediaDecode::EndPicture(
     VADriverContextP ctx,
     VAContextID      context)
@@ -798,9 +864,20 @@ VAStatus DdiMediaDecode::EndPicture(
             &m_ddiDecodeCtx->DecodeParams.m_destSurface->OsResource,
             m_ddiDecodeCtx->DecodeParams.m_destSurface);
 
-        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
-        DDI_CHK_NULL(decoder, "Null decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
-        DDI_CHK_RET(InitDummyReference(*decoder), "InitDummyReference failed!");
+    #ifdef _APOGEIOS_SUPPORTED
+        if(m_ddiDecodeCtx->pCodecHal->IsApogeiosEnabled())
+        {
+            DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(m_ddiDecodeCtx->pCodecHal);
+            DDI_CHK_NULL(decoder, "Null decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
+            DDI_CHK_RET(InitDummyReference(*decoder), "InitDummyReference failed!");
+        }
+        else
+    #endif
+        {
+            CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
+            DDI_CHK_NULL(decoder, "Null decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
+            DDI_CHK_RET(InitDummyReference(*decoder), "InitDummyReference failed!");
+        }
     }
 
     MOS_STATUS status = m_ddiDecodeCtx->pCodecHal->Execute((void *)(&m_ddiDecodeCtx->DecodeParams));
@@ -1043,13 +1120,29 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         mosCtx,
         standardInfo,
         m_codechalSettings);
-    CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
-    if (nullptr == codecHal || nullptr == decoder)
+#ifdef _APOGEIOS_SUPPORTED
+    if (codecHal->IsApogeiosEnabled())
     {
-        DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
-        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        return vaStatus;
+        DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(codecHal);
+        if (nullptr == codecHal || nullptr == decoder)
+        {
+            DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            return vaStatus;
+        }
     }
+    else
+#endif
+    {
+        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
+        if (nullptr == codecHal || nullptr == decoder)
+        {
+            DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            return vaStatus;
+        }
+    }
+
     m_ddiDecodeCtx->pCodecHal = codecHal;
 
     m_codechalSettings->enableCodecMmc = false;
@@ -1078,7 +1171,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     }
 #endif
 
-    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder->GetDebugInterface(), mosCtx, m_codechalSettings);
+    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(codecHal->GetDebugInterface(), mosCtx, m_codechalSettings);
 
     return vaStatus;
 }
@@ -1132,13 +1225,28 @@ void DdiMediaDecode::GetDummyReferenceFromDPB(
 
     if (i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
     {
-        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decodeCtx->pCodecHal);
-        if (decoder == nullptr)
+    #ifdef _APOGEIOS_SUPPORTED
+        if (decodeCtx->pCodecHal->IsApogeiosEnabled())
         {
-            DDI_ASSERTMESSAGE("Codechal decode context is NULL.\n");
-            return;
+            DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(decodeCtx->pCodecHal);
+            if (decoder == nullptr)
+            {
+                DDI_ASSERTMESSAGE("Codechal decode context is NULL.\n");
+                return;
+            }
+            decoder->GetDummyReference()->OsResource = dummyReference.OsResource;
         }
-        decoder->GetDummyReference()->OsResource = dummyReference.OsResource;
+        else
+    #endif
+        {
+            CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decodeCtx->pCodecHal);
+            if (decoder == nullptr)
+            {
+                DDI_ASSERTMESSAGE("Codechal decode context is NULL.\n");
+                return;
+            }
+            decoder->GetDummyReference()->OsResource = dummyReference.OsResource;
+        }
     }
 }
 
