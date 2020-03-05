@@ -1220,6 +1220,370 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
     return status;
 }
 
+VAStatus MediaLibvaCapsG12::CreateEncAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList)
+{
+    if(IsVp8Profile(profile))
+    {
+        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+    }
+
+    DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAStatus status = CreateAttributeList(attributeList);
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    auto attribList = *attributeList;
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAConfigAttrib attrib;
+    attrib.type = VAConfigAttribRTFormat;
+    status = CheckEncRTFormat(profile, entrypoint, &attrib);
+    DDI_CHK_RET(status, "Failed to Check Encode RT Format!");
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribMaxPictureWidth;
+    attrib.value = CODEC_MAX_PIC_WIDTH;
+    if(profile == VAProfileJPEGBaseline)
+    {
+        attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
+    }
+    if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
+    {
+        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
+    }
+    if(IsAvcProfile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribMaxPictureHeight;
+    attrib.value = CODEC_MAX_PIC_HEIGHT;
+    if(profile == VAProfileJPEGBaseline)
+    {
+        attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
+    }
+    if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
+    {
+        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
+    }
+    if(IsAvcProfile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncJPEG;
+    attrib.value =
+        ((JPEG_MAX_QUANT_TABLE << 14)       | // max_num_quantization_tables : 3
+         (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)   | // max_num_huffman_tables : 3
+         (1 << 7)                    | // max_num_scans : 4
+         (jpegNumComponent << 4));              // max_num_components : 3
+    // arithmatic_coding_mode = 0
+    // progressive_dct_mode = 0
+    // non_interleaved_mode = 0
+    // differential_mode = 0
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncQualityRange;
+    if (profile == VAProfileJPEGBaseline)
+    {
+        // JPEG has no target usage.
+        attrib.value = 1;
+    }
+    else
+    {
+        attrib.value = NUM_TARGET_USAGE_MODES - 1;// Indicates TUs from 1 upto the value reported are supported
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncPackedHeaders;
+    attrib.value = VA_ATTRIB_NOT_SUPPORTED;
+    if ((IsAvcProfile(profile))||(IsHevcProfile(profile)))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_PICTURE    |
+            VA_ENC_PACKED_HEADER_SEQUENCE   |
+            VA_ENC_PACKED_HEADER_SLICE      |
+            VA_ENC_PACKED_HEADER_RAW_DATA   |
+            VA_ENC_PACKED_HEADER_MISC;
+    }
+    else if (IsMpeg2Profile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
+    }
+    else if(IsJpegProfile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
+    }
+
+    (*attribList)[attrib.type] = attrib.value;
+    if(IsJpegProfile(profile))
+    {
+        return status;
+    }
+
+    attrib.type = VAConfigAttribRateControl;
+    attrib.value = VA_RC_CQP;
+    if (entrypoint != VAEntrypointEncSliceLP ||
+            (entrypoint == VAEntrypointEncSliceLP && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
+    {
+        attrib.value |= VA_RC_CBR | VA_RC_VBR | VA_RC_MB;
+
+        if (IsHevcProfile(profile))
+        {
+            attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR;
+        }
+        if (IsVp9Profile(profile))
+        {
+            attrib.value |= VA_RC_ICQ;
+        }
+    }
+    if (IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
+    {
+        attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR | VA_RC_AVBR;
+    }
+    if (IsAvcProfile(profile) &&
+            ((entrypoint == VAEntrypointEncSliceLP) && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
+    {
+        attrib.value |= VA_RC_QVBR;
+    }
+    if(entrypoint == VAEntrypointFEI)
+    {
+        attrib.value = VA_RC_CQP;
+    }
+    else if(entrypoint == VAEntrypointStats)
+    {
+        attrib.value = VA_RC_NONE;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncInterlaced;
+    attrib.value = VA_ENC_INTERLACED_NONE;
+#ifndef ANDROID
+    if(IsAvcProfile(profile))
+    {
+        attrib.value = VA_ENC_INTERLACED_FIELD;
+    }
+    if(IsMpeg2Profile(profile))
+    {
+        attrib.value = VA_ENC_INTERLACED_FRAME;
+    }
+#endif
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncMaxRefFrames;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        attrib.value = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
+    }
+    else
+    {
+        // default value: 1 frame for each reference list
+        attrib.value = 1 | (1 << 16);
+        if(IsAvcProfile(profile))
+        {
+            attrib.value = CODECHAL_ENCODE_NUM_MAX_VME_L0_REF | (CODECHAL_ENCODE_NUM_MAX_VME_L1_REF << 16);
+        }
+        if(IsVp8Profile(profile))
+        {
+            attrib.value = ENCODE_VP8_NUM_MAX_L0_REF ;
+        }
+        if (IsHevcProfile(profile))
+        {
+            GetPlatformSpecificAttrib(profile, entrypoint,
+                    VAConfigAttribEncMaxRefFrames, &attrib.value);
+        }
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncMaxSlices;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        if (IsAvcProfile(profile))
+        {
+            attrib.value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
+        }
+        else if (IsHevcProfile(profile))
+        {
+            attrib.value = ENCODE_HEVC_VDENC_NUM_MAX_SLICES;
+        }
+    }
+    else
+    {
+        attrib.value = 0;
+        if (IsAvcProfile(profile))
+        {
+            attrib.value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
+        }
+        else if (IsHevcProfile(profile))
+        {
+            GetPlatformSpecificAttrib(profile, entrypoint,
+                    VAConfigAttribEncMaxSlices, &attrib.value);
+        }
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncSliceStructure;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE |
+                       VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS;
+    }
+    else
+    {
+        attrib.value = VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncQuantization;
+    if(IsAvcProfile(profile))
+    {
+        attrib.value = VA_ENC_QUANTIZATION_TRELLIS_SUPPORTED;
+    }
+    else
+    {
+        attrib.value = VA_ENC_QUANTIZATION_NONE;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncIntraRefresh;
+    attrib.value = VA_ENC_INTRA_REFRESH_NONE;
+    GetPlatformSpecificAttrib(profile, entrypoint,
+        VAConfigAttribEncIntraRefresh, &attrib.value);
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncSkipFrame;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        if (IsAvcProfile(profile))
+        {
+            attrib.value = 1;
+        }
+        else
+        {
+            attrib.value = 0;
+        }
+    }
+    else
+    {
+        attrib.value = 1;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncryption;
+    attrib.value = VA_ATTRIB_NOT_SUPPORTED;
+    if (m_isEntryptSupported)
+    {
+        attrib.value = 0;
+        uint32_t encryptTypes[3] = {0};
+        int32_t  numTypes =  m_CapsCp->GetEncryptionTypes(profile,
+                 encryptTypes, 3);
+        if (numTypes > 0)
+        {
+            for (int32_t j = 0; j < numTypes; j++)
+            {
+                attrib.value |= encryptTypes[j];
+            }
+        }
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncROI;
+    if (entrypoint == VAEntrypointEncSliceLP)
+    {
+        VAConfigAttribValEncROI roi_attrib = {0};
+        if (IsAvcProfile(profile))
+        {
+            roi_attrib.bits.num_roi_regions = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
+        }
+        else if (IsHevcProfile(profile))
+        {
+            roi_attrib.bits.num_roi_regions = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
+        }
+
+        roi_attrib.bits.roi_rc_priority_support = 0;
+        roi_attrib.bits.roi_rc_qp_delta_support = 1;
+
+        attrib.value = roi_attrib.value;
+    }
+    else
+    {
+        GetPlatformSpecificAttrib(profile, entrypoint,
+                VAConfigAttribEncROI, &attrib.value);
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribProcessingRate;
+    attrib.value = VA_PROCESSING_RATE_ENCODE;
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = (VAConfigAttribType)VAConfigAttribEncDirtyRect;
+    attrib.value = 4;
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncParallelRateControl;
+    attrib.value = 1;
+    (*attribList)[attrib.type] = attrib.value;
+
+    if ((entrypoint == VAEntrypointFEI) && (IsAvcProfile(profile) || IsHevcProfile(profile)))
+    {
+        attrib.type = (VAConfigAttribType)VAConfigAttribFEIFunctionType;
+        attrib.value = IsAvcProfile(profile) ?
+                       (VA_FEI_FUNCTION_ENC | VA_FEI_FUNCTION_PAK | VA_FEI_FUNCTION_ENC_PAK) :
+                       VA_FEI_FUNCTION_ENC_PAK;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+
+    attrib.type = (VAConfigAttribType)VAConfigAttribFEIMVPredictors;
+    attrib.value = 0;
+    if(IsAvcProfile(profile) || IsHevcProfile(profile))
+    {
+        attrib.value = DDI_CODEC_FEI_MAX_NUM_MVPREDICTOR;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    if(profile == VAProfileNone)
+    {
+        attrib.type = (VAConfigAttribType)VAConfigAttribStats;
+        VAConfigAttribValStats attribValStats;
+        memset(&attribValStats, 0, sizeof(attribValStats));
+        attribValStats.bits.max_num_past_references   = DDI_CODEC_STATS_MAX_NUM_PAST_REFS;
+        attribValStats.bits.max_num_future_references = DDI_CODEC_STATS_MAX_NUM_FUTURE_REFS;
+        attribValStats.bits.num_outputs               = DDI_CODEC_STATS_MAX_NUM_OUTPUTS;
+        attribValStats.bits.interlaced                = DDI_CODEC_STATS_INTERLACED_SUPPORT;
+        attrib.value = attribValStats.value;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+
+    attrib.type = (VAConfigAttribType)VAConfigAttribCustomRoundingControl;
+    GetPlatformSpecificAttrib(profile, entrypoint,
+            (VAConfigAttribType)VAConfigAttribCustomRoundingControl, &attrib.value);
+    (*attribList)[attrib.type] = attrib.value;
+
+    if (IsAvcProfile(profile))
+    {
+        attrib.type = (VAConfigAttribType)VAConfigAttribMaxFrameSize;
+        VAConfigAttribValMaxFrameSize attribValMaxFrameSize;
+        memset(&attribValMaxFrameSize, 0, sizeof(attribValMaxFrameSize));
+        attribValMaxFrameSize.bits.max_frame_size = 1;
+        attribValMaxFrameSize.bits.multiple_pass  = 1;
+        attribValMaxFrameSize.bits.reserved       = 0;
+        attrib.value = attribValMaxFrameSize.value;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+
+    if (IsAvcProfile(profile) && (entrypoint == VAEntrypointEncSliceLP))
+    {
+        attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
+        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+    return status;
+}
+
 VAStatus MediaLibvaCapsG12::CreateDecAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,

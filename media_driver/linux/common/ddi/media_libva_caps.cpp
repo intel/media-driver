@@ -529,10 +529,6 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         {
             attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR;
         }
-        if (IsVp9Profile(profile))
-        {
-            attrib.value |= VA_RC_ICQ;
-        }
     }
     if (IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
     {
