@@ -551,7 +551,6 @@ LOCAL_SHARED_LIBRARIES := \
     libva \
     liblog \
     libpciaccess \
-    libcoreuinterface \
     libgmm_umd \
 
 LOCAL_CPPFLAGS = \
