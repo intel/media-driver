@@ -229,16 +229,13 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_VYUY:
         case Media_Format_YVYU:
         case Media_Format_UYVY:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
-            {
 #if UFO_GRALLOC_NEW_FORMAT
-                 //Planar type surface align 64 to improve performance.
-                alignedHeight = MOS_ALIGN_CEIL(height, 64);
+            //Planar type surface align 64 to improve performance.
+            alignedHeight = MOS_ALIGN_CEIL(height, 64);
 #else
-                //Planar type surface align 32 to improve performance.
-                alignedHeight = MOS_ALIGN_CEIL(height, 32);
+            //Planar type surface align 32 to improve performance.
+            alignedHeight = MOS_ALIGN_CEIL(height, 32);
 #endif
-            }
             alignedWidth = MOS_ALIGN_CEIL(width, 8);
             tileformat  = I915_TILING_Y;
             break;
