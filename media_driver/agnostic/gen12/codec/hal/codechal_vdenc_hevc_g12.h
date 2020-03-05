@@ -2330,6 +2330,7 @@ public:
     MOS_STATUS AddHcpRefIdxCmd(PMOS_COMMAND_BUFFER cmdBuffer, PMHW_BATCH_BUFFER batchBuffer, PMHW_VDBOX_HEVC_SLICE_STATE params) override;
     void SetVdencPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams) override;
     void SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams) override;
+    uint8_t GetPUTypeForDirtyRectStreamIn() override;
     MOS_STATUS Initialize(CodechalSetting * settings) override;
     MOS_STATUS InitKernelState() override;
     MOS_STATUS PlatformCapabilityCheck() override;
