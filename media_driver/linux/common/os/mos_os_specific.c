@@ -103,7 +103,7 @@ void SetupApoMosSwitch(int32_t fd)
     PRODUCT_FAMILY eProductFamily = IGFX_UNKNOWN;
     HWInfo_GetGfxProductFamily(fd, eProductFamily);
 
-    if (eProductFamily >= FUTURE_PLATFORM_MOS_APO)
+    if (eProductFamily >= IGFX_TIGERLAKE_LP)
     {
         g_apoMosEnabled = 1;
     }

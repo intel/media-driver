@@ -102,7 +102,6 @@ public:
 
 #endif // MOS_ASSERT_ENABLED
 
-protected:
 #if MOS_MESSAGES_ENABLED
     //!
     //! \brief    Checks whether debug messages should be printed.
@@ -256,9 +255,9 @@ private:
     //!
     static int32_t MosShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID);
 #endif
-
+public:
 #if MOS_MESSAGES_ENABLED
-protected:
+
     static const char * const *m_mosLogLevelName;
     static const char * const *m_mosComponentName;
 
@@ -268,7 +267,7 @@ protected:
 #endif
 
 #if MOS_MESSAGES_ENABLED
-private:
+
     static const char* const m_mosLogPathTemplate;
     static const char* const m_DdiLogPathTemplate;
     static const MOS_USER_FEATURE_VALUE_ID (* const m_pcComponentUserFeatureKeys)[3];

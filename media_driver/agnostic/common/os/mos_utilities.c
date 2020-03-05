@@ -220,10 +220,7 @@ extern "C" {
 
     MOS_FUNC_EXPORT void MOS_SetUltFlag(uint8_t ultFlag)
     {
-        if (g_apoMosEnabled)
-        {
-            return MosUtilities::MosSetUltFlag(ultFlag);
-        }
+        MosUtilities::MosSetUltFlag(ultFlag);
 
         MosUltFlag = ultFlag;
     }

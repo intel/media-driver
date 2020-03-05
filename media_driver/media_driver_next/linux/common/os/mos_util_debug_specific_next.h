@@ -101,7 +101,6 @@ public:
         const PCCHAR      message,
         va_list           var_args);
 
-private:
 #if USE_PRETTY_FUNCTION
     //!
     //! \brief    Converts a __PRETTY_FUNCTION__ into Class::Method
@@ -113,7 +112,6 @@ private:
     static PCCHAR MosGetClassMethod(PCCHAR pcPrettyFunction);
 #endif
 
-private:
     static MOS_MUTEX m_mosMsgMutex;
     static char m_functionName[256]; // 256 is an arbitrary long enough size.
 };
