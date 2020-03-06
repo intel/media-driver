@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -223,6 +223,17 @@ MOS_STATUS XRenderHal_Interface_g12::SetupSurfaceState (
             else
             {
                 MHW_RENDERHAL_NORMALMESSAGE("Unsupported Compression Mode for Render Engine.");
+                SurfStateParams.MmcState            = MOS_MEMCOMP_DISABLED;
+                SurfStateParams.dwCompressionFormat = 0;
+            }
+
+            if (!pParams->bRenderTarget                    &&
+                pSurface->MmcState != MOS_MEMCOMP_DISABLED &&
+                pSurfaceEntry->bVertStride)
+            {
+                // If input surface is interlaced, then surface should be uncompressed
+                // Remove compression setting for such surface
+                MHW_RENDERHAL_NORMALMESSAGE("interlaced input for Render Engine.");
                 SurfStateParams.MmcState            = MOS_MEMCOMP_DISABLED;
                 SurfStateParams.dwCompressionFormat = 0;
             }
