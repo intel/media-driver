@@ -214,9 +214,6 @@ protected:
     //! \brief   Component info
     MOS_COMPONENT                   m_component = COMPONENT_UNKNOWN;
 
-    //! \brief   Flag to indicate if HAS is enabled
-    bool                            m_simIsActive = false;
-
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     //! \brief   Command buffer dump.
     //! \brief   Flag to indicate if Dump command buffer is enabled
