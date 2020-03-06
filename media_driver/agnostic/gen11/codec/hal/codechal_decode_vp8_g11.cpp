@@ -337,6 +337,10 @@ MOS_STATUS CodechalDecodeVp8G11::DecodePrimitiveLevel()
             m_huCCopyInUse = false;
     }
 
+    if (m_osInterface->osCpInterface->IsHMEnabled())
+    {
+        HalOcaInterface::DumpCpParam(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->osCpInterface->GetOcaDumper());
+    }
 
     HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
