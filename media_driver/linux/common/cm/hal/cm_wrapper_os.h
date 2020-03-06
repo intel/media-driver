@@ -89,4 +89,11 @@ int32_t CmFillMosResource(VASurfaceID vaSurfaceID,
 MOS_FORMAT              CmOSFmtToMosFmt(CM_OSAL_SURFACE_FORMAT format);
 CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format);
 
+//*-----------------------------------------------------------------------------
+//| Purpose:   Convert GMM_RESROUCE_Format got by GetCaps to OSAL format
+//| Return:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t ConvertToOperatingSystemAbstractionLayerFormat(void *src, uint32_t numOfFormats);
+
+
 #endif  // #ifndef MEDIADRIVER_LINUX_COMMON_CM_CMWRAPPEROS_H_

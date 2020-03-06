@@ -1038,13 +1038,12 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CMRT_UMD_API int32_t
-CmSurface2DRTBase::NotifyUmdResourceChanged(UMD_RESOURCE umdResource,
-                                        int updateMosResource,
-                                        PMOS_RESOURCE mosResource)
+CmSurface2DRTBase::NotifyUmdResourceChanged(void *umdResource,
+                                            int updateMosResource,
+                                            PMOS_RESOURCE mosResource)
 {
     m_umdResource = umdResource;
 
-    //
     if ( updateMosResource )
     {
         m_surfaceMgr->UpdateSurface2DTableMosResource( m_handle, mosResource );
@@ -1400,7 +1399,7 @@ void CmSurface2DRTBase::DumpContentToFile(const char *filename)
     CmDeviceRT * cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
     CM_ASSERT(cmDevice);
-    
+
     CSync* surfaceLock = cmDevice->GetSurfaceLock();
     CM_ASSERT(surfaceLock);
     CLock locker(*surfaceLock);

@@ -137,7 +137,7 @@ public:
 
 
     CMRT_UMD_API int
-    NotifyUmdResourceChanged(UMD_RESOURCE umdResource,
+    NotifyUmdResourceChanged(void *umdResource,
                              int updateMosResource = 0,
                              PMOS_RESOURCE pMosResource = nullptr);
 
@@ -183,9 +183,11 @@ protected:
     CM_SURFACE_FORMAT m_format;
 
     // a pointer to UMD resource, set to nullptr if no UMD resource related to
-    UMD_RESOURCE m_umdResource;
+    void *m_umdResource;
+
     // number of surfaces created as an alias
     unsigned int m_numAliases;
+
     SurfaceIndex *m_aliasIndexes[CM_HAL_MAX_NUM_2D_ALIASES];
 
     CM_FRAME_TYPE m_frameType;

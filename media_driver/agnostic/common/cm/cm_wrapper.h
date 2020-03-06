@@ -53,16 +53,6 @@ typedef struct _CM_DESTROYSURFACE2D_PARAM
     int32_t     returnValue;               // [out] the return value from CMRT@UMD
 }CM_DESTROYSURFACE2D_PARAM, *PCM_DESTROYSURFACE2D_PARAM;
 
-typedef struct _CM_CREATESURFACE2DUP_PARAM
-{
-    uint32_t width;                // [in] width of 2D texture in pixel
-    uint32_t height;               // [in] height of 2D texture in pixel
-    CM_OSAL_SURFACE_FORMAT format;  // [in] 2D texture foramt in OS layer.
-    void *sysMem;                  // [in] Pointer to system memory
-    void *surface2DUPHandle;     // [out] pointer of CmSurface2D used in driver
-    int32_t returnValue;           // [out] the return value from driver
-}CM_CREATESURFACE2DUP_PARAM, *PCM_CREATESURFACE2DUP_PARAM;
-
 typedef struct _CM_DESTROYSURFACE2DUP_PARAM
 {
     void        *surface2DUPHandle;         // [in/out] pointer to CmSurface2D object
@@ -247,16 +237,6 @@ typedef struct _CM_DESTROYTGROPUSPACE_PARAM
     int32_t                 returnValue;               // [out]
 }CM_DESTROYTGROPUSPACE_PARAM, *PCM_DESTROYTGROPUSPACE_PARAM;
 
-typedef struct _CM_GETSURFACE2DINFO_PARAM
-{
-    uint32_t                                width;                 // [in]         Surface Width
-    uint32_t                                height;                // [in]         Surface Height
-    CM_OSAL_SURFACE_FORMAT                  format;                 // [in]         Surface Format
-    uint32_t                                pitch;                 // [out]        Pitch
-    uint32_t                                physicalSize;          // [out]        Physical size
-    uint32_t                                returnValue;           // [out]        Return value
-} CM_GETSURFACE2DINFO_PARAM, *PCM_GETSURFACE2DINFO_PARAM;
-
 typedef struct _CM_GETCAPS_PARAM
 {
     CM_DEVICE_CAP_NAME              capName;                //[in]
@@ -302,16 +282,6 @@ typedef struct _CM_ENQUEUE_COPY_BUFFER_PARAM
     uint32_t eventIndex;        // [out] index of Event in m_EventArray
     int32_t  returnValue;       // [out]
 }CM_ENQUEUE_COPY_BUFFER_PARAM, * PCM_ENQUEUE_COPY_BUFFER_PARAM;
-
-typedef struct _CM_CREATE_SURFACE3D_PARAM
-{
-    uint32_t width;                // [in] width of 3D  in pixel
-    uint32_t height;               // [in] height of 3D  in pixel
-    uint32_t depth;                // [in] depth of 3D surface in pixel
-    CM_OSAL_SURFACE_FORMAT format;  // [in] 2D texture foramt in OS abstraction layer.
-    void *surface3DHandle;       // [out] pointer of CmSurface3D used in driver
-    int32_t returnValue;           // [out] the return value from driver
-} CM_CREATE_SURFACE3D_PARAM, *PCM_CREATE_SURFACE3D_PARAM;
 
 typedef struct _CM_DESTROY_SURFACE3D_PARAM
 {

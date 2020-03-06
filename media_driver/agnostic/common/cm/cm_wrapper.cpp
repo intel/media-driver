@@ -116,27 +116,6 @@ double CmGetTimeInms()
     return curTime;
 }
 
-//*-----------------------------------------------------------------------------
-//| Purpose:   Convert GMM_RESROUCE_Format got by GetCaps to OSAL format
-//| Return:    Result of the operation.
-//*-----------------------------------------------------------------------------
-int32_t ConvertToOperatingSystemAbstractionLayerFormat(void *src,
-                                                       uint32_t numOfFormats)
-{
-    uint32_t i = 0 ;
-    if(src == nullptr || numOfFormats == 0)
-    {
-        CM_ASSERTMESSAGE("Error: Invalid input arguments.");
-        return CM_INVALID_ARG_VALUE;
-    }
-
-    for ( i=0 ; i< numOfFormats ; i++)
-    {
-        *((CM_OSAL_SURFACE_FORMAT *)src+i) = CmMosFmtToOSFmt(*((CM_SURFACE_FORMAT *)src+i));
-    }
-    return CM_SUCCESS;
-}
-
 #define CM_SET_NOFAILURE_STATUS(hr) \
         if (hr != CM_FAILURE) \
         { \
@@ -351,23 +330,6 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         cmDestBufferStatelessParam->returnValue = cmRet;
         break;
 
-    case CM_FN_CMDEVICE_CREATESURFACE2DUP:
-        PCM_CREATESURFACE2DUP_PARAM cmCreate2DUpParam;
-        cmCreate2DUpParam = (PCM_CREATESURFACE2DUP_PARAM)(cmPrivateInputData);
-
-        cmRet = device->CreateSurface2DUP(cmCreate2DUpParam->width,
-            cmCreate2DUpParam->height,
-            CmOSFmtToMosFmt(cmCreate2DUpParam->format),
-            cmCreate2DUpParam->sysMem,
-            cmSurface2dup);
-        if( cmRet == CM_SUCCESS)
-        {
-            cmCreate2DUpParam->surface2DUPHandle = static_cast<CmSurface2DUP *>(cmSurface2dup);
-        }
-
-        cmCreate2DUpParam->returnValue         = cmRet;
-        break;
-
     case CM_FN_CMDEVICE_DESTROYSURFACE2DUP:
         PCM_DESTROYSURFACE2DUP_PARAM cmDestroy2DUpParam;
         cmDestroy2DUpParam = (PCM_DESTROYSURFACE2DUP_PARAM)(cmPrivateInputData);
@@ -376,22 +338,6 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         cmRet = device->DestroySurface2DUP(cmSurface2dup);
 
         cmDestroy2DUpParam->returnValue        = cmRet;
-        break;
-
-    case CM_FN_CMDEVICE_GETSURFACE2DINFO:
-        PCM_GETSURFACE2DINFO_PARAM cmGet2DinfoParam;
-        uint32_t pitch,physicalsize;
-        cmGet2DinfoParam = (PCM_GETSURFACE2DINFO_PARAM)(cmPrivateInputData);
-
-        cmRet = device->GetSurface2DInfo( cmGet2DinfoParam->width,
-                                        cmGet2DinfoParam->height,
-                                        CmOSFmtToMosFmt(cmGet2DinfoParam->format),
-                                        pitch,
-                                        physicalsize);
-
-        cmGet2DinfoParam->pitch           = pitch;
-        cmGet2DinfoParam->physicalSize    = physicalsize;
-        cmGet2DinfoParam->returnValue     = cmRet;
         break;
 
      case CM_FN_CMDEVICE_CREATESURFACE2D_ALIAS:
@@ -631,7 +577,7 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         cmEvent        = (CmEvent *)cmDestroyEventParam->eventHandle;
         CM_ASSERT(cmQueue);
         CM_ASSERT(cmEvent);
-        
+
         cmRet = cmQueue->DestroyEvent(cmEvent);
 
         cmDestroyEventParam->returnValue = cmRet;
@@ -646,13 +592,13 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         cmEvent        = (CmEvent *)cmDestroyEventParam->eventHandle;
         CM_ASSERT(cmQueue);
         CM_ASSERT(cmEvent);
-        
+
         cmRet = cmQueue->DestroyEventFast(cmEvent);
 
         cmDestroyEventParam->returnValue = cmRet;
     }
         break;
-        
+
     case CM_FN_CMDEVICE_CREATETHREADSPACE:
         PCM_CREATETHREADSPACE_PARAM cmCreateTsParam;
         cmCreateTsParam = (PCM_CREATETHREADSPACE_PARAM)(cmPrivateInputData);
@@ -979,23 +925,6 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         enqueueVeboxParam->eventHandle = cmEvent;
         enqueueVeboxParam->returnValue = cmRet;
 
-        break;
-
-        //Surface 3D Create/Destroy Read/Write
-    case CM_FN_CMDEVICE_CREATESURFACE3D:
-        PCM_CREATE_SURFACE3D_PARAM createSurf3dParam;
-        createSurf3dParam = (PCM_CREATE_SURFACE3D_PARAM)(cmPrivateInputData);
-
-        cmRet = device->CreateSurface3D(createSurf3dParam->width,
-                                    createSurf3dParam->height,
-                                    createSurf3dParam->depth,
-                                    CmOSFmtToMosFmt(createSurf3dParam->format),
-                                    cmSurface3d);
-        if(cmRet == CM_SUCCESS)
-        {
-             createSurf3dParam->surface3DHandle  = static_cast<CmSurface3D *>(cmSurface3d);
-        }
-        createSurf3dParam->returnValue        = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYSURFACE3D:

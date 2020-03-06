@@ -269,6 +269,22 @@ CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format)
     }
 }
 
+int32_t ConvertToOperatingSystemAbstractionLayerFormat(void *src, uint32_t numOfFormats)
+{
+    uint32_t i = 0 ;
+    if (src == nullptr || numOfFormats == 0)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid input arguments.");
+        return CM_INVALID_ARG_VALUE;
+    }
+
+    for (i = 0; i < numOfFormats; ++i)
+    {
+        *((CM_OSAL_SURFACE_FORMAT*)src + i) = CmMosFmtToOSFmt(*((CM_SURFACE_FORMAT*)src + i));
+    }
+    return CM_SUCCESS;
+}
+
 using CMRT_UMD::CmSurface2DRT;
 using CMRT_UMD::CmWrapperEx;
 //*-----------------------------------------------------------------------------
