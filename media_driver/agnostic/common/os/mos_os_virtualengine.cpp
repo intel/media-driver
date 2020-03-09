@@ -94,6 +94,10 @@ MOS_STATUS Mos_VirtualEngineInterface_Initialize(
     }
 
 finish:
+    if(eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_SafeFreeMemory(pVEInterf);
+    }
     return eStatus;
 }
 

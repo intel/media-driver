@@ -241,6 +241,11 @@ MOS_STATUS CodecHalGetResourceInfo(
 template <class type>
 MOS_STATUS CodecHalAllocateDataList(type **dataList, uint32_t length)
 {
+    if (length == 0)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("Length is Zero");
+        return MOS_STATUS_NO_SPACE;
+    }
     type *ptr;
     ptr = (type *)MOS_AllocAndZeroMemory(sizeof(type) * length);
     if (ptr == nullptr)

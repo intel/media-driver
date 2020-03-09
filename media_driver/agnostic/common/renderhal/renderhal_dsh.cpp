@@ -2276,10 +2276,15 @@ int32_t RenderHal_DSH_LoadCurbeData(
                 if (iCurbeSize > 0)
                 {
                     uint8_t* remainingCurbe = (uint8_t*)MOS_AllocAndZeroMemory(sizeof(uint8_t)*iCurbeSize);
-                    MHW_RENDERHAL_CHK_STATUS(pDynamicState->memoryBlock.AddData(
+                    MOS_STATUS tmpRet = pDynamicState->memoryBlock.AddData(
                         remainingCurbe,
                         pDynamicState->Curbe.dwOffset + iOffset + iSize,
-                        iCurbeSize));
+                        iCurbeSize);
+                        if (tmpRet != MOS_STATUS_SUCCESS)
+                        {
+                            MOS_SafeFreeMemory(remainingCurbe);
+                        }
+                    MHW_RENDERHAL_CHK_STATUS(tmpRet);
                     MOS_SafeFreeMemory(remainingCurbe);
                 }
             }
