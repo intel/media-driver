@@ -897,6 +897,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     dwVeboxRight           = (uint32_t)pSrcSurface->rcSrc.right;
     dstColorPack           = VpHal_GetSurfaceColorPack(pOutSurface->Format);
 
+    VPHAL_RENDER_CHK_NULL(pSfcStateParams);
     MOS_ZeroMemory(pSfcStateParams, sizeof(*pSfcStateParams));
 
     pSfcStateParams->sfcPipeMode = MEDIASTATE_SFC_PIPE_VE_TO_SFC;

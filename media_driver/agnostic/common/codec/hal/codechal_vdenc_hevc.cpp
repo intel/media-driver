@@ -2362,6 +2362,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_sliceStateParams);
     SetHcpSliceStateCommonParams(*m_sliceStateParams);
 
     // starting location for executing slice level cmds

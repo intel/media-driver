@@ -2237,6 +2237,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
     SetHcpReconSurfaceParams(reconSurfaceParams);
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_pipeBufAddrParams);
     *m_pipeBufAddrParams = {};
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
     m_pipeBufAddrParams->pRawSurfParam = &srcSurfaceParams;
@@ -2244,6 +2245,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
 #ifdef _MMC_SUPPORTED
     SetPipeBufAddr(&cmdBuffer);
 #endif
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_pipeModeSelectParams);
     SetHcpPipeModeSelectParams(*m_pipeModeSelectParams);
 
     // HuC modifies HCP pipe mode select command, when 2nd pass SAO is required
