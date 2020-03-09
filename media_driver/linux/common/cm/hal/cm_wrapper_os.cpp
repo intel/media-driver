@@ -285,8 +285,43 @@ int32_t ConvertToOperatingSystemAbstractionLayerFormat(void *src, uint32_t numOf
     return CM_SUCCESS;
 }
 
+struct CM_CREATESURFACE2DUP_PARAM
+{
+    uint32_t width;                 // [in] width of 2D texture in pixel
+    uint32_t height;                // [in] height of 2D texture in pixel
+    CM_OSAL_SURFACE_FORMAT format;  // [in] 2D texture foramt in OS layer.
+    void *sysMem;                   // [in] Pointer to system memory
+    void *surface2DUPHandle;        // [out] pointer of CmSurface2D used in driver
+    int32_t returnValue;            // [out] the return value from driver
+};
+typedef CM_CREATESURFACE2DUP_PARAM *PCM_CREATESURFACE2DUP_PARAM;
+
+struct CM_GETSURFACE2DINFO_PARAM
+{
+    uint32_t width;                 // [in] Surface Width
+    uint32_t height;                // [in] Surface Height
+    CM_OSAL_SURFACE_FORMAT format;  // [in] Surface Format
+    uint32_t pitch;                 // [out] Pitch
+    uint32_t physicalSize;          // [out] Physical size
+    uint32_t returnValue;           // [out] Return value
+};
+typedef CM_GETSURFACE2DINFO_PARAM *PCM_GETSURFACE2DINFO_PARAM;
+
+struct CM_CREATE_SURFACE3D_PARAM
+{
+    uint32_t width;                 // [in] width of 3D  in pixel
+    uint32_t height;                // [in] height of 3D  in pixel
+    uint32_t depth;                 // [in] depth of 3D surface in pixel
+    CM_OSAL_SURFACE_FORMAT format;  // [in] 2D texture foramt in OS abstraction layer.
+    void *surface3DHandle;          // [out] pointer of CmSurface3D used in driver
+    int32_t returnValue;            // [out] the return value from driver
+};
+typedef CM_CREATE_SURFACE3D_PARAM *PCM_CREATE_SURFACE3D_PARAM;
+
 using CMRT_UMD::CmSurface2DRT;
 using CMRT_UMD::CmWrapperEx;
+using CMRT_UMD::CmSurface2DUP;
+using CMRT_UMD::CmSurface3D;
 //*-----------------------------------------------------------------------------
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
@@ -314,6 +349,7 @@ int32_t CmThinExecute(VADriverContextP vaDriverCtx,
     cmFunctionID            = (CM_FUNCTION_ID)inputFunctionId;
     device                 = (CmDevice *)deviceHandle;
     deviceRT               = static_cast<CmDeviceRT*>(device);
+
     switch(cmFunctionID)
     {
         case CM_FN_CREATECMDEVICE:
@@ -391,6 +427,48 @@ int32_t CmThinExecute(VADriverContextP vaDriverCtx,
 
             //Fill output message
             cmCreate2DParam->returnValue          = cmRet;
+            break;
+
+        case CM_FN_CMDEVICE_CREATESURFACE2DUP:
+            CM_CREATESURFACE2DUP_PARAM *cmCreate2DUpParam;
+            CMRT_UMD::CmSurface2DUP *cmSurface2dup;
+            cmCreate2DUpParam = static_cast<CM_CREATESURFACE2DUP_PARAM*>(inputData);
+            cmRet = device->CreateSurface2DUP(cmCreate2DUpParam->width,
+                                              cmCreate2DUpParam->height,
+                                              CmOSFmtToMosFmt(cmCreate2DUpParam->format),
+                                              cmCreate2DUpParam->sysMem, cmSurface2dup);
+            if( cmRet == CM_SUCCESS)
+            {
+                cmCreate2DUpParam->surface2DUPHandle = static_cast<CmSurface2DUP*>(cmSurface2dup);
+            }
+            cmCreate2DUpParam->returnValue = cmRet;
+            break;
+
+        case CM_FN_CMDEVICE_CREATESURFACE3D:
+            CM_CREATE_SURFACE3D_PARAM *createSurf3dParam;
+            createSurf3dParam = static_cast<CM_CREATE_SURFACE3D_PARAM*>(inputData);
+            CMRT_UMD::CmSurface3D *cmSurface3d;
+            cmRet = device->CreateSurface3D(createSurf3dParam->width, createSurf3dParam->height,
+                                            createSurf3dParam->depth,
+                                            CmOSFmtToMosFmt(createSurf3dParam->format),
+                                            cmSurface3d);
+            if(cmRet == CM_SUCCESS)
+            {
+                createSurf3dParam->surface3DHandle  = static_cast<CmSurface3D*>(cmSurface3d);
+            }
+            createSurf3dParam->returnValue = cmRet;
+            break;
+
+        case CM_FN_CMDEVICE_GETSURFACE2DINFO:
+            CM_GETSURFACE2DINFO_PARAM *cmGet2DinfoParam;
+            cmGet2DinfoParam = static_cast<CM_GETSURFACE2DINFO_PARAM*>(inputData);
+            uint32_t pitch, physicalsize;
+            cmRet = device->GetSurface2DInfo(cmGet2DinfoParam->width, cmGet2DinfoParam->height,
+                                             CmOSFmtToMosFmt(cmGet2DinfoParam->format),
+                                             pitch, physicalsize);
+            cmGet2DinfoParam->pitch = pitch;
+            cmGet2DinfoParam->physicalSize = physicalsize;
+            cmGet2DinfoParam->returnValue = cmRet;
             break;
 
         default:
