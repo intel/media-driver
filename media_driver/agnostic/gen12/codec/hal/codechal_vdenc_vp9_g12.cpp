@@ -906,6 +906,7 @@ MOS_STATUS CodechalVdencVp9StateG12::SetupSegmentationStreamIn()
         switch (m_vp9SeqParams->TargetUsage)
         {
         case 1:     // Quality mode
+        case 2:
         case 4:     // Normal mode
             streamIn[i].DW6.Nummergecandidatecu8X8 = 1;
             streamIn[i].DW6.Nummergecandidatecu16X16 = 2;
