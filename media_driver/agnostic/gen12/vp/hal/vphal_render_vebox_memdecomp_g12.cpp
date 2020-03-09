@@ -49,6 +49,10 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(surface);
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_osInterface);
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(pOsContext = m_osInterface->pOsContext);
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_mhwMiInterface);
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(pMmioRegisters = m_mhwMiInterface->GetMmioRegisters());
 
     if (surface->CompressionMode                &&
         surface->CompressionMode != MOS_MMC_MC  &&
@@ -65,9 +69,6 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     }
 
     veboxInterface = m_veboxInterface;
-
-    pOsContext     = m_osInterface->pOsContext;
-    pMmioRegisters = m_mhwMiInterface->GetMmioRegisters();
 
     m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
 
@@ -116,6 +117,8 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(veboxInterface->AddVeboxSurfaces(
         &cmdBuffer,
         &mhwVeboxSurfaceStateCmdParams));
+
+    HalOcaInterface::OnDispatch(cmdBuffer, *pOsContext, *m_mhwMiInterface, *pMmioRegisters);
 
     //---------------------------------
     // Send CMD: Vebox_Tiling_Convert

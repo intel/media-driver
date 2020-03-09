@@ -1157,6 +1157,8 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     MhwVeboxInterface                   *veboxInterface;
     PMHW_SFC_INTERFACE                  sfcInterface;
     MhwMiInterface                      *miInterface;
+    PMOS_CONTEXT                        pOsContext = nullptr;
+    MHW_MI_MMIOREGISTERS                *mmioVeboxRegisters = nullptr;
     MOS_COMMAND_BUFFER                  cmdBuffer;
     bool                                requestFrameTracking;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
@@ -1165,10 +1167,12 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pOsContext = m_osInterface->pOsContext);
     CODECHAL_ENCODE_CHK_NULL_RETURN(encoder);
     CODECHAL_ENCODE_CHK_NULL_RETURN(sfcInterface = m_hwInterface->GetSfcInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(veboxInterface = m_hwInterface->GetVeboxInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(miInterface = m_hwInterface->GetMiInterface());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioVeboxRegisters = miInterface->GetMmioRegisters());
 
     // Switch GPU context to VEBOX
     m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
@@ -1231,6 +1235,8 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(veboxInterface->AddVeboxSurfaces( &cmdBuffer, &veboxSurfaceStateCmdParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddSfcCommands(sfcInterface, &cmdBuffer));
+
+    HalOcaInterface::OnDispatch(cmdBuffer, *pOsContext, *miInterface, *mmioVeboxRegisters);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(veboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
 

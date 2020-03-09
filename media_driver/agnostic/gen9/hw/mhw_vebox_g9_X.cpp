@@ -27,6 +27,7 @@
 //!
 
 #include "mhw_vebox_g9_X.h"
+#include "hal_oca_interface.h"
 
 MhwVeboxInterfaceG9::MhwVeboxInterfaceG9(
     PMOS_INTERFACE pInputInterface)
@@ -433,6 +434,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
 {
     MOS_STATUS                      eStatus;
     PMOS_INTERFACE                  pOsInterface;
+    PMOS_CONTEXT                    pOsContext = nullptr;
     PMOS_RESOURCE                   pVeboxParamResource = nullptr;
     PMOS_RESOURCE                   pVeboxHeapResource = nullptr;
     PMHW_VEBOX_MODE                 pVeboxMode;
@@ -443,12 +445,14 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
     mhw_vebox_g9_X::VEBOX_STATE_CMD cmd;
 
     MHW_CHK_NULL(m_osInterface);
+    MHW_CHK_NULL(m_osInterface->pOsContext);
     MHW_CHK_NULL(pCmdBuffer);
     MHW_CHK_NULL(pVeboxStateCmdParams);
 
     // Initialize
     eStatus      = MOS_STATUS_SUCCESS;
     pOsInterface = m_osInterface;
+    pOsContext   = m_osInterface->pOsContext;
     pVeboxMode   = &pVeboxStateCmdParams->VeboxMode;
 
     cmd.DW1.DownsampleMethod422to420 = 1;
@@ -489,6 +493,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiDndiStateSize);
+
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         if (bUseCmBuffer)
         {
@@ -509,6 +515,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiIecpStateSize);
 
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
 
@@ -532,6 +540,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGamutStateSize);
+
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         if (bUseCmBuffer)
         {
@@ -553,6 +563,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiVertexTableSize);
+
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         if (bUseCmBuffer)
         {
@@ -573,6 +585,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiCapturePipeStateSize);
 
         if (pVeboxStateCmdParams->pLaceLookUpTables)
         {
@@ -610,6 +624,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGammaCorrectionStateSize);
     }
     else
     {
@@ -642,6 +658,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, 0, true, 0);
     }
 
     cmd.DW1.ColorGamutExpansionEnable    = pVeboxMode->ColorGamutExpansionEnable;
