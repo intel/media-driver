@@ -4858,8 +4858,8 @@ VAStatus DdiMedia_GetImage(
     }
     else
     {
-        //Mos_SwizzleData((uint8_t*)surfData, (uint8_t *)imageData, (MOS_TILE_TYPE)mediaSurface->TileType, MOS_TILE_LINEAR, vaimg->data_size / mediaSurface->iPitch, mediaSurface->iPitch, mediaSurface->uiMapFlag);
-        vaStatus = SwizzleSurface(mediaSurface->pMediaCtx,mediaSurface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)mediaSurface->TileType, (uint8_t *)imageData, false);
+        Mos_SwizzleData((uint8_t*)surfData, (uint8_t *)imageData, (MOS_TILE_TYPE)mediaSurface->TileType, MOS_TILE_LINEAR, vaimg->data_size / mediaSurface->iPitch, mediaSurface->iPitch, mediaSurface->uiMapFlag);
+        //vaStatus = SwizzleSurface(mediaSurface->pMediaCtx,mediaSurface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)mediaSurface->TileType, (uint8_t *)imageData, false);
     }
     if (vaStatus != MOS_STATUS_SUCCESS)
     {
