@@ -1294,7 +1294,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpDecodeSurfaceStateCmd(
         }
     }
 
-    cmd->DW3.DefaultAlphaValue = 0; // needs to be programmable
+    cmd->DW3.DefaultAlphaValue = 0xffff; // needs to be programmable
 
     return eStatus;
 }
