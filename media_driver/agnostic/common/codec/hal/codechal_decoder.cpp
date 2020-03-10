@@ -526,7 +526,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_downsamplingHinted = codecHalSettings->downsamplingHinted ? true : false;
-    if (CodecHalIsEnableFieldScaling(CODECHAL_FUNCTION_DECODE, m_standard, m_downsamplingHinted))
+    if (CodecHalIsEnableFieldScaling(codecHalSettings->codecFunction, m_standard, m_downsamplingHinted))
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->InitializeKernelState(
