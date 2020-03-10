@@ -322,8 +322,10 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     uint32_t                    dwSfcMaxHeight;
     uint32_t                    dwSfcMinWidth;
     uint32_t                    dwSfcMinHeight;
+    bool                        bScalingNeeded;
 
     OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    bScalingNeeded = false;
 
     VPHAL_RENDER_CHK_NULL_NO_STATUS(m_sfcInterface);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrc);
@@ -401,6 +403,15 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     dwOutputRegionHeight = MOS_MIN(dwOutputRegionHeight, pRenderTarget->dwHeight);
     dwOutputRegionWidth  = MOS_MIN(dwOutputRegionWidth, pRenderTarget->dwWidth);
 
+    if (dwOutputRegionWidth == dwSourceRegionWidth &&
+        dwOutputRegionHeight == dwSourceRegionHeight)
+    {
+        bScalingNeeded = false;
+    }
+    else
+    {
+        bScalingNeeded = true;
+    }
     // Calculate the scaling ratio
     // Both source region and scaled region are pre-rotated
     if (pSrc->Rotation == VPHAL_ROTATION_IDENTITY ||
@@ -441,7 +452,7 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
 
     // if ScalingPreference == Composition, switch to use composition path
     // This flag can be set by app.
-    if (pSrc->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
+    if (bScalingNeeded && pSrc->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
     {
         VPHAL_RENDER_NORMALMESSAGE("DDI set ScalingPreference to Composition to use render for scaling.");
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
