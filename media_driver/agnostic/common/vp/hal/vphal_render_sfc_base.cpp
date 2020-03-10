@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2019, Intel Corporation
+* Copyright (c) 2012-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -207,15 +207,32 @@ void VphalSfcState::AdjustBoundary(
     uint32_t*                   pdwSurfaceWidth,
     uint32_t*                   pdwSurfaceHeight)
 {
-    uint32_t   dwVeboxHeight;
-    uint32_t   dwVeboxWidth;
-    uint32_t   dwVeboxBottom;
-    uint32_t   dwVeboxRight;
+    uint32_t        dwVeboxHeight;
+    uint32_t        dwVeboxWidth;
+    uint32_t        dwVeboxBottom;
+    uint32_t        dwVeboxRight;
+    MEDIA_WA_TABLE *pWaTable = nullptr;
 
     VPHAL_RENDER_CHK_NULL_NO_STATUS(m_sfcInterface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(m_osInterface);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSurface);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pdwSurfaceWidth);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pdwSurfaceHeight);
+
+    pWaTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pWaTable);
+
+    if (MEDIA_IS_WA(pWaTable, WaVeboxInputHeight16Aligned) &&
+       (pSurface->Format == Format_NV12                    ||
+        pSurface->Format == Format_P010                    ||
+        pSurface->Format == Format_P016))
+    {
+        m_sfcInterface->m_veHeightAlignment = 16;
+    }
+    else
+    {
+        m_sfcInterface->m_veHeightAlignment = MHW_SFC_VE_HEIGHT_ALIGN;
+    }
 
     // For the VEBOX output to SFC, the width is multiple of 16 and height
     // is multiple of 4

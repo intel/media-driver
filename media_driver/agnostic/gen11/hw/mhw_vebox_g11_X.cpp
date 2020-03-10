@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2636,15 +2636,20 @@ MOS_STATUS MhwVeboxInterfaceG11::AdjustBoundary(
 {
     uint16_t                    wWidthAlignUnit;
     uint16_t                    wHeightAlignUnit;
+    MEDIA_WA_TABLE             *pWaTable = nullptr;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     MHW_CHK_NULL(pSurfaceParam);
     MHW_CHK_NULL(pdwSurfaceWidth);
     MHW_CHK_NULL(pdwSurfaceHeight);
+    MHW_CHK_NULL(m_osInterface);
 
     // initialize
     wHeightAlignUnit = 1;
     wWidthAlignUnit = 1;
+
+    pWaTable         = m_osInterface->pfnGetWaTable(m_osInterface);
+    MHW_CHK_NULL(pWaTable);
 
     switch (pSurfaceParam->Format)
     {
@@ -2683,6 +2688,14 @@ MOS_STATUS MhwVeboxInterfaceG11::AdjustBoundary(
     if (bDIEnable && m_veboxScalabilitySupported)
     {
         wWidthAlignUnit = 64;
+    }
+
+    if (MEDIA_IS_WA(pWaTable, WaVeboxInputHeight16Aligned) &&
+        (pSurfaceParam->Format == Format_NV12              ||
+         pSurfaceParam->Format == Format_P010              ||
+         pSurfaceParam->Format == Format_P016))
+    {
+        wHeightAlignUnit = 16;
     }
 
     // Align width and height with max src renctange with consideration of

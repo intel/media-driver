@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -323,7 +323,6 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrEncodeVP9Vdenc10bit420, codecInfo->vp9Vdenc);
         MEDIA_WR_SKU(skuTable, FtrEncodeVP9Vdenc10bit444, codecInfo->vp9Vdenc);
 
-        MEDIA_WR_SKU(skuTable, WaVeboxInputHeight16Aligned, 1);
     }
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
@@ -406,6 +405,9 @@ static bool InitEhlMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaSFC270DegreeRotation, 0);
 
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
+
+    MEDIA_WR_WA(waTable, WaVeboxInputHeight16Aligned, 1);
+
     return true;
 }
 
