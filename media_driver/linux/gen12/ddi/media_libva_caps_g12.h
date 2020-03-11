@@ -167,9 +167,9 @@ protected:
     static const uint32_t m_decVp9Max16kHeight =
         CODEC_16K_MAX_PIC_HEIGHT; //!< Maximum height for VP9 decode
     static const uint32_t m_maxVp9EncWidth =
-        CODEC_16K_MAX_PIC_WIDTH; //!< maximum width for VP9 encode
+        CODEC_8K_MAX_PIC_WIDTH; //!< maximum width for VP9 encode
     static const uint32_t m_maxVp9EncHeight =
-        CODEC_16K_MAX_PIC_HEIGHT; //!< maximum height for VP9 encode
+        CODEC_8K_MAX_PIC_HEIGHT; //!< maximum height for VP9 encode
     static const VAImageFormat m_G12ImageFormats[]; //!< Gen12 supported image formats
     static const VAConfigAttribValEncRateControlExt m_encVp9RateControlExt; //!< External enc rate control caps for VP9 encode
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
