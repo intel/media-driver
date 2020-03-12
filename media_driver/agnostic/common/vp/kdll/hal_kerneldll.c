@@ -4916,7 +4916,7 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
     int32_t           iOffset;
     uint32_t          dwResolveOffset[DL_MAX_EXPORT_COUNT];
     uint32_t          dwTotalKernelCount;
-    uint32_t          dwEstimatedKernelSize;
+    size_t            stEstimatedKernelSize;
     int32_t           iKUID;
     bool              bResolveDone;
     int32_t           i;
@@ -4947,7 +4947,7 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
 
     MOS_ZeroMemory(Cm_Fc_kernels, sizeof(Cm_Fc_kernels));
     dwTotalKernelCount = 0;
-    dwEstimatedKernelSize = 0;
+    stEstimatedKernelSize = 0;
 
 #if EMUL || VPHAL_LIB || _DEBUG
     VPHAL_RENDER_NORMALMESSAGE("Component Kernels:");
@@ -4965,7 +4965,7 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
         // Append/Patch kernel from internal cache
         res = Kdll_AddKernelList(pKernelCache, pPatchCache, pSearchState, *pKernelID, pKernelPatch, pPatchData, &Cm_Fc_kernels[dwTotalKernelCount]);
 
-        dwEstimatedKernelSize += Cm_Fc_kernels[dwTotalKernelCount].binary_size;
+        stEstimatedKernelSize += Cm_Fc_kernels[dwTotalKernelCount].binary_size;
 
         if (*pKernelID == IDR_VP_EOT)
         {
@@ -5032,17 +5032,17 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
         } // for
     } while (!bResolveDone);
 
-    if (dwEstimatedKernelSize > DL_MAX_KERNEL_SIZE)
+    if (stEstimatedKernelSize > DL_MAX_KERNEL_SIZE)
     {
         res = false;
         VPHAL_RENDER_NORMALMESSAGE("Kernel size exceeded kdll limitatin.");
         goto finish;
     }
 
-    dwEstimatedKernelSize = DL_MAX_KERNEL_SIZE;
+    stEstimatedKernelSize = DL_MAX_KERNEL_SIZE;
 
     // Get combine kernel binary from CMFC lib
-    if (CM_FC_OK != cm_fc_combine_kernels(dwTotalKernelCount, Cm_Fc_kernels, (char *)pSearchState->Kernel, (size_t *)&dwEstimatedKernelSize, nullptr))
+    if (CM_FC_OK != cm_fc_combine_kernels(dwTotalKernelCount, Cm_Fc_kernels, (char *)pSearchState->Kernel, &stEstimatedKernelSize, nullptr))
     {
         res = false;
         VPHAL_RENDER_NORMALMESSAGE("cm_fc_combine_kernels() function call failed.");
@@ -5050,7 +5050,7 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
     }
 
     // Get combine kernel binary size from CMFC lib
-    pSearchState->KernelSize = dwEstimatedKernelSize;
+    pSearchState->KernelSize = (int) stEstimatedKernelSize;
 
     res = true;
 
