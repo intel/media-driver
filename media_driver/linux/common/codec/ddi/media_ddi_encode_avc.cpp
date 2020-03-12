@@ -510,6 +510,10 @@ VAStatus DdiEncodeAvc::ParseMiscParameterRIR(void *data)
         return MOS_STATUS_INVALID_PARAMETER;
     }
     picParams->IntraRefreshQPDelta = vaEncMiscParamRIR->qp_delta_for_inserted_intra;
+    if (1 > picParams->IntraRefreshUnitinMB)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
 
     // UMD tracks the MBx/MBy for the intra square
     uint32_t rightBorder  = ((seqParams->FrameWidth + CODECHAL_ENCODE_AVC_ROI_WIDTH_SCALE_FACTOR - 1) / CODECHAL_ENCODE_AVC_ROI_WIDTH_SCALE_FACTOR) - 1;

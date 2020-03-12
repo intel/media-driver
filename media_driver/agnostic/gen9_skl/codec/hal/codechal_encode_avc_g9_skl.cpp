@@ -2455,10 +2455,8 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
         /* Multiple predictor should be completely disabled for the RollingI feature. This does not lead to much quality drop for P frames especially for TU as 1 */
         Cmd.common.DW32.MultiPredL0Disable = CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
 
-        /* Pass the same IntraRefreshUnit to the kernel w/o the adjustment by -1, so as to have an overlap of one MB row or column of Intra macroblocks
-        across one P frame to another P frame, as needed by the RollingI algo */
         Cmd.common.DW48.IntraRefreshMBNum = pPicParams->IntraRefreshMBNum; /* MB row or column number */
-        Cmd.common.DW48.IntraRefreshUnitInMBMinus1 = pPicParams->IntraRefreshUnitinMB;
+        Cmd.common.DW48.IntraRefreshUnitInMBMinus1 = pPicParams->IntraRefreshUnitinMB - 1;
         Cmd.common.DW48.IntraRefreshQPDelta = pPicParams->IntraRefreshQPDelta;
     }
     else

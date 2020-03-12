@@ -1120,7 +1120,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencImgStateCmd(
         cmd.DW21.IntraRefreshEnableRollingIEnable = avcPicParams->EnableRollingIntraRefresh != ROLLING_I_DISABLED ? 1 : 0;        // 0->Row based ; 1->Column based
         cmd.DW21.IntraRefreshMode                 = avcPicParams->EnableRollingIntraRefresh == ROLLING_I_ROW ? 0 : 1;
         cmd.DW21.IntraRefreshMBPos                = avcPicParams->IntraRefreshMBNum;
-        cmd.DW21.IntraRefreshMBSizeMinusOne       = avcPicParams->IntraRefreshUnitinMB;
+        cmd.DW21.IntraRefreshMBSizeMinusOne       = avcPicParams->IntraRefreshUnitinMB - 1;
         cmd.DW21.QpAdjustmentForRollingI          = avcPicParams->IntraRefreshQPDelta;
     }
 
