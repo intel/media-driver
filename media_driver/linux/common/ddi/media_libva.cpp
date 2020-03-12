@@ -6170,6 +6170,8 @@ static uint32_t DdiMedia_GetPlaneNum(PDDI_MEDIA_SURFACE mediaSurface, bool hasAu
         case VA_FOURCC_R8G8B8:
         case VA_FOURCC_A2R10G10B10:
         case VA_FOURCC_A2B10G10R10:
+        case VA_FOURCC_X2R10G10B10:
+        case VA_FOURCC_X2B10G10R10:
             plane_num = hasAuxPlane ? 2 : 1;
             break;
         default:
