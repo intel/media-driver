@@ -961,13 +961,6 @@ void CodechalVdencHevcState::StreaminSetBorderNon64AlignStaticRegion(
     SetStreaminDataPerRegion(streamInWidth, top, bottom, left, right, &streaminDataParams, streaminData);
 }
 
-uint8_t CodechalVdencHevcState::GetPUTypeForDirtyRectStreamIn()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    return 0xff;  //Force MV
-}
-
 MOS_STATUS CodechalVdencHevcState::SetupDirtyRectStreamIn(PMOS_RESOURCE streamIn)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -997,7 +990,7 @@ MOS_STATUS CodechalVdencHevcState::SetupDirtyRectStreamIn(PMOS_RESOURCE streamIn
     streaminDataParams.maxTuSize = 3;
     streaminDataParams.maxCuSize = 3;
     streaminDataParams.numImePredictors = 0;
-    streaminDataParams.puTypeCtrl = GetPUTypeForDirtyRectStreamIn();
+    streaminDataParams.puTypeCtrl = 0xff; //Force MV
     streaminDataParams.numMergeCandidateCu64x64 = 1; // MergeCand setting for Force MV
     streaminDataParams.numMergeCandidateCu32x32 = 0; // this is always set to 1
     streaminDataParams.numMergeCandidateCu16x16 = 0;

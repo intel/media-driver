@@ -1324,13 +1324,6 @@ MOS_STATUS CodechalVdencHevcStateG12::FreePakResources()
     return CodechalVdencHevcState::FreePakResources();
 }
 
-uint8_t CodechalVdencHevcStateG12::GetPUTypeForDirtyRectStreamIn()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    return 0xaa;  // Force non-intra and force MV
-}
-
 MOS_STATUS CodechalVdencHevcStateG12::AllocateEncResources()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;

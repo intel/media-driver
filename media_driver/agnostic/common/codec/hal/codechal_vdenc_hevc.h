@@ -278,16 +278,6 @@ public:
     virtual MOS_STATUS SetupMbQpStreamIn(PMOS_RESOURCE streamIn);
 
     //!
-    //! \brief    Get PU type for dirty rect stream-in 
-    //!
-    //! \param    No
-    //!
-    //! \return   uint8_t
-    //!           0xaa or 0xff
-    //!
-    virtual uint8_t GetPUTypeForDirtyRectStreamIn();
-
-    //!
     //! \brief    Setup dirty rectangle stream-in resource
     //!
     //! \param    [in,out] streamIn
