@@ -486,6 +486,7 @@ typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
 typedef uint32_t               GPU_CONTEXT_HANDLE;
 
 #define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   8
+#define MOS_BUF_NAME_LENGTH 64
 
 //APO wrapper
 extern uint32_t g_apoMosEnabled;

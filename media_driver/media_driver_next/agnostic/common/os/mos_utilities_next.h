@@ -2405,6 +2405,8 @@ public:
     static int32_t                      m_mosMemAllocFakeCounter;
     static int32_t                      m_mosMemAllocCounterGfx;
 
+    static bool                         m_enableAddressDump;
+
 private:
     static MosMutex                     m_mutexLock;
     static char                         m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE];

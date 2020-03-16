@@ -430,7 +430,7 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
     MOS_TILE_TYPE       TileType;                                               //!< [in] Defines the layout of a physical page. Optimal choice depends on usage model.
     MOS_FORMAT          Format;                                                 //!< [in] Pixel format
     void                *pSystemMemory;                                         //!< [in] Optional parameter. If non null, TileType must be set to linear.
-    const char          *pBufName;                                              //!< [in] Optional parameter only used in Linux. A string indicates the buffer name and is used for debugging. nullptr is OK.
+    const char          *pBufName;                                              //!< [in] Optional parameter. A string indicates the buffer name and is used for debugging. nullptr is OK.
     int32_t             bIsCompressible;                                        //!< [in] Resource is compressible or not.
     MOS_RESOURCE_MMC_MODE   CompressionMode;                                    //!< [in] Compression mode.
     int32_t             bIsPersistent;                                          //!< [in] Optional parameter. Used to indicate that resource can not be evicted

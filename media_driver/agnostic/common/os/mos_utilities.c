@@ -3801,6 +3801,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "0",
         "Eanble Apogeios hevc decode path. 1: enable, 0: disable."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_RESOURCE_ADDR_DUMP_ENABLE_ID,
+        "Resource Addr Dump Enable",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Eanble Apogeios Resource virtual address dump."),
 };
 
 PMOS_USER_FEATURE_VALUE const MosUtilities::m_mosUserFeatureDescFields = MOSUserFeatureDescFields;
@@ -3979,6 +3988,16 @@ MOS_STATUS MOS_utilities_init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPath
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Initialize MOS simulate alloc memory fail flag
     MOS_InitAllocMemoryFailSimulateFlag();
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_RESOURCE_ADDR_DUMP_ENABLE_ID,
+        &userFeatureValueData);
+    MosUtilities::m_enableAddressDump = userFeatureValueData.i32Data ? true : false;
+
 #endif
 
     return eStatus;

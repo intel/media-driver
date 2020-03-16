@@ -47,6 +47,8 @@ int32_t MosUtilities::m_mosMemAllocCounter                         = 0;
 int32_t MosUtilities::m_mosMemAllocFakeCounter                     = 0;
 int32_t MosUtilities::m_mosMemAllocCounterGfx                      = 0;
 
+bool MosUtilities::m_enableAddressDump = false;
+
 MOS_FUNC_EXPORT void MosUtilities::MosSetUltFlag(uint8_t ultFlag)
 {
     MosUtilities::m_mosUltFlag = ultFlag;
@@ -224,6 +226,15 @@ MOS_STATUS MosUtilities::MosUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO userFe
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Initialize MOS simulate random alloc memorflag
     MosInitAllocMemoryFailSimulateFlag();
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+
+    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_RESOURCE_ADDR_DUMP_ENABLE_ID,
+        &userFeatureValueData);
+    MosUtilities::m_enableAddressDump = userFeatureValueData.i32Data ? true : false;
 #endif
 
     return eStatus;
