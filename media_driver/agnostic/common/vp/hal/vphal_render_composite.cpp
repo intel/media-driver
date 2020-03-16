@@ -3245,8 +3245,8 @@ int32_t CompositeState::SetLayer(
 
     if ((pDPStatic != nullptr) && (pSurfaceEntries[0] != nullptr))
     {
-        pDPStatic->DW6.InputPictureWidth  = pSurfaceEntries[0]->dwWidth;
-        pDPStatic->DW6.InputPictureHeight = pSurfaceEntries[0]->dwHeight;
+        pDPStatic->DW6.InputPictureWidth  = pSurfaceEntries[0]->dwWidth -1;
+        pDPStatic->DW6.InputPictureHeight = pSurfaceEntries[0]->dwHeight -1;
     }
 
     eStatus = VpHal_RndrCommonGetBackVpSurfaceParams(
