@@ -54,9 +54,19 @@ public:
         VP_EXECUTE_CAPS         vpExecuteCaps);
 
     MOS_STATUS CalculateEngineParams();
+
+    MOS_STATUS CalculateSfcEngineParams();
+
+    MOS_STATUS CalculateVeboxEngineParams();
+
     SFC_CSC_PARAMS *GetSfcParams()
     {
         return m_sfcCSCParams;
+    }
+
+    VEBOX_CSC_PARAMS* GetVeboxParams()
+    {
+        return m_veboxCSCParams;
     }
 
 protected:
@@ -69,6 +79,26 @@ protected:
     //! \return   MOS_STATUS
     //!
     MOS_STATUS SetChromaParams(
+        VP_EXECUTE_CAPS         vpExecuteCaps);
+
+    //!
+    //! \brief    Setup Vebox Chroma up sampling parameters
+    //! \details  Setup Chroma sitting parameters
+    //! \param    [in] vpExecuteCaps
+    //!           Pointer to Vebox Render Execution Caps
+    //! \return   MOS_STATUS
+    //!
+    MOS_STATUS SetVeboxCUSChromaParams(
+        VP_EXECUTE_CAPS         vpExecuteCaps);
+
+    //!
+//! \brief    Setup Vebox Chroma down sampling parameters
+//! \details  Setup Chroma sitting parameters
+//! \param    [in] vpExecuteCaps
+//!           Pointer to Vebox Render Execution Caps
+//! \return   MOS_STATUS
+//!
+    MOS_STATUS SetVeboxCDSChromaParams(
         VP_EXECUTE_CAPS         vpExecuteCaps);
 
     //!
@@ -87,7 +117,8 @@ protected:
 
 protected:
     FeatureParamCsc     m_cscParams = {};
-    PSFC_CSC_PARAMS     m_sfcCSCParams  = nullptr;
+    PSFC_CSC_PARAMS     m_sfcCSCParams   = nullptr;
+    PVEBOX_CSC_PARAMS   m_veboxCSCParams = nullptr;
 };
 
 

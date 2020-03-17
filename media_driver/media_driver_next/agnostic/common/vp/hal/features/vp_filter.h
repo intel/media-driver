@@ -167,6 +167,21 @@ struct _VEBOX_DN_PARAMS
     bool                            bProgressive;
 };
 
+struct _VEBOX_CSC_PARAMS
+{
+    bool                            bCSCEnabled;                                 // CSC Enabled
+    VPHAL_CSPACE                    inputColorSpcase;                            // Input Color Space
+    VPHAL_CSPACE                    outputColorSpcase;                            // Input Color Space
+    MOS_FORMAT                      inputFormat;                                 // Input Format
+    MOS_FORMAT                      outputFormat;                                // Output Format
+    bool                            bypassCUS;                                   // Bypass Chroma up sampling
+    bool                            bypassCDS;                                   // Bypass Chroma down sampling
+    uint32_t                        chromaUpSamplingVerticalCoef;                // Chroma UpSampling Vertical Coeff
+    uint32_t                        chromaUpSamplingHorizontalCoef;              // Chroma UpSampling Horizontal Coeff
+    uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
+    uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
+};
+
 using SFC_SCALING_PARAMS    = _SFC_SCALING_PARAMS;
 using PSFC_SCALING_PARAMS   = SFC_SCALING_PARAMS * ;
 using SFC_CSC_PARAMS        = _SFC_CSC_PARAMS;
@@ -175,6 +190,8 @@ using SFC_ROT_MIR_PARAMS    = _SFC_ROT_MIR_PARAMS;
 using PSFC_ROT_MIR_PARAMS   = SFC_ROT_MIR_PARAMS * ;
 using VEBOX_DN_PARAMS       = _VEBOX_DN_PARAMS;
 using PVEBOX_DN_PARAMS      = VEBOX_DN_PARAMS *;
+using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;
+using PVEBOX_CSC_PARAMS     = VEBOX_CSC_PARAMS *;
 
 class SwFilterPipe;
 class HwFilter;
