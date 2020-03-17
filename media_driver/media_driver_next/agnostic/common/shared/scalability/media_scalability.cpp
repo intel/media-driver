@@ -123,7 +123,6 @@ MOS_STATUS MediaScalability::Destroy()
         if (m_veState)
         {
             SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVirtualEngineState(m_osInterface->osStreamState, m_veState));
-
             return MosInterface::DestroyVirtualEngineState(m_osInterface->osStreamState);
         }
 

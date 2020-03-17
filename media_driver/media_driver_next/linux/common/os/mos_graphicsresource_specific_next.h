@@ -67,16 +67,6 @@ public:
     };
 
     //!
-    //! \brief  Add a sync tag to the graphic resource
-    //! \param  [in] osContextPtr
-    //!         Pointer to the osContext handle
-    //! \param  [in] params
-    //!         Parameters to do the synchronization
-    //! \return MOS_SUCCESS on success case
-    //!
-    MOS_STATUS SetSyncTag(OsContextNext* osContextPtr, SyncParams& params, uint32_t streamIndex);
-
-    //!
     //! \brief  Check whether the resource is nullptr
     //! \return ture if the resource is nullptr, false on other cases
     //!

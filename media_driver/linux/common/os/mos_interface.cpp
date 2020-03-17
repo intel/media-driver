@@ -1373,7 +1373,7 @@ MOS_STATUS SyncOnResource(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::ResourceSync(
+MOS_STATUS MosInterface::ResourceSyncCallback(
     OsSpecificRes       resource,
     MOS_DEVICE_HANDLE   deviceContext,
     uint32_t            index,
@@ -1389,7 +1389,7 @@ MOS_STATUS MosInterface::ResourceSync(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::LockSync(
+MOS_STATUS MosInterface::LockSyncCallback(
     OsSpecificRes       resource,
     MOS_DEVICE_HANDLE   deviceContext,
     uint32_t            index,

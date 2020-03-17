@@ -940,8 +940,8 @@ public:
         GPU_CONTEXT_HANDLE requsetorGpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE);
         
     //!
-    //! \brief    Resource Sync
-    //! \details  [Resource Interface] Internal Sync Call Back based on resource
+    //! \brief    Resource Sync call back between Media and 3D for resource Sync
+    //! \details  [Resource Interface] Sync Call Back based on resource
     //! \details  Caller: DDI only
     //! \details  Resource is shared by different cmd buffers on different GPU contexts.
     //!           Adding sync object into requestor GPU context queue to resolve the hazard if necessary.
@@ -959,24 +959,24 @@ public:
     //!           GPU Context handle of the queue being waiting for.
     //! \param    [in] requestorCtx
     //!           GPU Context handle of current GPU which requesting to use the resoure and find the hazard to wait the busy context.
-    //! \param    [in] osHandle
+    //! \param    [in] osRequestorHandle
     //!           OS runtime handle of requestor context
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS ResourceSync(    
+    static MOS_STATUS ResourceSyncCallback(    
         OsSpecificRes          resource,
         MOS_DEVICE_HANDLE      deviceContext,
         uint32_t               index,
         SYNC_HAZARD            hazardType,
         GPU_CONTEXT_HANDLE     busyCtx,
         GPU_CONTEXT_HANDLE     requestorCtx,
-        OS_HANDLE              osHandle);
+        OS_HANDLE              osRequestorHandle);
 
     //!
-    //! \brief    Lock Sync
-    //! \details  [Resource Interface] Internal Lock Sync Call Back
+    //! \brief    Lock Sync Callback between Media and 3D
+    //! \details  [Resource Interface] Lock Sync Call Back
     //! \details  Caller: DDI only
     //! \details  Resource is used in a cmd buffer on an existing GPU context.
     //!           Before Locking the resource, make sure the resource finished used by all GPU contexts which are using this resource.
@@ -999,7 +999,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, MOS_STATUS_STILL_DRAWING if doNotWait
     //!           is set to true and resoure is still being used in HW, otherwise failed
     //!        
-    static MOS_STATUS LockSync(    
+    static MOS_STATUS LockSyncCallback(    
         OsSpecificRes           resource,
         MOS_DEVICE_HANDLE       deviceContext,
         uint32_t                index,

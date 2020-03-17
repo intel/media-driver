@@ -280,18 +280,6 @@ public:
     MOS_STATUS Dump(OsContextNext* osContextPtr, uint32_t overrideOffset, uint32_t overrideSize, std::string outputFileName, std::string outputPath);
 
     //!
-    //! \brief  Add a sync tag to the graphic resource
-    //! \param  [in] osContextPtr
-    //!         Pointer to the osContext handle
-    //! \param  [in] params
-    //!         Parameters to do the synchronization
-    //! \param  [in] streamIndex
-    //!         Stream index to indicate which stream this resource belongs to
-    //! \return MOS_STATUS_SUCCESS on success case, MOS error status on fail cases
-    //!
-    virtual MOS_STATUS SetSyncTag(OsContextNext* osContextPtr, SyncParams& params, uint32_t streamIndex) = 0;
-
-    //!
     //! \brief  Check whether the resource is nullptr
     //! \param  [in] pResource
     //!         ptr to the graphics resource to be checked
