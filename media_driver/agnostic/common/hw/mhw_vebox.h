@@ -1026,6 +1026,21 @@ public:
 protected:
     MhwVeboxInterface(PMOS_INTERFACE pOsInterface);
 
+    //!
+    //! \brief    Trace indirect state info by OCA
+    //! \details  Trace which resource being used to store indirect state by OCA.
+    //! \param    [in] cmdBuffer
+    //!           Command buffer of current vebox workload.
+    //! \param    [in] mosContext
+    //!           mos context
+    //! \param    [in] isCmBuffer
+    //!           true if CM buffer being used for indirect state, otherwise, vebox heap is used.
+    //! \param    [in] useVeboxHeapKernelResource
+    //!           true if kernel copy needed for indirect state.
+    //! \return   void
+    //!
+    void TraceIndirectStateInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, bool isCmBuffer, bool useVeboxHeapKernelResource);
+
 public:
     //!
     //! \brief    Adds a resource to the command buffer or indirect state (SSH)

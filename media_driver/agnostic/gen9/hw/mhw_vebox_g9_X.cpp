@@ -473,6 +473,8 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
             uiInstanceBaseAddr = pVeboxHeap->uiInstanceSize * pVeboxHeap->uiCurState;
         }
 
+        TraceIndirectStateInfo(*pCmdBuffer, *pOsContext, bUseCmBuffer, pVeboxStateCmdParams->bUseVeboxHeapKernelResource);
+
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         if (bUseCmBuffer)
         {

@@ -26,6 +26,7 @@
 
 #include "mhw_utilities.h"
 #include "mhw_vebox.h"
+#include "hal_oca_interface.h"
 
 void MhwVeboxInterface::RefreshVeboxSync()
 {
@@ -387,5 +388,27 @@ MhwVeboxInterface::MhwVeboxInterface(PMOS_INTERFACE pOsInterface)
     else  //PatchList
     {
         pfnAddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
+    }
+}
+
+void MhwVeboxInterface::TraceIndirectStateInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, bool isCmBuffer, bool useVeboxHeapKernelResource)
+{
+    if (isCmBuffer)
+    {
+        char ocaLog[] = "Vebox indirect state use CmBuffer";
+        HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+    }
+    else
+    {
+        if (useVeboxHeapKernelResource)
+        {
+            char ocaLog[] = "Vebox indirect state use KernelResource";
+            HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+        }
+        else
+        {
+            char ocaLog[] = "Vebox indirect state use DriverResource";
+            HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+        }
     }
 }
