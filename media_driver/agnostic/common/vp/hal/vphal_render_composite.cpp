@@ -6656,7 +6656,8 @@ bool CompositeState::BuildFilter(
         pFilter->format == Format_A8B8G8R8    ||
         pFilter->format == Format_R10G10B10A2 ||
         pFilter->format == Format_B10G10R10A2 ||
-        pFilter->format == Format_AYUV)
+        pFilter->format == Format_AYUV        ||
+        pFilter->format == Format_Y416)
     {
         if (pCompParams->pCompAlpha != nullptr && pCompParams->pSource[0] != nullptr &&
             (pCompParams->pCompAlpha->AlphaMode == VPHAL_ALPHA_FILL_MODE_NONE ||
@@ -6676,6 +6677,7 @@ bool CompositeState::BuildFilter(
                 case Format_B10G10R10A2:
                 case Format_A8P8:
                 case Format_A8:
+                case Format_Y416:
                     pFilter->bFillOutputAlphaWithConstant = false;
                     break;
 

@@ -1186,17 +1186,27 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
         pSfcStateParams->fColorFillAPixel  = (float)Src.A / 255.0F;
     }
 
-    if (pAlphaParams                              &&
-        ((pOutSurface->Format == Format_A8R8G8B8) ||
-         (pOutSurface->Format == Format_A8B8G8R8) ||
-         (pOutSurface->Format  == Format_AYUV)))
+    if (pAlphaParams)
     {
         switch (pAlphaParams->AlphaMode)
         {
-            case VPHAL_ALPHA_FILL_MODE_NONE:
+        case VPHAL_ALPHA_FILL_MODE_NONE:
+            if (pOutSurface->Format == Format_A8R8G8B8    ||
+                pOutSurface->Format == Format_A8B8G8R8    ||
+                pOutSurface->Format == Format_R10G10B10A2 ||
+                pOutSurface->Format == Format_B10G10R10A2 ||
+                pOutSurface->Format == Format_AYUV        ||
+                pOutSurface->Format == Format_Y410        ||
+                pOutSurface->Format == Format_Y416)
+            {
                 pSfcStateParams->fAlphaPixel      = pAlphaParams->fAlpha;
                 pSfcStateParams->fColorFillAPixel = pAlphaParams->fAlpha;
-                break;
+            }
+            else
+            {
+                pSfcStateParams->fAlphaPixel      = 1.0F;
+            }
+            break;
 
             case VPHAL_ALPHA_FILL_MODE_BACKGROUND:
                 pSfcStateParams->fAlphaPixel = m_renderData.bColorFill ?

@@ -384,9 +384,16 @@ void MhwVeboxInterfaceG12::SetVeboxIecpStateBecsc(
 
     pVeboxIecpState->AlphaAoiState.DW0.AlphaFromStateSelect = pVeboxIecpParams->bAlphaEnable;
 
-    // Alpha is U16, but the SW alpha is calculated as 8bits,
-    // so left shift it 8bits to be in the position of MSB
-    pVeboxIecpState->AlphaAoiState.DW0.ColorPipeAlpha = pVeboxIecpParams->wAlphaValue * 256;
+    if (pVeboxIecpParams->dstFormat == Format_Y416)
+    {
+        pVeboxIecpState->AlphaAoiState.DW0.ColorPipeAlpha = pVeboxIecpParams->wAlphaValue;
+    }
+    else
+    {
+        // Alpha is U16, but the SW alpha is calculated as 8bits,
+        // so left shift it 8bits to be in the position of MSB
+        pVeboxIecpState->AlphaAoiState.DW0.ColorPipeAlpha = pVeboxIecpParams->wAlphaValue * 256;
+    }
 
 #undef SET_COEFS
 #undef SET_INPUT_OFFSETS
