@@ -41,7 +41,6 @@ endif()
 #decode
 set(TMP_2_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_g9.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_kernel_g9.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox_g9.cpp
 )
 
@@ -49,6 +48,13 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_g9.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox_g9.h
 )
+
+if(ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS)
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_kernel_g9.cpp
+    )
+endif()
 
 if(${Decode_Processing_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
