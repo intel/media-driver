@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-Copyright (c) 2017-2019, Intel Corporation
+Copyright (c) 2017-2020, Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -258,3 +258,15 @@ static bool tgllpGt2Device9a70 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool tgllpGt1Device9a78 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9A78, &tgllpGt1Info);
+
+static bool tgllpGt2Device9ac9 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9AC9, &tgllpGt2Info);
+
+static bool tgllpGt2Device9af8 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9AF8, &tgllpGt2Info);
+
+static bool tgllpGt2Device9ac0 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9AC0, &tgllpGt2Info);
+
+static bool tgllpGt2Device9ad9 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x9AD9, &tgllpGt2Info);
