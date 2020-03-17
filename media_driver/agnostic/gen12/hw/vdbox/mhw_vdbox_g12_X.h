@@ -32,6 +32,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mos_os.h"
 #include "mhw_vdbox.h"
 
+#define MmcEnable(x) ((x) == MOS_MEMCOMP_RC || (x) == MOS_MEMCOMP_MC)
+#define MmcIsRc(x) ((x) == MOS_MEMCOMP_RC)
+
 // Meta/MV, DeBlock, SAO, VDEnc, HSAO
 const bool RowStoreCacheEnableHEVC[16][5] =
 {

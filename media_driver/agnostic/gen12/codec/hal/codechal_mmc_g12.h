@@ -59,13 +59,6 @@ public:
         MOS_COMMAND_BUFFER  *cmdBuffer,
         MOS_GPU_CONTEXT     gpuContext);
 
-    //!
-    //! \brief    Indicate if mmc is enabled for G12
-    //! \details  Suggested to use for G12 instead of static methos IsMmcEnabled, 
-    //!           since it can return different values for each encode/decode instance.
-    //! \return   bool
-    //!
-    bool IsMmcEnabledForComponent() { return m_mmcEnabledForComponent; }
 
 protected:
 

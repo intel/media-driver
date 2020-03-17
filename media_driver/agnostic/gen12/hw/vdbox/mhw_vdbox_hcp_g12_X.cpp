@@ -1536,8 +1536,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodeSurfaceStateCmd(
 
     if (params->ucSurfaceStateId != CODECHAL_HCP_DECODED_SURFACE_ID) //MMC is not need in HCP_SURFACE_STATE for non reference surfaces
     {
-        cmd->DW4.MemoryCompressionEnable = (params->mmcState == MOS_MEMCOMP_RC || params->mmcState == MOS_MEMCOMP_MC) ? ((~params->mmcSkipMask) & 0xff) : 0;
-        cmd->DW4.CompressionType = (params->mmcState == MOS_MEMCOMP_RC) ? 0xff : 0;
+        cmd->DW4.MemoryCompressionEnable = MmcEnable(params->mmcState) ? ((~params->mmcSkipMask) & 0xff) : 0;
+        cmd->DW4.CompressionType         = MmcIsRc(params->mmcState) ? 0xff : 0;
     }
 
     return eStatus;
@@ -1645,8 +1645,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpEncodeSurfaceStateCmd(
         cmd->DW3.YOffsetForVCr = params->dwReconSurfHeight;
     }
 
-    cmd->DW4.MemoryCompressionEnable = (params->mmcState == MOS_MEMCOMP_RC || params->mmcState == MOS_MEMCOMP_MC) ? ((~params->mmcSkipMask) & 0xff) : 0;
-    cmd->DW4.CompressionType = (params->mmcState == MOS_MEMCOMP_RC) ? 0xff : 0;
+    cmd->DW4.MemoryCompressionEnable = MmcEnable(params->mmcState) ? ((~params->mmcSkipMask) & 0xff) : 0;
+    cmd->DW4.CompressionType         = MmcIsRc(params->mmcState) ? 0xff : 0;
 
     return eStatus;
 }
@@ -1691,9 +1691,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
 
     //Decoded Picture
     cmd.DecodedPictureMemoryAddressAttributes.DW0.Value |= m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC].Value;
-    cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable =
-        (params->PreDeblockSurfMmcState == MOS_MEMCOMP_MC || params->PreDeblockSurfMmcState == MOS_MEMCOMP_RC) ? 1 : 0;
-    cmd.DecodedPictureMemoryAddressAttributes.DW0.CompressionType = (params->PreDeblockSurfMmcState == MOS_MEMCOMP_RC) ? 1 : 0;
+    cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnable(params->PreDeblockSurfMmcState) ? 1 : 0;
+    cmd.DecodedPictureMemoryAddressAttributes.DW0.CompressionType                    = MmcIsRc(params->PreDeblockSurfMmcState) ? 1 : 0;
 
     cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(params->psPreDeblockSurface->TileType);
 
@@ -1965,9 +1964,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
     {
         cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE].Value;
-        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable =
-            (params->RawSurfMmcState == MOS_MEMCOMP_MC || params->RawSurfMmcState == MOS_MEMCOMP_RC) ? 1 : 0;
-        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.CompressionType = (params->RawSurfMmcState == MOS_MEMCOMP_RC) ? 1 : 0;
+        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnable(params->RawSurfMmcState) ? 1 : 0;
+        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.CompressionType = MmcIsRc(params->RawSurfMmcState) ? 1 : 0;
 
         cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(params->psRawSurface->TileType);
 
