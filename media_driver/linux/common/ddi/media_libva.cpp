@@ -4338,12 +4338,24 @@ VAStatus DdiMedia_DeriveImage (
     vaimg->height                   = mediaSurface->iRealHeight;
     vaimg->format.byte_order        = VA_LSB_FIRST;
 
+    GMM_RESOURCE_INFO          *gmmResourceInfo = mediaSurface->pGmmResourceInfo;
+    GMM_REQ_OFFSET_INFO reqInfo     = {0};
+    reqInfo.Plane                   = GMM_PLANE_U;
+    reqInfo.ReqRender               = 1;
+    gmmResourceInfo->GetOffset(reqInfo);
+    uint32_t offsetU                = reqInfo.Render.Offset;
+    MOS_ZeroMemory(&reqInfo, sizeof(GMM_REQ_OFFSET_INFO));
+    reqInfo.Plane                   = GMM_PLANE_V;
+    reqInfo.ReqRender               = 1;
+    gmmResourceInfo->GetOffset(reqInfo);
+    uint32_t offsetV                = reqInfo.Render.Offset;
+    vaimg->data_size                = (uint32_t)gmmResourceInfo->GetSizeSurface();
+
     switch( mediaSurface->format )
     {
     case Media_Format_YV12:
     case Media_Format_I420:
         vaimg->format.bits_per_pixel    = 12;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3 / 2;
         vaimg->num_planes               = 3;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->pitches[1]               =
@@ -4357,7 +4369,6 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_A8R8G8B8:
         vaimg->format.bits_per_pixel    = 32;
         vaimg->format.alpha_mask        = RGB_8BIT_ALPHAMASK;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
@@ -4365,7 +4376,6 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_X8R8G8B8:
     case Media_Format_X8B8G8R8:
         vaimg->format.bits_per_pixel    = 32;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
@@ -4374,7 +4384,6 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_B10G10R10A2:
         vaimg->format.bits_per_pixel    = 32;
         vaimg->format.alpha_mask        = RGB_10BIT_ALPHAMASK;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
@@ -4382,13 +4391,11 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_R10G10B10X2:
     case Media_Format_B10G10R10X2:
         vaimg->format.bits_per_pixel    = 32;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
         break;
     case Media_Format_R5G6B5:
-        vaimg->format.bits_per_pixel    = 16;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
@@ -4396,7 +4403,6 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_R8G8B8:
         vaimg->format.bits_per_pixel    = 24;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
@@ -4411,7 +4417,6 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_400P:
         vaimg->format.bits_per_pixel    = 8;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
@@ -4420,7 +4425,6 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_RGBP:
     case Media_Format_BGRP:
         vaimg->format.bits_per_pixel    = 24;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3;
         vaimg->num_planes               = 3;
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
@@ -4431,7 +4435,6 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_IMC3:
         vaimg->format.bits_per_pixel    = 12;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 2;
         vaimg->num_planes               = 3;
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
@@ -4442,7 +4445,6 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_411P:
         vaimg->format.bits_per_pixel    = 12;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3;
         vaimg->num_planes               = 3;
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
@@ -4453,7 +4455,6 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_422V:
         vaimg->format.bits_per_pixel    = 16;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 2;
         vaimg->num_planes               = 3;
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
@@ -4464,7 +4465,6 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_422H:
         vaimg->format.bits_per_pixel    = 16;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3;
         vaimg->num_planes               = 3;
         vaimg->pitches[0]               =
         vaimg->pitches[1]               =
@@ -4476,7 +4476,6 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_P010:
     case Media_Format_P016:
         vaimg->format.bits_per_pixel    = 24;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3 / 2;
         vaimg->num_planes               = 2;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->pitches[1]               =
@@ -4496,21 +4495,27 @@ VAStatus DdiMedia_DeriveImage (
         break;
     case Media_Format_Y416:
         vaimg->format.bits_per_pixel    = 64; // packed format [alpha, Y, U, V], 16 bits per channel
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
         break;
      default:
         vaimg->format.bits_per_pixel    = 12;
-        vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight * 3 / 2;
         vaimg->num_planes               = 2;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
-        vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
-        vaimg->offsets[2]               = vaimg->offsets[1] + 1;
+        if(MEDIA_IS_WA(&mediaCtx->WaTable, FtrE2ECompression))
+        {
+            vaimg->offsets[1]           = mediaSurface->iHeight * mediaSurface->iPitch;
+            vaimg->offsets[2]           = vaimg->offsets[1] + 1;
+        }
+        else
+        {
+            vaimg->offsets[1]           = offsetU;
+            vaimg->offsets[2]           = offsetV;
+        }
         break;
     }
 
