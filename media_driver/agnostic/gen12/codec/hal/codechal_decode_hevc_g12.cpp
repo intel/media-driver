@@ -1615,27 +1615,6 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
         }
     }
 
-    if (m_shortFormatInUse &&
-        m_statusQueryReportingEnabled &&
-        (!CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState) ||
-            CodecHalDecodeScalabilityIsFEPhase(m_scalabilityState)))
-    {
-        uint32_t statusBufferOffset = (m_decodeStatusBuf.m_currIndex * sizeof(CodechalDecodeStatus)) +
-                        m_decodeStatusBuf.m_storeDataOffset +
-                        sizeof(uint32_t) * 2;
-
-        // Check HuC_STATUS bit15, HW continue if bit15 > 0, otherwise send COND BB END cmd.
-        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodechalHwInterfaceG12*>(m_hwInterface)->SendCondBbEndCmd(
-                &m_decodeStatusBuf.m_statusBuffer,
-                statusBufferOffset + m_decodeStatusBuf.m_hucErrorStatusMaskOffset,
-                0,
-                false,
-                false,
-                mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION_MADGREATERTHANIDD,
-                cmdBufferInUse));
-    }
-
-
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_FEBESync_G12(
@@ -1646,6 +1625,20 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &scdryCmdBuffer));
         }
+    }
+
+    if (m_shortFormatInUse &&
+        m_statusQueryReportingEnabled &&
+        (!CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState) ||
+            CodecHalDecodeScalabilityIsFEPhase(m_scalabilityState) ||
+            CodecHalDecodeScalabilityIsRealTileMode(m_scalabilityState)))
+    {
+        uint32_t statusBufferOffset = (m_decodeStatusBuf.m_currIndex * sizeof(CodechalDecodeStatus)) +
+                                      m_decodeStatusBuf.m_storeDataOffset +
+                                      sizeof(uint32_t) * 2;
+
+        // Check HuC_STATUS bit15, HW continue if bit15 > 0, otherwise send COND BB END cmd.
+        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodechalHwInterfaceG12 *>(m_hwInterface)->SendCondBbEndCmd(&m_decodeStatusBuf.m_statusBuffer, statusBufferOffset + m_decodeStatusBuf.m_hucErrorStatusMaskOffset, 0, false, false, mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION_MADGREATERTHANIDD, cmdBufferInUse));
     }
 
     if (CodecHalDecodeScalabilityIsBEPhaseG12(m_scalabilityState) || CodecHalDecodeScalabilityIsFirstRealTilePhase(m_scalabilityState))
