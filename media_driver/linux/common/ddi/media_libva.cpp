@@ -4159,6 +4159,32 @@ VAStatus DdiMedia_CreateImage(
         {
             gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
         }
+
+        if (MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrRenderCompressionOnly))
+        {
+            switch(format->fourcc)
+            {
+                case VA_FOURCC_RGBA:
+                case VA_FOURCC_BGRA:
+                case VA_FOURCC_ARGB:
+                case VA_FOURCC_ABGR:
+                case VA_FOURCC_BGRX:
+                case VA_FOURCC_RGBX:
+                case VA_FOURCC_XRGB:
+                case VA_FOURCC_XBGR:
+                    gmmParams.Flags.Gpu.MMC = true;
+                    gmmParams.Flags.Info.MediaCompressed = 0;
+                    gmmParams.Flags.Info.RenderCompressed = 1;
+                    break;
+                default:
+                    gmmParams.Flags.Gpu.MMC = false;
+                    gmmParams.Flags.Info.MediaCompressed = 0;
+                    gmmParams.Flags.Info.RenderCompressed = 0;
+                    gmmParams.Flags.Gpu.CCS = 0;
+                    gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
+                    break;
+            }
+        }
     }
 
     if (gmmParams.Format == GMM_FORMAT_INVALID)

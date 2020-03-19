@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -182,7 +182,16 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
             tileFormatLinux               = I915_TILING_Y;
             if (params.m_isCompressible && MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrE2ECompression))
             {
-                gmmParams.Flags.Info.MediaCompressed = 1;
+                if (params.m_compressionMode == MOS_MMC_RC)
+                {
+                    gmmParams.Flags.Info.MediaCompressed = 0;
+                    gmmParams.Flags.Info.RenderCompressed = 1;
+                }
+                else
+                {
+                    gmmParams.Flags.Info.MediaCompressed = 1;
+                    gmmParams.Flags.Info.RenderCompressed = 0;
+                }
                 gmmParams.Flags.Gpu.CCS = 1;
                 gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
                 gmmParams.Flags.Gpu.RenderTarget = 1;

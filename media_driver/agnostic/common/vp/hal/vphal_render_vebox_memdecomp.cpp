@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -144,7 +144,7 @@ MOS_STATUS MediaVeboxDecompState::MemoryDecompress(PMOS_RESOURCE targetResource)
     MHW_FUNCTION_ENTER;
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(targetResource);
-    
+
 #if MOS_MEDIASOLO_SUPPORTED
     if (m_osInterface->bSoloInUse)
     {
@@ -153,6 +153,12 @@ MOS_STATUS MediaVeboxDecompState::MemoryDecompress(PMOS_RESOURCE targetResource)
     else
 #endif
     {
+        if (!MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVERing))
+        {
+            VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupported copy with Vebox function");
+            return MOS_STATUS_SUCCESS;
+        }
+
         if (m_veboxMMCResolveEnabled)
         {
             MOS_ZeroMemory(&TargetSurface, sizeof(MOS_SURFACE));
@@ -186,6 +192,12 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     MHW_FUNCTION_ENTER;
+
+    if (!MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVERing))
+    {
+        VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupported copy with Vebox function");
+        return MOS_STATUS_SUCCESS;
+    }
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputResource);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(outputResource);
@@ -252,6 +264,12 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     MHW_FUNCTION_ENTER;
+
+    if (!MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVERing))
+    {
+        VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupported copy with Vebox function");
+        return MOS_STATUS_SUCCESS;
+    }
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputResource);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(outputResource);
