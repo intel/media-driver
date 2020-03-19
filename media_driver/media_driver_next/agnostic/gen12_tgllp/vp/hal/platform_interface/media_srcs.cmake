@@ -1,4 +1,4 @@
-# Copyright (c) 2018 - 2020, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,15 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(bufferMgr)
-media_include_subdirectory(feature_manager)
-media_include_subdirectory(features)
-media_include_subdirectory(mmc)
-media_include_subdirectory(packet)
-media_include_subdirectory(pipeline)
-media_include_subdirectory(scalability)
-media_include_subdirectory(statusreport)
-media_include_subdirectory(utils)
-media_include_subdirectory(platform_interface)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_platform_interface_g12_tgllp.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_platform_interface_g12_tgllp.h
+)
+
+set(SOURCES_NEW
+    ${SOURCES_NEW}
+    ${TMP_SOURCES_}
+)
+
+set(HEADERS_NEW
+    ${HEADERS_NEW}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( VpHalNext\\Gen12\\PlatformInterface FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 
 media_add_curr_to_include_path()

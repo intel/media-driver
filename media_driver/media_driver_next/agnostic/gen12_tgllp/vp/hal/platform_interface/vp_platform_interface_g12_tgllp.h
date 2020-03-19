@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,27 +19,36 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "vp_cmd_packet.h"
-#include "vp_utils.h"
-#include "vp_vebox_cmd_packet_g12.h"
-#include "vp_packet_factory_g12.h"
 
-using namespace vp;
+//!
+//! \file     vp_platform_interface_g12_tgllp.h
+//! \brief    platform specific vp interfaces.
+//!
+#ifndef __VP_PLATFORM_INTERFACE_G12_TGLLP_H__
+#define __VP_PLATFORM_INTERFACE_G12_TGLLP_H__
 
-PacketFactoryG12::PacketFactoryG12()
+#include "vp_platform_interface.h"
+
+namespace vp
 {
-}
 
-PacketFactoryG12::~PacketFactoryG12()
+class VpPlatformInterfaceG12Tgllp : public VpPlatformInterface
 {
-}
+public:
 
-VpCmdPacket *PacketFactoryG12::CreateVeboxPacket()
-{
-    return MOS_New(VpVeboxCmdPacketG12, m_pTask, m_pHwInterface, m_pAllocator, m_pMmc);
-}
+    VpPlatformInterfaceG12Tgllp()
+    {
+    }
 
-VpCmdPacket *PacketFactoryG12::CreateRenderPacket()
-{
-    return nullptr;
+    virtual ~VpPlatformInterfaceG12Tgllp()
+    {}
+
+    virtual MOS_STATUS InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount, VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount);
+    virtual MOS_STATUS InitVpRenderHwCaps();
+    virtual VPFeatureManager *CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface);
+    virtual VpCmdPacket *CreateVeboxPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc);
+    virtual VpCmdPacket *CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc);
+};
+
 }
+#endif // !__VP_PLATFORM_INTERFACE_G12_TGLLP_H__

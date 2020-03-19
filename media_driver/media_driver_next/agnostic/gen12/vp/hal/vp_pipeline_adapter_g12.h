@@ -23,7 +23,7 @@
 #define __VP_PIPELINE_ADAPTER_G12_H__
 
 #include "vphal_g12_tgllp.h"
-#include "vp_pipeline_g12.h"
+#include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
 
 class VpPipelineG12Adapter : public VphalStateG12Tgllp
@@ -32,17 +32,15 @@ public:
     VpPipelineG12Adapter(
         PMOS_INTERFACE          pOsInterface,
         PMOS_CONTEXT            pOsDriverContext,
-        MOS_STATUS              *peStatus);
+        vp::VpPlatformInterface &vpPlatformInterface,
+        MOS_STATUS              &eStatus);
 
     //!
     //! \brief    VpPipelineG12Adapter Destuctor
     //! \details  Destroys VpPipelineG12Adapter and all internal states and objects
     //! \return   void
     //!
-     ~VpPipelineG12Adapter()
-     {
-        Destroy();
-     };
+    virtual ~VpPipelineG12Adapter();
 
     //!
     //! \brief    Allocate VP Resources
@@ -89,12 +87,13 @@ public:
     virtual VphalFeatureReport*       GetRenderFeatureReport();
 
 protected:
-    std::shared_ptr<vp::VpPipelineG12> m_vpPipeline = {};
+    std::shared_ptr<vp::VpPipeline> m_vpPipeline = {};
 
     VP_MHWINTERFACE                    m_vpMhwinterface = {};   //!< vp Mhw Interface
     VP_PIPELINE_PARAMS                 m_vpPipelineParams = {};   //!< vp Pipeline params
     VphalFeatureReport                *m_reporting = nullptr;
     bool                               m_bApgEnabled = 0;    //!< VP APG path enabled
+    vp::VpPlatformInterface           &m_vpPlatformInterface; //!< vp platform interface. Should be destroyed during deconstruction.
 
 };
 #endif // !__VP_PIPELINE_ADAPTER_G12_H__

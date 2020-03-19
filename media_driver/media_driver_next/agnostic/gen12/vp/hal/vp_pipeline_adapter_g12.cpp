@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,33 +20,55 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "vp_pipeline_adapter_g12.h"
+#include "vp_platform_interface.h"
 
 VpPipelineG12Adapter::VpPipelineG12Adapter(
-    PMOS_INTERFACE pOsInterface,
-    PMOS_CONTEXT   pOsDriverContext,
-    MOS_STATUS    *peStatus) :
-    VphalStateG12Tgllp( pOsInterface, pOsDriverContext, peStatus)
+    PMOS_INTERFACE              pOsInterface,
+    PMOS_CONTEXT                pOsDriverContext,
+    vp::VpPlatformInterface     &vpPlatformInterface,
+    MOS_STATUS                  &eStatus) :
+    VphalStateG12Tgllp( pOsInterface, pOsDriverContext, &eStatus),
+    m_vpPlatformInterface(vpPlatformInterface)
 {
+    if (MOS_FAILED(eStatus))
+    {
+        MOS_OS_ASSERTMESSAGE("VpPipelineG12Adapter construct failed due to VphalStateG12Tgllp() returned failure: eStatus = %d.", eStatus);
+        return;
+    }
+
     if (m_reporting == nullptr)
     {
-       m_reporting = MOS_New(VphalFeatureReport);
+        m_reporting = MOS_New(VphalFeatureReport);
     }
+
     if (m_reporting)
     {
-        *peStatus = MOS_STATUS_SUCCESS;
+        eStatus = MOS_STATUS_SUCCESS;
     }
     else
     {
-       *peStatus = MOS_STATUS_NO_SPACE;
+        eStatus = MOS_STATUS_NO_SPACE;
     }
 }
+
+//!
+//! \brief    VpPipelineG12Adapter Destuctor
+//! \details  Destroys VpPipelineG12Adapter and all internal states and objects
+//! \return   void
+//!
+VpPipelineG12Adapter::~VpPipelineG12Adapter()
+{
+    Destroy();
+    vp::VpPlatformInterface *pIntf = &m_vpPlatformInterface;
+    MOS_Delete(pIntf);
+};
 
 MOS_STATUS VpPipelineG12Adapter::Allocate(
   const VphalSettings     *pVpHalSettings)
 {
     VP_FUNC_CALL();
 
-    m_vpPipeline = std::make_shared<vp::VpPipelineG12>(m_osInterface, m_reporting);
+    m_vpPipeline = std::make_shared<vp::VpPipeline>(m_osInterface, m_reporting);
     VP_PUBLIC_CHK_NULL_RETURN(m_vpPipeline);
 
     MOS_ZeroMemory(&m_vpMhwinterface, sizeof(VP_MHWINTERFACE));
@@ -63,6 +85,7 @@ MOS_STATUS VpPipelineG12Adapter::Allocate(
     m_vpMhwinterface.m_cpInterface      = m_cpInterface;
     m_vpMhwinterface.m_mhwMiInterface   = m_renderHal->pMhwMiInterface;
     m_vpMhwinterface.m_statusTable      = &m_statusTable;
+    m_vpMhwinterface.m_vpPlatformInterface = &m_vpPlatformInterface;
 
     if (m_veboxInterface &&
         m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
@@ -113,9 +136,11 @@ MOS_STATUS VpPipelineG12Adapter::GetStatusReport(PQUERY_STATUS_REPORT_APP pQuery
 void VpPipelineG12Adapter::Destroy()
 {
     VP_FUNC_CALL();
-
-    m_vpPipeline->Destroy();
-    m_vpPipeline = nullptr;
+    if (m_vpPipeline)
+    {
+        m_vpPipeline->Destroy();
+        m_vpPipeline = nullptr;
+    }
     MOS_Delete(m_reporting);
 }
 

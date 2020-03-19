@@ -40,23 +40,23 @@
 #define VP_FF_SFC_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _RotationSupported, _MirrorSupported, _CscSupported, _ScalingSupported, \
                       _SrcAlphaSupported, _ConstAlphaSupported, _IScalingSupported, _DetheringSupported, _IefSupported, _Max_ScalingRatio, _Min_ScalingRatio)     \
         {                                                                                                                   \
-            m_sfcHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
-            m_sfcHwEntry[SurfaceFormat].outputSupported                         = bOutput;                                  \
-            m_sfcHwEntry[SurfaceFormat].maxResolution                           = _MaxResolution;                           \
-            m_sfcHwEntry[SurfaceFormat].minResolution                           = _MinResolution;                           \
-            m_sfcHwEntry[SurfaceFormat].horizontalAlignUnit                     = _HorizUnit;                               \
-            m_sfcHwEntry[SurfaceFormat].verticalAlignUnit                       = _VertUnit;                                \
-            m_sfcHwEntry[SurfaceFormat].rotationSupported                       = _RotationSupported;                       \
-            m_sfcHwEntry[SurfaceFormat].mirrorSupported                         = _MirrorSupported;                         \
-            m_sfcHwEntry[SurfaceFormat].cscSupported                            = _CscSupported;                            \
-            m_sfcHwEntry[SurfaceFormat].scalingSupported                        = _ScalingSupported;                        \
-            m_sfcHwEntry[SurfaceFormat].sourceAlphaSupported                    = _SrcAlphaSupported;                       \
-            m_sfcHwEntry[SurfaceFormat].constAlphaSupported                     = _ConstAlphaSupported;                     \
-            m_sfcHwEntry[SurfaceFormat].iScalingSupported                       = _IScalingSupported;                       \
-            m_sfcHwEntry[SurfaceFormat].detheringSupported                      = _DetheringSupported;                      \
-            m_sfcHwEntry[SurfaceFormat].minScalingRatio                         = _Min_ScalingRatio;                        \
-            m_sfcHwEntry[SurfaceFormat].maxScalingRatio                         = _Max_ScalingRatio;                        \
-            m_sfcHwEntry[SurfaceFormat].iefSupported                            = _IefSupported;                            \
+            sfcHwEntry[SurfaceFormat].inputSupported                            = bInput;                                   \
+            sfcHwEntry[SurfaceFormat].outputSupported                           = bOutput;                                  \
+            sfcHwEntry[SurfaceFormat].maxResolution                             = _MaxResolution;                           \
+            sfcHwEntry[SurfaceFormat].minResolution                             = _MinResolution;                           \
+            sfcHwEntry[SurfaceFormat].horizontalAlignUnit                       = _HorizUnit;                               \
+            sfcHwEntry[SurfaceFormat].verticalAlignUnit                         = _VertUnit;                                \
+            sfcHwEntry[SurfaceFormat].rotationSupported                         = _RotationSupported;                       \
+            sfcHwEntry[SurfaceFormat].mirrorSupported                           = _MirrorSupported;                         \
+            sfcHwEntry[SurfaceFormat].cscSupported                              = _CscSupported;                            \
+            sfcHwEntry[SurfaceFormat].scalingSupported                          = _ScalingSupported;                        \
+            sfcHwEntry[SurfaceFormat].sourceAlphaSupported                      = _SrcAlphaSupported;                       \
+            sfcHwEntry[SurfaceFormat].constAlphaSupported                       = _ConstAlphaSupported;                     \
+            sfcHwEntry[SurfaceFormat].iScalingSupported                         = _IScalingSupported;                       \
+            sfcHwEntry[SurfaceFormat].detheringSupported                        = _DetheringSupported;                      \
+            sfcHwEntry[SurfaceFormat].minScalingRatio                           = _Min_ScalingRatio;                        \
+            sfcHwEntry[SurfaceFormat].maxScalingRatio                           = _Max_ScalingRatio;                        \
+            sfcHwEntry[SurfaceFormat].iefSupported                              = _IefSupported;                            \
         }                                                                                                                   \
 
 typedef struct VP_SFC_ENTRY_REC
@@ -82,24 +82,24 @@ typedef struct VP_SFC_ENTRY_REC
 
 #define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported, \
                            _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported, _bHsbMode)     \
-        {                                                                                                                     \
-            m_veboxHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
-            m_veboxHwEntry[SurfaceFormat].outputSupported                         = bOutput;                                  \
-            m_veboxHwEntry[SurfaceFormat].maxResolution                           = _MaxResolution;                           \
-            m_veboxHwEntry[SurfaceFormat].minResolution                           = _MinResolution;                           \
-            m_veboxHwEntry[SurfaceFormat].horizontalAlignUnit                     = _HorizUnit;                               \
-            m_veboxHwEntry[SurfaceFormat].verticalAlignUnit                       = _VertUnit;                                \
-            m_veboxHwEntry[SurfaceFormat].hdrSupported                            = _HdrSupported;                            \
-            m_veboxHwEntry[SurfaceFormat].capturePipeSupported                    = _CapturePipeSupported;                    \
-            m_veboxHwEntry[SurfaceFormat].denoiseSupported                        = _DNSupported;                             \
-            m_veboxHwEntry[SurfaceFormat].deinterlaceSupported                    = _DISupported;                             \
-            m_veboxHwEntry[SurfaceFormat].laceSupported                           = _LACESupported;                           \
-            m_veboxHwEntry[SurfaceFormat].frontCscSupported                       = _FrontCscSupported;                       \
-            m_veboxHwEntry[SurfaceFormat].backEndCscSupported                     = _BackEndCscSupported;                     \
-            m_veboxHwEntry[SurfaceFormat].b3dLutSupported                         = _3DLutSupported;                          \
-            m_veboxHwEntry[SurfaceFormat].iecp                                    = _IecpSupported;                           \
-            m_veboxHwEntry[SurfaceFormat].hsb                                     = _bHsbMode;                                \
-        }                                                                                                                     \
+        {                                                                                                                   \
+            veboxHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
+            veboxHwEntry[SurfaceFormat].outputSupported                         = bOutput;                                  \
+            veboxHwEntry[SurfaceFormat].maxResolution                           = _MaxResolution;                           \
+            veboxHwEntry[SurfaceFormat].minResolution                           = _MinResolution;                           \
+            veboxHwEntry[SurfaceFormat].horizontalAlignUnit                     = _HorizUnit;                               \
+            veboxHwEntry[SurfaceFormat].verticalAlignUnit                       = _VertUnit;                                \
+            veboxHwEntry[SurfaceFormat].hdrSupported                            = _HdrSupported;                            \
+            veboxHwEntry[SurfaceFormat].capturePipeSupported                    = _CapturePipeSupported;                    \
+            veboxHwEntry[SurfaceFormat].denoiseSupported                        = _DNSupported;                             \
+            veboxHwEntry[SurfaceFormat].deinterlaceSupported                    = _DISupported;                             \
+            veboxHwEntry[SurfaceFormat].laceSupported                           = _LACESupported;                           \
+            veboxHwEntry[SurfaceFormat].frontCscSupported                       = _FrontCscSupported;                       \
+            veboxHwEntry[SurfaceFormat].backEndCscSupported                     = _BackEndCscSupported;                     \
+            veboxHwEntry[SurfaceFormat].b3dLutSupported                         = _3DLutSupported;                          \
+            veboxHwEntry[SurfaceFormat].iecp                                    = _IecpSupported;                           \
+            veboxHwEntry[SurfaceFormat].hsb                                     = _bHsbMode;                                \
+        }                                                                                                                   \
 
 typedef struct VP_VEBOX_ENTRY_REC
 {

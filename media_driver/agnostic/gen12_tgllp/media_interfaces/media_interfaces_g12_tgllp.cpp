@@ -29,6 +29,8 @@
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
 #endif
+#include "vp_feature_manager.h"
+#include "vp_platform_interface_g12_tgllp.h"
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -49,6 +51,7 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     PMOS_CONTEXT    osDriverContext,
     MOS_STATUS      *eStatus)
 {
+    MOS_OS_CHK_NULL_RETURN(eStatus);
 #if LINUX
     bool bApogeiosEnable = true;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
@@ -61,14 +64,28 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
         &UserFeatureData);
-        bApogeiosEnable = UserFeatureData.bData ? true : false;
+    bApogeiosEnable = UserFeatureData.bData ? true : false;
     if (bApogeiosEnable)
     {
+        vp::VpPlatformInterface *vpPlatformInterface = MOS_New(vp::VpPlatformInterfaceG12Tgllp);
+        if (nullptr == vpPlatformInterface)
+        {
+            *eStatus = MOS_STATUS_NULL_POINTER;
+            return *eStatus;
+        }
+
         m_vphalState = MOS_New(
             VpPipelineG12Adapter,
             osInterface,
             osDriverContext,
-            eStatus);
+            *vpPlatformInterface,
+            *eStatus);
+        if (nullptr == m_vphalState)
+        {
+            MOS_Delete(vpPlatformInterface);
+            *eStatus = MOS_STATUS_NULL_POINTER;
+            return *eStatus;
+        }
     }
     else
 #endif

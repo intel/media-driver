@@ -28,6 +28,8 @@
 //!
 #include "policy.h"
 #include "vp_obj_factories.h"
+#include "vp_feature_manager.h"
+#include "vp_platform_interface.h"
 using namespace vp;
 
 /****************************************************************************************************/
@@ -36,7 +38,6 @@ using namespace vp;
 
 Policy::Policy(VpInterface &vpInterface) : m_vpInterface(vpInterface)
 {
-#include "vp_feature_caps_g12.h"
 }
 
 Policy::~Policy()
@@ -59,6 +60,11 @@ Policy::~Policy()
 
 MOS_STATUS Policy::Initialize()
 {
+    VpPlatformInterface *vpPlatformInterface = (VpPlatformInterface *)m_vpInterface.GetHwInterface()->m_vpPlatformInterface;
+    VP_PUBLIC_CHK_NULL_RETURN(vpPlatformInterface);
+    VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpVeboxSfcHwCaps(m_veboxHwEntry, Format_Count, m_sfcHwEntry, Format_Count));
+    // Place hold for render hw caps.
+    // VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpRenderHwCaps());
     return RegisterFeatures();
 }
 

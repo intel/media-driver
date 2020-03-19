@@ -1,4 +1,4 @@
-# Copyright (c) 2018 - 2020, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,15 +18,4 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(bufferMgr)
-media_include_subdirectory(feature_manager)
-media_include_subdirectory(features)
-media_include_subdirectory(mmc)
-media_include_subdirectory(packet)
-media_include_subdirectory(pipeline)
-media_include_subdirectory(scalability)
-media_include_subdirectory(statusreport)
-media_include_subdirectory(utils)
-media_include_subdirectory(platform_interface)
-
-media_add_curr_to_include_path()
+media_include_subdirectory(hal)

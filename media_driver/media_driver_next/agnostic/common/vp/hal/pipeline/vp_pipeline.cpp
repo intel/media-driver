@@ -32,9 +32,9 @@
 #include "media_scalability_defs.h"
 #include "vp_feature_manager.h"
 #include "vp_packet_pipe.h"
+#include "vp_platform_interface.h"
+using namespace vp;
 
-namespace vp
-{
 VpPipeline::VpPipeline(PMOS_INTERFACE osInterface, VphalFeatureReport *reporting) :
     MediaPipeline(osInterface),
     m_reporting(reporting)
@@ -53,6 +53,7 @@ VpPipeline::~VpPipeline()
     // m_resourceManager is referenced by m_featureManager.
     MOS_Delete(m_featureManager);
     MOS_Delete(m_resourceManager);
+    MOS_Delete(m_paramChecker);
     MOS_Delete(m_mmc);
     MOS_Delete(m_allocator);
     MOS_Delete(m_statusReport);
@@ -70,6 +71,13 @@ VpPipeline::~VpPipeline()
 }
 
 MOS_STATUS VpPipeline::GetStatusReport(void *status, uint16_t numStatus)
+{
+    VP_FUNC_CALL();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPipeline::Destroy()
 {
     VP_FUNC_CALL();
 
@@ -117,9 +125,12 @@ MOS_STATUS VpPipeline::UserFeatureReport()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpPipeline::Initialize(void *settings)
+MOS_STATUS VpPipeline::Init(void *settings)
 {
     VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+
     VP_PUBLIC_CHK_STATUS_RETURN(MediaPipeline::InitPlatform());
 
     m_mediaContext = MOS_New(MediaContext, scalabilityVp, m_pvpMhwInterface, m_osInterface);
@@ -148,7 +159,8 @@ MOS_STATUS VpPipeline::Initialize(void *settings)
     VP_PUBLIC_CHK_NULL_RETURN(m_parameterDumper);
 
 #endif
-    m_pPacketFactory = CreatePacketFactory();
+
+    m_pPacketFactory = MOS_New(PacketFactory, m_pvpMhwInterface->m_vpPlatformInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketFactory);
 
     // Create active tasks
@@ -158,6 +170,8 @@ MOS_STATUS VpPipeline::Initialize(void *settings)
 
     m_pPacketPipeFactory = MOS_New(PacketPipeFactory, *m_pPacketFactory);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
+
+    VP_PUBLIC_CHK_STATUS_RETURN(GetSystemVeboxNumber());
 
     return MOS_STATUS_SUCCESS;
 }
@@ -232,6 +246,29 @@ finish:
 
 MOS_STATUS VpPipeline::GetSystemVeboxNumber()
 {
+    // Check whether scalability being disabled.
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+    MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
+    statusKey = MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
+        &userFeatureData);
+
+    bool disableScalability = false;
+    if (statusKey == MOS_STATUS_SUCCESS)
+    {
+        disableScalability = userFeatureData.i32Data ? true : false;
+    }
+
+    if (disableScalability)
+    {
+        m_numVebox = 1;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Get vebox number from gt system info.
     MEDIA_SYSTEM_INFO *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
 
     if (gtSystemInfo != nullptr)
@@ -254,8 +291,15 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
-    m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator, *m_reporting); 
-    VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+
+    // Add CheckFeatures api later in FeatureManagerNext.
+    m_paramChecker = m_pvpMhwInterface->m_vpPlatformInterface->CreateFeatureChecker(m_pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_paramChecker);
+
+    VP_PUBLIC_CHK_STATUS_RETURN(CreateResourceManager());
+
     m_featureManager = MOS_New(VpFeatureManagerNext, *m_allocator, m_resourceManager, m_pvpMhwInterface);
     VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());
 
@@ -263,13 +307,25 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief  create reource manager
+//! \return MOS_STATUS
+//!         MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS VpPipeline::CreateResourceManager()
+{
+    if (nullptr == m_resourceManager)
+    {
+        m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator, *m_reporting);
+        VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpPipeline::CheckFeatures(void *params, bool &bapgFuncSupported)
 {
-    VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
-
-    // Add CheckFeatures api later in FeatureManagerNext.
-    VPFeatureManager paramChecker(m_pvpMhwInterface);
-    return paramChecker.CheckFeatures(params, bapgFuncSupported);
+    VP_PUBLIC_CHK_NULL_RETURN(m_paramChecker);
+    return m_paramChecker->CheckFeatures(params, bapgFuncSupported);
 }
 
 MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
@@ -381,4 +437,39 @@ MOS_STATUS VpPipeline::SetVpPipelineMhwInterfce(void *mhwInterface)
     return MOS_STATUS_SUCCESS;
 }
 
-} // namespace vp
+MOS_STATUS VpPipeline::Prepare(void * params)
+{
+    MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
+
+    VP_FUNC_CALL();
+
+    // VP Execution Params Prepare
+    eStatus = PrepareVpPipelineParams(params);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        if (eStatus == MOS_STATUS_UNIMPLEMENTED)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Features are UNIMPLEMENTED on APG now \n");
+            return eStatus;
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(eStatus);
+        }
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(PrepareVpExePipe());
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPipeline::Execute()
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(ExecuteVpPipeline())
+
+    VP_PUBLIC_CHK_STATUS_RETURN(UserFeatureReport());
+
+    return MOS_STATUS_SUCCESS;
+}

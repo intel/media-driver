@@ -37,6 +37,7 @@
 #include "vp_status_report.h"
 #include "vphal.h"
 #include "vp_dumper.h"
+#include "vp_feature_manager.h"
 
 namespace vp
 {
@@ -52,7 +53,49 @@ public:
 
     virtual ~VpPipeline();
 
+    //!
+    //! \brief  Initialize the vp pipeline
+    //! \param  [in] settings
+    //!         Pointer to the initialize settings
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Init(void *settings) override;
+
+    //!
+    //! \brief  Prepare interal parameters, should be invoked for each frame
+    //! \param  [in] params
+    //!         Pointer to the input parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Prepare(void *params) override;
+
+    //!
+    //! \brief  Finish the execution for each frame
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Execute() override;
+
+    //!
+    //! \brief  Get media pipeline execution status
+    //! \param  [out] status
+    //!         The point to encode status
+    //! \param  [in] numStatus
+    //!         The requested number of status reports
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
+
+    //!
+    //! \brief  Destory the media pipeline and release internal resources
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Destroy() override;
+
 
     //!
     //! \brief  set mhw interface for vp pipeline
@@ -81,22 +124,6 @@ public:
     virtual MOS_STATUS UserFeatureReport() override;
 
 protected:
-
-    //!
-    //! \brief  Initialize the vp pipeline
-    //! \param  [in] settings
-    //!         Pointer to the initialize settings
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS Initialize(void *settings);
-
-    //!
-    //! \brief  Create the packet factory
-    //! \return PacketFactory *
-    //!         pointer to PacketFactory instance.
-    //!
-    virtual PacketFactory *CreatePacketFactory() = 0;
 
     //!
     //! \brief  prepare execution params for vp pipeline
@@ -137,6 +164,12 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureManager() override;
 
+    //!
+    //! \brief  create reource manager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateResourceManager();
     virtual MOS_STATUS CheckFeatures(void *params, bool &bapgFuncSupported);
 
 protected:
@@ -160,6 +193,7 @@ protected:
     PacketFactory         *m_pPacketFactory         = nullptr;
     PacketPipeFactory     *m_pPacketPipeFactory     = nullptr;
     VpResourceManager     *m_resourceManager        = nullptr;
+    VPFeatureManager      *m_paramChecker           = nullptr;
 };
 
 struct _VP_SFC_PACKET_PARAMS

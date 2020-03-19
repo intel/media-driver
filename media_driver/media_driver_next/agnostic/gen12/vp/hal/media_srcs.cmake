@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Intel Corporation
+# Copyright (c) 2018-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,17 +19,13 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_g12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_g12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_cmd_packet_g12.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_packet_factory_g12.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_cmd_packet_g12.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_packet_factory_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_feature_caps_g12.h
 )
 

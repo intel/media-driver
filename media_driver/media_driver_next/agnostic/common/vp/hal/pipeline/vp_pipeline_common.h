@@ -32,6 +32,11 @@
 #include "renderhal.h"
 #include "vphal.h"
 
+namespace vp
+{
+class VpPlatformInterface;
+}
+
 using VP_PIPELINE_PARAMS   = VPHAL_RENDER_PARAMS;
 using PVP_PIPELINE_PARAMS  = VPHAL_RENDER_PARAMS*;
 using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
@@ -79,6 +84,7 @@ struct _VP_MHWINTERFACE
     PMHW_SFC_INTERFACE          m_sfcInterface;
     VphalRenderer              *m_renderer;
     PMHW_MI_INTERFACE           m_mhwMiInterface;
+    vp::VpPlatformInterface    *m_vpPlatformInterface;
 
     // Render GPU context/node
     MOS_GPU_NODE                m_renderGpuNode;

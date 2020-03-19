@@ -24,10 +24,12 @@
 #include "vp_packet_pipe.h"
 #include "media_task.h"
 #include "media_context.h"
+#include "vp_feature_manager.h"
+#include "vp_platform_interface.h"
 
 using namespace vp;
 
-PacketFactory::PacketFactory()
+PacketFactory::PacketFactory(VpPlatformInterface *vpPlatformInterface) : m_vpPlatformInterface(vpPlatformInterface)
 {
 }
 
@@ -102,6 +104,16 @@ void PacketFactory::ReturnPacket(VpCmdPacket *&pPacket)
         break;
     }
     pPacket = nullptr;
+}
+
+VpCmdPacket *PacketFactory::CreateVeboxPacket()
+{
+    return m_vpPlatformInterface ? m_vpPlatformInterface->CreateVeboxPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc) : nullptr;
+}
+
+VpCmdPacket *PacketFactory::CreateRenderPacket()
+{
+    return m_vpPlatformInterface ? m_vpPlatformInterface->CreateRenderPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc) : nullptr;
 }
 
 PacketPipe::PacketPipe(PacketFactory &packetFactory) : m_PacketFactory(packetFactory)

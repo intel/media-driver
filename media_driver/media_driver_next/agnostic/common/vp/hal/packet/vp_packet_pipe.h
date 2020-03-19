@@ -35,18 +35,20 @@ class MediaContext;
 
 namespace vp {
 
+class VpPlatformInterface;
+
 class PacketFactory
 {
 public:
-    PacketFactory();
+    PacketFactory(VpPlatformInterface *vpPlatformInterface);
     virtual ~PacketFactory();
     MOS_STATUS Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc);
     VpCmdPacket *CreatePacket(EngineType type);
     void ReturnPacket(VpCmdPacket *&pPacket);
 
 protected:
-    virtual VpCmdPacket *CreateVeboxPacket() = 0;
-    virtual VpCmdPacket *CreateRenderPacket() = 0;
+    VpCmdPacket *CreateVeboxPacket();
+    VpCmdPacket *CreateRenderPacket();
 
     void ClearPacketPool(std::vector<VpCmdPacket *> &pool);
 
@@ -57,6 +59,7 @@ protected:
     PVP_MHWINTERFACE    m_pHwInterface = nullptr;
     PVpAllocator        m_pAllocator = nullptr;
     VPMediaMemComp      *m_pMmc = nullptr;
+    VpPlatformInterface *m_vpPlatformInterface = nullptr;
 };
 
 class PacketPipe
