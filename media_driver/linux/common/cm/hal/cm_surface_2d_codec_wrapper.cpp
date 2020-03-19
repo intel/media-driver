@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2017, Intel Corporation
+* Copyright (c) 2007 - 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,3 +57,5 @@ int32_t UpdateCmSurface2D(CmDevice *cmDevice,
     return cmDevice->UpdateSurface2D(mosResource, *cmSurface,
                                      MOS_CM_RESOURCE_USAGE_SurfaceState);
 }
+
+CmSurface2D* GetCmSurface2D(CmSurface2DCodecWrapper *cmSurface) { return cmSurface; }

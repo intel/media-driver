@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2017, Intel Corporation
+* Copyright (c) 2007 - 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@ typedef CmSurface2D CmSurface2DCodecWrapper;
 
 using CMRT_UMD::CmDevice;
 using CMRT_UMD::CmSurface2DCodecWrapper;
+using CMRT_UMD::CmSurface2D;
 int32_t CreateCmSurface2D(CmDevice *cmDevice,
                           uint32_t width,
                           uint32_t height,
@@ -54,5 +55,7 @@ int32_t DestroyCmSurface2D(CmDevice *cmDevice,
 int32_t UpdateCmSurface2D(CmDevice *cmDevice,
                           MOS_RESOURCE *mosResource,
                           CmSurface2DCodecWrapper **cmSurface);
+
+CmSurface2D* GetCmSurface2D(CmSurface2DCodecWrapper *cmSurface);
 
 #endif  // #ifndef MEDIADRIVER_LINUX_COMMON_CM_HAL_CMSURFACE2DCODECWRAPPER_H_
