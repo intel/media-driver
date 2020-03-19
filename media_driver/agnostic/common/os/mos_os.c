@@ -34,6 +34,7 @@
 #include "mos_util_user_interface.h"
 #include "mos_interface.h"
 
+int16_t  g_apoMosFlagInited = 0;
 uint32_t g_apoMosEnabled = 0;
 
 PerfUtility* g_perfutility = PerfUtility::getInstance();

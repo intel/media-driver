@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -85,6 +85,13 @@ extern int32_t MosMemAllocCounterGfx;
 
 void SetupApoMosSwitch(int32_t fd)
 {
+    if (g_apoMosFlagInited)
+    {
+        return;
+    }
+
+    g_apoMosFlagInited = 1;
+
     if (fd < 0)
     {
         g_apoMosEnabled = 0;
