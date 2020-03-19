@@ -1484,33 +1484,7 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
             }
             else
             {
-                if (pScalState->dwHcpDecModeSwtichTh1Width != 0 &&
-                    pScalState->dwHcpDecModeSwtichTh2Width != 0)
-                {
-                    if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh2Width)
-                    {
-                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
-                    }
-                    else if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh1Width)
-                    {
-                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
-                    }
-                }
-                else
-                {
-                    if ((pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT))
-                    {
-                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
-                    }
-                    else if ((!CodechalDecodeNonRextFormat(pInitParams->format)
-                                    && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
-                                || (CodechalDecodeNonRextFormat(pInitParams->format)
-                                    && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
-                                || (bCanEnableRealTile && !pInitParams->usingSecureDecode))
-                    {
-                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
-                    }
-                }
+                pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
             }
         }
     }
