@@ -935,7 +935,7 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         case VAEncPackedHeaderDataBufferType:
-            vaStatus = ParsePackedHeaderData(data);
+            DDI_CHK_STATUS(ParsePackedHeaderData(data), VA_STATUS_ERROR_INVALID_BUFFER);
             break;
 
         case VAEncMiscParameterBufferType:
