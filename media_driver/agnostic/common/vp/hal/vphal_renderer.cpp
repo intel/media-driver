@@ -769,6 +769,11 @@ MOS_STATUS VphalRenderer::RenderPass(
                     RenderPassData.bCompNeeded = true;
                     VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
                 }
+                if (RenderPassData.b2CSCNeeded)
+                {
+                    // Second CSC in render, set input of render with output of vebox.
+                    pRenderParams->pSrc[uiIndex_in] = RenderPassData.pOutSurface;
+                }
                 if (RenderPassData.bCompNeeded &&
                     (uiIndex_in == pRenderParams->uSrcCount-1 || // compatible with N:1 case, only render at the last input.
                      pRenderParams->uSrcCount == 0))             // fast color fill

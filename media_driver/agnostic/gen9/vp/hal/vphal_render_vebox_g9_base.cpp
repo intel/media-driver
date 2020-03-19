@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -638,6 +638,35 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
         }
     }
 
+    // Allocate BT2020 CSC temp surface----------------------------------------------
+    if (pRenderData->b2PassesCSC)
+    {
+        VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+            pOsInterface,
+            &pVeboxState->m_BT2020CSCTempSurface,
+            "VeboxBT2020CSCTempSurface_g9",
+            Format_A8B8G8R8,
+            MOS_GFXRES_2D,
+            MOS_TILE_Y,
+            pVeboxState->m_currentSurface->dwWidth,
+            pVeboxState->m_currentSurface->dwHeight,
+            false,
+            MOS_MMC_DISABLED,
+            &bAllocated));
+
+        // Copy rect sizes so that if input surface state needs to adjust,
+        // output surface can be adjustted also.
+        pVeboxState->m_BT2020CSCTempSurface.rcSrc = pVeboxState->m_currentSurface->rcSrc;
+        pVeboxState->m_BT2020CSCTempSurface.rcDst = pVeboxState->m_currentSurface->rcDst;
+        // Copy max src rect
+        pVeboxState->m_BT2020CSCTempSurface.rcMaxSrc = pVeboxState->m_currentSurface->rcMaxSrc;
+
+        // Copy Rotation, it's used in setting SFC state
+        pVeboxState->m_BT2020CSCTempSurface.Rotation   = pVeboxState->m_currentSurface->Rotation;
+        pVeboxState->m_BT2020CSCTempSurface.SampleType = pVeboxState->m_currentSurface->SampleType;
+        pVeboxState->m_BT2020CSCTempSurface.ColorSpace = CSpace_sRGB;
+    }
+
     // Allocate Statistics State Surface----------------------------------------
     // Width to be a aligned on 64 bytes and height is 1/4 the height
     // Per frame information written twice per frame for 2 slices
@@ -789,6 +818,11 @@ void VPHAL_VEBOX_STATE_G9_BASE::FreeResources()
     pOsInterface->pfnFreeResource(
         pOsInterface,
         &pVeboxState->VeboxStatisticsSurface.OsResource);
+
+    // Free BT2020 CSC temp surface for VEBOX used by BT2020 CSC
+    pOsInterface->pfnFreeResource(
+        pOsInterface,
+        &pVeboxState->m_BT2020CSCTempSurface.OsResource);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     // Free Spatial Attributes Configuration Surface for DN kernel
@@ -1602,6 +1636,12 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G9_BASE::GetOutputPipe(
         goto finish;
     }
 
+    if (VeboxIs2PassesCSCNeeded(pSrcSurface, pcRenderParams->pTarget[0]))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     pTarget    = pcRenderParams->pTarget[0];
     // Check if SFC can be the output pipe
     if (m_sfcPipeState)
@@ -1743,6 +1783,11 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
         VeboxSetRenderingFlags(
             pSrcSurface,
             pRenderTarget);
+
+        if (pRenderData->b2PassesCSC)
+        {
+            pRenderData->bVeboxBypass = false;
+        }
 
         // Vebox is needed if Vebox isn't bypassed
         bVeboxNeeded = !pRenderData->bVeboxBypass;

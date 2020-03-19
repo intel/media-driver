@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2019, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -616,6 +616,8 @@ public:
                                             bChromaDenoise = false;
                                             bOutOfBound    = false;
                                             bVDIWalker     = false;
+                                            b2PassesCSC    = false;
+                                            bBT2020TosRGB  = false;
                                             bIECP          = false;
                                             bColorPipe     = false;
                                             bProcamp       = false;
@@ -643,6 +645,8 @@ public:
                                             iMediaID1      = 0;
                                             // Perf
                                             PerfTag        = VPHAL_NONE;
+                                            // BT202 CSC destination Color Space
+                                            BT2020DstColorSpace = CSpace_Any;
                                             // States
                                             pMediaState        = nullptr;
                                             pVeboxState        = nullptr;
@@ -703,7 +707,8 @@ public:
     bool                                bChromaDenoise;
     bool                                bOutOfBound;
     bool                                bVDIWalker;
-
+    bool                                b2PassesCSC;
+    bool                                bBT2020TosRGB;
     bool                                bIECP;
     bool                                bColorPipe;
     bool                                bProcamp;
@@ -735,6 +740,9 @@ public:
 
     // Perf
     VPHAL_PERFTAG                       PerfTag;
+
+    // BT202 CSC destination Color Space
+    VPHAL_CSPACE                        BT2020DstColorSpace;
 
     // States
     PRENDERHAL_MEDIA_STATE              pMediaState;
@@ -901,7 +909,7 @@ public:
     PMHW_SFC_INTERFACE              m_pSfcInterface;                              //!< Pointer to SFC Structure Interface
     Kdll_State                      *m_pKernelDllState;                           //!< Kernel DLL state
     VpKernelID                      m_currKernelId;                               //!< Kernel ID
-
+    VPHAL_SURFACE                   m_BT2020CSCTempSurface;                       //!< BT2020 temp surface for Vebox Gen9+
     VphalSfcState                   *m_sfcPipeState;                              //!< SFC state
 
     // Execution state
