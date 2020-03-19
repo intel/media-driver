@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -70,6 +70,17 @@ public:
     //! \return   MOS_STATUS
     //!
     MOS_STATUS InitKdllParam();
+
+    //!
+    //! \brief    Main render function
+    //! \details  The top level renderer function, which may contain multiple
+    //!           passes of rendering
+    //! \param    [in] pcRenderParams
+    //!           Const pointer to VPHAL render parameter
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS Render(PCVPHAL_RENDER_PARAMS   pcRenderParams);
 };
 
 #endif // __VPHAL_RENDER_G12TGLLP_H__

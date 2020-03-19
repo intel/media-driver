@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2019, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1297,6 +1297,32 @@ finish:
     VPHAL_RENDER_NORMALMESSAGE("gpucontext switch from %d to %d", currentGpuContext, renderGpuContext);
     return eStatus;
 }
+
+MOS_STATUS VphalRenderer::SetRenderGpuContext(VPHAL_RENDER_PARAMS& RenderParams)
+{
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrCCSNode))
+    {
+        MOS_GPU_CONTEXT currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+        bool            bLumaKeyEnabled   = false;
+        for (uint32_t uiSources = 0; uiSources < RenderParams.uSrcCount; uiSources++)
+        {
+            VPHAL_SURFACE* pSrc = (VPHAL_SURFACE*)RenderParams.pSrc[uiSources];
+            bLumaKeyEnabled = (pSrc && pSrc->pLumaKeyParams) ? true : false;
+            if (bLumaKeyEnabled)
+            {
+                break;
+            }
+        }
+        if (bLumaKeyEnabled)
+        {
+            currentGpuContext = MOS_GPU_CONTEXT_RENDER;
+        }
+        UpdateRenderGpuContext(currentGpuContext);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
     //!
 //! \brief    Release intermediate surfaces
 //! \details  Release intermediate surfaces created for main render function
