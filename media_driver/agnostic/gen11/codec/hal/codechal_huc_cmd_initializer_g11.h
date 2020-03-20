@@ -142,13 +142,13 @@ struct HucInputCmd3G11
 //! \struct HucCopyParams
 //! \brief  The struct of params used for huc copy
 //!
-typedef struct
+struct HucCopyParams
 {
     PMOS_RESOURCE presSrc       = nullptr;
     PMOS_RESOURCE presDst       = nullptr;
     uint32_t      size          = 0;
     uint16_t      lengthOfTable = 0;
-} HucCopyParams;
+};
 
 //!
 //! \class  CodechalCmdInitializer
