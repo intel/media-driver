@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -173,6 +173,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     switch (format)
     {
+        case Media_Format_X8R8G8B8:
+        case Media_Format_X8B8G8R8:
+        case Media_Format_A8B8G8R8:
+        case Media_Format_R8G8B8A8:
         case Media_Format_R5G6B5:
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
@@ -196,6 +200,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             }
         case Media_Format_RGBP:
         case Media_Format_BGRP:
+        case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
             {
@@ -236,14 +241,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
             }
             alignedWidth = MOS_ALIGN_CEIL(width, 8);
             tileformat  = I915_TILING_Y;
-            break;
-        case Media_Format_X8R8G8B8:
-        case Media_Format_X8B8G8R8:
-        case Media_Format_A8B8G8R8:
-        case Media_Format_R8G8B8A8:
-        case Media_Format_A8R8G8B8:
-            tileformat  = I915_TILING_Y;
-            alignedWidth = MOS_ALIGN_CEIL(width, 1);
             break;
         case Media_Format_Buffer:
             tileformat = I915_TILING_NONE;
@@ -396,21 +393,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 {
                     gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
                 }
-
-                if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly))
-                {
-                    gmmParams.Flags.Info.MediaCompressed = 0;
-
-                    if (format == Media_Format_X8R8G8B8 ||
-                        format == Media_Format_X8B8G8R8 ||
-                        format == Media_Format_A8B8G8R8 ||
-                        format == Media_Format_A8R8G8B8 ||
-                        format == Media_Format_R8G8B8A8)
-                    {
-                        gmmParams.Flags.Info.RenderCompressed = 1;
-                    }
-                }
-
             }
             break;
         case I915_TILING_X:
