@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2020, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,6 @@ public:
                                                                                 // or the output from previous render
     PVPHAL_SURFACE          pOutSurface;                                        // pOutSurface points to the output surface
     bool                    bOutputGenerated;
-    bool                    b2CSCNeeded;
     PVPHAL_SURFACE          pOriginalSrcSurface;                                // Pointer to original source surface that is not adv proc'd
     uint32_t                uiPrimaryIndex;
     PVPHAL_SURFACE          pPrimarySurface;                                    // Null of no primary passed by app.
@@ -61,7 +60,6 @@ public:
         pSrcSurface(nullptr),
         pOutSurface(nullptr),
         bOutputGenerated(false),
-        b2CSCNeeded(false),
         pOriginalSrcSurface(nullptr),
         uiPrimaryIndex(0),
         pPrimarySurface(nullptr),
