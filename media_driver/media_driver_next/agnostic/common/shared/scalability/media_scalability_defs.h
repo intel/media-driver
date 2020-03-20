@@ -62,6 +62,8 @@ enum ScalabilitySyncType
 {
     syncAllPipes          = 0,
     syncOnePipeWaitOthers = 1,
+    syncOnePipeForAnother = 2,
+    syncOtherPipesForOne  = 3,
 };
 
 struct ScalabilityPars : public ContextRequirement
