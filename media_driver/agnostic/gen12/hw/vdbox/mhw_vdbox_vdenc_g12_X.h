@@ -1853,7 +1853,6 @@ public:
             auto tileCodingParams = paramsG12->pTileCodingParams;
 
             cmd.DW8.TileStreamoutOffsetEnable = 1;
-            cmd.DW6.StreaminOffsetEnable = 1;
 
             if (tileCodingParams == nullptr)
             {
@@ -1881,37 +1880,39 @@ public:
                 cmd.DW3.NumParEngine                 = paramsG12->dwNumberOfPipes;
                 cmd.DW3.TileNumber                   = paramsG12->dwTileId;
 
-                if (paramsG12->dwNumberOfPipes >= 1)
+                //Frame Stats Offset
+                cmd.DW8.TileStreamoutOffset = (paramsG12->dwTileId * 19); // 3 CLs or 48 DWs of statistics data + 16CLs or 256 DWs of Histogram data
+
+                uint32_t tileStartXInSBs = (cmd.DW4.TileStartCtbX / CODEC_VP9_SUPER_BLOCK_WIDTH);
+                uint32_t tileStartYInSBs = (cmd.DW4.TileStartCtbY / CODEC_VP9_SUPER_BLOCK_HEIGHT);
+                //Aligned Tile height & frame width
+                uint32_t tileHeightInSBs = (cmd.DW5.TileHeight + 1 + (CODEC_VP9_SUPER_BLOCK_HEIGHT - 1)) / CODEC_VP9_SUPER_BLOCK_HEIGHT;
+                uint32_t frameWidthInSBs = (vp9PicParams->SrcFrameWidthMinus1 + 1 + (CODEC_VP9_SUPER_BLOCK_WIDTH - 1)) / CODEC_VP9_SUPER_BLOCK_WIDTH;
+
+                // If Tile Column, compute PAK Object StreamOut Offsets
+                uint32_t tileLCUStreamOutOffsetInBytes = 0;
+                if (cmd.DW4.TileStartCtbY != 0 || cmd.DW4.TileStartCtbX != 0)
                 {
-                    uint32_t tileStartXInSBs = (cmd.DW4.TileStartCtbX / CODEC_VP9_SUPER_BLOCK_WIDTH);
-                    uint32_t tileStartYInSBs = (cmd.DW4.TileStartCtbY / CODEC_VP9_SUPER_BLOCK_HEIGHT);
-                    //Aligned Tile height & frame width
-                    uint32_t tileHeightInSBs = (cmd.DW5.TileHeight + 1 + (CODEC_VP9_SUPER_BLOCK_HEIGHT - 1)) / CODEC_VP9_SUPER_BLOCK_HEIGHT;
-                    uint32_t frameWidthInSBs = (vp9PicParams->SrcFrameWidthMinus1 + 1 + (CODEC_VP9_SUPER_BLOCK_WIDTH - 1)) / CODEC_VP9_SUPER_BLOCK_WIDTH;
+                    //Aligned Tile width & frame height
+                    uint32_t numOfSBs = tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs;
+                    //max LCU size is 64, min Cu size is 8
+                    uint32_t maxNumOfCUInSB = (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT) *
+                        (CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH);
+                    tileLCUStreamOutOffsetInBytes = 2 * BYTES_PER_DWORD * numOfSBs * (NUM_PAK_DWS_PER_LCU + maxNumOfCUInSB * NUM_DWS_PER_CU);
+                }
 
-                    cmd.DW6.TileStreaminOffset = (tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs) * (4); //StreamIn data is 4 CLs per LCU
+                cmd.DW9.LcuStreamOutOffsetEnable = 1;
+                cmd.DW9.TileLcuStreamOutOffset = MOS_ROUNDUP_DIVIDE(tileLCUStreamOutOffsetInBytes, MHW_CACHELINE_SIZE);
 
-                                                                                                                                //Frame Stats Offset
-                    cmd.DW8.TileStreamoutOffset = (paramsG12->dwTileId * 19); // 3 CLs or 48 DWs of statistics data + 16CLs or 256 DWs of Histogram data              
-
-                                                                              // If Tile Column, compute PAK Object StreamOut Offsets 
-                    if (cmd.DW4.TileStartCtbY == 0)
-                    {
-                        //RowStore Offset Computation
-                        uint32_t num32x32sInX = (cmd.DW4.TileStartCtbX) / 32;
-                        cmd.DW7.RowStoreOffsetEnable = 1;
-                        cmd.DW7.TileRowstoreOffset = num32x32sInX;
-
-                        //Aligned Tile width & frame height
-                        uint32_t widthInSBs                    = (cmd.DW4.TileStartCtbX) / CODEC_VP9_SUPER_BLOCK_WIDTH;
-                        uint32_t frameHeightInSBs              = ((vp9PicParams->SrcFrameHeightMinus1 + 1) + (CODEC_VP9_SUPER_BLOCK_HEIGHT - 1)) / CODEC_VP9_SUPER_BLOCK_HEIGHT;
-                        uint32_t numOfSBs                      = widthInSBs * (frameHeightInSBs + 1);
-                        uint32_t maxNumOfCUInSB                = (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT)*(CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH); //max LCU size is 64, min Cu size is 8
-                        uint32_t tileLCUStreamOutOffsetInBytes = 2 * 4 * ((numOfSBs * 5) + (numOfSBs*maxNumOfCUInSB * 8));
-
-                        cmd.DW9.LcuStreamOutOffsetEnable = 1;
-                        cmd.DW9.TileLcuStreamOutOffset   = MOS_ROUNDUP_DIVIDE(tileLCUStreamOutOffsetInBytes, MHW_CACHELINE_SIZE);
-                    }
+                if (cmd.DW4.TileStartCtbY == 0)
+                {
+                    cmd.DW6.StreaminOffsetEnable = 1;
+                    //StreamIn data is 4 CLs per LCU
+                    cmd.DW6.TileStreaminOffset = (tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs) * (4);
+                    //RowStore Offset Computation
+                    uint32_t num32x32sInX = (cmd.DW4.TileStartCtbX) / 32;
+                    cmd.DW7.RowStoreOffsetEnable = 1;
+                    cmd.DW7.TileRowstoreOffset = num32x32sInX;
                 }
             }
         }

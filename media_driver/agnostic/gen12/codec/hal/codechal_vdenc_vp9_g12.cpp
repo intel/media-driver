@@ -951,7 +951,7 @@ MOS_STATUS CodechalVdencVp9StateG12::GetSystemPipeNumberCommon()
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
         &userFeatureData);
 
-    bool disableScalability = m_osInterface->phasedSubmission;
+    bool disableScalability = false;
     if (statusKey == MOS_STATUS_SUCCESS)
     {
         disableScalability = userFeatureData.i32Data ? true : false;
