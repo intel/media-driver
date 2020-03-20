@@ -48,6 +48,8 @@ enum SubComponentIDs
 {
     FEATURE_SUBCOMPONENT_COMMON = 0,
     FEATURE_SUBCOMPONENT_HEVC,
+
+    reserve0,
 };
 
 struct FeatureIDs
@@ -56,10 +58,6 @@ struct FeatureIDs
     {
         basicFeature = CONSTRUCTFEATUREID(FEATURE_COMPONENT_COMMON, FEATURE_SUBCOMPONENT_COMMON, 0),
         encodeTile,
-
-        reserve6,
-        reserve7,
-        reserve8,
 
         // Decode specific feature
         decodePredication,
