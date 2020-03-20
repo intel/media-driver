@@ -183,24 +183,24 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_A16B16G16R16:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_RGBP:
         case Media_Format_BGRP:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_NV12:
         case Media_Format_NV21:
@@ -227,7 +227,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
-                 //Planar type surface align 64 to improve performance.
+                //Planar type surface align 64 to improve performance.
                 alignedHeight = MOS_ALIGN_CEIL(height, 64);
 #else
                 //Planar type surface align 32 to improve performance.
@@ -242,9 +242,9 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_A8B8G8R8:
         case Media_Format_R8G8B8A8:
         case Media_Format_A8R8G8B8:
-             tileformat  = I915_TILING_Y;
-             alignedWidth = MOS_ALIGN_CEIL(width, 1);
-             break;
+            tileformat  = I915_TILING_Y;
+            alignedWidth = MOS_ALIGN_CEIL(width, 1);
+            break;
         case Media_Format_Buffer:
             tileformat = I915_TILING_NONE;
             break;
@@ -261,9 +261,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
             tag = PROTECTED_SURFACE_TAG;
         }
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
-         if( (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-             || (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-           )
+        if((mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM) ||
+           (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME))
         {
             if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {

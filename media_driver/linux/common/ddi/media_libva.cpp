@@ -2332,8 +2332,6 @@ DdiMedia_CreateSurfaces2(
     }
 
     VASurfaceAttribExternalBuffers externalBufDescripor;
-    VASurfaceAttribExternalBuffers *externalBufDesc = &externalBufDescripor;
-    MOS_ZeroMemory(&externalBufDescripor, sizeof(externalBufDescripor));
 
     int32_t  memTypeFlag      = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
     int32_t  descFlag         = 0;
@@ -2345,74 +2343,72 @@ DdiMedia_CreateSurfaces2(
     {
         if (attrib_list[i].flags & VA_SURFACE_ATTRIB_SETTABLE)
         {
-             switch (attrib_list[i].type)
-             {
-                  case VASurfaceAttribUsageHint:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
-                      surfaceUsageHint = attrib_list[i].value.value.i;
-                      break;
-                  case VASurfaceAttribPixelFormat:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
-                      expected_fourcc = attrib_list[i].value.value.i;
-                      break;
-                  case VASurfaceAttribMemoryType:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
-                      if (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
-                      {
-                          memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
-                          surfIsUserPtr = false;
-                      }
-                      else if ( (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
-                          )
-                      {
-                           memTypeFlag = attrib_list[i].value.value.i;
-                           surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-                      }
-                      else
-                      {
-                           DDI_ASSERTMESSAGE("Not supported external buffer type.");
-                           return VA_STATUS_ERROR_INVALID_PARAMETER;
-                      }
-                      break;
-                  case (VASurfaceAttribType)VASurfaceAttribExternalBufferDescriptor:
-                      DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypePointer);
-                      if( nullptr == attrib_list[i].value.value.p )
-                      {
-                          DDI_ASSERTMESSAGE("Invalid VASurfaceAttribExternalBuffers used.");
-                          //remove the check for libva-utils conformance test, need libva-utils change cases
-                          //after libva-utils fix the case, return VA_STATUS_ERROR_INVALID_PARAMETER;
-                          break;
-                      }
-                      MOS_SecureMemcpy(externalBufDesc, sizeof(VASurfaceAttribExternalBuffers),  attrib_list[i].value.value.p, sizeof(VASurfaceAttribExternalBuffers));
+            switch (attrib_list[i].type)
+            {
+            case VASurfaceAttribUsageHint:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
+                surfaceUsageHint = attrib_list[i].value.value.i;
+                break;
+            case VASurfaceAttribPixelFormat:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
+                expected_fourcc = attrib_list[i].value.value.i;
+                break;
+            case VASurfaceAttribMemoryType:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
+                if ((attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_VA) ||
+                    (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM) ||
+                    (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME) ||
+                    (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
+                {
+                    memTypeFlag = attrib_list[i].value.value.i;
+                    surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+                }
+                else
+                {
+                    DDI_ASSERTMESSAGE("Not supported external buffer type.");
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+                }
+                break;
+            case (VASurfaceAttribType)VASurfaceAttribExternalBufferDescriptor:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypePointer);
+                if( nullptr == attrib_list[i].value.value.p )
+                {
+                    DDI_ASSERTMESSAGE("Invalid VASurfaceAttribExternalBuffers used.");
+                    //remove the check for libva-utils conformance test, need libva-utils change cases
+                    //after libva-utils fix the case, return VA_STATUS_ERROR_INVALID_PARAMETER;
+                    break;
+                }
+                MOS_SecureMemcpy(&externalBufDescripor, sizeof(VASurfaceAttribExternalBuffers),  attrib_list[i].value.value.p, sizeof(VASurfaceAttribExternalBuffers));
 
-                      expected_fourcc  = externalBufDesc->pixel_format;
-                      width            = externalBufDesc->width;
-                      height           = externalBufDesc->height;
-                      surfDescProvided = true;
-                      // the following code is for backward compatible and it will be removed in the future
-                     // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
-                     if( (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )
-                         || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-                         || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
-                         || (externalBufDesc->flags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING)
-                         )
-                      {
-                          if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-                              memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM;
-                          else if (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-                              memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+                expected_fourcc  = externalBufDescripor.pixel_format;
+                width            = externalBufDescripor.width;
+                height           = externalBufDescripor.height;
+                surfDescProvided = true;
+                // the following code is for backward compatible and it will be removed in the future
+                // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
+                if ((externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )||
+                    (externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)||
+                    (externalBufDescripor.flags & VA_SURFACE_EXTBUF_DESC_PROTECTED)||
+                    (externalBufDescripor.flags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING))
+                {
+                    if (externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+                    {
+                        memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM;
+                    }
+                    else if (externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+                    {
+                        memTypeFlag = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+                    }
 
-                          descFlag      = (externalBufDesc->flags & ~(VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME));
-                          surfIsUserPtr = false;
-                      }
+                    descFlag      = (externalBufDescripor.flags & ~(VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME));
+                    surfIsUserPtr = false;
+                }
 
-                      break;
-                  default:
-                      DDI_ASSERTMESSAGE("Unsupported type.");
-                      break;
-              }
+                break;
+            default:
+                DDI_ASSERTMESSAGE("Unsupported type.");
+                break;
+            }
         }
     }
 
@@ -2423,15 +2419,15 @@ DdiMedia_CreateSurfaces2(
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
 
-    for(uint32_t i = 0; i < num_surfaces; i++)
+    for (uint32_t i = 0; i < num_surfaces; i++)
     {
         PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = nullptr;
         MOS_STATUS                    eStatus = MOS_STATUS_SUCCESS;
 
-        if( surfDescProvided == true )
+        if (surfDescProvided == true)
         {
             surfDesc = (PDDI_MEDIA_SURFACE_DESCRIPTOR)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
-            if( surfDesc == nullptr )
+            if (surfDesc == nullptr)
             {
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
@@ -2440,18 +2436,18 @@ DdiMedia_CreateSurfaces2(
             surfDesc->uiVaMemType    = memTypeFlag;
 
             if (memTypeFlag != VA_SURFACE_ATTRIB_MEM_TYPE_VA) {
-                surfDesc->uiPlanes       = externalBufDesc->num_planes;
-                surfDesc->ulBuffer       = externalBufDesc->buffers[i];
-                surfDesc->uiSize         = externalBufDesc->data_size;
-                surfDesc->uiBuffserSize  = externalBufDesc->data_size;
+                surfDesc->uiPlanes       = externalBufDescripor.num_planes;
+                surfDesc->ulBuffer       = externalBufDescripor.buffers[i];
+                surfDesc->uiSize         = externalBufDescripor.data_size;
+                surfDesc->uiBuffserSize  = externalBufDescripor.data_size;
 
-                eStatus = MOS_SecureMemcpy(surfDesc->uiPitches, sizeof(surfDesc->uiPitches), externalBufDesc->pitches, sizeof(externalBufDesc->pitches));
+                eStatus = MOS_SecureMemcpy(surfDesc->uiPitches, sizeof(surfDesc->uiPitches), externalBufDescripor.pitches, sizeof(externalBufDescripor.pitches));
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
                     return VA_STATUS_ERROR_OPERATION_FAILED;
                 }
-                eStatus = MOS_SecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), externalBufDesc->offsets, sizeof(externalBufDesc->offsets));
+                eStatus = MOS_SecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), externalBufDescripor.offsets, sizeof(externalBufDescripor.offsets));
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
@@ -2470,7 +2466,7 @@ DdiMedia_CreateSurfaces2(
                 }
             }
         }
-        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, width, height, (surfDescProvided ? surfDesc : nullptr), surfaceUsageHint );
+        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, width, height, surfDesc, surfaceUsageHint);
         if (VA_INVALID_ID != vaSurfaceID)
         {
             surfaces[i] = vaSurfaceID;
