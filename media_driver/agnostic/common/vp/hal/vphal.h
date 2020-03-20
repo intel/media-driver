@@ -473,6 +473,11 @@ public:
         return m_skuTable;
     };
 
+    PLATFORM                      GetPlatform()
+    {
+        return m_platform;
+    };
+
     PMOS_INTERFACE              GetOsInterface()
     {
         return m_osInterface;

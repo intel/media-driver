@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2019, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1753,9 +1753,9 @@ finish:
 MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDndiState(
     PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams)
 {
-    PMHW_VEBOX_HEAP pVeboxHeap;
-    uint32_t        uiOffset;
-    MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
+    PMHW_VEBOX_HEAP pVeboxHeap = nullptr;
+    uint32_t        uiOffset   = 0;
+    MOS_STATUS      eStatus    = MOS_STATUS_SUCCESS;
 
     mhw_vebox_g12_X::VEBOX_DNDI_STATE_CMD *pVeboxDndiState, mVeboxDndiState;
 
@@ -1942,7 +1942,23 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDndiState(
     pVeboxDndiState->DW38.Fmd2VerticalDifferenceThreshold = 100;
     pVeboxDndiState->DW38.Fmd1VerticalDifferenceThreshold = 16;
 
-    pVeboxDndiState->DW45.SynthticFrame                   = pVeboxDndiParams->bSyntheticFrame;
+    pVeboxDndiState->DW45.SynthticFrame = pVeboxDndiParams->bSyntheticFrame;
+
+    // copy the DW0-DW33 SLIM_IPU_DN_PARAMS to VEBOX_DNDI_STATE, DW34-DW48 for DI according to DI DDI setting.
+    if (pVeboxDndiParams->bEnableSlimIPUDenoise)
+    {
+        uint32_t slimIpuDnCmdSize = MHW_VEBOX_SLIM_IPU_DN_CMD_SIZE_INUSE * sizeof(pVeboxDndiState->DW0);  //buffer size in use for SLIM IPU DN
+
+        if (nullptr == pVeboxDndiParams->pSystemMem || pVeboxDndiParams->MemSizeInBytes != sizeof(*pVeboxDndiState) || pVeboxDndiParams->MemSizeInBytes < slimIpuDnCmdSize)
+        {
+            MHW_ASSERTMESSAGE("SlimIPUDenoise size is invaild");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        MOS_SecureMemcpy(pVeboxDndiState, sizeof(*pVeboxDndiState), pVeboxDndiParams->pSystemMem, slimIpuDnCmdSize);  // only copy dw0 - dw33 for DN
+
+        pVeboxDndiState->DW3.ProgressiveDn = pVeboxDndiParams->bProgressiveDN;
+    }
 
 finish:
     return eStatus;
