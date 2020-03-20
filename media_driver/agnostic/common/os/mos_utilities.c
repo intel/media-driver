@@ -70,7 +70,7 @@ PerfUtility::PerfUtility()
 
 PerfUtility::~PerfUtility()
 {
-    for (const auto data : records)
+    for (const auto &data : records)
     {
         if (data.second)
         {

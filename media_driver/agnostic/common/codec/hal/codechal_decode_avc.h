@@ -70,7 +70,7 @@ public:
     //!
     //! \brief    Define params for AVC picture decoding
     //!
-    typedef struct
+    struct PIC_MHW_PARAMS
     {
         MHW_VDBOX_PIPE_MODE_SELECT_PARAMS  PipeModeSelectParams;
         MHW_VDBOX_SURFACE_PARAMS           SurfaceParams;
@@ -81,7 +81,7 @@ public:
         MHW_VDBOX_PIC_ID_PARAMS            PicIdParams;
         MHW_VDBOX_AVC_IMG_PARAMS           ImgParams;
         MHW_VDBOX_AVC_DIRECTMODE_PARAMS    AvcDirectmodeParams;
-    } PIC_MHW_PARAMS;
+    };
 
     //!
     //! \brief    Constructor

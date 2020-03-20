@@ -5218,7 +5218,10 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
     pOsInterface    = pRenderHal->pOsInterface;
     pMhwMiInterface = pRenderHal->pMhwMiInterface;
     dwOffset        = 0;
-    dwCount         = sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) / sizeof(uint64_t);
+    static_assert(
+        (sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) % sizeof(uint64_t)) == 0,
+        "Coeff array size must be multiple of 8");
+    dwCount         = sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) / (sizeof(uint64_t));
     MOS_ZeroMemory(&Surface, sizeof(Surface));
 
     // Register the buffer
