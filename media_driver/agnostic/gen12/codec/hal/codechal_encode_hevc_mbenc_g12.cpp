@@ -1330,6 +1330,7 @@ MOS_STATUS CodecHalHevcMbencG12::InitCurbeDataB()
     curbe.RefIDCostMode = 1; // 0: AVC and 1: linear method
     curbe.TUBasedCostSetting = 0;
     curbe.ConcurrentGroupNum = m_numberConcurrentGroup;
+    curbe.WaveFrontSplitVQFix = ((1 << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3)) == 64) ? 1 : 0;
     curbe.NumofUnitInWaveFront = m_numWavefrontInOneRegion;
     curbe.LoadBalenceEnable = 0; // when this flag is false, kernel does not use LoadBalance (or MBENC_B_FRAME_CONCURRENT_TG_DATA) buffe
     curbe.ThreadNumber = MOS_MIN(2, m_numberEncKernelSubThread);

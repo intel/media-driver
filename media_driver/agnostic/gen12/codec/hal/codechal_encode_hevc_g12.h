@@ -818,9 +818,11 @@ public:
             uint32_t   R1_4;
             struct
             {
-                uint32_t FrameQP : 7;
-                uint32_t FrameQPSign : 1;
-                uint32_t ConcurrentGroupNum : 8;
+                uint32_t FrameQP              : 7;
+                uint32_t FrameQPSign          : 1;
+                uint32_t ConcurrentGroupNum   : 4;
+                uint32_t MBZ_Reserved         : 3;
+                uint32_t WaveFrontSplitVQFix  : 1;
                 uint32_t NumofUnitInWaveFront : 16;
             };
         };

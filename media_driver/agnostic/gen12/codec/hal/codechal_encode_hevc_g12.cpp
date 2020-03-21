@@ -3419,10 +3419,10 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     // Region number must be greater than 1
     m_numberConcurrentGroup = (userFeatureData.i32Data < 1) ? 1 : userFeatureData.i32Data;
 
-    if (m_numberConcurrentGroup > 16)
+    if (m_numberConcurrentGroup > 15)
     {
-        // Region number cannot be larger than 16
-        m_numberConcurrentGroup = 16;
+        // Region number cannot be larger than 15 (4 bits fields)
+        m_numberConcurrentGroup = 15;
     }
 
     m_sizeOfHcpPakFrameStats = 9 * CODECHAL_CACHELINE_SIZE;  //Frame statistics occupying 9 caceline on gen12
@@ -3880,6 +3880,7 @@ MOS_STATUS CodechalEncHevcStateG12::SetCurbeMbEncBKernel()
     curbe.RefIDCostMode           = 1;  // 0: AVC and 1: linear method
     curbe.TUBasedCostSetting      = 0;
     curbe.ConcurrentGroupNum      = m_numberConcurrentGroup;
+     curbe.WaveFrontSplitVQFix = ((1 << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3)) == 64) ? 1 : 0;
     curbe.NumofUnitInWaveFront    = m_numWavefrontInOneRegion;
     curbe.LoadBalenceEnable       = 0;  // when this flag is false, kernel does not use LoadBalance (or MBENC_B_FRAME_CONCURRENT_TG_DATA) buffe
     curbe.ThreadNumber            = MOS_MIN(2, m_numberEncKernelSubThread);
