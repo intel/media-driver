@@ -34,8 +34,6 @@
 
 #define MHW_LACE_COLOR_COMPENSATION_LUT_POINT_NUMBER            16
 
-#define MHW_VEBOX_SLIM_IPU_DN_CMD_SIZE_INUSE                    34
-
 typedef struct _MHW_LACE_COLOR_WEIGHT_LUT
 {
     int32_t iPoint[MHW_LACE_COLOR_COMPENSATION_LUT_POINT_NUMBER];        // U5.3

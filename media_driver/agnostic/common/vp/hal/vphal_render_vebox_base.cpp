@@ -2257,7 +2257,6 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
 
     pRenderData->bDenoise       = (pSrc->pDenoiseParams                         &&
                                   (pSrc->pDenoiseParams->bEnableLuma            ||
-                                   pSrc->pDenoiseParams->bEnableSlimIPUDenoise  ||
                                    pSrc->pDenoiseParams->bEnableHVSDenoise)     &&
                                    pVeboxState->IsDnFormatSupported(pSrc));
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -889,30 +889,18 @@ typedef struct _VPHAL_HVSDENOISE_PARAMS
 } VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
 
 //!
-//! Structure VPHAL_SLIMIPU_DENOISE_PARAM
-//! \brief SLIMIPU Denoise Parameters
-//!
-typedef struct _VPHAL_SLIMIPU_DENOISE_PARAM
-{
-    uint32_t            MemSizeInBytes;
-    void *              pSystemMem;
-} VPHAL_SLIMIPU_DENOISE_PARAM, *PVPHAL_SLIMIPU_DENOISE_PARAM;
-
-//!
 //! Structure VPHAL_DENOISE_PARAMS
 //! \brief Denoise parameters
 //!
 typedef struct _VPHAL_DENOISE_PARAMS
 {
-    bool                                bEnableChroma;
-    bool                                bEnableLuma;
-    bool                                bAutoDetect;
-    float                               fDenoiseFactor;
-    VPHAL_NOISELEVEL                    NoiseLevel;
-    bool                                bEnableHVSDenoise;
-    VPHAL_HVSDENOISE_PARAMS             HVSDenoise;
-    bool                                bEnableSlimIPUDenoise;
-    VPHAL_SLIMIPU_DENOISE_PARAM         SlimIPUDenoise;
+    bool                            bEnableChroma;
+    bool                            bEnableLuma;
+    bool                            bAutoDetect;
+    float                           fDenoiseFactor;
+    VPHAL_NOISELEVEL                NoiseLevel;
+    bool                            bEnableHVSDenoise;
+    VPHAL_HVSDENOISE_PARAMS         HVSDenoise;
 } VPHAL_DENOISE_PARAMS, *PVPHAL_DENOISE_PARAMS;
 
 //!

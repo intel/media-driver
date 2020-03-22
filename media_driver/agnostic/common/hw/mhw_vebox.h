@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2020, Intel Corporation
+* Copyright (c) 2014-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -289,12 +289,6 @@ typedef struct _MHW_VEBOX_DNDI_PARAMS
     uint32_t  dwLPFWtLUT5;
     uint32_t  dwLPFWtLUT6;
     uint32_t  dwLPFWtLUT7;
-
-    //for SlimIPUDenoise
-    void *    pSystemMem = nullptr;
-    uint32_t  MemSizeInBytes;
-    bool      bEnableSlimIPUDenoise;
-
 } MHW_VEBOX_DNDI_PARAMS, *PMHW_VEBOX_DNDI_PARAMS;
 
 //!
