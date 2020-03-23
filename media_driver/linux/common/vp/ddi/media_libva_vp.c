@@ -2044,6 +2044,12 @@ VPHAL_CSPACE DdiVp_GetColorSpaceFromMediaFormat(DDI_MEDIA_FORMAT format)
     case Media_Format_422V:
     case Media_Format_P010:
     case Media_Format_IMC3:
+    case Media_Format_AYUV:
+    case Media_Format_Y210:
+    case Media_Format_Y410:
+    case Media_Format_P016:
+    case Media_Format_Y216:
+    case Media_Format_Y416:
         ColorSpace = CSpace_BT601;
         break;
     default:
