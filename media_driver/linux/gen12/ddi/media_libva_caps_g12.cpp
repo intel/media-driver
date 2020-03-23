@@ -1628,6 +1628,16 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
     else if(profile == VAProfileHEVCMain422_10)
     {
         attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10;
+    } else if(profile == VAProfileHEVCMain444)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        (*attribList)[attrib.type] = attrib.value;
+    }
+    else if(profile == VAProfileHEVCMain444_10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420 |VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
+        attrib.value |= VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV444_10;
+        (*attribList)[attrib.type] = attrib.value;
     }
     else if (profile == VAProfileVP9Profile0
           || profile == VAProfileVP9Profile2
