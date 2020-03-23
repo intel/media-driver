@@ -545,6 +545,7 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
 
     if(bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] == nullptr)
     {
+	  MOS_SafeFreeMemory(sliceBuf);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 

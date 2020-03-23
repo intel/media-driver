@@ -1068,6 +1068,7 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
         }
         MOS_FreeMemory(CurKey);
     }
+    MOS_SafeFreeMemory(CurValue);
     fclose(File);
     return eStatus;
 }
