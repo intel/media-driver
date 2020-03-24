@@ -347,6 +347,10 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
             m_pvpParams->bAPGWorkloadEnable = true;
             m_currentFrameAPGEnabled = false;
         }
+        else
+        {
+            m_pvpParams->bAPGWorkloadEnable = false;
+        }
 
         return MOS_STATUS_UNIMPLEMENTED;
     }
@@ -385,6 +389,10 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
         {
             m_pvpParams->bAPGWorkloadEnable = true;
             m_currentFrameAPGEnabled        = false;
+        }
+        else
+        {
+            m_pvpParams->bAPGWorkloadEnable = false;
         }
 
         return MOS_STATUS_UNIMPLEMENTED;
