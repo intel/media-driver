@@ -173,6 +173,10 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
                 *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN |
                     VA_ENC_INTRA_REFRESH_ROLLING_ROW;
             }
+            else if(entrypoint == VAEntrypointEncSlice && IsHevcProfile(profile))
+            {
+                *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN;
+            }
             else
             {
                 *value = VA_ENC_INTRA_REFRESH_NONE;

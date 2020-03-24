@@ -357,9 +357,9 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribEncIntraRefresh:
         {
-            if(IsAvcProfile(profile) || IsHevcProfile(profile))
+            if(IsAvcProfile(profile) || (entrypoint == VAEntrypointEncSliceLP && IsHevcProfile(profile)))
             {
-                *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN;
+                *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN | VA_ENC_INTRA_REFRESH_ROLLING_ROW;
             }
             else
             {

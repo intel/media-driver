@@ -170,7 +170,8 @@ VAStatus MediaLibvaCapsG10::GetPlatformSpecificAttrib(VAProfile profile,
         {
             if(IsAvcProfile(profile))
             {
-                *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN;
+                *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN |
+                    VA_ENC_INTRA_REFRESH_ROLLING_ROW;
             }
             else
             {

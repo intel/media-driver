@@ -3070,6 +3070,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_400P       : return GMM_FORMAT_GENERIC_8BIT;
         case Media_Format_Buffer     : return GMM_FORMAT_RENDER_8BIT;
         case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
+        case Media_Format_P016       : return GMM_FORMAT_P016_TYPE;
         case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
         case Media_Format_R10G10B10X2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;

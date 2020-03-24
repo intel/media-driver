@@ -309,9 +309,9 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribEncIntraRefresh:
         {
-            if(IsAvcProfile(profile) || IsHevcProfile(profile))
+            if(IsAvcProfile(profile) || (entrypoint == VAEntrypointEncSliceLP && IsHevcProfile(profile)))
             {
-                *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN;
+                *value = VA_ENC_INTRA_REFRESH_ROLLING_COLUMN | VA_ENC_INTRA_REFRESH_ROLLING_ROW;
             }
             else
             {
@@ -765,6 +765,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG11::ConvertMediaFmtToGmmFmt(
         case Media_Format_400P       : return GMM_FORMAT_GENERIC_8BIT;
         case Media_Format_Buffer     : return GMM_FORMAT_RENDER_8BIT;
         case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
+        case Media_Format_P016       : return GMM_FORMAT_P016_TYPE;
         case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
         case Media_Format_R10G10B10X2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
@@ -772,6 +773,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG11::ConvertMediaFmtToGmmFmt(
         case Media_Format_Y210       : return GMM_FORMAT_Y210_TYPE;
         case Media_Format_AYUV       : return GMM_FORMAT_AYUV_TYPE;
         case Media_Format_Y410       : return GMM_FORMAT_Y410_TYPE;
+        case Media_Format_Y416       : return GMM_FORMAT_Y416_TYPE;
         default                      : return GMM_FORMAT_INVALID;
     }
 }
