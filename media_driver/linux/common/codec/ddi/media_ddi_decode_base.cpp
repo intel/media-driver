@@ -1120,11 +1120,19 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         mosCtx,
         standardInfo,
         m_codechalSettings);
+
+    if (nullptr == codecHal)
+    {
+        DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
+        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        return vaStatus;
+    }
+
 #ifdef _APOGEIOS_SUPPORTED
     if (codecHal->IsApogeiosEnabled())
     {
         DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(codecHal);
-        if (nullptr == codecHal || nullptr == decoder)
+        if (nullptr == decoder)
         {
             DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -1135,7 +1143,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
 #endif
     {
         CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
-        if (nullptr == codecHal || nullptr == decoder)
+        if (nullptr == decoder)
         {
             DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
