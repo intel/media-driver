@@ -495,12 +495,11 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
                 m_registers[regIndex]));
         }
     }
-    
-    double beginCPUTimestamp = MOS_GetTime();
 
+    uint64_t beginCPUTimestamp = MOS_GetCurTime();
     uint32_t timeStamp[2];
     MOS_SecureMemcpy(timeStamp, 2*sizeof(uint32_t), &beginCPUTimestamp, 2*sizeof(uint32_t));
-    
+
     for (int i = 0; i < 2; i++)
     {
         CHK_STATUS_RETURN(StoreData(

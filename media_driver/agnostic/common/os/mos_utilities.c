@@ -30,6 +30,7 @@
 #ifdef __cplusplus
 #include "media_user_settings_mgr.h"
 #include <sstream>
+#include <chrono>
 #endif
 #include <fcntl.h>     //open
 
@@ -203,6 +204,18 @@ std::string PerfUtility::getDashString(uint32_t num)
     ss.fill('-');
     ss << std::left << "" << std::endl;
     return ss.str();
+}
+
+uint64_t MOS_GetCurTime()
+{
+    using us = std::chrono::microseconds;
+    using clock = std::chrono::steady_clock;
+
+    clock::time_point Timer = clock::now();
+    uint64_t usStartTime =
+            std::chrono::duration_cast<us>(Timer.time_since_epoch()).count();
+
+    return usStartTime;
 }
 
 #endif // __cplusplus

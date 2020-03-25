@@ -92,6 +92,14 @@ private:
     std::map<std::string, std::vector<Tick>*> records;
 };
 
+//!
+//! \brief    Get Current time
+//! \details  Get Current time in us
+//! \return   uint64_t
+//!           Returns time in us
+//!
+uint64_t MOS_GetCurTime();
+
 #endif // __cplusplus
 
 //!
