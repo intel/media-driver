@@ -611,69 +611,47 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
 }
 
 static VAStatus DdiMedia_GetChromaPitchHeight(
-    PDDI_MEDIA_SURFACE mediaSurface,
-    uint32_t *chromaWidth,
+    uint32_t fourcc,
+    uint32_t pitch,
+    uint32_t height,
     uint32_t *chromaPitch,
     uint32_t *chromaHeight)
 {
-    DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(chromaWidth, "nullptr chromaWidth", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(chromaPitch, "nullptr chromaPitch", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(chromaHeight, "nullptr chromaHeight", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    uint32_t fourcc = DdiMedia_MediaFormatToOsFormat(mediaSurface->format);
     switch(fourcc)
     {
         case VA_FOURCC_NV12:
-        case VA_FOURCC_NV21:
-            *chromaWidth = mediaSurface->iWidth;
-            *chromaHeight = mediaSurface->iHeight/2;
-            *chromaPitch = mediaSurface->iPitch;
+        case VA_FOURCC_P010:
+        case VA_FOURCC_P016:
+            *chromaHeight = MOS_ALIGN_CEIL(height, 2) / 2;
+            *chromaPitch = pitch;
             break;
         case VA_FOURCC_I420:
         case VA_FOURCC_YV12:
-            *chromaWidth = mediaSurface->iWidth / 2;
-            *chromaHeight = mediaSurface->iHeight/2;
-            *chromaPitch = mediaSurface->iPitch /2;
-            break;
-        case VA_FOURCC_P010:
-        case VA_FOURCC_P016:
-            *chromaWidth = mediaSurface->iWidth ;
-            *chromaHeight = mediaSurface->iHeight/2;
-            *chromaPitch = mediaSurface->iPitch;
+            *chromaHeight = MOS_ALIGN_CEIL(height, 2) / 2;
+            *chromaPitch = MOS_ALIGN_CEIL(pitch, 2) / 2;
             break;
         case VA_FOURCC_411P:
-            *chromaWidth = mediaSurface->iWidth / 4;
-            *chromaHeight = mediaSurface->iHeight;
-            *chromaPitch = mediaSurface->iPitch;
-            break;
         case VA_FOURCC_422H:
-            *chromaWidth = mediaSurface->iWidth / 2;
-            *chromaHeight = mediaSurface->iHeight;
-            *chromaPitch = mediaSurface->iPitch;
+        case VA_FOURCC_444P:
+            *chromaHeight = height;
+            *chromaPitch = pitch;
             break;
         case VA_FOURCC_422V:
-            *chromaWidth = mediaSurface->iWidth;
-            *chromaHeight = mediaSurface->iHeight / 2;
-            *chromaPitch = mediaSurface->iPitch;
-            break;
-        case VA_FOURCC_444P:
-            *chromaWidth = mediaSurface->iWidth;
-            *chromaHeight = mediaSurface->iHeight;
-            *chromaPitch = mediaSurface->iPitch;
-            break;
         case VA_FOURCC_IMC3:
-            *chromaWidth = mediaSurface->iWidth / 2;
-            *chromaHeight = mediaSurface->iHeight / 2;
-            *chromaPitch = mediaSurface->iPitch;
+            *chromaHeight = MOS_ALIGN_CEIL(height, 2) / 2;
+            *chromaPitch = pitch;
             break;
         default:
-            *chromaWidth = 0;
             *chromaPitch = 0;
             *chromaHeight = 0;
     }
+
     return VA_STATUS_SUCCESS;
 }
+
 
 #if !defined(ANDROID) && defined(X11_FOUND)
 
@@ -4124,81 +4102,18 @@ VAStatus DdiMedia_CreateImage(
     GMM_RESOURCE_INFO          *gmmResourceInfo;
     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
 
-    switch(format->fourcc)
-    {
-        case VA_FOURCC_RGBA:
-        case VA_FOURCC_BGRA:
-        case VA_FOURCC_ARGB:
-        case VA_FOURCC_ABGR:
-        case VA_FOURCC_BGRX:
-        case VA_FOURCC_RGBX:
-        case VA_FOURCC_XRGB:
-        case VA_FOURCC_XBGR:
-        case VA_FOURCC_R8G8B8:
-        case VA_FOURCC_RGB565:
-        case VA_FOURCC_RGBP:
-        case VA_FOURCC_BGRP:
-        case VA_FOURCC_YV12:
-        case VA_FOURCC_I420:
-        case VA_FOURCC_IYUV:
-        case VA_FOURCC_A2R10G10B10:
-        case VA_FOURCC_A2B10G10R10:
-        case VA_FOURCC_X2R10G10B10:
-        case VA_FOURCC_X2B10G10R10:
-            gmmParams.BaseHeight        = height;
-            gmmParams.Flags.Info.Linear = true;
-            break;
-        case VA_FOURCC_YUY2:
-        case VA_FOURCC_AYUV:
-        case VA_FOURCC_Y210:
-        case VA_FOURCC_Y410:
-        case VA_FOURCC_Y416:
-        case VA_FOURCC_NV12:
-        case VA_FOURCC_NV21:
-        case VA_FOURCC_P010:
-        case VA_FOURCC_P016:
-        case VA_FOURCC_411P:
-        case VA_FOURCC_422H:
-        case VA_FOURCC_444P:
-        case VA_FOURCC_422V:
-        case VA_FOURCC_IMC3:
-        case VA_FOURCC_Y800:
-        case VA_FOURCC_VYUY:
-        case VA_FOURCC_YVYU:
-        case VA_FOURCC_UYVY:
-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
-            break;
-        default:
-            MOS_FreeMemory(vaimg);
-            return VA_STATUS_ERROR_UNIMPLEMENTED;
-    }
-
     gmmParams.BaseWidth       = width;
+    gmmParams.BaseHeight      = height;
     gmmParams.ArraySize       = 1;
     gmmParams.Type            = RESOURCE_2D;
     gmmParams.Flags.Gpu.Video = true;
     gmmParams.Format          = mediaCtx->m_caps->ConvertFourccToGmmFmt(format->fourcc);
-    gmmParams.Flags.Gpu.MMC   = false;
-    if (MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrE2ECompression))
-    {
-        gmmParams.Flags.Gpu.MMC = true;
-        gmmParams.Flags.Info.MediaCompressed = 1;
-        gmmParams.Flags.Gpu.CCS = 1;
-        gmmParams.Flags.Gpu.RenderTarget = 1;
-        gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
-
-        if(MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrFlatPhysCCS))
-        {
-            gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
-        }
-    }
 
     if (gmmParams.Format == GMM_FORMAT_INVALID)
     {
         MOS_FreeMemory(vaimg);
         return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
-
     gmmResourceInfo = mediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
     if(nullptr == gmmResourceInfo)
     {
@@ -4207,21 +4122,26 @@ VAStatus DdiMedia_CreateImage(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    uint32_t gmmPitch  = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    uint32_t gmmHeight = (uint32_t)gmmResourceInfo->GetBaseHeight();
-    uint32_t UPlaneXOffset = (uint32_t)gmmResourceInfo->GetPlanarXOffset(GMM_PLANE_U);
-    uint32_t UPlaneYOffset = (uint32_t)gmmResourceInfo->GetPlanarYOffset(GMM_PLANE_U);
-    uint32_t VPlaneXOffset = (uint32_t)gmmResourceInfo->GetPlanarXOffset(GMM_PLANE_V);
-    uint32_t VPlaneYOffset = (uint32_t)gmmResourceInfo->GetPlanarYOffset(GMM_PLANE_V);
+    // Get offset from GMM
+    GMM_REQ_OFFSET_INFO reqInfo = {0};
+    reqInfo.Plane               = GMM_PLANE_U;
+    reqInfo.ReqRender           = 1;
+    gmmResourceInfo->GetOffset(reqInfo);
+    uint32_t offsetU            = reqInfo.Render.Offset;
+    MOS_ZeroMemory(&reqInfo, sizeof(GMM_REQ_OFFSET_INFO));
+    reqInfo.Plane               = GMM_PLANE_V;
+    reqInfo.ReqRender           = 1;
+    gmmResourceInfo->GetOffset(reqInfo);
+    uint32_t offsetV            = reqInfo.Render.Offset;
+    uint32_t size               = (uint32_t)gmmResourceInfo->GetSizeSurface();
+    uint32_t pitch              = (uint32_t)gmmResourceInfo->GetRenderPitch();
+    vaimg->format               = *format;
+    vaimg->format.byte_order    = VA_LSB_FIRST;
+    vaimg->width                = width;
+    vaimg->height               = height;
+    vaimg->data_size            = size;
 
-    vaimg->format                = *format;
-    vaimg->format.byte_order     = VA_LSB_FIRST;
-    vaimg->width                 = width;
-    vaimg->height                = height;
-    vaimg->data_size             = (uint32_t)gmmResourceInfo->GetSizeSurface();
-    vaimg->format.bits_per_pixel = gmmResourceInfo->GetBitsPerPixel();
-
-    switch(format->fourcc)
+     switch(format->fourcc)
     {
         case VA_FOURCC_RGBA:
         case VA_FOURCC_BGRA:
@@ -4231,93 +4151,73 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_RGBX:
         case VA_FOURCC_XRGB:
         case VA_FOURCC_XBGR:
-        case VA_FOURCC_R8G8B8:
-        case VA_FOURCC_RGB565:
         case VA_FOURCC_A2R10G10B10:
         case VA_FOURCC_A2B10G10R10:
         case VA_FOURCC_X2R10G10B10:
         case VA_FOURCC_X2B10G10R10:
-            vaimg->num_planes = 1;
-            vaimg->pitches[0] = gmmPitch;
-            vaimg->offsets[0] = 0;
-            break;
-        case VA_FOURCC_RGBP:
-        case VA_FOURCC_BGRP:
-            vaimg->num_planes = 3;
-            vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = gmmPitch;
-            vaimg->pitches[2] = gmmPitch;
-            vaimg->offsets[0] = 0;
-            vaimg->offsets[1] = gmmPitch * UPlaneYOffset + UPlaneXOffset;
-            vaimg->offsets[2] = gmmPitch * VPlaneYOffset + VPlaneXOffset;
-            break;
-        case VA_FOURCC_Y800:
+        case VA_FOURCC_R8G8B8:
+        case VA_FOURCC_RGB565:
         case VA_FOURCC_UYVY:
         case VA_FOURCC_YUY2:
+        case VA_FOURCC_VYUY:
+        case VA_FOURCC_YVYU:
         case VA_FOURCC_AYUV:
         case VA_FOURCC_Y210:
+        case VA_FOURCC_Y216:
         case VA_FOURCC_Y410:
         case VA_FOURCC_Y416:
+        case VA_FOURCC_Y800:
             vaimg->num_planes = 1;
-            vaimg->pitches[0] = gmmPitch;
+            vaimg->pitches[0] = pitch;
             vaimg->offsets[0] = 0;
             break;
         case VA_FOURCC_NV12:
         case VA_FOURCC_NV21:
-            vaimg->num_planes = 2;
-            vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = gmmPitch;
-            vaimg->offsets[0] = 0;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + 1;
-            break;
         case VA_FOURCC_P010:
         case VA_FOURCC_P016:
             vaimg->num_planes = 2;
-            vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = gmmPitch;
+            vaimg->pitches[0] = pitch;
+            vaimg->pitches[1] = pitch;
             vaimg->offsets[0] = 0;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + 2;
+            vaimg->offsets[1] = offsetU;
             break;
         case VA_FOURCC_YV12:
-        case VA_FOURCC_I420:
-        case VA_FOURCC_IYUV:
             vaimg->num_planes = 3;
-            vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = gmmPitch / 2;
-            vaimg->pitches[2] = gmmPitch / 2;
+            vaimg->pitches[0] = pitch;
+            vaimg->pitches[1] = pitch / 2;
+            vaimg->pitches[2] = pitch / 2;
             vaimg->offsets[0] = 0;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 4;
+            vaimg->offsets[1] = offsetV;
+            vaimg->offsets[2] = offsetU;
             break;
+        case VA_FOURCC_I420:
+            vaimg->num_planes = 3;
+            vaimg->pitches[0] = pitch;
+            vaimg->pitches[1] = pitch / 2;
+            vaimg->pitches[2] = pitch / 2;
+            vaimg->offsets[0] = 0;
+            vaimg->offsets[1] = offsetU;
+            vaimg->offsets[2] = offsetV;
+            break;
+        case VA_FOURCC_IMC3:
         case VA_FOURCC_411P:
+        case VA_FOURCC_422V:
         case VA_FOURCC_422H:
         case VA_FOURCC_444P:
+        case VA_FOURCC_RGBP:
+        case VA_FOURCC_BGRP:
             vaimg->num_planes = 3;
-            vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = gmmPitch;
-            vaimg->pitches[2] = gmmPitch;
+            vaimg->pitches[0] = pitch;
+            vaimg->pitches[1] = pitch;
+            vaimg->pitches[2] = pitch;
             vaimg->offsets[0] = 0;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight;
-            break;
-        case VA_FOURCC_422V:
-        case VA_FOURCC_IMC3:
-            vaimg->num_planes = 3;
-            vaimg->pitches[0] = gmmPitch;
-            vaimg->pitches[1] = gmmPitch;
-            vaimg->pitches[2] = gmmPitch;
-            vaimg->offsets[0] = 0;
-            vaimg->offsets[1] = gmmPitch * gmmHeight;
-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+            vaimg->offsets[1] = offsetU;
+            vaimg->offsets[2] = offsetV;
             break;
         default:
             MOS_FreeMemory(vaimg);
             return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
-
-    mediaCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
 
     DDI_MEDIA_BUFFER *buf  = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     if (nullptr == buf)
@@ -4757,6 +4657,122 @@ VAStatus SwizzleSurface(PDDI_MEDIA_CONTEXT mediaCtx, PGMM_RESOURCE_INFO pGmmResI
 }
 
 //!
+//! \brief  Copy plane from src to dst row by row when src and dst strides are different
+//!
+//! \param  [in] dst
+//!         Destination plane
+//! \param  [in] dstPitch
+//!         Destination plane pitch
+//! \param  [in] src
+//!         Source plane
+//! \param  [in] srcPitch
+//!         Source plane pitch
+//! \param  [in] height
+//!         Plane hight
+//!
+static void DdiMedia_CopyPlane(
+    uint8_t *dst,
+    uint32_t dstPitch,
+    uint8_t *src,
+    uint32_t srcPitch,
+    uint32_t height)
+{
+    uint32_t rowSize = std::min(dstPitch, srcPitch);
+    for (int y = 0; y < height; y += 1)
+    {
+        memcpy(dst, src, rowSize);
+        dst += dstPitch;
+        src += srcPitch;
+    }
+}
+
+//!
+//! \brief  Copy data from surface to image
+//!
+//! \param  [in] ctx
+//!         Input driver context
+//! \param  [in] surface
+//!         Pointer to surface
+//! \param  [in] image
+//!         Pointer to image
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+static VAStatus DdiMedia_CopySurfaceToImage(
+    VADriverContextP  ctx,
+    DDI_MEDIA_SURFACE *surface,
+    VAImage           *image)
+{
+    DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(ctx,       "nullptr ctx.",         VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,  "nullptr mediaCtx.",    VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    //Lock Surface
+    void *surfData = DdiMediaUtil_LockSurface(surface, MOS_LOCKFLAG_READONLY);
+    if (surfData == nullptr)
+    {
+        DDI_ASSERTMESSAGE("nullptr surfData.");
+        return vaStatus;
+    }
+
+    void *imageData = nullptr;
+    vaStatus = DdiMedia_MapBuffer(ctx, image->buf, &imageData);
+    if (vaStatus != VA_STATUS_SUCCESS)
+    {
+        DDI_ASSERTMESSAGE("Failed to map buffer.");
+        DdiMediaUtil_UnlockSurface(surface);
+        return vaStatus;
+    }
+
+    uint8_t *ySrc = (uint8_t*)surfData;
+    uint8_t *yDst = (uint8_t*)imageData;
+
+    if(surface->data_size == image->data_size)
+    {
+        MOS_SecureMemcpy(imageData, image->data_size, surfData, image->data_size);
+    }
+    else
+    {
+        DdiMedia_CopyPlane(yDst, image->pitches[0], ySrc, surface->iPitch, image->height);
+        if (image->num_planes > 1)
+        {
+            uint8_t *uSrc = ySrc + surface->iPitch * surface->iHeight;
+            uint8_t *uDst = yDst + image->offsets[1];
+            uint32_t chromaPitch;
+            uint32_t chromaHeight;
+            uint32_t imageChromaPitch;
+            uint32_t imageChromaHeight;
+            DdiMedia_GetChromaPitchHeight(DdiMedia_MediaFormatToOsFormat(surface->format), surface->iPitch, surface->iHeight, &chromaPitch, &chromaHeight);
+            DdiMedia_GetChromaPitchHeight(image->format.fourcc, image->pitches[0], image->height, &imageChromaPitch, &imageChromaHeight);
+            DdiMedia_CopyPlane(uDst, image->pitches[1], uSrc, chromaPitch, imageChromaHeight);
+
+            if(image->num_planes > 2)
+            {
+                uint8_t *vSrc = uSrc + chromaPitch * chromaHeight;
+                uint8_t *vDst = yDst + image->offsets[2];
+                DdiMedia_CopyPlane(vDst, image->pitches[2], vSrc, chromaPitch, imageChromaHeight);
+            }
+        }
+    }
+
+    vaStatus = DdiMedia_UnmapBuffer(ctx, image->buf);
+    if (vaStatus != VA_STATUS_SUCCESS)
+    {
+        DDI_ASSERTMESSAGE("Failed to unmap buffer.");
+        DdiMediaUtil_UnlockSurface(surface);
+        return vaStatus;
+    }
+
+    DdiMediaUtil_UnlockSurface(surface);
+
+    return vaStatus;
+}
+
+//!
 //! \brief  Retrive surface data into a VAImage
 //! \details    Image must be in a format supported by the implementation
 //!
@@ -4862,65 +4878,17 @@ VAStatus DdiMedia_GetImage(
     DDI_CHK_NULL(mediaSurface,     "nullptr mediaSurface.",      VA_STATUS_ERROR_INVALID_SURFACE);
     DDI_CHK_NULL(mediaSurface->bo, "nullptr mediaSurface->bo.",  VA_STATUS_ERROR_INVALID_SURFACE);
 
-    //Lock Surface
-    void *surfData = DdiMediaUtil_LockSurface(mediaSurface, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_NO_SWIZZLE));
-    if (surfData == nullptr)
-    {
-        DDI_ASSERTMESSAGE("nullptr surfData.");
-        if(target_surface != VA_INVALID_SURFACE)
-        {
-            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
-        }
-        return vaStatus;
-    }
+    vaStatus = DdiMedia_CopySurfaceToImage(ctx, mediaSurface, vaimg);
 
-    void *imageData = nullptr;
-    vaStatus = DdiMedia_MapBuffer(ctx, vaimg->buf, &imageData);
-    if (vaStatus != VA_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("Failed to map buffer.");
-        DdiMediaUtil_UnlockSurface(mediaSurface);
-        if(target_surface != VA_INVALID_SURFACE)
-        {
-            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
-        }
-        return vaStatus;
-    }
-
-    //Copy data from surface to image
-    if(mediaSurface->TileType == I915_TILING_NONE)
-    {
-        vaStatus = MOS_SecureMemcpy(imageData, vaimg->data_size, surfData, vaimg->data_size);
-    }
-    else
-    {
-        //Mos_SwizzleData((uint8_t*)surfData, (uint8_t *)imageData, (MOS_TILE_TYPE)mediaSurface->TileType, MOS_TILE_LINEAR, vaimg->data_size / mediaSurface->iPitch, mediaSurface->iPitch, mediaSurface->uiMapFlag);
-        vaStatus = SwizzleSurface(mediaSurface->pMediaCtx,mediaSurface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)mediaSurface->TileType, (uint8_t *)imageData, false);
-    }
     if (vaStatus != MOS_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("Failed to copy surface to image buffer data!");
-        DdiMediaUtil_UnlockSurface(mediaSurface);
         if(target_surface != VA_INVALID_SURFACE)
         {
             DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
         }
         return vaStatus;
     }
-
-    vaStatus = DdiMedia_UnmapBuffer(ctx, vaimg->buf);
-    if (vaStatus != VA_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("Failed to unmap buffer.");
-        DdiMediaUtil_UnlockSurface(mediaSurface);
-        if(target_surface != VA_INVALID_SURFACE)
-        {
-            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
-        }
-        return vaStatus;
-    }
-
-    DdiMediaUtil_UnlockSurface(mediaSurface);
 
     //Destroy temp surface if created
     if(target_surface != VA_INVALID_SURFACE)
@@ -4929,36 +4897,6 @@ VAStatus DdiMedia_GetImage(
     }
 
     return VA_STATUS_SUCCESS;
-}
-
-//!
-//! \brief  Copy plane from src to dst row by row when src and dst strides are different
-//!
-//! \param  [in] dst
-//!         Destination plane
-//! \param  [in] dstPitch
-//!         Destination plane pitch
-//! \param  [in] src
-//!         Source plane
-//! \param  [in] srcPitch
-//!         Source plane pitch
-//! \param  [in] height
-//!         Plane hight
-//!
-static void DdiMedia_CopyPlane(
-    uint8_t *dst,
-    uint32_t dstPitch,
-    uint8_t *src,
-    uint32_t srcPitch,
-    uint32_t height)
-{
-    uint32_t rowSize = std::min(dstPitch, srcPitch);
-    for (int y = 0; y < height; y += 1)
-    {
-        memcpy(dst, src, rowSize);
-        dst += dstPitch;
-        src += srcPitch;
-    }
 }
 
 //!
@@ -5152,10 +5090,9 @@ VAStatus DdiMedia_PutImage(
                 uPlane.iWidth              = src_width;
                 uPlane.iRealHeight         = src_height;
                 uPlane.iHeight             = src_height;
-                uint32_t chromaWidth       = 0;
                 uint32_t chromaHeight      = 0;
                 uint32_t chromaPitch       = 0;
-                DdiMedia_GetChromaPitchHeight(&uPlane, &chromaWidth, &chromaPitch, &chromaHeight);
+                DdiMedia_GetChromaPitchHeight(DdiMedia_MediaFormatToOsFormat(uPlane.format), uPlane.iPitch, uPlane.iHeight, &chromaPitch, &chromaHeight);
 
                 uint8_t *uSrc = (uint8_t *)imageData + vaimg->offsets[1];
                 uint8_t *uDst = yDst + mediaSurface->iPitch * mediaSurface->iHeight;

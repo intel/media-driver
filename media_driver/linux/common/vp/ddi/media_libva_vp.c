@@ -148,6 +148,94 @@ bool VpIs16UsrPtrPitch(uint32_t pitch, DDI_MEDIA_FORMAT format)
     return status;
 }
 
+VAStatus VpGetExternalSurfaceInfo(
+    PDDI_MEDIA_SURFACE pMediaSurface,
+    PVPHAL_SURFACE pVphalSurface)
+{
+    if (pMediaSurface->pSurfDesc)
+    {
+        if (pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM ||
+            pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+        {
+            pVphalSurface->OsResource.bExternalSurface = true;
+
+            switch (pMediaSurface->pSurfDesc->uiPlanes)
+            {
+                case 1:
+                    pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                    break;
+                case 2:
+                    pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                    pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                    pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                    pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                    pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    break;
+                case 3:
+                    pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                    pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                    pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                    pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
+                    pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    break;
+                default:
+                    DDI_ASSERTMESSAGE("Invalid plane number.");
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+        }
+        // add 16aligned UsrPtr mode support
+        else if (pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+        {
+            pVphalSurface->b16UsrPtr = VpIs16UsrPtrPitch(pMediaSurface->iPitch, pMediaSurface->format);
+            if (pVphalSurface->b16UsrPtr)
+            {
+                pVphalSurface->dwPitch                   = pMediaSurface->iPitch;
+                pVphalSurface->OsResource.iPitch         = pMediaSurface->iPitch;
+                pVphalSurface->OsResource.iWidth         = pMediaSurface->iWidth;
+                pVphalSurface->OsResource.iHeight        = pMediaSurface->iHeight;
+                pVphalSurface->OsResource.b16UsrPtrMode  = true;
+                switch (pMediaSurface->format)
+                {
+                    case Media_Format_NV12:
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                        break;
+                    case Media_Format_YV12:
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        break;
+                    case Media_Format_A8R8G8B8:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                pVphalSurface->OsResource.b16UsrPtrMode = false;
+            }
+        }
+        else
+        {
+            DDI_ASSERTMESSAGE("Unsupported memory type.");
+            return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
+        }
+    }
+    else
+    {
+        pVphalSurface->b16UsrPtr                   = false;
+        pVphalSurface->OsResource.b16UsrPtrMode    = false;
+        pVphalSurface->OsResource.bExternalSurface = false;
+    }
+    return VA_STATUS_SUCCESS;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //! \purpose map from media format to vphal format
 //! \params
@@ -1433,49 +1521,10 @@ DdiVp_SetProcPipelineParams(
         DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
     }
 
-    // add 16aligned UsrPtr mode support
-    if (pMediaSrcSurf->pSurfDesc && (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
-    {
-        pVpHalSrcSurf->b16UsrPtr = VpIs16UsrPtrPitch(pMediaSrcSurf->iPitch, pMediaSrcSurf->format);
-        if (pVpHalSrcSurf->b16UsrPtr)
-        {
-            pVpHalSrcSurf->dwPitch                   = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iPitch         = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iWidth         = pMediaSrcSurf->iWidth;
-            pVpHalSrcSurf->OsResource.iHeight        = pMediaSrcSurf->iHeight;
-            pVpHalSrcSurf->OsResource.b16UsrPtrMode  = true;
-            switch (pMediaSrcSurf->format)
-            {
-                case Media_Format_NV12:
-                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
-                    break;
-                case Media_Format_YV12:
-                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[2];
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
-                    break;
-                case Media_Format_A8R8G8B8:
-                    break;
-                default:
-                    break;
-            }
-        }
-        else
-        {
-            pVpHalSrcSurf->OsResource.b16UsrPtrMode = false;
-        }
-    }
-    else
-    {
-        pVpHalSrcSurf->b16UsrPtr                 = false;
-        pVpHalSrcSurf->OsResource.b16UsrPtrMode  = false;
-    }
+    // Add external surface info
+    vaStatus = VpGetExternalSurfaceInfo(pMediaSrcSurf, pVpHalSrcSurf);
+    DDI_CHK_RET(vaStatus, "Failed to update external surface.");
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -3219,24 +3268,10 @@ VAStatus DdiVp_BeginPicture(
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
-    if (pMediaTgtSurf->pSurfDesc && (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
-    {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = VpIs16UsrPtrPitch(pMediaTgtSurf->iPitch, pMediaTgtSurf->format);
-        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr)
-        {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = true;
-        }
-        else
-        {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
-        }
-    }
-    else
-    {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = false;
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
-    }
+
+    // Get external surface info
+    vaStatus = VpGetExternalSurfaceInfo(pMediaTgtSurf, pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]);
+
     // increase render target count
     pVpHalRenderParams->uDstCount++;
 
