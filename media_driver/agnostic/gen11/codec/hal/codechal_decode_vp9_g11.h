@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -79,15 +79,6 @@ public:
     MOS_STATUS AllocateResourcesVariableSizes() override;
 
     MOS_STATUS DetermineDecodePhase() override;
-
-    //!
-    //! \brief  Sets cenc decoder batch buffer
-    //! \param    [in] cmdBuffer
-    //!           Pointer of command buffer.
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer) override;
 
 protected:
     //!
