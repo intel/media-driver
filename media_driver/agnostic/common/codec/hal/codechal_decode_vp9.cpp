@@ -1894,7 +1894,7 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
 
     uint32_t renderingFlags = m_videoContextUsesNullHw;
 
-    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     //submit command buffer
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(

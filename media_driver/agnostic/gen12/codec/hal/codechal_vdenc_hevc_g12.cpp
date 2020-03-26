@@ -7259,12 +7259,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SubmitCommandBuffer(
 
     if (IsLastPass())
     {
-        if (m_osInterface->osCpInterface->IsHMEnabled())
-        {
-            HalOcaInterface::DumpCpParam(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->osCpInterface->GetOcaDumper());
-        }
-
-        HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface->pOsContext);
+        HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
     }
 
     if (UseRenderCommandBuffer() || m_numPipe == 1)

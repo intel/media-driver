@@ -1184,7 +1184,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
     VP_RENDER_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, CmdBuffer));
 
-    HalOcaInterface::On1stLevelBBEnd(*CmdBuffer, *pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(*CmdBuffer, *pOsInterface);
 
     if (pOsInterface->bNoParsingAssistanceInKmd)
     {

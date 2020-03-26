@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1115,7 +1115,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
     }
 
-    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *osInterface);
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));

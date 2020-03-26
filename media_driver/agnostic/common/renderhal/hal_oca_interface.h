@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -91,12 +91,12 @@ public:
     //!         level batch buffer.
     //! \param  [in/out] cmdBuffer
     //!         Command buffer for current BB. hOcaBuf in cmdBuffer will be updated.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
+    //! \param  [in] osInterface
+    //!         Reference to MOS_INTERFACE.
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    static void On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
+    static void On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface);
 
     //!
     //! \brief  Oca operation which should be called before sending start sub level batch buffer command.
@@ -197,19 +197,6 @@ public:
     //!
     static void DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper);
 
-    //!
-    //! \brief  Add cp parameters to oca log section.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \param  [in] pCpDumper
-    //!         Pointer to cp dumper object.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void DumpCpParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pCpDumper);
-
 private:
     //!
     //! \brief  Error handle function.
@@ -245,6 +232,19 @@ private:
     //!         No return value. Handle all exception inside the function.
     //!
     static void RemoveOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
+
+    //!
+    //! \brief  Add cp parameters to oca log section.
+    //! \param  [in] ocaInterface
+    //!         Reference to MosOcaInterface.
+    //! \param  [in] hOcaBuf
+    //!         Reference to MOS_OCA_BUFFER_HANDLE.
+    //! \param  [in] pCpDumper
+    //!         Pointer to cp dumper object.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &hOcaBuf, void *pCpDumper);
 
     // Private functions to ensure class singleton.
     HalOcaInterface();

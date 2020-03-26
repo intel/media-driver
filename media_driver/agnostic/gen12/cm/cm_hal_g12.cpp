@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -957,7 +957,7 @@ MOS_STATUS CM_HAL_G12_X::SubmitCommands(
                                                                nullptr,
                                                                &pipeControlParams));
 
-    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *osInterface);
     //Couple to the BB_START
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
 
