@@ -1277,6 +1277,24 @@ void FreeForMediaContext(PDDI_MEDIA_CONTEXT mediaCtx)
     return;
 }
 
+void DestroyMediaContextMutex(PDDI_MEDIA_CONTEXT mediaCtx)
+{
+    // destroy the mutexs
+    DdiMediaUtil_DestroyMutex(&mediaCtx->SurfaceMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->BufferMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->ImageMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->DecoderMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->EncoderMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->VpMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
+#if !defined(ANDROID) && defined(X11_FOUND)
+    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
+#endif
+    return;
+}
+
 //!
 //! \brief  Initialize
 //! 
@@ -1607,6 +1625,7 @@ VAStatus DdiMedia__Initialize (
     if(gmmStatus != GMM_SUCCESS)
     {
         DDI_ASSERTMESSAGE("gmm init failed.");
+        DestroyMediaContextMutex(mediaCtx);
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
@@ -1620,6 +1639,7 @@ VAStatus DdiMedia__Initialize (
     if(gmmStatus != GMM_SUCCESS)
     {
         DDI_ASSERTMESSAGE("gmm init failed.");
+        DestroyMediaContextMutex(mediaCtx);
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
@@ -1663,6 +1683,8 @@ VAStatus DdiMedia__Initialize (
         if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE("Unable to create MOS device context.");
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
     }
@@ -1673,6 +1695,8 @@ VAStatus DdiMedia__Initialize (
         if (mediaCtx->m_osContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
@@ -1696,6 +1720,8 @@ VAStatus DdiMedia__Initialize (
         if (MOS_STATUS_SUCCESS != eStatus)
         {
             MOS_OS_ASSERTMESSAGE("Unable to initialize OS context.");
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
@@ -1704,6 +1730,8 @@ VAStatus DdiMedia__Initialize (
         if (mediaCtx->m_cmdBufMgr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE(" nullptr returned by CmdBufMgr::GetObject");
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
@@ -1711,6 +1739,8 @@ VAStatus DdiMedia__Initialize (
         if (ret != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE(" cmdBufMgr Initialization failed");
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
@@ -1719,6 +1749,8 @@ VAStatus DdiMedia__Initialize (
         if (mediaCtx->m_gpuContextMgr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE(" nullptr returned by GpuContextMgr::GetObject");
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
     }
