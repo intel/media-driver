@@ -1155,6 +1155,12 @@ VAStatus DdiMediaDecode::CreateCodecHal(
 
     m_codechalSettings->enableCodecMmc = false;
     m_codechalSettings->sfcInUseHinted = true;
+
+    if (m_ddiDecodeAttr && m_ddiDecodeAttr->uiEncryptionType)
+    {
+        m_codechalSettings->secureMode = true;
+    }
+
     if (codecHal->Allocate(m_codechalSettings) != MOS_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("Failure in decode allocate.\n");

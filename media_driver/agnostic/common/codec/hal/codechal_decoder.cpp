@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -522,7 +522,10 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
     }
 
-    m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface);
+    if (codecHalSettings->secureMode)
+    {
+        m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface);
+    }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_downsamplingHinted = codecHalSettings->downsamplingHinted ? true : false;
