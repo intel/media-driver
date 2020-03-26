@@ -241,7 +241,7 @@ void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_contro
 
 #define MAX_ENGINE_INSTANCE_NUM 8
 
-int mos_query_engines(int fd,
+int mos_query_engines(struct mos_bufmgr *bufmgr,
                       __u16 engine_class,
                       __u64 caps,
                       unsigned int *nengine,

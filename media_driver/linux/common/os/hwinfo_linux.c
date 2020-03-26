@@ -109,12 +109,14 @@ Output:
     gtSystemInfo - describing current system information
 \*****************************************************************************/
 MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
+                          MOS_BUFMGR           *pDrmBufMgr,
                           PLATFORM             *gfxPlatform,
                           MEDIA_FEATURE_TABLE  *skuTable,
                           MEDIA_WA_TABLE       *waTable,
                           MEDIA_SYSTEM_INFO    *gtSystemInfo)
 {
     if ((fd < 0) ||
+        (pDrmBufMgr == nullptr) ||
         (gfxPlatform == nullptr) ||
         (skuTable == nullptr) ||
         (waTable == nullptr) ||
@@ -170,7 +172,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     {
         unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
         struct i915_engine_class_instance uengines[MAX_ENGINE_INSTANCE_NUM];
-        if (mos_query_engines(fd,I915_ENGINE_CLASS_VIDEO,0,&nengine,uengines) == 0)
+        if (mos_query_engines(pDrmBufMgr,I915_ENGINE_CLASS_VIDEO,0,&nengine,uengines) == 0)
         {
             gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
         }
@@ -184,7 +186,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     {
         unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
         struct i915_engine_class_instance uengines[MAX_ENGINE_INSTANCE_NUM];
-        if (mos_query_engines(fd,I915_ENGINE_CLASS_VIDEO_ENHANCE,0,&nengine,uengines) == 0)
+        if (mos_query_engines(pDrmBufMgr,I915_ENGINE_CLASS_VIDEO_ENHANCE,0,&nengine,uengines) == 0)
         {
             MOS_OS_ASSERT(nengine <= MAX_ENGINE_INSTANCE_NUM);
             gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled = nengine;

@@ -415,7 +415,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_ZeroMemory(&skuTable, sizeof(skuTable));
             MOS_ZeroMemory(&waTable, sizeof(waTable));
             MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
-            eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
+            eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");

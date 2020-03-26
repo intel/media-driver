@@ -4168,7 +4168,7 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
     return context;
 }
 
-int mos_query_engines(int fd,
+int mos_query_engines(struct mos_bufmgr *bufmgr,
                       __u16 engine_class,
                       __u64 caps,
                       unsigned int *nengine,
@@ -4178,6 +4178,7 @@ int mos_query_engines(int fd,
     struct drm_i915_query_item query_item;
     struct drm_i915_query_engine_info *engines = nullptr;
     int ret, len;
+    int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
 
     memclear(query_item);
     query_item.query_id = DRM_I915_QUERY_ENGINE_INFO;

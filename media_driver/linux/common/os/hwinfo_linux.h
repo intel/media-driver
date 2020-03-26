@@ -44,6 +44,7 @@
 extern MOS_STATUS HWInfo_GetGfxProductFamily(int32_t fd, PRODUCT_FAMILY &eProductFamily);
 
 extern MOS_STATUS HWInfo_GetGfxInfo(int32_t    fd,
+                          MOS_BUFMGR           *pDrmBufMgr,
                           PLATFORM             *gfxPlatform,
                           MEDIA_FEATURE_TABLE  *skuTable,
                           MEDIA_WA_TABLE       *waTable,

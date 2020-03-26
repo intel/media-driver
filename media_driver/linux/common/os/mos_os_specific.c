@@ -1340,7 +1340,7 @@ MOS_STATUS Linux_InitContext(
         pOsDriverContext->iDeviceId = iDeviceId;
 
         MOS_OS_CHK_STATUS_MESSAGE(
-            HWInfo_GetGfxInfo(pOsDriverContext->fd, &pContext->platform, &pContext->SkuTable, &pContext->WaTable, &pContext->gtSystemInfo),
+            HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &pContext->platform, &pContext->SkuTable, &pContext->WaTable, &pContext->gtSystemInfo),
             "Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
 
         pOsDriverContext->SkuTable     = pContext->SkuTable;

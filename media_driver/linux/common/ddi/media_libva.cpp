@@ -1491,7 +1491,7 @@ VAStatus DdiMedia__Initialize (
 
     // get Sku/Wa tables and platform information
     PLATFORM platform;
-    MOS_STATUS eStatus = HWInfo_GetGfxInfo(mediaCtx->fd, &platform, skuTable, waTable, mediaCtx->pGtSystemInfo);
+    MOS_STATUS eStatus = HWInfo_GetGfxInfo(mediaCtx->fd, mediaCtx->pDrmBufMgr, &platform, skuTable, waTable, mediaCtx->pGtSystemInfo);
     if( MOS_STATUS_SUCCESS != eStatus)
     {
         DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");

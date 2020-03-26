@@ -197,7 +197,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
             __u64 caps = 0;
 
             MOS_ZeroMemory(engine_map, sizeof(engine_map));
-            if (mos_query_engines(osParameters->fd,engine_class,caps,&nengine,engine_map))
+            if (mos_query_engines(osParameters->bufmgr,engine_class,caps,&nengine,engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
                 return MOS_STATUS_UNKNOWN;
@@ -220,7 +220,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
             SetEngineQueryFlags(createOption, caps);
 
             MosUtilities::MosZeroMemory(engine_map, sizeof(engine_map));
-            if (mos_query_engines(osParameters->fd,engine_class,caps,&nengine,engine_map))
+            if (mos_query_engines(osParameters->bufmgr,engine_class,caps,&nengine,engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
                 return MOS_STATUS_UNKNOWN;
