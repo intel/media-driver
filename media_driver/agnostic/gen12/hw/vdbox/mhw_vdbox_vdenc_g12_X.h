@@ -1852,8 +1852,6 @@ public:
             auto vp9PicParams = params->pVp9EncPicParams;
             auto tileCodingParams = paramsG12->pTileCodingParams;
 
-            cmd.DW8.TileStreamoutOffsetEnable = 1;
-
             if (tileCodingParams == nullptr)
             {
                 cmd.DW2.NextsliceMbLcuStartXPosition = CODECHAL_GET_WIDTH_IN_BLOCKS(vp9PicParams->SrcFrameWidthMinus1, CODEC_VP9_SUPER_BLOCK_WIDTH);
@@ -1881,6 +1879,7 @@ public:
                 cmd.DW3.TileNumber                   = paramsG12->dwTileId;
 
                 //Frame Stats Offset
+                cmd.DW8.TileStreamoutOffsetEnable = 1;
                 cmd.DW8.TileStreamoutOffset = (paramsG12->dwTileId * 19); // 3 CLs or 48 DWs of statistics data + 16CLs or 256 DWs of Histogram data
 
                 uint32_t tileStartXInSBs = (cmd.DW4.TileStartCtbX / CODEC_VP9_SUPER_BLOCK_WIDTH);
@@ -1888,6 +1887,10 @@ public:
                 //Aligned Tile height & frame width
                 uint32_t tileHeightInSBs = (cmd.DW5.TileHeight + 1 + (CODEC_VP9_SUPER_BLOCK_HEIGHT - 1)) / CODEC_VP9_SUPER_BLOCK_HEIGHT;
                 uint32_t frameWidthInSBs = (vp9PicParams->SrcFrameWidthMinus1 + 1 + (CODEC_VP9_SUPER_BLOCK_WIDTH - 1)) / CODEC_VP9_SUPER_BLOCK_WIDTH;
+
+                cmd.DW6.StreaminOffsetEnable = 1;
+                //StreamIn data is 4 CLs per LCU
+                cmd.DW6.TileStreaminOffset = (tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs) * (4);
 
                 // If Tile Column, compute PAK Object StreamOut Offsets
                 uint32_t tileLCUStreamOutOffsetInBytes = 0;
@@ -1906,9 +1909,6 @@ public:
 
                 if (cmd.DW4.TileStartCtbY == 0)
                 {
-                    cmd.DW6.StreaminOffsetEnable = 1;
-                    //StreamIn data is 4 CLs per LCU
-                    cmd.DW6.TileStreaminOffset = (tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs) * (4);
                     //RowStore Offset Computation
                     uint32_t num32x32sInX = (cmd.DW4.TileStartCtbX) / 32;
                     cmd.DW7.RowStoreOffsetEnable = 1;
