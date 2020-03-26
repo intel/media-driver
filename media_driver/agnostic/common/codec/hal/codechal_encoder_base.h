@@ -1627,13 +1627,13 @@ public:
     // ME
     MHW_KERNEL_STATE                m_meKernelStates[CODECHAL_ENCODE_ME_IDX_NUM];     //!< ME kernel states
     MeKernelBindingTable            m_meBindingTable = {};                            //!< ME binding table
-    bool                            bStreamOutEnable;
-    MOS_RESOURCE                    StreamOutBuffer;               // StreamOut buffer
+    bool                            bStreamOutEnable = false;
+    MOS_RESOURCE                    StreamOutBuffer = {};               // StreamOut buffer
 
     //GVA paramters to change inter and intra rounding
-    bool                            bCoeffRoundTag;
-    uint32_t                        uiRoundIntra;
-    uint32_t                        uiRoundInter;
+    bool                            bCoeffRoundTag = false;
+    uint32_t                        uiRoundIntra = 0;
+    uint32_t                        uiRoundInter = 0;
 
     // Ds+Copy kernel optimization
     uint8_t                         m_outputChromaFormat = (uint8_t)HCP_CHROMA_FORMAT_YUV420;     //!< 1: 420 2: 422 3: 444
@@ -1708,14 +1708,14 @@ public:
     MHW_VDBOX_NODE_IND              m_vdboxIndex = MHW_VDBOX_NODE_MAX;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
     PMOS_GPUCTX_CREATOPTIONS        m_gpuCtxCreatOpt = nullptr; //!< Used for creating GPU context
-    bool                            intraModeMaskControl;
-    uint32_t                        intraModeMask;  // to disable intra mode
-    bool                            interMbTransformSizeControl;
-    bool                            interMbTransform8x8Enabled;
+    bool                            intraModeMaskControl = false;
+    uint32_t                        intraModeMask = 0;  // to disable intra mode
+    bool                            interMbTransformSizeControl = false;
+    bool                            interMbTransform8x8Enabled = false;
 
-    PMOS_RESOURCE                   presMbInlineData;
-    PMOS_RESOURCE                   presMbConstSurface;
-    PMOS_RESOURCE                   presVMEOutSurface;
+    PMOS_RESOURCE                   presMbInlineData = nullptr;
+    PMOS_RESOURCE                   presMbConstSurface = nullptr;
+    PMOS_RESOURCE                   presVMEOutSurface = nullptr;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
