@@ -437,6 +437,22 @@ VAStatus DdiMediaUtil_AllocateSurface(
     if (!DdiMediaUtil_IsExternalSurface(mediaSurface) ||
         mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
+        switch (gmmResourceInfo->GetTileType())
+        {
+            case GMM_TILED_Y:
+                tileformat = I915_TILING_Y;
+                break;
+            case GMM_TILED_X:
+                tileformat = I915_TILING_X;
+                break;
+            case GMM_NOT_TILED:
+                tileformat = I915_TILING_NONE;
+                break;
+            default:
+                tileformat = I915_TILING_NONE;
+                break;
+        }
+
         unsigned long  ulPitch = 0;
         if ( tileformat == I915_TILING_NONE )
         {

@@ -4847,7 +4847,7 @@ VAStatus DdiMedia_GetImage(
             DDI_ASSERTMESSAGE("Unsupported surface type.");
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
         }
-        target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE);
+        target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC);
         DDI_CHK_RET(vaStatus, "Create temp surface failed.");
 
         VARectangle srcRect, dstRect;
