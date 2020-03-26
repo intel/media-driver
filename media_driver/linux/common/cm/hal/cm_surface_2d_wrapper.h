@@ -20,42 +20,42 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_2d_codec_wrapper.cpp
-//! \brief     Contains class CmSurface2DCodecWrapper definitions.
+//! \file      cm_surface_2d_wrapper.h
+//! \brief     Contains class CmSurface2DWrapper declaration.
 //!
 
-#include "cm_surface_2d_codec_wrapper.h"
-#include "cm_device_rt.h"
-#include "cm_surface_2d_rt.h"
+#ifndef MEDIADRIVER_LINUX_COMMON_CM_HAL_CMSURFACE2DWRAPPER_H_
+#define MEDIADRIVER_LINUX_COMMON_CM_HAL_CMSURFACE2DWRAPPER_H_
 
+#include "cm_def.h"
+#include "cm_surface_2d.h"
+
+namespace CMRT_UMD
+{
+class CmDevice;
+typedef CmSurface2D CmSurface2DWrapper;
+};  // namespace
+
+using CMRT_UMD::CmDevice;
+using CMRT_UMD::CmSurface2DWrapper;
+using CMRT_UMD::CmSurface2D;
 int32_t CreateCmSurface2D(CmDevice *cmDevice,
                           uint32_t width,
                           uint32_t height,
                           CM_SURFACE_FORMAT format,
-                          CmSurface2DCodecWrapper **cmSurface)
-{
-    return cmDevice->CreateSurface2D(width, height, format, *cmSurface);
-}
+                          CmSurface2DWrapper **cmSurface);
 
-int32_t CreateCmSurface2D(CmDevice *cmDevice,
+int32_t CreateCmSurface2D(CmDevice *device,
                           MOS_RESOURCE *mosResource,
-                          CmSurface2DCodecWrapper **cmSurface)
-{
-    return cmDevice->CreateSurface2D(mosResource, *cmSurface);
-}
+                          CmSurface2DWrapper **cmSurface);
 
 int32_t DestroyCmSurface2D(CmDevice *cmDevice,
-                           CmSurface2DCodecWrapper **cmSurface)
-{
-    return cmDevice->DestroySurface(*cmSurface);
-}
+                           CmSurface2DWrapper **cmSurface);
 
 int32_t UpdateCmSurface2D(CmDevice *cmDevice,
                           MOS_RESOURCE *mosResource,
-                          CmSurface2DCodecWrapper **cmSurface)
-{
-    return cmDevice->UpdateSurface2D(mosResource, *cmSurface,
-                                     MOS_CM_RESOURCE_USAGE_SurfaceState);
-}
+                          CmSurface2DWrapper **cmSurface);
 
-CmSurface2D* GetCmSurface2D(CmSurface2DCodecWrapper *cmSurface) { return cmSurface; }
+CmSurface2D* GetCmSurface2D(CmSurface2DWrapper *cmSurface);
+
+#endif  // #ifndef MEDIADRIVER_LINUX_COMMON_CM_HAL_CMSURFACE2DWRAPPER_H_

@@ -29,21 +29,21 @@
 #include "codechal_encode_csc_ds_g12.h"
 #include "codechal_kernel_header_g12.h"
 
-#include "cm_surface_2d_codec_wrapper.h"
+#include "cm_surface_2d_wrapper.h"
 
 struct SurfaceParamsCscMdf
 {
-    CmSurface2DCodecWrapper    *psInputSurface = nullptr;
-    CmSurface2DCodecWrapper    *psOutput4xDsSurface = nullptr;
-    CmSurface2DCodecWrapper    *psOutput2xDsSurface = nullptr;
-    CmSurface2DCodecWrapper    *psOutputCopiedSurface = nullptr;
-    CmBuffer                   *presMBVProcStatsBuffer = nullptr;
-    CmBuffer                   *presHistoryBuffer = nullptr;
-    SurfaceIndex               *pHistBufSurfIdx = nullptr;
-    CmBuffer                   *presHistorySumBuffer = nullptr;
-    SurfaceIndex               *pHistSumBufSurfIdx = nullptr;
-    CmBuffer                   *presMultiThreadTaskBuffer = nullptr;
-    SurfaceIndex               *pMTTaskSumBufSurfIdx = nullptr;
+    CmSurface2DWrapper    *psInputSurface = nullptr;
+    CmSurface2DWrapper    *psOutput4xDsSurface = nullptr;
+    CmSurface2DWrapper    *psOutput2xDsSurface = nullptr;
+    CmSurface2DWrapper    *psOutputCopiedSurface = nullptr;
+    CmBuffer              *presMBVProcStatsBuffer = nullptr;
+    CmBuffer              *presHistoryBuffer = nullptr;
+    SurfaceIndex          *pHistBufSurfIdx = nullptr;
+    CmBuffer              *presHistorySumBuffer = nullptr;
+    SurfaceIndex          *pHistSumBufSurfIdx = nullptr;
+    CmBuffer              *presMultiThreadTaskBuffer = nullptr;
+    SurfaceIndex          *pMTTaskSumBufSurfIdx = nullptr;
 };
 
 class CodechalEncodeCscDsMdfG12 : public CodechalEncodeCscDsG12

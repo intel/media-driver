@@ -35,7 +35,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state_manager_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_command_buffer_os.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_codec_wrapper.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_wrapper.cpp)
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_csync.h
@@ -51,7 +51,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper_os.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_ish.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_codec_wrapper.h)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_wrapper.h)
 
 set(SOURCES_
     ${SOURCES_}
