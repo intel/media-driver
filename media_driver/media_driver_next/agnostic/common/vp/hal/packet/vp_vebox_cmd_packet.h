@@ -407,6 +407,36 @@ public:
     MOS_STATUS SetSfcCSCParams(PSFC_CSC_PARAMS cscParams);
 
     //!
+    //! \brief    Setup CSC Params for Vebox back end
+    //! \details  Setup surface CSC Params for Vebox
+    //! \param    [in] cscParams
+    //!           CSC Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams);
+
+    //!
+    //! \brief    Setup Vebox Output Alpha Value
+    //! \details  Setup Vebox Output Alpha Value
+    //! \param    [in] cscParams
+    //!           CSC Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscParams);
+
+    //!
+    //! \brief    Setup Vebox Chroma sub sampling
+    //! \details  Setup Vebox Chroma sub sampling
+    //! \param    [in] cscParams
+    //!           CSC Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetVeboxChromasitingParams(PVEBOX_CSC_PARAMS cscParams);
+
+    //!
     //! \brief    Setup Roattion/Mirror Params for Vebox/SFC
     //! \details  Setup surface Roattion/Mirror Params for Vebox/SFC
     //! \param    [in] rotMirParams
@@ -833,6 +863,14 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS AddVeboxDndiState();
+
+    //!
+    //! \brief    Add vebox IECP state
+    //! \details  Add vebox IECP state
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS AddVeboxIECPState();
     //!
     //! \brief    Vebox set up vebox state heap
     //! \details  Setup Vebox indirect states: DNDI and etc
@@ -892,9 +930,9 @@ protected:
 
     VPHAL_CSPACE                m_CscOutputCspace = {};                            //!< Cspace of Output Frame
     VPHAL_CSPACE                m_CscInputCspace = {};                             //!< Cspace of Input frame
-    float                       m_fCscCoeff[9];                               //!< [3x3] Coeff matrix for CSC
-    float                       m_fCscInOffset[3];                            //!< [3x1] Input Offset matrix for CSC
-    float                       m_fCscOutOffset[3];                           //!< [3x1] Output Offset matrix for CSC
+    float                       m_fCscCoeff[9];                                    //!< [3x3] Coeff matrix for CSC
+    float                       m_fCscInOffset[3];                                 //!< [3x1] Input Offset matrix for CSC
+    float                       m_fCscOutOffset[3];                                //!< [3x1] Output Offset matrix for CSC
     SfcRenderBase               *m_sfcRender             = nullptr;
     VPHAL_SFC_RENDER_DATA       m_sfcRenderData          = {};
     bool                        m_IsSfcUsed              = false;

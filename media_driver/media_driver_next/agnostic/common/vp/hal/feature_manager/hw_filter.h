@@ -122,8 +122,11 @@ public:
         return MOS_STATUS_SUCCESS;
     }
     virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
-    virtual MOS_STATUS ConfigCscParam(HW_FILTER_CSC_PARAM &)
+    virtual MOS_STATUS ConfigCscParam(HW_FILTER_CSC_PARAM & param)
     {
+        VpPacketParameter* p = VpVeboxCscParameter::Create(param);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_Params.Params.push_back(p);
         return MOS_STATUS_SUCCESS;
     }
     virtual MOS_STATUS ConfigRotMirParam(HW_FILTER_ROT_MIR_PARAM &)

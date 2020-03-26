@@ -38,6 +38,19 @@ using namespace vp;
 
 Policy::Policy(VpInterface &vpInterface) : m_vpInterface(vpInterface)
 {
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    // Read user feature key to get the Composition Bypass mode
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+
+    // Vebox Comp Bypass is on by default
+    UserFeatureData.u32Data = VP_COMP_BYPASS_ENABLED;
+
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_BYPASS_COMPOSITION_ID,
+        &UserFeatureData));
+    m_bypassCompMode = UserFeatureData.u32Data;
 }
 
 Policy::~Policy()
@@ -83,10 +96,14 @@ MOS_STATUS Policy::RegisterFeatures()
     p = MOS_New(PolicySfcScalingHandler);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnSfc, p));
-    
+
     p = MOS_New(PolicyVeboxDnHandler);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDnOnVebox, p));
+
+    p = MOS_New(PolicyVeboxCscHandler);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnVebox, p));
 
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.clear();
@@ -259,8 +276,9 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
-    if (cscParams->formatInput       == cscParams->formatOutput &&
-        cscParams->colorSpaceInput   == cscParams->colorSpaceOutput &&
+    if (m_bypassCompMode             != VP_COMP_BYPASS_DISABLED       &&
+        cscParams->formatInput       == cscParams->formatOutput       &&
+        cscParams->colorSpaceInput   == cscParams->colorSpaceOutput   &&
         cscParams->chromaSitingInput == cscParams->chromaSitingOutput &&
         nullptr                      == cscParams->pIEFParams)
     {
@@ -300,12 +318,26 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         }
         else
         {
-            cscEngine->bEnabled = 1;
+            cscEngine->bEnabled   = 1;
             cscEngine->SfcNeeded |= 1;
         }
     }
 
-    /* Place Holder: Vebox/Render support to be added, Futher process also need to be added */
+    // if vebox bypass composition mode disabled, then such mega feature like CSC will not take effect in Vebox.
+    // then CSC will must be assign to SFC/Render path for execution.
+    if (m_bypassCompMode != VP_COMP_BYPASS_DISABLED                              &&
+        !cscParams->pIEFParams                                                   &&
+       (!cscParams->pAlphaParams                                                 ||
+         cscParams->pAlphaParams->AlphaMode != VPHAL_ALPHA_FILL_MODE_BACKGROUND) &&
+        m_veboxHwEntry[cscParams->formatInput].inputSupported                    &&
+        m_veboxHwEntry[cscParams->formatOutput].outputSupported                  &&
+        m_veboxHwEntry[cscParams->formatInput].iecp                              &&
+        m_veboxHwEntry[cscParams->formatInput].backEndCscSupported)
+    {
+        cscEngine->bEnabled     = 1;
+        cscEngine->VeboxNeeded |= 1;
+    }
+    /* Place Holder: Render support to be added, Futher process also need to be added */
 
     return MOS_STATUS_SUCCESS;
 }
@@ -548,28 +580,12 @@ MOS_STATUS Policy::BuildFilters(SwFilterPipe& featurePipe, HW_FILTER_PARAMS& par
 
     VP_EngineEntry engineCaps;
     VP_EXECUTE_CAPS caps;
-    SwFilterSubPipe* inputPipe = nullptr;
-    uint32_t index;
+
 
     MOS_ZeroMemory(&caps, sizeof(VP_EXECUTE_CAPS));
     MOS_ZeroMemory(&engineCaps, sizeof(VP_EngineEntry));
 
-    inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
-
-    if (inputPipe)
-    {
-        SwFilter* feature = nullptr;
-        // check the feature pool, generate a workable engine Pipe
-        for (auto filterID : m_featurePool)
-        {
-            feature = inputPipe->GetSwFilter(FeatureType(filterID));
-
-            if (feature)
-            {
-                engineCaps.value |= feature->GetFilterEngineCaps().value;
-            }
-        }
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(UpdateFilterCaps(featurePipe, engineCaps, caps));
 
     // Sublayer will be processed in render path
     if (!engineCaps.value)
@@ -590,6 +606,8 @@ MOS_STATUS Policy::BuildFilters(SwFilterPipe& featurePipe, HW_FILTER_PARAMS& par
     else
     {
         caps.bVebox  = ((engineCaps.VeboxNeeded != 0) || (engineCaps.SfcNeeded != 0)) ? 1 : 0;
+        VP_PUBLIC_CHK_STATUS_RETURN(UpdateFilterCaps(featurePipe, engineCaps, caps));
+
         caps.bSFC    = (engineCaps.SfcNeeded != 0) ? 1 : 0;
 
         if (!caps.bVebox &&
@@ -608,6 +626,55 @@ MOS_STATUS Policy::BuildFilters(SwFilterPipe& featurePipe, HW_FILTER_PARAMS& par
     VP_PUBLIC_CHK_STATUS_RETURN(BuildExecuteFilter(featurePipe, caps, params));
 
     /* Place Holder for Resource Manager to manage intermedia surface or HW needed surface in policy*/
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& engineCaps, VP_EXECUTE_CAPS &caps)
+{
+    VP_FUNC_CALL();
+
+    SwFilterSubPipe* inputPipe = nullptr;
+    SwFilter*        feature   = nullptr;
+    uint32_t         index;
+
+    inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
+
+    // Update the Engine Caps after engine setting up
+    if (engineCaps.value !=0 && inputPipe)
+    {
+        // check the feature pool, generate a workable engine Pipe
+        for (auto filterID : m_featurePool)
+        {
+            feature = inputPipe->GetSwFilter(FeatureType(filterID));
+
+            if (feature)
+            {
+                if (feature->GetFilterEngineCaps().VeboxNeeded != 0 &&
+                    caps.bVebox)
+                {
+                    feature->GetFilterEngineCaps().SfcNeeded       = 0;
+                    feature->GetFilterEngineCaps().RenderNeeded    = 0;
+                }
+            }
+        }
+    }
+
+    engineCaps.value = 0;
+    // Set Engine Caps the first time
+    if (inputPipe)
+    {
+        // check the feature pool, generate a workable engine Pipe
+        for (auto filterID : m_featurePool)
+        {
+            feature = inputPipe->GetSwFilter(FeatureType(filterID));
+
+            if (feature)
+            {
+                engineCaps.value |= feature->GetFilterEngineCaps().value;
+            }
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -820,6 +887,9 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             caps.bDN = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Dn, Vebox)));
             break;
+        case FeatureTypeCsc:
+            caps.bBeCSC = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Csc, Vebox)));
         default:
             break;
         }

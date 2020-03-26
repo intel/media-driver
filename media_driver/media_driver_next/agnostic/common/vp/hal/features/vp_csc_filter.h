@@ -172,5 +172,31 @@ private:
     PacketParamFactory<VpSfcCscParameter> m_PacketParamFactory;
 };
 
+class VpVeboxCscParameter : public VpPacketParameter
+{
+public:
+    static VpPacketParameter* Create(HW_FILTER_CSC_PARAM& param);
+    VpVeboxCscParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase* packetParamFactory);
+    virtual ~VpVeboxCscParameter();
+
+    virtual bool SetPacketParam(VpCmdPacket* pPacket);
+
+private:
+    MOS_STATUS Initialize(HW_FILTER_CSC_PARAM& params);
+
+    VpCscFilter m_CscFilter;
+};
+
+class PolicyVeboxCscHandler : public PolicyFeatureHandler
+{
+public:
+    PolicyVeboxCscHandler();
+    virtual ~PolicyVeboxCscHandler();
+    virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
+    virtual HwFilterParameter* CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+
+private:
+    PacketParamFactory<VpVeboxCscParameter> m_PacketParamFactory;
+};
 }
 #endif // !__VP_CSC_FILTER_H__

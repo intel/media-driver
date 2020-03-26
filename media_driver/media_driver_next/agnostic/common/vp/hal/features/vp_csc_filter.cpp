@@ -245,6 +245,7 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
     m_veboxCSCParams->outputFormat      = m_cscParams.formatOutput;
 
     m_veboxCSCParams->bCSCEnabled = (m_cscParams.colorSpaceInput != m_cscParams.colorSpaceOutput);
+    m_veboxCSCParams->alphaParams = m_cscParams.pAlphaParams;
 
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxCUSChromaParams(m_executeCaps));
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxCDSChromaParams(m_executeCaps));
@@ -740,6 +741,112 @@ HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpEx
         }
 
         SwFilterCsc *swFilter = dynamic_cast<SwFilterCsc *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeCscOnSfc));
+
+        if (nullptr == swFilter)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Feature enabled in vpExecuteCaps but no swFilter exists!");
+            return nullptr;
+        }
+
+        FeatureParamCsc &param = swFilter->GetSwFilterParams();
+
+        HW_FILTER_CSC_PARAM paramCsc = {};
+        paramCsc.type = m_Type;
+        paramCsc.pHwInterface = pHwInterface;
+        paramCsc.vpExecuteCaps = vpExecuteCaps;
+        paramCsc.pPacketParamFactory = &m_PacketParamFactory;
+        paramCsc.cscParams = param;
+
+        HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
+
+        if (pHwFilterParam)
+        {
+            if (MOS_FAILED(((HwFilterCscParameter*)pHwFilterParam)->Initialize(paramCsc)))
+            {
+                ReleaseHwFeatureParameter(pHwFilterParam);
+            }
+        }
+        else
+        {
+            pHwFilterParam = HwFilterCscParameter::Create(paramCsc, m_Type);
+        }
+
+        return pHwFilterParam;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+VpPacketParameter* VpVeboxCscParameter::Create(HW_FILTER_CSC_PARAM& param)
+{
+    if (nullptr == param.pPacketParamFactory)
+    {
+        return nullptr;
+    }
+    VpVeboxCscParameter* p = dynamic_cast<VpVeboxCscParameter*>(param.pPacketParamFactory->GetPacketParameter(param.pHwInterface));
+    if (p)
+    {
+        if (MOS_FAILED(p->Initialize(param)))
+        {
+            VpPacketParameter* pParam = p;
+            param.pPacketParamFactory->ReturnPacketParameter(pParam);
+            return nullptr;
+        }
+    }
+    return p;
+}
+VpVeboxCscParameter::VpVeboxCscParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase* packetParamFactory) :
+    VpPacketParameter(packetParamFactory), m_CscFilter(pHwInterface)
+{
+}
+VpVeboxCscParameter::~VpVeboxCscParameter()
+{
+}
+bool VpVeboxCscParameter::SetPacketParam(VpCmdPacket* pPacket)
+{
+    VpVeboxCmdPacket* pVeboxPacket = dynamic_cast<VpVeboxCmdPacket*>(pPacket);
+    if (nullptr == pVeboxPacket)
+    {
+        return false;
+    }
+
+    VEBOX_CSC_PARAMS* pParams = m_CscFilter.GetVeboxParams();
+    if (nullptr == pParams)
+    {
+        return false;
+    }
+    return MOS_SUCCEEDED(pVeboxPacket->SetVeboxBeCSCParams(pParams));
+}
+MOS_STATUS VpVeboxCscParameter::Initialize(HW_FILTER_CSC_PARAM& params)
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.Init());
+    VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.cscParams, params.vpExecuteCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.CalculateEngineParams());
+    return MOS_STATUS_SUCCESS;
+}
+PolicyVeboxCscHandler::PolicyVeboxCscHandler()
+{
+    m_Type = FeatureTypeCscOnVebox;
+}
+PolicyVeboxCscHandler::~PolicyVeboxCscHandler()
+{
+}
+bool PolicyVeboxCscHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
+{
+    return vpExecuteCaps.bBeCSC;
+}
+HwFilterParameter* PolicyVeboxCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
+{
+    if (IsFeatureEnabled(vpExecuteCaps))
+    {
+        if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Sfc only support 1To1 swFilterPipe!");
+            return nullptr;
+        }
+
+        SwFilterCsc *swFilter = dynamic_cast<SwFilterCsc *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeCscOnVebox));
 
         if (nullptr == swFilter)
         {

@@ -251,6 +251,16 @@ public:
         return m_veboxDNDIParams;
     }
 
+    virtual MHW_VEBOX_IECP_PARAMS &GetIECPParams()
+    {
+        return m_veboxIecpParams;
+    }
+
+    virtual MHW_VEBOX_CHROMA_SAMPLING &GetChromaSubSamplingParams()
+    {
+        return m_chromaSampling;
+    }
+
     bool IsDiEnabled()
     {
         return DI.bDeinterlace || DI.bQueryVariance;
@@ -298,9 +308,18 @@ public:
             uint32_t value = 0;
         } LACE;
 
+        union
+        {
+            struct
+            {
+                uint32_t bBeCSCEnabled           : 1;   // Back end CSC enabled;
+            };
+            uint32_t value = 0;
+        }BeCSC;
+
         bool IsIecpEnabled()
         {
-            return ACE.bAceEnabled || LACE.bLaceEnabled;
+            return ACE.bAceEnabled || LACE.bLaceEnabled || BeCSC.bBeCSCEnabled;
         }
     } IECP;
 
@@ -314,6 +333,8 @@ public:
 
 protected:
     MHW_VEBOX_DNDI_PARAMS   m_veboxDNDIParams = {};
+    MHW_VEBOX_IECP_PARAMS   m_veboxIecpParams = {};
+    MHW_VEBOX_CHROMA_SAMPLING m_chromaSampling = {};
 };
 
 using PVpVeboxRenderData = VpVeboxRenderData*;

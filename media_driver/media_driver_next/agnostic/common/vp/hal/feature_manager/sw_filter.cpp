@@ -97,6 +97,7 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.formatOutput       = surfOutput->Format;
     m_Params.chromaSitingInput  = surfInput->ChromaSiting;
     m_Params.chromaSitingOutput = surfOutput->ChromaSiting;
+    m_Params.pAlphaParams       = params.pCompAlpha;
 
     return MOS_STATUS_SUCCESS;
 }

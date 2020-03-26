@@ -174,6 +174,7 @@ struct _VEBOX_CSC_PARAMS
     VPHAL_CSPACE                    outputColorSpcase;                            // Input Color Space
     MOS_FORMAT                      inputFormat;                                 // Input Format
     MOS_FORMAT                      outputFormat;                                // Output Format
+    PVPHAL_ALPHA_PARAMS             alphaParams;                                 // Output Alpha Params
     bool                            bypassCUS;                                   // Bypass Chroma up sampling
     bool                            bypassCDS;                                   // Bypass Chroma down sampling
     uint32_t                        chromaUpSamplingVerticalCoef;                // Chroma UpSampling Vertical Coeff

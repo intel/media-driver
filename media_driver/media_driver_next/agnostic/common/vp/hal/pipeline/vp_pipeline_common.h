@@ -107,6 +107,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bDN            : 1;   // Vebox DN needed;
             uint32_t bDI            : 1;   // Vebox DNDI enabled
             uint32_t bIECP          : 1;   // Vebox IECP needed;
+            uint32_t bBeCSC         : 1;   // Vebox back end CSC needed;
             uint32_t bLACE          : 1;   // Vebox LACE Needed;
             uint32_t bQueryVariance : 1;
             uint32_t bRefValid      : 1;   // Vebox Ref is Valid
@@ -123,7 +124,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bComposite : 1;
             uint32_t bBobDI     : 1;
             uint32_t bIScaling  : 1;
-            uint32_t reserved   : 14;  // Reserved
+            uint32_t reserved   : 13;  // Reserved
         };
     };
 };

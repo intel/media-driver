@@ -71,6 +71,7 @@ protected:
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
 
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
+    MOS_STATUS UpdateFilterCaps(SwFilterPipe& subSwFilterPipe, VP_EngineEntry& engineCaps, VP_EXECUTE_CAPS &caps);
     MOS_STATUS BuildExecuteFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
@@ -86,6 +87,8 @@ protected:
     VpInterface         &m_vpInterface;
     VP_SFC_ENTRY_REC    m_sfcHwEntry[Format_Count] = {};
     VP_VEBOX_ENTRY_REC  m_veboxHwEntry[Format_Count] = {};
+
+    uint32_t m_bypassCompMode = 0;
 };
 
 }

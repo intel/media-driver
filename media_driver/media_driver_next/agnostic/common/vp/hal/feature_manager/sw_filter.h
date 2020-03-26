@@ -167,6 +167,7 @@ protected:
 struct FeatureParamCsc : public FeatureParam
 {
     PVPHAL_IEF_PARAMS   pIEFParams;
+    PVPHAL_ALPHA_PARAMS pAlphaParams;
     VPHAL_CSPACE        colorSpaceInput;
     VPHAL_CSPACE        colorSpaceOutput;
     uint32_t            chromaSitingInput;
