@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -105,7 +105,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS DestroyOsDeviceContext(MOS_DEVICE_HANDLE deviceContext);
-    
+
     //!
     //! \brief    Create Os Stream State
     //! \details  Create the Os Stream State in stream level.
@@ -120,11 +120,11 @@ public:
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!    
+    //!
     static MOS_STATUS CreateOsStreamState(
         MOS_STREAM_HANDLE *streamState,
         MOS_DEVICE_HANDLE deviceContext);
-     
+
     //!
     //! \brief    Destroy Os Stream State
     //! \details  Destroy the Os Stream State in stream level
@@ -1477,6 +1477,83 @@ public:
         uint32_t instanceIdx);
 
 #endif // _DEBUG || _RELEASE_INTERNAL
+
+    //!
+    //! \brief    Sets the perf tag
+    //! \details  Sets the perf tag
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    uint32_t perfTag
+    //!           [in] Perf tag
+    //! \return   void
+    //!
+    static void SetPerfTag(
+        MOS_STREAM_HANDLE streamState,
+        uint32_t       perfTag);
+
+    //!
+    //! \brief    Gets the perf tag
+    //! \details  Gets the perf tag
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   uint32_t
+    //!           Return perf tag
+    //!
+    static uint32_t GetPerfTag(
+        MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief    Check if Perf Tag is already set
+    //! \details  Check if Perf Tag is already set
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   int32_t
+    //!
+    static int32_t IsPerfTagSet(
+        MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief    Increase performance data frame ID
+    //! \details  Increase performance data frame ID
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   void
+    //!
+    static void IncPerfFrameID(
+        MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief    Set Hybrid Kernel ID
+    //! \details  Set Hybrid Kernel ID
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    uint32_t kernelID
+    //!           [in] Hybrid Decoder kernel ID
+    //! \return   void
+    //!
+    static void SetPerfHybridKernelID(
+        MOS_STREAM_HANDLE streamState,
+        uint32_t          kernelID);
+
+    //!
+    //! \brief    Reset performance data buffer ID
+    //! \details  Reset performance data buffer ID
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   void
+    //!
+    static void ResetPerfBufferID(
+        MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief    Increase performance data buffer ID
+    //! \details  Increase performance data buffer ID
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   VOID
+    //!
+    static void IncPerfBufferID(
+        MOS_STREAM_HANDLE streamState);
 
 private:
 

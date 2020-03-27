@@ -590,6 +590,7 @@ void OsContextSpecific::Destroy()
         {
             mos_gem_context_destroy(m_intelContext);
         }
+
         SetOsContextValid(false);
     }
 }

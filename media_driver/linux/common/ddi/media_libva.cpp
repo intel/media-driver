@@ -885,13 +885,13 @@ static void DdiMedia_FreeContextHeapElements(VADriverContextP    ctx)
         DdiMedia_FreeContextHeap(ctx, mfeContextHeap, DDI_MEDIA_VACONTEXTID_OFFSET_MFE, mfeCtxNums);
 
     // Free media memory decompression data structure
-    if (mediaCtx->pMediaMemDecompState)
+    if (!g_apoMosEnabled && mediaCtx->pMediaMemDecompState)
     {
         MediaMemDecompBaseState *mediaMemCompState =
             static_cast<MediaMemDecompBaseState*>(mediaCtx->pMediaMemDecompState);
         MOS_Delete(mediaMemCompState);
-        mediaCtx->pMediaMemDecompState = nullptr;
     }
+    mediaCtx->pMediaMemDecompState = nullptr;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1032,6 +1032,11 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
+    if(g_apoMosEnabled && !mediaMemDecompState)
+    {
+        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
+    }
+
     if (!mediaMemDecompState)
     {
         mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
@@ -1069,6 +1074,11 @@ void DdiMedia_MediaMemoryCopyInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE inputOs
     DDI_ASSERT(outputOsResource);
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
+
+    if (g_apoMosEnabled && !mediaMemDecompState)
+    {
+        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
+    }
 
     if (!mediaMemDecompState)
     {
@@ -1115,6 +1125,11 @@ void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE input
     DDI_ASSERT(outputOsResource);
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
+
+    if (g_apoMosEnabled && !mediaMemDecompState)
+    {
+        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
+    }
 
     if (!mediaMemDecompState)
     {
@@ -1227,6 +1242,145 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 
 // Global mutex
 MEDIA_MUTEX_T  GlobalMutex = MEDIA_MUTEX_INITIALIZER;
+
+//!
+//! \brief  Initialize
+//!
+//! \param  [in] mediaCtx
+//!         Pointer to DDI media driver context
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+static VAStatus DdiMedia_HeapInitialize(
+    PDDI_MEDIA_CONTEXT mediaCtx)
+{
+    DDI_CHK_NULL(mediaCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    // Heap initialization here
+    mediaCtx->pSurfaceHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "nullptr pSurfaceHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pSurfaceHeap->uiHeapElementSize = sizeof(DDI_MEDIA_SURFACE_HEAP_ELEMENT);
+
+    mediaCtx->pBufferHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pBufferHeap, "nullptr BufferHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pBufferHeap->uiHeapElementSize = sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT);
+
+    mediaCtx->pImageHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pImageHeap, "nullptr ImageHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pImageHeap->uiHeapElementSize = sizeof(DDI_MEDIA_IMAGE_HEAP_ELEMENT);
+
+    mediaCtx->pDecoderCtxHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pDecoderCtxHeap, "nullptr DecoderCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pDecoderCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
+
+    mediaCtx->pEncoderCtxHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pEncoderCtxHeap, "nullptr EncoderCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pEncoderCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
+
+    mediaCtx->pVpCtxHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pVpCtxHeap, "nullptr VpCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pVpCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
+
+    mediaCtx->pCmCtxHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pCmCtxHeap, "nullptr CmCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pCmCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
+
+    mediaCtx->pMfeCtxHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pMfeCtxHeap, "nullptr MfeCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pMfeCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
+
+    // init the mutexs
+    DdiMediaUtil_InitMutex(&mediaCtx->SurfaceMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->BufferMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->ImageMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->DecoderMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->EncoderMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->VpMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->CmMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->MfeMutex);
+
+    return VA_STATUS_SUCCESS;
+}
+
+//!
+//! \brief  Initialize
+//!
+//! \param  [in] mediaCtx
+//!         Pointer to DDI media driver context
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+static VAStatus DdiMedia_HeapDestroy(
+    PDDI_MEDIA_CONTEXT mediaCtx)
+{
+    DDI_CHK_NULL(mediaCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    // destroy heaps
+    MOS_FreeMemory(mediaCtx->pSurfaceHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pSurfaceHeap);
+
+    MOS_FreeMemory(mediaCtx->pBufferHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pBufferHeap);
+
+    MOS_FreeMemory(mediaCtx->pImageHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pImageHeap);
+
+    MOS_FreeMemory(mediaCtx->pDecoderCtxHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pDecoderCtxHeap);
+
+    MOS_FreeMemory(mediaCtx->pEncoderCtxHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pEncoderCtxHeap);
+
+    MOS_FreeMemory(mediaCtx->pVpCtxHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pVpCtxHeap);
+
+    MOS_FreeMemory(mediaCtx->pCmCtxHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pCmCtxHeap);
+
+    MOS_FreeMemory(mediaCtx->pMfeCtxHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pMfeCtxHeap);
+    // destroy the mutexs
+    DdiMediaUtil_DestroyMutex(&mediaCtx->SurfaceMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->BufferMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->ImageMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->DecoderMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->EncoderMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->VpMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
+
+    //resource checking
+    if (mediaCtx->uiNumSurfaces != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the surfaces.");
+    }
+    if (mediaCtx->uiNumBufs != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the buffers.");
+    }
+    if (mediaCtx->uiNumImages != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the images.");
+    }
+    if (mediaCtx->uiNumDecoders != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the decoders.");
+    }
+    if (mediaCtx->uiNumEncoders != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the encoders.");
+    }
+    if (mediaCtx->uiNumVPs != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the VPs.");
+    }
+    if (mediaCtx->uiNumCMs != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the CMs.");
+    }
+    return VA_STATUS_SUCCESS;
+}
 
 //!
 //! \brief  Free for media context
@@ -1349,6 +1503,7 @@ VAStatus DdiMedia__Initialize (
     }
     mediaCtx->uiRef++;
     ctx->pDriverData = (void *)mediaCtx;
+    mediaCtx->fd     = devicefd;
 
     SetupApoMosSwitch(devicefd);
     mediaCtx->apoMosEnabled = g_apoMosEnabled;
@@ -1359,321 +1514,212 @@ VAStatus DdiMedia__Initialize (
         DDI_NORMALMESSAGE("CPLIB is not loaded.");
     }
 
-    MOS_utilities_init();
-
-    //Read user feature key here for Per Utility Tool Enabling
-#if _RELEASE_INTERNAL
-    if(!g_perfutility->bPerfUtilityKey)
-    {
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            NULL,
-            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
-            &UserFeatureData);
-        g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
-
-        char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
-        MOS_USER_FEATURE_VALUE_DATA perfFilePath;
-        MOS_STATUS                  eStatus_Perf = MOS_STATUS_SUCCESS;
-
-        MOS_ZeroMemory(&perfFilePath, sizeof(perfFilePath));
-        perfFilePath.StringData.pStringData = sFilePath;
-        eStatus_Perf = MOS_UserFeature_ReadValue_ID(
-                       nullptr,
-                       __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
-                       &perfFilePath);
-        if (eStatus_Perf == MOS_STATUS_SUCCESS)
-        {
-            g_perfutility->setupFilePath(sFilePath);
-        }
-        else
-        {
-            g_perfutility->setupFilePath();
-        }
-
-        g_perfutility->bPerfUtilityKey = true;
-    }
-#endif
-
-
-
-    // Heap initialization here
-    mediaCtx->pSurfaceHeap                         = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pSurfaceHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pSurfaceHeap->uiHeapElementSize      = sizeof(DDI_MEDIA_SURFACE_HEAP_ELEMENT);
-
-    mediaCtx->pBufferHeap                          = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pBufferHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pBufferHeap->uiHeapElementSize       = sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT);
-
-    mediaCtx->pImageHeap                           = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pImageHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pImageHeap->uiHeapElementSize        = sizeof(DDI_MEDIA_IMAGE_HEAP_ELEMENT);
-
-    mediaCtx->pDecoderCtxHeap                      = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pDecoderCtxHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pDecoderCtxHeap->uiHeapElementSize   = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
-
-    mediaCtx->pEncoderCtxHeap                      = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pEncoderCtxHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pEncoderCtxHeap->uiHeapElementSize   = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
-
-    mediaCtx->pVpCtxHeap                           = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pVpCtxHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pVpCtxHeap->uiHeapElementSize        = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
-
-    mediaCtx->pCmCtxHeap                          = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pCmCtxHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pCmCtxHeap->uiHeapElementSize        = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
-
-    mediaCtx->pMfeCtxHeap                           = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
-    if (nullptr == mediaCtx->pMfeCtxHeap)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    mediaCtx->pMfeCtxHeap->uiHeapElementSize        = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
-
-    // Allocate memory for Media System Info
-    mediaCtx->pGtSystemInfo                        = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
-    if(nullptr == mediaCtx->pGtSystemInfo)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-
-    mediaCtx->fd         = devicefd;
-    mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE);
-    if( nullptr == mediaCtx->pDrmBufMgr)
-    {
-        DDI_ASSERTMESSAGE("DDI:No able to allocate buffer manager, fd=0x%d", mediaCtx->fd);
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
-    mos_bufmgr_gem_enable_reuse(mediaCtx->pDrmBufMgr);
-
-    //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
-    mediaCtx->iDeviceId = mos_bufmgr_gem_get_devid(mediaCtx->pDrmBufMgr);
-
-    MEDIA_FEATURE_TABLE *skuTable = &mediaCtx->SkuTable;
-    MEDIA_WA_TABLE      *waTable  = &mediaCtx->WaTable;
-    skuTable->reset();
-    waTable->reset();
-
-    // get Sku/Wa tables and platform information
-    PLATFORM platform;
-    MOS_STATUS eStatus = HWInfo_GetGfxInfo(mediaCtx->fd, mediaCtx->pDrmBufMgr, &platform, skuTable, waTable, mediaCtx->pGtSystemInfo);
-    if( MOS_STATUS_SUCCESS != eStatus)
-    {
-        DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    GMM_SKU_FEATURE_TABLE        gmmSkuTable;
-    memset(&gmmSkuTable, 0, sizeof(gmmSkuTable));
-
-    GMM_WA_TABLE                 gmmWaTable;
-    memset(&gmmWaTable, 0, sizeof(gmmWaTable));
-
-    GMM_GT_SYSTEM_INFO           gmmGtInfo;
-    memset(&gmmGtInfo, 0, sizeof(gmmGtInfo));
-
-    eStatus = HWInfo_GetGmmInfo(mediaCtx->fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
-    if( MOS_STATUS_SUCCESS != eStatus)
-    {
-        DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Sku/Wa/GtSystemInfo initialization");
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    eStatus = Mos_Solo_DdiInitializeDeviceId(
-                 (void*)mediaCtx->pDrmBufMgr,
-                 &mediaCtx->SkuTable,
-                 &mediaCtx->WaTable,
-                 &gmmSkuTable,
-                 &gmmWaTable,
-                 &gmmGtInfo,
-                 &mediaCtx->iDeviceId,
-                 &mediaCtx->fd,
-                 &platform);
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    MOS_TraceSetupInfo(
-        (VA_MAJOR_VERSION << 16) | VA_MINOR_VERSION,
-        platform.eProductFamily,
-        platform.eRenderCoreFamily,
-        (platform.usRevId << 16) | platform.usDeviceID);
-
-    MediaUserSettingsMgr::MediaUserSettingsInit(platform.eProductFamily);
-
-    mediaCtx->platform = platform;
-
-    if (MEDIA_IS_SKU(skuTable, FtrEnableMediaKernels) == 0)
-    {
-        MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 0);
-    }
-
-    mediaCtx->m_caps = MediaLibvaCaps::CreateMediaLibvaCaps(mediaCtx);
-    if (!mediaCtx->m_caps)
-    {
-        DDI_ASSERTMESSAGE("Caps create failed. Not supported GFX device.");
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-
-    if(mediaCtx->m_caps->Init() != VA_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("Caps init failed. Not supported GFX device.");
-        MOS_Delete(mediaCtx->m_caps);
-        mediaCtx->m_caps = nullptr;
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
 #ifdef _MMC_SUPPORTED
     mediaCtx->pfnMemoryDecompress  = DdiMedia_MediaMemoryDecompressInternal;
     mediaCtx->pfnMediaMemoryCopy   = DdiMedia_MediaMemoryCopyInternal;
     mediaCtx->pfnMediaMemoryCopy2D = DdiMedia_MediaMemoryCopy2DInternal;
 #endif
-    // init the mutexs
-    DdiMediaUtil_InitMutex(&mediaCtx->SurfaceMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->BufferMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->ImageMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->DecoderMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->EncoderMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->VpMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->CmMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->MfeMutex);
-#if !defined(ANDROID) && defined(X11_FOUND)
-    DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceRenderMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
-
-    // try to open X11 lib, if fail, assume no X11 environment
-    if (VA_STATUS_SUCCESS != DdiMedia_ConnectX11(mediaCtx))
-    {
-        // assume no X11 environment. In current implementation,
-        // PutSurface (Linux) needs X11 support, so just replace
-        // it with a dummy version. DdiCodec_PutSurfaceDummy() will
-        // return VA_STATUS_ERROR_UNIMPLEMENTED directly.
-        ctx->vtable->vaPutSurface = NULL;
-    }
-#endif
-
-    mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
-
-#if !defined(ANDROID) && defined(X11_FOUND)
-    output_dri_init(ctx);
-#endif
-
-    GMM_STATUS gmmStatus = OpenGmm(&mediaCtx->GmmFuncs);
-    if(gmmStatus != GMM_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("gmm init failed.");
-        DestroyMediaContextMutex(mediaCtx);
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    // init GMM context
-    gmmStatus = mediaCtx->GmmFuncs.pfnCreateSingletonContext(mediaCtx->platform,
-                                     &gmmSkuTable,
-                                     &gmmWaTable,
-                                     &gmmGtInfo);
-
-    if(gmmStatus != GMM_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("gmm init failed.");
-        DestroyMediaContextMutex(mediaCtx);
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    // Create GMM Client Context
-    mediaCtx->pGmmClientContext = mediaCtx->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
-
-    // Create GMM page table manager
-    mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr, &mediaCtx->SkuTable);
-
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-        &UserFeatureData);
-#endif
-
-    mediaCtx->m_useSwSwizzling = UserFeatureData.i32Data || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
-    mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     if (g_apoMosEnabled)
     {
-        MOS_CONTEXT mosCtx           = {};
-        mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
-        mosCtx.fd                    = mediaCtx->fd;
-        mosCtx.iDeviceId             = mediaCtx->iDeviceId;
-        mosCtx.SkuTable              = mediaCtx->SkuTable;
-        mosCtx.WaTable               = mediaCtx->WaTable;
-        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
-        mosCtx.platform              = mediaCtx->platform;
-        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
-        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
-        mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
-        mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
-        mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
-        mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
+        MosUtilities::MosUtilitiesInit();
 
+        mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
+        if (nullptr == mediaCtx->pGtSystemInfo)
+        {
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+
+        MOS_CONTEXT mosCtx                  = {};
+        mosCtx.fd                           = mediaCtx->fd;
         if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
         {
-            MOS_OS_ASSERTMESSAGE("Unable to create MOS device context.");
-            DestroyMediaContextMutex(mediaCtx);
+            DDI_ASSERTMESSAGE("Unable to create MOS device context.");
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
+        mediaCtx->pDrmBufMgr                = mosCtx.bufmgr;
+        mediaCtx->iDeviceId                 = mosCtx.iDeviceId;
+        mediaCtx->SkuTable                  = mosCtx.SkuTable;
+        mediaCtx->WaTable                   = mosCtx.WaTable;
+        *mediaCtx->pGtSystemInfo            = mosCtx.gtSystemInfo;
+        mediaCtx->platform                  = mosCtx.platform;
+        mediaCtx->m_auxTableMgr             = mosCtx.m_auxTableMgr;
+        mediaCtx->pGmmClientContext         = mosCtx.pGmmClientContext;
+        mediaCtx->m_useSwSwizzling          = mosCtx.bUseSwSwizzling;
+        mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
+        mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
+
+        DDI_CHK_NULL(mosCtx.ppMediaMemDecompState, "media decomp state is null", VA_STATUS_ERROR_INVALID_PARAMETER);
+        mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
         // prepare m_osContext
+        MOS_utilities_init();
+        //Read user feature key here for Per Utility Tool Enabling
+#if _RELEASE_INTERNAL
+        if (!g_perfutility->bPerfUtilityKey)
+        {
+            MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+            MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+            MOS_UserFeature_ReadValue_ID(
+                NULL,
+                __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+                &UserFeatureData);
+            g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
+
+            char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+            MOS_USER_FEATURE_VALUE_DATA perfFilePath;
+            MOS_STATUS                  eStatus_Perf = MOS_STATUS_SUCCESS;
+
+            MOS_ZeroMemory(&perfFilePath, sizeof(perfFilePath));
+            perfFilePath.StringData.pStringData = sFilePath;
+            eStatus_Perf                        = MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
+                &perfFilePath);
+            if (eStatus_Perf == MOS_STATUS_SUCCESS)
+            {
+                g_perfutility->setupFilePath(sFilePath);
+            }
+            else
+            {
+                g_perfutility->setupFilePath();
+            }
+
+            g_perfutility->bPerfUtilityKey = true;
+        }
+#endif
+
+        mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE);
+        if (nullptr == mediaCtx->pDrmBufMgr)
+        {
+            DDI_ASSERTMESSAGE("DDI:No able to allocate buffer manager, fd=0x%d", mediaCtx->fd);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        mos_bufmgr_gem_enable_reuse(mediaCtx->pDrmBufMgr);
+
+        //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
+        mediaCtx->iDeviceId = mos_bufmgr_gem_get_devid(mediaCtx->pDrmBufMgr);
+
+        //TO--DO, apo set it to FALSE by default, to remove the logic in apo mos controlled by it????
+        mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
+
+        MEDIA_FEATURE_TABLE *skuTable = &mediaCtx->SkuTable;
+        MEDIA_WA_TABLE *     waTable  = &mediaCtx->WaTable;
+        skuTable->reset();
+        waTable->reset();
+        // get Sku/Wa tables and platform information
+        PLATFORM platform = {};
+        // Allocate memory for Media System Info
+        mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
+        if (nullptr == mediaCtx->pGtSystemInfo)
+        {
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        MOS_STATUS eStatus = HWInfo_GetGfxInfo(mediaCtx->fd, mediaCtx->pDrmBufMgr, &platform, skuTable, waTable, mediaCtx->pGtSystemInfo);
+        if (MOS_STATUS_SUCCESS != eStatus)
+        {
+            DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+        mediaCtx->platform = platform;
+
+        MOS_TraceSetupInfo(
+            (VA_MAJOR_VERSION << 16) | VA_MINOR_VERSION,
+            platform.eProductFamily,
+            platform.eRenderCoreFamily,
+            (platform.usRevId << 16) | platform.usDeviceID);
+
+        //TO--DO, gen12+ still need this wa????, not porting yet
+        if (MEDIA_IS_SKU(skuTable, FtrEnableMediaKernels) == 0)
+        {
+            MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 0);
+        }
+        MediaUserSettingsMgr::MediaUserSettingsInit(platform.eProductFamily);
+
+        GMM_SKU_FEATURE_TABLE gmmSkuTable;
+        memset(&gmmSkuTable, 0, sizeof(gmmSkuTable));
+
+        GMM_WA_TABLE gmmWaTable;
+        memset(&gmmWaTable, 0, sizeof(gmmWaTable));
+
+        GMM_GT_SYSTEM_INFO gmmGtInfo;
+        memset(&gmmGtInfo, 0, sizeof(gmmGtInfo));
+
+        eStatus = HWInfo_GetGmmInfo(mediaCtx->fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
+        if (MOS_STATUS_SUCCESS != eStatus)
+        {
+            DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Sku/Wa/GtSystemInfo initialization");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        eStatus = Mos_Solo_DdiInitializeDeviceId(
+            (void *)mediaCtx->pDrmBufMgr,
+            &mediaCtx->SkuTable,
+            &mediaCtx->WaTable,
+            &gmmSkuTable,
+            &gmmWaTable,
+            &gmmGtInfo,
+            &mediaCtx->iDeviceId,
+            &mediaCtx->fd,
+            &platform);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        GMM_STATUS gmmStatus = OpenGmm(&mediaCtx->GmmFuncs);
+        if (gmmStatus != GMM_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("gmm init failed.");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        // init GMM context
+        gmmStatus = mediaCtx->GmmFuncs.pfnCreateSingletonContext(mediaCtx->platform,
+            &gmmSkuTable,
+            &gmmWaTable,
+            &gmmGtInfo);
+
+        if (gmmStatus != GMM_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("gmm init failed.");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        // Create GMM Client Context
+        mediaCtx->pGmmClientContext = mediaCtx->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+
+        // Create GMM page table manager
+        mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr, &mediaCtx->SkuTable);
+
+        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
+            &UserFeatureData);
+#endif
+
+        mediaCtx->m_useSwSwizzling = UserFeatureData.i32Data || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
+        mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
+
         mediaCtx->m_osContext = OsContext::GetOsContextObject();
         if (mediaCtx->m_osContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
-            DestroyMediaContextMutex(mediaCtx);
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
@@ -1698,7 +1744,6 @@ VAStatus DdiMedia__Initialize (
         if (MOS_STATUS_SUCCESS != eStatus)
         {
             MOS_OS_ASSERTMESSAGE("Unable to initialize OS context.");
-            DestroyMediaContextMutex(mediaCtx);
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
@@ -1708,7 +1753,6 @@ VAStatus DdiMedia__Initialize (
         if (mediaCtx->m_cmdBufMgr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE(" nullptr returned by CmdBufMgr::GetObject");
-            DestroyMediaContextMutex(mediaCtx);
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
@@ -1717,7 +1761,6 @@ VAStatus DdiMedia__Initialize (
         if (ret != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE(" cmdBufMgr Initialization failed");
-            DestroyMediaContextMutex(mediaCtx);
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
@@ -1727,11 +1770,60 @@ VAStatus DdiMedia__Initialize (
         if (mediaCtx->m_gpuContextMgr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE(" nullptr returned by GpuContextMgr::GetObject");
-            DestroyMediaContextMutex(mediaCtx);
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
     }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE(" Invalid mos module state");
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    if (DdiMedia_HeapInitialize(mediaCtx) != VA_STATUS_SUCCESS)
+    {
+        DestroyMediaContextMutex(mediaCtx);
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    //Caps need platform and sku table, especially in MediaLibvaCapsCp::IsDecEncryptionSupported
+    mediaCtx->m_caps = MediaLibvaCaps::CreateMediaLibvaCaps(mediaCtx);
+    if (!mediaCtx->m_caps)
+    {
+        DDI_ASSERTMESSAGE("Caps create failed. Not supported GFX device.");
+        DestroyMediaContextMutex(mediaCtx);
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    if (mediaCtx->m_caps->Init() != VA_STATUS_SUCCESS)
+    {
+        DDI_ASSERTMESSAGE("Caps init failed. Not supported GFX device.");
+        MOS_Delete(mediaCtx->m_caps);
+        mediaCtx->m_caps = nullptr;
+        DestroyMediaContextMutex(mediaCtx);
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+    ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
+
+#if !defined(ANDROID) && defined(X11_FOUND)
+    DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceRenderMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
+
+    // try to open X11 lib, if fail, assume no X11 environment
+    if (VA_STATUS_SUCCESS != DdiMedia_ConnectX11(mediaCtx))
+    {
+        // assume no X11 environment. In current implementation,
+        // PutSurface (Linux) needs X11 support, so just replace
+        // it with a dummy version. DdiCodec_PutSurfaceDummy() will
+        // return VA_STATUS_ERROR_UNIMPLEMENTED directly.
+        ctx->vtable->vaPutSurface = NULL;
+    }
+    output_dri_init(ctx);
+#endif
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
@@ -1754,14 +1846,10 @@ static VAStatus DdiMedia_Terminate (
 
     DdiMediaUtil_LockMutex(&GlobalMutex);
 
-    if (mediaCtx->m_auxTableMgr != nullptr)
-    {
-        MOS_Delete(mediaCtx->m_auxTableMgr);
-        mediaCtx->m_auxTableMgr = nullptr;
-    }
-
 #if !defined(ANDROID) && defined(X11_FOUND)
     DdiMedia_DestroyX11Connection(mediaCtx);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
 
     if (mediaCtx->m_caps)
     {
@@ -1775,6 +1863,11 @@ static VAStatus DdiMedia_Terminate (
     }
 #endif
 
+    if (mediaCtx->m_caps)
+    {
+        MOS_Delete(mediaCtx->m_caps);
+        mediaCtx->m_caps = nullptr;
+    }
     //destory resources
     DdiMedia_FreeSurfaceHeapElements(mediaCtx);
     DdiMedia_FreeBufferHeapElements(ctx);
@@ -1782,13 +1875,23 @@ static VAStatus DdiMedia_Terminate (
     DdiMedia_FreeContextHeapElements(ctx);
     DdiMedia_FreeContextCMElements(ctx);
 
+    DdiMedia_HeapDestroy(mediaCtx);
+
     if (g_apoMosEnabled)
     {
         MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
         mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
+        MOS_FreeMemory(mediaCtx->pGtSystemInfo);
+        MosUtilities::MosUtilitiesClose();
     }
-    if (mediaCtx->modularizedGpuCtxEnabled)
+    else if (mediaCtx->modularizedGpuCtxEnabled)
     {
+        if (mediaCtx->m_auxTableMgr != nullptr)
+        {
+            MOS_Delete(mediaCtx->m_auxTableMgr);
+            mediaCtx->m_auxTableMgr = nullptr;
+        }
+
         if (mediaCtx->m_gpuContextMgr)
         {
             mediaCtx->m_gpuContextMgr->CleanUp();
@@ -1806,6 +1909,16 @@ static VAStatus DdiMedia_Terminate (
             mediaCtx->m_osContext->CleanUp();
             MOS_Delete(mediaCtx->m_osContext);
         }
+
+        // destroy libdrm buffer manager
+        mos_bufmgr_destroy(mediaCtx->pDrmBufMgr);
+
+        // Destroy memory allocated to store Media System Info
+        MOS_FreeMemory(mediaCtx->pGtSystemInfo);
+        // Free GMM memory.
+        mediaCtx->GmmFuncs.pfnDeleteClientContext(mediaCtx->pGmmClientContext);
+        mediaCtx->GmmFuncs.pfnDestroySingletonContext();
+        MOS_utilities_close();
     }
 
     if (mediaCtx->uiRef > 1)
@@ -1815,95 +1928,8 @@ static VAStatus DdiMedia_Terminate (
 
         return VA_STATUS_SUCCESS;
     }
-
     mediaCtx->SkuTable.reset();
     mediaCtx->WaTable.reset();
-    // destroy libdrm buffer manager
-    mos_bufmgr_destroy(mediaCtx->pDrmBufMgr);
-
-    // destroy heaps
-    MOS_FreeMemory(mediaCtx->pSurfaceHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pSurfaceHeap);
-
-    MOS_FreeMemory(mediaCtx->pBufferHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pBufferHeap);
-
-    MOS_FreeMemory(mediaCtx->pImageHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pImageHeap);
-
-    MOS_FreeMemory(mediaCtx->pDecoderCtxHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pDecoderCtxHeap);
-
-    MOS_FreeMemory(mediaCtx->pEncoderCtxHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pEncoderCtxHeap);
-
-    MOS_FreeMemory(mediaCtx->pVpCtxHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pVpCtxHeap);
-
-    MOS_FreeMemory(mediaCtx->pCmCtxHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pCmCtxHeap);
-
-    MOS_FreeMemory(mediaCtx->pMfeCtxHeap->pHeapBase);
-    MOS_FreeMemory(mediaCtx->pMfeCtxHeap);
-
-    // Destroy memory allocated to store Media System Info
-    MOS_FreeMemory(mediaCtx->pGtSystemInfo);
-
-    // destroy the mutexs
-    DdiMediaUtil_DestroyMutex(&mediaCtx->SurfaceMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->BufferMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->ImageMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->DecoderMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->EncoderMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->VpMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
-#if !defined(ANDROID) && defined(X11_FOUND)
-    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
-#endif
-
-    //resource checking
-    if (mediaCtx->uiNumSurfaces != 0)
-    {
-        DDI_ASSERTMESSAGE("APP does not destroy all the surfaces.");
-    }
-    if (mediaCtx->uiNumBufs != 0)
-    {
-        DDI_ASSERTMESSAGE("APP does not destroy all the buffers.");
-    }
-    if (mediaCtx->uiNumImages != 0)
-    {
-        DDI_ASSERTMESSAGE("APP does not destroy all the images.");
-    }
-    if (mediaCtx->uiNumDecoders != 0)
-    {
-        DDI_ASSERTMESSAGE("APP does not destroy all the decoders.");
-    }
-    if (mediaCtx->uiNumEncoders != 0)
-    {
-        DDI_ASSERTMESSAGE("APP does not destroy all the encoders.");
-    }
-    if (mediaCtx->uiNumVPs != 0)
-    {
-        DDI_ASSERTMESSAGE("APP does not destroy all the VPs.");
-    }
-    if (mediaCtx->uiNumCMs != 0)
-    {
-        DDI_ASSERTMESSAGE("APP does not destroy all the CMs.");
-    }
-
-    if (mediaCtx->m_caps)
-    {
-        MOS_Delete(mediaCtx->m_caps);
-        mediaCtx->m_caps = nullptr;
-    }
-
-    // Free GMM memory.
-    mediaCtx->GmmFuncs.pfnDeleteClientContext(mediaCtx->pGmmClientContext);
-    mediaCtx->GmmFuncs.pfnDestroySingletonContext();
-
-    MOS_utilities_close();
 
     // release media driver context, ctx creation is behind the mos_utilities_init
     // If free earilier than MOS_utilities_close, memnja count error.

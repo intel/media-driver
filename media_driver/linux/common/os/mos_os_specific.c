@@ -3076,6 +3076,11 @@ MOS_STATUS Mos_Specific_DecompResource(
     MOS_OS_CHK_NULL(pOsInterface->pOsContext);
     //---------------------------------------
 
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::DecompResource(pOsInterface->osStreamState, pOsResource);
+    }
+
     pContext = pOsInterface->pOsContext;
 
     if (pOsResource && pOsResource->bo && pOsResource->pGmmResInfo)
@@ -3126,7 +3131,7 @@ MOS_STATUS Mos_Specific_DoubleBufferCopyResource(
     MOS_OS_CHK_NULL(inputOsResource);
     MOS_OS_CHK_NULL(outputOsResource);
     //---------------------------------------
-    
+
     if (g_apoMosEnabled)
     {
         return MosInterface::DoubleBufferCopyResource(osInterface->osStreamState, inputOsResource, outputOsResource, bOutputCompressed);
@@ -4827,7 +4832,17 @@ void Mos_Specific_SetPerfTag(
     uint32_t          PerfTag)
 {
     uint32_t ComponentTag;
-    PMOS_CONTEXT pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
+
+    if (g_apoMosEnabled)
+    {
+        MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface->osStreamState);
+        pOsInterface->osStreamState->component = pOsInterface->Component;
+        return MosInterface::SetPerfTag(pOsInterface->osStreamState, PerfTag);
+    }
+
+    PMOS_CONTEXT pOsContext =(PMOS_CONTEXT)pOsInterface->pOsContext;
 
     if(pOsContext)
     {
@@ -4874,15 +4889,18 @@ void Mos_Specific_SetPerfTag(
 void Mos_Specific_ResetPerfBufferID(
     PMOS_INTERFACE pOsInterface)
 {
-    PMOS_CONTEXT pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
 
-    if (pOsContext == nullptr)
-        return;
-
-    if (pOsContext->pPerfData != nullptr)
+    if (g_apoMosEnabled)
     {
-        pOsContext->pPerfData->bufferID = 0;
+        return MosInterface::ResetPerfBufferID(pOsInterface->osStreamState);
     }
+
+    PMOS_CONTEXT pOsContext = (PMOS_CONTEXT)pOsInterface->pOsContext;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsContext);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsContext->pPerfData);
+    pOsContext->pPerfData->bufferID = 0;
+    return;
 }
 
 //!
@@ -4895,15 +4913,20 @@ void Mos_Specific_ResetPerfBufferID(
 void Mos_Specific_IncPerfBufferID(
     PMOS_INTERFACE pOsInterface)
 {
-    PMOS_CONTEXT pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
 
-    if (pOsContext == nullptr)
-        return;
-
-    if (pOsContext->pPerfData != nullptr)
+    if (g_apoMosEnabled)
     {
-        pOsContext->pPerfData->bufferID++;
+        return MosInterface::IncPerfBufferID(pOsInterface->osStreamState);
     }
+
+    PMOS_CONTEXT pOsContext = (PMOS_CONTEXT)pOsInterface->pOsContext;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsContext);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsContext->pPerfData);
+
+    pOsContext->pPerfData->bufferID++;
+    return;
 }
 
 //!
@@ -4916,15 +4939,20 @@ void Mos_Specific_IncPerfBufferID(
 void Mos_Specific_IncPerfFrameID(
     PMOS_INTERFACE pOsInterface)
 {
-    PMOS_CONTEXT pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
 
-    if (pOsContext == nullptr)
-        return;
-
-    if (pOsContext->pPerfData != nullptr)
+    if (g_apoMosEnabled)
     {
-        pOsContext->pPerfData->frameID++;
+        return MosInterface::IncPerfFrameID(pOsInterface->osStreamState);
     }
+
+    PMOS_CONTEXT pOsContext = (PMOS_CONTEXT)pOsInterface->pOsContext;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsContext);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsContext->pPerfData);
+
+    pOsContext->pPerfData->frameID++;
+
 }
 
 //!
@@ -4940,7 +4968,18 @@ uint32_t Mos_Specific_GetPerfTag(
 {
     uint32_t                perfTag;
 
-    PMOS_CONTEXT osContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("pOsInterface invalid nullptr");
+        return 0;
+    }
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::GetPerfTag(pOsInterface->osStreamState);
+    }
+
+    PMOS_CONTEXT osContext = (PMOS_CONTEXT)pOsInterface->pOsContext;
 
     if (osContext == nullptr)
     {
@@ -4966,10 +5005,14 @@ void Mos_Specific_SetPerfHybridKernelID(
 {
     PMOS_CONTEXT pOsContext;
 
-    //---------------------------------------
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pOsInterface->pOsContext);
-    //------------------------------------
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::SetPerfHybridKernelID(pOsInterface->osStreamState, KernelID);
+    }
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface->pOsContext);
 
     pOsContext = (PMOS_CONTEXT)pOsInterface->pOsContext;
     pOsContext->SetPerfHybridKernelID(pOsContext,KernelID);
@@ -4986,13 +5029,21 @@ int32_t Mos_Specific_IsPerfTagSet(
     PMOS_INTERFACE     pOsInterface)
 {
     uint32_t     ComponentTag;
-    int32_t      bRet;
+    int32_t      bRet = false;
     PMOS_CONTEXT pOsContext;
 
-    //---------------------------------------
-    MOS_OS_ASSERT(pOsInterface);
+    if(pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("pOsInterface invalid nullptr");
+        return bRet;
+    }
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::IsPerfTagSet(pOsInterface->osStreamState);
+    }
+
     MOS_OS_ASSERT(pOsInterface->pOsContext);
-    //------------------------------------
 
     pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
     bRet       = false;
@@ -6984,7 +7035,6 @@ MOS_STATUS Mos_Specific_InitInterface(
         &UserFeatureData);
 #endif
     pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
-    pOsDriverContext->bSimIsActive = UserFeatureData.i32Data != 0 ? true : false;
     pOsContext->bSimIsActive = pOsInterface->bSimIsActive;
 
     // Initialize

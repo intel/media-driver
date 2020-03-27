@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -149,7 +149,7 @@ public:
     virtual MOS_STATUS IsVeboxDecompressionEnabled() = 0;
 
     //!
-    //! \brief    Media memory decompression
+    //! \brief    Media memory copy
     //! \details  Entry point to copy media memory, input can support both compressed/uncompressed
     //! \param    [in] inputSurface
     //!            The surface resource will be decompressed

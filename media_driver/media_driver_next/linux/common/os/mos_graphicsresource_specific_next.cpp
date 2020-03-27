@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -442,16 +442,11 @@ void* GraphicsResourceSpecificNext::Lock(OsContextNext* osContextPtr, LockParams
             (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Info.MediaCompressed) ||
              pGmmResInfo->IsMediaMemoryCompressed(0)))
         {
-            if ((pOsContextSpecific->m_mediaMemDecompState == nullptr) ||
-                (pOsContextSpecific->m_memoryDecompress    == nullptr))
-            {
-                MOS_OS_ASSERTMESSAGE("m_mediaMemDecompState/m_memoryDecompress is not valid.");
-                return nullptr;
-            }
-
             MOS_RESOURCE mosResource = {};
             ConvertToMosResource(&mosResource);
-            pOsContextSpecific->m_memoryDecompress(pOsContextSpecific->m_mosContext, &mosResource);
+
+            MOS_OS_ASSERT(pOsContextSpecific);
+            pOsContextSpecific->MemoryDecompress(&mosResource);
         }
 
         if(false == m_mapped)
@@ -873,12 +868,9 @@ void* GraphicsResourceSpecificNext::LockExternalResource(
             (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Info.MediaCompressed) ||
             resource->pGmmResInfo->IsMediaMemoryCompressed(0)))
         {
-            PMOS_CONTEXT pOsContext = perStreamParameters;
-
-            MOS_OS_ASSERT(pOsContext);
-            MOS_OS_ASSERT(pOsContext->ppMediaMemDecompState);
-            MOS_OS_ASSERT(pOsContext->pfnMemoryDecompress);
-            pOsContext->pfnMemoryDecompress(pOsContext, resource);
+            OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
+            MOS_OS_ASSERT(osCtx);
+            osCtx->MemoryDecompress(resource);
         }
 
         if (false == resource->bMapped)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -377,7 +377,8 @@ VAStatus DdiEncode_CreateContext(
 
 #ifdef _MMC_SUPPORTED
     PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
-    if (osInterface != nullptr &&
+    if (!g_apoMosEnabled                                                             &&
+        osInterface != nullptr                                                       &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
         !mediaDrvCtx->pMediaMemDecompState)
     {

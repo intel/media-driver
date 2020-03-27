@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 
 #include "mos_context_next.h"
 #include "mos_context_specific_next.h"
+#include "mediamemdecomp.h"
 #include "mos_util_debug_next.h"
 #include <new>
 
@@ -35,6 +36,46 @@ class OsContextNext* OsContextNext::GetOsContextObject()
     class OsContextNext* osContextPtr = MOS_New(OsContextSpecificNext);
 
     return osContextPtr;
+}
+
+MOS_STATUS OsContextNext::Init(DDI_DEVICE_CONTEXT osDriverContext)
+{
+    //Read user feature key here for Per Utility Tool Enabling
+    MOS_UNUSED(osDriverContext);
+#if _RELEASE_INTERNAL
+    if (!g_perfutility->bPerfUtilityKey)
+    {
+        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+            &UserFeatureData);
+        g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
+
+        char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+        MOS_USER_FEATURE_VALUE_DATA perfFilePath;
+        MOS_STATUS                  eStatus_Perf = MOS_STATUS_SUCCESS;
+
+        MOS_ZeroMemory(&perfFilePath, sizeof(perfFilePath));
+        perfFilePath.StringData.pStringData = sFilePath;
+        eStatus_Perf                        = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
+            &perfFilePath);
+        if (eStatus_Perf == MOS_STATUS_SUCCESS)
+        {
+            g_perfutility->setupFilePath(sFilePath);
+        }
+        else
+        {
+            g_perfutility->setupFilePath();
+        }
+
+        g_perfutility->bPerfUtilityKey = true;
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
 }
 
 void OsContextNext::CleanUp()
@@ -54,6 +95,8 @@ void OsContextNext::CleanUp()
         MOS_Delete(m_cmdBufMgr);
         m_cmdBufMgr = nullptr;
     }
+
+    MOS_Delete(m_mediaMemDecompState);
 
     Destroy();
 }

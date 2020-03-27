@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,9 @@ MOS_STATUS MosInterface::CreateOsDeviceContext(DDI_DEVICE_CONTEXT ddiDeviceConte
     *deviceContext = MOS_New(OsContextSpecificNext);
 
     MOS_OS_CHK_NULL_RETURN(*deviceContext);
-   
+
     MOS_OS_CHK_STATUS_RETURN((*deviceContext)->Init((PMOS_CONTEXT)ddiDeviceContext));
-    
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1418,15 +1418,6 @@ MOS_STATUS MosInterface::TrimResidency(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::DecompResource(
-    MOS_STREAM_HANDLE   streamState,
-    MOS_RESOURCE_HANDLE resource)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MosInterface::SetMemoryCompressionMode(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,
@@ -1595,15 +1586,15 @@ MOS_STATUS MosInterface::DoubleBufferCopyResource(
     MOS_OS_CHK_NULL_RETURN(inputResource);
     MOS_OS_CHK_NULL_RETURN(outputResource);
     MOS_OS_CHK_NULL_RETURN(streamState);
-    
-    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
-    MOS_OS_CHK_NULL_RETURN(osParameters);
+
+    OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
+    MOS_OS_CHK_NULL_RETURN(osCtx);
 
     if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
         outputResource && outputResource->bo && outputResource->pGmmResInfo)
     {
         // Double Buffer Copy can support any tile status surface with/without compression
-        osParameters->pfnMediaMemoryCopy(osParameters, inputResource, outputResource, outputCompressed);
+        osCtx->MediaMemoryCopy(inputResource, outputResource, outputCompressed);
     }
 
     return status;
@@ -1626,18 +1617,41 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     MOS_OS_CHK_NULL_RETURN(outputResource);
     MOS_OS_CHK_NULL_RETURN(streamState);
 
-    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
-    MOS_OS_CHK_NULL_RETURN(osParameters);
-    
+    OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
+    MOS_OS_CHK_NULL_RETURN(osCtx);
+
     if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
         outputResource && outputResource->bo && outputResource->pGmmResInfo)
     {
         // Double Buffer Copy can support any tile status surface with/without compression
-        osParameters->pfnMediaMemoryCopy2D(osParameters, inputResource, outputResource,
+        osCtx->MediaMemoryCopy2D(inputResource, outputResource,
             copyWidth, copyHeight, copyInputOffset, copyOutputOffset, outputCompressed);
     }
 
     return status;
+}
+
+MOS_STATUS MosInterface::DecompResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE resource)
+{
+    MOS_OS_FUNCTION_ENTER;
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(resource);
+    MOS_OS_CHK_NULL_RETURN(resource->bo);
+    MOS_OS_CHK_NULL_RETURN(resource->pGmmResInfo);
+
+    MOS_LINUX_BO *bo = resource->bo;
+    if (resource->pGmmResInfo->IsMediaMemoryCompressed(0))
+    {
+        OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
+        MOS_OS_CHK_NULL_RETURN(osCtx);
+        osCtx->MemoryDecompress(resource);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 uint32_t MosInterface::GetGpuStatusTag(
@@ -1903,4 +1917,166 @@ GpuContextSpecificNext *MosInterface::GetGpuContext(MOS_STREAM_HANDLE streamStat
 
     MOS_OS_ASSERTMESSAGE("GetGpuContext failed!");
     return nullptr;
+}
+
+void MosInterface::SetPerfTag(MOS_STREAM_HANDLE streamState, uint32_t perfTag)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    uint32_t     componentTag;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    switch (streamState->component)
+    {
+    case COMPONENT_VPreP:
+    case COMPONENT_VPCommon:
+        componentTag = PERFTAG_VPREP;
+        break;
+
+    case COMPONENT_LibVA:
+        componentTag = PERFTAG_LIBVA;
+        break;
+
+    case COMPONENT_CM:
+        componentTag = PERFTAG_CM;
+        break;
+
+    case COMPONENT_Decode:
+        componentTag = PERFTAG_DECODE;
+        break;
+
+    case COMPONENT_Encode:
+        componentTag = PERFTAG_ENCODE;
+        break;
+
+    default:
+        componentTag = 0xF000 & osParameters->GetDmaBufID(osParameters);
+        break;
+    }
+
+    osParameters->SetDmaBufID(osParameters, componentTag | (perfTag & 0x0fff));
+
+    return;
+}
+
+int32_t MosInterface::IsPerfTagSet(MOS_STREAM_HANDLE streamState)
+{
+    uint32_t                 componentTag   = 0;
+    int32_t                  ret            = false;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    if (streamState == nullptr ||
+        streamState->perStreamParameters == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("streamState or perStreamParameters invalid nullptr");
+        return false;
+    }
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    componentTag = 0xF000 & osParameters->GetDmaBufID(osParameters);
+
+    switch (componentTag)
+    {
+    case PERFTAG_ENCODE:
+    case PERFTAG_DECODE:
+        ret = true;
+        break;
+
+    default:
+        ret = false;
+        break;
+    }
+
+    return ret;
+}
+
+void MosInterface::IncPerfFrameID(MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osParameters->pPerfData);
+
+    osParameters->pPerfData->frameID++;
+
+    return;
+}
+
+uint32_t MosInterface::GetPerfTag(MOS_STREAM_HANDLE streamState)
+{
+    uint32_t perfTag;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    if (streamState == nullptr ||
+        streamState->perStreamParameters == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("streamState or perStreamParameters invalid nullptr");
+        return 0;
+    }
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    perfTag = *(uint32_t *)(osParameters->pPerfData);
+    return perfTag;
+}
+
+void MosInterface::SetPerfHybridKernelID(
+    MOS_STREAM_HANDLE streamState,
+    uint32_t          kernelID)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    osParameters->SetPerfHybridKernelID(osParameters, kernelID);
+
+    return;
+}
+
+void MosInterface::ResetPerfBufferID(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osParameters->pPerfData);
+
+    osParameters->pPerfData->bufferID = 0;
+
+    return;
+}
+
+void MosInterface::IncPerfBufferID(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osParameters->pPerfData);
+
+    osParameters->pPerfData->bufferID++;
+
+    return;
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -84,11 +84,11 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
     MOS_OS_CHK_NULL_RETURN(m_cmdBufPoolMutex);
 
-    MOS_LockMutex(m_cmdBufPoolMutex);
+    MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
 
     m_cmdBufPool.clear();
 
-    MOS_UnlockMutex(m_cmdBufPoolMutex);
+    MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
 
     m_commandBufferSize = COMMAND_BUFFER_SIZE;
 
@@ -296,7 +296,7 @@ void GpuContextSpecificNext::Clear()
         MOS_Delete(m_statusBufferResource);
     }
 
-    MOS_LockMutex(m_cmdBufPoolMutex);
+    MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
 
     if (m_cmdBufMgr)
     {
@@ -312,8 +312,8 @@ void GpuContextSpecificNext::Clear()
 
     m_cmdBufPool.clear();
 
-    MOS_UnlockMutex(m_cmdBufPoolMutex);
-    MOS_DestroyMutex(m_cmdBufPoolMutex);
+    MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
+    MosUtilities::MosDestroyMutex(m_cmdBufPoolMutex);
     m_cmdBufPoolMutex = nullptr;
     MOS_SafeFreeMemory(m_commandBuffer);
     MOS_SafeFreeMemory(m_allocationList);
@@ -445,20 +445,20 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
 
     if (needToAlloc)
     {
-        MOS_LockMutex(m_cmdBufPoolMutex);
+        MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
         if (m_cmdBufPool.size() < MAX_CMD_BUF_NUM)
         {
             cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
             if (cmdBuf == nullptr)
             {
                 MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
-                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
                 return MOS_STATUS_NULL_POINTER;
             }
             if ((eStatus = cmdBuf->BindToGpuContext(this)) != MOS_STATUS_SUCCESS)
             {
                 MOS_OS_ASSERTMESSAGE("Invalid status of BindToGpuContext.");
-                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
                 return eStatus;
             }
             m_cmdBufPool.push_back(cmdBuf);
@@ -470,7 +470,7 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
             if (cmdBufSpecificOld == nullptr)
             {
                 MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
-                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
                 return MOS_STATUS_NULL_POINTER;
             }
             cmdBufSpecificOld->waitReady();
@@ -482,13 +482,13 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
             if (cmdBuf == nullptr)
             {
                 MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
-                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
                 return MOS_STATUS_NULL_POINTER;
             }
             if ((eStatus = cmdBuf->BindToGpuContext(this)) != MOS_STATUS_SUCCESS)
             {
                 MOS_OS_ASSERTMESSAGE("Invalid status of BindToGpuContext.");
-                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
                 return eStatus;
             }
             m_cmdBufPool[m_nextFetchIndex] = cmdBuf;
@@ -496,10 +496,10 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
         else
         {
             MOS_OS_ASSERTMESSAGE("Command buffer bool size exceed max.");
-            MOS_UnlockMutex(m_cmdBufPoolMutex);
+            MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
             return MOS_STATUS_UNKNOWN;
         }
-        MOS_UnlockMutex(m_cmdBufPoolMutex);
+        MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
 
         // util now, we got new command buffer from CmdBufMgr, next step to fill in the input command buffer
         MOS_OS_CHK_STATUS_RETURN(cmdBuf->GetResource()->ConvertToMosResource(&comamndBuffer->OsResource));

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 #include "mos_os_next.h"
 #include "mos_cmdbufmgr_next.h" 
 #include "mos_gpucontextmgr_next.h"
+#include "mediamemdecomp.h"
 
 class OsContextNext
 {
@@ -49,7 +50,7 @@ public:
     //! \brief  Initialzie the OS ContextNext Object
     //! \return MOS_STATUS_SUCCESS on success case, MOS error status on fail cases
     //!
-    virtual MOS_STATUS Init(DDI_DEVICE_CONTEXT osDriverContextNext) = 0;
+    virtual MOS_STATUS Init(DDI_DEVICE_CONTEXT osDriverContextNext);
 
 private:
     //!
@@ -92,12 +93,6 @@ public:
     //! \return value of m_gtSystemInfo
     //!
     MEDIA_SYSTEM_INFO *GetGtSysInfo() { return &m_gtSystemInfo; };
-
-    //!
-    //! \brief  Get MemDecompState
-    //! \return pointer to m_mediaMemDecompState
-    //!
-    void*  GetMemDecompState() { return m_mediaMemDecompState; };
 
     //!
     //! \brief  Check the platform is Atom or not
@@ -147,9 +142,10 @@ public:
     static const uint32_t m_cmdBufAlignment = 16;   //!> Cmd buffer alignment
 
 protected:
-    GpuContextMgrNext              *m_gpuContextMgr = nullptr;   //!> GPU context manager of the device
-    CmdBufMgrNext                  *m_cmdBufMgr     = nullptr;   //!> Cmd buffer manager of the device
-    GMM_CLIENT_CONTEXT             *m_gmmClientContext = nullptr; //!> GMM client context of the device
+    GpuContextMgrNext              *m_gpuContextMgr     = nullptr; //!> GPU context manager of the device
+    CmdBufMgrNext                  *m_cmdBufMgr         = nullptr; //!> Cmd buffer manager of the device
+    GMM_CLIENT_CONTEXT             *m_gmmClientContext  = nullptr; //!> GMM client context of the device
+    MediaMemDecompBaseState        *m_mediaMemDecompState = nullptr; //!> Internal media state for memory decompression
 
     //! \brief  Platform string including product family, chipset family, etc
     PLATFORM                        m_platformInfo = {};
@@ -166,8 +162,6 @@ protected:
     //! \brief  Whether the processor is Atom
     bool                            m_isAtomSOC = false;
 
-    //! \brief  Internal media state for memory decompression
-    void*                           m_mediaMemDecompState = nullptr;
 
     //! \brief  Flag to mark whether the os context is valid
     bool                            m_osContextValid =  false;
