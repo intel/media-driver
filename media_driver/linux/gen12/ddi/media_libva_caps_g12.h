@@ -159,6 +159,10 @@ protected:
         CODEC_16K_MAX_PIC_WIDTH; //!< maxinum width for HEVC encode
     static const uint32_t m_maxHevcEncHeight =
         CODEC_12K_MAX_PIC_HEIGHT; //!< maxinum height for HEVC encode
+    static const uint32_t m_decAvcMaxWidth =
+        CODEC_8K_MAX_PIC_WIDTH; //!< Maximum width for AVC decode
+    static const uint32_t m_decAvcMaxHeight =
+        CODEC_8K_MAX_PIC_HEIGHT; //!< Maximum height for AVC decode
     static const uint32_t m_decHevcMax16kWidth =
         CODEC_16K_MAX_PIC_WIDTH; //!< Maximum width for HEVC decode
     static const uint32_t m_decHevcMax16kHeight =

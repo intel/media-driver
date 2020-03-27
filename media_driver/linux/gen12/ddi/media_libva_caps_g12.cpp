@@ -717,6 +717,10 @@ VAStatus MediaLibvaCapsG12::CheckDecodeResolution(
             maxWidth = m_decJpegMaxWidth;
             maxHeight = m_decJpegMaxHeight;
             break;
+        case CODECHAL_DECODE_MODE_AVCVLD:
+            maxWidth = m_decAvcMaxWidth;
+            maxHeight = m_decAvcMaxHeight;
+            break;
         case CODECHAL_DECODE_MODE_HEVCVLD:
             maxWidth = m_decHevcMax16kWidth;
             maxHeight = m_decHevcMax16kHeight;
@@ -992,10 +996,15 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             maxWidth = m_decMpeg2MaxWidth;
             maxHeight = m_decMpeg2MaxHeight;
         }
+        else if(IsAvcProfile(profile))
+        {
+            maxWidth = m_decAvcMaxWidth;
+            maxHeight = m_decAvcMaxWidth;
+        }
         else if(IsHevcProfile(profile))
         {
-            maxWidth = m_decHevcMaxWidth;
-            maxHeight = m_decHevcMaxHeight;
+            maxWidth = m_decHevcMax16kWidth;
+            maxHeight = m_decHevcMax16kWidth;
         }
         else if(IsVc1Profile(profile))
         {
@@ -1006,6 +1015,11 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         {
             maxWidth = m_decJpegMaxWidth;
             maxHeight = m_decJpegMaxHeight;
+        }
+        else if(IsVp9Profile(profile))
+        {
+            maxWidth = m_decVp9Max16kWidth;
+            maxHeight = m_decVp9Max16kHeight;
         }
 
         attribs[i].type = VASurfaceAttribMaxWidth;
