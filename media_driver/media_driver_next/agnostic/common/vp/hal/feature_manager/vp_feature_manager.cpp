@@ -151,8 +151,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    if (pvpParams->pSrc[0]->pDenoiseParams                  ||
-        pvpParams->pSrc[0]->pDeinterlaceParams              ||
+    if (pvpParams->pSrc[0]->pDeinterlaceParams              ||
         pvpParams->pSrc[0]->pBlendingParams                 ||
         pvpParams->pSrc[0]->pColorPipeParams                ||
         pvpParams->pSrc[0]->pHDRParams                      ||
@@ -160,6 +159,16 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         pvpParams->pSrc[0]->pProcampParams                  ||
         pvpParams->pSrc[0]->bInterlacedScaling              ||
         pvpParams->pConstriction)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Disable DN kernel copy/update in APO path.
+    // Disable chroma DN in APO path.
+    // Disable HVS Denoise in APO path.
+    if (pvpParams->pSrc[0]->pDenoiseParams                       &&
+       (pvpParams->pSrc[0]->pDenoiseParams->bEnableChroma        ||
+        pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise))
     {
         return MOS_STATUS_SUCCESS;
     }
