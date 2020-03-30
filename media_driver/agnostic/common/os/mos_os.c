@@ -992,7 +992,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
     PLATFORM                    platform;
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 
-    MOS_OS_ASSERT(osInterface);
+    MOS_OS_CHK_NULL_RETURN(osInterface);
     MOS_ZeroMemory(&platform, sizeof(PLATFORM));
 
     osInterface->pfnGetPlatform(osInterface, &platform);
