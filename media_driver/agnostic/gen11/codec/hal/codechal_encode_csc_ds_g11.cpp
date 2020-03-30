@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -287,6 +287,11 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
     // setup Curbe
     m_curbeParams.dwInputPictureWidth = inputFrameWidth;
     m_curbeParams.dwInputPictureHeight = inputFrameHeight;
+    m_curbeParams.bFlatnessCheckEnabled = m_flatnessCheckEnabled;
+    m_curbeParams.bMBVarianceOutputEnabled = m_mbStatsEnabled;
+    m_curbeParams.bMBPixelAverageOutputEnabled = m_mbStatsEnabled;
+    m_curbeParams.bCscOrCopyOnly = !m_scalingEnabled || params->cscOrCopyOnly;
+    m_curbeParams.inputColorSpace = params->inputColorSpace;
 
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = inputSurface;

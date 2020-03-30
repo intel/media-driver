@@ -326,7 +326,12 @@ MOS_STATUS CodechalEncodeCscDsG12::SetKernelParamsCsc(KernelParams* params)
 
     // setup Curbe
     m_curbeParams.dwInputPictureWidth = inputFrameWidth;
-    m_curbeParams.dwInputPictureHeight = inputFrameHeight;  
+    m_curbeParams.dwInputPictureHeight = inputFrameHeight;
+    m_curbeParams.bFlatnessCheckEnabled = m_flatnessCheckEnabled;
+    m_curbeParams.bMBVarianceOutputEnabled = m_mbStatsEnabled;
+    m_curbeParams.bMBPixelAverageOutputEnabled = m_mbStatsEnabled;
+    m_curbeParams.bCscOrCopyOnly = !m_scalingEnabled || params->cscOrCopyOnly;
+    m_curbeParams.inputColorSpace = params->inputColorSpace;
 
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = inputSurface;
