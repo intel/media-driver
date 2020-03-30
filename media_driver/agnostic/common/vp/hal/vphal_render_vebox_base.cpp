@@ -1718,6 +1718,21 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetupIndirectStates(
             &VeboxGamutParams));
     }
 
+    if (pRenderData->bBT2020TosRGB)
+    {
+        VeboxGamutParams.ColorSpace    = VPHal_VpHalCspace2MhwCspace(pSrcSurface->ColorSpace);
+        VeboxGamutParams.dstColorSpace = VPHal_VpHalCspace2MhwCspace(pRenderData->BT2020DstColorSpace);
+        VeboxGamutParams.srcFormat     = pSrcSurface->Format;
+        VeboxGamutParams.dstFormat     = pOutSurface->Format;
+        VeboxGamutParams.GCompMode     = MHW_GAMUT_MODE_NONE;
+        VeboxGamutParams.GExpMode      = MHW_GAMUT_MODE_NONE;
+        VeboxGamutParams.bGammaCorr    = false;
+
+        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxGamutState(
+            &VeboxIecpParams,
+            &VeboxGamutParams));
+    }
+
 finish:
     return eStatus;
 }
@@ -2412,6 +2427,16 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
         pRenderData->b60fpsDi       = !pSrc->pDeinterlaceParams->bSingleField;
     }
 
+    pRenderData->b2PassesCSC = VeboxIs2PassesCSCNeeded(pSrc, pRenderTarget);
+
+    pRenderData->bBT2020TosRGB = (pVeboxState->IsFormatSupported(pSrc) &&
+                                  (GFX_IS_GEN_9_OR_LATER(pVeboxState->m_pRenderHal->Platform)) &&
+                                  (IS_COLOR_SPACE_BT2020_YUV(pSrc->ColorSpace)) &&
+                                  (pRenderTarget->ColorSpace != pSrc->ColorSpace) &&
+                                  (!IS_COLOR_SPACE_BT2020_RGB(pRenderTarget->ColorSpace)));
+
+    pRenderData->BT2020DstColorSpace = pRenderTarget->ColorSpace;
+
     // Need to refine later
     // Actually, behind CSC can do nothing which is related to degamma/gamma
     pRenderData->bBeCsc             = (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) &&
@@ -2444,6 +2469,9 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
 
     if (pSrc->pHDRParams)
     {
+        pRenderData->bBT2020TosRGB       = false;
+        pRenderData->b2PassesCSC         = false;
+
         // For H2S, it is possible that there is no HDR params for render target.
         pRenderData->uiMaxContentLevelLum = pSrc->pHDRParams->MaxCLL;
         if (pSrc->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
@@ -3656,6 +3684,10 @@ finish:
     pOsInterface->pfnSetGpuContext(pOsInterface, RenderGpuContext);
 
     // Vebox feature report -- set the output pipe
+    if (pRenderData->b2PassesCSC)
+    {   //set 2passcsc outputpipe to VPHAL_OUTPUT_PIPE_MODE_COMP for final report.
+        SET_VPHAL_OUTPUT_PIPE(pRenderData, VPHAL_OUTPUT_PIPE_MODE_COMP);
+    }
     m_reporting->OutputPipeMode = pRenderData->OutputPipe;
     m_reporting->VEFeatureInUse = !pRenderData->bVeboxBypass;
     m_reporting->DiScdMode      = pRenderData->VeboxDNDIParams.bSyntheticFrame;
@@ -4242,6 +4274,33 @@ MOS_STATUS VpHal_RndrRenderVebox(
             goto finish;
         }
 
+        if (pRenderData->b2PassesCSC)
+        {   // First step of two pass CSC in vebox for Linux BT.2020 -> BT.601/709/RGB
+
+            if (!pRenderPassData->bCompNeeded)
+            {   //the flage is set due to VeboxIs2PassesCSCNeeded() in GetOutputPipe()
+                VPHAL_RENDER_ASSERTMESSAGE(" Failed to run two pass CSC in render ");
+                VPHAL_RENDER_CHK_STATUS(MOS_STATUS_INVALID_PARAMETER)
+            }
+
+            SET_VPHAL_OUTPUT_PIPE(pRenderData, VPHAL_OUTPUT_PIPE_MODE_VEBOX);
+            pRenderData->pRenderTarget = &pVeboxState->m_BT2020CSCTempSurface;
+            //set input/output for vebox
+            pRenderPassData->pSrcSurface = pInSurface;
+            pRenderPassData->pOutSurface = &pVeboxState->m_BT2020CSCTempSurface;
+
+            VPHAL_RENDER_CHK_STATUS(pVeboxState->Render(
+                pcRenderParams,
+                pRenderPassData));
+
+            pRenderPassData->b2CSCNeeded = true;
+
+            pRenderPassData->bOutputGenerated = true;
+
+            pRenderState->CopyReporting(pReport);
+            goto finish;
+        }
+
         if (pRenderPassData->bCompNeeded == false)
         {
             // Render Target is the output surface
@@ -4442,6 +4501,7 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     m_pLastExecRenderData   = nullptr;
     CscOutputCspace         = CSpace_Any;
     CscInputCspace          = CSpace_Any;
+    m_BT2020CSCTempSurface  = {};
 
     int i;
     for (i = 0; i < 9; i++)
