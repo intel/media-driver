@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -471,6 +471,11 @@ public:
     MEDIA_FEATURE_TABLE*          GetSkuTable()
     {
         return m_skuTable;
+    };
+
+    PLATFORM                      GetPlatform()
+    {
+        return m_platform;
     };
 
     PMOS_INTERFACE              GetOsInterface()
