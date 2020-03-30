@@ -3665,105 +3665,15 @@ static VAStatus DdiMedia_SyncSurface (
         if (codecHal->IsApogeiosEnabled())
         {
             DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(codecHal);
-            return VA_STATUS_SUCCESS;
+            DDI_CHK_NULL(decoder, "nullptr (DecodePipelineAdapter *decoder) ", VA_STATUS_SUCCESS);
+            return DdiDecode_StatusReport(mediaCtx, decoder, surface);
         }
         else
     #endif
         {
             CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
-            DDI_CHK_NULL(decoder, "nullptr codecHal->pDecoder", VA_STATUS_SUCCESS);
-
-            if (decoder->IsStatusQueryReportingEnabled())
-            {
-                if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING)
-                {
-                    CodechalDecodeStatusBuffer *decodeStatusBuf = decoder->GetDecodeStatusBuf();
-                    uint32_t uNumAvailableReport = (decodeStatusBuf->m_currIndex - decodeStatusBuf->m_firstIndex) & (CODECHAL_DECODE_STATUS_NUM - 1);
-                    DDI_CHK_CONDITION((uNumAvailableReport == 0),
-                        "No report available at all", VA_STATUS_ERROR_OPERATION_FAILED);
-
-                    for (i = 0; i < uNumAvailableReport; i++)
-                    {
-                        int32_t index = (decodeStatusBuf->m_firstIndex + i) & (CODECHAL_DECODE_STATUS_NUM - 1);
-                        if ((decodeStatusBuf->m_decodeStatus[index].m_decodeStatusReport.m_currDecodedPicRes.bo == surface->bo) ||
-                            (decoder->GetStandard() == CODECHAL_VC1 && decodeStatusBuf->m_decodeStatus[index].m_decodeStatusReport.m_deblockedPicResOlp.bo == surface->bo))
-                        {
-                            break;
-                        }
-                    }
-
-                    DDI_CHK_CONDITION((i == uNumAvailableReport),
-                        "No report available for this surface", VA_STATUS_ERROR_OPERATION_FAILED);
-
-                    uint32_t uNumCompletedReport = i+1;
-
-                    for (i = 0; i < uNumCompletedReport; i++)
-                    {
-                        CodechalDecodeStatusReport tempNewReport;
-                        MOS_ZeroMemory(&tempNewReport, sizeof(CodechalDecodeStatusReport));
-                        MOS_STATUS eStatus = decoder->GetStatusReport(&tempNewReport, 1);
-                        DDI_CHK_CONDITION(MOS_STATUS_SUCCESS != eStatus, "Get status report fail", VA_STATUS_ERROR_OPERATION_FAILED);
-
-                        MOS_LINUX_BO *bo = tempNewReport.m_currDecodedPicRes.bo;
-
-                        if (decoder->GetStandard() == CODECHAL_VC1)
-                        {
-                            bo = (tempNewReport.m_deblockedPicResOlp.bo) ? tempNewReport.m_deblockedPicResOlp.bo : bo;
-                        }
-
-                        if ((tempNewReport.m_codecStatus == CODECHAL_STATUS_SUCCESSFUL) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_ERROR) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_INCOMPLETE))
-                        {
-                            PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
-
-                            uint32_t j = 0;
-                            for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
-                            {
-                                if (mediaSurfaceHeapElmt != nullptr &&
-                                        mediaSurfaceHeapElmt->pSurface != nullptr &&
-                                        bo == mediaSurfaceHeapElmt->pSurface->bo)
-                                {
-                                    mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.m_codecStatus;
-                                    mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.m_numMbsAffected;
-                                    mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.crcValue = (decoder->GetStandard() == CODECHAL_AVC)?(uint32_t)tempNewReport.m_frameCrc:0;
-                                    mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
-                                    break;
-                                }
-                            }
-
-                            if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
-                            {
-                                return VA_STATUS_ERROR_OPERATION_FAILED;
-                            }
-                        }
-                        else
-                        {
-                            // return failed if queried INCOMPLETE or UNAVAILABLE report.
-                            return VA_STATUS_ERROR_OPERATION_FAILED;
-                        }
-                    }
-                }
-
-                // check the report ptr of current surface.
-                if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
-                {
-                    if (surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL)
-                    {
-                        return VA_STATUS_SUCCESS;
-                    }            
-                    else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR)
-                    {
-                        return VA_STATUS_ERROR_DECODING_ERROR;
-                    }
-                    else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE || surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
-                    {
-                        return VA_STATUS_ERROR_HW_BUSY;
-                    }
-                }
-                else
-                {
-                    return VA_STATUS_ERROR_OPERATION_FAILED;
-                }
-            }
+            DDI_CHK_NULL(decoder, "nullptr (CodechalDecode *decoder)", VA_STATUS_SUCCESS);
+            return DdiDecode_StatusReport(mediaCtx, decoder, surface);
         }
     }
 
