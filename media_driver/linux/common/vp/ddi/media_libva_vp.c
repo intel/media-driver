@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -152,7 +152,7 @@ VAStatus VpGetExternalSurfaceInfo(
     PDDI_MEDIA_SURFACE pMediaSurface,
     PVPHAL_SURFACE pVphalSurface)
 {
-    if (pMediaSurface->pSurfDesc)
+    if (pMediaSurface->pSurfDesc && !(pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_PROTECTED))
     {
         if (pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM ||
             pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
