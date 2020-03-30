@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2020, Intel Corporation
+* Copyright (c) 2015-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,6 @@
 #define MHW_VEBOX_TIMESTAMP_PER_TICK_IN_NS_G12              83.333f
 
 #define MHW_LACE_COLOR_COMPENSATION_LUT_POINT_NUMBER            16
-
-#define MHW_VEBOX_SLIM_IPU_DN_CMD_SIZE_INUSE                    34
 
 typedef struct _MHW_LACE_COLOR_WEIGHT_LUT
 {
