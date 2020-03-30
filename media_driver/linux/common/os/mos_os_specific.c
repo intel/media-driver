@@ -4597,45 +4597,33 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
             };
         }
 
+        createOption->gpuNode = GpuNode;
         if (g_apoMosEnabled)
         {
             // Update ctxBasedScheduling from legacy OsInterface
             pOsInterface->osStreamState->ctxBasedScheduling = pOsInterface->ctxBasedScheduling;
-
-            // Only wrapper will contain re-creation check based on stream Index and MOS_GPU_CONTEXT
-            createOption->gpuNode = GpuNode;
-            MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
             if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
             {
-                GPU_CONTEXT_HANDLE gpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
-                eStatus = MosInterface::CreateGpuContext(pOsInterface->osStreamState, *createOption, gpuContextHandle);
-                if (MOS_FAILED(eStatus))
-                {
-                    MOS_OS_ASSERTMESSAGE("Failed to create GPU Context.");
-                    eStatus = MOS_STATUS_GPU_CONTEXT_ERROR;
-                    return eStatus;
-                }
-                pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextHandle);
-                
-                MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
                 auto osDeviceContext = pOsInterface->osStreamState->osDeviceContext;
+                MOS_OS_CHK_NULL_RETURN(osDeviceContext);
                 auto gpuContextMgr = osDeviceContext->GetGpuContextMgr();
-                if (gpuContextMgr)
-                {
-                    GpuContextNext *gpuCtx = gpuContextMgr->GetGpuContext(gpuContextHandle);
-                    auto gpuContextSpecific = static_cast<GpuContextSpecificNext *>(gpuCtx);
-                    MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
-                    gpuContextSpecific->SetGpuContext(mosGpuCxt);
-                    return eStatus;
-                }
-                else
-                {
-                    MOS_OS_ASSERTMESSAGE("Failed to get GPU Context mgr.");
-                    eStatus = MOS_STATUS_GPU_CONTEXT_ERROR;
-                    return eStatus;
-                }
+                MOS_OS_CHK_NULL_RETURN(gpuContextMgr);
+                auto cmdBufMgr = osDeviceContext->GetCmdBufferMgr();
+                MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
+
+                auto gpuContext = gpuContextMgr->CreateGpuContext(GpuNode, cmdBufMgr);
+                MOS_OS_CHK_NULL_RETURN(gpuContext);
+
+                auto gpuContextSpecific  = static_cast<GpuContextSpecificNext *>(gpuContext);
+                MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
+
+                MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), pOsInterface->osStreamState, createOption));
+                gpuContextSpecific->SetGpuContext(mosGpuCxt);
+
+                pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextSpecific->GetGpuContextHandle());
             }
-            return eStatus;
+
+            return MOS_STATUS_SUCCESS;
         }
 
         if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
