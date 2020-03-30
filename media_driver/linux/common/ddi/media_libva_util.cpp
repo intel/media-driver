@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -448,7 +448,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 tileformat = I915_TILING_NONE;
                 break;
             default:
-                tileformat = I915_TILING_NONE;
+                tileformat = I915_TILING_Y;
                 break;
         }
 
