@@ -37,6 +37,8 @@ CodechalEncodeJpegStateG12::CodechalEncodeJpegStateG12(
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
     InitMmcState();
+
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
 }

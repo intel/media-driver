@@ -41,6 +41,7 @@ CodechalEncodeJpegStateG11::CodechalEncodeJpegStateG11(
 
     memset(m_refList, 0, sizeof(m_refList));
 
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 }
