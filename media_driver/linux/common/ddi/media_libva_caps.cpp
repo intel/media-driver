@@ -996,6 +996,32 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     return status;
 }
 
+VAStatus MediaLibvaCaps::CreateVpAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList)
+{
+    DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAStatus status = CreateAttributeList(attributeList);
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    auto attribList = *attributeList;
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAConfigAttrib attrib;
+    attrib.type = VAConfigAttribRTFormat;
+    attrib.value = VA_RT_FORMAT_YUV420 |
+                   VA_RT_FORMAT_YUV422 |
+                   VA_RT_FORMAT_YUV444 |
+                   VA_RT_FORMAT_YUV400 |
+                   VA_RT_FORMAT_YUV411 |
+                   VA_RT_FORMAT_RGB16 |
+                   VA_RT_FORMAT_RGB32;
+    (*attribList)[attrib.type] = attrib.value;
+    return status;
+}
+
 VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
@@ -1665,7 +1691,7 @@ VAStatus MediaLibvaCaps::LoadNoneProfileEntrypoints()
 
     AttribMap *attributeList = nullptr;
 
-    status = CreateDecAttributes(VAProfileNone, VAEntrypointVideoProc, &attributeList);
+    status = CreateVpAttributes(VAProfileNone, VAEntrypointVideoProc, &attributeList);
     DDI_CHK_RET(status, "Failed to initialize Caps!");
 
     uint32_t configStartIdx = m_vpConfigs.size();
