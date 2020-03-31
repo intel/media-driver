@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -198,6 +198,7 @@ void MhwInterfaces::Destroy()
     MOS_Delete(m_hcpInterface);
     MOS_Delete(m_hucInterface);
     MOS_Delete(m_vdencInterface);
+    MOS_Delete(m_bltInterface);
 }
 
 Codechal* CodechalDevice::CreateFactory(

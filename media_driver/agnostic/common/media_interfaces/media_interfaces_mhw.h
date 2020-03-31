@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -99,6 +99,7 @@ public:
     MhwVdboxHcpInterface *m_hcpInterface = nullptr;
     MhwVdboxHucInterface *m_hucInterface = nullptr;
     MhwVdboxVdencInterface *m_vdencInterface = nullptr;
+    MhwBltInterface *m_bltInterface = nullptr;
 
     //!
     //! \brief    Calls the factory function to initialize all requested interfaces.

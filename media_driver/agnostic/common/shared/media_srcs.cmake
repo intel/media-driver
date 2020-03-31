@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,12 +22,14 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
     ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt.h
 )
 
 set(SOURCES_
