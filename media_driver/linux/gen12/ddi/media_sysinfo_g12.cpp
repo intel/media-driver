@@ -195,6 +195,9 @@ static bool InitTglShadowWa(struct GfxDeviceInfo *devInfo,
     // Set it to 0 if need to support 256B compress mode
     waTable->WaLimit128BMediaCompr = 0;
 
+    //source and recon surfaces need to be aligned to the LCU size
+    waTable->WaAlignYUVResourceToLCU = 1;
+
     return true;
 }
 
