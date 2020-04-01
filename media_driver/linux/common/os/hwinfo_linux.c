@@ -168,34 +168,58 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
+    unsigned int maxNengine = 0;
+    if((gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)
+        || (gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled == 0))
+    {
+        if (mos_query_engines_count(pDrmBufMgr, &maxNengine))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
+                return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+            }
+    }
+
     if (gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)
     {
-        unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
-        struct i915_engine_class_instance uengines[MAX_ENGINE_INSTANCE_NUM];
+        unsigned int nengine = maxNengine;
+        struct i915_engine_class_instance *uengines = nullptr;
+        uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
+        MOS_OS_CHK_NULL_RETURN(uengines);
         if (mos_query_engines(pDrmBufMgr,I915_ENGINE_CLASS_VIDEO,0,&nengine,uengines) == 0)
         {
             gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to query vdbox engine\n");
+            MOS_SafeFreeMemory(uengines);
+            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
         for (int i=0; i<nengine; i++)
         {
             gtSystemInfo->VDBoxInfo.Instances.VDBoxEnableMask |= 1<<uengines[i].engine_instance;
         }
+        MOS_SafeFreeMemory(uengines);
     }
 
     if (gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled == 0)
     {
-        unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
-        struct i915_engine_class_instance uengines[MAX_ENGINE_INSTANCE_NUM];
+        unsigned int nengine = maxNengine;
+        struct i915_engine_class_instance *uengines = nullptr;
+        uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
+        MOS_OS_CHK_NULL_RETURN(uengines);
         if (mos_query_engines(pDrmBufMgr,I915_ENGINE_CLASS_VIDEO_ENHANCE,0,&nengine,uengines) == 0)
         {
-            MOS_OS_ASSERT(nengine <= MAX_ENGINE_INSTANCE_NUM);
+            MOS_OS_ASSERT(nengine <= maxNengine);
             gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled = nengine;
         }
         else
         {
             MOS_OS_ASSERTMESSAGE("Failed to query vebox engine\n");
+            MOS_SafeFreeMemory(uengines);
             return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
+        MOS_SafeFreeMemory(uengines);
     }
 
     uint32_t platformKey = devInfo->productFamily;

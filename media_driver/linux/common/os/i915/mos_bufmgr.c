@@ -4085,6 +4085,28 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
     return context;
 }
 
+int mos_query_engines_count(struct mos_bufmgr *bufmgr,
+                      unsigned int *nengine)
+{
+    assert(bufmgr);
+    assert(nengine);
+    int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
+    struct drm_i915_query query;
+    struct drm_i915_query_item query_item;
+    int ret, len;
+
+    memclear(query_item);
+    query_item.query_id = DRM_I915_QUERY_ENGINE_INFO;
+    query_item.length = 0;
+    memclear(query);
+    query.num_items = 1;
+    query.items_ptr = (uintptr_t)&query_item;
+
+    ret = drmIoctl(fd, DRM_IOCTL_I915_QUERY, &query);
+    *nengine = query_item.length;
+    return ret;
+}
+
 int mos_query_engines(struct mos_bufmgr *bufmgr,
                       __u16 engine_class,
                       __u64 caps,

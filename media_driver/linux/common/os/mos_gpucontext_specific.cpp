@@ -135,6 +135,9 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
 
     if (osInterface->ctxBasedScheduling)
     {
+        unsigned int nengine = 0;
+        struct i915_engine_class_instance *engine_map = nullptr;
+
         m_i915Context[0] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
                                              osInterface->pOsContext->intel_context,
                                              I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
@@ -146,15 +149,31 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
         m_i915Context[0]->pOsContext = osInterface->pOsContext;
 
         m_i915ExecFlag = I915_EXEC_DEFAULT;
+
+        if (mos_query_engines_count(osInterface->pOsContext->bufmgr, &nengine))
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
+            return MOS_STATUS_UNKNOWN;
+        }
+        engine_map = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
+        MOS_OS_CHK_NULL_RETURN(engine_map);
+
         if (GpuNode == MOS_GPU_NODE_3D)
         {
-            struct i915_engine_class_instance engine_map;
-            engine_map.engine_class = I915_ENGINE_CLASS_RENDER;
-            engine_map.engine_instance = 0;
+            __u16 engine_class = I915_ENGINE_CLASS_RENDER;
+            __u64 caps = 0;
 
-            if (mos_set_context_param_load_balance(m_i915Context[0],&engine_map, 1))
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
+                MOS_SafeFreeMemory(engine_map);
+                return MOS_STATUS_UNKNOWN;
+            }
+
+            if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
+                MOS_SafeFreeMemory(engine_map);
                 return MOS_STATUS_UNKNOWN;
             }
 
@@ -168,6 +187,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 if (mos_get_context_param_sseu(m_i915Context[0], &sseu))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to get sseu configuration.");
+                    MOS_SafeFreeMemory(engine_map);
                     return MOS_STATUS_UNKNOWN;
                 }
 
@@ -180,50 +200,49 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 if (mos_set_context_param_sseu(m_i915Context[0], sseu))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
+                    MOS_SafeFreeMemory(engine_map);
                     return MOS_STATUS_UNKNOWN;
                 }
             }
         }
         else if (GpuNode == MOS_GPU_NODE_COMPUTE)
         {
-            unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
-            struct i915_engine_class_instance engine_map[MAX_ENGINE_INSTANCE_NUM];
             __u16 engine_class = 4; //To change later when linux define the name
             __u64 caps = 0;
 
-            MOS_ZeroMemory(engine_map, sizeof(engine_map));
-            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class,caps,&nengine,engine_map))
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
+                MOS_SafeFreeMemory(engine_map);
                 return MOS_STATUS_UNKNOWN;
             }
 
             if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
+                MOS_SafeFreeMemory(engine_map);
                 return MOS_STATUS_UNKNOWN;
             }
         }
         else if (GpuNode == MOS_GPU_NODE_VIDEO || GpuNode == MOS_GPU_NODE_VIDEO2
                  || GpuNode == MOS_GPU_NODE_VE)
         {
-            unsigned int nengine = MAX_ENGINE_INSTANCE_NUM;
-            struct i915_engine_class_instance engine_map[MAX_ENGINE_INSTANCE_NUM];
             __u16 engine_class = (GpuNode == MOS_GPU_NODE_VE)? I915_ENGINE_CLASS_VIDEO_ENHANCE : I915_ENGINE_CLASS_VIDEO;
             __u64 caps = 0;
 
             SetEngineQueryFlags(createOption, caps);
 
-            MOS_ZeroMemory(engine_map, sizeof(engine_map));
-            if (mos_query_engines(osInterface->pOsContext->bufmgr,engine_class,caps,&nengine,engine_map))
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
+                MOS_SafeFreeMemory(engine_map);
                 return MOS_STATUS_UNKNOWN;
             }
 
             if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
+                MOS_SafeFreeMemory(engine_map);
                 return MOS_STATUS_UNKNOWN;
             }
 
@@ -236,6 +255,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 if (m_i915Context[1] == nullptr)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
+                    MOS_SafeFreeMemory(engine_map);
                     return MOS_STATUS_UNKNOWN;
                 }
                 m_i915Context[1]->pOsContext = osInterface->pOsContext;
@@ -243,6 +263,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
+                    MOS_SafeFreeMemory(engine_map);
                     return MOS_STATUS_UNKNOWN;
                 }
 
@@ -255,13 +276,15 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                     if (m_i915Context[i+1] == nullptr)
                     {
                         MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
+                        MOS_SafeFreeMemory(engine_map);
                         return MOS_STATUS_UNKNOWN;
                     }
                     m_i915Context[i+1]->pOsContext = osInterface->pOsContext;
 
-                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0],&engine_map[i], 1))
+                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1))
                     {
                         MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension.\n");
+                        MOS_SafeFreeMemory(engine_map);
                         return MOS_STATUS_UNKNOWN;
                     }
                 }
@@ -272,6 +295,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
             MOS_OS_ASSERTMESSAGE("Unknown engine class.\n");
             return MOS_STATUS_UNKNOWN;
         }
+        MOS_SafeFreeMemory(engine_map);
     }
     return MOS_STATUS_SUCCESS;
 }
