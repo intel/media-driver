@@ -200,6 +200,7 @@ void mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_enable_fenced_relocs(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_set_vma_cache_size(struct mos_bufmgr *bufmgr,
                          int limit);
+int mos_bufmgr_gem_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
 int mos_gem_bo_map_unsynchronized(struct mos_linux_bo *bo);
 int mos_gem_bo_map_gtt(struct mos_linux_bo *bo);
 int mos_gem_bo_unmap_gtt(struct mos_linux_bo *bo);

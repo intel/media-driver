@@ -44,3 +44,15 @@ void GpuContextSpecificNext::SetEngineQueryFlags(
         caps |= I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC;
     }
 }
+
+MOS_STATUS GpuContextSpecificNext::ReportMemoryInfo(struct mos_bufmgr *bufmgr)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS GpuContextSpecificNext::ReportEngineInfo(
+    struct i915_engine_class_instance *engineMap,
+    int engineNum)
+{
+    return MOS_STATUS_SUCCESS;
+}

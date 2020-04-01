@@ -218,6 +218,13 @@ protected:
         PMOS_GPUCTX_CREATOPTIONS option,
         __u64 &caps);
 
+    MOS_STATUS ReportEngineInfo(
+        struct i915_engine_class_instance *engineMap,
+        int engineNum);
+
+    MOS_STATUS ReportMemoryInfo(
+        struct mos_bufmgr *bufmgr);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_LINUX_BO* GetNopCommandBuffer(
         MOS_STREAM_HANDLE streamState);

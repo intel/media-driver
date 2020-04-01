@@ -300,8 +300,13 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
             MOS_OS_ASSERTMESSAGE("Unknown engine class.\n");
             return MOS_STATUS_UNKNOWN;
         }
+
+        MOS_OS_CHK_STATUS_RETURN(ReportEngineInfo(engine_map, nengine));
         MOS_SafeFreeMemory(engine_map);
     }
+
+    MOS_OS_CHK_STATUS_RETURN(ReportMemoryInfo(osParameters->bufmgr));
+
     return MOS_STATUS_SUCCESS;
 }
 

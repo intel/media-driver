@@ -3788,6 +3788,12 @@ mos_bufmgr_gem_unref(struct mos_bufmgr *bufmgr)
     }
 }
 
+int
+mos_bufmgr_gem_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length)
+{
+    return 0;
+}
+
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.
