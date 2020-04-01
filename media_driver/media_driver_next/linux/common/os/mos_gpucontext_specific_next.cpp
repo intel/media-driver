@@ -286,11 +286,21 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                     }
                     m_i915Context[i+1]->pOsContext = osParameters;
 
-                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1))
+                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1) != S_SUCCESS)
                     {
-                        MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension.\n");
-                        MOS_SafeFreeMemory(engine_map);
-                        return MOS_STATUS_UNKNOWN;
+                        int err = errno;
+                        if (err == ENODEV)
+                        {
+                            mos_gem_context_destroy(m_i915Context[i+1]);
+                            m_i915Context[i+1] = nullptr;
+                            break;
+                        }
+                        else
+                        {
+                            MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension. errno=%d\n",err);
+                            MOS_SafeFreeMemory(engine_map);
+                            return MOS_STATUS_UNKNOWN;
+                        }
                     }
                 }
             }
@@ -298,6 +308,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
         else
         {
             MOS_OS_ASSERTMESSAGE("Unknown engine class.\n");
+            MOS_SafeFreeMemory(engine_map);
             return MOS_STATUS_UNKNOWN;
         }
 

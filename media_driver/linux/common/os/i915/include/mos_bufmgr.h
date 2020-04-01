@@ -39,6 +39,8 @@
 #include <stdio.h>
 #include "libdrm_macros.h"
 
+#define S_SUCCESS 0
+
 struct drm_clip_rect;
 struct mos_bufmgr;
 struct mos_linux_context;
