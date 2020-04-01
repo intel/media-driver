@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -258,7 +258,6 @@ struct _MOS_SPECIFIC_RESOURCE
     MOS_MMAP_OPERATION  MmapOperation;
     uint8_t             *pSystemShadow;
     bool                b16UsrPtrMode;      //!< indicate source info comes from app.
-    bool                bExternalSurface;   //!< indicate the surface allocated by external
     MOS_PLANE_OFFSET    YPlaneOffset;       //!< Y surface plane offset
     MOS_PLANE_OFFSET    UPlaneOffset;       //!< U surface plane offset
     MOS_PLANE_OFFSET    VPlaneOffset;       //!< V surface plane offset
@@ -290,6 +289,7 @@ struct _MOS_SPECIFIC_RESOURCE
     GraphicsResource*       pGfxResource;
     GraphicsResourceNext*   pGfxResourceNext;
     bool                    bConvertedFromDDIResource;
+    bool                    bExternalSurface;    //!< indicate the surface not allocated by media
 
     // Tile switch
     MOS_TILE_MODE_GMM   TileModeGMM;
