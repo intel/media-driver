@@ -1180,7 +1180,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     details.Format   = resource->Format;
 
     // Get planes
-    if (resource->b16UsrPtrMode)
+    if (resource->b16UsrPtrMode || resource->bExternalSurface)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         details.RenderOffset.YUV.Y.BaseOffset = resource->YPlaneOffset.iSurfaceOffset;
