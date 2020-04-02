@@ -4224,28 +4224,32 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
 
     hucVdencBrcInitDmem->SSCFlag = m_hevcSeqParams->SliceSizeControl;
 
-    // LDB case, NumP=0 & NumB=100, but GopP=100 & GopB=0
-
-    hucVdencBrcInitDmem->GopP_U16 = m_hevcSeqParams->GopPicSize - m_hevcSeqParams->NumOfBInGop[0] - 1;
-    hucVdencBrcInitDmem->GopB_U16 = (uint16_t)m_hevcSeqParams->NumOfBInGop[0];
-
     hucVdencBrcInitDmem->FrameWidth_U16 = (uint16_t)m_frameWidth;
     hucVdencBrcInitDmem->FrameHeight_U16 = (uint16_t)m_frameHeight;
-
-    hucVdencBrcInitDmem->GopB1_U16 = (uint16_t)m_hevcSeqParams->NumOfBInGop[1];
-    hucVdencBrcInitDmem->GopB2_U16 = (uint16_t)m_hevcSeqParams->NumOfBInGop[2];
 
     hucVdencBrcInitDmem->MinQP_U8 = m_hevcPicParams->BRCMinQp < 10 ? 10 : m_hevcPicParams->BRCMinQp;                                           // Setting values from arch spec
     hucVdencBrcInitDmem->MaxQP_U8 = m_hevcPicParams->BRCMaxQp < 10 ? 51 : (m_hevcPicParams->BRCMaxQp > 51 ? 51 : m_hevcPicParams->BRCMaxQp);   // Setting values from arch spec
 
-    hucVdencBrcInitDmem->MaxBRCLevel_U8 = 1;
     hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 0;
-    //QP modulation settings
-    if (m_hevcSeqParams->HierarchicalFlag)
+
+    //QP modulation settings, allow HB gop 2/4/8
+    if (m_hevcSeqParams->HierarchicalFlag && (m_hevcSeqParams->GopRefDist & 14))
     {
-        // Low delay P/B max support Gop 4, layer 3; RA max support Gop 8, layer 4
-        hucVdencBrcInitDmem->MaxBRCLevel_U8 = m_hevcSeqParams->LowDelayMode ? 3 : 4;
+        uint16_t intraPeriod = m_hevcSeqParams->GopPicSize > 4001 ? 4000 : m_hevcSeqParams->GopPicSize - 1;
+        intraPeriod = ((intraPeriod + m_hevcSeqParams->GopRefDist - 1) / m_hevcSeqParams->GopRefDist) * m_hevcSeqParams->GopRefDist;
+
+        hucVdencBrcInitDmem->GopP_U16 = intraPeriod/m_hevcSeqParams->GopRefDist;
+        hucVdencBrcInitDmem->GopB_U16 = hucVdencBrcInitDmem->GopP_U16;
+        hucVdencBrcInitDmem->GopB1_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16) == intraPeriod) ? 0 : hucVdencBrcInitDmem->GopB_U16 * 2;
+        hucVdencBrcInitDmem->GopB2_U16 = intraPeriod - hucVdencBrcInitDmem->GopP_U16 - hucVdencBrcInitDmem->GopB_U16 - hucVdencBrcInitDmem->GopB1_U16;
+
+        hucVdencBrcInitDmem->MaxBRCLevel_U8 = hucVdencBrcInitDmem->GopB1_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B : (hucVdencBrcInitDmem->GopB2_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B1 : HEVC_BRC_FRAME_TYPE_B2);
         hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 1;
+    }
+    else //FlatB or LDB
+    {
+        hucVdencBrcInitDmem->GopP_U16 = m_hevcSeqParams->GopPicSize - 1;
+        hucVdencBrcInitDmem->MaxBRCLevel_U8 = HEVC_BRC_FRAME_TYPE_B;
     }
 
     hucVdencBrcInitDmem->LumaBitDepth_U8   = m_hevcSeqParams->bit_depth_luma_minus8 + 8;
@@ -4641,7 +4645,8 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
     {
         hucVdencBrcUpdateDmem->CurrentFrameType_U8 = HEVC_BRC_FRAME_TYPE_I;
     }
-    else if (m_hevcSeqParams->HierarchicalFlag)
+    // allow HB gop 2/4/8
+    else if (m_hevcSeqParams->HierarchicalFlag && (m_hevcSeqParams->GopRefDist & 14))
     {
         if (m_hevcPicParams->HierarchLevelPlus1 > 0)
         {
@@ -4681,7 +4686,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
             hucVdencBrcUpdateDmem->CurrentFrameType_U8 = HEVC_BRC_FRAME_TYPE_P_OR_LB; //No Hierarchical info for LDB, treated as flat case
         }
     }
-    else
+    else // FlatB or LDB
     {
         hucVdencBrcUpdateDmem->CurrentFrameType_U8 = HEVC_BRC_FRAME_TYPE_P_OR_LB;
     }
@@ -8788,9 +8793,9 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRoundingValues()
         {
             m_roundIntraValue = 10;
         }
-        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
+        // allow HB gop 2/4/8
+        else if ((m_hevcSeqParams->GopRefDist & 14) && m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
         {
-            //Hierachical GOP
             if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
                 m_roundIntraValue = 10;
@@ -8820,9 +8825,9 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRoundingValues()
         {
             m_roundInterValue = 4;
         }
-        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
+        // allow HB gop 2/4/8
+        else if ((m_hevcSeqParams->GopRefDist & 14) && m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
         {
-            //Hierachical GOP
             if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
                 m_roundInterValue = 4;
