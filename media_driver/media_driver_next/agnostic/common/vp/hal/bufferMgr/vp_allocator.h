@@ -491,6 +491,15 @@ public:
         bool                  bWriteOperation);
 
 protected:
+    //!
+    //! \brief    Set mmc flags to surface
+    //! \details  Set mmc flags to surface
+    //! \param    MOS_SURFACE &osSurface
+    //!           [in, out] OS surface sturcture
+    //! \return   MOS_STATUS
+    //!
+    MOS_STATUS SetMmcFlags(MOS_SURFACE &osSurface);
+
     PMOS_INTERFACE  m_osInterface   = nullptr;
     Allocator       *m_allocator    = nullptr;
     VPMediaMemComp  *m_mmc          = nullptr;

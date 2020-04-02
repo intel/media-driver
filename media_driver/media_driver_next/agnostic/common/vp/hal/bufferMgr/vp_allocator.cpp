@@ -100,6 +100,13 @@ MOS_SURFACE* VpAllocator::AllocateSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool z
         // Format is not initialized in Allocator::AllocateSurface. Remove it after
         // it being fixed in Allocator::AllocateSurface.
         surf->Format = param.Format;
+
+        if (MOS_FAILED(SetMmcFlags(*surf)))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Set mmc flags failed during AllocateSurface!");
+            m_allocator->DestroySurface(surf);
+            return nullptr;
+        }
     }
 
     return surf;
@@ -208,13 +215,6 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
     osSurface.VPlaneOffset.iXOffset             = vphalSurf.VPlaneOffset.iXOffset;
     osSurface.VPlaneOffset.iYOffset             = vphalSurf.VPlaneOffset.iYOffset;
 
-    // Align the MMC related flag with vphal surface.
-    osSurface.bCompressible                     = vphalSurf.bCompressible;
-    osSurface.bIsCompressed                     = vphalSurf.bIsCompressed;
-    osSurface.CompressionMode                   = vphalSurf.CompressionMode;
-    osSurface.CompressionFormat                 = vphalSurf.CompressionFormat;
-    osSurface.MmcState                          = (MOS_MEMCOMP_STATE)vphalSurf.CompressionMode;
-
     // Initialize other parameters in vp surface according to vphal surface.
     surf->ColorSpace                            = vphalSurf.ColorSpace;
     surf->ExtendedGamut                         = vphalSurf.ExtendedGamut;
@@ -232,6 +232,12 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
     surf->rcDst                                 = vphalSurf.rcDst;
     surf->rcMaxSrc                              = vphalSurf.rcMaxSrc;
 
+    if (MOS_FAILED(SetMmcFlags(osSurface)))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Set mmc flags failed during AllocateVpSurface!");
+        DestroyVpSurface(surf);
+        return nullptr;
+    }
     return surf;
 }
 
@@ -920,6 +926,35 @@ MOS_STATUS VP_SURFACE::Clean()
     MOS_ZeroMemory(&rcSrc, sizeof(rcSrc));
     MOS_ZeroMemory(&rcDst, sizeof(rcDst));
     MOS_ZeroMemory(&rcMaxSrc, sizeof(rcMaxSrc));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpAllocator::SetMmcFlags(MOS_SURFACE &osSurface)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
+
+    // Init MMC related flags.
+    m_mmc->SetSurfaceMmcMode(&osSurface);
+    if (osSurface.CompressionMode   &&
+        (osSurface.TileType == MOS_TILE_Y ||
+         osSurface.TileType == MOS_TILE_YS))
+    {
+        uint32_t mmcFormat   = 0;
+
+        osSurface.bCompressible   = true;
+        osSurface.bIsCompressed   = true;
+        m_mmc->GetSurfaceMmcFormat(&osSurface, &mmcFormat);
+        osSurface.CompressionFormat = mmcFormat;
+    }
+    else
+    {
+        // Do not modify the bCompressible flag even MmcMode is disable, since the surface size/pitch may be different
+        // between Compressible and Uncompressible, which will affect the DN surface allocation.
+        osSurface.bIsCompressed     = false;
+        osSurface.CompressionMode   = MOS_MMC_DISABLED;
+        osSurface.CompressionFormat = 0;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
