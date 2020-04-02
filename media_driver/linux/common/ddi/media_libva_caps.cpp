@@ -418,6 +418,150 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus MediaLibvaCaps::CheckAttribList(
+            VAProfile profile,
+            VAEntrypoint entrypoint,
+            VAConfigAttrib* attrib,
+            int32_t numAttribs)
+{
+    int32_t idx = GetProfileTableIdx(profile, entrypoint);
+    if(idx < 0)
+    {
+        return VA_STATUS_ERROR_INVALID_VALUE;
+    }
+    for(int32_t j = 0; j < numAttribs; j ++)
+    {
+        bool isValidAttrib = false;
+
+        //temp solution for MV tools, after tool change, it should be removed
+        if(attrib[j].type == VAConfigAttribEncDynamicScaling
+          ||attrib[j].type == VAConfigAttribEncRateControlExt
+          ||attrib[j].type == VAConfigAttribEncTileSupport)
+        {
+            if(attrib[j].value == VA_ATTRIB_NOT_SUPPORTED)
+            {
+                isValidAttrib = true;
+                continue;
+            }
+        }
+
+        if (m_profileEntryTbl[idx].m_attributes->find(attrib[j].type) !=
+            m_profileEntryTbl[idx].m_attributes->end())
+        {
+            isValidAttrib = false;
+
+            if(attrib[j].value == m_configAttribNone)
+            {
+                isValidAttrib = true;
+                continue;
+            }
+            if(attrib[j].type == VAConfigAttribRTFormat
+             ||attrib[j].type == VAConfigAttribDecSliceMode
+             ||attrib[j].type == VAConfigAttribDecJPEG
+             ||attrib[j].type == VAConfigAttribRateControl
+             ||attrib[j].type == VAConfigAttribEncPackedHeaders
+             ||attrib[j].type == VAConfigAttribEncIntraRefresh
+             ||attrib[j].type == VAConfigAttribFEIFunctionType
+             ||attrib[j].type == VAConfigAttribEncryption)
+            {
+                if(((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] & attrib[j].value) == attrib[j].value)
+                {
+                    isValidAttrib = true;
+                    continue;
+                }
+                else if(attrib[j].type == VAConfigAttribRTFormat)
+                {
+                    return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+                }
+            }
+            else if((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] == attrib[j].value)
+            {
+                isValidAttrib = true;
+                continue;
+            }
+            else if(attrib[j].type == VAConfigAttribEncSliceStructure)
+            {
+                if(((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] & attrib[j].value) == attrib[j].value)
+                {
+                    isValidAttrib = true;
+                    continue;
+                }
+
+                if((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] & VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS)
+                {
+                    if((attrib[j].value & VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS)
+                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_POWER_OF_TWO_ROWS)
+                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS))
+                    {
+                        isValidAttrib = true;
+                        continue;
+                    }
+                }
+                else if ((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] &
+                         (VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE))
+                {
+                    if((attrib[j].value & VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS)
+                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_POWER_OF_TWO_ROWS)
+                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS))
+                    {
+                        isValidAttrib = true;
+                        continue;
+                    }
+                }
+            }
+            else if((attrib[j].type == VAConfigAttribMaxPictureWidth)
+                 || (attrib[j].type == VAConfigAttribMaxPictureHeight)
+                 || (attrib[j].type == VAConfigAttribEncROI)
+                 || (attrib[j].type == VAConfigAttribEncDirtyRect))
+            {
+                if(attrib[j].value <= (*m_profileEntryTbl[idx].m_attributes)[attrib[j].type])
+                {
+                    isValidAttrib = true;
+                    continue;
+                }
+            }
+            else if(attrib[j].type == VAConfigAttribEncMaxRefFrames)
+            {
+                if(((attrib[j].value & 0xffff) <= ((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] & 0xffff))
+                 &&(attrib[j].value <= (*m_profileEntryTbl[idx].m_attributes)[attrib[j].type]))  //high16 bit  can compare with this way
+                {
+                    isValidAttrib = true;
+                    continue;
+                }
+            }
+            else if(attrib[j].type == VAConfigAttribEncJPEG)
+            {
+                VAConfigAttribValEncJPEG jpegValue, jpegSetValue;
+                jpegValue.value = attrib[j].value;
+                jpegSetValue.value = (*m_profileEntryTbl[idx].m_attributes)[attrib[j].type];
+                if((jpegValue.bits.max_num_quantization_tables <= jpegSetValue.bits.max_num_quantization_tables)
+                   &&(jpegValue.bits.max_num_huffman_tables <= jpegSetValue.bits.max_num_huffman_tables)
+                   &&(jpegValue.bits.max_num_scans <= jpegSetValue.bits.max_num_scans)
+                   &&(jpegValue.bits.max_num_components <= jpegSetValue.bits.max_num_components))
+                {
+                    isValidAttrib = true;
+                    continue;
+                }
+            }
+
+        }
+        //should be removed after msdk remove VAConfigAttribSpatialResidual attributes for VPP
+        else if((profile == VAProfileNone)
+               && (entrypoint == VAEntrypointVideoProc)
+               && (attrib[j].type == VAConfigAttribSpatialClipping))
+        {
+            isValidAttrib = true;
+            continue;
+        }
+
+        if(!isValidAttrib)
+        {
+           return VA_STATUS_ERROR_INVALID_VALUE;
+        }
+    }
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus MediaLibvaCaps::CreateEncAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,
@@ -2041,6 +2185,12 @@ VAStatus MediaLibvaCaps::CreateConfig(
         {
             return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
         }
+    }
+
+    VAStatus ret = CheckAttribList(profile,entrypoint,attribList, numAttribs);
+    if(ret != VA_STATUS_SUCCESS)
+    {
+        return ret;
     }
 
     if (CheckEntrypointCodecType(entrypoint, videoDecode))
