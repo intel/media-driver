@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2019, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_common.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_oca_support.cpp
 )
 
 set(TMP_HEADERS_
@@ -30,7 +29,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderhal_common.h
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_oca_support.h
 )
 
 
@@ -46,5 +44,24 @@ set(HEADERS_
 
 source_group( "MHW\\Render Hal" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
+set(TMP_SOURCES2_
+)
+
+set(TMP_HEADERS2_
+    ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface.h
+)
+
+# no source for now
+#set(SOURCES_
+#    ${SOURCES_}
+#    ${TMP_SOURCES2_}
+# )
+
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS2_}
+)
+
+source_group( "MHW\\OCA" FILES ${TMP_SOURCES2_} ${TMP_HEADERS2_} )
 
 media_add_curr_to_include_path()

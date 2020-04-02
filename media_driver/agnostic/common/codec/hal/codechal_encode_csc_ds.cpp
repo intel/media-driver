@@ -26,6 +26,7 @@
 
 #include "codechal_encoder_base.h"
 #include "codechal_encode_csc_ds.h"
+#include "hal_oca_interface.h"
 
 MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
 {
@@ -1455,22 +1456,19 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
         walkerParams.GroupIdLoopSelect = m_groupId;
     }
 
-    // In remote gaming scenario, when input is RGB surface, insert HW semaphore to wait for 
-    // external copy completion before CSC. Once the marker is overwritten by external copy,
-    // HW semaphore will be signalled and CSC will start. 
-    bool isRgbInput = (m_surfaceParamsCsc.psInputSurface->Format == Format_A8R8G8B8) ||
-                      (m_surfaceParamsCsc.psInputSurface->Format == Format_A8B8G8R8) ||
-                      (m_surfaceParamsCsc.psInputSurface->Format == Format_X8R8G8B8) ||
-                      (m_surfaceParamsCsc.psInputSurface->Format == Format_X8B8G8R8);
-    uint32_t offset = m_surfaceParamsCsc.psInputSurface->dwWidth * (m_surfaceParamsCsc.psInputSurface->dwHeight - 16) * 4 - 4;
-    if (m_externalCopySync && isRgbInput)
+    // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external 
+    // raw surface processing to complete, before start CSC. Once the marker in 
+    // raw surface is overwritten by external operation, HW semaphore will be 
+    // signalled and CSC will start. This is to reduce SW latency between 
+    // external raw surface processing and CSC, in usages like remote gaming.
+    if (m_pollingSyncEnabled)
     {
         MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
         MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
         miSemaphoreWaitParams.presSemaphoreMem = &m_surfaceParamsCsc.psInputSurface->OsResource;
-        miSemaphoreWaitParams.dwResourceOffset = offset;
+        miSemaphoreWaitParams.dwResourceOffset = m_syncMarkerOffset;
         miSemaphoreWaitParams.bPollingWaitMode = true;
-        miSemaphoreWaitParams.dwSemaphoreData  = 0x01234501; // the marker to check in source surface
+        miSemaphoreWaitParams.dwSemaphoreData  = m_syncMarkerValue;
         miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_NOT_EQUAL_SDD;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
     }
@@ -1481,13 +1479,13 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->SubmitBlocks(m_cscKernelState));
 
-    // write the marker to source surface for next MI_SEMAPHORE_WAIT to check.
-    if (m_externalCopySync && isRgbInput)
+    // If m_pollingSyncEnabled is set, write the marker to source surface for next MI_SEMAPHORE_WAIT to check.
+    if (m_pollingSyncEnabled)
     {
         MHW_MI_STORE_DATA_PARAMS storeDataParams;
         storeDataParams.pOsResource      = &m_surfaceParamsCsc.psInputSurface->OsResource;
-        storeDataParams.dwResourceOffset = offset;
-        storeDataParams.dwValue          = 0x01234501; // write the marker to source surface 
+        storeDataParams.dwResourceOffset = m_syncMarkerOffset;
+        storeDataParams.dwValue          = m_syncMarkerValue;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &storeDataParams));
     }
 
@@ -1509,6 +1507,7 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -1778,6 +1777,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
@@ -1803,6 +1803,7 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_singleTaskPhaseSupported(encoder->m_singleTaskPhaseSupported),
       m_firstTaskInPhase(encoder->m_firstTaskInPhase),
       m_lastTaskInPhase(encoder->m_lastTaskInPhase),
+      m_pollingSyncEnabled(encoder->m_pollingSyncEnabled),
       m_groupId(encoder->m_groupId),
       m_outputChromaFormat(encoder->m_outputChromaFormat),
       m_standard(encoder->m_standard),
@@ -1823,13 +1824,14 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_maxBtCount(encoder->m_maxBtCount),
       m_vmeStatesSize(encoder->m_vmeStatesSize),
       m_storeData(encoder->m_storeData),
+      m_syncMarkerOffset(encoder->m_syncMarkerOffset),
+      m_syncMarkerValue(encoder->m_syncMarkerValue),
       m_renderContext(encoder->m_renderContext),
       m_walkerMode(encoder->m_walkerMode),
       m_currRefList(encoder->m_currRefList),
       m_resMbStatsBuffer(encoder->m_resMbStatsBuffer),
       m_rawSurfaceToEnc(encoder->m_rawSurfaceToEnc),
-      m_rawSurfaceToPak(encoder->m_rawSurfaceToPak),
-      m_externalCopySync(encoder->m_externalCopySync)
+      m_rawSurfaceToPak(encoder->m_rawSurfaceToPak)
 {
     // Initilize interface pointers
     m_encoder = encoder;

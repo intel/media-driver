@@ -28,6 +28,10 @@
 #include "cm_mem.h"
 #include "cm_hal.h"
 #include "cm_execution_adv.h"
+#include "cm_surface_2d_rt.h"
+#include <string>
+#include <iostream>
+#include <sstream>
 
 namespace CMRT_UMD
 {
@@ -312,6 +316,70 @@ void CmSurfaceVme::SetSurfState(CmExecutionAdv *advExec, uint8_t *argValue, CmSu
     m_advExec = advExec;
     m_argValue = argValue;
     m_surfState = surfState;
+}
+
+void CmSurfaceVme::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex, uint32_t vectorIndex)
+{
+    // dump current surface
+#if MDF_SURFACE_CONTENT_DUMP
+    std::ostringstream         outputFileName;
+
+    outputFileName << "t_" << taskId
+        << "_k_" << kernelNumber
+        << "_" << kernelName
+        << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex
+        << "vme_cur";
+
+    CmSurface *surface = nullptr;
+    m_surfaceMgr->GetSurface(m_cmIndexForCurrent, surface);
+
+    CmSurface2DRT *surface2DRT = dynamic_cast<CmSurface2DRT *>(surface);
+    if (surface2DRT)
+    {
+        surface2DRT->DumpContentToFile(outputFileName.str().c_str());
+    }
+
+    for (uint32_t i = 0; i < m_surfaceFCount; i ++)
+    {
+        outputFileName.str(std::string()); // clear the stream
+        outputFileName << "t_" << taskId
+        << "_k_" << kernelNumber
+        << "_" << kernelName
+        << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex
+        << "vme_fw" << i;
+
+        CmSurface *surface = nullptr;
+        m_surfaceMgr->GetSurface(m_forwardCmIndexArray[i], surface);
+
+        CmSurface2DRT *surface2DRT = dynamic_cast<CmSurface2DRT *>(surface);
+        if (surface2DRT)
+        {
+            surface2DRT->DumpContentToFile(outputFileName.str().c_str());
+        }
+    }
+
+    for (uint32_t i = 0; i < m_surfaceBCount; i ++)
+    {
+        outputFileName.str(std::string()); // clear the stream
+        outputFileName << "t_" << taskId
+        << "_k_" << kernelNumber
+        << "_" << kernelName
+        << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex
+        << "vme_bw" << i;
+
+        CmSurface *surface = nullptr;
+        m_surfaceMgr->GetSurface(m_backwardCmIndexArray[i], surface);
+
+        CmSurface2DRT *surface2DRT = dynamic_cast<CmSurface2DRT *>(surface);
+        if (surface2DRT)
+        {
+            surface2DRT->DumpContentToFile(outputFileName.str().c_str());
+        }
+    }
+#endif
 }
 
 }

@@ -482,6 +482,12 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
 
+    /*! \brief Indicates number of frames to lookahead.
+    *
+    *    Range is [0~127]. Default is 0 which means lookahead disabled. Valid only when LookaheadBRCSupport is 1. When not 0, application should send LOOKAHEADDATA to driver.
+    */
+    uint8_t     LookaheadDepth;
+
     uint32_t palette_mode_enabled_flag;
     uint32_t motion_vector_resolution_control_idc;
     uint32_t intra_boundary_filtering_disabled_flag;

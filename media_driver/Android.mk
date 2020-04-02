@@ -27,7 +27,7 @@ LOCAL_SRC_FILES := \
     agnostic/common/cm/cm_array.cpp \
     agnostic/common/cm/cm_buffer_rt.cpp \
     agnostic/common/cm/cm_def.cpp \
-    agnostic/common/cm/cm_device_rt.cpp \
+    agnostic/common/cm/cm_device_rt_base.cpp \
     agnostic/common/cm/cm_event_rt.cpp \
     agnostic/common/cm/cm_execution_adv.cpp \
     agnostic/common/cm/cm_global_api.cpp \
@@ -170,6 +170,7 @@ LOCAL_SRC_FILES := \
     agnostic/common/vp/hal/vphal_render_common.c \
     agnostic/common/vp/hal/vphal_render_composite.cpp \
     agnostic/common/vp/hal/vphal_render_fast1ton.cpp \
+    agnostic/common/vp/hal/vphal_render_hdr_base.cpp \
     agnostic/common/vp/hal/vphal_render_ief.cpp \
     agnostic/common/vp/hal/vphal_render_renderstate.cpp \
     agnostic/common/vp/hal/vphal_render_sfc_base.cpp \
@@ -351,6 +352,7 @@ LOCAL_SRC_FILES := \
     agnostic/gen9/renderhal/renderhal_g9.cpp \
     agnostic/gen9/vp/hal/vphal_g9.cpp \
     agnostic/gen9/vp/hal/vphal_render_composite_g9.cpp \
+    agnostic/gen9/vp/hal/vphal_render_hdr_g9_base.cpp \
     agnostic/gen9/vp/hal/vphal_render_sfc_g9_base.cpp \
     agnostic/gen9/vp/hal/vphal_render_vebox_g9_base.cpp \
     agnostic/gen9/vp/hal/vphal_renderer_g9.cpp \
@@ -375,6 +377,7 @@ LOCAL_SRC_FILES := \
     agnostic/gen9_bxt/media_interfaces/media_interfaces_g9_bxt.cpp \
     agnostic/gen9_bxt/vp/hal/vphal_g9_bxt.cpp \
     agnostic/gen9_cfl/media_interfaces/media_interfaces_g9_cfl.cpp \
+    agnostic/gen9_cml/vp/kernel/igvpkrn_g9_cml.c \
     agnostic/gen9_glk/codec/hal/codechal_decode_nv12top010_g9_glk.cpp \
     agnostic/gen9_glk/codec/hal/codechal_decode_nv12top010_kernel_g9_glk.cpp \
     agnostic/gen9_glk/codec/hal/codechal_encode_hevc_g9_glk.cpp \
@@ -389,6 +392,7 @@ LOCAL_SRC_FILES := \
     agnostic/gen9_kbl/codec/kernel/igcodeckrn_g9_kbl.c \
     agnostic/gen9_kbl/hw/vdbox/mhw_vdbox_hcp_g9_kbl.cpp \
     agnostic/gen9_kbl/hw/vdbox/mhw_vdbox_hcp_hwcmd_g9_kbl.cpp \
+    agnostic/gen9_kbl/hw/vdbox/mhw_vdbox_huc_g9_kbl.cpp \
     agnostic/gen9_kbl/hw/vdbox/mhw_vdbox_huc_hwcmd_g9_kbl.cpp \
     agnostic/gen9_kbl/hw/vdbox/mhw_vdbox_mfx_g9_kbl.cpp \
     agnostic/gen9_kbl/hw/vdbox/mhw_vdbox_mfx_hwcmd_g9_kbl.cpp \
@@ -425,7 +429,7 @@ LOCAL_SRC_FILES := \
     agnostic/gen9_skl/hw/vdbox/mhw_vdbox_vdenc_hwcmd_g9_skl.cpp \
     agnostic/gen9_skl/media_interfaces/media_interfaces_g9_skl.cpp \
     linux/common/cm/cm_debug_os.cpp \
-    linux/common/cm/cm_device_rt_os.cpp \
+    linux/common/cm/cm_device_rt.cpp \
     linux/common/cm/cm_event_rt_os.cpp \
     linux/common/cm/cm_ftrace.cpp \
     linux/common/cm/cm_global_api_os.cpp \
@@ -480,6 +484,7 @@ LOCAL_SRC_FILES := \
     linux/common/os/mos_context_specific.cpp \
     linux/common/os/mos_gpucontext_specific.cpp \
     linux/common/os/mos_graphicsresource_specific.cpp \
+    linux/common/os/mos_interface.cpp \
     linux/common/os/mos_os_specific.c \
     linux/common/os/mos_os_virtualengine_scalability_specific.cpp \
     linux/common/os/mos_os_virtualengine_singlepipe_specific.cpp \
@@ -487,7 +492,7 @@ LOCAL_SRC_FILES := \
     linux/common/os/mos_util_devult_specific.cpp \
     linux/common/os/mos_util_user_interface_specific.cpp \
     linux/common/os/mos_utilities_specific.c \
-    agnostic/common/renderhal/renderhal_oca_support.cpp \
+    linux/common/renderhal/hal_oca_interface.cpp \
     linux/common/renderhal/renderhal_dsh_specific.c \
     linux/common/renderhal/renderhal_linux.cpp \
     linux/common/vp/ddi/media_libva_vp.c \
@@ -513,9 +518,33 @@ LOCAL_SRC_FILES := \
     linux/gen9_glk/ddi/media_libva_caps_g9_glk.cpp \
     linux/gen9_kbl/ddi/media_libva_caps_g9_kbl.cpp \
     linux/gen9_skl/ddi/media_libva_caps_g9_skl.cpp \
+    media_driver_next/agnostic/common/os/mos_cmdbufmgr_next.cpp \
+    media_driver_next/agnostic/common/os/mos_commandbuffer_next.cpp \
+    media_driver_next/agnostic/common/os/mos_context_next.cpp \
+    media_driver_next/agnostic/common/os/mos_gpucontext_next.cpp \
+    media_driver_next/agnostic/common/os/mos_gpucontextmgr_next.cpp \
+    media_driver_next/agnostic/common/os/mos_graphicsresource_next.cpp \
+    media_driver_next/agnostic/common/os/mos_os_next.cpp \
+    media_driver_next/agnostic/common/os/mos_os_virtualengine_next.cpp \
+    media_driver_next/agnostic/common/os/mos_os_virtualengine_scalability_next.cpp \
+    media_driver_next/agnostic/common/os/mos_os_virtualengine_singlepipe_next.cpp \
+    media_driver_next/agnostic/common/os/mos_util_debug_next.cpp \
+    media_driver_next/agnostic/common/os/mos_util_user_interface_next.cpp \
+    media_driver_next/agnostic/common/os/mos_utilities_next.cpp \
+    media_driver_next/linux/common/os/mos_commandbuffer_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_context_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_gpucontext_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_graphicsresource_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_os_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_os_virtualengine_scalability_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_os_virtualengine_singlepipe_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_util_debug_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_util_user_interface_specific_next.cpp \
+    media_driver_next/linux/common/os/mos_utilities_specific_next.cpp \
 
 LOCAL_SHARED_LIBRARIES := \
     libsync \
+    libbinder \
     libcutils \
     libutils \
     libdrm \
@@ -527,7 +556,9 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_CPPFLAGS = \
     -DDRV_I915 \
     -DOTC_GRALLOC \
+    -DANDROID \
     -DANDROID_VERSION=800 \
+    -DLINUX \
     -fexceptions \
     -frtti \
     -std=c++14 \
@@ -541,12 +572,14 @@ LOCAL_CPPFLAGS = \
     -DIGFX_GEN8_SUPPORTED \
     -DIGFX_GEN9_BXT_SUPPORTED \
     -DIGFX_GEN9_CFL_SUPPORTED \
+    -DIGFX_GEN9_CML_SUPPORTED \
     -DIGFX_GEN9_GLK_SUPPORTED \
     -DIGFX_GEN9_KBL_SUPPORTED \
     -DIGFX_GEN9_SKL_SUPPORTED \
     -DIGFX_GEN9_SUPPORTED \
     -DUFO_VERSION=\"2.0.0\" \
     -DVEBOX_AUTO_DENOISE_SUPPORTED=1 \
+    -DX11_FOUND \
     -D_AVC_DECODE_SUPPORTED \
     -D_AVC_ENCODE_VDENC_SUPPORTED \
     -D_AVC_ENCODE_VME_SUPPORTED \
@@ -581,13 +614,6 @@ LOCAL_CPPFLAGS = \
     -Wno-logical-op-parentheses \
     -Wno-parentheses \
     -Wno-bitfield-constant-conversion \
-
-LOCAL_CPPFLAGS += \
-    -msse2 \
-    -msse3 \
-    -mssse3 \
-    -msse4.1 \
-    -msse4.2
 
 LOCAL_CONLYFLAGS = -x c++
 LOCAL_CFLAGS = $(LOCAL_CPPFLAGS)
@@ -632,6 +658,7 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/agnostic/gen9/renderhal \
     $(LOCAL_PATH)/agnostic/gen9/vp/hal \
     $(LOCAL_PATH)/agnostic/gen9/vp/kernel \
+    $(LOCAL_PATH)/agnostic/gen9_cml/vp/kernel \
     $(LOCAL_PATH)/agnostic/gen9_bxt/codec/hal \
     $(LOCAL_PATH)/agnostic/gen9_bxt/codec/kernel \
     $(LOCAL_PATH)/agnostic/gen9_bxt/hw/vdbox \
@@ -693,6 +720,8 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/linux/gen10_cnl/ddi \
     $(LOCAL_PATH)/linux/gen11/codec/ddi \
     $(LOCAL_PATH)/linux/gen11/ddi \
+    $(LOCAL_PATH)/media_driver_next/agnostic/common/os \
+    $(LOCAL_PATH)/media_driver_next/linux/common/os \
 
 
 #LOCAL_CPP_FEATURES := rtti exceptions
@@ -701,5 +730,3 @@ LOCAL_MODULE := i965_drv_video
 LOCAL_PROPRIETARY_MODULE := true
 
 include $(BUILD_SHARED_LIBRARY)
-
-

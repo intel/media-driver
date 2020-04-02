@@ -154,6 +154,8 @@ typedef struct _VP_CONFIG
     uint32_t   dwTCCPreprocessInUseReported;        // Reported Vebox TCC Pre-process for HDR
     uint32_t   dwIEFPreprocessInUse;                // Vebox IEF Pre-process for HDR
     uint32_t   dwIEFPreprocessInUseReported;        // Reported Vebox IEF Pre-process for HDR
+    bool       bAdvancedScalingInUse;              // Advanced Scaling Enabled
+    bool       bAdvancedScalingInUseReported;      // Reported Advanced Scaling Enabled
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;

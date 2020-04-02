@@ -964,9 +964,9 @@ public:
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS           m_hpuVirtualAddrParams;
     MOS_RESOURCE                                m_hucPakIntDummyBuffer;
     MOS_RESOURCE                                m_hucPakIntBrcDataBuffer;
-    StatsInfo                                   m_tileStatsOffset;  // Page aligned offsets for HuC PAK Integration kernel input
-    StatsInfo                                   m_frameStatsOffset; // Page aligned offsets for HuC PAK Integration kernel output
-    StatsInfo                                   m_statsSize;        // Sizes for the stats for HuC PAK Integration kernel input
+    StatsInfo                                   m_tileStatsOffset = {};  // Page aligned offsets for HuC PAK Integration kernel input
+    StatsInfo                                   m_frameStatsOffset = {}; // Page aligned offsets for HuC PAK Integration kernel output
+    StatsInfo                                   m_statsSize = {};        // Sizes for the stats for HuC PAK Integration kernel input
     // Semaphore memory for synchronizing
     MOS_RESOURCE                                m_resPipeStartSync;
     MOS_RESOURCE                                m_resFrameStartSync;
@@ -1060,7 +1060,8 @@ public:
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool frameTrackingRequested);
+        bool frameTrackingRequested,
+        MHW_MI_MMIOREGISTERS *mmioRegister = nullptr);
 
     MOS_STATUS SetSemaphoreMem(
         PMOS_RESOURCE semaphoreMem,

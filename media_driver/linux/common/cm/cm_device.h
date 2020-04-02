@@ -49,6 +49,7 @@ class CmSurface2DUP;
 class CmSurface2DUPRT;
 class CmSurface3D;
 class CmSampler8x8;
+class CmBufferStateless;
 
 //! \brief  CmDevice class \@UMD for Linux
 class CmDevice
@@ -1790,14 +1791,16 @@ public:
     //!           pointer to MOS resource.
     //! \param    [in,out] surface
     //!           reference to pointer of surface to be created.
+    //! \param    [in] mosUsage
+    //!           The selected pre-defined MOS usage of memory object control cache setting
     //! \retval   CM_SUCCESS if the CmBuffer is successfully created.
     //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if mosResource is nullptr.
     //! \retval   CM_OUT_OF_HOST_MEMORY if out of system memory
     //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 1D surfaces is exceeded.
     //! \retval   CM_FAILURE otherwise
     //!
-    CM_RT_API virtual int32_t UpdateBuffer(PMOS_RESOURCE mosResource,
-                                           CmBuffer* &surface) = 0;
+    CM_RT_API virtual int32_t UpdateBuffer(PMOS_RESOURCE mosResource, CmBuffer* &surface,
+                                           MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState) = 0;
 
     //!
     //! \brief    Update the MOS Resource in the CmSurface2D. If surface is null, 
@@ -1808,14 +1811,16 @@ public:
     //!           pointer to MOS resource.
     //! \param    [in,out] surface
     //!           reference to pointer of surface to be created.
+    //! \param    [in] mosUsage
+    //!           The selected pre-defined MOS usage of memory object control cache setting
     //! \retval   CM_SUCCESS if the CmSurface2D is successfully created.
     //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResrouce is nullptr.
     //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 2D surfaces
     //!           is exceeded.
     //! \retval   CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
-                                              CmSurface2D* &surface) = 0;
+    CM_RT_API virtual int32_t UpdateSurface2D(PMOS_RESOURCE mosResource, CmSurface2D* &surface,
+                                              MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState) = 0;
 
     //!
     //! \brief      Creates a CmSampler8x8 surface from Surface2D alias.
@@ -1847,6 +1852,53 @@ public:
         SurfaceIndex *aliasIndex,
         CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
         SurfaceIndex* &sampler8x8SurfaceIndex) = 0;
+
+    //!
+    //! \brief      It creates a CmBufferStateless of the specified size in bytes by
+    //!             using the vedio memory or the system memory.
+    //! \details    The stateless buffer means it is stateless-accessed by GPU. There
+    //!             are two ways to create a stateless buffer. One is to create from
+    //!             vedio memory, then it can be only accessed by GPU. The other way is
+    //!             to create from system memory, then it can be accessed by both GPU
+    //!             and CPU. In this way, The system memory will be allocated in runtime
+    //!             internally(if user pass nullptr pointer) or user provided (if user
+    //!             pass a valid pointer). And the system memory should be page aligned
+    //!             (4K bytes).
+    //! \param      [in] size
+    //!             Stateless buffer size in bytes.
+    //! \param      [in] option
+    //!             Stateless buffer create option.
+    //! \param      [in] sysMem
+    //!             Pointer to user provided system memory if option is system memory.
+    //! \param      [out] pSurface
+    //!             Reference to the pointer to the CmBufferStateless.
+    //! \retval     CM_SUCCESS if the CmBufferStateless is successfully created.
+    //! \retval     CM_SURFACE_ALLOCATION_FAILURE if creating the underneath 1D
+    //!             surface fails.
+    //! \retval     CM_OUT_OF_HOST_MEMORY if runtime can't allocate such size
+    //!             system memory.
+    //! \retval     CM_EXCEED_SURFACE_AMOUNT if maximum amount of 1D surfaces
+    //!             is exceeded. The amount is the amount of the surfaces that
+    //!             can co-exist. The amount can be obtained by querying the
+    //!             cap CAP_BUFFER_COUNT.
+    //! \retval     CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS if option is invalid.
+    //! \retval     CM_FAILURE otherwise.
+    CM_RT_API virtual int32_t CreateBufferStateless(size_t size,
+                                                    uint32_t option,
+                                                    void *sysMem,
+                                                    CmBufferStateless *&bufferStateless) = 0;
+
+    //!
+    //! \brief      Destroy CmBufferStateless object and associated vedio/system memory.
+    //! \param      [in,out] pSurface
+    //!             Reference to the pointer pointing to CmBufferStateless, will be
+    //!             assigned to nullptr once it is destroyed successfully.
+    //! \retval     CM_SUCCESS if CmBufferStateless and associated vedio/system memory are
+    //!             successfully destroyed.
+    //! \retval     CM_FAILURE otherwise.
+    //!
+    CM_RT_API virtual int32_t DestroyBufferStateless(CmBufferStateless* &bufferStateless) = 0;
+
 };
 }; //namespace
 

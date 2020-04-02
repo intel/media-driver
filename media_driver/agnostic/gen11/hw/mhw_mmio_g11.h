@@ -119,10 +119,13 @@
 #define MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER23_REG_OFFSET_NODE_1_INIT_G11            0x1C0924
 #define MFX_VP8_BRC_CONVERGENCE_STATUS_REG_OFFSET_NODE_1_INIT_G11                  0x1C0928
 
-
 //VDBOX MFX register initial values
 #define MFX_LRA0_REG_OFFSET_NODE_1_INIT_G11                                        0
 #define MFX_LRA1_REG_OFFSET_NODE_1_INIT_G11                                        0
 #define MFX_LRA2_REG_OFFSET_NODE_1_INIT_G11                                        0
+
+// CM HAL
+#define REG_GPR_BASE_G11                                                           CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G11
+#define REG_TIMESTAMP_BASE_G11                                                     0x2358
 
 #endif   //__MHW_MMIO_G11_H__

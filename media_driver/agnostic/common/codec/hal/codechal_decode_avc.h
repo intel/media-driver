@@ -250,7 +250,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          InitPicMhwParams(
+    virtual MOS_STATUS          InitPicMhwParams(
         PIC_MHW_PARAMS              *picMhwParams);
 
     //!

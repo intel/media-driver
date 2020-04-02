@@ -110,6 +110,9 @@ VAStatus DdiDecode_BeginPicture (
 )
 {
     DDI_FUNCTION_ENTER();
+
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
+
     uint32_t  ctxType;
     PDDI_DECODE_CONTEXT decCtx  = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -137,6 +140,9 @@ VAStatus DdiDecode_EndPicture (
 )
 {
     DDI_FUNCTION_ENTER();
+
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
+
     DDI_CHK_NULL(ctx,                "nullptr context in vpgDecodeEndPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
     uint32_t                         ctxType;
     // assume the VAContextID is decoder ID
@@ -165,6 +171,9 @@ VAStatus DdiDecode_RenderPicture (
 )
 {
     DDI_FUNCTION_ENTER();
+
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
+
     DDI_CHK_NULL(ctx,                "nullptr context in vpgDecodeRenderPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
     // assume the VAContextID is decoder ID
     uint32_t  ctxType;
@@ -228,6 +237,8 @@ VAStatus DdiDecode_CreateContext (
     VAContextID        *context
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
+
     MOS_CONTEXT                       mosCtx = {};
     PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT contextHeapElement;
     DdiMediaDecode                    *ddiDecBase;
@@ -315,6 +326,8 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
+    mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
+    mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
 
     if (nullptr == mosCtx.pPerfData)
     {

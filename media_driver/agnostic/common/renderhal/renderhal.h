@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,6 @@
 #include "mhw_memory_pool.h"
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
-#include "renderhal_oca_support.h"
 
 #include "frame_tracker.h"
 
@@ -473,6 +472,7 @@ typedef enum _RENDERHAL_COMPONENT
     RENDERHAL_COMPONENT_CM,
     RENDERHAL_COMPONENT_16ALIGN,
     RENDERHAL_COMPONENT_FAST1TON,
+    RENDERHAL_COMPONENT_HDR,
     RENDERHAL_COMPONENT_COUNT_BASE,
     RENDERHAL_COMPONENT_RESERVED_NUM = 15,
     RENDERHAL_COMPONENT_COUNT
@@ -708,6 +708,7 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_P208_1PLANE_ADV,
     RENDERHAL_PLANES_Y416_RT,
     RENDERHAL_PLANES_R32G32B32A32F,
+    RENDERHAL_PLANES_Y8_ADV,
 
     RENDERHAL_PLANES_DEFINITION_COUNT
 } RENDERHAL_PLANE_DEFINITION, *PRENDERHAL_PLANE_DEFINITION;
@@ -955,7 +956,7 @@ typedef struct _RENDERHAL_STATE_HEAP
     int32_t                 iKernelUsed;                                        // Kernel heap used size
     uint8_t                 *pKernelLoadMap;                                     // Kernel load map
     uint32_t                dwAccessCounter;                                    // Incremented when a kernel is loaded/used, for dynamic allocation
-    int32_t                 iKernelUsedForDump;                                 // Kernel heap used size without alignment data in tail.
+    int32_t                 iKernelUsedForDump;                                 // The kernel size to be dumped in oca buffer.
 
     // Kernel Spill Area
     uint32_t                dwScratchSpaceSize;                                 // Size of the Scratch Area
@@ -1240,6 +1241,9 @@ typedef struct _RENDERHAL_INTERFACE
     // Dump state for VP debugging
     void                        *pStateDumper;
 #endif
+
+    // Pointer to vphal oca dumper object to dump vphal parameters.
+    void                        *pVphalOcaDumper;
 
     // Predication
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
@@ -1714,8 +1718,6 @@ typedef struct _RENDERHAL_INTERFACE
     bool(*pfnPerThreadScratchSpaceStart2K) (
                 PRENDERHAL_INTERFACE        pRenderHal);
 
-    RenderhalOcaSupport &(* pfnGetOcaSupport)();
-
     //---------------------------
     // Overwrite L3 Cache control register
     //---------------------------
@@ -1886,12 +1888,6 @@ MOS_STATUS RenderHal_SendTimingData(
     PRENDERHAL_INTERFACE         pRenderHal,
     PMOS_COMMAND_BUFFER          pCmdBuffer,
     bool                         bStartTime);
-
-//!
-//! \brief    Get Oca support object
-//! \return   RenderhalOcaSupport&
-//!
-RenderhalOcaSupport &RenderHal_GetOcaSupport();
 
 // Constants defined in RenderHal interface
 extern const MHW_PIPE_CONTROL_PARAMS      g_cRenderHal_InitPipeControlParams;

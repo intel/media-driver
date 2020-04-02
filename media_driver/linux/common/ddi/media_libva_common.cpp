@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #include "media_libva.h"
 #include "media_libva_util.h"
 #include "mos_solo_generic.h"
+#include "mos_interface.h"
 
 static void* DdiMedia_GetVaContextFromHeap(PDDI_MEDIA_HEAP  mediaHeap, uint32_t index, PMEDIA_MUTEX_T mutex)
 {
@@ -51,6 +52,12 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
     DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface",);
     DDI_CHK_NULL(mosResource, "nullptr mosResource",);
     DDI_ASSERT(mosResource->bo);
+
+    if (g_apoMosEnabled)
+    {
+        MosInterface::ConvertResourceFromDdi(mediaSurface, mosResource, OS_SPECIFIC_RESOURCE_SURFACE, 0);
+        return;
+    }
 
     switch (mediaSurface->format)
     {
@@ -81,6 +88,12 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
             break;
         case Media_Format_R8G8B8:
             mosResource->Format    = Format_R8G8B8;
+            break;
+        case Media_Format_RGBP:
+            mosResource->Format    = Format_RGBP;
+            break;
+        case Media_Format_BGRP:
+            mosResource->Format    = Format_BGRP;
             break;
         case Media_Format_444P:
             mosResource->Format    = Format_444P;
@@ -123,6 +136,15 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
         case Media_Format_Y416:
             mosResource->Format    = Format_Y416;
             break;
+        case Media_Format_Y8:
+            mosResource->Format    = Format_Y8;
+            break;
+        case Media_Format_Y16S:
+            mosResource->Format    = Format_Y16S;
+            break;
+        case Media_Format_Y16U:
+            mosResource->Format    = Format_Y16U;
+            break;
         case Media_Format_R10G10B10A2:
             mosResource->Format    = Format_R10G10B10A2;
             break;
@@ -131,6 +153,18 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
             break;
         case Media_Format_UYVY:
             mosResource->Format    = Format_UYVY;
+            break;
+        case Media_Format_VYUY:
+            mosResource->Format    = Format_VYUY;
+            break;
+        case Media_Format_YVYU:
+            mosResource->Format    = Format_YVYU;
+            break;
+        case Media_Format_A16R16G16B16:
+            mosResource->Format    = Format_A16R16G16B16;
+            break;
+        case Media_Format_A16B16G16R16:
+            mosResource->Format    = Format_A16B16G16R16;
             break;
         default:
             DDI_ASSERTMESSAGE("DDI: unsupported media format for surface.");
@@ -173,6 +207,12 @@ void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOUR
     DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer",);
     DDI_CHK_NULL(mosResource, "nullptr mosResource",);
     DDI_ASSERT(mediaBuffer->bo);
+
+    if (g_apoMosEnabled)
+    {
+        MosInterface::ConvertResourceFromDdi(mediaBuffer, mosResource, OS_SPECIFIC_RESOURCE_BUFFER, 0);
+        return;
+    }
 
     switch (mediaBuffer->format)
     {

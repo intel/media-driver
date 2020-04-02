@@ -84,7 +84,7 @@ public:
 
     virtual int SubmitComputeTask(CMRT_UMD::CmQueueRT *queue,
                 CMRT_UMD::CmTask *task,
-                CMRT_UMD::CmEvent* &event, 
+                CMRT_UMD::CmEvent* &event,
                 const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
                 MOS_GPU_CONTEXT gpuContext);
     virtual int WaitForAllTasksFinished() {return 0; }
@@ -94,5 +94,16 @@ public:
     virtual int SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestConfig) {return 0; }
 
     virtual int AssignNewTracker() {return 0; }
-    
+
+    virtual int SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
+                CMRT_UMD::CmTask *task,
+                CMRT_UMD::CmEvent* &event,
+                const CMRT_UMD::CmThreadGroupSpace* threadGroupSpace,
+                MOS_GPU_CONTEXT gpuContext);
+
+    virtual bool SwitchToFastPath(CMRT_UMD::CmTask *task)
+    {
+        // Should always returns false as long as SubmitTask calls Enqueue
+        return false;
+    }
 };

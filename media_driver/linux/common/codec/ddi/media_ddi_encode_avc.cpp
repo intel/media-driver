@@ -239,6 +239,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     // Assuming picParams are sent before MiscParams
     picParams->ucMinimumQP = encMiscParamRC->min_qp;
     picParams->ucMaximumQP = encMiscParamRC->max_qp;
+    if (picParams->ucMaximumQP == 0 && picParams->ucMinimumQP)
+        picParams->ucMaximumQP = 51;
 
     if ((VA_RC_CBR == m_encodeCtx->uiRCMethod) || ((VA_RC_CBR | VA_RC_MB) == m_encodeCtx->uiRCMethod))
     {
@@ -296,9 +298,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
             seqParams->MBBRC = encMiscParamRC->rc_flags.bits.mb_rate_control;
     }
 
-#ifndef ANDROID
     seqParams->FrameSizeTolerance = static_cast<ENCODE_FRAMESIZE_TOLERANCE>(encMiscParamRC->rc_flags.bits.frame_tolerance_mode);
-#endif
 
     return VA_STATUS_SUCCESS;
 }
@@ -695,14 +695,12 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
         vaEncMiscParamROI->roi++;
         roi++;
     }
-#ifndef ANDROID
     seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
     if(picParams->NumROI != 0 && seqParams->ROIValueInDeltaQP == 0)
     {
         DDI_ASSERTMESSAGE("ROI does not support priority level now.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-#endif
     return VA_STATUS_SUCCESS;
 }
 

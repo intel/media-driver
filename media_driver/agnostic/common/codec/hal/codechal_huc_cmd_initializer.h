@@ -340,7 +340,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, bool isLowDelayB = true, int8_t * pRefIdxMapping = nullptr, int8_t recNotFilteredID = 0)
+    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, uint32_t roundInterValue, uint32_t roundIntraValue, bool isLowDelayB = true, int8_t * pRefIdxMapping = nullptr, int8_t recNotFilteredID = 0)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
         return eStatus;

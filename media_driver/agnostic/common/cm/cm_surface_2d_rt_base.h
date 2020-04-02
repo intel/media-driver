@@ -107,8 +107,9 @@ public:
                                    MEMORY_TYPE mem_type,
                                    unsigned int age);
 
-    CM_RT_API int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+    CM_RT_API int32_t SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+
+    CMRT_UMD_API int32_t SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage);
 
     CM_RT_API int32_t SetCompressionMode(MEMCOMP_STATE MmcMode);
 
@@ -151,7 +152,10 @@ public:
     void DumpContent(uint32_t kernelNumber,
                      char *kernelName,
                      int32_t taskId,
-                     uint32_t argIndex);
+                     uint32_t argIndex,
+                     uint32_t vectorIndex);
+
+    void DumpContentToFile(const char *filename);
 
     int32_t UpdateSurfaceProperty(uint32_t width, uint32_t height, uint32_t pitch, CM_SURFACE_FORMAT format);
 

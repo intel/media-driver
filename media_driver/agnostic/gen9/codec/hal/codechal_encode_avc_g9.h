@@ -5615,55 +5615,55 @@ public:
 
     ~CodechalEncodeAvcEncG9();
 
-    virtual MOS_STATUS InitializeState();
+    virtual MOS_STATUS InitializeState() override;
 
     virtual MOS_STATUS InitMbBrcConstantDataBuffer(
-        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS params);
+        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS params) override;
 
-    virtual MOS_STATUS InitKernelStateWP();
+    virtual MOS_STATUS InitKernelStateWP() override;
 
     virtual MOS_STATUS GetMbEncKernelStateIdx(
         CodechalEncodeIdOffsetParams*          params,
-        uint32_t*                              kernelOffset);
+        uint32_t*                              kernelOffset) override;
 
     virtual MOS_STATUS SetCurbeAvcWP(
-        PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params) override;
 
     virtual MOS_STATUS SceneChangeReport(
         PMOS_COMMAND_BUFFER       cmdBuffer,
-        PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params);
+        PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params) override;
 
     virtual MOS_STATUS SetCurbeAvcBrcInitReset(
-        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS params) override;
 
     virtual MOS_STATUS SetCurbeAvcFrameBrcUpdate(
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params) override;
 
     virtual MOS_STATUS SetCurbeAvcMbBrcUpdate(
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params) override;
 
     virtual MOS_STATUS SetCurbeAvcBrcBlockCopy(
-        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS params) override;
 
     virtual MOS_STATUS SendAvcMbEncSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS params) override;
 
     virtual MOS_STATUS SendAvcWPSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS params) override;
 
     virtual MOS_STATUS SendAvcBrcFrameUpdateSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params) override;
 
     virtual MOS_STATUS SendAvcBrcMbUpdateSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params) override;
 
-    virtual MOS_STATUS SetupROISurface();
+    virtual MOS_STATUS SetupROISurface() override;
 
-    virtual bool IsMfeMbEncEnabled(bool mbEncIFrameDistInUse = false);
+    virtual bool IsMfeMbEncEnabled(bool mbEncIFrameDistInUse = false) override;
 
     MOS_STATUS GetStatusReport(
         void *status,

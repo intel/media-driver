@@ -994,6 +994,30 @@ protected:
             uint32_t value);
 
     //!
+    //! \brief    Set the attribute for the given profile and entrypoint
+    //!
+    //! \param    [in] profile
+    //!           Specify VAProfile
+    //!
+    //! \param    [in] entrypoint
+    //!           Specify VAEntrypoint
+    //!
+    //! \param    [in] type
+    //!           VAConfigAttribType
+    //!
+    //! \param    [in] value
+    //!           Attribute value
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    VAStatus SetAttribute(
+            VAProfile profile,
+            VAEntrypoint entrypoint,
+            VAConfigAttribType type,
+            uint32_t value);
+
+    //!
     //! \brief    Create and intialize an attribute vector give encode profile and entrypoint 
     //!
     //! \param    [in] profile 

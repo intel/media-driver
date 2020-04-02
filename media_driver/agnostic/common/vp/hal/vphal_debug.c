@@ -3234,8 +3234,8 @@ MOS_STATUS VphalParameterDumper::DumpSourceSurface(
             memset(sSurfaceFilePath, 0, MAX_PATH);
             memset(sOsSurfaceFilePath, 0, MAX_PATH);
 
-            MOS_SecureStringPrint(sSurfaceFilePath, MAX_PATH, MAX_PATH, "%s\\surfdump_loc[preALL]_lyr[%d]_f[%03d]_w[%d]_h[%d]_p[%d].%s",
-                pcOutputPath, index, uiFrameCounter, pSrc->dwWidth, pSrc->dwHeight, pSrc->dwPitch, VphalDumperTool::GetFormatStr(pSrc->Format));
+            MOS_SecureStringPrint(sSurfaceFilePath, MAX_PATH, MAX_PATH, "%s%csurfdump_loc[preALL]_lyr[%d]_f[%03d]_w[%d]_h[%d]_p[%d].%s",
+                pcOutputPath, MOS_DIR_SEPERATOR, index, uiFrameCounter, pSrc->dwWidth, pSrc->dwHeight, pSrc->dwPitch, VphalDumperTool::GetFormatStr(pSrc->Format));
             VphalDumperTool::GetOsFilePath(sSurfaceFilePath, sOsSurfaceFilePath);
         }
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<FILE>%s</FILE>\n", sOsSurfaceFilePath));
@@ -3414,7 +3414,7 @@ MOS_STATUS VphalParameterDumper::DumpToXML(
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t</VPHAL_RENDER_PARAMS>\n"));
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "</VPHAL_SCENARIO>\n"));
 
-    MOS_SecureStringPrint(sPath, MAX_PATH, MAX_PATH, "%s\\param_dump[%d].xml", pParamsDumpSpec->outFileLocation, uiFrameCounter);
+    MOS_SecureStringPrint(sPath, MAX_PATH, MAX_PATH, "%s%cparam_dump[%d].xml", pParamsDumpSpec->outFileLocation, MOS_DIR_SEPERATOR, uiFrameCounter);
 
     VphalDumperTool::GetOsFilePath(sPath, sOsPath);
 

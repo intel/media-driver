@@ -41,7 +41,7 @@ bool FrameTrackerTokenFlat_IsExpired(const FrameTrackerTokenFlat *self)
     {
         if (self->trackers[i] != 0)
         {
-            uint32_t latestTracker = *(self->producer->GetLatestTrackerAddress(i));
+            volatile uint32_t latestTracker = *(self->producer->GetLatestTrackerAddress(i));
             if ((int)(self->trackers[i] - latestTracker) > 0)
             {
                 return false;
@@ -61,7 +61,7 @@ bool FrameTrackerToken::IsExpired()
     for (auto ite = m_holdTrackers.begin(); ite != m_holdTrackers.end(); ite ++)
     {
         uint32_t index = ite->first;
-        uint32_t latestTracker = *(m_producer->GetLatestTrackerAddress(index));
+        volatile uint32_t latestTracker = *(m_producer->GetLatestTrackerAddress(index));
         uint32_t holdTracker = ite->second;
         if ((int)(holdTracker - latestTracker) > 0)
         {
@@ -114,17 +114,21 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
     
     // allocate the resource
     MOS_ALLOC_GFXRES_PARAMS allocParamsLinearBuffer;
+    uint32_t size = MOS_ALIGN_CEIL(MAX_TRACKER_NUMBER * m_trackerSize, MHW_CACHELINE_SIZE);
     MOS_ZeroMemory(&allocParamsLinearBuffer, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParamsLinearBuffer.Type     = MOS_GFXRES_BUFFER;
     allocParamsLinearBuffer.TileType = MOS_TILE_LINEAR;
     allocParamsLinearBuffer.Format   = Format_Buffer;
-    allocParamsLinearBuffer.dwBytes  = MOS_ALIGN_CEIL(MAX_TRACKER_NUMBER * m_trackerSize, MHW_CACHELINE_SIZE);
+    allocParamsLinearBuffer.dwBytes = size;
     allocParamsLinearBuffer.pBufName = "FrameTrackerResource";
 
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParamsLinearBuffer,
         &m_resource));
+
+    MHW_CHK_STATUS_RETURN(
+        m_osInterface->pfnRegisterResource(m_osInterface, &m_resource, true, true));
 
     // Lock the Resource
     MOS_LOCK_PARAMS lockFlags;
@@ -136,6 +140,7 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
         m_osInterface,
         &m_resource,
         &lockFlags);
+    MOS_ZeroMemory(m_resourceData, size);
 
     m_osInterface->pfnSkipResourceSync(&m_resource);
 

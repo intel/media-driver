@@ -560,6 +560,9 @@ private:
     //!
     MOS_STATUS SetAvsStateParams();
 
+public:
+    bool                            m_bSFC2Pass = false;
+
 protected:
     bool                            disableSFC    = false;                      //!< Disable SFC for validation purposes
     bool                            enableSfcMMC  = false;                      //!< Memory compression enbale flag - read from User feature keys

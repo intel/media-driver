@@ -28,6 +28,7 @@
 #include "codechal_decoder.h"
 #include "codechal_decode_jpeg_g11.h"
 #include "mhw_vdbox_mfx_g11_X.h"
+#include "hal_oca_interface.h"
 
 CodechalDecodeJpegG11::~CodechalDecodeJpegG11()
 {
@@ -171,6 +172,9 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
         &cmdBuffer,
         0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer, true));
 
@@ -204,7 +208,11 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
 
     pipeBufAddrParams.pDecodedReconParam = &surfaceParams;
     pipeBufAddrParams.psRawSurface = nullptr;
+
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams, &cmdBuffer));
+#endif
+
     pipeBufAddrParams.pDecodedReconParam = nullptr;
 
     // Set MFX_IND_OBJ_BASE_ADDR_STATE_CMD
@@ -501,6 +509,8 @@ MOS_STATUS CodechalDecodeJpegG11::DecodePrimitiveLevel()
     {
         CodecHalDecodeSinglePipeVE_PopulateHintParams(m_veState, &cmdBuffer, true);
     }
+
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
         m_osInterface,

@@ -476,6 +476,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDI surfaces
+        for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
+        {
+            if (pVeboxState->FFDISurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDISurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // When DI switch to DNDI, the first FFDN surface pitch doesn't match with
     // the input surface pitch and cause the flicker issue
@@ -555,6 +568,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDN surfaces
+        for (i = 0; i < VPHAL_NUM_FFDN_SURFACES; i++)
+        {
+            if (pVeboxState->FFDNSurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDNSurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // Adjust the rcMaxSrc of pRenderTarget when Vebox output is enabled
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
@@ -599,6 +625,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
                 m_reporting->STMMCompressible = bSurfCompressed;
                 m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
             }
+        }
+    }
+    else
+    {
+        // Free DI history buffers (STMM = Spatial-temporal motion measure)
+        for (i = 0; i < VPHAL_NUM_STMM_SURFACES; i++)
+        {
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &pVeboxState->STMMSurfaces[i].OsResource);
         }
     }
 
@@ -1548,6 +1584,17 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G9_BASE::GetOutputPipe(
         goto finish;
     }
 
+    //Let Kernel to cover the DI cases VEBOX cannot handle.
+    if (pSrcSurface->pDeinterlaceParams &&
+        pSrcSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB &&
+        ((IS_VEBOX_SURFACE_HEIGHT_UNALIGNED(pSrcSurface, 4) &&
+          pSrcSurface->Format == Format_NV12) ||
+         !this->IsDiFormatSupported(pSrcSurface)))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
     if (bOutputPipeVeboxFeasible)
     {
@@ -1642,8 +1689,8 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
         goto finish;
     }
 
-    // check if UserPtr enabling.
-    if (pSrcSurface->bUsrPtr || pRenderTarget->bUsrPtr)
+    // check if 16aligned UserPtr enabling.
+    if (pSrcSurface->b16UsrPtr || pRenderTarget->b16UsrPtr)
     {
         pRenderPassData->bCompNeeded = true;
         goto finish;

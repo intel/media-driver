@@ -192,7 +192,7 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
     }
     else
     {
-        return CM_FAILURE;
+        kernel = new (std::nothrow) CmKernelRT(device, program, kernelIndex, kernelSeqNum);
     }
     
     if( kernel )
@@ -667,6 +667,13 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         }
         else if (kind == 0x30) {
             kind = ARG_KIND_GENERAL_DEPCNT;
+        }
+        else if (kind == 0x80) {
+            // IMP_PSEUDO_INPUT = 0x80 is pseudo input. All inputs after this
+            // will be ignored by CMRT without checking and payload copied.
+            // This resizes the argument count to achieve this.
+            m_argCount = i;
+            break;
         }
 
         m_args[i].unitKind = kind;
@@ -2180,6 +2187,85 @@ CM_RT_API int32_t CmKernelRT::SetKernelArg(uint32_t index, size_t size, const vo
     return CM_SUCCESS;
 }
 
+CM_RT_API int32_t CmKernelRT::SetKernelArgPointer(uint32_t index, size_t size, const void *value)
+{
+    INSERT_API_CALL_LOG();
+
+    //It should be mutual exclusive with Indirect Data
+    if (m_kernelPayloadData)
+    {
+        CM_ASSERTMESSAGE("Error: SetKernelArg should be mutual exclusive with indirect data.");
+        return CM_KERNELPAYLOAD_PERKERNELARG_MUTEX_FAIL;
+    }
+
+    if (index >= m_argCount)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid kernel arg count.");
+        return CM_INVALID_ARG_INDEX;
+    }
+
+    if (!value)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid kernel arg value.");
+        return CM_INVALID_ARG_VALUE;
+    }
+
+    uint64_t *argValue = MOS_NewArray(uint64_t, 1);
+    if (!argValue)
+    {
+        CM_ASSERTMESSAGE("Error: Out of system memory.");
+        return CM_OUT_OF_HOST_MEMORY;
+    }
+    CmSafeMemSet(argValue, 0, sizeof(uint64_t));
+    CmSafeMemCopy(argValue, value, size);
+
+    // Get the gfx start address of SVM/stateless buffer.
+    uint64_t gfxAddress = *(argValue);
+    MosSafeDeleteArray(argValue);
+
+    // Check the gfx start address is valid or not
+    std::set<CmSurface *> statelessSurfArray = m_surfaceMgr->GetStatelessSurfaceArray();
+    bool valid = false;
+    for(auto surface : statelessSurfArray)
+    {
+        CmBuffer_RT *buffer = static_cast<CmBuffer_RT *>(surface);
+        uint64_t startAddress = 0;
+        buffer->GetGfxAddress(startAddress);
+        size_t size = buffer->GetSize();
+
+        if (gfxAddress >= startAddress
+            && gfxAddress < (startAddress + size))
+        {
+            SurfaceIndex *surfIndex = nullptr;
+            buffer->GetIndex(surfIndex);
+            uint32_t surfIndexData = surfIndex->get_data();
+            m_surfaceArray[surfIndexData] = true;
+
+            m_args[index].isStatelessBuffer = true;
+            m_args[index].index = (uint16_t)surfIndexData;
+
+            valid = true;
+            break;
+        }
+    }
+    if (!valid)
+    {
+        CM_ASSERTMESSAGE("Error: the kernel arg pointer is not valid.");
+        return CM_INVALID_KERNEL_ARG_POINTER;
+    }
+
+    int32_t nRetVal = SetArgsInternal(CM_KERNEL_INTERNEL_ARG_PERKERNEL,
+                                      index,
+                                      size,
+                                      value);
+    if (nRetVal != CM_SUCCESS)
+    {
+        return nRetVal;
+    }
+
+    return CM_SUCCESS;
+}
+
 //*-----------------------------------------------------------------------------
 //| Purpose:   Set Static Buffer
 //| Return :   The result of operation
@@ -3202,6 +3288,9 @@ int32_t CmKernelRT::Reset( void )
         arg.isDirty = true;
         arg.isSet = false;
         arg.unitVmeArraySize = 0;
+
+        arg.isStatelessBuffer = false;
+        arg.index = 0;
     }
 
     m_threadCount = 0;
@@ -3356,6 +3445,12 @@ int32_t CmKernelRT::CollectKernelSurface()
             {
                 m_vmeSurfaceCount += numValidSurfaces;
             }
+        }
+
+        if (m_args[ j ].isStatelessBuffer)
+        {
+            uint32_t surfIndex = m_args[j].index;
+            m_surfaceArray[surfIndex] = true;
         }
     }
 
@@ -5489,10 +5584,9 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* surface, uint32_t btIn
     m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].numBTIPerSurf = (uint16_t)SetSurfBTINumForIndirectData(format, surfaceRT->Type());
 
     //Copy it to surface index array
-    if (m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] == nullptr)
-    {
-        m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] = surface;
-    }
+
+    m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] = surface;
+
 
     // count is actally one larger than the actual index
     m_usKernelPayloadSurfaceCount = indirectSurfInfoEntry + 1;
@@ -5784,7 +5878,7 @@ void CmKernelRT::SurfaceDump(uint32_t kernelNumber, int32_t taskId)
                 {
                     return;
                 }
-                surf->DumpContent(kernelNumber, m_kernelInfo->kernelName, taskId, argIndex);
+                surf->DumpContent(kernelNumber, m_kernelInfo->kernelName, taskId, argIndex, i);
             }
         }
     }

@@ -2051,13 +2051,6 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         &pDynamicState->memoryBlock,
         dwSizeMediaState)); 
 
-    // Register the DGSH block
-     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnRegisterResource(
-        pRenderHal->pOsInterface,
-        pDynamicState->memoryBlock.GetResource(),
-        false,
-        false));
-
     if (pParams->iMaxSpillSize > 0 && currentExtendSize > 0)
     {
         // Restore original extend heap size
@@ -2847,12 +2840,6 @@ MOS_STATUS RenderHal_DSH_SendTimingData(
     PMOS_COMMAND_BUFFER          pCmdBuffer,
     bool                         bStartTime);
 
-//!
-//! \brief    Get Oca support object
-//! \return   RenderhalOcaSupport&
-//!
-RenderhalOcaSupport &RenderHal_DSH_GetOcaSupport();
-
 //! Following functions are defined in RenderHal and are not used by RenderHal_DSH
 //! ------------------------------------------------------------------------------
 PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignMediaState(
@@ -2997,7 +2984,6 @@ MOS_STATUS RenderHal_InitInterface_Dynamic(
     pRenderHal->pfnReset                      = RenderHal_DSH_Reset;
     pRenderHal->pfnSendTimingData             = RenderHal_DSH_SendTimingData;
     pRenderHal->pfnSendSyncTag                = RenderHal_DSH_SendSyncTag;
-    pRenderHal->pfnGetOcaSupport              = RenderHal_DSH_GetOcaSupport;
 
     // Sampler state, interface descriptor, VFE params
     pRenderHal->pfnSetSamplerStates           = RenderHal_DSH_SetSamplerStates;

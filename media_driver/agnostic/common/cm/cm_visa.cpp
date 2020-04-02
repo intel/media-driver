@@ -31,7 +31,7 @@
 using namespace vISA;
 
 ISAfile::ISAfile(const uint8_t *data, unsigned size) : version(0), data(data), end(data + size),
-size(size), error(0), header(0), kernel_data_loaded(false), function_data_loaded(false), errorIndex(0) { }
+size(size), error(0), errorIndex(0), header(0), kernel_data_loaded(false), function_data_loaded(false) { }
 
 ISAfile::ISAfile(const ISAfile& other) {
     version = other.version;

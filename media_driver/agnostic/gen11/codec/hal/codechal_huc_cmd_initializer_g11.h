@@ -175,14 +175,14 @@ public:
 
     //! Inherited virtual functions
     virtual MOS_STATUS CmdInitializerAllocateResources(
-        CodechalHwInterface*    m_hwInterface);
+        CodechalHwInterface*    m_hwInterface) override;
 
-    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled);
+    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled) override;
 
     //!
     //! \brief    Free Resources
     //!
-    virtual void CmdInitializerFreeResources();
+    virtual void CmdInitializerFreeResources() override;
 
     //!
     //! \brief    Add copy commands of command initializer HuC FW

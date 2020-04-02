@@ -177,6 +177,16 @@ public:
     //! \retval     CM_INVALID_ARG_VALUE if kernel is NULL.
     //!
     CM_RT_API virtual int32_t AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
+
+    //!
+    //! \brief      Get task related property.
+    //! \details    Currently this function can be used to get the
+    //!             bitfield for turbo boost.
+    //! \param      [out] taskConfig
+    //!             Task related property.
+    //! \returns    CM_SUCCESS.
+    //!
+    CM_RT_API virtual int32_t GetProperty(CM_TASK_CONFIG &taskConfig) = 0;
 };
 }; //namespace
 

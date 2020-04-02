@@ -44,6 +44,8 @@
 #include <vector>
 #include <map>
 
+#define MOS_MAX_PERF_FILENAME_LEN 260
+
 class PerfUtility
 {
 public:
@@ -65,13 +67,18 @@ public:
 public:
     static PerfUtility *getInstance();
     ~PerfUtility();
-
+    PerfUtility();
     void startTick(std::string tag);
     void stopTick(std::string tag);
     void savePerfData();
+    void setupFilePath(char *perfFilePath);
+    void setupFilePath();
+    bool bPerfUtilityKey;
+    char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+    char sDetailsFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+    int32_t dwPerfUtilityIsEnabled;
 
 private:
-    PerfUtility();
     void printPerfSummary();
     void printPerfDetails();
     void printHeader(std::ofstream& fout);
@@ -82,7 +89,7 @@ private:
     std::string getDashString(uint32_t num);
 
 private:
-    static PerfUtility *instance;
+    static std::shared_ptr<PerfUtility> instance;
     std::map<std::string, std::vector<Tick>*> records;
 };
 
@@ -188,6 +195,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TIMER_REG,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MULTI_PROCESS,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_1,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_2,
     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_3,
@@ -359,6 +367,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MDF_OVERRIDE_L3TCCNTRL_REG,
     __MEDIA_USER_FEATURE_VALUE_MDF_OVERRIDE_MOCS_INDEX,
     __MEDIA_USER_FEATURE_VALUE_MDF_OVERRIDE_L3ALLOC_REG,
+    __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_SCALING_ID,
     __MEDIA_USER_FEATURE_VALUE_AVC_FTQ_IN_USE_ID,
@@ -454,6 +463,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VP9_DFROWSTORECACHE_DISABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_DDI_DUMP_DIRECTORY_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_DDI_DUMP_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_ETW_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_LOG_LEVEL_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_UMD_ULT_ENABLE_ID,
@@ -469,6 +479,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MDF_DEFAULT_CM_QUEUE_TYPE_ID,
     __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_INTERFACE,
     __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_DEBUG_OVERRIDE,
+    __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_EXECUTION_PATH_ID,
     __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
     __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,
     __VPHAL_VEBOX_FEATURE_INUSE_ID,
@@ -548,16 +559,29 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_DISABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_INTERVAL_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VME_FORCE_SCALABILITY_ID,
-    __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
     __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_SEMA_RESET_DELAY_ID,
     __MEDIA_USER_FEATURE_VALUE_SET_CMD_DEFAULT_PARS_FROM_FILES_ID,
     __MEDIA_USER_FEATURE_VALUE_CMD_PARS_FILES_DIRECORY_ID,
     __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SUPER_RESOLUTION_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SUPER_RESOLUTION_MODE_ID,
-    __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL_ID,
     __MEDIA_USER_FEATURE_VALUE_EXTERNAL_COPY_SYNC_ID,
     __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA_ID,
+    __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_BUFFER_LEAKED_ID,
+    __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_1ST_LEVEL_BB_END_MISSED_ID,
+    __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_ADDITIONAL_OCA_BUFFER_ALLOCATED_ID,
+    __MEDIA_USER_FEATURE_VALUE_OCA_STATUS_ID,
+    __MEDIA_USER_FEATURE_VALUE_OCA_ERROR_HINT_ID,
+    __MEDIA_USER_FEATURE_VALUE_IS_INDIRECT_STATE_HEAP_INVALID_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENABLE_SW_BACK_ANNOTATION_ID,
+#if (_DEBUG || _RELEASE_INTERNAL)
+    __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
+    __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT_ID,
+#endif
+    __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
+    __MEDIA_USER_FEATURE_VALUE_APO_MOS_PATH_ENABLE_ID,
     __MOS_USER_FEATURE_KEY_MAX_ID,
 } MOS_USER_FEATURE_VALUE_ID;
 
@@ -821,6 +845,19 @@ extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaratio
 //    }
 //}
 
+//Memory alloc fail simulatiion related defination
+#if (_DEBUG || _RELEASE_INTERNAL)
+
+#define NO_ALLOC_ALIGNMENT (1)
+
+bool MOS_SimulateAllocMemoryFail(
+    size_t      size,
+    size_t      alignment,
+    const char *functionName,
+    const char *filename,
+    int32_t     line);
+#endif  //(_DEBUG || _RELEASE_INTERNAL)
+
 #if MOS_MESSAGES_ENABLED
 template<class _Ty, class... _Types>
 _Ty* MOS_NewUtil(const char *functionName,
@@ -831,6 +868,13 @@ template<class _Ty, class... _Types>
 _Ty* MOS_NewUtil(_Types&&... _Args)
 #endif
 {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Simulate allocate memory fail if flag turned on
+        if (MOS_SimulateAllocMemoryFail(sizeof(_Ty), NO_ALLOC_ALIGNMENT, functionName, filename, line))
+        {
+            return nullptr;
+        }
+#endif
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
@@ -854,6 +898,13 @@ template<class _Ty, class... _Types>
 _Ty* MOS_NewArrayUtil(int32_t numElements)
 #endif
 {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //Simulate allocate memory fail if flag turned on
+        if (MOS_SimulateAllocMemoryFail(sizeof(_Ty) * numElements, NO_ALLOC_ALIGNMENT, functionName, filename, line))
+        {
+            return nullptr;
+        }
+#endif
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
         if (ptr != nullptr)
         {

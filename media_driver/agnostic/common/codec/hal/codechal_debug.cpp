@@ -506,11 +506,13 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     // Always use MOS swizzle instead of GMM Cpu blit
     uint32_t sizeMain = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
     uint8_t *surfBaseAddr = (uint8_t*)MOS_AllocMemory(sizeMain);
+
     CODECHAL_DEBUG_CHK_NULL(surfBaseAddr);
     Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch, 0);
 
-    surfBaseAddr += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
-    uint8_t *data   = surfBaseAddr;
+    uint8_t *data = surfBaseAddr;
+    data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
+    
     uint32_t width  = surface->dwWidth;
     uint32_t height = surface->dwHeight;
 
@@ -525,6 +527,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case Format_Y216:
     case Format_Y210:  //422 10bit -- Y0[15:0]:U[15:0]:Y1[15:0]:V[15:0] = 32bits per pixel = 4Bytes per pixel
     case Format_Y410:  //444 10bit -- A[31:30]:V[29:20]:Y[19:10]:U[9:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_R10G10B10A2:
     case Format_AYUV:  //444 8bit  -- A[31:24]:Y[23:16]:U[15:8]:V[7:0] = 32bits per pixel = 4Bytes per pixel
         width = width << 2;
         break;
@@ -575,6 +578,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case  Format_Y416:
     case  Format_AUYV:
     case  Format_Y410: //444 10bit
+    case  Format_R10G10B10A2:
         height *= 2;
         break;
     case  Format_YUY2:
@@ -876,6 +880,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     case hucRegionDumpHpu:
         funcName = funcName + dmemName + "_HpuPass" + passName;
         break;
+    case hucRegionDumpBackAnnotation:
+        funcName = funcName + dmemName + "_BackAnnotationPass" + passName;
+        break;
     default:
         funcName = funcName + dmemName + "_Pass" + passName;
         break;
@@ -945,6 +952,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
         break;
     case hucRegionDumpHpu:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_HpuPass" + passName;
+        break;
+    case hucRegionDumpBackAnnotation:
+        funcName = funcName + inputName + bufName + regionNumName + regionName + "_BackAnnotationPass" + passName;
         break;
     default:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_Pass" + passName;

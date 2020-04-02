@@ -50,6 +50,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_interface.h
 )
 
 set(SOURCES_

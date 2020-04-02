@@ -253,6 +253,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MDF_ETW_ENABLE                           "MDF ETW Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_LOG_LEVEL                            "MDF LOG Level"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_UMD_ULT_ENABLE                       "MDF UMD ULT Enable"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_ENABLE                      "MDF Command Buffer Dump Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE                    "MDF Curbe Dump Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE                  "MDF Surface Dump Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE            "MDF Surface State Dump Enable"
@@ -262,6 +263,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP       "MDF Interface Descriptor Dump Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER    "MDF Interface Descriptor Dump Counter"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_DUMPPATH_USER                        "MDF Dump Path Specified by User"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_EXECUTION_PATH                 "MDF Execution Path Forced by User"
 
 //User feature key for VP
 #define __MEDIA_USER_FEATURE_VALUE_VP_3P_DUMP_UFKEY_LOCATION                "Software\\Intel\\VPPDPI"
@@ -270,11 +272,25 @@
 #define __MOS_USER_FEATURE_KEY_XML_FILEPATH             "XML File Path"
 #define __MOS_USER_FEATURE_KEY_XML_DUMP_GROUPS          "XML Dump Group"
 
-
+#if (_DEBUG || _RELEASE_INTERNAL)
 //User feature key for enable simulating random memory allocation failure
-#define __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL "Simulate Random Alloc Memory Fail"
+#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE    "Alloc Memory Fail Simulate Mode"
+#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ    "Alloc Memory Fail Simulate Freq"
+#define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT    "Alloc Memory Fail Simulate Hint"
+#endif //(_DEBUG || _RELEASE_INTERNAL)
 
-//User feature key for enable/disable UMD_OCA
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA       "Enable UMD_OCA"
+//User feature key for UMD_OCA
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA                               "Enable UMD_OCA"
+//Error Report for UMD_OCA
+#define __MEDIA_USER_FEATURE_VALUE_OCA_STATUS                                   "OCA Status"
+#define __MEDIA_USER_FEATURE_VALUE_OCA_ERROR_HINT                               "OCA Error Hint"
+#define __MEDIA_USER_FEATURE_VALUE_IS_INDIRECT_STATE_HEAP_INVALID               "Is Indirect State Heap Invalid"
+#define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_BUFFER_LEAKED                  "Count For Oca Buffer Leaked"
+#define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_1ST_LEVEL_BB_END_MISSED        "Count For Oca 1st Level BB End Missed"
+#define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_ADDITIONAL_OCA_BUFFER_ALLOCATED    "Count For Additional Oca Buffer Allocated"
+
+//User feature key for enable Perf Utility Tool
+#define __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE          "Perf Utility Tool Enable"
+#define __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY             "Perf Output Directory"
 
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_H__

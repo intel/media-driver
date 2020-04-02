@@ -388,7 +388,7 @@ typedef enum _MEMORY_TYPE {
 } MEMORY_TYPE;
 
 typedef struct _CM_SURFACE_MEM_OBJ_CTRL {
-    MEMORY_OBJECT_CONTROL mem_ctrl;
+    int32_t mem_ctrl;
     MEMORY_TYPE mem_type;
     int32_t age;
 } CM_SURFACE_MEM_OBJ_CTRL;

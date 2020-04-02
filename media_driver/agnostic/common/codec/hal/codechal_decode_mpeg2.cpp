@@ -29,6 +29,7 @@
 #include "codechal_decode_mpeg2.h"
 #include "codechal_secure_decode_interface.h"
 #include "codechal_mmc_decode_mpeg2.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
 #include <fstream>
@@ -733,6 +734,9 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
     pipeModeSelectParams.Mode                  = m_mode;
     pipeModeSelectParams.bStreamOutEnabled     = m_streamOutEnabled;
@@ -755,7 +759,9 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
+#endif
 
     // when there is not a forward or backward reference,
     // the index is set to the destination frame index
@@ -816,7 +822,9 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
+#endif
 
     CODECHAL_DEBUG_TOOL(
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
@@ -1167,6 +1175,8 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
         syncParams.presSyncResource     = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
+
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
             m_osInterface,
@@ -1602,6 +1612,8 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
         syncParams.presSyncResource     = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
+
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
             m_osInterface,

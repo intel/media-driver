@@ -96,6 +96,8 @@ CmTaskRT::CmTaskRT(CmDeviceRT *device,
     CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
     CmSafeMemSet(&m_taskConfig, 0, sizeof(m_taskConfig));
     m_taskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    cmHalState->cmHalInterface->InitTaskProperty(m_taskConfig);
 }
 
 //*-----------------------------------------------------------------------------
@@ -469,9 +471,10 @@ CM_RT_API int32_t CmTaskRT::SetProperty(const CM_TASK_CONFIG &taskConfig)
     return CM_SUCCESS;
 }
 
-PCM_TASK_CONFIG CmTaskRT::GetTaskConfig()
+CM_RT_API int32_t CmTaskRT::GetProperty(CM_TASK_CONFIG &taskConfig)
 {
-    return &m_taskConfig;
+    taskConfig = m_taskConfig;
+    return CM_SUCCESS;
 }
 
 CM_RT_API int32_t CmTaskRT::AddConditionalEnd(

@@ -207,6 +207,29 @@ void VpHal_DdiReportFeatureMode(
     // Report In Place Compositon status
     pConfigValues->dwCurrentCompositionMode = pReport->CompositionMode;
     pConfigValues->dwCurrentScdMode         = pReport->DiScdMode;
+
+    VP_DDI_NORMALMESSAGE("VP Feature Report: \
+        OutputPipeMode %d, \
+        VEFeatureInUse %d, \
+        ScalingMode %d, \
+        DeinterlaceMode %d, \
+        VPMMCInUse %d, \
+        RTCompressible %d, \
+        RTCompressMode %d, \
+        PrimaryCompressible %d, \
+        PrimaryCompressMode %d, \
+        CompositionMode %d",
+        pReport->OutputPipeMode,
+        pReport->VEFeatureInUse,
+        pReport->ScalingMode,
+        pReport->DeinterlaceMode,
+        pReport->VPMMCInUse,
+        pReport->RTCompressible,
+        pReport->RTCompressMode,
+        pReport->PrimaryCompressible,
+        pReport->PrimaryCompressMode,
+        pReport->CompositionMode
+    );
 }
 
 //!

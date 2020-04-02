@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -150,6 +150,9 @@
 #define VPHAL_DEBUG_FUNCTION_ENTER                                                   \
     MOS_FUNCTION_ENTER(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG)
 
+#define VPHAL_DEBUG_FUNCTION_EXIT                                                    \
+    MOS_FUNCTION_EXIT(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG)
+
 #define VPHAL_DEBUG_CHK_STATUS(_stmt)                                                \
     MOS_CHK_STATUS(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _stmt)
 
@@ -251,6 +254,10 @@ enum VpKernelID
     // Fast 1toN
     kernelFast1toN,
 
+    // HDR
+    kernelHdrMandatory,
+    kernelHdrPreprocess,
+
     baseKernelMaxNumID
 };
 
@@ -287,6 +294,7 @@ struct VphalSettings
         sameSampleThreshold(0),
         disableDnDi(0),
         kernelUpdate(0),
+        disableHdr(0),
         veboxParallelExecution(0)
     {
     };
@@ -296,6 +304,7 @@ struct VphalSettings
     int32_t                sameSampleThreshold;
     uint32_t               disableDnDi;                                          //!< For validation purpose
     uint32_t               kernelUpdate;                                         //!< For VEBox Copy and Update kernels
+    uint32_t               disableHdr;                                           //!< Disable Hdr
     uint32_t               veboxParallelExecution;                               //!< Control VEBox parallel execution with render engine
 };
 
@@ -347,6 +356,7 @@ struct VphalFeatureReport
     VPHAL_COMPOSITION_REPORT_MODE   CompositionMode;    //!< Inplace/Legacy Compostion flag
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
     bool                            DiScdMode;          //!< Scene change detection
+    VPHAL_HDR_MODE                  HDRMode;            //!< HDR mode
 };
 
 #pragma pack(pop)
@@ -440,7 +450,7 @@ public:
     //!           The size of array pQueryReport.
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    MOS_STATUS GetStatusReport(
+    virtual MOS_STATUS GetStatusReport(
         PQUERY_STATUS_REPORT_APP        pQueryReport,
         uint16_t                        numStatus);
 
@@ -526,6 +536,9 @@ protected:
     // Render GPU context/node
     MOS_GPU_NODE                m_renderGpuNode;
     MOS_GPU_CONTEXT             m_renderGpuContext;
+
+    // StatusTable indicating if command is done by gpu or not
+    VPHAL_STATUS_TABLE          m_statusTable = {};
 
     //!
     //! \brief    Create instance of VphalRenderer

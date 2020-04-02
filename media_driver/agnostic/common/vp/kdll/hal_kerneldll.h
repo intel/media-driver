@@ -65,9 +65,9 @@
 #define DL_MAX_COMBINED_KERNELS         64       // Max number of kernels in cache
 #define DL_NEW_COMBINED_KERNELS         4        // The increased number of kernels in cache each time
 #define DL_MAX_SYMBOLS                  100      // max number of import/export symbols in a combined kernels
-#define DL_COMBINED_KERNEL_CACHE_SIZE   393216   // Combined kernel size
-#define DL_CACHE_BLOCK_SIZE             98304    // Kernel allocation block size
-#define DL_MAX_KERNEL_SIZE              98304    // max output kernel size
+#define DL_CACHE_BLOCK_SIZE             (128*1024)   // Kernel allocation block size
+#define DL_MAX_KERNEL_SIZE              (128*1024)   // max output kernel size
+#define DL_COMBINED_KERNEL_CACHE_SIZE   (DL_CACHE_BLOCK_SIZE*DL_NEW_COMBINED_KERNELS) // Combined kernel size
 
 #define DL_PROCAMP_DISABLED             -1       // procamp is disabled
 #define DL_PROCAMP_MAX                   1       // 1 Procamp entry
@@ -101,23 +101,6 @@ typedef enum _KDLL_LAYER
     Layer_Graphics     =  14,     // Graphics        (7)
     Layer_RenderTarget =  15      // Render Target
 } Kdll_Layer;
-
-// Internal format (for CSC and processing)
-typedef enum tagKdll_IntFormat
-{
-    // Auxiliary formats (for DLL rule definition)
-    Internal_None      = -2,     // No format (empty)
-    Internal_SameSrc0  = -1,     // Same internal format as Src0
-    Internal_Any       =  0,     // Matches anything expect None
-
-    // FC intermediate Fmts
-    Internal_Y8U8V8A8  ,         // YUVA
-    Internal_V8U8Y8A8  ,         // VUYA
-    Internal_V8Y8U8A8  ,         // VYUA
-    Internal_A8R8G8B8  ,         // ARGB
-    Internal_PL2       ,         // YUV PL2 (Gen6)
-    Internal_PL3                 // YUV PL3 (Gen6)
-} Kdll_IntFormat;
 
 // Sampling mode
 // Please don't change the order in the enum is setup
@@ -288,7 +271,6 @@ typedef enum tagKdll_RuleID
     RID_IsSrc0ColorFill  ,     // Current Src0 Colorfill flag
     RID_IsSrc0LumaKey    ,     // Current Src0 LumaKey flag
     RID_IsSrc0Procamp    ,     // Match Src0 Procamp flag
-    RID_IsSrc0Internal   ,     // Current Src0 internal pixel format
     RID_IsSrc0Coeff      ,     // Current Src0 CSC coefficients
     RID_IsSrc0Processing ,     // Current Src0 processing mode
     RID_IsSrc0Chromasiting,    // Current Src0 Chromasiting mode
@@ -297,7 +279,6 @@ typedef enum tagKdll_RuleID
     RID_IsSrc1LumaKey    ,     // Current Src1 LumaKey flag
     RID_IsSrc1SamplerLumaKey,  // Current Src1 Samper LumaKey flag
     RID_IsSrc1Procamp    ,     // Match Src1 Procamp flag
-    RID_IsSrc1Internal   ,     // Current Src1 internal pixel format
     RID_IsSrc1Coeff      ,     // Current Src1 CSC coefficients
     RID_IsSrc1Processing ,     // Current Src1 processing mode
     RID_IsSrc1Chromasiting,    // Current Src1 Chromasiting mode
@@ -323,7 +304,6 @@ typedef enum tagKdll_RuleID
     RID_SetSrc0ColorFill ,     // Set Src0 Colorfill
     RID_SetSrc0LumaKey   ,     // Set Src0 LumaKey
     RID_SetSrc0Procamp   ,     // Set Src0 Procamp flag
-    RID_SetSrc0Internal  ,     // Set Src0 internal format
     RID_SetSrc0Coeff     ,     // Set Src0 CSC coefficients
     RID_SetSrc0Processing,     // Set Src0 Processing mode
     RID_SetSrc1Format    ,     // Set Src1 source format
@@ -332,7 +312,6 @@ typedef enum tagKdll_RuleID
     RID_SetSrc1LumaKey   ,     // Set Src1 LumaKey
     RID_SetSrc1SamplerLumaKey, // Set Src1 Sampler LumaKey
     RID_SetSrc1Procamp   ,     // Set Src1 Procamp flag
-    RID_SetSrc1Internal  ,     // Set Src1 pixel format
     RID_SetSrc1Coeff     ,     // Set Src1 CSC coefficients
     RID_SetSrc1Processing,     // Set Src1 Processing mode
     RID_SetKernel        ,     // Set Kernel
@@ -721,7 +700,6 @@ typedef struct tagKdll_SearchState
     int32_t              src0_lumakey;              // Src0 luma key
     int32_t              src0_procamp;              // Src0 procamp
     Kdll_CoeffID         src0_coeff;                // Src0 CSC coefficiants
-    Kdll_IntFormat       src0_internal;             // Src0 internal format
     Kdll_Processing      src0_process;              // Src0 processing mode
     VPHAL_ROTATION       src0_rotation;             // Src0 Rotate
 
@@ -732,7 +710,6 @@ typedef struct tagKdll_SearchState
     int32_t              src1_samplerlumakey;       // Src1 sampler luma key
     int32_t              src1_procamp;              // Src1 procamp
     Kdll_CoeffID         src1_coeff;                // Src1 CSC coefficients
-    Kdll_IntFormat       src1_internal;             // Src1 internal format
     Kdll_Processing      src1_process;              // Src1 processing mode
     VPHAL_ROTATION       src1_rotation;             // Src1 Rotate
 
@@ -883,7 +860,6 @@ const char    *KernelDll_GetCSpaceString       (VPHAL_CSPACE     cspace);
 const char    *KernelDll_GetSamplingString     (Kdll_Sampling    sampling);
 const char    *KernelDll_GetRotationString     (VPHAL_ROTATION   rotation);
 const char    *KernelDll_GetProcessString      (Kdll_Processing  process);
-const char    *KernelDll_GetInternalString     (Kdll_IntFormat   format);
 const char    *KernelDll_GetParserStateString  (Kdll_ParserState state);
 const char    *KernelDll_GetRuleIDString       (Kdll_RuleID      RID);
 const char    *KernelDll_GetCoeffIDString      (Kdll_CoeffID     CID);

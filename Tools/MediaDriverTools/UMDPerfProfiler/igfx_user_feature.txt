@@ -1,15 +1,15 @@
 [KEY]
-	0x00000001
-	UFKEY_INTERNAL\
-		[VALUE]
-			Perf Profiler Enable
-			4
-			1
-		[VALUE]
-			Perf Profiler Output File Name
-			1
-			linux_perf_out.bin
-		[VALUE]
-			Perf Profiler Buffer Size
-			4
-			512000000
+    0x00000001
+    UFKEY_INTERNAL\
+        [VALUE]
+            Perf Profiler Enable
+            4
+            1
+        [VALUE]
+            Perf Profiler Output File Name
+            1
+            linux_perf_out.bin
+        [VALUE]
+            Perf Profiler Buffer Size
+            4
+            512000000

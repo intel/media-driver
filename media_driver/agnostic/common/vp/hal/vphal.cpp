@@ -59,6 +59,7 @@ void VphalFeatureReport::InitReportValue()
     CompositionMode     =   VPHAL_NO_COMPOSITION;
     DiScdMode           =   false;
     VEFeatureInUse      =   false;
+    HDRMode             =   VPHAL_HDR_MODE_NONE;
 }
 
 //!
@@ -527,6 +528,10 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
             eStatus = eStatusSingleRender;
             VPHAL_PUBLIC_ASSERTMESSAGE("Failed to redner for substreams, eStatus: %d.\n", eStatus);
         }
+
+        //Free the temporary surface
+        pRenderer->GetOsInterface()->pfnFreeResource(pRenderer->GetOsInterface(), &(pIntermediateSurface->OsResource));
+
     }
 
 finish:
@@ -767,7 +772,7 @@ MOS_STATUS VphalState::GetStatusReport(
     // eNullRender = m_pOsInterface->pfnGetNullHWRenderFlags(m_pOsInterface);
 
     pOsContext           = m_osInterface->pOsContext;
-    pStatusTable         = &m_renderer->StatusTable;
+    pStatusTable         = &m_statusTable;
     uiNewHead            = pStatusTable->uiHead; // uiNewHead start from previous head value
     // entry length from head to tail
     uiTableLen           = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
@@ -865,10 +870,9 @@ MOS_STATUS VphalState::GetStatusReportEntryLength(
 #if(!EMUL)        // this function is dummy for emul
     PVPHAL_STATUS_TABLE            pStatusTable;
 
-    VPHAL_PUBLIC_CHK_NULL(m_renderer);
     VPHAL_PUBLIC_CHK_NULL(puiLength);
 
-    pStatusTable = &m_renderer->StatusTable;
+    pStatusTable = &m_statusTable;
 
     // entry length from head to tail
     *puiLength = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);

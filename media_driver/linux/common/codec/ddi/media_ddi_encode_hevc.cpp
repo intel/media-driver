@@ -95,8 +95,8 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     if (true == m_encodeCtx->bVdencActive)
     {
         codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
-        codecHalSettings->disableUltraHME = true;
-        codecHalSettings->disableSuperHME = true;
+        codecHalSettings->disableUltraHME = false;
+        codecHalSettings->disableSuperHME = false;
     }
     else
     {
@@ -375,12 +375,14 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
 
     encodeParams.pBSBuffer      = m_encodeCtx->pbsBuffer;
     encodeParams.pSlcHeaderData = (void *)m_encodeCtx->pSliceHeaderData;
-    
-    CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
 
-    encoder->m_mfeEncodeParams.submitIndex  = 0;
-    encoder->m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
-    encoder->m_mfeEncodeParams.streamId  = 0;
+    CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
+    if(encoder != nullptr)
+    {
+        encoder->m_mfeEncodeParams.submitIndex  = 0;
+        encoder->m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
+        encoder->m_mfeEncodeParams.streamId  = 0;
+    }
 
     MOS_STATUS status = m_encodeCtx->pCodecHal->Execute(&encodeParams);
     if (MOS_STATUS_SUCCESS != status)
@@ -586,26 +588,51 @@ VAStatus DdiEncodeHevc::ParsePicParams(
 
     if (hevcPicParams->tiles_enabled_flag)
     {
-        for (uint32_t i = 0; i < (uint32_t)(hevcPicParams->num_tile_columns_minus1 + 1); i++)
-        {
-            if (i >= sizeof(picParams->column_width_minus1) / sizeof(picParams->column_width_minus1[0]) ||
-                i >= sizeof(hevcPicParams->tile_column_width) / sizeof(hevcPicParams->tile_column_width[0]))
-            {
-                break;
-            }
+        uint16_t shift = hevcSeqParams->log2_max_coding_block_size_minus3 - 
+                                            hevcSeqParams->log2_min_coding_block_size_minus3;
+        uint16_t frameWidthAligedInLCU = MOS_ROUNDUP_SHIFT((hevcSeqParams->wFrameWidthInMinCbMinus1 + 1), shift);
+        uint16_t frameHeightAligedInLCU = MOS_ROUNDUP_SHIFT((hevcSeqParams->wFrameHeightInMinCbMinus1 + 1), shift);
 
-            hevcPicParams->tile_column_width[i] = picParams->column_width_minus1[i] + 1;
+        if(hevcPicParams->num_tile_columns_minus1 > CODECHAL_GET_ARRAY_LENGTH(picParams->column_width_minus1) ||
+            hevcPicParams->num_tile_rows_minus1 > CODECHAL_GET_ARRAY_LENGTH(picParams->row_height_minus1))
+        {
+            // app passed wrong parameters
+            DDI_ASSERTMESSAGE("invalid tile parameters!");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)(hevcPicParams->num_tile_rows_minus1 + 1); i++)
+        for(uint32_t i = 0; i < (uint32_t)(hevcPicParams->num_tile_columns_minus1); i++)
         {
-            if (i >= sizeof(picParams->row_height_minus1) / sizeof(picParams->row_height_minus1[0]) ||
-                i >= sizeof(hevcPicParams->tile_row_height) / sizeof(hevcPicParams->tile_row_height[0]))
-            {
-                break;
-            }
+            hevcPicParams->tile_column_width[i] = picParams->column_width_minus1[i] + 1;
+            frameWidthAligedInLCU -= hevcPicParams->tile_column_width[i];
+        }
 
+        if(frameWidthAligedInLCU > 0)
+        {
+            hevcPicParams->tile_column_width[hevcPicParams->num_tile_columns_minus1] = frameWidthAligedInLCU;
+        }
+        else
+        {
+            // app passed wrong parameters
+            DDI_ASSERTMESSAGE("invalid tile parameters!");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        for(uint32_t i = 0; i < (uint32_t)(hevcPicParams->num_tile_rows_minus1); i++)
+        {
             hevcPicParams->tile_row_height[i] = picParams->row_height_minus1[i] + 1;
+            frameHeightAligedInLCU -= hevcPicParams->tile_row_height[i];
+        }
+
+        if(frameHeightAligedInLCU > 0)
+        {
+            hevcPicParams->tile_row_height[hevcPicParams->num_tile_rows_minus1] = frameHeightAligedInLCU;
+        }
+        else
+        {
+            // app passed wrong parameters
+            DDI_ASSERTMESSAGE("invalid tile parameters!");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
     }
 
@@ -1092,9 +1119,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
                 m_encodeCtx->uiMaxBitRate    = seqParams->MaxBitRate;
             }
         }
-#ifndef ANDROID
         seqParams->FrameSizeTolerance = static_cast<ENCODE_FRAMESIZE_TOLERANCE>(vaEncMiscParamRC->rc_flags.bits.frame_tolerance_mode);
-#endif
         break;
     }
     case VAEncMiscParameterTypeParallelBRC:
@@ -1194,7 +1219,6 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             }
             picParams->NumROI = MOS_MIN(vaEncMiscParamROI->num_roi, maxROIsupported);
         }
-#ifndef ANDROID
         // support DeltaQP based ROI by default
         seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
         if(picParams->NumROI != 0 && seqParams->ROIValueInDeltaQP == 0)
@@ -1202,7 +1226,6 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             DDI_ASSERTMESSAGE("ROI does not support priority level now.");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
-#endif
         break;
     }
     case VAEncMiscParameterTypeSkipFrame:

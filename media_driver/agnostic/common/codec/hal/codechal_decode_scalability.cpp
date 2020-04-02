@@ -1945,13 +1945,6 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
         __MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB,
         &UserFeatureData);
     pScalabilityState->dbgOvrdWidthInMinCb = UserFeatureData.u32Data;
-
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
-        &UserFeatureData);
-    pScalabilityState->numDelay = UserFeatureData.u32Data;
 #endif
 
     // enable FE separate submission by default in multi-pipe mode
@@ -2087,7 +2080,7 @@ void CodecHalDecodeScalability_DecPhaseToSubmissionType(
             pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_MASTER;
             break;
         case CODECHAL_HCP_DECODE_PHASE_BE1:
-            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
+            pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_MULTI_PIPE_SLAVE | SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE;
             break;
         case CODECHAL_HCP_DECODE_PHASE_RESERVED:
         default:

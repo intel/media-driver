@@ -336,13 +336,11 @@ MOS_STATUS CodechalInterfacesG9Bxt::Initialize(
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_codechalDevice);
-        if (decoder == nullptr)
+        if (m_codechalDevice == nullptr)
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decoder device creation failed!");
             return MOS_STATUS_NO_SPACE;
         }
-        decoder->SetHuCProductFamily(HUC_BROXTON);
     }
     else if (CodecHalIsEncode(CodecFunction))
     {

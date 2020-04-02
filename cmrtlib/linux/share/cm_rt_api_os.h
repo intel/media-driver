@@ -139,6 +139,12 @@ public:
     CM_RT_API virtual int32_t GetVISAVersion(uint32_t& majorVersion, uint32_t& minorVersion) = 0;
     CM_RT_API virtual int32_t CreateQueueEx(CmQueue *&pQueue, CM_QUEUE_CREATE_OPTION QueueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
 
+    CM_RT_API virtual INT CreateBufferStateless(size_t size,
+                                                uint32_t option,
+                                                void *sysMem,
+                                                CmBufferStateless *&pBufferStateless) = 0;
+    CM_RT_API virtual INT DestroyBufferStateless(CmBufferStateless *&pSurface) = 0;
+
     //adding new functions in the bottom is a must 
 protected:
     ~CmDevice(){}

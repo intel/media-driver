@@ -326,6 +326,7 @@ protected:
                     &resourceParams));
             }
         }
+
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;

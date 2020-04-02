@@ -66,12 +66,15 @@ public:
 
     CM_RT_API int32_t SetProperty(CM_FRAME_TYPE frameType);
 
+    CMRT_UMD_API int32_t SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage);
+
     void Log(std::ostringstream &oss);
 
     void DumpContent(uint32_t kernelNumber,
                      char *kernelName,
                      int32_t taskId,
-                     uint32_t argIndex);
+                     uint32_t argIndex,
+                     uint32_t vectorIndex);
 
 protected:
     CmSurface2DUPRT(uint32_t handle,

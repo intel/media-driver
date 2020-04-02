@@ -86,6 +86,10 @@ typedef struct _MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS
     uint8_t     ucList;
     char        LumaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
     int16_t     LumaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
+    char        ChromaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
+    int16_t     ChromaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
+    uint32_t    dwChromaDenom;
+    bool        isLowDelay = true;
 } MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS, *PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS;
 
 typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
@@ -93,6 +97,7 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     uint32_t                                Mode;
     PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
     PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;;
     uint8_t                                *pucVdencMvCosts;
     uint8_t                                *pucVdencRdMvCosts;
     uint8_t                                *pucVdencHmeMvCosts;
@@ -118,6 +123,8 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bUseDefaultQpDeltas = false;
     bool                                    bPanicEnabled = false;
     bool                                    bPartialFrameUpdateEnable = false;
+    uint32_t                                roundInterValue = 0;
+    uint32_t                                roundIntraValue = 0;
 
     // VP9
     PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;

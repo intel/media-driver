@@ -37,7 +37,6 @@
 #include "mos_os.h"
 #include "mhw_utilities.h"
 #include "mhw_cp_interface.h"
-#include "mhw_cmd_reader.h"
 
 #define MHW_VDBOX_VC1_BITPLANE_BUFFER_PITCH_SMALL         64
 #define MHW_VDBOX_VC1_BITPLANE_BUFFER_PITCH_LARGE         128
@@ -335,6 +334,7 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     PMOS_SURFACE                presP010RTSurface = nullptr;                               // For HEVC only
     PMOS_RESOURCE               presFrameStatStreamOutBuffer = nullptr;
     PMOS_RESOURCE               presSseSrcPixelRowStoreBuffer = nullptr;
+    PMOS_RESOURCE               presSegmentMapStreamIn  = nullptr;
     PMOS_RESOURCE               presSegmentMapStreamOut = nullptr;
     PMOS_RESOURCE               presPakCuLevelStreamoutBuffer = nullptr;
     PMHW_VDBOX_SURFACE_PARAMS   pRawSurfParam = nullptr;
@@ -427,6 +427,7 @@ struct MHW_VDBOX_AVC_IMG_PARAMS
     uint8_t                                *pVDEncModeCost = nullptr;
     uint8_t                                *pVDEncMvCost = nullptr;
     uint8_t                                *pVDEncHmeMvCost = nullptr;
+    uint32_t                               biWeight = 0;
     virtual ~MHW_VDBOX_AVC_IMG_PARAMS(){}
 };
 using PMHW_VDBOX_AVC_IMG_PARAMS = MHW_VDBOX_AVC_IMG_PARAMS * ;

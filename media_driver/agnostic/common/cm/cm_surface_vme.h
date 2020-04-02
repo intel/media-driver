@@ -90,6 +90,12 @@ public:
     // return the surfaces number registered in a vme surface, including current, forward and backward
     int32_t GetTotalSurfacesCount();
 
+    void DumpContent(uint32_t kernelNumber,
+                     char *kernelName,
+                     int32_t taskId,
+                     uint32_t argIndex,
+                     uint32_t vectorIndex);
+
 protected:
     CmSurfaceVme(
         uint32_t indexFor2DCurrent,

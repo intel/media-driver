@@ -23,7 +23,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_buffer_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_state_buffer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_def.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_group_space.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal.cpp

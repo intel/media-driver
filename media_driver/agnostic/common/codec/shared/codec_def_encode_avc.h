@@ -41,6 +41,7 @@
 #define CODEC_AVC_WP_OUTPUT_L1_START        6
 
 #define ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9            3        // Max 4 regions including non-ROI - used from DDI
+#define ENCODE_VDENC_AVC_MAX_ROI_NUMBER_ADV          16        // Max 16 regions including non-ROI - used from DDI
 #define ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9         -8        // Min delta QP for VDEnc ROI
 #define ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9          7        // Max delta QP for VDEnc ROI
 
@@ -516,6 +517,12 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *  Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
     */
     uint32_t  MinBitRatePerSlidingWindow;
+    
+    /*! \brief Indicates number of frames to lookahead.
+    *
+    *    Range is [0~127]. Default is 0 which means lookahead disabled. Valid only when LookaheadBRCSupport is 1. When not 0, application should send LOOKAHEADDATA buffer to driver.
+    */
+    uint8_t   LookaheadDepth;
 
     uint8_t            constraint_set0_flag               : 1;    //!< Same as AVC syntax element.
     uint8_t            constraint_set1_flag               : 1;    //!< Same as AVC syntax element.
@@ -777,6 +784,14 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    Value entries are ROI[0] up to ROI[NumROI – 1], inclusively, if NumROI > 0. And it can be ignored otherwise.
     */
     CODEC_ROI       ROI[16];
+    /*! \brief Distinct delta QP values assigned to the ROI
+    *
+    *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp].
+    */
+    int8_t ROIDistinctDeltaQp[16];
+    /*! \brief indicate native ROI / force QP ROI to be used.
+    */
+    bool        bNativeROI;
     /*! \brief Defines dirty ROI settings.
     *
     *    Value entries are DirtyROI[0] up DirtyROI ROI[NumROI – 1], inclusively, if NumDirtyROI > 0. And it can be ignored otherwise.
@@ -901,6 +916,37 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    If TCBRCSupport == 0, this parameter will be ignored and should be set to 0. The BRC mode defined in RateControlMethod will be applied.
     */
     uint32_t        TargetFrameSize;
+
+    /*! \brief Indicates if GPU polling based sync is enabled. 
+    *
+    *  Applicaiton sets to 1 to enable GPU polling based sync in driver. 
+    */
+    bool            bEnableSync;
+
+    /*! \brief Indicates if the current frame is repeat frame. 
+    *
+    *  Applicaiton sets to 1 if current frame is repeat frame. 
+    */
+    bool            bRepeatFrame;
+
+    /*! \brief Indicates marker coordinates in raw surface for GPU polling based sync. 
+    *
+    *  In unite of bytes. Valid for encoders which report SyncSupport capability as true.
+    */
+    uint16_t        SyncMarkerX;
+    uint16_t        SyncMarkerY;
+
+    /*! \brief Point to marker value for GPU polling based sync. 
+    *
+    *  Valid for encoders which report SyncSupport capability as true.
+    */
+    uint8_t         *pSyncMarkerValue;
+    
+    /*! \brief Indicates marker value for GPU polling based sync. 
+    *
+    *  In unit of bytes. Should be larger than or equal to 4. Valid for encoders which report SyncSupport capability as true.
+    */
+    uint32_t        SyncMarkerSize;
 
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 

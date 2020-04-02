@@ -55,8 +55,8 @@ CmSurface2DRTBase::CmSurface2DRTBase(
     m_handle(handle),
     m_pitch(pitch),
     m_format(format),
-    m_numAliases(0),
     m_umdResource(nullptr),
+    m_numAliases(0),
     m_frameType(CM_FRAME)
     {
         CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_UNKNOW, CM_USE_PTE, 0);
@@ -410,6 +410,7 @@ CM_RT_API int32_t CmSurface2DRTBase::SetCompressionMode(MEMCOMP_STATE mmcMode)
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetCompressionMode(cmData->cmHalState, mmcModeParam));
+    ++ m_propertyIndex;
 
 finish:
     return hr;
@@ -692,6 +693,7 @@ CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceHybridStrides( const unsigned c
     else
     {
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
+
         if(IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
             CmEvent *tempEvent = CM_NO_EVENT;
@@ -991,6 +993,7 @@ CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceHybridStrides(unsigned char* sys
     else
     {
         CM_CHK_CMSTATUS_GOTOFINISH(cmDevice->CreateQueue(cmQueue));
+
         if (IsGPUCopy((void*)sysMem, widthInBytes, m_height, horizontalStride))
         {
             CmEvent *tempEvent = CM_NO_EVENT;
@@ -1188,15 +1191,12 @@ finish:
     return hr;
 }
 
+
 int32_t CmSurface2DRTBase::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age)
 {
-    INSERT_API_CALL_LOG();
-
-    CM_RETURN_CODE  hr = CM_SUCCESS;
+    int32_t  hr = CM_SUCCESS;
     uint16_t mocs = 0;
-
-    CmSurface::SetMemoryObjectControl( memCtrl, memType, age );
-
+    hr = CmSurface::SetMemoryObjectControl(memCtrl, memType, age);
     CmDeviceRT *cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
     CM_CHK_NULL_RETURN_CMERROR(cmDevice);
@@ -1205,16 +1205,38 @@ int32_t CmSurface2DRTBase::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl
     CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
-
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D));
-
+    ++ m_propertyIndex;
 finish:
     return hr;
 }
 
 CM_RT_API int32_t CmSurface2DRTBase::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl)
 {
+    INSERT_API_CALL_LOG();
+    ++ m_propertyIndex;
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
+}
+
+CMRT_UMD_API int32_t CmSurface2DRTBase::SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage)
+{
+    INSERT_API_CALL_LOG();
+    int32_t  hr = CM_SUCCESS;
+    uint16_t mocs = 0;
+    hr = CmSurface::SetResourceUsage(mosUsage);
+
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type << 4) | m_memObjCtrl.age;
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_2D));
+    ++ m_propertyIndex;
+finish:
+    return hr;
 }
 
 int32_t CmSurface2DRTBase::Create2DAlias(SurfaceIndex* & aliasIndex)
@@ -1292,6 +1314,8 @@ CM_RT_API int32_t CmSurface2DRTBase::SetSurfaceStateParam( SurfaceIndex *surfInd
 
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR( cmData->cmHalState->pfnSet2DSurfaceStateParam(cmData->cmHalState, &inParam, aliasIndex, m_handle) );
 
+    ++ m_propertyIndex;
+
 finish:
     return hr;
 }
@@ -1337,18 +1361,29 @@ void CmSurface2DRTBase::Log(std::ostringstream &oss)
 #endif
 }
 
-void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex)
+void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex, uint32_t vectorIndex)
 {
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream         outputFileName;
-    static uint32_t            surface2DDumpNumber = 0;
-    char                       fileNamePrefix[MAX_PATH];
-    std::ofstream              outputFileStream;
 
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_" << kernelName
         << "_argi_" << argIndex
+        << "_vector_index_" << vectorIndex;
+
+    DumpContentToFile(outputFileName.str().c_str());
+#endif
+}
+
+void CmSurface2DRTBase::DumpContentToFile(const char *filename)
+{
+#if MDF_SURFACE_CONTENT_DUMP
+    static uint32_t surface2DDumpNumber = 0;
+    std::ostringstream outputFileName;
+    char fileNamePrefix[MAX_PATH] = {0};
+
+    outputFileName << filename
         << "_surf2d_surfi_"<< m_index->get_data()
         << "_w_" << m_width
         << "_h_" << m_height
@@ -1357,7 +1392,7 @@ void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int
         << "_" << surface2DDumpNumber;
 
     GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
-
+    std::ofstream outputFileStream;
     // Open file
     outputFileStream.open(fileNamePrefix, std::ios::app);
     CM_ASSERT(outputFileStream);
@@ -1385,34 +1420,59 @@ void CmSurface2DRTBase::DumpContent(uint32_t kernelNumber, char *kernelName, int
     CM_ASSERT(cmData);
     CM_ASSERT(cmData->cmHalState);
 
-    CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
-    CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM));
-    inParam.width = m_width;
-    inParam.height = m_height;
-    inParam.handle = m_handle;
-    inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
-    cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam);
-    if (inParam.data == nullptr)
-        return;
-    dst = (uint8_t *)&surface[0];
-    surf = (uint8_t *)(inParam.data);
-    if (m_pitch != widthInByte)
+    PCM_HAL_SURFACE2D_ENTRY pEntry = &cmData->cmHalState->umdSurf2DTable[m_handle];
+    CM_ASSERT(pEntry);
+
+    PMOS_RESOURCE           pOsResource = &pEntry->osResource;
+    CM_ASSERT(pOsResource->pGmmResInfo);
+
+    GMM_RESOURCE_FLAG gmmFlags = pOsResource->pGmmResInfo->GetResFlags();
+    if (gmmFlags.Info.NotLockable == true)
     {
-        for (uint32_t row = 0; row < updatedHeight; row++)
+        size_t alignSize = 4096;
+        unsigned char* system = (unsigned char*)MOS_AlignedAllocMemory(surfaceSize, alignSize);
+        CM_CHK_NULL_RETURN_VOID(system);
+
+        CmQueue* queue = nullptr;
+        int ret = cmDevice->CreateQueue(queue);
+        if (ret != 0)
         {
-            CmFastMemCopyFromWC(dst, surf, widthInByte, GetCpuInstructionLevel());
-            surf += m_pitch;
-            dst += widthInByte;
+            CM_ASSERTMESSAGE("Error: CreateQueue failure in dump.")
+            return;
+        }
+
+        CmSurface2D* cmSurface2D = static_cast<CmSurface2D*>(this);
+        CmQueueRT* queueRT = dynamic_cast<CmQueueRT*>(queue);
+        CmEvent* event = nullptr;
+        cmData->cmHalState->dumpSurfaceContent = false;
+        ret = queueRT->EnqueueCopyGPUToCPU(cmSurface2D, system, event);
+        if (ret != 0)
+        {
+            CM_ASSERTMESSAGE("Error: EnqueueCopyGPUToCPU failure in surface content dump.")
+        }
+        ret = event->WaitForTaskFinished();
+        if (ret != 0)
+        {
+            CM_ASSERTMESSAGE("Error: WaitForTaskFinished failure in surface content dump.")
+        }
+
+        outputFileStream.write((char*)system, surfaceSize);
+        cmData->cmHalState->dumpSurfaceContent = true;
+        MOS_AlignedFreeMemory(system);
+        if (queueRT)
+        {
+            CmQueueRT::Destroy(queueRT);
         }
     }
     else
     {
-        CmFastMemCopyFromWC((unsigned char *)&surface[0], surf, m_pitch * updatedHeight, GetCpuInstructionLevel());
+       int ret = ReadSurface((unsigned char*)&surface[0],nullptr);
+       if (ret != 0)
+       {
+           CM_ASSERTMESSAGE("Error: ReadSurface failure in surface content dump.")
+       }
+       outputFileStream.write(&surface[0], surfaceSize);
     }
-    inParam.data = nullptr;
-    cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam);
-
-    outputFileStream.write(&surface[0], surfaceSize);
     outputFileStream.close();
     surface2DDumpNumber++;
 #endif
@@ -1422,6 +1482,7 @@ CM_RT_API int32_t CmSurface2DRTBase::SetProperty(CM_FRAME_TYPE frameType)
 {
     m_frameType = frameType;
     m_surfaceMgr->UpdateSurface2DTableFrameType(m_handle, frameType);
+    ++ m_propertyIndex;
     return CM_SUCCESS;
 }
 
@@ -1444,6 +1505,7 @@ int32_t CmSurface2DRTBase::UpdateSurfaceProperty(uint32_t width, uint32_t height
     m_height = height;
     m_pitch = pitch;
     m_format = format;
+    ++ m_propertyIndex;
     return CM_SUCCESS;
 }
 

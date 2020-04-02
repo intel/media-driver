@@ -39,6 +39,7 @@ class RenderpassData
 {
 public:
     bool                    bCompNeeded;
+    bool                    bHdrNeeded;
 
     uint32_t                uiSrcIndex;
     PVPHAL_SURFACE          pSrcSurface;                                        // pSrcSurface points to the original input surface
@@ -54,6 +55,7 @@ public:
 
     RenderpassData() :
         bCompNeeded(false),
+        bHdrNeeded(false),
         uiSrcIndex(0),
         pSrcSurface(nullptr),
         pOutSurface(nullptr),

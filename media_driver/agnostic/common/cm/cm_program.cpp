@@ -34,6 +34,9 @@
 #include "cm_hw_debugger.h"
 #endif
 
+#include <string>
+#include <functional>
+
 #define READ_FIELD_FROM_BUF( dst, type ) \
     dst = *((type *) &buf[bytePos]); \
     bytePos += sizeof(type);
@@ -680,6 +683,17 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
     //Copy CISA content
     CmFastMemCopy((void *)m_programCode, cisaCode, cisaCodeSize);
 
+    //Caculate hash value for each kernel
+    for (uint32_t i = 0; i < m_kernelCount; i++)
+    {
+        CM_KERNEL_INFO *kernelInfo = (CM_KERNEL_INFO *)m_kernelInfo.GetElement(i);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelInfo);
+        // higher 32bit is the order of kernel in LoadProgram in the device
+        // lower 32bit is the hash value of kernel info
+        kernelInfo->hashValue = GetKernelInfoHash(kernelInfo) | ((uint64_t)m_device->KernelsLoaded() << 32);
+        ++ m_device->KernelsLoaded();
+    }
+
     hr = CM_SUCCESS;
 
 finish:
@@ -957,4 +971,55 @@ vISA::ISAfile *CmProgramRT::getISAfile()
 {
     return m_isaFile;
 }
+
+template <typename T>
+inline void hashCombine(uint32_t &res, const T &field)
+{
+    std::hash<T> hasher;
+    res ^= hasher(field) + 0x9e3779b9 + (res << 6) + (res >> 2);
+}
+
+inline void hashCombineString(uint32_t &res, char *str)
+{
+    uint32_t strHash = std::hash<std::string>{}(std::string(str));
+    hashCombine(res, strHash);
+}
+
+uint32_t CmProgramRT::GetKernelInfoHash(CM_KERNEL_INFO *kernelInfo)
+{
+    uint32_t value = 0;
+    hashCombineString(value, kernelInfo->kernelName);
+    hashCombine(value, kernelInfo->inputCountOffset);
+    hashCombine(value, kernelInfo->kernelIsaOffset);
+    hashCombine(value, kernelInfo->kernelIsaSize);
+    uint8_t *kernelBin = nullptr;
+    uint32_t kernelSize = 0;
+    if (m_isJitterEnabled)
+    {
+        kernelBin = (uint8_t *)kernelInfo->jitBinaryCode;
+        kernelSize = kernelInfo->jitBinarySize;
+    }
+    else
+    {
+        kernelBin = m_programCode + kernelInfo->genxBinaryOffset;
+        kernelSize = kernelInfo->genxBinarySize;
+    }
+    uint32_t *kernelBinDW = (uint32_t *)kernelBin;
+    uint32_t kernelSizeDW = kernelSize / 4;
+    double step = (double)kernelSizeDW/64.0;
+
+    for (int i = 0; i < 256; i ++)
+    {
+        int index = (int)(kernelSizeDW - 1 - i*step);
+        if (index < 0)
+        {
+            index = 0;
+        }
+        hashCombine(value, kernelBinDW[index]);
+    }
+    hashCombine(value, kernelSize);
+
+    return value;
+}
+
 }

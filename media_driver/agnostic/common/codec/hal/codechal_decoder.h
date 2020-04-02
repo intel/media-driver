@@ -623,18 +623,6 @@ public:
     bool GetRenderContextUsesNullHw() { return m_renderContextUsesNullHw; }
 
     //!
-    //! \brief  Get Huc product family
-    //! \return Huc prodoct family
-    //!
-    uint32_t GetHuCProductFamily() { return m_huCProductFamily; }
-
-    //!
-    //! \brief  Set Huc product family
-    //! \return N/A
-    //!
-    void SetHuCProductFamily(uint32_t huCProductFamily) { m_huCProductFamily = huCProductFamily; }
-
-    //!
     //! \brief  Set decode histogram
     //! \return No return
     //!
@@ -647,6 +635,18 @@ public:
     CodechalDecodeHistogram* GetDecodeHistogram() { return m_decodeHistogram; }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
+    //!
+    //! \brief  Indicates whether or not the vd sfc is supported
+    //! \return If vd sfc is supported \see m_vdSfcSupported
+    //!
+    bool IsVdSfcSupported() { return m_vdSfcSupported; }
+
+    //!
+    //! \brief  Set if vd sfc supported
+    //! \return No return
+    //!
+    void SetVdSfcSupportedFlag(bool isVdSfcSpported) { m_vdSfcSupported = isVdSfcSpported; }
+
     //! \brief Field scaling interface
     FieldScalingInterface       *m_fieldScalingInterface = nullptr;
 #endif
@@ -1014,6 +1014,11 @@ protected:
     //! \brief Flag to indicate if UMD Perf Profiler FE BE timing measurement is enabled
     bool                        m_perfFEBETimingEnabled = false;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    //! \brief Flag to indicate if vd sfc is supported
+    bool                        m_vdSfcSupported = false;
+#endif
+
     //! \brief Stores all the status_query related data
     CodechalDecodeStatusBuffer  m_decodeStatusBuf;
     //! \brief The feedback number reported by app in picparams call
@@ -1075,9 +1080,6 @@ protected:
     //! \brief Downsampled surfaces
     PMOS_SURFACE                m_downsampledSurfaces = nullptr;
 #endif
-
-    //! \brief Huc product family
-    uint32_t                    m_huCProductFamily = HUC_UNKNOWN;
 
     //! \brief    Decode histogram interface
     //! \details  Support YUV Luma histogram.

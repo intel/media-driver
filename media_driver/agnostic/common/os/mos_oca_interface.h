@@ -129,7 +129,7 @@ public:
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS OnSubLevelBBStart(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT pMosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB)
+    virtual MOS_STATUS OnSubLevelBBStart(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT pMosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
@@ -205,6 +205,16 @@ public:
     virtual MOS_STATUS DumpDataBlock(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_OCA_LOG_HEADER pHeader, void *pData)
     {
         return MOS_STATUS_UNIMPLEMENTED;
+    }
+
+    //!
+    //! \brief  Get the mutex for oca buffer handles protection.
+    //! \return PMOS_MUTEX
+    //!         Return PMOS_MUTEX if successful, otherwise nullptr
+    //!
+    virtual PMOS_MUTEX GetMutex()
+    {
+        return nullptr;
     }
 };
 

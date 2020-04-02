@@ -29,6 +29,7 @@
 #include "codechal_secure_decode_interface.h"
 #include "codechal_decode_vp9.h"
 #include "codechal_mmc_decode_vp9.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
 #include <fstream>
@@ -1143,6 +1144,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
@@ -1494,7 +1496,9 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
         }
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(m_picMhwParams.PipeBufAddrParams));
+#endif
 
     if (m_streamOutEnabled)
     {
@@ -1502,9 +1506,11 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(m_picMhwParams.PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
+#endif
 
     m_picMhwParams.PipeBufAddrParams->presMfdDeblockingFilterRowStoreScratchBuffer =
         &m_resDeblockingFilterLineRowStoreScratchBuffer;
@@ -1701,6 +1707,7 @@ MOS_STATUS CodechalDecodeVp9 :: DecodeStateLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     if (m_secureDecoder && m_hcpDecPhase == CodechalHcpDecodePhaseInitialized)
@@ -1716,6 +1723,9 @@ MOS_STATUS CodechalDecodeVp9 :: DecodeStateLevel()
         m_osInterface,
         &cmdBuffer,
         0));
+
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
 
     //Frame tracking functionality is called at the start of a command buffer.
     //Called at FE decode phase, since BE decode phase will only construct BE batch buffers.
@@ -1742,6 +1752,8 @@ MOS_STATUS CodechalDecodeVp9 :: DecodeStateLevel()
 MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -1881,6 +1893,8 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
     }
 
     uint32_t renderingFlags = m_videoContextUsesNullHw;
+
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
     //submit command buffer
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(

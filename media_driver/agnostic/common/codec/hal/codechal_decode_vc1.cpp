@@ -30,6 +30,7 @@
 #include "codechal_decode_vc1.h"
 #include "codechal_secure_decode_interface.h"
 #include "codechal_mmc_decode_vc1.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
 #include <fstream>
@@ -1332,7 +1333,9 @@ MOS_STATUS CodechalDecodeVc1::HandleSkipFrame()
     srcSurface.OsResource  = m_vc1RefList[fwdRefIdx]->resRefPic;
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &srcSurface));
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceMmcMode(&m_destSurface, &srcSurface));
+#endif
 
     surfaceHeight = MOS_ALIGN_CEIL(((srcSurface.dwHeight * 3) / 2), MOS_YTILE_H_ALIGNMENT);
 
@@ -3360,6 +3363,9 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
     MOS_COMMAND_BUFFER  cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   pipeModeSelectParams;
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = m_streamOutEnabled;
@@ -3384,7 +3390,9 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = destSurface;
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
+#endif
 
     // when there is not a forward or backward reference,
     // the index is set to the destination frame index
@@ -3435,9 +3443,11 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
+#endif
 
     CODECHAL_DEBUG_TOOL(
         for (int i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
@@ -3906,6 +3916,8 @@ submit:
         m_huCCopyInUse = false;
     }
 
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 
     CODECHAL_DEBUG_TOOL(
@@ -4207,6 +4219,8 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelIT()
         m_huCCopyInUse = false;
     }
 
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 
     CODECHAL_DEBUG_TOOL(
@@ -4369,7 +4383,9 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
 
     CodecHalGetResourceInfo(m_osInterface, &m_deblockSurface);  // DstSurface
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->DisableSurfaceMmcState(&m_deblockSurface));
+#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         stateHeapInterface,
@@ -4436,7 +4452,9 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
     surfaceParamsSrc.dwYOffset[MHW_U_PLANE] =
         (m_destSurface.UPlaneOffset.iYOffset % MOS_YTILE_H_ALIGNMENT);
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->GetSurfaceMmcState(surfaceParamsSrc.psSurface));
+#endif
 
     MHW_RCS_SURFACE_PARAMS surfaceParamsDst;
     MOS_ZeroMemory(&surfaceParamsDst, sizeof(surfaceParamsDst));

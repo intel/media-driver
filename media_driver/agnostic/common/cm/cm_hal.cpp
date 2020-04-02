@@ -194,10 +194,14 @@ MOS_STATUS HalCm_AllocateTsResource(
     allocParams.TileType= MOS_TILE_LINEAR;
     allocParams.pBufName = "TsResource";
 
-    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnAllocateResource(
-        osInterface,
-        &allocParams,
-        &state->renderTimeStampResource.osResource));
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(
+        osInterface->pfnAllocateResource(osInterface,
+                                         &allocParams,
+                                         &state->renderTimeStampResource.osResource));
+    CM_CHK_MOSSTATUS_GOTOFINISH(
+        osInterface->pfnRegisterResource(osInterface,
+                                         &state->renderTimeStampResource.osResource,
+                                         true, true));
 
     osInterface->pfnSkipResourceSync(&state->renderTimeStampResource.osResource);
 
@@ -4981,6 +4985,7 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
 
         surface.Rotation = state->umdSurf2DTable[index].rotationFlag;
         surface.ChromaSiting = state->umdSurf2DTable[index].chromaSiting;
+        surface.ScalingMode = RENDERHAL_SCALING_AVS;
         nSurfaceEntries = 0;
 
         // interlace setting
@@ -7944,7 +7949,10 @@ MOS_STATUS HalCm_Allocate(
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnInitialize(renderHal, nullptr));
 
     // Initialize Vebox Interface
-    CM_CHK_MOSSTATUS_GOTOFINISH(state->veboxInterface->CreateHeap());
+    if (state->veboxInterface)
+    {
+        CM_CHK_MOSSTATUS_GOTOFINISH(state->veboxInterface->CreateHeap());
+    }
 
     // Initialize the table only in Static Mode (DSH doesn't use this table at all)
     if (!state->dshEnabled)
@@ -8040,18 +8048,18 @@ MOS_STATUS HalCm_Allocate(
     if (state->refactor)
     {
         state->advExecutor = CmExtensionCreator<CmExecutionAdv>::CreateClass();
+        if (state->advExecutor == nullptr)
+        {
+            CM_ASSERTMESSAGE("Could not allocate enough memory for state->advExecutor\n");
+            eStatus = MOS_STATUS_NO_SPACE;
+            goto finish;
+        }
+        state->advExecutor->Initialize(state);
     }
     else
     {
-        state->advExecutor = CmExtensionCreator<CmExecutionAdv>::CreateBaseClass();
+        state->advExecutor = nullptr;
     }
-    if (state->advExecutor == nullptr)
-    {
-        CM_ASSERTMESSAGE("Could not allocate enough memory for state->advExecutor\n");
-        eStatus = MOS_STATUS_NO_SPACE;
-        goto finish;
-    }
-    state->advExecutor->Initialize(state);
 
     eStatus = MOS_STATUS_SUCCESS;
 
@@ -9308,7 +9316,10 @@ MOS_STATUS HalCm_SetSurfaceReadFlag(
     if (HalCm_IsValidGpuContext(gpuContext))
     {
         entry->readSyncs[gpuContext] = readSync;
-        state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
+        if (state->advExecutor)
+        {
+            state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
+        }
     }
     else
     {
@@ -9335,7 +9346,6 @@ MOS_STATUS HalCm_LockBuffer(
     osInterface    = state->osInterface;
 
     CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetBufferEntry(state, param->handle, &entry));
-
     if ((param->lockFlag != CM_HAL_LOCKFLAG_READONLY) && (param->lockFlag != CM_HAL_LOCKFLAG_WRITEONLY) )
     {
         eStatus = MOS_STATUS_INVALID_HANDLE;
@@ -9343,6 +9353,10 @@ MOS_STATUS HalCm_LockBuffer(
         eStatus = MOS_STATUS_UNKNOWN;
         goto finish;
     }
+
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(
+        osInterface->pfnRegisterResource(osInterface, &entry->osResource, true,
+                                         true));
 
     // Lock the resource
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -9542,23 +9556,35 @@ MOS_STATUS HalCm_SetSurfaceMOCS(
     {
         case CM_ARGUMENT_SURFACEBUFFER:
             state->bufferTable[handle].memObjCtl = mocs;
-            state->advExecutor->SetBufferMemoryObjectControl(state->bufferTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->SetBufferMemoryObjectControl(state->bufferTable[handle].surfStateMgr, mocs);
+            }
             break;
         case CM_ARGUMENT_SURFACE2D:
         case CM_ARGUMENT_SURFACE2D_SAMPLER:
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_AVS:
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_VA:
             state->umdSurf2DTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2Dor3DMemoryObjectControl(state->umdSurf2DTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->Set2Dor3DMemoryObjectControl(state->umdSurf2DTable[handle].surfStateMgr, mocs);
+            }
             break;
         case CM_ARGUMENT_SURFACE2D_UP:
         case CM_ARGUMENT_SURFACE2DUP_SAMPLER:
             state->surf2DUPTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf2DUPTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf2DUPTable[handle].surfStateMgr, mocs);
+            }
             break;
         case CM_ARGUMENT_SURFACE3D:
             state->surf3DTable[handle].memObjCtl = mocs;
-            state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf3DTable[handle].surfStateMgr, mocs);
+            if (state->advExecutor)
+            {
+                state->advExecutor->Set2Dor3DMemoryObjectControl(state->surf3DTable[handle].surfStateMgr, mocs);
+            }
             break;
         default:
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -9637,9 +9663,10 @@ MOS_STATUS HalCm_AllocateSurface2D(
         entry->format  = param->format;
         entry->isAllocatedbyCmrtUmd = false;
         entry->osResource = *param->mosResource;
-
         HalCm_OsResource_Reference(&entry->osResource);
     }
+    // set default CM MOS usage
+    entry->memObjCtl = MOS_CM_RESOURCE_USAGE_SurfaceState << 8;
 
     if (state->advExecutor)
     {
@@ -10063,7 +10090,8 @@ MOS_STATUS HalCm_SetCaps(
         }
         else
         {
-            state->maxHWThreadValues.apiValue = setCapsParam->maxValue;
+            state->maxHWThreadValues.apiValue = (setCapsParam->maxValue == 0) ? 0:
+                    MOS_MAX(setCapsParam->maxValue, state->cmHalInterface->GetSmallestMaxThreadNum());
         }
         break;
 
@@ -10316,6 +10344,16 @@ MOS_STATUS HalCm_CreateGPUContext(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA  UserFeatureData;
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MOS_UserFeature_ReadValue_ID(nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE, &UserFeatureData);
+    if (eStatus == MOS_STATUS_SUCCESS && UserFeatureData.i32Data == 1)
+    {
+        pMosGpuContextCreateOption->RAMode = 1;
+    }
+#endif
+
     // Create Compute Context on Compute Node
     CM_CHK_HRESULT_GOTOFINISH_MOSERROR(state->osInterface->pfnCreateGpuContext(
         state->osInterface,
@@ -10377,6 +10415,7 @@ MOS_STATUS HalCm_Create(
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
     state->waTable  = state->osInterface->pfnGetWaTable (state->osInterface);
 
+    if (!param->disableVebox)
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
 
@@ -10407,24 +10446,31 @@ MOS_STATUS HalCm_Create(
     }
 
     // Allocate/Initialize VEBOX Interface
-    CmSafeMemSet(&params, 0, sizeof(params));
-    params.Flags.m_vebox = 1;
-    mhwInterfaces = MhwInterfaces::CreateFactory(params, state->osInterface);
-    if (mhwInterfaces)
+    if (!param->disableVebox)
     {
-        CM_CHK_NULL_GOTOFINISH_MOSERROR(mhwInterfaces->m_veboxInterface);
-        state->veboxInterface = mhwInterfaces->m_veboxInterface;       
-        
-        // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
-        MOS_Delete(mhwInterfaces->m_miInterface);
-        Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
-        mhwInterfaces->m_cpInterface = nullptr;
-        MOS_Delete(mhwInterfaces);
+        CmSafeMemSet(&params, 0, sizeof(params));
+        params.Flags.m_vebox = 1;
+        mhwInterfaces = MhwInterfaces::CreateFactory(params, state->osInterface);
+        if (mhwInterfaces)
+        {
+            CM_CHK_NULL_GOTOFINISH_MOSERROR(mhwInterfaces->m_veboxInterface);
+            state->veboxInterface = mhwInterfaces->m_veboxInterface;
+
+            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
+            MOS_Delete(mhwInterfaces->m_miInterface);
+            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+            mhwInterfaces->m_cpInterface = nullptr;
+            MOS_Delete(mhwInterfaces);
+        }
+        else
+        {
+            CM_ASSERTMESSAGE("Allocate MhwInterfaces failed");
+            return MOS_STATUS_NO_SPACE;
+        }
     }
     else
     {
-        CM_ASSERTMESSAGE("Allocate MhwInterfaces failed");
-        return MOS_STATUS_NO_SPACE;
+        state->veboxInterface = nullptr;
     }
 
     // set IsMDFLoad to distinguish MDF context from other Media Contexts
@@ -10625,11 +10671,30 @@ MOS_STATUS HalCm_Create(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_EXECUTION_PATH_ID,
+            &userFeatureData);
+
+        if (userFeatureData.i32Data == 1)
+        {
+            state->refactor = false;
+        }
+        else if (userFeatureData.i32Data == 2)
+        {
+            state->refactor = true;
+            state->cmHalInterface->SetFastPathByDefault(true);
+        }
+
         FILE *fp1 = nullptr;
         MOS_SecureFileOpen(&fp1, "refactor.key", "r");
         if (fp1 != nullptr)
         {
             state->refactor = true;
+            state->cmHalInterface->SetFastPathByDefault(true);
             fclose(fp1);
         }
 
@@ -10641,16 +10706,16 @@ MOS_STATUS HalCm_Create(
             fclose(fp2);
         }
     }
+#endif
+
     if (state->refactor)
     {
-        CM_NORMALMESSAGE("Use refactor path!\n");
+        CM_NORMALMESSAGE("Info: Fast path is enabled!\n");
     }
     else
     {
-        CM_NORMALMESSAGE("Use origin path!\n");
+        CM_NORMALMESSAGE("Info: Fast path is disabled!\n");
     }
-
-#endif
 
 finish:
     if (eStatus != MOS_STATUS_SUCCESS)

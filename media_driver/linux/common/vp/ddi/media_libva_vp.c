@@ -41,9 +41,6 @@
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include "media_libva_vp_tools.h"
-#if ANDROID
-#include "media_libva_vp_tools_android.h"
-#endif
 #endif
 
 #define VP_SETTING_MAX_PHASES                           1
@@ -113,6 +110,39 @@ PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextI
 {
     uint32_t  uiCtxType;
     return (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vaCtxID, &uiCtxType);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//! \purpose judge whether the pitch size match 16aligned usrptr path require or not
+//! \params
+//! [in]  pitch: surface pitch size.
+//! [in]  format : surface foramt
+//! \returns true if matched
+//! for YV12 format, if pitch aligned with 128, go legacy path; if aligned with 16/32/64, go 16usrptr path
+//! for other formats, legcy path for aligned with 64, 16usrpt path for aligned with 16/32
+////////////////////////////////////////////////////////////////////////////////
+bool VpIs16UsrPtrPitch(uint32_t pitch, DDI_MEDIA_FORMAT format)
+{
+    uint32_t PitchAligned = 64;
+    bool status = false;
+
+    if (Media_Format_YV12 == format)
+    {
+        PitchAligned = 128;
+    }
+
+    if (!(pitch % 16) && (pitch % PitchAligned))
+    {
+        status = true;
+    }
+    else
+    {
+        status = false;
+    }
+
+    VP_DDI_NORMALMESSAGE("[VP] 16Usrptr check, surface pitch is %d, go to %s path.", pitch, status?"16Usrptr":"legacy");
+
+    return status;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -203,6 +233,9 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_RGBP:
         format = Format_RGBP;
         break;
+    case Media_Format_BGRP:
+        format = Format_BGRP;
+        break;
     case Media_Format_Y210:
         format = Format_Y210;
         break;
@@ -217,6 +250,27 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
         break;
     case Media_Format_AYUV:
         format = Format_AYUV;
+        break;
+    case Media_Format_Y8:
+        format = Format_Y8;
+        break;
+    case Media_Format_Y16S:
+        format = Format_Y16S;
+        break;
+    case Media_Format_Y16U:
+        format = Format_Y16U;
+        break;
+    case Media_Format_VYUY:
+        format = Format_VYUY;
+        break;
+    case Media_Format_YVYU:
+        format = Format_YVYU;
+        break;
+    case Media_Format_A16R16G16B16:
+        format = Format_A16R16G16B16;
+        break;
+    case Media_Format_A16B16G16R16:
+        format = Format_A16B16G16R16;
         break;
     default:
         VP_DDI_ASSERTMESSAGE("ERROR media format to vphal format.");
@@ -1145,16 +1199,144 @@ DdiVp_SetProcPipelineParams(
     }
     //init interlace scaling flag
     pVpHalSrcSurf->bInterlacedScaling = false;
-    // For interlace scaling
+    pVpHalSrcSurf->bFieldWeaving      = false;
+
     if (pVpHalSrcSurf->pDeinterlaceParams == nullptr)
+    {
+        if (pPipelineParam->input_surface_flag & VA_TOP_FIELD_FIRST)
+        {
+            if (pPipelineParam->output_surface_flag & VA_TOP_FIELD_FIRST)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_INTERLEAVED;
+                pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = true;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else if (pPipelineParam->output_surface_flag & VA_TOP_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
+                pVpHalTgtSurf->SampleType = SAMPLE_SINGLE_TOP_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else if (pPipelineParam->output_surface_flag & VA_BOTTOM_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD;
+                pVpHalTgtSurf->SampleType = SAMPLE_SINGLE_BOTTOM_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else
+            {
+                VP_DDI_ASSERTMESSAGE("output_surface_flag need to be set for interlaced scaling.");
+                pVpHalSrcSurf->SampleType = SAMPLE_PROGRESSIVE;
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_NONE;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }
+        }
+        else if (pPipelineParam->input_surface_flag & VA_BOTTOM_FIELD_FIRST)
+        {
+            if (pPipelineParam->output_surface_flag & VA_BOTTOM_FIELD_FIRST)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_INTERLEAVED;
+                pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = true;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else if (pPipelineParam->output_surface_flag & VA_TOP_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD;
+                pVpHalTgtSurf->SampleType = SAMPLE_SINGLE_TOP_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else if (pPipelineParam->output_surface_flag & VA_BOTTOM_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD;
+                pVpHalTgtSurf->SampleType = SAMPLE_SINGLE_BOTTOM_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else
+            {
+                VP_DDI_ASSERTMESSAGE("output_surface_flag need to be set for interlaced scaling.");
+                pVpHalSrcSurf->SampleType = SAMPLE_PROGRESSIVE;
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_NONE;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }
+        }else if (pPipelineParam->input_surface_flag & VA_TOP_FIELD)
+        {
+            if (pPipelineParam->output_surface_flag & VA_TOP_FIELD_FIRST)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_FIELD_TO_INTERLEAVED;
+                pVpHalSrcSurf->SampleType = SAMPLE_SINGLE_TOP_FIELD;
+                pVpHalTgtSurf->SampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
+
+                DDI_CHK_NULL(pVpHalSrcSurf->pBwdRef, "No Ref Field!", VA_STATUS_ERROR_UNIMPLEMENTED);
+                pVpHalSrcSurf->pBwdRef->InterlacedScalingType = ISCALING_FIELD_TO_INTERLEAVED;
+                pVpHalSrcSurf->pBwdRef->SampleType = SAMPLE_SINGLE_BOTTOM_FIELD;
+
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = true;
+            }else if(pPipelineParam->output_surface_flag & VA_TOP_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_FIELD_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_SINGLE_TOP_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else
+            {
+                pVpHalSrcSurf->SampleType = SAMPLE_PROGRESSIVE;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }
+        }else if (pPipelineParam->input_surface_flag & VA_BOTTOM_FIELD)
+        {
+            if (pPipelineParam->output_surface_flag & VA_BOTTOM_FIELD_FIRST)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_FIELD_TO_INTERLEAVED;
+                pVpHalSrcSurf->SampleType = SAMPLE_SINGLE_BOTTOM_FIELD;
+                pVpHalTgtSurf->SampleType = SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD;
+
+                DDI_CHK_NULL(pVpHalSrcSurf->pBwdRef, "No Ref Field!", VA_STATUS_ERROR_UNIMPLEMENTED);
+                pVpHalSrcSurf->pBwdRef->InterlacedScalingType = ISCALING_FIELD_TO_INTERLEAVED;
+                pVpHalSrcSurf->pBwdRef->SampleType = SAMPLE_SINGLE_TOP_FIELD;
+
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = true;
+            }else if(pPipelineParam->output_surface_flag & VA_BOTTOM_FIELD)
+            {
+                pVpHalSrcSurf->InterlacedScalingType = ISCALING_FIELD_TO_FIELD;
+                pVpHalSrcSurf->SampleType = SAMPLE_SINGLE_BOTTOM_FIELD;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }else
+            {
+                pVpHalSrcSurf->SampleType = SAMPLE_PROGRESSIVE;
+                pVpHalSrcSurf->bInterlacedScaling = false;
+                pVpHalSrcSurf->bFieldWeaving = false;
+            }
+        }else
+        {
+            pVpHalSrcSurf->SampleType = SAMPLE_PROGRESSIVE;
+            pVpHalSrcSurf->InterlacedScalingType = ISCALING_NONE;
+            pVpHalSrcSurf->bInterlacedScaling = false;
+            pVpHalSrcSurf->bFieldWeaving = false;
+        }
+    }
+
+    // For legacy interlace scaling
+    if (pVpHalSrcSurf->pDeinterlaceParams == nullptr && pVpHalSrcSurf->InterlacedScalingType == ISCALING_NONE)
     {
         if (pPipelineParam->filter_flags & VA_TOP_FIELD)
         {
+            pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
             pVpHalSrcSurf->ScalingMode = VPHAL_SCALING_AVS;
             pVpHalSrcSurf->bInterlacedScaling = true;
         }
         else if (pPipelineParam->filter_flags & VA_BOTTOM_FIELD)
         {
+            pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD;
             pVpHalSrcSurf->ScalingMode = VPHAL_SCALING_AVS;
             pVpHalSrcSurf->bInterlacedScaling = true;
         }
@@ -1246,17 +1428,17 @@ DdiVp_SetProcPipelineParams(
         DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
     }
 
-    // add UsrPtr mode support
-    if (pMediaSrcSurf->pSurfDesc)
+    // add 16aligned UsrPtr mode support
+    if (pMediaSrcSurf->pSurfDesc && (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
     {
-        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalSrcSurf->bUsrPtr)
+        pVpHalSrcSurf->b16UsrPtr = VpIs16UsrPtrPitch(pMediaSrcSurf->iPitch, pMediaSrcSurf->format);
+        if (pVpHalSrcSurf->b16UsrPtr)
         {
-            pVpHalSrcSurf->dwPitch                 = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iPitch       = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iWidth       = pMediaSrcSurf->iWidth;
-            pVpHalSrcSurf->OsResource.iHeight      = pMediaSrcSurf->iHeight;
-            pVpHalSrcSurf->OsResource.bUsrPtrMode  = true;
+            pVpHalSrcSurf->dwPitch                   = pMediaSrcSurf->iPitch;
+            pVpHalSrcSurf->OsResource.iPitch         = pMediaSrcSurf->iPitch;
+            pVpHalSrcSurf->OsResource.iWidth         = pMediaSrcSurf->iWidth;
+            pVpHalSrcSurf->OsResource.iHeight        = pMediaSrcSurf->iHeight;
+            pVpHalSrcSurf->OsResource.b16UsrPtrMode  = true;
             switch (pMediaSrcSurf->format)
             {
                 case Media_Format_NV12:
@@ -1281,13 +1463,13 @@ DdiVp_SetProcPipelineParams(
         }
         else
         {
-            pVpHalSrcSurf->OsResource.bUsrPtrMode = false;
+            pVpHalSrcSurf->OsResource.b16UsrPtrMode = false;
         }
     }
     else
     {
-        pVpHalSrcSurf->bUsrPtr                 = false;
-        pVpHalSrcSurf->OsResource.bUsrPtrMode  = false;
+        pVpHalSrcSurf->b16UsrPtr                 = false;
+        pVpHalSrcSurf->OsResource.b16UsrPtrMode  = false;
     }
     return VA_STATUS_SUCCESS;
 }
@@ -1343,6 +1525,8 @@ VAStatus VpSetOsResource(
 /////////////////////////////////////////////////////////////////////////////////////////////
 VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PVPHAL_RENDER_PARAMS            pVpHalRenderParams = nullptr;
     int32_t                         uSurfIndex;
     PDDI_MEDIA_CONTEXT              pMediaCtx;
@@ -1370,6 +1554,7 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     pVpCtx->MosDrvCtx.ppMediaMemDecompState = &pMediaCtx->pMediaMemDecompState;
     pVpCtx->MosDrvCtx.pfnMemoryDecompress   = pMediaCtx->pfnMemoryDecompress;
     pVpCtx->MosDrvCtx.pPerfData             = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    pVpCtx->MosDrvCtx.m_osDeviceContext     = pMediaCtx->m_osDeviceContext;
     if( nullptr == pVpCtx->MosDrvCtx.pPerfData)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -1485,6 +1670,8 @@ DdiVp_InitVpHal(
     PDDI_VP_CONTEXT   pVpCtx
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     VphalState                *pVpHal;
     VphalSettings             VpHalSettings;
 
@@ -2690,6 +2877,8 @@ VAStatus DdiVp_ConvertSurface(
     uint16_t             desth
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     VAStatus                    vaStatus;
     PVPHAL_SURFACE              pSurface;
     PVPHAL_SURFACE              pTarget;
@@ -2816,6 +3005,8 @@ VAStatus DdiVp_CreateContext (
     VAContextID        *pVaCtxID
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT                pMediaCtx;
     VAStatus                          vaStatus;
     PDDI_VP_CONTEXT                   pVpCtx;
@@ -2885,6 +3076,8 @@ VAStatus DdiVp_DestroyContext (
     VAContextID         vaCtxID
     )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT       pMediaCtx;
     PDDI_VP_CONTEXT          pVpCtx;
     uint32_t                 uiVpIndex;
@@ -2945,6 +3138,8 @@ VAStatus DdiVp_BeginPicture(
         VAContextID         vaCtxID,
         VASurfaceID         vaSurfID)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT          pMediaDrvCtx;
     PDDI_VP_CONTEXT             pVpCtx;
     uint32_t                    ctxType;
@@ -3016,24 +3211,23 @@ VAStatus DdiVp_BeginPicture(
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
-    if (pMediaTgtSurf->pSurfDesc)
+    if (pMediaTgtSurf->pSurfDesc && (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = VpIs16UsrPtrPitch(pMediaTgtSurf->iPitch, pMediaTgtSurf->format);
+        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = true;
         }
         else
         {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
         }
     }
     else
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3119,24 +3313,23 @@ VAStatus DdiVp_BeginPictureInt(
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
-    if (pMediaTgtSurf->pSurfDesc)
+    if (pMediaTgtSurf->pSurfDesc && (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = VpIs16UsrPtrPitch(pMediaTgtSurf->iPitch, pMediaTgtSurf->format);
+        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = true;
         }
         else
         {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
         }
     }
     else
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3203,6 +3396,8 @@ VAStatus DdiVp_RenderPicture (
     int32_t             num_buffers
 )
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_MEDIA_CONTEXT        pMediaCtx;
     PDDI_VP_CONTEXT           pVpCtx;
     PDDI_MEDIA_BUFFER         pBuf;
@@ -3284,6 +3479,8 @@ VAStatus DdiVp_EndPicture (
         VADriverContextP    pVaDrvCtx,
         VAContextID         vaCtxID)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     PDDI_VP_CONTEXT         pVpCtx;
     uint32_t                uiCtxType;
     VphalState              *pVpHal;
@@ -3308,11 +3505,6 @@ VAStatus DdiVp_EndPicture (
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpDumpProcPipelineParams(pVaDrvCtx, pVpCtx);
-
-#if ANDROID
-    VpReportFeatureMode(pVpCtx);
-#endif
-
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     // Reset primary surface count for next render call
@@ -3353,6 +3545,8 @@ VAStatus DdiVp_VideoProcessPipeline(
     VASurfaceID         dstSurface,
     VARectangle         *dstRect)
 {
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
+
     VAStatus            vaStatus;
     uint32_t            ctxType;
     PDDI_VP_CONTEXT     pVpCtx;

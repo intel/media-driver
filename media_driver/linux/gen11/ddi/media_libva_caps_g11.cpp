@@ -35,31 +35,33 @@
 #include "media_libva_vp.h"
 
 const VAImageFormat m_supportedImageformatsG11[] =
-{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
-    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
-    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
-    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
-    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
-    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
-    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
-    {VA_FOURCC_BGRP,   VA_LSB_FIRST,   24, 24, 0x0000ff,   0x00ff00,   0xff0000,    0},
+{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 32, 0x0000ff00, 0x00ff0000, 0xff000000,  0x000000ff}, /* [31:0] B:G:R:A 8:8:8:8 little endian */
+    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 32, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000}, /* [31:0] A:R:G:B 8:8:8:8 little endian */
+    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 32, 0xff000000, 0x00ff0000, 0x0000ff00,  0x000000ff}, /* [31:0] R:G:B:A 8:8:8:8 little endian */
+    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 32, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000}, /* [31:0] A:B:G:R 8:8:8:8 little endian */
+    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x0000ff00, 0x00ff0000, 0xff000000,  0}, /* [31:0] B:G:R:x 8:8:8:8 little endian */
+    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0}, /* [31:0] x:R:G:B 8:8:8:8 little endian */
+    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0xff000000, 0x00ff0000, 0x0000ff00,  0}, /* [31:0] R:G:B:x 8:8:8:8 little endian */
+    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0}, /* [31:0] x:B:G:R 8:8:8:8 little endian */
     {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
     {VA_FOURCC_AYUV,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+    {VA_FOURCC_Y800,   VA_LSB_FIRST,   8,  0,0,0,0,0},
     {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
     {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
     {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
     {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
     {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
     {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
+    {VA_FOURCC_411P,   VA_LSB_FIRST,   12, 0,0,0,0,0},
     {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
     {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
     {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
     {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
     {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0},
     {VA_FOURCC_Y210,   VA_LSB_FIRST,   32, 0,0,0,0,0},
-    {VA_FOURCC_Y410,   VA_LSB_FIRST,   32, 0,0,0,0,0}
+    {VA_FOURCC_Y410,   VA_LSB_FIRST,   32, 0,0,0,0,0},
+    {VA_FOURCC_A2R10G10B10,    VA_LSB_FIRST,   32, 30, 0x3ff00000, 0x000ffc00, 0x000003ff, 0x30000000},  /* [31:0] A:R:G:B 2:10:10:10 little endian */
+    {VA_FOURCC_A2B10G10R10,    VA_LSB_FIRST,   32, 30, 0x000003ff, 0x000ffc00, 0x3ff00000, 0x30000000}   /* [31:0] A:B:G:R 2:10:10:10 little endian */
 };
 
 const VAConfigAttribValEncRateControlExt MediaLibvaCapsG11::m_encVp9RateControlExt =
@@ -160,6 +162,7 @@ CODECHAL_MODE MediaLibvaCapsG11::GetEncodeCodecMode(VAProfile profile, VAEntrypo
             return CODECHAL_ENCODE_MODE_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
             return CODECHAL_ENCODE_MODE_HEVC;
@@ -237,6 +240,7 @@ std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
             return ENCODE_ID_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
             if (IsEncFei(entrypoint, feiFunction))
@@ -357,6 +361,43 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
     return status;
 }
 
+VAStatus MediaLibvaCapsG11::LoadHevcEncProfileEntrypoints()
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
+
+    status = MediaLibvaCaps::LoadHevcEncProfileEntrypoints();
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC))
+    {
+        SetAttribute(VAProfileHEVCMain, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
+    {
+        SetAttribute(VAProfileHEVCMain10, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC12bit))
+    {
+        SetAttribute(VAProfileHEVCMain12, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit422))
+    {
+        SetAttribute(VAProfileHEVCMain422_10, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC12bit422))
+    {
+        SetAttribute(VAProfileHEVCMain422_12, VAEntrypointEncSlice, VAConfigAttribEncTileSupport, 1);
+    }
+#endif
+    return status;
+}
+
 VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
@@ -371,6 +412,7 @@ VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
     {
         status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSliceLP, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
+        (*attributeList)[VAConfigAttribEncTileSupport] = 1;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain))
@@ -457,6 +499,7 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         (*attributeList)[VAConfigAttribMaxPictureWidth] = m_maxVp9EncWidth;
         (*attributeList)[VAConfigAttribMaxPictureHeight] = m_maxVp9EncHeight;
+        (*attributeList)[VAConfigAttribEncDynamicScaling] = 1;
         (*attributeList)[VAConfigAttribEncTileSupport] = 1;
         (*attributeList)[VAConfigAttribEncRateControlExt] = m_encVp9RateControlExt.value;
     }
@@ -568,6 +611,7 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
             break;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
             if (width > m_maxHevcEncWidth 
@@ -698,6 +742,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG11::ConvertMediaFmtToGmmFmt(
         case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
         case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
+        case Media_Format_BGRP       : return GMM_FORMAT_BGRP;
         case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
         case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
         case Media_Format_YUY2       : return GMM_FORMAT_YUY2;
@@ -951,6 +996,15 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = maxHeight;
         i++;
+
+        attribs[i].type = VASurfaceAttribMemoryType;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+        i++;
     }
     else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
     {
@@ -1089,6 +1143,15 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
             attribs[i].value.value.i = m_encJpegMinHeight;
         }
         i++;
+
+        attribs[i].type = VASurfaceAttribMemoryType;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+        i++;
     }
     else
     {
@@ -1148,3 +1211,5 @@ static bool iclRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONT
     RegisterCaps<MediaLibvaCapsG11>((uint32_t)IGFX_ICELAKE); 
 static bool icllpRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
     RegisterCaps<MediaLibvaCapsG11>((uint32_t)IGFX_ICELAKE_LP);
+static bool ehlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
+    RegisterCaps<MediaLibvaCapsG11>((uint32_t)IGFX_ELKHARTLAKE);

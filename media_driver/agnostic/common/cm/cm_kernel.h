@@ -244,6 +244,38 @@ public:
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t QuerySpillSize(uint32_t &spillMemorySize) = 0;
 
+    //! \brief      Set SVM or stateless buffer pointer as per-kernel argument.
+    //! \details    The total size in bytes of all
+    //!             per kernel arguments and per thread arguments should be
+    //!             less than or equal to CAP_ARG_SIZE_PER_KERNEL.
+    //!             Per kernel arguments are set by calling SetKernelArg.
+    //!             Per thread arguments are set by calling SetThreadArg.
+    //!             Calling SetThreadArg for a kernel triggers media object
+    //!             command. Otherwise media object walker command is used.
+    //! \param      [in] index
+    //!             Index of argument in MDF kernel function. The index is
+    //!             global for per kernel arguments and per thread arguments.
+    //! \param      [in] size
+    //!             The size of kernel argument.
+    //! \param      [in] value
+    //!             The SVM or stateless buffer pointer that should be used as
+    //!             the argument value for argument specified by index.The
+    //!             SVM buffer pointer value specified as the argument
+    //!             value can be the pointer returned by CreateBufferSVM(). And
+    //!             the stateless buffer pointer value specified as the argument
+    //!             value can be the pointer returned by CmBufferStateless::
+    //!             GetGfxAddress() or CmBufferStateless::GetSysAddress().
+    //!             Or can be a pointer + offset into the SVM and stateless
+    //!             buffer region.
+    //! \retval     CM_SUCCESS if the per-kernel argument is set successfully.
+    //! \retval     CM_INVALID_ARG_INDEX if the argument 'index' is incorrect
+    //! \retval     CM_INVALID_KERNEL_ARG_POINTER if the argument 'value' is incorrect
+    //! \retval     CM_KERNELPAYLOAD_PERKERNELARG_MUTEX_FAIL if the indirect data set
+    //! \retval     CM_FAILURE otherwise
+    CM_RT_API virtual int32_t SetKernelArgPointer(uint32_t index,
+                                                  size_t size,
+                                                  const void *value) = 0;
+
 public:
     //! \brief      Get the kernel binary of this kernel.
     //! \param      [in,out] binary

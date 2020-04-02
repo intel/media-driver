@@ -492,7 +492,15 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
             allocParams.dwBytes       = param->size;
             allocParams.pSystemMemory = param->data;
             allocParams.Format        = Format_Buffer;  //used in VpHal_OsAllocateResource_Linux!
-            allocParams.pBufName      = "CmBuffer";
+
+            if (param->type == CM_BUFFER_N)
+            {
+                allocParams.pBufName = "CmBuffer";
+            }
+            else if (param->type == CM_BUFFER_STATELESS)
+            {
+                allocParams.pBufName = "CmBufferStateless";
+            }
 
             CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnAllocateResource(
                 osInterface,
@@ -508,11 +516,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
                                  tileformat,
                                  ROUND_UP_TO(size,MOS_PAGE_SIZE),
                                  ROUND_UP_TO(size,MOS_PAGE_SIZE),
-#if defined(ANDROID)
-                                 I915_USERPTR_UNSYNCHRONIZED
-#else
-                 0
-#endif
+                                 0
                  );
 #else
            bo =  mos_bo_alloc_vmap(osInterface->pOsContext->bufmgr,
@@ -521,11 +525,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
                                 tileformat,
                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
-#if defined(ANDROID)
-                                 I915_USERPTR_UNSYNCHRONIZED
-#else
-                 0
-#endif
+                                0
                  );
 #endif
 
@@ -560,6 +560,18 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
     entry->surfaceStateEntry[0].surfaceStateSize = entry->size;
     entry->surfaceStateEntry[0].surfaceStateOffset = 0;
     entry->surfaceStateEntry[0].surfaceStateMOCS = 0;
+    if(param->type == CM_BUFFER_STATELESS)
+    {
+        state->statelessBufferUsed = true;
+
+        // get GPU virtual address
+        // Fix: pfnGetResourceGfxAddress is not implemented. Need to find solution to
+        // get the GFX address.
+        param->gfxAddress = osInterface->pfnGetResourceGfxAddress(osInterface,
+                                                                  &(entry->osResource));
+        entry->address = reinterpret_cast<void *>(param->gfxAddress);
+    }
+
     if (state->advExecutor)
     {
         entry->surfStateMgr = state->advExecutor->CreateBufferStateMgr(&entry->osResource);
@@ -1544,4 +1556,16 @@ MOS_STATUS HalCm_DecompressSurface(
 
 finish:
     return eStatus;
+}
+
+MOS_STATUS HalCm_SurfaceSync(
+    PCM_HAL_STATE                pState,
+    PMOS_SURFACE                 pSurface,
+    bool                         bReadSync )
+{
+    UNUSED(pState);
+    UNUSED(pSurface);
+    UNUSED(bReadSync);
+
+    return MOS_STATUS_SUCCESS;
 }

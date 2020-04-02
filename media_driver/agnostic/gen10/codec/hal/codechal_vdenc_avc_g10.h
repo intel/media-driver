@@ -73,23 +73,23 @@ public:
     bool CheckSupportedFormat( PMOS_SURFACE surface) override;
 
     // Inherited virtual functions
-    MOS_STATUS InitializeState();
+    MOS_STATUS InitializeState() override;
 
     MOS_STATUS GetTrellisQuantization(
         PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS params,
-        PCODECHAL_ENCODE_AVC_TQ_PARAMS trellisQuantParams);
+        PCODECHAL_ENCODE_AVC_TQ_PARAMS trellisQuantParams) override;
 
-    MOS_STATUS SetDmemHuCBrcInitReset();
+    MOS_STATUS SetDmemHuCBrcInitReset() override;
 
-    MOS_STATUS SetDmemHuCBrcUpdate();
+    MOS_STATUS SetDmemHuCBrcUpdate() override;
 
-    MOS_STATUS LoadMvCost( uint8_t qp);
+    MOS_STATUS LoadMvCost( uint8_t qp) override;
 
-    MOS_STATUS LoadHmeMvCost(uint8_t qp);
+    MOS_STATUS LoadHmeMvCost(uint8_t qp) override;
 
     MOS_STATUS LoadHmeMvCostTable(
         PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams,
-        uint8_t hmeMvCostTable[8][42]);
+        uint8_t hmeMvCostTable[8][42]) override;
 
 private:
     static const uint32_t m_mvCostSkipBiasQPel[3][8];

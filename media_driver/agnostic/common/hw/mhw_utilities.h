@@ -372,7 +372,9 @@ enum MHW_MEDIASTATE_SURFACEFORMAT
     MHW_MEDIASTATE_SURFACEFORMAT_B8G8R8A8_UNORM     = 14,   // sample_8x8 only
     MHW_MEDIASTATE_SURFACEFORMAT_R16G16B16A16       = 15,   // Sample_8x8 only
     MHW_MEDIASTATE_SURFACEFORMAT_PLANAR_420_16      = 23,   // Sample_8x8 only
-    MHW_MEDIASTATE_SURFACEFORMAT_R16B16_UNORM       = 24    // Sample_8x8 only
+    MHW_MEDIASTATE_SURFACEFORMAT_R16B16_UNORM       = 24,   // Sample_8x8 only
+    MHW_MEDIASTATE_SURFACEFORMAT_R16_UNORM          = 25,   // Sample_8x8 only
+    MHW_MEDIASTATE_SURFACEFORMAT_Y16_UNORM          = 26    // Sample_8x8 only
 };
 
 enum GFX3DSTATE_SURFACETYPE
@@ -640,7 +642,8 @@ MOS_STATUS Mhw_SurfaceFormatToType(
 
 MOS_STATUS Mhw_SendGenericPrologCmd(
     PMOS_COMMAND_BUFFER         pCmdBuffer,
-    PMHW_GENERIC_PROLOG_PARAMS  pParams);
+    PMHW_GENERIC_PROLOG_PARAMS  pParams,
+    MHW_MI_MMIOREGISTERS       *pMmioReg = nullptr);
 
 MOS_STATUS Mhw_SetNearestModeTable(
     int32_t         *iCoefs,

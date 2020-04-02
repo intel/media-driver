@@ -248,7 +248,8 @@ protected:
     uint32_t                   m_perfDataIndex = 0;     //!< The index of performance data node in buffer
     uint32_t                   m_ref = 0;               //!< The number of refereces
     uint32_t                   m_bufferSize = 10000000; //!< The size of perf data buffer
-    uint32_t                   m_timerBase = 0;         //!< time frequency
+    uint32_t                   m_timerBase  = 0;        //!< time frequency
+    int32_t                    m_multiprocess = 0;      //!< multi process support
     uint32_t                   m_registers[8] = { 0 };  //!< registers of Memory information
 
     bool                       m_initialized = false;   //!< Indicate whether profiler was initialized

@@ -86,7 +86,7 @@ void CreateLinkFile(char *pDirectoryName, list <string> &kernels)
 #else
     sprintf(LinkFileTxt, "%s\\%s", pDirectoryName, "LinkFile.txt");
 #endif  
-	hText = fopen(LinkFileTxt, "r");
+    hText = fopen(LinkFileTxt, "r");
     if (hText == NULL) goto done;
 
     // Create full LinkFile binary name - remove pre-existing file
@@ -95,7 +95,7 @@ void CreateLinkFile(char *pDirectoryName, list <string> &kernels)
 #else
     sprintf(LinkFileBin, "%s\\%s", pDirectoryName, "LinkFile.krn");
 #endif
-	remove(LinkFileBin);
+    remove(LinkFileBin);
 
     // Allocate text buffer for reading
     fseek(hText, 0, SEEK_END);
@@ -103,7 +103,7 @@ void CreateLinkFile(char *pDirectoryName, list <string> &kernels)
     fseek(hText, 0, SEEK_SET);
     pText = (char *)malloc(dwFileSize + 1);
     if (!pText) goto done;
-	
+    
     memset(pText,0,dwFileSize + 1);
 
     // Read text file

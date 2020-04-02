@@ -36,7 +36,7 @@
 #include <fcntl.h>     //open
 
 #ifdef ANDROID
-#include <android/log.h>
+#include <log/log.h>
 #else
 #include <signal.h>
 #endif // ANDROID

@@ -33,7 +33,7 @@
 
 // The below definitions will prevent other files from redefining types.
 #define BASIC_TYPES_DEFINED 1
-#define BOOL_DEF            1
+#define BOOL_DEF            1  
 
 #include <stdio.h>       // FILE
 #include <stdint.h>
@@ -334,7 +334,8 @@ typedef enum _MOS_STATUS
     MOS_STATUS_HUC_KERNEL_FAILED                 = 29,
     MOS_STATUS_NOT_ENOUGH_BUFFER                 = 30,
     MOS_STATUS_UNINITIALIZED                     = 31,
-    MOS_STATUS_UNKNOWN                           = 32
+    MOS_STATUS_GPU_CONTEXT_ERROR                 = 32,
+    MOS_STATUS_UNKNOWN                           = 33
 } MOS_STATUS;
 
 //!
@@ -483,6 +484,10 @@ enum MOS_MEMCOMP_STATE
 typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
 typedef uint32_t               GPU_CONTEXT_HANDLE;
 
-#define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   4
+#define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   8
+
+//APO wrapper
+extern uint32_t g_apoMosEnabled;
+#define MOS_INVALID_HANDLE 0
 
 #endif // __MOS_DEFS_H__

@@ -26,9 +26,7 @@
 
 #pragma once
 
-#if (_DEBUG || _RELEASE_INTERNAL)
 #define CM_KERNEL_PRINTF_ON             1
-#endif
 
 #if CM_KERNEL_PRINTF_ON
 

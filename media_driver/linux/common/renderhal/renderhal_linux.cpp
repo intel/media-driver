@@ -467,12 +467,3 @@ MOS_STATUS RenderHal_SendTimingData(
 {
     return MOS_STATUS_SUCCESS;
 }
-
-//!
-//! \brief    Get Oca support object
-//! \return   RenderhalOcaSupport&
-//!
-RenderhalOcaSupport &RenderHal_GetOcaSupport()
-{
-    return RenderhalOcaSupport::GetInstance();
-}

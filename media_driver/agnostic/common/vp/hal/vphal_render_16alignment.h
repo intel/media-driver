@@ -357,6 +357,7 @@ MOS_STATUS VpHal_16AlignInitInterface(
 //!           Return true if 16 Bytes Alignment can be processed, otherwise false
 //!
 bool VpHal_RndrIs16Align(
+    PVPHAL_16_ALIGN_STATE   p16AlignState,
     PVPHAL_RENDER_PARAMS    pRenderParams);
 #endif // __VPHAL_RENDER_16ALIGNMENT_H__
 
