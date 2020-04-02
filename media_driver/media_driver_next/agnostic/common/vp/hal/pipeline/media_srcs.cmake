@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,11 +20,13 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_common.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter.h
 )
 
 set(SOURCES_NEW

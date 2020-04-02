@@ -27,27 +27,13 @@ VpPipelineG12Adapter::VpPipelineG12Adapter(
     PMOS_CONTEXT                pOsDriverContext,
     vp::VpPlatformInterface     &vpPlatformInterface,
     MOS_STATUS                  &eStatus) :
-    VphalStateG12Tgllp( pOsInterface, pOsDriverContext, &eStatus),
-    m_vpPlatformInterface(vpPlatformInterface)
+    VphalStateG12Tgllp(pOsInterface, pOsDriverContext, &eStatus),
+    VpPipelineAdapter(vpPlatformInterface, eStatus)
 {
     if (MOS_FAILED(eStatus))
     {
-        MOS_OS_ASSERTMESSAGE("VpPipelineG12Adapter construct failed due to VphalStateG12Tgllp() returned failure: eStatus = %d.", eStatus);
+        MOS_OS_ASSERTMESSAGE("VpPipelineG12Adapter construct failed due to base class returned failure: eStatus = %d.", eStatus);
         return;
-    }
-
-    if (m_reporting == nullptr)
-    {
-        m_reporting = MOS_New(VphalFeatureReport);
-    }
-
-    if (m_reporting)
-    {
-        eStatus = MOS_STATUS_SUCCESS;
-    }
-    else
-    {
-        eStatus = MOS_STATUS_NO_SPACE;
     }
 }
 
@@ -58,140 +44,41 @@ VpPipelineG12Adapter::VpPipelineG12Adapter(
 //!
 VpPipelineG12Adapter::~VpPipelineG12Adapter()
 {
-    Destroy();
-    vp::VpPlatformInterface *pIntf = &m_vpPlatformInterface;
-    MOS_Delete(pIntf);
-};
-
-MOS_STATUS VpPipelineG12Adapter::Allocate(
-  const VphalSettings     *pVpHalSettings)
-{
-    VP_FUNC_CALL();
-
-    m_vpPipeline = std::make_shared<vp::VpPipeline>(m_osInterface, m_reporting);
-    VP_PUBLIC_CHK_NULL_RETURN(m_vpPipeline);
-
-    MOS_ZeroMemory(&m_vpMhwinterface, sizeof(VP_MHWINTERFACE));
-
-    m_vpMhwinterface.m_platform = m_platform;
-    m_vpMhwinterface.m_waTable  = m_waTable;
-    m_vpMhwinterface.m_skuTable = m_skuTable;
-
-    m_vpMhwinterface.m_osInterface      = m_osInterface;
-    m_vpMhwinterface.m_renderHal        = m_renderHal;
-    m_vpMhwinterface.m_veboxInterface   = m_veboxInterface;
-    m_vpMhwinterface.m_sfcInterface     = m_sfcInterface;
-    m_vpMhwinterface.m_renderer         = m_renderer;
-    m_vpMhwinterface.m_cpInterface      = m_cpInterface;
-    m_vpMhwinterface.m_mhwMiInterface   = m_renderHal->pMhwMiInterface;
-    m_vpMhwinterface.m_statusTable      = &m_statusTable;
-    m_vpMhwinterface.m_vpPlatformInterface = &m_vpPlatformInterface;
-
-    if (m_veboxInterface &&
-        m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
-        m_veboxInterface->m_veboxHeap == nullptr)
-    {
-        // Allocate VEBOX Heap
-        VP_PUBLIC_CHK_STATUS_RETURN(m_veboxInterface->CreateHeap());
-    }
-
-    // Set VP pipeline mhw interfaces
-    m_vpPipeline->SetVpPipelineMhwInterfce(&m_vpMhwinterface);
-
-    VphalState::Allocate(pVpHalSettings);
-
-    return m_vpPipeline->Init((void*)pVpHalSettings);
-}
-
-MOS_STATUS VpPipelineG12Adapter::Execute(void * params)
-{
-    MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
-
-    VP_FUNC_CALL();
-
-    eStatus = m_vpPipeline->Prepare(params);
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        if (eStatus == MOS_STATUS_UNIMPLEMENTED)
-        {
-            VP_PUBLIC_NORMALMESSAGE("Features are UNIMPLEMENTED on APG now \n");
-            return eStatus;
-        }
-        else
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(eStatus);
-        }
-    }
-
-    return m_vpPipeline->Execute();
-}
-
-MOS_STATUS VpPipelineG12Adapter::GetStatusReport(PQUERY_STATUS_REPORT_APP pQueryReport, uint16_t numStatus)
-{
-    VP_FUNC_CALL();
-
-    return VphalState::GetStatusReport(pQueryReport, numStatus);
-}
-
-void VpPipelineG12Adapter::Destroy()
-{
-    VP_FUNC_CALL();
-    if (m_vpPipeline)
-    {
-        m_vpPipeline->Destroy();
-        m_vpPipeline = nullptr;
-    }
-    MOS_Delete(m_reporting);
 }
 
 MOS_STATUS VpPipelineG12Adapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    if ((m_vpMhwinterface.m_osInterface != nullptr) && (pcRenderParams != nullptr))
-    {
-        // Set the component info
-        m_vpMhwinterface.m_osInterface->Component = pcRenderParams->Component;
-
-        // Init component(DDI entry point) info for perf measurement
-        m_vpMhwinterface.m_osInterface->pfnSetPerfTag(m_vpMhwinterface.m_osInterface, VPHAL_NONE);
-    }
-
-    VP_PUBLIC_CHK_STATUS_RETURN(Prepare(pcRenderParams));
-
-    void *params = (void *)&m_vpPipelineParams;
-
-    eStatus = Execute(params);
+    MOS_STATUS eStatus = VpPipelineAdapter::Render(pcRenderParams);
 
     if (eStatus == MOS_STATUS_SUCCESS)
     {
-        m_bApgEnabled = true;
-        VP_PUBLIC_NORMALMESSAGE("APG Execution successfully, return \n");
         return eStatus;
     }
     else
     {
-        m_bApgEnabled = false;
         return VphalState::Render(pcRenderParams);
     }
 }
 
-MOS_STATUS VpPipelineG12Adapter::Prepare(PCVPHAL_RENDER_PARAMS pcRenderParams)
+MOS_STATUS VpPipelineG12Adapter::Allocate(
+    const VphalSettings     *pVpHalSettings)
 {
-    VP_PUBLIC_CHK_NULL_RETURN(pcRenderParams);
-
-    if (m_vpPipeline)
+    MOS_STATUS status = VphalStateG12Tgllp::Allocate(pVpHalSettings);
+    if (MOS_FAILED(status))
     {
-        m_vpPipelineParams = *(PVP_PIPELINE_PARAMS)pcRenderParams;
-
-        // default render of video
-        m_vpPipelineParams.bIsDefaultStream = true;
+        return status;
     }
-
-    return MOS_STATUS_SUCCESS;
+    return Init(pVpHalSettings, *this);
 }
 
-VphalFeatureReport * VpPipelineG12Adapter::GetRenderFeatureReport()
+MOS_STATUS VpPipelineG12Adapter::GetStatusReport(
+    PQUERY_STATUS_REPORT_APP  pQueryReport,
+    uint16_t                  numStatus)
+{
+    return VphalStateG12Tgllp::GetStatusReport(pQueryReport, numStatus);
+}
+
+VphalFeatureReport* VpPipelineG12Adapter::GetRenderFeatureReport()
 {
     if (m_bApgEnabled)
     {
@@ -199,6 +86,6 @@ VphalFeatureReport * VpPipelineG12Adapter::GetRenderFeatureReport()
     }
     else
     {
-        return VphalState::GetRenderFeatureReport();
+        return VphalStateG12Tgllp::GetRenderFeatureReport();
     }
 }
