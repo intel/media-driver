@@ -4294,7 +4294,7 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[2]               = mediaSurface->iPitch / 2;
         vaimg->offsets[0]               = 0;
         vaimg->offsets[1]               = mediaSurface->iHeight * mediaSurface->iPitch;
-        vaimg->offsets[2]               = mediaSurface->iPitch * mediaSurface->iHeight * 5 / 4;
+        vaimg->offsets[2]               = vaimg->offsets[1] + vaimg->pitches[1] * MOS_ALIGN_CEIL(mediaSurface->iHeight, 2) / 2;
         break;
     case Media_Format_A8B8G8R8:
     case Media_Format_R8G8B8A8:
