@@ -607,6 +607,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                     4 * mhw_mi_g11_X::MI_ATOMIC_CMD::byteSize +                       // used to reset semaphore in BEs
                     2 * mhw_mi_g11_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize + // 1 Conditional BB END for FE hang, 1 for streamout buffer writing over allocated size
                     3 * mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize +             // for FE & BE0, BEs sync
+                    15 * mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +              // for placeholder cmds to resolve the hazard between BEs sync
                     3 * mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +               // for FE status set and clear
                     3 * mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize +            // for FE status set
                     2 * mhw_mi_g11_X::MI_FLUSH_DW_CMD::byteSize +                     // 2 needed for command flush in slice level
@@ -695,6 +696,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                     mhw_mi_g11_X::MI_ATOMIC_CMD::byteSize * 4 +   // used to reset semaphore in BEs
                     mhw_mi_g11_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize +   // for streamout buffer writing over allocated size
                     mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD::byteSize * 3 +   // for FE & BE0, BEs sync
+                    mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize * 15 +   // for placeholder cmds to resolve the hazard between BEs sync
                     mhw_mi_g11_X::MI_STORE_DATA_IMM_CMD::byteSize +   // for FE status set
                     mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 3 +   // for FE status set
                     mhw_mi_g11_X::MI_FLUSH_DW_CMD::byteSize +   // for command flush in partition level

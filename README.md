@@ -121,7 +121,6 @@ Media driver supports two build types as below
 * E  - Hardware Encoding, Low Power Encoding(VDEnc/Huc)
 * Es - Hardware(PAK) + Shader(media kernel+VME) Encoding
 
-\* ICL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 For more information, please refer to
 * [Media Features Summary](https://github.com/intel/media-driver/blob/master/docs/media_features.md#media-features-summary)
@@ -171,12 +170,13 @@ or later, which officially supported C++11.
 3. HuC firmware is needed for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
    * APL/KBL: starting from kernel 4.11
    * CFL: starting from kernel 4.15
+   * ICL: suggested from kernel 5.3
 
-4. ICL: preliminary support and may not be fully functional. It requires Linux kernel 4.17+ loaded with i915.alpha_support=1 parameter to be tried.
-
-5. ICL encoding has two known issues:
+4. ICL: It requires Linux kernel 5.3 which includes all patches to support necessary encoding features. Then, ICL encoding has one known issues:
    * Low power encoding: known [issue#328](https://github.com/intel/media-driver/issues/328) needs kernel patch which is under review.
-   * VME based encoding: known [issue#267](https://github.com/intel/media-driver/issues/267), which requires media driver patch [PR#271](https://github.com/intel/media-driver/pull/271) and kernel driver patch [Per context dynamic (sub)slice power-gating](https://patchwork.freedesktop.org/series/48194/).
 
-
+5. Other known issues:
+   * FFmpeg VAAPI VP8 decode need add option: “-threads 1 -thread_type slice+frame”.
+   * Gstreamer-vaapi,FFmpeg-vappi HEVC low power 444 8bit encode (input surface format AYUV) is not ready on ICL.
+   * FFmpeg-vaapi HEVC low power encode is not ready on ICL [issue#725](https://github.com/intel/media-driver/issues/725).need VAAPI report LTU size.
 ##### (*) Other names and brands may be claimed as property of others.

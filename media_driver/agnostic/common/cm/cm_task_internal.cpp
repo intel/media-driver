@@ -287,7 +287,10 @@ CmTaskInternal::~CmTaskInternal( void )
         CmEvent *eventBase = m_taskEvent;
         CmQueueRT *cmQueue = nullptr;
         m_taskEvent->GetQueue(cmQueue);
-        cmQueue->DestroyEvent(eventBase); // need to update the m_EventArray
+        if (cmQueue)
+        {
+            cmQueue->DestroyEvent(eventBase); // need to update the m_EventArray
+        }
     }
 
     if(m_threadCoordinates){
@@ -2008,9 +2011,10 @@ int32_t CmTaskInternal::SetProperty(CM_TASK_CONFIG * taskConfig)
     return CM_SUCCESS;
 }
 
-PCM_TASK_CONFIG CmTaskInternal::GetTaskConfig()
+int32_t CmTaskInternal::GetProperty(CM_TASK_CONFIG &taskConfig)
 {
-    return &m_taskConfig;
+    taskConfig = m_taskConfig;
+    return CM_SUCCESS;
 }
 
 void  *CMRT_UMD::CmTaskInternal::GetMediaStatePtr()

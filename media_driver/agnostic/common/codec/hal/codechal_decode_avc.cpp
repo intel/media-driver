@@ -29,6 +29,7 @@
 #include "codechal_decode_sfc_avc.h"
 #include "codechal_mmc_decode_avc.h"
 #include "codechal_secure_decode_interface.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif
@@ -1241,14 +1242,16 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
             m_deblockingEnabled));
 
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
-                  m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
-                m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
-            m_sfcState->m_sfcPipeOut == false && 
+             m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
+             m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
+             m_sfcState->m_sfcPipeOut == false &&
             !decProcessingParams->bIsReferenceOnlyPattern)
         {
-            eStatus = MOS_STATUS_UNKNOWN;
-            CODECHAL_DECODE_ASSERTMESSAGE("Downsampling parameters are NOT supported!");
-            return eStatus;
+            m_vdSfcSupported = false;
+        }
+        else
+        {
+            m_vdSfcSupported = true;
         }
     }
 #endif
@@ -1341,7 +1344,9 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
         picMhwParams->PipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&picMhwParams->PipeBufAddrParams));
+#endif
 
     picMhwParams->PipeBufAddrParams.presMfdIntraRowStoreScratchBuffer =
         &m_resMfdIntraRowStoreScratchBuffer;
@@ -1416,9 +1421,11 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
         }
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&picMhwParams->PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
+#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(picMhwParams->PipeBufAddrParams.presReferences, sizeof(PMOS_RESOURCE) * CODEC_AVC_MAX_NUM_REF_FRAME, m_presReferences, sizeof(PMOS_RESOURCE) * CODEC_AVC_MAX_NUM_REF_FRAME));
 
@@ -1527,13 +1534,15 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
     PIC_MHW_PARAMS picMhwParams;
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicMhwParams(&picMhwParams));
 
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+
     if (m_cencBuf && m_cencBuf->checkStatusRequired)
     {
         CODECHAL_DECODE_COND_ASSERTMESSAGE((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-        auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->CheckStatusReportNum(
-            mmioRegisters, 
+            mmioRegisters,
             m_cencBuf->bufIdx,
             m_cencBuf->resStatus,
             &cmdBuffer));
@@ -1848,6 +1857,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
     //    m_debugInterface,
     //    &cmdBuffer));
     )
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 

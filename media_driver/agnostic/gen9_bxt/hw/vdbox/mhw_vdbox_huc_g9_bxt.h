@@ -59,6 +59,19 @@ public:
     //!
     virtual ~MhwVdboxHucInterfaceG9Bxt() { MHW_FUNCTION_ENTER; }
 
+    //!
+    //! \brief    Get huc product family
+    //!
+    //! \return   uint32_t
+    //!           Huc product family.
+    //!
+    uint32_t GetHucProductFamily() override
+    {
+        return m_hucFamilyBroxton;
+    }
+
+    static const uint32_t m_hucFamilyBroxton = 3;
+
 protected:
 
     MOS_STATUS AddHucPipeModeSelectCmd(

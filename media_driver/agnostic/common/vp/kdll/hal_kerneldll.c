@@ -469,23 +469,6 @@ const char    *KernelDll_GetProcessString(Kdll_Processing process)
     return nullptr;
 }
 
-const char    *KernelDll_GetInternalString(Kdll_IntFormat format)
-{
-    switch (format)
-    {
-        case Internal_None     : return _T("No data");
-        case Internal_SameSrc0 : return _T("Same as Src0");
-        case Internal_Any      : return _T("Any data");
-        case Internal_Y8U8V8A8 : return _T("Y8U8V8A8");
-        case Internal_V8U8Y8A8 : return _T("V8U8Y8A8");
-        case Internal_V8Y8U8A8 : return _T("V8Y8U8A8");
-        case Internal_A8R8G8B8 : return _T("A8R8G8B8");
-        case Internal_PL2      : return _T("PL2");
-        case Internal_PL3      : return _T("PL3");
-    }
-
-    return nullptr;
-}
 
 const char    *KernelDll_GetParserStateString(Kdll_ParserState state)
 {
@@ -549,14 +532,12 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_IsSrc0LumaKey      : return _T("IsSrc0LumaKey");
         case RID_IsSrc0Procamp      : return _T("IsSrc0Procamp");
         case RID_IsSrc0Rotation     : return _T("IsSrc0Rotation");
-        case RID_IsSrc0Internal     : return _T("IsSrc0Internal");
         case RID_IsSrc0Coeff        : return _T("IsSrc0Coeff");
         case RID_IsSrc0Processing   : return _T("IsSrc0Processing");
         case RID_IsSrc1Format       : return _T("IsSrc1Format");
         case RID_IsSrc1Sampling     : return _T("IsSrc1Sampling");
         case RID_IsSrc1LumaKey      : return _T("IsSrc1LumaKey");
         case RID_IsSrc1SamplerLumaKey: return _T("IsSrc1SamplerLumaKey");
-        case RID_IsSrc1Internal     : return _T("IsSrc1Internal");
         case RID_IsSrc1Coeff        : return _T("IsSrc1Coeff");
         case RID_IsSrc1Processing   : return _T("IsSrc1Processing");
         case RID_IsLayerNumber      : return _T("IsLayerNumber");
@@ -575,7 +556,6 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_SetSrc0ColorFill   : return _T("SetSrc0ColorFill");
         case RID_SetSrc0LumaKey     : return _T("SetSrc0LumaKey");
         case RID_SetSrc0Rotation    : return _T("SetSrc0Rotation");
-        case RID_SetSrc0Internal    : return _T("SetSrc0Internal");
         case RID_SetSrc0Coeff       : return _T("SetSrc0Coeff");
         case RID_SetSrc0Processing  : return _T("SetSrc0Processing");
         case RID_SetSrc1Format      : return _T("SetSrc1Format");
@@ -584,7 +564,6 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_SetSrc1LumaKey     : return _T("SetSrc1LumaKey");
         case RID_SetSrc1SamplerLumaKey: return _T("SetSrc1SamplerLumaKey");
         case RID_SetSrc1Procamp     : return _T("SetSrc1Procamp");
-        case RID_SetSrc1Internal    : return _T("SetSrc1Internal");
         case RID_SetSrc1Coeff       : return _T("SetSrc1Coeff");
         case RID_SetSrc1Processing  : return _T("SetSrc1Processing");
         case RID_SetKernel          : return _T("SetKernel");
@@ -796,13 +775,6 @@ int32_t KernelDll_PrintRule(
 
         case RID_IsSrc0Rotation   :
             szValue = KernelDll_GetRotationString((VPHAL_ROTATION) pEntry->value);
-            break;
-
-        case RID_IsSrc0Internal    :
-        case RID_IsSrc1Internal    :
-        case RID_SetSrc0Internal   :
-        case RID_SetSrc1Internal   :
-            szValue = KernelDll_GetInternalString((Kdll_IntFormat) pEntry->value);
             break;
 
         case RID_IsShuffling       :
@@ -2099,22 +2071,6 @@ bool KernelDll_FindRule(
                         break;
                     }
 
-                // Match Src0 internal pixel format
-                case RID_IsSrc0Internal:
-                    if (pSearchState->src0_internal == (Kdll_IntFormat) pRuleEntry->value)
-                    {
-                        continue;
-                    }
-                    else if ((Kdll_IntFormat) pRuleEntry->value == Internal_Any &&
-                            pSearchState->src0_internal != Internal_None)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        break;
-                    }
-
                 // Match Src0 CSC coefficients
                 case RID_IsSrc0Coeff:
                     if (pSearchState->src0_coeff == (Kdll_CoeffID) pRuleEntry->value)
@@ -2239,30 +2195,6 @@ bool KernelDll_FindRule(
                 // Match Src1 Procamp
                 case RID_IsSrc1Procamp:
                     if (pSearchState->pFilter->procamp == (int32_t)pRuleEntry->value)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        break;
-                    }
-
-                // Match Src1 internal pixel format
-                case RID_IsSrc1Internal:
-                    // match
-                    if (pSearchState->src1_internal == (Kdll_IntFormat) pRuleEntry->value)
-                    {
-                        continue;
-                    }
-                    // any format, but not empty
-                    else if ((Kdll_IntFormat) pRuleEntry->value == Internal_Any &&
-                            pSearchState->src1_internal != Internal_None)
-                    {
-                        continue;
-                    }
-                    // src1 and src0 have same internal format
-                    else if ((Kdll_IntFormat) pRuleEntry->value == Internal_SameSrc0 &&
-                            pSearchState->src0_internal == pSearchState->src1_internal)
                     {
                         continue;
                     }
@@ -2816,11 +2748,6 @@ bool KernelDll_UpdateState(
                 }
                 break;
 
-            // Set Src0 internal format
-            case RID_SetSrc0Internal:
-                pSearchState->src0_internal = (Kdll_IntFormat) pRuleEntry->value;
-                break;
-
             // Set Src0 CSC coefficients
             case RID_SetSrc0Coeff:
                 if ((Kdll_CoeffID)pRuleEntry->value == CoeffID_Source)
@@ -2917,11 +2844,6 @@ bool KernelDll_UpdateState(
                 {
                     pSearchState->src1_procamp = (int32_t)pRuleEntry->value;
                 }
-                break;
-
-            // Set Src1 pixel format
-            case RID_SetSrc1Internal:
-                pSearchState->src1_internal = (Kdll_IntFormat) pRuleEntry->value;
                 break;
 
             // Set Src1 CSC coefficients
@@ -3607,7 +3529,6 @@ bool KernelDll_SearchKernel(Kdll_State       *pState,
     pSearchState->src0_colorfill = false;
     pSearchState->src0_lumakey   = LumaKey_False;
     pSearchState->src0_coeff    = CoeffID_None;
-    pSearchState->src0_internal = Internal_None;
 
     // Reset Src1 state
     pSearchState->src1_format   = Format_None;
@@ -3615,7 +3536,6 @@ bool KernelDll_SearchKernel(Kdll_State       *pState,
     pSearchState->src1_lumakey   = LumaKey_False;
     pSearchState->src1_samplerlumakey = LumaKey_False;
     pSearchState->src1_coeff    = CoeffID_None;
-    pSearchState->src1_internal = Internal_None;
     pSearchState->src1_process  = Process_None;
 
     // Search loop

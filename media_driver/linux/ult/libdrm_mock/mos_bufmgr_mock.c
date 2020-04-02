@@ -867,7 +867,7 @@ retry:
     bo_gem->used_as_reloc_target = false;
     bo_gem->has_error = false;
     bo_gem->reusable = true;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alignment);
 
@@ -1015,7 +1015,7 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     bo_gem->used_as_reloc_target = false;
     bo_gem->has_error = false;
     bo_gem->reusable = false;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, 0);
 
@@ -1175,7 +1175,7 @@ mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
     bo_gem->bo.handle = open_arg.handle;
     bo_gem->global_name = handle;
     bo_gem->reusable = false;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     memclear(get_tiling);
     get_tiling.handle = bo_gem->gem_handle;
@@ -3067,7 +3067,7 @@ mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
     bo_gem->used_as_reloc_target = false;
     bo_gem->has_error = false;
     bo_gem->reusable = false;
-    bo_gem->use_48b_address_range = false;
+    bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     DRMINITLISTHEAD(&bo_gem->vma_list);
     DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
@@ -3550,35 +3550,6 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
     return context;
 }
 
-struct mos_linux_context *
-mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
-    struct drm_i915_gem_context_create_ext create;
-    struct mos_linux_context *context = nullptr;
-    int ret;
-
-    context = (struct mos_linux_context *)calloc(1, sizeof(*context));
-    if (!context)
-        return nullptr;
-
-    memclear(create);
-    create.flags = flags;
-    create.extensions = 0;
-    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT, &create);
-    if (ret != 0) {
-        MOS_DBG("DRM_IOCTL_I915_GEM_CONTEXT_CREATE failed: %s\n",
-            strerror(errno));
-        free(context);
-        return nullptr;
-    }
-
-    context->ctx_id = create.ctx_id;
-    context->bufmgr = bufmgr;
-
-    return context;
-}
-
 void
 mos_gem_context_destroy(struct mos_linux_context *ctx)
 {
@@ -3636,6 +3607,124 @@ mos_get_reset_stats(struct mos_linux_context *ctx,
     return ret;
 }
 
+unsigned int mos_hweight8(uint8_t w)
+{
+    uint32_t i, weight = 0;
+
+    for (i=0; i<8; i++)
+    {
+        weight += !!((w) & (1UL << i));
+    }
+    return weight;
+}
+
+uint8_t mos_switch_off_n_bits(uint8_t in_mask, int n)
+{
+    int i,count;
+    uint8_t bi,out_mask;
+
+    assert (n>0 && n<=8);
+
+    out_mask = in_mask;
+    count = n;
+    for(i=0; i<8; i++)
+    {
+        bi = 1UL<<i;
+        if (bi & in_mask)
+        {
+            out_mask &= ~bi;
+            count--;
+        }
+        if (count==0)
+        {
+            break;
+        }
+    }
+    return out_mask;
+}
+
+int
+mos_get_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu *sseu)
+{
+    struct mos_bufmgr_gem *bufmgr_gem;
+    struct drm_i915_gem_context_param context_param;
+    int ret;
+
+    if (ctx == nullptr)
+        return -EINVAL;
+
+    bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
+    memset(&context_param, 0, sizeof(context_param));
+    context_param.ctx_id = ctx->ctx_id;
+    context_param.param = I915_CONTEXT_PARAM_SSEU;
+    context_param.value = (uint64_t) sseu;
+    context_param.size = sizeof(struct drm_i915_gem_context_param_sseu);
+
+    ret = drmIoctl(bufmgr_gem->fd,
+            DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM,
+            &context_param);
+
+    return ret;
+}
+
+int
+mos_set_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu sseu)
+{
+    struct mos_bufmgr_gem *bufmgr_gem;
+    struct drm_i915_gem_context_param context_param;
+    int ret;
+
+    if (ctx == nullptr)
+        return -EINVAL;
+
+    bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
+    memset(&context_param, 0, sizeof(context_param));
+    context_param.ctx_id = ctx->ctx_id;
+    context_param.param = I915_CONTEXT_PARAM_SSEU;
+    context_param.value = (uint64_t) &sseu;
+    context_param.size = sizeof(struct drm_i915_gem_context_param_sseu);
+
+    ret = drmIoctl(bufmgr_gem->fd,
+               DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM,
+               &context_param);
+
+    return ret;
+}
+
+int
+mos_get_subslice_mask(int fd, unsigned int *subslice_mask)
+{
+    drm_i915_getparam_t gp;
+    int ret;
+
+    memclear(gp);
+    gp.value = (int*)subslice_mask;
+    gp.param = I915_PARAM_SUBSLICE_MASK;
+    ret = drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if (ret)
+        return -errno;
+
+    return 0;
+}
+
+int
+mos_get_slice_mask(int fd, unsigned int *slice_mask)
+{
+    drm_i915_getparam_t gp;
+    int ret;
+
+    memclear(gp);
+    gp.value = (int*)slice_mask;
+    gp.param = I915_PARAM_SLICE_MASK;
+    ret = drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if (ret)
+        return -errno;
+
+    return 0;
+}
+
 int
 mos_get_context_param(struct mos_linux_context *ctx,
                 uint32_t size,
@@ -3686,32 +3775,6 @@ mos_set_context_param(struct mos_linux_context *ctx,
                DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM,
                &context_param);
 
-    return ret;
-}
-
-int
-mos_gem_bo_48b_address_supported(struct mos_linux_context *ctx)
-{
-    uint64_t gtt_size = 0;
-    uint64_t gtt_size_4g = (uint64_t)1 << 32;
-    struct mos_bufmgr_gem *bufmgr_gem;
-    int ret;
-
-    if (ctx == nullptr)
-        return -EINVAL;
-
-    ret = mos_get_context_param(ctx, sizeof(uint64_t),I915_CONTEXT_PARAM_GTT_SIZE,&gtt_size);
-    if(ret)
-        return -EINVAL;
-
-    if(gtt_size >= gtt_size_4g)
-    {
-        bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
-        if(bufmgr_gem)
-        {
-            bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
-        }
-    }
     return ret;
 }
 
@@ -3993,4 +4056,236 @@ exit:
     pthread_mutex_unlock(&bufmgr_list_mutex);
 
     return bufmgr_gem != nullptr ? &bufmgr_gem->bufmgr : nullptr;
+}
+
+struct mos_linux_context *
+mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    struct drm_i915_gem_context_create_ext create;
+    struct mos_linux_context *context = nullptr;
+    int ret;
+
+    context = (struct mos_linux_context *)calloc(1, sizeof(*context));
+    if (!context)
+        return nullptr;
+
+    memclear(create);
+    create.flags = flags;
+    create.extensions = 0;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT, &create);
+    if (ret != 0) {
+        MOS_DBG("DRM_IOCTL_I915_GEM_CONTEXT_CREATE failed: %s\n",
+            strerror(errno));
+        free(context);
+        return nullptr;
+    }
+
+    context->ctx_id = create.ctx_id;
+    context->bufmgr = bufmgr;
+
+    return context;
+}
+
+struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    struct drm_i915_gem_vm_control *vm = nullptr;
+    int ret;
+
+    vm = (struct drm_i915_gem_vm_control *)calloc(1, sizeof(*vm));
+    if (nullptr == vm)
+    {
+        return nullptr;
+    }
+    memset(vm, 0, sizeof(*vm));
+
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_VM_CREATE, vm);
+    if (ret != 0) {
+        MOS_DBG("DRM_IOCTL_I915_GEM_VM_CREATE failed: %s\n",
+            strerror(errno));
+        free(vm);
+        return nullptr;
+    }
+
+    return vm;
+}
+
+void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    assert(vm);
+    int ret;
+
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_VM_DESTROY, vm);
+    if (ret != 0) {
+        MOS_DBG("DRM_IOCTL_I915_GEM_VM_DESTROY failed: %s\n",
+            strerror(errno));
+    }
+    free(vm);
+}
+
+struct mos_linux_context *
+mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx, __u32 flags)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    struct drm_i915_gem_context_create_ext create;
+    struct mos_linux_context *context = nullptr;
+    int ret;
+
+    if (ctx == nullptr || ctx->vm == nullptr)
+        return nullptr;
+
+    context = (struct mos_linux_context *)calloc(1, sizeof(*context));
+    if (!context)
+        return nullptr;
+
+    memclear(create);
+    create.flags = flags;
+    create.extensions = 0;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT, &create);
+    if (ret != 0) {
+        MOS_DBG("DRM_IOCTL_I915_GEM_CONTEXT_CREATE failed: %s\n",
+            strerror(errno));
+        free(context);
+        return nullptr;
+    }
+
+    context->ctx_id = create.ctx_id;
+    context->bufmgr = bufmgr;
+
+    ret = mos_set_context_param(context,
+                0,
+                I915_CONTEXT_PARAM_VM,
+                ctx->vm->vm_id);
+    if(ret != 0) {
+        MOS_DBG("I915_CONTEXT_PARAM_VM failed: %s\n",
+            strerror(errno));
+        free(context);
+        return nullptr;
+    }
+
+    return context;
+}
+
+int mos_query_engines(int fd,
+                      __u16 engine_class,
+                      __u64 caps,
+                      unsigned int *nengine,
+                      struct i915_engine_class_instance *ci)
+{
+    struct drm_i915_query query;
+    struct drm_i915_query_item query_item;
+    struct drm_i915_query_engine_info *engines = nullptr;
+    int ret, len;
+
+    memclear(query_item);
+    query_item.query_id = DRM_I915_QUERY_ENGINE_INFO;
+    query_item.length = 0;
+    memclear(query);
+    query.num_items = 1;
+    query.items_ptr = (uintptr_t)&query_item;
+
+    ret = drmIoctl(fd, DRM_IOCTL_I915_QUERY, &query);
+    if (ret)
+    {
+        goto fini;
+    }
+    len = query_item.length;
+
+    engines = (drm_i915_query_engine_info *)malloc(len);
+    if (nullptr == engines)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    memset(engines,0,len);
+    memclear(query_item);
+    query_item.query_id = DRM_I915_QUERY_ENGINE_INFO;
+    query_item.length = len;
+    query_item.data_ptr = (uintptr_t)engines;
+    memclear(query);
+    query.num_items = 1;
+    query.items_ptr = (uintptr_t)&query_item;
+
+    ret = drmIoctl(fd, DRM_IOCTL_I915_QUERY, &query);
+    if (ret)
+    {
+        goto fini;
+    }
+
+    int i, num;
+    for (i = 0, num = 0; i < engines->num_engines; i++) {
+        struct drm_i915_engine_info *engine =
+            (struct drm_i915_engine_info *)&engines->engines[i];
+        if ( engine_class == engine->engine.engine_class
+             && ((caps & engine->capabilities) == caps ))
+        {
+            ci->engine_class = engine_class;
+            ci->engine_instance = engine->engine.engine_instance;
+            ci++;
+            num++;
+        }
+        if (num > *nengine)
+        {
+            fprintf(stderr,"%s: Number of engine instances out of range, %d,%d\n",
+                    __FUNCTION__, num, *nengine);
+            goto fini;
+        }
+    }
+    *nengine = num;
+
+
+fini:
+    if (engines)
+        free(engines);
+    return ret;
+}
+
+int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
+                     struct i915_engine_class_instance *ci,
+                     unsigned int count)
+{
+    int ret;
+    uint32_t size;
+    struct i915_context_engines_load_balance* balancer = nullptr;
+    struct i915_context_param_engines* set_engines = nullptr;
+
+    assert(ci);
+
+    /* I915_DEFINE_CONTEXT_ENGINES_LOAD_BALANCE */
+    size = sizeof(struct i915_context_engines_load_balance) + count * sizeof(*ci);
+    balancer = (struct i915_context_engines_load_balance*)malloc(size);
+    if (NULL == balancer)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    memset(balancer, 0, size);
+    balancer->base.name = I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE;
+    balancer->num_siblings = count;
+    memcpy(balancer->engines, ci, count * sizeof(*ci));
+
+    /* I915_DEFINE_CONTEXT_PARAM_ENGINES */
+    size = sizeof(uint64_t) + sizeof(*ci);
+    set_engines = (struct i915_context_param_engines*) malloc(size);
+    if (NULL == set_engines)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    set_engines->extensions = (uintptr_t)(balancer);
+    set_engines->engines[0].engine_class = I915_ENGINE_CLASS_INVALID;
+    set_engines->engines[0].engine_instance = I915_ENGINE_CLASS_INVALID_NONE;
+
+    ret = mos_set_context_param(ctx,
+                          size,
+                          I915_CONTEXT_PARAM_ENGINES,
+                          (uintptr_t)set_engines);
+fini:
+    if (set_engines)
+        free(set_engines);
+    if (balancer)
+        free(balancer);
+    return ret;
 }

@@ -1288,7 +1288,7 @@ MOS_STATUS CodechalEncHevcState::AllocateBrcResources()
         width,
         height,
         "ROI Buffer"));
-
+    
     return eStatus;
 }
 
@@ -1729,7 +1729,7 @@ MOS_STATUS CodechalEncHevcState::SetupROISurface()
         return eStatus;
     }
 
-    uint32_t bufferWidthInByte = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 4), 64);
+    uint32_t bufferWidthInByte  = m_brcBuffers.sBrcRoiSurface.dwPitch;
     uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);
     uint32_t numMBs = m_picWidthInMb * m_picHeightInMb;
     for (uint32_t uMB = 0; uMB <= numMBs; uMB++)

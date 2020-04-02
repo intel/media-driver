@@ -65,7 +65,7 @@
 #define ENCODE_HEVC_4K_PIC_WIDTH     3840
 #define ENCODE_HEVC_4K_PIC_HEIGHT    2160
 
-#define ENCODE_HEVC_5K_PIC_WIDTH     5210
+#define ENCODE_HEVC_5K_PIC_WIDTH     5120
 #define ENCODE_HEVC_5K_PIC_HEIGHT    2880
 
 #define ENCODE_HEVC_8K_PIC_WIDTH     7680
@@ -1486,6 +1486,10 @@ public:
 
     CODECHAL_ENCODE_BUFFER m_resPakcuLevelStreamoutData;  //!< PAK LCU level stream out data buffer
 
+    // Mb Qp Data
+    bool            m_mbQpDataEnabled = false;      //!< Mb Qp Data Enable Flag.
+    MOS_SURFACE     m_mbQpDataSurface;              //!< Pointer to MOS_SURFACE of Mb Qp data surface, provided by DDI.
+
 protected:
     //!
     //! \brief    Constructor
@@ -1637,7 +1641,8 @@ public:
     //!
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool frameTrackingRequested);
+        bool frameTrackingRequested,
+        MHW_MI_MMIOREGISTERS *mmioRegister = nullptr);
 
     //!
     //! \brief    Wait for dependent VDBOX to get ready
@@ -1867,6 +1872,13 @@ public:
     //! \return   void
     //!
     void CreateFlatScalingList();
+
+    //!
+    //! \brief    Help function to create a default scaling list (when scaling list data is not presented in picture parameter)
+    //!
+    //! \return   void
+    //!
+    void CreateDefaultScalingList();
 
     //!
     //! \brief    Validate low delay mode for B frame

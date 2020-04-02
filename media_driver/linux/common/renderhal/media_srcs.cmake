@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2019, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,7 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_linux.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh_specific.c
+    ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface.cpp
 )
 
 set(TMP_HEADERS_ "")

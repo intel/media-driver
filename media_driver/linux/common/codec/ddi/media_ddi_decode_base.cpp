@@ -25,6 +25,7 @@
 //!
 
 #include "media_libva_decoder.h"
+#include "media_libva_vp.h"
 #include "media_libva_util.h"
 #include "media_ddi_decode_base.h"
 #include "codechal.h"
@@ -99,6 +100,12 @@ VAStatus DdiMediaDecode::ParseProcessingBuffer(
 
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
+        if(m_procBuf == nullptr)
+        {
+            m_procBuf = (VAProcPipelineParameterBuffer*)MOS_AllocAndZeroMemory(sizeof(VAProcPipelineParameterBuffer));
+            DDI_CHK_NULL(m_procBuf, "nullptr m_procBuf", VA_STATUS_ERROR_ALLOCATION_FAILED);
+            MOS_SecureMemcpy(m_procBuf, sizeof(VAProcPipelineParameterBuffer), procBuf, sizeof(VAProcPipelineParameterBuffer));
+        }
         auto decProcessingParams =
             (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
 
@@ -192,6 +199,14 @@ VAStatus DdiMediaDecode::BeginPicture(
 
     /* As it is already checked in the upper caller, skip the check */
     mediaCtx = DdiMedia_GetMediaContext(ctx);
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    //renderTarget is decode output surface; set renderTarget as vp sfc input surface m_procBuf->surface = rederTarget
+    if(m_procBuf)
+    {
+        m_procBuf->surface = renderTarget;
+    }
+#endif
 
     DDI_MEDIA_SURFACE *curRT;
     curRT = (DDI_MEDIA_SURFACE *)DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, renderTarget);
@@ -650,6 +665,56 @@ VAStatus DdiMediaDecode::SetDecodeParams()
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus DdiMediaDecode::ExtraDownScaling(
+        VADriverContextP         ctx,
+        VAContextID              context)
+{
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    VAStatus vaStatus = MOS_STATUS_SUCCESS;
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_ddiDecodeCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
+    DDI_CHK_NULL(decoder, "nullptr decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
+    if(m_ddiDecodeCtx->DecodeParams.m_procParams &&
+        !decoder->IsVdSfcSupported())
+    {
+        //check vp context
+        VAContextID vpCtxID = VA_INVALID_ID;
+        if (mediaCtx->pVpCtxHeap != nullptr && mediaCtx->pVpCtxHeap->pHeapBase != nullptr)
+        {
+            //Get VP Context from heap.
+            vpCtxID = (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP);
+        }
+        else
+        {
+            //Create VP Context.
+            vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &vpCtxID);
+            DDI_CHK_RET(vaStatus, "Create VP Context failed.");
+        }
+
+        uint32_t        ctxType;
+        PDDI_VP_CONTEXT pVpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vpCtxID, &ctxType);
+        DDI_CHK_NULL(pVpCtx, "nullptr pVpCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+        //Set parameters
+        VAProcPipelineParameterBuffer* pInputPipelineParam = m_procBuf;
+        DDI_CHK_NULL(pInputPipelineParam, "nullptr pInputPipelineParam", VA_STATUS_ERROR_ALLOCATION_FAILED);
+
+        vaStatus = DdiVp_BeginPicture(ctx, vpCtxID, pInputPipelineParam->additional_outputs[0]);
+        DDI_CHK_RET(vaStatus, "VP BeginPicture failed");
+
+        vaStatus = DdiVp_SetProcPipelineParams(ctx, pVpCtx, pInputPipelineParam);
+        DDI_CHK_RET(vaStatus, "VP SetProcPipelineParams failed.");
+
+        vaStatus = DdiVp_EndPicture(ctx, vpCtxID);
+        DDI_CHK_RET(vaStatus, "VP EndPicture failed.");
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
 VAStatus DdiMediaDecode::EndPicture(
     VADriverContextP ctx,
     VAContextID      context)
@@ -744,6 +809,14 @@ VAStatus DdiMediaDecode::EndPicture(
     {
         return VA_STATUS_ERROR_DECODING_ERROR;
     }
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (ExtraDownScaling(ctx,context) != VA_STATUS_SUCCESS)
+    {
+        return VA_STATUS_ERROR_DECODING_ERROR;
+    }
+#endif
+
     DDI_FUNCTION_EXIT(VA_STATUS_SUCCESS);
     return VA_STATUS_SUCCESS;
 }

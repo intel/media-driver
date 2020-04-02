@@ -1486,7 +1486,8 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
         m_pOsInterface,
         &AllocParams,
         &pNewStateHeap->resHeap));
-
+    MHW_CHK_STATUS(m_pOsInterface->pfnRegisterResource(m_pOsInterface, &pNewStateHeap->resHeap,
+                                                       true, true));
     if (StateHeapType == MHW_ISH_TYPE)
     {
         if (m_StateHeapSettings.m_keepIshLocked)

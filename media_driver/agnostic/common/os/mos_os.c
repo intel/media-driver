@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,29 @@
 #include "mos_os.h"
 #include "mos_util_debug.h"
 #include "mos_util_user_interface.h"
+#include "mos_interface.h"
+
+uint32_t g_apoMosEnabled = 0;
+
+PerfUtility* g_perfutility = PerfUtility::getInstance();
+
+AutoPerfUtility::AutoPerfUtility(std::string tag, std::string comp, std::string level)
+{
+    if (PERFUTILITY_IS_ENABLED(comp, level))
+    {
+        g_perfutility->startTick(tag);
+        autotag = tag;
+        bEnable = true;
+    }
+}
+
+AutoPerfUtility::~AutoPerfUtility()
+{
+    if (bEnable)
+    {
+        g_perfutility->stopTick(autotag);
+    }
+}
 
 //!
 //! \brief GLOBAL INITIALIZERS
@@ -66,6 +89,11 @@ MOS_STATUS Mos_AddCommand(
     uint32_t                dwCmdSize)
 {
     uint32_t dwCmdSizeDwAligned = 0;
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::AddCommand(pCmdBuffer, pCmd, dwCmdSize);
+    }
 
     //---------------------------------------------
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
@@ -377,9 +405,16 @@ MOS_STATUS Mos_DumpCommandBuffer(
     char            sFileName[MOS_MAX_HLT_FILENAME_LEN];
     // Maximum length of engine name is 6
     char            sEngName[6];
+    char            *psFileNameAfterPrefix  = nullptr;
+    size_t          nSizeFileNamePrefix     = 0;
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
+
+    if (g_apoMosEnabled)
+    {
+        return MosInterface::DumpCommandBuffer(pOsInterface->osStreamState, pCmdBuffer);
+    }
 
     // Set the name of the engine that is going to be used.
     MOS_GPU_CONTEXT sGpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
@@ -445,12 +480,13 @@ MOS_STATUS Mos_DumpCommandBuffer(
             goto finish;
         }
 
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MOS_SecureStringPrint(
-            sFileName,
-            sizeof(sFileName),
-            sizeof(sFileName),
-            "%s%c%s%c%s_%d.txt",
-            sFileName, MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR,
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s%c%s_%d.txt",
+            MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR,
             MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_FILE, dwCommandBufferNumber);
 
         // Write the output buffer to file.
@@ -528,6 +564,8 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     char                                sFileName[MOS_MAX_HLT_FILENAME_LEN];
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
+    char                                *psFileNameAfterPrefix = nullptr;
+    size_t                              nSizeFileNamePrefix = 0;
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
@@ -552,12 +590,13 @@ MOS_STATUS Mos_DumpCommandBufferInit(
             goto finish;
         }
 
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MOS_SecureStringPrint(
-            sFileName,
-            sizeof(sFileName),
-            sizeof(sFileName),
-            "%s%c%s",
-            sFileName, MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR);
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s",
+            MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR);
 
         eStatus = MOS_CreateDirectory(sFileName);
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -737,7 +776,11 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->streamIndex = 0;
 
     eStatus = Mos_Specific_InitInterface(pOsInterface, pOsDriverContext);
-
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_ASSERTMESSAGE("Mos_Specific_InitInterface FAILED, errno = 0x%x", eStatus);
+        return eStatus;
+    }
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     Mos_DumpCommandBufferInit(pOsInterface);
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
@@ -749,6 +792,27 @@ MOS_STATUS Mos_InitInterface(
         nullptr,
         &UserFeatureWriteData,
         1);
+
+    // Apo wrapper
+    if (g_apoMosEnabled)
+    {
+        pOsInterface->osStreamState->component                = pOsInterface->Component;
+        pOsInterface->osStreamState->currentGpuContextHandle  = pOsInterface->CurrentGpuContextHandle;
+        pOsInterface->osStreamState->GpuResetCount            = pOsInterface->dwGPUResetCount;
+        pOsInterface->osStreamState->mediaReset               = pOsInterface->bMediaReset;
+        pOsInterface->osStreamState->nullHwAccelerationEnable = pOsInterface->NullHWAccelerationEnable;
+        pOsInterface->osStreamState->osCpInterface            = pOsInterface->osCpInterface;
+        pOsInterface->osStreamState->osDeviceContext          = (OsDeviceContext *)pOsInterface->pOsContext->m_osDeviceContext;
+        pOsInterface->osStreamState->simIsActive              = pOsInterface->bSimIsActive;
+        pOsInterface->osStreamState->virtualEngineInterface   = pOsInterface->pVEInterf;
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+        pOsInterface->osStreamState->dumpCommandBuffer        = pOsInterface->bDumpCommandBuffer;
+        pOsInterface->osStreamState->dumpCommandBufferAsMessages = pOsInterface->bDumpCommandBufferAsMessages;
+        pOsInterface->osStreamState->dumpCommandBufferToFile  = pOsInterface->bDumpCommandBufferToFile;
+#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+        pOsInterface->osStreamState->osInterfaceLegacy = pOsInterface;
+    }
 
     return eStatus;
 }
@@ -786,6 +850,7 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         GMM_RESOURCE_USAGE_SURFACE_REF_ENCODE,
         GMM_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE,
         GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE,
+        GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE_FF,
         GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE_DST,
         GMM_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE,
         GMM_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE,
@@ -864,6 +929,8 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         GMM_RESOURCE_USAGE_SIZE_STREAMOUT_CODEC,
         GMM_RESOURCE_USAGE_COMPRESSED_HEADER_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_PROBABILITY_DELTA_BUFFER_CODEC,
+        GMM_RESOURCE_USAGE_TILE_RECORD_BUFFER_CODEC,
+        GMM_RESOURCE_USAGE_TILE_SIZE_STAS_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_END_CODEC,
 
         //
@@ -885,7 +952,11 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         //
         MP_RESOURCE_USAGE_BEGIN,
         MP_RESOURCE_USAGE_DEFAULT,
+        MP_RESOURCE_USAGE_DEFAULT_FF,
+        MP_RESOURCE_USAGE_DEFAULT_RCS,
         MP_RESOURCE_USAGE_SurfaceState,
+        MP_RESOURCE_USAGE_SurfaceState_FF,
+        MP_RESOURCE_USAGE_SurfaceState_RCS,
         MP_RESOURCE_USAGE_AGE3_SurfaceState,
         MP_RESOURCE_USAGE_EDRAM_SurfaceState,
         MP_RESOURCE_USAGE_EDRAM_AGE3_SurfaceState,

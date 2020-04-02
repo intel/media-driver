@@ -32,6 +32,7 @@ class CmSurface3D;
 class CmBuffer;
 class CmBufferUP;
 class CmBufferSVM;
+class CmBufferStateless;
 
 class CmSurfaceManager
 {
@@ -98,6 +99,13 @@ public:
     int32_t CreateSurface2D(VASurfaceID *vaSurfaceArray,
                         const uint32_t surfaceCount,
                         CmSurface2D **surfaceArray);
+
+    int32_t CreateBufferStateless(size_t size,
+                                  uint32_t option,
+                                  void *sysMem,
+                                  CmBufferStateless *&buffer);
+
+    int32_t DestroyBufferStateless(CmBufferStateless *&buffer);
 
 protected:
     int32_t CreateSurface2D(VASurfaceID &vaSurface,

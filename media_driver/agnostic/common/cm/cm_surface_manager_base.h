@@ -30,6 +30,7 @@
 
 #include "cm_def.h"
 #include "cm_hal.h"
+#include <set>
 
 typedef enum _MOS_FORMAT MOS_FORMAT;
 
@@ -54,7 +55,7 @@ public:
     int32_t CreateSurface2D(uint32_t width, uint32_t height, uint32_t pitch,
                             bool bIsCmCreated, CM_SURFACE_FORMAT format,
                             CmSurface2DRT* & pSurface);
-    int32_t CreateBuffer(uint32_t size, CM_BUFFER_TYPE type,
+    int32_t CreateBuffer(size_t size, CM_BUFFER_TYPE type,
                          bool isCMRTAllocatedSVM, CmBuffer_RT* & pSurface1D,
                          PMOS_RESOURCE pMosResource, void* &pSysMem,
                          bool isConditionalBuffer, uint32_t comparisonValue );
@@ -118,7 +119,7 @@ public:
     int32_t GetFreeSurfaceIndexFromPool(uint32_t &freeIndex);
     int32_t GetFreeSurfaceIndex(uint32_t &index);
 
-    int32_t AllocateSurfaceIndex(uint32_t width, uint32_t height,
+    int32_t AllocateSurfaceIndex(size_t width, uint32_t height,
                                  uint32_t depth, CM_SURFACE_FORMAT format,
                                  uint32_t &index, void *pSysMem);
 
@@ -156,6 +157,8 @@ public:
 
     void AddToDelayDestroyList(CmSurface *surface);
     void RemoveFromDelayDestroyList(CmSurface *surface);
+    std::set<CmSurface *> & GetStatelessSurfaceArray() { return m_statelessSurfaceArray; }
+
 protected:
     CmSurfaceManagerBase( CmDeviceRT* pCmDevice );
     CmSurfaceManagerBase();
@@ -163,8 +166,9 @@ protected:
     virtual ~CmSurfaceManagerBase( void );
     int32_t Initialize( CM_HAL_MAX_VALUES HalMaxValues, CM_HAL_MAX_VALUES_EX HalMaxValuesEx );
 
-    int32_t AllocateBuffer(uint32_t size, CM_BUFFER_TYPE type, uint32_t & handle,
-                           PMOS_RESOURCE pMosResource, void* pSysMem = nullptr ); // Create the internal buffer of surface1D in driver
+    int32_t AllocateBuffer(size_t size, CM_BUFFER_TYPE type, uint32_t & handle,
+                           PMOS_RESOURCE pMosResource, void* &pSysMem,
+                           uint64_t &gfxMem); // Create the internal buffer of surface1D in driver
     int32_t FreeBuffer( uint32_t handle ); // Destroy the internal buffer of surface1D in driver
 
     int32_t AllocateSurface2DUP(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format,
@@ -236,6 +240,8 @@ protected:
     CmSurface *m_delayDestroyHead;
     CmSurface *m_delayDestroyTail;
     CSync m_delayDestoryListSync;
+
+    std::set<CmSurface *> m_statelessSurfaceArray;
 
 private:
     CmSurfaceManagerBase(const CmSurfaceManagerBase& other);

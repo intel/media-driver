@@ -99,6 +99,7 @@ public:
     static const char* FUNC_DELETE_MEDIALIBVACAPSCP;
     static const char* FUNC_CREATE_SECUREDECODE;
     static const char* FUNC_DELETE_SECUREDECODE;
+    static const char* FUNC_SETUP_MOS_APO_SWITCH;
 
     static std::unordered_map<const char*, void*> m_symbols;
 

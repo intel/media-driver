@@ -33,7 +33,7 @@
 #include "codechal_decoder.h"
 #include "mos_os_virtualengine_scalability.h"
 
-#define CODEC_VTILE_MAX_NUM  4
+#define CODEC_VTILE_MAX_NUM  8
 
 // first tile column width
 

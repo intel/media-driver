@@ -153,7 +153,7 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
     eStatus = MOS_UserFeature_ReadValue(
         nullptr,
         &userFeature,
-        "Dump Command Buffer Enable",
+        __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_ENABLE,
         MOS_USER_FEATURE_VALUE_TYPE_INT32);
     if (eStatus != MOS_STATUS_SUCCESS)
     {

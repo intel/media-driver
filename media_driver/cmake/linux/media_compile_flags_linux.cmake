@@ -32,7 +32,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Wno-overflow
     -Wno-parentheses
     -Wno-delete-incomplete
-    -Werror=implicit-function-declaration
     -Werror=address
     -Werror=format-security
     -Werror=non-virtual-dtor
@@ -112,7 +111,7 @@ if(NOT ${PLATFORM} STREQUAL "android")
 
 set(MEDIA_COMPILER_CXX_FLAGS_COMMON
     # for cpp
-    -Wno-reorder
+    -Wreorder
     -Wsign-promo
     -Wnon-virtual-dtor
     -Wno-invalid-offsetof

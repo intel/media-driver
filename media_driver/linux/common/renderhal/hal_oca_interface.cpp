@@ -20,17 +20,18 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     renderhal_oca_support.cpp
-//! \brief    Implementation of functions for Renderhal OCA support
+//! \file     hal_oca_interface.cpp
+//! \brief    Implementation of functions for Hal OCA Interface
+//! \details  Implementation of functions for Hal OCA Interface
 //!
 
 #include "stdint.h"
 #include "mos_os.h"
-#include "renderhal_oca_support.h"
+#include "hal_oca_interface.h"
 #include "mhw_mmio.h"
 
 /****************************************************************************************************/
-/*                                      RenderhalOcaSupport                                         */
+/*                                      HalOcaInterface                                             */
 /****************************************************************************************************/
 
 //!
@@ -54,8 +55,35 @@
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void RenderhalOcaSupport::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext,
+void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext,
         uint32_t gpuContextHandle, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters,
+        uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
+{
+}
+
+//!
+//! \brief  Oca operation which should be called at the beginning of 1st level batch buffer start.
+//! \param  [in/out] cmdBuffer
+//!         Command buffer for current BB. hOcaBuf in cmdBuffer will be updated.
+//! \param  [in] mosContext
+//!         Reference to MOS_CONTEXT.
+//! \param  [in] gpuContextHandle
+//!         Gpu context handle
+//! \param  [in] mhwMiInterface
+//!         Reference to MhwMiInterface.
+//! \param  [in] mmioRegisters
+//!         mmio registers for current engine.
+//! \param  [in] offsetOf1stLevelBB
+//!         Offset for current BB in cmdBuffer.
+//! \param  [in] bUseSizeOfCmdBuf
+//!         If true, use size of cmdBuffer for batch buffer, else use sizeOf1stLevelBB.
+//! \param  [in] sizeOf1stLevelBB
+//!         Size of BB. Ignore if bUseSizeOfResource == true.
+//! \return void
+//!         No return value. Handle all exception inside the function.
+//!
+void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext,
+        uint32_t gpuContextHandle, MhwMiInterface &mhwMiInterface, MmioRegistersMfx &mmioRegisters,
         uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
 {
 }
@@ -70,7 +98,7 @@ void RenderhalOcaSupport::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void RenderhalOcaSupport::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
+void HalOcaInterface::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
 {
 }
 
@@ -91,7 +119,7 @@ void RenderhalOcaSupport::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CON
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void RenderhalOcaSupport::OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB)
+void HalOcaInterface::OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB)
 {
 }
 
@@ -112,7 +140,7 @@ void RenderhalOcaSupport::OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void RenderhalOcaSupport::OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfIndirectState, bool bUseSizeOfResource, uint32_t sizeOfIndirectState)
+void HalOcaInterface::OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfIndirectState, bool bUseSizeOfResource, uint32_t sizeOfIndirectState)
 {
 }
 
@@ -130,7 +158,7 @@ void RenderhalOcaSupport::OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CON
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void RenderhalOcaSupport::OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters)
+void HalOcaInterface::OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters)
 {
 }
 
@@ -147,7 +175,7 @@ void RenderhalOcaSupport::OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT 
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void RenderhalOcaSupport::TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, const char *str, uint32_t maxCount)
+void HalOcaInterface::TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, const char *str, uint32_t maxCount)
 {
 }
 
@@ -166,33 +194,41 @@ void RenderhalOcaSupport::TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void RenderhalOcaSupport::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList)
+void HalOcaInterface::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList)
 {
 }
 
-
-RenderhalOcaSupport::~RenderhalOcaSupport()
+//!
+//! \brief  Add vphal parameters to oca log section.
+//! \param  [in] cmdBuffer
+//!         Command buffer for current BB.
+//! \param  [in] mosContext
+//!         Reference to MOS_CONTEXT.
+//! \param  [in] pVphalDumper
+//!         Pointer to vphal dumper object.
+//! \return void
+//!         No return value. Handle all exception inside the function.
+//!
+void HalOcaInterface::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper)
 {
 }
 
-RenderhalOcaSupport &RenderhalOcaSupport::GetInstance()
+void HalOcaInterface::OnOcaError(MOS_STATUS status, const char *functionName, uint32_t lineNumber)
 {
-    static RenderhalOcaSupport instance;
-    return instance;
 }
 
 /****************************************************************************************************/
 /*                         Private functions to ensure class singleton.                             */
 /****************************************************************************************************/
-RenderhalOcaSupport::RenderhalOcaSupport()
+HalOcaInterface::HalOcaInterface()
 {
 }
 
-RenderhalOcaSupport::RenderhalOcaSupport(RenderhalOcaSupport &)
+HalOcaInterface::HalOcaInterface(HalOcaInterface &)
 {
 }
 
-RenderhalOcaSupport& RenderhalOcaSupport::operator= (RenderhalOcaSupport &)
+HalOcaInterface& HalOcaInterface::operator= (HalOcaInterface &)
 {
     return *this;
 }

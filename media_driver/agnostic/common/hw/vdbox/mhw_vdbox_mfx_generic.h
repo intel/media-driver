@@ -763,9 +763,17 @@ protected:
             cmd.DW3.WeightedPredictionIndicator = picParams->weighted_bipred_idc;
             if (picParams->weighted_bipred_idc == IMPLICIT_WEIGHTED_INTER_PRED_MODE)
             {
-                // SNB requirement
-                cmd.DW2.Log2WeightDenomLuma = 5;
-                cmd.DW2.Log2WeightDenomChroma = 5;
+                if (avcSliceState->bVdencInUse)
+                {
+                    cmd.DW2.Log2WeightDenomLuma = 0;
+                    cmd.DW2.Log2WeightDenomChroma = 0;
+                }
+                else
+                {
+                    // SNB requirement
+                    cmd.DW2.Log2WeightDenomLuma = 5;
+                    cmd.DW2.Log2WeightDenomChroma = 5;
+                }
             }
 
             cmd.DW9.Roundinterenable = avcSliceState->bRoundingInterEnable;
@@ -775,7 +783,6 @@ protected:
         cmd.DW9.Roundintra = avcSliceState->dwRoundingIntraValue;
         cmd.DW9.Roundintraenable = 1;
 
-        OVERRIDE_CMD_DATA("MFX_AVC_SLICE_STATE", TMfxCmds::MFX_AVC_SLICE_STATE_CMD::dwSize, (uint32_t *)(&cmd));
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;

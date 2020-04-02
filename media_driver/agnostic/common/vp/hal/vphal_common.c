@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -202,7 +202,7 @@ void VpHal_GetCscMatrix(
     float*                      pfCscInOffset,                                  // [out] [3x1] Input Offset matrix
     float*                      pfCscOutOffset)                                 // [out] [3x1] Output Offset matrix
 {
-    float   fCscMatrix[12];
+    float   fCscMatrix[12] = {0};
     int32_t i;
 
     KernelDll_GetCSCMatrix(
@@ -668,6 +668,12 @@ VPHAL_COLORPACK VpHal_GetSurfaceColorPack (
 
     switch (Format)
     {
+        case Format_Y8:
+        case Format_Y16S:
+        case Format_Y16U:
+            ColorPack = VPHAL_COLORPACK_400;
+            break;
+
         case Format_IMC1:
         case Format_IMC2:
         case Format_IMC3:
@@ -715,6 +721,14 @@ VPHAL_COLORPACK VpHal_GetSurfaceColorPack (
         case Format_A16B16G16R16F:
         case Format_A16R16G16B16F:
             ColorPack = VPHAL_COLORPACK_444;
+            break;
+
+        case Format_400P:
+            ColorPack = VPHAL_COLORPACK_400;
+            break;
+
+        case Format_411P:
+            ColorPack = VPHAL_COLORPACK_411;
             break;
 
         default:

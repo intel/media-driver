@@ -327,8 +327,6 @@ int mos_set_context_param(struct mos_linux_context *ctx,
                 uint64_t param,
                 uint64_t value);
 
-int mos_gem_bo_48b_address_supported(struct mos_linux_context *ctx);
-
 int mos_get_subslice_total(int fd, unsigned int *subslice_total);
 int mos_get_eu_total(int fd, unsigned int *eu_total);
 

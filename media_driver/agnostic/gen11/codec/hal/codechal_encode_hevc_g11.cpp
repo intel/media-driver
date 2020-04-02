@@ -2368,7 +2368,16 @@ void CodechalEncHevcStateG11::SetHcpSliceStateCommonParams(
     sliceState.RoundingIntra         = m_roundingIntraInUse;
     sliceState.RoundingInter         = m_roundingInterInUse;
     
-    sliceState.bWeightedPredInUse    = m_useWeightedSurfaceForL0 || m_useWeightedSurfaceForL1;
+    if ((m_hevcSliceParams->slice_type == CODECHAL_HEVC_P_SLICE && m_hevcPicParams->weighted_pred_flag) ||
+        (m_hevcSliceParams->slice_type == CODECHAL_HEVC_B_SLICE && m_hevcPicParams->weighted_bipred_flag))
+    {
+        sliceState.bWeightedPredInUse = true;
+    }
+    else
+    {
+        sliceState.bWeightedPredInUse = false;
+    }
+
     static_cast<MHW_VDBOX_HEVC_SLICE_STATE_G11 &>(sliceState).dwNumPipe = m_numPipe;
 }
 
@@ -8715,7 +8724,8 @@ MOS_STATUS CodechalEncHevcStateG11::SubmitCommandBuffer(
 }
 MOS_STATUS CodechalEncHevcStateG11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTrackingRequested)
+    bool                        frameTrackingRequested,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -8725,7 +8735,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendPrologWithFrameTracking(
 
     if (UseRenderCommandBuffer())
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTrackingRequested));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTrackingRequested, mmioRegister));
         return eStatus;
     }
 

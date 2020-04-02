@@ -1149,7 +1149,7 @@ public:
     CODECHAL_ENCODE_BUFFER  m_encConstantTableForB;             //!< Enc constant table for B LCU32
     CODECHAL_ENCODE_BUFFER  m_mvAndDistortionSumSurface;        //!< Mv and Distortion summation surface
 
-    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11 m_tileParams;         //!< Pointer to the Tile params
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11 m_tileParams = nullptr;         //!< Pointer to the Tile params
 
     bool  m_enableTileStitchByHW = false;      //!< Enable HW to stitch commands in scalable mode
     bool  m_enableHWSemaphore = false;         //!< Enable HW semaphore
@@ -1196,9 +1196,9 @@ public:
     CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer;
     CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset;       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
-    HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset;      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
-    HEVC_TILE_STATS_INFO                  m_hevcStatsSize;             //!< HEVC Statistics size
+    HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset = {};       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
+    HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset = {};      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
+    HEVC_TILE_STATS_INFO                  m_hevcStatsSize = {};             //!< HEVC Statistics size
     bool                                  m_enableTestMediaReset = 0;  //!< enable media reset test. driver will send cmd to make hang happens
     bool                                  m_forceScalability = false;  //!< force scalability for resolution < 4K if other checking for scalability passed
 
@@ -1218,10 +1218,10 @@ public:
     CODECHAL_ENCODE_BUFFER m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                       //!< BRC HW semaphore
     CODECHAL_ENCODE_BUFFER m_resBrcPakSemaphoreMem;                                                                                                    //!< BRC PAK HW semaphore
     MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
-    MOS_RESOURCE           m_resPipeCompleteSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
+    MOS_RESOURCE           m_resPipeCompleteSemaMem;                                                                                                   //!< HW semaphore for scalability pipe start at the same time
     PCODECHAL_ENCODE_SCALABILITY_STATE  m_scalabilityState = nullptr;                                                                                  //!< Scalability state
     MOS_RESOURCE           m_resDelayMinus;
-    uint32_t               m_numDelay;
+    uint32_t               m_numDelay = 0;
 
     // the following constant integers and tables are from the kernel for score board computation
     static uint32_t const m_ct = 3;
@@ -1422,7 +1422,8 @@ public:
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTrackingRequested);
+        bool                        frameTrackingRequested,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr);
 
     MOS_STATUS SetSliceStructs();
 

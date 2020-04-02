@@ -59,6 +59,19 @@ public:
     //!
     virtual ~MhwVdboxHucInterfaceG10() { MHW_FUNCTION_ENTER; }
 
+    //!
+    //! \brief    Get huc product family
+    //!
+    //! \return   uint32_t
+    //!           Huc product family.
+    //!
+    uint32_t GetHucProductFamily() override
+    {
+        return m_hucFamilyCannonlake;
+    }
+
+    static const uint32_t m_hucFamilyCannonlake = 5;
+
 protected:
 
     MOS_STATUS AddHucPipeModeSelectCmd(

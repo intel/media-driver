@@ -147,6 +147,26 @@ public:
         return false;
     }
 
+    virtual MOS_STATUS AllocateRTEPhysicalBuffer(
+        void        **ppRTEBuffer,
+        uint32_t    *pBufferSize)
+    {
+        MOS_UNUSED(ppRTEBuffer);
+        MOS_UNUSED(pBufferSize);
+
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS DeAllocateRTEPhysicalBuffer(
+        void      *pRTEBuffer)
+    {
+        MOS_UNUSED(pRTEBuffer);
+
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual MOS_STATUS GetTK(
         uint32_t **ppTKs,
         uint32_t * pTKsSize,

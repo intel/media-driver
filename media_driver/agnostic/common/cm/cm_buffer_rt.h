@@ -35,12 +35,13 @@ namespace CMRT_UMD
 class CmBuffer_RT: public CmBuffer,
                    public CmBufferUP,
                    public CmBufferSVM,
-                   public CmSurface
+                   public CmSurface,
+                   public CmBufferStateless
 {
 public:
     static int32_t Create(uint32_t index,
                           uint32_t handle,
-                          uint32_t size,
+                          size_t size,
                           bool isCmCreated,
                           CmSurfaceManager *surfaceManager,
                           uint32_t bufferType,
@@ -49,6 +50,7 @@ public:
                           CmBuffer_RT* &surface,
                           bool isConditionalBuffer,
                           uint32_t comparisonValue,
+                          uint64_t gfxMem,
                           bool enableCompareMask = false);
 
     CM_RT_API int32_t ReadSurface(unsigned char *sysMem,
@@ -73,20 +75,27 @@ public:
                                    MEMORY_TYPE memType,
                                    uint32_t age);
 
-    CM_RT_API int32_t GetAddress(void* &addr);
-
     CM_RT_API int32_t
     SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl);
+
+    CMRT_UMD_API int32_t
+    SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage);
+
+    CM_RT_API int32_t GetAddress(void* &addr);
 
     CM_RT_API int32_t
     SetSurfaceStateParam(SurfaceIndex *surfIndex,
                          const CM_BUFFER_STATE_PARAM *bufferStateParam);
 
+    CM_RT_API int32_t GetGfxAddress(uint64_t &gfxAddr);
+
+    CM_RT_API int32_t GetSysAddress(void* &sysAddr);
+
     int32_t UpdateResource(MOS_RESOURCE *resource);
 
-    int32_t  GetSize(uint32_t &size);
+    size_t GetSize() { return m_size; }
 
-    int32_t  SetSize(uint32_t size);
+    void SetSize(size_t size);
 
     bool IsUpSurface();
 
@@ -111,13 +120,14 @@ public:
     void DumpContent(uint32_t kernelNumber,
                      char *kernelName,
                      int32_t taskId,
-                     uint32_t argIndex);
+                     uint32_t argIndex,
+                     uint32_t vectorIndex);
 
     int32_t UpdateProperty(uint32_t size);
 
 protected:
     CmBuffer_RT(uint32_t handle,
-                uint32_t size,
+                size_t size,
                 bool isCmCreated,
                 CmSurfaceManager *surfaceManager,
                 uint32_t bufferType,
@@ -125,6 +135,7 @@ protected:
                 void *sysMem,
                 bool isConditionalBuffer,
                 uint32_t comparisonValue,
+                uint64_t gfxAddr,
                 bool enableCompareMask = false);
 
     ~CmBuffer_RT();
@@ -133,12 +144,13 @@ protected:
 
     uint32_t m_handle;
 
-    uint32_t m_size;
+    size_t m_size;
 
     uint32_t m_bufferType;  // SURFACE_TYPE_BUFFER, SURFACE_TYPE_BUFFER_UP,
                               // SURFACE_TYPE_BUFFER_SVM
 
-    void *m_sysMem;  // nullptr for Buffer, NON-nullptr for BufferUP and BufferSVM
+    void *m_sysMem;  // start address of BufferUP/BufferSVM/BufferStatelss in CPU memory space
+    uint64_t m_gfxMem;  // start address of buffer in graphics memory space
 
     bool m_isCMRTAllocatedSVMBuffer;  //0--User provided SVM buffer, 1--CMRT allocated SVM buffer
 

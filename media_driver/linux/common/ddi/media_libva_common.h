@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,10 @@
 #include "mos_gpucontextmgr.h"
 #include "mos_cmdbufmgr.h"
 
+#include "mos_context_next.h"
+#include "mos_gpucontextmgr_next.h"
+#include "mos_cmdbufmgr_next.h"
+
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
 
@@ -49,7 +53,7 @@
 #include <va/va_backend.h>
 
 #ifdef ANDROID
-#include <utils/Log.h>
+#include <log/log.h>
 
 #ifndef LOG_TAG
 #define LOG_TAG "DDI"
@@ -170,6 +174,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_P010        ,
     Media_Format_R8G8B8      ,
     Media_Format_RGBP        ,
+    Media_Format_BGRP        ,
 
     Media_Format_P016        ,
     Media_Format_Y210        ,
@@ -177,7 +182,13 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_AYUV        ,
     Media_Format_Y410        ,
     Media_Format_Y416        ,
-
+    Media_Format_Y8          ,
+    Media_Format_Y16S        ,
+    Media_Format_Y16U        ,
+    Media_Format_VYUY        ,
+    Media_Format_YVYU        ,
+    Media_Format_A16R16G16B16,
+    Media_Format_A16B16G16R16,
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
 
@@ -423,6 +434,9 @@ struct DDI_MEDIA_CONTEXT
     OsContext          *m_osContext;
     GpuContextMgr      *m_gpuContextMgr;
     CmdBufMgr          *m_cmdBufMgr;
+
+    // Apogeio MOS module
+    MOS_DEVICE_HANDLE   m_osDeviceContext = MOS_INVALID_HANDLE;
 
     // mutexs to protect the shared resource among multiple context
     MEDIA_MUTEX_T       SurfaceMutex;

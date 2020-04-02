@@ -50,7 +50,8 @@ struct PerfEntry
     uint32_t    timeStampBase;              //!< HW timestamp base
     uint32_t    beginRegisterValue[8];      //!< Begin register value
     uint32_t    endRegisterValue[8];        //!< End register value
-    uint32_t    reserved[16];               //!< Reserved[16]
+    uint32_t    beginCpuTime[2];            //!< Begin CPU Time Stamp
+    uint32_t    reserved[14];               //!< Reserved[14]
     uint64_t    beginTimeClockValue;        //!< Begin timestamp
     uint64_t    endTimeClockValue;          //!< End timestamp
 };
@@ -63,7 +64,8 @@ struct NodeHeader
     uint32_t eventType   : 4;
     uint32_t perfMode    : 3;
     uint32_t genAndroid  : 4;
-    uint32_t reserved    : 15;
+    uint32_t genPlatform_ext : 2;
+    uint32_t reserved    : 13;
 };
 
 #define BASE_OF_NODE(perfDataIndex) (sizeof(NodeHeader) + (sizeof(PerfEntry) * perfDataIndex))
@@ -148,20 +150,13 @@ MediaPerfProfiler* MediaPerfProfiler::Instance()
 {
     static MediaPerfProfiler instance;
 
-    if (instance.m_profilerEnabled == 0 || instance.m_mutex == nullptr)
-    {
-        return &instance;
-    }
-    
-    MOS_LockMutex(instance.m_mutex);
-    instance.m_ref++;
-    MOS_UnlockMutex(instance.m_mutex);
-
     return &instance;
 }
 
 void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_INTERFACE *osInterface)
 {
+    PERF_UTILITY_PRINT;
+
     if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
     {
         return;
@@ -210,6 +205,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     MOS_LockMutex(m_mutex);
 
     m_contextIndexMap[context] = 0;
+    m_ref++;
 
     if (m_initialized == true)
     {
@@ -247,6 +243,14 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     m_bufferSize = userFeatureData.u32Data;
 
     m_timerBase = Mos_Specific_GetTsFrequency(osInterface);
+
+    // Read multi processes support
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MULTI_PROCESS,
+        &userFeatureData);
+    m_multiprocess = userFeatureData.u32Data;
 
     // Read memory information register address
     int8_t regIndex = 0;
@@ -298,7 +302,8 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     // Append the header info
     MOS_ZeroMemory(header, m_bufferSize);
     header->eventType   = UMD_PERF_LOG;
-    header->genPlatform = GFX_GET_CURRENT_RENDERCORE(platform) - 8;
+    header->genPlatform = (GFX_GET_CURRENT_RENDERCORE(platform) - 8) & 0x7;
+    header->genPlatform_ext = ((GFX_GET_CURRENT_RENDERCORE(platform) - 8) >> 3) & 0x3;
     
     if (IsPerfModeWidthMemInfo(m_registers))
     {
@@ -425,6 +430,15 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     gpuContext     = osInterface->pfnGetGpuContext(osInterface);
     rcsEngineUsed = MOS_RCS_ENGINE_USED(gpuContext);
 
+    if (m_multiprocess)
+    {
+        CHK_STATUS_RETURN(StoreData(
+            miInterface,
+            cmdBuffer,
+            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, processId),
+            MOS_GetPid()));
+    }
+
     CHK_STATUS_RETURN(StoreData(
         miInterface,
         cmdBuffer, 
@@ -458,7 +472,21 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
                 m_registers[regIndex]));
         }
     }
+    
+    double beginCPUTimestamp = MOS_GetTime();
 
+    uint32_t timeStamp[2];
+    MOS_SecureMemcpy(timeStamp, 2*sizeof(uint32_t), &beginCPUTimestamp, 2*sizeof(uint32_t));
+    
+    for (int i = 0; i < 2; i++)
+    {
+        CHK_STATUS_RETURN(StoreData(
+            miInterface,
+            cmdBuffer,
+            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginCpuTime[i]),
+            timeStamp[i]));
+    }
+ 
     // The address of timestamp must be 8 bytes aligned.
     uint32_t offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginTimeClockValue);
     offset = MOS_ALIGN_CEIL(offset, 8);
@@ -561,8 +589,23 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
             &LockFlagsNoOverWrite);
 
         CHK_NULL_RETURN(pData);
+        
+        if (m_multiprocess)
+        {
+            int32_t pid       = MOS_GetPid();
+            tm      localtime = {0};
+            MOS_GetLocalTime(&localtime);
+            char outputFileName[MOS_MAX_PATH_LENGTH + 1];
 
-        MOS_WriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+            MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-%04d%02d%02d%02d%02d%02d.bin",
+                m_outputFileName, pid, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
+
+            MOS_WriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+        }
+        else
+        {
+            MOS_WriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+        }
 
         osInterface->pfnUnlockResource(
             osInterface,

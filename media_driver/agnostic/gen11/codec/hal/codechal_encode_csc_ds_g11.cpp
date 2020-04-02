@@ -332,6 +332,12 @@ MOS_STATUS CodechalEncodeCscDsG11::SetCurbeCsc()
     curbe.DW2_OriginalPicWidthInSamples = m_curbeParams.dwInputPictureWidth;
     curbe.DW2_OriginalPicHeightInSamples = m_curbeParams.dwInputPictureHeight;
 
+    // when the input surface is NV12 tiled format and not aligned with 4 bytes,
+    // need kernel to do the padding copy with force to linear format, it's
+    // transparent to kernel and hw can handle it
+    if (m_colorRawSurface == cscColorNv12TileY && m_cscFlag == 1)
+        curbe.DW1_PictureFormat = cscColorNv12Linear;
+
     // RGB->YUV CSC coefficients
     if (m_curbeParams.inputColorSpace == ECOLORSPACE_P709)
     {
@@ -451,8 +457,12 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
                                                    cscColorNv12Linear == m_colorRawSurface);
     }
 
+    // when input surface is NV12 tiled and not aligned by 4 bytes, need kernel to do the
+    // padding copy by forcing to linear format and set the HeightInUse as Linear format
+    // kernel will use this info to calucate UV offset
     surfaceParams.psSurface = m_surfaceParamsCsc.psInputSurface;
-    if (cscColorNv12Linear == m_colorRawSurface)
+    if (cscColorNv12Linear == m_colorRawSurface ||
+        (cscColorNv12TileY == m_colorRawSurface && m_cscFlag == 1))
     {
         surfaceParams.dwHeightInUse = (surfaceParams.psSurface->dwHeight * 3) / 2;
     }

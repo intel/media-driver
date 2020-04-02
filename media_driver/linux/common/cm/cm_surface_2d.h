@@ -303,8 +303,21 @@ public:
     SetSurfaceStateParam(SurfaceIndex *surfIndex,
                          const CM_SURFACE2D_STATE_PARAM *surfStateParam) = 0;
 
+
 // Pay Attention: below APIs only used in UMD. If you add an API exposed to application, please add it BEFORE this line.
 public:
+
+    //!
+    //! \brief Selects one of the pre-defined MOS resource usage settings for
+    //!        this CmSurface2D.
+    //! \note This function works only on Gen9+ paltforms.
+    //! \param [in] mosUsage
+    //!        The selected pre-defined MOS resource usage for memory object control setting.
+    //! \retval CM_SUCCESS if the given parameter is valid
+    //! \retval CM_FAILURE otherwise.
+    //!
+    CMRT_UMD_API virtual int32_t SetResourceUsage(MOS_HW_RESOURCE_DEF mosUsage) = 0;
+
     //!
     //! \brief Sets the surface's read sync flag for synchronization between engines.
     //! \details If the surface is shared between render engine and another engine,
@@ -340,6 +353,7 @@ public:
     NotifyUmdResourceChanged(UMD_RESOURCE umdResource,
                              int updateMosResource = 0,
                              PMOS_RESOURCE mosResource = nullptr) = 0;
+
 };
 }; //namespace
 

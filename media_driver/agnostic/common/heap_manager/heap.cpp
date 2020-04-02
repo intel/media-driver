@@ -95,6 +95,10 @@ MOS_STATUS Heap::Allocate(uint32_t heapSize, bool keepLocked)
         &allocParams,
         m_resource));
 
+    // explicit set to skip resource sync, heap resource should be used block by block
+    // driver should ensure non concurrent access the same block
+    HEAP_CHK_STATUS(m_osInterface->pfnSkipResourceSync(m_resource));
+
     if (keepLocked)
     {
         m_lockedHeap = Lock();

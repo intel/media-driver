@@ -1881,7 +1881,8 @@ MOS_STATUS CodechalEncodeMpeg2G11::SendMbEncSurfaces(
 
 MOS_STATUS CodechalEncodeMpeg2G11::SendPrologWithFrameTracking(
     PMOS_COMMAND_BUFFER         cmdBuffer,
-    bool                        frameTracking)
+    bool                        frameTracking,
+    MHW_MI_MMIOREGISTERS       *mmioRegister)
 {
     if (MOS_VE_SUPPORTED(m_osInterface))
     {
@@ -1894,7 +1895,7 @@ MOS_STATUS CodechalEncodeMpeg2G11::SendPrologWithFrameTracking(
         }
     }
 
-    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking);
+    return CodechalEncoderState::SendPrologWithFrameTracking(cmdBuffer, frameTracking, mmioRegister);
 }
 
 MOS_STATUS CodechalEncodeMpeg2G11::ExecuteKernelFunctions()
@@ -2097,7 +2098,7 @@ MOS_STATUS CodechalEncodeMpeg2G11::ExecuteKernelFunctions()
         if (!Mos_ResourceIsNull(&m_brcBuffers.sBrcMbQpBuffer.OsResource))
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_brcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+                &m_brcBuffers.sBrcMbQpBuffer.OsResource,
                 CodechalDbgAttr::attrOutput,
                 "MbQp",
                 m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,

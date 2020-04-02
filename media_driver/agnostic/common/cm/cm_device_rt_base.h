@@ -58,6 +58,7 @@ class CmProgram;
 class CmBuffer;
 class CmBufferUP;
 class CmBufferSVM;
+class CmBufferStateless;
 class CmSurface2D;
 class CmSurface2DUP;
 class CmSurface2DUPRT;
@@ -287,11 +288,11 @@ public:
                   CM_QUEUE_CREATE_OPTION QueueCreateOption
                   = CM_DEFAULT_QUEUE_CREATE_OPTION);
 
-    CM_RT_API int32_t UpdateBuffer(PMOS_RESOURCE mosResource,
-                                           CmBuffer* &surface);
+    CM_RT_API int32_t UpdateBuffer(PMOS_RESOURCE mosResource, CmBuffer* &surface,
+                                   MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState);
 
-    CM_RT_API int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
-                                      CmSurface2D* &surface);
+    CM_RT_API int32_t UpdateSurface2D(PMOS_RESOURCE mosResource, CmSurface2D* &surface,
+                                      MOS_HW_RESOURCE_DEF mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState);
 
     CM_RT_API int32_t
     CreateSampler8x8SurfaceFromAlias(
@@ -299,6 +300,13 @@ public:
         SurfaceIndex *aliasIndex,
         CM_SURFACE_ADDRESS_CONTROL_MODE addressControl,
         SurfaceIndex* &sampler8x8SurfaceIndex);
+
+    CM_RT_API int32_t CreateBufferStateless(size_t size,
+                                            uint32_t option,
+                                            void *sysMem,
+                                            CmBufferStateless *&bufferStateless);
+
+    CM_RT_API int32_t DestroyBufferStateless(CmBufferStateless* & bufferStateless);
 
     void* GetAccelData(){ return m_accelData; }
 
@@ -359,8 +367,6 @@ public:
 
     int32_t GetPrintBufferMem(unsigned char *& pPrintBufferMem) const;
 
-    int32_t ClearPrintBuffer();
-
     int32_t GetSurf2DLookUpEntry(uint32_t index,
                                  PCMLOOKUP_ENTRY &pLookupEntry);
 
@@ -393,6 +399,8 @@ public:
 
     int32_t DestroyVmeSurface(SurfaceIndex *& pVmeIndex);
 
+    int32_t CreatePrintBuffer();
+
     CmNotifierGroup* GetNotifiers() {return m_notifierGroup;}
 
     CM_HAL_CREATE_PARAM &GetCmHalCreateOption() {return m_cmHalCreateOption;}
@@ -400,6 +408,9 @@ public:
     inline bool HasGpuCopyKernel() {return m_hasGpuCopyKernel; }
 
     inline bool HasGpuInitKernel() {return m_hasGpuInitKernel; }
+
+    // Num of kernels included in CmProgram Loaded by this device
+    inline uint32_t& KernelsLoaded() {return m_kernelsLoaded; }
 
     virtual int32_t GetJITCompileFnt(pJITCompile &fJITCompile) = 0;
 
@@ -547,15 +558,13 @@ protected:
 
     CSync m_criticalSectionQueue;
 
-    unsigned char* m_printBufferMem;
+    std::list<uint8_t *> m_printBufferMems;
 
-    CmBufferUP*    m_printBufferUP;
+    std::list<CmBufferUP *> m_printBufferUPs;
 
     bool           m_isPrintEnabled;
 
     size_t         m_printBufferSize;
-
-    SurfaceIndex*  m_printBufferIndex;
 
     CmDynamicArray m_threadGroupSpaceArray;
 
@@ -583,6 +592,9 @@ protected:
 
     bool           m_hasGpuInitKernel;
 
+    uint32_t       m_kernelsLoaded;
+
+    bool           m_preloadKernelEnabled;
 private:
     CmDeviceRTBase(const CmDeviceRTBase& other);
 

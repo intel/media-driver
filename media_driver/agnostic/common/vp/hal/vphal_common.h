@@ -271,6 +271,15 @@ typedef struct _VPHAL_FAST1TON_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
 }VPHAL_FAST1TON_CACHE_CNTL, *PVPHAL_FAST1TON_CACHE_CNTL;
 
+typedef struct _VPHAL_HDR_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    Lut2DSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    Lut3DSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    CoeffSurfMemObjCtl;
+} VPHAL_HDR_CACHE_CNTL, *PVPHAL_HDR_CACHE_CNTL;
 
 //!
 //! \brief  Feature specific cache control settings
@@ -596,7 +605,9 @@ typedef enum _VPHAL_DI_REPORT_MODE
 //!
 typedef enum _VPHAL_COLORPACK
 {
-    VPHAL_COLORPACK_420 = 0,
+    VPHAL_COLORPACK_400 = 0,
+    VPHAL_COLORPACK_420,
+    VPHAL_COLORPACK_411,
     VPHAL_COLORPACK_422,
     VPHAL_COLORPACK_444,
     VPHAL_COLORPACK_UNKNOWN
@@ -618,7 +629,11 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
 //! \def SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)
 //! Set the output pipe
 //!
-#define SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)              (_a->OutputPipe =  _Pipe)
+#define SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)                           \
+    {                                                              \
+        (_a->OutputPipe = _Pipe);                                  \
+        VPHAL_RENDER_NORMALMESSAGE("VPHAL_OUTPUT_PIPE %d", _Pipe); \
+    }
 
 //!
 //! \def IS_VPHAL_OUTPUT_PIPE_INVALID(_a)
@@ -953,7 +968,7 @@ struct VPHAL_SURFACE
     bool                        bDirectionalScalar; //!< Vebox Directional Scalar
     bool                        bFastColorFill;     //!< enable fast color fill without copy surface
     bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
-    bool                        bUsrPtr;            //!< is system linear memory.
+    bool                        b16UsrPtr;          //!< is 16 byte aligned system linear memory.
 
     // Interlaced Scaling
     bool                        bInterlacedScaling;    //!< Interlaced scaling

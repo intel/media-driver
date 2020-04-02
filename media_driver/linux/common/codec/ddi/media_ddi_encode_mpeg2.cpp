@@ -492,13 +492,12 @@ VAStatus DdiEncodeMpeg2::ParseSeqParams(void *ptr)
     mpeg2Sps->m_aspectRatio   = seqParams->aspect_ratio_information;
     mpeg2Sps->m_frameRateExtD = seqParams->sequence_extension.bits.frame_rate_extension_d;
     mpeg2Sps->m_frameRateExtN = seqParams->sequence_extension.bits.frame_rate_extension_n;
-    mpeg2Sps->m_frameRateCode = (uint32_t)CalculateFramerateCode(seqParams->frame_rate, mpeg2Sps->m_frameRateExtD, mpeg2Sps->m_frameRateExtN);
-
-    if (mpeg2Sps->m_frameRateCode == 0)
+    if(seqParams->frame_rate <= 0.0)
     {
-        DDI_ASSERTMESSAGE("invalidate frame rate code");
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
+        DDI_NORMALMESSAGE("invalidate frame rate code, set it to default 30");
+        seqParams->frame_rate = 30;
     }
+    mpeg2Sps->m_frameRateCode = (uint32_t)CalculateFramerateCode(seqParams->frame_rate, mpeg2Sps->m_frameRateExtD, mpeg2Sps->m_frameRateExtN);
 
     halMpeg2PPS->m_gopPicSize = seqParams->intra_period;
     halMpeg2PPS->m_gopRefDist = seqParams->ip_period;
@@ -816,6 +815,11 @@ void DdiEncodeMpeg2::ParseMiscParamFR(void *data)
         denominator = 1;
     }
     frameRate                       = frameRate / denominator;
+    if(frameRate <= 0.0)
+    {
+        DDI_NORMALMESSAGE("invalidate frame rate code, set it to default 30");
+        frameRate = 30;
+    }
     mpeg2SeqParams->m_frameRateCode = (uint32_t)CalculateFramerateCode(frameRate,
         mpeg2SeqParams->m_frameRateExtD,
         mpeg2SeqParams->m_frameRateExtN);

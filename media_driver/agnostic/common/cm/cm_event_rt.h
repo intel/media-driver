@@ -119,6 +119,10 @@ public:
 
     int32_t GetQueue(CmQueueRT *&queue);
 
+    int32_t Query();
+
+    CM_STATUS GetStatusWithoutFlush();
+
 #if CM_LOG_ON
     std::string Log(const char *callerFuncName);
 #endif
@@ -134,8 +138,6 @@ protected:
     ~CmEventRT();
 
     int32_t Initialize();
-
-    int32_t Query();
 
     void UnreferenceIfNeeded(void *pdata);
 

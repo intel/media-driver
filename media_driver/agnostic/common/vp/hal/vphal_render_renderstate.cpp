@@ -86,6 +86,6 @@ void RenderState::SetStatusReportParams(
     bool bSurfIsRenderTarget = (pRenderParams->pTarget[0]->SurfType == SURF_OUT_RENDERTARGET);
     m_StatusTableUpdateParams.bReportStatus       = (pRenderParams->bReportStatus);
     m_StatusTableUpdateParams.bSurfIsRenderTarget = bSurfIsRenderTarget;
-    m_StatusTableUpdateParams.pStatusTable        = &pRenderer->StatusTable;
+    m_StatusTableUpdateParams.pStatusTable        = pRenderer->m_statusTable;
     m_StatusTableUpdateParams.StatusFeedBackID    = pRenderParams->StatusFeedBackID;
 }

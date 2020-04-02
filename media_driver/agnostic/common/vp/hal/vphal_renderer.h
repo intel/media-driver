@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include "vphal_render_16alignment.h"
 #include "vphal_render_fast1ton.h"
 #include "vphal_debug.h"
+#include "vphal_render_hdr_base.h"
 
 #define VPHAL_RNDR_TEMP_OUT_SURFS            2
 
@@ -76,7 +77,7 @@
         bool bSurfIsRenderTarget = (pRenderParams->pTarget[0]->SurfType == SURF_OUT_RENDERTARGET);\
         (pState)->StatusTableUpdateParams.bReportStatus       = (pRenderParams->bReportStatus);   \
         (pState)->StatusTableUpdateParams.bSurfIsRenderTarget = bSurfIsRenderTarget;              \
-        (pState)->StatusTableUpdateParams.pStatusTable        = &pRenderer->StatusTable;          \
+        (pState)->StatusTableUpdateParams.pStatusTable        = pRenderer->m_statusTable;          \
         (pState)->StatusTableUpdateParams.StatusFeedBackID    = pRenderParams->StatusFeedBackID;  \
         (pState)->StatusTableUpdateParams.bTriggerGPUHang     = pRenderParams->bTriggerGPUHang;   \
     }                                                                                             \
@@ -88,7 +89,7 @@
         bool bSurfIsRenderTarget = (pRenderParams->pTarget[0]->SurfType == SURF_OUT_RENDERTARGET);\
         (pState)->StatusTableUpdateParams.bReportStatus       = (pRenderParams->bReportStatus);   \
         (pState)->StatusTableUpdateParams.bSurfIsRenderTarget = bSurfIsRenderTarget;              \
-        (pState)->StatusTableUpdateParams.pStatusTable        = &pRenderer->StatusTable;          \
+        (pState)->StatusTableUpdateParams.pStatusTable        = pRenderer->m_statusTable;         \
         (pState)->StatusTableUpdateParams.StatusFeedBackID    = pRenderParams->StatusFeedBackID;  \
     }                                                                                             \
 } while(0)
@@ -148,9 +149,8 @@ public:
     VphalParameterDumper        *m_parameterDumper;
 #endif
 
-    // StatusTable indicating if command is done by gpu or not,
-    // shared by renderer comp, vebox, cappip, fdfb, dprotation
-    VPHAL_STATUS_TABLE          StatusTable;
+    // StatusTable indicating if command is done by gpu or not
+    PVPHAL_STATUS_TABLE          m_statusTable;
 
     // max src rectangle
     RECT                        maxSrcRect;
@@ -159,6 +159,7 @@ public:
     // 1) It is for viedo surveillance usage, when applying AVS for multiple surfaces;
     // 2) It could be VEBOX output or input for HDR processing;
     VPHAL_SURFACE               IntermediateSurface = {};
+    PVPHAL_HDR_STATE            pHdrState;
 
 protected:
     // Renderer private data
@@ -181,7 +182,6 @@ protected:
 
     // Renderer feature reporting
     VphalFeatureReport          *m_reporting;
-
 public:
     //!
     //! \brief    VphalRenderer constructor
@@ -278,6 +278,11 @@ public:
 
     MEDIA_FEATURE_TABLE* GetSkuTable() {
         return m_pSkuTable;
+    }
+
+    void SetStatusReportTable(PVPHAL_STATUS_TABLE statusTable)
+    {
+        m_statusTable = statusTable;
     }
 
     //!
@@ -450,7 +455,7 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual void AllocateDebugDumper();
+    virtual MOS_STATUS AllocateDebugDumper();
 
 };
 
@@ -563,11 +568,14 @@ void VpHal_SaveRestorePrimaryFwdRefs(
 //! \details  The surface rects and width/height need to be aligned according to the surface format
 //! \param    [in,out] pSurface
 //!           Pointer to the surface
+//! \param    [in] formatForDstRect
+//!           Format for Dst Rect
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpHal_RndrRectSurfaceAlignment(
-    PVPHAL_SURFACE       pSurface);
+    PVPHAL_SURFACE       pSurface,
+    MOS_FORMAT           formatForDstRect);
 
 //!
 //! \brief    Search for the best match BB according to the render BB arguments

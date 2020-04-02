@@ -46,7 +46,7 @@ public:
         {
             {AVC, DualPipe, VA_RT_FORMAT_YUV420},
             {AVC, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444},
-            {HEVC, DualPipe, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP},
+            {HEVC, DualPipe, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV422_10},
             {HEVC, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10 | VA_RT_FORMAT_RGB32 | VA_RT_FORMAT_RGB32_10BPP},
             {VP9, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10 | VA_RT_FORMAT_RGB32 | VA_RT_FORMAT_RGB32_10BPP},
         };
@@ -57,7 +57,7 @@ public:
     }
 
     //!
-    virtual VAStatus Init()
+    virtual VAStatus Init() override
     {
         return LoadProfileEntrypoints();
     }
@@ -168,25 +168,26 @@ protected:
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,
             VAConfigAttribType type,
-            unsigned int *value);
+            unsigned int *value) override;
 
-    virtual VAStatus LoadProfileEntrypoints();
-    virtual VAStatus LoadVp9EncProfileEntrypoints();
+    virtual VAStatus LoadProfileEntrypoints() override;
+    virtual VAStatus LoadVp9EncProfileEntrypoints() override;
+    virtual VAStatus LoadHevcEncProfileEntrypoints() override;
 
     virtual VAStatus CheckEncodeResolution(
             VAProfile profile,
             uint32_t width,
-            uint32_t height);
+            uint32_t height) override;
     virtual VAStatus CheckDecodeResolution(
             int32_t codecMode,
             VAProfile profile,
             uint32_t width,
-            uint32_t height);
+            uint32_t height) override;
 
     virtual VAStatus CreateDecAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,
-        AttribMap **attributeList);
+        AttribMap **attributeList) override;
 
     //!
     //! \brief    Initialize HEVC low-power encode profiles, entrypoints and attributes

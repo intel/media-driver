@@ -117,6 +117,7 @@ struct CM_KERNEL_INFO
     spec_var_info_t *vme;
 
     uint32_t kernelInfoRefCount;    //reference counter for kernel info to reuse kernel info and jitbinary
+    uint64_t hashValue;
 };
 
 //Function pointer definition for jitter compilation functions.
@@ -221,6 +222,8 @@ protected:
 #if USE_EXTENSION_CODE
     int InitForGTPin(const char *jitFlags[CM_RT_JITTER_MAX_NUM_FLAGS], int &numJitFlags);
 #endif
+    uint32_t GetKernelInfoHash(CM_KERNEL_INFO *kernelInfo);
+
     CmDeviceRT* m_device;
 
     uint32_t m_programCodeSize;

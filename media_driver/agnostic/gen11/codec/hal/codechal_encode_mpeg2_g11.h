@@ -97,9 +97,9 @@ public:
 protected:
     MOS_STATUS EncodeMeKernel() override;
 
-    MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
+    MOS_STATUS Initialize(CodechalSetting * codecHalSettings) override;
 
-    MOS_STATUS InitKernelState();
+    MOS_STATUS InitKernelState() override;
 
     MOS_STATUS InitKernelStateMbEnc();
 
@@ -109,7 +109,7 @@ protected:
     //! \return   uint32_t
     //!           Maximum BT count
     //!
-    virtual uint32_t GetMaxBtCount();
+    virtual uint32_t GetMaxBtCount() override;
 
     //!
     //! \brief    Encode kernel functions
@@ -117,18 +117,18 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS ExecuteKernelFunctions();
+    virtual MOS_STATUS ExecuteKernelFunctions() override;
 
     MOS_STATUS SetCurbeMbEnc(
         bool mbEncIFrameDistEnabled,
-        bool mbQpDataEnabled);
+        bool mbQpDataEnabled) override;
 
     //!
     //! \brief  Set up params for gpu context creation
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetGpuCtxCreatOption();
+    MOS_STATUS SetGpuCtxCreatOption() override;
 
     //!
     //! \brief    Encode User Feature Key Report.
@@ -141,11 +141,12 @@ protected:
 
     MOS_STATUS SendMbEncSurfaces(
         PMOS_COMMAND_BUFFER  cmdBuffer,
-        bool mbEncIFrameDistEnabled);
+        bool mbEncIFrameDistEnabled) override;
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking);
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr) override;
 
     //!
     //! \brief    Get encoder kernel header and kernel size

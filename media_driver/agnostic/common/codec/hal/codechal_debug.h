@@ -135,13 +135,14 @@ static const char *bufEncodePar     = "EncodePar";
 
 enum CodechalHucRegionDumpType
 {
-    hucRegionDumpDefault      = 0,
-    hucRegionDumpInit         = 1,
-    hucRegionDumpUpdate       = 2,
-    hucRegionDumpRegionLocked = 3,
+    hucRegionDumpDefault        = 0,
+    hucRegionDumpInit           = 1,
+    hucRegionDumpUpdate         = 2,
+    hucRegionDumpRegionLocked   = 3,
     hucRegionDumpCmdInitializer = 4,
-    hucRegionDumpPakIntegrate = 5,
-    hucRegionDumpHpu          = 6
+    hucRegionDumpPakIntegrate   = 5,
+    hucRegionDumpHpu            = 6,
+    hucRegionDumpBackAnnotation = 7
 };
 
 struct _CODECHAL_DEBUG_INTERFACE;

@@ -27,6 +27,7 @@
 #include "codechal_encoder_base.h"
 #include "codechal_encode_sw_scoreboard.h"
 #include "codeckrnheader.h"
+#include "hal_oca_interface.h"
 
 MOS_STATUS CodechalEncodeSwScoreboard::AllocateResources()
 {
@@ -291,6 +292,7 @@ MOS_STATUS CodechalEncodeSwScoreboard::Execute(KernelParams *params)
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }

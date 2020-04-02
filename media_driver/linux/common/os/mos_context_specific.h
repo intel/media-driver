@@ -167,6 +167,19 @@ public:
         m_GpuContextHandle[GpuContext] = gpuContextHandle;
     }
 
+    GPU_CONTEXT_HANDLE GetGpuContextHandleByIndex(uint32_t index)
+    {
+        return (index < MOS_GPU_CONTEXT_MAX) ? m_GpuContextHandle[index] : MOS_GPU_CONTEXT_INVALID_HANDLE;
+    }
+
+    void SetGpuContextHandleByIndex(uint32_t index, GPU_CONTEXT_HANDLE gpuContextHandle)
+    {
+        if (index < MOS_GPU_CONTEXT_MAX)
+        {
+            m_GpuContextHandle[index] = gpuContextHandle;
+        }
+    }
+
     GpuContextMgr *GetGpuContextMgr() { return m_gpuContextMgr; }
 
     CmdBufMgr* GetCmdBufMgr(){return m_cmdBufMgr;}

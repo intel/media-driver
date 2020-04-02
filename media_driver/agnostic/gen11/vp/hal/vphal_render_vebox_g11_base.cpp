@@ -487,6 +487,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDI surfaces
+        for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
+        {
+            if (pVeboxState->FFDISurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDISurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // When DI switch to DNDI, the first FFDN surface pitch doesn't match with
     // the input surface pitch and cause the flicker issue
@@ -566,6 +579,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             }
         }
     }
+    else
+    {
+        // Free FFDN surfaces
+        for (i = 0; i < VPHAL_NUM_FFDN_SURFACES; i++)
+        {
+            if (pVeboxState->FFDNSurfaces[i])
+            {
+                pOsInterface->pfnFreeResource(
+                    pOsInterface,
+                    &pVeboxState->FFDNSurfaces[i]->OsResource);
+            }
+        }
+    }
 
     // Adjust the rcMaxSrc of pRenderTarget when Vebox output is enabled
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
@@ -610,6 +636,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
                 m_reporting->STMMCompressible = bSurfCompressed;
                 m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
             }
+        }
+    }
+    else
+    {
+        // Free DI history buffers (STMM = Spatial-temporal motion measure)
+        for (i = 0; i < VPHAL_NUM_STMM_SURFACES; i++)
+        {
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &pVeboxState->STMMSurfaces[i].OsResource);
         }
     }
 
@@ -758,6 +794,15 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::AllocateResources()
             m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_G11_ICLLP, IGVP3DLUT_GENERATION_G11_ICLLP_SIZE);
 #endif
         }
+    }
+    else
+    {
+        // Free 3DLook Up table surface for VEBOX
+        pOsInterface->pfnFreeResource(
+            pOsInterface,
+            &pVeboxState->Vebox3DLookUpTables.OsResource);
+
+        MOS_Delete(m_hdr3DLutGenerator);
     }
 
 finish:
@@ -2095,7 +2140,8 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
     PVPHAL_VEBOX_STATE_G11_BASE     pVeboxState                     = this;
     bool                            bHDRToneMappingNeed             = false;
 
-    OutputPipe  = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    pTarget    = pcRenderParams->pTarget[0];
 
     bCompBypassFeasible = IS_COMP_BYPASS_FEASIBLE(*pbCompNeeded, pcRenderParams, pSrcSurface);
 
@@ -2105,14 +2151,42 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
         goto finish;
     }
 
+    //Let Kernel to cover the DI cases VEBOX cannot handle.
+    if (pSrcSurface->pDeinterlaceParams &&
+        pSrcSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB &&
+        ((IS_VEBOX_SURFACE_HEIGHT_UNALIGNED(pSrcSurface, 4) &&
+         (pSrcSurface->Format == Format_P010 ||
+          pSrcSurface->Format == Format_P016 ||
+          pSrcSurface->Format == Format_NV12)) ||
+         !this->IsDiFormatSupported(pSrcSurface)))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
+
+    // If No VEBOX, filter procamp case and csc case here.
+    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrDisableVEBoxFeatures))
+    {
+        if (pSrcSurface->pProcampParams)
+        {
+            bOutputPipeVeboxFeasible = false;
+        }
+        else if (pSrcSurface->Format != pTarget->Format         ||
+                 pSrcSurface->ColorSpace != pTarget->ColorSpace ||
+                 pSrcSurface->TileType != pTarget->TileType)
+        {
+            bOutputPipeVeboxFeasible = false;
+        }
+    }
+
     if (bOutputPipeVeboxFeasible)
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_VEBOX;
         goto finish;
     }
 
-    pTarget    = pcRenderParams->pTarget[0];
     bHDRToneMappingNeed = (pSrcSurface->pHDRParams || pTarget->pHDRParams);
     // Check if SFC can be the output pipe
     if (m_sfcPipeState && !bHDRToneMappingNeed)

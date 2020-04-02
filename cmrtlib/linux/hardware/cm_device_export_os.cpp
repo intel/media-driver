@@ -157,12 +157,12 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 //!                    <TD> 1: DSH disable; 0: DSH enable (default) </TD>
 //!                </TR>
 //!                <TR>
-//!                    <TD> Preemption disable    </TD>
+//!                    <TD> Disable mid-thread level preemption </TD>
 //!                    <TD> [22] </TD>
 //!                    <TD> 1    </TD>
-//!                    <TD> 1: disable preemption; 0: enable (default) </TD>
+//!                    <TD> 1: disable mid-thread preemption; 0: enable (default) </TD>
 //!                </TR>
-//!             <TR>
+//!                <TR>
 //!                    <TD> kernel debug enable </TD>
 //!                    <TD> [23] </TD>
 //!                 <TD> 1 </TD>
@@ -170,10 +170,28 @@ CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADispla
 //!                </TR>
 //!                <TR>
 //!                    <TD> Reserved </TD>
-//!                    <TD> [24:31] </TD>
-//!                    <TD> 8 </TD>
+//!                    <TD> [24:27] </TD>
+//!                    <TD> 4 </TD>
 //!                    <TD> Must to be set as Zero </TD>
-//!             </TR>
+//!                </TR>
+//!                <TR>
+//!                    <TD> Disable VEBOX interfaces in CM </TD>
+//!                    <TD> [28] </TD>
+//!                    <TD> 1 </TD>
+//!                    <TD> 1: disable VEBOX interfaces; 0: enable (default) </TD>
+//!                </TR>
+//!                <TR>
+//!                    <TD> Disable FastCopy interfaces in CM </TD>
+//!                    <TD> [29] </TD>
+//!                    <TD> 1 </TD>
+//!                    <TD> 1: disable FastCopy interfaces; 0: enable (default) </TD>
+//!                </TR>
+//!                <TR>
+//!                    <TD> Enabel Fast Path in CM </TD>
+//!                    <TD> [30] </TD>
+//!                    <TD> 1 </TD>
+//!                    <TD> 1: enable fast path; 0: disable (default) </TD>
+//!                </TR>
 //!       </table>
 //! 
 //! \param      [out] device

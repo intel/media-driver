@@ -71,8 +71,17 @@ int32_t CmSurfaceManagerBase::UpdateStateForDelayedDestroy(
 }
 
 int32_t CmSurfaceManagerBase::UpdateStateForRealDestroy(uint32_t index,
-                              CM_ENUM_CLASS_TYPE surfaceType)
+                                                        CM_ENUM_CLASS_TYPE surfaceType)
 {
+    for(auto buffer : m_statelessSurfaceArray)
+    {
+        if (buffer == m_surfaceArray[index])
+        {
+            m_statelessSurfaceArray.erase(buffer);
+            break;
+        }
+    }
+
     m_surfaceArray[index] = nullptr;
 
     m_surfaceSizes[index] = 0;
@@ -225,6 +234,8 @@ CmSurfaceManagerBase::~CmSurfaceManagerBase()
 
     MosSafeDeleteArray(m_surfaceSizes);
     MosSafeDeleteArray(m_surfaceArray);
+
+    m_statelessSurfaceArray.clear();
 }
 
 //*-----------------------------------------------------------------------------
@@ -373,6 +384,7 @@ int32_t CmSurfaceManagerBase::Initialize( CM_HAL_MAX_VALUES halMaxValues,
 
     CmSafeMemSet( m_surfaceArray, 0, m_surfaceArraySize * sizeof( CmSurface* ) );
     CmSafeMemSet( m_surfaceSizes, 0, m_surfaceArraySize * sizeof( int32_t ) );
+
     return CM_SUCCESS;
 }
 
@@ -621,6 +633,7 @@ int32_t CmSurfaceManagerBase::GetFormatSize(CM_SURFACE_FORMAT format,
         case CM_SURFACE_FORMAT_P208:
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_R8_UNORM:
+        case CM_SURFACE_FORMAT_Y8_UNORM:
             sizePerPixel = 1;
             break;
 
@@ -658,7 +671,7 @@ inline int32_t CmSurfaceManagerBase::GetMemorySizeOfSurfaces()
 }
 
 // Allocate surface index from surface pool
-int32_t CmSurfaceManagerBase::AllocateSurfaceIndex(uint32_t width, uint32_t height,
+int32_t CmSurfaceManagerBase::AllocateSurfaceIndex(size_t width, uint32_t height,
                                                    uint32_t depth,
                                                    CM_SURFACE_FORMAT format,
                                                    uint32_t &freeIndex, void *sysMem)
@@ -697,7 +710,7 @@ int32_t CmSurfaceManagerBase::AllocateSurfaceIndex(uint32_t width, uint32_t heig
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurfaceManagerBase::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type,
+int32_t CmSurfaceManagerBase::CreateBuffer(size_t size, CM_BUFFER_TYPE type,
                                            bool svmAllocatedByCm, CmBuffer_RT* & buffer,
                                            MOS_RESOURCE * mosResource, void* &sysMem,
                                            bool isConditionalBuffer, uint32_t comparisonValue)
@@ -730,7 +743,8 @@ int32_t CmSurfaceManagerBase::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type,
     }
 
     uint32_t handle = 0;
-    int32_t result = AllocateBuffer( size, type, handle, mosResource, sysMem );
+    uint64_t gfxMem = 0;
+    int32_t result = AllocateBuffer(size, type, handle, mosResource, sysMem, gfxMem);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Falied to allocate buffer.");
@@ -742,7 +756,7 @@ int32_t CmSurfaceManagerBase::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type,
 
     result = CmBuffer_RT::Create( index, handle, size, mosResource == nullptr,
                                   surfaceManager, type, svmAllocatedByCm, sysMem,
-                                  buffer, isConditionalBuffer, comparisonValue);
+                                  buffer, isConditionalBuffer, comparisonValue, gfxMem);
     if( result != CM_SUCCESS )
     {
         FreeBuffer( handle );
@@ -752,6 +766,11 @@ int32_t CmSurfaceManagerBase::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type,
 
     m_surfaceArray[ index ] = buffer;
     UpdateProfileFor1DSurface(index, size);
+
+    if (type == CM_BUFFER_STATELESS || type == CM_BUFFER_SVM) {
+        // add this buffer into svm/stateless buffer array: <address, size, surface>
+        m_statelessSurfaceArray.insert(buffer);
+    }
 
     return CM_SUCCESS;
 }
@@ -766,11 +785,15 @@ int32_t CmSurfaceManagerBase::CreateBuffer(uint32_t size, CM_BUFFER_TYPE type,
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurfaceManagerBase::AllocateBuffer(uint32_t size, CM_BUFFER_TYPE type,
-                              uint32_t & handle, MOS_RESOURCE * mosResource, void* sysMem )
+int32_t CmSurfaceManagerBase::AllocateBuffer(size_t size,
+                                             CM_BUFFER_TYPE type,
+                                             uint32_t &handle,
+                                             MOS_RESOURCE *mosResource,
+                                             void *&sysMem,
+                                             uint64_t &gfxMem)
 {
-    CM_RETURN_CODE  hr          = CM_SUCCESS;
-    MOS_STATUS      mosStatus  = MOS_STATUS_SUCCESS;
+    CM_RETURN_CODE hr = CM_SUCCESS;
+    MOS_STATUS mosStatus = MOS_STATUS_SUCCESS;
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
@@ -809,6 +832,7 @@ int32_t CmSurfaceManagerBase::AllocateBuffer(uint32_t size, CM_BUFFER_TYPE type,
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(mosStatus);
 
     handle = inParam.handle;
+    gfxMem = inParam.gfxAddress;
 
 finish:
     return hr;
@@ -2449,6 +2473,7 @@ bool CMRT_UMD::CmSurfaceManagerBase::IsSupportedForSamplerSurface2D(CM_SURFACE_F
         case CM_SURFACE_FORMAT_BUFFER_2D:
         case CM_SURFACE_FORMAT_R10G10B10A2:
         case CM_SURFACE_FORMAT_R8_UNORM:
+        case CM_SURFACE_FORMAT_Y8_UNORM:
             return true;
 
         default:

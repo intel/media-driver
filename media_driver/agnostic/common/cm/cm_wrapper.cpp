@@ -64,12 +64,12 @@ struct CM_ENQUEUE_GPUCOPY_PARAM
 
 struct CM_CREATEBUFFER_PARAM
 {
-    uint32_t size;             // [in]  buffer size in byte
+    size_t size;             // [in]  buffer size in byte
     CM_BUFFER_TYPE bufferType;  // [in]  Buffer type (Buffer, BufferUP, or Buffer SVM)
     void *sysMem;              // [in]  Address of system memory
     void *bufferHandle;      // [out] pointer to CmBuffer object in CMRT@UMD
     int32_t returnValue;       // [out] the return value from CMRT@UMD
-    uint32_t reserved;        // Reserved field to ensure sizeof(CM_CREATEBUFFER_PARAM_V2) is different from sizeof(CM_CREATEBUFFER_PARAM_V1) in x64 mode
+    uint32_t option;
 };
 
 namespace CMRT_UMD
@@ -152,6 +152,7 @@ using CMRT_UMD::CmSurface2D;
 using CMRT_UMD::CmSurface2DRT;
 using CMRT_UMD::SurfaceIndex;
 using CMRT_UMD::CmDeviceRT;
+using CMRT_UMD::CmDeviceRTBase;
 using CMRT_UMD::CmBuffer;
 using CMRT_UMD::CmBufferUP;
 using CMRT_UMD::CmBufferSVM;
@@ -173,6 +174,7 @@ using CMRT_UMD::CmVebox;
 using CMRT_UMD::CmVeboxRT;
 using CMRT_UMD::CmSurface3D;
 using CMRT_UMD::CmSampler8x8;
+using CMRT_UMD::CmBufferStateless;
 //*-----------------------------------------------------------------------------
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
@@ -187,6 +189,7 @@ int32_t CmThinExecuteInternal(CmDevice *device,
     CmBuffer                    *cmBuffer          = nullptr;
     CmBufferUP                  *cmBufferUP        = nullptr;
     CmBufferSVM                 *cmBufferSVM       = nullptr;
+    CmBufferStateless           *cmBufferStateless = nullptr;
     CmSurface2DRT               *cmSurface2d       = nullptr;
     CmSurface2DUP               *cmSurface2dup     = nullptr;
     CmProgram                   *cmProgram         = nullptr;
@@ -209,6 +212,8 @@ int32_t CmThinExecuteInternal(CmDevice *device,
     CmSurface2D                 *cmSurf2DBase      = nullptr;
     CmVebox                     *cmVebox           = nullptr;
     CmDeviceRT                  *deviceRT          = nullptr;
+    CmDeviceRTBase              *deviceRtBase      = nullptr;
+
     if (cmPrivateInputData == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Null pointer.");
@@ -221,6 +226,7 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         return CM_NULL_POINTER;
     }
     deviceRT = static_cast<CmDeviceRT*>(device);
+    deviceRtBase = static_cast<CmDeviceRTBase *>(device);
 
     switch(cmFunctionID)
     {
@@ -267,6 +273,19 @@ int32_t CmThinExecuteInternal(CmDevice *device,
                 }
                 //Fill the output message
                 pCmBufferParam->returnValue        = cmRet;
+            }
+            else if (pCmBufferParam->bufferType == CM_BUFFER_STATELESS)
+            {
+                cmRet = deviceRtBase->CreateBufferStateless(pCmBufferParam->size,
+                                                            pCmBufferParam->option,
+                                                            pCmBufferParam->sysMem,
+                                                            cmBufferStateless);
+                if (cmRet == CM_SUCCESS)
+                {
+                    pCmBufferParam->bufferHandle = cmBufferStateless;
+                }
+                //Fill the output message
+                pCmBufferParam->returnValue = cmRet;
             }
             else //should never jump here
             {
@@ -317,6 +336,19 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         cmRet = device->DestroyBufferSVM(cmBufferSVM);
         //Fill the output message
         cmDestBufferSVMParam->returnValue  = cmRet;
+        break;
+
+    case CM_FN_CMDEVICE_DESTROYBUFFERSTATELESS:
+        PCM_DESTROYBUFFER_PARAM cmDestBufferStatelessParam;
+        cmDestBufferStatelessParam = (PCM_DESTROYBUFFER_PARAM)(cmPrivateInputData);
+
+        cmBufferStateless =
+            static_cast<CmBufferStateless *>(cmDestBufferStatelessParam->bufferHandle);
+        CM_ASSERT(cmBufferStateless);
+
+        cmRet = deviceRtBase->DestroyBufferStateless(cmBufferStateless);
+        //Fill the output message
+        cmDestBufferStatelessParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATESURFACE2DUP:
@@ -1098,6 +1130,13 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         }
 
         initPrintBufferParam->returnValue     = cmRet;
+        break;
+
+    case CM_FN_CMDEVICE_FLUSH_PRINT_BUFFER:
+        PCM_DEVICE_FLUSH_PRINT_BUFFER_PARAM flushPrintBufferParam;
+        flushPrintBufferParam  = (PCM_DEVICE_FLUSH_PRINT_BUFFER_PARAM)(cmPrivateInputData);
+        cmRet = device->FlushPrintBufferIntoFile(flushPrintBufferParam->fileName);
+        flushPrintBufferParam->returnValue     = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATEVEBOX:

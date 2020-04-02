@@ -1361,6 +1361,18 @@ public:
             cmd.DW30.RoiQpAdjustmentForZone3 = priorityLevelOrDQp[2];
         }
 
+        if (avcSeqParams->RateControlMethod != RATECONTROL_CQP)
+        {
+            cmd.DW30.QpAdjustmentForShapeBestIntra4X4Winner = 0;
+            cmd.DW30.QpAdjustmentForShapeBestIntra8X8Winner = 0;
+            cmd.DW30.QpAdjustmentForShapeBestIntra16X16Winner = 0;
+
+            cmd.DW31.BestdistortionQpAdjustmentForZone0 = 0;
+            cmd.DW31.BestdistortionQpAdjustmentForZone1 = 1;
+            cmd.DW31.BestdistortionQpAdjustmentForZone2 = 2;
+            cmd.DW31.BestdistortionQpAdjustmentForZone3 = 3;
+        }
+
         if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI && params->bVdencStreamInEnabled)
         {
             cmd.DW34.RoiEnable = true;

@@ -125,11 +125,8 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
 #if USE_EXTENSION_CODE
     m_gtpin(nullptr),
 #endif
-    m_printBufferMem (nullptr),
-    m_printBufferUP(nullptr),
     m_isPrintEnabled(false),
     m_printBufferSize(0),
-    m_printBufferIndex(nullptr),
     m_threadGroupSpaceArray(CM_INIT_THREADGROUPSPACE_COUNT),
     m_threadGroupSpaceCount(0),
     m_taskArray(CM_INIT_TASK_COUNT),
@@ -141,7 +138,9 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
     m_isDriverStoreEnabled(0),
     m_notifierGroup(nullptr),
     m_hasGpuCopyKernel(false),
-    m_hasGpuInitKernel(false)
+    m_hasGpuInitKernel(false),
+    m_kernelsLoaded(0),
+    m_preloadKernelEnabled(true)
 {
     //Initialize the structures in the class
     MOS_ZeroMemory(&m_halMaxValues, sizeof(m_halMaxValues));
@@ -173,14 +172,18 @@ void CmDeviceRTBase::DestructCommon()
     }
 
     //Free the surface/memory for print buffer
-    if(m_printBufferMem)
+    while(!m_printBufferMems.empty())
     {
-        MOS_AlignedFreeMemory(m_printBufferMem);
+        uint8_t *mem = m_printBufferMems.front();
+        m_printBufferMems.pop_front();
+        MOS_AlignedFreeMemory(mem);
     }
 
-    if(m_printBufferUP)
+    while(!m_printBufferUPs.empty())
     {
-        DestroyBufferUP(m_printBufferUP);
+        CmBufferUP *buffer = m_printBufferUPs.front();
+        m_printBufferUPs.pop_front();
+        DestroyBufferUP(buffer);
     }
 
 #if USE_EXTENSION_CODE
@@ -381,17 +384,19 @@ int32_t CmDeviceRTBase::Initialize(MOS_CONTEXT *mosContext)
     ReadVtuneProfilingFlag();
 
     // Load Predefined Kernels
-    CmProgram* tmpProgram = nullptr;
-    int32_t ret = 0;
-    ret = LoadPredefinedCopyKernel(tmpProgram);
-    if (ret == CM_SUCCESS)
+    if (m_preloadKernelEnabled)
     {
-        m_hasGpuCopyKernel = true;
-    }
-    ret = LoadPredefinedInitKernel(tmpProgram);
-    if (ret == CM_SUCCESS)
-    {
-        m_hasGpuInitKernel = true;
+        CmProgram* tmpProgram = nullptr;
+        int32_t ret = LoadPredefinedCopyKernel(tmpProgram);
+        if (ret == CM_SUCCESS)
+        {
+            m_hasGpuCopyKernel = true;
+        }
+        ret = LoadPredefinedInitKernel(tmpProgram);
+        if (ret == CM_SUCCESS)
+        {
+            m_hasGpuInitKernel = true;
+        }
     }
 
     // get the last tracker
@@ -2245,6 +2250,9 @@ CmDeviceRTBase::CreateSampler8x8Surface(CmSurface2D* surface2D,
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t sizeperpixel = 0;
+    uint32_t platform = 0;
+    
+    GetGenPlatform(platform);
 
     CmSurface2DRT* currentRT = static_cast<CmSurface2DRT *>(surface2D);
     if( ! currentRT )  {
@@ -2255,11 +2263,18 @@ CmDeviceRTBase::CreateSampler8x8Surface(CmSurface2D* surface2D,
     CM_SURFACE_FORMAT format;
     currentRT->GetSurfaceDesc(width, height, format, sizeperpixel);
 
-    if(format == CM_SURFACE_FORMAT_NV12)
-        if ((width % 4) != 0 || (height % 4) != 0) {  //width or height is not 4 aligned
+    if (format == CM_SURFACE_FORMAT_NV12)
+    {
+        if (platform < IGFX_GEN10_CORE  &&
+            ((width % 4) != 0 || (height % 4) != 0)) {  //width or height is not 4 aligned
             CM_ASSERTMESSAGE("Error: Width or height is not 4 aligned for nv12 surface.");
             return CM_SYSTEM_MEMORY_NOT_4PIXELS_ALIGNED;
         }
+        else if ((width % 2) != 0 || (height % 2) != 0) {
+            CM_ASSERTMESSAGE("Error: Width or height is not 2 aligned for nv12 surface.");
+            return CM_SYSTEM_MEMORY_NOT_2PIXELS_ALIGNED;
+        }
+    }
     CLock locker(m_criticalSectionSurface);
 
     int32_t result = m_surfaceMgr->CreateSampler8x8Surface( currentRT, sampler8x8SurfIndex, sampler8x8Type, mode, nullptr );
@@ -2988,42 +3003,37 @@ CM_RT_API int32_t CmDeviceRTBase::InitPrintBuffer(size_t printbufsize)
 {
     INSERT_API_CALL_LOG();
 
-    if (m_printBufferUP)
-    {
-        if (printbufsize == m_printBufferSize)
-        {
-            //Reuse existing buffer up
-            return CM_SUCCESS;
-        }
-        else
-        {
-            // Free the existing one first
-            DestroyBufferUP(m_printBufferUP);
-            MOS_AlignedFreeMemory(m_printBufferMem);
-        }
-    }
-
-    /// Allocate and Initialize host memory.
     m_printBufferSize = printbufsize;
-    m_printBufferMem = (uint8_t*)MOS_AlignedAllocMemory(m_printBufferSize, 0x1000); //PAGE SIZE
-    if(!m_printBufferMem)
+    m_isPrintEnabled = true;
+    return CM_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Create a new static buffer for kernel print
+//| Returns:    result of operation.
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRTBase::CreatePrintBuffer()
+{
+    uint8_t *mem = (uint8_t*)MOS_AlignedAllocMemory(m_printBufferSize, 0x1000); //PAGE SIZE
+    if(!mem)
     {
         return CM_OUT_OF_HOST_MEMORY;
     }
 
-    CmSafeMemSet(m_printBufferMem, 0, m_printBufferSize);
-    *(unsigned int*)m_printBufferMem = PRINT_BUFFER_HEADER_SIZE;
+    CmSafeMemSet(mem, 0, m_printBufferSize);
+    *(unsigned int*)mem = PRINT_BUFFER_HEADER_SIZE;
 
     /// Allocate device memory and MemCopy from host to device.
-    int32_t result = CreateBufferUP((uint32_t)m_printBufferSize, m_printBufferMem, m_printBufferUP);
-    if (result != CM_SUCCESS || m_printBufferUP == nullptr)
+    CmBufferUP *buffer = nullptr;
+    int32_t result = CreateBufferUP((uint32_t)m_printBufferSize, mem, buffer);
+    if (result != CM_SUCCESS || buffer == nullptr)
     {
         m_isPrintEnabled = false;
-        MOS_AlignedFreeMemory(m_printBufferMem);
+        MOS_AlignedFreeMemory(mem);
         return result;
     }
-    m_printBufferUP->GetIndex(m_printBufferIndex);
-    m_isPrintEnabled = true;
+    m_printBufferMems.push_back(mem);
+    m_printBufferUPs.push_back(buffer);
     return CM_SUCCESS;
 }
 
@@ -3033,7 +3043,7 @@ CM_RT_API int32_t CmDeviceRTBase::InitPrintBuffer(size_t printbufsize)
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRTBase::GetPrintBufferMem(unsigned char * &printBufferMem) const
 {
-    printBufferMem = m_printBufferMem;
+    printBufferMem = m_printBufferMems.back();
     return CM_SUCCESS;
 }
 
@@ -3043,7 +3053,7 @@ int32_t CmDeviceRTBase::GetPrintBufferMem(unsigned char * &printBufferMem) const
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRTBase::GetPrintBufferIndex(SurfaceIndex *& index) const
 {
-    index = m_printBufferIndex;
+    m_printBufferUPs.back()->GetIndex(index);
     return CM_SUCCESS;
 }
 
@@ -3054,19 +3064,6 @@ int32_t CmDeviceRTBase::GetPrintBufferIndex(SurfaceIndex *& index) const
 bool CmDeviceRTBase::IsPrintEnable() const
 {
      return m_isPrintEnabled;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Clear print buffer
-//| Returns:    CM_SUCCESS.
-//*-----------------------------------------------------------------------------
-int32_t CmDeviceRTBase::ClearPrintBuffer()
-{
-    //clean memory
-    CmSafeMemSet(m_printBufferMem, 0, m_printBufferSize);
-    *(unsigned int*)m_printBufferMem = PRINT_BUFFER_HEADER_SIZE;
-
-    return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
@@ -3360,6 +3357,12 @@ int32_t CmDeviceRTBase::InitDevCreateOption(CM_HAL_CREATE_PARAM & cmHalCreatePar
     kernelBinarySizeInGSH = kernelBinarySizeInGSH * CM_KERNELBINARY_BLOCKSIZE_2MB;
     cmHalCreateParam.kernelBinarySizeinGSH = kernelBinarySizeInGSH;
 
+    // [28] vebox
+    cmHalCreateParam.disableVebox = (option & CM_DEVICE_CONFIG_VEBOX_DISABLE) ? true : false;
+
+    // [29] preload kernel
+    m_preloadKernelEnabled = (option & CM_DEVICE_CONFIG_GPUCOPY_DISABLE) ? false : true;
+
     // [30] fast path
     cmHalCreateParam.refactor = (option & CM_DEVICE_CONFIG_FAST_PATH_ENABLE)?true:false;
     return CM_SUCCESS;
@@ -3451,8 +3454,7 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
         }
     }
 
-    if( m_printBufferMem == nullptr ||
-        m_printBufferSize == 0 ||
+    if( m_printBufferSize == 0 ||
         m_isPrintEnabled == false)
     {
         CM_ASSERTMESSAGE("Error: Print buffer is not initialized.");
@@ -3462,7 +3464,16 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
     }
 
     //Dump memory on the screen.
-    DumpAllThreadOutput(streamOutFile, m_printBufferMem, m_printBufferSize);
+    while(!m_printBufferMems.empty())
+    {
+        uint8_t *mem = m_printBufferMems.front();
+        CmBufferUP *buffer = m_printBufferUPs.front();
+        DumpAllThreadOutput(streamOutFile, mem, m_printBufferSize);
+        m_printBufferMems.pop_front();
+        m_printBufferUPs.pop_front();
+        DestroyBufferUP(buffer);
+        MOS_AlignedFreeMemory(mem);
+    }
 
     //Flush and close stream
     fflush(streamOutFile);
@@ -3471,10 +3482,6 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
         fclose(streamOutFile);
         streamOutFile = nullptr;
     }
-
-    //clean memory
-    CmSafeMemSet(m_printBufferMem, 0, m_printBufferSize);
-    *(unsigned int*)m_printBufferMem = sizeof(CM_PRINT_HEADER);
 
     return CM_SUCCESS;
 #else
@@ -3668,32 +3675,48 @@ int32_t CmDeviceRTBase::GetVISAVersion(uint32_t& majorVersion,
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmDeviceRTBase::UpdateBuffer(PMOS_RESOURCE mosResource,
-                                               CmBuffer* &surface)
+
+CM_RT_API int32_t CmDeviceRTBase::UpdateBuffer(PMOS_RESOURCE mosResource, CmBuffer* &surface,
+                                               MOS_HW_RESOURCE_DEF mosUsage)
 {
+    int32_t hr = CM_SUCCESS;
     if (surface)
     {
         CmBuffer_RT *bufferRT = static_cast<CmBuffer_RT *>(surface);
-        return bufferRT->UpdateResource(mosResource);
+        hr = bufferRT->UpdateResource(mosResource);
     }
     else
     {
-        return CreateBuffer(mosResource, surface);
+        hr = CreateBuffer(mosResource, surface);
     }
+
+    if (hr == CM_SUCCESS)
+    {
+        hr = surface->SetResourceUsage(mosUsage);
+    }
+    return hr;
 }
 
-CM_RT_API int32_t CmDeviceRTBase::UpdateSurface2D(PMOS_RESOURCE mosResource,
-                                                  CmSurface2D* &surface)
+
+CM_RT_API int32_t CmDeviceRTBase::UpdateSurface2D(PMOS_RESOURCE mosResource, CmSurface2D* &surface,
+                                                  MOS_HW_RESOURCE_DEF mosUsage)
 {
+    int32_t hr = CM_SUCCESS;
     if (surface)
     {
         CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
-        return surfaceRT->UpdateResource(mosResource);
+        hr = surfaceRT->UpdateResource(mosResource);
     }
     else
     {
-        return CreateSurface2D(mosResource, surface);
+        hr = CreateSurface2D(mosResource, surface);
     }
+
+    if (hr == CM_SUCCESS)
+    {
+        hr = surface->SetResourceUsage(mosUsage);
+    }
+    return hr;
 }
 
 CM_RT_API int32_t CmDeviceRTBase::CreateSampler8x8SurfaceFromAlias(
@@ -3720,5 +3743,78 @@ CM_RT_API int32_t CmDeviceRTBase::CreateSampler8x8SurfaceFromAlias(
                                                aliasIndex,
                                                addressControl,
                                                sampler8x8SurfaceIndex);
+}
+
+CM_RT_API int32_t CmDeviceRTBase::CreateBufferStateless(size_t size,
+                                                        uint32_t option,
+                                                        void *sysMem,
+                                                        CmBufferStateless *&bufferStateless)
+{
+    INSERT_API_CALL_LOG();
+
+    int result = CM_SUCCESS;
+
+    // Stateless buffer is going to stateless access, no size restriction like
+    // CmBuffer and CmBufferUP. But current supported size is less than 4G
+    // because of GMM limitation.
+    if (size == 0)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid buffer width.");
+        return CM_INVALID_WIDTH;
+    }
+
+    if (option == CM_BUFFER_STATELESS_CREATE_OPTION_SYS_MEM)
+    {
+        CM_ASSERTMESSAGE("Error: Stateless buffer created from system memory is not supported.");
+        return CM_NOT_IMPLEMENTED;
+    }
+    else if (option == CM_BUFFER_STATELESS_CREATE_OPTION_GFX_MEM)
+    {
+        CLock locker(m_criticalSectionSurface);
+
+        CmBuffer_RT *p  = nullptr;
+        void *sysMemory = nullptr;
+        result = m_surfaceMgr->CreateBuffer(size,
+                                            CM_BUFFER_STATELESS,
+                                            false,
+                                            p,
+                                            nullptr,
+                                            sysMemory,
+                                            false,
+                                            CM_DEFAULT_COMPARISON_VALUE);
+        bufferStateless = static_cast<CmBufferStateless *>(p);
+    }
+    else
+    {
+        CM_ASSERTMESSAGE("Error: Invalid option value.");
+        return CM_INVALID_CREATE_OPTION_FOR_BUFFER_STATELESS;
+    }
+
+    return result;
+}
+
+CM_RT_API int32_t CmDeviceRTBase::DestroyBufferStateless(CmBufferStateless *&bufferStateless)
+{
+    INSERT_API_CALL_LOG();
+
+    CmBuffer_RT *temp = static_cast<CmBuffer_RT *>(bufferStateless);
+    if (nullptr == temp)
+    {
+        return CM_NULL_POINTER;
+    }
+
+    CLock locker(m_criticalSectionSurface);
+
+    int32_t status = m_surfaceMgr->DestroySurface(temp, APP_DESTROY);
+
+    if (status != CM_FAILURE)  //CM_SURFACE_IN_USE, or  CM_SURFACE_CACHED may be returned, which should be treated as SUCCESS.
+    {
+        bufferStateless = nullptr;
+        return CM_SUCCESS;
+    }
+    else
+    {
+        return CM_FAILURE;
+    }
 }
 }  // namespace

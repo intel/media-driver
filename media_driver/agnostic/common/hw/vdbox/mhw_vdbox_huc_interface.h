@@ -103,6 +103,7 @@ protected:
     MmioRegistersHuc       m_mmioRegisters[MHW_VDBOX_NODE_MAX] = { };  //!< HuC mmio registers
 
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = { }; //!< Cacheability settings
+
     //!
     //! \brief    Constructor
     //!
@@ -132,7 +133,6 @@ protected:
         PMHW_RESOURCE_PARAMS params);
 
 public:
-
     //!
     //! \brief    Destructor
     //!
@@ -366,6 +366,14 @@ public:
 
         return eStatus;
     }
+
+    //!
+    //! \brief    Get huc product family
+    //!
+    //! \return   uint32_t
+    //!           Huc product family.
+    //!
+    virtual uint32_t GetHucProductFamily() = 0;
 };
 
 #endif

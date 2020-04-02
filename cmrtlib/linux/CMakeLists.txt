@@ -101,6 +101,7 @@ set(CMRT_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g8.h
     ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g9.h
     ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g10.h
+    ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_rt_g11.h
     ${CMAKE_CURRENT_LIST_DIR}/../agnostic/share/cm_hw_vebox_cmd_g10.h
     ${CMAKE_CURRENT_LIST_DIR}/share/cm_rt_def_os.h
     ${CMAKE_CURRENT_LIST_DIR}/share/cm_rt_api_os.h

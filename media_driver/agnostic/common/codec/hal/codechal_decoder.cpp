@@ -686,30 +686,34 @@ MOS_STATUS CodechalDecode::SetDummyReference()
         if (Mos_ResourceIsNull(&m_dummyReference.OsResource))
         {
             // If MMC enabled
-            if (m_mmc != nullptr && m_mmc->IsMmcEnabled() && 
-                !m_mmc->IsMmcExtensionEnabled() && 
-                m_decodeParams.m_destSurface->bIsCompressed)
+            MOS_MEMCOMP_STATE mmcState = MOS_MEMCOMP_DISABLED;
+            if (m_mmc != nullptr && m_mmc->IsMmcEnabled())
             {
-                if (m_mode == CODECHAL_DECODE_MODE_HEVCVLD)
-                {
-                    eStatus = AllocateSurface(
-                        &m_dummyReference,
-                        m_decodeParams.m_destSurface->dwWidth,
-                        m_decodeParams.m_destSurface->dwHeight,
-                        "dummy reference resource",
-                        m_decodeParams.m_destSurface->Format,
-                        m_decodeParams.m_destSurface->bIsCompressed);
+                CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
+                    m_osInterface,
+                    &m_decodeParams.m_destSurface->OsResource,
+                    &mmcState));
+            }
 
-                    if (eStatus != MOS_STATUS_SUCCESS)
-                    {
-                        CODECHAL_DECODE_ASSERTMESSAGE("Failed to create dummy reference!");
-                        return eStatus;
-                    }
-                    else
-                    {
-                        m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_ALLOCATED;
-                        CODECHAL_DECODE_VERBOSEMESSAGE("Dummy reference is created!");
-                    }
+            if (mmcState != MOS_MEMCOMP_DISABLED)
+            {
+                eStatus = AllocateSurface(
+                    &m_dummyReference,
+                    m_decodeParams.m_destSurface->dwWidth,
+                    m_decodeParams.m_destSurface->dwHeight,
+                    "dummy reference resource",
+                    m_decodeParams.m_destSurface->Format,
+                    true);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    CODECHAL_DECODE_ASSERTMESSAGE("Failed to create dummy reference!");
+                    return eStatus;
+                }
+                else
+                {
+                    m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_ALLOCATED;
+                    CODECHAL_DECODE_VERBOSEMESSAGE("Dummy reference is created!");
                 }
             }
             else    // Use decode output surface as dummy reference
@@ -1100,6 +1104,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
 MOS_STATUS CodechalDecode::Execute(void *params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -1749,9 +1755,10 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
         cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = 0;
     }
 
-#ifdef _MMC_SUPPORTED
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
-#endif
+    if (m_mmc)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+    }
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));

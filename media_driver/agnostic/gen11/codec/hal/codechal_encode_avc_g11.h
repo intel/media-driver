@@ -76,11 +76,11 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ExecuteKernelFunctions( );
+    MOS_STATUS ExecuteKernelFunctions( ) override;
 
     virtual MOS_STATUS SceneChangeReport(
         PMOS_COMMAND_BUFFER       cmdBuffer,
-        PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params);
+        PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params) override;
 
     //! \brief    Get encoder kernel header and kernel size
     //!
@@ -118,7 +118,7 @@ public:
     //!
     virtual MOS_STATUS GetTrellisQuantization(
         PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS params,
-        PCODECHAL_ENCODE_AVC_TQ_PARAMS trellisQuantParams);
+        PCODECHAL_ENCODE_AVC_TQ_PARAMS trellisQuantParams) override;
 
     // state related funcs
     //!
@@ -127,7 +127,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS InitializeState();
+    virtual MOS_STATUS InitializeState() override;
 
     //!
     //! \brief    Init MbEnc kernel state
@@ -135,7 +135,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS InitKernelStateMbEnc();
+    virtual MOS_STATUS InitKernelStateMbEnc() override;
 
     //!
     //! \brief    Init BRC kernel state
@@ -143,7 +143,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS InitKernelStateBrc();
+    virtual MOS_STATUS InitKernelStateBrc() override;
 
     //!
     //! \brief    Initialize brc constant buffer
@@ -155,7 +155,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS InitBrcConstantBuffer(
-        PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS        params);
+        PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS        params) override;
 
     //!
     //! \brief    Initialize MB brc constant buffer
@@ -167,7 +167,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS InitMbBrcConstantDataBuffer(
-        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS params);
+        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS params) override;
 
     //!
     //! \brief    Get MBEnc kernel state index
@@ -183,7 +183,7 @@ public:
     //!
     virtual MOS_STATUS GetMbEncKernelStateIdx(
         CodechalEncodeIdOffsetParams*   params,
-        uint32_t* kernelOffset);
+        uint32_t* kernelOffset) override;
     //!
     //! \brief    Set MbEnc kernel curbe data
     //!
@@ -194,7 +194,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeAvcMbEnc(
-        PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS params) override;
 
     //!
     //! \brief    Set up BrcInit curbe
@@ -206,7 +206,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeAvcBrcInitReset(
-        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS params) override;
     //!
     //! \brief    Set up frameBrcUpdate kernel curbe
     //!
@@ -217,7 +217,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeAvcFrameBrcUpdate(
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params) override;
     //!
     //! \brief    Set up MbBrcUpdate curbe
     //!
@@ -228,7 +228,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeAvcMbBrcUpdate(
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params) override;
     //!
     //! \brief    Set up BrcBlockCopy kernel curbe
     //!
@@ -239,7 +239,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeAvcBrcBlockCopy(
-        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS params) override;
     //!
     //! \brief    Encode User Feature Key Report.
     //! \details  Report user feature values set by encode.
@@ -262,7 +262,7 @@ public:
     //!
     virtual MOS_STATUS SendAvcMbEncSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS params) override;
 
     //!
     //! \brief    Set up surfaces for BrcFrameUpdate kernel
@@ -278,7 +278,7 @@ public:
     //!
     virtual MOS_STATUS SendAvcBrcFrameUpdateSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params) override;
     //!
     //! \brief    Set up surfaces for BrcMbUpdate kernel
     //!
@@ -293,18 +293,19 @@ public:
     //!
     virtual MOS_STATUS SendAvcBrcMbUpdateSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params) override;
     //!
     //! \brief    Set up ROI surfaces
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetupROISurface();
+    virtual MOS_STATUS SetupROISurface() override;
 
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking);
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr) override;
 
     //!
     //! \brief    Run MbEnc Kernel.
@@ -316,7 +317,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS MbEncKernel(
-        bool mbEncIFrameDistInUse);
+        bool mbEncIFrameDistInUse) override;
 
     //!
     //! \brief    Resize buffers due to resoluton change.
@@ -348,7 +349,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetGpuCtxCreatOption();
+    MOS_STATUS SetGpuCtxCreatOption() override;
 
     PCODECHAL_ENCODE_SINGLEPIPE_VIRTUALENGINE_STATE m_sinlgePipeVeState;  //!< single pipe virtual engine state
 

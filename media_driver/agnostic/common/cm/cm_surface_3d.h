@@ -133,6 +133,16 @@ public:
     //! \note       This API is platform related, and only for SKL and plus platforms.
     CM_RT_API virtual int32_t
     SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl) = 0;
+
+    //!
+    //! \brief Selects one of the pre-defined MOS resource usage settings for this surface.
+    //! \note       This function works on Gen9+ paltforms.
+    //! \param      [in] mosUsage
+    //!             The selected pre-defined MOS resource usage for memory object control setting.
+    //! \retval     CM_SUCCESS if the given parameter is valid
+    //! \retval     CM_FAILURE otherwise.
+    //!
+    CMRT_UMD_API virtual int32_t SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage) = 0;
 };
 };//namespace
 

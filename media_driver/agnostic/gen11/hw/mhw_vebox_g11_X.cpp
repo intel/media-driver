@@ -204,6 +204,7 @@ MhwVeboxInterfaceG11::MhwVeboxInterfaceG11(
     m_vebox1InUse               = false;
     m_veboxScalabilitySupported = false;
     m_veboxSplitRatio           = 50;
+    memset(&m_chromaParams, 0, sizeof(m_chromaParams));
     MOS_SecureMemcpy(m_BT2020InvPixelValue, sizeof(uint32_t)* 256, g_Vebox_BT2020_Inverse_Pixel_Value_g11, sizeof(uint32_t)* 256);
     MOS_SecureMemcpy(m_BT2020FwdPixelValue, sizeof(uint32_t)* 256, g_Vebox_BT2020_Forward_Pixel_Value_g11, sizeof(uint32_t)* 256);
     MOS_SecureMemcpy(m_BT2020InvGammaLUT, sizeof(uint32_t)* 256, g_Vebox_BT2020_Inverse_Gamma_LUT_g11, sizeof(uint32_t)* 256);

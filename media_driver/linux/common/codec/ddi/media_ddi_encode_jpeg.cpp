@@ -587,6 +587,7 @@ uint32_t DdiEncodeJpeg::ConvertMediaFormatToInputSurfaceFormat(DDI_MEDIA_FORMAT 
         return DDI_ENCODE_JPEG_INPUTFORMAT_NV12;
     case Media_Format_422H:
     case Media_Format_422V:
+    case Media_Format_UYVY:
         return DDI_ENCODE_JPEG_INPUTFORMAT_UYVY;
     case Media_Format_YUY2:
         return DDI_ENCODE_JPEG_INPUTFORMAT_YUY2;

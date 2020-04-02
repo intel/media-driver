@@ -166,7 +166,7 @@ struct EncodeAvcPar
     uint8_t                     SearchControl;
     uint8_t                     BSearchControl;
     uint8_t                     BiMixDisable;
-    uint8_t                     BiWeight;
+    uint32_t                    BiWeight;
     bool                        DisableExtendedMvCostRange;
     bool                        EnableAdaptiveSearch;
     bool                        EnableFBRBypass;
@@ -231,6 +231,7 @@ struct EncodeAvcPar
     uint8_t                     BFrameZeroCbfEn;
     uint8_t                     ForceIPCMMinQP;
     uint8_t                     IntraTr4x4Percent;
+    bool                        MultiPassHmeEnable;
 
     // PAK Params
     uint8_t                     RoundingIntra;

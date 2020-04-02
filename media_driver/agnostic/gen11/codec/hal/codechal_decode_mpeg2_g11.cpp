@@ -29,6 +29,7 @@
 #include "codechal_decode_mpeg2_g11.h"
 #include "codechal_secure_decode_interface.h"
 #include "mhw_vdbox_mfx_g11_X.h"
+#include "hal_oca_interface.h"
 
 CodechalDecodeMpeg2G11::~CodechalDecodeMpeg2G11 ()
 {
@@ -113,6 +114,9 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer, true));
@@ -200,12 +204,18 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
 
     pipeBufAddrParams.pDecodedReconParam = &surfaceParams;
     pipeBufAddrParams.psRawSurface = nullptr;
+
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams, &cmdBuffer));
+#endif
+
     pipeBufAddrParams.pDecodedReconParam = nullptr;
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
+#endif
 
     CODECHAL_DEBUG_TOOL(
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
@@ -547,6 +557,8 @@ MOS_STATUS CodechalDecodeMpeg2G11::SliceLevel()
         {
             CodecHalDecodeSinglePipeVE_PopulateHintParams(m_veState, &cmdBuffer, true);
         }
+
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
             m_osInterface,

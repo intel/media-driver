@@ -321,7 +321,8 @@ public:
 
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
-        bool                        frameTracking);
+        bool                        frameTracking,
+        MHW_MI_MMIOREGISTERS       *mmioRegister = nullptr);
 
     virtual MOS_STATUS ExecutePictureLevel();
 
@@ -549,6 +550,14 @@ public:
     virtual MOS_STATUS SetupROIStreamIn(
         PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
         PMOS_RESOURCE                vdencStreamIn);
+
+    //!
+    //! \brief    Sort and set distinct delta QPs
+    //!
+    //! \return   bool
+    //!           true if native ROI, otherwise false
+    //!
+    bool ProcessRoiDeltaQp();
 
     //!
     //! \brief    VDENC BRC InitReset HuC FW Cmd.
@@ -926,7 +935,11 @@ protected:
 
     static const uint32_t m_vdboxHucVdencBrcInitKernelDescriptor = 4;                                     //!< Huc Vdenc Brc init kernel descriptor
     static const uint32_t m_vdboxHucVdencBrcUpdateKernelDescriptor = 5;                                   //!< Huc Vdenc Brc update kernel descriptor
-private:
+
+    static constexpr uint8_t m_maxNumRoi       = 16;  //!< VDEnc maximum number of ROI supported
+    static constexpr uint8_t m_maxNumNativeRoi = 3;   //!< Number of native ROI supported by VDEnc HW
+
+protected:
 
     static const uint32_t AVC_I_SLICE_SIZE_MINUS = 500;                                    //!< VDENC I SLICE threshold
     static const uint32_t AVC_P_SLICE_SIZE_MINUS = 500;                                    //!< VDENC P SLICE threshold

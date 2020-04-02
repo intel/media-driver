@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -253,7 +253,7 @@ void MhwVeboxInterfaceG9::SetVeboxSurfaces(
     case Format_NV12:
         dwFormat          = VeboxSurfaceState.SURFACE_FORMAT_PLANAR4208;
         bInterleaveChroma = true;
-        wUYOffset         = (uint16_t)pSurfaceParam->dwHeight;
+        wUYOffset         = (uint16_t)pSurfaceParam->dwUYoffset;
         break;
 
     case Format_YUYV:
@@ -350,7 +350,7 @@ void MhwVeboxInterfaceG9::SetVeboxSurfaces(
     case Format_P016:
         dwFormat          = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42016;
         bInterleaveChroma = true;
-        wUYOffset         = (uint16_t)pSurfaceParam->dwHeight;
+        wUYOffset         = (uint16_t)pSurfaceParam->dwUYoffset;
         break;
 
     case Format_R10G10B10A2:

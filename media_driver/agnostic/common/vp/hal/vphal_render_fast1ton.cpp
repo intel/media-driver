@@ -852,7 +852,7 @@ MOS_STATUS VpHal_Fast1toNRender(
     for (index = 0; index < pFast1toNState->uDstCount; index++)
     {
         pFast1toNState->pTarget[index]      = pRenderParams->pTarget[index];
-        pFast1toNState->Aligned16[index]    = pRenderParams->pTarget[index]->bUsrPtr;
+        pFast1toNState->Aligned16[index]    = pRenderParams->pTarget[index]->b16UsrPtr;
         dwOutputRegionWidth                 = pFast1toNState->pTarget[index]->rcSrc.right  - pFast1toNState->pTarget[index]->rcSrc.left;
         dwOutputRegionHeight                = pFast1toNState->pTarget[index]->rcSrc.bottom - pFast1toNState->pTarget[index]->rcSrc.top;
         RenderData.ScalingStep_H[index]     = (float)1.0 / (float)dwOutputRegionWidth;
